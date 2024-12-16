@@ -552,6 +552,145 @@ namespace OpenMS
       }
     }
 
+
+  struct IDSwitchResult
+  {
+    // the score name, orientation and type used before the switch
+    String original_score_name;
+    bool original_score_higher_better = true;
+    IDScoreSwitcherAlgorithm::ScoreType original_score_type = IDScoreSwitcherAlgorithm::ScoreType::RAW;
+    // the score name, orientation and type used after the switch
+    bool requested_score_higher_better = original_score_higher_better;    
+    IDScoreSwitcherAlgorithm::ScoreType requested_score_type = original_score_type;      
+    String requested_score_name; // the search engine score name (e.g. "X!Tandem_score" or score category (e.g. "PEP")
+    // wheter the main score was switched
+    bool score_switched = false;
+  };
+
+  static IDSwitchResult switchToScoreType(ConsensusMap& cmap, String requested_score_type_as_string, bool include_unassigned = true)
+  {
+    IDSwitchResult result;
+    // fill in the original score name, orientation and type
+    IDScoreSwitcherAlgorithm().determineScoreNameOrientationAndType(cmap, 
+      result.original_score_name, 
+      result.original_score_higher_better, 
+      result.original_score_type,
+      include_unassigned);
+
+    // initalize with the assumption that the main score is the requested score
+    result.requested_score_name = result.original_score_name; // the search engine score name (e.g. "X!Tandem_score" or score category (e.g. "PEP")
+    result.requested_score_type = result.original_score_type;
+    result.requested_score_higher_better = result.original_score_higher_better;          
+
+    // no score type specified -> use main score
+    if (requested_score_type_as_string.empty())
+    {
+      OPENMS_LOG_DEBUG << "No score type specified. Using main score." << std::endl;
+      return result;
+    }
+
+    // ENUM for requested score type (e.g. "RAW", "PEP", "q-value")
+    result.requested_score_type = IDScoreSwitcherAlgorithm::toScoreTypeEnum(requested_score_type_as_string);
+    if (result.requested_score_type != result.original_score_type) // switch needed because we change type?
+    { // user requests a different score type than the main score
+      result.requested_score_higher_better = IDScoreSwitcherAlgorithm().isScoreTypeHigherBetter(result.requested_score_type);
+      IDScoreSwitcherAlgorithm idsa;
+      Size counter = 0; 
+      idsa.switchToGeneralScoreType(cmap, result.requested_score_type, counter, include_unassigned);
+      OPENMS_LOG_DEBUG << "Switched scores for " << counter << " IDs." << std::endl;
+      result.score_switched = true;
+    }
+
+    // update after potential switch and read out actual score name
+    IDScoreSwitcherAlgorithm().determineScoreNameOrientationAndType(cmap, 
+      result.requested_score_name, 
+      result.requested_score_higher_better, 
+      result.requested_score_type,
+      include_unassigned);
+
+    return result;
+  }
+
+  static IDSwitchResult switchToScoreType(std::vector<PeptideIdentification>& pep_ids, String requested_score_type_as_string)
+  {
+    IDSwitchResult result;
+    // fill in the original score name, orientation and type
+    IDScoreSwitcherAlgorithm().determineScoreNameOrientationAndType(pep_ids, 
+      result.original_score_name, 
+      result.original_score_higher_better, 
+      result.original_score_type
+      );
+
+    // initalize with the assumption that the main score is the requested score
+    result.requested_score_name = result.original_score_name; // the search engine score name (e.g. "X!Tandem_score" or score category (e.g. "PEP")
+    result.requested_score_type = result.original_score_type;
+    result.requested_score_higher_better = result.original_score_higher_better;
+
+    // no score type specified -> use main score
+    if (requested_score_type_as_string.empty())
+    {
+      OPENMS_LOG_DEBUG << "No score type specified. Using main score." << std::endl;
+      return result;
+    }
+
+    // ENUM for requested score type (e.g. "RAW", "PEP", "q-value")
+    result.requested_score_type = IDScoreSwitcherAlgorithm::toScoreTypeEnum(requested_score_type_as_string);
+    if (result.requested_score_type != result.original_score_type) // switch needed because we change type?
+    { // user requests a different score type than the main score
+      result.requested_score_higher_better = IDScoreSwitcherAlgorithm().isScoreTypeHigherBetter(result.requested_score_type);
+      IDScoreSwitcherAlgorithm idsa;
+      Size counter = 0; 
+      idsa.switchToGeneralScoreType(pep_ids, result.requested_score_type, counter);
+      OPENMS_LOG_DEBUG << "Switched scores for " << counter << " IDs." << std::endl;
+      result.score_switched = true;
+    }
+
+    // update after potential switch and read out actual score name
+    IDScoreSwitcherAlgorithm().determineScoreNameOrientationAndType(pep_ids, 
+      result.requested_score_name, 
+      result.requested_score_higher_better, 
+      result.requested_score_type
+      );
+
+    return result;
+  }
+
+  static void switchBackScoreType(ConsensusMap& cmap, IDSwitchResult isr, bool include_unassigned = true)
+  {
+    if (isr.score_switched)
+    {
+      // switch back to original score
+      IDScoreSwitcherAlgorithm idsa;
+      auto param = idsa.getDefaults();
+      param.setValue("new_score", isr.original_score_name);
+      param.setValue("new_score_orientation", isr.original_score_higher_better ? "higher_better" : "lower_better");
+      param.setValue("proteins", "false");
+      param.setValue("old_score", ""); // use default name generated for old score
+      idsa.setParameters(param);
+      Size counter = 0;
+      idsa.switchScores(cmap, counter, include_unassigned);
+      OPENMS_LOG_DEBUG << "Switched scores back for " << counter << " PSMs." << std::endl;
+    }
+  }
+
+  static void switchBackScoreType(std::vector<PeptideIdentification>& pep_ids, IDSwitchResult isr)
+  {
+    if (isr.score_switched)
+    {
+      // switch back to original score
+      IDScoreSwitcherAlgorithm idsa;
+      auto param = idsa.getDefaults();
+      param.setValue("new_score", isr.original_score_name);
+      param.setValue("new_score_orientation", isr.original_score_higher_better ? "higher_better" : "lower_better");
+      param.setValue("proteins", "false");
+      param.setValue("old_score", ""); // use default name generated for old score
+      idsa.setParameters(param);
+      Size counter = 0;
+      idsa.switchScores(pep_ids, counter);
+      OPENMS_LOG_DEBUG << "Switched scores back for " << counter << " PSMs." << std::endl;
+    }
+  }
+
   private:
 
     void updateMembers_() override; ///< documented in base class
