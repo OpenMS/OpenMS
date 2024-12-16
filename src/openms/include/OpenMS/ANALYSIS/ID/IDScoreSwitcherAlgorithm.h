@@ -638,8 +638,8 @@ namespace OpenMS
       result.requested_score_higher_better = IDScoreSwitcherAlgorithm().isScoreTypeHigherBetter(result.requested_score_type);
       IDScoreSwitcherAlgorithm idsa;
       auto param = idsa.getDefaults();
-      param.setValue("new_score", result.original_score_name);
-      param.setValue("new_score_orientation", result.original_score_higher_better ? "higher_better" : "lower_better");
+      param.setValue("new_score", result.requested_score_name);
+      param.setValue("new_score_orientation", result.requested_score_higher_better ? "higher_better" : "lower_better");
       param.setValue("proteins", "false");
       param.setValue("old_score", ""); // use default name generated for old score
       idsa.setParameters(param);            
@@ -703,8 +703,8 @@ namespace OpenMS
       result.requested_score_higher_better = IDScoreSwitcherAlgorithm().isScoreTypeHigherBetter(result.requested_score_type);
       IDScoreSwitcherAlgorithm idsa;
       auto param = idsa.getDefaults();
-      param.setValue("new_score", result.original_score_name);
-      param.setValue("new_score_orientation", result.original_score_higher_better ? "higher_better" : "lower_better");
+      param.setValue("new_score", result.requested_score_name);
+      param.setValue("new_score_orientation", result.requested_score_higher_better ? "higher_better" : "lower_better");
       param.setValue("proteins", "false");
       param.setValue("old_score", ""); // use default name generated for old score
       idsa.setParameters(param);            

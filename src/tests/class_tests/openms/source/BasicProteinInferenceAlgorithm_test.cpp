@@ -165,7 +165,7 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       TEST_EQUAL(prots[0].getHits()[5].getScore(), 10.0)
 
       TEST_EQUAL(prots[0].getIndistinguishableProteins().size(), 4);
-      TEST_EQUAL(prots[0].getIndistinguishableProteins()[0].probability, 10.9);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins()[0].probability, 10.0);
       TEST_EQUAL(prots[0].getIndistinguishableProteins()[1].probability, 5.0);
       TEST_EQUAL(prots[0].getIndistinguishableProteins()[2].probability, 2.5);
       TEST_EQUAL(prots[0].getIndistinguishableProteins()[3].probability, 2.5);
@@ -210,8 +210,8 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
 
       TEST_EQUAL(prots[0].getIndistinguishableProteins().size(), 3);
       TEST_EQUAL(prots[0].getIndistinguishableProteins().at(0).probability, 10);
-      TEST_EQUAL(prots[0].getIndistinguishableProteins().at(1).probability, 2.5);
-      TEST_EQUAL(prots[0].getIndistinguishableProteins().at(2).probability, 5.0);      
+      TEST_EQUAL(prots[0].getIndistinguishableProteins().at(1).probability, 5.0);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins().at(2).probability, 2.5);      
     }
     END_SECTION
 
