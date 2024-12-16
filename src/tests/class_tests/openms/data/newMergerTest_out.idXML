@@ -33,17 +33,17 @@
 			<PeptideHit score="0.4" sequence="STFDFYQRRLVTLAESPRAPSP" charge="2" aa_before="K [" aa_after="G ]" start="227 4" end="248 25" protein_refs="PH_0 PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
-				<UserParam type="float" name="XTandem_score" value="2"/>
+				<UserParam type="float" name="XTandem_score" value="2.5"/>
 			</PeptideHit>
 			<PeptideHit score="0.5" sequence="EDQSCPSERRRAFSRLRFGPS" charge="2" aa_before="[" aa_after="]" start="0" end="20" protein_refs="PH_2" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="XTandem_score" value="4"/>
+				<UserParam type="float" name="XTandem_score" value="2"/>
 			</PeptideHit>
 			<PeptideHit score="0.6" sequence="EWATYTCVLGFHVYVPVR" charge="2" aa_before="[" aa_after="]" start="0" end="17" protein_refs="PH_3" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="XTandem_score" value="6"/>
+				<UserParam type="float" name="XTandem_score" value="1.666"/>
 			</PeptideHit>
 			<UserParam type="int" name="id_merge_index" value="0"/>
 		</PeptideIdentification>
@@ -51,11 +51,11 @@
 			<PeptideHit score="0.2" sequence="EWATYTCVLGFHVYVPVR" charge="2" aa_before="[" aa_after="]" start="0" end="17" protein_refs="PH_3" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="XTandem_score" value="3"/>
+				<UserParam type="float" name="XTandem_score" value="5"/>
 			</PeptideHit>
 			<PeptideHit score="0.3" sequence="NIEMATCHED" charge="2" >
 				<UserParam type="string" name="protein_references" value="unmatched"/>
-				<UserParam type="float" name="XTandem_score" value="1"/>
+				<UserParam type="float" name="XTandem_score" value="3.333"/>
 			</PeptideHit>
 			<UserParam type="int" name="id_merge_index" value="0"/>
 		</PeptideIdentification>
@@ -63,12 +63,12 @@
 			<PeptideHit score="0.4" sequence="LVTLAESPRAPSP" charge="2" aa_before="K [" aa_after="G ]" start="227 4" end="248 25" protein_refs="PH_3 PH_4" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
-				<UserParam type="float" name="XTandem_score" value="5"/>
+				<UserParam type="float" name="XTandem_score" value="2.5"/>
 			</PeptideHit>
 			<PeptideHit score="0.5" sequence="EDQRRAFSRLRFGPS" charge="2" aa_before="[" aa_after="]" start="0" end="20" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="XTandem_score" value="10"/>
+				<UserParam type="float" name="XTandem_score" value="2"/>
 			</PeptideHit>
 			<UserParam type="int" name="id_merge_index" value="1"/>
 		</PeptideIdentification>
@@ -76,7 +76,7 @@
 			<PeptideHit score="0.1" sequence="FIANGE" charge="2" aa_before="D" aa_after="R" start="1" end="6" protein_refs="PH_5" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="XTandem_score" value="20"/>				
+				<UserParam type="float" name="XTandem_score" value="10"/>				
 			</PeptideHit>
 			<UserParam type="int" name="id_merge_index" value="1"/>
 		</PeptideIdentification>

@@ -339,7 +339,7 @@ namespace OpenMS
    determination, assuming that all identifications in the vector have the same score type and orientation.
 
    @param pep_ids The vector of PeptideIdentification objects to inspect.
-   @param overall_score_type Output parameter to store the determined overall score type.
+   @param name Output parameter to store the determined overall score type.
    @param higher_better Output parameter to store whether a higher score is considered better.
    @note This method assumes that all PeptideIdentification objects in the input vector have the same score type and orientation.
   */
@@ -378,7 +378,7 @@ namespace OpenMS
    considers unassigned peptide identifications.
 
    @param cmap The ConsensusMap to inspect.
-   @param overall_score_type Output parameter to store the determined overall score type.
+   @param name Output parameter to store the determined overall score type.
    @param higher_better Output parameter to store whether a higher score is considered better.
    @param include_unassigned If true, unassigned peptide identifications are considered if no assigned ones are found. Default is true.
   */
@@ -552,7 +552,36 @@ namespace OpenMS
       }
     }
 
-
+  /**
+   * @brief Structure holding score switching information for IDScoreSwitcherAlgorithm.
+   *
+   * This structure contains both the original and requested score details, including
+   * score names, their orientation (whether higher scores are better), and score types
+   * before and after the switch. It also includes a flag to indicate if the main score
+   * has been switched. Used to switch back to the original score if needed.
+   *
+   * @var original_score_name
+   *     The name of the original score used before the switch.
+   *
+   * @var original_score_higher_better
+   *     Indicates if a higher original score is considered better. Defaults to true.
+   *
+   * @var original_score_type
+   *     The type of the original score before the switch. Defaults to IDScoreSwitcherAlgorithm::ScoreType::RAW.
+   *
+   * @var requested_score_higher_better
+   *     Indicates if a higher requested score is considered better. Initialized to original_score_higher_better.
+   *
+   * @var requested_score_type
+   *     The type of the requested score after the switch. Initialized to original_score_type.
+   *
+   * @var requested_score_name
+   *     The name of the requested score, which can be a search engine score name (e.g., "X!Tandem_score") 
+   *     or a score category (e.g., "PEP").
+   *
+   * @var score_switched
+   *     Flag indicating whether the main score has been switched. Defaults to false.
+   */
   struct IDSwitchResult
   {
     // the score name, orientation and type used before the switch
@@ -567,6 +596,19 @@ namespace OpenMS
     bool score_switched = false;
   };
 
+  /**
+   * @brief Switches the score type of a ConsensusMap to the requested score type.
+   *
+   * This static method updates the scores within the provided ConsensusMap to the specified
+   * score type. It determines the original score properties, checks if a switch is necessary
+   * based on the requested score type, and performs the switch if required.
+   *
+   * @param cmap The ConsensusMap object whose score types are to be switched.
+   * @param requested_score_type_as_string The desired score type as a string (e.g., "RAW", "PEP", "q-value").
+   * @param include_unassigned Optional flag indicating whether to include unassigned IDs in the score switch. Defaults to true.
+   *
+   * @return An IDSwitchResult structure containing information about the score switch operation, including the original and requested score names, types, and whether a switch was performed.
+   */
   static IDSwitchResult switchToScoreType(ConsensusMap& cmap, String requested_score_type_as_string, bool include_unassigned = true)
   {
     IDSwitchResult result;
@@ -611,6 +653,20 @@ namespace OpenMS
     return result;
   }
 
+  /**
+   * @brief Switches the score type of peptide identifications to the requested type.
+   *
+   * This static function modifies the provided vector of PeptideIdentification objects by switching
+   * their main score to the specified type. If no score type is requested, the original main score
+   * is retained. The function determines the original score's name, orientation, and type, and updates
+   * these attributes based on the requested score type. If a different score type is requested,
+   * it performs the switch and updates the relevant score information.
+   *
+   * @param pep_ids A vector of PeptideIdentification objects to be processed.
+   * @param requested_score_type_as_string The desired score type as a string (e.g., "RAW", "PEP", "q-value").
+   * @return IDSwitchResult A struct containing details about the original and requested score types,
+   *                        whether a switch was performed, and the number of IDs updated.
+   */
   static IDSwitchResult switchToScoreType(std::vector<PeptideIdentification>& pep_ids, String requested_score_type_as_string)
   {
     IDSwitchResult result;
@@ -655,6 +711,16 @@ namespace OpenMS
     return result;
   }
 
+  /**
+   * @brief Reverts the score type of a ConsensusMap to its original type based on the provided IDSwitchResult.
+   *
+   * This function checks if the scores have been switched and, if so, it switches them back to the original score type.
+   * It updates the ConsensusMap by switching the scores, optionally including unassigned PSMs.
+   *
+   * @param cmap The ConsensusMap object whose scores will be modified.
+   * @param isr The IDSwitchResult containing information about the score switch.
+   * @param include_unassigned A boolean flag indicating whether to include unassigned PSMs in the score switching process. Defaults to true.
+   */
   static void switchBackScoreType(ConsensusMap& cmap, IDSwitchResult isr, bool include_unassigned = true)
   {
     if (isr.score_switched)
@@ -673,6 +739,16 @@ namespace OpenMS
     }
   }
 
+  /**
+   * @brief Reverts the scoring type of peptide identifications to their original scores.
+   *
+   * This function checks if the scores have been switched. If so, it restores the original scoring parameters
+   * using the provided IDSwitchResult. It updates the peptide identifications accordingly and logs the number
+   * of PSMs (Peptide-Spectrum Matches) that were reverted.
+   *
+   * @param pep_ids A vector of PeptideIdentification objects to be updated.
+   * @param isr An IDSwitchResult object containing information about the score switch state and original score details.
+   */
   static void switchBackScoreType(std::vector<PeptideIdentification>& pep_ids, IDSwitchResult isr)
   {
     if (isr.score_switched)

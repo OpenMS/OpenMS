@@ -158,24 +158,21 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       bpia.run(peps, prots);
       TEST_EQUAL(peps[0].getScoreType(), "Posterior Error Probability"); // check if main score has been reset again to PEP
 
-      TEST_EQUAL(prots[0].getHits().size(), 5)
-      TEST_EQUAL(prots[0].getHits()[0].getScore(), 2)
-      TEST_EQUAL(prots[0].getHits()[1].getScore(), 2)
-      TEST_EQUAL(prots[0].getHits()[2].getScore(), 3) 
-      TEST_EQUAL(prots[0].getHits()[3].getScore(), 5)
-      TEST_EQUAL(prots[0].getHits()[4].getScore(), 20)
+      TEST_EQUAL(prots[0].getHits().size(), 4)
+      TEST_EQUAL(prots[0].getHits().at(0).getScore(), 2.5)
+      TEST_EQUAL(prots[0].getHits().at(1).getScore(), 2.5)
+      TEST_EQUAL(prots[0].getHits().at(2).getScore(), 2.5) 
+      TEST_EQUAL(prots[0].getHits().at(3).getScore(), 10.0)
 
-      TEST_EQUAL(prots[0].getHits()[0].getMetaValue("nr_found_peptides"), 1)
-      TEST_EQUAL(prots[0].getHits()[1].getMetaValue("nr_found_peptides"), 1)
-      TEST_EQUAL(prots[0].getHits()[2].getMetaValue("nr_found_peptides"), 2)
-      TEST_EQUAL(prots[0].getHits()[3].getMetaValue("nr_found_peptides"), 1)
-      TEST_EQUAL(prots[0].getHits()[4].getMetaValue("nr_found_peptides"), 1)
+      TEST_EQUAL(prots[0].getHits().at(0).getMetaValue("nr_found_peptides"), 1)
+      TEST_EQUAL(prots[0].getHits().at(1).getMetaValue("nr_found_peptides"), 1)
+      TEST_EQUAL(prots[0].getHits().at(2).getMetaValue("nr_found_peptides"), 2)
+      TEST_EQUAL(prots[0].getHits().at(3).getMetaValue("nr_found_peptides"), 1)    
 
-      TEST_EQUAL(prots[0].getIndistinguishableProteins().size(), 4);
-      TEST_EQUAL(prots[0].getIndistinguishableProteins()[0].probability, 20);
-      TEST_EQUAL(prots[0].getIndistinguishableProteins()[1].probability, 5);
-      TEST_EQUAL(prots[0].getIndistinguishableProteins()[2].probability, 3);
-      TEST_EQUAL(prots[0].getIndistinguishableProteins()[3].probability, 2);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins().size(), 3);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins().at(0).probability, 10);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins().at(1).probability, 2.5);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins().at(2).probability, 2.5);      
     }
     END_SECTION
 
