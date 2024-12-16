@@ -559,12 +559,12 @@ namespace OpenMS
     prot_run.setSearchParameters(sp);
 
     String main_score_name;
-    bool higher_better = true;
+    bool main_higher_better = true;
     IDScoreSwitcherAlgorithm::ScoreType main_score_type;
-    IDScoreSwitcherAlgorithm().determineScoreNameOrientationAndType(pep_ids, main_score_name, higher_better, main_score_type);
+    IDScoreSwitcherAlgorithm().determineScoreNameOrientationAndType(pep_ids, main_score_name, main_higher_better, main_score_type);
 
-    bool pep_scores = IDScoreSwitcherAlgorithm().isScoreType(main_score_name, IDScoreSwitcherAlgorithm::ScoreType::PEP);
-    double initScore = getInitScoreForAggMethod_(aggregation_method, pep_scores || higher_better); // if we have pep scores, we will complement to pp during aggregation
+    bool pep_scores = (main_score_type == IDScoreSwitcherAlgorithm::ScoreType::PEP);
+    double initScore = getInitScoreForAggMethod_(aggregation_method, pep_scores || main_higher_better); // if we have pep scores, we will complement to pp during aggregation
 
     //create Accession to ProteinHit and peptide count map. To have quick access later.
     //If a protein occurs in multiple runs, it picks the last
@@ -576,9 +576,9 @@ namespace OpenMS
 
     checkCompat_(main_score_name, aggregation_method);
 
-    aggregatePeptideScores_(best_pep, pep_ids, main_score_name, higher_better, prot_run.getIdentifier());
+    aggregatePeptideScores_(best_pep, pep_ids, main_score_name, main_higher_better, prot_run.getIdentifier());
 
-    updateProteinScores_(acc_to_protein_hitP_and_count, best_pep, pep_scores, higher_better);
+    updateProteinScores_(acc_to_protein_hitP_and_count, best_pep, pep_scores, main_higher_better);
 
     if (pep_scores) // we converted/ will convert
     {
@@ -588,7 +588,7 @@ namespace OpenMS
     else
     {
       prot_run.setScoreType(main_score_name);
-      prot_run.setHigherScoreBetter(higher_better);
+      prot_run.setHigherScoreBetter(main_higher_better);
     }
 
     if (min_peptides_per_protein > 0)

@@ -140,6 +140,45 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
     }
     END_SECTION
 
+    START_SECTION(BasicProteinInferenceAlgorithm on Protein Peptide ID with grouping and user score)
+    {
+      vector<ProteinIdentification> prots;
+      vector<PeptideIdentification> peps;
+      IdXMLFile idf;
+      idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
+      BasicProteinInferenceAlgorithm bpia;
+      Param p = bpia.getParameters();
+      p.setValue("min_peptides_per_protein", 0);
+      p.setValue("annotate_indistinguishable_groups", "true");
+      p.setValue("score_type", "RAW");  // should use the XTandem score meta value      
+      bpia.setParameters(p);
+
+      TEST_EQUAL(peps[0].getScoreType(), "Posterior Error Probability"); // check if main score is PEP
+      bpia.run(peps, prots);
+      TEST_EQUAL(peps[0].getScoreType(), "Posterior Error Probability"); // check if main score has been reset again to PEP
+      
+      TEST_EQUAL(prots[0].getHits()[0].getScore(), 0.6)
+      TEST_EQUAL(prots[0].getHits()[1].getScore(), 0.6)
+      TEST_EQUAL(prots[0].getHits()[2].getScore(), -std::numeric_limits<double>::infinity())  // TODO: +inf?
+      TEST_EQUAL(prots[0].getHits()[3].getScore(), 0.8)
+      TEST_EQUAL(prots[0].getHits()[4].getScore(), 0.6)
+      TEST_EQUAL(prots[0].getHits()[5].getScore(), 0.9)
+
+      TEST_EQUAL(prots[0].getIndistinguishableProteins().size(), 4);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins()[0].probability, 0.9);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins()[1].probability, 0.8);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins()[2].probability, 0.6);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins()[3].probability, 0.6);
+
+      TEST_EQUAL(prots[0].getHits()[0].getMetaValue("nr_found_peptides"), 1)
+      TEST_EQUAL(prots[0].getHits()[1].getMetaValue("nr_found_peptides"), 1)
+      TEST_EQUAL(prots[0].getHits()[2].getMetaValue("nr_found_peptides"), 0)
+      TEST_EQUAL(prots[0].getHits()[3].getMetaValue("nr_found_peptides"), 2)
+      TEST_EQUAL(prots[0].getHits()[4].getMetaValue("nr_found_peptides"), 1)
+      TEST_EQUAL(prots[0].getHits()[5].getMetaValue("nr_found_peptides"), 1)
+    }
+    END_SECTION
+
     START_SECTION(BasicProteinInferenceAlgorithm on Protein Peptide ID with grouping plus resolution and user set score type)
     {
       vector<ProteinIdentification> prots;
