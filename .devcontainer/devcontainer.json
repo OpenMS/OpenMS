@@ -29,5 +29,6 @@
                 "cmake.buildDirectory": "${workspaceFolder}/build"
             }
         }
-    }
+    },
+    "postCreateCommand": "yum install openssh-clients -y"
 }
