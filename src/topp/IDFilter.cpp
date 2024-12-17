@@ -132,11 +132,11 @@ protected:
     registerDoubleOption_("score:psm", "<score>", NAN, "The score which should be reached by a peptide hit to be kept. (use 'NAN' to disable this filter)", false);
     registerDoubleOption_("score:peptide", "<score>", NAN, "The score which should be reached by a peptide hit to be kept.  (use 'NAN' to disable this filter)", false);
     registerStringOption_("score:type_peptide", "<type>", "", "Score used for filtering. If empty, the main score is used.", false, true);
-    setValidStrings_("score:type_peptide", ids.getScoreTypeNames());
+    setValidStrings_("score:type_peptide", ids.getScoreNames());
 
     registerDoubleOption_("score:protein", "<score>", NAN, "The score which should be reached by a protein hit to be kept. All proteins are filtered based on their singleton scores irrespective of grouping. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides. (use 'NAN' to disable this filter)", false);
     registerStringOption_("score:type_protein", "<type>", "", "The type of the score which should be reached by a protein hit to be kept. If empty, the most recently set score is used.", false, true);
-    setValidStrings_("score:type_protein", ids.getScoreTypeNames());
+    setValidStrings_("score:type_protein", ids.getScoreNames());
 
     registerDoubleOption_("score:proteingroup", "<score>", NAN, "The score which should be reached by a protein group to be kept. Performs group level score filtering (including groups of single proteins). Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides. (use 'NAN' to disable this filter)", false);
 
@@ -579,7 +579,7 @@ protected:
 
       if (!score_type.empty())
       {
-        IDScoreSwitcherAlgorithm::ScoreType score_type_enum = IDScoreSwitcherAlgorithm::getScoreType(score_type);
+        IDScoreSwitcherAlgorithm::ScoreType score_type_enum = IDScoreSwitcherAlgorithm::toScoreTypeEnum(score_type);
         IDFilter::filterHitsByScore(proteins, pep_score, score_type_enum);
       }
       else
@@ -665,7 +665,7 @@ protected:
       OPENMS_LOG_INFO << "Filtering by protein score  (better than " << prot_score << ") ..." << endl;
       if (!score_type_prot.empty())
       {
-        IDScoreSwitcherAlgorithm::ScoreType score_type_prot_enum = IDScoreSwitcherAlgorithm::getScoreType(score_type_prot);
+        IDScoreSwitcherAlgorithm::ScoreType score_type_prot_enum = IDScoreSwitcherAlgorithm::toScoreTypeEnum(score_type_prot);
         IDFilter::filterHitsByScore(proteins, prot_score, score_type_prot_enum);
       }
       else
