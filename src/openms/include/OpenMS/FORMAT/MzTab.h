@@ -475,6 +475,10 @@ public:
 
     const MzTabPSMSectionRows& getPSMSectionRows() const;
 
+    /// Returns the number of PSMs in the PSM section (which is not necessarily the number of rows in the section, due to duplication of rows for each protein)
+    /// @note Relies on the PSM_ID to be set correctly for each PSM row
+    size_t getNumberOfPSMs() const;
+
     void setPSMSectionRows(const MzTabPSMSectionRows& psd);
 
     const MzTabSmallMoleculeSectionRows& getSmallMoleculeSectionRows() const;

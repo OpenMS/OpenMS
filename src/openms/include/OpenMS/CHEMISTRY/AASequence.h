@@ -82,7 +82,7 @@ namespace OpenMS
 
       @ingroup Chemistry
   */
-  class OPENMS_DLLAPI AASequence
+  class OPENMS_DLLAPI AASequence final
   {
 public:
 
@@ -92,7 +92,7 @@ public:
 
         AASequence constant iterator
     */
-    class OPENMS_DLLAPI ConstIterator
+    class OPENMS_DLLAPI ConstIterator final
     {
     public:
       // TODO Iterator constructor for ConstIterator
@@ -129,7 +129,7 @@ public:
       }
 
       /// destructor
-      virtual ~ConstIterator() = default;
+      ~ConstIterator() = default;
 
       //@}
 
@@ -210,7 +210,7 @@ protected:
 
         Mutable iterator for AASequence
     */
-    class OPENMS_DLLAPI Iterator
+    class OPENMS_DLLAPI Iterator final
     {
 public:
 
@@ -239,7 +239,7 @@ public:
       Iterator(const Iterator& rhs) = default;
 
       /// destructor
-      virtual ~Iterator() = default;
+      ~Iterator() = default;
 
       //@}
 
@@ -334,23 +334,23 @@ protected:
     //@{
 
     /// Default constructor
-    AASequence();
+    AASequence() = default;
 
     /// Copy constructor
     AASequence(const AASequence&) = default;
 
     /// Move constructor
-    AASequence(AASequence&&) noexcept = default;
+    AASequence(AASequence&&) = default;
 
     /// Destructor
-    virtual ~AASequence();
+    ~AASequence() = default;
     //@}
 
     /// Assignment operator
     AASequence& operator=(const AASequence&) = default;
 
     /// Move assignment operator
-    AASequence& operator=(AASequence&&) = default; // TODO: add noexcept (gcc 4.8 bug)
+    AASequence& operator=(AASequence&&) = default;
 
     /// check if sequence is empty
     bool empty() const;
@@ -597,13 +597,31 @@ protected:
     static AASequence fromString(const char* s,
                                  bool permissive = true);
 
+    /// @brief constructor from String
+    /// @param s A String representing the amino acid sequence
+    explicit AASequence(const String& s);
+
+    /// @brief constructor from C string
+    /// @param s A C-style string representing the amino acid sequence
+    explicit AASequence(const char* s);
+
+    /// @brief constructor from String
+    /// @param s A String representing the amino acid sequence
+    /// @param permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
+    explicit AASequence(const String& s, bool permissive);
+
+    /// @brief constructor from C string
+    /// @param s A C-style string representing the amino acid sequence
+    /// @param permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
+    explicit AASequence(const char* s, bool permissive);
+
   protected:
 
     std::vector<const Residue*> peptide_;
 
-    const ResidueModification* n_term_mod_;
+    const ResidueModification* n_term_mod_ = nullptr;
 
-    const ResidueModification* c_term_mod_;
+    const ResidueModification* c_term_mod_ = nullptr;
 
     /**
       @brief Parses modifications in round brackets (an identifier)

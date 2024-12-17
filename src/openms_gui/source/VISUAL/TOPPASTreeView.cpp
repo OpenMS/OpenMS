@@ -137,7 +137,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPASTreeView::enterEvent(QEvent* /*e*/)
+  void TOPPASTreeView::enterEvent(QEnterEvent* /*e*/)
   {
     setFocus();
   }

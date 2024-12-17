@@ -18,13 +18,14 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASToolConfigDialog.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <QtWidgets/QGraphicsScene>
 #include <QtWidgets/QMessageBox>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
-#include <QtCore/QRegExp>
+#include <QtCore/QRegularExpression>
 
 #include <QSvgRenderer>
 #include <map>
@@ -88,6 +89,11 @@ namespace OpenMS
     breakpoint_set_ = false;
 
     return *this;
+  }
+
+  std::unique_ptr<TOPPASVertex> TOPPASToolVertex::clone() const
+  {
+    return std::make_unique<TOPPASToolVertex>(*this);
   }
 
   bool TOPPASToolVertex::initParam_(const QString& old_ini_file)
@@ -192,8 +198,7 @@ namespace OpenMS
 
     QVector<String> hidden_entries;
     // remove entries that are handled by edges already, user should not see them
-    QVector<IOInfo> input_infos;
-    getInputParameters(input_infos);
+    QVector<IOInfo> input_infos = getInputParameters();
     for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
     {
       int index = (*it)->getTargetInParam();
@@ -209,8 +214,7 @@ namespace OpenMS
       }
     }
 
-    QVector<IOInfo> output_infos;
-    getOutputParameters(output_infos);
+    QVector<IOInfo> output_infos = getOutputParameters();
     for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
     {
       int index = (*it)->getSourceOutParam();
@@ -266,30 +270,28 @@ namespace OpenMS
     return allow_output_recycling_;
   }
 
-  void TOPPASToolVertex::getInputParameters(QVector<IOInfo>& input_infos) const
+  QVector<TOPPASToolVertex::IOInfo> TOPPASToolVertex::getInputParameters() const
   {
-    getParameters_(input_infos, true);
+    return getParameters_(true);
   }
 
-  void TOPPASToolVertex::getOutputParameters(QVector<IOInfo>& output_infos) const
+  QVector<TOPPASToolVertex::IOInfo> TOPPASToolVertex::getOutputParameters() const
   {
-    getParameters_(output_infos, false);
+    return getParameters_(false);
   }
 
-  void TOPPASToolVertex::getParameters_(QVector<IOInfo>& io_infos, bool input_params) const
+  QVector<TOPPASToolVertex::IOInfo> TOPPASToolVertex::getParameters_(bool input_params) const
   {
-    String search_tag = input_params ? "input file" : "output file";
-
-    io_infos.clear();
-
-    for (Param::ParamIterator it = param_.begin(); it != param_.end(); ++it)
-    {
-      if (it->tags.count(search_tag))
+    QVector<IOInfo> io_infos;
+    auto add_params = [&](const String& search_tag) {
+      for (Param::ParamIterator it = param_.begin(); it != param_.end(); ++it)
       {
+        if (! it->tags.count(search_tag)) continue; // skip irrelevant parameters
+
         StringList valid_types(ListUtils::toStringList<std::string>(it->valid_strings));
         for (Size i = 0; i < valid_types.size(); ++i)
         {
-          if (!valid_types[i].hasPrefix("*."))
+          if (! valid_types[i].hasPrefix("*."))
           {
             std::cerr << "Invalid restriction \"" + valid_types[i] + "\"" + " for parameter \"" + it->name + "\"!" << std::endl;
             break;
@@ -301,22 +303,30 @@ namespace OpenMS
         io_info.param_name = it.getName();
         io_info.valid_types = valid_types;
         if (it->value.valueType() == ParamValue::STRING_LIST)
-        {
+        { 
           io_info.type = IOInfo::IOT_LIST;
         }
         else if (it->value.valueType() == ParamValue::STRING_VALUE)
         {
-          io_info.type = IOInfo::IOT_FILE;
+          io_info.type = search_tag == TOPPBase::TAG_OUTPUT_DIR ?IOInfo::IOT_DIR : IOInfo::IOT_FILE;
         }
-        else
-        {
-          std::cerr << "TOPPAS: Unexpected parameter value!" << std::endl;
-        }
+        else { std::cerr << "TOPPAS: Unexpected parameter value!" << std::endl; }
         io_infos.push_back(io_info);
       }
+    };
+    if (input_params)
+    {
+      add_params(TOPPBase::TAG_INPUT_FILE);
     }
+    else
+    {
+      add_params(TOPPBase::TAG_OUTPUT_FILE);
+      add_params(TOPPBase::TAG_OUTPUT_DIR);
+    }
+
     // order in param can change --> sort
     std::sort(io_infos.begin(), io_infos.end());
+    return io_infos;
   }
 
   void TOPPASToolVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
@@ -383,17 +393,10 @@ namespace OpenMS
   QString TOPPASToolVertex::toolnameWithWhitespacesForFancyWordWrapping_(QPainter* painter, const QString& str)
   {
     qreal max_width = 130;
-/*
-         * Suppressed warning QSTring::SkipEmptyParts and QString::SplitBehaviour is deprecated
-         * QT::SkipEmptyParts and QT::SplitBehaviour is added or modified at Qt 5.14
-         */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    QStringList parts = str.split(QRegExp("\\s+"), QString::SkipEmptyParts);
-#pragma GCC diagnostic pop
+    QStringList parts = str.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
     QStringList new_parts;
 
-    foreach(QString part, parts)
+    for(const QString& part : parts)
     {
       QRectF text_boundings = painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter | Qt::TextWordWrap, part);
       if (text_boundings.width() <= max_width)
@@ -409,7 +412,7 @@ namespace OpenMS
         {
           QString tmp_str = part.left(i);
           //remember position of last capital letter
-          if (QRegExp("[A-Z]").exactMatch(tmp_str.at(i - 1)))
+          if (tmp_str.at(i - 1).isUpper())
           {
             last_capital_index = i;
           }
@@ -477,14 +480,14 @@ namespace OpenMS
     if (!success)
     {
       OPENMS_LOG_ERROR << "Could not retrieve input files from upstream nodes...\n";
-      emit toolFailed(error_msg.toQString());
+      emit toolFailed(-1, error_msg.toQString());
       return;
     }
 
     // all inputs are ready --> GO!
     if (!updateCurrentOutputFileNames(pkg, error_msg)) // based on input, we prepare output names
     {
-      emit toolFailed(error_msg.toQString());
+      emit toolFailed(-1, error_msg.toQString());
       return;
     }
 
@@ -502,9 +505,7 @@ namespace OpenMS
       shared_args << "-type" << type_.toQString();
     }
     // get *all* input|output file parameters (regardless if edge exists)
-    QVector<IOInfo> in_params, out_params;
-    getInputParameters(in_params);
-    getOutputParameters(out_params);
+    QVector<IOInfo> in_params = getInputParameters(), out_params = getOutputParameters();
 
     bool ini_round_dependent = false; // indicates if we need a new INI file for each round (usually GenericWrapper issue)
 
@@ -569,7 +570,7 @@ namespace OpenMS
         }
       }
 
-      // OUTGOING EDGES
+      // OUTGOING EDGES (output files and output folders)
       // ;output names are already prepared by 'updateCurrentOutputFileNames()'
       typedef RoundPackage::iterator EdgeIndexIt;
       for (EdgeIndexIt it_edge  = output_files_[round].begin();
@@ -694,7 +695,7 @@ namespace OpenMS
     }
     else if (ec != 0)
     {
-      emit toolFailed();
+      emit toolFailed(ec);
     }
     else
     {
@@ -749,6 +750,8 @@ namespace OpenMS
 
     for (const QString& file : files)
     {
+      if (File::isDirectory(file)) continue; // skip output directories
+
       String new_prefix = FileHandler::stripExtension(file);
       String new_suffix = FileTypes::typeToName(FileHandler::getTypeByContent(file)); // this might replace bla.fasta with bla.FASTA ... which is the same file on Windows
       if (file.endsWith(new_suffix.toQString(), Qt::CaseInsensitive)) // --> use the native suffix (to avoid deleting the source file when renaming)
@@ -777,6 +780,12 @@ namespace OpenMS
       {
         for (int fi = 0; fi < it->second.filenames.size(); ++fi)
         {
+          // skip output directories
+          if (File::isDirectory(it->second.filenames[fi]))
+          { 
+            continue;
+          }
+
           // rename file and update record
           String old_filename = QDir::toNativeSeparators(it->second.filenames[fi]);
           String new_filename = QDir::toNativeSeparators(name_old_to_new[it->second.filenames[fi]].toString().toQString());
@@ -824,6 +833,7 @@ namespace OpenMS
 
   bool TOPPASToolVertex::updateCurrentOutputFileNames(const RoundPackages& pkg, String& error_msg)
   {
+    const auto number_of_rounds = pkg.size();
     if (pkg.empty())
     {
       error_msg = "Less than one round received from upstream tools. Something is fishy!\n";
@@ -831,9 +841,7 @@ namespace OpenMS
       return false;
     }
 
-
-    QVector<IOInfo> out_params;
-    getOutputParameters(out_params);
+    QVector<IOInfo> out_params = getOutputParameters();
     // check if this tool outputs a list of files, or only single files
     bool has_only_singlefile_output = !IOInfo::isAnyList(out_params);
 
@@ -882,7 +890,7 @@ namespace OpenMS
     // now we construct output filenames for this node
     // use names from the selected upstream vertex (hoping that this is the maximal number of files we are going to produce)
     std::vector<QStringList> per_round_basenames;
-    for (Size i = 0; i < pkg.size(); ++i)
+    for (Size i = 0; i < number_of_rounds; ++i)
     {
       QStringList filenames = pkg[i].find(max_size_index)->second.filenames.get();
       //
@@ -892,14 +900,7 @@ namespace OpenMS
       // try to find the type (only by looking at the suffix); not doing it manually, since it could be .mzXML.gz
       for (QString& filename : filenames)
       {
-        String fn = filename.toLower(); // tolower() is required for robust rfind() below
-        String type = FileTypes::typeToName(FileHandler::getTypeByFileName(fn));
-        // try to find it -- might not be present, since it could be 'unknown'
-        size_t pos = fn.rfind("." + type.toLower());
-        if (pos != std::string::npos)
-        {
-          filename.truncate((int)pos);
-        }
+        filename = FileHandler::stripExtension(filename).toQString();
       }
       per_round_basenames.push_back(filenames);
       //std::cerr << "  output filenames (round " << i  <<"): " << per_round_basenames.back().join(", ") << std::endl;
@@ -910,7 +911,7 @@ namespace OpenMS
 
     // clear output file list
     output_files_.clear();
-    output_files_.resize(pkg.size()); // #rounds
+    output_files_.resize(number_of_rounds);
 
     const TOPPASScene* ts = getScene_();
     
@@ -936,8 +937,12 @@ namespace OpenMS
 
       // determine output file format if possible (for suffix)
       String file_suffix;
-      String p_out_format = out_params[i].param_name + "_type"; // expected parameter name which determines output format
-      if (out_params[i].valid_types.size() == 1)
+      if (out_params[i].type == IOInfo::IOT_DIR)
+      {
+        file_suffix = "_dir"; // we need something non-empty
+      }
+      // Single file or list of files
+      else if (out_params[i].valid_types.size() == 1)
       { // only one format allowed
         auto t = FileTypes::nameToType(out_params[i].valid_types[0]);
         if (t != FileTypes::UNKNOWN) 
@@ -950,7 +955,8 @@ namespace OpenMS
           file_suffix = "." + out_params[i].valid_types[0];
         }
       }
-      else if (param_.exists(p_out_format))
+      else if (String p_out_format = out_params[i].param_name + "_type"; // expected parameter name which determines output format
+               param_.exists(p_out_format))
       { // 'out_type' or alike is specified
         if (!param_.getValue(p_out_format).toString().empty())
         {
@@ -991,27 +997,39 @@ namespace OpenMS
       vrp.edge = edge_out;
 
       std::set<QString> filename_output_set; // verify that output files are unique (avoid overwriting)
-
-      for (Size r = 0; r < per_round_basenames.size(); ++r)
+      assert(per_round_basenames.size() == number_of_rounds);
+      for (Size round = 0; round < number_of_rounds; ++round)
       {
         // store edge for this param for all rounds
-        output_files_[r][param_index] = vrp; // index by index of source-out param
+        output_files_[round][param_index] = vrp; // index by index of source-out param
 
         // list --> single file (e.g. IDMerger or FileMerger)
-        bool list_to_single = (per_round_basenames[r].size() > 1 && out_params[param_index].type == IOInfo::IOT_FILE);
-        for (const QString &input_file : per_round_basenames[r])
+        bool list_to_single = (per_round_basenames[round].size() > 1 && out_params[param_index].type == IOInfo::IOT_FILE);
+        for (const QString &input_file : per_round_basenames[round])
         {
           QString fn = path + QFileInfo(input_file).fileName(); // out_path + filename
           OPENMS_LOG_DEBUG << "Single:" << fn.toStdString() << "\n";
-          if (list_to_single)
+          if (out_params[param_index].type == IOInfo::IOT_DIR)
+          { // output is a directory
+            fn = QDir::toNativeSeparators(path);
+            if (number_of_rounds > 1)
+            { // use a different output folder for each round if multiple rounds are present
+              fn += QFileInfo(input_file).baseName(); 
+            }
+              
+            output_files_[round][param_index].filenames.push_back(fn);
+            OPENMS_LOG_DEBUG << "Dir:" << fn.toStdString() << "\n";
+            break; // only one iteration required (there is only one output dir per output param, irrespective of #input files)
+          }
+          else if (list_to_single)
           {
-            if (fn.contains(QRegExp(".*_to_.*_mrgd")))
+            if (fn.contains(QRegularExpression(".*_to_.*_mrgd")))
             {
               fn = fn.left(fn.indexOf("_to_"));
               OPENMS_LOG_DEBUG << "  first merge in merge: " << fn.toStdString() << "\n";
             }
-            QString fn_last = QFileInfo(per_round_basenames[r].last()).fileName();
-            if (fn_last.contains(QRegExp(".*_to_.*_mrgd")))
+            QString fn_last = QFileInfo(per_round_basenames[round].last()).fileName();
+            if (fn_last.contains(QRegularExpression(".*_to_.*_mrgd")))
             {
               int i_start = fn_last.indexOf("_to_") + 4;
               fn_last = fn_last.mid(i_start, fn_last.indexOf("_mrgd", i_start) - i_start);
@@ -1026,25 +1044,22 @@ namespace OpenMS
             OPENMS_LOG_DEBUG << "  Suffix-add: " << file_suffix << "\n";
           }
           fn = QDir::toNativeSeparators(fn);
-          if (filename_output_set.count(fn) > 0)
+          output_files_[round][param_index].filenames.push_back(fn);
+          if (list_to_single)
+          {
+            break; // only one iteration required
+          }
+          if (auto [it, newly_inserted] = filename_output_set.insert(fn); !newly_inserted)
           {
             error_msg = "TOPPAS failed to build correct filenames. Please report this bug, along with your Pipeline\n!";
             OPENMS_LOG_ERROR << error_msg;
             return false;
           }
-          output_files_[r][param_index].filenames.push_back(fn);
-          filename_output_set.insert(fn);
-          if (list_to_single)
-          {
-            break; // only one iteration required
-          }
         }
-      }
+      } // end for rounds
           
       //std::cerr << "output filenames (" << out_params[i].param_name <<") final: " << ListUtils::concatenate< std::set<QString> >(filename_output_set, ", ") << std::endl;
-    }
-
-
+    } // end for out params (each edge)
 
     return true;
   }

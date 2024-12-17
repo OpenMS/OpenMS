@@ -40,7 +40,7 @@ namespace OpenMS
   std::vector<OpenSwath::SwathMap> findSwathMaps(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group,
                                                  const std::vector< OpenSwath::SwathMap > & swath_maps)
   {
-    // Get the corresponding SWATH map(s), for SONAR there will be more than one map
+    // Get the corresponding SWATH map
     std::vector<OpenSwath::SwathMap> used_maps;
     for (const auto& m : swath_maps)
     {

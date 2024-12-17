@@ -94,7 +94,7 @@ namespace OpenMS
 
 #ifdef OPENMS_WINDOWSPLATFORM
         int size = sizeof(path);
-        if (GetModuleFileName(NULL, path, size))
+        if (GetModuleFileNameA(NULL, path, size))
 #elif  defined(__APPLE__)
         uint size = sizeof(path);
         if (_NSGetExecutablePath(path, &size) == 0)
@@ -244,6 +244,11 @@ namespace OpenMS
     return true;
   }
 
+  bool File::copy(const String& from, const String& to)
+  {
+    return QFile::copy(from.toQString(), to.toQString());
+  }
+
   bool File::remove(const String& file)
   {
     if (!exists(file))
@@ -282,6 +287,12 @@ namespace OpenMS
       result = dir.rmdir(dir_name);
     }
     return result;
+  }
+
+  bool File::makeDir(const String& dir_name)
+  {
+    QDir dir;
+    return dir.mkpath(dir_name.toQString());
   }
 
   bool File::removeDirRecursively(const String& dir_name)
@@ -839,56 +850,59 @@ namespace OpenMS
     }
   }
 
-  bool File::validateMatchingFileNames(const StringList& sl1, const StringList& sl2, bool basename, bool ignore_extension, bool strict)
+  File::MatchingFileListsStatus File::validateMatchingFileNames(const StringList& sl1, 
+                                                        const StringList& sl2, 
+                                                        bool basename, 
+                                                        bool ignore_extension)
   {
-    // same number of filenames?
-    if (sl1.size() != sl2.size())
-    {
-      return false;
-    }
-    set<String> sl1_set;
-    set<String> sl2_set;
-    bool different_name_at_index = false;
-    for (size_t i = 0; i != sl1.size(); ++i)
-    {
-      String sl1_name = sl1[i];
-      String sl2_name = sl2[i];
-
-      if (basename)
+      // Different counts means different sets
+      if (sl1.size() != sl2.size())
       {
-        sl1_name = File::basename(sl1_name);
-        sl2_name = File::basename(sl2_name);
+          return MatchingFileListsStatus::SET_MISMATCH;
       }
 
-      if (ignore_extension)
+      set<String> sl1_set;
+      set<String> sl2_set;
+      bool different_name_at_index = false;
+
+      // Process and compare each filename
+      for (size_t i = 0; i != sl1.size(); ++i)
       {
-        sl1_name = FileHandler::stripExtension(sl1_name);
-        sl2_name = FileHandler::stripExtension(sl2_name);
+          String sl1_name = sl1[i];
+          String sl2_name = sl2[i];
+
+          if (basename)
+          {
+              sl1_name = File::basename(sl1_name);
+              sl2_name = File::basename(sl2_name);
+          }
+
+          if (ignore_extension)
+          {
+              sl1_name = FileHandler::stripExtension(sl1_name);
+              sl2_name = FileHandler::stripExtension(sl2_name);
+          }
+
+          sl1_set.insert(sl1_name);
+          sl2_set.insert(sl2_name);
+
+          if (sl1_name != sl2_name)
+          {
+              different_name_at_index = true;
+          }
       }
 
-      sl1_set.insert(sl1_name);
-      sl2_set.insert(sl2_name);
+      bool same_set = (sl1_set == sl2_set);
 
-      if (sl1_name != sl2_name)
+      // Check if it's an order mismatch or complete mismatch
+      if (same_set)
       {
-        different_name_at_index = true;
+          return different_name_at_index ? 
+                MatchingFileListsStatus::ORDER_MISMATCH : 
+                MatchingFileListsStatus::MATCH;
       }
-    }
 
-    // Check for common mistake that order of input files have been switched.
-    // This is the case if names (or basenames) are identical but the order does not match.
-    bool same_set = (sl1_set == sl2_set);
-    if (same_set && different_name_at_index)
-    {
-      return false;
-    }
-    // If we enforce a strict check then the sets of filenames must be identical.
-    // Note that this can lead to problems if a workflow engine assigns random names to intermediate results.
-    if (strict && !same_set)
-    {
-      return false;
-    }
-    return true;
+      return MatchingFileListsStatus::SET_MISMATCH;
   }
 
   File::TemporaryFiles_ File::temporary_files_;

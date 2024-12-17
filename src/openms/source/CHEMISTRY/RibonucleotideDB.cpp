@@ -49,11 +49,7 @@ namespace OpenMS
 
   RibonucleotideDB* RibonucleotideDB::getInstance()
   {
-    static RibonucleotideDB* db_ = nullptr;
-    if (db_ == nullptr)
-    {
-      db_ = new RibonucleotideDB;
-    }
+    static RibonucleotideDB* db_ = new RibonucleotideDB(); // Meyers' singleton -> thread safe
     return db_;
   }
 
@@ -223,7 +219,7 @@ namespace OpenMS
     }
 
     QTextStream source(&file);
-    source.setCodec("UTF-8");
+    source.setAutoDetectUnicode(true);
     Size line_count = 0;
     json mod_obj;
     try
@@ -280,7 +276,7 @@ namespace OpenMS
     }
 
     QTextStream source(&file);
-    source.setCodec("UTF-8");
+    source.setAutoDetectUnicode(true);
     Size line_count = 1;
     String line = source.readLine();
     while (line[0] == '#') // skip leading comments

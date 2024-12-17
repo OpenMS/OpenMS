@@ -57,15 +57,15 @@ START_SECTION(RETURNSTATE run(const QString& exe, const QStringList& args, const
     ExternalProcess ep;
     String error_msg;
     auto r = ep.run(exe, args, "", true, error_msg);
-    TEST_EQUAL(r == ExternalProcess::RETURNSTATE::SUCCESS, true)
+    TEST_EQUAL(r, ExternalProcess::RETURNSTATE::SUCCESS)
     TEST_EQUAL(error_msg.size(), 0)
 
     r = ep.run("this_exe_does_not_exist", args, "", true, error_msg);
-    TEST_EQUAL(r == ExternalProcess::RETURNSTATE::FAILED_TO_START, true)
+    TEST_EQUAL(r,ExternalProcess::RETURNSTATE::FAILED_TO_START)
     TEST_NOT_EQUAL(error_msg.size(), 0);
 
     r = ep.run(exe, args_broken, "", true, error_msg);
-    TEST_EQUAL(r == ExternalProcess::RETURNSTATE::NONZERO_EXIT, true)
+    TEST_EQUAL(r, ExternalProcess::RETURNSTATE::NONZERO_EXIT)
     TEST_NOT_EQUAL(error_msg.size(), 0);
   }
   { // with callbacks
@@ -74,7 +74,7 @@ START_SECTION(RETURNSTATE run(const QString& exe, const QStringList& args, const
     auto l_err = [&](const String& out) {all_err += out;};
     ExternalProcess ep(l_out, l_err);
     auto r = ep.run(exe, args, "", true, error_msg);
-    TEST_EQUAL(r == ExternalProcess::RETURNSTATE::SUCCESS, true)
+    TEST_EQUAL(r, ExternalProcess::RETURNSTATE::SUCCESS)
     TEST_EQUAL(error_msg.size(), 0);
     TEST_NOT_EQUAL(all_out.size(), 0)
     TEST_EQUAL(all_err.size(), 0)
@@ -82,7 +82,7 @@ START_SECTION(RETURNSTATE run(const QString& exe, const QStringList& args, const
     all_err.clear();
 
     r = ep.run(exe, args_broken, "", false, error_msg);
-    TEST_EQUAL(r == ExternalProcess::RETURNSTATE::NONZERO_EXIT, true)
+    TEST_EQUAL(r, ExternalProcess::RETURNSTATE::NONZERO_EXIT)
     TEST_NOT_EQUAL(error_msg.size(), 0);
     TEST_EQUAL(all_out.size(), 0)
     std::cout << all_out << "\n\n";
@@ -92,7 +92,7 @@ START_SECTION(RETURNSTATE run(const QString& exe, const QStringList& args, const
 
     ep.setCallbacks(l_err, l_out); // swap callbacks
     r = ep.run(exe, args_broken, "", false, error_msg);
-    TEST_EQUAL(r == ExternalProcess::RETURNSTATE::NONZERO_EXIT, true)
+    TEST_EQUAL(r, ExternalProcess::RETURNSTATE::NONZERO_EXIT)
     TEST_NOT_EQUAL(error_msg.size(), 0);
     TEST_NOT_EQUAL(all_out.size(), 0)
     TEST_EQUAL(all_err.size(), 0)

@@ -31,7 +31,6 @@ set(sources_list
   OpenSwathWorkflow.cpp
   PeakIntegrator.cpp
   PeakPickerChromatogram.cpp
-  SONARScoring.cpp
   SwathMapMassCorrection.cpp
   SwathWindowLoader.cpp
   SwathQC.cpp

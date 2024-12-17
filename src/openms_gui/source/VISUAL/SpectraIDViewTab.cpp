@@ -23,7 +23,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonValue>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QString>
 #include <QStringList>
 #include <QtWidgets/QListWidget>
@@ -190,26 +190,25 @@ namespace OpenMS
   //extract required part of accession and open browser
   QString SpectraIDViewTab::extractNumFromAccession_(const QString& full_accession)
   {
-    //regex for matching accession
-    QRegExp reg_pre_accession("(tr|sp)");
-    reg_pre_accession.setCaseSensitivity(Qt::CaseInsensitive);
-    QRegExp reg_uniprot_accession("[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}");
+    // anchored (^...$) regex for matching accession
+    QRegularExpression reg_pre_accession("^(tr|sp)$", QRegularExpression::PatternOption::CaseInsensitiveOption);
+    QRegularExpression reg_uniprot_accession("^[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}$");
 
     // The full accession is in the form "tr|A9GID7|A9GID7_SORC5" or "P02769|ALBU_BOVIN", 
     // so split it with | and get the individual parts
     QStringList acsn = full_accession.split("|");
 
-    foreach (QString substr, acsn)
+    for (const QString& substr : acsn)
     {
       //eg, substr2 = tr, substr2 = p02769 etc
       // if substr = tr/sp then skip
-      if (reg_pre_accession.exactMatch(substr.simplified()))
+      if (reg_pre_accession.match(substr.simplified()).hasMatch())
       {
         continue;
       }
       else
       {
-        if (reg_uniprot_accession.exactMatch(substr.simplified()))
+        if (reg_uniprot_accession.match(substr.simplified()).hasMatch())
         {
           return substr.simplified();
         }

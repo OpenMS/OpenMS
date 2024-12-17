@@ -147,7 +147,7 @@ namespace OpenMS
     i = 1;
     for (auto it = rt.cbegin(); it != rt.cend(); ++it)
     {
-      projection_rt[i].setMZ(it->first);
+      projection_rt[i].setRT(it->first);
       projection_rt[i].setIntensity(it->second);
       ++i;
     }

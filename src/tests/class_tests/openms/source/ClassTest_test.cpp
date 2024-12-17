@@ -103,6 +103,33 @@ START_SECTION("NEW_TMP_FILE()")
 	TEST_EQUAL(!tmp_filename.empty(), true);
 END_SECTION
 
+START_SECTION("TEST_EQUAL()")
+{
+  TEST_EQUAL(2, 3); FAILURE_IS_SUCCESS;
+  TEST_EQUAL(2, 2);
+  TEST_EQUAL(2, 3.0); FAILURE_IS_SUCCESS;
+  TEST_EQUAL(2, 2.0);
+  TEST_EQUAL(2, 2.0f);
+  TEST_EQUAL(2.0, 2);
+  TEST_EQUAL(2.0, 2.0f);
+  TEST_EQUAL(2.0f, 2);
+  TEST_EQUAL(2.0f, 2.0);
+  enum Enum1 { A, B, C };
+  enum Enum2 { AA, BB, CC };
+  TEST_EQUAL(Enum1::A, Enum1::A);
+  TEST_EQUAL(Enum1::A, Enum1::B); FAILURE_IS_SUCCESS;
+  TEST_EQUAL(Enum1::A, Enum2::AA);
+  TEST_EQUAL(Enum1::A, Enum2::BB); FAILURE_IS_SUCCESS;
+
+  enum class Enum3 { A, B, C };
+  enum class Enum4 { A, B, C };
+  TEST_EQUAL(Enum3::A, Enum4::A);
+  TEST_EQUAL(Enum3::A, Enum3::B); FAILURE_IS_SUCCESS;
+  TEST_EQUAL(Enum3::B, Enum3::B);
+  TEST_EQUAL(Enum3::C, Enum3::A); FAILURE_IS_SUCCESS;  
+}
+END_SECTION
+
 
 START_SECTION("TEST_TRUE()")
 {

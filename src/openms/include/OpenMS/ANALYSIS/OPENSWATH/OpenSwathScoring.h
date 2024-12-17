@@ -238,11 +238,10 @@ namespace OpenMS
      * This function will fetch a vector of spectrum pointers to be used in DIA analysis.
      * If nr_spectra_to_add == 1, then a vector of length 1 will be returned
      *
-     *   - Case \#1: Non SONAR data and "simple" addition selected - Array of length "nr_spectra_to_add" returned corresponding with "nr_spectra_to_add" spectra
-     *   - Case \#2: Non SONAR data and "resampling addition selected - Array of length 1 of the resampled spectrum returned
-     *   - Case \#3: SONAR data - Array of length 1 containing the added/resampled spectrum returned
+     *   - Case \#1: "simple" addition selected - Array of length "nr_spectra_to_add" returned corresponding with "nr_spectra_to_add" spectra
+     *   - Case \#2: "resampling addition selected - Array of length 1 of the resampled spectrum returned
      *
-     * For case \#2 and \#3 result is
+     * For case \#2 result is
      * all spectra summed up (add) with the intensities of multiple spectra a single
      * swath map (assuming these are regular SWATH / DIA maps) around the given
      * retention time and return an "averaged" spectrum which may contain less noise.
@@ -264,11 +263,10 @@ namespace OpenMS
      * This function will fetch a SpectrumSequence to be used in DIA analysis.
      * If nr_spectra_to_add == 1, then a vector of length 1 will be returned.
      * Spectra are prepared differently based on the condition
-     * Case #1: Non SONAR data and "simple" addition selected - Array of length "nr_spectra_to_add" returned corresponding with "nr_spectra_to_add" spectra
-     * Case #2: Non SONAR data and "resampling addition selected - Array of length 1 of the resampled spectrum returned
-     * Case #3: SONAR data - Array of length 1 containing the added/resampled spectrum returned
+     * Case #1: "simple" addition selected - Array of length "nr_spectra_to_add" returned corresponding with "nr_spectra_to_add" spectra
+     * Case #2: "resampling addition selected - Array of length 1 of the resampled spectrum returned
      *
-     * For case #2 and #3 result is
+     * For case #2 result is
      * all spectra summed up (add) with the intensities of multiple spectra a single
      * swath map (assuming these are regular SWATH / DIA maps) around the given
      * retention time and return an "averaged" spectrum which may contain less noise.

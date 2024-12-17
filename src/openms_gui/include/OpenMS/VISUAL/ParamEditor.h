@@ -20,7 +20,7 @@
 class QModelIndex;
 class QStyleOptionViewItem;
 class QAbstractItemModel;
-class QStringList;
+#include <QtCore/qcontainerfwd.h> // for QStringList
 class QString;
 
 namespace Ui
@@ -93,9 +93,6 @@ signals:
 protected:
       /// a shortcut to calling commit(), which calls setModelData(); useful for embedded editors, but not for QDialogs etc
       bool eventFilter(QObject* editor, QEvent* event) override;
-  
-      /// Checks if a @p name is valid for the entry corresponding to @p index (checks if it would be duplicate)
-      bool exists_(const QString& name, QModelIndex index) const;
 
 private slots:
       ///For closing any editor and updating ParamEditor
@@ -110,6 +107,8 @@ private:
       ParamEditorDelegate();
       /// used to modify value of output and input files( not for output and input lists)
       mutable QString fileName_;
+      /// holds a directory name (for output directories)
+      mutable QString dirName_;
       /// true if a QLineEdit is still open and has not committed its data yet (so storing the current param is a bad idea)
       mutable bool has_uncommited_data_;
     };
@@ -121,13 +120,13 @@ private:
       Q_OBJECT
 
 public:
-      ///Constructor
+      /// Constructor
       ParamTree(QWidget * parent);
       /// Overloaded edit method to activate F2 use
       bool edit(const QModelIndex & index, EditTrigger trigger, QEvent * event) override;
 
 signals:
-      ///Signal that is emitted when a new item is selected
+      /// Signal that is emitted when a new item is selected
       void selected(const QModelIndex & index);
 
 protected slots:

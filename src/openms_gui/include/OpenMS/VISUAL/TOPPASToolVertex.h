@@ -63,7 +63,8 @@ public:
       enum IOType
       {
         IOT_FILE,
-        IOT_LIST
+        IOT_LIST,
+        IOT_DIR ///< output directory
       };
 
       /// Comparison operator
@@ -77,6 +78,11 @@ public:
         {
           return param_name.compare(rhs.param_name) < 0;
         }
+      }
+      /// Comparison operator
+      bool operator==(const IOInfo& rhs) const
+      {
+        return type == rhs.type && param_name == rhs.param_name;
       }
 
       /// Assignment operator
@@ -92,10 +98,9 @@ public:
       /// Is any of the input/output parameters a list?
       static bool isAnyList(const QVector<IOInfo>& params)
       {
-        for (QVector<IOInfo>::const_iterator it = params.begin();
-             it != params.end(); ++it)
+        for (const auto& p : params)
         {
-          if (it->type == IOT_LIST) return true;
+          if (p.type == IOT_LIST) return true;
         }
         return false;
       }
@@ -118,15 +123,17 @@ public:
     ~TOPPASToolVertex() override = default;
     /// Assignment operator
     TOPPASToolVertex& operator=(const TOPPASToolVertex& rhs);
+    
+    virtual std::unique_ptr<TOPPASVertex> clone() const override;
 
     /// returns the name of the TOPP tool
     String getName() const override;
     /// Returns the type of the tool
     const String& getType() const;
-    /// Fills @p input_infos with the required input file/list parameters together with their valid types.
-    void getInputParameters(QVector<IOInfo>& input_infos) const;
-    /// Fills @p output_infos with the required output file/list parameters together with their valid types.
-    void getOutputParameters(QVector<IOInfo>& output_infos) const;
+    /// Returns input file/list parameters together with their valid types.
+    QVector<IOInfo> getInputParameters() const;
+    /// Returns output file/list/dir parameters together with their valid types.
+    QVector<IOInfo> getOutputParameters() const;
     // documented in base class
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     // documented in base class
@@ -202,7 +209,7 @@ signals:
     /// Emitted when the tool crashes
     void toolCrashed();
     /// Emitted when the tool execution fails
-    void toolFailed(const QString& message = "");
+    void toolFailed(int return_code = -1, const QString& message = "");
     /// Emitted from forwardTOPPOutput() to forward the signal outside
     void toppOutputReady(const QString& out);
 
@@ -223,8 +230,8 @@ protected:
     bool renameOutput_();
     /// Initializes the parameters with standard values (from -write_ini), uses the parameters from the old_ini_file if given, returns if parameters have changed (if old_ini_file was given)
     bool initParam_(const QString& old_ini_file = "");
-    /// Fills @p io_infos with the required input/output file/list parameters. If @p input_params is true, input params are returned, otherwise output params.
-    void getParameters_(QVector<IOInfo>& io_infos, bool input_params) const;
+    /// returns input/output file/list parameters. If @p input_params is true, input params are returned, otherwise output params.
+    QVector<IOInfo> getParameters_(bool input_params) const;
     /// Writes @p param to the @p ini_file
     void writeParam_(const Param& param, const QString& ini_file);
     /// Helper method for finding good boundaries for wrapping the tool name. Returns a string with whitespaces at the preferred boundaries.

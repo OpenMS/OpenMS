@@ -76,10 +76,10 @@ START_SECTION((template <typename PeakType> void filter(MSChromatogram<PeakType>
   chromatogram.resize(5);
 
   MSChromatogram::Iterator it = chromatogram.begin();
-  for (Size i=0; i<5; ++i, ++it)
+  for (Size i = 0; i < 5; ++i, ++it)
   {
     it->setIntensity(1.0f);
-    it->setMZ(500.0+0.2*i);
+    it->setRT(500.0 + 0.2*i);
   }
 
   GaussFilter gauss;

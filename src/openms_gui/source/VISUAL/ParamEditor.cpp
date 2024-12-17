@@ -20,7 +20,6 @@
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QLineEdit>
-#include <QtWidgets/QShortcut>
 #include <QtWidgets/QMenu>
 #include <QItemSelection>
 #include <QtCore/QStringList>
@@ -102,6 +101,14 @@ namespace OpenMS
         fileName_ = QFileDialog::getSaveFileName(editor, tr("Output File"), dir);
         return editor;
       }
+      else if (dtype == "output dir")
+      {
+        QLineEdit* editor = new QLineEdit(parent);
+        QString dir = ""; // = index.sibling(index.row(),0).data(Qt::DisplayRole).toString();
+        if (File::isDirectory(value) || File::writable(value)) { dir = File::absolutePath(value).toQString(); }
+        dirName_ = QFileDialog::getExistingDirectory(editor, tr("Output Directory"), dir);
+        return editor;
+      }
       else if (dtype == "input file")
       {
         QLineEdit* editor = new QLineEdit(parent);
@@ -167,6 +174,13 @@ namespace OpenMS
           if (!fileName_.isNull())
           {
             static_cast<QLineEdit *>(editor)->setText(fileName_);
+          }
+        }
+        else if (dtype == "output dir") // output directory
+        {
+          if (!dirName_.isNull())
+          {
+            static_cast<QLineEdit*>(editor)->setText(dirName_);
           }
         }
         else
@@ -243,13 +257,17 @@ namespace OpenMS
       else if (qobject_cast<QLineEdit *>(editor))
       {
         QString dtype = index.sibling(index.row(), 2).data(Qt::DisplayRole).toString();
-        if (dtype == "output file" || dtype == "input file")        // input/outut file
+        if (dtype == "output file" || dtype == "input file")        // input/output file
         {
-
           new_value = QVariant(static_cast<QLineEdit *>(editor)->text());
           fileName_ = "\0";
         }
-        else if (static_cast<QLineEdit *>(editor)->text() == "" && ((dtype == "int") || (dtype == "float")))         //numeric
+        if (dtype == "output dir") // output directory
+        {
+          new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
+          dirName_ = "\0";
+        }
+        else if (static_cast<QLineEdit*>(editor)->text() == "" && ((dtype == "int") || (dtype == "float"))) // numeric
         {
           if (dtype == "int")
           {
@@ -361,31 +379,7 @@ namespace OpenMS
       // default: will call commit(), if the event was handled (e.g. a press of 'Enter')
       return QItemDelegate::eventFilter(editor, event);
     }
-
-    bool ParamEditorDelegate::exists_(const QString& name, QModelIndex index) const
-    {
-      UInt current_index = 0;
-      while (index.parent().child(current_index, 0).isValid())
-      {
-        if (
-          current_index != (UInt)(index.row())
-           &&
-          index.parent().child(current_index, 0).data(Qt::DisplayRole).toString() == name
-           &&
-          (
-            (index.data(Qt::UserRole).toInt() == 0 && index.parent().child(current_index, 0).data(Qt::UserRole).toInt() == 0)
-          ||
-            (index.data(Qt::UserRole).toInt() != 0 && index.parent().child(current_index, 0).data(Qt::UserRole).toInt() != 0)
-          )
-          )
-        {
-          return true;
-        }
-        ++current_index;
-      }
-      return false;
-    }
-
+    
     void ParamEditorDelegate::commitAndCloseEditor_()
     {
       QWidget* editor = qobject_cast<QWidget*>(sender());
@@ -587,6 +581,10 @@ namespace OpenMS
         else if (it->tags.count("output file"))
         {
           item->setText(2, "output file");
+        }
+        else if (it->tags.count("output dir"))
+        {
+          item->setText(2, "output dir");
         }
         else
         {
@@ -809,27 +807,7 @@ namespace OpenMS
           }
         }
       }
-      else if (child->text(2) == "string")
-      {
-        param_->setValue(path, child->text(1).toStdString(), description, tag_list);
-        String restrictions = child->data(2, Qt::UserRole).toString();
-        if (!restrictions.empty())
-        {
-          std::vector<std::string> parts = ListUtils::create<std::string>(restrictions);
-          param_->setValidStrings(path, parts);
-        }
-      }
-      else if (child->text(2) == "input file")
-      {
-        param_->setValue(path, child->text(1).toStdString(), description, tag_list);
-        String restrictions = child->data(2, Qt::UserRole).toString();
-        if (!restrictions.empty())
-        {
-          std::vector<std::string> parts = ListUtils::create<std::string>(restrictions);
-          param_->setValidStrings(path, parts);
-        }
-      }
-      else if (child->text(2) == "output file")
+      else if (std::unordered_set<QString> {"string", "input file", "output file", "output dir"}.count(child->text(2)))
       {
         param_->setValue(path, child->text(1).toStdString(), description, tag_list);
         String restrictions = child->data(2, Qt::UserRole).toString();

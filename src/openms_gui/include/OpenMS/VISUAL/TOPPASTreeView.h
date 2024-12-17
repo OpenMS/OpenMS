@@ -54,7 +54,7 @@ protected:
     void mouseMoveEvent(QMouseEvent * e) override;
     void keyPressEvent(QKeyEvent * e) override;
     void leaveEvent(QEvent * e) override;
-    void enterEvent(QEvent * e) override;
+    void enterEvent(QEnterEvent* e) override;
     //@}
 
     /// The drag start position

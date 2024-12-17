@@ -28,19 +28,15 @@
 
 namespace OpenMS
 {
-  TOPPASOutputFileListVertex::TOPPASOutputFileListVertex(const TOPPASOutputFileListVertex& rhs) :
-    TOPPASVertex(rhs),
-    output_folder_name_() // leave empty! otherwise we have conflicting output folder names
+  std::unique_ptr<TOPPASVertex> TOPPASOutputFileListVertex::clone() const
   {
+    return std::make_unique<TOPPASOutputFileListVertex>(*this);
   }
 
-  TOPPASOutputFileListVertex& TOPPASOutputFileListVertex::operator=(const TOPPASOutputFileListVertex& rhs)
-  {
-    TOPPASVertex::operator=(rhs);
-    output_folder_name_ = ""; // leave empty! otherwise we have conflicting output folder names
-
-    return *this;
-  }
+  String TOPPASOutputFileListVertex::getName() const
+    {
+      return "OutputFileVertex";
+    }
 
   void TOPPASOutputFileListVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
   {
@@ -62,21 +58,7 @@ namespace OpenMS
     // output folder name
     painter->drawText(painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, output_folder_name_).width()/-2, -25, output_folder_name_);
   }
-
-  void TOPPASOutputFileListVertex::setOutputFolderName(const QString& name)
-  {
-    if (output_folder_name_ != name)
-    {
-      output_folder_name_ = name;
-      emit outputFolderNameChanged(); // enable storing of modified pipeline
-    }
-  }
-
-  const QString& TOPPASOutputFileListVertex::getOutputFolderName() const
-  {
-    return output_folder_name_;
-  }
-
+  
   QRectF TOPPASOutputFileListVertex::boundingRect() const
   {
     return QRectF(-71, -41, 142, 82);
@@ -100,8 +82,8 @@ namespace OpenMS
 
     String full_dir = createOutputDir(); // create output dir
 
-    round_total_ = (int) pkg.size(); // take number of rounds from previous tool(s) - should all be equal
-    round_counter_ = 0; // once round_counter_ reaches round_total_, we are done
+    round_total_ = (int)pkg.size(); // take number of rounds from previous tool(s) - should all be equal
+    round_counter_ = 0;             // once round_counter_ reaches round_total_, we are done
 
     // clear output file list
     output_files_.clear();
@@ -117,20 +99,18 @@ namespace OpenMS
     int param_index_me = e->getTargetInParam();
     for (Size round = 0; round < pkg.size(); ++round)
     {
-      foreach(const QString &f, pkg[round][param_index_src].filenames.get())
+      foreach (const QString& f, pkg[round][param_index_src].filenames.get())
       {
-        if (!dry_run && !File::exists(f))
+        if (! dry_run && ! File::exists(f))
         {
           OPENMS_LOG_ERROR << "The file '" << String(f) << "' does not exist!" << std::endl;
           throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, f.toStdString());
         }
-        QString new_file = full_dir.toQString()
-            + QDir::separator()
-            + File::basename(f).toQString();
+        QString new_file = full_dir.toQString() + QDir::separator() + File::basename(f).toQString();
 
         // remove "_tmp<number>" if its a suffix
-        QRegExp rx("_tmp\\d+$");
-        int tmp_index = rx.indexIn(new_file);
+        QRegularExpression rx("_tmp\\d+$");
+        int tmp_index = new_file.indexOf(rx);
         if (tmp_index != -1)
         {
           new_file = new_file.left(tmp_index);
@@ -138,13 +118,12 @@ namespace OpenMS
 
         // get file type and rename
         FileTypes::Type ft = FileTypes::UNKNOWN;
-        if (!dry_run)
+        if (! dry_run)
         {
           TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(e->getSourceVertex());
           if (ttv)
           {
-            QVector<TOPPASToolVertex::IOInfo> source_output_files;
-            ttv->getOutputParameters(source_output_files);
+            QVector<TOPPASToolVertex::IOInfo> source_output_files = ttv->getOutputParameters();
             if (e->getSourceOutParam() < source_output_files.size())
             {
               StringList types = source_output_files[e->getSourceOutParam()].valid_types;
@@ -156,17 +135,13 @@ namespace OpenMS
               {
                 ft = FileHandler::getTypeByContent(f); // this will access the file physically
               }
-              // do we know the extension already? 
-              if (ft == FileTypes::UNKNOWN) 
+              // do we know the extension already?
+              if (ft == FileTypes::UNKNOWN)
               { // if not, try param value of '<name>_type' (more generic, supporting more than just 'out_type')
                 const Param& p = ttv->getParam();
                 String out_type = source_output_files[e->getSourceOutParam()].param_name + "_type";
-                if (p.exists(out_type))
-                {
-                  ft = FileTypes::nameToType(p.getValue(out_type).toString());
-                }
+                if (p.exists(out_type)) { ft = FileTypes::nameToType(p.getValue(out_type).toString()); }
               }
-
             }
           }
         }
@@ -193,18 +168,17 @@ namespace OpenMS
         round_counter_ = (int)round; // for global update, in case someone asks
         for (int i = 0; i < pkg[round][param_index_src].filenames.size(); ++i)
         {
-          QString file_from = pkg[round][param_index_src].filenames[i];
-          QString file_to   = output_files_[round][param_index_me].filenames[i];
+          String file_from = pkg[round][param_index_src].filenames[i];
+          String file_to = output_files_[round][param_index_me].filenames[i];
           if (File::exists(file_to))
           {
-            if (!QFile::remove(file_to))
+            if (! QFile::remove(file_to.toQString())) // todo: this goes wrong on first run .... why???
             {
-              String msg = "Error: Could not remove old output file '" + String(file_to) + "' for node '" + pkg[round][param_index_src].edge->getTargetVertex()->getName() + "' in preparation to write the new one. Please make sure the file is not open in other applications and try again.";
+              String msg = "Error: Could not remove old output file '" + file_to + "' for node '"
+                           + pkg[round][param_index_src].edge->getTargetVertex()->getName()
+                           + "' in preparation to write the new one. Please make sure the file is not open in other applications and try again.";
               OPENMS_LOG_ERROR << msg << std::endl;
-              if (ts->isGUIMode())
-              {
-                QMessageBox::warning(nullptr, tr("File removing failed"), tr(msg.c_str()), QMessageBox::Ok);
-              }
+              if (ts->isGUIMode()) { QMessageBox::warning(nullptr, tr("File removing failed"), tr(msg.c_str()), QMessageBox::Ok); }
               else
               {
                 throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg); // fail hard for ExecutePipeline
@@ -213,13 +187,13 @@ namespace OpenMS
           }
 
           // running the copy() in an extra thread, such that the GUI stays responsive
-  
-          auto copyFuture = std::async(std::launch::async, &copy_, file_from, file_to);  
+
+          auto copyFuture = std::async(std::launch::async, &File::copy, file_from, file_to);
           while (copyFuture.wait_for(std::chrono::milliseconds(25)) != std::future_status::ready)
           {
             qApp->processEvents(); // GUI responsiveness
           }
-            
+
           if (copyFuture.get())
           {
             ++files_written_;
@@ -227,12 +201,11 @@ namespace OpenMS
           }
           else
           {
-            String msg = "Error: Could not copy temporary output file '" + String(file_to) + "' for node '" + pkg[round][param_index_src].edge->getTargetVertex()->getName() + "' to " + String(file_to) + "'. Probably the old file still exists (see earlier errors).";
+            String msg = "Error: Could not copy temporary output file '" + file_from + "' for node '"
+                         + pkg[round][param_index_src].edge->getTargetVertex()->getName() + "' to " + file_to
+                         + "'. Probably the old file still exists (see earlier errors).";
             OPENMS_LOG_ERROR << msg << std::endl;
-            if (ts->isGUIMode())
-            {
-              QMessageBox::warning(nullptr, tr("File copy failed"), tr(msg.c_str()), QMessageBox::Ok);
-            }
+            if (ts->isGUIMode()) { QMessageBox::warning(nullptr, tr("File copy failed"), tr(msg.c_str()), QMessageBox::Ok); }
             else
             {
               throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg); // fail hard for ExecutePipeline
@@ -248,102 +221,5 @@ namespace OpenMS
     __DEBUG_END_METHOD__
   }
 
-  bool TOPPASOutputFileListVertex::copy_(const QString& from, const QString& to)
-  {
-    return QFile::copy(from, to);
-  }
-
-  void TOPPASOutputFileListVertex::inEdgeHasChanged()
-  {
-    reset(true);
-    qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
-    TOPPASVertex::inEdgeHasChanged();
-  }
-
-  void TOPPASOutputFileListVertex::openContainingFolder() const
-  {
-    QString path = getFullOutputDirectory().toQString();
-    GUIHelpers::openFolder(path);
-  }
-
-  String TOPPASOutputFileListVertex::getFullOutputDirectory() const
-  {
-    TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
-    String dir = String(ts->getOutDir()).substitute("\\", "/");
-    return QDir::cleanPath((dir.ensureLastChar('/') + getOutputDir()).toQString());
-  }
-
-  String TOPPASOutputFileListVertex::getName() const
-  {
-    return "OutputVertex";
-  }
-
-  String TOPPASOutputFileListVertex::getOutputDir() const
-  {
-    String dir = String("TOPPAS_out") + String(QDir::separator());
-    if (output_folder_name_.isEmpty())
-    {
-      TOPPASEdge* e = *inEdgesBegin();
-      if (e == nullptr)
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "To open the output folder, an input edge is required to knit a folder name.");
-      }
-      const TOPPASVertex* tv = e->getSourceVertex();
-      // create meaningful output name using vertex + TOPP name + output parameter, e.g. "010-FileConverter-out"
-      dir += get3CharsNumber_(topo_nr_) + "-"
-             + tv->getName() + "-" 
-             + e->getSourceOutParamName().remove(':');
-    }
-    else
-    {
-      dir += output_folder_name_;
-    }
-    return dir;
-  }
-
-  String TOPPASOutputFileListVertex::createOutputDir() const
-  {
-    String full_dir = getFullOutputDirectory();
-    if (!File::exists(full_dir))
-    {
-      QDir dir;
-      if (!dir.mkpath(full_dir.toQString()))
-      {
-        std::cerr << "Could not create path " << full_dir << std::endl;
-      }
-    }
-    return full_dir;
-  }
-
-  void TOPPASOutputFileListVertex::setTopoNr(UInt nr)
-  {
-    if (topo_nr_ != nr)
-    {
-      // topological number changes --> output dir changes --> reset
-      reset(true);
-      topo_nr_ = nr;
-    }
-  }
-
-  void TOPPASOutputFileListVertex::reset(bool reset_all_files)
-  {
-    __DEBUG_BEGIN_METHOD__
-
-    files_total_ = 0;
-    files_written_ = 0;
-
-    TOPPASVertex::reset();
-
-    if (reset_all_files)
-    {
-      // do not actually delete the output files here
-    }
-
-    __DEBUG_END_METHOD__
-  }
-
-  void TOPPASOutputFileListVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
-  {
-    openContainingFolder();
-  }
+  
 }

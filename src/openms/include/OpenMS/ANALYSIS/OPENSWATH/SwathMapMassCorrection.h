@@ -86,7 +86,7 @@ public:
      *
      * For each precursor, the SwathMap is chosen based on library m/z and ion mobility.
      * If two or more SwathMaps isolate the same precursor the SwathMap in which the precursor is more centered across
-     * ion mobility is chosen. Note that the single swath_map returned is in a vector so that this function is compatible with SONAR functions
+     * ion mobility is chosen.
      *
      * @param[in] transition_group A MRMTransitionGroup for which the SwathMap is assigned to
      * @param[out] swath_maps A vector containing the a single entry, the swath map which the MRMFeature is assigned to
