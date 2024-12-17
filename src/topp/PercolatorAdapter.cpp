@@ -1032,6 +1032,9 @@ protected:
         String file_identifier = pep_id.getMetaValue("file_origin", String());
         file_identifier += (String)pep_id.getMetaValue("id_merge_index", String());
 
+        vector<PeptideHit> filtered_hits;
+        filtered_hits.reserve(pep_id.getHits().size());
+
         //check each PeptideHit for compliance with one of the PercolatorResults (by sequence)
         for (PeptideHit& hit : pep_id.getHits())
         {
@@ -1043,8 +1046,12 @@ protected:
  
           map<String, PercolatorResult>::iterator pr = pep_map.find(psm_identifier);
 
-          // skip reporting a peptide hit if PSM q-value threshold not reached
-          if (reported_psm_qvalue_threshold < 1.0 && pr != pep_map.end() pr->second.qvalue > reported_psm_qvalue_threshold) continue;
+          // if q-value filtering is enabled skip unidentified hits
+          if (reported_psm_qvalue_threshold < 1.0 && 
+            pr == pep_map.end()) continue;
+
+          // skip reporting of identified peptide hit if PSM q-value threshold not reached            
+          if (pr->second.qvalue > reported_psm_qvalue_threshold) continue;
 
           if (pr != pep_map.end())
           {
@@ -1064,6 +1071,12 @@ protected:
             else if (scoreType == "svm")
             {
               hit.setScore(pr->second.score);
+            }
+
+            // Only keep hits that pass q-value threshold
+            if (pr->second.qvalue <= reported_psm_qvalue_threshold)
+            {
+              filtered_hits.push_back(hit);
             }
 
             ++cnt;
@@ -1091,6 +1104,7 @@ protected:
               hit.setScore(-100.0); // set SVM score to -100.0 if hit not found in results
             }
           }
+          pep_id.setHits(filtered_hits);
         }
       }
 
@@ -1184,7 +1198,6 @@ protected:
         search_parameters.setMetaValue("Percolator:decoy_pattern", getStringOption_("decoy_pattern"));
         search_parameters.setMetaValue("Percolator:post_processing_tdc", getFlag_("post_processing_tdc"));
         search_parameters.setMetaValue("Percolator:train_best_positive", getFlag_("train_best_positive"));
-        
         prot_id_run.setSearchParameters(search_parameters);
       }
       // Storing the PeptideHits with calculated q-value, pep and svm score
