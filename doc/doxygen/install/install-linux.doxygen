@@ -109,7 +109,7 @@
     sudo add-apt-repository universe
     sudo apt update
     sudo apt-get install build-essential cmake autoconf patch libtool git automake
-    sudo apt-get install qtbase6-dev libqt6svg6-dev
+    sudo apt-get install qt6-base-dev libqt6svg6-dev
     sudo apt-get install libeigen3-dev libboost-random-dev libboost-regex-dev \
       libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libxerces-c-dev \
       zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
