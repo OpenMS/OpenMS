@@ -282,6 +282,12 @@ protected:
     registerDoubleOption_("ipf_max_peakgroup_pep", "<value>", 0.7, "OSW/IPF: Assess transitions only for candidate peak groups until maximum posterior error probability.", !is_required, is_advanced_option);
     registerDoubleOption_("ipf_max_transition_isotope_overlap", "<value>", 0.5, "OSW/IPF: Maximum isotope overlap to consider transitions in IPF.", !is_required, is_advanced_option);
     registerDoubleOption_("ipf_min_transition_sn", "<value>", 0, "OSW/IPF: Minimum log signal-to-noise level to consider transitions in IPF. Set -1 to disable this filter.", !is_required, is_advanced_option);
+
+    registerDoubleOption_("reported_psm_qvalue_threshold", "<value>", 1.0, 
+    "Only include PSMs with q-value less than or equal to this threshold in the output. This only affects what is reported in the output file, not Percolator's operation.", 
+    false, true);
+    setMinFloat_("reported_psm_qvalue_threshold", 0.0);
+    setMaxFloat_("reported_psm_qvalue_threshold", 1.0);
   }
   
 
@@ -572,6 +578,7 @@ protected:
     OPENMS_LOG_DEBUG << "Input file (of target?): " << ListUtils::concatenate(in_list, ",") << " & " << ListUtils::concatenate(in_decoy, ",") << " (decoy)" << endl;
     const String in_osw = getStringOption_("in_osw");
     const OSWFile::OSWLevel osw_level = (OSWFile::OSWLevel)Helpers::indexOf(OSWFile::names_of_oswlevel, getStringOption_("osw_level"));
+    const double reported_psm_qvalue_threshold = getDoubleOption_("reported_psm_qvalue_threshold");
 
     //output file names and types
     String out = getStringOption_("out");
@@ -1035,6 +1042,10 @@ protected:
           writeDebug_("PSM identifier in PeptideHit: " + psm_identifier, 10);
  
           map<String, PercolatorResult>::iterator pr = pep_map.find(psm_identifier);
+
+          // skip reporting a peptide hit if PSM q-value threshold not reached
+          if (reported_psm_qvalue_threshold < 1.0 && pr != pep_map.end() pr->second.qvalue > reported_psm_qvalue_threshold) continue;
+
           if (pr != pep_map.end())
           {
             hit.setMetaValue(old_score_type, hit.getScore());  // old search engine "main" score as metavalue
