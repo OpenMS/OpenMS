@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,7 +8,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -17,9 +17,9 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-    @page TOPP_FalseDiscoveryRate FalseDiscoveryRate
+@page TOPP_FalseDiscoveryRate FalseDiscoveryRate
 
-    @brief Tool to estimate the false discovery rate on peptide and protein level
+@brief Tool to estimate the false discovery rate on peptide and protein level
 <CENTER>
     <table>
         <tr>
@@ -37,26 +37,26 @@ using namespace std;
     </table>
 </CENTER>
 
-    This TOPP tool calculates the false discovery rate (FDR) for results of target-decoy searches. The FDR calculation can be performed for proteins and/or for peptides (more exactly, peptide spectrum matches).
+This TOPP tool calculates the false discovery rate (FDR) for results of target-decoy searches. The FDR calculation can be performed for proteins and/or for peptides (more exactly, peptide spectrum matches).
 
-    The false discovery rate is defined as the number of false discoveries (decoy hits) divided by the number of false and correct discoveries (both target and decoy hits) with a score better than a given threshold.
+The false discovery rate is defined as the number of false discoveries (decoy hits) divided by the number of false and correct discoveries (both target and decoy hits) with a score better than a given threshold.
 
-    @ref TOPP_PeptideIndexer must be applied to the search results (idXML file) to index the data and to annotate peptide and protein hits with their target/decoy status.
+@ref TOPP_PeptideIndexer must be applied to the search results (idXML file) to index the data and to annotate peptide and protein hits with their target/decoy status.
 
-    @note When no decoy hits were found you will get a warning like this:<br>
-    "FalseDiscoveryRate: #decoy sequences is zero! Setting all target sequences to q-value/FDR 0!"<br>
-    This should be a serious concern, since it indicates a possible problem with the target/decoy annotation step (@ref TOPP_PeptideIndexer), e.g. due to a misconfigured database.
+@note When no decoy hits were found you will get a warning like this:<br>
+"FalseDiscoveryRate: #decoy sequences is zero! Setting all target sequences to q-value/FDR 0!"<br>
+This should be a serious concern, since it indicates a possible problem with the target/decoy annotation step (@ref TOPP_PeptideIndexer), e.g. due to a misconfigured database.
 
-    @note FalseDiscoveryRate only annotates peptides and proteins with their FDR. By setting FDR:PSM or FDR:protein the maximum q-value (e.g., 0.05 corresponds to an FDR of 5%) can be controlled on the PSM and protein level.
-    Alternatively, FDR filtering can be performed in the @ref TOPP_IDFilter tool by setting score:pep and score:prot to the maximum q-value. After potential filtering, associations are
-    automatically updated and unreferenced proteins/peptides removed based on the advanced cleanup parameters.
+@note FalseDiscoveryRate only annotates peptides and proteins with their FDR. By setting FDR:PSM or FDR:protein the maximum q-value (e.g., 0.05 corresponds to an FDR of 5%) can be controlled on the PSM and protein level.
+Alternatively, FDR filtering can be performed in the @ref TOPP_IDFilter tool by setting score:pep and score:prot to the maximum q-value. After potential filtering, associations are
+automatically updated and unreferenced proteins/peptides removed based on the advanced cleanup parameters.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_FalseDiscoveryRate.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_FalseDiscoveryRate.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FalseDiscoveryRate.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FalseDiscoveryRate.html
 */
 
 
@@ -89,8 +89,21 @@ protected:
     setValidStrings_("PSM", ListUtils::create<String>("true,false"));
     registerStringOption_("peptide", "<FDR level>", "false", "Perform FDR calculation on peptide level and annotates it as meta value\n(Note: if set, also calculates FDR/q-value on PSM level.)", false);
     setValidStrings_("peptide", ListUtils::create<String>("true,false"));
+    registerStringOption_("PSM_peptide_base_score", "<score name or type>", "", "Set if you want to choose a different score than the last calculated main score for PSM or peptide level.", false);
+    registerStringOption_("PSM_peptide_base_score_orientation", "<higher/lower>", "", "In case the score orientation cannot be inferred.", false, true);
+    setValidStrings_("PSM_peptide_base_score_orientation", ListUtils::create<String>("higher_better, lower_better"));
     registerStringOption_("protein", "<FDR level>", "true", "Perform FDR calculation on protein level", false);
     setValidStrings_("protein", ListUtils::create<String>("true,false"));
+    registerStringOption_("proteingroup", "<FDR level>", "false", "Perform FDR calculation on (indist.) protein group level, too. Currently, this will enable protein FDR automatically (since internals need to be in-sync) but will affect the level at which it filters (if enabled).", false);
+    setValidStrings_("proteingroup", ListUtils::create<String>("true,false"));
+
+    registerStringOption_("protein_score", "<type>", "", "The protein score used to calculate the protein FDR. If empty, the main score is used.", false, true);
+    auto ids = IDScoreSwitcherAlgorithm();
+    setValidStrings_("protein_score", ids.getScoreNames()); // lists all scores (including PSM only scores)
+
+    registerStringOption_("protein_base_score", "<score name or type>", "", "Set if you want to choose a different score than the last calculated main score for protein (group) level.", false);
+    registerStringOption_("protein_base_score_orientation", "<higher/lower>", "", "Set if you want to choose a different score than the last calculated main score for protein (group) level.", false, true);
+    setValidStrings_("protein_base_score_orientation", ListUtils::create<String>("higher_better, lower_better"));
 
     registerTOPPSubsection_("FDR", "FDR control");
     registerDoubleOption_("FDR:PSM", "<fraction>", 1, "Filter PSMs based on q-value (e.g., 0.05 = 5% FDR, disabled for 1)", false);
@@ -152,8 +165,34 @@ protected:
 
     try
     {
-      if (getStringOption_("protein") == "true")
+      bool groups = getStringOption_("proteingroup") == "true";
+      if (getStringOption_("protein") == "true" || groups)
       {
+        String protein_score = getStringOption_("protein_score");
+        if (!protein_score.empty())
+        {
+          try 
+          {
+            IDScoreSwitcherAlgorithm::ScoreType score_type = IDScoreSwitcherAlgorithm::toScoreTypeEnum(protein_score);
+            IDScoreSwitcherAlgorithm switcher;
+            Size c = 0;
+            switcher.switchToGeneralScoreType(prot_ids, score_type, c);
+          }
+          catch (Exception::MissingInformation& e)
+          {
+            IDScoreSwitcherAlgorithm switcher;
+            auto params = switcher.getParameters();
+            params.setValue("new_score", protein_score);
+            params.setValue("new_score_orientation", getStringOption_("protein_base_score_orientation"));
+            params.setValue("proteins", "true");
+            switcher.setParameters(params);
+            Size c = 0;
+            for (auto& run : prot_ids)
+            {
+              switcher.switchScores(run,c);
+            }
+          }
+        }
 
         for (auto& run : prot_ids)
         {
@@ -169,12 +208,21 @@ protected:
           }
           else
           {
-            fdr.applyBasic(run, true);
+            fdr.applyBasic(run, groups);
             if (protein_fdr < 1)
             {
-              OPENMS_LOG_INFO << "FDR control: Filtering proteins..." << endl;
-              IDFilter::filterHitsByScore(prot_ids, protein_fdr);
-              filter_applied = true;
+              if (groups)
+              {
+                OPENMS_LOG_INFO << "FDR control: Filtering protein groups..." << endl;
+                IDFilter::filterGroupsByScore(run.getIndistinguishableProteins(), protein_fdr, run.isHigherScoreBetter());
+                filter_applied = true;
+              }
+              else
+              {
+                OPENMS_LOG_INFO << "FDR control: Filtering proteins..." << endl;
+                IDFilter::filterHitsByScore(run, protein_fdr);
+                filter_applied = true;
+              }
             }
           }
         }

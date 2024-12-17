@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -106,14 +106,12 @@ namespace OpenMS
     String input_filename_;
     bool doWrite_;
     bool use_ms1_traces_;
-    bool sonar_;
 
   public:
 
     OpenSwathTSVWriter(const String& output_filename,
                        const String& input_filename = "inputfile",
-                       bool ms1_scores = false,
-                       bool sonar = false);
+                       bool ms1_scores = false);
 
     bool isActive() const;
 

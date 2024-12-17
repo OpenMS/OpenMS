@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -35,45 +35,45 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_QCEmbedder QCEmbedder
+@page TOPP_QCEmbedder QCEmbedder
 
-    @brief This application is used to embed tables or plots generated externally as attachments to existing quality parameters in qcML files.
+@brief This application is used to embed tables or plots generated externally as attachments to existing quality parameters in qcML files.
 
-    <CENTER>
-      <table>
-        <tr>
-        <th ALIGN = "center"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> &rarr; QCEmbedder &rarr;</td>
-        <th ALIGN = "center"> pot. successor tools </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCExporter </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCMerger </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCShrinker </td>
-        </tr>
-      </table>
-    </CENTER>
+<CENTER>
+  <table>
+    <tr>
+    <th ALIGN = "center"> pot. predecessor tools </td>
+    <td VALIGN="middle" ROWSPAN=3> &rarr; QCEmbedder &rarr;</td>
+    <th ALIGN = "center"> pot. successor tools </td>
+    </tr>
+    <tr>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCExporter </td>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCMerger </td>
+    </tr>
+    <tr>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter </td>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCShrinker </td>
+    </tr>
+  </table>
+</CENTER>
 
-    If there is additional data from external tools to a certain quality parameter (qp) in the qcML file at @p in, it can be attached in tabluar (csv) format or as png image file.
-    If no corresponding quality parameter is present an empty value one will be generated with the name of "default set name"/"default mzML file".
+If there is additional data from external tools to a certain quality parameter (qp) in the qcML file at @p in, it can be attached in tabluar (csv) format or as png image file.
+If no corresponding quality parameter is present an empty value one will be generated with the name of "default set name"/"default mzML file".
 
-    - @p qp_att_acc defines the qp cv accession of the qp to which the table/image is attached.
-    - @p cv_acc defines the cv accession of the attachment.
-    - @p run the file that defined the run under which the qp for the attachment is aggregated as mzML file. The file is only used to extract the run name from the file name.
-    - @p name if no file for the run was given (or if the target qp is contained in a set), at least a name of the target run/set containing the the qp for the attachment has to be given.
+- @p qp_att_acc defines the qp cv accession of the qp to which the table/image is attached.
+- @p cv_acc defines the cv accession of the attachment.
+- @p run the file that defined the run under which the qp for the attachment is aggregated as mzML file. The file is only used to extract the run name from the file name.
+- @p name if no file for the run was given (or if the target qp is contained in a set), at least a name of the target run/set containing the the qp for the attachment has to be given.
 
-    - @p plot if a plot image is to be attached to a qp, this has to be specified here.
-    - @p table if a table is to be attached to a qp, this has to be specified here.
+- @p plot if a plot image is to be attached to a qp, this has to be specified here.
+- @p table if a table is to be attached to a qp, this has to be specified here.
 
-    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
+Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_QCEmbedder.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_QCEmbedder.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_QCEmbedder.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_QCEmbedder.html
 
 */
 

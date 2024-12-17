@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,15 +10,14 @@
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
-#include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
+#include <OpenMS/KERNEL/BinnedSpectrum.h>
+#include <OpenMS/COMPARISON/SpectraSTSimilarityScore.h>
+#include <OpenMS/COMPARISON/ZhangSimilarityScore.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 // TODO add ID support to Handler
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <ctime>
@@ -33,32 +32,32 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_SpecLibSearcher SpecLibSearcher
+@page TOPP_SpecLibSearcher SpecLibSearcher
 
-  @brief Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
+@brief Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
 
 <CENTER>
-    <table>
-        <tr>
-            <th ALIGN = "center"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> &rarr; SpecLibSearcher &rarr;</td>
-            <th ALIGN = "center"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_SpecLibCreator </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
-        </tr>
-    </table>
+<table>
+    <tr>
+        <th ALIGN = "center"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=2> &rarr; SpecLibSearcher &rarr;</td>
+        <th ALIGN = "center"> pot. successor tools </td>
+    </tr>
+    <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_SpecLibCreator </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
+    </tr>
+</table>
 </CENTER>
 
-    @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested.
+@experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_SpecLibSearcher.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_SpecLibSearcher.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_SpecLibSearcher.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_SpecLibSearcher.html
 */
 
 // We do not want this class to show up in the docu:
@@ -111,8 +110,7 @@ protected:
 //    setValidStrings_("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
 
     registerStringOption_("compare_function", "<string>", "ZhangSimilarityScore", "function for similarity comparison", false);
-    PeakSpectrumCompareFunctor::registerChildren();
-    setValidStrings_("compare_function", Factory<PeakSpectrumCompareFunctor>::registeredProducts());
+    setValidStrings_("compare_function", {"ZhangSimilarityScore", "SpectraSTSimilarityScore"});
 
     registerTOPPSubsection_("report", "Reporting Options");
     registerIntOption_("report:top_hits", "<num>", 10, "Maximum number of top scoring hits per spectrum that are reported.", false, true);
@@ -329,7 +327,20 @@ protected:
     OPENMS_LOG_INFO << "Time needed for preprocessing data: " << (end_build_time - start_build_time) << "\n";
 
     //compare function
-    std::unique_ptr<PeakSpectrumCompareFunctor> comparator(Factory<PeakSpectrumCompareFunctor>::create(compare_function));
+    std::unique_ptr<PeakSpectrumCompareFunctor> comparator;
+    if (compare_function == "SpectraSTSimilarityScore")
+    {
+      comparator.reset(new SpectraSTSimilarityScore());
+    }
+    else if (compare_function == "ZhangSimilarityScore")
+    {
+      comparator.reset(new ZhangSimilarityScore());
+    }
+    else 
+    {
+      writeLogError_("Unknown compare function");
+      return ILLEGAL_PARAMETERS;
+    }
  
    //-------------------------------------------------------------
     // calculations

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -25,33 +25,33 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_AccurateMassSearch AccurateMassSearch
+@page TOPP_AccurateMassSearch AccurateMassSearch
 
-  @brief An algorithm to search for exact mass matches from a spectrum against a database (e.g. HMDB).
+@brief An algorithm to search for exact mass matches from a spectrum against a database (e.g. HMDB).
 
-  <CENTER>
-  <table>
-  <tr>
-  <th ALIGN = "center"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=3> &rarr; AccurateMassSearch &rarr;</td>
-  <th ALIGN = "center"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> NA</td>
-  </tr>
-  </table>
-  </CENTER>
+<CENTER>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=3> &rarr; AccurateMassSearch &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> NA</td>
+</tr>
+</table>
+</CENTER>
 
-  Accurate mass search against a database (usually HMDB).
-  For details see @ref OpenMS::AccurateMassSearchEngine "AccurateMassSearchEngine".
+Accurate mass search against a database (usually HMDB).
+For details see @ref OpenMS::AccurateMassSearchEngine "AccurateMassSearchEngine".
 
-  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_AccurateMassSearch.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_AccurateMassSearch.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_AccurateMassSearch.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_AccurateMassSearch.html
 */
 
 // We do not want this class to show up in the docu:

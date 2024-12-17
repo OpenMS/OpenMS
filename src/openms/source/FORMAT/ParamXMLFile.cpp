@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -23,7 +23,7 @@ namespace OpenMS
   }
 
   ParamXMLFile::ParamXMLFile() :
-    XMLFile("/SCHEMAS/Param_1_7_0.xsd", "1.7.0")
+    XMLFile("/SCHEMAS/Param_1_8_0.xsd", "1.8.0")
   {
   }
 
@@ -64,7 +64,7 @@ namespace OpenMS
     os.precision(writtenDigits<double>(0.0));
 
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-    os << "<PARAMETERS version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_7_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+    os << "<PARAMETERS version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
     String indentation = "  ";
     Param::ParamIterator it = param.begin();
     while (it != param.end())

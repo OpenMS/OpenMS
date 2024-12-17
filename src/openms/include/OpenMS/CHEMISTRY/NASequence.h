@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -505,7 +505,7 @@ namespace OpenMS
 
        @param str_it Current position in the string to be parsed
        @param str Full input string
-       @param aas Current AASequence object (will be modified with the correct ribo added)
+       @param nas Current AASequence object (will be modified with the correct ribo added)
 
        @return Position at which to continue parsing
     */

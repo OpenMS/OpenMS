@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -27,9 +27,6 @@ namespace OpenMS
     @todo Take care that unique ids are assigned properly by TOPP tools before
     calling FeatureXMLFile::store().  There will be a message on OPENMS_LOG_INFO but
     we will make no attempt to fix the problem in this class.  (all developers)
-
-    @note This format will eventually be replaced by the HUPO-PSI AnalysisXML
-    (mzIdentML and mzQuantML) formats!
 
     @ingroup FileIO
   */

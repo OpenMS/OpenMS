@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -27,29 +27,29 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_INIUpdater INIUpdater
-  @brief Update INI and TOPPAS files from previous versions of OpenMS/TOPP
+@page TOPP_INIUpdater INIUpdater
+@brief Update INI and TOPPAS files from previous versions of OpenMS/TOPP
 
-  This tool can update old INI files and make them
-  - compatible to new versions of %OpenMS
-  - show new parameters introduced with a new %OpenMS version
-  - delete old parameters which no longer have any effect
+This tool can update old INI files and make them
+- compatible to new versions of %OpenMS
+- show new parameters introduced with a new %OpenMS version
+- delete old parameters which no longer have any effect
 
-  The new INI files can be created in-place (with -i option), which will overwrite the
-  existing file, but create a backup copy with [filename]_[version].ini,
-  e.g.
-  @code
-  INIUpdater -in FileFilter.ini -i
-  @endcode
-  will create a file <tt>FileFilter_1.8.ini</tt> if the old ini version was 1.8.
+The new INI files can be created in-place (with -i option), which will overwrite the
+existing file, but create a backup copy with [filename]_[version].ini,
+e.g.
+@code
+INIUpdater -in FileFilter.ini -i
+@endcode
+will create a file <tt>FileFilter_1.8.ini</tt> if the old ini version was 1.8.
 
-  No backup will be created if -out is used, as the original files are not touched (unless you name them
-  the same).
+No backup will be created if -out is used, as the original files are not touched (unless you name them
+the same).
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_INIUpdater.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_INIUpdater.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_INIUpdater.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_INIUpdater.html
 */
 
 // We do not want this class to show up in the docu:

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/ceph/ibmi/abi/projects/sachsenb/OpenMS/src/tests/topp/THIRDPARTY/SageAdapter_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0" peak_mass_tolerance_ppm="true" >
+	<SearchParameters id="SP_0" db="C:/dev/omsq6/src/tests/topp/THIRDPARTY/SageAdapter_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0" peak_mass_tolerance_ppm="true" >
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Oxidation (M)" />
 				<UserParam type="string" name="extra_features" value="score,SAGE:ln(-poisson),SAGE:ln(delta_best),SAGE:ln(delta_next),SAGE:ln(matched_intensity_pct),SAGE:longest_b,SAGE:longest_y,SAGE:longest_y_pct,SAGE:matched_peaks,SAGE:scored_candidates"/>
-				<UserParam type="stringList" name="SageAdapter:1:in" value="[/ceph/ibmi/abi/projects/sachsenb/OpenMS/src/tests/topp/THIRDPARTY/SageAdapter_1.mzML]"/>
+				<UserParam type="stringList" name="SageAdapter:1:in" value="[C:/dev/omsq6/src/tests/topp/THIRDPARTY/SageAdapter_1.mzML]"/>
 				<UserParam type="string" name="SageAdapter:1:out" value="SageAdapter_1_out.tmp.idXML"/>
-				<UserParam type="string" name="SageAdapter:1:database" value="/ceph/ibmi/abi/projects/sachsenb/OpenMS/src/tests/topp/THIRDPARTY/SageAdapter_1.fasta"/>
-				<UserParam type="string" name="SageAdapter:1:sage_executable" value="/ceph/ibmi/abi/projects/sachsenb/OpenMS/SEARCHENGINES/Sage/sage"/>
+				<UserParam type="string" name="SageAdapter:1:database" value="C:/dev/omsq6/src/tests/topp/THIRDPARTY/SageAdapter_1.fasta"/>
+				<UserParam type="string" name="SageAdapter:1:sage_executable" value="C:/dev/omsq6/THIRDPARTY/Windows/64bit/Sage/sage.exe"/>
 				<UserParam type="string" name="SageAdapter:1:decoy_prefix" value="DECOY_"/>
 				<UserParam type="int" name="SageAdapter:1:batch_size" value="0"/>
 				<UserParam type="float" name="SageAdapter:1:precursor_tol_left" value="-6.0"/>
@@ -36,10 +36,17 @@
 				<UserParam type="string" name="SageAdapter:1:enzyme" value="Trypsin"/>
 				<UserParam type="stringList" name="SageAdapter:1:fixed_modifications" value="[Carbamidomethyl (C)]"/>
 				<UserParam type="stringList" name="SageAdapter:1:variable_modifications" value="[Oxidation (M)]"/>
+				<UserParam type="float" name="SageAdapter:1:q_value_threshold" value="1.0"/>
+				<UserParam type="string" name="SageAdapter:1:annotate_matches" value="true"/>
+				<UserParam type="string" name="SageAdapter:1:deisotope" value="false"/>
+				<UserParam type="string" name="SageAdapter:1:chimera" value="false"/>
+				<UserParam type="string" name="SageAdapter:1:predict_rt" value="false"/>
+				<UserParam type="string" name="SageAdapter:1:wide_window" value="false"/>
+				<UserParam type="string" name="SageAdapter:1:smoothing" value="false"/>
+				<UserParam type="int" name="SageAdapter:1:threads" value="1"/>
 				<UserParam type="string" name="SageAdapter:1:reindex" value="true"/>
 				<UserParam type="string" name="SageAdapter:1:log" value=""/>
 				<UserParam type="int" name="SageAdapter:1:debug" value="0"/>
-				<UserParam type="int" name="SageAdapter:1:threads" value="1"/>
 				<UserParam type="string" name="SageAdapter:1:no_progress" value="false"/>
 				<UserParam type="string" name="SageAdapter:1:force" value="false"/>
 				<UserParam type="string" name="SageAdapter:1:test" value="true"/>
@@ -58,17 +65,20 @@
 				<UserParam type="string" name="SageAdapter:1:specificity" value="auto"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2023-09-22T09:57:59" search_engine="Sage" search_engine_version="0.13.4" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2024-10-24T09:46:46" search_engine="Sage" search_engine_version="0.14.6" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="sp|Q99536|VAT1_HUMAN" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 			<UserParam type="stringList" name="spectra_data" value="[SageAdapter_1.mzML]"/>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="641.019890199895713" RT="6497.124" spectrum_reference="controllerType=0 controllerNumber=1 scan=30069" >
+		<PeptideIdentification score_type="ln(hyperscore)" higher_score_better="true" significance_threshold="0.0" MZ="643.034443133437662" RT="6497.123999999999796" spectrum_reference="controllerType=0 controllerNumber=1 scan=30069" >
 			<PeptideHit score="4.478099542157132" sequence="LQSRPAAPPAPGPGQLTLR" charge="3" aa_before="K" aa_after="L" start="63" end="81" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="242.149889999999999,5.408394e05,1,&quot;b2&quot;|288.202729999999974,2.1372394e05,1,&quot;y2&quot;|362.708340000000021,2.404841e05,2,&quot;b7&quot;|389.250999999999976,7.1299375e05,1,&quot;y3&quot;|392.737459999999999,9.837225999999999e05,2,&quot;y7&quot;|411.235000000000014,1.0779025e06,2,&quot;b8&quot;|421.247860000000003,2.5909306e05,2,&quot;y8&quot;|459.761320000000012,2.5751027e05,2,&quot;b9&quot;|469.774659999999983,2.4631088e06,2,&quot;y9&quot;|485.282750000000021,5.52907e05,1,&quot;b4&quot;|495.278470000000027,3.1598797e05,2,&quot;b10&quot;|502.334839999999986,1.0549086e06,1,&quot;y4&quot;|582.334169999999972,2.4971842e05,1,&quot;b5&quot;|602.346700000000055,6.912584399999999e05,2,&quot;y12&quot;|630.393500000000017,6.033776e05,1,&quot;y5&quot;|653.372299999999996,4.4862062e05,1,&quot;b6&quot;|687.414300000000026,1.6463646e06,1,&quot;y6&quot;|724.409700000000044,7.8130335e06,1,&quot;b7&quot;|784.46735000000001,3.6912602e06,1,&quot;y7&quot;|821.462200000000053,3.489648e05,1,&quot;b8&quot;|841.488600000000019,4.294338e06,1,&quot;y8&quot;|843.491300000000024,6.370896999999999e05,2,&quot;y17&quot;|918.518500000000017,8.440116999999999e04,1,&quot;b9&quot;|938.541699999999992,9.045038999999999e06,1,&quot;y9&quot;|989.552369999999996,7.521718e06,1,&quot;b10&quot;|1009.57854999999995,1.0414806e06,1,&quot;y10&quot;|1106.630499999999984,1.7313295e06,1,&quot;y11&quot;|1143.62259999999992,4.4309975e05,1,&quot;b12&quot;"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
-				<UserParam type="string" name="SAGE:ln(-poisson)" value="1.057384008886984"/>
+				<UserParam type="float" name="spectrum_q" value="1.0"/>
+				<UserParam type="float" name="DeltaMass" value="1.500000000078217e-03"/>
+				<UserParam type="string" name="SAGE:ln(-poisson)" value="1.0573840088869841"/>
 				<UserParam type="string" name="SAGE:ln(delta_best)" value="0.0"/>
 				<UserParam type="string" name="SAGE:ln(delta_next)" value="4.478099542157132"/>
 				<UserParam type="string" name="SAGE:ln(matched_intensity_pct)" value="3.8601763"/>
@@ -77,10 +87,11 @@
 				<UserParam type="string" name="SAGE:longest_y_pct" value="0.57894737"/>
 				<UserParam type="string" name="SAGE:matched_peaks" value="28"/>
 				<UserParam type="string" name="SAGE:scored_candidates" value="1"/>
+				<UserParam type="string" name="PTM" value=""/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="id_merge_index" value="0"/>
-			<UserParam type="string" name="PinSpecId" value="0"/>
+			<UserParam type="string" name="PinSpecId" value="1"/>
 		</PeptideIdentification>
 	</IdentificationRun>
 </IdXML>

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -73,18 +73,6 @@ public:
 
     /// Perform alignment on vector of 1D peaks
     virtual void run(const std::vector<Peak2D> & map_model, const std::vector<Peak2D> & map_scene, TransformationDescription & transformation);
-
-    /// Returns an instance of this class
-    static BaseSuperimposer * create()
-    {
-      return new PoseClusteringAffineSuperimposer();
-    }
-
-    /// Returns the name of this module
-    static const String getProductName()
-    {
-      return "poseclustering_affine";
-    }
 
   };
 } // namespace OpenMS

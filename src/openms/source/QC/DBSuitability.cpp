@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -13,11 +13,11 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/QC/DBSuitability.h>
@@ -153,12 +153,9 @@ namespace OpenMS
     // get the score of the first two decoy hits
     double decoy_1 = DBL_MAX;
     double decoy_2 = DBL_MAX;
-    UInt curr_hit = 0;
 
     for (const auto& hit : pep_id.getHits())
     {
-      ++curr_hit;
-
       if (!hit.metaValueExists("target_decoy"))
       {
         throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));

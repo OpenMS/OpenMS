@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -20,6 +20,7 @@ namespace OpenMS
       public MetaInfoDescription,
       public std::vector<float>
     {
+      using std::vector<float>::vector; // to allow for aggregate initialization of FloatDataArray
     };
 
     /// Integer data array class
@@ -27,6 +28,7 @@ namespace OpenMS
       public MetaInfoDescription,
       public std::vector<Int>
     {
+      using std::vector<int>::vector; // to allow for aggregate initialization of IntegerDataArray
     };
 
     /// String data array class
@@ -34,6 +36,7 @@ namespace OpenMS
       public MetaInfoDescription,
       public std::vector<String>
     {
+      using std::vector<String>::vector; // to allow for aggregate initialization of StringDataArray
     };
 
   }

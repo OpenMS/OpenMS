@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -51,7 +51,7 @@ START_SECTION((double get_quick_lda_score(double library_corr_, double library_n
 {
   OpenSwath_Scores scores;
 
-  TEST_REAL_SIMILAR( scores.get_quick_lda_score(1.0, 1.0, 1.0, 1.0, 1.0, 1.0), 
+  TEST_REAL_SIMILAR( scores.get_quick_lda_score(1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
                                                                                  -0.5319046 +
                                                                                   2.1643962 +
                                                                                   8.0353047 +
@@ -74,14 +74,14 @@ START_SECTION((double calculate_lda_prescore(const OpenSwath_Scores& scores) con
   scores.log_sn_score                     = 1.0;
   scores.elution_model_fit_score          = 1.0;
 
-  TEST_REAL_SIMILAR( scores.calculate_lda_prescore(scores), 
-                                                             -0.34664267 + 
-                                                              2.98700722 + 
-                                                              7.05496384 + 
-                                                              0.09445371 + 
-                                                             -5.71823862 + 
-                                                             -0.72989582 + 
-                                                              1.88443209)  
+  TEST_REAL_SIMILAR( scores.calculate_lda_prescore(scores),
+                                                             -0.34664267 +
+                                                              2.98700722 +
+                                                              7.05496384 +
+                                                              0.09445371 +
+                                                             -5.71823862 +
+                                                             -0.72989582 +
+                                                              1.88443209)
 
 
 }
@@ -100,13 +100,13 @@ START_SECTION((double calculate_lda_single_transition(const OpenSwath_Scores& sc
   scores.log_sn_score                     = 1.0;
   scores.elution_model_fit_score          = 1.0;
 
-  TEST_REAL_SIMILAR( scores.calculate_lda_single_transition(scores), 
+  TEST_REAL_SIMILAR( scores.calculate_lda_single_transition(scores),
                                                                      7.05496384 +
                                                                     -0.72989582 +
                                                                      -1.08443209)
 }
 END_SECTION
-    
+
 START_SECTION((double calculate_swath_lda_prescore(const OpenSwath_Scores& scores) const))
 {
   OpenSwath_Scores scores;
@@ -124,17 +124,17 @@ START_SECTION((double calculate_swath_lda_prescore(const OpenSwath_Scores& score
   scores.log_sn_score              = 1.0;
 
 
-  TEST_REAL_SIMILAR( scores.calculate_swath_lda_prescore(scores), 
-                                                                   -0.19011762 + 
-                                                                    2.47298914 + 
-                                                                    5.63906731 + 
-                                                                   -0.62640133 + 
-                                                                    0.36006925 + 
-                                                                    0.08814003 + 
-                                                                    0.13978311 + 
-                                                                   -1.16475032 + 
-                                                                   -0.19267813 + 
-                                                                   -0.61712054)  
+  TEST_REAL_SIMILAR( scores.calculate_swath_lda_prescore(scores),
+                                                                   -0.19011762 +
+                                                                    2.47298914 +
+                                                                    5.63906731 +
+                                                                   -0.62640133 +
+                                                                    0.36006925 +
+                                                                    0.08814003 +
+                                                                    0.13978311 +
+                                                                   -1.16475032 +
+                                                                   -0.19267813 +
+                                                                   -0.61712054)
 }
 END_SECTION
 

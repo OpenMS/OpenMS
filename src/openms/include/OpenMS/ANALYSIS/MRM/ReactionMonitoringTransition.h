@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -21,7 +21,7 @@ namespace OpenMS
   /**
     @brief This class stores a SRM/MRM transition
 
-    This class is capable of representing a <Transition> tag in a TraML
+    This class is capable of representing a \<Transition\> tag in a TraML
     document completely and contains all associated information.
 
     The default values for precursor m/z is 0.0 which indicates that it is
@@ -292,7 +292,7 @@ protected:
     String peptide_ref_; ///< Reference to a specific peptide
     String compound_ref_; ///< Reference to a specific compound
 
-    /// Intensity of the product (q3) ion (stored in CV Term 1001226 inside the <Transition> tag)
+    /// Intensity of the product (q3) ion (stored in CV Term 1001226 inside the \<Transition\> tag)
     double library_intensity_;
 
     /// specific properties of a transition (e.g. specific CV terms)

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -27,7 +27,7 @@ namespace OpenMS
     Base()
   {
     //set the name for DefaultParamHandler error messages
-    Base::setName(getProductName());
+    Base::setName("StablePairFinder");
 
     defaults_.setValue("second_nearest_gap", 2.0, "Only link features whose distance to the second nearest neighbors (for both sides) is larger by 'second_nearest_gap' than the distance between the matched pair itself.");
     defaults_.setMinFloat("second_nearest_gap", 1.0);

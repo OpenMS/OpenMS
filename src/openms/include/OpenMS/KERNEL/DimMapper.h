@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -759,6 +759,15 @@ namespace OpenMS
     {
       assert((int)d <= N_DIM);
       return *dims_[(int)d];
+    }
+
+    bool hasUnit(DIM_UNIT unit) const
+    {
+      for (int i = 0; i < N_DIM; ++i)
+      {
+        if (dims_[i]->getUnit() == unit) return true;
+      }
+      return false;
     }
 
   protected:

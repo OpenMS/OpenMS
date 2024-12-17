@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -157,8 +157,9 @@ namespace OpenMS
        theoretical ground truth, the observed pattern is said to be an isotopic pattern if the KL between the two is below 0.05
        for 2 peaks and below 0.6 for >=6 peaks by Guo Ci Teo et al.
 
-       @param average_weight: m/z of monoisotopic peak (with charge = 1) to approximate the distribution of intensities for
+       @param mass m/z of monoisotopic peak (with charge = 1) to approximate the distribution of intensities for
        @param num_peaks: How many peaks should be generated (independent of this->max_isotope)
+       @param charge Charge of the resulting distribution
     */
     static IsotopeDistribution approximateFromPeptideWeight(double mass, UInt num_peaks = 20, UInt charge = 1);
 
@@ -169,7 +170,7 @@ namespace OpenMS
        This method is around 100 times faster than estimateFromPeptideWeight, but only an approximation of the intensities. 
        It does not return IsotopeDistribution but a vector of intensities. For an assessment of accuracy, see approximateFromPeptideWeight.
 
-       @param average_weight: m/z of monoisotopic peak (with charge = 1) to approximate the distribution of intensities for
+       @param mass: m/z of monoisotopic peak (with charge = 1) to approximate the distribution of intensities for
        @param num_peaks: How many peaks should be generated (independent of this->max_isotope)
     */
     static std::vector<double> approximateIntensities(double mass, UInt num_peaks = 20);

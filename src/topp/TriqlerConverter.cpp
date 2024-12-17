@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -29,18 +29,18 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_TriqlerConverter TriqlerConverter
+@page TOPP_TriqlerConverter TriqlerConverter
 
-    @brief Converter to input for Triqler
+@brief Converter to input for Triqler
 
-    This util consumes an ID-mapped consensusXML file and OpenMS experimental design in TSV format to create a CSV file which can subsequently be used as input for the python tool Triqler [1].
+This util consumes an ID-mapped consensusXML file and OpenMS experimental design in TSV format to create a CSV file which can subsequently be used as input for the python tool Triqler [1].
 
-    [1] The, M. & Käll, L. (2019). Integrated identification and quantification error probabilities for shotgun proteomics. Molecular & Cellular Proteomics, 18 (3), 561-570.
+[1] The, M. & Käll, L. (2019). Integrated identification and quantification error probabilities for shotgun proteomics. Molecular & Cellular Proteomics, 18 (3), 561-570.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_TriqlerConverter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_TriqlerConverter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_TriqlerConverter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_TriqlerConverter.html
  */
 
 // We do not want this class to show up in the docu:

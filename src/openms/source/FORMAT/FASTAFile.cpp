@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -146,6 +146,12 @@ namespace OpenMS
     entries_read_ = 0;
   }
 
+  void FASTAFile::readStartWithProgress(const String& filename, const String& progress_label)
+  {
+    readStart(filename);
+    startProgress(0, fileSize_, progress_label);
+  }
+
   bool FASTAFile::readNext(FASTAEntry &protein)
   {
     if (infile_.eof())
@@ -176,7 +182,23 @@ namespace OpenMS
     protein.description = std::move(description_);
     protein.sequence = std::move(seq_);
 
+    setProgress(infile_.tellg());
+
     return true;
+  }
+
+  bool FASTAFile::readNextWithProgress(FASTAEntry& protein)
+  {
+    if (readNext(protein))
+    {
+      setProgress(position());
+      return true;
+    }
+    else
+    {
+      endProgress(); 
+      return false;
+    }
   }
 
   std::streampos FASTAFile::position()
@@ -233,7 +255,7 @@ namespace OpenMS
 
   void FASTAFile::writeNext(const FASTAEntry &protein)
   {
-    outfile_ << ">" << protein.identifier << " " << protein.description << "\n";
+    outfile_ << '>' << protein.identifier << ' ' << protein.description << "\n";
     const String &tmp(protein.sequence);
 
     int chunks(tmp.size() / 80); // number of complete chunks

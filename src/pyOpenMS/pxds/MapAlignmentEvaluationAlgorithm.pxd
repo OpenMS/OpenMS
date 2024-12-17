@@ -14,4 +14,3 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.h
 
         # NAMESPACE # void evaluate(ConsensusMap & conensus_map_in, ConsensusMap & consensus_map_gt, double & rt_dev, double & mz_dev, Peak2D::IntensityType & int_dev, bool use_charge, double & out) except + nogil 
         # NAMESPACE # bool isSameHandle(FeatureHandle & lhs, FeatureHandle & rhs, double & rt_dev, double & mz_dev, Peak2D::IntensityType & int_dev, bool use_charge) except + nogil 
-        void registerChildren() except + nogil  # wrap-doc:Register all derived classes in this method

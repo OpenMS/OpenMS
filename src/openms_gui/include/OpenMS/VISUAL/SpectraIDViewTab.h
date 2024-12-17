@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -24,7 +24,7 @@ namespace OpenMS
   /**
     @brief Tabular visualization / selection of identified spectra.
 
-    @htmlinclude OpenMS_DigestSimulation.parameters
+    @htmlinclude OpenMS_SpectraIDViewTab.parameters
   */
   class OPENMS_GUI_DLLAPI SpectraIDViewTab :
     public QWidget,

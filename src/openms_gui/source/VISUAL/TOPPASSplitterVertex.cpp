@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -19,7 +19,12 @@ namespace OpenMS
 
   TOPPASSplitterVertex::TOPPASSplitterVertex(const TOPPASSplitterVertex& rhs) = default;
 
-  TOPPASSplitterVertex & TOPPASSplitterVertex::operator=(const TOPPASSplitterVertex& rhs) = default;
+  TOPPASSplitterVertex& TOPPASSplitterVertex::operator=(const TOPPASSplitterVertex& rhs) = default;
+
+  std::unique_ptr<TOPPASVertex> TOPPASSplitterVertex::clone() const
+  {
+    return std::make_unique<TOPPASSplitterVertex>(*this);
+  }
 
   String TOPPASSplitterVertex::getName() const
   {

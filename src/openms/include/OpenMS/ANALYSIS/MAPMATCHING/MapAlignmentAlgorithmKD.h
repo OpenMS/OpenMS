@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -26,8 +26,6 @@ namespace OpenMS
     All CCCs above a user-specified minimum size are considered true sets of corresponding features
     and based on these, LOWESS transformations are computed for each input map such that the average
     deviation from the mean retention time within all CCCs is minimized.
-
-    @htmlinclude OpenMS_MapAlignmentAlgorithmKD.parameters
 
     @ingroup MapAlignment
 */

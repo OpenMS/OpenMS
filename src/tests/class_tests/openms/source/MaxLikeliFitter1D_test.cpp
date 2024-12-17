@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
+#include <OpenMS/FEATUREFINDER/MaxLikeliFitter1D.h>
 ///////////////////////////
 
 ///////////////////////////
@@ -23,7 +23,7 @@ class TestModel : public MaxLikeliFitter1D
 {
   public: TestModel() : MaxLikeliFitter1D()
   {
-    setName(getProductName());
+    setName("TestModel");
     check_defaults_ = false;
     defaultsToParam_();
   }
@@ -76,11 +76,6 @@ class TestModel : public MaxLikeliFitter1D
     return 1.0;
   }
 
-  static const String getProductName()
-  {
-    return "TestModel";
-  }
-
 };
 
 /////////////////////////////////////////////////////////////
@@ -100,9 +95,7 @@ END_SECTION
 
 START_SECTION((MaxLikeliFitter1D(const  MaxLikeliFitter1D &source)))
 	TestModel tm1;
-
   TestModel tm2(tm1);
-	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 END_SECTION
 
 START_SECTION((virtual ~MaxLikeliFitter1D()))
@@ -112,9 +105,7 @@ END_SECTION
 START_SECTION((virtual MaxLikeliFitter1D& operator=(const  MaxLikeliFitter1D &source)))
 	TestModel tm1;
   TestModel tm2;
-
   tm2 = tm1;
-	TEST_EQUAL(tm1.getProductName(),tm2.getProductName())
 END_SECTION
 
 

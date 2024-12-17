@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,7 +11,7 @@
 #include <ui_TOPPViewPrefDialog.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/COMPARISON/SpectrumAlignment.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 

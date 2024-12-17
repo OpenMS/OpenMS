@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -13,7 +13,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/ANALYSIS/RNPXL/PScore.h>
+#include <OpenMS/ANALYSIS/ID/PScore.h>
 
 #include <limits>
 #include <vector>
@@ -124,7 +124,7 @@ namespace OpenMS
     void computeSiteDeterminingIons_(const std::vector<PeakSpectrum>& th_spectra, const ProbablePhosphoSites& candidates, std::vector<PeakSpectrum>& site_determining_ions) const;
 
     /// return all phospho sites
-    std::vector<Size> getSites_(const AASequence& without_phospho) const;
+    std::vector<Size> getSites_(const String& unmodified_sequence) const;
 
     /// calculate all n_phosphorylation_events sized sets of phospho sites (all versions of the peptides with exactly n_phosphorylation_events)
     std::vector<std::vector<Size>> computePermutations_(const std::vector<Size>& sites, Int n_phosphorylation_events) const;

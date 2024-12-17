@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -234,7 +234,8 @@ namespace OpenMS
     /**
       @brief Opens a new SQLite database
 
-      @filename Filename of the database
+      @param filename Filename of the database
+      @param mode See SqlOpenMode
 
       @note Call this only once!
     */
@@ -280,6 +281,7 @@ namespace OpenMS
         To avoid oversights, you can pass the old return value into the function again
         and get an Exception which will tell you that there is buggy code!
 
+        @param stmt Sqlite statement object
         @param current Return value of the previous call to this function.
         @return one of SqlState::SQL_ROW or SqlState::SQL_DONE
         @throws Exception::SqlOperationFailed if state would be SqlState::ERROR

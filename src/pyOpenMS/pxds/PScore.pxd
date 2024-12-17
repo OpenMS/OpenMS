@@ -2,7 +2,7 @@ from Types cimport *
 from MSSpectrum cimport *
 from MSExperiment cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/ANALYSIS/ID/PScore.h>" namespace "OpenMS":
     
     cdef cppclass PScore "OpenMS::PScore":
         PScore() except + nogil  

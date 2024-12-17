@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "OpenMS/CHEMISTRY/AASequence.h"
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
@@ -54,7 +54,7 @@ public:
     static ModificationsDB* getInstance();
 
     /// Initializes the modification DB with non-default modification files (can only be done once)
-    static ModificationsDB* initializeModificationsDB(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo");
+    static ModificationsDB* initializeModificationsDB(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String custommod_file = "CHEMISTRY/custom_mods.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo");
 
     /// Check whether ModificationsDB was instantiated before
     static bool isInstantiated();
@@ -109,7 +109,7 @@ public:
 
        @return The matching modification given the constraints. Returns nullptr
        if no modification exists that fulfills the criteria. If multiple
-       modifications are found, the @multiple_matches flag will be set.
+       modifications are found, the @p multiple_matches flag will be set.
     */
     const ResidueModification* searchModificationsFast(const String& mod_name,
                                                        bool& multiple_matches,
@@ -195,9 +195,10 @@ public:
         will choose the _first_ match which defaults to the first matching
         UniMod entry.
 
-        @param residue The residue at which the modifications occurs
         @param mass The monoisotopic mass of the residue including the mass of the modification
         @param max_error The maximal mass error in the modification search
+        @param residue The residue at which the modifications occurs
+        @param term_spec Only modifications with matching term specificity are considered.
 
         @return A pointer to the best matching modification (or NULL if none was found)
 
@@ -247,7 +248,7 @@ private:
 
      */
     //@{
-    explicit ModificationsDB(const OpenMS::String& unimod_file = "CHEMISTRY/unimod.xml", const OpenMS::String& psimod_file = "CHEMISTRY/PSI-MOD.obo", const OpenMS::String& xlmod_file = "CHEMISTRY/XLMOD.obo");
+    explicit ModificationsDB(const OpenMS::String& unimod_file = "CHEMISTRY/unimod.xml", const OpenMS::String& custommod_file = "CHEMISTRY/custom_mods.xml", const OpenMS::String& psimod_file = "CHEMISTRY/PSI-MOD.obo", const OpenMS::String& xlmod_file = "CHEMISTRY/XLMOD.obo");
 
     /// Copy constructor
     ModificationsDB(const ModificationsDB& residue_db);

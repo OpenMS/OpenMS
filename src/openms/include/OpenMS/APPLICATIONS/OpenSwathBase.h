@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -115,7 +115,6 @@ protected:
    * @param file_list The input file(s)
    * @param exp_meta The output (meta data about experiment)
    * @param swath_maps The output (ptr to raw data)
-   * @param file_list The input file(s)
    * @param split_file If loading a single file that contains a single SWATH window
    * @param tmp Temporary directory
    * @param readoptions Description on how to read the data ("normal", "cache")
@@ -123,7 +122,9 @@ protected:
    * @param min_upper_edge_dist Distance for each assay to the upper edge of the SWATH window
    * @param force Whether to override the sanity check
    * @param sort_swath_maps Whether to sort the provided windows first before mapping
-   * @param sonar Whether data is in sonar format
+   * @param prm Whether data is in prm format; allows for overlap
+   * @param pasef Whether data is in PASEF format; allows for overlap
+   * @param plugin_consumer Intermediate consumer for mzML input. See SwathFile::loadMzML() for details.
    *
    * @return Returns whether loading and sanity check was successful
    *
@@ -138,7 +139,6 @@ protected:
                       const double min_upper_edge_dist,
                       const bool force,
                       const bool sort_swath_maps,
-                      const bool sonar,
                       const bool prm,
                       const bool pasef,
                       Interfaces::IMSDataConsumer* plugin_consumer = nullptr)
@@ -193,8 +193,6 @@ protected:
         }
       }
 
-      if (sonar) {continue;} // skip next step as expect them to overlap ...
-
       if (pasef) {continue;} // skip this step, expect there to be overlap ...
 
       if (lower_map_end - upper_map_start > 0.01)
@@ -203,7 +201,7 @@ protected:
                  << "This will lead to multiple extraction of the transitions in the overlapping region "
                  << "which will lead to duplicated output. It is very unlikely that you want this." << "\n"
                  << "Please fix this by providing an appropriate extraction file with -swath_windows_file" << "\n"
-                 << "Did you mean to set the -sonar or -pasef Flag?" << std::endl;
+                 << "Did you mean to set the -pasef Flag?" << std::endl;
         if (!force)
         {
           OPENMS_LOG_ERROR << "Extraction windows overlap. Will abort (override with -force)" << std::endl;
@@ -344,7 +342,6 @@ protected:
    * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
    * @param calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
    * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
-   * @param sonar Whether the data is SONAR data
    * @param pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor cetntered around IM) is chosen.
    * @param load_into_memory Whether to cache the current SWATH map in memory
    * @param irt_trafo_out Output trafoXML file (if not empty and no input trafoXML file is given,
@@ -363,7 +360,6 @@ protected:
         const Param& irt_detection_param,
         const Param& calibration_param,
         Size debug_level,
-        bool sonar,
         bool pasef,
         bool load_into_memory,
         const String& irt_trafo_out,
@@ -412,7 +408,7 @@ protected:
                                                min_rsq, min_coverage,
                                                feature_finder_param,
                                                cp_irt, irt_detection_param,
-                                               calibration_param, irt_mzml_out, debug_level, sonar, pasef,
+                                               calibration_param, irt_mzml_out, debug_level, pasef,
                                                load_into_memory);
 
       if (!irt_trafo_out.empty())
@@ -427,7 +423,3 @@ protected:
 };
 
 }
-
-/// @endcond
-
-

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -26,12 +26,15 @@ namespace OpenMS
     "Low-energy collision-induced dissociation", 
     "Photodissociation", 
     "Electron transfer dissociation", 
+    "Electron transfer and collision-induced dissociation",
+    "Electron transfer and higher-energy collision dissociation",
     "Pulsed q dissociation",
     "trap-type collision-induced dissociation",
     "beam-type collision-induced dissociation", // == HCD
     "in-source collision-induced dissociation",
     "Bruker proprietary method"
     };
+  
   const std::string Precursor::NamesOfActivationMethodShort[] = { 
     "CID", 
     "PSD", 
@@ -45,12 +48,14 @@ namespace OpenMS
     "LCID", 
     "PHD", 
     "ETD", 
+    "ETciD",
+    "EThcD",
     "PQD",
     "TRAP",
     "HCD",
     "INSOURCE",
     "LIFT"
-    };
+  };
 
   Precursor::Precursor(Precursor&& rhs) noexcept :
       CVTermList(std::move(rhs)),

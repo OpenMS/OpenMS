@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -154,7 +154,7 @@ namespace OpenMS
       {
         ion_names = spectrum.getStringDataArrays()[0];
       }
-      ion_names.setName("IonNames");
+      ion_names.setName(Constants::UserParam::IonNames);
     }
 
     std::vector< LossIndex > forward_losses;
@@ -349,7 +349,7 @@ namespace OpenMS
       {
         ion_names = spectrum.getStringDataArrays()[0];
       }
-      ion_names.setName("IonNames");
+      ion_names.setName(Constants::UserParam::IonNames);
     }
 
     std::vector< LossIndex > forward_losses;
@@ -848,7 +848,7 @@ namespace OpenMS
       {
         ion_names = spectrum.getStringDataArrays()[0];
       }
-      ion_names.setName("IonNames");
+      ion_names.setName(Constants::UserParam::IonNames);
     }
 
     std::vector< LossIndex > forward_losses;

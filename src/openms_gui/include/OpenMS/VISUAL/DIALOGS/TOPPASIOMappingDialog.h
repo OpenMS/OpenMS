@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,8 +10,6 @@
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
-#include <OpenMS/VISUAL/TOPPASToolVertex.h>
 
 #include <QtCore/QVector>
 #include <QtWidgets/QDialog>
@@ -58,9 +56,6 @@ protected:
 
     /// The edge we are configuring
     TOPPASEdge * edge_;
-
-    /// Vector storing the mapping of the target input combobox indices to param indices of edges
-    QVector<int> target_input_param_indices_;
 
 protected slots:
 

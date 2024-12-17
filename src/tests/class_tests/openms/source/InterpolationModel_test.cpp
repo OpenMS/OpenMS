@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
+#include <OpenMS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 
@@ -25,7 +25,7 @@ class TestModel : public InterpolationModel
   TestModel()
     : InterpolationModel()
   {
-    setName(getProductName());
+    setName("TestModel");
 
     check_defaults_ = false;
 
@@ -89,11 +89,6 @@ class TestModel : public InterpolationModel
   CoordinateType getCenter() const override
   {
     return 10.0;
-  }
-
-  static const String getProductName()
-  {
-    return "TestModel";
   }
 
 };

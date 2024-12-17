@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -29,6 +29,9 @@
 
 
   Schematic of the internal data flow (all tools are called by SwathWizard in the background):
+*/
+#ifdef OPENMS_HASDOXYGENDOT
+/*
   @dot
     digraph wizard_workflow
     {
@@ -79,8 +82,9 @@
       sqMass -> topp_tv;
     }
   @enddot
-
-
+*/
+#endif
+/**
   A recommended test data for the Wizard is the
   <a href="https://db.systemsbiology.net/sbeams/cgi/PeptideAtlas/PASS_View?identifier=PASS00779" target="_blank">PASS00779</a>
   dataset.
@@ -139,6 +143,10 @@ void print_usage(Logger::LogStream& stream = OpenMS_Log_info)
 
 int main(int argc, const char** argv)
 {
+#ifdef OPENMS_WINDOWSPLATFORM
+  qputenv("QT_QPA_PLATFORM", "windows:darkmode=0"); // disable dark mode on Windows, since our buttons etc are not designed for it
+#endif
+
   // list of all the valid options
   std::map<std::string, std::string> valid_options, valid_flags, option_lists;
   valid_flags["--help"] = "help";

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -65,8 +65,6 @@ namespace OpenMS
       ExperimentalDesign::MSFileSection msfile_section;
       ExperimentalDesign::SampleSection sample_section;
 
-      Size fraction_groups_assigned(0);
-
       // determine vector of ms file names (in order of appearance)
       vector<String> msfiles;
       std::map<pair<UInt,UInt>, UInt> fractiongroup_label_to_sample_mapping;
@@ -93,7 +91,6 @@ namespace OpenMS
           if (f.second.metaValueExists("fraction_group"))
           {
             r.fraction_group = static_cast<unsigned int>(f.second.getMetaValue("fraction_group"));
-            ++fraction_groups_assigned;
           }
           else
           {

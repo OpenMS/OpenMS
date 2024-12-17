@@ -39,7 +39,7 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 set(EXAMPLES_executables)
 
-# ensure the tutorials got into bin/
+# ensure the tutorials go into bin/
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # get the actual code examples
@@ -54,16 +54,20 @@ foreach(i ${EXAMPLES_executables})
   # if not GUI and no style tests requested -> add as test
   if(NOT ENABLE_STYLE_TESTING)
     add_test(NAME ${i}
-             COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i} ${CMAKE_CURRENT_LIST_DIR})
+             COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
   endif()
 endforeach(i)
+## expect "Tutorial_Template"" to fail, since its a proper TOPP tool invoked without arguments
+## i.e. TOPPBase will print a usage() and return an error code
+if(NOT ENABLE_STYLE_TESTING)
+  set_tests_properties(Tutorial_Template PROPERTIES WILL_FAIL TRUE)
+endif()
 
 # add collection target
 add_custom_target(Tutorials_build)
 add_dependencies(Tutorials_build ${EXAMPLES_executables})
 
 if(WITH_GUI)
-
   # add the GUI tutorials -- no tests
   foreach(i ${GUI_EXAMPLES_executables})
     add_executable(${i} ${CMAKE_CURRENT_LIST_DIR}/${i}.cpp)

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -89,7 +89,7 @@ const MSSpectrum IMwithDrift = [&]() {
 const MSSpectrum IMwithFDA = [&]() {
   MSExperiment exp;
   exp.addSpectrum(IMwithDrift);
-  auto single = IMDataConverter::collapseFramesToSingle(exp);
+  auto single = IMDataConverter::reshapeIMFrameToSingle(exp);
   return single[0];
 }();
 

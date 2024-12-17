@@ -13,5 +13,4 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmRe
 
         # NAMESPACE # void evaluate(ConsensusMap & consensus_map_in, ConsensusMap & consensus_map_gt, double & rt_dev, double & mz_dev, Peak2D::IntensityType & int_dev, bool use_charge, double & out) except + nogil 
         # POINTER # MapAlignmentEvaluationAlgorithm * create() except + nogil 
-        String getProductName() except + nogil  # wrap-doc:Returns the product name (for the Factory)
-
+       

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -11,8 +11,8 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
+#include <OpenMS/FEATUREFINDER/EmgFitter1D.h>
+#include <OpenMS/FEATUREFINDER/EmgModel.h>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <algorithm>
@@ -137,23 +137,6 @@ START_SECTION((QualityType fit1d(const  RawDataArrayType &range, InterpolationMo
   TEST_REAL_SIMILAR((double)em_fitted1->getParameters().getValue("emg:retention"), 725.0);
 
 END_SECTION
-
-START_SECTION((Fitter1D* create()))
-{
-  Fitter1D* ptr = EmgFitter1D::create();
-  TEST_EQUAL(ptr->getName(), "EmgFitter1D")
-	TEST_NOT_EQUAL(ptr, nullPointer)
-	delete ptr;
-}
-END_SECTION
-
-START_SECTION((const String getProductName()))
-{
-  TEST_EQUAL(EmgFitter1D::getProductName(),"EmgFitter1D")
-  TEST_EQUAL(EmgFitter1D().getName(),"EmgFitter1D")
-}
-END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

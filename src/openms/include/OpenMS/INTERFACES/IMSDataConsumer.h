@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,11 +9,13 @@
 #pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS
 {
+  class MSSpectrum;
+  class MSChromatogram;
+  class ExperimentalSettings;
 
 namespace Interfaces
 {
@@ -57,7 +59,7 @@ namespace Interfaces
 
         @param s The spectrum to be consumed
       */
-      virtual void consumeSpectrum(SpectrumType & s) = 0;
+      virtual void consumeSpectrum(SpectrumType& s) = 0;
 
       /**
         @brief Consume a chromatogram
@@ -66,9 +68,9 @@ namespace Interfaces
 
         @note The implementation might not allow to consume spectra and chromatograms in any order
 
-        @param s The chromatogram to be consumed
+        @param c The chromatogram to be consumed
       */
-      virtual void consumeChromatogram(ChromatogramType &) = 0;
+      virtual void consumeChromatogram(ChromatogramType& c) = 0;
 
       /**
         @brief Set expected size of spectra and chromatograms to be consumed.

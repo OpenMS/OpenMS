@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -74,6 +74,8 @@ namespace OpenMS
     void setAveragine(const PrecalculatedAveragine& avg);
 
     /** @brief set targeted or excluded masses for targeted deconvolution. Masses are targeted or excluded in all ms levels.
+        
+        @param masses Masses to be targeted or excluded (@p exclude=true)
         @param exclude if set, masses are excluded.
      */
     void setTargetMasses(const std::vector<double>& masses, bool exclude = false);

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -7,12 +7,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
+#include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
+#include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -24,39 +24,39 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_MassTraceExtractor MassTraceExtractor
+@page TOPP_MassTraceExtractor MassTraceExtractor
 
-  @brief MassTraceExtractor extracts mass traces from a MSExperiment map and stores them into a FeatureXMLFile.
+@brief MassTraceExtractor extracts mass traces from a MSExperiment map and stores them into a FeatureXMLFile.
 
-  <CENTER>
-  <table>
-  <tr>
-  <th ALIGN = "center"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=3> &rarr; MassTraceExtractor &rarr;</td>
-  <th ALIGN = "center"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo</td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_TextExporter </td>
-  </tr>
-  </table>
-  </CENTER>
+<CENTER>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=3> &rarr; MassTraceExtractor &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo</td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_TextExporter </td>
+</tr>
+</table>
+</CENTER>
 
 
-  This TOPP tool detects mass traces in centroided LC-MS maps and stores them as features in
-  a FeatureMap. These features may be either used directly as input for an metabolite ID approach or further
-  be assembled to aggregate features according to a theoretical isotope pattern. For metabolomics experiments,
-  the @ref TOPP_FeatureFinderMetabo tool offers both mass trace extraction and isotope pattern assembly.
-  For proteomics data, please refer to the @ref TOPP_FeatureFinderCentroided tool.
+This TOPP tool detects mass traces in centroided LC-MS maps and stores them as features in
+a FeatureMap. These features may be either used directly as input for an metabolite ID approach or further
+be assembled to aggregate features according to a theoretical isotope pattern. For metabolomics experiments,
+the @ref TOPP_FeatureFinderMetabo tool offers both mass trace extraction and isotope pattern assembly.
+For proteomics data, please refer to the @ref TOPP_FeatureFinderCentroided tool.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_MassTraceExtractor.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_MassTraceExtractor.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MassTraceExtractor.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MassTraceExtractor.html
 */
 
 // We do not want this class to show up in the docu:

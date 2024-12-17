@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -17,8 +17,8 @@
 #include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
-#include <QFileInfo>
-#include <QtCore/QRegExp>
+#include <QtCore/QFileInfo>
+#include <QtCore/QRegularExpression>
 
 #include <iomanip>     // setw
 
@@ -423,7 +423,7 @@ namespace OpenMS
 
     QFileInfo fileinfo(filename.c_str());
     QString filtered_filename = fileinfo.completeBaseName();
-    filtered_filename.remove(QRegExp("[^a-zA-Z0-9]"));
+    filtered_filename.remove(QRegularExpression("[^a-zA-Z0-9]"));
 
 
     String native_id_type_accession;

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -75,10 +75,10 @@ public:
     const Residue* getModifiedResidue(const Residue* residue, const String& name);
 
     /**
-       @brief Returns a pointer to a modified residue given a residue and a pointer to a modification from the @class ModificationsDB
+       @brief Returns a pointer to a modified residue given a residue and a pointer to a modification from the ModificationsDB
 
        The modified residue is added to the database if it doesn't exist yet. The origin of the modification has to match the residue and
-       the term has to be @enum ResidueModification::Anywhere.
+       the term has to be ResidueModification::Anywhere.
 
        @throw Exception::IllegalArgument if the residue was not found
     */

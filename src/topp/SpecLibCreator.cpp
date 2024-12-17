@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -24,19 +24,19 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_SpecLibCreator SpecLibCreator
+@page TOPP_SpecLibCreator SpecLibCreator
 
-    @brief creates with given data a .MSP format spectral library.
+@brief creates with given data a .MSP format spectral library.
 
-    Information file should have the following information: peptide, retention time, measured weight, charge state.
-    Extra information is allowed.
+Information file should have the following information: peptide, retention time, measured weight, charge state.
+Extra information is allowed.
 
-    @experimental This Utility is not well tested and some features might not work as expected.
+@experimental This Utility is not well tested and some features might not work as expected.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_SpecLibCreator.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_SpecLibCreator.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_SpecLibCreator.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_SpecLibCreator.html
 */
 
 // We do not want this class to show up in the docu:

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -21,9 +21,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_IDRTCalibration IDRTCalibration
+@page TOPP_IDRTCalibration IDRTCalibration
 
-    @brief Can be used to calibrate the RTs of peptide hits linearly to standards.
+@brief Can be used to calibrate the RTs of peptide hits linearly to standards.
 
 <CENTER>
     <table>
@@ -39,21 +39,21 @@ using namespace std;
     </table>
 </CENTER>
 
-    This tool can be used to linearly align RTs of the idXML-File to a reference. If only calibrant_1_input and
-  calibrant_2_input are given, the first calibrant will result at RT 0.1 and calibrant_2_input will be at 0.9.
-    If one wants to align the RTs of this idXML file to the IDs of a reference file one can also give the RTs
-    of the same calibrant in the reference file (calibrant_1_reference, calibrant_2_reference). If these calibrants
-    are given, the linear transformation (shift and scale) will be calculated such that calibrant_1_input will
-    be at the same RT as calibrant_1_reference and calibrant_2_input will
-    be at the same RT as calibrant_2_reference. This only applies if calibrant_1* has a smaller RT than calibrant_2*.
-    Otherwise the values are swapped.
+This tool can be used to linearly align RTs of the idXML-File to a reference. If only calibrant_1_input and
+calibrant_2_input are given, the first calibrant will result at RT 0.1 and calibrant_2_input will be at 0.9.
+If one wants to align the RTs of this idXML file to the IDs of a reference file one can also give the RTs
+of the same calibrant in the reference file (calibrant_1_reference, calibrant_2_reference). If these calibrants
+are given, the linear transformation (shift and scale) will be calculated such that calibrant_1_input will
+be at the same RT as calibrant_1_reference and calibrant_2_input will
+be at the same RT as calibrant_2_reference. This only applies if calibrant_1* has a smaller RT than calibrant_2*.
+Otherwise the values are swapped.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_IDRTCalibration.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_IDRTCalibration.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_IDRTCalibration.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_IDRTCalibration.html
 */
 
 // We do not want this class to show up in the docu:

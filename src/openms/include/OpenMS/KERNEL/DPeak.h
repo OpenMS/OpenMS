@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -13,7 +13,6 @@
 
 namespace OpenMS
 {
-
   /**
     @brief Metafunction to choose among Peak1D respectively Peak2D through a template argument.
 
@@ -21,14 +20,6 @@ namespace OpenMS
       - @c DPeak<1>::Type is @c Peak1D
       - @c DPeak<2>::Type is @c Peak2D
 
-    Example:
-    @code
-      template class BaseModel<UInt D>
-      {
-          // BaseModel<D>::PeakType is either Peak1D or Peak2D, depending on D
-          typedef typename DPeak<D>::Type PeakType;
-      };
-    @endcode
   */
   template <UInt dimensions>
   struct DPeak

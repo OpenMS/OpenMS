@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -438,6 +438,23 @@ namespace OpenMS
   String ToolsDialog::getTool()
   {
     return tools_combo_->currentText();
+  }
+
+  String ToolsDialog::getExtension()
+  {
+    // Try to Return the first valid string for the extension on the output parameter
+    // If we can't get any valid strings show an error.
+    String extension = FileTypes::typeToName(FileTypes::UNKNOWN);
+    auto validStrings = vis_param_.getValidStrings(output_combo_->currentText().toStdString()); 
+    if (!validStrings.empty())
+    {
+      extension = validStrings[0];
+    }
+    else
+    {
+      QMessageBox::critical(this, "Error", QString("Error determining output type from tool. Tool is not compatible with TOPPView"));
+    }
+    return extension;
   }
 
 }

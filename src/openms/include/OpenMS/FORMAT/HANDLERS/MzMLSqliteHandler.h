@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -192,7 +192,7 @@ public:
       /**
           @brief Writes a set of chromatograms to disk
 
-          @param chromatograms The chromatograms to write
+          @param chroms The chromatograms to write
       */
       void writeChromatograms(const std::vector<MSChromatogram>& chroms);
 
@@ -202,7 +202,7 @@ public:
           @note This is a low level function, do not call this function unless you know what you are doing!
 
           @param exp The result data structure
-          @param meta_only Only read the meta data
+          @param write_full_meta Add full meta information into sql tables
       */
       void writeRunLevelInformation(const MSExperiment& exp, bool write_full_meta);
 

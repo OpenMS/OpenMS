@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -447,7 +447,7 @@ namespace OpenMS
         int ion_name = -1;
         for (Size k = 0; k < rich_spec.getStringDataArrays().size(); k++)
         {
-          if (rich_spec.getStringDataArrays()[k].getName() == "IonName")
+          if (rich_spec.getStringDataArrays()[k].getName() == Constants::UserParam::IonNames)
           {
             ion_name = (int)k;
             break;

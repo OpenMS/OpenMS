@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -33,37 +33,37 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_QCExporter QCExporter
+@page TOPP_QCExporter QCExporter
 
-    @brief Will extract several quality parameter from several run/sets from a qcML file into a tabular (text) format - counterpart to QCImporter.
+@brief Will extract several quality parameter from several run/sets from a qcML file into a tabular (text) format - counterpart to QCImporter.
 
-    <CENTER>
-      <table>
-        <tr>
-        <th ALIGN = "center"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=2> &rarr; QCExporter &rarr;</td>
-        <th ALIGN = "center"> pot. successor tools </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> ? </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCEmbedder </td>
-        </tr>
-      </table>
-    </CENTER>
+<CENTER>
+  <table>
+    <tr>
+    <th ALIGN = "center"> pot. predecessor tools </td>
+    <td VALIGN="middle" ROWSPAN=2> &rarr; QCExporter &rarr;</td>
+    <th ALIGN = "center"> pot. successor tools </td>
+    </tr>
+    <tr>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> ? </td>
+    </tr>
+    <tr>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_QCEmbedder </td>
+    </tr>
+  </table>
+</CENTER>
 
-    The data contained as values of the qp of a qcML file at @p in can be exported in tabluar (csv) format.
+The data contained as values of the qp of a qcML file at @p in can be exported in tabluar (csv) format.
 
-    - @p names The name of the target runs or sets to be exported from. If empty, from all will be exported.
-    - @p mapping The mapping of the exported table's headers to the according qp cvs. The first row is considered containing the headers as for the exported the table. The second row is considered the according qp cv accessions of the qp to be exported.
+- @p names The name of the target runs or sets to be exported from. If empty, from all will be exported.
+- @p mapping The mapping of the exported table's headers to the according qp cvs. The first row is considered containing the headers as for the exported the table. The second row is considered the according qp cv accessions of the qp to be exported.
 
-    Output is in csv format (see parameter @p out_csv) which can be easily viewed/parsed by many programs.
+Output is in csv format (see parameter @p out_csv) which can be easily viewed/parsed by many programs.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_QCExporter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_QCExporter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_QCExporter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_QCExporter.html
 
 */
 
@@ -74,7 +74,8 @@ class TOPPQCExporter :
 {
 public:
   TOPPQCExporter() :
-    TOPPBase("QCExporter", "Will extract several qp from several run/sets in a tabular format.", false, {{ "Walzer M, Pernas LE, Nasso S, Bittremieux W, Nahnsen S, Kelchtermans P,  Martens, L", "qcML: An Exchange Format for Quality Control Metrics from Mass Spectrometry Experiments", "Molecular & Cellular Proteomics 2014; 13(8)" , "10.1074/mcp.M113.035907"}})
+    TOPPBase("QCExporter", "Will extract several qp from several run/sets in a tabular format.", 
+    true, {{ "Walzer M, Pernas LE, Nasso S, Bittremieux W, Nahnsen S, Kelchtermans P,  Martens, L", "qcML: An Exchange Format for Quality Control Metrics from Mass Spectrometry Experiments", "Molecular & Cellular Proteomics 2014; 13(8)" , "10.1074/mcp.M113.035907"}})
   {
   }
 

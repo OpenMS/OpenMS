@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>
+#include <OpenMS/FEATUREFINDER/BiGaussModel.h>
 
 
 ///////////////////////////
@@ -39,13 +39,8 @@ START_SECTION((virtual ~BiGaussModel()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(BiGaussModel::getProductName(),"BiGaussModel")
-	TEST_EQUAL(BiGaussModel().getName(),"BiGaussModel")
-END_SECTION
-
-START_SECTION( static BaseModel<1>* create() )
-	BaseModel<1>* ptr = BiGaussModel::create();
+START_SECTION( static BaseModel* create() )
+    BaseModel* ptr = new BiGaussModel();
 	TEST_EQUAL(ptr->getName(), "BiGaussModel")
 	TEST_NOT_EQUAL(ptr, nullPointer)
 	delete ptr;

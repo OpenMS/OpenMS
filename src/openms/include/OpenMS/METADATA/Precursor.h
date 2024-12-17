@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -57,21 +57,23 @@ public:
     /// Method of activation
     enum ActivationMethod
     {
-      CID,                      ///< Collision-induced dissociation
+      CID,                      ///< Collision-induced dissociation (MS:1000133) (also CAD; parent term, but unless otherwise stated often used as synonym for trap-type CID)
       PSD,                      ///< Post-source decay
       PD,                       ///< Plasma desorption
       SID,                      ///< Surface-induced dissociation
       BIRD,                     ///< Blackbody infrared radiative dissociation
-      ECD,                      ///< Electron capture dissociation
+      ECD,                      ///< Electron capture dissociation (MS:1000250)
       IMD,                      ///< Infrared multiphoton dissociation
       SORI,                     ///< Sustained off-resonance irradiation
       HCID,                     ///< High-energy collision-induced dissociation
       LCID,                     ///< Low-energy collision-induced dissociation
       PHD,                      ///< Photodissociation
       ETD,                      ///< Electron transfer dissociation
-      PQD,                      ///< Pulsed q dissociation
+      ETciD,                    ///< Electron transfer and collision-induced dissociation (MS:1003182)
+      EThcD,                    ///< Electron transfer and higher-energy collision dissociation (MS:1002631) 
+      PQD,                      ///< Pulsed q dissociation (MS:1000599)
       TRAP,                     ///< trap-type collision-induced dissociation (MS:1002472)
-      HCD,                     ///< beam-type collision-induced dissociation (MS:1000422) "HCD"
+      HCD,                      ///< beam-type collision-induced dissociation (MS:1000422)
       INSOURCE,                 ///< in-source collision-induced dissociation (MS:1001880)
       LIFT,                     ///< Bruker proprietary method (MS:1002000)
       SIZE_OF_ACTIVATIONMETHOD

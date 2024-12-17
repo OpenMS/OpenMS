@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,7 +9,7 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Macros.h> // for "OPENMS_PRECONDITION"
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 using namespace std;
 

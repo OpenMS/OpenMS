@@ -23,6 +23,7 @@ set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 1000)
 set (CTEST_CUSTOM_WARNING_EXCEPTION
     # Suppress warnings imported from qt
     ".*qsharedpointer_impl.h:595:43.*"
+    ".*src/openms/extern/.*"
     )
 
 message(STATUS "CTEST_SOURCE_DIRECTORY: ${CTEST_SOURCE_DIRECTORY}")
@@ -72,6 +73,10 @@ endif()
 
 set(VARS_TO_LOAD
   "ADDRESS_SANITIZER"
+  "CC"
+  "CXX"
+  "CFLAGS"
+  "CXXFLAGS"
   "CMAKE_PREFIX_PATH"
   "CMAKE_BUILD_TYPE"
   "CMAKE_GENERATOR_PLATFORM"
@@ -82,10 +87,15 @@ set(VARS_TO_LOAD
   "ENABLE_GCC_WERROR"
   "ENABLE_STYLE_TESTING"
   "ENABLE_TOPP_TESTING"
+  "ENABLE_PIPELINE_TESTING"
+  "ENABLE_DOCS"
+  "ENABLE_CWL"
   "ENABLE_TUTORIALS"
   "ENABLE_UPDATE_CHECK"
   "MT_ENABLE_OPENMP"
+  "NO_DEPENDENCIES"
   "SEARCH_ENGINES_DIRECTORY"
+  "SIGNING_IDENTITY"
   "PACKAGE_TYPE"
   "PYOPENMS"
   "PY_MEMLEAK_DISABLE"
@@ -93,6 +103,8 @@ set(VARS_TO_LOAD
   "PY_NO_OUTPUT"
   "PY_NUM_MODULES"
   "PY_NUM_THREADS"
+  "Python_ROOT_DIR"
+  "Python_FIND_STRATEGY"
   "WITH_GUI"
   "WITH_THERMORAWFILEPARSER_TEST"
  )
@@ -155,24 +167,31 @@ ctest_update()
 ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" OPTIONS "${OWN_OPTIONS}" RETURN_VALUE _configure_ret)
 ctest_submit(PARTS Update Configure)
 
+
+
 # we only build when we do non-style testing and we may have special targets like pyopenms
 if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
   if("$ENV{PYOPENMS}" STREQUAL "ON")
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "pyopenms" NUMBER_ERRORS _build_errors)
+    # Generate and valdiate the CWL files if "ENABLE_CWL" is set
   else()
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
-    ctest_submit(PARTS Build)
+  endif()
+  if("$ENV{ENABLE_CWL}" STREQUAL "ON")
+  ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "generate_cwl_files" NUMBER_ERRORS _build_errors)
   endif()
 else()
   set(_build_errors 0)
 endif()
+ctest_submit(PARTS Build)
+
 
 string(REPLACE "+" "%2B" BUILD_NAME_SAFE ${CTEST_BUILD_NAME})
 string(REPLACE "." "%2E" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
 string(REPLACE "/" "%2F" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
 
 if (_build_errors)
-  message(FATAL_ERROR "There were errors: Please check the build results at: https://cdash.openms.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}")
+  message(FATAL_ERROR "There were errors: Please check the build results at: https://cdash.seqan.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}")
 else()
-  message("Build successful: Please check the build results at: https://cdash.openms.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}")
+  message("Build successful: Please check the build results at: https://cdash.seqan.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}")
 endif()

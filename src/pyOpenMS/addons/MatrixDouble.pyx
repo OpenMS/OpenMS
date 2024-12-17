@@ -1,62 +1,74 @@
 from Matrix cimport *
+cimport numpy as np
+from numpy.lib.stride_tricks import as_strided
 
 
 # continue with extra code if needed
+            
 
-    def get_matrix(self):
-        """Cython signature: numpy_matrix get_matrix()
-        """
-
-        cdef _Matrix[double] * mat_ = self.inst.get()
-
-        cdef unsigned int rows = mat_.rows()
-        cdef unsigned int cols = mat_.cols()
-
-        cdef libcpp_vector[double] tmp_vec;
-        tmp_vec = mat_.asVector();
-
-        xarr = np.asarray(tmp_vec)
-        xarr = xarr.reshape(rows, cols)
-        return xarr
+    
+    @staticmethod
+    def fromNdArray(np.ndarray[double, ndim=2] data not None):
+        """Creates a new Matrix from a numpy ndarray."""
+        cdef MatrixDouble mat = MatrixDouble()
+        mat.set_matrix(data)
+        return mat
 
     def get_matrix_as_view(self):
-        """Cython signature: numpy_matrix get_matrix()
+        """get_matrix(self) -> np.ndarray[double, ndim=2]
+
+        Returns a view on the underlying Matrix as a 2D numpy ndarray.
+        .. caution::
+           Future changes to the Matrix will affect the ndarray and vice versa.
+           Make sure that the Matrix does not go out of scope before the last use
+           of your ndarray.
         """
 
         cdef _Matrix[double] * mat_ = self.inst.get()
-
         cdef unsigned int rows = mat_.rows()
         cdef unsigned int cols = mat_.cols()
-        cdef unsigned int n = rows * cols
-        cdef np.ndarray[double, ndim=2] data
-        data = np.zeros( (rows,cols), dtype=np.float64)
+        cdef double* data = mat_.data()
+        cdef double[:,:] mem_view = <double[:rows,:cols]>data
+        dtype = 'double'
+        cdef int itemsize = np.dtype(dtype).itemsize
+        cdef unsigned int row_stride, col_stride
+        o = 'F'
+        if mat_.rowMajor():
+            row_stride = mat_.outerStride() if mat_.outerStride() > 0 else cols
+            col_stride = mat_.innerStride() if mat_.innerStride() > 0 else 1
+            o = 'F'
+        else:
+            row_stride = mat_.innerStride() if mat_.innerStride() > 0 else 1
+            col_stride = mat_.outerStride() if mat_.outerStride() > 0 else rows
+            o = 'C'
 
-        cdef libcpp_vector[double] * vec_ptr = <libcpp_vector[double]*> mat_
-        cdef double * raw_ptr =  address(deref(vec_ptr)[0]) 
+        return np.lib.stride_tricks.as_strided(np.asarray(mem_view, dtype=dtype, order=o), strides=[row_stride*itemsize, col_stride*itemsize])
 
-        ## # We use a memory view to get the data from the raw data
-        ## # See https://cython.readthedocs.io/en/latest/src/userguide/memoryviews.html 
-        ## # See https://stackoverflow.com/questions/43021574/cast-c-array-into-numpy-array-cython-typed-memoryview-in-cython-code
-        cdef double[:] vec_view = <double[:n]>raw_ptr # cast to memoryview, refer to the underlying buffer without copy
-        xarr = np.asarray(vec_view) # numpy array refer to the underlying buffer without copy
-        xarr = xarr.reshape(rows, cols)
-        return xarr
 
-    def set_matrix(self, np.ndarray[double, ndim=2, mode="c"] data not None):
-        """Cython signature: numpy_matrix set_matrix()
+    def get_matrix(self):
+        """get_matrix(self) -> np.ndarray[double, ndim=2]
+
+        Returns a copy of the underlying Matrix as a 2D numpy ndarray.
+        """
+
+        return np.copy(self.get_matrix_as_view())
+
+
+    def set_matrix(self, np.ndarray[double, ndim=2] data not None):
+        """set_matrix(self, data: np.ndarray[double, ndim=2]) -> None
+
+        Copies the values from the numpy ndarray into the Matrix.
         """
 
         cdef _Matrix[double] * mat_ = self.inst.get()
 
         cdef unsigned int rows = data.shape[0]
         cdef unsigned int cols = data.shape[1]
-        mat_.resize(rows, cols, 0)
+        mat_.resize(rows, cols)
 
         cdef int i = 0
         cdef int j = 0
         for i in range(int(rows)):
             for j in range(int(cols)):
-                mat_.setValue(i,j,data[i][j])
-
-
+                mat_.setValue(i, j, data[i][j])
 

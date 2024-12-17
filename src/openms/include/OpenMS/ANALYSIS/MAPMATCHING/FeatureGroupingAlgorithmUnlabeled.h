@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -81,18 +81,6 @@ public:
         @exception IllegalArgument is thrown if the map_id has been used before
     */
     void addToGroup(int map_id, const FeatureMap & feature_map);
-
-    /// Creates a new instance of this class (for Factory)
-    static FeatureGroupingAlgorithm * create()
-    {
-      return new FeatureGroupingAlgorithmUnlabeled();
-    }
-
-    /// Returns the product name (for the Factory)
-    static String getProductName()
-    {
-      return "unlabeled";
-    }
 
 private:
 

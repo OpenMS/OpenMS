@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -586,14 +586,14 @@ namespace OpenMS
     }
 
     /**
-     @brief Get the first non-whitespace character (anything but \n, \t, \r, ' ') in the string pointed to by @p p (where @p p_end is past the end of the string).
+     @brief Get the first non-whitespace character (anything but \\n, \\t, \\r, ' ') in the string pointed to by @p p (where @p p_end is past the end of the string).
 
      If only whitespaces are contained, then @p p_end is returned.
     */
     OPENMS_DLLAPI const char* skipWhitespace(const char* p, const char* p_end);
 
     /**
-     @brief Get the number of whitespace characters (\n, \t, \r, ' ') in the prefix of @p data
+     @brief Get the number of whitespace characters (\\n, \\t, \\r, ' ') in the prefix of @p data
     */
     inline int skipWhitespace(const std::string_view& data)
     {
@@ -602,14 +602,14 @@ namespace OpenMS
     }
 
     /**
-     @brief Get the first whitespace character (\n, \t, \r, ' ') in the string pointed to by @p p (where @p p_end is past the end of the string).
+     @brief Get the first whitespace character (\\n, \\t, \\r, ' ') in the string pointed to by @p p (where @p p_end is past the end of the string).
 
      If only non-whitespaces are contained, then @p p_end is returned.
     */
     OPENMS_DLLAPI const char* skipNonWhitespace(const char* p, const char* p_end);
 
     /**
-     @brief return the number of non-whitespace characters (anything but \n, \t, \r, ' ') in the prefix of @p data
+     @brief return the number of non-whitespace characters (anything but \\n, \\t, \\r, ' ') in the prefix of @p data
     */
     inline int skipNonWhitespace(const std::string_view& data)
     {

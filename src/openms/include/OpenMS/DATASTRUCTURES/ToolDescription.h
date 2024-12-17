@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -72,7 +72,7 @@ namespace OpenMS
       bool is_internal = false;
       String name;
       String category;
-      StringList types; ///< -types of the tool (if any, e.g. ['centroided','wavelet'])
+      StringList types; ///< -types of the tool
 
       /// default C'Tor
       ToolDescriptionInternal() = default;

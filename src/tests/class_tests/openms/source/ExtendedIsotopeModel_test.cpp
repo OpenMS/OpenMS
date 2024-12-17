@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeModel.h>
+#include <OpenMS/FEATUREFINDER/ExtendedIsotopeModel.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <sstream>
 
@@ -38,18 +38,6 @@ END_SECTION
 // destructor
 START_SECTION((virtual ~ExtendedIsotopeModel()))
 	delete ptr;
-END_SECTION
-
-START_SECTION(static BaseModel<1>* create())
-	BaseModel<1>* ptr = ExtendedIsotopeModel::create();
-	TEST_EQUAL(ptr->getName(), "ExtendedIsotopeModel")
-	TEST_NOT_EQUAL(ptr, nullPointer)
-	delete ptr;
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-	TEST_EQUAL(ExtendedIsotopeModel::getProductName(),"ExtendedIsotopeModel")
-	TEST_EQUAL(ExtendedIsotopeModel().getName(),"ExtendedIsotopeModel")
 END_SECTION
 
 // assignment operator

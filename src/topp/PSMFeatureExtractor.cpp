@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -29,42 +29,42 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_PSMFeatureExtractor PSMFeatureExtractor
+@page TOPP_PSMFeatureExtractor PSMFeatureExtractor
 
-  @brief PSMFeatureExtractor computes extra features for each input PSM
+@brief PSMFeatureExtractor computes extra features for each input PSM
 
-  @experimental Parts of this tool are still work in progress and usage and input requirements or output might change. (multiple_search_engine, Mascot support)
+@experimental Parts of this tool are still work in progress and usage and input requirements or output might change. (multiple_search_engine, Mascot support)
 
-  <center>
-    <table>
-        <tr>
-            <th ALIGN = "center"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> &rarr; PSMFeatureExtractor &rarr;</td>
-            <th ALIGN = "center"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeptideIndexer</td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PercolatorAdapter </td>
-        </tr>
-    </table>
-  </center>
+<center>
+  <table>
+      <tr>
+          <th ALIGN = "center"> pot. predecessor tools </td>
+          <td VALIGN="middle" ROWSPAN=2> &rarr; PSMFeatureExtractor &rarr;</td>
+          <th ALIGN = "center"> pot. successor tools </td>
+      </tr>
+      <tr>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeptideIndexer</td>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PercolatorAdapter </td>
+      </tr>
+  </table>
+</center>
 
-  <p>
+<p>
 PSMFeatureExtractor is search engine sensitive, i.e. it's extra features
 vary, depending on the search engine. Thus, please make sure the input is
 compliant with TOPP SearchengineAdapter output. Also, PeptideIndexer compliant
 target/decoy annotation is mandatory.
 Currently supported search engines are Comet, X!Tandem, MSGF+.
 Mascot support is available but in beta development.
-  </p>
+</p>
 
-  @note if you have extra features you want to pass to percolator, use the extra
- flag and list the MetaData entries containing the extra features.
+@note if you have extra features you want to pass to percolator, use the extra
+flag and list the MetaData entries containing the extra features.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_PSMFeatureExtractor.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_PSMFeatureExtractor.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_PSMFeatureExtractor.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_PSMFeatureExtractor.html
 */
 
 // We do not want this class to show up in the docu:
@@ -89,9 +89,6 @@ protected:
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
     setValidStrings_("out_type", ListUtils::create<String>("idXML,mzid"));
     registerStringList_("extra", "<MetaData parameter>", vector<String>(), "List of the MetaData parameters to be included in a feature set for precolator.", false, false);
-    // setValidStrings_("extra", ?);
-    // TODO: add this MHC feature back in with TopPerc::hasMHCEnd_()
-    //registerFlag_("MHC", "Add a feature for MHC ligand properties to the specific PSM.", true);
     registerFlag_("multiple_search_engines", "Combine PSMs from different search engines by merging on scan level.");
     registerFlag_("skip_db_check", "Manual override to skip the check if same settings for multiple search engines were applied. Only valid together with -multiple_search_engines flag.", true);
     registerFlag_("concat", "Naive merging of PSMs from different search engines: concatenate multiple search results instead of merging on scan level. Only valid together with -multiple_search_engines flag.", true);

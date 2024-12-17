@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -92,8 +92,6 @@ namespace OpenMS
     String input_filename_;
     OpenMS::UInt64 run_id_;
     bool doWrite_;
-    bool use_ms1_traces_;
-    bool sonar_;
     bool enable_uis_scoring_;
 
   public:
@@ -101,8 +99,6 @@ namespace OpenMS
     OpenSwathOSWWriter(const String& output_filename,
                        const UInt64 run_id,
                        const String& input_filename = "inputfile",
-                       bool ms1_scores = false,
-                       bool sonar = false,
                        bool uis_scores = false);
 
     bool isActive() const;
@@ -153,8 +149,8 @@ namespace OpenMS
      * @returns A string to be written using writeLines
      *
      */
-    String prepareLine(const OpenSwath::LightCompound& /* pep */,
-        const OpenSwath::LightTransition* /* transition */,
+    String prepareLine(const OpenSwath::LightCompound& pep,
+        const OpenSwath::LightTransition* transition,
         const FeatureMap& output, const String& id) const;
 
     /**

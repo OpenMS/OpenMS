@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -31,53 +31,53 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_Epifany Epifany
+@page TOPP_Epifany Epifany
 
-  @brief EPIFANY - Efficient protein inference for any peptide-protein network is a Bayesian
-  protein inference engine. It uses PSM (posterior) probabilities from Percolator, OpenMS' IDPosteriorErrorProbability
-  or similar tools to calculate posterior probabilities for proteins and protein groups.
+@brief EPIFANY - Efficient protein inference for any peptide-protein network is a Bayesian
+protein inference engine. It uses PSM (posterior) probabilities from Percolator, OpenMS' IDPosteriorErrorProbability
+or similar tools to calculate posterior probabilities for proteins and protein groups.
 
-  @experimental This tool is work in progress and usage and input requirements might change.
+@experimental This tool is work in progress and usage and input requirements might change.
 
-  <center>
-    <table>
-        <tr>
-            <th ALIGN = "center"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> &rarr; Epifany &rarr;</td>
-            <th ALIGN = "center"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PercolatorAdapter </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDPosteriorErrorProbability </td>
-        </tr>
-    </table>
-  </center>
-  <p>It is a protein inference engine based on a Bayesian network. Currently the same model like
-  Fido is used with the main parameters alpha (pep_emission), beta (pep_spurious_emission) and gamma (prot_prior).
-  If not specified,
-  these parameters are trained based on their classification performance and calibration via a grid search
-  by simply running with several possible combinations and evaluating. Unless you see very extreme output
-  probabilities (e.g. many close to 1.0) or you know good parameters (e.g. from an earlier run),
-  grid search is recommended although slower. The tool will merge multiple idXML files (union of proteins
-  and concatenation of PSMs) when given more than one. It assumes one search engine run per input file but
-  might work on more. Proteins need to be indexed by OpenMS's PeptideIndexer but this is usually done before
-  Percolator/IDPEP since target/decoy associations are needed there already. Make sure that the input PSM
-  probabilities are not too extreme already (garbage in - garbage out). After merging the input probabilities
-  are preprocessed with a low posterior probability cutoff to neglect very unreliable matches. Then
-  the probabilities are aggregated with the maximum per peptide and the graph is built and split into
-  connected components. When compiled with the OpenMP
-  flag (default enabled in the release binaries) the tool is multi-threaded which can
-  be activated at runtime by the threads parameter. Note that peak memory requirements
-  may rise significantly when processing multiple components of the graph at the same time.
-  </p>
+<center>
+  <table>
+      <tr>
+          <th ALIGN = "center"> pot. predecessor tools </td>
+          <td VALIGN="middle" ROWSPAN=2> &rarr; Epifany &rarr;</td>
+          <th ALIGN = "center"> pot. successor tools </td>
+      </tr>
+      <tr>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PercolatorAdapter </td>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
+      </tr>
+      <tr>
+          <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDPosteriorErrorProbability </td>
+      </tr>
+  </table>
+</center>
+<p>It is a protein inference engine based on a Bayesian network. Currently the same model like
+Fido is used with the main parameters alpha (pep_emission), beta (pep_spurious_emission) and gamma (prot_prior).
+If not specified,
+these parameters are trained based on their classification performance and calibration via a grid search
+by simply running with several possible combinations and evaluating. Unless you see very extreme output
+probabilities (e.g. many close to 1.0) or you know good parameters (e.g. from an earlier run),
+grid search is recommended although slower. The tool will merge multiple idXML files (union of proteins
+and concatenation of PSMs) when given more than one. It assumes one search engine run per input file but
+might work on more. Proteins need to be indexed by OpenMS's PeptideIndexer but this is usually done before
+Percolator/IDPEP since target/decoy associations are needed there already. Make sure that the input PSM
+probabilities are not too extreme already (garbage in - garbage out). After merging the input probabilities
+are preprocessed with a low posterior probability cutoff to neglect very unreliable matches. Then
+the probabilities are aggregated with the maximum per peptide and the graph is built and split into
+connected components. When compiled with the OpenMP
+flag (default enabled in the release binaries) the tool is multi-threaded which can
+be activated at runtime by the threads parameter. Note that peak memory requirements
+may rise significantly when processing multiple components of the graph at the same time.
+</p>
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_Epifany.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_Epifany.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_Epifany.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_Epifany.html
 
 */
 

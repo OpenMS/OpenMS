@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -28,39 +28,39 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
- @page TOPP_OpenSwathAnalyzer OpenSwathAnalyzer
+@page TOPP_OpenSwathAnalyzer OpenSwathAnalyzer
 
- @brief  Executes a peak-picking and scoring algorithm on MRM/SRM data.
+@brief  Executes a peak-picking and scoring algorithm on MRM/SRM data.
 
-    <CENTER>
-        <table>
-            <tr>
-                <th ALIGN = "center"> potential predecessor tools </td>
-                <td VALIGN="middle" ROWSPAN=3> &rarr; OpenSwathAnalyzer &rarr;</td>
-                <th ALIGN = "center"> potential successor tools </td>
-            </tr>
-            <tr>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathChromatogramExtractor </td>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathFeatureXMLToTSV </td>
-            </tr>
-            <tr>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MRMMapper </td>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathConfidenceScoring </td>
-            </tr>
-        </table>
-    </CENTER>
+  <CENTER>
+      <table>
+          <tr>
+              <th ALIGN = "center"> potential predecessor tools </td>
+              <td VALIGN="middle" ROWSPAN=3> &rarr; OpenSwathAnalyzer &rarr;</td>
+              <th ALIGN = "center"> potential successor tools </td>
+          </tr>
+          <tr>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathChromatogramExtractor </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathFeatureXMLToTSV </td>
+          </tr>
+          <tr>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MRMMapper </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathConfidenceScoring </td>
+          </tr>
+      </table>
+  </CENTER>
 
- The idea of the OpenSwath Analyzer is to analyze a series of chromatograms
- together with the associated meta information (stored in TraML format) in
- order to determine likely places of elution of a peptide in targeted
- proteomics data (derived from SWATH-MS or MRM/SRM). This tool will perform
- peak picking on the chromatograms and scoring in a single tool, if you only
- want the peak picking look at TOPP_MRMTransitionGroupPicker tool.
+The idea of the OpenSwath Analyzer is to analyze a series of chromatograms
+together with the associated meta information (stored in TraML format) in
+order to determine likely places of elution of a peptide in targeted
+proteomics data (derived from SWATH-MS or MRM/SRM). This tool will perform
+peak picking on the chromatograms and scoring in a single tool, if you only
+want the peak picking look at TOPP_MRMTransitionGroupPicker tool.
 
- <B>The command line parameters of this tool are:</B>
- @verbinclude TOPP_OpenSwathAnalyzer.cli
- <B>INI file documentation of this tool:</B>
- @htmlinclude TOPP_OpenSwathAnalyzer.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_OpenSwathAnalyzer.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_OpenSwathAnalyzer.html
 
  */
 

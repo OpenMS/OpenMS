@@ -21,7 +21,7 @@ ConsensusMapMergerAlgorithm.cpp
 FalseDiscoveryRate.cpp
 FIAMSDataProcessor.cpp
 FIAMSScheduler.cpp
-HiddenMarkovModel.cpp
+HyperScore.cpp
 IDBoostGraph.cpp
 IDConflictResolverAlgorithm.cpp
 IDMapper.cpp
@@ -33,13 +33,15 @@ IDScoreSwitcherAlgorithm.cpp
 IonIdentityMolecularNetworking.cpp
 MessagePasserFactory.cpp
 MetaboliteSpectralMatching.cpp
+MorpheusScore.cpp
+NeighborSeq.cpp
 PeptideProteinResolution.cpp
-PrecursorPurity.cpp
-ProtonDistributionModel.cpp
 PeptideIndexing.cpp
 PercolatorFeatureSetHelper.cpp
+PrecursorPurity.cpp
+PScore.cpp
 SimpleSearchEngineAlgorithm.cpp
-SiriusAdapterAlgorithm.cpp
+SiriusExportAlgorithm.cpp
 SiriusMSConverter.cpp
 )
 

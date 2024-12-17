@@ -33,17 +33,6 @@ def id_mapper(in_file, id_file, out_file, params, use_centroid_rt,
         addDataProcessing(map_, params, pms.DataProcessing.ProcessingAction.IDENTIFICATION_MAPPING)
         file_.store(out_file, map_)
 
-    elif in_type == pms.Type.MZQ:
-        file_ = pms.MzQuantMLFile()
-        msq = pms.MSQuantifications()
-        file_.load(in_file, msq)
-        maps = msq.getConsensusMaps()
-        for map_ in maps:
-            mapper.annotate(map_, peptide_ids, protein_ids, use_subelements)
-            addDataProcessing(map_, params, pms.DataProcessing.ProcessingAction.IDENTIFICATION_MAPPING)
-        msq.setConsensusMaps(maps)
-        file_.store(out_file, msq)
-
     else:
         raise Exception("invalid input file format")
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -107,14 +107,25 @@ namespace OpenMS
     return m;
   }
 
-
-  AASequence::AASequence() :
-    n_term_mod_(nullptr),
-    c_term_mod_(nullptr)
+  AASequence::AASequence(const String& s)
   {
+    parseString_(s, *this, true);
   }
 
-  AASequence::~AASequence() = default;
+  AASequence::AASequence(const char* s)
+  {
+    parseString_(s, *this, true);
+  }
+
+  AASequence::AASequence(const String& s, bool permissive)
+  {
+    parseString_(s, *this, permissive);
+  }
+
+  AASequence::AASequence(const char* s, bool permissive)
+  {
+    parseString_(s, *this, permissive);
+  }
 
   const Residue& AASequence::getResidue(Size index) const
   {

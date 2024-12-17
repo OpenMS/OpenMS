@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -44,7 +44,7 @@ namespace OpenMS
 
     /**
      @brief Generates the MzTabM Small Molecule Header
-     @param map MzTabMMetaData
+     @param meta MzTabMMetaData
      @param optional_columns Add optional columns
      @param n_columns Stores the number of columns in the header
      @return StringList with SMH entries
@@ -62,7 +62,7 @@ namespace OpenMS
 
     /**
      @brief Generates the MzTabM Small Molecule Header
-     @param map MzTabMMetaData
+     @param meta MzTabMMetaData
      @param optional_columns Add optional columns
      @param n_columns Stores the number of columns in the header
      @return StringList with SFH entries
@@ -80,7 +80,7 @@ namespace OpenMS
 
     /**
      @brief Generates the MzTabM Small Molecule Header
-     @param map MzTabMMetaData
+     @param meta MzTabMMetaData
      @param optional_columns Add optional columns
      @param n_columns Stores the number of columns in the header
      @return StringList with SEH entries

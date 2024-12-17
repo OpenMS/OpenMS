@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -26,16 +26,16 @@
 
 
 /**
-  @page TOPP_OpenSwathDIAPreScoring OpenSwathDIAPreScoring
+@page TOPP_OpenSwathDIAPreScoring OpenSwathDIAPreScoring
 
-  @brief ...
+@brief ...
 
-  SWATH specific parameters only apply if you have full MS2 spectra maps.
+SWATH specific parameters only apply if you have full MS2 spectra maps.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_OpenSwathDIAPreScoring.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_OpenSwathDIAPreScoring.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_OpenSwathDIAPreScoring.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_OpenSwathDIAPreScoring.html
 
 */
 
@@ -141,7 +141,8 @@ protected:
         swath_map);
       OpenSwath::IDataFrameWriter* dfw = new OpenSwath::CSVWriter(fname);
       OpenMS::DiaPrescore dp;
-      dp.operator()(spectrumAccess, transition_exp_used, dfw);
+      OpenMS::RangeMobility im_range; // create empty IM range object
+      dp.operator()(spectrumAccess, transition_exp_used, im_range, dfw); //note IM not supported here yet
       delete dfw;
     }         //end of for loop
     return EXECUTION_OK;

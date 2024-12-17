@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -19,18 +19,18 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_FuzzyDiff FuzzyDiff
+@page TOPP_FuzzyDiff FuzzyDiff
 
-    @brief Compares two files, tolerating numeric differences.
+@brief Compares two files, tolerating numeric differences.
 
-    In the diff output, \"position\" refers to the characters in the string, whereas \"column\" is meant for the text editor.
+In the diff output, \"position\" refers to the characters in the string, whereas \"column\" is meant for the text editor.
 
-    Only one of 'ratio' or 'absdiff' has to be satisfied.  Use \"absdiff\" to deal with cases like \"zero vs. epsilon\".
+Only one of 'ratio' or 'absdiff' has to be satisfied.  Use \"absdiff\" to deal with cases like \"zero vs. epsilon\".
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_FuzzyDiff.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_FuzzyDiff.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FuzzyDiff.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FuzzyDiff.html
 */
 
 // We do not want this class to show up in the docu:

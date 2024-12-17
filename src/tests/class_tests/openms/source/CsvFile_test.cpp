@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -126,6 +126,12 @@ START_SECTION(void clear())
 	TEST_EQUAL(list, ListUtils::create<String>("hello,world"))
 	f1.clear();
 	TEST_EXCEPTION(Exception::InvalidIterator, f1.getRow(0, list))
+END_SECTION
+
+START_SECTION(std::vector<String>::size_type CsvFile::rowCount())
+	CsvFile f1(OPENMS_GET_TEST_DATA_PATH("CsvFile_1.csv"), '\t');
+	// file has 5 lines, 2 of them comments
+	TEST_EQUAL(f1.rowCount(),3)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

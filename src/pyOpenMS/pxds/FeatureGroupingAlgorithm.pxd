@@ -18,4 +18,3 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>" name
         # since this is a base class, cannot have overloaded methods
         # void group(libcpp_vector[ FeatureMap ] & maps, ConsensusMap & out)
         # void group(libcpp_vector[ ConsensusMap ] & maps, ConsensusMap & out)
-        void registerChildren() except + nogil  # wrap-doc:Register all derived classes in this method

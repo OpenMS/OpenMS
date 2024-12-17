@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -13,7 +13,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+#include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -163,7 +163,7 @@ public:
 
       // Note that MZBegin does not seem to return the same iterator on
       // different setups, see https://github.com/OpenMS/OpenMS/issues/1163
-      typename ContainerT::const_iterator iter = chromatogram_.MZEnd(RT);
+      auto iter = chromatogram_.PosEnd(RT);
 
       // ensure that iter is valid
       if (iter == chromatogram_.end()) 
@@ -171,13 +171,13 @@ public:
         iter--;
       }
 
-      typename ContainerT::const_iterator prev = iter;
-      if (prev != chromatogram_.begin() ) 
+      auto prev = iter;
+      if (prev != chromatogram_.begin()) 
       {
         prev--;
       }
 
-      if (std::fabs(prev->getMZ() - RT) < std::fabs(iter->getMZ() - RT) )
+      if (std::fabs(prev->getPos() - RT) < std::fabs(iter->getPos() - RT) )
       {
         // prev is closer to the apex
         return sn_.getSignalToNoise((Size) distance(chromatogram_.begin(),prev));

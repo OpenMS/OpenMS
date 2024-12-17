@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,8 +14,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgScoring.h>
+#include <OpenMS/FEATUREFINDER/EmgScoring.h>
 
 // Kernel classes
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -91,7 +90,7 @@ public:
 
     /** @brief Pick and score features in a single experiment from chromatograms
      *
-     * Function for for wrapping in Python, only uses OpenMS datastructures and
+     * Function for wrapping in Python, only uses OpenMS datastructures and
      * does not return the map.
      *
      * @param chromatograms The input chromatograms
@@ -263,6 +262,7 @@ private:
     int stop_report_after_feature_;
     bool write_convex_hull_;
     bool strict_;
+    bool use_ms1_ion_mobility_;
     String scoring_model_;
 
     // scoring parameters
@@ -283,7 +283,6 @@ private:
     std::map<OpenMS::String, const PeptideType*> PeptideRefMap_;
     OpenSwath_Scores_Usage su_;
     OpenMS::DIAScoring diascoring_;
-    OpenMS::SONARScoring sonarscoring_;
     OpenMS::EmgScoring emgscoring_;
 
     // data

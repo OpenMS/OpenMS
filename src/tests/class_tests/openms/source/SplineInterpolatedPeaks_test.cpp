@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -14,7 +14,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>
+#include <OpenMS/PROCESSING/MISC/SplineInterpolatedPeaks.h>
 
 using namespace OpenMS;
 

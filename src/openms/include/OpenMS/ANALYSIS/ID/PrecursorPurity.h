@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -28,7 +28,7 @@ namespace OpenMS
       These metrics are combined over the previous and the next MS1 spectrum.
       @note: If an MS1 spectrum does not contain the target peak within the given tolerance, all values are returned as 0.
 
-      @ingroup ID
+      @ingroup Analysis_ID
   */
   class OPENMS_DLLAPI PrecursorPurity
   {
@@ -41,7 +41,8 @@ namespace OpenMS
       double target_intensity = 0.0;
       double signal_proportion = 0.0;
       Size target_peak_count = 0;
-      Size residual_peak_count = 0;
+      Size interfering_peak_count = 0;
+      PeakSpectrum interfering_peaks; // peaks left after precursor (isotopic) peaks have been removed
     };
 
     /** @brief compute precursor purity metrics for each MS2 spectrum in a PeakMap
@@ -51,8 +52,9 @@ namespace OpenMS
      * @param spectra A PeakMap containing MS1 and MS2 spectra in order of acquisition or measurement. The first spectrum must be an MS1.
      * @param precursor_mass_tolerance The precursor tolerance. Is used for determining the targeted peak and deisotoping.
      * @param precursor_mass_tolerance_unit_ppm The unit of the precursor tolerance
+     * @param ignore_missing_precursor_spectra Allow MS2 spectra without a MS1 precursor spectrum (PurityScores for these spectra will be 0).
     */
-    static std::map<String, PurityScores> computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm);
+    static std::map<String, PurityScores> computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, bool ignore_missing_precursor_spectra = false);
 
     /** @brief compute precursor purity metrics for one MS2 precursor
 

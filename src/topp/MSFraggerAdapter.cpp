@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -6,6 +6,7 @@
 // $Authors: Lukas Zimmermann, Leon Bichmann $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -15,8 +16,9 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
-#include <QtCore/QDir>
-#include <QtCore/QProcess>
+
+#include <QStringList>
+
 #include <iostream>
 
 using namespace OpenMS;
@@ -27,9 +29,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_MSFraggerAdapter MSFraggerAdapter
+@page TOPP_MSFraggerAdapter MSFraggerAdapter
 
-    @brief Peptide Identification with MSFragger
+@brief Peptide Identification with MSFragger
 
 <CENTER>
     <table>
@@ -45,28 +47,28 @@ using namespace std;
     </table>
 </CENTER>
 
-  @em MSFragger must be installed before this adapter can be used. This adapter is fully compatible with version 3.2 of MSFragger
-  and later versions of MSFragger were tested up to version 3.5.
+@em MSFragger must be installed before this adapter can be used. This adapter is fully compatible with version 3.2 of MSFragger
+and later versions of MSFragger were tested up to version 3.5.
 
-	All MSFragger parameters (as specified in the fragger.params file) have been transcribed to parameters of this OpenMS util.
-	It is not possible to provide an explicit fragger.params file to avoid redundancy with the ini file.
-	This adapter creates an fragger.params file prior to calling MSFragger. If the fragger.params file should be inspected, set the
-	-debug option to 2. MSFraggerAdapter will print the path to the working directory to standard out.
+All MSFragger parameters (as specified in the fragger.params file) have been transcribed to parameters of this OpenMS util.
+It is not possible to provide an explicit fragger.params file to avoid redundancy with the ini file.
+This adapter creates an fragger.params file prior to calling MSFragger. If the fragger.params file should be inspected, set the
+-debug option to 2. MSFraggerAdapter will print the path to the working directory to standard out.
 
-	MSFragger can process multiple input files (mzML, mzXML) one after another. The number of output files specified must match
-	the number of input spectra files. The output file is then matched to the input file by index. The default parameters of the
-	adapter are the same as given by the official MSFragger manual.
+MSFragger can process multiple input files (mzML, mzXML) one after another. The number of output files specified must match
+the number of input spectra files. The output file is then matched to the input file by index. The default parameters of the
+adapter are the same as given by the official MSFragger manual.
 
-  Please cite:
-  Andy T Kong, Felipe V Leprevost, Dmitry M Avtonomov, Dattatreya Mellacheruvu & Alexey I Nesvizhskii
-  MSFragger: ultrafast and comprehensive peptide identification in mass spectrometry–based proteomics
-  Nature Methods volume 14, pages 513–520 (2017) doi:10.1038/nmeth.4256
+Please cite:
+Andy T Kong, Felipe V Leprevost, Dmitry M Avtonomov, Dattatreya Mellacheruvu & Alexey I Nesvizhskii
+MSFragger: ultrafast and comprehensive peptide identification in mass spectrometry–based proteomics
+Nature Methods volume 14, pages 513–520 (2017) doi:10.1038/nmeth.4256
 
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_MSFraggerAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MSFraggerAdapter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MSFraggerAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MSFraggerAdapter.html
  */
 
 // We do not want this class to show up in the docu:
@@ -398,7 +400,7 @@ protected:
 
       if (!JavaInfo::canRun(this->java_exe, true))
       {
-        _fatalError("Java executable cannot be run!");
+        return ExitCodes::EXTERNAL_PROGRAM_NOTFOUND;
       }
 
       // executable
@@ -407,10 +409,11 @@ protected:
       if (this->exe.empty())
       {
         // looks for MSFRAGGER_PATH in the environment
-        QString qmsfragger_path = QProcessEnvironment::systemEnvironment().value("MSFRAGGER_PATH");
+        QString qmsfragger_path = getenv("MSFRAGGER_PATH");
         if (qmsfragger_path.isEmpty())
         {
-          _fatalError("No executable for MSFragger could be found!");
+          std::cerr << "No executable for MSFragger could be found (also not in MSFRAGGER_PATH)!";
+          return ExitCodes::EXTERNAL_PROGRAM_NOTFOUND;
         }
         this->exe = qmsfragger_path;
       }
@@ -540,8 +543,7 @@ protected:
       std::vector< String > arg_fixmod_unimod = this->getStringList_(TOPPMSFraggerAdapter::fixed_modifications_unimod);
 
       // parameters have been read in and verified, they are now going to be written into the fragger.params file in a temporary directory
-      const QFileInfo tmp_param_file(working_directory.getPath().toQString(), "fragger.params");
-      this->parameter_file_path = String(tmp_param_file.absoluteFilePath());
+      this->parameter_file_path = File::getTemporaryFile();
 
       writeDebug_("Parameter file for MSFragger: '" + this->parameter_file_path + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
       writeDebug_("Working Directory: '" + working_directory.getPath() + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
@@ -841,9 +843,6 @@ protected:
         << this->parameter_file_path.toQString()
         << input_file;
 
-    QProcess process_msfragger;
-    process_msfragger.setWorkingDirectory(working_directory.getPath().toQString());
-
     if (this->debug_level_ >= TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE)
     {
       writeDebug_("COMMAND LINE CALL IS:", 1);
@@ -855,17 +854,10 @@ protected:
       writeDebug_(command_line, TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
     }
 
-    process_msfragger.start(this->java_exe.toQString(), process_params);
-
-    if (!process_msfragger.waitForFinished(-1) || process_msfragger.exitCode() != 0)
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_exe.toQString(), process_params, working_directory.getPath().toQString());
+    if (exit_code != EXECUTION_OK)
     {
-      OPENMS_LOG_FATAL_ERROR << "FATAL: Invocation of MSFraggerAdapter has failed. Error code was: " << process_msfragger.exitCode() << std::endl;
-      const QString msfragger_stdout(process_msfragger.readAllStandardOutput());
-      const QString msfragger_stderr(process_msfragger.readAllStandardError());
-      writeLogError_(msfragger_stdout);
-      writeLogError_(msfragger_stderr);
-      writeLogError_(String(process_msfragger.exitCode()));
-      return EXTERNAL_PROGRAM_ERROR;
+      return exit_code;
     }
 
     // convert from pepXML to idXML
@@ -889,18 +881,20 @@ protected:
     // if "reindex" parameter is set to true will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
+    // add percolator features
+    StringList feature_set;
+    PercolatorFeatureSetHelper::addMSFRAGGERFeatures(feature_set);
+    protein_identifications.front().getSearchParameters().setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
     FileHandler().storeIdentifications(output_file, protein_identifications, peptide_identifications, {FileTypes::IDXML});
 
     // remove the msfragger pepXML output from the user location
-
     if (optional_output_file.empty())
     {
       File::remove(pepxmlfile);
     }
     else
-    {
-      // rename the pepXML file to the opt_out
-      QFile::rename(pepxmlfile.toQString(), optional_output_file.toQString()); 
+    { // rename the pepXML file to the opt_out
+      File::rename(pepxmlfile.toQString(), optional_output_file.toQString()); 
     }
 
     // remove ".pepindex" database file

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,34 +11,34 @@
 
 #include <OpenMS/config.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h> // for operator<< on StringList
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
-// TODO: remove header after we get "Valid" support
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
-#include <QtCore/QString>
+
 
 #include <unordered_map>
 #include <iomanip>
@@ -52,36 +52,36 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_FileInfo FileInfo
-  @brief Shows basic information about the data in an %OpenMS readable file.
+@page TOPP_FileInfo FileInfo
+@brief Shows basic information about the data in an %OpenMS readable file.
 
-  <CENTER>
-  <table>
-  <tr>
-  <th ALIGN = "center"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> &rarr; FileInfo &rarr;</td>
-  <th ALIGN = "center"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format) </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> none ; console or text file</td>
-  </tr>
-  </table>
-  </CENTER>
+<CENTER>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=2> &rarr; FileInfo &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format) </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> none ; console or text file</td>
+</tr>
+</table>
+</CENTER>
 
-  This tool can show basic information about the data in different file types, such as raw peak, featureXML and consensusXML files. It can
-  - show information about the data range of a file (m/z, RT, intensity)
-  - show a statistical summary for intensities, qualities, feature widths, precursor charges, activation methods
-  - show an overview of the metadata
-  - validate several XML formats against their XML schema
-  - check for corrupt data in a file (e.g., duplicate spectra)
+This tool can show basic information about the data in different file types, such as raw peak, featureXML and consensusXML files. It can
+- show information about the data range of a file (m/z, RT, ion mobility, intensity)
+- show a statistical summary for intensities, qualities, feature widths, precursor charges, activation methods
+- show an overview of the metadata
+- validate several XML formats against their XML schema
+- check for corrupt data in a file (e.g., duplicate spectra)
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_FileInfo.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_FileInfo.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FileInfo.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FileInfo.html
 
-  In order to enrich the resulting data of your analysis pipeline or to quickly compare different outcomes of your pipeline you can invoke the aforementioned information of your input data and (intermediary) results.
+In order to enrich the resulting data of your analysis pipeline or to quickly compare different outcomes of your pipeline you can invoke the aforementioned information of your input data and (intermediary) results.
 */
 
 // We do not want this class to show up in the docu:
@@ -149,7 +149,7 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    StringList in_types = { "mzData", "mzXML", "mzML", "sqMass", "dta", "dta2d", "mgf", "featureXML", "consensusXML", "idXML", "pepXML", "fid", "mzid", "trafoXML", "fasta", "pqp" };
+    StringList in_types = { "mzData", "mzXML", "mzML", "sqMass", "dta", "dta2d", "mgf", "featureXML", "consensusXML", "idXML", "pepXML", "mzTab", "fid", "mzid", "trafoXML", "fasta", "pqp" };
     registerInputFile_("in", "<file>", "", "input file");
     setValidFormats_("in", in_types);
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content", false);
@@ -170,26 +170,36 @@ protected:
   template <class Map>
   void writeRangesHumanReadable_(const Map& map, ostream &os)
   {
-    os << "Ranges:"
-       << '\n'
-       << "  retention time: " << String::number(map.getMinRT(), 2) << " .. " << String::number(map.getMaxRT(), 2) << " sec (" << String::number((map.getMaxRT() - map.getMinRT()) / 60, 1) << " min)\n"
-       << "  mass-to-charge: " << String::number(map.getMinMZ(), 2) << " .. " << String::number(map.getMaxMZ(), 2) << '\n'
-       << "  intensity:      " << String::number(map.getMinIntensity(), 2) << " .. " << String::number(map.getMaxIntensity(), 2) << '\n'
+    os << "Ranges:" << '\n'
+       << "  retention time: " << String::number(map.getMinRT(), 2) << " .. " << String::number(map.getMaxRT(), 2) << " sec ("
+       << String::number((map.getMaxRT() - map.getMinRT()) / 60, 1) << " min)\n"
+       << "  mass-to-charge: " << String::number(map.getMinMZ(), 2) << " .. " << String::number(map.getMaxMZ(), 2) << '\n';
+    if constexpr (std::is_base_of < RangeMobility, Map>())
+    {
+      os << "    ion mobility: ";
+      if (map.RangeMobility::isEmpty()) os << "<none>\n";
+      else os << String::number(map.getMinMobility(), 2) << " .. " << String::number(map.getMaxMobility(), 2) << '\n';
+    }
+    os << "       intensity: " << String::number(map.getMinIntensity(), 2) << " .. " << String::number(map.getMaxIntensity(), 2) << '\n'
        << '\n';
   }
 
   template <class Map>
   void writeRangesMachineReadable_(const Map& map, ostream &os)
   {
-    os << "general: ranges: retention time: min"
-       << '\t' << String::number(map.getMinRT(), 2) << '\n'
-       << "general: ranges: retention time: max"
-       << '\t' << String::number(map.getMaxRT(), 2) << '\n'
-       << "general: ranges: mass-to-charge: min"
-       << '\t' << String::number(map.getMinMZ(), 2) << '\n'
-       << "general: ranges: mass-to-charge: max"
-       << '\t' << String::number(map.getMaxMZ(), 2) << '\n'
-       << "general: ranges: intensity: min"
+    os << "general: ranges: retention time: min" << '\t' << String::number(map.getMinRT(), 2) << '\n'
+       << "general: ranges: retention time: max" << '\t' << String::number(map.getMaxRT(), 2) << '\n'
+       << "general: ranges: mass-to-charge: min" << '\t' << String::number(map.getMinMZ(), 2) << '\n'
+       << "general: ranges: mass-to-charge: max" << '\t' << String::number(map.getMaxMZ(), 2) << '\n';
+    if constexpr (std::is_base_of < RangeMobility, Map>())
+    {
+      if (!map.RangeMobility::isEmpty())
+      {
+        os << "general: ranges: ion-mobility: min" << '\t' << String::number(map.getMinMobility(), 2) << '\n'
+           << "general: ranges: ion-mobility: max" << '\t' << String::number(map.getMaxMobility(), 2) << '\n';
+      }
+    }
+    os << "general: ranges: intensity: min"
        << '\t' << String::number(map.getMinIntensity(), 2) << '\n'
        << "general: ranges: intensity: max"
        << '\t' << String::number(map.getMaxIntensity(), 2) << '\n';
@@ -837,6 +847,21 @@ protected:
     {
       os << "\nFor pepXML files, only validation against the XML schema is implemented at this point."
          << '\n';
+    }
+    else if (in_type == FileTypes::MZTAB)
+    {
+      MzTab mztab;
+      MzTabFile().load(in, mztab);
+      os << "mzTab-version: " << mztab.getMetaData().mz_tab_version.get() << '\n'
+         << "mzTab-mode: " << mztab.getMetaData().mz_tab_mode.get() << '\n'
+         << "mzTab-type: " << mztab.getMetaData().mz_tab_type.get() << '\n'
+         << "number of PSMs: " << mztab.getNumberOfPSMs() << '\n'
+         << "number of peptides: " << mztab.getPeptideSectionRows().size() << '\n'
+         << "number of proteins: " << mztab.getProteinSectionRows().size() << '\n'
+         << "number of oligonucleotides: " << mztab.getOligonucleotideSectionRows().size() << '\n'
+         << "number of OSMs: " << mztab.getOSMSectionRows().size() << '\n'
+         << "number of small molecules: " << mztab.getSmallMoleculeSectionRows().size() << '\n'
+         << "number of nucleic acids: " << mztab.getNucleicAcidSectionRows().size() << '\n';
     }
     else if (in_type == FileTypes::TRANSFORMATIONXML)
     {

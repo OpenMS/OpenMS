@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -28,18 +28,18 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_OpenSwathFileSplitter OpenSwathFileSplitter
+@page TOPP_OpenSwathFileSplitter OpenSwathFileSplitter
 
-  @brief A tool for splitting a single SWATH / DIA file into a set of files, each containing one SWATH window (plus one file for the MS1 survey scans).
+@brief A tool for splitting a single SWATH / DIA file into a set of files, each containing one SWATH window (plus one file for the MS1 survey scans).
 
-  Will use the input SWATH / DIA file to generate one output file containing
-  the MS1 survey scans and \a n individual files for each SWATH / DIA window in
-  the input file. The number of windows is read from the input file itself.
+Will use the input SWATH / DIA file to generate one output file containing
+the MS1 survey scans and \a n individual files for each SWATH / DIA window in
+the input file. The number of windows is read from the input file itself.
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_OpenSwathFileSplitter.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_OpenSwathFileSplitter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_OpenSwathFileSplitter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_OpenSwathFileSplitter.html
 
 */
 

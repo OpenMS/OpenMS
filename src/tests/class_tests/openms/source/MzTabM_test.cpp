@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -237,7 +237,7 @@ START_SECTION(Fill data structure)
   MzTabCVMetaData meta_cv;
   meta_cv.label = MzTabString("MS");
   meta_cv.full_name = MzTabString("PSI-MS controlled vocabulary");
-  meta_cv.version = MzTabString("4.1.56");
+  meta_cv.version = MzTabString("4.1.155");
   meta_cv.url = MzTabString("share/OpenMS/CV/psi-ms.obo");
   mztabm_meta.cv[0] = meta_cv;
 

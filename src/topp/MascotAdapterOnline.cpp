@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -6,6 +6,7 @@
 // $Authors: Andreas Bertsch, Daniel Jameson, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
@@ -32,9 +33,9 @@ using namespace std;
 
 /**
 
-    @page TOPP_MascotAdapterOnline MascotAdapterOnline
+@page TOPP_MascotAdapterOnline MascotAdapterOnline
 
-    @brief Identifies peptides in MS/MS spectra via Mascot.
+@brief Identifies peptides in MS/MS spectra via Mascot.
 
 <CENTER>
     <table>
@@ -50,43 +51,43 @@ using namespace std;
     </table>
 </CENTER>
 
-    This wrapper application generates peptide identifications for MS/MS
-    spectra using the search engine Mascot. It communicates with the Mascot
-    server over the network (i.e. it does not have to run on the server
-    itself).
+This wrapper application generates peptide identifications for MS/MS
+spectra using the search engine Mascot. It communicates with the Mascot
+server over the network (i.e. it does not have to run on the server
+itself).
 
-    The adapter supports Mascot security features as well as proxy connections.
-    Mascot versions 2.2.x up to 2.4.1 are supported and have been successfully
-    tested (to varying degrees).
+The adapter supports Mascot security features as well as proxy connections.
+Mascot versions 2.2.x up to 2.4.1 are supported and have been successfully
+tested (to varying degrees).
 
-    @bug Running the adapter on Mascot 2.4 (possibly also other versions) produces the following error messages, which should be ignored:\n
-    MascotRemoteQuery: An error occurred (requestId=11): Request aborted (QT Error Code: 7)\n
-    MascotRemoteQuery: An error occurred (requestId=12): Request aborted (QT Error Code: 7)
+@bug Running the adapter on Mascot 2.4 (possibly also other versions) produces the following error messages, which should be ignored:\n
+MascotRemoteQuery: An error occurred (requestId=11): Request aborted (QT Error Code: 7)\n
+MascotRemoteQuery: An error occurred (requestId=12): Request aborted (QT Error Code: 7)
 
-    @note Some Mascot server instances seem to fail without reporting back an
-    error message. In such cases, try to run the search on another Mascot
-    server or change/validate the search parameters (e.g. using modifications
-    that are known to Mascot and can thus be set in the INI file, but which are
-    unknown to Mascot, might pose a problem).
+@note Some Mascot server instances seem to fail without reporting back an
+error message. In such cases, try to run the search on another Mascot
+server or change/validate the search parameters (e.g. using modifications
+that are known to Mascot and can thus be set in the INI file, but which are
+unknown to Mascot, might pose a problem).
 
-    @note Mascot returns incomplete/incorrect protein assignments for most
-    identified peptides (due to protein-level grouping/filtering). Thus,
-    the protein associations are therefore not included in the output of this
-    adapter, only the peptide sequences. @ref TOPP_PeptideIndexer should be run
-    after this tool to get correct assignments.
+@note Mascot returns incomplete/incorrect protein assignments for most
+identified peptides (due to protein-level grouping/filtering). Thus,
+the protein associations are therefore not included in the output of this
+adapter, only the peptide sequences. @ref TOPP_PeptideIndexer should be run
+after this tool to get correct assignments.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an
-    input/output format of this tool. Convert mzid files to/from idXML using
-    @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an
+input/output format of this tool. Convert mzid files to/from idXML using
+@ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_MascotAdapterOnline.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MascotAdapterOnline.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MascotAdapterOnline.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MascotAdapterOnline.html
 
-    For the parameters of the algorithm section see the algorithms documentation: @n
-    @ref OpenMS::MascotRemoteQuery "Mascot_server" @n
-    @ref OpenMS::MascotGenericFile "Mascot_parameters" @n
+For the parameters of the algorithm section see the algorithms documentation: @n
+@ref OpenMS::MascotRemoteQuery "Mascot_server" @n
+@ref OpenMS::MascotGenericFile "Mascot_parameters" @n
 
 */
 
@@ -444,6 +445,11 @@ protected:
     // write all (!) parameters as metavalues to the search parameters
     DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), all_prot_ids[0].getSearchParameters(), this->getToolPrefix());
 
+    // get feature set used in percolator
+    StringList feature_set;
+    PercolatorFeatureSetHelper::addMASCOTFeatures(all_pep_ids, feature_set);
+    all_prot_ids.front().getSearchParameters().setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
+    
     FileHandler().storeIdentifications(out, all_prot_ids, all_pep_ids, {FileTypes::IDXML});
     
     return EXECUTION_OK;

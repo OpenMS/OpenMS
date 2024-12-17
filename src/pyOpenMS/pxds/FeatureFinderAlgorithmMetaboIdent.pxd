@@ -4,12 +4,11 @@ from FeatureMap cimport *
 from MSExperiment cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
-from FeatureFinder cimport *
 from DefaultParamHandler cimport *
 from TargetedExperiment cimport *
 from TransformationDescription cimport *
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>" namespace "OpenMS":
 
     cdef cppclass FeatureFinderAlgorithmMetaboIdent(DefaultParamHandler):
 
@@ -66,7 +65,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMe
         size_t getNShared() except + nogil  #wrap-doc:Retrieves number of features with shared identifications
 
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>" namespace "OpenMS::FeatureFinderAlgorithmMetaboIdent":
+cdef extern from "<OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>" namespace "OpenMS::FeatureFinderAlgorithmMetaboIdent":
 
     cdef cppclass FeatureFinderMetaboIdentCompound "OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound":
                 

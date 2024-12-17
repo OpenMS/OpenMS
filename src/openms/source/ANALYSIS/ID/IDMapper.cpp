@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -837,7 +837,6 @@ namespace OpenMS
 
     // map all unidentified precursor to features
     Size spectrum_matches_none(0);
-    Size spectrum_matches(0);
     Size spectrum_matches_single(0);
     Size spectrum_matches_multi(0);
 
@@ -919,7 +918,6 @@ namespace OpenMS
               // only one m/z value to check, which was already incorporated
               // into the overall bounding box -> success!
               feat.getPeptideIdentifications().push_back(precursor_empty_id);
-              ++spectrum_matches;
               break; // "mz_it" loop
             }
             // else: check all the mass traces

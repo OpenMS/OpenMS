@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,8 +9,8 @@
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <QFile>
-#include <QTextStream>
+#include <QtCore/QFile>
+#include <QtCore/QTextStream>
 #include <nlohmann/json.hpp>
 
 
@@ -49,11 +49,7 @@ namespace OpenMS
 
   RibonucleotideDB* RibonucleotideDB::getInstance()
   {
-    static RibonucleotideDB* db_ = nullptr;
-    if (db_ == nullptr)
-    {
-      db_ = new RibonucleotideDB;
-    }
+    static RibonucleotideDB* db_ = new RibonucleotideDB(); // Meyers' singleton -> thread safe
     return db_;
   }
 
@@ -223,7 +219,7 @@ namespace OpenMS
     }
 
     QTextStream source(&file);
-    source.setCodec("UTF-8");
+    source.setAutoDetectUnicode(true);
     Size line_count = 0;
     json mod_obj;
     try
@@ -280,7 +276,7 @@ namespace OpenMS
     }
 
     QTextStream source(&file);
-    source.setCodec("UTF-8");
+    source.setAutoDetectUnicode(true);
     Size line_count = 1;
     String line = source.readLine();
     while (line[0] == '#') // skip leading comments

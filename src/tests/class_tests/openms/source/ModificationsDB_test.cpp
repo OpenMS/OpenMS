@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -74,8 +74,15 @@ END_SECTION
   ptr->searchModifications(mods, "NIC", "", ResidueModification::N_TERM);
   TEST_EQUAL(mods.size(), 1);
 
-  ptr->searchModifications(mods, "Label:18O(1)");
+  // Phosphorylation Decoy custom mod
+  ptr->searchModifications(mods, "Phosphorylation Decoy", "A", ResidueModification::ANYWHERE); 
+  TEST_EQUAL(mods.size(), 1);
 
+  // Phosphorylation Decoy custom search by title  
+  ptr->searchModifications(mods, "PhosphoDecoy");
+  TEST_EQUAL(mods.size(), 3);
+  
+  ptr->searchModifications(mods, "Label:18O(1)");
   TEST_EQUAL(mods.size(), 4);
   ABORT_IF(mods.size() != 4);
 

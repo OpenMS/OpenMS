@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,6 +8,7 @@
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
+#include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
@@ -33,9 +34,11 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_XTandemAdapter XTandemAdapter
+@page TOPP_XTandemAdapter XTandemAdapter
 
-    @brief Identifies peptides in MS/MS spectra via the search engine X! Tandem.
+@brief Identifies peptides in MS/MS spectra via the search engine X! Tandem.
+
+@note This adapter is deprecated (and likely removed in OpenMS 3.3). Contact us, if you feel it's irreplaceable.
 
 <CENTER>
     <table>
@@ -372,6 +375,10 @@ protected:
 
     // if "reindex" parameter is set to true will perform reindexing
       if (auto ret = reindex_(protein_ids, peptide_ids); ret != EXECUTION_OK) return ret;
+
+      StringList feature_set;
+      PercolatorFeatureSetHelper::addXTANDEMFeatures(peptide_ids, feature_set);
+      protein_ids.front().getSearchParameters().setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
 
       FileHandler().storeIdentifications(out, protein_ids, peptide_ids, {FileTypes::IDXML});
     }

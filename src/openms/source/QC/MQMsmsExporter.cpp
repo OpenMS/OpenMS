@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,7 +11,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -134,22 +134,10 @@ void MQMsms::exportRowFromFeature_(
   const PeptideHit* ptr_best_hit = nullptr; // the best hit referring to score
   const PeptideIdentification* ptr_best_id = nullptr;
   const ConsensusFeature& cf = cmap[c_feature_number];
-  Size pep_ids_size = 0;
+
   String type;
   if (MQExporterHelper::hasValidPepID_(f, c_feature_number, UIDs, mp_f))
   {
-    for (Size i = 1; i < f.getPeptideIdentifications().size(); ++i) // for msms-count
-    {
-      if (!f.getPeptideIdentifications()[i].getHits().empty())
-      {
-        if (f.getPeptideIdentifications()[i].getHits()[0].getSequence() == f.getPeptideIdentifications()[0].getHits()[0].getSequence())
-        {
-          ++pep_ids_size;
-        }
-        else
-          break;
-      }
-    }
     type = "MULTI-MSMS";
     ptr_best_hit = &f.getPeptideIdentifications()[0].getHits()[0];
     ptr_best_id = &f.getPeptideIdentifications()[0];

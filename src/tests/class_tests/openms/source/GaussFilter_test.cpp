@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
+#include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/Peak2D.h>
@@ -76,10 +76,10 @@ START_SECTION((template <typename PeakType> void filter(MSChromatogram<PeakType>
   chromatogram.resize(5);
 
   MSChromatogram::Iterator it = chromatogram.begin();
-  for (Size i=0; i<5; ++i, ++it)
+  for (Size i = 0; i < 5; ++i, ++it)
   {
     it->setIntensity(1.0f);
-    it->setMZ(500.0+0.2*i);
+    it->setRT(500.0 + 0.2*i);
   }
 
   GaussFilter gauss;

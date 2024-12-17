@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -15,7 +15,7 @@
 
 #include <QtCore/QString>
 
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <iomanip>     // setw
 
@@ -29,34 +29,34 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_MapStatistics MapStatistics
-  @brief Extract extended statistics on the features of a map for quality control.
-  <center>
-  <table>
-  <tr>
-  <th ALIGN = "center"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> &rarr; MapStatistics &rarr;</td>
-  <th ALIGN = "center"> pot. successor tools </td>
-  </tr>
-  <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> FeatureFinder, FeatureMatcher</td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
-  </tr>
-  </table>
-  </center>
-  This tool computes some basic statistics on the features of a map
-  that are frequently used for quality control.
+@page TOPP_MapStatistics MapStatistics
+@brief Extract extended statistics on the features of a map for quality control.
+<center>
+<table>
+<tr>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=2> &rarr; MapStatistics &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
+</tr>
+<tr>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> FeatureFinder, FeatureMatcher</td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
+</tr>
+</table>
+</center>
+This tool computes some basic statistics on the features of a map
+that are frequently used for quality control.
 
-  Information displayed includes:
-  - show information about the data range of a file (m/z, RT, intensity)
-  - show a statistical summary for intensities, qualities, feature widths
-  - break down the statistics for fractions of the map
-  - total ion current included in the features as a function of RT
+Information displayed includes:
+- show information about the data range of a file (m/z, RT, intensity)
+- show a statistical summary for intensities, qualities, feature widths
+- break down the statistics for fractions of the map
+- total ion current included in the features as a function of RT
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_MapStatistics.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_MapStatistics.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_MapStatistics.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_MapStatistics.html
 */
 
 // We do not want this class to show up in the docu:

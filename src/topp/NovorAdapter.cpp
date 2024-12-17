@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -38,9 +38,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_NovorAdapter NovorAdapter
+@page TOPP_NovorAdapter NovorAdapter
 
-    @brief Novoradapter for de novo sequencing from tandem mass spectrometry data.
+@brief Novoradapter for de novo sequencing from tandem mass spectrometry data.
 
 <CENTER>
     <table>
@@ -57,18 +57,18 @@ using namespace std;
 </CENTER>
 
 
-    This tool can be used for de novo sequencing of peptides from MS/MS data.
+This tool can be used for de novo sequencing of peptides from MS/MS data.
 
-    Novor must be installed before this wrapper can be used. This wrapper was successfully tested with version v1.06.0634 (stable).
-    
-    Novor settings can be either used via command line or directly using a param file (param.txt).
+Novor must be installed before this wrapper can be used. This wrapper was successfully tested with version v1.06.0634 (stable).
 
-    Parameter names have been changed to match names found in other search engine adapters. For further information  check the Novor wiki (http://wiki.rapidnovor.com/wiki/Main_Page) and the official tool website (https://www.rapidnovor.com/). 
+Novor settings can be either used via command line or directly using a param file (param.txt).
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_NovorAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_NovorAdapter.html
+Parameter names have been changed to match names found in other search engine adapters. For further information  check the Novor wiki (http://wiki.rapidnovor.com/wiki/Main_Page) and the official tool website (https://www.rapidnovor.com/). 
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_NovorAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_NovorAdapter.html
 */
 
 // We do not want this class to show up in the docu:

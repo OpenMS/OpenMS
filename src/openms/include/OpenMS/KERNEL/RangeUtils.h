@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -214,7 +214,7 @@ public:
     /**
       @brief Constructor
 
-      @param mode scan polarity
+      @param polarity scan polarity
       @param reverse if @p reverse is true, operator() returns true if the spectrum has a different
       scan polarity
     */

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -20,9 +20,8 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-#include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
-#include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+#include <OpenMS/COMPARISON/ZhangSimilarityScore.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -96,7 +95,7 @@ If you want to extract an MS1 region with untouched MS2 spectra included, you wi
 @htmlinclude TOPP_FileFilter.html
 
 For the parameters of the S/N algorithm section see the class documentation there: @n
-    @ref OpenMS::SignalToNoiseEstimatorMedian "peak_options:sn"@n
+@ref OpenMS::SignalToNoiseEstimatorMedian "peak_options:sn"@n
 
 */
 
@@ -1381,7 +1380,7 @@ protected:
     const bool enable_rt_check = (rt_tol >= 0);
     const bool enable_sim_check = (sim_tol > -1);
 
-    std::unique_ptr<PeakSpectrumCompareFunctor> comp_function(Factory<PeakSpectrumCompareFunctor>::create("ZhangSimilarityScore"));
+    auto comp_function= std::unique_ptr<PeakSpectrumCompareFunctor>(new (ZhangSimilarityScore));
 
     set<Size> list_idx;
 

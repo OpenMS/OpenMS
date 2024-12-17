@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -242,6 +242,7 @@ namespace OpenMS
     {
       if (seq_type_ == SequenceType::PEPTIDE)
       {
+        p.setValue("add_first_prefix_ion", "true"); // do not skip b1 ion
         pep_generator.setParameters(p);
         pep_generator.getSpectrum(spec_, aa_sequence, charge, charge);
       }

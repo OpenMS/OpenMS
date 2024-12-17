@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -64,103 +64,103 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_OpenSwathWorkflow OpenSwathWorkflow
+@page TOPP_OpenSwathWorkflow OpenSwathWorkflow
 
-  @brief Complete workflow to run OpenSWATH
+@brief Complete workflow to run OpenSWATH
 
-  This implements the OpenSWATH workflow as described in Rost and Rosenberger
-  et al. (Nature Biotechnology, 2014) and provides a complete, integrated
-  analysis tool without the need to run multiple tools consecutively. See also
-  http://openswath.org/ for additional documentation.
+This implements the OpenSWATH workflow as described in Rost and Rosenberger
+et al. (Nature Biotechnology, 2014) and provides a complete, integrated
+analysis tool without the need to run multiple tools consecutively. See also
+http://openswath.org/ for additional documentation.
 
-  It executes the following steps in order, which is implemented in @ref OpenMS::OpenSwathWorkflow "OpenSwathWorkflow":
+It executes the following steps in order, which is implemented in @ref OpenMS::OpenSwathWorkflow "OpenSwathWorkflow":
+
+<ul>
+  <li>Reading of input files, which can be provided as one single mzML or multiple "split" mzMLs (one per SWATH)</li>
+  <li>Computing the retention time transformation using RT-normalization peptides</li>
+  <li>Reading of the transition list</li>
+  <li>Extracting the specified transitions</li>
+  <li>Scoring the peak groups in the extracted ion chromatograms (XIC)</li>
+  <li>Reporting the peak groups and the chromatograms</li>
+</ul>
+
+
+See below or have a look at the INI file (via "OpenSwathWorkflow -write_ini myini.ini") for available parameters and more functionality.
+
+<h3>Input: SWATH maps and assay library (transition list) </h3>
+SWATH maps can be provided as mzML files, either as single file directly from
+the machine (this assumes that the SWATH method has 1 MS1 and then n MS2
+spectra which are ordered the same way for each cycle). E.g. a valid method
+would be MS1, MS2 [400-425], MS2 [425-450], MS1, MS2 [400-425], MS2 [425-450]
+while an invalid method would be MS1, MS2 [400-425], MS2 [425-450], MS1, MS2
+[425-450], MS2 [400-425] where MS2 [xx-yy] indicates an MS2 scan with an
+isolation window starting at xx and ending at yy. OpenSwathWorkflow will try
+to read the SWATH windows from the data, if this is not possible please
+provide a tab-separated list with the correct windows using the
+-swath_windows_file parameter (this is recommended). Note that the software
+expects extraction windows (e.g. which peptides to extract from
+which window) which cannot have overlaps, otherwise peptides will be
+extracted from two different windows.
+
+Alternatively, a set of split files (n+1 mzML files) can be provided, each
+containing one SWATH map (or MS1 map).
+
+Since the file size can become rather large, it is recommended to not load the
+whole file into memory but rather cache it somewhere on the disk using a
+fast-access data format. This can be specified using the -readOptions cache
+parameter (this is recommended!).
+
+The assay library (transition list) is provided through the @p -tr parameter and can be in one of the following formats:
 
   <ul>
-    <li>Reading of input files, which can be provided as one single mzML or multiple "split" mzMLs (one per SWATH)</li>
-    <li>Computing the retention time transformation using RT-normalization peptides</li>
-    <li>Reading of the transition list</li>
-    <li>Extracting the specified transitions</li>
-    <li>Scoring the peak groups in the extracted ion chromatograms (XIC)</li>
-    <li>Reporting the peak groups and the chromatograms</li>
+    <li> @ref OpenMS::TraMLFile "TraML" </li>
+    <li> @ref OpenMS::TransitionTSVFile "OpenSWATH TSV transition lists" </li>
+    <li> @ref OpenMS::TransitionPQPFile "OpenSWATH PQP SQLite files" </li>
+    <li> SpectraST MRM transition lists </li>
+    <li> Skyline transition lists </li>
+    <li> Spectronaut transition lists </li>
   </ul>
 
+<h3>Parameters</h3>
+The current parameters are optimized for 2 hour gradients on SCIEX 5600 /
+6600 TripleTOF instruments with a peak width of around 30 seconds using iRT
+peptides.  If your chromatography differs, please consider adjusting
+@p -Scoring:TransitionGroupPicker:min_peak_width  to allow for smaller or larger
+peaks and adjust the @p -rt_extraction_window to use a different extraction
+window for the retention time. In m/z domain, consider adjusting
+@p -mz_extraction_window to your instrument resolution, which can be in Th or
+ppm.
 
-  See below or have a look at the INI file (via "OpenSwathWorkflow -write_ini myini.ini") for available parameters and more functionality.
+Furthermore, if you wish to use MS1 information, use the @p -use_ms1_traces flag
+and provide an MS1 map in addition to the SWATH data.
 
-  <h3>Input: SWATH maps and assay library (transition list) </h3>
-  SWATH maps can be provided as mzML files, either as single file directly from
-  the machine (this assumes that the SWATH method has 1 MS1 and then n MS2
-  spectra which are ordered the same way for each cycle). E.g. a valid method
-  would be MS1, MS2 [400-425], MS2 [425-450], MS1, MS2 [400-425], MS2 [425-450]
-  while an invalid method would be MS1, MS2 [400-425], MS2 [425-450], MS1, MS2
-  [425-450], MS2 [400-425] where MS2 [xx-yy] indicates an MS2 scan with an
-  isolation window starting at xx and ending at yy. OpenSwathWorkflow will try
-  to read the SWATH windows from the data, if this is not possible please
-  provide a tab-separated list with the correct windows using the
-  -swath_windows_file parameter (this is recommended). Note that the software
-  expects extraction windows (e.g. which peptides to extract from
-  which window) which cannot have overlaps, otherwise peptides will be
-  extracted from two different windows.
+If you encounter issues with peak picking, try to disable peak filtering by
+setting @p -Scoring:TransitionGroupPicker:compute_peak_quality false which will
+disable the filtering of peaks by chromatographic quality. Furthermore, you
+can adjust the smoothing parameters for the peak picking, by adjusting
+@p -Scoring:TransitionGroupPicker:PeakPickerChromatogram:sgolay_frame_length or using a
+Gaussian smoothing based on your estimated peak width. Adjusting the signal
+to noise threshold will make the peaks wider or smaller.
 
-  Alternatively, a set of split files (n+1 mzML files) can be provided, each
-  containing one SWATH map (or MS1 map).
+<h3>Output: Feature list and chromatograms </h3>
+The output of the OpenSwathWorkflow is a feature list, either as FeatureXML
+or as tsv (use @p -out_features or @p -out_tsv) while the latter is more memory
+friendly and can be directly used as input to other tools such as mProphet or
+pyProphet. If you analyze large datasets, it is recommended to only use @p
+-out_tsv and not @p -out_features. For downstream analysis (e.g. using mProphet
+ or pyProphet) also the @p -out_tsv format is recommended.
 
-  Since the file size can become rather large, it is recommended to not load the
-  whole file into memory but rather cache it somewhere on the disk using a
-  fast-access data format. This can be specified using the -readOptions cache
-  parameter (this is recommended!).
+The feature list generated by @p -out_tsv is a tab-separated file. It can be
+used directly as input to the mProphet or pyProphet (a Python
+re-implementation of mProphet) software tool, see Reiter et al (2011, Nature
+Methods).
 
-  The assay library (transition list) is provided through the @p -tr parameter and can be in one of the following formats:
+In addition, the extracted chromatograms can be written out using the
+@p -out_chrom parameter.
 
-    <ul>
-      <li> @ref OpenMS::TraMLFile "TraML" </li>
-      <li> @ref OpenMS::TransitionTSVFile "OpenSWATH TSV transition lists" </li>
-      <li> @ref OpenMS::TransitionPQPFile "OpenSWATH PQP SQLite files" </li>
-      <li> SpectraST MRM transition lists </li>
-      <li> Skyline transition lists </li>
-      <li> Spectronaut transition lists </li>
-    </ul>
+<h4> Feature list output format </h4>
 
-  <h3>Parameters</h3>
-  The current parameters are optimized for 2 hour gradients on SCIEX 5600 /
-  6600 TripleTOF instruments with a peak width of around 30 seconds using iRT
-  peptides.  If your chromatography differs, please consider adjusting
-  @p -Scoring:TransitionGroupPicker:min_peak_width  to allow for smaller or larger
-  peaks and adjust the @p -rt_extraction_window to use a different extraction
-  window for the retention time. In m/z domain, consider adjusting
-  @p -mz_extraction_window to your instrument resolution, which can be in Th or
-  ppm.
-
-  Furthermore, if you wish to use MS1 information, use the @p -use_ms1_traces flag
-  and provide an MS1 map in addition to the SWATH data.
-
-  If you encounter issues with peak picking, try to disable peak filtering by
-  setting @p -Scoring:TransitionGroupPicker:compute_peak_quality false which will
-  disable the filtering of peaks by chromatographic quality. Furthermore, you
-  can adjust the smoothing parameters for the peak picking, by adjusting
-  @p -Scoring:TransitionGroupPicker:PeakPickerChromatogram:sgolay_frame_length or using a
-  Gaussian smoothing based on your estimated peak width. Adjusting the signal
-  to noise threshold will make the peaks wider or smaller.
-
-  <h3>Output: Feature list and chromatograms </h3>
-  The output of the OpenSwathWorkflow is a feature list, either as FeatureXML
-  or as tsv (use @p -out_features or @p -out_tsv) while the latter is more memory
-  friendly and can be directly used as input to other tools such as mProphet or
-  pyProphet. If you analyze large datasets, it is recommended to only use @p
-  -out_tsv and not @p -out_features. For downstream analysis (e.g. using mProphet
-   or pyProphet) also the @p -out_tsv format is recommended.
-
-  The feature list generated by @p -out_tsv is a tab-separated file. It can be
-  used directly as input to the mProphet or pyProphet (a Python
-  re-implementation of mProphet) software tool, see Reiter et al (2011, Nature
-  Methods).
-
-  In addition, the extracted chromatograms can be written out using the
-  @p -out_chrom parameter.
-
-  <h4> Feature list output format </h4>
-
-  The tab-separated feature output contains the following information:
+The tab-separated feature output contains the following information:
 
 <CENTER>
   <table>
@@ -368,19 +368,17 @@ using namespace OpenMS;
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Annotation of fragment ion traces separated by semicolon </td>
     </tr>
-
-
   </table>
 </CENTER>
 
-  <h3>Execution flow:</h3>
+<h3>Execution flow:</h3>
 
-  The overall execution flow for this tool is implemented in @ref OpenMS::OpenSwathWorkflow "OpenSwathWorkflow".
+The overall execution flow for this tool is implemented in @ref OpenMS::OpenSwathWorkflow "OpenSwathWorkflow".
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_OpenSwathWorkflow.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_OpenSwathWorkflow.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_OpenSwathWorkflow.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_OpenSwathWorkflow.html
 
 */
 
@@ -392,7 +390,7 @@ class TOPPOpenSwathWorkflow
 public:
 
   TOPPOpenSwathWorkflow()
-    : TOPPOpenSwathBase("OpenSwathWorkflow", "Complete workflow to run OpenSWATH", false)
+    : TOPPOpenSwathBase("OpenSwathWorkflow", "Complete workflow to run OpenSWATH", true)
   {
   }
 
@@ -448,7 +446,6 @@ protected:
 
     // misc options
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the upper edge of a Swath window to still consider a precursor, in Thomson", false, true);
-    registerFlag_("sonar", "data is scanning SWATH data");
     registerFlag_("pasef", "data is PASEF data");
 
     // RT, mz and IM windows
@@ -534,6 +531,7 @@ protected:
       feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "false");
       feature_finder_param.setValue("TransitionGroupPicker:minimal_quality", -1.5);
       feature_finder_param.setValue("TransitionGroupPicker:background_subtraction", "none");
+      feature_finder_param.setValue("TransitionGroupPicker:compute_peak_shape_metrics", "false");
       feature_finder_param.remove("TransitionGroupPicker:stop_after_intensity_ratio");
 
       // Peak Picker
@@ -656,7 +654,6 @@ protected:
     bool split_file = getFlag_("split_file_input");
     bool use_emg_score = getFlag_("use_elution_model_score");
     bool force = getFlag_("force");
-    bool sonar = getFlag_("sonar");
     bool pasef = getFlag_("pasef");
     bool sort_swath_maps = getFlag_("sort_swath_maps");
     bool use_ms1_traces = getStringOption_("enable_ms1") == "true";
@@ -752,9 +749,11 @@ protected:
     ChromExtractParams cp_ms1 = cp;
     cp_ms1.mz_extraction_window  = getDoubleOption_("mz_extraction_window_ms1");
     cp_ms1.ppm                   = getStringOption_("mz_extraction_window_ms1_unit") == "ppm";
-    cp_ms1.im_extraction_window  = getDoubleOption_("im_extraction_window_ms1");
+    cp_ms1.im_extraction_window  = (use_ms1_im) ? getDoubleOption_("im_extraction_window_ms1") : -1;
 
     Param feature_finder_param = getParam_().copy("Scoring:", true);
+    feature_finder_param.setValue("use_ms1_ion_mobility", getStringOption_("use_ms1_ion_mobility"));
+
     Param tsv_reader_param = getParam_().copy("Library:", true);
     if (use_emg_score)
     {
@@ -772,6 +771,12 @@ protected:
     if (enable_uis_scoring)
     {
       feature_finder_param.setValue("Scores:use_uis_scores", "true");
+    }
+
+    bool compute_peak_shape_metrics = feature_finder_param.getValue("TransitionGroupPicker:compute_peak_shape_metrics").toBool();
+    if (compute_peak_shape_metrics)
+    {
+      feature_finder_param.setValue("Scores:use_peak_shape_metrics", "true");
     }
 
     ///////////////////////////////////
@@ -820,7 +825,7 @@ protected:
       qc_consumer.setExperimentalSettingsFunc(qc.getExpSettingsFunc());
       if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions,
                           swath_windows_file, min_upper_edge_dist, force,
-                          sort_swath_maps, sonar, prm, pasef, &qc_consumer))
+                          sort_swath_maps, prm, pasef, &qc_consumer))
       {
         return PARSE_ERROR;
       }
@@ -830,7 +835,7 @@ protected:
     {
       if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions,
                           swath_windows_file, min_upper_edge_dist, force,
-                          sort_swath_maps, sonar, prm, pasef))
+                          sort_swath_maps, prm, pasef))
       {
         return PARSE_ERROR;
       }
@@ -854,7 +859,7 @@ protected:
       trafo_rtnorm = performCalibration(trafo_in, irt_tr_file, swath_maps,
                                         min_rsq, min_coverage, feature_finder_param,
                                         cp_irt, irt_detection_param, calibration_param,
-                                        debug_level, sonar, pasef, load_into_memory,
+                                        debug_level, pasef, load_into_memory,
                                         irt_trafo_out, irt_mzml_out);
     }
     else
@@ -870,7 +875,7 @@ protected:
       trafo_rtnorm = performCalibration(trafo_in, irt_tr_file, swath_maps,
                                         min_rsq, min_coverage, feature_finder_param,
                                         cp_irt, linear_irt, no_calibration,
-                                        debug_level, sonar, pasef, load_into_memory,
+                                        debug_level, pasef, load_into_memory,
                                         irt_trafo_out, irt_mzml_out);
 
       cp_irt.rt_extraction_window = 900; // extract some substantial part of the RT range (should be covered by linear correction)
@@ -886,7 +891,7 @@ protected:
       OpenSwathCalibrationWorkflow wf;
       wf.setLogType(log_type_);
       wf.simpleExtractChromatograms_(swath_maps, transition_exp_nl, chromatograms,
-                                    trafo_rtnorm, cp_irt, sonar, pasef, load_into_memory);
+                                    trafo_rtnorm, cp_irt, pasef, load_into_memory);
 
       // always use estimateBestPeptides for the nonlinear approach
       Param nonlinear_irt = irt_detection_param;
@@ -920,26 +925,13 @@ protected:
     // Set up peakgroup file output (.tsv or .osw file)
     ///////////////////////////////////
     FeatureMap out_featureFile;
-    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, sonar); // only active if filename not empty
-    OpenSwathOSWWriter oswwriter(out_osw, run_id, file_list[0], use_ms1_traces, sonar, enable_uis_scoring); // only active if filename not empty
+    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces); // only active if filename not empty
+    OpenSwathOSWWriter oswwriter(out_osw, run_id, file_list[0], enable_uis_scoring); // only active if filename not empty
 
-    ///////////////////////////////////
-    // Extract and score
-    ///////////////////////////////////
-    if (sonar)
-    {
-      OpenSwathWorkflowSonar wf(use_ms1_traces);
-      wf.setLogType(log_type_);
-      wf.performExtractionSonar(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
-          out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, load_into_memory);
-    }
-    else
-    {
-      OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, outer_loop_threads);
-      wf.setLogType(log_type_);
-      wf.performExtraction(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
-          out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory);
-    }
+    OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, outer_loop_threads);
+    wf.setLogType(log_type_);
+    wf.performExtraction(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
+        out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory);
 
     if (!out.empty())
     {

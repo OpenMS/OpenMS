@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -41,18 +41,6 @@ public:
         @exception Exception::IllegalArgument is thrown if the input data is not valid.
     */
     void group(const std::vector<FeatureMap > & maps, ConsensusMap & out) override;
-
-    ///Creates a new instance of this class (for Factory)
-    static FeatureGroupingAlgorithm * create()
-    {
-      return new FeatureGroupingAlgorithmLabeled();
-    }
-
-    ///Returns the product name (for the Factory)
-    static String getProductName()
-    {
-      return "labeled";
-    }
 
 private:
 

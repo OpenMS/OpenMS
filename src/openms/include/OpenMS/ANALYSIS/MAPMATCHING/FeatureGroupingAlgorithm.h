@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -41,8 +41,6 @@ public:
     /// Transfers subelements (grouped features) from input consensus maps to the result consensus map
     void transferSubelements(const std::vector<ConsensusMap> & maps, ConsensusMap & out) const;
 
-    /// Register all derived classes in this method
-    static void registerChildren();
 
 protected:
 

@@ -1,9 +1,9 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm, Clemens Groepl $
+// $Authors: Marc Sturm, Clemens Groepl, Chris Bielow, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -11,7 +11,7 @@
 // Avoid OpenMS includes here at all costs
 // When the included headers are changed, *all* tests have to be recompiled!
 // Use the ClassTest class if you need add high-level functionality.
-// Includes in the C-file are ok...
+// Includes in ClassTest.cpp are ok...
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
@@ -23,7 +23,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
+#include <type_traits>
 // Empty declaration to avoid problems in case the namespace is not
 // yet defined (e.g. TEST/ClassTest_test.cpp)
 
@@ -275,26 +275,25 @@ namespace OpenMS
       {
         ++test_count;
         test_line = line;
-        this_test = bool(expression_1 == T1(expression_2));
-        test = test && this_test;
+        this_test = bool(expression_1 == T1(expression_2)) ;
+        test &= this_test;
         {
           initialNewline();
-          if (this_test)
+          if (!this_test || verbose > 1)
           {
-            if (verbose > 1)
+            stdcout << ' ' << (this_test ? '+' : '-') << "  line " << line << " : TEST_EQUAL(" << expression_1_stringified << ','
+                    << expression_2_stringified << "): got '";
+            if constexpr (std::is_enum_v<T1> && std::is_enum_v<T2>)
             {
-              stdcout << " +  line " << line << ":  TEST_EQUAL("
-                        << expression_1_stringified << ','
-                        << expression_2_stringified << "): got '" << expression_1
-                        << "', expected '" << expression_2 << "'\n";
+              stdcout << static_cast<int>(expression_1) << "', expected '" << static_cast<int>(expression_2) << "'\n";
+            }
+            else
+            { 
+              stdcout << expression_1 << "', expected '" << expression_2 << "'\n";
             }
           }
-          else
+          if (!this_test)
           {
-            stdcout << " -  line " << line << ":  TEST_EQUAL("
-                      << expression_1_stringified << ','
-                      << expression_2_stringified << "): got '" << expression_1
-                      << "', expected '" << expression_2 << "'\n";
             failed_lines_list.push_back(line);
           }
         }
@@ -305,7 +304,7 @@ namespace OpenMS
         ++test_count;
         test_line = line;
         this_test = expression_1;
-        test = test && this_test;
+        test &= this_test;
         {
           initialNewline();
           if (this_test)
@@ -328,7 +327,7 @@ namespace OpenMS
         ++test_count;
         test_line = line;
         this_test = !expression_1;
-        test = test && this_test;
+        test &= this_test;
         {
           initialNewline();
           if (this_test)
@@ -356,25 +355,21 @@ namespace OpenMS
         ++test_count;
         test_line = line;
         this_test = !(expression_1 == T1(expression_2));
-        test = test && this_test;
+        test &= this_test;
         {
           initialNewline();
-          if (this_test)
+          if (!this_test || verbose > 1)
           {
-            if (verbose > 1)
+            stdcout << ' ' << (this_test ? '+' : '-') << "  line " << line << " : TEST_NOT_EQUAL(" << expression_1_stringified << ','
+                    << expression_2_stringified << "): got '";
+            if constexpr (std::is_enum_v<T1> && std::is_enum_v<T2>)
             {
-              stdcout << " +  line " << line << ":  TEST_NOT_EQUAL("
-                        << expression_1_stringified << ','
-                        << expression_2_stringified << "): got '" << expression_1
-                        << "', forbidden is '" << expression_2 << "'\n";
+              stdcout << static_cast<int>(expression_1) << "', forbidden is '" << static_cast<int>(expression_2) << "'\n";
             }
+            else { stdcout << expression_1 << "', expected '" << expression_2 << "'\n"; }
           }
-          else
+          if (!this_test)
           {
-            stdcout << " -  line " << line << ":  TEST_NOT_EQUAL("
-                      << expression_1_stringified << ','
-                      << expression_2_stringified << "): got '" << expression_1
-                      << "', forbidden is '" << expression_2 << "'\n";
             failed_lines_list.push_back(line);
           }
         }
@@ -631,7 +626,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  */
 #define TEST_FILE_EQUAL(filename, templatename)                                           \
   {                                                                                       \
-    TEST::filesEqual(__LINE__, filename, templatename, #filename, #templatename);                                                                                    \
+    TEST::filesEqual(__LINE__, filename, templatename, #filename, #templatename);         \
   }
 
 /**	@brief Floating point similarity macro.
@@ -988,7 +983,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  its argument. The filename is created using the filename of the test and the
  line number where this macro is invoked, for example 'Matrix_test.cpp' might
  create a temporary file 'Matrix_test_268.tmp' if NEW_TMP_FILE is used in
- line 268.  All temporary files are deleted if #END_TEST is called.  @param
+ line 268.  All temporary files are deleted if #END_TEST is called.  @p
  filename string will contain the filename on completion of the macro.
 
  There is a version that defines the extension and one that uses tmp.

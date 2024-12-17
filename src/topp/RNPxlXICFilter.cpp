@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -23,27 +23,27 @@ using namespace std;
 using namespace OpenMS;
 
 /**
-    @page TOPP_RNPxlXICFilter RNPxlXICFilter
-    @brief Filters MS2 spectra based on XIC intensities in control and treatment. Used in RNPxl experiments to reduce candidate spectra.
+@page TOPP_RNPxlXICFilter RNPxlXICFilter
+@brief Filters MS2 spectra based on XIC intensities in control and treatment. Used in RNPxl experiments to reduce candidate spectra.
 
 <CENTER>
-  <table>
-    <tr>
-      <th ALIGN = "center"> potential predecessor tools </td>
-      <td VALIGN="middle" ROWSPAN=2> &rarr; RNPxlXICFilter &rarr;</td>
-      <th ALIGN = "center"> potential successor tools </td>
-    </tr>
-    <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_RNPxlSearch </td>
-    </tr>
-  </table>
+<table>
+<tr>
+  <th ALIGN = "center"> potential predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=2> &rarr; RNPxlXICFilter &rarr;</td>
+  <th ALIGN = "center"> potential successor tools </td>
+</tr>
+<tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> NuXL </td>
+</tr>
+</table>
 </CENTER>
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_RNPxlXICFilter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_RNPxlXICFilter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_RNPxlXICFilter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_RNPxlXICFilter.html
 */
 
 // We do not want this class to show up in the docu:

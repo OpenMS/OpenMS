@@ -5,6 +5,7 @@ from __future__ import print_function
 import pyopenms
 import copy
 import os
+import logging
 
 from pyopenms import String as s
 import numpy as np
@@ -183,6 +184,180 @@ def testSpectrumAlignment():
 
     assert isinstance(aligner(spec, spec), float)
     assert isinstance(aligner(rich_spec, rich_spec), float)
+
+@report
+
+def testAASequence():
+    """
+    @tests: AASequence
+     AASequence.__init__
+     AASequence.__add__
+     AASequence.__radd__
+     AASequence.__iadd__
+     AASequence.getCTerminalModificationName
+     AASequence.getNTerminalModificationName
+     AASequence.setCTerminalModification
+     AASequence.setModification
+     AASequence.setNTerminalModification
+     AASequence.toString
+     AASequence.toUnmodifiedString
+    """
+    aas = pyopenms.AASequence()
+
+    aas + aas
+    aas += aas
+
+    aas.__doc__
+    aas = pyopenms.AASequence.fromString("DFPIANGER")
+    assert aas.getCTerminalModificationName() == ""
+    assert aas.getNTerminalModificationName() == ""
+    aas.setCTerminalModification("")
+    aas.setNTerminalModification("")
+    assert aas.toString() == "DFPIANGER"
+    assert aas.toUnmodifiedString() == "DFPIANGER"
+    aas = pyopenms.AASequence.fromStringPermissive("DFPIANGER", True)
+    assert aas.toString() == "DFPIANGER"
+    assert aas.toUnmodifiedString() == "DFPIANGER"
+
+    # constructor from C string using the static method
+    seq = pyopenms.AASequence.fromString("PEPTIDESEKUEM(Oxidation)CER")
+    assert seq.toString() == "PEPTIDESEKUEM(Oxidation)CER"
+    assert seq.toUnmodifiedString() == "PEPTIDESEKUEMCER"
+    assert seq.toBracketString() == "PEPTIDESEKUEM[147]CER"
+    assert seq.toBracketString(True) == "PEPTIDESEKUEM[147]CER"
+
+    # constructor from String
+    seq2 = pyopenms.AASequence("PEPTIDESEKUEM(Oxidation)CER")
+    assert seq2.toString() == "PEPTIDESEKUEM(Oxidation)CER"
+    assert seq2.toUnmodifiedString() == "PEPTIDESEKUEMCER"
+    assert seq == seq2
+    assert seq2.toBracketString() == "PEPTIDESEKUEM[147]CER"
+    assert seq2.toBracketString(True) == "PEPTIDESEKUEM[147]CER"
+
+    # constructor from String (Permissive)
+    seq3 = pyopenms.AASequence("PEPTIDE#SEKUEM(Oxidation)CER", True)
+    assert seq3.toString() == "PEPTIDEXSEKUEM(Oxidation)CER"
+    assert seq3.toUnmodifiedString() == "PEPTIDEXSEKUEMCER"
+    assert seq3.toBracketString() == "PEPTIDEXSEKUEM[147]CER"
+    assert seq3.toBracketString(True) == "PEPTIDEXSEKUEM[147]CER"
+
+    assert seq.toBracketString(False) == "PEPTIDESEKUEM[147.03540001709996]CER" or \
+           seq.toBracketString(False) == "PEPTIDESEKUEM[147.035400017100017]CER"
+
+    assert seq.toBracketString(False) == "PEPTIDESEKUEM[147.03540001709996]CER" or \
+           seq.toBracketString(False) == "PEPTIDESEKUEM[147.035400017100017]CER"
+
+    assert seq.toUniModString() == "PEPTIDESEKUEM(UniMod:35)CER"
+    assert seq.isModified()
+    assert not seq.hasCTerminalModification()
+    assert not seq.hasNTerminalModification()
+    assert not seq.empty()
+
+    # has selenocysteine
+    assert seq.getResidue(1) is not None
+    assert seq.size() == 16
+
+    # test exception forwarding from C++ to python
+    # classes derived from std::runtime_exception can be caught in python
+    try:
+        seq.getResidue(1000) # does not exist
+    except RuntimeError:
+        print("Exception successfully triggered.")
+    else:
+        print("Error: Exception not triggered.")
+        assert False
+    assert seq.getFormula(pyopenms.Residue.ResidueType.Full, 0) == pyopenms.EmpiricalFormula("C75H122N20O32S2Se1")
+    assert abs(seq.getMonoWeight(pyopenms.Residue.ResidueType.Full, 0) - 1958.7140766518) < 1e-5
+    # assert seq.has(pyopenms.ResidueDB.getResidue("P"))
+
+    
+@report
+def testElement():
+    """
+    @tests: Element
+     Element.__init__
+     Element.setAtomicNumber
+     Element.getAtomicNumber
+     Element.setAverageWeight
+     Element.getAverageWeight
+     Element.setMonoWeight
+     Element.getMonoWeight
+     Element.setIsotopeDistribution
+     Element.getIsotopeDistribution
+     Element.setName
+     Element.getName
+     Element.setSymbol
+     Element.getSymbol
+    """
+    ins = pyopenms.Element()
+
+    ins.setAtomicNumber(6)
+    ins.getAtomicNumber()
+    ins.setAverageWeight(12.011)
+    ins.getAverageWeight()
+    ins.setMonoWeight(12)
+    ins.getMonoWeight()
+    iso = pyopenms.IsotopeDistribution()
+    ins.setIsotopeDistribution(iso)
+    ins.getIsotopeDistribution()
+    ins.setName("Carbon")
+    ins.getName()
+    ins.setSymbol("C")
+    ins.getSymbol()
+
+    e = pyopenms.Element()
+    e.setSymbol("blah")
+    e.setSymbol("blah")
+    e.setSymbol(u"blah")
+    e.setSymbol(str("blah"))
+    oms_string = s("blu")
+    e.setSymbol(oms_string)
+    assert oms_string
+    assert oms_string.toString() == "blu"
+
+    evil = u"blü"
+    evil8 = evil.encode("utf8")
+    evil1 = evil.encode("latin1")
+
+
+    e.setSymbol(evil.encode("utf8"))
+    assert e.getSymbol() == u"blü"
+    e.setSymbol(evil.encode("latin1"))
+    assert e.getSymbol().decode("latin1") == u"blü"
+
+    # If we get the raw symbols, we get bytes (which we would need to decode first)
+    e.setSymbol(evil8.decode("utf8"))
+    # assert e.getSymbol() == 'bl\xc3\xbc', e.getSymbol()
+    assert e.getSymbol() == u"blü" #.encode("utf8")
+    # OpenMS strings, however, understand the decoding
+    assert s(e.getSymbol()) == s(u"blü")
+    assert s(e.getSymbol()).toString() == u"blü"
+
+    # What if you use the wrong decoding ?
+    e.setSymbol(evil1)
+    assert e.getSymbol().decode("latin1") == u"blü"
+    e.setSymbol(evil8)
+    assert e.getSymbol() == u"blü"
+
+@report
+def testResidue():
+    """
+    @tests: Residue
+     Residue.__init__
+    """
+    ins = pyopenms.Residue()
+
+    pyopenms.Residue.ResidueType.Full
+    pyopenms.Residue.ResidueType.Internal
+    pyopenms.Residue.ResidueType.NTerminal
+    pyopenms.Residue.ResidueType.CTerminal
+    pyopenms.Residue.ResidueType.AIon
+    pyopenms.Residue.ResidueType.BIon
+    pyopenms.Residue.ResidueType.CIon
+    pyopenms.Residue.ResidueType.XIon
+    pyopenms.Residue.ResidueType.YIon
+    pyopenms.Residue.ResidueType.ZIon
+    pyopenms.Residue.ResidueType.SizeOfResidueType
 
 @report
 def testIsotopeDistribution():
@@ -370,6 +545,45 @@ def testIdentification():
     id2 = pyopenms.SpectrumIdentification()
     f.addSpectrumIdentification(id2)
     assert len(f.getSpectrumIdentifications()) == 2
+
+def testEmpiricalFormula():
+    """
+    @tests: EmpiricalFormula 
+     EmpiricalFormula.__init__
+     EmpiricalFormula.getMonoWeight
+     EmpiricalFormula.getAverageWeight
+     EmpiricalFormula.getIsotopeDistribution
+     EmpiricalFormula.getNumberOfAtoms
+     EmpiricalFormula.setCharge
+     EmpiricalFormula.getCharge
+     EmpiricalFormula.toString
+     EmpiricalFormula.isEmpty
+     EmpiricalFormula.isCharged
+     EmpiricalFormula.hasElement
+     EmpiricalFormula.hasElement
+    """
+    ins = pyopenms.EmpiricalFormula()
+
+    ins.getMonoWeight()
+    ins.getAverageWeight()
+    ins.getIsotopeDistribution(pyopenms.CoarseIsotopePatternGenerator(0))
+    # ins.getNumberOf(0)
+    # ins.getNumberOf("test")
+    ins.getNumberOfAtoms()
+    ins.setCharge(2)
+    ins.getCharge()
+    ins.toString()
+    ins.isEmpty()
+    ins.isCharged()
+    ins.hasElement( pyopenms.Element() )
+
+    ef = pyopenms.EmpiricalFormula("C2H5")
+    s = ef.toString()
+    assert s == "C2H5"
+    m = ef.getElementalComposition()
+    assert m[b"C"] == 2
+    assert m[b"H"] == 5
+    assert ef.getNumberOfAtoms() == 7
 
 @report
 def testModificationDefinitionsSet():
@@ -1112,29 +1326,6 @@ def testFeature():
 
 
 @report
-def testFeatureFinder():
-    """
-    @tests: FeatureFinder
-     FeatureFinder.__init__
-     FeatureFinder.endProgress
-     FeatureFinder.getLogType
-     FeatureFinder.getParameters
-     FeatureFinder.run
-     FeatureFinder.setLogType
-     FeatureFinder.setProgress
-     FeatureFinder.startProgress
-    """
-    ff = pyopenms.FeatureFinder()
-    name = pyopenms.FeatureFinderAlgorithmPicked.getProductName()
-    ff.run(name, pyopenms.MSExperiment(), pyopenms.FeatureMap() ,
-            pyopenms.Param(), pyopenms.FeatureMap())
-
-    _testProgressLogger(ff)
-
-    p = ff.getParameters(name)
-    _testParam(p)
-
-@report
 def testFeatureFileOptions():
     """
     @tests: FeatureFileOptions
@@ -1183,6 +1374,7 @@ def _testParam(p):
      Param.setMinInt
      Param.setSectionDescription
      Param.setValidStrings
+     Param.getValidStrings
      Param.setValue
      Param.size
      Param.update
@@ -1261,6 +1453,7 @@ def _testParam(p):
     p1.update(dd)
 
     p.setValidStrings
+    p.getValidStrings
     p.setMinFloat
     p.setMaxFloat
     p.setMinInt
@@ -1301,39 +1494,13 @@ def testFeatureFinderAlgorithmPicked():
 
     _testParam(ff.getParameters())
 
-    assert ff.getName() == "FeatureFinderAlgorithm"
-    assert pyopenms.FeatureFinderAlgorithmPicked.getProductName() == "centroided"
+    assert ff.getName() == "FeatureFinderAlgorithmPicked"
 
     ff.setParameters(pyopenms.Param())
 
     ff.setName("test")
     assert ff.getName() == "test"
 
-@report
-def testFeatureFinderAlgorithmIsotopeWavelet():
-    """
-    @tests: FeatureFinderAlgorithmIsotopeWavelet
-     FeatureFinderAlgorithmIsotopeWavelet.__init__
-     FeatureFinderAlgorithmIsotopeWavelet.getDefaults
-     FeatureFinderAlgorithmIsotopeWavelet.getName
-     FeatureFinderAlgorithmIsotopeWavelet.getParameters
-     FeatureFinderAlgorithmIsotopeWavelet.getProductName
-     FeatureFinderAlgorithmIsotopeWavelet.setName
-     FeatureFinderAlgorithmIsotopeWavelet.setParameters
-    """
-    ff = pyopenms.FeatureFinderAlgorithmIsotopeWavelet()
-    p = ff.getDefaults()
-    _testParam(p)
-
-    # _testParam(ff.getParameters())
-
-    assert ff.getName() == "FeatureFinderAlgorithm"
-    assert pyopenms.FeatureFinderAlgorithmIsotopeWavelet.getProductName() == "isotope_wavelet"
-
-    ff.setParameters(pyopenms.Param())
-
-    ff.setName("test")
-    assert ff.getName() == "test"
 
 @report
 def testExperimentalSettings():
@@ -1423,19 +1590,6 @@ def testSeedListGenerator():
     # TODO 
     # assert pyopenms.SeedListGenerator().compute is not None
 
-@report
-def testTOFCalibration():
-    """
-    @tests: TOFCalibration
-     TOFCalibration.__init__
-    """
-    ff = pyopenms.TOFCalibration()
-    p = ff.getDefaults()
-    # _testParam(p)
-
-    assert pyopenms.TOFCalibration().calibrate is not None
-    assert pyopenms.TOFCalibration().pickAndCalibrate is not None
-
 # TODO: re-enable as soon as ConsensusIDAlgorithm classes are wrapped
 # @report
 # def testConsensusID():
@@ -1470,19 +1624,6 @@ def testIDFilter():
     ff = pyopenms.IDFilter()
 
     # assert pyopenms.IDFilter().apply is not None
-
-@report
-def testProteinResolver():
-    """
-    @tests: ProteinResolver
-     ProteinResolver.__init__
-    """
-    ff = pyopenms.ProteinResolver()
-
-    assert pyopenms.ProteinResolver().resolveConsensus is not None
-    assert pyopenms.ProteinResolver().resolveID is not None
-    assert pyopenms.ProteinResolver().setProteinData is not None
-    assert pyopenms.ProteinResolver().getResults is not None
 
 @report
 def testPosteriorErrorProbabilityModel():
@@ -1561,29 +1702,6 @@ def testConsensusMapNormalizerAlgorithmThreshold():
 
     assert pyopenms.ConsensusMapNormalizerAlgorithmThreshold().computeCorrelation is not None
     assert pyopenms.ConsensusMapNormalizerAlgorithmThreshold().normalizeMaps is not None
-
-
-@report
-def testFeatureFinderAlgorithmPicked():
-    """
-    @tests: FeatureFinderAlgorithmPicked
-     FeatureFinderAlgorithmPicked.__init__
-    """
-    ff = pyopenms.FeatureFinderAlgorithmPicked()
-
-    assert pyopenms.FeatureFinderAlgorithmPicked().setData is not None
-    assert pyopenms.FeatureFinderAlgorithmPicked().run is not None
-
-@report
-def testFeatureFinderAlgorithmIsotopeWavelet():
-    """
-    @tests: FeatureFinderAlgorithmIsotopeWavelet
-     FeatureFinderAlgorithmIsotopeWavelet.__init__
-    """
-    ff = pyopenms.FeatureFinderAlgorithmIsotopeWavelet()
-
-    assert pyopenms.FeatureFinderAlgorithmIsotopeWavelet().setData is not None
-    assert pyopenms.FeatureFinderAlgorithmIsotopeWavelet().run is not None
 
 
 @report
@@ -2074,7 +2192,7 @@ def test_peptide_identifications_to_df():
 
     # update from dataframe
     df = pyopenms.peptide_identifications_to_df(peps)
-    df["ScoreType"][0] = 10.0
+    df.loc[0, "ScoreType"] = 10.0
     peps = pyopenms.update_scores_from_df(peps, df, "ScoreType")
     assert peps[0].getHits()[0].getScore() == 10.0
 
@@ -2619,6 +2737,84 @@ def testLogType():
     assert isinstance(pyopenms.LogType.GUI, int)
     assert isinstance(pyopenms.LogType.NONE, int)
 
+# performance measurement helper for XIC and peak extraction
+import time
+import random
+from typing import Tuple, List
+
+def generate_random_ranges(exp: pyopenms.MSExperiment, 
+                         n_ranges: int,
+                         rt_width: float,
+                         mz_width: float) -> np.ndarray:
+    """
+    Generate random ranges within the experiment bounds.
+    
+    Args:
+        exp: MSExperiment object
+        n_ranges: Number of ranges to generate
+        rt_width: Width of RT window
+        mz_width: Width of m/z window
+        
+    Returns:
+        numpy array of shape (n_ranges, 4) with [mz_min, mz_max, rt_min, rt_max]
+    """
+
+    # Set the seed
+    np.random.seed(4711)
+    
+    min_mz = exp.getMinMZ()
+    max_mz = exp.getMaxMZ()
+    min_rt = exp.getMinRT()
+    max_rt = exp.getMaxRT()    
+    print(f"spectra min_mz: {min_mz}, max_mz: {max_mz}, min_rt: {min_rt}, max_rt: {max_rt}")
+
+    # Generate random centers
+    mz_centers = np.random.uniform(min_mz + mz_width/2, max_mz - mz_width/2, n_ranges)
+    rt_centers = np.random.uniform(min_rt + rt_width/2, max_rt - rt_width/2, n_ranges)
+    
+    # Create ranges array
+    ranges = np.zeros((n_ranges, 4))
+    ranges[:, 0] = mz_centers - mz_width/2  # mz_min
+    ranges[:, 1] = mz_centers + mz_width/2  # mz_max
+    ranges[:, 2] = rt_centers - rt_width/2  # rt_min
+    ranges[:, 3] = rt_centers + rt_width/2  # rt_max
+    
+    return ranges
+
+def extraction_performance_test(exp: pyopenms.MSExperiment, ms_level: int) -> Tuple[float, float]:
+    """
+    Run performance test for both aggregateFromMatrix and extractXICsFromMatrix
+    
+    Args:
+        exp: MSExperiment object
+        
+    Returns:
+        Tuple of (aggregate_time, xic_time)
+    """
+    # Generate 1_000,000 random ranges
+    print("\nGenerating random ranges...")
+    ranges = generate_random_ranges(exp, 
+                                  n_ranges=1_000_000,
+                                  rt_width=60.0,
+                                  mz_width=0.01)
+    
+    # Convert to MatrixDouble
+    ranges_matrix = pyopenms.MatrixDouble.fromNdArray(ranges)
+    
+    # Time aggregateFromMatrix
+    print("Running aggregateFromMatrix...")
+    start_time = time.time()
+    _ = exp.aggregateFromMatrix(ranges_matrix, ms_level, b"sum")
+    aggregate_time = time.time() - start_time
+    
+    # Time extractXICsFromMatrix
+    print("Running extractXICsFromMatrix...")
+    start_time = time.time()
+    _ = exp.extractXICsFromMatrix(ranges_matrix, ms_level, b"sum")
+    xic_time = time.time() - start_time
+    
+    return aggregate_time, xic_time
+
 @report
 def testMSExperiment():
     """
@@ -2692,11 +2888,10 @@ def testMSExperiment():
     assert mse[0] is not None
 
     mse.updateRanges()
-    rt, mz, inty = mse.get2DPeakDataLong(mse.getMinRT(),mse.getMaxRT(),mse.getMinMZ(),mse.getMaxMZ())
+    rt, mz, inty = mse.get2DPeakDataLong(mse.getMinRT(), mse.getMaxRT(), mse.getMinMZ(), mse.getMaxMZ(), 1)
     assert rt.shape[0] == 2
     assert mz.shape[0] == 2
     assert inty.shape[0] == 2
-
 
     assert isinstance(list(mse), list)
 
@@ -2712,10 +2907,11 @@ def testMSExperiment():
     assert mse2 == mse
 
     exp = pyopenms.MSExperiment()
-    for i in range(3):
+
+    for i in range(5):
         s = pyopenms.MSSpectrum()
         s.setRT(i)
-        s.setMSLevel(1)
+        s.setMSLevel(1 if i % 2 == 0 else 2)
 
         for mz in (500, 600):
             p = pyopenms.Peak1D()
@@ -2725,7 +2921,13 @@ def testMSExperiment():
 
         exp.addSpectrum(s)
 
-    assert exp.get_df().shape == (3,3)
+    assert exp.get_df().shape == (5, 4)
+    assert exp.get_df(ms_levels=[1]).shape == (3, 4)
+    assert exp.get_df(ms_levels=[2]).shape == (2, 4)
+
+    assert exp.get_df(long=True).shape == (10, 4)
+    assert exp.get_df(long = True, ms_levels=[1]).shape == (6, 4)
+    assert exp.get_df(long=True, ms_levels=[2]).shape == (4, 4)
 
     pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1.mzML'), exp)
 
@@ -2741,41 +2943,155 @@ def testMSExperiment():
     assert ms1_df.shape == (332620, 8)
     assert np.allclose(ms1_df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS1_MassQL_ION.tsv'), sep='\t'))
 
-@report
-def testMSQuantifications():
-    """
-    @tests: MSQuantifications
-     MSQuantifications.__eq__
-     MSQuantifications.__ge__
-     MSQuantifications.__gt__
-     MSQuantifications.__init__
-     MSQuantifications.__le__
-     MSQuantifications.__lt__
-     MSQuantifications.__ne__
-     MSQuantifications.getConsensusMaps
-     MSQuantifications.setConsensusMaps
-     MSQuantifications.setDataProcessing
-     MSQuantifications.getDataProcessing
-     MSQuantifications.getAssays
-     MSQuantifications.getFeatureMaps
-     MSQuantifications.setAnalysisSummaryQuantType
-     MSQuantifications.getAnalysisSummary
-     MSQuantifications.addConsensusMap
-     MSQuantifications.assignUIDs
-    """
-    msq = pyopenms.MSQuantifications()
-    assert msq == msq
-    assert not msq != msq
-    msq.setConsensusMaps(msq.getConsensusMaps())
+    #####################################################################################
+    # test fast aggregation and XIC extraction using ranges
+    pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1.mzML'), exp)    
+    exp.updateRanges()
 
-    summary = msq.getAnalysisSummary()
-    msq.setDataProcessingList(msq.getDataProcessingList())
-    msq.getAssays()
-    msq.getFeatureMaps()
-    msq.setAnalysisSummaryQuantType(pyopenms.MSQuantifications.QUANT_TYPES.LABELFREE)
+    ############################################################################
+    # Uncomment to run performance tests
+    # print("\nStarting performance tests MS1...")
+    # aggregate_time, xic_time = extraction_performance_test(exp, 1) # Run performance tests on MS level 1   
+    # print("\nPerformance Results:")
+    # print(f"aggregateFromMatrix time for 1M ranges: {aggregate_time:.2f} seconds")
+    # print(f"extractXICsFromMatrix time for 1M ranges: {xic_time:.2f} seconds")
+    # print(f"Ratio (XIC/aggregate): {xic_time/aggregate_time:.2f}")
 
-    msq.addConsensusMap(pyopenms.ConsensusMap())
-    msq.assignUIDs()
+    # print("\nStarting performance tests MS2...")
+    # aggregate_time, xic_time = extraction_performance_test(exp, 2) # Run performance tests on MS level 1   
+    # print("\nPerformance Results:")
+    # print(f"aggregateFromMatrix time for 1M ranges: {aggregate_time:.2f} seconds")
+    # print(f"extractXICsFromMatrix time for 1M ranges: {xic_time:.2f} seconds")
+    # print(f"Ratio (XIC/aggregate): {xic_time/aggregate_time:.2f}")
+    # assert false # needed to output the results
+
+    # eluting peptide feature at these coordinates
+    rt_min = 1730.0
+    rt_max = 1770.0
+    iso1_mz = 443.711 # monoisotopic peak
+    iso2_mz = 444.212 # first isotopic peak
+    iso3_mz = 444.713 # second isotopic peak
+
+    no_iso1_mz = 444.000 # no peaks in this area
+    no_iso2_mz = 444.403 # some noise peaks in this area
+
+
+    # Create ranges matrix with structure:
+    # [[mz_min, mz_max, rt_min, rt_max], ...]
+    ranges_matrix = pyopenms.MatrixDouble.fromNdArray(
+         np.array([
+        # Expected isotope peaks
+        [iso1_mz - 0.1, iso1_mz + 0.1, rt_min, rt_max],
+        [iso2_mz - 0.1, iso2_mz + 0.1, rt_min, rt_max],
+        [iso3_mz - 0.1, iso3_mz + 0.1, rt_min, rt_max],
+        # Regions where we don't expect peaks
+        [no_iso1_mz - 0.1, no_iso1_mz + 0.1, rt_min, rt_max],
+        [no_iso2_mz - 0.1, no_iso2_mz + 0.1, rt_min, rt_max]
+    ])
+    )
+    
+    # Print ranges matrix for verification
+    print("Ranges Matrix:")
+    print (ranges_matrix.get_matrix())
+
+    agg_result = exp.aggregateFromMatrix(ranges_matrix, 1, b"sum")    
+    agg_result_array = np.array(agg_result)    # Convert result to numpy array for easier testing
+
+    print("\nAggregation Results:")
+    print(agg_result)
+
+    # Basic shape checks
+    assert len(agg_result_array) == ranges_matrix.rows(), f"Expected {ranges_matrix.rows()} results, got {len(agg_result_array)}"
+    
+    # Check that regions with expected peaks have higher values
+    isotope_intensities = agg_result_array[:3]  # First three rows are isotope peaks
+    no_peak_intensities = agg_result_array[3:]  # Last two rows are regions without peaks
+    
+    print(isotope_intensities)
+    print(no_peak_intensities)
+ 
+    print("\nIsotope Peak Arrays and Their Sums:")
+    isotope_sums = []
+    for i, intensity_array in enumerate(isotope_intensities):
+        array_sum = np.sum(intensity_array)
+        isotope_sums.append(array_sum)
+        print(f"Isotope {i+1} array: {intensity_array}")
+        print(f"Isotope {i+1} sum: {array_sum}")
+    
+    print("\nNo-Peak Region Arrays and Their Sums:")
+    no_peak_sums = []
+    for i, intensity_array in enumerate(no_peak_intensities):
+        array_sum = np.sum(intensity_array)
+        no_peak_sums.append(array_sum)
+        print(f"No-peak region {i+1} array: {intensity_array}")
+        print(f"No-peak region {i+1} sum: {array_sum}")
+
+    EXPECTED_ISO_SUMS = [24680058.50, 11043987.94, 3141677.76] 
+    EXPECTED_NO_PEAK_SUMS = [0.0, 12322.06]  
+    
+    # Test each isotope array sum
+    for i, (actual_sum, expected_sum) in enumerate(zip(isotope_sums, EXPECTED_ISO_SUMS)):
+        assert np.isclose(actual_sum, expected_sum, rtol=1e-5), \
+            f"Expected isotope {i+1} sum {expected_sum}, got {actual_sum}"
+    
+    # Test each no-peak array sum
+    for i, (actual_sum, expected_sum) in enumerate(zip(no_peak_sums, EXPECTED_NO_PEAK_SUMS)):
+        assert np.isclose(actual_sum, expected_sum, rtol=1e-5), \
+            f"Expected no-peak region {i+1} sum {expected_sum}, got {actual_sum}"
+
+
+    xic_result = exp.extractXICsFromMatrix(ranges_matrix, 1, b"sum")
+    print("\nXIC Results:")
+    for chrom in xic_result:
+        print(f"m/z: {chrom.getProduct().getMZ()}")
+        print(f"Size: {chrom.size()}")
+
+    xic_details = []
+    for i, chrom in enumerate(xic_result):
+        # Get basic XIC information
+        mz = chrom.getProduct().getMZ()
+        size = chrom.size()
+        
+        # Get intensity values from the chromatogram
+        intensities = [point.getIntensity() for point in chrom]
+        rt_values = [point.getRT() for point in chrom]
+        total_intensity = sum(intensities)
+        
+        details = {
+            'mz': mz,
+            'size': size,
+            'total_intensity': total_intensity,
+            'rt_range': (min(rt_values), max(rt_values)) if rt_values else (None, None)
+        }
+        xic_details.append(details)
+        
+        print(f"\nXIC {i+1}:")
+        print(f"m/z: {mz}")
+        print(f"Number of points: {size}")
+        print(f"Total intensity: {total_intensity}")
+        print(f"RT range: {details['rt_range']}")
+
+    # XIC expectations
+    EXPECTED_XIC_SIZES = [24, 24, 24, 24, 24]  # Expected number of points in each XIC
+    EXPECTED_XIC_TOTAL_INTENSITIES = [24680058.50, 11043987.94, 3141677.76, 0.0, 12322.06]  # Expected total intensity for each XIC
+    
+    # Test XIC results
+    for i, (details, exp_size, exp_total) in enumerate(zip(
+            xic_details, EXPECTED_XIC_SIZES, EXPECTED_XIC_TOTAL_INTENSITIES)):
+        
+        assert details['size'] == exp_size, \
+            f"XIC {i+1}: Expected {exp_size} points, got {details['size']}"
+        
+        assert np.isclose(details['total_intensity'], exp_total, rtol=1e-5), \
+            f"XIC {i+1}: Expected total intensity {exp_total}, got {details['total_intensity']}"
+                
+        # Verify RT range falls within expected bounds
+        if details['rt_range'][0] is not None:
+            assert rt_min <= details['rt_range'][0] <= rt_max, \
+                f"XIC {i+1}: Start RT {details['rt_range'][0]} outside expected range [{rt_min}, {rt_max}]"
+            assert rt_min <= details['rt_range'][1] <= rt_max, \
+                f"XIC {i+1}: End RT {details['rt_range'][1]} outside expected range [{rt_min}, {rt_max}]"
+
 
 @report
 def testMSSpectrum():
@@ -2901,6 +3217,45 @@ def testMSSpectrum():
     assert mz[1] == 2000.0
     assert ii[0] == 200.0
     assert ii[1] == 400.0
+
+    spec.setMSLevel(2)
+    spec.setNativeID('scan=1')
+    prec = pyopenms.Precursor()
+    prec.setMZ(100.0)
+    prec.setCharge(1)
+    spec.setPrecursors([prec])
+    spec.setMetaValue('total ion current', 600)
+    pepid = pyopenms.PeptideIdentification()
+    hit = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString('A'))
+    pepid.setHits([hit])
+    spec.setPeptideIdentifications([pepid])
+
+    data = np.array( [5, 8] ).astype(np.float32)
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].set_data(data)
+    f_da[0].setName("Ion Mobility")
+    spec.setFloatDataArrays( f_da )
+    spec.setDriftTimeUnit( pyopenms.DriftTimeUnit.MILLISECOND )
+
+    s_da = pyopenms.StringDataArray()
+    for s in ['b3+', 'y4+']:
+        s_da.push_back(s)
+    s_da.setName("IonNames")
+    spec.setStringDataArrays([s_da])
+
+    df = spec.get_df()
+    assert df.shape == (2, 11)
+    assert df.loc[0, 'mz'] == 1000.0
+    assert df.loc[0, 'intensity'] == 200.0
+    assert df.loc[0, 'ion_mobility'] == 5.0
+    assert df.loc[0, 'ion_mobility_unit'] == 'ms'
+    assert df.loc[0, 'ms_level'] == 2
+    assert df.loc[0, 'precursor_mz'] == 100.0
+    assert df.loc[0, 'precursor_charge'] == 1
+    assert df.loc[0, 'native_id'] == 'scan=1'
+    assert df.loc[0, 'ion_annotation'] == 'b3+'
+    assert df.loc[0, 'sequence'] == 'A'
+    assert df.loc[0, 'total ion current'] == 600
 
     spec.clear(False)
     data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
@@ -3213,6 +3568,29 @@ def testMSChromatogram():
     assert ii[0] == 200.0
     assert ii[1] == 400.0
 
+    chrom.setNativeID('chrom_0')
+    chrom.setMetaValue('FWHM', 5.0)
+    prec = pyopenms.Precursor()
+    prec.setMZ(100.0)
+    prec.setCharge(1)
+    chrom.setPrecursor(prec)
+    prod = pyopenms.Product()
+    prod.setMZ(50.0)
+    chrom.setProduct(prod)
+    chrom.setComment('comment')
+
+    df = chrom.get_df()
+    assert df.shape == (2, 9)
+    assert df.loc[0, 'time'] == 1000.0
+    assert df.loc[1, 'intensity'] == 400
+    assert df.loc[0, 'chromatogram_type'] == 'MASS_CHROMATOGRAM'
+    assert df.loc[1, 'precursor_mz'] == 100.0
+    assert df.loc[0, 'precursor_charge'] == 1
+    assert df.loc[1, 'product_mz'] == 50.0
+    assert df.loc[0, 'comment'] == 'comment'
+    assert df.loc[1, 'native_id'] == 'chrom_0'
+    assert df.loc[0, 'FWHM'] == 5
+
     chrom.clear(False)
     data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
     data_i = np.array( [50.0, 80.0] ).astype(np.float32)
@@ -3343,7 +3721,7 @@ def testMRMDecoy():
 def testMRMTransitionGroup():
     """
     @tests: MRMTransitionGroup
-     """
+    """
     mrmgroup = pyopenms.MRMTransitionGroupCP()
     assert mrmgroup is not None
 
@@ -3353,6 +3731,74 @@ def testMRMTransitionGroup():
     assert len(mrmgroup.getTransitions()) == 0
     mrmgroup.addTransition(pyopenms.ReactionMonitoringTransition(), "tr1")
     assert len(mrmgroup.getTransitions()) == 1
+
+    # add data for testing df output
+    ## test chromatogram df
+    rt, intensity = [[1.0], [5]]
+    chrom = pyopenms.MSChromatogram()
+    chrom.set_peaks([rt, intensity])
+    chrom.setNativeID("tr1")
+    mrmgroup.addChromatogram(chrom, 'tr1')
+
+    df = mrmgroup.get_chromatogram_df()
+    assert df.shape == (1, 8)
+    assert df.loc[0, 'time'] == 1.0
+    assert df.loc[0, 'intensity'] == 5
+    assert df.loc[0, 'chromatogram_type'] == 'MASS_CHROMATOGRAM'
+    assert df.loc[0, 'native_id'] == 'tr1'
+
+    ## feature 1
+    f1 = pyopenms.MRMFeature()
+    f1.setRT(1.0)
+    f1.setMetaValue(b'leftWidth', 0.5)
+    f1.setMetaValue(b'rightWidth', 1.5)
+    f1.setMetaValue(b'peak_apices_sum', 10.0)
+    f1.setOverallQuality(0.5)
+    f1.setUniqueId(1)
+    f1.setIntensity(20.0)
+    mrmgroup.addFeature(f1)
+
+    # feature 2
+    f2 = pyopenms.MRMFeature()
+    f2.setRT(2.0)
+    f2.setMetaValue(b'peak_apices_sum', 20.0)
+    f2.setOverallQuality(1.0)
+    f2.setUniqueId(2)
+    f2.setIntensity(40.0)
+    mrmgroup.addFeature(f2)
+
+    df = mrmgroup.get_feature_df(meta_values=[b'leftWidth', b'rightWidth', b'peak_apices_sum'])
+    assert df.shape == (2, 6)
+    assert df.loc[1, 'leftWidth'] == 0.5
+    assert df.loc[1, 'rightWidth'] == 1.5
+    assert df.loc[1, 'peak_apices_sum'] == 10.0
+    assert df.loc[1, 'intensity'] == 20.0
+    assert df.loc[1, 'quality'] == 0.5
+    assert df.loc[1, 'RT'] == 1.0
+
+    assert np.isnan(df.loc[2, 'leftWidth'])
+    assert np.isnan(df.loc[2, 'rightWidth'])
+    assert df.loc[2, 'peak_apices_sum'] == 20.0
+    assert df.loc[2, 'intensity'] == 40.0
+    assert df.loc[2, 'quality'] == 1.0
+    assert df.loc[2, 'RT'] == 2.0
+
+    # If get "all" meta values should get the same result
+    df = mrmgroup.get_feature_df(meta_values='all')
+    assert df.shape == (2, 6)
+    assert df.loc[1, 'leftWidth'] == 0.5
+    assert df.loc[1, 'rightWidth'] == 1.5
+    assert df.loc[1, 'peak_apices_sum'] == 10.0
+    assert df.loc[1, 'intensity'] == 20.0
+    assert df.loc[1, 'quality'] == 0.5
+    assert df.loc[1, 'RT'] == 1.0
+
+    assert np.isnan(df.loc[2, 'leftWidth'])
+    assert np.isnan(df.loc[2, 'rightWidth'])
+    assert df.loc[2, 'peak_apices_sum'] == 20.0
+    assert df.loc[2, 'intensity'] == 40.0
+    assert df.loc[2, 'quality'] == 1.0
+    assert df.loc[2, 'RT'] == 2.0
 
 @report
 def testReactionMonitoringTransition():
@@ -3497,9 +3943,22 @@ def testMatrixDouble():
      MapAlignmentAlgorithmIdentification.__init__
      """
 
-    m = pyopenms.MatrixDouble()
+    m = pyopenms.MatrixDouble(3, 2, 0.0)
+    for i in range(3):
+        for j in range(2):
+            m.setValue(i, j, i * 10.0 + j) 
+    print(m)
+
+    mv = m.get_matrix_as_view()
+    print(mv)
+
+    mc = m.get_matrix()
+    print(mc)
+
+    mat = m.get_matrix_as_view()
+
     N = 90
-    m.resize(N-1, N+2, 5.0)
+    m = pyopenms.MatrixDouble(N-1, N+2, 5.0)
 
     assert m.rows() == 89
     assert m.cols() == 92
@@ -3526,19 +3985,21 @@ def testMatrixDouble():
     assert sum(sum(matrix_view)) == (N-1)*(N+2)*5
 
 
-    # Column = 3 / Row = 5
+    # Column = 1 / Row = 2
     ## Now change a value:
 
-    assert m.getValue(3, 5) == 5.0
-    m.setValue(3, 5, 8.0)
-    assert m.getValue(3, 5) == 8.0
+    assert m.getValue(1, 2) == 5.0
+    m.setValue(1, 2, 8.0)
+    assert m.getValue(1, 2) == 8.0
 
+    print(m)
     mat = m.get_matrix_as_view()
-    assert mat[3, 5] == 8.0
+    print(mat)
+    assert mat[1, 2] == 8.0
 
     mat = m.get_matrix()
-    assert m.getValue(3, 5) == 8.0
-    assert mat[3, 5] == 8.0
+    assert m.getValue(1, 2) == 8.0
+    assert mat[1, 2] == 8.0
 
     # Whatever we change here gets changed in the raw data as well
     matrix_view = m.get_matrix_as_view()
@@ -3546,13 +4007,13 @@ def testMatrixDouble():
     assert m.getValue(1, 6) == 11.0
     assert matrix_view[1, 6] == 11.0
 
-    m.clear()
+    m = pyopenms.MatrixDouble()
     assert m.rows() == 0
     assert m.cols() == 0
 
     mat[3, 6] = 9.0
     m.set_matrix(mat)
-    assert m.getValue(3, 5) == 8.0
+    assert m.getValue(1, 2) == 8.0
     assert m.getValue(3, 6) == 9.0
 
 
@@ -3616,10 +4077,6 @@ def testMxxxFile():
      MzXMLFile.startProgress
      MzXMLFile.store
 
-     MzQuantMLFile.__init__
-     MzQuantMLFile.isSemanticallyValid
-     MzQuantMLFile.load
-     MzQuantMLFile.store
     """
     mse = pyopenms.MSExperiment()
     s = pyopenms.MSSpectrum()
@@ -3651,11 +4108,6 @@ def testMxxxFile():
     fh.store("test.mzXML", mse)
     fh.load("test.mzXML", mse)
     fh.setOptions(fh.getOptions())
-
-    fh = pyopenms.MzQuantMLFile()
-    fh.isSemanticallyValid
-    fh.load
-    fh.store
 
 
 
@@ -4672,22 +5124,6 @@ def testInspectInfile():
     mods = inst.getModifications()
     assert len(mods) == 0
 
-
-@report
-def testIsotopeMarker():
-    """
-    @tests: IsotopeMarker
-     IsotopeMarker.__init__
-    """
-    inst = pyopenms.IsotopeMarker()
-    ptr = inst.create()
-
-    assert ptr.apply is not None
-
-    res = {}
-    spec = pyopenms.MSSpectrum()
-    ptr.apply(res, spec)
-
 @report
 def testAttachment():
     """
@@ -4722,33 +5158,6 @@ def testAttachment():
     inst.tableRows = [ [b"test", b"test2"], [b"otherTest"] ]
 
     assert inst.tableRows[1][0] == b"otherTest"
-
-@report
-def testOptimizePeakDeconvolution():
-    """
-    @tests: OptimizePeakDeconvolution
-     OptimizePeakDeconvolution.__init__
-    """
-    inst = pyopenms.OptimizePeakDeconvolution()
-    assert inst.getParameters
-
-    assert inst.getPenalties is not None
-    assert inst.setPenalties is not None
-    assert inst.getCharge is not None
-    assert inst.setCharge is not None
-    assert inst.optimize is not None
-
-
-    inst = pyopenms.PenaltyFactorsIntensity()
-    assert inst.height is not None
-
-    inst = pyopenms.OptimizePeakDeconvolution_Data()
-    assert inst.peaks is not None
-    assert inst.peaks is not None
-    assert inst.signal is not None
-    assert inst.penalties is not None
-    assert inst.charge is not None
-
 
 @report
 def testKernelMassTrace():
@@ -4951,49 +5360,6 @@ def testPercolatorOutfile():
     e = pyopenms.PercolatorOutfile()
     assert e
 
-
-
-@report
-def testHiddenMarkovModel():
-    hmm = pyopenms.HiddenMarkovModel()
-    assert hmm
-
-    assert hmm.getNumberOfStates() == 0
-
-    ss = s("testState")
-    hmm.addNewState(ss)
-
-    assert hmm.getNumberOfStates() == 1
-
-    e = pyopenms.HMMState()
-    # hmm.addNewState(e) # Segfault !
-
-    r = hmm.getState(s("testState"))
-    assert r
-    ## assert r == ss # requires ==
-
-@report
-def testHMMState():
-    e = pyopenms.HMMState()
-    assert e
-    e.setName(s("somename"))
-    assert e.getName() == "somename", e.getName()
-    e.setHidden(True)
-    assert e.isHidden()
-
-    pre = pyopenms.HMMState()
-    pre.setName(s("pre"))
-    suc = pyopenms.HMMState()
-    suc.setName(s("suc"))
-
-    e.addPredecessorState(pre)
-    e.addSuccessorState(suc)
-
-    assert e.getPredecessorStates()
-    assert e.getSuccessorStates()
-
-
-
 @report
 def testProteaseDB():
     edb = pyopenms.ProteaseDB()
@@ -5174,10 +5540,8 @@ def testRNaseDB():
     db.getAllNames(names)
 
     e = db.getEnzyme("RNase_T1")
-    assert e.getRegEx() == u'(?<=G)'
     assert e.getThreePrimeGain() == u'p'
 
-    assert db.hasRegEx(u'(?<=G)')
     assert db.hasEnzyme("RNase_T1")
     
 

@@ -190,13 +190,7 @@ Plot a single spectrum with plot_spectrum or two with mirror_plot_spectrum, usin
 import math
 from typing import Dict, Optional, Tuple, Union, List, Set
 import itertools
-
-colors = {'a': '#388E3C', 'b': '#1976D2', 'c': '#00796B',
-          'x': '#7B1FA2', 'y': '#D32F2F', 'z': '#F57C00',
-          'p': '#512DA8', '?': '#212121', 'f': '#212121', None: '#212121'}
-zorders = {'a': 3, 'b': 4, 'c': 3, 'x': 3, 'y': 4, 'z': 3,
-           'p': 3, '?': 2, 'f': 5, None: 1}
-
+import logging
 
 
 # TODO switch to forward declarations via from __future__ import annotations
@@ -218,7 +212,7 @@ def plot_chromatogram(c: "MSChromatogram"):
 
 def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
                   color_ions: bool, annotate_ions: bool, matched: Optional[bool],
-                  annotation_kws: Dict[str, object], ax) -> Tuple[str, int]:
+                  annotation_kws: Dict[str, object], colormap: Dict[str, str], ax) -> Tuple[str, int]:
     """Annotate a specific fragment peak.
 
     :param mz: The peak's m/z value (position of the annotation on the x axis).
@@ -246,23 +240,34 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
     :return: A tuple of the annotation's color as a hex string and the annotation's zorder.
     :rtype: Tuple[str, int]
     """
+    colors = {'a': '#388E3C', 'b': '#1976D2', 'c': '#00796B',
+              'x': '#7B1FA2', 'y': '#D32F2F', 'z': '#F57C00',
+              'p': '#512DA8', 'f': '#212121', None: '#212121',
+              'matched': '#ff0000', 'unmatched': '#aaaaaa'}
+    zorders = {'a': 3, 'b': 4, 'c': 3, 'x': 3, 'y': 4, 'z': 3,
+               'p': 3, '?': 2, 'f': 5, None: 1}
 
-    # No annotation -> Just return peak styling information.
-    if annotation is None:
-        return colors.get(None), zorders.get(None)
+    if colormap is not None:
+        colors.update(colormap)
+
+    annotation = annotation if annotation is not None and len(annotation.strip()) > 0 else ''
+
     # Else: Add the textual annotation.
-    ion_type = annotation[0]
+    ion_type = None if len(annotation) == 0 else annotation[0]
     if ion_type == '[': # precursor ion
         ion_type = 'p'
     if ion_type not in colors and color_ions:
-        raise ValueError('Ion type not supported')
+        logging.warning(f'Ion type {ion_type} not supported')
+        return colors.get(None), zorders.get(None)
 
     color = (colors[ion_type] if color_ions else
              colors[None])
     zorder = (1 if ion_type not in zorders else zorders[ion_type])
 
     if matched is not None and not matched:
-        color = '#aaaaaa'
+        color = colors.get('unmatched')
+    if matched is not None and matched and not color_ions:
+        color = colors.get('matched')
 
     if annotate_ions:
         annotation_pos = intensity
@@ -278,7 +283,8 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
 
 def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
                   annotate_ions: bool = True, matched_peaks: Optional[Set] = None, annot_kws: Optional[Dict] = None,
-                  mirror_intensity: bool = False, grid: Union[bool, str] = True, ax=None):
+                  mirror_intensity: bool = False, grid: Union[bool, str] = False, colormap: Optional[Dict] = None,
+                  spine: bool=False, show_unmatched_peaks=True, ax=None):
     """Plot an MS/MS spectrum.
 
     :param spectrum: The spectrum to be plotted.
@@ -303,6 +309,17 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
     :param grid: Draw grid lines or not. Either a boolean to enable/disable both major
         and minor grid lines or 'major'/'minor' to enable major or minor grid lines respectively.
     :type grid: Union[bool, str], optional
+
+    :param colormap: A dictionary mapping ion types to colors. Accepted keys are the ion types: 'a', 'b', 'c', 'x', 'y',
+    'z', 'p', 'f'. None for unannotated peaks. 'matched' and 'unmatched' for peaks in matched_peaks and not in
+    matched_peaks, respectively, if provided.
+    :type colormap: Optional[Dict], optional
+
+    :param spine: Flag indicating whether to show the right and top spines.
+    :type spine: bool, optional
+
+    :param show_unmatched_peaks: Flag indicating whether to show unmatched peaks.
+    :type show_unmatched_peaks: bool, optional
 
     :param ax: Axes instance on which to plot the spectrum. If None the current Axes instance is used.
     :type ax : Optional[plt.Axes], optional
@@ -343,11 +360,17 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
         if mirror_intensity:
             peak_intensity *= -1
 
-        matched = matched_peaks is not None and i_peak in matched_peaks
+        if matched_peaks is not None:
+            matched = matched_peaks is not None and i_peak in matched_peaks
+        else:
+            matched = None
+
+        if not show_unmatched_peaks and not matched:
+            continue
 
         color, zorder = _annotate_ion(
             peak_mz, peak_intensity, peak_annotation, color_ions, annotate_ions,
-            matched, annotation_kws, ax)
+            matched, annotation_kws, colormap, ax)
 
         ax.plot([peak_mz, peak_mz], [0, peak_intensity], color=color, zorder=zorder)
 
@@ -355,6 +378,8 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
     ax.yaxis.set_minor_locator(mticker.AutoLocator())
     ax.xaxis.set_minor_locator(mticker.AutoMinorLocator())
     ax.yaxis.set_minor_locator(mticker.AutoMinorLocator())
+    ax.spines['right'].set_visible(spine)
+    ax.spines['top'].set_visible(spine)
     if grid in (True, 'both', 'major'):
         ax.grid(visible=True, which='major', color='#9E9E9E', linewidth=0.2)
     if grid in (True, 'both', 'minor'):
@@ -371,9 +396,8 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
     return ax
 
 
-def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", alignment: Optional[List] = None,
-                         spectrum_top_kws: Optional[Dict] = None, spectrum_bottom_kws: Optional[Dict] = None,
-                         ax=None):
+def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", spectrum_top_kws: Optional[Dict] = None,
+                         spectrum_bottom_kws: Optional[Dict] = None, ax=None):
     """Mirror plot two MS/MS spectra.
 
     :param spec_top: The spectrum to be plotted on the top.
@@ -383,9 +407,6 @@ def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", alig
     :param spec_bottom: The spectrum to be plotted on the bottom.
         Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
     :type spec_bottom: MSSpectrum
-
-    :param alignment: List of aligned peak pairs.
-    :type alignment: Optional[List], optional
 
     :param spectrum_top_kws: Keyword arguments for `Plotting.plot_spectrum` of top spectrum.
     :type spectrum_top_kws: Optional[Dict], optional
@@ -412,16 +433,11 @@ def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", alig
     if spectrum_bottom_kws is None:
         spectrum_bottom_kws = {}
 
-    if alignment is not None:
-        matched_peaks_bottom, matched_peaks_top = set(zip(*alignment))
-    else:
-        matched_peaks_bottom, matched_peaks_top = None, None
-
     # Top spectrum.
-    plot_spectrum(spec_top, mirror_intensity=False, ax=ax, matched_peaks=matched_peaks_top, **spectrum_top_kws)
+    plot_spectrum(spec_top, mirror_intensity=False, ax=ax, **spectrum_top_kws)
     y_max = ax.get_ylim()[1]
     # Mirrored bottom spectrum.
-    plot_spectrum(spec_bottom, mirror_intensity=True, ax=ax, matched_peaks=matched_peaks_bottom, **spectrum_bottom_kws)
+    plot_spectrum(spec_bottom, mirror_intensity=True, ax=ax, **spectrum_bottom_kws)
     y_min = ax.get_ylim()[0]
     ax.set_ylim(y_min, y_max)
 

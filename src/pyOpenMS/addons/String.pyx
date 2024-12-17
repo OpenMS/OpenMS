@@ -39,7 +39,7 @@
         return self.toString()
 
     def __repr__(self):
-        return self.c_str()
+        return f"String('{self.toString()}')"
 
     # TODO does this really need to be callable from python? How about cdef?
     def c_str(self):

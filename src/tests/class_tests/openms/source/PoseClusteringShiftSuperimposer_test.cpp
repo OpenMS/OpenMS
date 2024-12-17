@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -28,7 +28,6 @@ START_TEST(PoseClusteringShiftSuperimposer, "$Id$")
 
 PoseClusteringShiftSuperimposer* ptr = nullptr;
 PoseClusteringShiftSuperimposer* nullPointer = nullptr;
-BaseSuperimposer* base_nullPointer = nullptr;
 
 START_SECTION((PoseClusteringShiftSuperimposer()))
 	ptr = new PoseClusteringShiftSuperimposer();
@@ -37,19 +36,6 @@ END_SECTION
 
 START_SECTION((virtual ~PoseClusteringShiftSuperimposer()))
 	delete ptr;
-END_SECTION
-
-START_SECTION((static BaseSuperimposer* create()))
-  BaseSuperimposer* base_ptr = nullptr;
-	base_ptr = PoseClusteringShiftSuperimposer::create();
-  TEST_NOT_EQUAL(base_ptr, base_nullPointer)
-  delete (base_ptr);
-END_SECTION
-
-START_SECTION((static const String getProductName()))
-  PoseClusteringShiftSuperimposer pcsi;
-
-  TEST_EQUAL(pcsi.getName() == "poseclustering_shift",true)
 END_SECTION
 
 START_SECTION((virtual void run(const ConsensusMap& map_model, const ConsensusMap& map_scene, TransformationDescription& transformation)))

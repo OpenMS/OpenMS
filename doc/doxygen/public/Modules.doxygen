@@ -11,7 +11,7 @@
 /**
 	@defgroup Concept Concept
 
-	@brief OpenMS concepts (types, macros, ...)
+	@brief %OpenMS concepts (types, macros, ...)
 */
 
 // ----------------------------- System -------------------------------
@@ -30,6 +30,8 @@
 	@brief Auxiliary datastructures.
 */
 
+
+
 // ----------------------------- Math -------------------------------
 
 /**
@@ -43,7 +45,7 @@
 
   @brief Various statistical functions
 
-	These functions are defined in OpenMS/MATH/STATISTICS/StatisticFunctions.h .
+	These functions are defined in OpenMS/MATH/StatisticFunctions.h .
 
 	@ingroup Math
 */
@@ -53,7 +55,7 @@
 
   @brief Math functions
 
-	These functions are defined in OpenMS/MATH/MISC/MathFunctions.h .
+	These functions are defined in OpenMS/MATH/MathFunctions.h .
 
 	@ingroup Math
 */
@@ -148,17 +150,6 @@
 	@ingroup Filtering
 */
 
-/**
-	@defgroup PeakMarker Peak Marker
-
-	@brief These classes mark peaks according to different criteria
-
-	For a detailed description of the available parameters and functions the details are documented
-	in the class documentation
-
-	@ingroup Filtering
-*/
-
 // ----------------------------- Analysis -------------------------------
 
 /**
@@ -166,6 +157,24 @@
 
 	@brief High-level analysis like PeakPicking, Quantitation, Identification, MapAlignment
 */
+
+
+/**
+	@defgroup Topdown Topdown
+
+	@brief Topdown-related classes 
+
+	@ingroup Analysis
+*/
+
+/**
+	@defgroup Quantitation Quantitation
+
+	@brief Quantitation-related classes 
+
+	@ingroup Analysis
+*/
+
 
 /**
 	@defgroup SignalProcessing SignalProcessing
@@ -216,6 +225,15 @@
 
 	@ingroup Analysis
 */
+
+/**
+	@defgroup Analysis_DeNovo DeNovo
+
+	@brief DeNovo identification classes.
+
+	@ingroup Analysis
+*/
+
 
 /**
 	@defgroup SpectraClustering Clustering

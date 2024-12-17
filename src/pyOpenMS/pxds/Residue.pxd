@@ -155,7 +155,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
 
         bool isInResidueSet(String residue_set) except + nogil  # wrap-doc:True if the residue is contained in the set
 
-        char residueTypeToIonLetter(ResidueType res_type) except + nogil  # wrap-doc:Helper for mapping residue types to letters for Text annotations and labels
+        String residueTypeToIonLetter(ResidueType res_type) except + nogil  # wrap-doc:Helper for mapping residue types to letters for Text annotations and labels
 
 cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS::Residue":
 

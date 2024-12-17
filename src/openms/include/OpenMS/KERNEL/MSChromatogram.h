@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/METADATA/ChromatogramSettings.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/KERNEL/RangeManager.h>
@@ -32,7 +31,7 @@ namespace OpenMS
 
 public:
 
-    /// Comparator for the retention time.
+    /// Comparator for the precursor m/z time.
     struct OPENMS_DLLAPI MZLess
     {
       bool operator()(const MSChromatogram& a, const MSChromatogram& b) const;
@@ -83,6 +82,7 @@ public:
     using ContainerType::resize;
     using ContainerType::size;
     using ContainerType::push_back;
+    using ContainerType::emplace_back;
     using ContainerType::pop_back;
     using ContainerType::empty;
     using ContainerType::front;
@@ -296,8 +296,6 @@ public:
     */
     ConstIterator RTEnd(CoordinateType rt) const;
 
-    ConstIterator MZEnd(CoordinateType rt) const;
-
     /**
       @brief Binary search for peak range end (returns the past-the-end iterator)
 
@@ -403,9 +401,10 @@ public:
 
       @note Peak level metadata stored in float_array string_array and int_array of the destination MSChromatogram is not guaranteed to be correct after merging
 
-      MZ of the destination MSChromatogram remains unchanged. If add_meta is true a metavalue "merged_with" is added with the MZ of the source MSChromatogram
+      MZ of the destination MSChromatogram remains unchanged. 
 
-      @param other a reference to the MSChromatogram to take ChromatogramPeaks from
+      @param other A reference to the MSChromatogram to take ChromatogramPeaks from
+      @param add_meta If true, a metavalue "merged_chromatogram_mzs" is added with the m/z of @p other
     */
     void mergePeaks(MSChromatogram& other, bool add_meta=false);
 

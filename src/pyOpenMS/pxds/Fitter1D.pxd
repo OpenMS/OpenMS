@@ -8,7 +8,7 @@ from Peak1D cimport *
 
 ctypedef libcpp_vector[Peak1D] RawDataArrayType
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/Fitter1D.h>" namespace "OpenMS":
     
     cdef cppclass Fitter1D(DefaultParamHandler):
         # wrap-inherits:
@@ -18,4 +18,3 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>" namespace "
         Fitter1D(Fitter1D &) except + nogil 
 
         # QualityType fit1d(RawDataArrayType &, InterpolationModel *&) except + nogil 
-        void registerChildren() except + nogil  # wrap-doc:Register all derived classes here

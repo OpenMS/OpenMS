@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -519,7 +519,7 @@ namespace OpenMS
 
     /// Initialize and store the graph
     /// IMPORTANT: Once the graph is built, editing members like (protein/peptide)_hits_ will invalidate it!
-    /// @param protein ProteinIdentification object storing IDs and groups
+    /// @param proteins ProteinIdentification object storing IDs and groups
     /// @param idedSpectra vector of ProteinIdentifications with links to the proteins and PSMs in its PeptideHits
     /// @param use_top_psms Nr of top PSMs used per spectrum (<= 0 means all)
     /// @param best_psms_annotated Are the PSMs annotated with the "best_per_peptide" meta value. Otherwise all are
@@ -556,7 +556,8 @@ namespace OpenMS
     /// Initialize and store the graph. Also stores run information to later group
     /// peptides more efficiently.
     /// IMPORTANT: Once the graph is built, editing members like (protein/peptide)_hits_ will invalidate it!
-    /// @param use_top_psms Nr of top PSMs used per spectrum (<= 0 means all)
+    /// 
+    /// @p use_top_psms is the number of top PSMs used per spectrum (<= 0 means all)
     /// @todo we could include building the graph in important "main" functions like inferPosteriors
     /// to make the methods safer, but it is also nice to be able to reuse the graph
     void buildGraphWithRunInfo_(ProteinIdentification& proteins,

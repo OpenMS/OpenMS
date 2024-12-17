@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -1785,6 +1785,16 @@ namespace OpenMS::Internal
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ETD);
           }
+          else if (accession == "MS:1003182"  //electron transfer and collision-induced dissociation
+            || accession == "MS:1002679")  // workaround: supplemental collision-induced dissociation (see https://github.com/compomics/ThermoRawFileParser/issues/182)
+          {
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ETciD);
+          }
+          else if (accession == "MS:1002631" //electron transfer and higher-energy collision dissociation
+            || accession == "MS:1002678") // workaround: supplemental beam-type collision-induced dissociation (see https://github.com/compomics/ThermoRawFileParser/issues/182)
+          {
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::EThcD);
+          }
           else if (accession == "MS:1000599") //pulsed q dissociation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PQD);
@@ -1896,6 +1906,14 @@ namespace OpenMS::Internal
           else if (accession == "MS:1000598") //electron transfer dissociation
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ETD);
+          }
+          else if (accession == "MS:1003182") //electron transfer and collision-induced dissociation
+          {
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ETciD);
+          }
+          else if (accession == "MS:1002631") //electron transfer and higher-energy collision dissociation
+          {
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::EThcD);
           }
           else if (accession == "MS:1000599") //pulsed q dissociation
           {
@@ -3837,6 +3855,14 @@ namespace OpenMS::Internal
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000598\" name=\"electron transfer dissociation\" />\n";
       }
+      if (precursor.getActivationMethods().count(Precursor::ETciD) != 0)
+      {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1003182\" name=\"electron transfer and collision-induced dissociation\" />\n";
+      }
+      if (precursor.getActivationMethods().count(Precursor::EThcD) != 0)
+      {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002631\" name=\"electron transfer and higher-energy collision dissociation\" />\n";
+      }
       if (precursor.getActivationMethods().count(Precursor::PQD) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000599\" name=\"pulsed q dissociation\" />\n";
@@ -5270,7 +5296,7 @@ namespace OpenMS::Internal
         {
           for (Size p = 0; p < container.size(); ++p)
           {
-            data_to_encode[p] = container[p].getMZ();
+            data_to_encode[p] = container[p].getPos();
           }
         }
         writeBinaryDataArray_(os, pf_options_, data_to_encode, false, array_type);
@@ -5290,7 +5316,7 @@ namespace OpenMS::Internal
         {
           for (Size p = 0; p < container.size(); ++p)
           {
-            data_to_encode[p] = container[p].getMZ();
+            data_to_encode[p] = container[p].getPos();
           }
         }
         writeBinaryDataArray_(os, pf_options_, data_to_encode, true, array_type);
