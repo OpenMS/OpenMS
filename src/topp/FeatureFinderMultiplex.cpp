@@ -151,6 +151,7 @@ public:
         // Get IM data array
         const auto [im_data_index, im_unit] = input.getIMData();
         auto& im_data = input.getFloatDataArrays()[im_data_index];
+        String im_data_array_name = im_data.getName();
 
         /**
          * @brief Internal structure to hold peak information during processing
@@ -158,7 +159,7 @@ public:
         struct Point {
             double mz;        ///< m/z value
             double im;        ///< ion mobility value
-            double intensity; ///< intensity value
+            float intensity; ///< intensity value
             Point(double mz_val, double im_val, double int_val) :
                 mz(mz_val), im(im_val), intensity(int_val) {}
         };
@@ -281,20 +282,18 @@ public:
         }
 
         // Convert averaged points back to MSSpectrum
-        input.clear(false);
-        input.reserve(averaged_points.size());
-        input.shrink_to_fit();
-
-        im_data.reserve(averaged_points.size());
+        input.resize(averaged_points.size());
+        input.shrink_to_fit();        
+        
+        im_data.resize(averaged_points.size());
         im_data.shrink_to_fit();
 
-        for (const auto& p : averaged_points)
+        for (size_t i = 0; i != averaged_points.size(); ++i)
         {
-            Peak1D peak;
-            peak.setMZ(p.mz);
-            peak.setIntensity(p.intensity);
-            input.push_back(peak);
-            im_data.push_back(p.im);
+          const auto& p = averaged_points[i];
+          input[i].setMZ(p.mz);
+          input[i].setIntensity(p.intensity);
+          im_data[i] = p.im;
         }
 
         input.sortByPosition();
@@ -328,7 +327,7 @@ public:
     setValidFormats_("out_multiplets", ListUtils::create<String>("consensusXML"));
     registerOutputFile_("out_blacklist", "<file>", "", "Optional output file containing all peaks which have been associated with a peptide feature (and subsequently blacklisted).", false, true);
     setValidFormats_("out_blacklist", ListUtils::create<String>("mzML"));
-    registerDoubleOption_("IM_merge_window", "<float>", 0.05, "Ion mobility window for merging peaks in IM frames.", false);
+    registerDoubleOption_("IM_merge_window", "<float>", 0.06, "Ion mobility window for merging peaks in IM frames.", false);
 
     registerFullParam_(FeatureFinderMultiplexAlgorithm().getDefaults());
   }
@@ -439,10 +438,11 @@ public:
       OPENMS_LOG_INFO << "Converting " << exp.getNrSpectra() << " IM frames to single spectra..." << endl;
       size_t peak_count_before = 0;
       size_t peak_count_after = 0;
+      const double mz_tolerance = getDoubleOption_("algorithm:mz_tolerance");
       for (auto& s : exp.getSpectra())
       { // cluster peaks by m/z and IM and merge into single peak with average IM
         peak_count_before += s.size();
-        IMFrame::toSpectrum(s, getParam_().getValue("algorithm:mz_tolerance"), IM_window); 
+        IMFrame::toSpectrum(s, mz_tolerance, IM_window); 
         peak_count_after += s.size();
       }
       OPENMS_LOG_INFO << "Peaks (before/after) " << peak_count_before << " / " << peak_count_after << endl;
