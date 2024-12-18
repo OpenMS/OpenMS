@@ -1058,7 +1058,7 @@ protected:
             const bool report_psm_threshold_passed = pr->second.qvalue <= reported_psm_or_peptide_qvalue_threshold;
 
             if (!report_psm_threshold_passed) continue;
-            writeDebug_("Theshold passed:" + String(pr->second.qvalue), 10);
+            writeDebug_("Threshold passed:" + String(pr->second.qvalue), 10);
 
             hit.setMetaValue(old_score_type, hit.getScore());  // old search engine "main" score as metavalue
             hit.setMetaValue("MS:1001492", pr->second.score);  // svm score
