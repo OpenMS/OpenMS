@@ -1050,13 +1050,15 @@ protected:
 
           // if q-value filtering is enabled skip hit without identifiers
           // (if filtering is disabled also report unidentified identifer) for backwards compatibility
-          if (!identifier_found && reported_psm_qvalue_threshold < 1.0) continue;
+          if (!identifier_found && (reported_psm_qvalue_threshold < 1.0)) continue;
 
           if (identifier_found)
           {
             // skip reporting of identified peptide hit if PSM q-value threshold not reached
             const bool report_psm_threshold_passed = pr->second.qvalue <= reported_psm_qvalue_threshold;
+
             if (!report_psm_threshold_passed) continue;
+            writeDebug_("Theshold passed:" + String(pr->second.qvalue), 10);
 
             hit.setMetaValue(old_score_type, hit.getScore());  // old search engine "main" score as metavalue
             hit.setMetaValue("MS:1001492", pr->second.score);  // svm score
@@ -1104,8 +1106,8 @@ protected:
             }
             filtered_hits.push_back(hit);
           }
-          pep_id.setHits(filtered_hits);
         }
+        pep_id.setHits(filtered_hits);
       }
 
       if (!peptide_level_fdrs)
