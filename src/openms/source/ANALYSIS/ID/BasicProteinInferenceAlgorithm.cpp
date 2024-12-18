@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
-#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
@@ -59,9 +58,8 @@ namespace OpenMS
     defaults_.setValue("greedy_group_resolution", "false", "If this is true, shared peptides will be associated to best proteins only (i.e. become potentially quantifiable razor peptides).");
     defaults_.setValidStrings("greedy_group_resolution", {"true","false"});
 
-    defaults_.setValue("score", "", "PSM score to use (default: empty string will select main score)");
-    defaults_.setValue("score_orientation", "higher_better", "Orientation of the new score (are higher or lower values better?)");
-    defaults_.setValidStrings("score_orientation", {"lower_better", "higher_better"});
+    defaults_.setValue("score_type", "", "PSM score type to use for inference. (default: empty = main score)");
+    defaults_.setValidStrings("score_type", {"", "PEP", "q-value", "RAW"});
 
     defaultsToParam_();
   }
@@ -73,6 +71,9 @@ namespace OpenMS
 
     std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
     std::unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
+
+    String requested_score_type_as_string = param_.getValue("score_type").toString();
+    auto isr = IDScoreSwitcherAlgorithm::switchToScoreType(pep_ids, requested_score_type_as_string);
 
     processRun_(
         acc_to_protein_hitP_and_count,
@@ -88,6 +89,8 @@ namespace OpenMS
       IDFilter::updateProteinReferences(pep_ids, tmp, true); //TODO allow keeping PSMs without evidence?
       std::swap(tmp[0], prot_id);
     }
+
+    IDScoreSwitcherAlgorithm::switchBackScoreType(pep_ids, isr);
   }
 
   void BasicProteinInferenceAlgorithm::run(ConsensusMap& cmap, ProteinIdentification& prot_run, bool include_unassigned) const
@@ -121,42 +124,18 @@ namespace OpenMS
 
     IDFilter::keepNBestPeptideHits(cmap, 1); // we should filter for best psm per spec only, since those will be the psms used, also filterUnreferencedProteins depends on it (e.g. after resolution)
 
-    // determine current main score and orientation
-    String original_score_name;
-    bool original_score_higher_better;
-    IDScoreSwitcherAlgorithm::determineScoreTypeAndOrientation(cmap, original_score_name, original_score_higher_better, include_unassigned);
+    // determine requested score type. This can be a search engine score name or a broader score category (e.g. PEP)
+    String requested_score_type_as_string = param_.getValue("score_type").toString();
 
-    // switch to requested score if provided by user and if it is different from current main score
-    String requested_score_name = param_.getValue("score").toString();
-    bool requested_score_higher_better = param_.getValue("score_orientation").toString() == "higher_better" ? true : false;
-
-    bool switched_main_score = false;
-
-    if (requested_score_name.empty() || requested_score_name == original_score_name)
-    { // user requests the main score
-      requested_score_name = original_score_name;
-      requested_score_higher_better = original_score_higher_better;
-    }
-    else
-    { // user requests a different score
-      IDScoreSwitcherAlgorithm idsa;
-      auto param = idsa.getDefaults();
-      param.setValue("new_score", requested_score_name);
-      param.setValue("new_score_orientation", requested_score_higher_better ? "higher_better" : "lower_better");
-      param.setValue("proteins", "false");
-      param.setValue("old_score", ""); // use default name generated for old score
-      idsa.setParameters(param);
-      Size counter = 0; 
-      idsa.switchScores(cmap, counter);
-      OPENMS_LOG_DEBUG << "Switched scores for " << counter << " PSMs." << std::endl;
-      switched_main_score = true;
-    } 
-
-    // Here: requested_score_name and orientation are  set according to the main score (potentially after a switch)
+    // switch scores to requested score type (e.g., "RAW" = a search engine score, "PEP", "q-value")
+    // for convenience, the results als contain name, score orientation and type before and after switching
+    // as well as a flag that indicates if a swtich was performed (or e.g., score was already the main score)
+    auto isr = IDScoreSwitcherAlgorithm::switchToScoreType(cmap, requested_score_type_as_string, include_unassigned);
+    // Here: we can be sure that we have the requested score type that as the main score now    
  
     // determine inital values for protein scores based on score type
-    bool pep_scores = IDScoreSwitcherAlgorithm().isScoreType(requested_score_name, IDScoreSwitcherAlgorithm::ScoreType::PEP);
-    double initScore = getInitScoreForAggMethod_(aggregation_method, pep_scores || requested_score_higher_better); // if we have pep scores, we will complement to pp during aggregation
+    bool pep_scores = (isr.requested_score_type == IDScoreSwitcherAlgorithm::ScoreType::PEP);
+    double initScore = getInitScoreForAggMethod_(aggregation_method, pep_scores || isr.requested_score_higher_better); // if we have pep scores, we will complement to pp during aggregation
 
     for (auto& prothit : prot_hits)
     {
@@ -164,14 +143,14 @@ namespace OpenMS
       acc_to_protein_hitP_and_count[prothit.getAccession()] = std::make_pair<ProteinHit*, Size>(&prothit, 0);
     }
 
-    checkCompat_(requested_score_name, aggregation_method);
+    checkCompat_(isr.requested_score_name, aggregation_method);
 
     for (auto& cf : cmap)
     {
       aggregatePeptideScores_(best_pep, 
         cf.getPeptideIdentifications(), 
-        requested_score_name, 
-        requested_score_higher_better, 
+        isr.requested_score_name, 
+        isr.requested_score_higher_better, 
         "");
     }
 
@@ -179,8 +158,8 @@ namespace OpenMS
     {
       aggregatePeptideScores_(best_pep, 
         cmap.getUnassignedPeptideIdentifications(),
-        requested_score_name,
-        requested_score_higher_better,
+        isr.requested_score_name,
+        isr.requested_score_higher_better,
         "");
     }
 
@@ -188,7 +167,7 @@ namespace OpenMS
         acc_to_protein_hitP_and_count,
         best_pep,
         pep_scores,
-        requested_score_higher_better
+        isr.requested_score_higher_better
     );
 
     if (pep_scores)
@@ -198,8 +177,8 @@ namespace OpenMS
     }
     else
     {
-      prot_run.setScoreType(requested_score_name);
-      prot_run.setHigherScoreBetter(requested_score_higher_better);
+      prot_run.setScoreType(isr.requested_score_name); // score name after switch (e.g. "PEP", "q-value")
+      prot_run.setHigherScoreBetter(isr.requested_score_higher_better);
     }
 
     if (min_peptides_per_protein > 0)
@@ -252,21 +231,8 @@ namespace OpenMS
     }
 
     prot_run.sort();
-
-    if (switched_main_score)
-    {
-      // switch back to original score
-      IDScoreSwitcherAlgorithm idsa;
-      auto param = idsa.getDefaults();
-      param.setValue("new_score", original_score_name);
-      param.setValue("new_score_orientation", original_score_higher_better ? "higher_better" : "lower_better");
-      param.setValue("proteins", "false");
-      param.setValue("old_score", ""); // use default name generated for old score
-      idsa.setParameters(param);
-      Size counter = 0;
-      idsa.switchScores(cmap, counter);
-      OPENMS_LOG_DEBUG << "Switched scores back for " << counter << " PSMs." << std::endl;
-    }
+    
+    IDScoreSwitcherAlgorithm::switchBackScoreType(cmap, isr, include_unassigned); // NOP if no switch was performed
   }
 
   void BasicProteinInferenceAlgorithm::run(std::vector<PeptideIdentification> &pep_ids,
@@ -276,6 +242,10 @@ namespace OpenMS
     IDFilter::keepNBestHits(pep_ids,1); // we should filter for best psm per spec only, since those will be the psms used, also filterUnreferencedProteins depends on it (e.g. after resolution)
     std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
     std::unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
+
+    // determine requested score type. This can be a search engine score name or a broader score category (e.g. PEP)
+    String requested_score_type_as_string = param_.getValue("score_type").toString();
+    auto isr = IDScoreSwitcherAlgorithm::switchToScoreType(pep_ids, requested_score_type_as_string);
 
     for (auto &prot_run : prot_ids)
     {
@@ -291,6 +261,8 @@ namespace OpenMS
     {
       IDFilter::updateProteinReferences(pep_ids, prot_ids, true); //TODO allow keeping PSMs without evidence?
     }
+
+    IDScoreSwitcherAlgorithm::switchBackScoreType(pep_ids, isr); // NOP if no switch was performed
   }
 
   void BasicProteinInferenceAlgorithm::aggregatePeptideScores_(
@@ -465,6 +437,23 @@ namespace OpenMS
     }
   }
 
+  void BasicProteinInferenceAlgorithm::checkCompat_(
+        const IDScoreSwitcherAlgorithm::ScoreType& score_type,
+        const AggregationMethod& aggregation_method
+  ) const
+  {
+    //TODO do something smart about the scores, e.g. let the user specify a general score type
+    // he wants to use and then switch all of them
+    if ((score_type != IDScoreSwitcherAlgorithm::ScoreType::PEP) &&
+        (score_type != IDScoreSwitcherAlgorithm::ScoreType::PP) &&
+        aggregation_method == AggregationMethod::PROD)
+    {
+      OPENMS_LOG_WARN << "ProteinInference with multiplicative aggregation "
+                         " should probably use Posterior (Error) Probabilities in the Peptide Hits."
+                         " Use Percolator with PEP score or run IDPosteriorErrorProbability first.\n";
+    }
+  }  
+
   BasicProteinInferenceAlgorithm::AggregationMethod BasicProteinInferenceAlgorithm::aggFromString_(const std::string& agg_method_string) const
   {
     if (agg_method_string == "best")
@@ -569,12 +558,13 @@ namespace OpenMS
     sp.setMetaValue("TOPPProteinInference:treat_modification_variants_separately", treat_modification_variants_separately);
     prot_run.setSearchParameters(sp);
 
-    String overall_score_type;
-    bool higher_better = true;
-    IDScoreSwitcherAlgorithm::determineScoreTypeAndOrientation(pep_ids, overall_score_type, higher_better);
+    String main_score_name;
+    bool main_higher_better = true;
+    IDScoreSwitcherAlgorithm::ScoreType main_score_type;
+    IDScoreSwitcherAlgorithm().determineScoreNameOrientationAndType(pep_ids, main_score_name, main_higher_better, main_score_type);
 
-    bool pep_scores = IDScoreSwitcherAlgorithm().isScoreType(overall_score_type,IDScoreSwitcherAlgorithm::ScoreType::PEP);
-    double initScore = getInitScoreForAggMethod_(aggregation_method, pep_scores || higher_better); // if we have pep scores, we will complement to pp during aggregation
+    bool pep_scores = (main_score_type == IDScoreSwitcherAlgorithm::ScoreType::PEP);
+    double initScore = getInitScoreForAggMethod_(aggregation_method, pep_scores || main_higher_better); // if we have pep scores, we will complement to pp during aggregation
 
     //create Accession to ProteinHit and peptide count map. To have quick access later.
     //If a protein occurs in multiple runs, it picks the last
@@ -584,11 +574,11 @@ namespace OpenMS
       phit.setScore(initScore);
     }
 
-    checkCompat_(overall_score_type, aggregation_method);
+    checkCompat_(main_score_name, aggregation_method);
 
-    aggregatePeptideScores_(best_pep, pep_ids, overall_score_type, higher_better, prot_run.getIdentifier());
+    aggregatePeptideScores_(best_pep, pep_ids, main_score_name, main_higher_better, prot_run.getIdentifier());
 
-    updateProteinScores_(acc_to_protein_hitP_and_count, best_pep, pep_scores, higher_better);
+    updateProteinScores_(acc_to_protein_hitP_and_count, best_pep, pep_scores, main_higher_better);
 
     if (pep_scores) // we converted/ will convert
     {
@@ -597,8 +587,8 @@ namespace OpenMS
     }
     else
     {
-      prot_run.setScoreType(overall_score_type);
-      prot_run.setHigherScoreBetter(higher_better);
+      prot_run.setScoreType(main_score_name);
+      prot_run.setHigherScoreBetter(main_higher_better);
     }
 
     if (min_peptides_per_protein > 0)
