@@ -283,11 +283,11 @@ protected:
     registerDoubleOption_("ipf_max_transition_isotope_overlap", "<value>", 0.5, "OSW/IPF: Maximum isotope overlap to consider transitions in IPF.", !is_required, is_advanced_option);
     registerDoubleOption_("ipf_min_transition_sn", "<value>", 0, "OSW/IPF: Minimum log signal-to-noise level to consider transitions in IPF. Set -1 to disable this filter.", !is_required, is_advanced_option);
 
-    registerDoubleOption_("reported_psm_qvalue_threshold", "<value>", 1.0, 
+    registerDoubleOption_("reported_psm_or_peptide_qvalue_threshold", "<value>", 1.0, 
     "Only include PSMs with q-value less than or equal to this threshold in the output. This only affects what is reported in the output file, not Percolator's operation.", 
     false, true);
-    setMinFloat_("reported_psm_qvalue_threshold", 0.0);
-    setMaxFloat_("reported_psm_qvalue_threshold", 1.0);
+    setMinFloat_("reported_psm_or_peptide_qvalue_threshold", 0.0);
+    setMaxFloat_("reported_psm_or_peptide_qvalue_threshold", 1.0);
   }
   
 
@@ -578,7 +578,7 @@ protected:
     OPENMS_LOG_DEBUG << "Input file (of target?): " << ListUtils::concatenate(in_list, ",") << " & " << ListUtils::concatenate(in_decoy, ",") << " (decoy)" << endl;
     const String in_osw = getStringOption_("in_osw");
     const OSWFile::OSWLevel osw_level = (OSWFile::OSWLevel)Helpers::indexOf(OSWFile::names_of_oswlevel, getStringOption_("osw_level"));
-    const double reported_psm_qvalue_threshold = getDoubleOption_("reported_psm_qvalue_threshold");
+    const double reported_psm_or_peptide_qvalue_threshold = getDoubleOption_("reported_psm_or_peptide_qvalue_threshold");
 
     //output file names and types
     String out = getStringOption_("out");
@@ -1050,12 +1050,12 @@ protected:
 
           // if q-value filtering is enabled skip hit without identifiers
           // (if filtering is disabled also report unidentified identifer) for backwards compatibility
-          if (!identifier_found && (reported_psm_qvalue_threshold < 1.0)) continue;
+          if (!identifier_found && (reported_psm_or_peptide_qvalue_threshold < 1.0)) continue;
 
           if (identifier_found)
           {
             // skip reporting of identified peptide hit if PSM q-value threshold not reached
-            const bool report_psm_threshold_passed = pr->second.qvalue <= reported_psm_qvalue_threshold;
+            const bool report_psm_threshold_passed = pr->second.qvalue <= reported_psm_or_peptide_qvalue_threshold;
 
             if (!report_psm_threshold_passed) continue;
             writeDebug_("Theshold passed:" + String(pr->second.qvalue), 10);
