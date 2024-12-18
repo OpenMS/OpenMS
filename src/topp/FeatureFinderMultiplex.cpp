@@ -19,6 +19,7 @@
 #include <OpenMS/ML/REGRESSION/LinearRegression.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/ML/REGRESSION/LinearRegression.h>
@@ -95,6 +96,218 @@ Let us now filter not only a single spectrum but all spectra in our data set. Da
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
+
+// TODO move to library
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/Peak1D.h>
+#include <deque>
+
+using namespace OpenMS;
+using namespace std;
+
+/**
+ * @brief Provides functionality to convert ion mobility frames to averaged spectra
+ *
+ * This class offers methods to reduce ion mobility (IM) frame data to a single spectrum
+ * where peaks within specified m/z and ion mobility tolerances are averaged together.
+ */
+class IMFrame
+{
+public:
+    /**
+     * @brief Converts an ion mobility frame to a single spectrum with averaged IM values
+     *
+     * This function takes an MS spectrum containing ion mobility data and reduces it to
+     * a single spectrum where peaks that are close in both m/z and ion mobility space
+     * are averaged together. The averaging is intensity-weighted for both m/z and ion
+     * mobility values.
+     *
+     * The algorithm processes peaks sequentially and groups them based on two criteria:
+     * 1. m/z tolerance: peaks must be within specified ppm of each other
+     * 2. ion mobility tolerance: the range of IM values must not exceed the specified tolerance
+     *
+     * @param input Input spectrum containing ion mobility data in its FloatDataArrays
+     * @param output Output spectrum containing the averaged peaks and their IM values
+     * @param ppm_tolerance Mass tolerance in parts per million (default: 50.0 ppm)
+     * @param im_tolerance Ion mobility tolerance (default: 0.1 units)
+     *
+     * @throws Exception::MissingInformation if input spectrum lacks ion mobility data
+     *
+     * @note The input spectrum should contain ion mobility data in its FloatDataArrays.
+     *       The output spectrum will contain averaged peaks with their corresponding
+     *       intensity-weighted average ion mobility values.
+     *
+     * Example:
+     * @code
+     * MSSpectrum input_spectrum;  // spectrum with IM data
+     * MSSpectrum output_spectrum;
+     * IMFrame::toSpectrum(input_spectrum, output_spectrum);
+     * @endcode
+     */
+    static void toSpectrum(const MSSpectrum& input, MSSpectrum& output,
+                          double ppm_tolerance = 50.0,
+                          double im_tolerance = 0.1)
+    {
+        if (input.empty()) return;
+
+        // Get IM data array
+        const auto [im_data_index, im_unit] = input.getIMData();
+        const auto& im_data = input.getFloatDataArrays()[im_data_index];
+
+        /**
+         * @brief Internal structure to hold peak information during processing
+         */
+        struct Point {
+            double mz;        ///< m/z value
+            double im;        ///< ion mobility value
+            double intensity; ///< intensity value
+            Point(double mz_val, double im_val, double int_val) :
+                mz(mz_val), im(im_val), intensity(int_val) {}
+        };
+
+        // Convert peaks to Points for processing
+        vector<Point> points;
+        points.reserve(input.size());
+        
+        for (size_t i = 0; i < input.size(); ++i)
+        {
+            const auto& peak = input[i];
+            points.emplace_back(peak.getMZ(), im_data[i], peak.getIntensity());
+        }
+
+        // Sort points by m/z if not already sorted
+        if (!input.isSorted())
+        {
+            sort(points.begin(), points.end(), 
+                 [](const Point& a, const Point& b) { return a.mz < b.mz; });
+        }
+
+        // Deques for maintaining min/max of IM values in current window
+        deque<double> minDeque;  ///< Maintains minimum IM values
+        deque<double> maxDeque;  ///< Maintains maximum IM values
+
+        double ppm_factor = 1.0 + (ppm_tolerance * 1e-6);
+        size_t start = 0;
+        vector<Point> averaged_points;
+
+        /**
+         * @brief Helper function to compute intensity-weighted averages for a cluster
+         * @param s Start index of the cluster
+         * @param e End index of the cluster
+         */
+        auto finalize_cluster = [&](int s, int e) {
+            if (s <= e) {
+                double sum_intensity = 0.0;
+                double sum_mv = 0.0;
+                double sum_iv = 0.0;
+                
+                for (int idx = s; idx <= e; ++idx) {
+                    sum_intensity += points[idx].intensity;
+                    sum_mv += points[idx].mz * points[idx].intensity;
+                    sum_iv += points[idx].im * points[idx].intensity;
+                }
+                
+                averaged_points.emplace_back(
+                    sum_mv / sum_intensity,
+                    sum_iv / sum_intensity,
+                    sum_intensity
+                );
+            }
+        };
+
+        // Main clustering loop
+        for (size_t end = 0; end < points.size(); ++end)
+        {
+            double current_i = points[end].im;
+
+            // Update minDeque
+            while (!minDeque.empty() && minDeque.back() > current_i)
+                minDeque.pop_back();
+            minDeque.push_back(current_i);
+
+            // Update maxDeque
+            while (!maxDeque.empty() && maxDeque.back() < current_i)
+                maxDeque.pop_back();
+            maxDeque.push_back(current_i);
+
+            // Check and update window start
+            while (start <= end)
+            {
+                double m_min = points[start].mz;
+                double m_max = points[end].mz;
+                bool m_ok = (m_max <= m_min * ppm_factor);
+
+                double i_min = minDeque.front();
+                double i_max = maxDeque.front();
+                bool i_ok = ((i_max - i_min) <= im_tolerance);
+
+                if (m_ok && i_ok)
+                    break;
+
+                // Remove start point from deques
+                double i_to_remove = points[start].im;
+                if (i_to_remove == minDeque.front())
+                    minDeque.pop_front();
+                if (i_to_remove == maxDeque.front())
+                    maxDeque.pop_front();
+                start++;
+            }
+
+            // Check if next point would violate constraints
+            if (end + 1 < points.size())
+            {
+                double next_m = points[end + 1].mz;
+                double next_i = points[end + 1].im;
+
+                double m_min = points[start].mz;
+                bool m_ok = (next_m <= m_min * ppm_factor);
+
+                double i_min_next = min(minDeque.front(), next_i);
+                double i_max_next = max(maxDeque.front(), next_i);
+                bool i_ok = ((i_max_next - i_min_next) <= im_tolerance);
+
+                if (!(m_ok && i_ok))
+                {
+                    finalize_cluster(start, end);
+                    start = end + 1;
+                    minDeque.clear();
+                    maxDeque.clear();
+                }
+            }
+        }
+
+        // Finalize last cluster
+        if (start < points.size())
+        {
+            finalize_cluster(start, points.size() - 1);
+        }
+
+        // Convert averaged points back to MSSpectrum
+        output.clear(true);
+        output.reserve(averaged_points.size());
+
+        // Create new float data array for IM values
+        DataArrays::FloatDataArray new_im_data;
+        new_im_data.reserve(averaged_points.size());
+
+        for (const auto& p : averaged_points)
+        {
+            Peak1D peak;
+            peak.setMZ(p.mz);
+            peak.setIntensity(p.intensity);
+            output.push_back(peak);
+            new_im_data.push_back(p.im);
+        }
+
+        // Set up the IM data array in the output spectrum
+        output.getFloatDataArrays().clear();
+        output.getFloatDataArrays().push_back(new_im_data);
+        output.getFloatDataArrays().back().setName("Ion Mobility");
+
+        output.sortByPosition();
+    }
+};
+
 class TOPPFeatureFinderMultiplex :
   public TOPPBase
 {
@@ -122,6 +335,7 @@ public:
     setValidFormats_("out_multiplets", ListUtils::create<String>("consensusXML"));
     registerOutputFile_("out_blacklist", "<file>", "", "Optional output file containing all peaks which have been associated with a peptide feature (and subsequently blacklisted).", false, true);
     setValidFormats_("out_blacklist", ListUtils::create<String>("mzML"));
+    registerDoubleOption_("IM_merge_window", "<float>", 0.05, "Ion mobility window for merging peaks in IM frames.", false);
 
     registerFullParam_(FeatureFinderMultiplexAlgorithm().getDefaults());
   }
@@ -222,6 +436,22 @@ public:
 
     OPENMS_LOG_DEBUG << "Loading input..." << endl;
     file.loadExperiment(in_, exp, {FileTypes::MZML}, log_type_);
+
+    // check if we have IM data, if in correct format collabse IM frames to make data compatible
+    // with feature finding algorithm
+    double IM_window = getDoubleOption_("IM_merge_window");
+    IMFormat im_format = IMTypes::determineIMFormat(exp);
+    if (im_format == IMFormat::CONCATENATED) // has IM data as float data array annotated
+    {
+      for (auto& s : exp.getSpectra())
+      {
+        // cluster peaks by m/z and IM and merge into single peak with average IM
+        IMFrame::toSpectrum(s, s, getParam_().getValue("algorithm:mz_tolerance"), IM_window); 
+      }
+    } else if (im_format != IMFormat::NONE) // has IM but wrong format
+    {
+      OPENMS_LOG_FATAL_ERROR << "Wrong IM format detected. Expecting in concatenated format (float data arrays)" << std::endl;
+    }
 
     FeatureFinderMultiplexAlgorithm algorithm;
     // pass only relevant parameters to the algorithm and set the log type
