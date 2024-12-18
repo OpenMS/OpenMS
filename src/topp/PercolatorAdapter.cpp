@@ -1052,12 +1052,12 @@ protected:
           // (if filtering is disabled also report unidentified identifer) for backwards compatibility
           if (!identifier_found && reported_psm_qvalue_threshold < 1.0) continue;
 
-          // skip reporting of identified peptide hit if PSM q-value threshold not reached
-          const bool report_psm_threshold_passed = pr->second.qvalue <= reported_psm_qvalue_threshold;
-          if (identifier_found && !report_psm_threshold_passed) continue;
-
           if (identifier_found)
           {
+            // skip reporting of identified peptide hit if PSM q-value threshold not reached
+            const bool report_psm_threshold_passed = pr->second.qvalue <= reported_psm_qvalue_threshold;
+            if (!report_psm_threshold_passed) continue;
+
             hit.setMetaValue(old_score_type, hit.getScore());  // old search engine "main" score as metavalue
             hit.setMetaValue("MS:1001492", pr->second.score);  // svm score
             hit.setMetaValue("MS:1001491", pr->second.qvalue);  // percolator q value
@@ -1076,11 +1076,7 @@ protected:
               hit.setScore(pr->second.score);
             }
 
-            // Only keep hits that pass q-value threshold
-            if (report_psm_threshold_passed)
-            {
-              filtered_hits.push_back(hit);
-            }
+            filtered_hits.push_back(hit);
 
             ++cnt;
           }
@@ -1106,6 +1102,7 @@ protected:
             {
               hit.setScore(-100.0); // set SVM score to -100.0 if hit not found in results
             }
+            filtered_hits.push_back(hit);
           }
           pep_id.setHits(filtered_hits);
         }
