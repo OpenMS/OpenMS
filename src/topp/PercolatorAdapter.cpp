@@ -1046,14 +1046,17 @@ protected:
  
           map<String, PercolatorResult>::iterator pr = pep_map.find(psm_identifier);
 
-          // if q-value filtering is enabled skip unidentified hits
-          if (reported_psm_qvalue_threshold < 1.0 && 
-            pr == pep_map.end()) continue;
+          const bool identifier_found = (pr != pep_map.end());
 
-          // skip reporting of identified peptide hit if PSM q-value threshold not reached            
-          if (pr->second.qvalue > reported_psm_qvalue_threshold) continue;
+          // if q-value filtering is enabled skip hit without identifiers
+          // (if filtering is disabled also report unidentified identifer) for backwards compatibility
+          if (!identifier_found && reported_psm_qvalue_threshold < 1.0) continue;
 
-          if (pr != pep_map.end())
+          // skip reporting of identified peptide hit if PSM q-value threshold not reached
+          const bool report_psm_threshold_passed = pr->second.qvalue <= reported_psm_qvalue_threshold;
+          if (identifier_found && !report_psm_threshold_passed) continue;
+
+          if (identifier_found)
           {
             hit.setMetaValue(old_score_type, hit.getScore());  // old search engine "main" score as metavalue
             hit.setMetaValue("MS:1001492", pr->second.score);  // svm score
@@ -1074,7 +1077,7 @@ protected:
             }
 
             // Only keep hits that pass q-value threshold
-            if (pr->second.qvalue <= reported_psm_qvalue_threshold)
+            if (report_psm_threshold_passed)
             {
               filtered_hits.push_back(hit);
             }
