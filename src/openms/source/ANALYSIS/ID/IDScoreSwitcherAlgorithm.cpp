@@ -39,7 +39,7 @@ namespace OpenMS
     if (new_score_type_.empty()) new_score_type_ = new_score_;
   }
 
-  std::vector<String> IDScoreSwitcherAlgorithm::getScoreTypeNames()
+  std::vector<String> IDScoreSwitcherAlgorithm::getScoreNames()
   {
     std::vector<String> names;
     for (auto i : type_to_str_)
