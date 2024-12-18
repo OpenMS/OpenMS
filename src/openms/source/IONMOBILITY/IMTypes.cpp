@@ -92,13 +92,15 @@ namespace OpenMS
     bool has_drift_time = spec.getDriftTime() != DRIFTTIME_NOT_SET;
     if (has_float_data && has_drift_time)
     {
-      const auto& fda = spec.getFloatDataArrays()[spec.getIMData().first];
-      String array_val = fda.empty() ? "[empty]" : String(fda[0]);
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MSSpectrum contains both an float-data-array and a single drift time. At most one is allowed per spectrum!", String("Array: ") + array_val + ", ... <> Spec: " + spec.getDriftTime());
+
     }
 
     if (has_float_data)
     {
+      if (has_drift_time)
+      {
+        OPENMS_LOG_DEBUG << "both drift time and IM data array found in spectrum " << spec.getNativeID() << "\n. Support for both is experimental." << std::endl;
+      }
       return IMFormat::CONCATENATED;
     }
     else if (has_drift_time)

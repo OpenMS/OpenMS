@@ -126,8 +126,7 @@ public:
      * 1. m/z tolerance: peaks must be within specified ppm of each other
      * 2. ion mobility tolerance: the range of IM values must not exceed the specified tolerance
      *
-     * @param input Input spectrum containing ion mobility data in its FloatDataArrays
-     * @param output Output spectrum containing the averaged peaks and their IM values
+     * @param input Spectrum containing ion mobility data in its FloatDataArrays
      * @param ppm_tolerance Mass tolerance in parts per million (default: 50.0 ppm)
      * @param im_tolerance Ion mobility tolerance (default: 0.1 units)
      *
@@ -139,12 +138,11 @@ public:
      *
      * Example:
      * @code
-     * MSSpectrum input_spectrum;  // spectrum with IM data
-     * MSSpectrum output_spectrum;
-     * IMFrame::toSpectrum(input_spectrum, output_spectrum);
+     * MSSpectrum input;  // spectrum with IM data
+     * IMFrame::toSpectrum(input_spectrum);
      * @endcode
      */
-    static void toSpectrum(const MSSpectrum& input, MSSpectrum& output,
+    static void toSpectrum(MSSpectrum& input,
                           double ppm_tolerance = 50.0,
                           double im_tolerance = 0.1)
     {
@@ -152,7 +150,7 @@ public:
 
         // Get IM data array
         const auto [im_data_index, im_unit] = input.getIMData();
-        const auto& im_data = input.getFloatDataArrays()[im_data_index];
+        auto& im_data = input.getFloatDataArrays()[im_data_index];
 
         /**
          * @brief Internal structure to hold peak information during processing
@@ -283,28 +281,23 @@ public:
         }
 
         // Convert averaged points back to MSSpectrum
-        output.clear(true);
-        output.reserve(averaged_points.size());
+        input.clear(false);
+        input.reserve(averaged_points.size());
+        input.shrink_to_fit();
 
-        // Create new float data array for IM values
-        DataArrays::FloatDataArray new_im_data;
-        new_im_data.reserve(averaged_points.size());
+        im_data.reserve(averaged_points.size());
+        im_data.shrink_to_fit();
 
         for (const auto& p : averaged_points)
         {
             Peak1D peak;
             peak.setMZ(p.mz);
             peak.setIntensity(p.intensity);
-            output.push_back(peak);
-            new_im_data.push_back(p.im);
+            input.push_back(peak);
+            im_data.push_back(p.im);
         }
 
-        // Set up the IM data array in the output spectrum
-        output.getFloatDataArrays().clear();
-        output.getFloatDataArrays().push_back(new_im_data);
-        output.getFloatDataArrays().back().setName("Ion Mobility");
-
-        output.sortByPosition();
+        input.sortByPosition();
     }
 };
 
@@ -443,11 +436,16 @@ public:
     IMFormat im_format = IMTypes::determineIMFormat(exp);
     if (im_format == IMFormat::CONCATENATED) // has IM data as float data array annotated
     {
+      OPENMS_LOG_INFO << "Converting " << exp.getNrSpectra() << " IM frames to single spectra..." << endl;
+      size_t peak_count_before = 0;
+      size_t peak_count_after = 0;
       for (auto& s : exp.getSpectra())
-      {
-        // cluster peaks by m/z and IM and merge into single peak with average IM
-        IMFrame::toSpectrum(s, s, getParam_().getValue("algorithm:mz_tolerance"), IM_window); 
+      { // cluster peaks by m/z and IM and merge into single peak with average IM
+        peak_count_before += s.size();
+        IMFrame::toSpectrum(s, getParam_().getValue("algorithm:mz_tolerance"), IM_window); 
+        peak_count_after += s.size();
       }
+      OPENMS_LOG_INFO << "Peaks (before/after) " << peak_count_before << " / " << peak_count_after << endl;
     } else if (im_format != IMFormat::NONE) // has IM but wrong format
     {
       OPENMS_LOG_FATAL_ERROR << "Wrong IM format detected. Expecting in concatenated format (float data arrays)" << std::endl;
@@ -466,6 +464,7 @@ public:
     params.remove("no_progress");
     params.remove("force");
     params.remove("test");
+    params.remove("IM_merge_window");
     algorithm.setParameters(params);
     algorithm.setLogType(this->log_type_);
     // run feature detection algorithm
