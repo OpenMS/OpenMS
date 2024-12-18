@@ -99,7 +99,7 @@ protected:
 
     registerStringOption_("protein_score", "<type>", "", "The protein score used to calculate the protein FDR. If empty, the main score is used.", false, true);
     auto ids = IDScoreSwitcherAlgorithm();
-    setValidStrings_("protein_score", ids.getScoreTypeNames()); // lists all scores (including PSM only scores)
+    setValidStrings_("protein_score", ids.getScoreNames()); // lists all scores (including PSM only scores)
 
     registerStringOption_("protein_base_score", "<score name or type>", "", "Set if you want to choose a different score than the last calculated main score for protein (group) level.", false);
     registerStringOption_("protein_base_score_orientation", "<higher/lower>", "", "Set if you want to choose a different score than the last calculated main score for protein (group) level.", false, true);
@@ -173,7 +173,7 @@ protected:
         {
           try 
           {
-            IDScoreSwitcherAlgorithm::ScoreType score_type = IDScoreSwitcherAlgorithm::getScoreType(protein_score);
+            IDScoreSwitcherAlgorithm::ScoreType score_type = IDScoreSwitcherAlgorithm::toScoreTypeEnum(protein_score);
             IDScoreSwitcherAlgorithm switcher;
             Size c = 0;
             switcher.switchToGeneralScoreType(prot_ids, score_type, c);
