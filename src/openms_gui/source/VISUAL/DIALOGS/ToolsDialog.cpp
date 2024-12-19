@@ -446,14 +446,20 @@ namespace OpenMS
     // If we can't get any valid strings show an error.
     String extension = FileTypes::typeToName(FileTypes::UNKNOWN);
     auto validStrings = vis_param_.getValidStrings(output_combo_->currentText().remove(QRegularExpression("^\\.\\*")).toStdString()); 
-    if (!validStrings.empty())
+    // If we have only one valid output type use that
+    if (validStrings.size() == 1)
     {
       extension = validStrings[0];
     }
-    else
+    // Otherwise the type is unknown
+    else 
     {
-      QMessageBox::critical(this, "Error", QString("Error determining output type from tool. Tool is not compatible with TOPPView"));
-    }
+      // If we have no valid types, produce an error
+      if (validStrings.empty())
+        {
+          QMessageBox::critical(this, "Error", QString("Error determining output type from tool. Tool is not compatible with TOPPView"));
+        }
+      // If we have multiple valid output types, we don't know what the file actually contains, so we use UNKNOWN and don't throw an error
     return extension;
   }
 
