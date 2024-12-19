@@ -461,6 +461,6 @@ namespace OpenMS
         }
       // If we have multiple valid output types, we don't know what the file actually contains, so we use UNKNOWN and don't throw an error
     return extension;
+    }
   }
-
 }
