@@ -57,6 +57,14 @@
 using namespace std;
 using namespace OpenMS;
 
+// multithreading
+#ifdef _OPENMP
+#include <omp.h>
+#define NUMBER_OF_THREADS (omp_get_num_threads())
+#else
+#define NUMBER_OF_THREADS (1)
+#endif
+
 //-------------------------------------------------------------
 //Doxygen docu
 //-------------------------------------------------------------
@@ -298,6 +306,7 @@ public:
         }
 
         input.sortByPosition();
+        input.updateRanges(); // TODO: maybe needed
     }
 
   static void toSpectrumByMassTraces(MSSpectrum& input,
@@ -343,6 +352,8 @@ public:
       input[i].setIntensity(mt.getIntensity(false));
       im_data[i] = mt[i].getRT(); // IM
     }    
+    input.sortByPosition(); // TODO: maybe needed
+    input.updateRanges(); // TODO: maybe needed
   }
 
 };
@@ -485,14 +496,19 @@ public:
       size_t peak_count_before = 0;
       size_t peak_count_after = 0;
       const double mz_tolerance = getDoubleOption_("algorithm:mz_tolerance");
-      for (auto& s : exp.getSpectra())
-      { // cluster peaks by m/z and IM and merge into single peak with average IM
+      int nr_spectra = exp.getNrSpectra();
+      #pragma omp parallel for reduction(+: peak_count_before, peak_count_after)
+      for (int i = 0; i < nr_spectra; ++i)
+      {
+        auto& s = exp.getSpectra()[i];
+        // cluster peaks by m/z and IM and merge into single peak with average IM
         peak_count_before += s.size();
         //IMFrame::toSpectrum(s, mz_tolerance, IM_window); 
         IMFrame::toSpectrumByMassTraces(s, mz_tolerance);
         peak_count_after += s.size();
       }
       OPENMS_LOG_INFO << "Peaks (before/after) " << peak_count_before << " / " << peak_count_after << endl;
+      exp.updateRanges();
     } else if (im_format != IMFormat::NONE) // has IM but wrong format
     {
       OPENMS_LOG_FATAL_ERROR << "Wrong IM format detected. Expecting in concatenated format (float data arrays)" << std::endl;
