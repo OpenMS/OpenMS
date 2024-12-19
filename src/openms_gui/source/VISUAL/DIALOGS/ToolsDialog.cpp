@@ -445,7 +445,7 @@ namespace OpenMS
     // Try to Return the first valid string for the extension on the output parameter
     // If we can't get any valid strings show an error.
     String extension = FileTypes::typeToName(FileTypes::UNKNOWN);
-    auto validStrings = vis_param_.getValidStrings(output_combo_->currentText().toStdString()); 
+    auto validStrings = vis_param_.getValidStrings(output_combo_->currentText().remove(QRegularExpression("^\\.\\*")).toStdString()); 
     if (!validStrings.empty())
     {
       extension = validStrings[0];
