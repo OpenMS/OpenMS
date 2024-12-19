@@ -35,6 +35,8 @@
 #include <OpenMS/ML/CLUSTERING/GridBasedCluster.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
 
 //Contrib includes
 #include <boost/algorithm/string/split.hpp>
@@ -151,7 +153,6 @@ public:
         // Get IM data array
         const auto [im_data_index, im_unit] = input.getIMData();
         auto& im_data = input.getFloatDataArrays()[im_data_index];
-        String im_data_array_name = im_data.getName();
 
         /**
          * @brief Internal structure to hold peak information during processing
@@ -298,7 +299,54 @@ public:
 
         input.sortByPosition();
     }
+
+  static void toSpectrumByMassTraces(MSSpectrum& input,
+                        double ppm_tolerance = 50.0)
+  {
+    if (input.empty()) return;
+
+    // Get IM data array
+    const auto [im_data_index, im_unit] = input.getIMData();
+    auto& im_data = input.getFloatDataArrays()[im_data_index];
+
+    // convert to MSExperiment and set drift time as RT
+    MSExperiment frame_as_spectra = IMDataConverter::reshapeIMFrameToMany(input);
+    for (auto& s : frame_as_spectra)
+    {
+      s.setRT(s.getDriftTime());
+      s.setDriftTime(-1);
+    }
+
+    // detect mass traces in IM frame
+    MassTraceDetection mte;
+    Param param = mte.getParameters();
+    param.setValue("min_trace_length", 0.0001);
+    param.setValue("reestimate_mt_sd", "true");
+    param.setValue("mass_error_ppm", ppm_tolerance);
+    param.setValue("trace_termination_criterion", "sample_rate");
+    mte.setLogType(ProgressLogger::NONE);
+    mte.setParameters(param);
+    vector<MassTrace> output_mt;
+    mte.run(frame_as_spectra, output_mt);
+
+    // copy mass traces centroids back to peaks
+    input.resize(output_mt.size());
+    input.shrink_to_fit();        
+      
+    im_data.resize(output_mt.size());
+    im_data.shrink_to_fit();
+
+    for (Size i = 0; i < output_mt.size(); ++i)
+    {      
+      const MassTrace& mt = output_mt[i];
+      input[i].setMZ(mt.getCentroidMZ());
+      input[i].setIntensity(mt.getIntensity(false));
+      im_data[i] = mt[i].getRT(); // IM
+    }    
+  }
+
 };
+
 
 class TOPPFeatureFinderMultiplex :
   public TOPPBase
@@ -327,7 +375,6 @@ public:
     setValidFormats_("out_multiplets", ListUtils::create<String>("consensusXML"));
     registerOutputFile_("out_blacklist", "<file>", "", "Optional output file containing all peaks which have been associated with a peptide feature (and subsequently blacklisted).", false, true);
     setValidFormats_("out_blacklist", ListUtils::create<String>("mzML"));
-    registerDoubleOption_("IM_merge_window", "<float>", 0.06, "Ion mobility window for merging peaks in IM frames.", false);
 
     registerFullParam_(FeatureFinderMultiplexAlgorithm().getDefaults());
   }
@@ -431,7 +478,6 @@ public:
 
     // check if we have IM data, if in correct format collabse IM frames to make data compatible
     // with feature finding algorithm
-    double IM_window = getDoubleOption_("IM_merge_window");
     IMFormat im_format = IMTypes::determineIMFormat(exp);
     if (im_format == IMFormat::CONCATENATED) // has IM data as float data array annotated
     {
@@ -442,7 +488,8 @@ public:
       for (auto& s : exp.getSpectra())
       { // cluster peaks by m/z and IM and merge into single peak with average IM
         peak_count_before += s.size();
-        IMFrame::toSpectrum(s, mz_tolerance, IM_window); 
+        //IMFrame::toSpectrum(s, mz_tolerance, IM_window); 
+        IMFrame::toSpectrumByMassTraces(s, mz_tolerance);
         peak_count_after += s.size();
       }
       OPENMS_LOG_INFO << "Peaks (before/after) " << peak_count_before << " / " << peak_count_after << endl;
@@ -464,7 +511,6 @@ public:
     params.remove("no_progress");
     params.remove("force");
     params.remove("test");
-    params.remove("IM_merge_window");
     algorithm.setParameters(params);
     algorithm.setLogType(this->log_type_);
     // run feature detection algorithm
