@@ -20,6 +20,8 @@
 #include <OpenMS/PROCESSING/MISC/SplinePackage.h>
 #include <OpenMS/PROCESSING/MISC/SplineInterpolatedPeaks.h>
 
+#include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
+
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/ML/REGRESSION/LinearRegressionWithoutIntercept.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -918,11 +920,15 @@ namespace OpenMS
 
     //TODO allow skipping?
 
+    // remove chromatograms as they can lead to an overall experiment range with min m/z=0 (messes up grid generation)
+    exp.getChromatograms().clear();
+    exp.getChromatograms().shrink_to_fit();
+
     // update m/z and RT ranges
     exp.updateRanges();
 
     // sort according to RT and MZ
-    exp.sortSpectra();
+    exp.sortSpectra(true);
 
     // determine type of spectral data (profile or centroided)
     SpectrumSettings::SpectrumType spectrum_type;
@@ -942,14 +948,24 @@ namespace OpenMS
       centroided_ = false;
     }
 
+    // remove 0 intensity peaks in centroided data (needed for Bruker data)
+    ThresholdMower threshold_mower_filter;    
+    size_t initial_size = exp.getSize();
+    threshold_mower_filter.filterPeakMap(exp);
+    size_t final_size = exp.getSize();
+    size_t removed_peaks = initial_size - final_size;
+    OPENMS_LOG_INFO << "Removed " << removed_peaks << " zero intensity peaks." << std::endl;
+
     // store experiment in member variables
     if (centroided_)
     {
+      OPENMS_LOG_INFO << "Centroided data detected." << std::endl;
       exp.swap(exp_centroid_);
       // exp_profile_ will never be used.
     }
     else
     {
+      OPENMS_LOG_INFO << "Profile data detected." << std::endl;
       exp.swap(exp_profile_);
       // exp_centroid_ will be constructed later on.
     }
@@ -1014,12 +1030,21 @@ namespace OpenMS
       MultiplexFilteringCentroided filtering(exp_centroid_, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), averagine_similarity_scaling, param_.getValue("algorithm:averagine_type").toString());
       filtering.setLogType(getLogType());
       std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
-
+      // output filter results
+      OPENMS_LOG_INFO << "Filtering results: " << filter_results.size() << std::endl;
+      for (unsigned i = 0; i < filter_results.size(); ++i)
+      {
+//        OPENMS_LOG_INFO << "Filtering results for pattern " << i << ": " << filter_results[i].getPeakCount() << std::endl;
+  //      std::cout << filter_results[i] << std::endl;
+      }
       /**
        * cluster filter results
        */
+      OPENMS_LOG_INFO << "Clustering  filter results: " << filter_results.size() << std::endl;
+      OPENMS_LOG_INFO << "Clustering peaks:" << exp_centroid_.getSize() << std::endl;
       MultiplexClustering clustering(exp_centroid_, param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:rt_typical"));
       clustering.setLogType(getLogType());
+      OPENMS_LOG_INFO << "... " << std::endl;
       std::vector<std::map<int, GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
 
       /**

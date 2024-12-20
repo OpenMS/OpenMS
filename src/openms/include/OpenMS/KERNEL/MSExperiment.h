@@ -1075,7 +1075,7 @@ std::vector<MSChromatogram> extractXICs(
     */
     void updateRanges(Int ms_level);
 
-    /// returns the total number of peaks
+    /// returns the total number of spectra and chromatogram peaks
     UInt64 getSize() const;
 
     /// returns an array of MS levels
@@ -1281,8 +1281,6 @@ std::vector<MSChromatogram> extractXICs(
   protected:
     /// MS levels of the data
     std::vector<UInt> ms_levels_;
-    /// Number of all data points
-    UInt64 total_size_;
     /// chromatograms
     std::vector<MSChromatogram > chromatograms_;
     /// spectra

@@ -80,18 +80,23 @@ namespace OpenMS
   MultiplexClustering::MultiplexClustering(const MSExperiment& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical) :
     rt_typical_(rt_typical)
   {
+    std::cout << "Peaks: " << exp.getSize() << std::endl;
     // ranges of the experiment
     double mz_min = exp.getMinMZ();
     double mz_max = exp.getMaxMZ();
     double rt_min = exp.getMinRT();
     double rt_max = exp.getMaxRT();
 
-    if (!RangeMZ(0.0, 1.0e12).containsMZ({mz_min, mz_max}) ||
+    if (!RangeMZ(1e-12, 1.0e12).containsMZ({mz_min, mz_max}) ||
         !RangeRT(-1.0e12, 1.0e12).containsRT({rt_min, rt_max}) ) 
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MinMZ,MaxMZ,MinRT,MaxRT values outside of sensible value ranges. Are they uninitialized? (" + String(mz_min) + "/" + String(mz_max) + "/" + String(rt_min) + "/" + String(rt_max));
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "MinMZ,MaxMZ,MinRT,MaxRT values outside of sensible value ranges. Are they uninitialized? (" 
+        + String(mz_min) + "/" + String(mz_max) + "/" + String(rt_min) + "/" + String(rt_max));
     }
-    
+
+    std::cout << "Peaks: " << exp.getSize() << std::endl;
+
     // extend the grid by a small absolute margin
     double mz_margin = 1e-2;
     double rt_margin = 1e-2;
@@ -100,27 +105,40 @@ namespace OpenMS
     rt_min -= rt_margin; 
     rt_max += rt_margin;
     
+    // output all variables
+    #ifdef DEBUG
+     std::cout << "mz_min: " << mz_min << std::endl;
+     std::cout << "mz_max: " << mz_max << std::endl;
+     std::cout << "rt_min: " << rt_min << std::endl;
+     std::cout << "rt_max: " << rt_max << std::endl;
+     std::cout << "rt_typical: " << rt_typical << std::endl;
+     std::cout << "mz_tolerance: " << mz_tolerance << std::endl;
+     std::cout << "mz_tolerance_unit: " << mz_tolerance_unit << std::endl;
+     std::cout << "rt_typical: " << rt_typical << std::endl;
+     std::cout << "factor:" << 1.0 + mz_tolerance/1000000 << std::endl;
+    #endif
+    
     // generate grid spacing
     // We assume that the jitter of the peak centres are less than <scaling> times the user specified m/z tolerance.
     double scaling = 1.0;
     
     if (mz_tolerance_unit)
     {
-      for (double mz = mz_min; mz < mz_max; mz = mz * (1 + scaling * mz_tolerance/1000000))
+      for (double mz = mz_min; mz < mz_max; mz *= 1.0 + scaling * mz_tolerance/1000000)
       {
         grid_spacing_mz_.push_back(mz);
       }
     }
     else
     {
-      for (double mz = mz_min; mz < mz_max; mz = mz + scaling * mz_tolerance)
+      for (double mz = mz_min; mz < mz_max; mz += scaling * mz_tolerance)
       {
         grid_spacing_mz_.push_back(mz);
       }
     }
     grid_spacing_mz_.push_back(mz_max);
 
-    for (double rt = rt_min; rt < rt_max; rt = rt + rt_typical)
+    for (double rt = rt_min; rt < rt_max; rt += rt_typical)
     {
       grid_spacing_rt_.push_back(rt);
     }
@@ -130,10 +148,9 @@ namespace OpenMS
     std::vector<double> mz;
     for (const MSSpectrum& spec : exp)
     {
-      MSSpectrum::ConstIterator it_mz;
-      for (it_mz = spec.begin(); it_mz != spec.end(); ++it_mz)
+      for (const Peak1D& p : spec)
       {
-        mz.push_back(it_mz->getMZ());
+        mz.push_back(p.getMZ());
       }
     }
     std::sort(mz.begin(), mz.end());
@@ -145,7 +162,6 @@ namespace OpenMS
     {
       rt_scaling_ = mz_tolerance / rt_typical_;
     }
-
   }
 
   std::vector<std::map<int, GridBasedCluster> > MultiplexClustering::cluster(const std::vector<MultiplexFilteredMSExperiment>& filter_results)
@@ -166,7 +182,16 @@ namespace OpenMS
       //clustering.extendClustersY();
       cluster_results.push_back(clustering.getResults());
     }
+    OPENMS_LOG_INFO << "Cluster results: " << cluster_results.size() << std::endl;
 
+    // output cluster results
+    for (unsigned i = 0; i < cluster_results.size(); ++i)
+    {
+      for (std::map<int, GridBasedCluster>::const_iterator it = cluster_results[i].begin(); it != cluster_results[i].end(); ++it)
+      {
+        OPENMS_LOG_INFO << "Cluster " << it->first << " contains " << it->second.getPoints().size() << " points." << std::endl;
+      }
+    }
     endProgress();
 
     return cluster_results;

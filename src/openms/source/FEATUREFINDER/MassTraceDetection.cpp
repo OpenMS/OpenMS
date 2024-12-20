@@ -50,7 +50,9 @@ namespace OpenMS
     {}
 
     void MassTraceDetection::updateIterativeWeightedMeanMZ(const double& added_mz,
-                                                           const double& added_int, double& centroid_mz, double& prev_counter,
+                                                           const double& added_int, 
+                                                           double& centroid_mz, 
+                                                           double& prev_counter,
                                                            double& prev_denom)
     {
       double new_weight(added_int);

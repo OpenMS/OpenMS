@@ -337,7 +337,7 @@ public:
     mte.setParameters(param);
     vector<MassTrace> output_mt;
     mte.run(frame_as_spectra, output_mt);
-
+    
     // copy mass traces centroids back to peaks
     input.resize(output_mt.size());
     input.shrink_to_fit();        
@@ -349,8 +349,8 @@ public:
     {      
       const MassTrace& mt = output_mt[i];
       input[i].setMZ(mt.getCentroidMZ());
-      input[i].setIntensity(mt.getIntensity(false));
-      im_data[i] = mt[i].getRT(); // IM
+      input[i].setIntensity(mt.computeIntensitySum()); //TODO: somewhat related: why is getIntensity() zero?
+      im_data[i] = mt.getCentroidRT(); // IM
     }    
     input.sortByPosition(); // TODO: maybe needed
     input.updateRanges(); // TODO: maybe needed
@@ -509,6 +509,9 @@ public:
       }
       OPENMS_LOG_INFO << "Peaks (before/after) " << peak_count_before << " / " << peak_count_after << endl;
       exp.updateRanges();
+      // store mzML file with collapsed IM frames
+      OPENMS_LOG_INFO << "Writing mzML file with collapsed IM frames..." << endl;
+      file.storeExperiment("debug.mzML", exp, {FileTypes::MZML});
     } else if (im_format != IMFormat::NONE) // has IM but wrong format
     {
       OPENMS_LOG_FATAL_ERROR << "Wrong IM format detected. Expecting in concatenated format (float data arrays)" << std::endl;
