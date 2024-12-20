@@ -171,8 +171,12 @@ namespace OpenMS
         // loop over spectra in RT band
         for (MSExperiment::ConstIterator it_rt = it_rt_band_begin; it_rt < it_rt_band_end; ++it_rt)
         {
+          // search in rt band for peak with matching m/z
           int i = it_rt->findNearest(mz + mz_shift, mz_tolerance);
          
+          // TODO: find all peaks in tolerance window. not only the nearest one.
+          // Filter those if they match in tolerance window
+          // of the remaining ones, take the one with the highest intensity. (important because of noise in timsTOF)
           if (i != -1)
           {
             // Note that as primary peaks, satellite peaks are also restricted by the blacklist.
