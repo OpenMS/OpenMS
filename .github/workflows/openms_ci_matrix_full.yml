@@ -156,6 +156,9 @@ jobs:
             echo "Unsupported compiler"
             exit 1
           fi
+          # Grab the base64 encoded certificate and decode it
+          echo "${{ secrets.APPLE_DEVELOPER_CERT_64 }}" | base64 --decode > certificate.p12
+          security import certificate.p12 -P ${{ secrets.APPLE_DEVELOPMENT_PW }} -T /usr/bin/codesign
         fi
       shell: bash
 
@@ -401,6 +404,8 @@ jobs:
           CCACHE_COMPILERCHECK: content
           WITH_THERMORAWFILEPARSER_TEST: "OFF"
           Eigen3_DIR: "${{ steps.tools-prefix.outputs.eigen_choco }}" # Eigen is installed on windows using choco
+          SIGNING_IDENTITY: "Apple Development: Samuel Wein (B26WBF742H)"
+          SIGNING_EMAIL: "apple@openms.de"
 
     - name: Test
       shell: bash
