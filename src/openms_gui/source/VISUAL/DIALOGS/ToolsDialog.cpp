@@ -474,7 +474,6 @@ namespace OpenMS
           QMessageBox::warning(this, "Warning", QString("Multiple possible output aure supported by the tool. You probably need to set the output type in the parameters (`out_type`)."));
         }
       }
-
     }
     return extension;
   }
