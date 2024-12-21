@@ -106,15 +106,41 @@ end
 
 ###############################################################################
 def fixLoadPath(oldpath,libpath,target)
-  debug "#{$install_name_tool} -change #{oldpath} #{$executableId}#{libpath} #{target}"
-  `#{$install_name_tool} -change #{oldpath} #{$executableId}#{libpath} #{target}`
+  command = "#{$install_name_tool} -change #{oldpath} #{$executableId}#{libpath} #{target}"
+  debug command
+  stderr_output = `#{command} 2>&1`
+  if stderr_output.include?("changes being made to the file")
+    # If so, discard it (do nothing with it)
+    return
+  end
+  # If there is any other stderr output, print it to stderr
+  unless stderr_output.empty?
+    $stderr.puts stderr_output
+  end
 end
 
 ###############################################################################
 def fixId(target, libname)
-  debug "#{$install_name_tool} -id #{$executableId}#{libname} #{target}"
-  `#{$install_name_tool} -id #{$executableId}#{libname} #{target}`
+  command = "#{$install_name_tool} -id #{$executableId}#{libname} #{target}"
+  
+  # Print the debug message
+  debug command
+
+  # Run the command and capture stderr
+  stderr_output = `#{command} 2>&1`
+
+  # Check if the stderr output contains "changes being made to the file"
+  if stderr_output.include?("changes being made to the file")
+    # If so, discard it (do nothing with it)
+    return
+  end
+
+  # If there is any other stderr output, print it to stderr
+  unless stderr_output.empty?
+    $stderr.puts stderr_output
+  end
 end
+
 
 ###############################################################################
 def handleDependencies(otool_out, targetPath, currentLib, rpaths)
