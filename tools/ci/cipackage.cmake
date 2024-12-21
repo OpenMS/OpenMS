@@ -35,6 +35,8 @@ ctest_start(Nightly GROUP Package)
 # build the dist target for packages
 # we assume the configuration is correct for this. So please no KNIME, PYOPENMS, STYLE or COVERAGE.
 
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
 ctest_configure(OPTIONS "${CONFIGURE_OPTIONS}" RETURN_VALUE _reconfig_package_ret_val)
 ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "dist" NUMBER_ERRORS _build_errors)
 ctest_submit(PARTS Build)
