@@ -158,7 +158,7 @@ jobs:
           fi
           # Grab the base64 encoded certificate and decode it
           echo "${{ secrets.APPLE_DEVELOPER_CERT_64 }}" | base64 --decode > certificate.p12
-          security import certificate.p12 -P ${{ secrets.APPLE_DEVELOPMENT_PW }} -T /usr/bin/codesign
+          security import certificate.p12 -P "${{ secrets.APPLE_DEVELOPMENT_PW }}" -T /usr/bin/codesign
         fi
       shell: bash
 
