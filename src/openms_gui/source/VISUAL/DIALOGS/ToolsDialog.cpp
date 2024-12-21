@@ -461,7 +461,19 @@ namespace OpenMS
         {
           QMessageBox::critical(this, "Error", QString("Error determining output type from tool. Tool is not compatible with TOPPView"));
         }
-          // If we have multiple valid output types, we don't know what the file actually contains, so use UNKNOWN
+      else
+      // If we have multiple valid output types, check if out_type exists and is specified.
+      {
+        if (tool_params_.exists("out_type") && tool_params_.getValue("out_type") != "")
+        {
+          // Use the type from out_type
+          extension = tool_params_.getValue("out_type").toString();
+        }
+        else
+        {
+          QMessageBox::warning(this, "Warning", QString("Multiple possible output aure supported by the tool. You probably need to set the output type in the parameters (`out_type`)."));
+        }
+      }
 
     }
     return extension;
