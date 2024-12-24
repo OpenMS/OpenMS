@@ -325,7 +325,7 @@ START_SECTION((double getCentroidRT() const ))
 {
   MassTrace test_mt_const(test_mt);
   double test_mt_cent_rt = test_mt_const.getCentroidRT();
-  TEST_REAL_SIMILAR(test_mt_cent_rt, 155.319906426507);
+  TEST_REAL_SIMILAR(test_mt_cent_rt, 155.214671250425);
 }
 END_SECTION
 
@@ -726,7 +726,7 @@ START_SECTION((void updateWeightedMeanRT()))
   TEST_EXCEPTION(Exception::InvalidValue, empty_trace.updateWeightedMeanRT());
 
   test_mt.updateWeightedMeanRT();
-  TEST_REAL_SIMILAR(test_mt.getCentroidRT(), 155.319906426507);
+  TEST_REAL_SIMILAR(test_mt.getCentroidRT(), 155.214671250425);
 }
 END_SECTION
 

@@ -66,7 +66,8 @@ namespace OpenMS
       {
         if (smoothed_intensities_[i] > 0.0)
         {
-          peak_area += (int_before + trace_peaks_[i].getIntensity())/2 * (trace_peaks_[i].getRT() - rt_before);
+          double rt_diff = trace_peaks_[i].getRT() - rt_before;
+          peak_area += (int_before + trace_peaks_[i].getIntensity())/2 * rt_diff;
         }
         int_before = trace_peaks_[i].getIntensity();
         rt_before = trace_peaks_[i].getRT();
@@ -86,7 +87,8 @@ namespace OpenMS
       double rt_before = trace_peaks_.begin()->getRT();
       for (const Peak2D& l_it : trace_peaks_)
       {
-        peak_area += (int_before + l_it.getIntensity())/2 * (l_it.getRT() - rt_before);
+        double rt_diff = l_it.getRT() - rt_before;
+        peak_area += (int_before + l_it.getIntensity())/2 * rt_diff;
         int_before = l_it.getIntensity();
         rt_before = l_it.getRT();
       }
@@ -395,22 +397,33 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace is empty... centroid RT undefined!", String(trace_peaks_.size()));
       }
 
-      double trace_area(this->computePeakArea());
+
+
+
+
+
+      /* seems not to work with the way we compute the area in the code below -> as a result the RT values are outside the feature boundaries
+      trace_area = this->computePeakArea();
 
       if (trace_area < std::numeric_limits<double>::epsilon())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peak area equals zero... impossible to compute weights!", String(trace_peaks_.size()));
       }
+      the reason is because computePeakArea uses trapezoidal rule to compute the area, which is not the same as the sum of the intensities
+      we could probably change the part below to also use trapezoidal rule to compute the trace area
+      */
 
       double wmean_rt(0.0);
+      double trace_area = 0;
 
       double rt_before = trace_peaks_[0].getRT();
       for (MassTrace::const_iterator l_it = trace_peaks_.begin() + 1; l_it != trace_peaks_.end(); ++l_it)
       {
-        wmean_rt += l_it->getIntensity() * l_it->getRT() * (l_it->getRT() - rt_before);
+        double rt_diff = l_it->getRT() - rt_before;                
+        wmean_rt += l_it->getIntensity() * l_it->getRT() * rt_diff;
         rt_before = l_it->getRT();
+        trace_area += l_it->getIntensity() * rt_diff;
       }
-
       centroid_rt_ = wmean_rt / trace_area;
     }
 
