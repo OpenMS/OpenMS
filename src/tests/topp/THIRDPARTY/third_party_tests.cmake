@@ -167,6 +167,10 @@ if (NOT (${COMET_BINARY} STREQUAL "COMET_BINARY-NOTFOUND"))
   add_test("TOPP_CometAdapter_4" ${TOPP_BIN_PATH}/CometAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_3.ini -digest_mass_range "600:1200" -variable_modifications "Met-loss (Protein N-term M)" -database ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta -in ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F1.mzML -out CometAdapter_4_out1.tmp.idXML -comet_executable "${COMET_BINARY}")
   add_test("TOPP_CometAdapter_4_out1" ${DIFF} -in1 CometAdapter_4_out1.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_4_out.idXML -ratio 1.02 -whitelist "search_engine_version" "IdentificationRun date" "spectra_data" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"string\" name=\"CometAdapter:1:")
   set_tests_properties("TOPP_CometAdapter_4_out1" PROPERTIES DEPENDS "TOPP_CometAdapter_4")
+  ### Testing new enzyme
+  add_test("TOPP_CometAdapter_5" ${TOPP_BIN_PATH}/CometAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_5.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/Chy_test.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/Chy_test_in.mzML -out CometAdapter_5_out1.tmp.idXML -enzyme Chymotrypsin/P -comet_executable "${COMET_BINARY}")
+  add_test("TOPP_CometAdapter_5_out1" ${DIFF} -in1 CometAdapter_5_out1.tmp.idXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/Chy_test.tmp.idXML -whitelist "search_engine_version" "IdentificationRun date" "spectra_data" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"string\" name=\"CometAdapter:1:" "UserParam type=\"string\" name=\"CometAdapter:1:database\" value=" "UserParam type=\"string\" name=\"CometAdapter:1:comet_executable\" value=")
+  set_tests_properties("TOPP_CometAdapter_5_out1" PROPERTIES DEPENDS "TOPP_CometAdapter_5")
   
   ## MS2 profile spectra are not allowed
   add_test("TOPP_CometAdapter_PROFILE" ${TOPP_BIN_PATH}/CometAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/proteinslong.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/MS2_profile.mzML -out CometAdapter_out.tmp.idXML -comet_executable "${COMET_BINARY}")

@@ -612,6 +612,7 @@ protected:
     os << "12. Arg-C/P                1.     R           _" << "\n";
     os << "13. Lys-C/P                1      K           -" << "\n";
     os << "14. Leukocyte_elastase     1      ALIV        -" << "\n";
+    os << "15. Chymotrypsin/P         1      FWYL        -" << "\n";
 
     return ExitCodes::EXECUTION_OK;
   }
