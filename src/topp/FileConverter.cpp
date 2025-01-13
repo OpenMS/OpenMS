@@ -25,6 +25,8 @@
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
+
 #include <QStringList>
 
 
@@ -173,6 +175,8 @@ protected:
     registerFlag_("RawToMzML:no_peak_picking", "Disables vendor peak picking for raw files.", true);
     registerFlag_("RawToMzML:no_zlib_compression", "Disables zlib compression for raw file conversion. Enables compatibility with some tools that do not support compressed input files, e.g. X!Tandem.", true);
     registerFlag_("RawToMzML:include_noise", "Include noise data in mzML output.", true);
+
+    registerFlag_("debug_first_frame_to_spectra", "Converts the first frame (concatenated mode) to spectra with RT set to IM (mainly used to test algorithms designed for m/z RT data.). ", true);
   }
 
   ExitCodes main_(int, const char**) override
@@ -475,6 +479,18 @@ protected:
         {
           s.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
         }
+      }
+
+      if (getFlag_("debug_first_frame_to_spectra"))
+      {
+        OPENMS_LOG_INFO << "Converting first frame to spectra with RT set to IM (mainly used to test algorithms designed for m/z RT data.)" << endl;
+        MSExperiment first_frame_as_spectra = IMDataConverter::reshapeIMFrameToMany(exp[0]);
+        for (auto& s : first_frame_as_spectra)
+        {
+          s.setRT(s.getDriftTime());
+          s.setDriftTime(-1);
+        }
+        exp = first_frame_as_spectra;
       }
 
       ChromatogramTools().convertSpectraToChromatograms(exp, true, convert_to_chromatograms);
