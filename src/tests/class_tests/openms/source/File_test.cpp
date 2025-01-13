@@ -339,10 +339,10 @@ END_SECTION
 
 START_SECTION(File::download(std::string url, std::string filename))
 {
-  std::string url = R"(http://raw.githubusercontent.com/OpenMS/images/master/logos/OpenMS_transparent_background.png)";
+  std::string url = R"(https://raw.githubusercontent.com/OpenMS/OpenMS/refs/heads/develop/README.md)";
   std::string folder = File::getTempDirectory();
   File::download(url, folder);
-  std::string output_file_path = folder + "/OpenMS_transparent_background.png";
+  std::string output_file_path = folder + "/README.md";
 
   TEST_EQUAL(File::exists(output_file_path), 1);
   if (File::exists(output_file_path))
