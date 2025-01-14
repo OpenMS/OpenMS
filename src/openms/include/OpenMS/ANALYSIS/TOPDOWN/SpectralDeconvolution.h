@@ -151,7 +151,7 @@ namespace OpenMS
     /// max mass is max_mass for MS1 and 50 for MS2
     double current_min_mass_;
     /// isotope distance for noise decoy
-    double noise_iso_delta_ = .9444; // should be described in the FDR paper
+    double noise_iso_delta_ =  .9444; // should be described in the FDR paper
     /// minimum number of peaks supporting a mass minus one
     const static int min_support_peak_count_ = 2;
     /// tolerance in ppm for each MS level

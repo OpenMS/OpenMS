@@ -53,7 +53,7 @@ namespace OpenMS
     for (Size i = 0; i < deconvolved_spectra.size(); i++)
     {
       auto deconvolved_spectrum = deconvolved_spectra[i];
-      if (deconvolved_spectrum.empty() || is_decoy != deconvolved_spectrum.isDecoy())
+      if (deconvolved_spectrum.empty())
         continue;
       if ((int)deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != ms_level)
         continue;
@@ -69,6 +69,9 @@ namespace OpenMS
       deconv_spec.setRT(rt);
       for (auto& pg : deconvolved_spectrum)
       {
+        if (is_decoy && pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::target) continue;
+        if (!is_decoy && pg.getTargetDecoyType() != PeakGroup::TargetDecoyType::target) continue;
+
         is_positive = pg.isPositive();
         auto [z1, z2] = pg.getAbsChargeRange();
         max_abs_charge = max_abs_charge > z2 ? max_abs_charge : z2;
@@ -120,13 +123,16 @@ namespace OpenMS
       for (auto& p2 : mt)
       {
         auto& dspec = deconvolved_spectra[rt_index_map[p2.getRT()]];
-        if (dspec.empty() || is_decoy != dspec.isDecoy())
+        if (dspec.empty())
           continue;
         PeakGroup comp;
         comp.setMonoisotopicMass(p2.getMZ() - 1e-7);
         auto pg = std::lower_bound(dspec.begin(), dspec.end(), comp);
         if (pg == dspec.end() || std::abs(pg->getMonoMass() - p2.getMZ()) > 1e-7)
           continue;
+
+        if (is_decoy && pg->getTargetDecoyType() == PeakGroup::TargetDecoyType::target) continue;
+        if (!is_decoy && pg->getTargetDecoyType() != PeakGroup::TargetDecoyType::target) continue;
 
         auto [z1, z2] = pg->getAbsChargeRange();
         min_feature_abs_charge = min_feature_abs_charge < z1 ? min_feature_abs_charge : z1;

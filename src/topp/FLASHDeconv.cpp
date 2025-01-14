@@ -363,13 +363,10 @@ protected:
 
 #endif
 
-      std::map<int, DeconvolvedSpectrum> target_spec_map;
       for (auto& deconvolved_spectrum : deconvolved_spectra)
       {
         uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
         if (out_spec_file[ms_level - 1].empty()) continue;
-        if (deconvolved_spectrum.isDecoy()) continue;
-        if (report_decoy) target_spec_map[deconvolved_spectrum.getScanNumber()] = deconvolved_spectrum;
         FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), fd.getDecoyAveragine(),
                                                         tols[ms_level - 1], write_detail, report_decoy, 1.0);
 #ifdef TRAIN_OUT
@@ -427,51 +424,7 @@ protected:
         }
 #endif
       }
-      if (report_decoy)
-      {
-        double noise_decoy_weight = fd.getNoiseDecoyWeight();
-        for (auto& deconvolved_spectrum : deconvolved_spectra)
-        {
-          uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
-          if (out_spec_file[ms_level - 1].empty()) continue;
-          if (! deconvolved_spectrum.isDecoy()) continue;
-          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), fd.getDecoyAveragine(),
-                                                          tols[ms_level - 1], write_detail, report_decoy, noise_decoy_weight);
-#ifdef TRAIN_OUT
-          Qscore::writeAttCsvForQscoreTraining(deconvolved_spectrum, out_train_streams[ms_level - 1]);
-#endif
-#ifdef DEEP_LEARNING
-          //deconvolved_features
-          double rt = deconvolved_spectrum.getOriginalSpectrum().getRT();
-          for (auto& pg : deconvolved_spectrum)
-          {
-            int feature_index = (pg.getFeatureIndex() > 0 ? pg.getFeatureIndex() : -1);
-            double rt_delta = .0;
-            if (feature_index >= 0)
-            {
-              const auto& mt = deconvolved_features[feature_index - 1].mt;
-              rt_delta = mt[mt.findMaxByIntPeak()].getRT() - rt;
-            }
 
-            out_dl_streams[ms_level - 1] << feature_index << ",";
-            if (dl_index.find(ms_level) == dl_index.end()) dl_index[ms_level] = 1;
-            out_dl_streams[ms_level - 1] << dl_index[ms_level]++ << "," << rt_delta << ",";
-
-            const auto& [sig, noise]
-              = pg.getDLVector(deconvolved_spectrum.getOriginalSpectrum(), charge_count, iso_count, fd.getAveragine(), tols[ms_level - 1]);
-            for (const auto s : sig)
-            {
-              out_dl_streams[ms_level - 1] << s << ",";
-            }
-            for (const auto n : noise)
-            {
-              out_dl_streams[ms_level - 1] << n << ",";
-            }
-            out_dl_streams[ms_level - 1] << pg.getTargetDecoyType()<< "\n";
-          }
-#endif
-        }
-      }
       for (Size i = 0; i < out_spec_file.size(); i++)
       {
         if (out_spec_file[i].empty() || (! keep_empty_out && per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()))

@@ -118,7 +118,7 @@ namespace OpenMS
       {
         for (const auto& p : pg)
         {
-          for (int i = -allowed_iso_error_ - 6; i <= allowed_iso_error_ + 6; i++)
+          for (int i = -allowed_iso_error_ - 2; i <= allowed_iso_error_ + 2; i++)
             previously_deconved_peak_masses_for_decoy_.push_back(i * iso_da_distance_ + p.getUnchargedMass());
         }
       }
@@ -237,7 +237,7 @@ namespace OpenMS
     int charge_range = current_max_charge_;
     for (int i = 0; i < charge_range; i++)
     {
-      universal_pattern_.push_back(-log(i + (target_decoy_type_ == PeakGroup::TargetDecoyType::noise_decoy? 2 : 1)));// + log(target_decoy_type_ == PeakGroup::TargetDecoyType::noise_decoy? (1.0 / sqrt(2.0) ) : 1) * (i % 2 == 0? -1 : 1)); //+
+      universal_pattern_.push_back(-log(i + (target_decoy_type_ == PeakGroup::TargetDecoyType::noise_decoy? std::sqrt(2.0) : 1)));// + log(target_decoy_type_ == PeakGroup::TargetDecoyType::noise_decoy? (1.0 / sqrt(2.0) ) : 1) * (i % 2 == 0? -1 : 1)); //+
     }
 
     harmonic_pattern_matrix_ = Matrix<double>(harmonic_charges_.size(), charge_range, .0);
@@ -991,9 +991,10 @@ namespace OpenMS
 
       if (is_isotope_decoy)
       {
-        //if (std::abs(prev_peak_group.getIsotopeCosine() - peak_group.getIsotopeCosine()) > .05) continue;
-        if (prev_peak_group.getIsotopeCosine() <= peak_group.getIsotopeCosine()) continue;
-        if (prev_peak_group.getIsotopeCosine() * (1 - .01)  > peak_group.getIsotopeCosine()) continue;
+        int iso_diff = (int)std::round(std::abs(prev_peak_group.getMonoMass() - peak_group.getMonoMass()));
+        if (std::abs(prev_peak_group.getIsotopeCosine() - peak_group.getIsotopeCosine()) > .003 * iso_diff) continue;
+       // if (prev_peak_group.getQscore2D() > peak_group.getQscore2D()) continue;
+       // if (prev_peak_group.getIsotopeCosine() * (1 - .01)  > peak_group.getIsotopeCosine()) continue;
       }
 
       if (! target_mono_masses_.empty())
@@ -1041,10 +1042,10 @@ namespace OpenMS
       index = selected.find_next(index);
     }
 
-    if (target_decoy_type_ == PeakGroup::TargetDecoyType::charge_decoy)
-    {
-      filtered_peak_groups.insert(filtered_peak_groups.end(), target_dspec_for_decoy_calculation_->begin(), target_dspec_for_decoy_calculation_->end());
-    }
+    //if (target_decoy_type_ == PeakGroup::TargetDecoyType::charge_decoy)
+    //{
+    //  filtered_peak_groups.insert(filtered_peak_groups.end(), target_dspec_for_decoy_calculation_->begin(), target_dspec_for_decoy_calculation_->end());
+    // }
     deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
     deconvolved_spectrum_.sort();
 

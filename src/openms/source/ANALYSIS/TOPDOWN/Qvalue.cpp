@@ -39,12 +39,13 @@ namespace OpenMS
 
     for (auto& deconvolved_spectrum : deconvolved_spectra)
     {
-      if (deconvolved_spectrum.empty() || deconvolved_spectrum.isDecoy())
+      if (deconvolved_spectrum.empty())
         continue;
 
       uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       for (auto& pg : deconvolved_spectrum)
       {
+        if (pg.getTargetDecoyType() != PeakGroup::TargetDecoyType::target) continue;
         if (pg.getFeatureIndex() > 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
           continue;
         used_feature_indices.insert(pg.getFeatureIndex());
@@ -54,12 +55,13 @@ namespace OpenMS
 
     for (auto& decoy_deconvolved_spectrum : deconvolved_spectra)
     {
-      if (decoy_deconvolved_spectrum.empty() || !decoy_deconvolved_spectrum.isDecoy())
+      if (decoy_deconvolved_spectrum.empty())
         continue;
 
       uint ms_level = decoy_deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       for (auto& pg : decoy_deconvolved_spectrum)
       {
+        if (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::target) continue;
         if (pg.getFeatureIndex() > 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
           continue;
         used_feature_indices.insert(pg.getFeatureIndex());

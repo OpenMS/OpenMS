@@ -370,8 +370,8 @@ namespace OpenMS
   {
     if (empty())
       return false;
-    if (peak_groups_[0].getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
-      return true;
+    //if (peak_groups_[0].getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
+    //  return true;
     if (!precursor_peak_group_.empty() && precursor_peak_group_.getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
       return true;
     return false;

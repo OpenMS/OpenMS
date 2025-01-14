@@ -24,6 +24,7 @@ namespace OpenMS
   void FLASHDeconvSpectrumFile::writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, std::fstream& fs, const String& file_name, const FLASHHelperClasses::PrecalculatedAveragine& avg, const FLASHHelperClasses::PrecalculatedAveragine& decoy_avg, double tol,
                                                        const bool write_detail, const bool report_decoy, const double noise_decoy_weight)
   {
+    if (!report_decoy && dspec.isDecoy()) return;
     static std::vector<uint> indices {};
     std::stringstream ss;
     if (dspec.empty())
@@ -62,6 +63,7 @@ namespace OpenMS
     for (int i = 0; i < dspec.size(); i++)
     {
       auto& pg = dspec[i];
+      if (!report_decoy && pg.getTargetDecoyType() != PeakGroup::TargetDecoyType::target) continue;
 
       if (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::noise_decoy)
       {
@@ -329,7 +331,7 @@ namespace OpenMS
     bool begin = true;
     for (auto& dspec : deconvolved_spectra)
     {
-      if (dspec.getOriginalSpectrum().getMSLevel() == 1)
+      if (dspec.isDecoy() || dspec.getOriginalSpectrum().getMSLevel() == 1)
         continue;
       if (dspec.getPrecursorPeakGroup().empty())
         continue;
@@ -406,6 +408,7 @@ namespace OpenMS
 
     for (auto & deconvolved_spectrum : deconvolved_spectra)
     {
+      if (deconvolved_spectrum.isDecoy()) continue;
       auto deconvolved_mzML = deconvolved_spectrum.toSpectrum(mzml_charge, tols[deconvolved_spectrum.getOriginalSpectrum().getMSLevel() - 1], false);
       if (!deconvolved_mzML_file.empty())
       {
@@ -421,7 +424,7 @@ namespace OpenMS
 
         for (auto& pg : deconvolved_spectrum)
         {
-          if (pg.empty())
+          if (pg.empty() || pg.getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
           {
             continue;
           }
@@ -454,6 +457,7 @@ namespace OpenMS
           }
           val << ";";
         }
+        if (anno_spec.empty()) continue;
         anno_spec.setMetaValue("DeconvMassPeakIndices", val.str());
         annotated_map.addSpectrum(anno_spec);
       }
@@ -505,7 +509,7 @@ namespace OpenMS
     ss << "BEGIN IONS\n"
        << "FILE_NAME=" << filename << "\n"
        << "SPECTRUM_ID=" << dspec.getScanNumber() - 1 << "\n"
-       << "TITLE=" << "Scan_" << dspec.getScanNumber() << "\n"
+       << "TITLE=" << (dspec.isDecoy()? "DScan_" : "Scan_") << dspec.getScanNumber() << "\n"
        //<< "NATIVE_ID=" << dspec.getOriginalSpectrum().getNativeID() << "\n"
        //<< "FRACTION_ID=" << 0 << "\n"
        << "SCANS=" << dspec.getScanNumber() << "\n"
@@ -553,7 +557,7 @@ namespace OpenMS
     int size = 0;
     for (auto& pg : dspec)
     {
-      if (pg.getQscore2D() < qscore_threshold)
+      if (pg.getQscore2D() < qscore_threshold || pg.getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
       {
         continue;
       }

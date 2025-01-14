@@ -298,7 +298,7 @@ namespace OpenMS
         }
       }
 
-        // run Spectral deconvolution
+      // run Spectral deconvolution
       for (Size index = 0; index < map.size(); index++)
       {
         int scan_number = rt_scan_map.find(map[index].getRT()) == rt_scan_map.end()? getScanNumber(map, index) : rt_scan_map[map[index].getRT()];//getScanNumber(map, index);
@@ -309,7 +309,7 @@ namespace OpenMS
         if (spec.empty()) { continue; }
         String native_id = spec.getNativeID();
 
-        PeakGroup precursor_pg; // TODO implement decoy precursor peak group
+        PeakGroup precursor_pg;
         if (native_id_precursor_peak_group_map_.find(native_id) != native_id_precursor_peak_group_map_.end())
           precursor_pg = native_id_precursor_peak_group_map_[native_id];
 
@@ -331,28 +331,26 @@ namespace OpenMS
   #pragma omp section
             sd_isotope_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
           }
-          DeconvolvedSpectrum decoy_deconvolved_spectrum(scan_number);
+         // DeconvolvedSpectrum decoy_deconvolved_spectrum(scan_number);
 
           deconvolved_spectrum.sortByQscore();
           double qscore_threshold_for_decoy = deconvolved_spectrum.back().getQscore2D();
 
-          decoy_deconvolved_spectrum.setOriginalSpectrum(spec);
-          decoy_deconvolved_spectrum.reserve(sd_isotope_decoy_.getDeconvolvedSpectrum().size() + sd_charge_decoy_.getDeconvolvedSpectrum().size()
+          //decoy_deconvolved_spectrum.setOriginalSpectrum(spec);
+          deconvolved_spectrum.reserve(deconvolved_spectrum.size() + sd_isotope_decoy_.getDeconvolvedSpectrum().size() + sd_charge_decoy_.getDeconvolvedSpectrum().size()
                                              + sd_noise_decoy_.getDeconvolvedSpectrum().size());
 
           for (auto& pg : sd_charge_decoy_.getDeconvolvedSpectrum())
-            if (pg.getQscore2D() >= qscore_threshold_for_decoy) decoy_deconvolved_spectrum.push_back(pg);
+            if (pg.getQscore2D() >= qscore_threshold_for_decoy) deconvolved_spectrum.push_back(pg);
 
           for (auto& pg : sd_isotope_decoy_.getDeconvolvedSpectrum())
-            if (pg.getQscore2D() >= qscore_threshold_for_decoy) decoy_deconvolved_spectrum.push_back(pg);
+            if (pg.getQscore2D() >= qscore_threshold_for_decoy) deconvolved_spectrum.push_back(pg);
 
           for (auto& pg : sd_noise_decoy_.getDeconvolvedSpectrum())
-            if (pg.getQscore2D() >= qscore_threshold_for_decoy) decoy_deconvolved_spectrum.push_back(pg);
+            if (pg.getQscore2D() >= qscore_threshold_for_decoy) deconvolved_spectrum.push_back(pg);
 
-          decoy_deconvolved_spectrum.sort();
           deconvolved_spectrum.sort();
-
-          if (!decoy_deconvolved_spectrum.empty()) deconvolved_spectra.push_back(decoy_deconvolved_spectrum);
+          //if (!decoy_deconvolved_spectrum.empty()) deconvolved_spectra.push_back(decoy_deconvolved_spectrum);
         }
 
         deconvolved_spectra.push_back(deconvolved_spectrum);
@@ -659,10 +657,10 @@ namespace OpenMS
 
       std::vector<DeconvolvedSpectrum> survey_scans;
 
-      // exclude decoy ones and cv mismatches
+      // cv mismatches
       while (diter < deconvolved_spectra.end() && diter <= aiter)
       {
-        if ((diter->getOriginalSpectrum().getMSLevel() == ms_level - 1) && (! diter->isDecoy()) && (std::abs(diter->getCV() - cv) < 1e-5)) { survey_scans.push_back(*diter); }
+        if ((diter->getOriginalSpectrum().getMSLevel() == ms_level - 1) && (std::abs(diter->getCV() - cv) < 1e-5)) { survey_scans.push_back(*diter); }
         diter++;
       }
       // register the best precursor, starting from the most recent one. Out of the masses in a single scan, use the max SNR one.
