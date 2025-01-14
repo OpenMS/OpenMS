@@ -368,7 +368,7 @@ protected:
         uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
         if (out_spec_file[ms_level - 1].empty()) continue;
         FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), fd.getDecoyAveragine(),
-                                                        tols[ms_level - 1], write_detail, report_decoy, 1.0);
+                                                        tols[ms_level - 1], write_detail, report_decoy, fd.getNoiseDecoyWeight());
 #ifdef TRAIN_OUT
         Qscore::writeAttCsvForQscoreTraining(deconvolved_spectrum, out_train_streams[ms_level - 1]);
 #endif
