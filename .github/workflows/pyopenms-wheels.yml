@@ -112,7 +112,7 @@ jobs:
           PATH=$RESET_PATH
 
           # create and activate conda environment
-          py=$(echo "$py" | tr -d " \n")
+          py=$(echo "$py" | tr -d " \r\n")
           pynodot=$(echo "$py" | tr -d ".")
           conda create -n pyoms-bld-"${pynodot}" python="${py}"
           source activate pyoms-bld-"${pynodot}"
@@ -513,7 +513,7 @@ jobs:
 
   build-lnx:
     runs-on: [ubuntu-latest]
-    container: ghcr.io/openms/contrib_manylinux_2_28:latest
+    container: ghcr.io/openms/contrib_manylinux_2_28:3.3.0
 
     steps:
     # Cancels older builds if still running
@@ -690,7 +690,7 @@ jobs:
         echo $PYTHON_VERSIONS
 
         for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
-          py=$(echo "$py" | tr -d " \n")
+          py=$(echo "$py" | tr -d " \r\n")
           pynodot=$(echo "$py" | tr -d ".")
           conda create -n pyoms-bld-$pynodot python=$py
           source activate pyoms-bld-$pynodot
