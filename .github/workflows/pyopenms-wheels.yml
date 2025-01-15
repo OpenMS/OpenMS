@@ -103,7 +103,7 @@ jobs:
         # We will store the PATH variable in the beginning and reset it with every iteration.
         RESET_PATH=$PATH
 
-        for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
+        for py in $(echo -n "${PYTHON_VERSIONS}" | jq -r '.[]'); do
 
           # clean previous pyopenms libs
           find . -name "_pyopenms*.pyd" -exec rm -rf {} \;
