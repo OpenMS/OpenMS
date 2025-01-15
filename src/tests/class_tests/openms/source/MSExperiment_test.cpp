@@ -544,7 +544,7 @@ START_SECTION((virtual void updateRanges()))
     TEST_REAL_SIMILAR(tmp.getRange().getMaxMobility(), 99)
     TEST_EQUAL(tmp.getMSLevels().size(),1)
     TEST_EQUAL(tmp.getMSLevels()[0],1)
-    TEST_EQUAL(tmp.getSize(),2)
+    TEST_EQUAL(tmp.getSize(),4)
     tmp.updateRanges(1);
   }
 
