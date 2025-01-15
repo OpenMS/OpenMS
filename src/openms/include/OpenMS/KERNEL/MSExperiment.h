@@ -1071,7 +1071,6 @@ std::vector<MSChromatogram> extractXICs(
     /**
       @brief Updates the m/z, intensity, and retention time ranges of all spectra with a certain ms level
       
-      To update MS levels, use updateRanges() without parameters instead.
 
       @param ms_level MS level to consider for m/z range, RT range and intensity range (All MS levels if negative)
     */
