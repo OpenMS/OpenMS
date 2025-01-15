@@ -1071,7 +1071,6 @@ std::vector<MSChromatogram> extractXICs(
     /**
       @brief Updates the m/z, intensity, and retention time ranges of all spectra with a certain ms level
       
-      @note This method does not modify the set of MS levels (ms_levels_) stored in the experiment.
       To update MS levels, use updateRanges() without parameters instead.
 
       @param ms_level MS level to consider for m/z range, RT range and intensity range (All MS levels if negative)
@@ -1081,7 +1080,7 @@ std::vector<MSChromatogram> extractXICs(
     /// returns the total number of peaks (spectra and chromatograms included)
     UInt64 getSize() const;
 
-    /// returns an array of MS levels (calculated on demand)
+    /// returns a sorted array of MS levels (calculated on demand)
     std::vector<UInt> getMSLevels() const;
 
     ///@}
