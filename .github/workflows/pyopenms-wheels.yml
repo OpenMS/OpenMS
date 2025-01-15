@@ -111,7 +111,7 @@ jobs:
           PATH=$RESET_PATH
 
           # create and activate conda environment
-          py=$(echo "$py" | tr -d " \n")
+          py=$(echo "$py" | tr -d " \r\n")
           pynodot=$(echo "$py" | tr -d ".")
           conda create -n pyoms-bld-"${pynodot}" python="${py}"
           source activate pyoms-bld-"${pynodot}"
