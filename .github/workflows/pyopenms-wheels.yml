@@ -702,7 +702,7 @@ jobs:
         echo $PYTHON_VERSIONS
 
         for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
-          py=$(echo "$py" | tr -d " \n")
+          py=$(echo "$py" | tr -d " \r\n")
           pynodot=$(echo "$py" | tr -d ".")
           conda create -n pyoms-bld-$pynodot python=$py
           source activate pyoms-bld-$pynodot
