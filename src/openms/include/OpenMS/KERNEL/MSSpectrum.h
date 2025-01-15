@@ -136,6 +136,7 @@ public:
     using ContainerType::erase;
     using ContainerType::swap;
     using ContainerType::data;
+    using ContainerType::shrink_to_fit;
 
     using typename ContainerType::iterator;
     using typename ContainerType::const_iterator;

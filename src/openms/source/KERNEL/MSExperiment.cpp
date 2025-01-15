@@ -24,8 +24,7 @@ namespace OpenMS
   MSExperiment::MSExperiment() :
     RangeManagerContainerType(),
     ExperimentalSettings(),
-    ms_levels_(),
-    total_size_(0)
+    ms_levels_()
   {}
 
   /// Copy constructor
@@ -42,7 +41,6 @@ namespace OpenMS
     ExperimentalSettings::operator=(source);
 
     ms_levels_ = source.ms_levels_;
-    total_size_ = source.total_size_;
     chromatograms_ = source.chromatograms_;
     spectra_ = source.spectra_;
 
@@ -237,8 +235,6 @@ namespace OpenMS
 
     // reset mz/rt/int range
     this->clearRanges();
-    // reset point count
-    total_size_ = 0;
 
     // empty
     if (spectra_.empty() && chromatograms_.empty())
@@ -256,9 +252,6 @@ namespace OpenMS
         {
           ms_levels_.push_back(it->getMSLevel());
         }
-
-        // calculate size
-        total_size_ += it->size();
 
         // ranges
         this->extendRT(it->getRT()); // RT
@@ -297,8 +290,6 @@ namespace OpenMS
         continue;
       }
 
-      total_size_ += cp.size();
-
       // ranges
       this->extendMZ(cp.getMZ());// MZ
       this->extend(cp);// RT and intensity from chroms's range
@@ -307,8 +298,11 @@ namespace OpenMS
 
   /// returns the total number of peaks
   UInt64 MSExperiment::getSize() const
-  {
-    return total_size_;
+  {    
+    Size total_size{};
+    for (const auto& spec : spectra_) total_size += spec.size(); // sum up all peaks in all spectra
+    for (const auto& chrom : chromatograms_) total_size += chrom.size(); // sum up all peaks in all chromatograms
+    return total_size;
   }
 
   /// returns an array of MS levels
@@ -622,7 +616,6 @@ namespace OpenMS
 
     //swap remaining members
     ms_levels_.swap(from.ms_levels_);
-    std::swap(total_size_, from.total_size_);
   }
 
   /// sets the spectrum list
@@ -813,7 +806,6 @@ namespace OpenMS
       this->ExperimentalSettings::operator=(ExperimentalSettings());             // no "clear" method
       chromatograms_.clear();
       ms_levels_.clear();
-      total_size_ = 0;
     }
   }
 
