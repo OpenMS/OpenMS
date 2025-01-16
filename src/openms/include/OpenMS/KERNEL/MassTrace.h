@@ -228,7 +228,7 @@ public:
     /// Sum all non-negative (smoothed!) intensities in the mass trace
     double computeSmoothedPeakArea() const;
 
-    /// Area all peak intensities in the mass trace
+    /// Compute area of peaks in the mass trace
     double computePeakArea() const;
 
     /// Sum all peak intensities in the mass trace

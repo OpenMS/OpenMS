@@ -100,8 +100,7 @@ namespace OpenMS
     {
       return std::accumulate(trace_peaks_.begin(), trace_peaks_.end(), 0.0, 
         [](double sum, const Peak2D& peak) { return sum + peak.getIntensity(); });
-    }
-
+    }    
 
     Size MassTrace::findMaxByIntPeak(bool use_smoothed_ints) const
     {
