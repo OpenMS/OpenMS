@@ -106,7 +106,6 @@
   - @subpage TOPP_SimpleSearchEngine - A simple database search engine for annotating MS/MS spectra.
   - @subpage TOPP_SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
   - @subpage TOPP_SpectraSTSearchAdapter - An interface to the 'SEARCH' mode of the SpectraST program (external, beta).
-  - @subpage TOPP_XTandemAdapter - Identifies MS/MS spectra using XTandem (external).
 
 
   <b>Identification Processing</b>
