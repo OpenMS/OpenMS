@@ -459,7 +459,7 @@ jobs:
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-class-topp-${{ github.run_number }}"
           SIGNING_IDENTITY: "Apple Development: Samuel Wein (B26WBF742H)"
           SIGNING_EMAIL: "apple@openms.de"
-          CPACK_PKGBUILD_IDENTITY_NAME: "Developer ID Installer: OpenMS Inc. (C64UCGJ5PL)"
+          CPACK_PRODUCTBUILD_IDENTITY_NAME: "Developer ID Installer: OpenMS Inc. (C64UCGJ5PL)"
 
     # WARNING: Here you have to make sure that only one matrix configuration per OS produces packages. See set-vars steps.
     - name: Upload packages as artifacts
