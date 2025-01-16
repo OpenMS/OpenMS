@@ -325,7 +325,7 @@ START_SECTION((double getCentroidRT() const ))
 {
   MassTrace test_mt_const(test_mt);
   double test_mt_cent_rt = test_mt_const.getCentroidRT();
-  TEST_REAL_SIMILAR(test_mt_cent_rt, 155.319906426507);
+  TEST_REAL_SIMILAR(test_mt_cent_rt, 155.214671250425);
 }
 END_SECTION
 
@@ -726,7 +726,7 @@ START_SECTION((void updateWeightedMeanRT()))
   TEST_EXCEPTION(Exception::InvalidValue, empty_trace.updateWeightedMeanRT());
 
   test_mt.updateWeightedMeanRT();
-  TEST_REAL_SIMILAR(test_mt.getCentroidRT(), 155.319906426507);
+  TEST_REAL_SIMILAR(test_mt.getCentroidRT(), 155.214671250425);
 }
 END_SECTION
 
@@ -797,6 +797,20 @@ START_SECTION((void updateSmoothedWeightedMeanRT()))
     test_mt.updateSmoothedWeightedMeanRT();
     double smooth_max_rt = test_mt.getCentroidRT();
     TEST_REAL_SIMILAR(smooth_max_rt, 155.2468039);
+}
+END_SECTION
+
+/////
+
+START_SECTION((double computeIntensitySum() const))
+{
+    // Test empty trace
+    MassTrace empty_trace;
+    TEST_REAL_SIMILAR(empty_trace.computeIntensitySum(), 0.0);
+
+    // Test with known data
+    // Sum should be: 542.0 + 542293.0 + 18282393.0 + 33329535.0 + 17342933.0 + 333291.0 + 339.0
+    TEST_REAL_SIMILAR(test_mt.computeIntensitySum(), 69831326.0);
 }
 END_SECTION
 

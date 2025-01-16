@@ -86,10 +86,7 @@ public:
           }
 
           // new spec contains one peak, with product m/z and intensity
-          typename ExperimentType::PeakType peak;
-          peak.setMZ(it->getMZ());
-          peak.setIntensity(pit->getIntensity());
-          spec.push_back(peak);
+          spec.emplace_back(it->getMZ(), pit->getIntensity());
           exp.addSpectrum(spec);
         }
       }

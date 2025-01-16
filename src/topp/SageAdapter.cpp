@@ -991,6 +991,11 @@ protected:
     std::cout << sage_executable << " sage executable" << std::endl; 
     String proc_stdout, proc_stderr;
     TOPPBase::ExitCodes exit_code = runExternalProcess_(sage_executable.toQString(), QStringList() << "--help", proc_stdout, proc_stderr, "");
+    if (exit_code != EXECUTION_OK)
+    {
+      return exit_code;
+    }
+
     auto major_minor_patch = getVersionNumber_(proc_stdout);
     String sage_version = std::get<0>(major_minor_patch) + "." + std::get<1>(major_minor_patch) + "." + std::get<2>(major_minor_patch);
     
@@ -1044,32 +1049,24 @@ protected:
               << "--write-pin"; 
   }
 
-    if (batch >= 1) arguments << "--batch-size" << QString(batch);
+    if (batch >= 1) arguments << "--batch-size" << String(batch).toQString();
+    
     for (auto s : input_files) arguments << s.toQString();
 
     OPENMS_LOG_INFO << "Sage command line: " << sage_executable << " " << arguments.join(' ').toStdString() << std::endl;
     
     //std::chrono lines for testing/writing purposes only! 
 
-    #ifdef CHRONOSET
-      std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-      // Sage execution with the executable and the arguments StringList
-      exit_code = runExternalProcess_(sage_executable.toQString(), arguments);
-      std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-      std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "[s]" << std::endl;
-    #endif
-
-    #ifndef CHRONOSET
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     // Sage execution with the executable and the arguments StringList
-      exit_code = runExternalProcess_(sage_executable.toQString(), arguments);
+    exit_code = runExternalProcess_(sage_executable.toQString(), arguments);
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    #ifdef CHRONOSET
+    std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "[s]" << std::endl;
     #endif
-    
-
-    
 
     if (exit_code != EXECUTION_OK)
     {
-      std::cout << "Sage executable not found" << std::endl; 
       return exit_code;
     }
 
@@ -1159,8 +1156,8 @@ protected:
     search_parameters.fixed_modifications = getStringList_("fixed_modifications");
     search_parameters.variable_modifications = getStringList_("variable_modifications");
     search_parameters.missed_cleavages = getIntOption_("missed_cleavages");
-    search_parameters.fragment_mass_tolerance = (getDoubleOption_("fragment_tol_left") + getDoubleOption_("fragment_tol_right")) * 0.5;
-    search_parameters.precursor_mass_tolerance = (getDoubleOption_("precursor_tol_left") + getDoubleOption_("precursor_tol_right")) * 0.5;
+    search_parameters.fragment_mass_tolerance = (std::fabs(getDoubleOption_("fragment_tol_left")) + std::fabs(getDoubleOption_("fragment_tol_right"))) * 0.5;
+    search_parameters.precursor_mass_tolerance = (std::fabs(getDoubleOption_("precursor_tol_left")) + std::fabs(getDoubleOption_("precursor_tol_right"))) * 0.5;
     search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_tol_unit") == "ppm";
     search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment_tol_unit") == "ppm";
 

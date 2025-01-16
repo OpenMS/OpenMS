@@ -109,9 +109,12 @@ namespace OpenMS
         QString new_file = full_dir.toQString() + QDir::separator() + File::basename(f).toQString();
 
         // remove "_tmp<number>" if its a suffix
-        QRegExp rx("_tmp\\d+$");
-        int tmp_index = rx.indexIn(new_file);
-        if (tmp_index != -1) { new_file = new_file.left(tmp_index); }
+        QRegularExpression rx("_tmp\\d+$");
+        int tmp_index = new_file.indexOf(rx);
+        if (tmp_index != -1)
+        {
+          new_file = new_file.left(tmp_index);
+        }
 
         // get file type and rename
         FileTypes::Type ft = FileTypes::UNKNOWN;

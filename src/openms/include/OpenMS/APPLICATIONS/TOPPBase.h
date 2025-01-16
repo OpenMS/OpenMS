@@ -24,7 +24,7 @@
 
 #include <QtCore/QString>
 
-class QStringList;
+#include <QtCore/qcontainerfwd.h> // for QStringList
 
 namespace OpenMS
 {
@@ -144,7 +144,8 @@ public:
       PARSE_ERROR,
       INCOMPATIBLE_INPUT_DATA,
       INTERNAL_ERROR,
-      UNEXPECTED_RESULT
+      UNEXPECTED_RESULT,
+      EXTERNAL_PROGRAM_NOTFOUND ///< external program, e.g. comet.exe not found
     };
 
 

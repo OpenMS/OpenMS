@@ -49,7 +49,7 @@
   <ul>
     <li>
       Essential are \b gcc/g++ (>= 7.0) or similar ANSI C++ compiler with full C++17 support,
-      \b CMake (>= 3.24), \b Qt5 (>= 5.6), \b patch, \b autoconf (> 2.60), \b automake (> 1.9), \b libtool (libtoolize/glibtoolize).
+      \b CMake (>= 3.24), \b Qt 6 (>= 6.2), \b patch, \b autoconf (> 2.60), \b automake (> 1.9), \b libtool (libtoolize/glibtoolize).
     </li>
     <li>
       For the complete feature set to be enabled, %OpenMS needs recent versions of
@@ -82,7 +82,7 @@
     # Update repo list for the thirdparty repository EPEL
     sudo yum repolist
     # Get REQUIRED installable contrib libraries
-    sudo yum install cmake3 qt5-qtbase-gui qt5-qtbase-devel qt5-qtsvg-devel python-devel
+    sudo yum install cmake3 qt6-qtbase-gui qt6-qtbase-devel qt6-qtsvg-devel python-devel
     # Get OPTIONAL installable contrib libraries preferably from our Contrib package in the next step.
     ## sudo yum install boost-devel libsvm-devel libzip-devel zlib-devel xerces-c-devel bzip2-devel libhdf5-devel glpk-devel
     # NOTE that you might need to use cmake3 instead of cmake in the commands of the following steps.
@@ -96,20 +96,20 @@
       # tools
       sudo zypper install cmake gcc-c++ autoconf git patch automake libtool
       # REQUIRED dependencies
-      sudo zypper install libqt5-qtbase-devel libqt5-qtsvg-devel python-devel glpk-devel
+      sudo zypper install libqt6-qtbase-devel libqt6-qtsvg-devel python-devel glpk-devel
       # OPTIONAL dependencies, preferably installed with our Contrib package in the next step
       ## sudo zypper install boost-devel libzip-devel zlib-devel \
       # libxerces-c-devel libbz2-devel libsvm-devel libhdf5-10
       </pre></td>
   </tr>
   <tr>
-      <td><B>Ubuntu/Debian <br/>(>= 20.04)</B></td>
+      <td><B>Ubuntu/Debian <br/>(>= 22.04)</B></td>
       <td><pre>
     # Include the Ubuntu "universe" repository and update:
     sudo add-apt-repository universe
     sudo apt update
     sudo apt-get install build-essential cmake autoconf patch libtool git automake
-    sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
+    sudo apt-get install qt6-base-dev libqt6svg6-dev
     sudo apt-get install libeigen3-dev libboost-random-dev libboost-regex-dev \
       libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libxerces-c-dev \
       zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
@@ -180,13 +180,28 @@
   \endcode
 
   Alternatively, you can build one package after the other by providing
-  <tt>-DBUILD_TYPE=...</tt> with the appropriate argument. In addition, you
-  may have to compile Qt yourself which you can get from <a
+  <tt>-DBUILD_TYPE=...</tt> with the appropriate argument. 
+  
+  
+  In addition, you may have to compile Qt yourself which you can get from <a
   href="http://download.qt.io/official_releases/qt">http://download.qt.io/official_releases/qt</a>
-  (use version >5.5), if it is not provided on your server or the version on
-  your environment is too old. Then you can use the traditional
-  <tt>./configure --prefix=/path && make && make install</tt> sequence to compile
-  and install Qt (note that you should set the <tt>--prefix=/path</tt> to a local directory assuming
+  (use version >6.2), if it is not provided on your server or the version on
+  your environment is too old. 
+  
+  @note Anaconda packages (especially related to ICU) can cause compile errors due to missing symbols.
+  Deactivate conda environments before compiling.
+  
+  To compile use the traditional:
+  
+  @code
+  tar xvf qt-everywhere-src-6.5.3.tar.xz
+  cd qt-everywhere-src-6.5.3
+  ./configure --prefix=.   -skip qtdoc -skip qttranslations -skip qttools
+  cmake --build . --parallel
+  cmake --install .
+  @endcode
+  
+  to compile and install Qt (note that you should set the <tt>--prefix=/path</tt> to a local directory assuming
   you don't have root privileges).
 
 
@@ -223,14 +238,19 @@
   \endcode
   to the CMake options.
 
-  If CMake has problems finding Qt5 (Qt5SvgConfig.cmake is usually the first to fail), you might consider adding:
+  If CMake has problems finding Qt6, you might consider adding:
   \code
-  -DQt5_DIR=/PATH/TO/qt/5.9.7/gcc_64/lib/cmake/Qt5
+  -D Qt6_DIR=/PATH/TO/qt/lib/cmake/Qt6/
   \endcode
-  to the CMake options, where <tt>/PATH/TO/qt/5.9.7/gcc_64</tt> depends on your system settings and Qt version.
+  to the CMake options, where <tt>/PATH/TO/qt/lib/cmake/Qt6/</tt> depends on your system settings and Qt version.
 
-  When configuring %OpenMS, consider setting <tt>WITH_GUI=Off</tt> and
-  <tt>HAS_XSERVER=Off</tt>, especially as you may not have compiled Qt with
+  A full configure step might look like this:
+  \code
+  cmake -DCMAKE_BUILD_TYPE=Release -DOPENMS_CONTRIB_LIBS="/PATH/TO/contrib-build" -DBOOST_USE_STATIC=ON -DQt6_DIR="/PATH/TO/qt/lib/cmake/Qt6" ../openms
+  \endcode
+
+  When configuring %OpenMS using CMake, consider setting <tt>-D WITH_GUI=Off</tt> and
+  <tt>-D HAS_XSERVER=Off</tt>, especially as you may not have compiled Qt with
   OpenGL and you may not have an X server.
 
   \include{doc} "../doxygen/install/common-cmake-parameters.doxygen"
@@ -244,17 +264,19 @@
   This works only after having executed <tt>cmake</tt> once (see @ref install_linux_openms)
 
   In order to <i>build</i> the %OpenMS library, the TOPP tools, tests, and this
-  documentation, execute the following command:
+  documentation, execute the following command (for Makefile generator, which is the default in CMake):
 
   \code
   make
   \endcode
+  
 
   Advanced users can list the separate make targets by calling:
   \code
   make targets
   \endcode
 
+  @note If you use another generator, such as Ninja (`cmake -G Ninja ...`), then swap `make` for the new command, such as `ninja`.
 
   @subsection linux_openms_environment Getting your environment ready to use OpenMS
 
@@ -300,6 +322,21 @@
     \endcode
     If you want to enable the corresponding tests in CMake, this has to happen <b>before</b> you configure and build the
     project.
+
+  When running OpenMS executables or building the documentation, it may happen that Qt will cause problems and bail out with
+  error messages such as:
+  ```
+qt.qpa.plugin: Could not find the Qt platform plugin "xcb" in ""
+This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
+
+Available platform plugins are: linuxfb, wayland, minimalegl, vnc, minimal, wayland-egl, eglfs, vkkhrdisplay.
+  ```
+  
+  To fix, you can try to set the environment variable `QT_QPA_PLATFORM` to another plugin, such as
+  ```
+  export QT_QPA_PLATFORM=minimal
+  ```
+  and re-run the application.
 
   @section running_linux_openms Running OpenMS
   If the build from @ref install_linux_openms is ready, you can now run a

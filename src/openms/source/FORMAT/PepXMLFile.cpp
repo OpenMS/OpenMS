@@ -1092,6 +1092,7 @@ namespace OpenMS
 
     if (element == "msms_run_summary") // parent: "msms_pipeline_analysis"
     {
+      String ms_run_path;
       if (!exp_name_.empty())
       {
         String base_name = attributeAsString_(attributes, "base_name");
@@ -1108,6 +1109,11 @@ namespace OpenMS
           wrong_experiment_ = false;
           checked_base_name_ = false;
         }
+        String raw_data = attributeAsString_(attributes, "raw_data");
+        if (!base_name.empty() && !raw_data.empty())
+        {
+          ms_run_path = base_name + "." + raw_data;
+        }
       }
       if (wrong_experiment_) return;
 
@@ -1119,6 +1125,10 @@ namespace OpenMS
       // "prot_id_" will be overwritten if elem. "search_summary" is present
       protein.setIdentifier(prot_id_);
       proteins_->push_back(protein);
+      if (!ms_run_path.empty())
+      {
+        protein.setPrimaryMSRunPath(StringList(1, ms_run_path));
+      }
       current_proteins_.clear();
       current_proteins_.push_back(--proteins_->end());
     }
@@ -1902,6 +1912,9 @@ namespace OpenMS
     else if (element == "sample_enzyme") // parent: "msms_run_summary"
     { // special case: search parameter that occurs *before* "search_summary"!
       enzyme_ = attributeAsString_(attributes, "name");
+
+      if (enzyme_ == "stricttrypsin") enzyme_ = "Trypsin/P"; // MSFragger synonyme
+
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme_.toLower()))
       {
         params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
@@ -1921,7 +1934,9 @@ namespace OpenMS
       //TODO we should not overwrite the enzyme here! Luckily in most files it is the same
       // enzyme as in sample_enzyme or something useless like "default".
       ///<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
-      enzyme_ = attributeAsString_(attributes, "enzyme");
+      enzyme_ = attributeAsString_(attributes, "enzyme");    
+      if (enzyme_ == "stricttrypsin") enzyme_ = "Trypsin/P"; // MSFragger synonyme
+
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
       {
         DigestionEnzymeProtein enzyme_to_set = *(ProteaseDB::getInstance()->getEnzyme(enzyme_.toLower()));

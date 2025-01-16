@@ -31,7 +31,6 @@ set(sources_list_h
   OpenSwathWorkflow.h
   PeakIntegrator.h
   PeakPickerChromatogram.h
-  SONARScoring.h
   SwathMapMassCorrection.h
   SwathWindowLoader.h
   SwathQC.h

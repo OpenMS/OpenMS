@@ -92,7 +92,7 @@ public:
 
         AASequence constant iterator
     */
-    class OPENMS_DLLAPI ConstIterator
+    class OPENMS_DLLAPI ConstIterator final
     {
     public:
       // TODO Iterator constructor for ConstIterator
@@ -129,7 +129,7 @@ public:
       }
 
       /// destructor
-      virtual ~ConstIterator() = default;
+      ~ConstIterator() = default;
 
       //@}
 
@@ -210,7 +210,7 @@ protected:
 
         Mutable iterator for AASequence
     */
-    class OPENMS_DLLAPI Iterator
+    class OPENMS_DLLAPI Iterator final
     {
 public:
 
@@ -239,7 +239,7 @@ public:
       Iterator(const Iterator& rhs) = default;
 
       /// destructor
-      virtual ~Iterator() = default;
+      ~Iterator() = default;
 
       //@}
 
@@ -340,17 +340,17 @@ protected:
     AASequence(const AASequence&) = default;
 
     /// Move constructor
-    AASequence(AASequence&&) noexcept = default;
+    AASequence(AASequence&&) = default;
 
     /// Destructor
-    virtual ~AASequence() = default;
+    ~AASequence() = default;
     //@}
 
     /// Assignment operator
     AASequence& operator=(const AASequence&) = default;
 
     /// Move assignment operator
-    AASequence& operator=(AASequence&&) noexcept = default;
+    AASequence& operator=(AASequence&&) = default;
 
     /// check if sequence is empty
     bool empty() const;

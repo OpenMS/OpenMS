@@ -6,9 +6,9 @@
 // $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 #include <OpenMS/config.h>
 
 #ifdef OPENMS_HAS_COINOR  // only include COINOR if we actually use it...
@@ -18,6 +18,12 @@
   #else
   #pragma GCC diagnostic ignored "-Wunused-parameter"
   #endif
+
+  // CoinModel.h uses 'register' as decorator, e.g. 'register int x;' which is deprecated in C++17,
+  // and causes compile errors in MSVC when /permissive- is enabled (which Qt6 adds indirectly)
+  // (patching contrib is not an option, since coin may be fetched from other sources on Linux)
+  // Hack: Undefine 'register' to avoid this issue 
+  #define register 
 
   #ifdef OPENMS_HAS_COIN_INCLUDE_SUBDIR_IS_COIN
     #include "coin/CoinModel.hpp"
@@ -42,6 +48,8 @@
     #include "coin-or/CglClique.hpp"
     #include "coin-or/CglMixedIntegerRounding.hpp"
   #endif
+  #undef register // undo hack
+
   #ifdef _MSC_VER
   #pragma warning( pop ) // restore old warning state
   #else

@@ -492,7 +492,7 @@ public:
     {
       for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
       {
-        DriftTimeUnit unit;
+        DriftTimeUnit unit = DriftTimeUnit::NONE;
         std::vector<float> im;
         float t = -1.0;
         if (it.getRT() != t)
@@ -1069,17 +1069,18 @@ std::vector<MSChromatogram> extractXICs(
     void updateRanges() override;
 
     /**
-      @brief Updates the m/z, intensity, retention time and MS level ranges of all spectra with a certain ms level
+      @brief Updates the m/z, intensity, and retention time ranges of all spectra with a certain ms level
+      
 
-      @param ms_level MS level to consider for m/z range , RT range and intensity range (All MS levels if negative)
+      @param ms_level MS level to consider for m/z range, RT range and intensity range (All MS levels if negative)
     */
     void updateRanges(Int ms_level);
 
-    /// returns the total number of peaks
+    /// returns the total number of peaks (spectra and chromatograms included)
     UInt64 getSize() const;
 
-    /// returns an array of MS levels
-    const std::vector<UInt>& getMSLevels() const;
+    /// returns a sorted array of MS levels (calculated on demand)
+    std::vector<UInt> getMSLevels() const;
 
     ///@}
 
@@ -1279,10 +1280,6 @@ std::vector<MSChromatogram> extractXICs(
     bool isIMFrame() const;
 
   protected:
-    /// MS levels of the data
-    std::vector<UInt> ms_levels_;
-    /// Number of all data points
-    UInt64 total_size_;
     /// chromatograms
     std::vector<MSChromatogram > chromatograms_;
     /// spectra

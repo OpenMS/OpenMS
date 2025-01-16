@@ -15,12 +15,21 @@ See [README_WRAPPING_NEW_CLASSES](./README_WRAPPING_NEW_CLASSES)
 Build instructions
 ------------------
 
+0. (optional) Create a virtual python environment:
+    
+    ```bash
+    python -m venv /path/to/myenv
+    
+    # ... and activate it, e.g.
+    # Linux:
+    source <venv>/bin/activate
+    # Windows:
+    c:\path\to\myenv\Scripts\activate.bat
+    ```
+    
 1. Get Python 3.7+ and the following Python libraries:
-   - pip
-   - Cython
-   - autowrap
-   - numpy
-   - pytest (optional, required for testing)
+   
+   pip install -r requirements_bld.txt
 
 2. If running from an OpenMS build tree (recommended), just reconfigure with
 

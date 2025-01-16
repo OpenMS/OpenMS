@@ -16,6 +16,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -505,7 +506,7 @@ protected:
       if (!JavaInfo::canRun(java_executable))
       {
         writeLogError_("Fatal error: Java is needed to run MS-GF+!");
-        return EXTERNAL_PROGRAM_ERROR;
+        return EXTERNAL_PROGRAM_NOTFOUND;
       }
     }
     else
@@ -835,8 +836,12 @@ protected:
           switchScores_(pep);
         }
 
-
-        SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);         
+		// add missing RTs to peptide IDs
+		MSExperiment exp;
+		MzMLFile mzml_file{};
+        mzml_file.getOptions().setMetadataOnly(true);
+		mzml_file.load(in, exp); 
+        SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, exp);
       }
 
       // use OpenMS meta value key

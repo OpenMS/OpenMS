@@ -509,7 +509,7 @@ public:
           f.setMetaValue("noise_background_level", avg_noise_level);
         } // end background
 
-        f.setRT(picked_chroms[chr_idx][peak_idx].getMZ());
+        f.setRT(picked_chroms[chr_idx][peak_idx].getPos());
         f.setIntensity(peak_integral);
         ConvexHull2D hull;
         hull.setHullPoints(pa.hull_points);
@@ -667,7 +667,7 @@ public:
           if (k == 0) {mrmFeature.setMZ(chromatogram.getMetaValue("precursor_mz"));} // only use m/z if first (monoisotopic) isotope
         }
 
-        f.setRT(picked_chroms[chr_idx][peak_idx].getMZ());
+        f.setRT(picked_chroms[chr_idx][peak_idx].getPos());
         f.setIntensity(peak_integral);
         ConvexHull2D hull;
         hull.setHullPoints(pa.hull_points);
@@ -706,7 +706,7 @@ public:
       {
         for (Size i = 0; i < picked_chroms[k].size(); i++)
         {
-          if (picked_chroms[k][i].getMZ() >= best_left && picked_chroms[k][i].getMZ() <= best_right)
+          if (picked_chroms[k][i].getPos() >= best_left && picked_chroms[k][i].getPos() <= best_right)
           {
             picked_chroms[k][i].setIntensity(0.0);
             count_inside++;
@@ -881,7 +881,7 @@ protected:
         r_tmp = -1;
         for (Size i = 0; i < picked_chroms[k].size(); i++)
         {
-          if (picked_chroms[k][i].getMZ() >= best_left && picked_chroms[k][i].getMZ() <= best_right)
+          if (picked_chroms[k][i].getPos() >= best_left && picked_chroms[k][i].getPos() <= best_right)
           {
             pfound++;
             if (picked_chroms[k][i].getIntensity() > max_int)
@@ -962,7 +962,7 @@ protected:
         double right = -1;
         for (Size i = 0; i < picked_chroms[k].size(); i++)
         {
-          if (picked_chroms[k][i].getMZ() >= best_left && picked_chroms[k][i].getMZ() <= best_right)
+          if (picked_chroms[k][i].getPos() >= best_left && picked_chroms[k][i].getPos() <= best_right)
           {
             if (picked_chroms[k].getFloatDataArrays()[PeakPickerChromatogram::IDX_ABUNDANCE][i] > max_int)
             {
@@ -1052,29 +1052,31 @@ protected:
       @param right_boundary Right boundary of values the container should be populated with
 
     */
-    template <typename SpectrumT>
-    void prepareMasterContainer_(const SpectrumT& ref_chromatogram,
-                                 SpectrumT& master_peak_container, double left_boundary, double right_boundary)
+    template <typename PeakContainerT>
+    void prepareMasterContainer_(const PeakContainerT& ref_chromatogram,
+                                 PeakContainerT& master_peak_container, 
+                                 double left_boundary, 
+                                 double right_boundary)
     {
       OPENMS_PRECONDITION(master_peak_container.empty(), "Master peak container must be empty")
 
       // get the start / end point of this chromatogram => then add one more
       // point beyond the two boundaries to make the resampling accurate also
       // at the edge.
-      typename SpectrumT::const_iterator begin = ref_chromatogram.begin();
-      while (begin != ref_chromatogram.end() && begin->getMZ() < left_boundary) {begin++; }
-      if (begin != ref_chromatogram.begin()) {begin--; }
+      auto begin = ref_chromatogram.begin();
+      while (begin != ref_chromatogram.end() && begin->getPos() < left_boundary) {begin++; }
+      if (begin != ref_chromatogram.begin()) { begin--; }
 
-      typename SpectrumT::const_iterator end = begin;
-      while (end != ref_chromatogram.end() && end->getMZ() < right_boundary) {end++; }
-      if (end != ref_chromatogram.end()) {end++; }
+      auto end = begin;
+      while (end != ref_chromatogram.end() && end->getPos() < right_boundary) {end++; }
+      if (end != ref_chromatogram.end()) { end++; }
 
       // resize the master container and set the m/z values to the ones of the master container
       master_peak_container.resize(distance(begin, end)); // initialize to zero
-      typename SpectrumT::iterator it = master_peak_container.begin();
-      for (typename SpectrumT::const_iterator chrom_it = begin; chrom_it != end; chrom_it++, it++)
+      auto it = master_peak_container.begin();
+      for (auto chrom_it = begin; chrom_it != end; chrom_it++, it++)
       {
-        it->setMZ(chrom_it->getMZ());
+        it->setPos(chrom_it->getPos());
       }
     }
 
@@ -1088,22 +1090,24 @@ protected:
 
       @return A container which contains the data from the input chromatogram resampled at the positions of the master container
     */
-    template <typename SpectrumT>
-    SpectrumT resampleChromatogram_(const SpectrumT& chromatogram,
-                                    const SpectrumT& master_peak_container, double left_boundary, double right_boundary)
+    template <typename PeakContainerT>
+    PeakContainerT resampleChromatogram_(const PeakContainerT& chromatogram,
+                                    const PeakContainerT& master_peak_container, 
+                                    double left_boundary, 
+                                    double right_boundary)
     {
       // get the start / end point of this chromatogram => then add one more
       // point beyond the two boundaries to make the resampling accurate also
       // at the edge.
-      typename SpectrumT::const_iterator begin = chromatogram.begin();
-      while (begin != chromatogram.end() && begin->getMZ() < left_boundary) {begin++;}
-      if (begin != chromatogram.begin()) {begin--;}
+      auto begin = chromatogram.begin();
+      while (begin != chromatogram.end() && begin->getPos() < left_boundary) {begin++;}
+      if (begin != chromatogram.begin()) { begin--; }
 
-      typename SpectrumT::const_iterator end = begin;
-      while (end != chromatogram.end() && end->getMZ() < right_boundary) {end++;}
-      if (end != chromatogram.end()) {end++;}
+      auto end = begin;
+      while (end != chromatogram.end() && end->getPos() < right_boundary) {end++;}
+      if (end != chromatogram.end()) { end++; }
 
-      SpectrumT resampled_peak_container = master_peak_container; // copy the master container, which contains the RT values
+      auto resampled_peak_container = master_peak_container; // copy the master container, which contains the RT values
       LinearResamplerAlign lresampler;
       lresampler.raster(begin, end, resampled_peak_container.begin(), resampled_peak_container.end());
 

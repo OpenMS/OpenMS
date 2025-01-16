@@ -20,18 +20,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  Residue::Residue() :
-    name_("unknown"),
-    average_weight_(0.0f),
-    mono_weight_(0.0f),
-    modification_(nullptr),
-    loss_average_weight_(0.0f),
-    loss_mono_weight_(0.0f),
-    pka_(0.0),
-    pkb_(0.0),
-    pkc_(-1.0)
-  {
-  }
+  Residue::Residue() = default;
 
   Residue::Residue(const String& name,
             const String& three_letter_code,
@@ -44,7 +33,6 @@ namespace OpenMS
             double gb_bb_l,
             double gb_bb_r,
             const set<String>& synonyms):
-                
     name_(name),
     synonyms_(synonyms),
     three_letter_code_(three_letter_code),
@@ -52,9 +40,6 @@ namespace OpenMS
     formula_(formula),
     average_weight_(formula.getAverageWeight()),
     mono_weight_(formula.getMonoWeight()),
-    modification_(nullptr),
-    loss_average_weight_(0.0f),
-    loss_mono_weight_(0.0f),
     pka_(pka),
     pkb_(pkb),
     pkc_(pkc),
@@ -82,63 +67,7 @@ namespace OpenMS
 
   String Residue::getResidueTypeName(const Residue::ResidueType res_type)
   {
-    switch (res_type)
-    {
-    case Residue::Full:
-      return "full";
-
-    case Residue::Internal:
-      return "internal";
-
-    case Residue::NTerminal:
-      return "N-terminal";
-
-    case Residue::CTerminal:
-      return "C-terminal";
-
-    case Residue::AIon:
-      return "a-ion";
-
-    case Residue::BIon:
-      return "b-ion";
-
-    case Residue::CIon:
-      return "c-ion";
-
-    case Residue::XIon:
-      return "x-ion";
-
-    case Residue::YIon:
-      return "y-ion";
-
-    case Residue::ZIon:
-      return "z-ion";
-
-    case Residue::Precursor:
-      return "precursor-ion";
-
-    case Residue::BIonMinusH20:
-      return "b-H2O-ion";
-
-    case Residue::YIonMinusH20:
-      return "y-H2O-ion";
-
-    case Residue::BIonMinusNH3:
-      return "B-NH3-ion";
-
-    case Residue::YIonMinusNH3:
-      return "y-NH3-ion";
-
-    case Residue::NonIdentified:
-      return "Non-identified ion";
-
-    case Residue::Unannotated:
-      return "unannotated";
-
-    default:
-      cerr << "Error: Residue::getResidueTypeName - residue type has no name. The developer should add a residue name to Residue.cpp" << endl;
-    }
-    return "";
+    return names_of_residuetype[res_type];
   }
 
   void Residue::setSynonyms(const set<String>& synonyms)
@@ -613,6 +542,9 @@ namespace OpenMS
 
   bool Residue::operator==(const Residue& residue) const
   {
+    // usually, its the same address (from ResidueDB)
+    if (this == &residue) return true;
+    // otherwise compare members
     return name_ == residue.name_ &&
            synonyms_ == residue.synonyms_ &&
            three_letter_code_ == residue.three_letter_code_ &&
@@ -625,8 +557,6 @@ namespace OpenMS
            loss_formulas_ == residue.loss_formulas_ &&
            NTerm_loss_names_ == residue.NTerm_loss_names_ &&
            NTerm_loss_formulas_ == residue.NTerm_loss_formulas_ &&
-           loss_average_weight_ == residue.loss_average_weight_ &&
-           loss_mono_weight_ == residue.loss_mono_weight_ &&
            low_mass_ions_ == residue.low_mass_ions_ &&
            pka_ == residue.pka_ &&
            pkb_ == residue.pkb_ &&
@@ -693,10 +623,10 @@ namespace OpenMS
 
   ostream& operator<<(ostream& os, const Residue& residue)
   {
-    os << residue.name_ << " "
-    << residue.three_letter_code_ << " "
-    << residue.one_letter_code_ << " "
-    << residue.formula_;
+    os << residue.name_ << ' '
+       << residue.three_letter_code_ << ' '
+       << residue.one_letter_code_ << ' '
+       << residue.formula_;
     return os;
   }
 

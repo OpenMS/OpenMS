@@ -184,7 +184,7 @@ namespace OpenMS
 
   template<class T>
   inline void fillDataArray(const std::vector<Internal::MzMLHandlerHelper::BinaryData>& data,
-                            T& spectrum,
+                            T& peak_container,
                             const bool x_precision_64,
                             const bool int_precision_64,
                             const SignedSize x_index,
@@ -200,10 +200,10 @@ namespace OpenMS
       {
         //add peak
         tmp.setIntensity(*int_it);
-        tmp.setMZ(*mz_it);
+        tmp.setPos(*mz_it);
         ++mz_it;
         ++int_it;
-        spectrum.push_back(tmp);
+        peak_container.push_back(tmp);
       }
     }
     else if (x_precision_64 && int_precision_64)
@@ -214,10 +214,10 @@ namespace OpenMS
       {
         //add peak
         tmp.setIntensity(*int_it);
-        tmp.setMZ(*mz_it);
+        tmp.setPos(*mz_it);
         ++mz_it;
         ++int_it;
-        spectrum.push_back(tmp);
+        peak_container.push_back(tmp);
       }
     }
     else if (!x_precision_64 && int_precision_64)
@@ -228,10 +228,10 @@ namespace OpenMS
       {
         //add peak
         tmp.setIntensity(*int_it);
-        tmp.setMZ(*mz_it);
+        tmp.setPos(*mz_it);
         ++mz_it;
         ++int_it;
-        spectrum.push_back(tmp);
+        peak_container.push_back(tmp);
       }
     }
     else if (!x_precision_64 && !int_precision_64)
@@ -242,10 +242,10 @@ namespace OpenMS
       {
         //add peak
         tmp.setIntensity(*int_it);
-        tmp.setMZ(*mz_it);
+        tmp.setPos(*mz_it);
         ++mz_it;
         ++int_it;
-        spectrum.push_back(tmp);
+        peak_container.push_back(tmp);
       }
     }
   }

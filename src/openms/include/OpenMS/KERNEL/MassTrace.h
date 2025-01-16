@@ -228,8 +228,11 @@ public:
     /// Sum all non-negative (smoothed!) intensities in the mass trace
     double computeSmoothedPeakArea() const;
 
-    /// Sum intensities of all peaks in the mass trace
+    /// Compute area of peaks in the mass trace
     double computePeakArea() const;
+
+    /// Sum all peak intensities in the mass trace
+    double computeIntensitySum() const;
 
     /// Return the index of the mass trace's highest peak within the MassTrace container (based either on raw or smoothed intensities).
     Size findMaxByIntPeak(bool use_smoothed_ints = false) const;

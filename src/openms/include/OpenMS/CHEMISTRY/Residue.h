@@ -13,6 +13,9 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+
+
+#include <array>
 #include <iosfwd>
 #include <set>
 #include <vector>
@@ -169,6 +172,29 @@ public:
       SizeOfResidueType
     };
     //@}
+    
+    /// Names corresponding to the ResidueType enum
+    static inline std::array<std::string_view, Residue::ResidueType::SizeOfResidueType> names_of_residuetype {
+      "full",
+      "internal",
+      "N-terminal",
+      "C-terminal",
+      "a-ion",
+      "b-ion",
+      "c-ion",
+      "x-ion",
+      "y-ion",
+      "z-ion",
+      "z+1-ion",
+      "z+2-ion",
+      "precursor-ion",
+      "b-H2O-ion",
+      "y-H2O-ion",
+      "b-NH3-ion",
+      "y-NH3-ion",
+      "Non-identified ion",
+      "unannotated"
+    };
 
     /// returns the ion name given as a residue type
     static String getResidueTypeName(const ResidueType res_type);
@@ -414,7 +440,7 @@ public:
 protected:
 
     /// the name of the residue
-    String name_;
+    String name_ = "unknown";
 
     std::set<String> synonyms_;
 
@@ -426,12 +452,12 @@ protected:
 
     EmpiricalFormula internal_formula_;
 
-    double average_weight_;
+    double average_weight_ = 0;
 
-    double mono_weight_;
+    double mono_weight_ = 0;
 
     /// pointer to the modification 
-    const ResidueModification* modification_;
+    const ResidueModification* modification_ = nullptr;
 
     // loss
     std::vector<String> loss_names_;
@@ -442,30 +468,26 @@ protected:
 
     std::vector<EmpiricalFormula> NTerm_loss_formulas_;
 
-    double loss_average_weight_;
-
-    double loss_mono_weight_;
-
     /// low mass markers like immonium ions
     std::vector<EmpiricalFormula> low_mass_ions_;
 
     // pka values
-    double pka_;
+    double pka_ = 0;
 
     // pkb values
-    double pkb_;
+    double pkb_ = 0;
 
     // pkc values
-    double pkc_;
+    double pkc_ = -1.0;
 
     /// SideChainBasicity
-    double gb_sc_;
+    double gb_sc_ = 0;
 
     /// BackboneBasicityLeft
-    double gb_bb_l_;
+    double gb_bb_l_ = 0;
 
     /// BackboneBasicityRight
-    double gb_bb_r_;
+    double gb_bb_r_ = 0;
 
     /// residue sets this amino acid is contained in
     std::set<String> residue_sets_;

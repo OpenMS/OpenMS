@@ -181,7 +181,7 @@ namespace OpenMS::Internal
           std::vector< double >::iterator data_it = data.begin();
           for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
-            it->setMZ(*data_it);
+            it->setPos(*data_it);
           }
           cont_data[curr_id] += 1;
         }
@@ -197,7 +197,7 @@ namespace OpenMS::Internal
           std::vector< double >::iterator data_it = data.begin();
           for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
-            it->setMZ(*data_it);
+            it->setPos(*data_it);
           }
           cont_data[curr_id] += 1;
         }

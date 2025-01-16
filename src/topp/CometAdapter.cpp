@@ -17,6 +17,9 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -612,6 +615,7 @@ protected:
     os << "12. Arg-C/P                1.     R           _" << "\n";
     os << "13. Lys-C/P                1      K           -" << "\n";
     os << "14. Leukocyte_elastase     1      ALIV        -" << "\n";
+    os << "15. Chymotrypsin/P         1      FWYL        -" << "\n";
 
     return ExitCodes::EXECUTION_OK;
   }
@@ -631,7 +635,7 @@ protected:
     TOPPBase::ExitCodes exit_code = runExternalProcess_(comet_executable.toQString(), QStringList() << "-p", tmp_dir.getPath().toQString());
     if (exit_code != EXECUTION_OK)
     {
-      return EXTERNAL_PROGRAM_ERROR;
+      return exit_code; // will do the right thing, since it's correctly mapping TOPPBase exit codes
     }
     // the first line of 'comet.params.new' contains a string like: "# comet_version 2017.01 rev. 1"
     String comet_version; 
@@ -692,8 +696,13 @@ protected:
       input_file_with_index = tmp_file;
     }
 
-    mzml_file.getOptions().setMetadataOnly(true);
-    mzml_file.load(inputfile_name, exp); // always load metadata for raw file name
+	// Load spectra metadata to map to idXML
+    mzml_file.getOptions().setMetadataOnly(false);
+	mzml_file.getOptions().setFillData(false);
+	mzml_file.getOptions().clearMSLevels();
+	// Ion mobility data is currently stored in MS2
+	mzml_file.getOptions().addMSLevel(2);
+    mzml_file.load(inputfile_name, exp);
 
     //-------------------------------------------------------------
     // calculations
@@ -750,6 +759,12 @@ protected:
 
     // if "reindex" parameter is set to true will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
+
+	// Parse ion mobility information if present
+	bool all_ids_have_im = SpectrumMetaDataLookup::addMissingIMToPeptideIDs(peptide_identifications, exp);
+	if (all_ids_have_im) {
+		protein_identifications[0].setMetaValue(Constants::UserParam::IM, exp.getSpectrum(0).getDriftTimeUnitAsString());
+	}
 
     // add percolator features
     StringList feature_set;

@@ -38,64 +38,75 @@ namespace OpenMS
       {
         for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
         {
-          // Some Hits have no NumMatchedMainIons, and MeanError, etc. values. Have to ignore them!
-          if (hit->metaValueExists("NumMatchedMainIons"))
+          if (!hit->metaValueExists("NumMatchedMainIons")) 
           {
-            // only take features from first ranked entries and only with meanerrortop7 != 0.0
-            if (hit->getMetaValue("MeanErrorTop7").toString().toDouble() != 0.0)
-            {
-              double raw_score = hit->getMetaValue("MS:1002049").toString().toDouble();
-              double denovo_score = hit->getMetaValue("MS:1002050").toString().toDouble();
-              
-              double energy = denovo_score - raw_score;
-              double score_ratio = raw_score * 10000;
-              if (denovo_score > 0)
-              {
-                score_ratio = (raw_score / denovo_score);
-              }
-              hit->setMetaValue("MSGF:ScoreRatio", score_ratio);
-              hit->setMetaValue("MSGF:Energy", energy);
-              
-              double ln_eval = -log(hit->getMetaValue("MS:1002053").toString().toDouble());
-              hit->setMetaValue("MSGF:lnEValue", ln_eval);
-              
-              double ln_explained_ion_current_ratio = log(hit->getMetaValue("ExplainedIonCurrentRatio").toString().toDouble() + 0.0001);
-              double ln_NTerm_ion_current_ratio = log(hit->getMetaValue("NTermIonCurrentRatio").toString().toDouble() + 0.0001);
-              double ln_CTerm_ion_current_ratio = log(hit->getMetaValue("CTermIonCurrentRatio").toString().toDouble() + 0.0001);
-              hit->setMetaValue("MSGF:lnExplainedIonCurrentRatio", ln_explained_ion_current_ratio);
-              hit->setMetaValue("MSGF:lnNTermIonCurrentRatio", ln_NTerm_ion_current_ratio);
-              hit->setMetaValue("MSGF:lnCTermIonCurrentRatio", ln_CTerm_ion_current_ratio);
-              
-              double ln_MS2_ion_current = log(hit->getMetaValue("MS2IonCurrent").toString().toDouble());
-              hit->setMetaValue("MSGF:lnMS2IonCurrent", ln_MS2_ion_current);
-              
-              double mean_error_top7 = hit->getMetaValue("MeanErrorTop7").toString().toDouble();
-              int num_matched_main_ions =  hit->getMetaValue("NumMatchedMainIons").toString().toInt();
+            hit->setMetaValue("NumMatchedMainIons", 0);
+            hit->setMetaValue("MeanErrorAll", 0.0);
+            hit->setMetaValue("StdevErrorAll", 0.0);
+            hit->setMetaValue("MeanErrorTop7", 0.0);
+            hit->setMetaValue("StdevErrorTop7", 0.0);
+            hit->setMetaValue("MeanRelErrorAll", 0.0);
+            hit->setMetaValue("StdevRelErrorAll", 0.0);
+            hit->setMetaValue("MeanRelErrorTop7", 0.0);
+            hit->setMetaValue("StdevRelErrorTop7", 0.0);
 
-              double stdev_error_top7 = 0.0;
-              if (hit->getMetaValue("StdevErrorTop7").toString() != "NaN")
-              {
-                stdev_error_top7 = hit->getMetaValue("StdevErrorTop7").toString().toDouble();
-                if (stdev_error_top7 == 0.0)
-                {
-                  stdev_error_top7 = mean_error_top7;
-                }
-              }
-              else
+            OPENMS_LOG_WARN << "MS-GF+ PSM with missing meta values. Imputing dummy values for subscores." << endl;
+          }
+
+          // Some Hits have no NumMatchedMainIons, and MeanError, etc. values. Have to ignore them!
+          // only take features from first ranked entries and only with meanerrortop7 != 0.0
+          if (hit->getMetaValue("MeanErrorTop7").toString().toDouble() != 0.0)
+          {
+            double raw_score = hit->getMetaValue("MS:1002049").toString().toDouble();
+            double denovo_score = hit->getMetaValue("MS:1002050").toString().toDouble();
+            
+            double energy = denovo_score - raw_score;
+            double score_ratio = raw_score * 10000;
+            if (denovo_score > 0)
+            {
+              score_ratio = (raw_score / denovo_score);
+            }
+            hit->setMetaValue("MSGF:ScoreRatio", score_ratio);
+            hit->setMetaValue("MSGF:Energy", energy);
+            
+            double ln_eval = -log(hit->getMetaValue("MS:1002053").toString().toDouble());
+            hit->setMetaValue("MSGF:lnEValue", ln_eval);
+            
+            double ln_explained_ion_current_ratio = log(hit->getMetaValue("ExplainedIonCurrentRatio").toString().toDouble() + 0.0001);
+            double ln_NTerm_ion_current_ratio = log(hit->getMetaValue("NTermIonCurrentRatio").toString().toDouble() + 0.0001);
+            double ln_CTerm_ion_current_ratio = log(hit->getMetaValue("CTermIonCurrentRatio").toString().toDouble() + 0.0001);
+            hit->setMetaValue("MSGF:lnExplainedIonCurrentRatio", ln_explained_ion_current_ratio);
+            hit->setMetaValue("MSGF:lnNTermIonCurrentRatio", ln_NTerm_ion_current_ratio);
+            hit->setMetaValue("MSGF:lnCTermIonCurrentRatio", ln_CTerm_ion_current_ratio);
+            
+            double ln_MS2_ion_current = log(hit->getMetaValue("MS2IonCurrent").toString().toDouble());
+            hit->setMetaValue("MSGF:lnMS2IonCurrent", ln_MS2_ion_current);
+            
+            double mean_error_top7 = hit->getMetaValue("MeanErrorTop7").toString().toDouble();
+            int num_matched_main_ions =  hit->getMetaValue("NumMatchedMainIons").toString().toInt();
+
+            double stdev_error_top7 = 0.0;
+            if (hit->getMetaValue("StdevErrorTop7").toString() != "NaN")
+            {
+              stdev_error_top7 = hit->getMetaValue("StdevErrorTop7").toString().toDouble();
+              if (stdev_error_top7 == 0.0)
               {
                 stdev_error_top7 = mean_error_top7;
-                OPENMS_LOG_WARN << "StdevErrorTop7 is NaN, setting as MeanErrorTop7 instead." << endl;
               }
-              
-              mean_error_top7 = rescaleFragmentFeature_(mean_error_top7, num_matched_main_ions);
-              double sq_mean_error_top7 = rescaleFragmentFeature_(mean_error_top7 * mean_error_top7, num_matched_main_ions);
-              stdev_error_top7 = rescaleFragmentFeature_(stdev_error_top7, num_matched_main_ions);
-              hit->setMetaValue("MSGF:MeanErrorTop7", mean_error_top7);
-              hit->setMetaValue("MSGF:sqMeanErrorTop7", sq_mean_error_top7);
-              hit->setMetaValue("MSGF:StdevErrorTop7", stdev_error_top7);
             }
+            else
+            {
+              stdev_error_top7 = mean_error_top7;
+              OPENMS_LOG_WARN << "StdevErrorTop7 is NaN, setting as MeanErrorTop7 instead." << endl;
+            }
+            
+            mean_error_top7 = rescaleFragmentFeature_(mean_error_top7, num_matched_main_ions);
+            double sq_mean_error_top7 = rescaleFragmentFeature_(mean_error_top7 * mean_error_top7, num_matched_main_ions);
+            stdev_error_top7 = rescaleFragmentFeature_(stdev_error_top7, num_matched_main_ions);
+            hit->setMetaValue("MSGF:MeanErrorTop7", mean_error_top7);
+            hit->setMetaValue("MSGF:sqMeanErrorTop7", sq_mean_error_top7);
+            hit->setMetaValue("MSGF:StdevErrorTop7", stdev_error_top7);
           }
-          else OPENMS_LOG_WARN << "MS-GF+ PSM with missing NumMatchedMainIons skipped." << endl;
         }
       }
     }

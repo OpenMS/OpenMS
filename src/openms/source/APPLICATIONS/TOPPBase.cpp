@@ -495,6 +495,12 @@ namespace OpenMS
       writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
       return INPUT_FILE_NOT_FOUND;
     }
+    catch (ExternalExecutableNotFound& e)
+    {
+      writeLogError_(String("Error: Executable not found (") + e.what() + ")");
+      writeDebug_(String("Error occurred in line ") + e.getLine() + " of file " + e.getFile() + " (in function: " + e.getFunction() + ") !", 1);
+      return EXTERNAL_PROGRAM_NOTFOUND;
+    }
     catch (FileNotReadable& e)
     {
       writeLogError_(String("Error: File not readable (") + e.what() + ")");
@@ -1447,7 +1453,7 @@ namespace OpenMS
                           param_name + "' option or fix your PATH environment !" +
                     (p.required ? "" : " Since this file is not strictly required, you might also pass the empty string \"\" as "
                     "argument to prevent its usage (this might limit the usability of the tool)."));
-          throw FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param_value);
+          throw ExternalExecutableNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param_value);
         }
       }
       if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(param_value, param_name);
@@ -1697,12 +1703,18 @@ namespace OpenMS
       writeLogError_("Standard output: " + proc_stdout);
       writeLogError_("Standard error: " + proc_stderr);
     }
-    if (rt != ExternalProcess::RETURNSTATE::SUCCESS)
+    switch (rt)
     {
-      return EXTERNAL_PROGRAM_ERROR;
+      case ExternalProcess::RETURNSTATE::SUCCESS:
+        return EXECUTION_OK;
+      case ExternalProcess::RETURNSTATE::NONZERO_EXIT:
+      case ExternalProcess::RETURNSTATE::CRASH:
+        return EXTERNAL_PROGRAM_ERROR;
+      case ExternalProcess::RETURNSTATE::FAILED_TO_START:
+        return EXTERNAL_PROGRAM_NOTFOUND;
+      default:
+        throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown return state of external process.");
     }
-
-    return EXECUTION_OK;
   }
 
   String TOPPBase::getParamAsString_(const String& key, const String& default_value) const

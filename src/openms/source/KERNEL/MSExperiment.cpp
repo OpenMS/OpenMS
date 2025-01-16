@@ -17,15 +17,14 @@
 
 #include <algorithm>
 #include <limits>
+#include <unordered_set>
 
 namespace OpenMS
 {
   /// Constructor
   MSExperiment::MSExperiment() :
     RangeManagerContainerType(),
-    ExperimentalSettings(),
-    ms_levels_(),
-    total_size_(0)
+    ExperimentalSettings()
   {}
 
   /// Copy constructor
@@ -41,8 +40,6 @@ namespace OpenMS
     RangeManagerContainerType::operator=(source);
     ExperimentalSettings::operator=(source);
 
-    ms_levels_ = source.ms_levels_;
-    total_size_ = source.total_size_;
     chromatograms_ = source.chromatograms_;
     spectra_ = source.spectra_;
 
@@ -232,13 +229,8 @@ namespace OpenMS
   */
   void MSExperiment::updateRanges(Int ms_level)
   {
-    // clear MS levels
-    ms_levels_.clear();
-
     // reset mz/rt/int range
     this->clearRanges();
-    // reset point count
-    total_size_ = 0;
 
     // empty
     if (spectra_.empty() && chromatograms_.empty())
@@ -251,15 +243,6 @@ namespace OpenMS
     {
       if (ms_level < Int(0) || Int(it->getMSLevel()) == ms_level)
       {
-        //ms levels
-        if (std::find(ms_levels_.begin(), ms_levels_.end(), it->getMSLevel()) == ms_levels_.end())
-        {
-          ms_levels_.push_back(it->getMSLevel());
-        }
-
-        // calculate size
-        total_size_ += it->size();
-
         // ranges
         this->extendRT(it->getRT()); // RT
         // m/z, intensity and ion mobility from spectrum's range
@@ -275,9 +258,7 @@ namespace OpenMS
           this->extendMZ(it->getPrecursors()[0].getMZ());
         }
       }
-
     }
-    std::sort(ms_levels_.begin(), ms_levels_.end());
 
     if (this->chromatograms_.empty())
     {
@@ -297,8 +278,6 @@ namespace OpenMS
         continue;
       }
 
-      total_size_ += cp.size();
-
       // ranges
       this->extendMZ(cp.getMZ());// MZ
       this->extend(cp);// RT and intensity from chroms's range
@@ -307,14 +286,25 @@ namespace OpenMS
 
   /// returns the total number of peaks
   UInt64 MSExperiment::getSize() const
-  {
-    return total_size_;
+  {    
+    Size total_size{};
+    for (const auto& spec : spectra_) total_size += spec.size(); // sum up all peaks in all spectra
+    for (const auto& chrom : chromatograms_) total_size += chrom.size(); // sum up all peaks in all chromatograms
+    return total_size;
   }
 
-  /// returns an array of MS levels
-  const std::vector<UInt>& MSExperiment::getMSLevels() const
+  /// returns an array of MS levels (calculated on demand)
+  std::vector<UInt> MSExperiment::getMSLevels() const
   {
-    return ms_levels_;
+    std::unordered_set<UInt> level_set;
+    for (const auto& spec : spectra_)
+    {
+      level_set.insert(spec.getMSLevel());
+    }
+    
+    std::vector<UInt> ms_levels(level_set.begin(), level_set.end());
+    std::sort(ms_levels.begin(), ms_levels.end());
+    return ms_levels;
   }
 
   const String sqMassRunID = "sqMassRunID";
@@ -620,9 +610,6 @@ namespace OpenMS
     //swap peaks
     spectra_.swap(from.getSpectra());
 
-    //swap remaining members
-    ms_levels_.swap(from.ms_levels_);
-    std::swap(total_size_, from.total_size_);
   }
 
   /// sets the spectrum list
@@ -812,8 +799,6 @@ namespace OpenMS
       clearRanges();
       this->ExperimentalSettings::operator=(ExperimentalSettings());             // no "clear" method
       chromatograms_.clear();
-      ms_levels_.clear();
-      total_size_ = 0;
     }
   }
 

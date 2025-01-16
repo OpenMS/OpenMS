@@ -71,7 +71,7 @@ sum(datapoints[3:10])
   for (int k = 0; k < 18; k++)
   {   
     ChromatogramPeak peak;
-    peak.setMZ(rtdata_1[k]);
+    peak.setRT(rtdata_1[k]);
     peak.setIntensity(intdata_1[k]);
     chromatogram.push_back(peak);
   } 
@@ -89,7 +89,7 @@ sum(datapoints[3:10])
   for (int k = 0; k < 18; k++)
   {   
     ChromatogramPeak peak;
-    peak.setMZ(rtdata_2[k]);
+    peak.setRT(rtdata_2[k]);
     peak.setIntensity(intdata_2[k]);
     chromatogram.push_back(peak);
   } 
@@ -105,7 +105,7 @@ sum(datapoints[3:10])
   for (int k = 0; k < 18; k++)
   {   
     ChromatogramPeak peak;
-    peak.setMZ(rtdata_2[k] + 0.5); // shift the "MS1" retention time as well 
+    peak.setRT(rtdata_2[k] + 0.5); // shift the "MS1" retention time as well 
     peak.setIntensity(ms1_intdata[k]);
     chromatogram.push_back(peak);
   } 
@@ -136,7 +136,7 @@ void setup_transition_group2(MRMTransitionGroupType & transition_group)
   for (int k = 0; k < 30; k++)
   {   
     ChromatogramPeak peak;
-    peak.setMZ(rtdata_1[k]);
+    peak.setRT(rtdata_1[k]);
     peak.setIntensity(intdata_1[k]);
     chromatogram.push_back(peak);
   } 
@@ -154,7 +154,7 @@ void setup_transition_group2(MRMTransitionGroupType & transition_group)
   for (int k = 0; k < 30; k++)
   {   
     ChromatogramPeak peak;
-    peak.setMZ(rtdata_2[k]);
+    peak.setRT(rtdata_2[k]);
     peak.setIntensity(intdata_2[k]);
     chromatogram.push_back(peak);
   } 
@@ -172,7 +172,7 @@ void setup_transition_group2(MRMTransitionGroupType & transition_group)
   for (int k = 0; k < 30; k++)
   {   
     ChromatogramPeak peak;
-    peak.setMZ(rtdata_3[k]);
+    peak.setRT(rtdata_3[k]);
     peak.setIntensity(intdata_3[k]);
     chromatogram.push_back(peak);
   } 
@@ -215,7 +215,7 @@ void setup_toy_chromatogram(RichPeakChromatogram & chromatogram)
   for (size_t k = 0; k < time.size(); k++)
   {   
     ChromatogramPeak peak;
-    peak.setMZ(time[k]);
+    peak.setRT(time[k]);
     peak.setIntensity(intensity[k]);
     chromatogram.push_back(peak);
   } 
@@ -486,7 +486,7 @@ START_SECTION((template <typename SpectrumT, typename TransitionT> MRMFeature cr
   {
     RichPeakChromatogram picked_chrom;
     ChromatogramPeak peak;
-    peak.setMZ(1490);
+    peak.setRT(1490);
     peak.setIntensity(170);
     picked_chrom.push_back(peak);
 
@@ -618,10 +618,10 @@ START_SECTION(( void findLargestPeak(std::vector<RichPeakChromatogram> & picked_
   {
     RichPeakChromatogram picked_chrom;
     ChromatogramPeak peak;
-    peak.setMZ(3120);
+    peak.setRT(3120);
     peak.setIntensity(100+k);
     picked_chrom.push_back(peak);
-    peak.setMZ(4120);
+    peak.setRT(4120);
     peak.setIntensity(200+k);
     picked_chrom.push_back(peak);
 
@@ -714,7 +714,7 @@ START_SECTION((template < typename SpectrumT > void remove_overlapping_features(
 
     {
     ChromatogramPeak peak;
-    peak.setMZ(3120);
+    peak.setRT(3120);
     peak.setIntensity(default_intensity);
     picked_chrom.push_back(peak);
     picked_chrom.getFloatDataArrays()[PeakPickerChromatogram::IDX_LEFTBORDER].push_back(3100.0);
@@ -723,7 +723,7 @@ START_SECTION((template < typename SpectrumT > void remove_overlapping_features(
 
     {
     ChromatogramPeak peak;
-    peak.setMZ(3090);
+    peak.setRT(3090);
     peak.setIntensity(default_intensity);
     picked_chrom.push_back(peak);
     picked_chrom.getFloatDataArrays()[PeakPickerChromatogram::IDX_LEFTBORDER].push_back(3070.0);
@@ -732,7 +732,7 @@ START_SECTION((template < typename SpectrumT > void remove_overlapping_features(
 
     {
     ChromatogramPeak peak;
-    peak.setMZ(3060);
+    peak.setRT(3060);
     peak.setIntensity(default_intensity);
     picked_chrom.push_back(peak);
     picked_chrom.getFloatDataArrays()[PeakPickerChromatogram::IDX_LEFTBORDER].push_back(3050.0);
@@ -752,7 +752,7 @@ START_SECTION((template < typename SpectrumT > void remove_overlapping_features(
 
     {
     ChromatogramPeak peak;
-    peak.setMZ(3120);
+    peak.setRT(3120);
     peak.setIntensity(default_intensity);
     picked_chrom.push_back(peak);
     picked_chrom.getFloatDataArrays()[PeakPickerChromatogram::IDX_LEFTBORDER].push_back(3100.0);
@@ -761,7 +761,7 @@ START_SECTION((template < typename SpectrumT > void remove_overlapping_features(
 
     {
     ChromatogramPeak peak;
-    peak.setMZ(3060);
+    peak.setRT(3060);
     peak.setIntensity(default_intensity);
     picked_chrom.push_back(peak);
     picked_chrom.getFloatDataArrays()[PeakPickerChromatogram::IDX_LEFTBORDER].push_back(3050.0);
