@@ -281,7 +281,7 @@ namespace OpenMS
     * @brief Looks through meta values of SearchParameters to find out which search adapter was used
     *
     * Checks for the following adapters:
-    * CometAdapter, MSGFPlusAdapter, MSFraggerAdapter, MyriMatchAdapter, OMSSAAdapter and XTandemAdapter
+    * CometAdapter, MSGFPlusAdapter, MSFraggerAdapter
     *
     * @param meta_values   SearchParameters object, since the adapters write their parameters here
     * @returns             A pair containing the name of the adapter and the parameters used to run it
