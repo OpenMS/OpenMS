@@ -72,9 +72,8 @@ struct OPENMS_DLLAPI FLASHHelperClasses
      @param generator this generates (calculates) the distributions
      @param use_RNA_averagine if set, nucleotide-based isotope patters are calculated
      @param decoy_iso_distance if set to a positive value, nonsensical isotope patterns are generated - the distance between isotope = decoy_iso_distance * normal distance.
-     @param is_centroid whether or not the averagine is calculated for centroided data
   */
-    PrecalculatedAveragine(double min_mass, double max_mass, double delta, CoarseIsotopePatternGenerator& generator, bool use_RNA_averagine, double decoy_iso_distance = -1, bool is_centroid = true);
+    PrecalculatedAveragine(double min_mass, double max_mass, double delta, CoarseIsotopePatternGenerator& generator, bool use_RNA_averagine, double decoy_iso_distance = -1);
 
     /// copy constructor
     PrecalculatedAveragine(const PrecalculatedAveragine&) = default;

@@ -92,8 +92,8 @@ namespace OpenMS
       std::sort(dscore_charge.begin(), dscore_charge.end());
 
       double sum = 0;
-      double max_score_for_weight_calculation = .5;
-      double min_score_for_weight_calculation = .2;
+      double max_score_for_weight_calculation = .8;
+      double min_score_for_weight_calculation = .0;
       double iso_sum = std::accumulate(dscore_iso.begin(), dscore_iso.end(), .0);
       //double noise_sum = std::accumulate(dscore_noise.begin(), dscore_noise.end(), .0);
 
@@ -107,18 +107,7 @@ namespace OpenMS
         }
       }
 
-//      sum = 0;
-//      for (double i : dscore_noise)
-//      {
-//        sum += i;
-//        if (sum > noise_sum * .1 || i > .2)
-//        {
-//          min_score_for_weight_calculation = std::max(min_score_for_weight_calculation, i);
-//          break;
-//        }
-//      }
-
-      Size num_bin = 5;//std::min(Size(5), 1 + dscore_noise.size()/100);
+      Size num_bin = 10;//std::min(Size(5), 1 + dscore_noise.size()/100);
       auto qscore_vec = getDistVector(qscores, num_bin, min_score_for_weight_calculation, max_score_for_weight_calculation);
       auto qscore_charge_vec = getDistVector(dscore_charge, num_bin, min_score_for_weight_calculation, max_score_for_weight_calculation);
       auto qscore_noise_vec = getDistVector(dscore_noise, num_bin, min_score_for_weight_calculation, max_score_for_weight_calculation);
@@ -129,7 +118,7 @@ namespace OpenMS
       {
         double v = qscore_vec.getValue(r, 0);
         v -= qscore_iso_vec.getValue(r, 0) + qscore_charge_vec.getValue(r, 0);
-        v = std::max(v, .0);
+        //v = std::max(v, .0);
         qscore_vec.setValue(r, 0, v);
         left.setValue(r, 0, qscore_noise_vec.getValue(r, 0));
       }
@@ -137,7 +126,7 @@ namespace OpenMS
       auto calculated_vec = left.completeOrthogonalDecomposition().pseudoInverse() * qscore_vec;
       noise_weight = calculated_vec.row(0)[0];
 
-      if (calculated_vec.row(1)[0] < 0) // &&
+      if (calculated_vec.row(1)[0] < 0)
       {
         auto calculated_vec_non_negative = qscore_noise_vec.completeOrthogonalDecomposition().pseudoInverse() * qscore_vec;
         noise_weight = calculated_vec_non_negative.row(0)[0];
@@ -145,49 +134,7 @@ namespace OpenMS
 
       if (std::isnan(noise_weight)) noise_weight = 1.0;
       noise_weight = std::max(noise_weight, 0.01);
-      //noise_weight = (qscore_noise_vec.completeOrthogonalDecomposition().pseudoInverse() * qscore_vec);
 
-      //std::cout<<qscore_noise_vec.sum() << " vs " << qscore_vec.sum() << "\n" <<  calculated_vec << " vs " << (qscore_noise_vec.completeOrthogonalDecomposition().pseudoInverse() * qscore_vec) << " to " << noise_weight << std::endl;
-      //noise_weight = 2;
-      /*
-      double a = 0, b = 0;
-      for (double i : qscores)
-      {
-        if (i < min_score_for_weight_calculation)
-          continue;
-        if (i > max_score_for_weight_calculation)
-          break;
-        b++;
-      }
-      //std::cout<< min_score_for_weight_calculation << " to " << max_score_for_weight_calculation << " total " << b;
-      for (double i : dscore_charge)
-      {
-        if (i < min_score_for_weight_calculation)
-          continue;
-        if (i > max_score_for_weight_calculation)
-          break;
-        b--;
-      }
-      //std::cout<< " charge removed " << b;
-      for (double i : dscore_iso)
-      {
-        if (i < min_score_for_weight_calculation)
-          continue;
-        if (i > max_score_for_weight_calculation)
-          break;
-        b--;
-      }
-      //std::cout<< " iso removed " << b;
-      for (double i : dscore_noise)
-      {
-        if (i < min_score_for_weight_calculation)
-          continue;
-        if (i > max_score_for_weight_calculation)
-          break;
-        a++;
-      }
-      */
-      //std::cout<< " total noise " << a << " ratio " << b/a << std::endl;
       std::sort(qscores.rbegin(), qscores.rend());
       std::sort(dscore_iso.rbegin(), dscore_iso.rend());
       std::sort(dscore_noise.rbegin(), dscore_noise.rend());

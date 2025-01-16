@@ -79,9 +79,8 @@ namespace OpenMS
 
     /** @brief precalculate averagine (for predefined mass bins) to speed up averagine generation
         @param use_RNA_averagine if set, averagine for RNA (nucleotides) is calculated
-        @param is_centroid this is for noise averagine calculation. For noise, centroid and profile averagines are different.
      */
-    void calculateAveragine(bool use_RNA_averagine, const bool is_centroid = true);
+    void calculateAveragine(bool use_RNA_averagine);
 
     /// when estimating tolerance, max_mass_dalton_tolerance_ should be large
     void setToleranceEstimation()
@@ -179,9 +178,10 @@ namespace OpenMS
     /// mass bins that are excluded for FLASHIda global targeting mode
     std::vector<double> excluded_masses_;
 
-    /// mass bins that are previously deconvolved and excluded for dummy mass generation
-    boost::dynamic_bitset<> previously_deconved_mass_bins_for_decoy_;
-    std::vector<double> previously_deconved_peak_masses_for_decoy_;
+    /// mass bins that are previously deconvolved and excluded for decoy mass generation
+    boost::dynamic_bitset<> excluded_log_mz_bins_for_decoy_runs_;
+    std::vector<double> excluded_peak_masses_for_decoy_runs_;
+    std::vector<double> excluded_masses_for_decoy_runs_;
 
     /// Stores log mz peaks
     std::vector<LogMzPeak> log_mz_peaks_;
@@ -288,7 +288,7 @@ namespace OpenMS
     void removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dspec, const PeakGroup::TargetDecoyType& target_decoy_type) const;
 
     /// filter out excluded masses
-    void removeExcludedMasses_(DeconvolvedSpectrum& dspec, std::vector<double> excluded_masses) const;
+    void removeExcludedMasses_(DeconvolvedSpectrum& dspec, std::vector<double> excluded_masses, double tol) const;
 
     void setTargetPrecursorCharge_();
 

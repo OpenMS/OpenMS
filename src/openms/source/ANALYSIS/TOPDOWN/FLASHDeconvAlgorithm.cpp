@@ -481,14 +481,6 @@ namespace OpenMS
     OPENMS_LOG_INFO<< "Done" << std::endl;
     const auto& avg = sd_.getAveragine();
 
-    bool is_centroid = true;
-    for (auto& it : map)
-    {
-      if (it.empty()) continue;
-      is_centroid = it.getType(false) == SpectrumSettings::CENTROID;
-      break;
-    }
-
     // determine tolerance in case tolerance input is negative
     for (uint ms_level = 1; ms_level <= current_max_ms_level_; ms_level++)
     {
@@ -503,7 +495,7 @@ namespace OpenMS
     {
       sd_noise_decoy_.setParameters(sd_param);
       sd_noise_decoy_.setTargetDecoyType(PeakGroup::TargetDecoyType::noise_decoy, sd_.getDeconvolvedSpectrum()); // noise
-      sd_noise_decoy_.calculateAveragine(use_RNA_averagine_, is_centroid); // for noise, averagine needs to be calculated differently.
+      sd_noise_decoy_.calculateAveragine(use_RNA_averagine_); // for noise, averagine needs to be calculated differently.
 
       sd_isotope_decoy_.setParameters(sd_param);
       sd_isotope_decoy_.setTargetDecoyType(PeakGroup::TargetDecoyType::isotope_decoy, sd_.getDeconvolvedSpectrum()); // isotope

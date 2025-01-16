@@ -534,7 +534,8 @@ namespace OpenMS
          << "PRECURSOR_CHARGE=" << (int)(dspec.getPrecursorCharge()) << "\n"
          << "PRECURSOR_MASS=" << std::to_string(precursor_mass + (randomize_precursor_mass ? (((double)rand() / (RAND_MAX)) * 200.0 - 100.0) : .0)) << "\n" // random number between 0 and 100.
          << "PRECURSOR_INTENSITY=" << dspec.getPrecursor().getIntensity() << "\n"
-         << "PRECURSOR_FEATURE_ID=" << dspec.getPrecursorPeakGroup().getFeatureIndex() << "\n";
+         << "PRECURSOR_FEATURE_ID=" << dspec.getPrecursorPeakGroup().getFeatureIndex() << "\n"
+         << "PRECURSOR_QSCORE=" << dspec.getPrecursorPeakGroup().getQscore2D() << "\n";
     }
 
     ss << std::setprecision(-1);

@@ -13,7 +13,7 @@
 namespace OpenMS
 {
 FLASHHelperClasses::PrecalculatedAveragine::PrecalculatedAveragine(const double min_mass, const double max_mass, const double delta, CoarseIsotopePatternGenerator& generator,
-                                                                           const bool use_RNA_averagine, double decoy_iso_distance, bool is_centroid) :
+                                                                           const bool use_RNA_averagine, double decoy_iso_distance) :
       mass_interval_(delta),
       min_mass_(min_mass)
   {
@@ -42,10 +42,6 @@ FLASHHelperClasses::PrecalculatedAveragine::PrecalculatedAveragine(const double 
         {
           Size index = (k % 2 == 0 ? k + 1 : k - 1) % iso.size();
           float intensity = iso[index].getIntensity() / max_intensity;
-          //if (is_centroid)
-         //   intensity = std::pow(intensity, 3);
-          //else
-          //  intensity = std::pow(intensity, .3333);
           decoy_iso[decoy_iso.size() - 1 - k].setIntensity(intensity);
           decoy_iso[k].setMZ(iso[k].getMZ() * decoy_iso_distance);
         }
