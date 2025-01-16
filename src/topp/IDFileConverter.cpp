@@ -26,8 +26,11 @@
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #ifdef _OPENMP
@@ -426,14 +429,18 @@ protected:
       case FileTypes::MZIDENTML:
       {
         OPENMS_LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
-        FileHandler().loadIdentifications(in, protein_identifications,
+		FileHandler().loadIdentifications(in, protein_identifications,
                              peptide_identifications, {FileTypes::MZIDENTML});
 
         // get retention times from the mz data, if necessary:
         if (!mz_file.empty())
         {
-          SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(
-            peptide_identifications, mz_file, false);
+		  // Add RTs if missing
+		  MSExperiment exp;    
+		  MzMLFile mzml_file{};
+          mzml_file.getOptions().setMetadataOnly(true);
+		  mzml_file.load(mz_file, exp); 
+          SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_identifications, exp);
 
           double add_ions = getDoubleOption_("add_ionmatch_annotation");
           if (add_ions > 0)

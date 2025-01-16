@@ -80,7 +80,7 @@ protected:
     auto [mzML_bins, im_ranges] = IMDataConverter::splitExperimentByIonMobility(std::move(experiment), bins, bin_extension_abs, mz_binning_width, mz_binning_width_unit);
     
     const Size width = String(bins).size();
-    for (Size counter = 0; counter < bins; ++counter)
+    for (Size counter = 0; counter < (Size)bins; ++counter)
     {
       ostringstream out_name;
       out_name << out_prefix << "_part" << setw(width) << setfill('0') << (1+counter) << "of" << bins << "_" << im_ranges[counter].getMin() << "-"

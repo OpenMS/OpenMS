@@ -255,19 +255,30 @@ namespace OpenMS
     void getSpectrumMetaData(const String& spectrum_ref, SpectrumMetaData& meta,
                              MetaDataFlags flags = MDF_ALL) const;
 
+	/**
+	   @brief Add missing retention time (RT) values to peptide identifications based on raw data
+
+	   @param peptides Peptide IDs with or without RT values
+	   @param exp The MSExperiment object representing the raw data file (e.g., mzML) used to look up RT values.
+
+	   @return True if all peptide IDs could be annotated successfully (including if all already had RT values), false otherwise.
+
+	*/
+	static bool addMissingRTsToPeptideIDs(std::vector<PeptideIdentification>& peptides, const MSExperiment& exp);
+
     /**
-       @brief Add missing retention time values to peptide identifications based on raw data
-
-       @param peptides Peptide IDs with or without RT values
-       @param filename Name of a raw data file (e.g. mzML) for looking up RTs
-       @param stop_on_error Stop when an ID could not be matched to a spectrum (or keep going)?
-
-       @return True if all peptide IDs could be annotated successfully (including if all already had RT values), false otherwise.
-
-       Look-up works by matching the "spectrum_reference" (meta value) of a peptide ID to the native ID of a spectrum. Only peptide IDs without RT (where PeptideIdentification::getRT() returns "NaN") are looked up; the RT is set to that of the corresponding spectrum.
+     * @brief Adds missing ion mobility information to peptide identifications.
+     * 
+     * This function adds missing ion mobility (IM) information to the peptide identifications.
+     * The missing IM information is retrieved from the MSExperiment.
+     * 
+     * @param peptides The vector of peptide identifications to update.
+     * @param exp The MSExperiment object representing the raw data file (e.g., mzML) used to look up IM values.
+     * 
+     * @return True if all missing IM information was successfully added to the peptide identifications, false otherwise.
     */
-    static bool addMissingRTsToPeptideIDs(std::vector<PeptideIdentification>& peptides, const String &filename,
-      bool stop_on_error = false);
+    static bool addMissingIMToPeptideIDs(std::vector<PeptideIdentification>& peptides,
+    									const MSExperiment& exp);
 
     /**
      * @brief Add missing "spectrum_reference"s to peptide identifications based on raw data
@@ -289,6 +300,8 @@ namespace OpenMS
       bool override_spectra_data = false, 
       bool override_spectra_references = false, 
       std::vector<ProteinIdentification> proteins = std::vector<ProteinIdentification>());
+
+
 
   protected:
 
