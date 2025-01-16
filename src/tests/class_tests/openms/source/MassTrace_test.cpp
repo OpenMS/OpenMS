@@ -801,6 +801,20 @@ START_SECTION((void updateSmoothedWeightedMeanRT()))
 END_SECTION
 
 /////
+
+START_SECTION((double computeIntensitySum() const))
+{
+    // Test empty trace
+    MassTrace empty_trace;
+    TEST_REAL_SIMILAR(empty_trace.computeIntensitySum(), 0.0);
+
+    // Test with known data
+    // Sum should be: 542.0 + 542293.0 + 18282393.0 + 33329535.0 + 17342933.0 + 333291.0 + 339.0
+    TEST_REAL_SIMILAR(test_mt.computeIntensitySum(), 69831326.0);
+}
+END_SECTION
+
+/////
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
