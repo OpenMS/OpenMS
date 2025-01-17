@@ -459,19 +459,18 @@ jobs:
         exclusions: '/CMakeFiles/* /doxygen/* /code_examples/*'
         filename: 'documentation.zip'
     
-    #Zip the source
-    - name: Zip source
+    # Zip the source
+    - name: Create tarball
       if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
-      uses: thedoctor0/zip-release@0.7.6
-      with:
-        type: 'tar'
-        directory: ${{ github.workspace }}
-        path: OpenMS
-        exclusions: 'bld/* ./OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz ./THIRDPARTY/** .git/*'
-        filename: 'OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz'
-
+      run: |
+        tar --exclude='bld/*' \
+            --exclude='OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz' \
+            --exclude='OpenMS/THIRDPARTY/**' \
+            --exclude='.git/**' \
+            --exclude='.github/**' \
+            --exclude='vcpkg*/**' \         
+            -czf OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz -C ${{ github.workspace }} OpenMS
         
-
    # Upload the source tar
     - name: Upload source tar as artifact
       if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
