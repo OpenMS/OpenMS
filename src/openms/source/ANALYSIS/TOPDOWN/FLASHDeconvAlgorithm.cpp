@@ -337,22 +337,22 @@ namespace OpenMS
          // DeconvolvedSpectrum decoy_deconvolved_spectrum(scan_number);
 
           deconvolved_spectrum.sortByQscore();
-          double qscore_threshold_for_decoy = deconvolved_spectrum.back().getQscore2D();
-
+          double qscore_low_threshold_for_decoy = deconvolved_spectrum.back().getQscore2D();
+          double qscore_high_threshold_for_decoy = deconvolved_spectrum[0].getQscore2D();
           //decoy_deconvolved_spectrum.setOriginalSpectrum(spec);
           deconvolved_spectrum.reserve(deconvolved_spectrum.size() + sd_isotope_decoy_.getDeconvolvedSpectrum().size() + sd_charge_decoy_.getDeconvolvedSpectrum().size()
                                              + sd_noise_decoy_.getDeconvolvedSpectrum().size());
 
           for (const auto& pg : sd_charge_decoy_.getDeconvolvedSpectrum())
-            if (pg.getQscore2D() >= qscore_threshold_for_decoy)
+            if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
               deconvolved_spectrum.push_back(pg);
 
           for (const auto& pg : sd_isotope_decoy_.getDeconvolvedSpectrum())
-            if (pg.getQscore2D() >= qscore_threshold_for_decoy)
+            if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
               deconvolved_spectrum.push_back(pg);
 
           for (const auto& pg : sd_noise_decoy_.getDeconvolvedSpectrum())
-            if (pg.getQscore2D() >= qscore_threshold_for_decoy)
+            if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
               deconvolved_spectrum.push_back(pg);
 
           deconvolved_spectrum.sort();
