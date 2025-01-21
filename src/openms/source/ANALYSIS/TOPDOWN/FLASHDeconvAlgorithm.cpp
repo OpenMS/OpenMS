@@ -301,10 +301,13 @@ namespace OpenMS
       // run Spectral deconvolution
       for (Size index = 0; index < map.size(); index++)
       {
-        int scan_number = rt_scan_map.find(map[index].getRT()) == rt_scan_map.end()? getScanNumber(map, index) : rt_scan_map[map[index].getRT()];//getScanNumber(map, index);
+        int scan_number = merge_spec_ == 0? getScanNumber(map, index) :
+                                           (rt_scan_map.find(map[index].getRT()) == rt_scan_map.end()? getScanNumber(map, index) :
+                                                                                                      rt_scan_map[map[index].getRT()]);//getScanNumber(map, index);
         const auto& spec = map[index];
 
         if (ms_level != spec.getMSLevel()) { continue; }
+
         nextProgress();
         if (spec.empty()) { continue; }
         String native_id = spec.getNativeID();
@@ -340,14 +343,17 @@ namespace OpenMS
           deconvolved_spectrum.reserve(deconvolved_spectrum.size() + sd_isotope_decoy_.getDeconvolvedSpectrum().size() + sd_charge_decoy_.getDeconvolvedSpectrum().size()
                                              + sd_noise_decoy_.getDeconvolvedSpectrum().size());
 
-          for (auto& pg : sd_charge_decoy_.getDeconvolvedSpectrum())
-            if (pg.getQscore2D() >= qscore_threshold_for_decoy) deconvolved_spectrum.push_back(pg);
+          for (const auto& pg : sd_charge_decoy_.getDeconvolvedSpectrum())
+            if (pg.getQscore2D() >= qscore_threshold_for_decoy)
+              deconvolved_spectrum.push_back(pg);
 
-          for (auto& pg : sd_isotope_decoy_.getDeconvolvedSpectrum())
-            if (pg.getQscore2D() >= qscore_threshold_for_decoy) deconvolved_spectrum.push_back(pg);
+          for (const auto& pg : sd_isotope_decoy_.getDeconvolvedSpectrum())
+            if (pg.getQscore2D() >= qscore_threshold_for_decoy)
+              deconvolved_spectrum.push_back(pg);
 
-          for (auto& pg : sd_noise_decoy_.getDeconvolvedSpectrum())
-            if (pg.getQscore2D() >= qscore_threshold_for_decoy) deconvolved_spectrum.push_back(pg);
+          for (const auto& pg : sd_noise_decoy_.getDeconvolvedSpectrum())
+            if (pg.getQscore2D() >= qscore_threshold_for_decoy)
+              deconvolved_spectrum.push_back(pg);
 
           deconvolved_spectrum.sort();
           //if (!decoy_deconvolved_spectrum.empty()) deconvolved_spectra.push_back(decoy_deconvolved_spectrum);
@@ -608,7 +614,6 @@ namespace OpenMS
       auto spec = map[index]; // MS2 index
       if (spec.getMSLevel() != ms_level) { continue; }
 
-      //int scan_number = getScanNumber(map, index);
       String native_id = spec.getNativeID();
 
       auto filter_str = spec.getMetaValue("filter string").toString();

@@ -130,7 +130,7 @@ namespace OpenMS
             excluded_peak_masses_for_decoy_runs_.push_back(p.getUnchargedMass());
           }
         }
-        excluded_peak_masses_for_decoy_runs_.push_back(pg.getMonoMass());
+        else excluded_peak_masses_for_decoy_runs_.push_back(pg.getMonoMass() + avg_.getAverageMassDelta(pg.getMonoMass()));
 
         for (int i = -allowed_iso_error_; i <= allowed_iso_error_; i++)
           excluded_masses_for_decoy_runs_.push_back(pg.getMonoMass() + i * iso_da_distance_);
@@ -708,7 +708,7 @@ namespace OpenMS
                    is_positive_);
 
       pg.reserve(charge_range * 12);
-      pg.setTargetDecoyType(target_decoy_type_);
+      //pg.setTargetDecoyType(target_decoy_type_);
       pg.setIsotopeDaDistance(iso_da_distance_);
       // the range of isotope span. For a given peak the peaks within the span are searched.
       Size right_index = avg_.getRightCountFromApex(mass);
@@ -967,12 +967,14 @@ namespace OpenMS
     {
       int offset = 0;
       auto& peak_group = deconvolved_spectrum_[i];
-      peak_group.setTargetDecoyType(target_decoy_type_);
 
-      if (target_decoy_type_ == PeakGroup::isotope_decoy) //  || target_decoy_type_ == PeakGroup::charge_decoy
+      bool match = false;
+
+      if (target_decoy_type_ == PeakGroup::isotope_decoy || target_decoy_type_ == PeakGroup::charge_decoy)
       {
-        bool match = false;
-        auto upper = std::upper_bound(excluded_masses_for_decoy_runs_.begin(), excluded_masses_for_decoy_runs_.end(), peak_group.getMonoMass());
+        double delta = peak_group.getMonoMass() * tol;
+        //double min_delta = 100;
+        auto upper = std::upper_bound(excluded_masses_for_decoy_runs_.begin(), excluded_masses_for_decoy_runs_.end(), peak_group.getMonoMass() + delta);
         while (upper != excluded_masses_for_decoy_runs_.end())
         {
           if (std::abs(*upper - peak_group.getMonoMass()) < peak_group.getMonoMass() * tol)
@@ -980,23 +982,30 @@ namespace OpenMS
             match = true;
             break;
           }
-          if (peak_group.getMonoMass() - *upper > peak_group.getMonoMass() * tol) break;
+          if (peak_group.getMonoMass() - *upper > delta) break;
           if (upper == excluded_masses_for_decoy_runs_.begin()) { break; }
+          //min_delta = std::min(min_delta, delta);
           upper--;
         }
-        if (match) continue;
+        if (match)
+        {
+          continue;
+        }
+        //if (target_decoy_type_ == PeakGroup::isotope_decoy && min_delta > (1 + allowed_iso_error_) * iso_da_distance_) continue;
       }
 
-      int window_width = target_decoy_type_ == PeakGroup::isotope_decoy ? 0 : -1;
+      peak_group.setTargetDecoyType(target_decoy_type_);
 
+      int window_width = peak_group.getTargetDecoyType() == PeakGroup::isotope_decoy ? 0 : -1;
       float cos = getIsotopeCosineAndIsoOffset(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_,
-                                               -peak_group.getMinNegativeIsotopeIndex(), window_width, allowed_iso_error_, target_decoy_type_);
+                                               -peak_group.getMinNegativeIsotopeIndex(), window_width, allowed_iso_error_, peak_group.getTargetDecoyType());
       peak_group.setIsotopeCosine(cos);
       // first filtration to remove false positives before further processing.
       if (cos < std::min(min_isotope_cosine_[ms_level_ - 1], 0.5)) { continue; }
 
       int num_iteration = 10;
       bool mass_determined = false;
+      double prev_cos = 0;
       for (int k = 0; k < num_iteration; k++)
       {
         auto noisy_peaks = peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_,
@@ -1007,7 +1016,7 @@ namespace OpenMS
         offset = peak_group.updateQscore(noisy_peaks, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], tol,
                                          (z1 + z2) < 2 * low_charge_, allowed_iso_error_, false);
 
-        if (offset == 0 || target_decoy_type_ == PeakGroup::isotope_decoy)
+        if (prev_cos > peak_group.getIsotopeCosine() || offset == 0 || k >= num_iteration - 1 || peak_group.getTargetDecoyType() == PeakGroup::isotope_decoy)
         {
           if (peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold) // to speed up
             break;
@@ -1017,6 +1026,7 @@ namespace OpenMS
           mass_determined = true;
           break;
         }
+        prev_cos = peak_group.getIsotopeCosine();
       }
 
       if (! mass_determined || peak_group.empty() || peak_group.getQscore() <= 0 || peak_group.getMonoMass() < current_min_mass_
@@ -1049,7 +1059,7 @@ namespace OpenMS
       {
         continue;
       }
-
+      if (peak_group.getTargetDecoyType() == PeakGroup::isotope_decoy) peak_group.setQscore(peak_group.getQscore() + .025);
   #pragma omp critical
       selected[i] = true;
     }
@@ -1135,11 +1145,8 @@ namespace OpenMS
 
     deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
     removeOverlappingPeakGroups_(deconvolved_spectrum_, tol * 1.5, target_decoy_type_);
+    removeExcludedMasses_(deconvolved_spectrum_, excluded_masses_for_decoy_runs_, tol);
 
-    if (target_decoy_type_ == PeakGroup::charge_decoy)
-    {
-      removeExcludedMasses_(deconvolved_spectrum_, excluded_masses_for_decoy_runs_, tol);
-    }
 
     removeExcludedMasses_(deconvolved_spectrum_, excluded_masses_, tol);
   }
@@ -1158,8 +1165,9 @@ namespace OpenMS
     auto iso = avg.get(mono_mass);
 
     int right = (int)avg.getApexIndex(mono_mass) / 4 + 1;
+   // if (target_decoy_type == PeakGroup::isotope_decoy && allowed_isotope_error >= 0 && right < allowed_isotope_error) return 0;
+    if (target_decoy_type == PeakGroup::isotope_decoy && allowed_isotope_error >= 0) right+= allowed_isotope_error;
     int left = right;
-    if (target_decoy_type == PeakGroup::isotope_decoy && allowed_isotope_error >= 0 && right < allowed_isotope_error) return 0;
 
     right += iso_int_shift;
     left -= iso_int_shift;
@@ -1202,20 +1210,21 @@ namespace OpenMS
     if (target_decoy_type == PeakGroup::isotope_decoy && allowed_isotope_error >= 0)
     {
       int original_offset = offset;
-      max_cos = -1000;
+      //max_cos = -1000;
 
       for (const auto& [o, c] : offset_cos)
       {
         if (abs(original_offset - o) <= allowed_isotope_error) //
           continue;
 
-        if (max_cos < 0)
-        {
-          offset = o;
-          max_cos = c;
-          break;
-        }
+        //if (max_cos < 0)
+        //{
+        offset = o;
+          //max_cos = c;
+        break;
+        //}
       }
+      if (original_offset == offset) return 0;
     }
 
     max_cos = std::max(max_cos, .0f);

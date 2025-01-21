@@ -161,7 +161,6 @@ int PeakGroup::updateQscore(const std::vector<LogMzPeak>& noisy_peaks,
   }
 
   qscore_ = Qscore::getQscore(this, spec);
-
   return h_offset;
 }
 
@@ -842,7 +841,7 @@ void PeakGroup::setAvgPPMError(const float error)
 
 void PeakGroup::setQscore(const double qscore)
 {
-  qscore_ = qscore;
+  qscore_ = std::min(1.0, qscore);
 }
 
 std::tuple<double, double> PeakGroup::getRepMzRange() const
