@@ -13,7 +13,6 @@
 
 #include <chrono>
 #include <algorithm>
-#include <unordered_map>
 
 using namespace OpenMS;
 
@@ -127,7 +126,6 @@ AASequence DecoyGenerator::shufflePeptides(
       cached = true;
     }
   }
-
   if (cached) return AASequence::fromString(protein_shuffled);
 
   String peptide_string_shuffled = peptide_string;

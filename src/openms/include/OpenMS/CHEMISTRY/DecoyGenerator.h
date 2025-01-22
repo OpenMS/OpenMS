@@ -11,6 +11,8 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
+#include <unordered_map>
+
 namespace OpenMS
 {
   class AASequence;
