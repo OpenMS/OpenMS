@@ -420,8 +420,6 @@ struct NuXLRTPrediction
 
   map<char, double> encodeAAHist_(const AASequence& aa_seq)
   {
-    const String& seq = aa_seq.toUnmodifiedString();
-
     map<char, double> v;
     for (auto& c : aa_seq) 
     {
@@ -1383,35 +1381,29 @@ protected:
     // determine b+a and y-ion count 
     UInt y_ion_count(0), b_ion_count(0), a_ion_count(0);
 
-    double b_sum(0.0);
     for (Size i = 0; i != b_ions.size(); ++i) 
     {
       if (b_ions[i] > 0) 
       {
         intensity_sum[i] += b_ions[i];
-        b_sum += b_ions[i];
         ++b_ion_count;
       }       
     } 
 
-    double y_sum(0.0);
     for (Size i = 0; i != y_ions.size(); ++i) 
     {
       if (y_ions[i] > 0) 
       {
         intensity_sum[i] += y_ions[i];
-        y_sum += y_ions[i];
         ++y_ion_count;
       }       
     }
 
-    double a_sum(0.0);
     for (Size i = 0; i != a_ions.size(); ++i) 
     {
       if (a_ions[i] > 0) 
       {
         intensity_sum[i] += a_ions[i];
-        a_sum += a_ions[i];
         ++a_ion_count;
       }       
     }
@@ -1437,7 +1429,7 @@ protected:
       MIC = std::accumulate(intensity_sum.begin(), intensity_sum.end(), 0.0);
       for (auto& i : intensity_sum) { i /= TIC; } // scale intensity sum
       MIC /= TIC;
-      Morph = b_ion_count + y_ion_count + y_ion_count + MIC;
+      Morph = b_ion_count + y_ion_count + MIC;
       err = (y_mean_err + b_mean_err)/(b_ion_count + y_ion_count);
     }
 
@@ -2445,17 +2437,6 @@ static void scoreXLIons_(
       matched_ranks.push_back(spectrum.getIntegerDataArrays()[NuXLConstants::IA_RANK_INDEX][i]);
     }
     std::sort(matched_ranks.begin(), matched_ranks.end());
-
-    // optimal ranking would be 0,1, ... , (number_of_matched_peaks - 1)
-    // calculate number of "insertions" of higher-intensity peaks compared to optimal ranking
-    size_t sum_rank_diff(matched_ranks[0]);
-    for (size_t i = 1; i != matched_ranks.size(); ++i)
-    {
-      sum_rank_diff += matched_ranks[i] - matched_ranks[0] - 1;
-    }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //r.wTop50 = log10(1.0 + sum_rank_diff);
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     double avg_int{};
     size_t n_unexplained_greater_avg{};
@@ -5056,7 +5037,7 @@ static void scoreXLIons_(
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
         "q-value list for PSMs and peptides differ in size.", 
-        String(XL_FDR.size() + "!=" + XL_peptidelevel_FDR.size())); 
+        String(XL_FDR.size()) + "!=" + String(XL_peptidelevel_FDR.size())); 
     }
 
     // determine maximum FDR treshold used to create result files

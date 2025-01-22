@@ -230,7 +230,7 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
           "q-value list for PSMs and peptides differ in size.", 
-          String(xl_PSM_qvalue_thresholds.size() + "!=" + String(xl_peptidelevel_qvalue_thresholds.size())));
+          String(xl_PSM_qvalue_thresholds.size()) + "!=" + String(xl_peptidelevel_qvalue_thresholds.size()));
     }
 
     for (Size i = 0; i != xl_PSM_qvalue_thresholds.size(); ++i)
