@@ -102,15 +102,8 @@
 
 //#define DEBUG_OpenNuXL 1
 //#define FILTER_BAD_SCORES_ID_TAGS filter out some good hits
-//#define FILTER_AMBIGIOUS_PEAKS  so far only worse results
-//#define FILTER_NO_ARBITRARY_TAG_PRESENT
 #define CALCULATE_LONGEST_TAG
-//#define MODDS_ON_ABY_IONS_ONLY
-//#define FILTER_RANKS 1
-
 #define CONSIDER_AA_LOSSES 1
-
-#include <OpenMS/ANALYSIS/NUXL/unused.h>
 
 using namespace OpenMS;
 using namespace OpenMS::Internal;
@@ -5515,11 +5508,6 @@ static void scoreXLIons_(
                     const Size & scan_index = l->second.first;
                     const PeakSpectrum & exp_spectrum = spectra[scan_index];
 
-  #ifdef FILTER_NO_ARBITRARY_TAG_PRESENT
-                    // require at least one mass tag
-                    if (exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_DENOVO_TAG_INDEX][0] == 0) { continue; }
-  #endif
-
                     // count candidate for spectrum
   #ifdef _OPENMP
                     omp_set_lock(&(annotated_peptides_lock[scan_index]));
@@ -5722,11 +5710,6 @@ static void scoreXLIons_(
                       //////////////////////////////////////////
                       //               ID-Filter
                       if (skip_peptide_spectrum.find(exp_spectrum.getNativeID()) != skip_peptide_spectrum.end()) { continue; }
-  
-#ifdef FILTER_NO_ARBITRARY_TAG_PRESENT
-                      // require at least one mass tag
-                      if (exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_DENOVO_TAG_INDEX][0] == 0) { continue; }
-  #endif
 
   #ifdef _OPENMP
                       omp_set_lock(&(annotated_peptides_lock[scan_index]));
@@ -5952,11 +5935,6 @@ static void scoreXLIons_(
 
                 if (precursor_na_adduct != "none" && skip_peptide_spectrum.find(exp_spectrum.getNativeID()) != skip_peptide_spectrum.end()) continue;
 
-
-#ifdef FILTER_NO_ARBITRARY_TAG_PRESENT
-                 // require at least one mass tag
-                 if (exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_DENOVO_TAG_INDEX][0] == 0) { continue; }
-#endif
 #ifdef _OPENMP
                 omp_set_lock(&(annotated_peptides_lock[scan_index]));
                 omp_set_lock(&(annotated_XLs_lock[scan_index]));
@@ -6571,29 +6549,7 @@ static void scoreXLIons_(
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
 
       // generate filtered results
-#ifdef FILTER_RANKS
-      for (auto & pi : peptide_ids)
-      {
-        auto & phs = pi.getHits();
-        if (phs.empty()) continue;
-        if (static_cast<int>(phs[0].getMetaValue("NuXL:isXL")) == 0) continue; // only rerank cross-links
-
-        double max_total_Morph = std::max_element(phs.begin(), phs.end(), 
-           [] (PeptideHit const& lhs, PeptideHit const& rhs) 
-           {
-             return (double)lhs.getMetaValue("NuXL:total_Morph") < (double)rhs.getMetaValue("NuXL:total_Morph"); 
-           })->getMetaValue("NuXL:total_Morph");
-
-        auto new_end = std::remove_if(phs.begin(), phs.end(),
-            [&max_total_Morph](const PeptideHit & ph) 
-          { 
-           return fabs((double)ph.getMetaValue("NuXL:total_Morph") - max_total_Morph) > 1e-4; 
-          });
-        phs.erase(new_end, phs.end());
-      } 
-#else
       IDFilter::keepNBestHits(peptide_ids, 1);
-#endif       
       IDFilter::removeUnreferencedProteins(protein_ids, peptide_ids);
 
       // split PSMs into XLs and non-XLs but keep only best one of both
