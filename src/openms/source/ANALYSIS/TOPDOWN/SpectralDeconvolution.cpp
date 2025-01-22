@@ -112,9 +112,9 @@ namespace OpenMS
   {
     // First prepare for decoy runs.
     iso_da_distance_ = target_decoy_type_ == PeakGroup::noise_decoy
-                         ? Constants::ISOTOPE_MASSDIFF_55K_U * noise_iso_delta_ // 1.0263//.975//sqrt(19.0) / 2.5  // between 1 and 1.0526
-                         : Constants::ISOTOPE_MASSDIFF_55K_U; // sqrt(13.0)/5.0 Da is used instead of C13 - C12 to make sure masses detected with this
-                                                              // nonsensical mass difference are not true.
+                         ? Constants::ISOTOPE_MASSDIFF_55K_U * noise_iso_delta_
+                         : Constants::ISOTOPE_MASSDIFF_55K_U;
+
     excluded_peak_masses_for_decoy_runs_.clear();
     excluded_log_mz_bins_for_decoy_runs_.reset();
     excluded_masses_for_decoy_runs_.clear();
@@ -155,7 +155,6 @@ namespace OpenMS
       std::set<double> signal_mzs;
       for (const auto& pg : *target_dspec_for_decoy_calculation_)
       {
-        if (pg.getQscore() < .3) continue;
         for (const auto& p : pg)
           signal_mzs.insert(p.mz);
       }
@@ -278,9 +277,7 @@ namespace OpenMS
     for (int i = 0; i < charge_range; i++)
     {
       universal_pattern_.push_back(
-        -log(i + (target_decoy_type_ == PeakGroup::noise_decoy
-                  ? std::sqrt(2.0)
-                  : 1))); // + log(target_decoy_type_ == PeakGroup::noise_decoy? (1.0 / sqrt(2.0) ) : 1) * (i % 2 == 0? -1 : 1)); //+
+        -log(i + (target_decoy_type_ == PeakGroup::noise_decoy? std::sqrt(2.0): 1)));
     }
 
     harmonic_pattern_matrix_ = Matrix<double>(harmonic_charges_.size(), charge_range, .0);
@@ -973,23 +970,28 @@ namespace OpenMS
 
       if (target_decoy_type_ == PeakGroup::isotope_decoy || target_decoy_type_ == PeakGroup::charge_decoy)
       {
-        double delta = peak_group.getMonoMass() * tol;
-        auto upper = std::upper_bound(excluded_masses_for_decoy_runs_.begin(), excluded_masses_for_decoy_runs_.end(), peak_group.getMonoMass() + delta);
+        double mass_da_tol = peak_group.getMonoMass() * tol;// + iso_da_distance_ * (allowed_iso_error_ + 1);
+        //double min_delta = mass_da_tol + 1;
+        auto upper = std::upper_bound(excluded_masses_for_decoy_runs_.begin(), excluded_masses_for_decoy_runs_.end(), peak_group.getMonoMass() + mass_da_tol);
         while (upper != excluded_masses_for_decoy_runs_.end())
         {
-          if (std::abs(*upper - peak_group.getMonoMass()) < peak_group.getMonoMass() * tol)
+          double delta = peak_group.getMonoMass() - *upper;
+          if (std::abs(delta) < peak_group.getMonoMass() * tol)
           {
             match = true;
             break;
           }
-          if (peak_group.getMonoMass() - *upper > delta) break;
+          if (delta > mass_da_tol) break;
           if (upper == excluded_masses_for_decoy_runs_.begin()) { break; }
+          //min_delta = std::min(min_delta, std::abs(delta));
           upper--;
         }
         if (match)
         {
           continue;
         }
+        //if (target_decoy_type_ == PeakGroup::isotope_decoy && min_delta > mass_da_tol) continue;
+        //if (target_decoy_type_ == PeakGroup::charge_decoy && min_delta <= mass_da_tol) continue;
       }
 
       int window_width = peak_group.getTargetDecoyType() == PeakGroup::isotope_decoy ? 0 : -1;
@@ -1025,8 +1027,8 @@ namespace OpenMS
         }
         prev_cos = peak_group.getIsotopeCosine();
       }
-     // prev_mass -= peak_group.getMonoMass();
 
+      //if (target_decoy_type_ == PeakGroup::isotope_decoy && peak_group.getQscore() < .8) continue;
       if (! mass_determined || peak_group.empty() || peak_group.getQscore() <= 0 || peak_group.getMonoMass() < current_min_mass_
           || peak_group.getMonoMass() > current_max_mass_)
         continue;
@@ -1080,7 +1082,7 @@ namespace OpenMS
       index = selected.find_next(index);
     }
 
-    if (target_decoy_type_ == PeakGroup::charge_decoy)
+    if (target_decoy_type_ == PeakGroup::charge_decoy || target_decoy_type_ == PeakGroup::noise_decoy)
     {
       filtered_peak_groups.insert(filtered_peak_groups.end(), target_dspec_for_decoy_calculation_->begin(), target_dspec_for_decoy_calculation_->end());
     }

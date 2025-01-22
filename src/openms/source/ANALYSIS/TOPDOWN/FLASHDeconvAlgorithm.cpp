@@ -356,7 +356,6 @@ namespace OpenMS
               deconvolved_spectrum.push_back(pg);
 
           deconvolved_spectrum.sort();
-          //if (!decoy_deconvolved_spectrum.empty()) deconvolved_spectra.push_back(decoy_deconvolved_spectrum);
         }
 
         deconvolved_spectra.push_back(deconvolved_spectrum);
