@@ -64,9 +64,7 @@ AASequence DecoyGenerator::shufflePeptides(
         const AASequence& protein,
         const String& protease,
         const int max_attempts)
-{
-  static std::unordered_map<std::string, std::string> td_cache; // to prevent targets getting different decoys
-
+{  
   OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.");
 
   std::vector<AASequence> peptides;
@@ -79,10 +77,12 @@ AASequence DecoyGenerator::shufflePeptides(
   for (int i = 0; i < static_cast<int>(peptides.size()) - 1; ++i)
   {
     const std::string peptide_string = peptides[i].toUnmodifiedString();
+
+    // add from cache if available
     bool cached(false);
-    #pragma omp critical (td_cache)
+    #pragma omp critical (td_cache_)
     {
-      if (auto it = td_cache.find(peptide_string); it != td_cache.end())
+      if (auto it = td_cache_.find(peptide_string); it != td_cache_.end())
       {      
         protein_shuffled += it->second; // add if cached
         cached = true;
@@ -111,17 +111,17 @@ AASequence DecoyGenerator::shufflePeptides(
       }
     }
     protein_shuffled += lowest_identity_string;
-    #pragma omp critical (td_cache)
+    #pragma omp critical (td_cache_)
     {
-      td_cache[peptide_string] = lowest_identity_string;
+      td_cache_[peptide_string] = lowest_identity_string;
     }
   }
   // the last peptide of a protein is not an enzymatic cutting site so we do a full shuffle
   const std::string peptide_string = peptides[peptides.size() - 1 ].toUnmodifiedString();
   bool cached(false);
-  #pragma omp critical (td_cache)
+  #pragma omp critical (td_cache_)
   {
-    if (auto it = td_cache.find(peptide_string); it != td_cache.end())
+    if (auto it = td_cache_.find(peptide_string); it != td_cache_.end())
     {      
       protein_shuffled += it->second; // add if cached
       cached = true;
@@ -148,9 +148,9 @@ AASequence DecoyGenerator::shufflePeptides(
     }
   }
   protein_shuffled += lowest_identity_string;
-  #pragma omp critical (td_cache)
+  #pragma omp critical (td_cache_)
   {
-    td_cache[peptide_string] = lowest_identity_string;
+    td_cache_[peptide_string] = lowest_identity_string;
   }
   return AASequence::fromString(protein_shuffled);
 }
