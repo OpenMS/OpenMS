@@ -1082,7 +1082,7 @@ namespace OpenMS
       index = selected.find_next(index);
     }
 
-    if (target_decoy_type_ == PeakGroup::charge_decoy || target_decoy_type_ == PeakGroup::noise_decoy)
+    if (target_decoy_type_ == PeakGroup::charge_decoy)
     {
       filtered_peak_groups.insert(filtered_peak_groups.end(), target_dspec_for_decoy_calculation_->begin(), target_dspec_for_decoy_calculation_->end());
     }
