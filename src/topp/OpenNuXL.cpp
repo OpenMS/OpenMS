@@ -82,16 +82,18 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/ML/SVM/SimpleSVM.h>
 
-#include <map>
-#include <algorithm>
-#include <iterator>
-
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 #include <OpenMS/KERNEL/BinnedSpectrum.h>
 
 #include <QtCore/QDir>
+
+#include <map>
+#include <algorithm>
+#include <iterator>
+#include <cmath>
+
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -1178,11 +1180,12 @@ protected:
 
   static double logfactorial_(UInt x)
   {
+    const double dx = static_cast<double>(x);
     if (x < 2) { return 0; }
     double z(0);
-    for (double y = 2; y <= static_cast<double>(x); ++y) { z += log(static_cast<double>(y)); }
-      return z;
-    }
+    for (double y = 2; y <= dx; ++y) { z += std::log(y); }
+    return z;
+  }
 
   // score ions without nucleotide shift
   static void scorePeptideIons_(
@@ -1430,7 +1433,7 @@ protected:
       const double bFact = logfactorial_(b_ion_count);
       const double aFact = logfactorial_(a_ion_count);
       const double yFact = logfactorial_(y_ion_count);
-      hyperScore = log1p(dot_product) + yFact + bFact + aFact;
+      hyperScore = std::log1p(dot_product) + yFact + bFact + aFact;
       MIC = std::accumulate(intensity_sum.begin(), intensity_sum.end(), 0.0);
       for (auto& i : intensity_sum) { i /= TIC; } // scale intensity sum
       MIC /= TIC;
@@ -1984,7 +1987,7 @@ protected:
       const double bFact = logfactorial_(b_ion_count);
       const double aFact = logfactorial_(a_ion_count);
       const double yFact = logfactorial_(y_ion_count);
-      plss_hyperScore = log1p(dot_product) + yFact + bFact + aFact;
+      plss_hyperScore = std::log1p(dot_product) + yFact + bFact + aFact;
       plss_MIC = std::accumulate(intensity_sum.begin(), intensity_sum.end(), 0.0);
       for (auto& i : intensity_sum) { i /= TIC; } // scale intensity sum
       plss_MIC /= TIC;
