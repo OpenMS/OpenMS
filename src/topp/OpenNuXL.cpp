@@ -37,7 +37,6 @@
 #include <OpenMS/ANALYSIS/NUXL/NuXLConstants.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLFDR.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLMarkerIonExtractor.h>
-#include <OpenMS/ANALYSIS/NUXL/NuXLFeatureAugmentation.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAnnotationHelper.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLFragmentIonGenerator.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLParameterParsing.h>
@@ -6542,8 +6541,6 @@ static void scoreXLIons_(
 */
 
 
-//      NuXLFeatureAugmentation::augment(peptide_ids, positive_weights_features, negative_weights_features); // TODO: seems to work ... scales weights but no improvement
-
       if (RTpredict)
       {
         NuXLFDR fdr(1); // 1=keep only top scoring per spectrum
@@ -6572,8 +6569,6 @@ static void scoreXLIons_(
 
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
-
-//      NuXLFeatureAugmentation::removeAugmented(peptide_ids); // remove augmented features
 
       // generate filtered results
 #ifdef FILTER_RANKS
@@ -6692,8 +6687,6 @@ static void scoreXLIons_(
         { 
           // load back idXML
           IdXMLFile().load(perc_out, protein_ids, peptide_ids);
-
-          NuXLFeatureAugmentation::removeAugmented(peptide_ids); // remove augmented features after percolator run
  
           // generate filtered results
           IDFilter::keepNBestHits(peptide_ids, 1);

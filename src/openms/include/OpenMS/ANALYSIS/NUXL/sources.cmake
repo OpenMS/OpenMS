@@ -8,7 +8,6 @@ NuXLAnnotatedHit.h
 NuXLConstants.h
 NuXLDeisotoper.h
 NuXLFDR.h
-NuXLFeatureAugmentation.h
 NuXLFragmentAdductDefinition.h
 NuXLFragmentAnnotationHelper.h
 NuXLFragmentIonGenerator.h
