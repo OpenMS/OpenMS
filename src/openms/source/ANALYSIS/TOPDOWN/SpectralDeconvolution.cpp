@@ -119,18 +119,11 @@ namespace OpenMS
     excluded_log_mz_bins_for_decoy_runs_.reset();
     excluded_masses_for_decoy_runs_.clear();
 
-    if (target_decoy_type_ == PeakGroup::charge_decoy || target_decoy_type_ == PeakGroup::isotope_decoy) // charge decoy
+    if (target_decoy_type_ == PeakGroup::signal_decoy) // charge decoy
     {
       for (const auto& pg : *target_dspec_for_decoy_calculation_)
       {
-        if (target_decoy_type_ == PeakGroup::charge_decoy)
-        {
-          for (const auto& p : pg)
-          {
-            excluded_peak_masses_for_decoy_runs_.push_back(p.getUnchargedMass());
-          }
-        }
-        else excluded_peak_masses_for_decoy_runs_.push_back(pg.getMonoMass() + avg_.getAverageMassDelta(pg.getMonoMass()));
+        excluded_peak_masses_for_decoy_runs_.push_back(pg.getMonoMass() + avg_.getAverageMassDelta(pg.getMonoMass()));
 
         for (int i = -allowed_iso_error_; i <= allowed_iso_error_; i++)
           excluded_masses_for_decoy_runs_.push_back(pg.getMonoMass() + i * iso_da_distance_);
@@ -161,6 +154,7 @@ namespace OpenMS
       for (const auto& p : spec)
       {
         if (signal_mzs.find(p.getMZ()) != signal_mzs.end()) continue;
+        //if (match) continue;
         nspec.push_back(p);
       }
       deconvolved_spectrum_.setOriginalSpectrum(nspec);
@@ -255,7 +249,7 @@ namespace OpenMS
     return avg_;
   }
 
-  void SpectralDeconvolution::calculateAveragine(const bool use_RNA_averagine)
+  void SpectralDeconvolution::calculateAveragine(const bool use_RNA_averagine, const bool is_centroid)
   {
     CoarseIsotopePatternGenerator generator(300);
 
@@ -265,7 +259,7 @@ namespace OpenMS
 
     generator.setMaxIsotope(max_isotope);
     avg_ = FLASHHelperClasses::PrecalculatedAveragine(50, current_max_mass_, 25, generator, use_RNA_averagine,
-                                                      target_decoy_type_ == PeakGroup::noise_decoy ? noise_iso_delta_ : -1);
+                                                      target_decoy_type_ == PeakGroup::noise_decoy ? noise_iso_delta_ : -1, is_centroid);
     avg_.setMaxIsotopeIndex((int)(max_isotope - 1));
   }
 
@@ -968,7 +962,7 @@ namespace OpenMS
 
       bool match = false;
 
-      if (target_decoy_type_ == PeakGroup::isotope_decoy || target_decoy_type_ == PeakGroup::charge_decoy)
+      if (target_decoy_type_ == PeakGroup::signal_decoy)
       {
         double mass_da_tol = peak_group.getMonoMass() * tol;// + iso_da_distance_ * (allowed_iso_error_ + 1);
         //double min_delta = mass_da_tol + 1;
@@ -990,11 +984,10 @@ namespace OpenMS
         {
           continue;
         }
-        //if (target_decoy_type_ == PeakGroup::isotope_decoy && min_delta > mass_da_tol) continue;
-        //if (target_decoy_type_ == PeakGroup::charge_decoy && min_delta <= mass_da_tol) continue;
+        //if (target_decoy_type_ == PeakGroup::signal_decoy && min_delta > mass_da_tol) continue;
       }
 
-      int window_width = peak_group.getTargetDecoyType() == PeakGroup::isotope_decoy ? 0 : -1;
+      int window_width = peak_group.getTargetDecoyType() == PeakGroup::signal_decoy ? 0 : -1;
       float cos = getIsotopeCosineAndIsoOffset(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_,
                                                -peak_group.getMinNegativeIsotopeIndex(), window_width, allowed_iso_error_, peak_group.getTargetDecoyType());
       peak_group.setIsotopeCosine(cos);
@@ -1015,7 +1008,7 @@ namespace OpenMS
         offset = peak_group.updateQscore(noisy_peaks, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], tol,
                                          (z1 + z2) < 2 * low_charge_, allowed_iso_error_, false);
 
-        if (prev_cos > peak_group.getIsotopeCosine() || offset == 0 || k >= num_iteration - 1 || peak_group.getTargetDecoyType() == PeakGroup::isotope_decoy)
+        if (prev_cos > peak_group.getIsotopeCosine() || offset == 0 || k >= num_iteration - 1 || peak_group.getTargetDecoyType() == PeakGroup::signal_decoy)
         {
           if (peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold) // to speed up
             break;
@@ -1028,7 +1021,7 @@ namespace OpenMS
         prev_cos = peak_group.getIsotopeCosine();
       }
 
-      //if (target_decoy_type_ == PeakGroup::isotope_decoy && peak_group.getQscore() < .8) continue;
+      //if (target_decoy_type_ == PeakGroup::signal_decoy && peak_group.getQscore() < .8) continue;
       if (! mass_determined || peak_group.empty() || peak_group.getQscore() <= 0 || peak_group.getMonoMass() < current_min_mass_
           || peak_group.getMonoMass() > current_max_mass_)
         continue;
@@ -1059,7 +1052,7 @@ namespace OpenMS
       {
         continue;
       }
-      if (peak_group.getTargetDecoyType() == PeakGroup::isotope_decoy) peak_group.setQscore(peak_group.getQscore() + (allowed_iso_error_ == 0 ? .005 : .025));
+      if (peak_group.getTargetDecoyType() == PeakGroup::signal_decoy) peak_group.setQscore(peak_group.getQscore() + (allowed_iso_error_ == 0 ? .005 : .025));
   #pragma omp critical
       selected[i] = true;
     }
@@ -1072,8 +1065,7 @@ namespace OpenMS
     }
 
     std::vector<PeakGroup> filtered_peak_groups;
-    filtered_peak_groups.reserve(selected_count
-                                 + (target_decoy_type_ != PeakGroup::charge_decoy ? 0 : target_dspec_for_decoy_calculation_->size()));
+    filtered_peak_groups.reserve(selected_count);
 
     Size index = selected.find_first();
     while (index != selected.npos)
@@ -1082,10 +1074,6 @@ namespace OpenMS
       index = selected.find_next(index);
     }
 
-    if (target_decoy_type_ == PeakGroup::charge_decoy)
-    {
-      filtered_peak_groups.insert(filtered_peak_groups.end(), target_dspec_for_decoy_calculation_->begin(), target_dspec_for_decoy_calculation_->end());
-    }
     deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
     deconvolved_spectrum_.sort();
 
@@ -1165,8 +1153,8 @@ namespace OpenMS
     auto iso = avg.get(mono_mass);
 
     int right = (int)avg.getApexIndex(mono_mass) / 4 + 1;
-   // if (target_decoy_type == PeakGroup::isotope_decoy && allowed_isotope_error >= 0 && right < allowed_isotope_error) return 0;
-    if (target_decoy_type == PeakGroup::isotope_decoy && allowed_isotope_error >= 0) right+= allowed_isotope_error;
+   // if (target_decoy_type == PeakGroup::signal_decoy && allowed_isotope_error >= 0 && right < allowed_isotope_error) return 0;
+    if (target_decoy_type == PeakGroup::signal_decoy && allowed_isotope_error >= 0) right+= allowed_isotope_error;
     int left = right;
 
     right += iso_int_shift;
@@ -1188,7 +1176,7 @@ namespace OpenMS
 
     for (int tmp_offset = -left; tmp_offset <= right; tmp_offset++)
     {
-      if (target_decoy_type != PeakGroup::isotope_decoy && window_width >= 0 && abs(tmp_offset - iso_int_shift) > window_width)
+      if (target_decoy_type != PeakGroup::signal_decoy && window_width >= 0 && abs(tmp_offset - iso_int_shift) > window_width)
         continue;
       float tmp_cos = getCosine(per_isotope_intensities, min_isotope_index, max_isotope_index, iso, tmp_offset, min_iso_size);
       offset_cos.emplace_back(tmp_offset, tmp_cos);
@@ -1207,7 +1195,7 @@ namespace OpenMS
       break;
     }
 
-    if (target_decoy_type == PeakGroup::isotope_decoy && allowed_isotope_error >= 0)
+    if (target_decoy_type == PeakGroup::signal_decoy && allowed_isotope_error >= 0)
     {
       int original_offset = offset;
       //max_cos = -1000;
@@ -1296,8 +1284,7 @@ namespace OpenMS
         double mass1 = dspec[i].getMonoMass();
         int repz1 = (int)round(mass1 / (pmz - FLASHHelperClasses::getChargeMass(is_positive_)));
         const double high_snr = 10;
-        if (dspec[i].getTargetDecoyType() != PeakGroup::charge_decoy &&
-            dspec[i].getSNR() > high_snr && dspec[i].getChargeSNR(repz1) > high_snr) // if signal is almost perfect, skip the filtration
+        if (dspec[i].getSNR() > high_snr && dspec[i].getChargeSNR(repz1) > high_snr) // if signal is almost perfect, skip the filtration
           continue;
 
         for (auto j : pg_is)

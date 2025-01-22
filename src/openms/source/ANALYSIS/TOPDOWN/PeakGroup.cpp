@@ -141,7 +141,7 @@ int PeakGroup::updateQscore(const std::vector<LogMzPeak>& noisy_peaks,
   if (per_isotope_int_.empty() || max_abs_charge_ < min_abs_charge_) { return 0; }
   int h_offset;
   int window_width = is_last ? 0 : -1;
-  // auto target_decoy_type = is_last && target_decoy_type_ == PeakGroup::TargetDecoyType::isotope_decoy ? PeakGroup::TargetDecoyType::target :
+  // auto target_decoy_type = is_last && target_decoy_type_ == PeakGroup::TargetDecoyType::signal_decoy ? PeakGroup::TargetDecoyType::target :
   // target_decoy_type_;
   allowed_iso_error = is_last ? -1 : allowed_iso_error;
   isotope_cosine_score_ = SpectralDeconvolution::getIsotopeCosineAndIsoOffset(

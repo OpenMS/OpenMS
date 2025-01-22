@@ -82,7 +82,7 @@ namespace OpenMS
 
   private:
     /// SpectralDeconvolution  instances for spectral deconvolution for target and decoys
-    SpectralDeconvolution sd_, sd_charge_decoy_, sd_noise_decoy_, sd_isotope_decoy_;
+    SpectralDeconvolution sd_, sd_noise_decoy_, sd_signal_decoy_;
 
     /// to merge spectra.
     int merge_spec_ = 0;

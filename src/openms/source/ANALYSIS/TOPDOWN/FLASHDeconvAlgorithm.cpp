@@ -328,11 +328,9 @@ namespace OpenMS
   #pragma omp parallel sections default(none) shared(spec, scan_number, precursor_pg, deconvolved_spectrum)
           {
   #pragma omp section
-            sd_charge_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
-  #pragma omp section
             sd_noise_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
   #pragma omp section
-            sd_isotope_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
+            sd_signal_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
           }
          // DeconvolvedSpectrum decoy_deconvolved_spectrum(scan_number);
 
@@ -340,14 +338,14 @@ namespace OpenMS
           double qscore_low_threshold_for_decoy = deconvolved_spectrum.back().getQscore2D();
           double qscore_high_threshold_for_decoy = deconvolved_spectrum[0].getQscore2D();
           //decoy_deconvolved_spectrum.setOriginalSpectrum(spec);
-          deconvolved_spectrum.reserve(deconvolved_spectrum.size() + sd_isotope_decoy_.getDeconvolvedSpectrum().size() + sd_charge_decoy_.getDeconvolvedSpectrum().size()
+          deconvolved_spectrum.reserve(deconvolved_spectrum.size() + sd_signal_decoy_.getDeconvolvedSpectrum().size()
                                              + sd_noise_decoy_.getDeconvolvedSpectrum().size());
 
-          for (const auto& pg : sd_charge_decoy_.getDeconvolvedSpectrum())
-            if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
-              deconvolved_spectrum.push_back(pg);
+          //for (const auto& pg : sd_charge_decoy_.getDeconvolvedSpectrum())
+          //  if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
+          //    deconvolved_spectrum.push_back(pg);
 
-          for (const auto& pg : sd_isotope_decoy_.getDeconvolvedSpectrum())
+          for (const auto& pg : sd_signal_decoy_.getDeconvolvedSpectrum())
             if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
               deconvolved_spectrum.push_back(pg);
 
@@ -486,6 +484,14 @@ namespace OpenMS
     OPENMS_LOG_INFO<< "Done" << std::endl;
     const auto& avg = sd_.getAveragine();
 
+    bool is_centroid = true;
+    for (auto& it : map)
+    {
+      if (it.empty()) continue;
+      is_centroid = it.getType(false) == SpectrumSettings::CENTROID;
+      break;
+    }
+
     // determine tolerance in case tolerance input is negative
     for (uint ms_level = 1; ms_level <= current_max_ms_level_; ms_level++)
     {
@@ -500,15 +506,11 @@ namespace OpenMS
     {
       sd_noise_decoy_.setParameters(sd_param);
       sd_noise_decoy_.setTargetDecoyType(PeakGroup::TargetDecoyType::noise_decoy, sd_.getDeconvolvedSpectrum()); // noise
-      sd_noise_decoy_.calculateAveragine(use_RNA_averagine_); // for noise, averagine needs to be calculated differently.
+      sd_noise_decoy_.calculateAveragine(use_RNA_averagine_, is_centroid); // for noise, averagine needs to be calculated differently.
 
-      sd_isotope_decoy_.setParameters(sd_param);
-      sd_isotope_decoy_.setTargetDecoyType(PeakGroup::TargetDecoyType::isotope_decoy, sd_.getDeconvolvedSpectrum()); // isotope
-      sd_isotope_decoy_.setAveragine(avg);
-
-      sd_charge_decoy_.setParameters(sd_param);
-      sd_charge_decoy_.setTargetDecoyType(PeakGroup::TargetDecoyType::charge_decoy, sd_.getDeconvolvedSpectrum()); // charge
-      sd_charge_decoy_.setAveragine(avg);
+      sd_signal_decoy_.setParameters(sd_param);
+      sd_signal_decoy_.setTargetDecoyType(PeakGroup::TargetDecoyType::signal_decoy, sd_.getDeconvolvedSpectrum()); // isotope
+      sd_signal_decoy_.setAveragine(avg);
     }
 
     setLogType(CMD);

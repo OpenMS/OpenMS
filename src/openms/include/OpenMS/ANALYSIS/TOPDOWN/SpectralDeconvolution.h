@@ -79,8 +79,9 @@ namespace OpenMS
 
     /** @brief precalculate averagine (for predefined mass bins) to speed up averagine generation
         @param use_RNA_averagine if set, averagine for RNA (nucleotides) is calculated
+        @param is_centroid this is for noise averagine calculation. For noise, centroid and profile averagines are different.
      */
-    void calculateAveragine(bool use_RNA_averagine);
+    void calculateAveragine(bool use_RNA_averagine, const bool is_centroid = true);
 
     /// when estimating tolerance, max_mass_dalton_tolerance_ should be large
     void setToleranceEstimation()

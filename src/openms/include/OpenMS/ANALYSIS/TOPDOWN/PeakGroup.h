@@ -28,13 +28,12 @@ namespace OpenMS
     typedef FLASHHelperClasses::PrecalculatedAveragine PrecalculatedAveragine;
 
   public:
-    /// target decoy type of PeakGroup. This specifies if a PeakGroup is a target (0), charge decoy (1), noise decoy (2), or isotope decoy (3). Added non_specific (4) to allow all types in some functions
+    /// target decoy type of PeakGroup. This specifies if a PeakGroup is a target (0), charge decoy (1), noise decoy (2), or signal decoy (3). Added non_specific (4) to allow all types in some functions
     enum TargetDecoyType
     {
       target = 0,
-      charge_decoy,
       noise_decoy,
-      isotope_decoy,
+      signal_decoy,
       non_specific
     };
 
