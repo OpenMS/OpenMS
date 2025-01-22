@@ -6,7 +6,7 @@
 				<UserParam type="string" name="extra_features" value="score,isotope_error,fragment_mz_error_median_ppm,matched_prefix_ions_fraction,matched_suffix_ions_fraction"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2025-01-21T14:31:29" search_engine="SimpleSearchEngine" search_engine_version="3.4.0-pre-nuxl-to-dev-2025-01-21" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2025-01-22T10:24:48" search_engine="SimpleSearchEngine" search_engine_version="3.4.0-pre-feature-NuXL-2025-01-22" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="test2_rev" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -21,24 +21,24 @@
 			<UserParam type="stringList" name="spectra_data" value="[file://SimpleSearchEngine_1.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="ln(hyperscore)" higher_score_better="true" significance_threshold="0.0" MZ="520.262817382812045" RT="2655.095703125" spectrum_reference="spectrum=0" >
-			<PeptideHit score="20.34238715336474" sequence="DFASSGGYVLHLHR" charge="3" aa_before="[" aa_after="E" start="0" end="13" protein_refs="PH_0" >
+			<PeptideHit score="13.195273686121645" sequence="DFASSGGYVLHLHR" charge="3" aa_before="[" aa_after="E" start="0" end="13" protein_refs="PH_0" >
 				<UserParam type="int" name="isotope_error" value="0"/>
-				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.731785331544976"/>
+				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.809573809163447"/>
 				<UserParam type="float" name="precursor_mz_error_ppm" value="-1.415652739967919"/>
 				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.214285714285714"/>
-				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.785714285714286"/>
+				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.571428571428571"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="0"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="ln(hyperscore)" higher_score_better="true" significance_threshold="0.0" MZ="1063.209838867190001" RT="4587.6689453125" spectrum_reference="spectrum=1" >
-			<PeptideHit score="52.559524086102684" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="[" aa_after="E" start="0" end="27" protein_refs="PH_1" >
+			<PeptideHit score="47.256181302684944" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="[" aa_after="E" start="0" end="27" protein_refs="PH_1" >
 				<UserParam type="int" name="isotope_error" value="0"/>
-				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.278134266336796"/>
+				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.088843358789125"/>
 				<UserParam type="float" name="precursor_mz_error_ppm" value="0.532776127422444"/>
-				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.5"/>
-				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.5"/>
+				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.464285714285714"/>
+				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.464285714285714"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
