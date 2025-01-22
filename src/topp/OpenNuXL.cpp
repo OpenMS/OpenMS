@@ -29,7 +29,7 @@
 #include <OpenMS/ANALYSIS/ID/MorpheusScore.h>
 #include <OpenMS/ANALYSIS/ID/HyperScore.h>
 
-#include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLDeisotoper.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLReport.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLAnnotatedHit.h>
@@ -3101,7 +3101,7 @@ static void scoreXLIons_(
       spec.sortByPosition();
 
       // deisotope
-      Deisotoper::deisotopeAndSingleCharge(spec, 
+      NuXLDeisotoper::deisotopeAndSingleCharge(spec, 
                                          0.01,
                                          false,
                                          1, 3, 

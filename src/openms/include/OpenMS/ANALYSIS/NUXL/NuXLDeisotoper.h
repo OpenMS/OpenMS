@@ -12,66 +12,22 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <string.h>
+
 namespace OpenMS
 {
 
 class MSSpectrum;
 
-class OPENMS_DLLAPI Deisotoper
+/** @brief Deisotoping of nucleotide cross-link mass spectra.
+
+  This class provides methods for deisotoping mass spectra. The algorithm
+  considers each peak (starting from the right of a spectrum) and, for each
+  peak
+  **/
+class OPENMS_DLLAPI NuXLDeisotoper
 {
   public:
-
-  /** @brief Detect isotopic clusters in a mass spectrum.
-    
-    This algorithm is in parts taken from Guo Ci Teo et al, DOI: 10.1021/acs.jproteome.0c00544
-    and is closely related to deisotopeAndSingleCharge by Timo Sachsenberg.
-
-    Deisotoping is based on C13 abundance and will try to identify isotopic
-    clusters fitting to an averagine model, taking in account the corresponding
-    charge state. This only makes sense for peptide fragment ion spectra.
-    The algorithm considers each peak in the spectrum and will try to form
-    isotopic clusters for every charge state from @p min_charge to @p max_charge.
-    Of the clusters that pass an averaginge check based on KL-divergence (for all 
-    subclusters starting at the base peak as well), the cluster with most peaks (and
-    in case of equality, also highest charge) is kept.
-
-    Deisotoping is done in-place, and the algorithm removes peaks with 
-    intensity 0. If @p rem_low_intensity is true,
-    peaks not belonging to the highest 1000/5000 peaks are removed (see 
-    @p used_for_open_search). If @p annotate_charge is true,
-    an additional IntegerDataArray "charge" will be appended. If
-    @p annotate_iso_peak_count is true, an additional IntegerDataArray
-    "iso_peak_count" containing the number of isotopic peaks will be
-    appended. Existing DataArrays are kept and shrunken to the peaks which
-    remain in the spectrum.
-
-   * @param [spectrum] Input spectrum (sorted by m/z)
-   * @param [fragment_tolerance] The tolerance used to match isotopic peaks
-   * @param [fragment_unit_ppm] Whether ppm or m/z is used as tolerance 
-   * @param [number_of_final_peaks] Only the largest @p number_of_final_peaks peaks are kept in any spectrum. If 0, no filtering is performed. For open search, 1000 is recommended, else 5000.
-   * @param [min_charge] The minimum charge considered
-   * @param [max_charge] The maximum charge considered
-   * @param [keep_only_deisotoped] Only monoisotopic peaks of fragments with isotopic pattern are retained
-   * @param [min_isopeaks] The minimum number of isotopic peaks (at least 2) required for an isotopic cluster
-   * @param [max_isopeaks] The maximum number of isotopic peaks (at least 2) considered for an isotopic cluster
-   * @param [make_single_charged] Convert deisotoped monoisotopic peak to single charge, the original charge (>=1) gets annotated
-   * @param [annotate_charge] Annotate the charge to the peaks in the IntegerDataArray: "charge" (0 for unknown charge)
-   * @param [annotate_iso_peak_count] Annotate the number of isotopic peaks in a pattern for each monoisotopic peak in the IntegerDataArray: "iso_peak_count"
-   * @param [add_up_intensity] Sum up the total intensity of each isotopic pattern into the intensity of the reported monoisotopic peak
-   */
-    static void deisotopeWithAveragineModel(MSSpectrum& spectrum,
-                                            double fragment_tolerance,
-                                            bool fragment_unit_ppm,
-                                            int number_of_final_peaks = 5000,
-                                            int min_charge = 1,
-                                            int max_charge = 3,
-                                            bool keep_only_deisotoped = false,
-                                            unsigned int min_isopeaks = 2,
-                                            unsigned int max_isopeaks = 10,
-                                            bool make_single_charged = true,
-                                            bool annotate_charge = false,
-                                            bool annotate_iso_peak_count = false,
-                                            bool add_up_intensity = false);
 
   /** @brief Detect isotopic clusters in a mass spectrum.
 
@@ -111,6 +67,8 @@ class OPENMS_DLLAPI Deisotoper
                                     A number higher than max_isopeaks will effectively disable use_decreasing_model completely.
    * @param [add_up_intensity] Sum up the total intensity of each isotopic pattern into the intensity of the reported monoisotopic peak
    * @param [annotate_features] Annotates the feature index in the IntegerDataArray: "feature_number".
+   * @param [preserve_high_intensity_peaks] If true, the highest intensity peak of each isotopic pattern will never be filtered
+   * @param [preserve_low_mz_peaks_threshold] If preserve_high_intensity_peaks is set, all peaks with smaller m/z will never be filtered
    *
    * Note: If @p make_single_charged is selected, the original charge (>=1) gets annotated.
    */
@@ -128,7 +86,9 @@ class OPENMS_DLLAPI Deisotoper
                                          bool use_decreasing_model = true,
                                          unsigned int start_intensity_check = 2,
                                          bool add_up_intensity = false,
-                                         bool annotate_features = false);
+                                         bool annotate_features = false,
+                                         bool preserve_high_intensity_peaks = false,
+                                         double preserve_low_mz_peaks_threshold = -1e10);
 };
 
 }

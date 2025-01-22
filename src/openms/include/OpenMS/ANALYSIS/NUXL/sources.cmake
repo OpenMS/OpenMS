@@ -6,6 +6,7 @@ set(sources_list_h
 NuXLAnnotateAndLocate.h
 NuXLAnnotatedHit.h
 NuXLConstants.h
+NuXLDeisotoper.h
 NuXLFDR.h
 NuXLFeatureAugmentation.h
 NuXLFragmentAdductDefinition.h

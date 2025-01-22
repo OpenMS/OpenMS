@@ -4,6 +4,7 @@ set(directory source/ANALYSIS/NUXL)
 ### list all filenames of the directory here
 set(sources_list
 NuXLAnnotateAndLocate.cpp
+NuXLDeisotoper.cpp
 NuXLFDR.cpp
 NuXLFeatureAugmentation.cpp
 NuXLFragmentAdductDefinition.cpp
