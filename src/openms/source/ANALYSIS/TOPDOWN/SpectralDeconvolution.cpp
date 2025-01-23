@@ -964,8 +964,7 @@ namespace OpenMS
 
       if (target_decoy_type_ == PeakGroup::signal_decoy)
       {
-        double mass_da_tol = peak_group.getMonoMass() * tol;// + iso_da_distance_ * (allowed_iso_error_ + 1);
-        //double min_delta = mass_da_tol + 1;
+        double mass_da_tol = peak_group.getMonoMass() * tol;
         auto upper = std::upper_bound(excluded_masses_for_decoy_runs_.begin(), excluded_masses_for_decoy_runs_.end(), peak_group.getMonoMass() + mass_da_tol);
         while (upper != excluded_masses_for_decoy_runs_.end())
         {
@@ -977,7 +976,6 @@ namespace OpenMS
           }
           if (delta > mass_da_tol) break;
           if (upper == excluded_masses_for_decoy_runs_.begin()) { break; }
-          //min_delta = std::min(min_delta, std::abs(delta));
           upper--;
         }
         if (match)
@@ -988,7 +986,7 @@ namespace OpenMS
 
       int window_width = peak_group.getTargetDecoyType() == PeakGroup::signal_decoy ? 0 : -1;
       float cos = getIsotopeCosineAndIsoOffset(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_,
-                                               -peak_group.getMinNegativeIsotopeIndex(), window_width);
+                                               -peak_group.getMinNegativeIsotopeIndex(), window_width, allowed_iso_error_, peak_group.getTargetDecoyType());
       peak_group.setIsotopeCosine(cos);
       // first filtration to remove false positives before further processing.
       if (cos < std::min(min_isotope_cosine_[ms_level_ - 1], 0.5)) { continue; }
@@ -1011,6 +1009,8 @@ namespace OpenMS
         {
           if (peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold) // to speed up
             break;
+          if (offset != 0) noisy_peaks = peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_,
+                                                                              peak_group.getMonoMass() + offset * iso_da_distance_);
 
           peak_group.updateQscore(noisy_peaks, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], tol,
                                   (z1 + z2) < 2 * low_charge_, allowed_iso_error_, true);
