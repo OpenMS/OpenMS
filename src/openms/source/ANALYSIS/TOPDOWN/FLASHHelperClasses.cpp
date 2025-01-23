@@ -42,7 +42,7 @@ FLASHHelperClasses::PrecalculatedAveragine::PrecalculatedAveragine(const double 
         {
           Size index = is_centroid? (k % 2 == 0 ? k + 1 : k - 1) % iso.size() : k;
           float intensity = iso[index].getIntensity() / max_intensity;
-          decoy_iso[decoy_iso.size() - 1 - k].setIntensity(intensity);
+          decoy_iso[is_centroid? (decoy_iso.size() - 1 - k) : k].setIntensity(intensity);//
           decoy_iso[k].setMZ(iso[k].getMZ() * decoy_iso_distance);
         }
         decoy_iso.sortByMass();

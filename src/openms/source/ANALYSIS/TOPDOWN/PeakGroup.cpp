@@ -585,7 +585,7 @@ std::vector<FLASHHelperClasses::LogMzPeak> PeakGroup::recruitAllPeaksInSpectrum(
   for (int c = max_abs_charge_; c >= min_abs_charge_; c--)
   {
     if (c <= 0) { break; }
-
+    //double z = (c + (target_decoy_type_ == PeakGroup::noise_decoy? std::sqrt(2.0) - 1: 0));
     double cmz = (mono_mass) / c + FLASHHelperClasses::getChargeMass(is_positive_);
     double left_mz = (mono_mass - (1 - min_negative_isotope_index_) * iso_da_distance_) / c + FLASHHelperClasses::getChargeMass(is_positive_);
     Size index = spec.findNearest(left_mz * (1 - tol * mul_tol));
