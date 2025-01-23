@@ -27,8 +27,6 @@ using namespace std;
 namespace OpenMS
 {
 
-  static const std::regex trailing_charge_pattern_rx(R"(\++$)"); // match one or more '+' characters at the end of the string
-
   // create total loss spectrum using new_param as template
   static PeakSpectrum createTotalLossSpectrumForAnnotations(const AASequence& fixed_and_variable_modified_peptide, size_t precursor_charge, Param new_param)
   {
@@ -66,6 +64,47 @@ namespace OpenMS
       total_loss_spectrum.getStringDataArrays()[0]);
     total_loss_spectrum.sortByPosition(); // need to resort after adding special immonium ions
     return total_loss_spectrum;
+  }
+
+    /**
+    @brief Removes duplicate peaks based on their m/z values.
+
+    This function identifies and removes duplicate peaks from the spectrum based on 
+    their m/z values. Only the first occurrence of a peak with a given m/z value is
+    retained. The function uses the `select()` method to efficiently remove the 
+    duplicate peaks and their corresponding entries in the data arrays.
+
+    @note The spectrum should be sorted by position (m/z) before calling this function 
+          to ensure correct identification of duplicates.
+  */
+  static void removeDuplicatedPeaks(MSSpectrum& spec)
+  {
+    if (spec.empty()) return;
+
+    std::vector<Size> indices_to_keep;
+    indices_to_keep.push_back(0); // Always keep the first peak
+
+    for (Size i = 1; i < spec.size(); ++i)
+    {
+      // Compare the current peak's m/z with the last kept peak's m/z
+      if (spec[i].getMZ() != spec[indices_to_keep.back()].getMZ())
+      {
+        indices_to_keep.push_back(i);
+      }
+#ifdef DEBUG_OpenNuXL
+      else
+      {
+        // happens a lot with precursor peaks and internal ions
+        std::cout << "Removing duplicate peak at m/z: " << spec[i].getMZ() << endl;
+        std::cout << spec.getStringDataArrays()[0][i] << " - " 
+          << spec.getStringDataArrays()[0][indices_to_keep.back()] << std::endl;
+      }
+#endif
+    }
+
+    if (indices_to_keep.size() == spec.size()) return; // No duplicates found
+
+    spec.select(indices_to_keep);
   }
 
   using MapIonIndexToFragmentAnnotation = map<Size, vector<NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_> >;
@@ -283,7 +322,7 @@ namespace OpenMS
     param.setValue("add_x_ions", "false");
     param.setValue("add_y_ions", "true");
     param.setValue("add_z_ions", "false");
-    param.setValue("add_internal_fragments", "true"); 
+    param.setValue("add_internal_fragments", "false"); // TODO: creates too many ions with identical masses
     partial_loss_spectrum_generator.setParameters(param);
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -304,7 +343,7 @@ namespace OpenMS
         a.best_localization = unmodified_sequence;
         a.best_localization_score = 0;
 
-        AASequence aas(AASequence::fromString(unmodified_sequence));
+        AASequence aas(unmodified_sequence);
 
         // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
         vector<AASequence> all_modified_peptides;
@@ -427,6 +466,8 @@ namespace OpenMS
 
         partial_loss_spectrum.sortByPosition(); // need to resort after adding marker ions
         
+
+
         // ion centric (e.g. b and y-ion) spectrum annotation that records all shifts of specific ions (e.g. y5, y5 + U, y5 + C3O)
         MapIonIndexToFragmentAnnotation shifted_b_ions, shifted_y_ions, shifted_a_ions;
         vector<PeptideHit::PeakAnnotation> shifted_immonium_ions, annotated_marker_ions;
@@ -438,7 +479,11 @@ namespace OpenMS
         alignment.clear();
         ppm_error_array.clear();
 
-        // align spectra (only allow matching charges)
+
+        // remove duplicate peaks to prevent non-deterministic annotations (e.g., [M+H-H2O]+U and [M+H]+U-H2O )
+        removeDuplicatedPeaks(partial_loss_spectrum);
+
+        // align spectra (only allow matching charges)        
         OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(alignment, 
           fragment_mass_tolerance, 
           fragment_mass_tolerance_unit_ppm, 
