@@ -42,12 +42,6 @@ if (MY_CXX_FLAGS)
   add_compile_options(${MY_CXX_FLAGS})
 endif()
 
-if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  # workaround for MacOS 10.13 and below which does not support std::visit
-  # see https://github.com/OpenMS/OpenMS/issues/5714
-  add_definitions(-D_LIBCPP_DISABLE_AVAILABILITY)  
-endif()
-
 ########
 ########    deal with SSE/AVX flags
 ########
@@ -90,12 +84,6 @@ if (CMAKE_COMPILER_IS_GNUCXX)
   if (ENABLE_GCC_WERROR)
     add_compile_options(-Werror)
     message(STATUS "Enable -Werror for gcc - note that this may not work on all compilers and system settings!")
-  endif()
-
-
-  # Recommended setting for eclipse, see http://www.cmake.org/Wiki/CMake:Eclipse
-  if (CMAKE_GENERATOR STREQUAL "Eclipse CDT4 - Unix Makefiles")
-    add_compile_options(-fmessage-length=0)
   endif()
   
 elseif (MSVC)
