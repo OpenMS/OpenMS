@@ -84,7 +84,7 @@ namespace OpenMS
       std::sort(dscore_noise.begin(), dscore_noise.end());
 
       double sum = 0;
-      double max_score_for_weight_calculation = .8;
+      double max_score_for_weight_calculation = .75;
       double min_score_for_weight_calculation = .0;
       double iso_sum = std::accumulate(dscore_signal.begin(), dscore_signal.end(), .0);
       //double noise_sum = std::accumulate(dscore_noise.begin(), dscore_noise.end(), .0);
@@ -99,7 +99,7 @@ namespace OpenMS
         }
       }
 
-      Size num_bin = 10;//std::min(Size(5), 1 + dscore_noise.size()/100);
+      Size num_bin = 5;//std::min(Size(5), 1 + dscore_noise.size()/100);
       auto qscore_vec = getDistVector(qscores, num_bin, min_score_for_weight_calculation, max_score_for_weight_calculation);
       auto qscore_noise_vec = getDistVector(dscore_noise, num_bin, min_score_for_weight_calculation, max_score_for_weight_calculation);
       auto qscore_signal_vec = getDistVector(dscore_signal, num_bin, min_score_for_weight_calculation, max_score_for_weight_calculation);
@@ -109,7 +109,7 @@ namespace OpenMS
       {
         double v = qscore_vec.getValue(r, 0);
         v -= qscore_signal_vec.getValue(r, 0);
-        //v = std::max(v, .0);
+        v = std::max(v, .0);
         qscore_vec.setValue(r, 0, v);
         left.setValue(r, 0, qscore_noise_vec.getValue(r, 0));
       }

@@ -970,7 +970,7 @@ namespace OpenMS
         while (upper != excluded_masses_for_decoy_runs_.end())
         {
           double delta = peak_group.getMonoMass() - *upper;
-          if (std::abs(delta) < peak_group.getMonoMass() * tol)
+          if (std::abs(delta) < mass_da_tol)
           {
             match = true;
             break;
@@ -984,12 +984,11 @@ namespace OpenMS
         {
           continue;
         }
-        //if (target_decoy_type_ == PeakGroup::signal_decoy && min_delta > mass_da_tol) continue;
       }
 
       int window_width = peak_group.getTargetDecoyType() == PeakGroup::signal_decoy ? 0 : -1;
       float cos = getIsotopeCosineAndIsoOffset(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_,
-                                               -peak_group.getMinNegativeIsotopeIndex(), window_width, allowed_iso_error_, peak_group.getTargetDecoyType());
+                                               -peak_group.getMinNegativeIsotopeIndex(), window_width);
       peak_group.setIsotopeCosine(cos);
       // first filtration to remove false positives before further processing.
       if (cos < std::min(min_isotope_cosine_[ms_level_ - 1], 0.5)) { continue; }
