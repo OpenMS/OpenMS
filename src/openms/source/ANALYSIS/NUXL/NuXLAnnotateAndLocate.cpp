@@ -373,6 +373,7 @@ namespace OpenMS
 
         // align spectra (only allow matching charges)
         DataArrays::FloatDataArray ppm_error_array; // not needed here but filled by alignment
+        removeDuplicatedPeaks(total_loss_spectrum); // remove duplicate peaks based on m/z
         OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(alignment, 
           fragment_mass_tolerance, 
           fragment_mass_tolerance_unit_ppm, 

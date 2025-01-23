@@ -1901,7 +1901,7 @@ set_tests_properties("TOPP_OpenNuXL_2_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_2"
 
 # reporting of multiple hits and tsv output
 add_test("TOPP_OpenNuXL_3" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
-${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_3_output.tmp.idXML -report:top_hits 3 -out_tsv OpenNuXL_3_output2.tmp.tsv -precursor:mass_tolerance 10 -NuXL:scoring fast)
+${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_3_output.tmp.idXML -report:top_hits 3 -out_tsv OpenNuXL_3_output2.tmp.tsv -NuXL:scoring fast)
 add_test("TOPP_OpenNuXL_3_out1" ${DIFF} -whitelist "IdentificationRun date"
 "db=" -in1 OpenNuXL_3_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_3_output.idXML )
 add_test("TOPP_OpenNuXL_3_out2" ${DIFF} -in1 OpenNuXL_3_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_3_output2.tsv )
@@ -1910,7 +1910,7 @@ set_tests_properties("TOPP_OpenNuXL_3_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_3"
 
 # reporting of multiple hits and tsv output and decoy generation
 add_test("TOPP_OpenNuXL_4" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
-${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -NuXL:decoys "true" -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_4_output.tmp.idXML -report:top_hits 2 -out_tsv OpenNuXL_4_output2.tmp.tsv -precursor:mass_tolerance 10 -NuXL:scoring fast)
+${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -NuXL:decoys "true" -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_4_output.tmp.idXML -report:top_hits 2 -out_tsv OpenNuXL_4_output2.tmp.tsv -NuXL:scoring fast)
 add_test("TOPP_OpenNuXL_4_out1" ${DIFF} -whitelist "IdentificationRun date"
 "db=" -in1 OpenNuXL_4_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_4_output.idXML )
 add_test("TOPP_OpenNuXL_4_out2" ${DIFF} -in1 OpenNuXL_4_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_4_output2.tsv )
