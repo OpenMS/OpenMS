@@ -413,6 +413,27 @@ jobs:
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-class-topp-${{ github.run_number }}"
           # The rest of the vars should be saved in the CMakeCache
 
+    # Load the code signing certificate and the package signing certificate TODO: Change which cert to use for non-nightly
+    - name: Import Apple Developer Certificates
+      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'macos')
+      env:
+        APPLE_CERTIFICATE: ${{ secrets.APPLE_DEVELOPER_CERT_64 }}
+        APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPMENT_PW }}
+        INSTALLER_CERTIFICATE: ${{ secrets.APPLE_INSTALLER_CERT_64 }}
+        INSTALLER_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_INSTALLER_PW }}
+        KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      run: |
+        echo $APPLE_CERTIFICATE | base64 --decode > certificate.p12
+        echo $INSTALLER_CERTIFICATE | base64 --decode > installer_certificate.p12
+        security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+        security set-keychain-settings -t 3600 -u build.keychain
+        security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+        security import installer_certificate.p12 -k build.keychain -P "$INSTALLER_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+        security find-identity -v -p codesigning build.keychain
+
     - name: Package
       if: steps.set-vars.outputs.pkg_type != 'none'
       shell: bash
@@ -437,6 +458,9 @@ jobs:
           SEARCH_ENGINES_DIRECTORY: "${{ github.workspace }}/_thirdparty"
           CI_PROVIDER: "GitHub-Actions"
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-class-topp-${{ github.run_number }}"
+          SIGNING_IDENTITY: "Apple Development: Samuel Wein (B26WBF742H)"
+          SIGNING_EMAIL: "apple@openms.de"
+          CPACK_PRODUCTBUILD_IDENTITY_NAME: "Developer ID Installer: OpenMS Inc. (C64UCGJ5PL)"
 
     # WARNING: Here you have to make sure that only one matrix configuration per OS produces packages. See set-vars steps.
     - name: Upload packages as artifacts
@@ -459,19 +483,18 @@ jobs:
         exclusions: '/CMakeFiles/* /doxygen/* /code_examples/*'
         filename: 'documentation.zip'
     
-    #Zip the source
-    - name: Zip source
+   # Compress the source
+    - name: Create tarball
       if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
-      uses: thedoctor0/zip-release@0.7.6
-      with:
-        type: 'tar'
-        directory: ${{ github.workspace }}
-        path: OpenMS
-        exclusions: 'bld/* ./OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz ./THIRDPARTY/** .git/*'
-        filename: 'OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz'
-
+      run: |
+        tar --exclude='bld/*' \
+            --exclude='OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz' \
+            --exclude='OpenMS/THIRDPARTY/**' \
+            --exclude='.git/**' \
+            --exclude='.github/**' \
+            --exclude='vcpkg*/**' \         
+            -czf OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz -C ${{ github.workspace }} OpenMS
         
-
    # Upload the source tar
     - name: Upload source tar as artifact
       if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')

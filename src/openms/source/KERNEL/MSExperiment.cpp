@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -537,44 +537,53 @@ namespace OpenMS
     return pc_spec - spectra_.cbegin(); 
   }
 
-  MSExperiment::ConstIterator MSExperiment::getFirstProductSpectrum(ConstIterator iterator) const
+  MSExperiment::ConstIterator MSExperiment::getFirstProductSpectrum(ConstIterator parent_iterator) const
   {
-    // if we are after the end we can't go "down"
-    if (iterator == spectra_.end())
+    // if we are already at or after the end -> there can be no product after it
+    if (parent_iterator == spectra_.end() 
+      || parent_iterator == spectra_.end() - 1)
     {
       return spectra_.end();
     }
-    UInt ms_level = iterator->getMSLevel();
 
-    auto tmp_spec_iter = iterator; // such that we can reiterate later
-    do
-    {
-      ++tmp_spec_iter;
-      if ((tmp_spec_iter->getMSLevel() - ms_level) == 1)
-      {
-        if (!tmp_spec_iter->getPrecursors().empty())
+    UInt parent_ms_level = parent_iterator->getMSLevel();
+    const auto& parent_native_id = parent_iterator->getNativeID();
+
+    auto it = parent_iterator; // such that we can reiterate later
+    it++; // start at the next spectrum
+
+    while (it != spectra_.end())
+    { 
+      if (it->getMSLevel() < parent_ms_level) return spectra_.end();
+
+      if ((it->getMSLevel() - parent_ms_level) == 1) 
+      { // it is a potential product spectrum (one level higher than parent)
+
+        // does it have precursors referencing the parents?
+        if (it->getPrecursors().empty()) 
         {
-          // Warn if there are multiple precursors
-          if (tmp_spec_iter->getPrecursors().size() > 1)
-          {
-              OPENMS_LOG_WARN << "Spectrum at index " << std::distance(spectra_.begin(), tmp_spec_iter)
-                        << " has multiple precursors. Only the first precursor will be considered."
-                        << std::endl;
-          }
+          ++it; // no precursors, so we can't check if it is a product of the parent
+          continue;
+        }      
 
-          const auto precursor = tmp_spec_iter->getPrecursors()[0];
-          String ref = precursor.getMetaValue("spectrum_ref", "");  
-          if (!ref.empty() && ref == iterator->getNativeID())
-          {
-            return tmp_spec_iter;
-          }
+        // warn if there are multiple precursors (should not happen)
+        if (it->getPrecursors().size() > 1)
+        {
+            OPENMS_LOG_WARN << "Spectrum at index " << std::distance(spectra_.begin(), it)
+                      << " has multiple precursors. Only the first precursor will be considered."
+                      << std::endl;
         }
+
+        // check if it has the parent a precursor
+        const auto precursor = it->getPrecursors()[0];
+        String ref = precursor.getMetaValue("spectrum_ref", "");  
+        if (!ref.empty() && ref == parent_native_id)
+        {
+          return it;
+        }     
       }
-      else if (tmp_spec_iter->getMSLevel() < ms_level)
-      {
-        return spectra_.end();
-      }
-    } while (tmp_spec_iter != spectra_.end());
+      ++it; 
+    } 
 
     return spectra_.end();
   }
@@ -582,6 +591,11 @@ namespace OpenMS
   // same as above but easier to wrap in python
   int MSExperiment::getFirstProductSpectrum(int zero_based_index) const
   {
+    if (zero_based_index < 0 
+      || zero_based_index >= static_cast<int>(spectra_.size()))
+    {
+      return -1;
+    }
     auto spec = spectra_.cbegin();
     spec += zero_based_index;
     auto pc_spec = getFirstProductSpectrum(spec);

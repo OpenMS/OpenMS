@@ -174,7 +174,7 @@
   Here is an example of a correctly structured <code>.h</code> file:
 
   @code{.cpp}
-  // Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+  // Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
   // SPDX-License-Identifier: BSD-3-Clause
   //
   // --------------------------------------------------------------------------
@@ -197,7 +197,7 @@
   Here is an example of a correctly structured <code>.cpp</code> file:
 
   @code{.cpp}
-  // Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+  // Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
   // SPDX-License-Identifier: BSD-3-Clause
   //
   // --------------------------------------------------------------------------

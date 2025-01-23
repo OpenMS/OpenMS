@@ -30,7 +30,7 @@ Library:
 - IDScoreSwitcherAlgorithm: Added switchToScoreType and switchBackScoreType methods for score switching and reversion. (#7769)
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.3.0     (under development)              ----
+----                                OpenMS 3.3.0                                      ----
 ------------------------------------------------------------------------------------------
 
 What's new:
