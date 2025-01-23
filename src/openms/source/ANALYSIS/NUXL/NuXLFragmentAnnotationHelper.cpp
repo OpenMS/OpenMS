@@ -23,7 +23,7 @@ namespace OpenMS
 {
   String NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon(char c, const String& fragment_shift_name)
   {
-    return String("i") + c + "+" + fragment_shift_name;
+    return String("i") + c + "+" + fragment_shift_name + "+";
   }
 
   std::vector<PeptideHit::PeakAnnotation> NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA(
@@ -41,11 +41,11 @@ namespace OpenMS
         fa.intensity = sit.intensity;
         if (sit.shift.empty())
         {
-          fa.annotation = ion_type + String(ait.first);
+          fa.annotation = ion_type + String(ait.first) + String(fa.charge, '+');
         }
         else
         {
-          const String annotation_text = ion_type + String(ait.first) + "+" + sit.shift; 
+          const String annotation_text = ion_type + String(ait.first) + "+" + sit.shift + String(fa.charge, '+'); 
           fa.annotation = annotation_text;
         }
         fas.push_back(std::move(fa));
@@ -74,7 +74,6 @@ namespace OpenMS
     }
     return fas;
   }
-
 
   String NuXLFragmentAnnotationHelper::shiftedIonsToString(const std::vector<PeptideHit::PeakAnnotation>& as)
   {

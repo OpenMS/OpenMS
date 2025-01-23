@@ -18,12 +18,16 @@
 #include <OpenMS/CONCEPT/Macros.h> // for OPENMS_PRECONDITION
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <regex>
+
 using namespace std;
 
 //#define DEBUG_OpenNuXL
 
 namespace OpenMS
 {
+
+  static const std::regex trailing_charge_pattern_rx(R"(\++$)"); // match one or more '+' characters at the end of the string
 
   // create total loss spectrum using new_param as template
   static PeakSpectrum createTotalLossSpectrumForAnnotations(const AASequence& fixed_and_variable_modified_peptide, size_t precursor_charge, Param new_param)
@@ -544,7 +548,7 @@ namespace OpenMS
               fa.mz = fragment_mz;
               fa.intensity = fragment_intensity;
               fa.charge = 1;
-              fa.annotation = ion_name;
+              fa.annotation = ion_name + "+";
               annotated_marker_ions.push_back(fa);
             }
             else
@@ -561,7 +565,7 @@ namespace OpenMS
               fa.mz = fragment_mz;
               fa.intensity = fragment_intensity;
               fa.charge = 1;
-              fa.annotation = ion_name;
+              fa.annotation = ion_name + "+";
               shifted_immonium_ions.push_back(fa);
             }
             else
@@ -575,7 +579,10 @@ namespace OpenMS
             fa.mz = fragment_mz;
             fa.intensity = fragment_intensity;
             fa.charge = charge;
-            fa.annotation = ion_name;  
+            static const std::regex pattern(R"(\](\++)+)");
+            fa.annotation = std::regex_replace(ion_name, pattern, "]"); // remove charge inside string (e.g., before loss)
+            fa.annotation.substitute(' ', '+'); // turn gap into plus "[M+2H] U-H2O" -> "[M+2H]+U-H2O"
+            fa.annotation += String(charge, '+'); // add charges back at end
             annotated_precursor_ions.push_back(fa);
           }
           else if (isupper(ion_name[0])) // shifted internal ions
@@ -585,8 +592,8 @@ namespace OpenMS
             fa.intensity = fragment_intensity;
             fa.charge = charge;
             String with_plus = ion_name;
-            with_plus.substitute(' ', '+');
-            fa.annotation = with_plus; // turn "PEPT U-H2O" into "PEPT+U-H20"
+            with_plus.substitute(' ', '+'); // turn "PEPT U-H2O" into "PEPT+U-H20"
+            fa.annotation = with_plus + String(charge, '+'); 
             shifted_immonium_ions.push_back(fa);  //TODO: add to shifted_internal_fragment_ions or rename vector
           }
         }
