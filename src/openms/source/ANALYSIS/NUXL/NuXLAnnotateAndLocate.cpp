@@ -425,7 +425,10 @@ namespace OpenMS
 
         OPENMS_POSTCONDITION(nt_to_adducts != feasible_MS2_adducts.end(), "Nucleotide not found in mapping to feasible adducts.")
 
-        const vector<NuXLFragmentAdductDefinition>& partial_loss_modification = nt_to_adducts->second;
+        vector<NuXLFragmentAdductDefinition> partial_loss_modification = nt_to_adducts->second;
+
+        // TODO: check if needed for reproduciblity
+        std::stable_sort(partial_loss_modification.begin(), partial_loss_modification.end());
 
         // get marker ions (these are not specific to the cross-linked nucleotide but also depend on the whole oligo bound to the precursor)
         const vector<NuXLFragmentAdductDefinition>& marker_ions = all_feasible_adducts.at(precursor_na_adduct).marker_ions;
@@ -444,8 +447,11 @@ namespace OpenMS
                       partial_loss_template_z3;
        
           partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z1, fixed_and_variable_modified_peptide, 1, 1);
+          partial_loss_template_z1.sortByPosition(); // need to resort after adding special immonium ions
           partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z2, fixed_and_variable_modified_peptide, 2, 2);
+          partial_loss_template_z2.sortByPosition(); // need to resort after adding special immonium ions
           partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z3, fixed_and_variable_modified_peptide, 3, 3);
+          partial_loss_template_z3.sortByPosition(); // need to resort after adding special immonium ions
           NuXLFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
                                       fixed_and_variable_modified_peptide_weight,
                                       precursor_na_adduct,
