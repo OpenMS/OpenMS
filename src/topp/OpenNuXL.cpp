@@ -5096,6 +5096,7 @@ static void scoreXLIons_(
         isRNA = false;
       }
     }
+    // convert string to set
     for (const auto& c : can_cross_link) { can_xl_.insert(c); } // sort and make unique
 
     String sequence_restriction = getStringOption_("NuXL:sequence");

@@ -519,6 +519,7 @@ set(analysis_executables_list
   QTClusterFinder_test
   ReactionMonitoringTransition_test
   NuXLModificationsGenerator_test
+  NuXLParameterParsing_test
   SimpleSearchEngineAlgorithm_test
   SimpleSVM_test
   StablePairFinder_test
