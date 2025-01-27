@@ -40,7 +40,7 @@ namespace OpenMS
     {
       fs << "File_name\tFraction_ID\tSpectrum_ID\tScans\tMS_one_ID\tMS_one_scans\tFraction_feature_ID\tFraction_feature_intensity\tFraction_feature_score\tFraction_feature_min_time\tFraction_feature_max_time\tFraction_feature_apex_time\tPrecursor_monoisotopic_mz\tPrecursor_average_mz\tPrecursor_charge\tPrecursor_intensity\n";
     }
-
+    fs.flush();
   }
 
   void FLASHDeconvFeatureFile::writeFeatures(const std::vector<FLASHHelperClasses::MassFeature>& mass_features, const String& file_name, std::fstream& fs, bool report_decoy)
@@ -128,7 +128,6 @@ namespace OpenMS
 
         max_feature_index = std::max(max_feature_index, mass_feature.index);
       }
-
       for (auto& dspec : deconvolved_spectra)
       {
         if (dspec.getOriginalSpectrum().getMSLevel() == 1 || dspec.getPrecursorPeakGroup().empty()) continue;
@@ -150,7 +149,6 @@ namespace OpenMS
           p_int = p.intensity;
           rep_mz = p.mz;
         }
-
         ss << file_name << "\t0\t" << max_feature_index << "\t" << std::to_string(pg.getMonoMass()) << "\t" << std::to_string(pg.getIntensity()) << "\t" << std::to_string(rt)
            << "\t" << std::to_string(rt) << "\t" << pg.getScanNumber() << "\t" << pg.getScanNumber() << "\t"
            << z << "\t" << Z << "\t" << std::to_string(rt) << "\t" << pg.getScanNumber() << "\t"

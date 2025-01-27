@@ -584,6 +584,7 @@ namespace OpenMS
           precursor_pg.setRepAbsCharge(precursor_log_mz_peak.abs_charge);
           precursor_pg.updateMonoMassAndIsotopeIntensities(tols_[0]);
           int ms1_scan_number = iter->first;
+          precursor_pg.setScanNumber(ms1_scan_number);
           Size index_copy (index);
           while(index_copy != 0 && getScanNumber(map, index_copy--) != ms1_scan_number);
 
