@@ -59,7 +59,7 @@ namespace OpenMS
                        "Cosine similarity thresholds between avg. and observed isotope pattern for MS1, 2, ...: e.g., -min_cos 0.3 0.6 to specify 0.3 "
                        "and 0.6 for MS1 and MS2, respectively.");
     defaults_.addTag("min_cos", "advanced");
-    defaults_.setValue("min_snr", DoubleList {1, .8},
+    defaults_.setValue("min_snr", DoubleList {1, .3},
                        "Minimum charge SNR (the SNR of the isotope pattern of a specific charge) thresholds for MS1, 2, ...: e.g., -min_snr 1.0 0.6 to "
                        "specify 1.0 and 0.6 for MS1 and MS2, respectively.");
     defaults_.addTag("min_snr", "advanced");
@@ -1007,8 +1007,8 @@ namespace OpenMS
 
         if (prev_cos > peak_group.getIsotopeCosine() || offset == 0 || k >= num_iteration - 1 || peak_group.getTargetDecoyType() == PeakGroup::signal_decoy)
         {
-          if (peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold) // to speed up
-            break;
+          //if (peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold) // to speed up
+          //  break;
           if (offset != 0) noisy_peaks = peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_,
                                                                               peak_group.getMonoMass() + offset * iso_da_distance_);
 
@@ -1046,11 +1046,11 @@ namespace OpenMS
         }
       }
 
-      if (! peak_group.isTargeted()
-          && (peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold)) // snr check prevents harmonics or noise.
-      {
-        continue;
-      }
+//      if (! peak_group.isTargeted()
+//          && (peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold)) // snr check prevents harmonics or noise.
+//      {
+//        continue;
+//      }
       if (peak_group.getTargetDecoyType() == PeakGroup::signal_decoy) peak_group.setQscore(peak_group.getQscore() + (allowed_iso_error_ == 0 ? .005 : .025));
   #pragma omp critical
       selected[i] = true;
@@ -1133,9 +1133,23 @@ namespace OpenMS
     deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
     removeOverlappingPeakGroups_(deconvolved_spectrum_, tol * 1.5, target_decoy_type_);
     removeExcludedMasses_(deconvolved_spectrum_, excluded_masses_for_decoy_runs_, tol);
-
-
     removeExcludedMasses_(deconvolved_spectrum_, excluded_masses_, tol);
+
+    /// test
+    filtered_peak_groups.clear();
+    deconvolved_spectrum_.sortByQscore();
+    //const size_t max_pg = 500;
+    filtered_peak_groups.reserve(deconvolved_spectrum_.size());
+    for (const auto& pg : deconvolved_spectrum_)
+    {
+      if (pg.getChargeSNR(pg.getRepAbsCharge()) <= snr_threshold) continue;
+      //if (filtered_peak_groups.size() >= max_pg) break;
+      filtered_peak_groups.push_back(pg);
+    }
+
+    deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
+    deconvolved_spectrum_.sort();
+
   }
 
   float SpectralDeconvolution::getIsotopeCosineAndIsoOffset(double mono_mass,
@@ -1307,7 +1321,7 @@ namespace OpenMS
       if (target_decoy_type != PeakGroup::non_specific && dspec[i].getTargetDecoyType() != target_decoy_type) { continue; }
       if ((ms_level_ == 1 && dspec[i].getRepAbsCharge() < min_abs_charge_) || dspec[i].getRepAbsCharge() > max_abs_charge_) { continue; }
 
-      const double mul_factor = .5;
+      const double mul_factor = .75;
       if (! dspec[i].isTargeted() &&                                    // z1 != z2 &&
           overlap_intensity[i] >= dspec[i].getIntensity() * mul_factor) // If the overlapped intensity takes more than mul_factor * total intensity then
                                                                         // it is a peakgroup with a charge error. the smaller, the harsher

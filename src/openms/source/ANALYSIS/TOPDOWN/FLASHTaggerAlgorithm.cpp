@@ -284,12 +284,12 @@ FLASHTaggerAlgorithm& FLASHTaggerAlgorithm::operator=(const FLASHTaggerAlgorithm
 
 void FLASHTaggerAlgorithm::setDefaultParams_()
 {
-  defaults_.setValue("max_count", 300,
-                     "Maximum number of tags per length, defined by the -min_length and -max_length options. Tags with different amino acid combinations but identical masses are counted once (e.g., TII, TIL, TLI, and TLL are distinct but counted as one).");
-  defaults_.setMinInt("max_count", 0);
+//  defaults_.setValue("max_count", 400,
+//                     "Maximum number of tags per length, defined by the -min_length and -max_length options. Tags with different amino acid combinations but identical masses are counted once (e.g., TII, TIL, TLI, and TLL are distinct but counted as one).");
+//  defaults_.setMinInt("max_count", 0);
 
   defaults_.setValue(
-    "min_length", 4,
+    "min_length", 3,
     "Minimum tag length, where each mass gap contributes one unit of length (even if represented by multiple amino acids). For instance, the length of TA[255]G is 4.");
   defaults_.setMaxInt("min_length", 9);
   defaults_.setMinInt("min_length", 3);
@@ -331,7 +331,6 @@ void FLASHTaggerAlgorithm::setDefaultParams_()
 
 void FLASHTaggerAlgorithm::updateMembers_()
 {
-  max_tag_count_ = param_.getValue("max_count");
   min_tag_length_ = param_.getValue("min_length");
   max_tag_length_ = param_.getValue("max_length");
 
@@ -395,7 +394,7 @@ void FLASHTaggerAlgorithm::run(const DeconvolvedSpectrum& deconvolved_spectrum, 
   if (deconvolved_spectrum.empty() || deconvolved_spectrum.isDecoy() || deconvolved_spectrum.getOriginalSpectrum().getMSLevel() == 1) return;
 
   auto tags = std::vector<FLASHHelperClasses::Tag>();
-  tags.reserve(max_tag_count_ * max_tag_length_);
+  tags.reserve(max_tag_length_ * max_tag_counts_.back());
 
   spec_.setRT(deconvolved_spectrum.getOriginalSpectrum().getRT());
   if (deconvolved_spectrum.getPrecursorPeakGroup().getMonoMass() > 0)
@@ -489,7 +488,6 @@ void FLASHTaggerAlgorithm::updateTagSet_(std::set<FLASHHelperClasses::Tag>& tag_
                                          int mode)
 {
   double flanking_mass = -1;
-
   std::vector<String> seqs {""};
   std::vector<double> tag_mzs;
   std::vector<int> tag_scores;
@@ -613,8 +611,6 @@ void FLASHTaggerAlgorithm::getScoreAndMatchCount_(const std::vector<int>& spec_v
 
 void FLASHTaggerAlgorithm::getTags_(const std::vector<double>& mzs, const std::vector<int>& scores, int scan, double ppm, int mode)
 {
-  if (max_tag_count_ == 0) return;
-
   std::vector<int> _scores;
   std::vector<double> _mzs;
   int threshold;
@@ -664,20 +660,21 @@ void FLASHTaggerAlgorithm::getTags_(const std::vector<double>& mzs, const std::v
 
   for (int length = min_tag_length_; length <= max_tag_length_; length++)
   {
+    auto tag_count = max_tag_counts_[std::min((int)max_tag_counts_.size() - 1, length)];
     FLASHHelperClasses::DAG dag(_mzs.size() * (1 + max_tag_length_) * (1 + max_gap_count_) * (1 + (consider_diff_ion_jumps_ ? 1 : 0))
                                 * (1 + max_path_score_ - min_path_score_));
     constructDAG_(dag, _mzs, _scores, length, ppm, mode);
 
     std::set<FLASHHelperClasses::Tag> _tagSet;
-    for (int score = max_path_score_; score >= min_path_score_ && (int)_tagSet.size() < max_tag_count_; score--)
+    for (int score = max_path_score_; score >= min_path_score_ && (int)_tagSet.size() < tag_count; score--)
     {
       std::vector<std::vector<Size>> all_paths;
-      all_paths.reserve(max_tag_count_);
+      all_paths.reserve(tag_count);
       for (int d = 0; d <= max_gap_count_; d++)
       {
         for (int diff_ion_index = 0; diff_ion_index <= (consider_diff_ion_jumps_ ? 1 : 0); diff_ion_index++)
         {
-          dag.findAllPaths(getVertex_((int)_mzs.size() - 1, score, length, diff_ion_index, d), getVertex_(0, 0, 0, 0, 0), all_paths, max_tag_count_);
+          dag.findAllPaths(getVertex_((int)_mzs.size() - 1, score, length, diff_ion_index, d), getVertex_(0, 0, 0, 0, 0), all_paths, tag_count);
         }
       }
       for (const auto& path : all_paths)
@@ -695,7 +692,6 @@ void FLASHTaggerAlgorithm::getTags_(const std::vector<double>& mzs, const std::v
     {
       if ((int)tag.getLength() != length) continue;
       tags_.push_back(tag);
-      // if (++count == max_tag_count_) break;
     }
   }
 

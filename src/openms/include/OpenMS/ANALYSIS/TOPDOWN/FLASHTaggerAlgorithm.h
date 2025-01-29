@@ -143,7 +143,7 @@ private:
 
   std::map<String, std::set<Size>> indexed_fasta_;
   bool consider_diff_ion_jumps_ = false;
-  int max_tag_count_ = 0;
+  std::vector<Size> max_tag_counts_ {0, 0, 0, 50, 500, 1000}; // tag count for length 0, 1, 2, 3, 4, 5
   int min_tag_length_ = 0;
   int max_tag_length_ = 0;
   //int max_iso_in_tag_ = 0;

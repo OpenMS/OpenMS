@@ -272,18 +272,18 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
     tagger.getTags(tags_);
     std::vector<ProteinHit> hits;
     std::vector<FLASHHelperClasses::Tag> tags;
-    bool hit_by_tag = false;
-    bool proteoform_found = false;
+   // bool hit_by_tag = false;
+   // bool proteoform_found = false;
 
     tagger.runMatching(fasta_entry, dspec,  vectorized_fasta_entry, rev_vectorized_fasta_entry, mass_map, rev_mass_map, max_mod_mass);
     tagger.getTags(tags);
     tagger.getProteinHits(hits, max_hit_count);
 
-    hit_by_tag |= !hits.empty();
+   // hit_by_tag |= !hits.empty();
     extender.run(hits, tags, dspec,
                  tagger.getSpectrum(), tol, multiple_hits_per_spec_);
     extender.getProteoforms(proteoform_hits_);
-    proteoform_found = extender.hasProteoforms();
+   // proteoform_found = extender.hasProteoforms();
 //    if (false && !hit_by_tag && !proteoform_found) // TODO
 //    {
 //      ConvolutionBasedProteinFilter filter;

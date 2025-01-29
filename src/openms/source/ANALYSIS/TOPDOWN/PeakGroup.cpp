@@ -164,11 +164,10 @@ int PeakGroup::updateQscore(const std::vector<LogMzPeak>& noisy_peaks,
   return h_offset;
 }
 
-// TODO maybe charge range may not be determined first and reduce calls of this function...
 float PeakGroup::getNoisePeakPower_(const std::vector<FLASHHelperClasses::LogMzPeak>& noisy_peaks, const int z, const double tol) const
 {
   if (noisy_peaks.empty()) return 0;
-  const Size max_noisy_peak_number = 40; // too many noise peaks will slow down the process
+  const Size max_noisy_peak_number = z == 0? 200:40; // too many noise peaks will slow down the process
   const Size bin_number_margin = 8;
   const Size max_bin_number = bin_number_margin + 12; // 12 bin + 8 extra bin
   float threshold = -1;
@@ -179,13 +178,6 @@ float PeakGroup::getNoisePeakPower_(const std::vector<FLASHHelperClasses::LogMzP
     return noisy_peak.abs_charge == z;
   });
 
-//  int noise_peak_count = 0;
-//  for (const auto& noisy_peak : noisy_peaks)
-//  {
-//    if (z > 0 && noisy_peak.abs_charge != z) continue;
-//    if (noisy_peak.abs_charge < min_abs_charge_ || noisy_peak.abs_charge > max_abs_charge_) continue;
-//    noise_peak_count++;
-//  }
   if (noise_peak_count == 0) return 0;
   // get intensity threshold
   if (noise_peak_count > (int)max_noisy_peak_number)
@@ -287,15 +279,6 @@ float PeakGroup::getNoisePeakPower_(const std::vector<FLASHHelperClasses::LogMzP
         if (j == 0) break;
       }
 
-//      Size j = edges[i];
-//
-//      while (j < edges.size())
-//      {
-//        sum_intensity += all_peaks[j].first.getIntensity();
-//        j = edges[j];
-//        if (j == 0) { break; }
-//      }
-
       if (max_sum_intensity < sum_intensity) // at least two edges should be there.
       {
         max_sum_intensity = sum_intensity;
@@ -307,9 +290,12 @@ float PeakGroup::getNoisePeakPower_(const std::vector<FLASHHelperClasses::LogMzP
 
   auto unused = boost::dynamic_bitset<>(all_peaks.size());
   unused.flip();
+
+  //auto signal_pwr = per_charge_int_[z] * per_charge_int_[z];
   // Now from the highest intensity path to the lowest, sum up intensities excluding already used peaks or signal peaks.
   for (auto it = max_intensity_sum_to_bin.rbegin(); it != max_intensity_sum_to_bin.rend(); ++it)
   {
+    //if (signal_pwr / 100 > it->first * it->first) continue; // if the noise summed intensity is too small, skip
     Size bin = it->second;
     int index = per_bin_start_index[bin];
     if (index < 0) { continue; }
@@ -347,22 +333,6 @@ float PeakGroup::getNoisePeakPower_(const std::vector<FLASHHelperClasses::LogMzP
         else
           break;
       }
-
-//      while (j < edges.size())
-//      {
-//        const auto& [p2, p2_signal] = all_peaks[j];
-//        // if (!p2_signal)
-//        intensity = p2.getIntensity();
-//
-//        if (unused[j])
-//        {
-//          sum_intensity += intensity;
-//          unused[j] = false;
-//        }
-//        else { break; }
-//        j = edges[j];
-//        if (j == 0) { break; }
-//      }
       index++;
     }
 
@@ -395,24 +365,9 @@ float PeakGroup::getNoisePeakPower_(const std::vector<FLASHHelperClasses::LogMzP
         else
           break;
       }
-
-//      while (j < edges.size())
-//      {
-//        const auto& [p2, p2_signal] = all_peaks[j];
-//        // if (!p2_signal)
-//        intensity = p2.getIntensity();
-//
-//        if (unused[j])
-//        {
-//          sum_intensity += intensity;
-//          unused[j] = false;
-//        }
-//        else { break; }
-//        j = edges[j];
-//        if (j == 0) { break; }
-//      }
       index--;
     }
+
     charge_noise_pwr += sum_intensity * sum_intensity;
   }
 
@@ -439,6 +394,7 @@ float PeakGroup::getNoisePeakPower_(const std::vector<FLASHHelperClasses::LogMzP
 
   return charge_noise_pwr;
 }
+
 
 void PeakGroup::updatePerChargeInformation_(const std::vector<LogMzPeak>& noisy_peaks, const double tol, const bool is_last)
 {
