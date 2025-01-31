@@ -492,7 +492,7 @@ jobs:
             --exclude='OpenMS/THIRDPARTY/**' \
             --exclude='.git/**' \
             --exclude='.github/**' \
-            --exclude='vcpkg*/**' \         
+            --exclude='vcpkg*/**' \
             -czf OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz -C ${{ github.workspace }} OpenMS
         
    # Upload the source tar
@@ -718,9 +718,11 @@ jobs:
           PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
         run: |
-          if [[ "${{ github.ref_name }}" == release/* ]]; then
-            folder=${{ github.ref_name }}
+          if [[ "${GITHUB_REF_NAME}" == release/* ]]; then
+            # Remove 'release/' prefix using parameter expansion
+            folder=${GITHUB_REF_NAME#release/}
           else
             echo refusing to mark non-release branch as latest
             exit 1
