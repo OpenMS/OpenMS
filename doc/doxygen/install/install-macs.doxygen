@@ -38,10 +38,10 @@
      xcode-select --install
    \endcode
    <li>CMake (>= 3.24) is required to configure and build the %OpenMS as well as some of its dependencies.</li>
-   <li>Qt5, its SVG module and the header files are required.
+   <li>Qt6, its SVG module and the header files are required.
    @note We recommend installing Qt using Homebrew with:
    \code
-     brew install qt5
+     brew install qt
    \endcode
    <li>
     Building pyOpenMS, the Python bindings for %OpenMS, requires Python, Cython and a few Python packages. See
@@ -173,11 +173,11 @@
 
         \code
         cd <path_to_OpenMS_build>
-        cmake -DOPENMS_CONTRIB_LIBS=<path_to_contrib_build> -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix qt5)" <path_to_OpenMS>
+        cmake -DOPENMS_CONTRIB_LIBS=<path_to_contrib_build> -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix qt)" <path_to_OpenMS>
         \endcode
 
       @note If you obtained Boost from Homebrew, please add <code>-DBOOST_USE_STATIC=OFF</code> to the above command!
-      @note If you still have Qt4 installed make sure to brew uninstall or at least brew unlink it, so it is not picked up. The same holds for libraries that you built and passed with the contrib.
+      @note If you still have Qt5 or Qt4 installed make sure to brew uninstall or at least brew unlink it, so it is not picked up. The same holds for libraries that you built and passed with the contrib.
       You can set additional CMake variables using the <code>-DVARIABLE=VALUE</code> option.
       A full list of the CMake variables is shown when you execute
 

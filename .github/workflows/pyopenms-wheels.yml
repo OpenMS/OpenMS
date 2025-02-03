@@ -231,6 +231,7 @@ jobs:
         ## Needed for Qt. Install before to overwrite the default softlinks on the GH runners
         brew install --force --overwrite --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
         brew install --force --overwrite libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@6 libomp
+        brew link --force libomp 
         echo "cmake_prefix=$(brew --prefix qt@6)/lib/cmake;$(brew --prefix libomp)" >> $GITHUB_OUTPUT
         echo "Qt6_DIR=$(brew --prefix qt@6)/lib/cmake/Qt6" >> $GITHUB_ENV
         if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then

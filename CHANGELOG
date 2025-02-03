@@ -14,6 +14,13 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ----                                OpenMS 3.4.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
+OpenSwath:
+- Changes to -out_features (# 7793)
+	- Deprecate .tsv feature output
+	- Deprecate -out_osw, -out_tsv. -out_features is used for outputting .osw or .featureXML files and file format is autodetected.
+	- Enable outputting any feature file (.osw or .featureXML) from a .tsv library 
+- Add warning message if irt_im_extraction_window not set and im_window is set (#7813)
+
 Misc:
 - pyOpenMS: improve developer experience (installation/compilation) (#7735)
 - TOPP tools and TOPPAS/ExecutePipeline return exit code 14 when external third-party tools (such as Comet or Sage) are not found (#7758)
@@ -23,7 +30,7 @@ Library:
 - IDScoreSwitcherAlgorithm: Added switchToScoreType and switchBackScoreType methods for score switching and reversion. (#7769)
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.3.0     (under development)              ----
+----                                OpenMS 3.3.0                                      ----
 ------------------------------------------------------------------------------------------
 
 What's new:
