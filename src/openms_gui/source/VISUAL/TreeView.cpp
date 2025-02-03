@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,6 +9,7 @@
 #include <OpenMS/VISUAL/TreeView.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Qt5Port.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <QHeaderView>
@@ -58,13 +59,7 @@ namespace OpenMS
 
   void TreeView::hideColumns(const QStringList& header_names)
   {
-     /*
-       * Suppressing warning toSet() deprecated till Qt 5.14
-       */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    auto hset = header_names.toSet();
-#pragma GCC diagnostic pop
+    auto hset = toQSet(header_names);
     // add actions which show/hide columns
     const auto& header = this->headerItem();
 

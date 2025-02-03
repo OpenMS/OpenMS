@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -937,7 +937,7 @@ namespace OpenMS::Math
       }
       else if (engine == "SAGE")
       {
-        return getScore_({"hyperscore"}, hit, current_score_type);
+        return getScore_({"hyperscore", "ln(hyperscore)"}, hit, current_score_type); // support hyperscore for backwards compatibility (same as ln(hyperscore))
       }
       else if (engine == "MSFRAGGER")
       {

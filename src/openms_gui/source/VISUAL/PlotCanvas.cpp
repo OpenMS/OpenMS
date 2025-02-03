@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -170,13 +170,7 @@ namespace OpenMS
 
   void PlotCanvas::wheelEvent(QWheelEvent* e)
   {
-     /* Supressed warning int QWheelEvent::x() const and y() deprecated
-     * Use position() instead, from Qt 5.14; CONTRIB_UPDATE_Qt_5.14
-     */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    zoom_(e->x(), e->y(), e->delta() > 0);
-#pragma GCC diagnostic pop
+    zoom_(e->position().x(), e->position().y(), e->angleDelta().y() > 0);
     e->accept();
   }
 
@@ -636,7 +630,7 @@ namespace OpenMS
     releaseKeyboard();
   }
 
-  void PlotCanvas::enterEvent(QEvent* /*e*/)
+  void PlotCanvas::enterEvent(QEnterEvent* /*e*/)
   {
     // grab keyboard, as we need to handle key presses
     grabKeyboard();

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -46,7 +46,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
@@ -412,7 +411,6 @@ int main(int argc, char** argv)
   DOCME(SavitzkyGolayFilter);
   DOCME(LowessSmoothing);
   DOCME(SimpleSVM);
-  DOCME(SONARScoring);
   DOCME(StablePairFinder);
   DOCME(SpectrumAlignment);
   DOCME(SpectrumAlignmentScore);

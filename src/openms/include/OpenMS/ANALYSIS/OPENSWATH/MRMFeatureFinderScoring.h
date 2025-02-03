@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,7 +14,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
 #include <OpenMS/FEATUREFINDER/EmgScoring.h>
 
 // Kernel classes
@@ -284,7 +283,6 @@ private:
     std::map<OpenMS::String, const PeptideType*> PeptideRefMap_;
     OpenSwath_Scores_Usage su_;
     OpenMS::DIAScoring diascoring_;
-    OpenMS::SONARScoring sonarscoring_;
     OpenMS::EmgScoring emgscoring_;
 
     // data

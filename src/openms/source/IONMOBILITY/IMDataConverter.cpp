@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -16,6 +16,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 
+#include <cstddef>
 #include <map>
 #include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 
@@ -166,7 +167,8 @@ namespace OpenMS
       }
       
       MSExperiment frame_melt = IMDataConverter::reshapeIMFrameToMany(std::move(frame));
-      for (int i = 0; i < bins.size(); ++i)
+      for (size_t i = 0; i < bins.size(); ++i)
+
       {
         binned_spectra.clear(false);
         // check if spectrum goes into this bin

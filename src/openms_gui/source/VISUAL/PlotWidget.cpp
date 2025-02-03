@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -40,7 +40,7 @@ namespace OpenMS
     setAttribute(Qt::WA_DeleteOnClose);
     grid_ = new QGridLayout(this);
     grid_->setSpacing(0);
-    grid_->setMargin(1);
+    grid_->setContentsMargins(1, 1, 1, 1);
     // axes
     y_axis_ = new AxisWidget(AxisPainter::LEFT, "", this);
     x_axis_ = new AxisWidget(AxisPainter::BOTTOM, "", this);
@@ -300,7 +300,7 @@ namespace OpenMS
   void PlotWidget::paintEvent(QPaintEvent * /*event*/)
   {
     QStyleOption opt;
-    opt.init(this);
+    opt.initFrom(this);
     QPainter p(this);
     // apply style options and draw the widget using current stylesheets
     style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);

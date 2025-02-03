@@ -1,6 +1,6 @@
 {
   "name": "openms",
-  "version-string": "3.2.0",
+  "version-string": "3.4.0",
   "dependencies": [
     "boost-core",
     "boost-math",
@@ -33,9 +33,9 @@
     "boost-accumulators",
     "boost-typeof",
     "xerces-c",
-    "qt5-base",
+    "qt6-base",
     "libsvm",
-    "qt5-svg",
+    "qt6-svg",
     "zlib",
     "coin-or-cgl",
     "coin-or-clp",

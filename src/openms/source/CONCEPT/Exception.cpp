@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -168,6 +168,13 @@ namespace OpenMS
     {
       GlobalExceptionHandler::getInstance().setMessage(what());
     }
+
+    ExternalExecutableNotFound::ExternalExecutableNotFound(const char* file, int line, const char* function, const std::string& filename) noexcept:
+        BaseException(file, line, function, "ExternalExecutableNotFound", "the executable '" + filename + "' could not be found")
+    {
+      GlobalExceptionHandler::getInstance().setMessage(what());
+    }
+    
 
     FileNotReadable::FileNotReadable(const char* file, int line, const char* function, const std::string& filename) noexcept :
       BaseException(file, line, function, "FileNotReadable", "the file '" + filename + "' is not readable for the current user")

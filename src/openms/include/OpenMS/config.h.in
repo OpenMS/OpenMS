@@ -11,7 +11,7 @@
 // Use appropriate options to configure instead of changing config.h.
 // Changes made in config.h will be lost as soon as you call CMAKE again.
 //
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -117,6 +117,8 @@ static constexpr cstr past_last_slash(cstr str)
 #cmakedefine OPENMS_HAS_SYSCONF
 
 #cmakedefine ENABLE_UPDATE_CHECK
+
+#cmakedefine ENABLE_DOCS
 
 // library versions
 #define OPENMS_LIBSVM_VERSION @CF_OPENMS_LIBSVM_VERSION@

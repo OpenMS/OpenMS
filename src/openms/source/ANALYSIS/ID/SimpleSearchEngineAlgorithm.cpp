@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -270,7 +270,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         PeptideIdentification pi{};
         pi.setSpectrumReference( spec.getNativeID());
         pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
-        pi.setScoreType("hyperscore");
+        pi.setScoreType("ln(hyperscore)");
         pi.setHigherScoreBetter(true);
         double mz = spec.getPrecursors()[0].getMZ();
         pi.setRT(spec.getRT());

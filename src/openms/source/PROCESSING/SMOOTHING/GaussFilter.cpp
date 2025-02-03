@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -79,12 +79,10 @@ namespace OpenMS
     else
     {
       // copy the new data into the spectrum
-      auto mz_it = mz_out.begin();
-      auto int_it = int_out.begin();
-      for (Size p = 0; mz_it != mz_out.end(); mz_it++, int_it++, p++)
+      for (Size p = 0; p < spectrum.size(); ++p)
       {
-        spectrum[p].setIntensity(*int_it);
-        spectrum[p].setMZ(*mz_it);
+        spectrum[p].setIntensity(int_out[p]);
+        spectrum[p].setMZ(mz_out[p]);
       }
     }
   }
@@ -129,13 +127,11 @@ namespace OpenMS
     }
     else
     {
-      // copy the new data into the spectrum
-      auto mz_it = rt_out.begin();
-      auto int_it = int_out.begin();
-      for (Size p = 0; mz_it != rt_out.end(); mz_it++, int_it++, p++)
+      // copy the new data into the chromatogram
+      for (Size p = 0; p < chromatogram.size(); ++p)
       {
-        chromatogram[p].setIntensity(*int_it);
-        chromatogram[p].setMZ(*mz_it);
+        chromatogram[p].setIntensity(int_out[p]);
+        chromatogram[p].setRT(rt_out[p]);
       }
     }
   }

@@ -1,8 +1,8 @@
 # --------------------------------------------------------------------------
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
+# Copyright OpenMS Inc. -- Eberhard Karls University Tuebingen,
+# ETH Zurich, and Freie Universitaet Berlin 2002-present.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -59,7 +59,9 @@ foreach(i ${EXAMPLES_executables})
 endforeach(i)
 ## expect "Tutorial_Template"" to fail, since its a proper TOPP tool invoked without arguments
 ## i.e. TOPPBase will print a usage() and return an error code
-set_tests_properties(Tutorial_Template PROPERTIES WILL_FAIL TRUE)
+if(NOT ENABLE_STYLE_TESTING)
+  set_tests_properties(Tutorial_Template PROPERTIES WILL_FAIL TRUE)
+endif()
 
 # add collection target
 add_custom_target(Tutorials_build)

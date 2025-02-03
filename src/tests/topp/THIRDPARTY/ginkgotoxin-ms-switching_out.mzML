@@ -2,17 +2,16 @@
 <indexedmzML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.2_idx.xsd" xmlns="http://psi.hupo.org/ms/mzml">
   <mzML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" version="1.1.0" id="ginkgotoxin-ms-switching">
     <cvList count="2">
-      <cv id="MS" fullName="Mass spectrometry ontology" version="4.1.79" URI="http://purl.obolibrary.org/obo/ms/psi-ms.obo" />
+      <cv id="MS" fullName="Mass spectrometry ontology" version="4.1.79" URI="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" />
       <cv id="UO" fullName="Unit Ontology" version="09:04:2014" URI="https://raw.githubusercontent.com/bio-ontology-research-group/unit-ontology/master/unit.obo" />
     </cvList>
     <fileDescription>
       <fileContent>
         <cvParam cvRef="MS" accession="MS:1000579" value="" name="MS1 spectrum" />
-        <cvParam cvRef="MS" accession="MS:1000580" value="" name="MSn spectrum" />
         <cvParam cvRef="MS" accession="MS:1000810" value="" name="ion current chromatogram" />
       </fileContent>
       <sourceFileList count="1">
-        <sourceFile id="RAW1" name="ginkgotoxin-ms-switching" location="file:////home/samuel/git/OpenMS/src/tests/topp/THIRDPARTY/ginkgotoxin-ms-switching.raw">
+        <sourceFile id="RAW1" name="ginkgotoxin-ms-switching" location="file:///D:\development\OpenMS\src\tests\topp\THIRDPARTY\ginkgotoxin-ms-switching.raw">
           <cvParam cvRef="MS" accession="MS:1000768" value="" name="Thermo nativeID format" />
           <cvParam cvRef="MS" accession="MS:1000563" value="" name="Thermo RAW format" />
           <cvParam cvRef="MS" accession="MS:1000569" value="7ddf76e89ea33040c5acb50760a230cdfe55e969" name="SHA-1" />
@@ -26,8 +25,8 @@
       </referenceableParamGroup>
     </referenceableParamGroupList>
     <softwareList count="1">
-      <software id="ThermoRawFileParser" version="1.4.0">
-        <cvParam cvRef="MS" accession="MS:1000799" value="ThermoRawFileParser" name="custom unreleased software tool" />
+      <software id="ThermoRawFileParser" version="1.4.4">
+        <cvParam cvRef="MS" accession="MS:1003145" name="ThermoRawFileParser" />
       </software>
     </softwareList>
     <instrumentConfigurationList count="1">
@@ -38,7 +37,7 @@
             <cvParam cvRef="MS" accession="MS:1000073" value="" name="electrospray ionization" />
           </source>
           <analyzer order="2">
-            <cvParam cvRef="MS" accession="MS:1000079" value="" name="fourier transform ion cyclotron resonance mass spectrometer" />
+            <cvParam cvRef="MS" accession="MS:1000484" value="" name="orbitrap" />
           </analyzer>
           <detector order="3">
             <cvParam cvRef="MS" accession="MS:1000624" value="" name="inductive detector" />
@@ -1330,43 +1329,43 @@
   </mzML>
   <indexList count="2">
     <index name="spectrum">
-      <offset idRef="controllerType=0 controllerNumber=1 scan=1">3843</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=2">12417</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=3">20636</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=1">3726</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=2">12339</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=3">20597</offset>
       <offset idRef="controllerType=0 controllerNumber=1 scan=4">29598</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=5">37942</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=6">46892</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=7">55188</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=8">64155</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=9">72239</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=10">81278</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=11">89111</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=12">97901</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=13">104515</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=14">113168</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=15">119717</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=16">128126</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=17">134643</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=18">143089</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=19">149539</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=20">157928</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=21">164430</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=22">173031</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=23">179673</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=24">188122</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=25">195059</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=26">203312</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=27">210537</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=28">219025</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=29">226054</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=30">234375</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=31">241784</offset>
-      <offset idRef="controllerType=0 controllerNumber=1 scan=32">250126</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=5">37981</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=6">46970</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=7">55305</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=8">64311</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=9">72434</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=10">81512</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=11">89384</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=12">98213</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=13">104866</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=14">113558</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=15">120146</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=16">128594</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=17">135150</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=18">143635</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=19">150124</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=20">158552</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=21">165093</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=22">173733</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=23">180414</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=24">188902</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=25">195878</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=26">204170</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=27">211434</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=28">219961</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=29">227029</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=30">235389</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=31">242837</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=32">251218</offset>
     </index>
     <index name="chromatogram">
-      <offset idRef="BasePeak_0">259420</offset>
+      <offset idRef="BasePeak_0">260553</offset>
     </index>
   </indexList>
-  <indexListOffset>261214</indexListOffset>
-  <fileChecksum>6059d80f613fded65f4fd80731fc6ac9620afc2e</fileChecksum>
+  <indexListOffset>262367</indexListOffset>
+  <fileChecksum>8e8b7ec683357247cc792ece26d4802371b371b4</fileChecksum>
 </indexedmzML>

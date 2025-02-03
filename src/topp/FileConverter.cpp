@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -286,8 +286,8 @@ protected:
       net_executable = net_executable.empty() ? "mono" : net_executable;
       arguments << getStringOption_("RawToMzML:ThermoRaw_executable").toQString();
 #endif
-      arguments << ("-i=" + in).c_str()
-                << ("--output_file=" + out).c_str()
+      arguments << ("--input=" + in).c_str()
+                << ("--output=" + out).c_str()
                 << "-f=2" // indexedMzML
                 << "-e"; // ignore instrument errors
       if (no_peak_picking)

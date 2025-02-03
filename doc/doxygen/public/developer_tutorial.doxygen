@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka  $
@@ -92,7 +92,7 @@ See the manual for proper commit messages: @ref howto_commit_messages.<br>
 
 <b>Automated Unit Tests</b><br>
 Pull requests are automatically tested using our continuous integration platform. In addition we perform nightly test runs covering different platforms. Even if everything compiled well on your machine and all tests passed, please check if you broke another platform on the next day.
-Nightly tests: <a href="http://cdash.openms.de/index.php?project=OpenMS">CDASH</a>
+Nightly tests: <a href="http://cdash.seqan.de/index.php?project=OpenMS">CDASH</a>
 <br>
 <br>
 <b>Experimental Installers</b><br>
