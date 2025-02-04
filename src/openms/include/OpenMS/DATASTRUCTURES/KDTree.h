@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -41,6 +41,7 @@
 
 #include <cstddef>
 #include <cmath>
+#include <memory>
 
 namespace KDTree
 {
@@ -551,7 +552,7 @@ protected:
   void
   _M_destroy_node(_Node_* __p)
   {
-    _M_node_allocator.destroy(__p);
+    std::allocator_traits<allocator_type>::destroy(_M_node_allocator, __p);
   }
 };
 

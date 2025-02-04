@@ -90,6 +90,7 @@
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="XTandemID" value="[FYWL]|[X]" type="string" />
       <ITEM name="MSGFID" value="2" type="int" />
+      <ITEM name="CometID" value="15" type="int" />
     </NODE>
     <NODE name="CNBr">
       <ITEM name="Name" value="CNBr" type="string" />

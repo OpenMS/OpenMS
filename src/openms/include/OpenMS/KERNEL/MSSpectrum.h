@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -136,6 +136,7 @@ public:
     using ContainerType::erase;
     using ContainerType::swap;
     using ContainerType::data;
+    using ContainerType::shrink_to_fit;
 
     using typename ContainerType::iterator;
     using typename ContainerType::const_iterator;

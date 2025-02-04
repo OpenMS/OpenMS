@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -27,14 +27,10 @@ namespace OpenMS
   class OPENMS_DLLAPI File
   {
 public:
-
-    friend class TOPPBase;
-
     /**
       @brief Class representing a temporary directory
     
     */
-
     class OPENMS_DLLAPI TempDir
     {
     public:

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,9 +11,6 @@
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/VISUAL/VISUALIZER/SampleVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
-#include <OpenMS/VISUAL/VISUALIZER/DigestionVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/ModificationVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/TaggingVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/HPLCVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/GradientVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/MetaInfoVisualizer.h>
@@ -224,30 +221,6 @@ namespace OpenMS
 
     QStringList labels;
     labels << "ContactPerson" << QString::number(ws_->addWidget(visualizer));
-
-    QTreeWidgetItem * item;
-    if (parent == nullptr)
-    {
-      item = new QTreeWidgetItem(treeview_, labels);
-    }
-    else
-    {
-      item = new QTreeWidgetItem(parent, labels);
-    }
-
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
-
-    connectVisualizer_(visualizer);
-  }
-
-  //Visualizing Digestion object
-  void MetaDataBrowser::visualize_(Digestion & meta, QTreeWidgetItem * parent)
-  {
-    DigestionVisualizer * visualizer = new DigestionVisualizer(isEditable(), this);
-    visualizer->load(meta);
-
-    QStringList labels;
-    labels << "Digestion" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
     if (parent == nullptr)
@@ -605,30 +578,6 @@ namespace OpenMS
     connectVisualizer_(visualizer);
   }
 
-  //Visualizing modification object
-  void MetaDataBrowser::visualize_(Modification & meta, QTreeWidgetItem * parent)
-  {
-    ModificationVisualizer * visualizer = new ModificationVisualizer(isEditable(), this);
-    visualizer->load(meta);
-
-    QStringList labels;
-    labels << "Modification" << QString::number(ws_->addWidget(visualizer));
-
-    QTreeWidgetItem * item;
-    if (parent == nullptr)
-    {
-      item = new QTreeWidgetItem(treeview_, labels);
-    }
-    else
-    {
-      item = new QTreeWidgetItem(parent, labels);
-    }
-
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
-
-    connectVisualizer_(visualizer);
-  }
-
   //Visualizing PeptideHit object
   void MetaDataBrowser::visualize_(PeptideHit & meta, QTreeWidgetItem * parent)
   {
@@ -800,28 +749,6 @@ namespace OpenMS
       item = new QTreeWidgetItem(parent, labels);
     }
 
-    //check for treatments
-    if (meta.countTreatments() != 0)
-    {
-      for (Int i = 0; i < meta.countTreatments(); ++i)
-      {
-        if (meta.getTreatment(i).getType() == "Digestion")
-        {
-          visualize_((const_cast<Digestion &>(dynamic_cast<const Digestion &>(meta.getTreatment(i)))), item);
-        }
-        else if (meta.getTreatment(i).getType() == "Modification")
-        {
-          //Cast SampleTreatment reference to a const modification reference
-          visualize_((const_cast<Modification &>(dynamic_cast<const Modification &>(meta.getTreatment(i)))), item);
-
-        }
-        else if (meta.getTreatment(i).getType() == "Tagging")
-        {
-          visualize_((const_cast<Tagging &>(dynamic_cast<const Tagging &>(meta.getTreatment(i)))), item);
-        }
-      }
-    }
-
     //subsamples
     visualizeAll_(meta.getSubsamples(), item);
 
@@ -922,26 +849,6 @@ namespace OpenMS
     //check for PeptideIdentification
     visualizeAll_(meta.getPeptideIdentifications(), item);
 
-    connectVisualizer_(visualizer);
-  }
-
-  //Visualizing tagging object
-  void MetaDataBrowser::visualize_(Tagging & meta, QTreeWidgetItem * parent)
-  {
-    TaggingVisualizer * visualizer = new TaggingVisualizer(isEditable(), this);
-    visualizer->load(meta);
-
-    QStringList labels;
-    labels << "Tagging" << QString::number(ws_->addWidget(visualizer));
-
-    if (parent == nullptr)
-    {
-      new QTreeWidgetItem(treeview_, labels);
-    }
-    else
-    {
-      new QTreeWidgetItem(parent, labels);
-    }
     connectVisualizer_(visualizer);
   }
 
