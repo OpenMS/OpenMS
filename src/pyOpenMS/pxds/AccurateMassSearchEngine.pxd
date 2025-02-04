@@ -18,23 +18,23 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "Op
         # wrap-inherits:
         #  DefaultParamHandler
         #  ProgressLogger
-        AccurateMassSearchEngine() nogil except +
-        AccurateMassSearchEngine(AccurateMassSearchEngine &) nogil except +
+        AccurateMassSearchEngine() except + nogil 
+        AccurateMassSearchEngine(AccurateMassSearchEngine &) except + nogil 
 
         void queryByMZ(double observed_mz, Int observed_charge, String ion_mode,
-                         libcpp_vector[ AccurateMassSearchResult ] &, EmpiricalFormula & observed_adduct) nogil except +
+                         libcpp_vector[ AccurateMassSearchResult ] &, EmpiricalFormula & observed_adduct) except + nogil 
 
         void queryByFeature(Feature feature, Size feature_index, String ion_mode,
-                            libcpp_vector[ AccurateMassSearchResult ] & ) nogil except +
+                            libcpp_vector[ AccurateMassSearchResult ] & ) except + nogil 
 
         void queryByConsensusFeature(ConsensusFeature cfeat, Size cf_index, Size number_of_maps, String ion_mode,
-                                     libcpp_vector[AccurateMassSearchResult]& results) nogil except +
+                                     libcpp_vector[AccurateMassSearchResult]& results) except + nogil 
 
-        void run(FeatureMap&, MzTab&) nogil except +
-        void run(FeatureMap&, MzTabM&) nogil except +
-        void run(ConsensusMap&, MzTab&) nogil except +
+        void run(FeatureMap&, MzTab&) except + nogil 
+        void run(FeatureMap&, MzTabM&) except + nogil 
+        void run(ConsensusMap&, MzTab&) except + nogil 
 
-        void init() nogil except +
+        void init() except + nogil 
 
 
 ## cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "OpenMS":
@@ -42,13 +42,13 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "Op
 ##     cdef cppclass AdductInfo "OpenMS::AdductInfo":
 ## 
 ##         #private
-##         AdductInfo() nogil except + # wrap-ignore
+##         AdductInfo() except + nogil  # wrap-ignore
 ##         #private
-##         AdductInfo(AdductInfo) nogil except + # wrap-ignore 
-##         AdductInfo(String name, EmpiricalFormula & adduct, int charge, UInt mol_multiplier) nogil except +
-##         double getNeutralMass(double observed_mz) nogil except +
-##         double getMZ(double neutral_mass) nogil except +
-##         bool isCompatible(EmpiricalFormula db_entry) nogil except +
-##         int getCharge() nogil except +
-##         String getName() nogil except +
-##         UInt getMolMultiplier() nogil except +
+##         AdductInfo(AdductInfo) except + nogil  # wrap-ignore 
+##         AdductInfo(String name, EmpiricalFormula & adduct, int charge, UInt mol_multiplier) except + nogil 
+##         double getNeutralMass(double observed_mz) except + nogil 
+##         double getMZ(double neutral_mass) except + nogil 
+##         bool isCompatible(EmpiricalFormula db_entry) except + nogil 
+##         int getCharge() except + nogil 
+##         String getName() except + nogil 
+##         UInt getMolMultiplier() except + nogil 

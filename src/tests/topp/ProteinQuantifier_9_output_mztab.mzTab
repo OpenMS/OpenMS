@@ -6,7 +6,7 @@ MTD	description	OpenMS export from consensusXML
 MTD	protein_search_engine_score[1]	[MS, MS:1003119, EPIFANY:Protein posterior probability, ]
 MTD	peptide_search_engine_score[1]	[MS, MS:1003114, OpenMS:Best PSM Score, ]
 MTD	psm_search_engine_score[1]	[, , Epifany, ]
-MTD	software[1]	[MS, MS:1000752, TOPP software, 3.0.0-pre-mztab-pep-secion-meta-values-2022-07-20]
+MTD	software[1]	[MS, MS:1000752, TOPP software, 3.0.0-pre-fix-mztab-meta-value-export-2022-11-16]
 MTD	software[2]	[MS, MS:1003118, EPIFANY, 2.6.0]
 MTD	software[3]	[, , Epifany, 2.6.0]
 MTD	software[3]-setting[1]	db:null
@@ -50,11 +50,11 @@ PRH	accession	description	taxid	species	database	database_version	search_engine	
 PRT	Protein	null	null	null	null	null	null	0.9097144245	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	protein_details
 PRT	Protein	null	null	null	null	null	null	0.9097144245	Protein	null	null	1230.0	230.0	1030.0	1230.0	null	null	230.0	null	null	1030.0	null	null	single_protein
 
-PEH	sequence	accession	unique	database	database_version	search_engine	best_search_engine_score[1]	search_engine_score[1]_ms_run[1]	search_engine_score[1]_ms_run[2]	search_engine_score[1]_ms_run[3]	modifications	retention_time	retention_time_window	charge	mass_to_charge	spectra_ref	peptide_abundance_study_variable[1]	peptide_abundance_stdev_study_variable[1]	peptide_abundance_std_error_study_variable[1]	peptide_abundance_study_variable[2]	peptide_abundance_stdev_study_variable[2]	peptide_abundance_std_error_study_variable[2]	peptide_abundance_study_variable[3]	peptide_abundance_stdev_study_variable[3]	peptide_abundance_std_error_study_variable[3]	opt_global_id_merge_index	opt_global_cv_MS:1000889_peptidoform_sequence
-PEP	AAAK	Protein	1	null	null	null	1.0	1.0	null	null	null	100.0	null	2	100.0	null	1000.0	null	null	null	null	null	1000.0	null	null	0	AAAK
-PEP	CCCK	Protein	1	null	null	null	1.0	1.0	null	null	null	200.0	null	2	200.0	null	200.0	null	null	200.0	null	null	null	null	null	0	CCCK
-PEP	EEEK	Protein	1	null	null	null	1.0	null	1.0	null	null	300.0	null	2	300.0	null	30.0	null	null	30.0	null	null	30.0	null	null	1	EEEK
-PEP	GGG	Protein	1	null	null	null	1.0	null	null	1.0	null	400.0	null	2	400.0	null	4.0	null	null	4.0	null	null	null	null	null	2	GGG
+PEH	sequence	accession	unique	database	database_version	search_engine	best_search_engine_score[1]	search_engine_score[1]_ms_run[1]	search_engine_score[1]_ms_run[2]	search_engine_score[1]_ms_run[3]	modifications	retention_time	retention_time_window	charge	mass_to_charge	spectra_ref	peptide_abundance_study_variable[1]	peptide_abundance_stdev_study_variable[1]	peptide_abundance_std_error_study_variable[1]	peptide_abundance_study_variable[2]	peptide_abundance_stdev_study_variable[2]	peptide_abundance_std_error_study_variable[2]	peptide_abundance_study_variable[3]	peptide_abundance_stdev_study_variable[3]	peptide_abundance_std_error_study_variable[3]	opt_global_cv_MS:1000889_peptidoform_sequence
+PEP	AAAK	Protein	1	null	null	null	1.0	1.0	null	null	null	100.0	null	2	100.0	null	1000.0	null	null	null	null	null	1000.0	null	null	AAAK
+PEP	CCCK	Protein	1	null	null	null	1.0	1.0	null	null	null	200.0	null	2	200.0	null	200.0	null	null	200.0	null	null	null	null	null	CCCK
+PEP	EEEK	Protein	1	null	null	null	1.0	null	1.0	null	null	300.0	null	2	300.0	null	30.0	null	null	30.0	null	null	30.0	null	null	EEEK
+PEP	GGG	Protein	1	null	null	null	1.0	null	null	1.0	null	400.0	null	2	400.0	null	4.0	null	null	4.0	null	null	null	null	null	GGG
 
 PSH	sequence	PSM_ID	accession	unique	database	database_version	search_engine	search_engine_score[1]	modifications	retention_time	charge	exp_mass_to_charge	calc_mass_to_charge	spectra_ref	pre	post	start	end	opt_global_cv_MS:1000889_peptidoform_sequence
 PSM	AAAK	0	Protein	1	null	null	[, , Epifany, 2.6.0]	1.0	null	100.0	2	100.0	180.615711929321009	null	null	null	null	null	AAAK

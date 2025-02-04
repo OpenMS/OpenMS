@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -65,7 +39,7 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI MSSpectrum final :
     private std::vector<Peak1D>,
-    public RangeManagerContainer<RangeMZ, RangeIntensity>,
+    public RangeManagerContainer<RangeMZ, RangeIntensity, RangeMobility>,
     public SpectrumSettings
   {
 public:
@@ -85,7 +59,9 @@ public:
       Size start; ///< inclusive
       Size end; ///< not inclusive
       bool is_sorted; ///< are the Peaks in [start, end) sorted yet?
-      Chunk(Size start, Size end, bool sorted) : start(start), end(end), is_sorted(sorted) {}
+      Chunk(Size p_start, Size p_end, bool p_sorted) : start(p_start), end(p_end), is_sorted(p_sorted)
+      {
+      }
     };
 
     struct Chunks {
@@ -113,8 +89,8 @@ public:
     /// Spectrum base type
     typedef std::vector<PeakType> ContainerType;
     /// RangeManager
-    typedef RangeManagerContainer<RangeMZ, RangeIntensity> RangeManagerContainerType;
-    typedef RangeManager<RangeMZ, RangeIntensity> RangeManagerType;
+    typedef RangeManagerContainer<RangeMZ, RangeIntensity, RangeMobility> RangeManagerContainerType;
+    typedef RangeManager<RangeMZ, RangeIntensity, RangeMobility> RangeManagerType;
     /// Float data array vector type
     typedef OpenMS::DataArrays::FloatDataArray FloatDataArray ;
     typedef std::vector<FloatDataArray> FloatDataArrays;
@@ -159,6 +135,8 @@ public:
     using ContainerType::insert;
     using ContainerType::erase;
     using ContainerType::swap;
+    using ContainerType::data;
+    using ContainerType::shrink_to_fit;
 
     using typename ContainerType::iterator;
     using typename ContainerType::const_iterator;
@@ -174,6 +152,9 @@ public:
 
     /// Constructor
     MSSpectrum();
+
+    /// Constructor from a list of Peak1D, e.g. MSSpectrum spec{ {mz1, int1}, {mz2, int2}, ... };
+    MSSpectrum(const std::initializer_list<Peak1D>& init);
 
     /// Copy constructor
     MSSpectrum(const MSSpectrum& source);
@@ -214,7 +195,7 @@ public:
     void setRT(double rt);
 
     /**
-      @brief Returns the ion mobility drift time (MSSpectrum::DRIFTTIME_NOT_SET means it is not set)
+      @brief Returns the ion mobility drift time (IMTypes::DRIFTTIME_NOT_SET means it is not set)
 
       @note Drift times may be stored directly as an attribute of the spectrum
       (if they relate to the spectrum as a whole). In case of ion mobility
@@ -320,6 +301,15 @@ public:
     void sortByPosition();
 
     /**
+      @brief Sorts the m/z peaks by their ion mobility value (and the accociated IM data arrays accordingly).
+
+      Requires a binary data array which is a child of 'MS:1002893 ! ion mobility array' (see getIMData())
+      
+      @throws Exception::MissingInformation if containsIMData() returns false
+    */
+    void sortByIonMobility();
+
+    /**
       @brief Sort the spectrum, but uses the fact, that certain chunks are presorted
       @param chunks a Chunk is an object that contains the start and end of a sublist of peaks in the spectrum, that is or isn't sorted yet (is_sorted member)
     */
@@ -327,6 +317,12 @@ public:
 
     /// Checks if all peaks are sorted with respect to ascending m/z
     bool isSorted() const;
+
+    /// Checks if m/z peaks are sorted by their associated ion mobility value.
+    /// Requires a binary data array which is a child of 'MS:1002893 ! ion mobility array' (see getIMData())
+    ///
+    /// @throws Exception::MissingInformation if containsIMData() returns false
+    bool isSortedByIM() const;
 
     /// Checks if container is sorted by a certain user-defined property.
     /// You can pass any lambda function with <tt>[](Size index_1, Size index_2) --> bool</tt>
@@ -408,8 +404,8 @@ public:
       @brief Search for the peak with highest intensity among the peaks near to a specific m/z given two +/- tolerance windows in Th
 
       @param mz The searched for mass-to-charge ratio searched
-      @param tolerance The non-negative tolerance applied to both sides of mz
-
+      @param tolerance_left The non-negative tolerance applied left of mz
+      @param tolerance_right The non-negative tolerance applied right of mz
       @return Returns the index of the peak or -1 if no peak present in tolerance window or if spectrum is empty
 
       @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
@@ -553,10 +549,19 @@ public:
       @brief Get the Ion mobility data array's @p index and its associated @p unit
 
       This only works for spectra which represent an IM-frame, i.e. they have a float metadata array which is a child of 'MS:1002893 ! ion mobility array'?
+      Check this first by using `containsIMData()`.
 
       @throws Exception::MissingInformation if IM data is not present
     */
     std::pair<Size, DriftTimeUnit> getIMData() const;
+    
+
+    /**
+      @brief Get the spectrum's ion mobility data (if exists) and its associated unit as a pair of {unit, data}
+      This only works for spectra which represent an IM-frame, i.e. they have a float metadata array which is a child of 'MS:1002893 ! ion mobility array'.
+      If this is not present, this returns {DriftTimeUnit::NONE, {}}
+    */
+    std::pair<DriftTimeUnit, std::vector<float>> maybeGetIMData() const;
     
     //@}
 
@@ -610,16 +615,16 @@ public:
 
 protected:
     /// Retention time
-    double retention_time_;
+    double retention_time_ = -1;
 
     /// Drift time
-    double drift_time_;
+    double drift_time_ = -1;
 
     /// Drift time unit
-    DriftTimeUnit drift_time_unit_;
+    DriftTimeUnit drift_time_unit_ = DriftTimeUnit::NONE;
 
     /// MS level
-    UInt ms_level_;
+    UInt ms_level_ = 1;
 
     /// Name
     String name_;

@@ -20,17 +20,17 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AScore.h>" namespace "OpenMS":
     cdef cppclass AScore(DefaultParamHandler):
         # wrap-inherits:
         #  DefaultParamHandler
-        AScore() nogil except +
-        AScore(AScore &) nogil except + # compiler
+        AScore() except + nogil 
+        AScore(AScore &) except + nogil  # compiler
 
         PeptideHit compute(PeptideHit & hit,
-                           MSSpectrum & real_spectrum) nogil except +
+                           MSSpectrum & real_spectrum) except + nogil 
 
 
     cdef cppclass ProbablePhosphoSites:
 
-        ProbablePhosphoSites() nogil except + # compiler
-        ProbablePhosphoSites(ProbablePhosphoSites &) nogil except + # compiler
+        ProbablePhosphoSites() except + nogil  # compiler
+        ProbablePhosphoSites(ProbablePhosphoSites &) except + nogil  # compiler
 
         Size first
         Size second

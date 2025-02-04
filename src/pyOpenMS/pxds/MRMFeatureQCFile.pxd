@@ -9,10 +9,10 @@ cdef extern from "<OpenMS/FORMAT/MRMFeatureQCFile.h>" namespace "OpenMS":
                 #  
                 #  Loads and stores .csv or .tsv files describing an MRMFeatureQC
 
-        MRMFeatureQCFile() nogil except +
-        MRMFeatureQCFile(MRMFeatureQCFile &) nogil except + # compiler
+        MRMFeatureQCFile() except + nogil 
+        MRMFeatureQCFile(MRMFeatureQCFile &) except + nogil  # compiler
 
-        void load(const String& filename, MRMFeatureQC& mrmfqc, const bool is_component_group) nogil except +
+        void load(const String& filename, MRMFeatureQC& mrmfqc, const bool is_component_group) except + nogil 
             # wrap-doc:
                 #  Loads an MRMFeatureQC file
                 #  
@@ -25,4 +25,4 @@ cdef extern from "<OpenMS/FORMAT/MRMFeatureQCFile.h>" namespace "OpenMS":
                 #  :raises:
                 #    Exception: ParseError is thrown if an error occurs during parsing
 
-        # void store(String filename, MRMFeatureQC mrmfqc) nogil except +
+        # void store(String filename, MRMFeatureQC mrmfqc) except + nogil 

@@ -1,8 +1,8 @@
 # --------------------------------------------------------------------------
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# Copyright OpenMS Inc. -- Eberhard Karls University Tuebingen,
+# ETH Zurich, and Freie Universitaet Berlin 2002-present.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -31,14 +31,17 @@
 # $Maintainer: Julianus Pfeuffer $
 # $Authors: Julianus Pfeuffer $
 # --------------------------------------------------------------------------
-set(CPACK_GENERATOR "RPM")
 
 
 set(CPACK_RPM_PACKAGE_VENDOR "OpenMS developers <open-ms-general@lists.sourceforge.net>")
-if (OPENMS_64BIT_ARCHITECTURE)
-  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-RedHat-Linux-x86_64")
+if((DEFINED ENV{CPACK_PACKAGE_FILE_NAME}) AND (NOT "$ENV{CPACK_PACKAGE_FILE_NAME}" STREQUAL ""))
+  set(CPACK_PACKAGE_FILE_NAME "$ENV{CPACK_PACKAGE_FILE_NAME}")
 else()
-  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-RedHat-Linux-x86")
+  if (OPENMS_64BIT_ARCHITECTURE)
+    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-RedHat-Linux-x86_64")
+  else()
+    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-RedHat-Linux-x86")
+  endif()
 endif()
 
 ## Debug for now.
@@ -60,7 +63,7 @@ SET(CPACK_PACKAGE_DESCRIPTION "
  spectrometry-related software and powerful 2D and 3D visualization
  solutions.
  .
- TOPP (the OpenMS proteomic pipeline) is a pipeline for the analysis
+ TOPP (the OpenMS PiPeline) is a pipeline for the analysis
  of HPLC/MS data. It consists of a set of numerous small applications
  that can be chained together to create analysis pipelines tailored
  for a specific problem."

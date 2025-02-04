@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -41,9 +15,9 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DCaret.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
@@ -107,8 +81,8 @@ namespace OpenMS
       // set visible area to visible area in 2D view
       w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea());
       
-      String caption = layer.getName();
-      w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
+      w->canvas()->getCurrentLayer().setName(layer.getName());
+      w->canvas()->getCurrentLayer().setNameSuffix(layer.getNameSuffix());
 
       tv_->showPlotWidgetInWindow(w);
 
@@ -310,11 +284,11 @@ namespace OpenMS
   {
     Plot1DWidget* widget_1D = tv_->getActive1DWidget();
 
-    // return if no active 1D widget is present
+    // if no active 1D widget is present
     if (widget_1D == nullptr) 
-    {
-      std::cout << "Current widget is nullptr" << std::endl;
-      return; 
+    { // ... create one
+      showSpectrumAsNew1D(spectrum_index, peptide_id_index, peptide_hit_index);
+      return;
     }
 
     // lambda which returns the current layer. This has to be used throughout this function to ensure
@@ -497,7 +471,7 @@ namespace OpenMS
   }
 
   // Helper function for text formatting
-  String TVIdentificationViewController::n_times(Size n, String input)
+  String TVIdentificationViewController::n_times(Size n, const String& input)
   {
     String result;
     for (Size i = 0; i < n; ++i)
@@ -895,7 +869,7 @@ namespace OpenMS
         Annotation1DDistanceItem* item = new Annotation1DDistanceItem(QString::number(pre.getCharge()), lower_position, upper_position);
         // add additional tick at precursor target position (e.g. to show if isolation window is asymmetric)
         vector<PointXYType> ticks;
-        ticks.push_back({pre.getMZ(), 0});
+        ticks.emplace_back(pre.getMZ(), 0);
         item->setTicks(ticks);
         item->setSelected(false);
 
@@ -1065,7 +1039,7 @@ namespace OpenMS
           AASequence aa_subsequence = aa_sequence.getSubsequence(0, ion_number);
           QString aa_ss = aa_subsequence.toString().toQString();
           // shorten modifications "(MODNAME)" to "*"
-          aa_ss.replace(QRegExp("[(].*[)]"), "*");
+          aa_ss.replace(QRegularExpression("[(].*[)]"), "*");
           // append to label
           s.append(aa_ss);
           Annotation1DItem* item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::darkGreen);
@@ -1195,14 +1169,7 @@ namespace OpenMS
 #ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "Adding annotation item based on fragment annotations: " << label << endl;
 #endif
-        /*
-         * Suppressed warning QSTring::SkipEmptyParts and QString::SplitBehaviour is deprecated
-         * QT::SkipEmptyParts and QT::SplitBehaviour is added or modified at Qt 5.14
-         */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-      QStringList lines = label.toQString().split(QRegExp("[\r\n]"), QString::SkipEmptyParts);
-#pragma GCC diagnostic pop
+      QStringList lines = label.toQString().split(QRegularExpression("[\r\n]"), Qt::SkipEmptyParts);
       if (lines.size() > 1)
       {
         label = String(lines[0]);

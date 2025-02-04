@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: David Voigt $
@@ -47,6 +21,7 @@
 #include <QCoreApplication>
 #include <QDir>
 
+#include <thread>
 
 namespace OpenMS
 {
@@ -57,15 +32,10 @@ namespace OpenMS
     {
       // Get a map of all tools
       const auto &tools = ToolHandler::getTOPPToolList();
-      const auto &utils = ToolHandler::getUtilList();
       // Launch threads for loading tool/util params.
       for (const auto& tool : tools)
       {
         tool_param_futures_.push_back(std::async(std::launch::async, getParamFromIni_, tool.first, false));
-      }
-      for (const auto& util : utils)
-      {
-        tool_param_futures_.push_back(std::async(std::launch::async, getParamFromIni_, util.first, false));
       }
       return true;
     }();
@@ -164,10 +134,25 @@ namespace OpenMS
     }
 
     // Write tool ini to temporary file
+    static std::atomic<int> running_processes{0}; // used to limit the number of parallel processes
     auto lam_out = [&](const String& out) { OPENMS_LOG_INFO << out; };
     auto lam_err = [&](const String& out) { OPENMS_LOG_INFO << out; };
+
+    // Spawning a thread for all tools is no problem (if std::async decides to do so)
+    // but spawning that many processes failed with not enough file handles on machines with large number of cores.
+    // Restricting the number of running processes solves that issue.
+    while (running_processes >= 6) 
+    { 
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      QCoreApplication::processEvents();
+    }
+
     ExternalProcess proc(lam_out, lam_err);
+    // Write tool ini to temporary file
+    ++running_processes;
     auto return_state = proc.run(executable.toQString(), args, working_dir.toQString(), true, ExternalProcess::IO_MODE::NO_IO);
+    --running_processes;
+
     // Return empty param if writing the ini file failed
     if (return_state != ExternalProcess::RETURNSTATE::SUCCESS)
     {
@@ -255,6 +240,11 @@ namespace OpenMS
   const std::string TVToolDiscovery::getPluginPath()
   {
     return plugin_path_;
+  }
+
+  void TVToolDiscovery::setVerbose(int verbosity_level)
+  {
+    verbosity_level_ = verbosity_level;
   }
 
   std::string TVToolDiscovery::findPluginExecutable(const std::string& name)

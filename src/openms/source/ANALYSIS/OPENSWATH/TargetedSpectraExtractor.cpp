@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
@@ -36,14 +10,13 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/FORMAT/MSPGenericFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+#include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>
+#include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
@@ -55,14 +28,14 @@ namespace OpenMS
   {
     getDefaultParameters(defaults_);
 
-    subsections_.push_back("SavitzkyGolayFilter");
+    subsections_.emplace_back("SavitzkyGolayFilter");
     defaults_.setValue("SavitzkyGolayFilter:frame_length", 15);
     defaults_.setValue("SavitzkyGolayFilter:polynomial_order", 3);
 
-    subsections_.push_back("GaussFilter");
+    subsections_.emplace_back("GaussFilter");
     defaults_.setValue("GaussFilter:gaussian_width", 0.2);
 
-    subsections_.push_back("PeakPickerHiRes");
+    subsections_.emplace_back("PeakPickerHiRes");
     defaults_.setValue("PeakPickerHiRes:signal_to_noise", 1.0);
 
     defaults_.insert("AccurateMassSearchEngine:", AccurateMassSearchEngine().getDefaults());
@@ -241,7 +214,8 @@ namespace OpenMS
 
       // Lambda to create the feature
       auto construct_feature = [checkRtAndMzTol, spectrum_rt, spectrum_mz, &ms2_features, &annotated_spectra, &spectrum](
-        const OpenMS::Feature& feature, const double& mz_tol, const double& rt_win) {
+        const OpenMS::Feature& feature, const double& mz_tol, const double& rt_win)
+      {
         const auto& peptide_ref_s = feature.getMetaValue("PeptideRef");
         const auto& native_id_s = feature.getMetaValue("native_id");
         // check for null annotations resulting from unnanotated features
@@ -639,10 +613,10 @@ namespace OpenMS
     selected_spectra.clear();
     selected_features.clear(true);
 
-    for (auto it = transition_best_spec.cbegin(); it != transition_best_spec.cend(); ++it)
+    for (const auto& m : transition_best_spec)
     {
-      selected_spectra.push_back(scored_spectra[it->second]);
-      if (compute_features) selected_features.push_back(features[it->second]);
+      selected_spectra.push_back(scored_spectra[m.second]);
+      if (compute_features) selected_features.push_back(features[m.second]);
     }
   }
 
@@ -912,7 +886,7 @@ namespace OpenMS
       peptide.id = peptide_ref;
       peptide.setChargeState(ms1_feature.getCharge());
       peptide.addMetaValues(ms1_feature);
-      peptide.protein_refs.push_back(peptide_ref);
+      peptide.protein_refs.emplace_back(peptide_ref);
       peptide.rts.push_back(rt_f);
       auto found_peptide = peptides_map.emplace(peptide_ref, peptide);
       if (!found_peptide.second)
@@ -948,16 +922,16 @@ namespace OpenMS
 
     // Reconstruct the final vectors from the maps
     std::vector<TargetedExperiment::Peptide> peptides;
-    for (auto p : peptides_map) {
+    for (const auto& p : peptides_map) {
       peptides.push_back(p.second);
     }
     std::vector<TargetedExperiment::Protein> proteins;
-    for (auto p : proteins_map)
+    for (const auto& p : proteins_map)
     {
       proteins.push_back(p.second);
     }
     std::vector<ReactionMonitoringTransition> rmt_vec;
-    for (auto p : rmt_map)
+    for (const auto& p : rmt_map)
     {
       rmt_vec.push_back(p.second);
     }
@@ -1050,8 +1024,7 @@ namespace OpenMS
     removeMS2SpectraPeaks_(experiment);
 
     // Store
-    MSPGenericFile msp_file;
-    msp_file.store(filename, experiment);
+    FileHandler().storeExperiment(filename, experiment, {FileTypes::MSP});
   }
   
   void TargetedSpectraExtractor::deisotopeMS2Spectra_(MSExperiment& experiment) const

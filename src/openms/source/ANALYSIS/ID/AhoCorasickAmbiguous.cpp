@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -72,7 +46,7 @@ namespace OpenMS
 
   ACTrie::ACTrie(uint32_t max_aaa, uint32_t max_mm) : max_aaa_(max_aaa), max_mm_(max_mm)
   { // create root node:
-    trie_.push_back(ACNode());
+    trie_.emplace_back();
   }
 
   ACTrie::~ACTrie() = default;
@@ -80,7 +54,7 @@ namespace OpenMS
   void ACTrie::addNeedle(const std::string& needle)
   {
     Index cn {0}; // start at root
-    for (auto c : needle)
+    for (auto c : needle) // OMS_CODING_TEST_EXCLUDE
     {
       AA aa(c);
       // make sure invalid chars raise an exception
@@ -139,10 +113,10 @@ namespace OpenMS
       // add children to BFS
       const auto& children = umap_index2children_naive_[current_index];
       auto bfs_index = bfs_tree.size();
-      for (auto child : children)
+      for (const auto& child : children)
       {
         bfs_q.push(child);
-        tmp_parents.push_back(Index::T(bfs_index)); // the parent will be added at index = tmp_tree.size()
+        tmp_parents.emplace_back(Index::T(bfs_index)); // the parent will be added at index = tmp_tree.size()
       }
       // add current node to new trie
       bfs_tree.push_back(trie_[current_index()]);
@@ -152,7 +126,7 @@ namespace OpenMS
     };
 
     // create root manually
-    tmp_parents.push_back(0); // root has no parents (points to itself)
+    tmp_parents.emplace_back(0); // root has no parents (points to itself)
     bfs_op(0);                // adds parents to 'tmp_parents' and children to 'BFS'
     ACNode& root = bfs_tree.back();
     root.first_child = 1; // we know the first child will start at index 1 (since root is index 0)
@@ -526,7 +500,7 @@ namespace OpenMS
 
   Index ACTrie::findChildNaive_(Index parent, AA child_label)
   {
-    for (auto child : umap_index2children_naive_[parent])
+    for (auto child : umap_index2children_naive_[parent])  // OMS_CODING_TEST_EXCLUDE Note: only a 4byte type. Copy it!
     {
       if (trie_[child.pos()].edge == child_label)
         return child;
@@ -632,6 +606,11 @@ namespace OpenMS
   }
 
   Index::T& Index::pos()
+  {
+    return i_;
+  }
+
+  Index::T Index::pos() const
   {
     return i_;
   }

@@ -1,35 +1,9 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm, Clemens Groepl $
+// $Authors: Marc Sturm, Clemens Groepl, Chris Bielow, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -37,7 +11,7 @@
 // Avoid OpenMS includes here at all costs
 // When the included headers are changed, *all* tests have to be recompiled!
 // Use the ClassTest class if you need add high-level functionality.
-// Includes in the C-file are ok...
+// Includes in ClassTest.cpp are ok...
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
@@ -49,6 +23,9 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <type_traits>
+
+using XMLCh = char16_t; // Xerces-C++ uses char16_t for UTF-16 strings that we need to output in tests
 
 // Empty declaration to avoid problems in case the namespace is not
 // yet defined (e.g. TEST/ClassTest_test.cpp)
@@ -73,9 +50,9 @@ namespace OpenMS
       bool OPENMS_DLLAPI
       validate(const std::vector<std::string>& file_names);
 
-      /// Creates a temporary file name from the test name and the line
+      /// Creates a temporary file name from the test name and the line with the specified extension
       std::string OPENMS_DLLAPI
-      tmpFileName(const std::string& file, int line);
+      createTmpFileName(const std::string& file, int line, const std::string& extension = "");
 
       /// This overload returns true; @c float is a floating point type.
       inline bool OPENMS_DLLAPI
@@ -301,26 +278,32 @@ namespace OpenMS
       {
         ++test_count;
         test_line = line;
-        this_test = bool(expression_1 == T1(expression_2));
-        test = test && this_test;
+        this_test = bool(expression_1 == T1(expression_2)) ;
+        test &= this_test;
         {
           initialNewline();
-          if (this_test)
+          if (!this_test || verbose > 1)
           {
-            if (verbose > 1)
+            stdcout << ' ' << (this_test ? '+' : '-') << "  line " << line << " : TEST_EQUAL(" << expression_1_stringified << ','
+                    << expression_2_stringified << "): got '";
+
+            // we can't print wide chars directly using operator<< so we need to test for it
+            if constexpr (std::is_same_v<std::remove_cv_t<T1>, XMLCh*> || std::is_same_v<std::remove_cv_t<T2>, XMLCh*>)
             {
-              stdcout << " +  line " << line << ":  TEST_EQUAL("
-                        << expression_1_stringified << ','
-                        << expression_2_stringified << "): got '" << expression_1
-                        << "', expected '" << expression_2 << "'\n";
+              stdcout << (expression_1 == nullptr ? "(null)" : "(XMLCh*)") << "', expected '"
+                      << (expression_2 == nullptr ? "(null)" : "(XMLCh*)") << "'\n";
+            }
+            else if constexpr (std::is_enum_v<T1> && std::is_enum_v<T2>)
+            {
+              stdcout << static_cast<int>(expression_1) << "', expected '" << static_cast<int>(expression_2) << "'\n";
+            }
+            else
+            {
+              stdcout << expression_1 << "', expected '" << expression_2 << "'\n";
             }
           }
-          else
+          if (!this_test)
           {
-            stdcout << " -  line " << line << ":  TEST_EQUAL("
-                      << expression_1_stringified << ','
-                      << expression_2_stringified << "): got '" << expression_1
-                      << "', expected '" << expression_2 << "'\n";
             failed_lines_list.push_back(line);
           }
         }
@@ -331,7 +314,7 @@ namespace OpenMS
         ++test_count;
         test_line = line;
         this_test = expression_1;
-        test = test && this_test;
+        test &= this_test;
         {
           initialNewline();
           if (this_test)
@@ -354,7 +337,7 @@ namespace OpenMS
         ++test_count;
         test_line = line;
         this_test = !expression_1;
-        test = test && this_test;
+        test &= this_test;
         {
           initialNewline();
           if (this_test)
@@ -382,30 +365,32 @@ namespace OpenMS
         ++test_count;
         test_line = line;
         this_test = !(expression_1 == T1(expression_2));
-        test = test && this_test;
+        test &= this_test;
         {
           initialNewline();
-          if (this_test)
+          if (!this_test || verbose > 1)
           {
-            if (verbose > 1)
+            stdcout << ' ' << (this_test ? '+' : '-') << "  line " << line << " : TEST_NOT_EQUAL(" << expression_1_stringified << ','
+                    << expression_2_stringified << "): got '";
+            if constexpr (std::is_enum_v<T1> && std::is_enum_v<T2>)
             {
-              stdcout << " +  line " << line << ":  TEST_NOT_EQUAL("
-                        << expression_1_stringified << ','
-                        << expression_2_stringified << "): got '" << expression_1
-                        << "', forbidden is '" << expression_2 << "'\n";
+              stdcout << static_cast<int>(expression_1) << "', forbidden is '" << static_cast<int>(expression_2) << "'\n";
             }
+            else { stdcout << expression_1 << "', expected '" << expression_2 << "'\n"; }
           }
-          else
+          if (!this_test)
           {
-            stdcout << " -  line " << line << ":  TEST_NOT_EQUAL("
-                      << expression_1_stringified << ','
-                      << expression_2_stringified << "): got '" << expression_1
-                      << "', forbidden is '" << expression_2 << "'\n";
             failed_lines_list.push_back(line);
           }
         }
       }
 
+      
+      void OPENMS_DLLAPI printLastException(std::ostream& out);
+      
+      int OPENMS_DLLAPI endTestPostProcess(std::ostream& out);
+
+      void OPENMS_DLLAPI endSectionPostProcess(std::ostream& out, const int line);
     }
   }
 }
@@ -484,82 +469,12 @@ namespace TEST = OpenMS::Internal::ClassTest;
  */
 #define END_TEST                                                                          \
   /* global try block */                                                                  \
-  }                                                                                       \
-  catch (::OpenMS::Exception::BaseException& e)                                           \
-  {                                                                                       \
-    TEST::this_test = false;                                                              \
-    TEST::test = false;                                                                   \
-    TEST::all_tests = false;                                                              \
-    {                                                                                     \
-      TEST::initialNewline();                                                             \
-      stdcout << "Error: Caught unexpected OpenMS exception of type '"                  \
-                << e.getName()                                                            \
-                << "'";                                                                   \
-      if ((e.getLine() > 0) && std::strcmp(e.getFile(), ""))                       \
-      {                                                                                   \
-        stdcout << " thrown in line " << e.getLine() << " of file '" << e.getFile()     \
-                  << "' in function '" << e.getFunction() << "'";                         \
-      }                                                                                   \
-      stdcout << " - Message: " << e.what() << std::endl;                               \
     }                                                                                     \
-  }                                                                                       \
-  /* catch std:: exceptions */                                                            \
-  catch (std::exception& e)                                                               \
-  {                                                                                       \
-    TEST::this_test = false;                                                              \
-    TEST::test = false;                                                                   \
-    TEST::all_tests = false;                                                              \
+    catch (...)                                                                           \
     {                                                                                     \
-      TEST::initialNewline();                                                             \
-      stdcout << "Error: Caught unexpected std::exception\n";                             \
-      stdcout << " - Message: " << e.what() << std::endl;                                 \
+      TEST::printLastException(stdcout);                                                  \
     }                                                                                     \
-  }                                                                                       \
-  /* catch all other exceptions */                                                        \
-  catch (...)                                                                             \
-  {                                                                                       \
-    TEST::this_test = false;                                                              \
-    TEST::test = false;                                                                   \
-    TEST::all_tests = false;                                                              \
-    {                                                                                     \
-      TEST::initialNewline();                                                             \
-      stdcout << "Error: Caught unidentified and unexpected exception - No message."      \
-                << std::endl;                                                             \
-    }                                                                                     \
-  }                                                                                       \
-  /* check validity of temporary files if known */                                        \
-  if (!TEST::validate(TEST::tmp_file_list))                                               \
-  {                                                                                       \
-    TEST::all_tests = false;                                                              \
-  }                                                                                       \
-  if (TEST::verbose == 0)                                                                 \
-  {                                                                                       \
-    stdcout << "Output of successful tests were suppressed. Set the environment variable 'OPENMS_TEST_VERBOSE=True' to enable them." << std::endl; \
-  }                                                                                       \
-  /* check for exit code */                                                               \
-  if (!TEST::all_tests)                                                                   \
-  {                                                                                       \
-    stdcout << "FAILED" << std::endl;                                                   \
-    if (TEST::add_message != "") stdcout << "Message: "                                 \
-                                           << TEST::add_message                           \
-                                           << std::endl;                                  \
-    stdcout << "Failed lines: ";                                                        \
-    for (OpenMS::Size i = 0; i < TEST::failed_lines_list.size(); ++i)                     \
-    {                                                                                     \
-      stdcout << TEST::failed_lines_list[i] << " ";                                     \
-    }                                                                                     \
-    stdcout << std::endl;                                                               \
-    return 1;                                                                             \
-  }                                                                                       \
-  else                                                                                    \
-  {                                                                                       \
-    /* remove temporary files*/                                                           \
-    TEST::removeTempFiles();                                                              \
-    stdcout << "PASSED";                                                                \
-    if (TEST::add_message != "") stdcout << " (" << TEST::add_message << ")";           \
-    stdcout << std::endl;                                                               \
-    return 0;                                                                             \
-  }                                                                                       \
+    return TEST::endTestPostProcess(stdcout);                                             \
   }
 
 /**	@brief Begin of a subtest with a given name.  @sa #END_SECTION.
@@ -625,68 +540,12 @@ namespace TEST = OpenMS::Internal::ClassTest;
   break;                                                                                  \
   }                                                                                       \
   }                                                                                       \
-  catch (::OpenMS::Exception::BaseException& e)                                           \
-  {                                                                                       \
-    TEST::this_test = false;                                                              \
-    TEST::test = false;                                                                   \
-    TEST::all_tests = false;                                                              \
-    {                                                                                     \
-      TEST::initialNewline();                                                             \
-      stdcout << "Error: Caught unexpected exception of type '" << e.getName() << "'";  \
-      if ((e.getLine() > 0) && (std::strcmp(e.getFile(), "") != 0))                       \
-      {                                                                                   \
-        stdcout << " thrown in line " << e.getLine() << " of file '" << e.getFile()     \
-                  << "' in function '" << e.getFunction() << "'";                         \
-      }                                                                                   \
-      stdcout << " - Message: " << e.what() << std::endl;                               \
-    }                                                                                     \
-  }                                                                                       \
-  /* catch std:: exceptions */                                                            \
-  catch (std::exception& e)                                                               \
-  {                                                                                       \
-    TEST::this_test = false;                                                              \
-    TEST::test = false;                                                                   \
-    TEST::all_tests = false;                                                              \
-    {                                                                                     \
-      TEST::initialNewline();                                                             \
-      stdcout << "Error: Caught std::exception" << std::endl;                           \
-      stdcout << " - Message: " << e.what() << std::endl;                               \
-    }                                                                                     \
-  }                                                                                       \
-  /* catch all other exceptions */                                                        \
-  catch (...)                                                                             \
-  {                                                                                       \
-    TEST::this_test = false;                                                              \
-    TEST::test = false;                                                                   \
-    TEST::all_tests = false;                                                              \
-    {                                                                                     \
-      TEST::initialNewline();                                                             \
-      stdcout << "Error: Caught unidentified and unexpected exception - No message."    \
-                << std::endl;                                                             \
-    }                                                                                     \
-  }                                                                                       \
-  TEST::all_tests = TEST::all_tests && TEST::test;                                        \
-  {                                                                                       \
-    if (TEST::test)                                                                       \
-    {                                                                                     \
-      stdcout << ": passed\n";                                                            \
-    }                                                                                     \
-    else                                                                                  \
-    {                                                                                     \
-      stdcout << ": failed\n";                                                            \
-    }                                                                                     \
-  }                                                                                       \
-  /* issue a warning if no tests were performed (unless in destructor)*/                  \
-  if (TEST::test_count == 0)                                                              \
-  {                                                                                       \
-    if (OpenMS::String(TEST::test_name).has('~'))                                         \
-                       stdcout << "Warning: no subtests performed in '"                   \
-                               << TEST::test_name                                         \
-                               << "' (line "                                              \
-                               << __LINE__                                                \
-                               << ")!\n";                                                 \
-  }                                                                                       \
-  stdcout << std::endl;
+  catch (...)  \
+  {   \
+    TEST::printLastException(stdcout);\
+  } \
+  TEST::endSectionPostProcess(stdcout, __LINE__);
+
 
 //@}
 
@@ -777,7 +636,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  */
 #define TEST_FILE_EQUAL(filename, templatename)                                           \
   {                                                                                       \
-    TEST::filesEqual(__LINE__, filename, templatename, #filename, #templatename);                                                                                    \
+    TEST::filesEqual(__LINE__, filename, templatename, #filename, #templatename);         \
   }
 
 /**	@brief Floating point similarity macro.
@@ -949,13 +808,17 @@ namespace TEST = OpenMS::Internal::ClassTest;
       TEST::exception = 2;                                                                \
       TEST::exception_name = e.getName();                                                 \
     }                                                                                     \
-    catch (...)                                                                           \
+    catch (const std::exception& e)                                                       \
     {                                                                                     \
       TEST::exception = 3;                                                                \
+      TEST::exception_name = e.what();                                                    \
+    }                                                                                     \
+    catch (...)                                                                           \
+    {                                                                                     \
+      TEST::exception = 4;                                                                \
     }                                                                                     \
     TEST::this_test = (TEST::exception == 1);                                             \
     TEST::test = TEST::test && TEST::this_test;                                           \
-                                                                                          \
     {                                                                                     \
       TEST::initialNewline();                                                             \
       switch (TEST::exception)                                                            \
@@ -984,13 +847,20 @@ namespace TEST = OpenMS::Internal::ClassTest;
       case 3:                                                                             \
         stdcout << " -  line " << TEST::test_line <<                                    \
           ":  TEST_EXCEPTION(" # exception_type "," # command                               \
+          "): wrong exception thrown!  \""                                                  \
+                  << TEST::exception_name << "\"\n";                                     \
+        TEST::failed_lines_list.push_back(TEST::test_line);                               \
+        break;                                                                            \
+      case 4:                                                                             \
+        stdcout << " -  line " << TEST::test_line <<                                    \
+          ":  TEST_EXCEPTION(" # exception_type "," # command                               \
           "): wrong exception thrown!\n";                                                 \
         TEST::failed_lines_list.push_back(TEST::test_line);                               \
         break;                                                                            \
       }                                                                                   \
     }                                                                                     \
   }
-
+  
 /** @brief Precondition test macro
 
   This macro checks if a precondition violation is detected while executing the command,
@@ -1089,8 +959,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
           stdcout << " +  line " << TEST::test_line <<                                    \
             ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \
             "): OK\n";                                                                      \
-          break;                                                                            \
         }                                                                                 \
+        break;                                                                            \
       case 2:                                                                             \
         stdcout << " -  line " << TEST::test_line <<                                    \
           ":  TEST_EXCEPTION_WITH_MESSAGE(" # exception_type "," # command ", " # message   \
@@ -1123,28 +993,18 @@ namespace TEST = OpenMS::Internal::ClassTest;
  its argument. The filename is created using the filename of the test and the
  line number where this macro is invoked, for example 'Matrix_test.cpp' might
  create a temporary file 'Matrix_test_268.tmp' if NEW_TMP_FILE is used in
- line 268.  All temporary files are deleted if #END_TEST is called.  @param
+ line 268.  All temporary files are deleted if #END_TEST is called.  @p
  filename string will contain the filename on completion of the macro.
 
- All temporary files are validated using the XML schema,if the type of file
- can be determined by FileHandler. Therefore for each file written in a test
- NEW_TMP_FILE should be called. Otherwise only the last written file is checked.
+ There is a version that defines the extension and one that uses tmp.
 
  @hideinitializer
  */
-#define NEW_TMP_FILE(filename)                                                            \
-  {                                                                                       \
-    filename = TEST::tmpFileName(__FILE__, __LINE__);                                     \
-    TEST::tmp_file_list.push_back(filename);                                              \
-    {                                                                                     \
-      TEST::initialNewline();                                                             \
-      stdcout << "    creating new temporary filename '"                                  \
-                << filename                                                               \
-                << "' (line "                                                             \
-                << __LINE__                                                               \
-                << ")\n";                                                                 \
-    }                                                                                     \
-  }
+#define NEW_TMP_FILE_EXT(filename, extension) filename = TEST::createTmpFileName(__FILE__, __LINE__, extension);
+
+
+#define NEW_TMP_FILE(filename) filename = TEST::createTmpFileName(__FILE__, __LINE__);
+
 
 /** @brief Skip the remainder of the current subtest.
 

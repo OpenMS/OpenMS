@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -40,6 +14,8 @@
 #include <xercesc/dom/DOMText.hpp>
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
+
+#include <memory>
 
 namespace OpenMS
 {
@@ -73,7 +49,7 @@ namespace OpenMS
   }
 
   inline void fillDataArray(const std::vector<Internal::MzMLHandlerHelper::BinaryData>& data,
-                            OpenMS::Interfaces::BinaryDataArrayPtr array, bool precision_64, SignedSize index)
+                            const OpenMS::Interfaces::BinaryDataArrayPtr& array, bool precision_64, SignedSize index)
   {
     // This seems to be the fastest method to move the data (faster than copy or assign)
     if (precision_64)
@@ -208,7 +184,7 @@ namespace OpenMS
 
   template<class T>
   inline void fillDataArray(const std::vector<Internal::MzMLHandlerHelper::BinaryData>& data,
-                            T& spectrum,
+                            T& peak_container,
                             const bool x_precision_64,
                             const bool int_precision_64,
                             const SignedSize x_index,
@@ -224,10 +200,10 @@ namespace OpenMS
       {
         //add peak
         tmp.setIntensity(*int_it);
-        tmp.setMZ(*mz_it);
+        tmp.setPos(*mz_it);
         ++mz_it;
         ++int_it;
-        spectrum.push_back(tmp);
+        peak_container.push_back(tmp);
       }
     }
     else if (x_precision_64 && int_precision_64)
@@ -238,10 +214,10 @@ namespace OpenMS
       {
         //add peak
         tmp.setIntensity(*int_it);
-        tmp.setMZ(*mz_it);
+        tmp.setPos(*mz_it);
         ++mz_it;
         ++int_it;
-        spectrum.push_back(tmp);
+        peak_container.push_back(tmp);
       }
     }
     else if (!x_precision_64 && int_precision_64)
@@ -252,10 +228,10 @@ namespace OpenMS
       {
         //add peak
         tmp.setIntensity(*int_it);
-        tmp.setMZ(*mz_it);
+        tmp.setPos(*mz_it);
         ++mz_it;
         ++int_it;
-        spectrum.push_back(tmp);
+        peak_container.push_back(tmp);
       }
     }
     else if (!x_precision_64 && !int_precision_64)
@@ -266,10 +242,10 @@ namespace OpenMS
       {
         //add peak
         tmp.setIntensity(*int_it);
-        tmp.setMZ(*mz_it);
+        tmp.setPos(*mz_it);
         ++mz_it;
         ++int_it;
-        spectrum.push_back(tmp);
+        peak_container.push_back(tmp);
       }
     }
   }
@@ -558,7 +534,7 @@ namespace OpenMS
     // Create parser from input string using MemBufInputSource
     //-------------------------------------------------------------
     xercesc::MemBufInputSource myxml_buf(reinterpret_cast<const unsigned char*>(in.c_str()), in.length(), "myxml (in memory)");
-    xercesc::XercesDOMParser* parser = new xercesc::XercesDOMParser();
+    std::unique_ptr<xercesc::XercesDOMParser> parser = std::make_unique<xercesc::XercesDOMParser>(); // make sure it is deleted even in case of exceptions
     parser->setDoNamespaces(false);
     parser->setDoSchema(false);
     parser->setLoadExternalDTD(false);
@@ -575,7 +551,6 @@ namespace OpenMS
     xercesc::DOMElement* elementRoot = doc->getDocumentElement();
     if (!elementRoot)
     {
-      delete parser;
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, in, "No root element");
     }
 
@@ -587,7 +562,6 @@ namespace OpenMS
     // chromatogram tag (but still check for it first to be safe).
     if (elementRoot->getAttributeNode(default_array_length_tag) == nullptr)
     {
-      delete parser;
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           in, "Root element does not contain defaultArrayLength XML tag.");
     }
@@ -599,20 +573,13 @@ namespace OpenMS
     xercesc::DOMNodeList* li = elementRoot->getElementsByTagName(binary_data_array_tag);
     for (Size i = 0; i < li->getLength(); i++)
     {
-      // Will append one single BinaryData object to data
-      try
-      {
-        handleBinaryDataArray_(li->item(i), data);
-      } catch (OpenMS::Exception::ParseError &err) 
-      {
-        delete parser;
-        throw err;
-      }
+      // Will append one single BinaryData object to data      
+      handleBinaryDataArray_(li->item(i), data);
+      
       // Set the size correctly (otherwise MzMLHandlerHelper complains).
       data.back().size = default_array_length;
     }
 
-    delete parser;
     return id;
   }
 

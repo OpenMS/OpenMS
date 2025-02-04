@@ -13,23 +13,23 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>" namespace "
             #  cached to disk using the functions provided in CachedMzMLHandler.
 
 
-        MSDataCachedConsumer(String filename) nogil except +
-        MSDataCachedConsumer(String filename, bool clear) nogil except +
+        MSDataCachedConsumer(String filename) except + nogil 
+        MSDataCachedConsumer(String filename, bool clear) except + nogil 
         # copy constructor of 'MSDataCachedConsumer' is implicitly deleted because field 'ofs_' has a deleted copy constructor
-        MSDataCachedConsumer(MSDataCachedConsumer &) nogil except + # wrap-ignore
+        MSDataCachedConsumer(MSDataCachedConsumer &) except + nogil  # wrap-ignore
 
-        void consumeSpectrum(MSSpectrum & s) nogil except +
+        void consumeSpectrum(MSSpectrum & s) except + nogil 
             # wrap-doc:
                 #  Write a spectrum to the output file
                 #  
                 #  May delete data from spectrum (if clearData is set)
 
-        void consumeChromatogram(MSChromatogram & c) nogil except +
+        void consumeChromatogram(MSChromatogram & c) except + nogil 
             # wrap-doc:
                 #  Write a chromatogram to the output file
                 #  
                 #  May delete data from chromatogram (if clearData is set)
 
-        void setExperimentalSettings(ExperimentalSettings& exp) nogil except +
-        void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) nogil except +
+        void setExperimentalSettings(ExperimentalSettings& exp) except + nogil 
+        void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) except + nogil 
 

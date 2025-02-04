@@ -7,7 +7,7 @@ import copy
 import time
 import contextlib
 import pyopenms
-from   pyopenms.sysinfo import free_mem
+from   pyopenms._sysinfo import free_mem
 import numpy as np
 
 

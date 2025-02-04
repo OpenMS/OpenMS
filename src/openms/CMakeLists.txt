@@ -1,31 +1,5 @@
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
 #
 # --------------------------------------------------------------------------
 # $Maintainer: Stephan Aiche, Chris Bielow $
@@ -35,7 +9,6 @@
 project("OpenMS")
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
-set(CMAKE_AUTOMOC ON) # some OpenMS classes make use of Signal/Slot, e.g. SYSTEM/FileWatcher.cpp
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 #------------------------------------------------------------------------------
@@ -60,21 +33,16 @@ set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug m
 
 
 #------------------------------------------------------------------------------
-# third party libs shipped with OpenMS directly
+# external third-party libs statically linked to OpenMS
 #------------------------------------------------------------------------------
 # The following library is in our public API, so create export targets
 #install(EXPORT EvergreenTarget DESTINATION ${INSTALL_LIB_DIR}/cmake/OpenMS FILE OpenMSTargets.cmake COMPONENT cmake)
-add_subdirectory(thirdparty)
+add_subdirectory(extern)
 
 #------------------------------------------------------------------------------
 # external libs (contrib or system)
 #------------------------------------------------------------------------------
 #include(${PROJECT_SOURCE_DIR}/cmake_findExternalLibs.cmake)
-
-#------------------------------------------------------------------------------
-# At this point make a summary of where data and doc will be located:
-message(STATUS "Info: CF_OPENMS_DATA_PATH: ${CF_OPENMS_DATA_PATH}")
-message(STATUS "Info: CF_OPENMS_DOC_PATH: ${CF_OPENMS_DOC_PATH}")
 
 #------------------------------------------------------------------------------
 # configure config.h
@@ -87,18 +55,27 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
-set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network Qt5::Sql)
+set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Eigen3::Eigen Qt6::Core Qt6::Network)
 
-set(OPENMS_DEP_PRIVATE_LIBRARIES GTE ${LPTARGET} Eigen3::Eigen HDF5::HDF5 Boost::iostreams Boost::date_time Boost::boost Boost::regex
-  BZip2::BZip2 ZLIB::ZLIB SQLite::SQLite3)
+## setup the argumentes to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
+set(OPENMS_DEP_PRIVATE_LIBRARIES
+  $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
+  ${LPTARGET}
+  BZip2::BZip2
+  Boost::boost
+  Boost::date_time
+  Boost::iostreams
+  Boost::regex
+  GTE
+  Quadtree
+  SIMDe
+  SQLiteCpp
+  ZLIB::ZLIB
+  nlohmann_json::nlohmann_json
+  tdl::tdl
+  )
 
-#------------------------------------------------------------------------------
-# Install the QSQLite driver if we are not on linux so we can use oms files
-if(WIN32)
-  install_qt5_plugin("Qt5::QSQLiteDriverPlugin" QT_SQLITE_PLUGIN "${INSTALL_PLUGIN_DIR}/plugins" QT5SQLitePlugin)
-endif()
-
-# xerces requires linking against CoreFoundation&CoreServices on macOS
+# Xerces requires linking against CoreFoundation&CoreServices on macOS
 # TODO check if this is still the case
 if(APPLE)
   find_library(CoreFoundation_LIBRARY CoreFoundation )
@@ -124,7 +101,6 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${CMAKE_CURRENT_BINARY_DIR}/include
                    PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
                                     ${ISOSPEC_INCLUDE_DIRECTORY}
-                                    ${JSON_INCLUDE_DIRECTORY}
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}
@@ -132,10 +108,9 @@ openms_add_library(TARGET_NAME  OpenMS
                    DLL_EXPORT_PATH "OpenMS/")
 
 if (MSVC)
-  ## treat warning of unused function parameter as error
+  ## treat warning of unused function parameter as error, similar to -Werror=unused-variable on GCC
   target_compile_options(OpenMS PRIVATE "/we4100")
-
-  ## treat warning of unused local variable as error
+  ## treat warning of unused local variable as error, similar to -Werror=unused-variable on GCC
   target_compile_options(OpenMS PRIVATE "/we4189")
 endif()
 
@@ -158,7 +133,7 @@ install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
   REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
   REGEX "OpenMS/examples" EXCLUDE
 )
-install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR}/examples examples)
+install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR} examples)
 
 # Devs also need our custom find modules
 install_directory(${OPENMS_HOST_DIRECTORY}/cmake/Modules/ ${INSTALL_LIB_DIR}/cmake/OpenMS/Modules cmake)

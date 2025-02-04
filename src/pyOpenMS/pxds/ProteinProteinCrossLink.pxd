@@ -9,8 +9,8 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::O
 
     cdef cppclass ProteinProteinCrossLink "OpenMS::OPXLDataStructs::ProteinProteinCrossLink":
 
-        ProteinProteinCrossLink() nogil except + # compiler
-        ProteinProteinCrossLink(ProteinProteinCrossLink &) nogil except + # compiler
+        ProteinProteinCrossLink() except + nogil  # compiler
+        ProteinProteinCrossLink(ProteinProteinCrossLink &) except + nogil  # compiler
 
         const AASequence *alpha
         const AASequence *beta
@@ -21,5 +21,5 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::O
         TermSpecificity term_spec_beta
         int precursor_correction
 
-        ProteinProteinCrossLinkType getType() nogil except +
-        bool operator==(ProteinProteinCrossLink other) nogil except +
+        ProteinProteinCrossLinkType getType() except + nogil 
+        bool operator==(ProteinProteinCrossLink other) except + nogil 

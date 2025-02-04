@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg, Petra Gutenbrunner $
@@ -81,18 +55,19 @@ namespace OpenMS
     }
     
     String sequence_str = phospho.getSequence().toString();
+    String unmodified_sequence_str = phospho.getSequence().toUnmodifiedString();
     
     Size number_of_phosphorylation_events = numberOfPhosphoEvents_(sequence_str);
     AASequence seq_without_phospho = removePhosphositesFromSequence_(sequence_str);
 
-    if ((max_peptide_length_ > 0) && (seq_without_phospho.toUnmodifiedString().size() > max_peptide_length_))
+    if ((max_peptide_length_ > 0) && (unmodified_sequence_str.size() > max_peptide_length_))
     {
       OPENMS_LOG_DEBUG << "\tcalculation aborted: peptide too long: " << seq_without_phospho.toString() << std::endl;
       return phospho;
     }
 
     // determine all phospho sites
-    vector<Size> sites = getSites_(seq_without_phospho);
+    vector<Size> sites = getSites_(unmodified_sequence_str);
     Size number_of_STY = sites.size();
 
     if (number_of_phosphorylation_events == 0 || number_of_STY == 0)
@@ -241,7 +216,7 @@ namespace OpenMS
 
       double pow1 = pow((double)p, (int)k);
       double pow2 = pow(double(1 - p), double(N - k));
-      
+
       score += coeff * pow1 * pow2;
     }
 
@@ -407,10 +382,9 @@ namespace OpenMS
            / 7.0;
   }
 
-  vector<Size> AScore::getSites_(const AASequence& without_phospho) const
+  vector<Size> AScore::getSites_(const String& unmodified) const
   {
     vector<Size> tupel;
-    String unmodified = without_phospho.toUnmodifiedString();
     for (Size i = 0; i < unmodified.size(); ++i)
     {
       if (unmodified[i] == 'Y' || unmodified[i] == 'T' || unmodified[i] == 'S')
@@ -527,7 +501,7 @@ namespace OpenMS
     }
     return th_spectra;
   }
-    
+
   std::vector<PeakSpectrum> AScore::peakPickingPerWindowsInSpectrum_(PeakSpectrum& real_spectrum) const
   {
     vector<PeakSpectrum> windows_top10;

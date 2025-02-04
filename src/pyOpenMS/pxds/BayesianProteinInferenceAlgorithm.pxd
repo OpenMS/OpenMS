@@ -56,15 +56,15 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>" name
         #    print(proteins[0].getHits()[1].getScore()) # 0.648346
         #  
 
-        BayesianProteinInferenceAlgorithm() nogil except +
+        BayesianProteinInferenceAlgorithm() except + nogil 
 
-        BayesianProteinInferenceAlgorithm(BayesianProteinInferenceAlgorithm) nogil except + #wrap-ignore
+        BayesianProteinInferenceAlgorithm(BayesianProteinInferenceAlgorithm) except + nogil  #wrap-ignore
 
-        BayesianProteinInferenceAlgorithm(unsigned int debug_lvl) nogil except +
+        BayesianProteinInferenceAlgorithm(unsigned int debug_lvl) except + nogil 
 
         void inferPosteriorProbabilities(libcpp_vector[ ProteinIdentification ] & proteinIDs, 
                                          libcpp_vector[ PeptideIdentification ] & peptideIDs,
-                                         bool greedy_group_resolution) nogil except +
+                                         bool greedy_group_resolution) except + nogil 
           # wrap-doc:
           #  Optionally adds indistinguishable protein groups with separate scores, too
           #  Currently only takes first proteinID run and all peptides
@@ -77,7 +77,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>" name
         void inferPosteriorProbabilities(libcpp_vector[ ProteinIdentification ] & proteinIDs, 
                                          libcpp_vector[ PeptideIdentification ] & peptideIDs,
                                          bool greedy_group_resolution,
-                                         ExperimentalDesign exp_des) nogil except +
+                                         ExperimentalDesign exp_des) except + nogil 
           # wrap-doc:
           #  Writes its results into protein and (optionally also) peptide hits (as new score).
           #  Optionally adds indistinguishable protein groups with separate scores, too
@@ -92,7 +92,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>" name
 
 
         void inferPosteriorProbabilities(ConsensusMap & cmap,
-                                         bool greedy_group_resolution) nogil except +
+                                         bool greedy_group_resolution) except + nogil 
           # wrap-doc:
           #  Writes its results into protein and (optionally also) peptide hits (as new score)
           #  Optionally adds indistinguishable protein groups with separate scores, too
@@ -105,7 +105,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>" name
 
         void inferPosteriorProbabilities(ConsensusMap & cmap,
                                          bool greedy_group_resolution,
-                                         ExperimentalDesign exp_des) nogil except +
+                                         ExperimentalDesign exp_des) except + nogil 
           # wrap-doc:
           #  Writes its results into protein and (optionally also) peptide hits (as new score)
           #  Optionally adds indistinguishable protein groups with separate scores, too

@@ -1,7 +1,7 @@
 from Types cimport *
 from String cimport *
 from NASequence cimport *
-from IdentificationData cimport *
+#from IdentificationData cimport *
 from EnzymaticDigestion cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/RNaseDigestion.h>" namespace "OpenMS":
@@ -28,14 +28,14 @@ cdef extern from "<OpenMS/CHEMISTRY/RNaseDigestion.h>" namespace "OpenMS":
         #        for fragment in result:
         #          print (fragment)
 
-      RNaseDigestion() nogil except + # compiler
-      RNaseDigestion(RNaseDigestion &) nogil except + # compiler
+      RNaseDigestion() except + nogil  # compiler
+      RNaseDigestion(RNaseDigestion &) except + nogil  # compiler
 
-      void setEnzyme(String name) nogil except + # wrap-doc:Sets the enzyme for the digestion (by name)
+      void setEnzyme(String name) except + nogil  # wrap-doc:Sets the enzyme for the digestion (by name)
 
-      void digest(NASequence & rna, libcpp_vector[ NASequence ] & output) nogil except +
+      void digest(NASequence & rna, libcpp_vector[ NASequence ] & output) except + nogil 
 
-      void digest(NASequence & rna, libcpp_vector[ NASequence ] & output, Size min_length, Size max_length) nogil except +
+      void digest(NASequence & rna, libcpp_vector[ NASequence ] & output, Size min_length, Size max_length) except + nogil 
           # wrap-doc:
           #  Performs the enzymatic digestion of a (potentially modified) RNA
           #    
@@ -45,9 +45,9 @@ cdef extern from "<OpenMS/CHEMISTRY/RNaseDigestion.h>" namespace "OpenMS":
           #  :param max_length: Maximal length of reported products (0 = no restriction)
           #  :returns: Number of discarded digestion products (which are not matching length restrictions)
 
-      void digest(IdentificationData & id_data) nogil except +
+      #void digest(IdentificationData & id_data) except + nogil 
 
-      void digest(IdentificationData & id_data, Size min_length, Size max_length) nogil except +
+      #void digest(IdentificationData & id_data, Size min_length, Size max_length) except + nogil 
           # wrap-doc:
           #  Performs the enzymatic digestion of all RNA parent molecules in IdentificationData (id_data)
           #    

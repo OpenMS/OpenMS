@@ -11,26 +11,26 @@ cdef extern from "<OpenMS/CHEMISTRY/ElementDB.h>" namespace "OpenMS":
         #   cdef AutowrapPtrHolder[_ElementDB] inst
 
         # private
-        ElementDB() nogil except + # wrap-ignore
+        ElementDB() except + nogil  # wrap-ignore
         # private 
-        ElementDB(ElementDB) nogil except + #wrap-ignore
+        ElementDB(ElementDB) except + nogil  #wrap-ignore
 
         # No wrapping of const ref
-        # const Map[ String, Element * ]  getNames() nogil except +
-        # const Map[ String, Element * ] getSymbols() nogil except +
-        # const Map[unsigned int, Element * ] getAtomicNumbers() nogil except +
-        const Element * getElement(const String & name) nogil except +
-        const Element * getElement(UInt atomic_number) nogil except +
+        # const Map[ String, Element * ]  getNames() except + nogil 
+        # const Map[ String, Element * ] getSymbols() except + nogil 
+        # const Map[unsigned int, Element * ] getAtomicNumbers() except + nogil 
+        const Element * getElement(const String & name) except + nogil 
+        const Element * getElement(UInt atomic_number) except + nogil 
         void addElement(libcpp_string name, libcpp_string symbol,
                         unsigned int an,
                         libcpp_map[unsigned int, double] abundance,
                         libcpp_map[unsigned int, double] mass,
-                        bool replace_existing) nogil except +
-        bool hasElement(const String & name) nogil except + # wrap-doc:Returns true if the db contains an element with the given name, else false
-        bool hasElement(UInt atomic_number) nogil except + # wrap-doc:Returns true if the db contains an element with the given atomic_number, else false
+                        bool replace_existing) except + nogil 
+        bool hasElement(const String & name) except + nogil  # wrap-doc:Returns true if the db contains an element with the given name, else false
+        bool hasElement(UInt atomic_number) except + nogil  # wrap-doc:Returns true if the db contains an element with the given atomic_number, else false
 
 ## wrap static methods
 cdef extern from "<OpenMS/CHEMISTRY/ElementDB.h>" namespace "OpenMS::ElementDB":
     
-    ElementDB* getInstance() nogil except + # wrap-ignore
+    ElementDB* getInstance() except + nogil  # wrap-ignore
 

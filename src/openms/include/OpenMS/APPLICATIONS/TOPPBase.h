@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -48,9 +22,9 @@
 
 #include <fstream>
 
-#include <QString>
+#include <QtCore/QString>
 
-class QStringList;
+#include <QtCore/qcontainerfwd.h> // for QStringList
 
 namespace OpenMS
 {
@@ -63,10 +37,10 @@ namespace OpenMS
 
     An example would be
     \code{.cpp}
-      Citation c = {"Rost HL, Sachsenberg T, Aiche S, Bielow C et al.",
-                    "OpenMS: a flexible open-source software platform for mass spectrometry data analysis",
-                    "Nat Meth. 2016; 13, 9: 741-748",
-                    "10.1038/nmeth.3959"};
+      Citation c = {"Pfeuffer J, Bielow C, Wein S, Jeong K, Netz E, Walter A, Alka O et al.",
+                    "OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data",
+                    "Nat Methods 21, 365–367 (2024)",
+                    "10.1038/s41592-024-02197-7"};
     \endcode
     Suggested format is AMA, e.g. https://www.lib.jmu.edu/citation/amaguide.pdf
   */
@@ -147,6 +121,12 @@ public:
   class OPENMS_DLLAPI TOPPBase
   {
 public:
+    inline static const char* TAG_OUTPUT_FILE = "output file";
+    inline static const char* TAG_INPUT_FILE = "input file";
+    inline static const char* TAG_OUTPUT_DIR = "output dir";
+    inline static const char* TAG_OUTPUT_PREFIX = "output prefix";
+    inline static const char* TAG_ADVANCED = "advanced";
+    inline static const char* TAG_REQUIRED = "required";
 
     /// Exit codes
     enum ExitCodes
@@ -164,7 +144,8 @@ public:
       PARSE_ERROR,
       INCOMPATIBLE_INPUT_DATA,
       INTERNAL_ERROR,
-      UNEXPECTED_RESULT
+      UNEXPECTED_RESULT,
+      EXTERNAL_PROGRAM_NOTFOUND ///< external program, e.g. comet.exe not found
     };
 
 
@@ -181,9 +162,9 @@ public:
       @param name Tool name.
       @param description Short description of the tool (one line).
       @param official If this is an official TOPP tool contained in the OpenMS/TOPP release.
-      If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
-
-      @param citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during --help
+             If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
+      @param citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during `--help`
+      @param toolhandler_test Check if this tool is registered with the ToolHandler (disable for unit tests only)
     */
     TOPPBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {}, bool toolhandler_test = true);
 
@@ -211,7 +192,13 @@ public:
     */
     String getToolPrefix() const;
 
-private:
+    /// Returns a link to the documentation of the tool (accessible on our servers and only after inclusion in the nightly branch or a release).
+    String getDocumentationURL() const;
+
+    /// The latest and greatest OpenMS citation
+    static const Citation cite_openms;
+
+  private:
     /// Tool name.  This is assigned once and for all in the constructor.
     String const tool_name_;
 
@@ -376,9 +363,6 @@ private:
     */
     String getSubsection_(const String& name) const;
 
-    /// Returns a link to the documentation of the tool (accessible on our servers and only after inclusion in the nightly branch or a release).
-    String getDocumentationURL() const;
-
     /// Returns the default parameters
     Param getDefaultParameters_() const;
 
@@ -469,7 +453,7 @@ protected:
       @param default_value Default argument
       @param description Description of the parameter. Indentation of newline is done automatically.
       @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
+      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
     */
     void registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
 
@@ -504,7 +488,7 @@ protected:
       @param default_value Default argument
       @param description Description of the parameter. Indentation of newline is done automatically.
       @param required If the user has to provide a value i.e. if the value has to differ from the default (verified in getStringOption())
-      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
+      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
       @param tags A list of tags, extending/omitting automated checks on the input file (e.g. when its an executable)
                       Valid tags: @em 'skipexists' - will prevent checking if the given file really exists (useful for partial paths, e.g. in OpenMS/share/... which will be resolved by the TOPP tool internally)
                                   @em 'is_executable' - checks existence of the file first using its actual value, and upon failure also using the PATH environment (and common exe file endings on Windows, e.g. .exe and .bat).
@@ -522,7 +506,7 @@ protected:
       @param default_value Default argument
       @param description Description of the parameter. Indentation of newline is done automatically.
       @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
+      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
     */
     void registerOutputFile_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
 
@@ -544,10 +528,25 @@ protected:
       @param default_value Default value (remember, no extension is specified here)
       @param description Description of the parameter. Indentation of newline is done automatically.
       @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
+      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
     */
     void registerOutputPrefix_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
 
+    /**
+      @brief Registers an output directory used for tools with multiple output files which are not an output file list, i.e. do not correspond to the number of input files.
+      
+      @note Setting format(s) via setValidFormat_ for an output directory is not possible as directories do not have a file extension.
+
+      @param name Name of the option in the command line and the INI file
+      @param argument Argument description text for the help output
+      @param default_value Default value
+      @param description Description of the parameter. Indentation of newline is done automatically.
+      @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
+      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
+    */
+    void registerOutputDir_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
+
+    
     /**
       @brief Sets the formats for a input/output file option or for all members of an input/output file lists
 
@@ -571,7 +570,7 @@ protected:
       @param default_value Default argument
       @param description Description of the parameter. Indentation of newline is done automatically.
       @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
+      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
     */
     void registerDoubleOption_(const String& name, const String& argument, double default_value, const String& description, bool required = true, bool advanced = false);
 
@@ -608,7 +607,7 @@ protected:
       @param default_value Default argument
       @param description Description of the parameter. Indentation of newline is done automatically.
       @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
+      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
     */
     void registerIntOption_(const String& name, const String& argument,
                             Int default_value, const String& description,
@@ -622,10 +621,10 @@ protected:
       @param default_value Default argument
       @param description Description of the parameter. Indentation of newline is done automatically.
       @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
+      @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
 
     */
-    void registerIntList_(const String& name, const String& argument, IntList default_value, const String& description, bool required = true, bool advanced = false);
+    void registerIntList_(const String& name, const String& argument, const IntList& default_value, const String& description, bool required = true, bool advanced = false);
 
     /**
        @brief Registers a list of doubles option.
@@ -635,9 +634,9 @@ protected:
        @param default_value Default argument
        @param description Description of the parameter. Indentation of newline is done automatically.
        @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
+       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
      */
-    void registerDoubleList_(const String& name, const String& argument, DoubleList default_value, const String& description, bool required = true, bool advanced = false);
+    void registerDoubleList_(const String& name, const String& argument, const DoubleList& default_value, const String& description, bool required = true, bool advanced = false);
 
     /**
        @brief Registers a list of strings option.
@@ -647,9 +646,9 @@ protected:
        @param default_value Default argument
        @param description Description of the parameter. Indentation of newline is done automatically.
        @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
+       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
      */
-    void registerStringList_(const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false);
+    void registerStringList_(const String& name, const String& argument, const StringList& default_value, const String& description, bool required = true, bool advanced = false);
 
     /**
        @brief Registers a list of input files option.
@@ -662,12 +661,12 @@ protected:
        @param default_value Default argument
        @param description Description of the parameter. Indentation of newline is done automatically.
        @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
+       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
        @param tags A list of tags, extending/omitting automated checks on the input file (e.g. when its an executable)
                        Valid tags: 'skipexists' - will prevent checking if the given file really exists (useful for partial paths, e.g. in OpenMS/share/... which will be resolved by the TOPP tool internally)
                                    'is_executable' - checks existence of the file using the PATH environment (and common exe file endings on Windows, e.g. .exe and .bat).
        */
-    void registerInputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false, const StringList& tags = StringList());
+    void registerInputFileList_(const String& name, const String& argument, const StringList& default_value, const String& description, bool required = true, bool advanced = false, const StringList& tags = StringList());
 
     /**
        @brief Registers a list of output files option.
@@ -680,9 +679,9 @@ protected:
        @param default_value Default argument
        @param description Description of the parameter. Indentation of newline is done automatically.
        @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
-       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
+       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI and during --help.
      */
-    void registerOutputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false);
+    void registerOutputFileList_(const String& name, const String& argument, const StringList& default_value, const String& description, bool required = true, bool advanced = false);
 
     /// Registers a flag
     void registerFlag_(const String& name, const String& description, bool advanced = false);
@@ -713,7 +712,7 @@ protected:
 
 
     /**
-      @brief Returns the value of a previously registered string option
+      @brief Returns the value of a previously registered string option (use `getOutputDirOption()` for output directories)
 
       @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
       @exception Exception::RequiredParameterNotGiven is if a required parameter is not present
@@ -721,6 +720,16 @@ protected:
       @exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
     */
     String getStringOption_(const String& name) const;
+    
+    /**
+      @brief Returns the value of a previously registered output_dir option
+
+      @exception Exception::UnregisteredParameter is thrown if the parameter was not registered
+      @exception Exception::RequiredParameterNotGiven is if a required parameter is not present
+      @exception Exception::WrongParameterType is thrown if the parameter has the wrong type
+      @exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
+    */
+    String getOutputDirOption(const String& name) const;
 
     /**
       @brief Returns the value of a previously registered double option
@@ -959,8 +968,16 @@ protected:
 
     //@}
 
-    /// Write common tool description (CTD) file
-    bool writeCTD_();
+    /**
+       @brief Helper function avoiding repeated code between CTD, JSON and CWL.
+       @param writer a parameter writer, designed to be of type ParamCTDFile,
+                     ParamJSONFile or ParamCWLFile
+       @param write_type The type of file that is being written, typically
+                         write_ctd, write_json or write_cwl.
+       @param fileExtension The extension of the requested tool description file.
+    */
+    template <typename Writer>
+    void writeToolDescription_(Writer& writer, std::string write_type, std::string fileExtension);
 
     /**
       @brief Test mode
@@ -977,9 +994,6 @@ protected:
 
     /// .TOPP.ini file for storing system default parameters
     static String topp_ini_file_;
-
-    /// The OpenMS citation
-    static const Citation cite_openms_;
 
     /// Debug level set by -debug
     Int debug_level_;

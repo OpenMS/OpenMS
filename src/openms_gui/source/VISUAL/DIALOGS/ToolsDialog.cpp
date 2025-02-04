@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -45,16 +19,17 @@
 #include <OpenMS/VISUAL/TVToolDiscovery.h>
 #include <OpenMS/VISUAL/MISC/CommonDefs.h>
 
+#include <QProcess>
 #include <QtCore/QStringList>
-#include <QtWidgets/QPushButton>
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QComboBox>
+#include <QtWidgets/QFileDialog>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QMessageBox>
+#include <QtWidgets/QPushButton>
 #include <QtWidgets/QRadioButton>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QCheckBox>
-#include <QProcess>
+#include <utility>
 
 
 using namespace std;
@@ -71,8 +46,8 @@ namespace OpenMS
           const String& layer_name,
           TVToolDiscovery* tool_scanner) :
             QDialog(parent),
-            ini_file_(ini_file),
-            default_dir_(default_dir),
+            ini_file_(std::move(ini_file)),
+            default_dir_(std::move(default_dir)),
             tool_params_(params.copy("tool_params:", true)),
             plugin_params_(),
             tool_scanner_(tool_scanner),
@@ -235,7 +210,6 @@ namespace OpenMS
     QStringList list;
 
     const auto& tools = ToolHandler::getTOPPToolList();
-    const auto& utils = ToolHandler::getUtilList();
     plugin_params_ = tool_scanner_->getPluginParams();
 
     for (auto& pair : tools)
@@ -246,15 +220,7 @@ namespace OpenMS
         list << pair.first.toQString();
       }
     }
-    for (auto& pair : utils)
-    {
-      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ":"));
-      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
-      {
-        list << pair.first.toQString();
-      }
-    }
-    //TODO: Plugins get added to the list just like tools/utils and can't be differentiated in the GUI
+    //TODO: Plugins get added to the list just like tools and can't be differentiated in the GUI
     for (const auto& name : tool_scanner_->getPlugins())
     {
       std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
@@ -472,6 +438,33 @@ namespace OpenMS
   String ToolsDialog::getTool()
   {
     return tools_combo_->currentText();
+  }
+
+  String ToolsDialog::getExtension()
+  {
+    // Try to Return the first valid string for the extension on the output parameter
+    // If we can't get any valid strings show an error.
+    String extension = FileTypes::typeToName(FileTypes::UNKNOWN);
+    auto validStrings = vis_param_.getValidStrings(output_combo_->currentText().toStdString()); 
+    // If we have only one valid output type use that
+    if (validStrings.size() == 1)
+    {
+      extension = validStrings[0];
+      // Remove the leading .*
+      extension = extension.suffix(extension.size() - 2);
+    }
+    // Otherwise the type is unknown
+    else 
+    {
+      // If we have no valid types, produce an error
+      if (validStrings.empty())
+        {
+          QMessageBox::critical(this, "Error", QString("Error determining output type from tool. Tool is not compatible with TOPPView"));
+        }
+          // If we have multiple valid output types, we don't know what the file actually contains, so use UNKNOWN
+
+    }
+    return extension;
   }
 
 }

@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FLASHDeconvTabWidget</class>
+ <widget class="QTabWidget" name="FLASHDeconvTabWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>662</width>
+    <height>589</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>394</width>
+    <height>0</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>TabWidget</string>
+  </property>
+  <property name="tabPosition">
+   <enum>QTabWidget::North</enum>
+  </property>
+  <property name="tabShape">
+   <enum>QTabWidget::Rounded</enum>
+  </property>
+  <property name="currentIndex">
+   <number>1</number>
+  </property>
+  <property name="elideMode">
+   <enum>Qt::ElideNone</enum>
+  </property>
+  <property name="documentMode">
+   <bool>false</bool>
+  </property>
+  <property name="tabsClosable">
+   <bool>false</bool>
+  </property>
+  <property name="tabBarAutoHide">
+   <bool>false</bool>
+  </property>
+  <widget class="QWidget" name="tab_lcms_files">
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
+   </property>
+   <attribute name="title">
+    <string>LC-MS files</string>
+   </attribute>
+   <layout class="QVBoxLayout" name="verticalLayout_8">
+    <item>
+     <widget class="QGroupBox" name="groupBox">
+      <property name="toolTip">
+       <string>Hint: only non-split mzML files are supported.</string>
+      </property>
+      <property name="title">
+       <string>mzML input files</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_11">
+       <item>
+        <widget class="QLabel" name="label_7">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Drag'n'drop files or use the 'Add ...' button to add files</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="InputFileList" name="input_mzMLs" native="true">
+         <property name="acceptDrops">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="tab_run">
+   <attribute name="title">
+    <string>Run FLASHDeconv</string>
+   </attribute>
+   <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0">
+    <property name="spacing">
+     <number>30</number>
+    </property>
+    <property name="sizeConstraint">
+     <enum>QLayout::SetDefaultConstraint</enum>
+    </property>
+    <item>
+     <widget class="QGroupBox" name="groupBox_7">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>180</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>180</height>
+       </size>
+      </property>
+      <property name="title">
+       <string>Output folder</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_9">
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>Select a directory to place the results into. Leaving this empty will place results in your $HOME/FLASHDeconvOut directory.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_outputdirectory">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="OutputDirectory" name="out_dir" native="true"/>
+         </item>
+         <item>
+          <widget class="QPushButton" name="open_output_directory">
+           <property name="text">
+            <string>Open</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Select optional deconvoluted output file formats.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QGridLayout" name="gridLayout_6">
+         <item row="0" column="1">
+          <widget class="QCheckBox" name="checkbox_mzml">
+           <property name="toolTip">
+            <string>mzML format output file - spectrum level deconvoluted masses per
+                                                    ms level
+                                                </string>
+           </property>
+           <property name="text">
+            <string>mzML</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QCheckBox" name="checkbox_spec">
+           <property name="toolTip">
+            <string>spectrum level deconvoluted masses per ms level</string>
+           </property>
+           <property name="text">
+            <string>masses per spectrum</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3">
+          <widget class="QCheckBox" name="checkbox_topfd">
+           <property name="toolTip">
+            <string>TopFD format output files (*.msalign and *.feature) -
+                                                    [*.msalign] for spectrum level deconvoluted masses and
+                                                    [*.feature] for feature respectively, per ms level.
+                                                </string>
+           </property>
+           <property name="text">
+            <string>TopFD (*.msalign, *feature)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QCheckBox" name="checkbox_promex">
+           <property name="toolTip">
+            <string>ProMex format output file (ms1ft) - only MS1 deconvoluted masses
+                                                    are recorded
+                                                </string>
+           </property>
+           <property name="text">
+            <string>ProMex (*.ms1ft)</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupbox_readlogfile">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>55</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>55</height>
+       </size>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A log file should be in the same directory as mzML file to be read.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="title">
+       <string>FLASHIda support (optional)</string>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QCheckBox" name="checkbox_readlogfile">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Log file name: IDALog_[mzml_file_name].log. A log file should be in the same directory as mzML file to be read.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Read log file (IDALog_[mzml_file_name].log)</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox_6">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="title">
+       <string>Run TOPP FLASHDeconv</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="1">
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="2">
+        <widget class="QPushButton" name="edit_advanced_parameters">
+         <property name="text">
+          <string>edit all parameters</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QPushButton" name="run_fd">
+         <property name="text">
+          <string>run</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Edit the most important parameters directly below.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0" colspan="3">
+        <widget class="ParamEditor" name="list_editor" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="tab_log">
+   <attribute name="title">
+    <string>Log</string>
+   </attribute>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QTextEdit" name="log_text">
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>InputFileList</class>
+   <extends>QWidget</extends>
+   <header>OpenMS/VISUAL/InputFileList.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ParamEditor</class>
+   <extends>QWidget</extends>
+   <header>OpenMS/VISUAL/ParamEditor.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>OutputDirectory</class>
+   <extends>QWidget</extends>
+   <header>OpenMS/VISUAL/OutputDirectory.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

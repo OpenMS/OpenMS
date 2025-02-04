@@ -3,12 +3,12 @@ from MSSpectrum cimport *
 from Peak1D cimport *
 from DefaultParamHandler cimport *
 
-cdef extern from "<OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/COMPARISON/SpectrumAlignmentScore.h>" namespace "OpenMS":
 
     cdef cppclass SpectrumAlignmentScore(DefaultParamHandler):
         # wrap-inherits:
         #  DefaultParamHandler
-        SpectrumAlignmentScore() nogil except +
+        SpectrumAlignmentScore() except + nogil 
         # wrap-doc:
                 #  Similarity score via spectra alignment
                 #  
@@ -21,7 +21,7 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>" namespac
                 #  product of the intensities of the aligned peaks, with the given exponent (default is 2)
                 #  sum1 and sum2 are the sum of the intensities squared for each peak of both spectra respectively
 
-        SpectrumAlignmentScore(SpectrumAlignmentScore &) nogil except +
+        SpectrumAlignmentScore(SpectrumAlignmentScore &) except + nogil 
 
-        double operator()(MSSpectrum &, MSSpectrum &) nogil except + #wrap-ignore
-        double operator()(MSSpectrum &) nogil except + #wrap-ignore
+        double operator()(MSSpectrum &, MSSpectrum &) except + nogil  #wrap-ignore
+        double operator()(MSSpectrum &) except + nogil  #wrap-ignore

@@ -15,11 +15,11 @@ cdef extern from "<OpenMS/FORMAT/DTA2DFile.h>" namespace "OpenMS":
         # wrap-inherits:
         #   ProgressLogger
 
-        DTA2DFile() nogil except +
-        DTA2DFile(DTA2DFile &) nogil except + # compiler
+        DTA2DFile() except + nogil 
+        DTA2DFile(DTA2DFile &) except + nogil  # compiler
 
-        void storeTIC(String filename, MSExperiment & peakmap) nogil except +
-        void store(String filename, MSExperiment & peakmap) nogil except +
-        void load(String filename, MSExperiment & peakmap) nogil except +
-        PeakFileOptions  getOptions() nogil except +
+        void storeTIC(String filename, MSExperiment & peakmap) except + nogil 
+        void store(String filename, MSExperiment & peakmap) except + nogil 
+        void load(String filename, MSExperiment & peakmap) except + nogil 
+        PeakFileOptions  getOptions() except + nogil 
 

@@ -147,7 +147,7 @@
        <item>
         <widget class="QLabel" name="label_3">
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select a .PQP file from disk. You can convert from 'TraML' or 'tsv' format to 'PQP' by using the &lt;a href=&quot;http://www.openms.de/documentation/UTILS_TargetedFileConverter.html&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;TargetedFileConverter&lt;/span&gt;&lt;/a&gt; from OpenMS.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select a .PQP file from disk. You can convert from 'TraML' or 'tsv' format to 'PQP' by using the &lt;a href=&quot;http://www.openms.de/documentation/TOPP_TargetedFileConverter.html&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;TargetedFileConverter&lt;/span&gt;&lt;/a&gt; from OpenMS.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>

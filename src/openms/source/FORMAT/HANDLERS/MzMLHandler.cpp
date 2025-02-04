@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -48,6 +22,8 @@
 
 namespace OpenMS::Internal
 {
+
+    thread_local ProgressLogger pg_outer; ///< an extra logger for nested logging
 
     /// Constructor for a read-only handler
     MzMLHandler::MzMLHandler(MapType& exp, const String& filename, const String& version, const ProgressLogger& logger)
@@ -76,12 +52,13 @@ namespace OpenMS::Internal
       {
         OPENMS_LOG_ERROR << "MzMLHandler was initialized with an invalid version number: " << version_ << std::endl;
       }
+      pg_outer = logger; // inherit the logtype etc
     }
 
 
     /// Destructor
-    MzMLHandler::~MzMLHandler()
-    = default;
+    MzMLHandler::~MzMLHandler() = default;
+
     /// Set the peak file options
     void MzMLHandler::setOptions(const PeakFileOptions& opt)
     {
@@ -864,7 +841,7 @@ namespace OpenMS::Internal
       }
       else if (tag == "binaryDataArray" /* && in_spectrum_list_*/)
       {
-        bin_data_.push_back(BinaryData());
+        bin_data_.emplace_back();
         bin_data_.back().np_compression = MSNumpressCoder::NONE; // ensure that numpress compression is initially set to none ...
         bin_data_.back().compression = false; // ensure that zlib compression is initially set to none ...
 
@@ -1044,10 +1021,11 @@ namespace OpenMS::Internal
         {
           exp_->setMetaValue("mzml_id", id);
         }
+        pg_outer.startProgress(0, 1, "loading mzML");
       }
       else if (tag == "contact")
       {
-        exp_->getContacts().push_back(ContactPerson());
+        exp_->getContacts().emplace_back();
       }
       else if (tag == "sample")
       {
@@ -1128,17 +1106,17 @@ namespace OpenMS::Internal
       }
       else if (tag == "source")
       {
-        instruments_[current_id_].getIonSources().push_back(IonSource());
+        instruments_[current_id_].getIonSources().emplace_back();
         instruments_[current_id_].getIonSources().back().setOrder(attributeAsInt_(attributes, s_order));
       }
       else if (tag == "analyzer")
       {
-        instruments_[current_id_].getMassAnalyzers().push_back(MassAnalyzer());
+        instruments_[current_id_].getMassAnalyzers().emplace_back();
         instruments_[current_id_].getMassAnalyzers().back().setOrder(attributeAsInt_(attributes, s_order));
       }
       else if (tag == "detector")
       {
-        instruments_[current_id_].getIonDetectors().push_back(IonDetector());
+        instruments_[current_id_].getIonDetectors().emplace_back();
         instruments_[current_id_].getIonDetectors().back().setOrder(attributeAsInt_(attributes, s_order));
       }
       else if (tag == "precursor")
@@ -1146,7 +1124,7 @@ namespace OpenMS::Internal
         if (in_spectrum_list_)
         {
           //initialize
-          spec_.getPrecursors().push_back(Precursor());
+          spec_.getPrecursors().emplace_back();
 
           //source file => meta data
           String source_file_ref;
@@ -1195,7 +1173,7 @@ namespace OpenMS::Internal
         //initialize
         if (in_spectrum_list_)
         {
-          spec_.getProducts().push_back(Product());
+          spec_.getProducts().emplace_back();
         }
         else
         {
@@ -1217,7 +1195,7 @@ namespace OpenMS::Internal
       }
       else if (tag == "scanWindow")
       {
-        spec_.getInstrumentSettings().getScanWindows().push_back(ScanWindow());
+        spec_.getInstrumentSettings().getScanWindows().emplace_back();
       }
     }
 
@@ -1357,6 +1335,8 @@ namespace OpenMS::Internal
         // Flush the remaining data
         populateSpectraWithData_();
         populateChromatogramsWithData_();
+        pg_outer.endProgress(File::fileSize(file_)); // we cannot query the offset within the file when SAX'ing it (Xerces does not support that)
+                                                     // , so we can only report I/O at the very end
       }
     }
 
@@ -1368,138 +1348,9 @@ namespace OpenMS::Internal
                                      const String& unit_accession)
     {
       // the actual value stored in the CVParam
-      // we assume for now that it is a string value, we update the type later on
-      DataValue termValue = value;
-
-      //Abort on unknown terms
-      if (!cv_.exists(accession))
-      {
-        //in 'sample' several external CVs are used (Brenda, GO, ...). Do not warn then.
-        if (parent_tag != "sample")
-        {
-          warning(LOAD, String("Unknown cvParam '") + accession + "' in tag '" + parent_tag + "'.");
-          return;
-        }
-      }
-      else
-      {
-        const ControlledVocabulary::CVTerm& term = cv_.getTerm(accession);
-
-        //obsolete CV terms
-        if (term.obsolete)
-        {
-          warning(LOAD, String("Obsolete CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "'.");
-        }
-        //check if term name and parsed name match
-        String parsed_name = name;
-        parsed_name.trim();
-        String correct_name = term.name;
-        correct_name.trim();
-        if (parsed_name != correct_name)
-        {
-          warning(LOAD, String("Name of CV term not correct: '") + term.id + " - " + parsed_name + "' should be '" + correct_name + "'");
-        }
-        if (term.obsolete)
-        {
-          warning(LOAD, String("Obsolete CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "'.");
-        }
-        //values used in wrong places and wrong value types
-        if (!value.empty())
-        {
-          if (term.xref_type == ControlledVocabulary::CVTerm::NONE)
-          {
-            //Quality CV does not state value type :(
-            if (!accession.hasPrefix("PATO:"))
-            {
-              warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
-            }
-          }
-          else
-          {
-            switch (term.xref_type)
-            {
-              //string value can be anything
-              case ControlledVocabulary::CVTerm::XSD_STRING:
-                break;
-
-              //int value => try casting
-              case ControlledVocabulary::CVTerm::XSD_INTEGER:
-              case ControlledVocabulary::CVTerm::XSD_NEGATIVE_INTEGER:
-              case ControlledVocabulary::CVTerm::XSD_POSITIVE_INTEGER:
-              case ControlledVocabulary::CVTerm::XSD_NON_NEGATIVE_INTEGER:
-              case ControlledVocabulary::CVTerm::XSD_NON_POSITIVE_INTEGER:
-                try
-                {
-                  termValue = value.toInt();
-                }
-                catch (Exception::ConversionError&)
-                {
-                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
-                  return;
-                }
-                break;
-
-              //double value => try casting
-              case ControlledVocabulary::CVTerm::XSD_DECIMAL:
-                try
-                {
-                  termValue = value.toDouble();
-                }
-                catch (Exception::ConversionError&)
-                {
-                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
-                  return;
-                }
-                break;
-
-              //date string => try conversion
-              case ControlledVocabulary::CVTerm::XSD_DATE:
-                try
-                {
-                  DateTime tmp;
-                  tmp.set(value);
-                }
-                catch (Exception::ParseError&)
-                {
-                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
-                  return;
-                }
-                break;
-
-              default:
-                warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' has the unknown value type '" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type) + "'.");
-                break;
-            }
-          }
-        }
-        //no value, although there should be a numerical value
-        else if (term.xref_type != ControlledVocabulary::CVTerm::NONE &&
-                 term.xref_type != ControlledVocabulary::CVTerm::XSD_STRING && // should be numerical
-                 !cv_.isChildOf(accession, "MS:1000513") // here the value type relates to the binary data array, not the 'value=' attribute!
-                )
-        {
-          warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
-          return;
-        }
-      }
-
-      if (!unit_accession.empty())
-      {
-        if (unit_accession.hasPrefix("UO:"))
-        {
-          termValue.setUnit(unit_accession.suffix(unit_accession.size() - 3).toInt());
-          termValue.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
-        }
-        else if (unit_accession.hasPrefix("MS:"))
-        {
-          termValue.setUnit(unit_accession.suffix(unit_accession.size() - 3).toInt());
-          termValue.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
-        }
-        else
-        {
-          warning(LOAD, String("Unhandled unit '") + unit_accession + "' in tag '" + parent_tag + "'.");
-        }
-      }
+      DataValue termValue = XMLHandler::cvParamToValue(cv_, parent_tag, accession, name, value, unit_accession);
+      
+      if (termValue == DataValue::EMPTY) return; // conversion failed (warning message was emitted in cvParamToValue())
 
       //------------------------- run ----------------------------
       if (parent_tag == "run")
@@ -1934,6 +1785,16 @@ namespace OpenMS::Internal
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ETD);
           }
+          else if (accession == "MS:1003182"  //electron transfer and collision-induced dissociation
+            || accession == "MS:1002679")  // workaround: supplemental collision-induced dissociation (see https://github.com/compomics/ThermoRawFileParser/issues/182)
+          {
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ETciD);
+          }
+          else if (accession == "MS:1002631" //electron transfer and higher-energy collision dissociation
+            || accession == "MS:1002678") // workaround: supplemental beam-type collision-induced dissociation (see https://github.com/compomics/ThermoRawFileParser/issues/182)
+          {
+            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::EThcD);
+          }
           else if (accession == "MS:1000599") //pulsed q dissociation
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PQD);
@@ -2045,6 +1906,14 @@ namespace OpenMS::Internal
           else if (accession == "MS:1000598") //electron transfer dissociation
           {
             chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ETD);
+          }
+          else if (accession == "MS:1003182") //electron transfer and collision-induced dissociation
+          {
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ETciD);
+          }
+          else if (accession == "MS:1002631") //electron transfer and higher-energy collision dissociation
+          {
+            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::EThcD);
           }
           else if (accession == "MS:1000599") //pulsed q dissociation
           {
@@ -3295,30 +3164,8 @@ namespace OpenMS::Internal
                                        const String& value,
                                        const String& unit_accession)
     {
-      //create a DataValue that contains the data in the right type
-      DataValue data_value;
-
-      // float type
-      if (type == "xsd:double" || type == "xsd:float")
-      {
-        data_value = DataValue(value.toDouble());
-      }
-      // integer type
-      else if (type == "xsd:byte" || type == "xsd:decimal" ||
-               type == "xsd:int" || type == "xsd:integer" ||
-               type == "xsd:long" || type == "xsd:negativeInteger" ||
-               type == "xsd:nonNegativeInteger" || type == "xsd:nonPositiveInteger" ||
-               type == "xsd:positiveInteger" || type == "xsd:short" ||
-               type == "xsd:unsignedByte" || type == "xsd:unsignedInt"
-               || type == "xsd:unsignedLong" || type == "xsd:unsignedShort")
-      {
-        data_value = DataValue(value.toInt());
-      }
-      // everything else is treated as a string
-      else
-      {
-        data_value = DataValue(value);
-      }
+      // create a DataValue that contains the data in the right type
+      DataValue data_value = fromXSDString(type, value);
 
       if (!unit_accession.empty())
       {
@@ -3626,14 +3473,14 @@ namespace OpenMS::Internal
       }
 
       // write out all the cvParams and userParams in correct order
-      for (std::vector<String>::iterator term = cvParams.begin(); term != cvParams.end(); ++term)
+      for (const auto& p : cvParams)
       {
-        os << String(indent, '\t') << *term;
+        os << String(indent, '\t') << p;
       }
 
-      for (std::vector<String>::iterator term = userParams.begin(); term != userParams.end(); ++term)
+      for (const auto& p : userParams)
       {
-        os << String(indent, '\t') << *term;
+        os << String(indent, '\t') << p;
       }
     }
 
@@ -4008,6 +3855,14 @@ namespace OpenMS::Internal
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000598\" name=\"electron transfer dissociation\" />\n";
       }
+      if (precursor.getActivationMethods().count(Precursor::ETciD) != 0)
+      {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1003182\" name=\"electron transfer and collision-induced dissociation\" />\n";
+      }
+      if (precursor.getActivationMethods().count(Precursor::EThcD) != 0)
+      {
+        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002631\" name=\"electron transfer and higher-energy collision dissociation\" />\n";
+      }
       if (precursor.getActivationMethods().count(Precursor::PQD) != 0)
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000599\" name=\"pulsed q dissociation\" />\n";
@@ -4129,7 +3984,7 @@ namespace OpenMS::Internal
 
       OPENMS_LOG_INFO << stored_spectra << " spectra and " << stored_chromatograms << " chromatograms stored.\n";
 
-      logger_.endProgress();
+      logger_.endProgress(os.tellp());
     }
 
     void MzMLHandler::writeHeader_(std::ostream& os,
@@ -5086,7 +4941,7 @@ namespace OpenMS::Internal
       }
 
       Int64 offset = os.tellp();
-      spectra_offsets_.push_back(make_pair(native_id, offset + 3));
+      spectra_offsets_.emplace_back(native_id, offset + 3);
 
       // IMPORTANT make sure the offset (above) corresponds to the start of the <spectrum tag
       os << "\t\t\t<spectrum id=\"" << writeXMLEscape(native_id) << "\" index=\"" << s << "\" defaultArrayLength=\"" << spec.size() << "\"";
@@ -5421,7 +5276,7 @@ namespace OpenMS::Internal
     }
 
     template <typename ContainerT>
-    void MzMLHandler::writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type)
+    void MzMLHandler::writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, const String& array_type)
     {
       // Intensity is the same for chromatograms and spectra, the second
       // dimension is either "time" or "mz" (both of these are controlled by
@@ -5441,7 +5296,7 @@ namespace OpenMS::Internal
         {
           for (Size p = 0; p < container.size(); ++p)
           {
-            data_to_encode[p] = container[p].getMZ();
+            data_to_encode[p] = container[p].getPos();
           }
         }
         writeBinaryDataArray_(os, pf_options_, data_to_encode, false, array_type);
@@ -5461,7 +5316,7 @@ namespace OpenMS::Internal
         {
           for (Size p = 0; p < container.size(); ++p)
           {
-            data_to_encode[p] = container[p].getMZ();
+            data_to_encode[p] = container[p].getPos();
           }
         }
         writeBinaryDataArray_(os, pf_options_, data_to_encode, true, array_type);
@@ -5641,12 +5496,12 @@ namespace OpenMS::Internal
     template void MzMLHandler::writeContainerData_<SpectrumType>(std::ostream& os,
                                                                  const PeakFileOptions& pf_options_,
                                                                  const SpectrumType& container,
-                                                                 String array_type);
+                                                                 const String& array_type);
 
     template void MzMLHandler::writeContainerData_<ChromatogramType>(std::ostream& os,
                                                                      const PeakFileOptions& pf_options_,
                                                                      const ChromatogramType& container,
-                                                                     String array_type);
+                                                                     const String& array_type);
 
     template void MzMLHandler::writeBinaryDataArray_<float>(std::ostream& os,
                                                             const PeakFileOptions& pf_options_,

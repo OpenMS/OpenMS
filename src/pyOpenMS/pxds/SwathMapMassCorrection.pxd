@@ -8,7 +8,7 @@ from MRMFeatureFinderScoring cimport *
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>" namespace "OpenMS":
     
     cdef cppclass SwathMapMassCorrection "OpenMS::SwathMapMassCorrection":
-        SwathMapMassCorrection() nogil except + # compiler
-        SwathMapMassCorrection(SwathMapMassCorrection) nogil except + # compiler
+        SwathMapMassCorrection() except + nogil  # compiler
+        SwathMapMassCorrection(SwathMapMassCorrection) except + nogil  # compiler
 
-        # NAMESPACE # void correctMZ(const OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, libcpp_vector[ OpenSwath::SwathMap ] & swath_maps, const libcpp_string & corr_type, const double mz_extr_window, const bool ppm) nogil except +
+        # NAMESPACE # void correctMZ(const OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, libcpp_vector[ OpenSwath::SwathMap ] & swath_maps, const libcpp_string & corr_type, const double mz_extr_window, const bool ppm) except + nogil 

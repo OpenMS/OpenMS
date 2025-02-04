@@ -36,6 +36,7 @@ MultiGradientSelector.h
 OutputDirectory.h
 Painter1DBase.h
 Painter2DBase.h
+PainterBase.h
 ParamEditor.h
 Plot1DCanvas.h
 Plot1DWidget.h
@@ -55,7 +56,9 @@ TableView.h
 TOPPASEdge.h
 TOPPASInputFileListVertex.h
 TOPPASMergerVertex.h
+TOPPASOutputVertex.h
 TOPPASOutputFileListVertex.h
+TOPPASOutputFolderVertex.h
 TOPPASResource.h
 TOPPASResources.h
 TOPPASScene.h

@@ -21,10 +21,10 @@ cdef extern from "<OpenMS/FORMAT/KroenikFile.h>" namespace "OpenMS":
                 #  
                 #  The width in m/z of the overall convex hull of each feature is set to 3 Th in lack of a value provided by the Kroenik file
 
-        KroenikFile() nogil except +
+        KroenikFile() except + nogil 
 
-        void store(String filename, MSSpectrum & spectrum)  nogil except + # wrap-doc:Stores a MSExperiment into a Kroenik file
-        void load(String filename, FeatureMap & feature_map) nogil except +
+        void store(String filename, MSSpectrum & spectrum)  except + nogil  # wrap-doc:Stores a MSExperiment into a Kroenik file
+        void load(String filename, FeatureMap & feature_map) except + nogil 
             # wrap-doc:
                 #  Loads a Kroenik file into a featureXML
                 #  

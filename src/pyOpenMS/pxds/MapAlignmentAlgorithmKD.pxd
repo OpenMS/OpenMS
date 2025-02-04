@@ -19,11 +19,11 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h>" names
             #  deviation from the mean retention time within all CCCs is minimized
 
         # private
-        MapAlignmentAlgorithmKD() nogil except + # wrap-ignore
-        MapAlignmentAlgorithmKD(Size num_maps, Param & param) nogil except +
+        MapAlignmentAlgorithmKD() except + nogil  # wrap-ignore
+        MapAlignmentAlgorithmKD(Size num_maps, Param & param) except + nogil 
 
-        MapAlignmentAlgorithmKD(MapAlignmentAlgorithmKD &) nogil except + # compiler
+        MapAlignmentAlgorithmKD(MapAlignmentAlgorithmKD &) except + nogil  # compiler
 
-        void addRTFitData(KDTreeFeatureMaps & kd_data) nogil except + # wrap-doc:Compute data points needed for RT transformation in the current `kd_data`, add to `fit_data_`
-        void fitLOWESS() nogil except + # wrap-doc:Fit LOWESS to fit_data_, store final models in `transformations_`
-        void transform(KDTreeFeatureMaps & kd_data) nogil except + # wrap-doc:Transform RTs for `kd_data`
+        void addRTFitData(KDTreeFeatureMaps & kd_data) except + nogil  # wrap-doc:Compute data points needed for RT transformation in the current `kd_data`, add to `fit_data_`
+        void fitLOWESS() except + nogil  # wrap-doc:Fit LOWESS to fit_data_, store final models in `transformations_`
+        void transform(KDTreeFeatureMaps & kd_data) except + nogil  # wrap-doc:Transform RTs for `kd_data`

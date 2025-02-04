@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
@@ -35,12 +9,12 @@
 #include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#include <OpenMS/KERNEL/BinnedSpectrum.h>
+#include <OpenMS/COMPARISON/BinnedSpectralContrastAngle.h>
+#include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <regex>
 
@@ -65,7 +39,7 @@ namespace OpenMS
     {
       adduct_suffix = "1" + adduct_suffix;
     }
-    else
+    else if (adduct_suffix != "1-" && adduct_suffix != "1+")
     {
       OpenMS_Log_warn << "The adduct had the suffix '" << adduct_suffix << "', but only singly positive or singly negative charged adducts are supported." << std::endl;
     }
@@ -450,8 +424,7 @@ namespace OpenMS
                                                                                                       const double& min_fragment_mz,
                                                                                                       const double& max_fragment_mz,
                                                                                                       const bool& use_exact_mass,
-                                                                                                      const bool& exclude_ms2_precursor,
-                                                                                                      const unsigned int& file_counter)
+                                                                                                      const bool& exclude_ms2_precursor)
   {
     int entry_counter = 0; // counts each entry - to ensure the same count for targets, decoys from the same sirius workspace
     vector <MetaboTargetedAssay> v_mta;
@@ -562,14 +535,13 @@ namespace OpenMS
         v_cmp_rt = {cmp_rt};
         cmp.rts = {v_cmp_rt};
         cmp.setChargeState(charge);
-        String identifier_suffix = adduct + "_" + int(feature_rt) + "_" + file_counter;
+        String identifier_suffix = adduct + "_" + int(feature_rt) + "_" + csp.compound_info.file_index;
 
         if (description == "UNKNOWN")
         {
           description = String(description + "_" + entry_counter);
         }
         // compoundID has to be unique over all the files
-        // file_counter unique per file
         // feature_rt if the same ID was detected twice at different retention times in the same file
         if (decoy == 0)
         {
@@ -683,7 +655,7 @@ namespace OpenMS
 
         mta.molecular_formula = sumformula;
         mta.compound_rt = feature_rt;
-        mta.compound_file = file_counter;
+        mta.compound_file = csp.compound_info.file_index;
 
         mta.potential_cmp = cmp;
         mta.potential_rmts = v_rmt;
@@ -710,24 +682,6 @@ namespace OpenMS
         if (cmp.m_ids_id == spectra.target.getName()) // the m_id is saved at MSSpectrum level as its name
         {
           v_cmp_spec.emplace_back(cmp, spectra);
-        }
-      }
-    }
-    return v_cmp_spec;
-  }
-
-  // method to pair compound information (SiriusMSFile) with the annotated target spectrum from Sirius based on the m_id (unique identifier)
-  std::vector< MetaboTargetedAssay::CompoundSpectrumPair > MetaboTargetedAssay::pairCompoundWithAnnotatedSpectra(const std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo,
-                                                                                                                  const std::vector<MSSpectrum>& annotated_spectra)
-  {
-    vector< MetaboTargetedAssay::CompoundSpectrumPair > v_cmp_spec;
-    for (const auto& cmp : v_cmpinfo)
-    {
-      for (const auto& spectrum : annotated_spectra)
-      {
-        if (cmp.m_ids_id == spectrum.getName()) // the m_id is saved at MSSpectrum level as its name
-        {
-          v_cmp_spec.emplace_back(cmp, spectrum);
         }
       }
     }

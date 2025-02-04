@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -46,7 +20,6 @@
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QLineEdit>
-#include <QtWidgets/QShortcut>
 #include <QtWidgets/QMenu>
 #include <QItemSelection>
 #include <QtCore/QStringList>
@@ -128,6 +101,14 @@ namespace OpenMS
         fileName_ = QFileDialog::getSaveFileName(editor, tr("Output File"), dir);
         return editor;
       }
+      else if (dtype == "output dir")
+      {
+        QLineEdit* editor = new QLineEdit(parent);
+        QString dir = ""; // = index.sibling(index.row(),0).data(Qt::DisplayRole).toString();
+        if (File::isDirectory(value) || File::writable(value)) { dir = File::absolutePath(value).toQString(); }
+        dirName_ = QFileDialog::getExistingDirectory(editor, tr("Output Directory"), dir);
+        return editor;
+      }
       else if (dtype == "input file")
       {
         QLineEdit* editor = new QLineEdit(parent);
@@ -193,6 +174,13 @@ namespace OpenMS
           if (!fileName_.isNull())
           {
             static_cast<QLineEdit *>(editor)->setText(fileName_);
+          }
+        }
+        else if (dtype == "output dir") // output directory
+        {
+          if (!dirName_.isNull())
+          {
+            static_cast<QLineEdit*>(editor)->setText(dirName_);
           }
         }
         else
@@ -269,13 +257,17 @@ namespace OpenMS
       else if (qobject_cast<QLineEdit *>(editor))
       {
         QString dtype = index.sibling(index.row(), 2).data(Qt::DisplayRole).toString();
-        if (dtype == "output file" || dtype == "input file")        // input/outut file
+        if (dtype == "output file" || dtype == "input file")        // input/output file
         {
-
           new_value = QVariant(static_cast<QLineEdit *>(editor)->text());
           fileName_ = "\0";
         }
-        else if (static_cast<QLineEdit *>(editor)->text() == "" && ((dtype == "int") || (dtype == "float")))         //numeric
+        if (dtype == "output dir") // output directory
+        {
+          new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
+          dirName_ = "\0";
+        }
+        else if (static_cast<QLineEdit*>(editor)->text() == "" && ((dtype == "int") || (dtype == "float"))) // numeric
         {
           if (dtype == "int")
           {
@@ -387,31 +379,7 @@ namespace OpenMS
       // default: will call commit(), if the event was handled (e.g. a press of 'Enter')
       return QItemDelegate::eventFilter(editor, event);
     }
-
-    bool ParamEditorDelegate::exists_(QString name, QModelIndex index) const
-    {
-      UInt current_index = 0;
-      while (index.parent().child(current_index, 0).isValid())
-      {
-        if (
-          current_index != (UInt)(index.row())
-           &&
-          index.parent().child(current_index, 0).data(Qt::DisplayRole).toString() == name
-           &&
-          (
-            (index.data(Qt::UserRole).toInt() == 0 && index.parent().child(current_index, 0).data(Qt::UserRole).toInt() == 0)
-          ||
-            (index.data(Qt::UserRole).toInt() != 0 && index.parent().child(current_index, 0).data(Qt::UserRole).toInt() != 0)
-          )
-          )
-        {
-          return true;
-        }
-        ++current_index;
-      }
-      return false;
-    }
-
+    
     void ParamEditorDelegate::commitAndCloseEditor_()
     {
       QWidget* editor = qobject_cast<QWidget*>(sender());
@@ -614,6 +582,10 @@ namespace OpenMS
         {
           item->setText(2, "output file");
         }
+        else if (it->tags.count("output dir"))
+        {
+          item->setText(2, "output dir");
+        }
         else
         {
           item->setText(2, "string");
@@ -800,15 +772,6 @@ namespace OpenMS
 
     String description = child->data(1, Qt::UserRole).toString();
 
-    std::vector<std::string> tag_list;
-    try // might throw ElementNotFound
-    {
-      tag_list = param_->getTags(path);
-    }
-    catch (...)
-    {
-    }
-
     if (child->text(2) == "")  // node
     {
       if (!description.empty())
@@ -818,6 +781,15 @@ namespace OpenMS
     }
     else     //item + section descriptions
     {
+      std::vector<std::string> tag_list;
+      try // might throw ElementNotFound
+      {
+        tag_list = param_->getTags(path);
+      }
+      catch (...)
+      {
+      }
+
       if (child->text(2) == "float")
       {
         param_->setValue(path, child->text(1).toDouble(), description, tag_list);
@@ -835,27 +807,7 @@ namespace OpenMS
           }
         }
       }
-      else if (child->text(2) == "string")
-      {
-        param_->setValue(path, child->text(1).toStdString(), description, tag_list);
-        String restrictions = child->data(2, Qt::UserRole).toString();
-        if (!restrictions.empty())
-        {
-          std::vector<std::string> parts = ListUtils::create<std::string>(restrictions);
-          param_->setValidStrings(path, parts);
-        }
-      }
-      else if (child->text(2) == "input file")
-      {
-        param_->setValue(path, child->text(1).toStdString(), description, tag_list);
-        String restrictions = child->data(2, Qt::UserRole).toString();
-        if (!restrictions.empty())
-        {
-          std::vector<std::string> parts = ListUtils::create<std::string>(restrictions);
-          param_->setValidStrings(path, parts);
-        }
-      }
-      else if (child->text(2) == "output file")
+      else if (std::unordered_set<QString> {"string", "input file", "output file", "output dir"}.count(child->text(2)))
       {
         param_->setValue(path, child->text(1).toStdString(), description, tag_list);
         String restrictions = child->data(2, Qt::UserRole).toString();

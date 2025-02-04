@@ -10,8 +10,8 @@ cdef extern from "<OpenMS/FORMAT/MSstatsFile.h>" namespace "OpenMS":
 
     cdef cppclass MSstatsFile:
 
-        MSstatsFile() nogil except +
-        MSstatsFile(MSstatsFile &) nogil except + # compiler
+        MSstatsFile() except + nogil 
+        MSstatsFile(MSstatsFile &) except + nogil  # compiler
 
         void storeLFQ(String & filename,
                       ConsensusMap & consensus_map,
@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/FORMAT/MSstatsFile.h>" namespace "OpenMS":
                       bool is_isotope_label_type,
                       String & bioreplicate,
                       String & condition,
-                      String & retention_time_summarization_method) nogil except + # wrap-doc:Store label free experiment (MSstats)
+                      String & retention_time_summarization_method) except + nogil  # wrap-doc:Store label free experiment (MSstats)
 
         void storeISO(String & filename,
                       ConsensusMap & consensus_map,
@@ -29,4 +29,4 @@ cdef extern from "<OpenMS/FORMAT/MSstatsFile.h>" namespace "OpenMS":
                       String & bioreplicate,
                       String & condition,
                       String & mixture,
-                      String & retention_time_summarization_method) nogil except + # wrap-doc:Store isobaric experiment (MSstatsTMT)
+                      String & retention_time_summarization_method) except + nogil  # wrap-doc:Store isobaric experiment (MSstatsTMT)

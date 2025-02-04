@@ -11,11 +11,11 @@ cdef extern from "<OpenMS/FORMAT/MascotGenericFile.h>" namespace "OpenMS":
         # wrap-inherits:
         #  ProgressLogger
         #  DefaultParamHandler
-        MascotGenericFile() nogil except +
-        MascotGenericFile(MascotGenericFile &) nogil except +
-        void store(const String & filename, MSExperiment & experiment) nogil except +
-        # NAMESPACE # void store(std::ostream & os, const String & filename, MSExperiment & experiment) nogil except +
-        void load(const String & filename, MSExperiment & exp) nogil except +
+        MascotGenericFile() except + nogil 
+        MascotGenericFile(MascotGenericFile &) except + nogil 
+        void store(const String & filename, MSExperiment & experiment) except + nogil 
+        # NAMESPACE # void store(std::ostream & os, const String & filename, MSExperiment & experiment) except + nogil 
+        void load(const String & filename, MSExperiment & exp) except + nogil 
             # wrap-doc:
                 #  Loads a Mascot Generic File into a PeakMap
                 #  
@@ -25,7 +25,7 @@ cdef extern from "<OpenMS/FORMAT/MascotGenericFile.h>" namespace "OpenMS":
                 #  :raises:
                 #    Exception: FileNotFound is thrown if the given file could not be found
 
-        libcpp_pair[ String, String ] getHTTPPeakListEnclosure(const String & filename) nogil except +
+        libcpp_pair[ String, String ] getHTTPPeakListEnclosure(const String & filename) except + nogil 
             # wrap-doc:
                 #  Enclosing Strings of the peak list body for HTTP submission\n
                 #  
@@ -33,5 +33,5 @@ cdef extern from "<OpenMS/FORMAT/MascotGenericFile.h>" namespace "OpenMS":
                 #  adding the peaks (in whatever format, e.g. mzXML) enclosed in this body
                 #  The `filename` can later be found in the Mascot response
       
-        void updateMembers_() nogil except + # wrap-doc:Docu in base class
+        void updateMembers_() except + nogil  # wrap-doc:Docu in base class
 

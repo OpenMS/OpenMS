@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -40,7 +14,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
-#include <QRegExp>
+#include <QtCore/QRegularExpression>
 
 #include <fstream>
 
@@ -212,8 +186,8 @@ namespace OpenMS
           if (files_and_peptide_identification_with_scan_number.empty() ||
               !files_and_peptide_identification_with_scan_number.back().second.empty())
           {
-            files_and_peptide_identification_with_scan_number.push_back(make_pair(substrings[spectrum_file_column],
-                  vector<pair<Size, Size> >()));
+            files_and_peptide_identification_with_scan_number.emplace_back(substrings[spectrum_file_column],
+                  vector<pair<Size, Size> >());
           }
           // otherwise change the name of the last file entry (the one without hits)
           else
@@ -226,7 +200,7 @@ namespace OpenMS
         // if it's not the first scan and if hits have been found, insert the peptide identification
         if (!peptide_identification.empty() && !peptide_identification.getHits().empty())
         {
-          files_and_peptide_identification_with_scan_number.back().second.push_back(make_pair(peptide_identifications.size(), scan_number));
+          files_and_peptide_identification_with_scan_number.back().second.emplace_back(peptide_identifications.size(), scan_number);
           peptide_identifications.push_back(peptide_identification);
         }
         peptide_identification = PeptideIdentification();
@@ -282,7 +256,7 @@ namespace OpenMS
     // if it's not the first scan and if hits have been found, insert the peptide identification
     if (!peptide_identification.empty() && !peptide_identification.getHits().empty())
     {
-      files_and_peptide_identification_with_scan_number.back().second.push_back(make_pair(peptide_identifications.size(), scan_number));
+      files_and_peptide_identification_with_scan_number.back().second.emplace_back(peptide_identifications.size(), scan_number);
       peptide_identifications.push_back(peptide_identification);
     }
 
@@ -348,7 +322,7 @@ namespace OpenMS
         database.ignore(sp, trie_delimiter_);
       }
       database.get(sequence, trie_delimiter_);
-      sequences.push_back(sequence.str());
+      sequences.emplace_back(sequence.str());
       if (sequences.back().empty())
       {
         not_found.push_back(wr_i->first);
@@ -758,7 +732,7 @@ namespace OpenMS
     const String& database_filename,
     const String& index_filename,
     bool append,
-    const String species)
+    const String& species)
   {
     ifstream source_database(source_database_filename.c_str());
     if (!source_database)
@@ -1153,12 +1127,13 @@ namespace OpenMS
     protein_identification.setSearchEngineVersion("unknown");
     // searching for something like this: InsPecT version 20060907, InsPecT version 20100331
     QString response(cmd_output.toQString());
-    QRegExp rx("InsPecT (version|vesrion) (\\d+)"); // older versions of InsPecT have typo...
-    if (rx.indexIn(response) == -1)
+    QRegularExpression rx("InsPecT (version|vesrion) (\\d+)"); // older versions of InsPecT have typo...
+    auto match = rx.match(response);
+    if (!match.hasMatch())
     {
       return false;
     }
-    protein_identification.setSearchEngineVersion(String(rx.cap(2)));
+    protein_identification.setSearchEngineVersion(match.captured(2));
     return true;
   }
 

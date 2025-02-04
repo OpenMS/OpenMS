@@ -2,13 +2,14 @@
                  OpenMS -- Open Source Mass Spectrometry
 =========================================================================
 
-The following authors contributed to OpenMS at some point. For the 
+The following authors contributed to OpenMS at some point. For the
 authors contributing to a specific piece of code, please refer to
 the authors tag in the respective file header.
  - Ahmed Khalil
  - Alexandra Scherbart
  - Axel Walter
  - Alexandra Zerck
+ - Amanda Wein
  - Andreas Bertsch
  - Andreas Simon
  - Anton Kriese
@@ -47,11 +48,12 @@ the authors tag in the respective file header.
  - Holger Franken
  - Holger Plattfaut
  - Immanuel Luhn
- - Jang Jang Jin 
+ - Jang Jang Jin
  - Jihyung Kim
  - Johan Teleman
  - Johannes Junker
  - Johannes Veit
+ - Johannes von Kleist
  - Joshua Charkow
  - Julia Thueringer
  - Juliane Schmachtenberg
@@ -60,6 +62,7 @@ the authors tag in the respective file header.
  - Katharina Albers
  - Khue Nguyen
  - Knut Reinert
+ - Kyowon Jeong
  - Lars Nilse
  - Lenny Kovac
  - Leon Bichmann
@@ -73,8 +76,10 @@ the authors tag in the respective file header.
  - Martin Langwisch
  - Mateusz Łącki
  - Mathias Walzer
+ - Matteo Pilz
  - Matthew The
  - Matthias Bernt
+ - Michael R. Crusoe
  - Michał Startek
  - Nico Pfeifer
  - Ole Schulz-Trieglaff
@@ -82,12 +87,17 @@ the authors tag in the respective file header.
  - Oliver Kohlbacher
  - Pasquale Domenico Colaianni
  - Patricia Scheil
+ - Peter Jones
  - Peter Kunszt
  - Petra Gutenbrunner
+ - Radu Suciu
+ - Ralf Gabriels
  - Rene Hussong
+ - Rick Helmus
  - Ruben Grünberg
  - Samuel Wein
  - Sandro Andreotti
+ - Simon Gene Gottlieb
  - Steffen Sass
  - Stephan Aiche
  - Sven Nahnsen
@@ -98,6 +108,7 @@ the authors tag in the respective file header.
  - Timo Sachsenberg
  - Tinatin Kasradze
  - Till Englert
+ - Tom David Müller
  - Tom Lukas Lankenau
  - Tom Waschischeck
  - Uwe Schmitt
@@ -108,4 +119,5 @@ the authors tag in the respective file header.
  - Volker Mosthaf
  - Witold Wolski
  - Xiao Liang
- - Radu Suciu
+ - Yasset Perez-Riverol
+ - Peter Jones

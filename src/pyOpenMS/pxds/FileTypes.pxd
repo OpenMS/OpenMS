@@ -6,14 +6,14 @@ cdef extern from "<OpenMS/FORMAT/FileTypes.h>" namespace "OpenMS":
     cdef cppclass FileTypes:
 
         # compiler
-        FileTypes() nogil except + # wrap-doc:Centralizes the file types recognized by FileHandler
-        FileTypes(FileTypes &) nogil except + # compiler
+        FileTypes() except + nogil  # wrap-doc:Centralizes the file types recognized by FileHandler
+        FileTypes(FileTypes &) except + nogil  # compiler
 
-        String typeToName(FileType t) nogil except + # wrap-doc:Returns the name/extension of the type
+        String typeToName(FileType t) except + nogil  # wrap-doc:Returns the name/extension of the type
 
-        String typeToMZML(FileType t) nogil except + # wrap-doc:Returns the mzML name
+        String typeToMZML(FileType t) except + nogil  # wrap-doc:Returns the mzML name
 
-        FileType nameToType(String name) nogil except + 
+        FileType nameToType(String name) except + nogil  
             # wrap-doc:
                 #  Converts a file type name into a Type 
                 #  
@@ -42,7 +42,6 @@ cdef extern from "<OpenMS/FORMAT/FileTypes.h>" namespace "OpenMS::FileTypes":
           PEPXML,             # < TPP pepXML file (.pepXML)
           PROTXML,            # < TPP protXML file (.protXML)
           MZIDENTML,          # < mzIdentML (HUPO PSI AnalysisXML followup format) (.mzid)
-          MZQUANTML,          # < mzQuantML (HUPO PSI AnalysisXML followup format) (.mzq)
           QCML,               # < qcML (will undergo standardisation maybe) (.qcml)
           GELML,              # < GelML (HUPO PSI format) (.gelML)
           TRAML,              # < TraML (HUPO PSI format) for transitions (.traML)

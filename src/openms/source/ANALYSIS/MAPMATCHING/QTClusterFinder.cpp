@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -39,7 +13,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 //#define DEBUG_QTCLUSTERFINDER_IDS
 
@@ -55,7 +29,7 @@ namespace OpenMS
   QTClusterFinder::QTClusterFinder() :
     BaseGroupFinder(), feature_distance_(FeatureDistance())
   {
-    setName(getProductName());
+    setName("QTClusterFinder");
 
     defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account).");
     defaults_.setValidStrings("use_identifications", {"true","false"});
@@ -122,7 +96,7 @@ namespace OpenMS
       double minRT = std::numeric_limits<double>::max();
       for (auto& map : input_maps)
       {
-        for (auto feat : map) //OMS_CODING_TEST_EXCLUDE
+        for (auto feat : map) //OMS_CODING_TEST_EXCLUDE Note: needs copy to sort
         {
           if (feat.getRT() < minRT) minRT = feat.getRT();
           auto& pepIDs = feat.getPeptideIdentifications();
@@ -202,7 +176,7 @@ namespace OpenMS
       // we calculate minRT (instead of starting first bin at 0) since RTs may start in the "negative" region after alignment.
       double start_rt = minRT;
       double min_tolerance = 20;
-      double tol, q2, q3 = 0.;
+      double tol, q2, q3;
       OPENMS_LOG_INFO << "Calculating RT linking tolerance bins...\n";
       OPENMS_LOG_INFO << "RT_bin_start, Tolerance" << std::endl;
 
@@ -554,7 +528,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
       }
       if (elem_feat.metaValueExists(Constants::UserParam::ADDUCT_GROUP))
       {
-        linked_groups.push_back(elem_feat.getMetaValue(Constants::UserParam::ADDUCT_GROUP));
+        linked_groups.emplace_back(elem_feat.getMetaValue(Constants::UserParam::ADDUCT_GROUP));
       }
     }
     if (elements[best_quality_index].feature->getFeature().metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
@@ -752,9 +726,9 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
     }
 
     {
-      std::set<AASequence> a = cluster.getAnnotations();
+      std::set<AASequence> ax = cluster.getAnnotations();
       std::cout << " FINAL with annotations: ";
-      for (std::set<AASequence>::iterator it = a.begin(); it != a.end(); ++it) std::cout << " " << *it;
+      for (std::set<AASequence>::iterator it = ax.begin(); it != ax.end(); ++it) std::cout << " " << *it;
       std::cout << std::endl;
     }
 #endif

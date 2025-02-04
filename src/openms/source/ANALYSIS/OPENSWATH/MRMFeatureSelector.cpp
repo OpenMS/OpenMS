@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni, Svetlana Kutuzova $
@@ -82,8 +56,8 @@ namespace OpenMS
 
   void MRMFeatureSelector::addConstraint_(
     LPWrapper& problem,
-    std::vector<Int> indices,
-    std::vector<double> values,
+    const std::vector<Int>& indices,
+    const std::vector<double>& values,
     const String& name,
     const double lb,
     const double ub,
@@ -150,8 +124,6 @@ namespace OpenMS
     std::set<String> variables;
     LPWrapper problem;
     problem.setObjectiveSense(LPWrapper::MIN);
-    Size n_constraints = 0;
-    Size n_variables = 0;
     for (Int cnt1 = 0; static_cast<Size>(cnt1) < time_to_name.size(); ++cnt1)
     {
       const Size start_iter = std::max(cnt1 - parameters.nn_threshold, 0);
@@ -167,7 +139,6 @@ namespace OpenMS
         {
           constraints.push_back(addVariable_(problem, name1, true, 0, parameters.variable_type));
           variables.insert(name1);
-          ++n_variables;
         }
         else
         {
@@ -204,7 +175,6 @@ namespace OpenMS
             {
               addVariable_(problem, name2, true, 0, parameters.variable_type);
               variables.insert(name2);
-              ++n_variables;
             }
 
             const String var_qp_name = time_to_name[cnt1].second + "_" + String(i) + "-" + time_to_name[cnt2].second + "_" + String(j);
@@ -229,16 +199,12 @@ namespace OpenMS
             std::vector<Int> indices_abs = {index_var_abs, index_var_qp};
             addConstraint_(problem, indices_abs, {-1.0, score}, var_qp_name + "-obj+", -1.0, 0.0, LPWrapper::UPPER_BOUND_ONLY);
             addConstraint_(problem, indices_abs, {-1.0, -score}, var_qp_name + "-obj-", -1.0, 0.0, LPWrapper::UPPER_BOUND_ONLY);
-
-            n_constraints += 5;
-            n_variables += 2;
           }
         }
       }
       std::vector<double> constraints_values(constraints.size(), 1.0);
       addConstraint_(problem, constraints, constraints_values, time_to_name[cnt1].second + "_constraint", 1.0, 1.0, LPWrapper::DOUBLE_BOUNDED);
       // addConstraint_(problem, constraints, constraints_values, time_to_name[cnt1].second + "_constraint", 1.0, 1.0, LPWrapper::FIXED); // glpk
-      ++n_constraints;
     }
     LPWrapper::SolverParam param;
     problem.solve(param);

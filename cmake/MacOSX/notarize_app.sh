@@ -37,6 +37,9 @@ else
 fi
 
 
+# TODO altool is deprecated!! But our build machines do not have XCode 13 for the new notarytool
+#  we would need to upgrade to macOS 11.3+ BUT our macs are EOL. OR use the Notary API for a
+#  web-based submission: https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution/customizing_the_notarization_workflow
 
 # submit app for notarization
 if xcrun altool --notarize-app --primary-bundle-id "$BUNDLE_ID" --username "$ASC_USERNAME" --password @env:$ASC_PASSWORD_ENVVAR -f "$BUNDLE_PKG" > "$NOTARIZE_APP_LOG" 2>&1; then

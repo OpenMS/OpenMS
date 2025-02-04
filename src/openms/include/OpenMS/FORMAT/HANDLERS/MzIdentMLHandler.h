@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
@@ -38,8 +12,6 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/METADATA/IdentificationHit.h>
-#include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
@@ -56,6 +28,208 @@ namespace OpenMS
   namespace Internal
   {
 
+  /**
+    @brief Represents a object which can store the information of an analysisXML instance
+
+    @ingroup Metadata
+  */
+  class OPENMS_DLLAPI IdentificationHit :
+    public MetaInfoInterface
+  {
+  public:
+    /// @name Constructors, Destructors, Assignment Operators
+    //@{
+    /// Default constructor
+    IdentificationHit() = default;
+    
+    /// Copy constructor
+    IdentificationHit(const IdentificationHit&) = default;
+    
+    /// Virtual destructor
+    virtual ~IdentificationHit() = default;
+    
+    /// Move constructor
+    IdentificationHit(IdentificationHit&&) noexcept = default;
+    
+    /// Copy assignment operator
+    IdentificationHit& operator=(const IdentificationHit&) = default;
+    
+    /// Move assignment operator
+    IdentificationHit& operator=(IdentificationHit&&) noexcept = default;
+    //@}
+
+    /// @name Equality and Inequality Operators
+    //@{
+    /// Checks for equality with another IdentificationHit object
+    bool operator==(const IdentificationHit& rhs) const noexcept;
+    
+    /// Checks for inequality with another IdentificationHit object
+    bool operator!=(const IdentificationHit& rhs) const noexcept;
+    //@}
+
+    /// @name Accessors
+    //@{
+    /// Sets the identifier
+    void setId(const std::string& id) noexcept;
+    
+    /// Returns the identifier
+    const std::string& getId() const noexcept;
+    
+    /// Sets the charge state of the peptide
+    void setCharge(int charge) noexcept;
+    
+    /// Returns the charge state of the peptide
+    int getCharge() const noexcept;
+    
+    /// Sets the calculated mass to charge ratio
+    void setCalculatedMassToCharge(double mz) noexcept;
+    
+    /// Returns the calculated mass to charge ratio
+    double getCalculatedMassToCharge() const noexcept;
+    
+    /// Sets the experimental mass to charge ratio
+    void setExperimentalMassToCharge(double mz) noexcept;
+    
+    /// Returns the experimental mass to charge ratio
+    double getExperimentalMassToCharge() const noexcept;
+    
+    /// Sets the name
+    void setName(const std::string& name) noexcept;
+    
+    /// Returns the name
+    const std::string& getName() const noexcept;
+    
+    /// Sets whether the peptide passed the threshold
+    void setPassThreshold(bool pass) noexcept;
+    
+    /// Returns whether the peptide passed the threshold
+    bool getPassThreshold() const noexcept;
+    
+    /// Sets the rank of the peptide
+    void setRank(int rank) noexcept;
+    
+    /// Returns the rank of the peptide
+    int getRank() const noexcept;
+    //@}
+
+  private:
+    std::string id_;                              ///< Identifier
+    int charge_ = 0;                             ///< Peptide charge
+    double calculated_mass_to_charge_ = 0.0;     ///< Calculated mass to charge ratio
+    double experimental_mass_to_charge_ = 0.0;   ///< Experimental mass to charge ratio
+    std::string name_;                           ///< Name
+    bool pass_threshold_ = true;                 ///< Pass threshold
+    int rank_ = 0;                               ///< Rank of the peptide
+  };
+
+  /**
+    @brief Represents a object which can store the information of an analysisXML instance
+
+        //@todo docu (Andreas)
+
+        @ingroup Metadata
+  */
+  class OPENMS_DLLAPI SpectrumIdentification :
+    public MetaInfoInterface
+  {
+public:
+
+    /// @name constructors,destructors,assignment operator
+    //@{
+    /// Default constructor
+    SpectrumIdentification() = default;
+    /// Destructor
+    virtual ~SpectrumIdentification();
+    /// Copy constructor
+    SpectrumIdentification(const SpectrumIdentification &) = default;
+    /// Move constructor
+    SpectrumIdentification(SpectrumIdentification&&) = default;
+    /// Assignment operator
+    SpectrumIdentification & operator=(const SpectrumIdentification &) = default;
+    /// Move assignment operator
+    SpectrumIdentification& operator=(SpectrumIdentification&&) & = default;
+    /// Equality operator
+    bool operator==(const SpectrumIdentification & rhs) const;
+    /// Inequality operator
+    bool operator!=(const SpectrumIdentification & rhs) const;
+    //@}
+
+    // @name Accessors
+    //@{
+    /// sets the identification hits of this spectrum identification (corresponds to single peptide hit in the list)
+    void setHits(const std::vector<IdentificationHit> & hits);
+
+    /// adds a single identification hit to the hits
+    void addHit(const IdentificationHit & hit);
+
+    /// returns the identification hits of this spectrum identification
+    const std::vector<IdentificationHit> & getHits() const;
+    //@}
+
+protected:
+
+    String id_; ///< Identifier
+    std::vector<IdentificationHit> hits_; ///< Single peptide hits
+  };
+
+    /**
+      @brief Represents a object which can store the information of an analysisXML instance
+
+          //@todo docu (Andreas)
+
+          @ingroup Metadata
+    */
+    class OPENMS_DLLAPI Identification :
+      public MetaInfoInterface
+    {
+  public:
+
+      /// @name constructors,destructors,assignment operator
+      //@{
+
+      /// Default constructor
+      Identification() = default;
+      /// Copy constructor
+      Identification(const Identification & source) = default;
+      /// Move constructor
+      Identification(Identification&&) = default;
+      /// Destructor
+      virtual ~Identification();
+
+      /// Assignment operator
+      Identification & operator=(const Identification & source) = default;
+      /// Move assignment operator
+      Identification& operator=(Identification&&) & = default;
+
+      /// Equality operator
+      bool operator==(const Identification & rhs) const;
+      /// Inequality operator
+      bool operator!=(const Identification & rhs) const;
+      //@}
+
+      /// @name Accessors
+      //@{
+      /// sets the date and time the file was written
+      void setCreationDate(const DateTime & date);
+
+      /// returns the date and time the file was created
+      const DateTime & getCreationDate() const;
+
+      /// sets the spectrum identifications
+      void setSpectrumIdentifications(const std::vector<SpectrumIdentification> & ids);
+
+      /// adds a spectrum identification
+      void addSpectrumIdentification(const SpectrumIdentification & id);
+
+      /// returns the spectrum identifications stored
+      const std::vector<SpectrumIdentification> & getSpectrumIdentifications() const;
+      //@}
+  protected:
+      String id_; ///< Identifier
+      DateTime creation_date_; ///< Date and time the search was performed
+      std::vector<SpectrumIdentification> spectrum_identifications_;
+    };
+
     /**
         @brief XML STREAM handler for MzIdentMLFile
 
@@ -71,13 +245,9 @@ namespace OpenMS
 public:
       /**@name Constructors and destructor */
       //@{
-      /// Constructor for a write-only handler
-      MzIdentMLHandler(const Identification& id, const String& filename, const String& version, const ProgressLogger& logger);
       /// Constructor for a write-only handler for internal identification structures
       MzIdentMLHandler(const std::vector<ProteinIdentification>& pro_id, const std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger);
 
-      /// Constructor for a read-only handler
-      MzIdentMLHandler(Identification& id, const String& filename, const String& version, const ProgressLogger& logger);
       /// Constructor for a read-only handler for internal identification structures
       MzIdentMLHandler(std::vector<ProteinIdentification>& pro_id, std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger);
 
@@ -145,7 +315,7 @@ protected:
       //void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
 
       /// Helper method that writes the Enzymes
-      void writeEnzyme_(String& s, DigestionEnzymeProtein enzy, UInt miss, UInt indent) const;
+      void writeEnzyme_(String& s, const DigestionEnzymeProtein& enzy, UInt miss, UInt indent) const;
 
       /// Helper method that writes the modification search params (fixed or variable)
       void writeModParam_(String& s, const std::vector<String>& mod_names, bool fixed, UInt indent) const;
@@ -154,13 +324,13 @@ protected:
       void writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::PeakAnnotation>& annotations, UInt indent, bool is_ppxl) const;
 
       /// Convenience method to remove the [] from OpenMS internal file uri representation
-      String trimOpenMSfileURI(const String file) const;
+      String trimOpenMSfileURI(const String& file) const;
 
       /// Abstraction of PeptideHit loop for most PeptideHits
       void writePeptideHit(const PeptideHit& hit,
                                 std::vector<PeptideIdentification>::const_iterator& it,
                                 std::map<String, String>& pep_ids,
-                                String cv_ns, std::set<String>& sen_set,
+                                const String& cv_ns, std::set<String>& sen_set,
                                 std::map<String, String>& sen_ids,
                                 std::map<String, std::vector<String> >& pep_evis,
                                 std::map<String, double>& pp_identifier_2_thresh,
@@ -169,8 +339,8 @@ protected:
       /// Abstraction of PeptideHit loop for XL-MS data from OpenPepXL
       void writeXLMSPeptideHit(const PeptideHit& hit,
                                 std::vector<PeptideIdentification>::const_iterator& it,
-                                String ppxl_linkid, std::map<String, String>& pep_ids,
-                                String cv_ns, std::set<String>& sen_set,
+                                const String& ppxl_linkid, std::map<String, String>& pep_ids,
+                                const String& cv_ns, std::set<String>& sen_set,
                                 std::map<String, String>& sen_ids,
                                 std::map<String, std::vector<String> >& pep_evis,
                                 std::map<String, double>& pp_identifier_2_thresh,

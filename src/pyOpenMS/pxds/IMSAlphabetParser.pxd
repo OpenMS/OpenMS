@@ -6,8 +6,8 @@ from libcpp.string cimport string as libcpp_string
 # cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabetParser.h>" namespace "OpenMS::ims":
 #    
 #    cdef cppclass IMSAlphabetParser: # [AlphabetElementType,Container,InputSource]:
-#        IMSAlphabetParser() nogil except + # compiler
-#        IMSAlphabetParser(IMSAlphabetParser &) nogil except + # compiler
-#        void load(libcpp_string & fname) nogil except +
-#        # ContainerType getElements() nogil except +
-#        # void parse(InputSource & is_) nogil except +
+#        IMSAlphabetParser() except + nogil  # compiler
+#        IMSAlphabetParser(IMSAlphabetParser &) except + nogil  # compiler
+#        void load(libcpp_string & fname) except + nogil 
+#        # ContainerType getElements() except + nogil 
+#        # void parse(InputSource & is_) except + nogil 

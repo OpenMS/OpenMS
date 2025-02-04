@@ -6,20 +6,20 @@ cdef extern from "<OpenMS/FORMAT/MzTabFile.h>" namespace "OpenMS":
 
     cdef cppclass MzTabFile:
 
-        MzTabFile() nogil except +
-        MzTabFile(MzTabFile &) nogil except + # compiler
+        MzTabFile() except + nogil 
+        MzTabFile(MzTabFile &) except + nogil  # compiler
 
-        void store(String filename, MzTab & mz_tab) nogil except + # wrap-doc:Stores MzTab file
-        void load(String filename, MzTab & mz_tab) nogil except + # wrap-doc:Loads MzTab file
+        void store(String filename, MzTab & mz_tab) except + nogil  # wrap-doc:Stores MzTab file
+        void load(String filename, MzTab & mz_tab) except + nogil  # wrap-doc:Loads MzTab file
 
         # Does not exist
-        # void storeProteinReliabilityColumn(bool store) nogil except +
-        # void storePeptideReliabilityColumn(bool store) nogil except +
-        # void storePSMReliabilityColumn(bool store) nogil except +
-        # void storeSmallMoleculeReliabilityColumn(bool store) nogil except +
-        # void storeProteinUriColumn(bool store) nogil except +
-        # void storePeptideUriColumn(bool store) nogil except +
-        # void storePSMUriColumn(bool store) nogil except +
-        # void storeSmallMoleculeUriColumn(bool store) nogil except +
-        # void storeProteinGoTerms(bool store) nogil except +
+        # void storeProteinReliabilityColumn(bool store) except + nogil 
+        # void storePeptideReliabilityColumn(bool store) except + nogil 
+        # void storePSMReliabilityColumn(bool store) except + nogil 
+        # void storeSmallMoleculeReliabilityColumn(bool store) except + nogil 
+        # void storeProteinUriColumn(bool store) except + nogil 
+        # void storePeptideUriColumn(bool store) except + nogil 
+        # void storePSMUriColumn(bool store) except + nogil 
+        # void storeSmallMoleculeUriColumn(bool store) except + nogil 
+        # void storeProteinGoTerms(bool store) except + nogil 
 

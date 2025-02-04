@@ -25,10 +25,10 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
         #  
 
     cdef cppclass FileHandler:  # wrap=True
-        FileHandler() nogil except +
-        FileHandler(FileHandler) nogil except + # wrap-ignore
+        FileHandler() except + nogil 
+        FileHandler(FileHandler) except + nogil  # wrap-ignore
 
-        bool loadExperiment(String, MSExperiment &) nogil except+
+        void loadExperiment(String, MSExperiment &) except + nogil
             # wrap-doc:
             #  Loads a file into an MSExperiment
             #  
@@ -45,7 +45,7 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             #  :raises:
             #    Exception: ParseError is thrown if an error occurs during parsing
 
-        void storeExperiment(String, MSExperiment) nogil except+
+        void storeExperiment(String, MSExperiment) except + nogil
             # wrap-doc:
             #  Stores an MSExperiment to a file\n
             #  
@@ -58,7 +58,7 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             #  :raises:
             #    Exception: UnableToCreateFile is thrown if the file could not be written
 
-        bool loadFeatures(String, FeatureMap &) nogil except +
+        void loadFeatures(String, FeatureMap &) except + nogil 
             # wrap-doc:
             #  Loads a file into a FeatureMap
             #  
@@ -72,22 +72,22 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             #  :raises:
             #    Exception: ParseError is thrown if an error occurs during parsing
 
-        PeakFileOptions  getOptions() nogil except + # wrap-doc:Access to the options for loading/storing
-        void setOptions(PeakFileOptions) nogil except + # wrap-doc:Sets options for loading/storing
+        PeakFileOptions  getOptions() except + nogil  # wrap-doc:Access to the options for loading/storing
+        void setOptions(PeakFileOptions) except + nogil  # wrap-doc:Sets options for loading/storing
 
 #
 # wrap static method:
 #
 cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS::FileHandler":
 
-    int getType(const String& filename) nogil except + # wrap-attach:FileHandler
-    FileType getTypeByFileName(const String & filename) nogil except + # wrap-attach:FileHandler 
-    FileType getTypeByContent(const String & filename) nogil except + # wrap-attach:FileHandler 
-    String computeFileHash(const String & filename) nogil except + # wrap-attach:FileHandler 
-    bool isSupported(FileType type_) nogil except + # wrap-attach:FileHandler 
-    bool hasValidExtension(const String & filename, FileType type_) nogil except + # wrap-attach:FileHandler 
+    int getType(const String& filename) except + nogil  # wrap-attach:FileHandler
+    FileType getTypeByFileName(const String & filename) except + nogil  # wrap-attach:FileHandler 
+    FileType getTypeByContent(const String & filename) except + nogil  # wrap-attach:FileHandler 
+    String computeFileHash(const String & filename) except + nogil  # wrap-attach:FileHandler 
+    bool isSupported(FileType type_) except + nogil  # wrap-attach:FileHandler 
+    bool hasValidExtension(const String & filename, FileType type_) except + nogil  # wrap-attach:FileHandler 
 
     # Returns the file name without the extension
-    String stripExtension(String file) nogil except + # wrap-attach:FileHandler
+    String stripExtension(String file) except + nogil  # wrap-attach:FileHandler
     # Removes the current extension (if any) and adds a new one
-    String swapExtension(String filename, FileType new_type) nogil except + # wrap-attach:FileHandler 
+    String swapExtension(String filename, FileType new_type) except + nogil  # wrap-attach:FileHandler 

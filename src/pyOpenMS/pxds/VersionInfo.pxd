@@ -15,17 +15,17 @@ cdef extern from "<OpenMS/CONCEPT/VersionInfo.h>" namespace "OpenMS::VersionInfo
         Int version_patch
         String pre_release_identifier
 
-        VersionDetails() nogil except +
-        VersionDetails(VersionDetails &) nogil except +
-        bool operator<(VersionDetails) nogil except +
-        bool operator==(VersionDetails) nogil except +
-        bool operator>(VersionDetails) nogil except +
+        VersionDetails() except + nogil 
+        VersionDetails(VersionDetails &) except + nogil 
+        bool operator<(VersionDetails) except + nogil 
+        bool operator==(VersionDetails) except + nogil 
+        bool operator>(VersionDetails) except + nogil 
 
-    VersionDetails getVersionStruct() nogil except +  #wrap-attach:VersionInfo
-    String getVersion()  nogil except +  #wrap-attach:VersionInfo
-    String getTime()     nogil except +  #wrap-attach:VersionInfo
-    String getRevision() nogil except +  #wrap-attach:VersionInfo
-    String getBranch()   nogil except +  #wrap-attach:VersionInfo
+    VersionDetails getVersionStruct() except + nogil   #wrap-attach:VersionInfo
+    String getVersion()  except + nogil   #wrap-attach:VersionInfo
+    String getTime()     except + nogil   #wrap-attach:VersionInfo
+    String getRevision() except + nogil   #wrap-attach:VersionInfo
+    String getBranch()   except + nogil   #wrap-attach:VersionInfo
 
 cdef extern from "<OpenMS/CONCEPT/VersionInfo.h>" namespace "OpenMS::VersionInfo::VersionDetails":
 

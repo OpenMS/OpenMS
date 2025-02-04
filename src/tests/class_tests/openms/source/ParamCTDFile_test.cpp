@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Ruben Grünberg $
@@ -41,6 +15,7 @@
 
 #include <OpenMS/FORMAT/ParamCTDFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
@@ -234,6 +209,22 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	TEST_REAL_SIMILAR(p6.getEntry("doublelist4").min_float, 0.1)
 	TEST_REAL_SIMILAR(p6.getEntry("doublelist4").max_float, 5.8)
 
+  // NaN for float/double
+  Param p_nan;
+  p_nan.setValue("float_nan", std::numeric_limits<float>::quiet_NaN());
+  p_nan.setValue("double_nan", std::numeric_limits<double>::quiet_NaN());
+  NEW_TMP_FILE(filename);
+  paramFile.store(filename, p_nan, info);
+  Param p_nan2;
+  paramXML.load(filename, p_nan2);
+  TEST_TRUE(std::isnan((double)p_nan2.getValue("float_nan")))
+  TEST_TRUE(std::isnan((double)p_nan2.getValue("double_nan")))
+  // ... test the actual values written to INI (should be 'NaN', not 'nan', for compatibility with downstream tools, like Java's double)
+  TextFile tf;
+  tf.load(filename);
+  TEST_TRUE((tf.begin() + 7)->hasSubstring("value=\"NaN\""))
+  TEST_TRUE((tf.begin() + 8)->hasSubstring("value=\"NaN\""))
+
 END_SECTION
 
 START_SECTION((void writeCTDToStream(std::ostream *os_ptr, const Param &param) const ))
@@ -252,7 +243,9 @@ START_SECTION((void writeCTDToStream(std::ostream *os_ptr, const Param &param) c
   p.setValue("doublelist3", ListUtils::create<double>("1.4"));
   p.setValue("file_parameter", "", "This is a file parameter.");
   p.addTag("file_parameter", "input file");
-  p.setValidStrings("file_parameter", std::vector<std::string>{"*.mzML","*.mzXML"});
+  p.setValidStrings("file_parameter", std::vector<std::string> {"*.mzML", "*.mzXML"});
+  p.setValue("outdir_parameter", "", "This is a outdir parameter.");
+  p.addTag("outdir_parameter", "output dir");
   p.setValue("advanced_parameter", "", "This is an advanced parameter.", {"advanced"});
   p.setValue("flag", "false", "This is a flag i.e. in a command line input it does not need a value.");
   p.setValidStrings("flag",{"true","false"});
@@ -265,11 +258,12 @@ START_SECTION((void writeCTDToStream(std::ostream *os_ptr, const Param &param) c
   ParamCTDFile paramFile;
   ToolInfo info = {"2.6.0-pre-STL-ParamCTD-2021-06-02",
                    "AccurateMassSearch",
-                   "http://www.openms.de/doxygen/nightly/html/UTILS_AccurateMassSearch.html",
+                   "http://www.openms.de/doxygen/nightly/html/TOPP_AccurateMassSearch.html",
                    "Utilities",
                    "Match MS signals to molecules from a database by mass.",
-                   {"10.1038/nmeth.3959"}};
+                   {"10.1038/s41592-024-02197-7"}};
   paramFile.writeCTDToStream(&s,p, info);
+  s.close();
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("ParamCTDFile_test_writeCTDToStream.ctd"))
 }
 END_SECTION

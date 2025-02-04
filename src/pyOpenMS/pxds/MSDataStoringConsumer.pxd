@@ -12,13 +12,13 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataStoringConsumer.h>" namespace 
             #  This class is able to keep spectra and chromatograms passed to it in memory
             #  and the data can be accessed through getData()
 
-        MSDataStoringConsumer() nogil except +
-        MSDataStoringConsumer(MSDataStoringConsumer &) nogil except + # compiler
+        MSDataStoringConsumer() except + nogil 
+        MSDataStoringConsumer(MSDataStoringConsumer &) except + nogil  # compiler
 
-        void setExperimentalSettings(ExperimentalSettings & exp) nogil except + # wrap-doc:Sets experimental settings
-        void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) nogil except + # wrap-doc:Sets expected size
+        void setExperimentalSettings(ExperimentalSettings & exp) except + nogil  # wrap-doc:Sets experimental settings
+        void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) except + nogil  # wrap-doc:Sets expected size
 
-        void consumeSpectrum(MSSpectrum & s) nogil except +
-        void consumeChromatogram(MSChromatogram & ) nogil except +
+        void consumeSpectrum(MSSpectrum & s) except + nogil 
+        void consumeChromatogram(MSChromatogram & ) except + nogil 
 
-        MSExperiment getData() nogil except +
+        MSExperiment getData() except + nogil 

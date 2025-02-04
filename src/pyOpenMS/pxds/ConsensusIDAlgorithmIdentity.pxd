@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmIdentity.h>" namespace
         # no-pxd-import
 
         # protected
-        ConsensusIDAlgorithmIdentity() nogil except + #wrap-ignore
+        ConsensusIDAlgorithmIdentity() except + nogil  #wrap-ignore
         # private
-        ConsensusIDAlgorithmIdentity(ConsensusIDAlgorithmIdentity) nogil except + #wrap-ignore
+        ConsensusIDAlgorithmIdentity(ConsensusIDAlgorithmIdentity) except + nogil  #wrap-ignore
 

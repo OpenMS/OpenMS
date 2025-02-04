@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -39,6 +13,9 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+
+
+#include <array>
 #include <iosfwd>
 #include <set>
 #include <vector>
@@ -76,6 +53,9 @@ public:
      *
      * Formulae that need to be added to the internal residues to get to
      * fragment type from http://www.matrixscience.com/help/fragmentation_help.html
+     * 
+     * Which means that we follow Biemann nomenclature.
+     * For a small description of the differernt ion types, see the enum @ref ResidueType.
      */
     //@{
 
@@ -143,15 +123,35 @@ public:
       return to_full;
     }
 
+    inline static const EmpiricalFormula& getInternalToZp1Ion()
+    {
+      // Mind the "-"
+      static const EmpiricalFormula to_full =
+        getInternalToCTerm() - EmpiricalFormula("NH");
+      return to_full;
+    }
+
+    inline static const EmpiricalFormula& getInternalToZp2Ion()
+    {
+      // Mind the "-"
+      static const EmpiricalFormula to_full =
+        getInternalToCTerm() - EmpiricalFormula("N");
+      return to_full;
+    }
+
     //@}
 
     /** @name Enums
     */
     //@{
+
+    /// Residue types: Note that all weights and elemental compositions of fragment "ions" are given for their neutral forms.
+    /// Furthermore, all fragment ion types are based on the Biemann nomenclature (http://www.matrixscience.com/help/fragmentation_help.html)
+    /// See https://github.com/OpenMS/OpenMS/issues/7219 for a discussion with more details and links.
     enum ResidueType
     {
       Full = 0,       ///< with N-terminus and C-terminus
-      Internal,       ///< internal, without any termini
+      Internal,       ///< internal residue, without any termini
       NTerminal,      ///< only N-terminus
       CTerminal,      ///< only C-terminus
       AIon,           ///< MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
@@ -159,7 +159,9 @@ public:
       CIon,           ///< MS:1001231 N-terminus up to the amide/C-alpha bond
       XIon,           ///< MS:1001228 amide/C-alpha bond up to the C-terminus
       YIon,           ///< MS:1001220 peptide bond up to the C-terminus
-      ZIon,           ///< MS:1001230 C-alpha/carbonyl carbon bond
+      ZIon,           ///< MS:1001230 C-alpha/carbonyl carbon bond [CID fragment]
+      Zp1Ion,         ///< MS:1001230 C-alpha/carbonyl carbon bond (free radical, z+1 "ion") [main EAD fragment]
+      Zp2Ion,         ///< MS:1001230 C-alpha/carbonyl carbon bond (free radical, z+2 "ion" with additional abstracted hydrogen) [EAD fragment at higher precursor charges]
       Precursor,      ///< MS:1001523 Precursor ion
       BIonMinusH20,   ///< MS:1001222 b ion without water
       YIonMinusH20,   ///< MS:1001223 y ion without water
@@ -170,6 +172,29 @@ public:
       SizeOfResidueType
     };
     //@}
+    
+    /// Names corresponding to the ResidueType enum
+    static inline std::array<std::string_view, Residue::ResidueType::SizeOfResidueType> names_of_residuetype {
+      "full",
+      "internal",
+      "N-terminal",
+      "C-terminal",
+      "a-ion",
+      "b-ion",
+      "c-ion",
+      "x-ion",
+      "y-ion",
+      "z-ion",
+      "z+1-ion",
+      "z+2-ion",
+      "precursor-ion",
+      "b-H2O-ion",
+      "y-H2O-ion",
+      "b-NH3-ion",
+      "y-NH3-ion",
+      "Non-identified ion",
+      "unannotated"
+    };
 
     /// returns the ion name given as a residue type
     static String getResidueTypeName(const ResidueType res_type);
@@ -403,7 +428,7 @@ public:
     //@}
 
     /// helper for mapping residue types to letters for Text annotations and labels
-    static char residueTypeToIonLetter(const ResidueType& res_type);
+    static std::string residueTypeToIonLetter(const ResidueType& res_type);
 
     /// Write as Origin+Modification, e.g. M(Oxidation), or X[945.34] or N[+14.54] for user-defined mods.
     /// This requires the Residue to have a valid OneLetterCode and an optional (but valid) ResidueModification (see ResidueModification::toString())
@@ -415,7 +440,7 @@ public:
 protected:
 
     /// the name of the residue
-    String name_;
+    String name_ = "unknown";
 
     std::set<String> synonyms_;
 
@@ -427,12 +452,12 @@ protected:
 
     EmpiricalFormula internal_formula_;
 
-    double average_weight_;
+    double average_weight_ = 0;
 
-    double mono_weight_;
+    double mono_weight_ = 0;
 
     /// pointer to the modification 
-    const ResidueModification* modification_;
+    const ResidueModification* modification_ = nullptr;
 
     // loss
     std::vector<String> loss_names_;
@@ -443,44 +468,42 @@ protected:
 
     std::vector<EmpiricalFormula> NTerm_loss_formulas_;
 
-    double loss_average_weight_;
-
-    double loss_mono_weight_;
-
     /// low mass markers like immonium ions
     std::vector<EmpiricalFormula> low_mass_ions_;
 
     // pka values
-    double pka_;
+    double pka_ = 0;
 
     // pkb values
-    double pkb_;
+    double pkb_ = 0;
 
     // pkc values
-    double pkc_;
+    double pkc_ = -1.0;
 
     /// SideChainBasicity
-    double gb_sc_;
+    double gb_sc_ = 0;
 
     /// BackboneBasicityLeft
-    double gb_bb_l_;
+    double gb_bb_l_ = 0;
 
     /// BackboneBasicityRight
-    double gb_bb_r_;
+    double gb_bb_r_ = 0;
 
     /// residue sets this amino acid is contained in
     std::set<String> residue_sets_;
 
     // pre-calculated residue type delta weights for more efficient weight calculation
-    double internal_to_full_monoweight_ = getInternalToFull().getMonoWeight();
-    double internal_to_nterm_monoweight_ = getInternalToNTerm().getMonoWeight();
-    double internal_to_cterm_monoweight_ = getInternalToCTerm().getMonoWeight();
-    double internal_to_a_monoweight_ = getInternalToAIon().getMonoWeight();
-    double internal_to_b_monoweight_ = getInternalToBIon().getMonoWeight();
-    double internal_to_c_monoweight_ = getInternalToCIon().getMonoWeight();
-    double internal_to_x_monoweight_ = getInternalToXIon().getMonoWeight();
-    double internal_to_y_monoweight_ = getInternalToYIon().getMonoWeight();
-    double internal_to_z_monoweight_ = getInternalToZIon().getMonoWeight();
+    static const double internal_to_full_monoweight_;
+    static const double internal_to_nterm_monoweight_;
+    static const double internal_to_cterm_monoweight_;
+    static const double internal_to_a_monoweight_;
+    static const double internal_to_b_monoweight_;
+    static const double internal_to_c_monoweight_;
+    static const double internal_to_x_monoweight_;
+    static const double internal_to_y_monoweight_;
+    static const double internal_to_z_monoweight_;
+    static const double internal_to_zp1_monoweight_;
+    static const double internal_to_zp2_monoweight_;
   };
 
   // write 'name threelettercode onelettercode formula'

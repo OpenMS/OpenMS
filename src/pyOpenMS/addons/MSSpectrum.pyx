@@ -1,7 +1,51 @@
-cimport numpy as np
-import numpy as np
 
 
+    def get_mz_array(MSSpectrum self):
+        """Cython signature: numpy_vector get_mz_array()
+        
+        Will return a numpy array corresponding
+        to the mz values in the MSSpectrum.
+        """
+
+        cdef _MSSpectrum * spec_ = self.inst.get()
+
+        cdef unsigned int n = spec_.size()
+        cdef np.ndarray[np.float64_t, ndim=1] mzs
+        mzs = np.empty( (n,), dtype=np.float64)
+        cdef _Peak1D p
+
+        cdef libcpp_vector[_Peak1D].iterator it = spec_.begin()
+        cdef int i = 0
+        while it != spec_.end():
+            mzs[i] = deref(it).getMZ()
+            inc(it)
+            i += 1
+
+        return mzs
+
+
+    def get_intensity_array(MSSpectrum self):
+        """Cython signature: numpy_vector get_intensity_array()
+        
+        Will return a numpy array corresponding
+        to the intensity values in the MSSpectrum.
+        """
+
+        cdef _MSSpectrum * spec_ = self.inst.get()
+
+        cdef unsigned int n = spec_.size()
+        cdef np.ndarray[np.float32_t, ndim=1] intensities
+        intensities = np.empty( (n,), dtype=np.float32)
+        cdef _Peak1D p
+
+        cdef libcpp_vector[_Peak1D].iterator it = spec_.begin()
+        cdef int i = 0
+        while it != spec_.end():
+            intensities[i] = deref(it).getIntensity()
+            inc(it)
+            i += 1
+
+        return intensities
 
     def get_peaks(self):
         """Cython signature: numpy_vector, numpy_vector get_peaks()

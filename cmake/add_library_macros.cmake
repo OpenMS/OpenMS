@@ -1,31 +1,5 @@
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
 #
 # --------------------------------------------------------------------------
 # $Maintainer: Julianus Pfeuffer $
@@ -36,6 +10,13 @@
 include(CMakeParseArguments)
 include(GenerateExportHeader)
 include(CheckLibArchitecture)
+
+
+#------------------------------------------------------------------------------
+# Enable AddressSanitizer and include some helper function to add compiler and linker flags
+#------------------------------------------------------------------------------  
+option(ADDRESS_SANITIZER "[Clang/GCC only] Enable AddressSanitizer mode (quite slow)." OFF)
+include(${PROJECT_SOURCE_DIR}/cmake/AddressSanitizer.cmake)
 
 #------------------------------------------------------------------------------
 ## export a single option indicating if libraries should be build as unity
@@ -123,6 +104,7 @@ endmacro()
 #                    EXTERNAL_INCLUDES <list of external include directories for the library>
 #                                      (will be added with -isystem if available)
 #                    LINK_LIBRARIES <list of libraries used when linking the library>
+#                    PRIVATE_LINK_LIBRARIES <list of internal libraries used when linking the library>
 #                    DLL_EXPORT_PATH <path to the dll export header>)
 function(openms_add_library)
   #------------------------------------------------------------------------------
@@ -130,6 +112,7 @@ function(openms_add_library)
   set(options )
   set(oneValueArgs TARGET_NAME DLL_EXPORT_PATH)
   set(multiValueArgs INTERNAL_INCLUDES PRIVATE_INCLUDES EXTERNAL_INCLUDES SOURCE_FILES HEADER_FILES LINK_LIBRARIES PRIVATE_LINK_LIBRARIES)
+  ## make above arguments available as variables, e.g. ${openms_add_library_PRIVATE_LINK_LIBRARIES}
   cmake_parse_arguments(openms_add_library "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
 
   #------------------------------------------------------------------------------
@@ -155,6 +138,8 @@ function(openms_add_library)
 
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
+  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES AUTOMOC ON)
+
   #------------------------------------------------------------------------------
   # Include directories
   # since internal includes all start with include/OpenMS and install_headers takes care of merging them in the install tree,
@@ -174,14 +159,33 @@ function(openms_add_library)
   #TODO cxx_std_17 only requires a c++17 flag for the compiler. Not full standard support.
   # If we want full support, we need our own try_compiles (e.g. for structured bindings first available in GCC7)
   # or specify a min version of each compiler.
-  target_compile_features(${openms_add_library_TARGET_NAME} PUBLIC cxx_std_17)
+  target_compile_features(${openms_add_library_TARGET_NAME} PUBLIC cxx_std_20)
 
+  if (CMAKE_COMPILER_IS_GNUCXX)
+    target_compile_options(${openms_add_library_TARGET_NAME} PRIVATE 
+    -Wall
+    -Wextra
+    #-fvisibility=hidden # This is now added as a target property for each library.     
+    -Wno-non-virtual-dtor
+    -Wno-unknown-pragmas
+    -Wno-long-long 
+    -Wno-unknown-pragmas
+    -Wno-unused-function
+    -Wno-variadic-macros)
+  endif()
+
+  if(ADDRESS_SANITIZER)
+    add_asan_to_target(${openms_add_library_TARGET_NAME})
+  endif()
+  
+  
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
 
   #------------------------------------------------------------------------------
   # Generate export header if requested
   if(NOT ${openms_add_library_DLL_EXPORT_PATH} STREQUAL "")
+    ## this snipped creates 'OpenMSConfig.h' in the build tree
     set(_CONFIG_H "include/${openms_add_library_DLL_EXPORT_PATH}${openms_add_library_TARGET_NAME}Config.h")
     string(TOUPPER ${openms_add_library_TARGET_NAME} _TARGET_UPPER_CASE)
     include(GenerateExportHeader)
@@ -261,7 +265,7 @@ function(openms_add_library)
             ${DLL_DOC_TARGET_PATH}
             )
 
-    foreach(command IN ITEMS "${copy_dlls_to_output_folder}" "${copy_dlls_to_test_folder}" "${copy_dlls_to_doc_folder}")
+    foreach(command IN ITEMS "${copy_dlls_to_output_folder}" "${copy_dlls_to_test_folder}")# "${copy_dlls_to_doc_folder}")
       set(if_runtime_dlls_copy
               $<IF:${has_dll_dep},${command},${none_command}>
               )
@@ -270,6 +274,15 @@ function(openms_add_library)
               COMMAND_EXPAND_LISTS
               )
     endforeach()
+
+    ## another fix for APPLE, see https://github.com/OpenMS/OpenMS/pull/7525
+    if(APPLECLANG)
+      if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "15.0.0")
+          target_link_options(${openms_add_library_TARGET_NAME} PRIVATE -ld_classic)
+          set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES
+              QT_NO_DISABLE_WARN_DUPLICATE_LIBRARIES TRUE)
+      endif()
+    endif()
   endif()
   #------------------------------------------------------------------------------
   # Status message for configure output

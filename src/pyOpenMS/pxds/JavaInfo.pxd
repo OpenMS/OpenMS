@@ -6,10 +6,10 @@ cdef extern from "<OpenMS/SYSTEM/JavaInfo.h>" namespace "OpenMS":
 
     cdef cppclass JavaInfo:
 
-        JavaInfo() nogil except + # wrap-doc:Detect Java and retrieve information
-        JavaInfo(JavaInfo &) nogil except +
+        JavaInfo() except + nogil  # wrap-doc:Detect Java and retrieve information
+        JavaInfo(JavaInfo &) except + nogil 
 
-        bool canRun(String java_executable) nogil except +
+        bool canRun(String java_executable) except + nogil 
             # wrap-doc:
                 #  Determine if Java is installed and reachable\n
                 #  
