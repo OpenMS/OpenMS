@@ -88,11 +88,11 @@ namespace OpenMS
     if (!precursor_peak_group_.empty())
     {
       val << ";precursorscan=" << precursor_scan_number_ << ";precursormass=" << std::to_string(precursor_peak_group_.getMonoMass())
-          << ";precursorscore=" << std::to_string(precursor_peak_group_.getQscore2D());
+          << ";precursorQscore=" << std::to_string(precursor_peak_group_.getQscore2D())  << ";precursorSNR=" << std::to_string(precursor_peak_group_.getChargeSNR(precursor_peak_.getCharge())) ;
     }
     else
     {
-      val << ";precursorscan=0;precursormass=0;precursorscore=0";
+      val << ";precursorscan=0;precursormass=0;precursorQscore=0;precursorSNR=0";
     }
 
     val << ";peaks=";

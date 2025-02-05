@@ -85,6 +85,7 @@ private:
     int mode_;
     int protein_start_position_ = -1, protein_end_position_ = -1;
     double calculated_precursor_mass_ = -1;
+    std::vector<int> start_pro_indices_;
   };
 
   std::map<double, std::vector<ResidueModification>> mod_map_; // modification mass to modification index. To use find nearest function
@@ -114,16 +115,16 @@ private:
 
   void connectBetweenTags_(std::set<Size>& visited_tag_edges,
                            HitInformation& hi,
-                           std::map<Size, std::tuple<double, double>>& sinks,
+                           std::map<Size, std::set<std::pair<double, double>>>& sinks,
                            Size vertex,
                            double truncation_mass,
                            double cumulative_shift,
-                           std::map<Size, std::map<int, int>>& node_max_score_map,
+                           std::map<Size, std::map<Size, int>>& node_max_score_map,
                            const std::vector<std::vector<int>>& tag_edges,
                            int max_mod_cntr_for_last_mode,
                            bool use_tags);
 
-  void extendBetweenTags_(std::map<Size, std::tuple<double, double>>& sinks,
+  void extendBetweenTags_(std::map<Size, std::set<std::pair<double, double>>>& sinks,
                           HitInformation& hi,
                           Size start_vertex,
                           int end_node_index,
@@ -131,7 +132,7 @@ private:
                           int diagonal_counter,
                           double truncation_mass,
                           double cumulative_mod_mass,
-                          std::map<Size, std::map<int, int>>& node_max_score_map,
+                          std::map<Size, std::map<Size, int>>& node_max_score_map,
                           int max_mod_cntr_for_last_mode);
 
   int getProteinLength_(const std::vector<Size>& path, const std::vector<double>& pro_masses) const;
@@ -146,9 +147,8 @@ private:
   std::vector<FLASHHelperClasses::Tag> tags_;
   double tol_;
 
-
   int max_mod_cntr_ = 0;
-  std::vector<int> start_pro_indices_;
+  int allowed_isotope_error_ = 1;
   const int max_path_score_ = 1200;
   const int min_path_score_ = -20;
   const int max_extension_stretch_ = 50;

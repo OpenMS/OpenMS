@@ -151,6 +151,7 @@ void FLASHTaggerAlgorithm::constructDAG_(FLASHHelperClasses::DAG& dag,
 {
   // from source to sink, connect but the edge direction is from sink to source.
   edge_aa_map_.clear();
+
   int start_index = 1; // zeroth = source.
   int end_index = 1;
   boost::dynamic_bitset<> visited(dag.size());
@@ -329,6 +330,25 @@ void FLASHTaggerAlgorithm::setDefaultParams_()
   defaultsToParam_();
 }
 
+bool areSetsEqualWithinTolerance(const std::set<double>& set1, const std::set<double>& set2, double tolerance) {
+  if (set1.size() != set2.size()) {
+    return false;  // Early exit if sizes are different
+  }
+
+  auto it1 = set1.begin();
+  auto it2 = set2.begin();
+
+  while (it1 != set1.end() && it2 != set2.end()) {
+    if (std::fabs(*it1 - *it2) > tolerance) {
+      return false;  // Elements are not within tolerance
+    }
+    ++it1;
+    ++it2;
+  }
+
+  return true;  // All elements matched within tolerance
+}
+
 void FLASHTaggerAlgorithm::updateMembers_()
 {
   min_tag_length_ = param_.getValue("min_length");
@@ -368,9 +388,7 @@ void FLASHTaggerAlgorithm::updateMembers_()
     }
   }
 
-  if (n_term_shifts_ == c_term_shifts_) common_shifts_ = c_term_shifts_;
-
-  // std::cout<<common_shifts_.size() << " " << c_term_shifts_.size() << " " << n_term_shifts_.size()<<std::endl;
+  if (areSetsEqualWithinTolerance(n_term_shifts_, c_term_shifts_, .0001)) common_shifts_ = c_term_shifts_;
 
   consider_diff_ion_jumps_ = common_shifts_.size() > 1 || n_term_shifts_.size() > 1 || c_term_shifts_.size() > 1;
   //min_cov_aa_ = (int)param_.getValue("min_matched_aa");
@@ -536,6 +554,8 @@ void FLASHTaggerAlgorithm::updateTagSet_(std::set<FLASHHelperClasses::Tag>& tag_
 
   for (const auto& seq : seqs)
   {
+    String rev_seq = String(seq).reverse();
+    if (rev_seq == seq) continue; // exclude palindromic tags.
     auto iter = seq_tag.find(seq);
     bool pass = (mode != 2);
     if (pass && iter != seq_tag.end()) // remove overlapping tags.
@@ -556,7 +576,7 @@ void FLASHTaggerAlgorithm::updateTagSet_(std::set<FLASHHelperClasses::Tag>& tag_
     }
 
     pass = (mode != 1);
-    String rev_seq = String(seq).reverse();
+
     iter = seq_tag.find(rev_seq);
     if (pass && iter != seq_tag.end()) // remove overlapping tags.
     {
@@ -677,6 +697,7 @@ void FLASHTaggerAlgorithm::getTags_(const std::vector<double>& mzs, const std::v
           dag.findAllPaths(getVertex_((int)_mzs.size() - 1, score, length, diff_ion_index, d), getVertex_(0, 0, 0, 0, 0), all_paths, tag_count);
         }
       }
+
       for (const auto& path : all_paths)
       {
         updateTagSet_(_tagSet, seq_tag, path, _mzs, _scores, scan, ppm, mode);
@@ -754,8 +775,6 @@ void FLASHTaggerAlgorithm::runMatching(const std::vector<FASTAFile::FASTAEntry>&
 
   std::vector<int> spec_vec;
   std::vector<int> spec_scores;
-  //Size spec_vec_size
-  //  = 1 + round(ConvolutionBasedProteinFilter::multi_factor_for_vectorization * deconvolved_spectrum[deconvolved_spectrum.size() - 1].getMonoMass());
 
 #pragma omp parallel for default(none)                                                                                                     \
   shared(mass_map, rev_mass_map, spec_vec, spec_scores, deconvolved_spectrum, pairs, fasta_entry, \

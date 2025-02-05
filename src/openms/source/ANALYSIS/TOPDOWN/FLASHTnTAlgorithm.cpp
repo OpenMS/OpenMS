@@ -15,7 +15,7 @@
 
 namespace OpenMS
 {
-inline const int max_hit_count = 10;
+inline const int max_hit_count = 15;
 FLASHTnTAlgorithm::FLASHTnTAlgorithm(): DefaultParamHandler("FLASHTnTAlgorithm"), ProgressLogger()
 {
   setDefaultParams_();
@@ -145,14 +145,12 @@ void FLASHTnTAlgorithm::markRepresentativeProteoformHits_(double tol)
     hit.setMetaValue("Representative", true);
 
     proteoform_map[acc].push_back(hit);
-    // std::cout<<acc << " " <<  (proteoform_map.find("sp|P02359|RS7_ECOLI") != proteoform_map.end()) << " " << tmp.size() << std::endl;
   }
 }
 
 
 void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile::FASTAEntry>& fasta_entry)
 {
-  //std::cout<<param_<<std::endl;
   setLogType(CMD);
   startProgress(0, (SignedSize)map.size(), "Running FLASHTnT ...");
   //int max_tag_length = tagger_param_.getValue("max_length");
@@ -240,13 +238,21 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
       double precursor_mass = stod(deconv_meta_str.substr(s_loc_prem_s, s_loc_prem_e - s_loc_prem_s));
       PeakGroup pg;
       pg.setMonoisotopicMass(precursor_mass);
-      if (deconv_meta_str.hasSubstring("precursorscore="))
+      if (deconv_meta_str.hasSubstring("precursorQscore="))
       {
-        int s_loc_preq_s = deconv_meta_str.find("precursorscore=") + 15;
+        int s_loc_preq_s = deconv_meta_str.find("precursorQscore=") + 16;
         int s_loc_preq_e = deconv_meta_str.find(";", s_loc_preq_s);
         double precursor_qscore = stod(deconv_meta_str.substr(s_loc_preq_s, s_loc_preq_e - s_loc_preq_s));
         pg.setQscore2D(precursor_qscore);
       }
+      if (deconv_meta_str.hasSubstring("precursorSNR="))
+      {
+        int s_loc_pres_s = deconv_meta_str.find("precursorSNR=") + 13;
+        int s_loc_pres_e = deconv_meta_str.find(";", s_loc_pres_s);
+        double precursor_snr = stod(deconv_meta_str.substr(s_loc_pres_s, s_loc_pres_e - s_loc_pres_s));
+        pg.setSNR(precursor_snr);
+      }
+
       dspec.setPrecursorPeakGroup(pg);
     }
 
