@@ -51,7 +51,9 @@ function(openms_add_compiler_flags TARGET_NAME)
       _CRT_SECURE_NO_WARNINGS
       _CRT_SECURE_NO_DEPRECATE
       OPENMS_XERCESDLL
-      NOMINMAX)
+      NOMINMAX
+      $<$<CONFIG:Debug>:OPENMS_ASSERTIONS>
+      $<$<CONFIG:RelWithDebInfo>:OPENMS_ASSERTIONS>)
   endif()
 
   if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
