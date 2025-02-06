@@ -45,10 +45,14 @@ function(openms_add_compiler_flags TARGET_NAME)
       /bigobj  # allow large object files
       /MP)     # use multiple CPU cores
     
+    # Private definitions that only affect this target's compilation
     target_compile_definitions(${TARGET_NAME} PRIVATE
       _SCL_SECURE_NO_WARNINGS
       _CRT_SECURE_NO_WARNINGS
-      _CRT_SECURE_NO_DEPRECATE
+      _CRT_SECURE_NO_DEPRECATE)
+      
+    # Public definitions that need to propagate to downstream targets
+    target_compile_definitions(${TARGET_NAME} PUBLIC
       OPENMS_XERCESDLL
       NOMINMAX
       $<$<CONFIG:Debug>:OPENMS_ASSERTIONS>
@@ -98,6 +102,13 @@ function(openms_add_compiler_flags TARGET_NAME)
     if (WITH_FPIC)
       target_compile_options(${TARGET_NAME} PRIVATE -fPIC)
     endif()
+  endif()
+
+  # Add assertions for all compilers in Debug/RelWithDebInfo modes
+  if (NOT MSVC)  # MSVC already handled above
+    target_compile_definitions(${TARGET_NAME} PUBLIC
+      $<$<CONFIG:Debug>:OPENMS_ASSERTIONS>
+      $<$<CONFIG:RelWithDebInfo>:OPENMS_ASSERTIONS>)
   endif()
 endfunction()
 
