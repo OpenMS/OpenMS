@@ -10,11 +10,103 @@
 include(CMakeParseArguments)
 include(GenerateExportHeader)
 include(CheckLibArchitecture)
+include(CheckCXXCompilerFlag)
 
+#------------------------------------------------------------------------------
+# Function to add OpenMS compiler flags to any target
+#------------------------------------------------------------------------------
+function(openms_add_compiler_flags TARGET_NAME)
+  if (CMAKE_COMPILER_IS_GNUCXX)
+    target_compile_options(${TARGET_NAME} PRIVATE
+      -Wall
+      -Wextra
+      -Wno-non-virtual-dtor
+      -Wno-unknown-pragmas
+      -Wno-long-long
+      -Wno-unknown-pragmas
+      -Wno-unused-function
+      -Wno-variadic-macros)
+
+    if (ENABLE_GCC_WERROR)
+      target_compile_options(${TARGET_NAME} PRIVATE -Werror)
+    endif()
+
+    if (CMAKE_GENERATOR STREQUAL "Eclipse CDT4 - Unix Makefiles")
+      target_compile_options(${TARGET_NAME} PRIVATE -fmessage-length=0)
+    endif()
+  endif()
+
+  if (MSVC)
+    target_compile_options(${TARGET_NAME} PRIVATE
+      /wd4251 /wd4275  # disable dll-interface warning
+      /wd4996  # disable deprecated functions warning
+      /wd4661  # disable explicit template instantiation warning
+      /wd4503  # disable decorated name length warning
+      /wd4068  # disable unknown pragma warning
+      /bigobj  # allow large object files
+      /MP)     # use multiple CPU cores
+    
+    target_compile_definitions(${TARGET_NAME} PRIVATE
+      _SCL_SECURE_NO_WARNINGS
+      _CRT_SECURE_NO_WARNINGS
+      _CRT_SECURE_NO_DEPRECATE
+      OPENMS_XERCESDLL
+      NOMINMAX)
+  endif()
+
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(${TARGET_NAME} PRIVATE
+      -ffp-contract=off
+      -Wall -Wextra
+      -Wno-sign-conversion
+      -Wno-long-long
+      -Wno-padded
+      -Wno-global-constructors
+      -Wno-exit-time-destructors
+      -Wno-weak-vtables
+      -Wno-documentation-unknown-command
+      -Wno-undef
+      -Wno-documentation
+      -Wno-source-uses-openmp
+      -Wno-old-style-cast
+      -Wno-c++98-compat
+      -Wno-c++98-compat-pedantic
+      -Wno-unknown-warning-option
+      -Wno-double-promotion
+      -Wno-unused-template
+      -Wno-conversion
+      -Wno-float-equal
+      -Wno-switch-enum
+      -Wno-missing-prototypes
+      -Wno-missing-variable-declarations
+      -Wno-deprecated
+      -Wno-deprecated-register
+      -Wno-covered-switch-default
+      -Wno-date-time
+      -Wno-missing-noreturn)
+  endif()
+
+  # Add SIMD flags if on x86/x64
+  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86|AMD64")
+    if (MSVC)
+      target_compile_options(${TARGET_NAME} PRIVATE /arch:AVX)
+    else()
+      target_compile_options(${TARGET_NAME} PRIVATE -mssse3)
+    endif()
+  endif()
+
+  # Add -fPIC on non-Windows systems
+  if (NOT WIN32)
+    check_cxx_compiler_flag("-fPIC" WITH_FPIC)
+    if (WITH_FPIC)
+      target_compile_options(${TARGET_NAME} PRIVATE -fPIC)
+    endif()
+  endif()
+endfunction()
 
 #------------------------------------------------------------------------------
 # Enable AddressSanitizer and include some helper function to add compiler and linker flags
-#------------------------------------------------------------------------------  
+#------------------------------------------------------------------------------
 option(ADDRESS_SANITIZER "[Clang/GCC only] Enable AddressSanitizer mode (quite slow)." OFF)
 include(${PROJECT_SOURCE_DIR}/cmake/AddressSanitizer.cmake)
 
@@ -161,18 +253,8 @@ function(openms_add_library)
   # or specify a min version of each compiler.
   target_compile_features(${openms_add_library_TARGET_NAME} PUBLIC cxx_std_20)
 
-  if (CMAKE_COMPILER_IS_GNUCXX)
-    target_compile_options(${openms_add_library_TARGET_NAME} PRIVATE 
-    -Wall
-    -Wextra
-    #-fvisibility=hidden # This is now added as a target property for each library.     
-    -Wno-non-virtual-dtor
-    -Wno-unknown-pragmas
-    -Wno-long-long 
-    -Wno-unknown-pragmas
-    -Wno-unused-function
-    -Wno-variadic-macros)
-  endif()
+  # Add OpenMS compiler flags to target
+  openms_add_compiler_flags(${openms_add_library_TARGET_NAME})
 
   if(ADDRESS_SANITIZER)
     add_asan_to_target(${openms_add_library_TARGET_NAME})

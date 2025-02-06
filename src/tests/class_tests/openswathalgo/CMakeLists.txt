@@ -62,5 +62,6 @@ set(openswath_algo_tests
 foreach(i ${openswath_algo_tests})
   add_executable(${i} ${i}.cpp)
   target_link_libraries(${i} OpenSwathAlgo OpenMS)
+  openms_add_compiler_flags(${i})
   add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
 endforeach(i)

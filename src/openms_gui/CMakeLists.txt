@@ -88,6 +88,9 @@ foreach(i ${GUI_executables})
 
   ## append visual lib as dependency for GUI tools
   target_link_libraries(${i} OpenMS_GUI)
+  
+  ## add compiler flags
+  openms_add_compiler_flags(${i})
 endforeach(i)
 
   ## install platform plugins. On Mac this is handled for every GUI app inside its app bundle.
