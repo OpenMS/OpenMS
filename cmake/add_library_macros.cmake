@@ -22,10 +22,9 @@ function(openms_add_compiler_flags TARGET_NAME)
       -Wextra
       -Wno-non-virtual-dtor
       -Wno-unknown-pragmas
-      -Wno-long-long
       -Wno-unknown-pragmas
       -Wno-unused-function
-      -Wno-variadic-macros)
+      )
 
     if (ENABLE_GCC_WERROR)
       target_compile_options(${TARGET_NAME} PRIVATE -Werror)
@@ -61,7 +60,6 @@ function(openms_add_compiler_flags TARGET_NAME)
       -ffp-contract=off
       -Wall -Wextra
       -Wno-sign-conversion
-      -Wno-long-long
       -Wno-padded
       -Wno-global-constructors
       -Wno-exit-time-destructors
@@ -71,8 +69,6 @@ function(openms_add_compiler_flags TARGET_NAME)
       -Wno-documentation
       -Wno-source-uses-openmp
       -Wno-old-style-cast
-      -Wno-c++98-compat
-      -Wno-c++98-compat-pedantic
       -Wno-unknown-warning-option
       -Wno-double-promotion
       -Wno-unused-template
@@ -82,7 +78,6 @@ function(openms_add_compiler_flags TARGET_NAME)
       -Wno-missing-prototypes
       -Wno-missing-variable-declarations
       -Wno-deprecated
-      -Wno-deprecated-register
       -Wno-covered-switch-default
       -Wno-date-time
       -Wno-missing-noreturn)
