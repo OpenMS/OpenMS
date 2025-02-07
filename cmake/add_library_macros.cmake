@@ -44,6 +44,19 @@ function(openms_add_compiler_flags TARGET_NAME)
       /wd4068  # disable unknown pragma warning
       /bigobj  # allow large object files
       /MP)     # use multiple CPU cores
+
+    # Ensure proper DLL handling on Windows
+    set_target_properties(${TARGET_NAME} PROPERTIES
+      WINDOWS_EXPORT_ALL_SYMBOLS ON
+      ENABLE_EXPORTS ON)
+
+    # Add linker flags for proper DLL support
+    if (BUILD_SHARED_LIBS)
+      target_link_options(${TARGET_NAME} PRIVATE
+        /DYNAMICBASE  # Enable ASLR
+        /NXCOMPAT     # Enable Data Execution Prevention
+        )
+    endif()
     
     # Private definitions that only affect this target's compilation
     target_compile_definitions(${TARGET_NAME} PRIVATE
@@ -236,9 +249,19 @@ function(openms_add_library)
   # Add the library
   add_library(${openms_add_library_TARGET_NAME} ${openms_add_library_SOURCE_FILES})
 
-  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
-  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
-  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES AUTOMOC ON)
+  if (MSVC)
+    # For MSVC, we need different visibility handling for DLLs
+    set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES
+      CXX_VISIBILITY_PRESET default  # MSVC handles visibility through dllexport/dllimport
+      VISIBILITY_INLINES_HIDDEN OFF
+      AUTOMOC ON)
+  else()
+    # For GCC/Clang, use hidden visibility by default
+    set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES
+      CXX_VISIBILITY_PRESET hidden
+      VISIBILITY_INLINES_HIDDEN ON
+      AUTOMOC ON)
+  endif()
 
   #------------------------------------------------------------------------------
   # Include directories
@@ -268,10 +291,6 @@ function(openms_add_library)
     add_asan_to_target(${openms_add_library_TARGET_NAME})
   endif()
   
-  
-  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
-  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
-
   #------------------------------------------------------------------------------
   # Generate export header if requested
   if(NOT ${openms_add_library_DLL_EXPORT_PATH} STREQUAL "")
