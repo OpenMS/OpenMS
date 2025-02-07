@@ -45,11 +45,6 @@ function(openms_add_compiler_flags TARGET_NAME)
       /bigobj  # allow large object files
       /MP)     # use multiple CPU cores
 
-    # Ensure proper DLL handling on Windows
-    set_target_properties(${TARGET_NAME} PROPERTIES
-      WINDOWS_EXPORT_ALL_SYMBOLS ON
-      ENABLE_EXPORTS ON)
-
     # Add linker flags for proper DLL support
     if (BUILD_SHARED_LIBS)
       target_link_options(${TARGET_NAME} PRIVATE
@@ -106,14 +101,6 @@ function(openms_add_compiler_flags TARGET_NAME)
       target_compile_options(${TARGET_NAME} PRIVATE /arch:AVX)
     else()
       target_compile_options(${TARGET_NAME} PRIVATE -mssse3)
-    endif()
-  endif()
-
-  # Add -fPIC on non-Windows systems
-  if (NOT WIN32)
-    check_cxx_compiler_flag("-fPIC" WITH_FPIC)
-    if (WITH_FPIC)
-      target_compile_options(${TARGET_NAME} PRIVATE -fPIC)
     endif()
   endif()
 
@@ -249,19 +236,23 @@ function(openms_add_library)
   # Add the library
   add_library(${openms_add_library_TARGET_NAME} ${openms_add_library_SOURCE_FILES})
 
-  if (MSVC)
-    # For MSVC, we need different visibility handling for DLLs
-    set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES
-      CXX_VISIBILITY_PRESET default  # MSVC handles visibility through dllexport/dllimport
-      VISIBILITY_INLINES_HIDDEN OFF
-      AUTOMOC ON)
-  else()
-    # For GCC/Clang, use hidden visibility by default
-    set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES
-      CXX_VISIBILITY_PRESET hidden
-      VISIBILITY_INLINES_HIDDEN ON
-      AUTOMOC ON)
+  # Handle position independent code
+  if (NOT WIN32)
+    check_cxx_compiler_flag("-fPIC" WITH_FPIC)
+    if (WITH_FPIC)
+      # Modern CMake way if supported
+      set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES
+        POSITION_INDEPENDENT_CODE ON)
+    else()
+      message(WARNING "Compiler does not support -fPIC, some linking errors might occur")
+    endif()
   endif()
+
+  # Use hidden visibility by default for all compilers
+  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES
+    CXX_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN ON
+    AUTOMOC ON)
 
   #------------------------------------------------------------------------------
   # Include directories
