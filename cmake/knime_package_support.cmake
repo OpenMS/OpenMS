@@ -1,8 +1,8 @@
 # --------------------------------------------------------------------------
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
+# Copyright OpenMS Inc. -- Eberhard Karls University Tuebingen,
+# ETH Zurich, and Freie Universitaet Berlin 2002-present.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -196,7 +196,6 @@ list(REMOVE_ITEM CTD_executables OpenMSInfo Resampler ExecutePipeline INIUpdater
 # TODO do regex with "Adapter". Safe enough?
 set(THIRDPARTY_ADAPTERS
     "MaRaClusterAdapter"
-    "XTandemAdapter"
     "MSGFPlusAdapter"
     "LuciphorAdapter"
     "CometAdapter"
@@ -243,8 +242,6 @@ add_custom_target(
   final_ctds
   # MaRaClusterAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MaRaClusterAdapter -DPARAM=maracluster_executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-  # XTandemAdapter
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=XTandemAdapter -DPARAM=xtandem_executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # MSGFPlusAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MSGFPlusAdapter -DPARAM=executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # LuciPhorAdapter

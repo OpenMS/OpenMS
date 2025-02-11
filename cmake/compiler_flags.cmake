@@ -1,8 +1,8 @@
 # --------------------------------------------------------------------------
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
+# Copyright OpenMS Inc. -- Eberhard Karls University Tuebingen,
+# ETH Zurich, and Freie Universitaet Berlin 2002-present.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -40,12 +40,6 @@
 if (MY_CXX_FLAGS)
   message(STATUS "Adding custom compile flags: '${MY_CXX_FLAGS}'!")
   add_compile_options(${MY_CXX_FLAGS})
-endif()
-
-if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  # workaround for MacOS 10.13 and below which does not support std::visit
-  # see https://github.com/OpenMS/OpenMS/issues/5714
-  add_definitions(-D_LIBCPP_DISABLE_AVAILABILITY)  
 endif()
 
 ########

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka  $
@@ -272,7 +272,7 @@ Within the ANALYSIS folder, you can find several important tools
 For the sake of completeness you will find a short list of the THIRDPARTY tools, which are integrated via wrappers into the %OpenMS framework (usually called -Adapter e.g. CometAdapter)
 
 Wrapper to third-party tools:
-    - Search Engines (MSGFPLUS, XTandem, Comet)
+    - Search Engines (MSGFPLUS, Comet, ...)
     - Protein Inference (Fido)
     - Spectral Library Search (SpectraST)
     - Metabolite Identification (Sirius)

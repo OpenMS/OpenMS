@@ -13,7 +13,6 @@ ChromatogramSettings.h
 ContactPerson.h
 DataArrays.h
 DataProcessing.h
-Digestion.h
 DocumentIdentifier.h
 ExperimentalDesign.h
 ExperimentalSettings.h
@@ -29,7 +28,6 @@ MetaInfoDescription.h
 MetaInfoInterface.h
 MetaInfoInterfaceUtils.h
 MetaInfoRegistry.h
-Modification.h
 PeptideEvidence.h
 PeptideHit.h
 PeptideIdentification.h
@@ -38,14 +36,12 @@ Product.h
 ProteinHit.h
 ProteinIdentification.h
 Sample.h
-SampleTreatment.h
 ScanWindow.h
 Software.h
 SourceFile.h
 SpectrumLookup.h
 SpectrumMetaDataLookup.h
 SpectrumSettings.h
-Tagging.h
 )
 
 ### add path to the filenames

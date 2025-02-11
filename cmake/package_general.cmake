@@ -1,8 +1,8 @@
 # --------------------------------------------------------------------------
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
+# Copyright OpenMS Inc. -- Eberhard Karls University Tuebingen,
+# ETH Zurich, and Freie Universitaet Berlin 2002-present.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -76,7 +76,7 @@ elseif(APPLE)
   set(POST_EXCLUDE "")
 else()
   set(EXCLUDE "")
-  set(POST_EXCLUDE ".*/ld-linux-.*" ".*/linux-vdso.*" ".*/libm\\..*" ".*/libc\\..*" ".*/libpthread\\..*" ".*/libdl\\..*")
+  set(POST_EXCLUDE ".*/ld-linux-.*" ".*/linux-vdso.*" ".*/libm\\..*" ".*/libc\\..*" ".*/libpthread\\..*" ".*/libdl\\..*" ".*/libQt6.*")
 endif()
 
 # TODO check if we can reduce the permissions
@@ -103,7 +103,6 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
   install_thirdparty_folder("pwiz-bin")
   install_thirdparty_folder("Comet")
   install_thirdparty_folder("MSGFPlus")
-  install_thirdparty_folder("XTandem")
   install_thirdparty_folder("LuciPHOr2")
   install_thirdparty_folder("SpectraST")
   install_thirdparty_folder("Sirius")
