@@ -20,12 +20,23 @@ namespace OpenMS
 {    
     void PercolatorFeatureSetHelper::addMSGFFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set)
     {
-      // MSGF+ does not always produce all scores so we focus on the stable ones
+      // MSGF+ does not always produce all scores so we focus on the main ones 
+      // and make sure they are present and initalized
       feature_set.push_back("MS:1002049"); // MS-GF:RawScore
       feature_set.push_back("MS:1002050"); // MS-GF:DeNovoScore
       feature_set.push_back("MS:1002052"); // MS-GF:SpecEValue
       feature_set.push_back("MS:1002053"); // MS-GF:EValue
-      feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR);      
+      feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR);
+      for (auto& p : peptide_ids)
+      {
+        for (auto& h : p.getHits())
+        {
+          if (!h.metaValueExists("MS:1002049")) h.setMetaValue("MS:1002049", 0.0);
+          if (!h.metaValueExists("MS:1002050")) h.setMetaValue("MS:1002050", 0.0);
+          if (!h.metaValueExists("MS:1002052")) h.setMetaValue("MS:1002052", 0.0);
+          if (!h.metaValueExists("MS:1002053")) h.setMetaValue("MS:1002053", 0.0);
+        }
+      }
     }
     
     void PercolatorFeatureSetHelper::addXTANDEMFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set)
