@@ -96,15 +96,6 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="int" name="NumMatchedMainIons" value="0"/>
-				<UserParam type="float" name="MeanErrorAll" value="0.0"/>
-				<UserParam type="float" name="StdevErrorAll" value="0.0"/>
-				<UserParam type="float" name="MeanErrorTop7" value="0.0"/>
-				<UserParam type="float" name="StdevErrorTop7" value="0.0"/>
-				<UserParam type="float" name="MeanRelErrorAll" value="0.0"/>
-				<UserParam type="float" name="StdevRelErrorAll" value="0.0"/>
-				<UserParam type="float" name="MeanRelErrorTop7" value="0.0"/>
-				<UserParam type="float" name="StdevRelErrorTop7" value="0.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="SpecEValue" higher_score_better="false" significance_threshold="0.0" MZ="775.38720703125" RT="4923.777299999999741" spectrum_reference="spectrum=2" >
@@ -121,15 +112,6 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="int" name="NumMatchedMainIons" value="0"/>
-				<UserParam type="float" name="MeanErrorAll" value="0.0"/>
-				<UserParam type="float" name="StdevErrorAll" value="0.0"/>
-				<UserParam type="float" name="MeanErrorTop7" value="0.0"/>
-				<UserParam type="float" name="StdevErrorTop7" value="0.0"/>
-				<UserParam type="float" name="MeanRelErrorAll" value="0.0"/>
-				<UserParam type="float" name="StdevRelErrorAll" value="0.0"/>
-				<UserParam type="float" name="MeanRelErrorTop7" value="0.0"/>
-				<UserParam type="float" name="StdevRelErrorTop7" value="0.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="SpecEValue" higher_score_better="false" significance_threshold="0.0" MZ="520.2628173828125" RT="2655.095699999999852" spectrum_reference="spectrum=0" >
@@ -146,15 +128,6 @@
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="int" name="NumMatchedMainIons" value="0"/>
-				<UserParam type="float" name="MeanErrorAll" value="0.0"/>
-				<UserParam type="float" name="StdevErrorAll" value="0.0"/>
-				<UserParam type="float" name="MeanErrorTop7" value="0.0"/>
-				<UserParam type="float" name="StdevErrorTop7" value="0.0"/>
-				<UserParam type="float" name="MeanRelErrorAll" value="0.0"/>
-				<UserParam type="float" name="StdevRelErrorAll" value="0.0"/>
-				<UserParam type="float" name="MeanRelErrorTop7" value="0.0"/>
-				<UserParam type="float" name="StdevRelErrorTop7" value="0.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
