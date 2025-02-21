@@ -220,15 +220,6 @@
 					<userParam name="end" unitName="xsd:integer" value="28"/>
 					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
 					<userParam name="protein_references" unitName="xsd:string" value="unique"/>
-					<userParam name="NumMatchedMainIons" unitName="xsd:integer" value="0"/>
-					<userParam name="MeanErrorAll" unitName="xsd:double" value="0.0"/>
-					<userParam name="StdevErrorAll" unitName="xsd:double" value="0.0"/>
-					<userParam name="MeanErrorTop7" unitName="xsd:double" value="0.0"/>
-					<userParam name="StdevErrorTop7" unitName="xsd:double" value="0.0"/>
-					<userParam name="MeanRelErrorAll" unitName="xsd:double" value="0.0"/>
-					<userParam name="StdevRelErrorAll" unitName="xsd:double" value="0.0"/>
-					<userParam name="MeanRelErrorTop7" unitName="xsd:double" value="0.0"/>
-					<userParam name="StdevRelErrorTop7" unitName="xsd:double" value="0.0"/>
 					<userParam name="SpecEValue" unitName="xsd:double" value="2.3492372e-26"/>
 					<userParam name="nextscore" unitName="xsd:double" value="8.0"/>
 					<userParam name="delta" unitName="xsd:double" value="1.7e-03"/>

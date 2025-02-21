@@ -208,14 +208,14 @@
   The TOPP tools should now be ready to use. The executables are located in the
   \c bin folder of the build directory. Add this folder to your
   <b><tt>PATH</tt></b> variable for easy access.
-  @note When you intend to use thirdparty search engines like XTandem, their binaries also
+  @note When you intend to use thirdparty search engines like Comet, their binaries also
   need to be in the <b><tt>PATH</tt></b>. Build them or download them inside the OpenMS source folder with
   \code
   git submodule update --init THIRDPARTY
   \endcode
-  and adapt the following for every thirdparty tool you want to use (shown for XTandem):
+  and adapt the following for every thirdparty tool you want to use (shown for Comet):
   \code
-  export PATH=${PATH_TO_CLONED_OPENMS}/THIRDPARTY/${YOUR_OS}/${YOUR_ARCH}/XTandem:${PATH}
+  export PATH=${PATH_TO_CLONED_OPENMS}/THIRDPARTY/${YOUR_OS}/${YOUR_ARCH}/Comet:${PATH}
   \endcode
   If you want to enable the corresponding tests in CMake, this has to happen before you configure and build the
   project.

@@ -33,6 +33,9 @@ Misc:
 Library:
 - IDScoreSwitcherAlgorithm: Added switchToScoreType and switchBackScoreType methods for score switching and reversion. (#7769)
 
+- removed tools:
+  - XTandemAdapter
+
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.3.0                                      ----
 ------------------------------------------------------------------------------------------

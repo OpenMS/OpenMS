@@ -20,93 +20,21 @@ namespace OpenMS
 {    
     void PercolatorFeatureSetHelper::addMSGFFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set)
     {
-      feature_set.push_back("MS:1002049"); // unchanged RawScore
-      feature_set.push_back("MS:1002050"); // unchanged DeNovoScore
-      feature_set.push_back("MSGF:ScoreRatio");
-      feature_set.push_back("MSGF:Energy");
-      feature_set.push_back("MSGF:lnEValue");
+      // MSGF+ does not always produce all scores so we focus on the main ones 
+      // and make sure they are present and initalized
+      feature_set.push_back("MS:1002049"); // MS-GF:RawScore
+      feature_set.push_back("MS:1002050"); // MS-GF:DeNovoScore
+      feature_set.push_back("MS:1002052"); // MS-GF:SpecEValue
+      feature_set.push_back("MS:1002053"); // MS-GF:EValue
       feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR);
-      feature_set.push_back("MSGF:lnExplainedIonCurrentRatio");
-      feature_set.push_back("MSGF:lnNTermIonCurrentRatio");
-      feature_set.push_back("MSGF:lnCTermIonCurrentRatio");
-      feature_set.push_back("MSGF:lnMS2IonCurrent");
-      feature_set.push_back("MSGF:MeanErrorTop7");
-      feature_set.push_back("MSGF:sqMeanErrorTop7");
-      feature_set.push_back("MSGF:StdevErrorTop7");
-      
-      for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+      for (auto& p : peptide_ids)
       {
-        for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+        for (auto& h : p.getHits())
         {
-          if (!hit->metaValueExists("NumMatchedMainIons")) 
-          {
-            hit->setMetaValue("NumMatchedMainIons", 0);
-            hit->setMetaValue("MeanErrorAll", 0.0);
-            hit->setMetaValue("StdevErrorAll", 0.0);
-            hit->setMetaValue("MeanErrorTop7", 0.0);
-            hit->setMetaValue("StdevErrorTop7", 0.0);
-            hit->setMetaValue("MeanRelErrorAll", 0.0);
-            hit->setMetaValue("StdevRelErrorAll", 0.0);
-            hit->setMetaValue("MeanRelErrorTop7", 0.0);
-            hit->setMetaValue("StdevRelErrorTop7", 0.0);
-
-            OPENMS_LOG_WARN << "MS-GF+ PSM with missing meta values. Imputing dummy values for subscores." << endl;
-          }
-
-          // Some Hits have no NumMatchedMainIons, and MeanError, etc. values. Have to ignore them!
-          // only take features from first ranked entries and only with meanerrortop7 != 0.0
-          if (hit->getMetaValue("MeanErrorTop7").toString().toDouble() != 0.0)
-          {
-            double raw_score = hit->getMetaValue("MS:1002049").toString().toDouble();
-            double denovo_score = hit->getMetaValue("MS:1002050").toString().toDouble();
-            
-            double energy = denovo_score - raw_score;
-            double score_ratio = raw_score * 10000;
-            if (denovo_score > 0)
-            {
-              score_ratio = (raw_score / denovo_score);
-            }
-            hit->setMetaValue("MSGF:ScoreRatio", score_ratio);
-            hit->setMetaValue("MSGF:Energy", energy);
-            
-            double ln_eval = -log(hit->getMetaValue("MS:1002053").toString().toDouble());
-            hit->setMetaValue("MSGF:lnEValue", ln_eval);
-            
-            double ln_explained_ion_current_ratio = log(hit->getMetaValue("ExplainedIonCurrentRatio").toString().toDouble() + 0.0001);
-            double ln_NTerm_ion_current_ratio = log(hit->getMetaValue("NTermIonCurrentRatio").toString().toDouble() + 0.0001);
-            double ln_CTerm_ion_current_ratio = log(hit->getMetaValue("CTermIonCurrentRatio").toString().toDouble() + 0.0001);
-            hit->setMetaValue("MSGF:lnExplainedIonCurrentRatio", ln_explained_ion_current_ratio);
-            hit->setMetaValue("MSGF:lnNTermIonCurrentRatio", ln_NTerm_ion_current_ratio);
-            hit->setMetaValue("MSGF:lnCTermIonCurrentRatio", ln_CTerm_ion_current_ratio);
-            
-            double ln_MS2_ion_current = log(hit->getMetaValue("MS2IonCurrent").toString().toDouble());
-            hit->setMetaValue("MSGF:lnMS2IonCurrent", ln_MS2_ion_current);
-            
-            double mean_error_top7 = hit->getMetaValue("MeanErrorTop7").toString().toDouble();
-            int num_matched_main_ions =  hit->getMetaValue("NumMatchedMainIons").toString().toInt();
-
-            double stdev_error_top7 = 0.0;
-            if (hit->getMetaValue("StdevErrorTop7").toString() != "NaN")
-            {
-              stdev_error_top7 = hit->getMetaValue("StdevErrorTop7").toString().toDouble();
-              if (stdev_error_top7 == 0.0)
-              {
-                stdev_error_top7 = mean_error_top7;
-              }
-            }
-            else
-            {
-              stdev_error_top7 = mean_error_top7;
-              OPENMS_LOG_WARN << "StdevErrorTop7 is NaN, setting as MeanErrorTop7 instead." << endl;
-            }
-            
-            mean_error_top7 = rescaleFragmentFeature_(mean_error_top7, num_matched_main_ions);
-            double sq_mean_error_top7 = rescaleFragmentFeature_(mean_error_top7 * mean_error_top7, num_matched_main_ions);
-            stdev_error_top7 = rescaleFragmentFeature_(stdev_error_top7, num_matched_main_ions);
-            hit->setMetaValue("MSGF:MeanErrorTop7", mean_error_top7);
-            hit->setMetaValue("MSGF:sqMeanErrorTop7", sq_mean_error_top7);
-            hit->setMetaValue("MSGF:StdevErrorTop7", stdev_error_top7);
-          }
+          if (!h.metaValueExists("MS:1002049")) h.setMetaValue("MS:1002049", 0.0);
+          if (!h.metaValueExists("MS:1002050")) h.setMetaValue("MS:1002050", 0.0);
+          if (!h.metaValueExists("MS:1002052")) h.setMetaValue("MS:1002052", 0.0);
+          if (!h.metaValueExists("MS:1002053")) h.setMetaValue("MS:1002053", 0.0);
         }
       }
     }

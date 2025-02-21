@@ -248,7 +248,7 @@ namespace OpenMS
   {
     Param p;
     // list of all allowed adapters
-    vector<String> working_adapters{ "CometAdapter", "MSGFPlusAdapter", "MSFraggerAdapter", "MyriMatchAdapter", "OMSSAAdapter", "XTandemAdapter" };
+    vector<String> working_adapters{ "CometAdapter", "MSGFPlusAdapter", "MSFraggerAdapter" };
 
     vector<String> keys;
     search_params.getKeys(keys);
