@@ -147,8 +147,8 @@ protected:
 
     registerDoubleOption_("min_mz", "<m/z value>", -1.0, "Specify the minimum m/z values for peaks considered during deconvolution. Negative values disable the threshold.", false, true);
     registerDoubleOption_("max_mz", "<m/z value>", -1.0, "Specify the maximum m/z values for peaks considered during deconvolution. Negative values disable the threshold.", false, true);
-    registerDoubleOption_("min_rt", "<RT value>", -1.0, "Specify the minimum retention time (in seconds) for spectra considered during deconvolution. Negative values disable the threshold.", false, true);
-    registerDoubleOption_("max_rt", "<RT value>", -1.0, "Specify the maximum retention time (in seconds) for spectra considered during deconvolution. Negative values disable the threshold.", false, true);
+    registerDoubleOption_("min_rt", "<RT value>", -1.0, "Specify the minimum retention time (in minutes) for spectra considered during deconvolution. Negative values disable the threshold.", false, true);
+    registerDoubleOption_("max_rt", "<RT value>", -1.0, "Specify the maximum retention time (in minutes) for spectra considered during deconvolution. Negative values disable the threshold.", false, true);
 
     registerIntOption_("max_ms_level", "<MS level>", -1.0, "Set the maximum MS level (inclusive) for deconvolution. Negative values disable the threshold.", false, true);
 
@@ -212,8 +212,8 @@ protected:
     int mzml_charge = getIntOption_("mzml_mass_charge");
     double min_mz = getDoubleOption_("min_mz");
     double max_mz = getDoubleOption_("max_mz");
-    double min_rt = getDoubleOption_("min_rt");
-    double max_rt = getDoubleOption_("max_rt");
+    double min_rt = getDoubleOption_("min_rt") * 60.0;
+    double max_rt = getDoubleOption_("max_rt") * 60.0;
     int max_ms_level = getIntOption_("max_ms_level");
 
     std::map<uint, int> per_ms_level_spec_count;

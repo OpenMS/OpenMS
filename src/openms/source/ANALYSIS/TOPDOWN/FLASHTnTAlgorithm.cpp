@@ -15,7 +15,7 @@
 
 namespace OpenMS
 {
-inline const int max_hit_count = 15;
+inline const int max_hit_count = 20;
 FLASHTnTAlgorithm::FLASHTnTAlgorithm(): DefaultParamHandler("FLASHTnTAlgorithm"), ProgressLogger()
 {
   setDefaultParams_();
@@ -119,7 +119,6 @@ bool FLASHTnTAlgorithm::areConsistent_(const ProteinHit& a, const ProteinHit& b,
   return false;
 }
 
-
 void FLASHTnTAlgorithm::markRepresentativeProteoformHits_(double tol)
 {
   std::sort(proteoform_hits_.begin(), proteoform_hits_.end(),
@@ -153,8 +152,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
 {
   setLogType(CMD);
   startProgress(0, (SignedSize)map.size(), "Running FLASHTnT ...");
-  //int max_tag_length = tagger_param_.getValue("max_length");
-  //int min_tag_length = tagger_param_.getValue("min_length");
+
   int max_mod_cntr = extender_param_.getValue("max_mod_count");
   double max_mod_mass = max_mod_cntr * (double)extender_param_.getValue("max_mod_mass") + 1.0;
   std::map<double, std::vector<ResidueModification>> mod_map;
@@ -182,8 +180,8 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
     auto spec = map[index];
     nextProgress();
     int scan = FLASHDeconvAlgorithm::getScanNumber(map, index);
-
-    if (spec.getMSLevel() == 1 && precursor_tol > 0) { continue; }
+    //if (scan != 6887) continue; // TODO
+    //if (spec.getMSLevel() == 1 && precursor_tol > 0) { continue; }
 
     DeconvolvedSpectrum dspec(scan);
     dspec.setOriginalSpectrum(spec);
@@ -196,7 +194,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
     if (spec.getMSLevel() == 1 && precursor_tol < 0)
     {
       precursor_tol = tol;
-      continue;
+      //continue;
     }
 
     int q_loc_s = deconv_meta_str.find("qscore=") + 7;
@@ -238,9 +236,9 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
       double precursor_mass = stod(deconv_meta_str.substr(s_loc_prem_s, s_loc_prem_e - s_loc_prem_s));
       PeakGroup pg;
       pg.setMonoisotopicMass(precursor_mass);
-      if (deconv_meta_str.hasSubstring("precursorQscore="))
+      if (deconv_meta_str.hasSubstring("precursorscore="))
       {
-        int s_loc_preq_s = deconv_meta_str.find("precursorQscore=") + 16;
+        int s_loc_preq_s = deconv_meta_str.find("precursorscore=") + 15;
         int s_loc_preq_e = deconv_meta_str.find(";", s_loc_preq_s);
         double precursor_qscore = stod(deconv_meta_str.substr(s_loc_preq_s, s_loc_preq_e - s_loc_preq_s));
         pg.setQscore2D(precursor_qscore);
@@ -442,6 +440,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
         }
       }
     }
+    //std::cout<< tags_.size() << " " << proteoform_hits_.size() << " " << filtered_proteoform_hits.size()<<std::endl;
     proteoform_hits_.swap(filtered_proteoform_hits);
   }
   std::sort(proteoform_hits_.begin(), proteoform_hits_.end(),

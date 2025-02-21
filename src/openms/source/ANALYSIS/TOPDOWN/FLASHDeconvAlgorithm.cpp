@@ -176,7 +176,7 @@ namespace OpenMS
     SpectraMerger merger;
     merger.setLogType(CMD);
     Param sm_param = merger.getDefaults();
-    sm_param.setValue("mz_binning_width", tols_[ms_level - 1]);
+    sm_param.setValue("mz_binning_width", tols_[ms_level - 1] / 2.5);
     sm_param.setValue("mz_binning_width_unit", "ppm");
     int min_ms_level = param_.getValue("merging_min_ms_level");
     int max_ms_level = param_.getValue("merging_max_ms_level");
@@ -215,7 +215,7 @@ namespace OpenMS
         // merge MS n using precursor method
         OPENMS_LOG_INFO << "Merging MS" << ms_level << " spectra from the same deconvolved precursor masses... " << std::endl;
         sm_param.setValue("precursor_method:mz_tolerance", 0.2);
-        sm_param.setValue("precursor_method:rt_tolerance", 30.0);
+        sm_param.setValue("precursor_method:rt_tolerance", 30.0); // TODO
         merger.setParameters(sm_param);
         map.sortSpectra();
         merger.mergeSpectraPrecursors(map);
@@ -243,7 +243,6 @@ namespace OpenMS
       merger.setParameters(sm_param);
       merger.mergeSpectraBlockWise(map);
     }
-
     filterLowPeaks_(map);
   }
 
@@ -418,8 +417,8 @@ namespace OpenMS
       if (deconvolved_spectrum.empty()) continue;
       for (const auto& pg : deconvolved_spectrum)
       {
-        if (pg.getQscore() < .8 || pg.getMonoMass() > 2e4) // TODO automatically find the good mass threshold
-          continue; // false or large masses introduce bias (due to truncation due to isotope distance)
+        if (pg.getQscore() < .9) // TODO automatically find the good mass threshold
+          continue;
         for (auto error : pg.getMassErrors())
         {
           sampled_tols.push_back(error);
@@ -480,6 +479,7 @@ namespace OpenMS
     Param sd_param = param_.copy("SD:", true);
     sd_param.setValue("allowed_isotope_error", param_.getValue("allowed_isotope_error"));
     OPENMS_LOG_INFO<< "Calculating Averagines ... " << std::flush;
+    sd_.setParameters(sd_param);
     sd_.calculateAveragine(use_RNA_averagine_);
     OPENMS_LOG_INFO<< "Done" << std::endl;
     const auto& avg = sd_.getAveragine();

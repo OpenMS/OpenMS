@@ -139,7 +139,7 @@ protected:
     double max_mod_mass = tnt_param.getValue("ex:max_mod_mass");
     int max_mod_count = tnt_param.getValue("ex:max_mod_count");
     double pro_fdr = tnt_param.getValue("pro_fdr");
-    OPENMS_LOG_INFO << "Finding sequence tags from deconvolved MS2 spectra ..." << endl;
+    OPENMS_LOG_INFO << "Finding sequence tags from deconvolved spectra ..." << endl;
 
     FASTAFile fasta_file;
     std::vector<FASTAFile::FASTAEntry> fasta_entry;

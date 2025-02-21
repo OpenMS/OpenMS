@@ -18,6 +18,8 @@ FLASHHelperClasses::PrecalculatedAveragine::PrecalculatedAveragine(const double 
       min_mass_(min_mass)
   {
     int i = 0;
+    int max_left_count = 0;
+    int max_right_count = 0;
     while (true)
     {
       double mass = i * mass_interval_;
@@ -73,27 +75,27 @@ FLASHHelperClasses::PrecalculatedAveragine::PrecalculatedAveragine(const double 
       int left_count = 0;
       int right_count = (int)iso.size() - 1;
       int trim_count = 0;
-
+      double pwr = 0;
       while (iso.size() - trim_count > min_iso_length && left_count < right_count)
       {
         double lint = iso[left_count].getIntensity();
         double rint = iso[right_count].getIntensity();
-        double pwr;
+
         bool trim_left = true;
         if (lint < rint)
         {
-          pwr = lint * lint;
+          pwr += lint * lint;
         }
         else
         {
-          pwr = rint * rint;
+          pwr += rint * rint;
           trim_left = false;
         }
         if (total_pwr - pwr < total_pwr * min_pwr)
         {
           break;
         }
-        total_pwr -= pwr;
+
         trim_count++;
         if (trim_left)
         {
@@ -106,6 +108,8 @@ FLASHHelperClasses::PrecalculatedAveragine::PrecalculatedAveragine(const double 
           right_count--;
         }
       }
+      total_pwr -= pwr;
+
       left_count = (int)most_abundant_index_ - left_count;
       right_count = right_count - (int)most_abundant_index_;
 
@@ -119,9 +123,12 @@ FLASHHelperClasses::PrecalculatedAveragine::PrecalculatedAveragine(const double 
       left_count = left_count < min_left_right_count ? min_left_right_count : left_count;
       right_count = right_count < min_left_right_count ? min_left_right_count : right_count;
 
+      max_left_count = std::max(max_left_count, left_count);
+      max_right_count = std::max(max_right_count, right_count);
+
       apex_index_.push_back(most_abundant_index_);
-      right_count_from_apex_.push_back(right_count);
-      left_count_from_apex_.push_back(left_count);
+      right_count_from_apex_.push_back(max_right_count);
+      left_count_from_apex_.push_back(max_left_count);
       average_mono_mass_difference_.push_back(iso.averageMass() - iso[0].getMZ());
       abundant_mono_mass_difference_.push_back(iso.getMostAbundant().getMZ() - iso[0].getMZ());
       isotopes_.push_back(iso);
@@ -301,8 +308,21 @@ FLASHHelperClasses::PrecalculatedAveragine::PrecalculatedAveragine(const double 
     if (this->length_ == a.length_)
     {
       if (this->seq_ == a.seq_)
-        return (this->c_mass_ + this->n_mass_) < (a.c_mass_ + a.n_mass_);
-      return this->seq_ > a.seq_;
+      {
+        if (this->c_mass_ >= 0 && a.c_mass_ >= 0) // c term tag
+        {
+          return this->c_mass_ < a.c_mass_;
+        }
+        else if (this->n_mass_ >= 0 && a.n_mass_ >= 0)
+        {
+          return this->n_mass_ < a.n_mass_;
+        }
+        else
+        {
+          return this->n_mass_ < a.n_mass_;
+        }
+      }
+      return this->seq_ < a.seq_;
     }
     return this->length_ < a.length_;
   }
@@ -312,8 +332,21 @@ FLASHHelperClasses::PrecalculatedAveragine::PrecalculatedAveragine(const double 
     if (this->length_ == a.length_)
     {
       if (this->seq_ == a.seq_)
-        return (this->c_mass_ + this->n_mass_) > (a.c_mass_ + a.n_mass_);
-      return this->seq_ < a.seq_;
+      {
+        if (this->c_mass_ >= 0 && a.c_mass_ >= 0) // c term tag
+        {
+          return this->c_mass_ > a.c_mass_;
+        }
+        else if (this->n_mass_ >= 0 && a.n_mass_ >= 0)
+        {
+          return this->n_mass_ > a.n_mass_;
+        }
+        else
+        {
+          return this->n_mass_ > a.n_mass_;
+        }
+      }
+      return this->seq_ > a.seq_;
     }
     return this->length_ > a.length_;
   }

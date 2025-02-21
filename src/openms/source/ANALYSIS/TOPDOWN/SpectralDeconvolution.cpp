@@ -55,7 +55,7 @@ namespace OpenMS
     defaults_.setMinFloat("precursor_mz", 0.0);
     defaults_.addTag("precursor_mz", "advanced");
 
-    defaults_.setValue("min_cos", DoubleList {.85, .85},
+    defaults_.setValue("min_cos", DoubleList {.75, .85},
                        "Cosine similarity thresholds between avg. and observed isotope pattern for MS1, 2, ...: e.g., -min_cos 0.3 0.6 to specify 0.3 "
                        "and 0.6 for MS1 and MS2, respectively.");
     defaults_.addTag("min_cos", "advanced");
@@ -253,12 +253,12 @@ namespace OpenMS
   {
     CoarseIsotopePatternGenerator generator(300);
 
-    auto iso = use_RNA_averagine ? generator.estimateFromRNAWeight(current_max_mass_) : generator.estimateFromPeptideWeight(current_max_mass_);
+    auto iso = use_RNA_averagine ? generator.estimateFromRNAWeight(max_mass_) : generator.estimateFromPeptideWeight(max_mass_);
     iso.trimRight(0.0001 * iso.getMostAbundant().getIntensity());
     auto max_isotope = std::max(200, (int)iso.size());
 
     generator.setMaxIsotope(max_isotope);
-    avg_ = FLASHHelperClasses::PrecalculatedAveragine(50, current_max_mass_, 25, generator, use_RNA_averagine,
+    avg_ = FLASHHelperClasses::PrecalculatedAveragine(50, max_mass_, 25, generator, use_RNA_averagine,
                                                       target_decoy_type_ == PeakGroup::noise_decoy ? noise_iso_delta_ : -1, is_centroid);
     avg_.setMaxIsotopeIndex((int)(max_isotope - 1));
   }
@@ -704,7 +704,6 @@ namespace OpenMS
       // the range of isotope span. For a given peak the peaks within the span are searched.
       Size right_index = avg_.getRightCountFromApex(mass);
       Size left_index = avg_.getLeftCountFromApex(mass);
-
       // scan through charge - from mass to m/z
       for (size_t j = per_mass_abs_charge_ranges.getValue(0, mass_bin_index); j <= (size_t)per_mass_abs_charge_ranges.getValue(1, mass_bin_index); j++)
       {
