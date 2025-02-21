@@ -570,7 +570,6 @@ void FLASHExtenderAlgorithm::run(std::vector<ProteinHit>& hits,
 
     std::map<int, std::set<int>> matched_position_map;
     bool precursor_by_fragment = false;
-    double proteoform_mass = -1;
 
     for (hi.mode_ = 0; hi.mode_ <= 2; hi.mode_++)
     {
