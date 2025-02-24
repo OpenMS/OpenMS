@@ -26,10 +26,19 @@ using namespace std;
 
 @brief Splits an mzML file with IonMobility frames into multiple mzML files by binning(merging) spectra by their IM values
 
-Useful to convert IM data to a format that can be processed by tools that do not support IM data (e.g. FeatureFinderCentroided or SearchEngines).
-The results of individual bins can be processed separately and then recombined afterwards.
+This tool supports two modes:
+- Regular ion mobility: Splits data into a user-defined number of bins
+- FAIMS: Automatically splits data by the FAIMS compensation voltages (CVs) present in the file
 
-To decide on the number of bins, try running @ref TOPP_FileInfo on the input file to get an idea of the range of IM values present.
+For regular ion mobility data:
+- Useful to convert IM data to a format that can be processed by tools that do not support IM data (e.g. FeatureFinderCentroided or SearchEngines)
+- The results of individual bins can be processed separately and then recombined afterwards
+- To decide on the number of bins, try running @ref TOPP_FileInfo on the input file to get an idea of the range of IM values present
+
+For FAIMS data:
+- Automatically detects FAIMS compensation voltages in the input file
+- Creates one output file per unique CV value
+- No binning parameters required as the splitting is based on the discrete CV values
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_IonMobilityBinning.cli
