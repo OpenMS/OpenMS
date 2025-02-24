@@ -10,6 +10,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 
 #include <iomanip>
 
@@ -65,6 +66,45 @@ protected:
     
   }
 
+  std::pair<std::vector<PeakMap>, Math::BinContainer> processFAIMSData_(PeakMap&& experiment)
+  {
+    set<double> faims_cvs = FAIMSHelper::getCompensationVoltages(experiment);
+    auto mzML_bins = IMDataConverter::splitByFAIMSCV(std::move(experiment));
+    Size n_bins = mzML_bins.size();
+    
+    Math::BinContainer im_ranges;
+    for (Size i = 0; i < n_bins; ++i)
+    {
+      double faims_cv = *std::next(faims_cvs.begin(), i);
+      im_ranges[i].setMax(faims_cv);
+      im_ranges[i].setMin(faims_cv);
+    }
+    
+    return {std::move(mzML_bins), std::move(im_ranges)};
+  }
+
+  void writeOutputFiles_(std::vector<PeakMap>& mzML_bins, 
+    const Math::BinContainer& im_ranges,
+    const String& out_prefix,
+    Size n_bins)
+  {
+    const Size width = String(n_bins).size();
+    for (Size i = 0; i < n_bins; ++i)
+    {
+      ostringstream out_name;
+      out_name << out_prefix << "_part" 
+      << setw(width) << setfill('0') << (1+i) 
+      << "of" << n_bins << "_"
+      << im_ranges[i].getMin() << "-"
+      << im_ranges[i].getMax() << ".mzML";
+
+      addDataProcessing_(mzML_bins[i], 
+          getProcessingInfo_(DataProcessing::ION_MOBILITY_BINNING));
+      FileHandler().storeExperiment(out_name.str(), mzML_bins[i], {FileTypes::MZML});
+    }
+  }
+
+
   ExitCodes main_(int, const char **) override
   {
     String input_file = getStringOption_("in");
@@ -76,19 +116,34 @@ protected:
 
     PeakMap experiment;
     FileHandler().loadExperiment(input_file, experiment, {FileTypes::MZML});
- 
-    auto [mzML_bins, im_ranges] = IMDataConverter::splitExperimentByIonMobility(std::move(experiment), bins, bin_extension_abs, mz_binning_width, mz_binning_width_unit);
-    
-    const Size width = String(bins).size();
-    for (Size counter = 0; counter < (Size)bins; ++counter)
-    {
-      ostringstream out_name;
-      out_name << out_prefix << "_part" << setw(width) << setfill('0') << (1+counter) << "of" << bins << "_" << im_ranges[counter].getMin() << "-"
-               << im_ranges[counter].getMax() << ".mzML ";
-      addDataProcessing_(mzML_bins[counter], getProcessingInfo_(DataProcessing::ION_MOBILITY_BINNING));
 
-      FileHandler().storeExperiment(out_name.str(), mzML_bins[counter], {FileTypes::MZML});
+    // Check if this is FAIMS data and get CVs
+    auto cvs = FAIMSHelper::getCompensationVoltages(experiment);
+    cvs.erase(IMTypes::DRIFTTIME_NOT_SET);  // remove invalid values
+
+    Size n_bins{};
+    std::vector<PeakMap> mzML_bins;
+    Math::BinContainer im_ranges;
+    if (!cvs.empty())
+    {
+      // TODO: do MS2 have FAIMS CVs annotated? if not how to keep them?
+      // TOOD: currently this is fine as order of getCompensationVoltages is the same as splitByFAIMSCV. Safe?
+      std::tie(mzML_bins, im_ranges) = processFAIMSData_(std::move(experiment));
+      n_bins = mzML_bins.size();
     }
+    else
+    {
+      // Regular IM data
+      std::tie(mzML_bins, im_ranges) = IMDataConverter::splitExperimentByIonMobility(
+          std::move(experiment),
+          bins,
+          bin_extension_abs,
+          mz_binning_width,
+          mz_binning_width_unit);
+      n_bins = bins;
+    }
+    
+    writeOutputFiles_(mzML_bins, im_ranges, out_prefix, n_bins);
 
     return EXECUTION_OK;
   }
