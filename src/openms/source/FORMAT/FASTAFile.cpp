@@ -139,9 +139,22 @@ namespace OpenMS
     infile_.seekg(0, infile_.beg);
 
     std::streambuf *sb = infile_.rdbuf();
-    while (sb->sgetc() == '#') // Skip the header of PEFF files (http://www.psidev.info/peff)
+    // Skip any whitespace and PEFF headers at the start
+    int c;
+    while ((c = sb->sgetc()) != std::streambuf::traits_type::eof())
     {
-      infile_.ignore(numeric_limits<streamsize>::max(), '\n');
+      if (c == '#')  // PEFF header line
+      {
+        infile_.ignore(numeric_limits<streamsize>::max(), '\n');
+      }
+      else if (c == '\n' || c == '\r' || c == ' ' || c == '\t')  // whitespace
+      {
+        sb->sbumpc(); // consume the character
+      }
+      else  // Found first non-whitespace, non-header character
+      {
+        break;
+      }
     }
     entries_read_ = 0;
   }
