@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -27,7 +27,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 // #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathTSVWriter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
 
 // Algorithms
@@ -423,7 +422,6 @@ protected:
      * @param assay_library The set of assays to be extracted and scored
      * @param result_featureFile Output feature map to store identified features
      * @param store_features_in_featureFile Whether features should be appended to the output feature map (if this is false, then out_featureFile will be empty)
-     * @param result_tsv TSV Writer object to store identified features in csv format (set store_features to false if using this option)
      * @param result_osw OSW Writer object to store identified features in SQLite format (set store_features to false if using this option)
      * @param result_chromatograms Chromatogram consumer object to store the extracted chromatograms
      * @param batchSize Size of the batches which should be extracted and scored
@@ -444,7 +442,6 @@ protected:
                            const OpenSwath::LightTargetedExperiment& assay_library,
                            FeatureMap& result_featureFile,
                            bool store_features_in_featureFile,
-                           OpenSwathTSVWriter & result_tsv,
                            OpenSwathOSWWriter & result_osw,
                            Interfaces::IMSDataConsumer * result_chromatograms,
                            int batchSize,
@@ -497,7 +494,7 @@ protected:
      *    MRMTransitionGroup, if available (named "groupId_Precursor_i0")
      *    - Find peakgroups in the chromatogram set (see MRMTransitionGroupPicker::pickTransitionGroup)
      *    - Score peakgroups in the chromatogram set (see MRMFeatureFinderScoring::scorePeakgroups)
-     *    - Add the identified peak groups to the TSV writer (tsv_writer) and the SQL-based output format (osw_writer)
+     *    - Add the identified peak groups to the SQL-based output format (osw_writer)
      *
      * @param ms2_chromatograms Input chromatograms (MS2 level)
      * @param ms1_chromatograms Input chromatograms (MS1-level)
@@ -507,7 +504,6 @@ protected:
      * @param trafo RT Transformation function
      * @param rt_extraction_window RT extraction window
      * @param output Output map
-     * @param tsv_writer TSV writer for storing output (on the fly)
      * @param osw_writer OSW Writer object to store identified features in SQLite format
      * @param nr_ms1_isotopes Consider this many MS1 isotopes for precursor chromatograms
      * @param ms1only If true, will only score on MS1 level and ignore MS2 level
@@ -522,7 +518,6 @@ protected:
         const TransformationDescription& trafo,
         const double rt_extraction_window,
         FeatureMap& output,
-        OpenSwathTSVWriter& tsv_writer,
         OpenSwathOSWWriter& osw_writer,
         int nr_ms1_isotopes = 0,
         bool ms1only = false) const;

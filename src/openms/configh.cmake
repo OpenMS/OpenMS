@@ -1,4 +1,4 @@
-# Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # --------------------------------------------------------------------------
@@ -48,7 +48,6 @@ endif()
 include(CheckIncludeFileCXX)
 
 CHECK_INCLUDE_FILE_CXX("unistd.h" OPENMS_HAS_UNISTD_H)
-CHECK_INCLUDE_FILE_CXX("process.h" OPENMS_HAS_PROCESS_H)
 
 CHECK_INCLUDE_FILE_CXX("time.h" OPENMS_HAS_TIME_H)
 CHECK_INCLUDE_FILE_CXX("sys/times.h" OPENMS_HAS_SYS_TIMES_H)
@@ -61,6 +60,12 @@ include(CheckFunctionExists)
 ## in MinGW we have the signal.h header, but no kill() as in Linux, so we need to check for the kill() function
 CHECK_FUNCTION_EXISTS("kill" OPENMS_HAS_KILL)
 CHECK_FUNCTION_EXISTS("sysconf" OPENMS_HAS_SYSCONF)
+
+if (MY_CXX_FLAGS)
+  set(CF_MYCXXFLAGS ${MY_CXX_FLAGS})
+else()
+  set(CF_MYCXXFLAGS "<none>")
+endif()
 
 
 #------------------------------------------------------------------------------

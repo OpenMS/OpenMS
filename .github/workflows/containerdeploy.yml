@@ -120,6 +120,11 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      # install glib2.0 development package needed by singularity
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libglib2.0-dev          
       - name: Singularity install with defaults
         uses: singularityhub/install-singularity@main
         with:

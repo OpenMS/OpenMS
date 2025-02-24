@@ -35,9 +35,9 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
 
         libcpp_vector[ Peak1D ]& getContainer() except + nogil  # wrap-doc:Returns the container which holds the distribution
 
-        Size getMax() except + nogil  # wrap-doc:Returns the maximal weight isotope which is stored in the distribution
+        double getMax() except + nogil  # wrap-doc:Returns the maximal weight isotope which is stored in the distribution
 
-        Size getMin() except + nogil  # wrap-doc:Returns the minimal weight isotope which is stored in the distribution
+        double getMin() except + nogil  # wrap-doc:Returns the minimal weight isotope which is stored in the distribution
 
         Peak1D getMostAbundant() except + nogil  # wrap-doc:Returns the most abundant isotope which is stored in the distribution
 

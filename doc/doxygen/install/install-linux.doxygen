@@ -109,7 +109,8 @@
     sudo add-apt-repository universe
     sudo apt update
     sudo apt-get install build-essential cmake autoconf patch libtool git automake
-    sudo apt-get install qt6-base-dev libqt6svg6-dev
+    # note: QtSVG might also be available using ' libqt6svg6-dev' in Debian sid
+    sudo apt-get install qt6-base-dev qt6-svg-dev
     sudo apt-get install libeigen3-dev libboost-random-dev libboost-regex-dev \
       libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libxerces-c-dev \
       zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
@@ -316,9 +317,9 @@
     \code
     git submodule update --init THIRDPARTY
     \endcode
-    and adapt the following for every thirdparty tool you want to use (shown for XTandem):
+    and adapt the following for every thirdparty tool you want to use (shown for Comet):
     \code
-    export PATH=~/Development/OpenMS/THIRDPARTY/${FOLDER_FOR_YOUR_OS_ARCH}/XTandem:${PATH}
+    export PATH=~/Development/OpenMS/THIRDPARTY/${FOLDER_FOR_YOUR_OS_ARCH}/Comet:${PATH}
     \endcode
     If you want to enable the corresponding tests in CMake, this has to happen <b>before</b> you configure and build the
     project.

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -248,14 +248,14 @@ static DeltaMassHistogram findPeaksInDeltaMassHistogram(const DeltaMassHistogram
 }
 
 // Returns the maxima of a histogram from the delta masses of each peptide.
-std::pair<DeltaMassHistogram, DeltaMasstoCharge> getDeltaClusterCenter(const std::vector<PeptideIdentification>& pips, bool smoothing = false, bool debug = false)
+std::pair<DeltaMassHistogram, DeltaMasstoCharge> getDeltaClusterCenter(const std::vector<PeptideIdentification>& pips, bool smoothing = false, bool /*debug*/ = false)
 {
     // Constants
     constexpr double deltamass_tolerance = 0.0005;
     constexpr double delta_mass_zero_treshold = 0.05;
 
     // Lambda to round values to the specified tolerance
-    auto roundToTolerance = [deltamass_tolerance](double value) {
+    auto roundToTolerance = [](double value) { // no capture of constexpr value needed
         return std::round(value / deltamass_tolerance) * deltamass_tolerance;
     };
 

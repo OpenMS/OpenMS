@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -24,6 +24,9 @@
 #include <string>
 #include <vector>
 #include <type_traits>
+
+using XMLCh = char16_t; // Xerces-C++ uses char16_t for UTF-16 strings that we need to output in tests
+
 // Empty declaration to avoid problems in case the namespace is not
 // yet defined (e.g. TEST/ClassTest_test.cpp)
 
@@ -283,12 +286,19 @@ namespace OpenMS
           {
             stdcout << ' ' << (this_test ? '+' : '-') << "  line " << line << " : TEST_EQUAL(" << expression_1_stringified << ','
                     << expression_2_stringified << "): got '";
-            if constexpr (std::is_enum_v<T1> && std::is_enum_v<T2>)
+
+            // we can't print wide chars directly using operator<< so we need to test for it
+            if constexpr (std::is_same_v<std::remove_cv_t<T1>, XMLCh*> || std::is_same_v<std::remove_cv_t<T2>, XMLCh*>)
+            {
+              stdcout << (expression_1 == nullptr ? "(null)" : "(XMLCh*)") << "', expected '"
+                      << (expression_2 == nullptr ? "(null)" : "(XMLCh*)") << "'\n";
+            }
+            else if constexpr (std::is_enum_v<T1> && std::is_enum_v<T2>)
             {
               stdcout << static_cast<int>(expression_1) << "', expected '" << static_cast<int>(expression_2) << "'\n";
             }
             else
-            { 
+            {
               stdcout << expression_1 << "', expected '" << expression_2 << "'\n";
             }
           }

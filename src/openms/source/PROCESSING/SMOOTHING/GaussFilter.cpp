@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -23,8 +23,12 @@ namespace OpenMS
   {
     //Parameter settings
     defaults_.setValue("gaussian_width", 0.2, "Use a gaussian filter width which has approximately the same width as your mass peaks (FWHM in m/z).");
+    defaults_.setMinFloat("gaussian_width", 0.0);
     defaults_.setValue("ppm_tolerance", 10.0, "Gaussian width, depending on the m/z position.\nThe higher the value, the wider the peak and therefore the wider the gaussian.");
-    defaults_.setValue("use_ppm_tolerance", "false", "If true, instead of the gaussian_width value, the ppm_tolerance is used. The gaussian is calculated in each step anew, so this is much slower.");
+    defaults_.setMinFloat("ppm_tolerance", 0.0);
+    defaults_.setValue("use_ppm_tolerance", "false",
+                       "If true, instead of the gaussian_width value, the ppm_tolerance is used. The gaussian is calculated in each step anew, so "
+                       "this is much slower.");
     defaults_.setValidStrings("use_ppm_tolerance", {"true","false"});
     defaults_.setValue("write_log_messages", "false", "true: Warn if no signal was found by the Gauss filter algorithm.");
     defaults_.setValidStrings("write_log_messages", {"true","false"});

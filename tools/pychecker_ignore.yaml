@@ -1559,7 +1559,6 @@ PyOpenMSChecker:
     - OpenMS::OpenSwathWorkflow
     - OpenMS::OpenSwathWindowLoader
     - OpenMS::OpenSwathWorkflow::ChromExtractParams
-    - OpenMS::OpenSwathTSVWriter
     - ModificationMassesResult
     - RNPxlReportRow
     - TOPPFuzzyDiff
