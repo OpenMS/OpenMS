@@ -329,7 +329,7 @@ namespace OpenMS
           return;
         }      
       }
-      else // found in custom (json)
+      else if (found_in_custom)
       {
         // Try to load custom presets from JSON file
         String exec_path = File::getExecutablePath();
@@ -406,7 +406,10 @@ namespace OpenMS
           }
         }      
       } // end of: found in custom
-
+      else
+      {
+        throw std::runtime_error("Error: unknown preset.");
+      }
     }
   }
 }
