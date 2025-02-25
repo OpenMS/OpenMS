@@ -23,8 +23,7 @@ namespace OpenMS
       built_in = StringList(presets_names.begin(), presets_names.end());
       
       // Try to load custom presets from JSON file
-      String exec_path = File::getExecutablePath();
-      String json_path = File::path(exec_path) + "/nuxl_presets.json";
+      String json_path = File::getOpenMSDataPath() + "/NUXL/nuxl_presets.json";
       
       if (File::exists(json_path))
       {
@@ -332,8 +331,8 @@ namespace OpenMS
       else if (found_in_custom)
       {
         // Try to load custom presets from JSON file
-        String exec_path = File::getExecutablePath();
-        String json_path = File::path(exec_path) + "/nuxl_presets.json";
+        String share_path = File::getOpenMSDataPath();
+        String json_path = share_path + "/NUXL/nuxl_presets.json";
         
         if (File::exists(json_path))
         {

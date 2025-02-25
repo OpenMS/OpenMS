@@ -1,0 +1,32 @@
+{
+  "Custom-RNA-Preset": {
+    "target_nucleotides": ["U=C9H13N2O9P", "C=C9H14N3O8P", "G=C10H14N5O8P", "A=C10H14N5O7P"],
+    "mapping": ["U->U", "C->C", "G->G", "A->A"],
+    "can_cross_link": "U",
+    "modifications": ["U:", "U:-H2O", "U:-HPO3", "U:-H3PO4"],
+    "fragment_adducts": [
+      "U:C9H10N2O5;U-H3PO4", 
+      "U:C4H4N2O2;U'", 
+      "U:C4H2N2O1;U'-H2O",
+      "U:C3O;C3O",
+      "U:C9H13N2O9P1;U",
+      "U:C9H11N2O8P1;U-H2O",
+      "U:C9H12N2O6;U-HPO3"
+    ]
+  },
+  "Custom-DNA-Preset": {
+    "target_nucleotides": ["T=C10H15N2O8P", "C=C9H14N3O8P", "G=C10H14N5O8P", "A=C10H14N5O7P"],
+    "mapping": ["T->T", "C->C", "G->G", "A->A"],
+    "can_cross_link": "T",
+    "modifications": ["T:", "T:-H2O", "T:-HPO3", "T:-H3PO4"],
+    "fragment_adducts": [
+      "T:C10H12N2O4;T-H3PO4", 
+      "T:C5H6N2O2;T'", 
+      "T:C5H4N2O1;T'-H2O",
+      "T:C3O;C3O",
+      "T:C10H15N2O8P1;T",
+      "T:C10H13N2O7P1;T-H2O",
+      "T:C10H14N2O5;T-HPO3"
+    ]
+  }
+}

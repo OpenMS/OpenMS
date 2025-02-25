@@ -94,9 +94,6 @@
 #include <iterator>
 #include <cmath>
 
-#include <nlohmann/json.hpp>
-using json = nlohmann::json;
-
 #ifdef _OPENMP
 #include <omp.h>
 #define NUMBER_OF_THREADS (omp_get_num_threads())
@@ -890,7 +887,7 @@ protected:
     // NuXL specific
     registerTOPPSubsection_("NuXL", "NuXL Options");
 
-    registerStringOption_("NuXL:presets", "<option>", "none", "Set precursor and fragment adducts from presets (recommended). Custom presets can be defined in a 'nuxl_presets.json' file placed in the same directory as the executable.", false, false);
+    registerStringOption_("NuXL:presets", "<option>", "none", "Set precursor and fragment adducts from presets (recommended). Custom presets can be defined in a 'nuxl_presets.json' file placed in the share/OpenMS/NUXL/ directory.", false, false);
 
     // Start with built-in presets
     StringList built_in_presets;
