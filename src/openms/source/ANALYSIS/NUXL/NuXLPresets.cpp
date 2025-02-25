@@ -41,7 +41,6 @@ namespace OpenMS
           for (auto it = j.begin(); it != j.end(); ++it)
           {
             presets.push_back(it.key());
-            OPENMS_LOG_INFO << "Found preset: " << it.key() << std::endl;
           }
         }
         catch (const std::exception& e)
@@ -64,7 +63,11 @@ namespace OpenMS
       String& can_cross_link)
     {
       StringList presets = getAllPresetsNames();
-
+      OPENMS_LOG_INFO << "Found presets: " << presets.size() << std::endl;
+      for (const String& s : presets)
+      {
+        OPENMS_LOG_DEBUG << s << std::endl;
+      }
       // Check if preset exists
       bool found = find(presets.begin(), presets.end(), p) != presets.end();
       if (!found)
