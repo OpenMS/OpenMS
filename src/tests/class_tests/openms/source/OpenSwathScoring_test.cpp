@@ -75,7 +75,7 @@ START_SECTION(( void initialize(double rt_normalization_factor, int add_up_spect
 	ptr = new OpenSwathScoring();
   OpenSwath_Scores_Usage su;
 	TEST_NOT_EQUAL(ptr, nullPointer)
-  ptr->initialize(100.0, 1, 0.01, 0.0, su, "simple", true);
+  ptr->initialize(100.0, 1, 0.01, 0.20, 0.0, su, "simple", "fixed", true);
   delete ptr;
 }
 END_SECTION
@@ -148,7 +148,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
     TEST_EQUAL(swath_ptr->getNrSpectra(), 1)
     OpenSwathScoring sc;
     OpenSwath_Scores_Usage su;
-    sc.initialize(1.0, 1, 0.005, 0.0, su, "resample", true);
+    sc.initialize(1.0, 1, 0.005, 0.20, 0.0, su, "resample", "fixed", true);
 
     std::vector<OpenSwath::SpectrumPtr> sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 1, im_range_empty);
 
@@ -159,7 +159,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
     TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[0], 20.0);
     TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[0], 200.0);
 
-    sc.initialize(1.0, 1, 0.005, 0.0, su, "simple", true);
+    sc.initialize(1.0, 1, 0.005, 0.20, 0.0, su, "simple", "fixed", true);
     sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 1, im_range_empty);
 
     TEST_EQUAL(sp.size(), 1);
@@ -191,7 +191,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
     TEST_EQUAL(swath_ptr->getNrSpectra(), 3)
     OpenSwathScoring sc;
     OpenSwath_Scores_Usage su;
-    sc.initialize(1.0, 1, 0.005, 0.0, su, "resample", true);
+    sc.initialize(1.0, 1, 0.005, 0.20, 0.0, su, "resample", "fixed", true);
     std::vector<OpenSwath::SpectrumPtr> sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, im_range_empty);
 
     TEST_EQUAL(sp.size(), 1);
@@ -201,7 +201,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
     TEST_REAL_SIMILAR(sp[0]->getMZArray()->data[0], 20.0);
     TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[0], 600.0);
 
-    sc.initialize(1.0, 1, 0.005, 0.0, su, "simple", true);
+    sc.initialize(1.0, 1, 0.005, 0.20, 0.0, su, "simple", "fixed", true);
     sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, im_range_empty);
     TEST_EQUAL(sp.size(), 3);
 
@@ -258,7 +258,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
     TEST_EQUAL(swath_ptr->getNrSpectra(), 4)
     OpenSwathScoring sc;
     OpenSwath_Scores_Usage su;
-    sc.initialize(1.0, 1, 0.005, 0.0, su, "resample", true);
+    sc.initialize(1.0, 1, 0.005, 0.20, 0.0, su, "resample", "fixed", true);
     std::vector<OpenSwath::SpectrumPtr> sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, im_range_empty);
 
     TEST_EQUAL(sp.size(), 1);
@@ -273,7 +273,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
     TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[2], 300.0);
 
     // in simple method all 3 spectra should be returned
-    sc.initialize(1.0, 1, 0.005, 0.0, su, "simple", true);
+    sc.initialize(1.0, 1, 0.005, 0.20, 0.0, su, "simple", "fixed", true);
     sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, im_range_empty);
     TEST_EQUAL(sp.size(), 3);
     TEST_EQUAL(sp[0]->getMZArray()->data.size(), 1);
@@ -314,7 +314,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
 
     // test resample - IM filtering should occur
     {
-      sc.initialize(1.0, 1, 0.005, 0.0, su, "resample", true);
+      sc.initialize(1.0, 1, 0.005, 0.20, 0.0, su, "resample", "fixed", true);
 
       SpectrumSequence sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 1, im_range);
 
@@ -337,7 +337,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
     }
     // test simple, since downstream functions are IM aware no filtering needs to occur.
     {
-      sc.initialize(1.0, 1, 0.005, 0.0, su, "simple", true);
+      sc.initialize(1.0, 1, 0.005, 0.20, 0.0, su, "simple", "fixed", true);
       SpectrumSequence sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 1, im_range);
 
       TEST_EQUAL(sp.size(), 1);
@@ -380,7 +380,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
 
     // test resample - IM filtering should occur, also IM information is not needed so is cleared
     {
-      sc.initialize(1.0, 1, 0.005, 0.0, su, "resample", true);
+      sc.initialize(1.0, 1, 0.005, 0.20, 0.0, su, "resample", "fixed", true);
       SpectrumSequence sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, im_range);
 
       TEST_EQUAL(sp.size(), 1);
@@ -399,7 +399,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
     }
     // test simple, since downstream functions are IM aware no filtering needs to occur. Should just return all the original spectra
     {
-      sc.initialize(1.0, 1, 0.005, 0.0, su, "simple", true);
+      sc.initialize(1.0, 1, 0.005, 0.20, 0.0, su, "simple", "fixed", true);
       SpectrumSequence sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, im_range);
 
       //test sizing
@@ -474,7 +474,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
 
     // Test resampling, IM filtering should occur and the 4th spectrum should not be selected
     {
-      sc.initialize(1.0, 1, 0.005, 0.0, su, "resample", true);
+      sc.initialize(1.0, 1, 0.005, 0.20, 0.0, su, "resample", "fixed", true);
 
       SpectrumSequence sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, im_range);
 
@@ -494,7 +494,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
 
     // test simple, since downstream functions are IM aware no filtering needs to occur. Should just return all the original spectra, but the 4th spectrum should not be selected
     {
-      sc.initialize(1.0, 1, 0.005, 0.0, su, "simple", true);
+      sc.initialize(1.0, 1, 0.005, 0.20, 0.0, su, "simple", "fixed", true);
       SpectrumSequence sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, im_range);
 
       //test sizing
