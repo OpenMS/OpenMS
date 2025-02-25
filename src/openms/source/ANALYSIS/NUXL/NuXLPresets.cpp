@@ -17,12 +17,21 @@ namespace OpenMS
 {
   namespace NuXLPresets
   {
-    StringList getAllPresetsNames()
+    StringList getAllPresetsNames(const String& custom_presets_file)
     {
       StringList presets;
       
-      // Try to load presets from JSON file
-      String json_path = File::getOpenMSDataPath() + "/NUXL/nuxl_presets.json";
+      // Determine which JSON file to use
+      String json_path;
+      if (!custom_presets_file.empty() && File::exists(custom_presets_file))
+      {
+        json_path = custom_presets_file;
+        OPENMS_LOG_INFO << "Using custom presets file: " << json_path << std::endl;
+      }
+      else
+      {
+        json_path = File::getOpenMSDataPath() + "/NUXL/nuxl_presets.json";
+      }
       
       if (File::exists(json_path))
       {
@@ -55,14 +64,15 @@ namespace OpenMS
       return presets;
     }
     
-    void getPresets(const String& p, 
+    void getPresets(const String& p,
+      const String& custom_presets_file,
       StringList& nucleotides, 
       StringList& mapping, 
       StringList& modifications, 
       StringList& fragment_adducts, 
       String& can_cross_link)
     {
-      StringList presets = getAllPresetsNames();
+      StringList presets = getAllPresetsNames(custom_presets_file);
       OPENMS_LOG_INFO << "Found presets: " << presets.size() << std::endl;
       for (const String& s : presets)
       {
@@ -76,8 +86,16 @@ namespace OpenMS
       }
 
       // Try to load presets from JSON file
-      String share_path = File::getOpenMSDataPath();
-      String json_path = share_path + "/NUXL/nuxl_presets.json";
+      String json_path;
+      if (!custom_presets_file.empty() && File::exists(custom_presets_file))
+      {
+        json_path = custom_presets_file;
+      }
+      else
+      {
+        String share_path = File::getOpenMSDataPath();
+        json_path = share_path + "/NUXL/nuxl_presets.json";
+      }
       
       if (File::exists(json_path))
       {
@@ -162,6 +180,17 @@ namespace OpenMS
       {
         throw std::runtime_error("Error: presets file not found.");
       }
+    }
+    
+    // Overload that uses the default presets file
+    void getPresets(const String& p, 
+      StringList& nucleotides, 
+      StringList& mapping, 
+      StringList& modifications, 
+      StringList& fragment_adducts, 
+      String& can_cross_link)
+    {
+      getPresets(p, "", nucleotides, mapping, modifications, fragment_adducts, can_cross_link);
     }
   }
 }
