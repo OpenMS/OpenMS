@@ -69,12 +69,15 @@ public:
 
     double getRT() const override;
 
+    double getMetaValue(std::string name) const override;
+
     size_t size() const override;
 
     std::map<std::string, boost::shared_ptr<MockFeature> > m_features;
     std::map<std::string, boost::shared_ptr<MockFeature> > m_precursor_features;
     float m_intensity;
     double m_rt;
+    double m_metavalue;
   };
 
   /**
