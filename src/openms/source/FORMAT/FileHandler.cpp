@@ -386,6 +386,7 @@ namespace OpenMS
     {
       return FileTypes::JSON;
     }
+
     //FASTA file
     // .. check this fairly early on, because other file formats might be less specific
     {
@@ -397,6 +398,10 @@ namespace OpenMS
         {
           ++bigger_than;
           ++i;
+        }
+        else if (complete_file[i].hasSubstring("PEFF"))
+        {
+          return FileTypes::FASTA;
         }
         else if (complete_file[i].trim().hasPrefix("#"))
         {
