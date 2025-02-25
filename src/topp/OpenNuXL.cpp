@@ -94,6 +94,8 @@
 #include <iterator>
 #include <cmath>
 
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -888,13 +890,21 @@ protected:
     // NuXL specific
     registerTOPPSubsection_("NuXL", "NuXL Options");
 
-    registerStringOption_("NuXL:presets", "<option>", "none", "Set precursor and fragment adducts form presets (recommended).", false, false);
+    registerStringOption_("NuXL:presets", "<option>", "none", "Set precursor and fragment adducts from presets (recommended). Custom presets can be defined in a 'nuxl_presets.json' file placed in the same directory as the executable.", false, false);
 
-    StringList presets(NuXLPresets::presets_names.begin(), NuXLPresets::presets_names.end()); 
-    setValidStrings_("NuXL:presets", presets);
+    // Start with built-in presets
+    StringList built_in_presets;
+    StringList custom_presets;
+    NuXLPresets::getAllPresetsNames(built_in_presets, custom_presets);
+    // append StringLists
+    StringList all_presets;
+    all_presets.reserve(built_in_presets.size() + custom_presets.size());
+    all_presets.insert(all_presets.end(), built_in_presets.begin(), built_in_presets.end());
+    all_presets.insert(all_presets.end(), custom_presets.begin(), custom_presets.end());
+    setValidStrings_("NuXL:presets", all_presets);
 
     // store presets (for visual inspection only) in ini
-    for (const auto& p : presets)
+    for (const auto& p : all_presets)
     {
       if (p == "none") continue;
       String subsection_name = "presets:" + p;
@@ -5086,6 +5096,9 @@ static void scoreXLIons_(
     { // set from presets
       String p = getStringOption_("NuXL:presets");
       NuXLPresets::getPresets(p, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link);
+      
+
+      
       // set if DNA or RNA preset
       if (p.hasSubstring("RNA"))
       {      
@@ -6641,7 +6654,7 @@ static void scoreXLIons_(
           {
             TextFile csv_file;
             csv_file.addLine(NuXLReportRowHeader().getString("\t", meta_values_to_export));
-            for (const NuXLReportRow r : csv_rows_percolator)
+            for (const NuXLReportRow& r : csv_rows_percolator)
             {
               csv_file.addLine(r.getString("\t"));
             }

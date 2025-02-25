@@ -10,6 +10,8 @@
 
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {
@@ -1252,275 +1254,27 @@ namespace OpenMS
       "DNA-UV (BrU)"
    };
 
-  void getPresets(const String& p, 
+    /**
+      @brief Get all available presets names (built-in and custom ones from JSON file)
+      @return StringList containing all available preset names
+    */
+    OPENMS_DLLAPI void getAllPresetsNames(StringList& built_in, StringList& custom);
+
+    /**
+      @brief Get preset parameters for a given preset name
+      @param p The preset name
+      @param nucleotides Output parameter for nucleotides
+      @param mapping Output parameter for mapping
+      @param modifications Output parameter for modifications
+      @param fragment_adducts Output parameter for fragment adducts
+      @param can_cross_link Output parameter for can_cross_link
+    */
+   OPENMS_DLLAPI void getPresets(const String& p, 
     StringList& nucleotides, 
     StringList& mapping, 
     StringList& modifications, 
     StringList& fragment_adducts, 
-    String& can_cross_link)
-  {
-    // construct name list from constexpr array
-    const StringList names(presets_names.begin(), presets_names.end());
-
-    // sanity check: preset name needs to be in the list of supported presets
-    if (auto it = find(names.begin(), names.end(), p); it == names.end())
-    {
-      throw std::runtime_error("Error: unknown preset.");
-    }    
-
-    // set NTs for RNA / DNA
-    if (p.hasPrefix("RNA"))
-    {
-      nucleotides = StringList(RNA_nucleotides.begin(), RNA_nucleotides.end());
-      mapping = StringList(RNA_mapping.begin(), RNA_mapping.end());
-    }
-    else if (p.hasPrefix("DNA"))
-    {
-      nucleotides = StringList(DNA_nucleotides.begin(), DNA_nucleotides.end());
-      mapping = StringList(DNA_mapping.begin(), DNA_mapping.end());
-    }
-
-    // initialize all StringLists from constexpr arrays
-    // note: we do this here as this raises a logic error if e.g., size of the array doesn't match the reserved size.
-    //       This can easily happen if a comma is omitted and two string literals on two lines joined
-    StringList RNA_UV_modifications(modifications_RNA_UV.begin(), modifications_RNA_UV.end());
-    StringList RNA_UV_EXTENDED_modifications(modifications_RNA_UV_EXTENDED.begin(), modifications_RNA_UV_EXTENDED.end());
-    StringList RNA_UV_fragments(fragments_RNA_UV.begin(), fragments_RNA_UV.end());
-
-    StringList RNA_UV_4SU_modifications(modifications_RNA_UV_4SU.begin(), modifications_RNA_UV_4SU.end());
-    StringList RNA_UV_4SU_EXTENDED_modifications(modifications_RNA_UV_4SU_EXTENDED.begin(), modifications_RNA_UV_4SU_EXTENDED.end());
-    StringList RNA_UV_4SU_fragments(fragments_RNA_UV_4SU.begin(), fragments_RNA_UV_4SU.end());
-
-    StringList RNA_UV_6SG_modifications(modifications_RNA_UV_6SG.begin(), modifications_RNA_UV_6SG.end());
-    StringList RNA_UV_6SG_EXTENDED_modifications(modifications_RNA_UV_6SG_EXTENDED.begin(), modifications_RNA_UV_6SG_EXTENDED.end());
-    StringList RNA_UV_6SG_fragments(fragments_RNA_UV_6SG.begin(), fragments_RNA_UV_6SG.end());
-
-    StringList DNA_UV_modifications(modifications_DNA_UV.begin(), modifications_DNA_UV.end());
-    StringList DNA_UV_EXTENDED_modifications(modifications_DNA_UV_EXTENDED.begin(), modifications_DNA_UV_EXTENDED.end());
-    StringList DNA_UV_fragments(fragments_DNA_UV.begin(), fragments_DNA_UV.end());
-
-    StringList RNA_DEB_modifications(modifications_RNA_DEB.begin(), modifications_RNA_DEB.end());
-    StringList RNA_DEB_EXTENDED_modifications(modifications_RNA_DEB_EXTENDED.begin(), modifications_RNA_DEB_EXTENDED.end());
-    StringList RNA_DEB_fragments(fragments_RNA_DEB.begin(), fragments_RNA_DEB.end());
-
-    StringList RNA_NM_modifications(modifications_RNA_NM.begin(), modifications_RNA_NM.end());
-    StringList RNA_NM_EXTENDED_modifications(modifications_RNA_NM_EXTENDED.begin(), modifications_RNA_NM_EXTENDED.end());
-    StringList RNA_NM_EXTENDED_H2O_modifications(modifications_RNA_NM_EXTENDED_H2O.begin(), modifications_RNA_NM_EXTENDED_H2O.end());
-
-    StringList RNA_NM_fragments(fragments_RNA_NM.begin(), fragments_RNA_NM.end()); 
-    StringList RNA_NM_fragments_H2O(fragments_RNA_NM_H2O.begin(), fragments_RNA_NM_H2O.end()); 
-
-    StringList DNA_DEB_modifications(modifications_DNA_DEB.begin(), modifications_DNA_DEB.end());
-    StringList DNA_DEB_EXTENDED_modifications(modifications_DNA_DEB_EXTENDED.begin(), modifications_DNA_DEB_EXTENDED.end());
-    StringList DNA_DEB_fragments(fragments_DNA_DEB.begin(), fragments_DNA_DEB.end());
-
-    StringList DNA_NM_modifications(modifications_DNA_NM.begin(), modifications_DNA_NM.end());
-    StringList DNA_NM_EXTENDED_modifications(modifications_DNA_NM_EXTENDED.begin(), modifications_DNA_NM_EXTENDED.end());
-    StringList DNA_NM_fragments(fragments_DNA_NM.begin(), fragments_DNA_NM.end());
-    
-    StringList RNA_FA_modifications(modifications_RNA_FA.begin(), modifications_RNA_FA.end());
-    StringList RNA_FA_fragments(fragments_RNA_FA.begin(), fragments_RNA_FA.end());
-    StringList RNA_FA_EXTENDED_modifications(modifications_RNA_FA_EXTENDED.begin(), modifications_RNA_FA_EXTENDED.end());
-
-    StringList DNA_FA_modifications(modifications_DNA_FA.begin(), modifications_DNA_FA.end());
-    StringList DNA_FA_fragments(fragments_DNA_FA.begin(), fragments_DNA_FA.end());
-    StringList DNA_FA_EXTENDED_modifications(modifications_DNA_FA_EXTENDED.begin(), modifications_DNA_FA_EXTENDED.end());
-   
-    StringList DNA_UV_BrU_modifications(modifications_DNA_BrU_UV.begin(), modifications_DNA_BrU_UV.end());
-    StringList DNA_UV_BrU_fragments(fragments_DNA_BrU_UV.begin(), fragments_DNA_BrU_UV.end());
-
-    const String RNA_U = "U";
-    const String RNA_UCGA = "UCGA";
-    const String DNA_TCGAd = "TCGAd";
-    const String RNA_CGA = "CGA";
-    const String DNA_CGAd = "CGAd";
-
-    // set precursor + fragment adducts and cross-linked nucleotide
-    if (p == "RNA-UV (U)" || p  == "RNA-UV (UCGA)")
-    {
-      modifications = RNA_UV_modifications;
-      fragment_adducts = RNA_UV_fragments;
-      can_cross_link = (p == "RNA-UV (U)") ? RNA_U : RNA_UCGA;
-      return;
-    }
-    else if (p == "RNA-UV Extended (U)" || p  == "RNA-UV Extended (UCGA)")
-    {
-      modifications = RNA_UV_EXTENDED_modifications; 
-      fragment_adducts = RNA_UV_fragments;
-      can_cross_link = (p == "RNA-UV Extended (U)") ? RNA_U : RNA_UCGA ;
-      return;
-    }
-    else if (p == "RNA-UV (4SU)")
-    {
-      nucleotides.push_back("S=C9H13N2O8PS"); // include 4-Thio-UMP
-      mapping.push_back("S->S");
-      modifications = RNA_UV_4SU_modifications;
-      fragment_adducts = RNA_UV_4SU_fragments;
-      can_cross_link = "S";
-      return;
-    }
-    else if (p == "RNA-UV Extended (4SU)")
-    {
-      nucleotides.push_back("S=C9H13N2O8PS"); // include 4-Thio-UMP
-      mapping.push_back("S->S");
-      modifications = RNA_UV_4SU_EXTENDED_modifications;
-      fragment_adducts = RNA_UV_4SU_fragments;
-      can_cross_link = "S";
-      return;
-    }
-    else if (p == "RNA-UV (6SG)")
-    {
-      nucleotides.push_back("X=C10H14N5O7PS"); // include 6-Thio-GMP
-      mapping.push_back("X->X");
-      modifications = RNA_UV_6SG_modifications;
-      fragment_adducts = RNA_UV_6SG_fragments;
-      can_cross_link = "X";
-      return;
-    }
-    else if (p == "RNA-UV Extended (6SG)")
-    {
-      nucleotides.push_back("X=C10H14N5O7PS"); // include 6-Thio-GMP
-      mapping.push_back("X->X");
-      modifications = RNA_UV_6SG_EXTENDED_modifications;
-      fragment_adducts = RNA_UV_6SG_fragments;
-      can_cross_link = "X";
-      return;
-    }    
-    else if (p == "DNA-UV")
-    {
-      modifications = DNA_UV_modifications;
-      fragment_adducts = DNA_UV_fragments;
-      can_cross_link = DNA_TCGAd;
-      return;
-    }
-    else if (p == "DNA-UV Extended")
-    {
-      modifications = DNA_UV_EXTENDED_modifications;
-      fragment_adducts = DNA_UV_fragments;
-      can_cross_link = DNA_TCGAd;
-      return;
-    }
-    else if (p == "DNA-UV (BrU)")
-    {
-      nucleotides.push_back("B=C9H11N2O8P"); // include BrU
-      mapping.push_back("B->B");
-      modifications = DNA_UV_BrU_modifications;
-      fragment_adducts = DNA_UV_BrU_fragments;
-      can_cross_link = "B";
-      return;
-    }    
-    else if (p == "RNA-FA")
-    {
-      modifications = RNA_FA_modifications;     
-      fragment_adducts = RNA_FA_fragments;
-      can_cross_link = RNA_CGA;
-      return;
-    }
-    else if (p == "RNA-FA Extended")
-    {
-      modifications = RNA_FA_EXTENDED_modifications;     
-      fragment_adducts = RNA_FA_fragments;
-      can_cross_link = RNA_CGA;
-      return;
-    }
-    else if (p == "DNA-FA")
-    {
-      modifications = DNA_FA_modifications;     
-      fragment_adducts = DNA_FA_fragments;
-      can_cross_link = DNA_CGAd;
-      return;
-    }
-    else if (p == "DNA-FA Extended")
-    {
-      modifications = DNA_FA_EXTENDED_modifications;     
-      fragment_adducts = DNA_FA_fragments;
-      can_cross_link = DNA_CGAd;
-      return;
-    }
-    else if (p == "RNA-DEB")
-    {
-      // add special methionine loss
-      auto r_ptr = const_cast<Residue*>(ResidueDB::getInstance()->getResidue('M'));
-      r_ptr->addLossFormula(EmpiricalFormula("CH4S1"));
-
-      modifications = RNA_DEB_modifications;     
-      fragment_adducts = RNA_DEB_fragments;
-      can_cross_link = RNA_UCGA;
-      return;
-    }
-    else if (p == "RNA-DEB Extended")
-    {
-      // add special methionine loss
-      auto r_ptr = const_cast<Residue*>(ResidueDB::getInstance()->getResidue('M'));
-      r_ptr->addLossFormula(EmpiricalFormula("CH4S1"));
-
-      modifications = RNA_DEB_EXTENDED_modifications;
-      fragment_adducts = RNA_DEB_fragments;
-      can_cross_link = RNA_UCGA;
-      return;
-    }
-    else if (p == "RNA-NM")
-    {
-      // add special methionine loss
-      auto r_ptr = const_cast<Residue*>(ResidueDB::getInstance()->getResidue('M'));
-      r_ptr->addLossFormula(EmpiricalFormula("CH4S1"));
-
-      modifications = RNA_NM_modifications;
-      fragment_adducts = RNA_NM_fragments; 
-      can_cross_link = RNA_UCGA;
-      return;
-    }
-    else if (p == "RNA-NM Extended")
-    {
-      // add special methionine loss
-      auto r_ptr = const_cast<Residue*>(ResidueDB::getInstance()->getResidue('M'));
-      r_ptr->addLossFormula(EmpiricalFormula("CH4S1"));
-
-      modifications = RNA_NM_EXTENDED_modifications;
-      fragment_adducts = RNA_NM_fragments; 
-      can_cross_link = RNA_UCGA;
-      return;
-    }
-    else if (p == "RNA-NM Extended (+H2O)")
-    {
-      // add special methionine loss
-      auto r_ptr = const_cast<Residue*>(ResidueDB::getInstance()->getResidue('M'));
-      r_ptr->addLossFormula(EmpiricalFormula("CH4S1"));
-
-      modifications = RNA_NM_EXTENDED_H2O_modifications;
-      fragment_adducts = RNA_NM_fragments_H2O; 
-      can_cross_link = RNA_UCGA;
-      return;
-    }
-    else if (p == "DNA-DEB")
-    {
-      modifications = DNA_DEB_modifications;
-      fragment_adducts = DNA_DEB_fragments;
-      can_cross_link = DNA_TCGAd;
-      return;
-    }
-    else if (p == "DNA-DEB Extended")
-    {
-      modifications = DNA_DEB_EXTENDED_modifications;
-      fragment_adducts = DNA_DEB_fragments;
-      can_cross_link = DNA_TCGAd;
-      return;
-    }    
-    else if (p == "DNA-NM")
-    {
-      modifications = DNA_NM_modifications;
-      fragment_adducts = DNA_NM_fragments;
-      can_cross_link = DNA_TCGAd;
-      return;
-    }
-    else if (p == "DNA-NM Extended")
-    {
-      modifications = DNA_NM_EXTENDED_modifications;
-      fragment_adducts = DNA_NM_fragments;
-      can_cross_link = DNA_TCGAd;
-      return;
-    }
-  }
+    String& can_cross_link); 
   }
 
 }
