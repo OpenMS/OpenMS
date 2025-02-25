@@ -888,16 +888,9 @@ protected:
     registerTOPPSubsection_("NuXL", "NuXL Options");
 
     registerStringOption_("NuXL:presets", "<option>", "none", "Set precursor and fragment adducts from presets (recommended). Custom presets can be defined in a 'nuxl_presets.json' file placed in the share/OpenMS/NUXL/ directory.", false, false);
-
-    // Start with built-in presets
-    StringList built_in_presets;
-    StringList custom_presets;
-    NuXLPresets::getAllPresetsNames(built_in_presets, custom_presets);
+    
     // append StringLists
-    StringList all_presets;
-    all_presets.reserve(built_in_presets.size() + custom_presets.size());
-    all_presets.insert(all_presets.end(), built_in_presets.begin(), built_in_presets.end());
-    all_presets.insert(all_presets.end(), custom_presets.begin(), custom_presets.end());
+    StringList all_presets = NuXLPresets::getAllPresetsNames();;
     setValidStrings_("NuXL:presets", all_presets);
 
     // store presets (for visual inspection only) in ini
