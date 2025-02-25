@@ -1,4 +1,4 @@
-# Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # --------------------------------------------------------------------------
@@ -159,7 +159,7 @@ function(openms_add_library)
   #TODO cxx_std_17 only requires a c++17 flag for the compiler. Not full standard support.
   # If we want full support, we need our own try_compiles (e.g. for structured bindings first available in GCC7)
   # or specify a min version of each compiler.
-  target_compile_features(${openms_add_library_TARGET_NAME} PUBLIC cxx_std_17)
+  target_compile_features(${openms_add_library_TARGET_NAME} PUBLIC cxx_std_20)
 
   if (CMAKE_COMPILER_IS_GNUCXX)
     target_compile_options(${openms_add_library_TARGET_NAME} PRIVATE 
@@ -275,36 +275,6 @@ function(openms_add_library)
               )
     endforeach()
 
-    ## WARNING: HACK needed because of:
-    # https://gitlab.kitware.com/cmake/cmake/-/issues/16462
-    # https://bugreports.qt.io/browse/QTBUG-110118
-    # There is a private dependency of Qt6WebEngineWidgets to Qt6QuickWidgets.
-    # We need to copy it and all its deps, too.
-    if(Qt6WebEngineWidgets_FOUND)
-      set (genex "IMPORTED_LOCATION_$<UPPER_CASE:$<CONFIG>>")
-      add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
-              COMMAND ${CMAKE_COMMAND} -E copy_if_different
-              $<TARGET_PROPERTY:Qt6::QuickWidgets,${genex}>
-              $<TARGET_FILE_DIR:${openms_add_library_TARGET_NAME}>
-              )
-
-      # For now, we add Qt to the path when calling the documenters.
-      # Since the documenters depend on OpenMS_GUI
-      # they need Qt platform plugins etc. which is very hard to set up correctly.
-      # And I think the documenters are not called very often outside of CMake.
-      #add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
-      #        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-      #        $<TARGET_PROPERTY:Qt6::QuickWidgets,${genex}>
-      #        ${DLL_DOC_TARGET_PATH}
-      #        )
-
-      add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
-              COMMAND ${CMAKE_COMMAND} -E copy_if_different
-              $<TARGET_PROPERTY:Qt6::QuickWidgets,${genex}>
-              ${DLL_TEST_TARGET_PATH}
-              )
-    endif()
-    
     ## another fix for APPLE, see https://github.com/OpenMS/OpenMS/pull/7525
     if(APPLECLANG)
       if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "15.0.0")

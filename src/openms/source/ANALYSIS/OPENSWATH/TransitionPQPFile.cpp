@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -670,6 +670,42 @@ namespace OpenMS
   }
 
   // public methods
+  std::unordered_map<std::string, std::string> TransitionPQPFile::getPQPIDToTraMLIDMap(const char* filename, std::string tableName)
+  {
+    sqlite3 *db;
+    sqlite3_stmt * cntstmt;
+    sqlite3_stmt * stmt;
+    std::string select_sql;
+    std::unordered_map<std::string, std::string> out;
+
+    // Open database
+    SqliteConnector conn(filename);
+    db = conn.getDB();
+
+    // Count Precursors 
+    SqliteConnector::prepareStatement(db, &cntstmt, "SELECT COUNT(*) FROM " + tableName + ";");
+    sqlite3_step( cntstmt );
+    sqlite3_finalize(cntstmt);
+
+    std::string query = "SELECT ID, TRAML_ID FROM " + tableName + ";"; 
+
+    // Execute SQL select statement
+    SqliteConnector::prepareStatement(db, &stmt, query);
+    sqlite3_step(stmt);
+
+    while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
+    {
+      std::string traml_id, prec_id;
+
+      Sql::extractValue<std::string>(&prec_id, stmt, 0);
+      Sql::extractValue<std::string>(&traml_id, stmt, 1);
+
+      out[traml_id] = prec_id;
+      sqlite3_step( stmt );
+    }
+    return out;
+  }
+
   void TransitionPQPFile::convertTargetedExperimentToPQP(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
   {
     if (targeted_exp.containsInvalidReferences())

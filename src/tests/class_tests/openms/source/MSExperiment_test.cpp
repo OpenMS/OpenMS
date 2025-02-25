@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -530,8 +530,11 @@ START_SECTION((virtual void updateRanges()))
 
   //Update for MS level 1
 
+  // Store initial MS levels
+  std::vector<UInt> initial_ms_levels = tmp.getMSLevels();
+
   tmp.updateRanges(1);
-  tmp.updateRanges(1);
+  tmp.updateRanges(1); // Call twice to verify consistent behavior
   for (int l = 0; l < 2; ++l)
   {
     TEST_REAL_SIMILAR(tmp.getMinMZ(),5.0)
@@ -542,9 +545,9 @@ START_SECTION((virtual void updateRanges()))
     TEST_REAL_SIMILAR(tmp.getMaxRT(),40.0)
     TEST_REAL_SIMILAR(tmp.getRange().getMinMobility(), 99)
     TEST_REAL_SIMILAR(tmp.getRange().getMaxMobility(), 99)
-    TEST_EQUAL(tmp.getMSLevels().size(),1)
-    TEST_EQUAL(tmp.getMSLevels()[0],1)
-    TEST_EQUAL(tmp.getSize(),2)
+    // Verify MS levels remain unchanged
+    TEST_EQUAL(tmp.getMSLevels() == initial_ms_levels, true)
+    TEST_EQUAL(tmp.getSize(),4)
     tmp.updateRanges(1);
   }
 

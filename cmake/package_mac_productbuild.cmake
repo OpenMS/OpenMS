@@ -1,8 +1,8 @@
 # --------------------------------------------------------------------------
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
+# Copyright OpenMS Inc. -- Eberhard Karls University Tuebingen,
+# ETH Zurich, and Freie Universitaet Berlin 2002-present.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -57,9 +57,8 @@ endif()
 # The template would go in cmake/Modules which is already in our Module path.
 # Official template is here: https://gitlab.kitware.com/cmake/cmake/-/blob/v3.27.4/Modules/Internal/CPack/CPack.distribution.dist.in?ref_type=tags
 
-# reuse signing identity from signing app bundles (as in dmg)
-if(NOT DEFINED CPACK_PKGBUILD_IDENTITY_NAME)
-  message(WARNING "CPACK_PKGBUILD_IDENTITY_NAME not set. PKG will not be signed. Make sure to specify an identity with a Developer ID: Installer certificate (not Application certificate).")
+if(NOT DEFINED CPACK_PRODUCTBUILD_IDENTITY_NAME)
+  message(WARNING "CPACK_PRODUCTBUILD_IDENTITY_NAME not set. PKG will not be signed. Make sure to specify an identity with a Developer ID: Installer certificate (not Application certificate).")
 endif()
 
 set(MACOS_TARGET_ARCHS ${CMAKE_OSX_ARCHITECTURES})

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -39,7 +39,7 @@ namespace OpenMS
     if (new_score_type_.empty()) new_score_type_ = new_score_;
   }
 
-  std::vector<String> IDScoreSwitcherAlgorithm::getScoreTypeNames()
+  std::vector<String> IDScoreSwitcherAlgorithm::getScoreNames()
   {
     std::vector<String> names;
     for (auto i : type_to_str_)

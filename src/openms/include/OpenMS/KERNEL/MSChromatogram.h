@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -31,7 +31,7 @@ namespace OpenMS
 
 public:
 
-    /// Comparator for the retention time.
+    /// Comparator for the precursor m/z time.
     struct OPENMS_DLLAPI MZLess
     {
       bool operator()(const MSChromatogram& a, const MSChromatogram& b) const;
@@ -82,6 +82,7 @@ public:
     using ContainerType::resize;
     using ContainerType::size;
     using ContainerType::push_back;
+    using ContainerType::emplace_back;
     using ContainerType::pop_back;
     using ContainerType::empty;
     using ContainerType::front;
@@ -294,8 +295,6 @@ public:
       undefined.
     */
     ConstIterator RTEnd(CoordinateType rt) const;
-
-    ConstIterator MZEnd(CoordinateType rt) const;
 
     /**
       @brief Binary search for peak range end (returns the past-the-end iterator)

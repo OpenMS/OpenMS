@@ -14,13 +14,13 @@ cdef extern from "<OpenMS/SYSTEM/File.h>" namespace "OpenMS::File":
     String getExecutablePath()  # wrap-attach:File
 
     # Method used to test if a @p file exists.
-    bool exists(String file_) except + nogil  # wrap-attach:File
+    bool exists(String file) except + nogil  # wrap-attach:File
 
     # Return true if the file does not exist or the file is empty
-    bool empty(String file_) except + nogil  # wrap-attach:File
+    bool empty(String file) except + nogil  # wrap-attach:File
 
     # Removes a file (if it exists).
-    bool remove(String file_) except + nogil  # wrap-attach:File
+    bool remove(String file) except + nogil  # wrap-attach:File
 
     # Removes the specified directory (absolute path). Returns true if successful.
     bool removeDirRecursively(String dir_name) except + nogil  # wrap-attach:File
@@ -81,7 +81,7 @@ cdef extern from "<OpenMS/SYSTEM/File.h>" namespace "OpenMS::File":
     # Resolves a partial file name to a documentation file in the doc-folder.
     String findDoc(String filename) except + nogil  # wrap-attach:File
 
-    bool rename(const String & from_, const String & to, bool overwrite_existing, bool verbose) except + nogil  # wrap-attach:File
+    bool rename(const String & from, const String & to, bool overwrite_existing, bool verbose) except + nogil  # wrap-attach:File
 
     # bool removeDir(const QString & dir_name) except + nogil 
 

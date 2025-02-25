@@ -1,8 +1,8 @@
 # --------------------------------------------------------------------------
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
+# Copyright OpenMS Inc. -- Eberhard Karls University Tuebingen,
+# ETH Zurich, and Freie Universitaet Berlin 2002-present.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -74,7 +74,7 @@ set(CPACK_COMPONENTS_ALL applications doc library share ${THIRDPARTY_COMPONENT_G
 ## Autogeneration with SHLIBDEPS will add to this variable. For now we include most things statically and require the standard Qt package and libc6 only.
 ## (only available in Ubuntu >=17.10). For older Ubuntu, dependencies can be installed from a thirdparty repo.
 set(CPACK_DEBIAN_PACKAGE_DEPENDS 
-  "qtbase5-dev (>= 5.7.0) | qt57base | qt58base | qt59base | qt510base | qt511base, libqt5svg5 (>= 5.7.0) | qt57svg | qt58svg | qt59svg | qt510svg | qt511svg, libc6 (>= 2.28)")
+  "qt6base-dev (>= 6.2.2), libqt6svg6 (>= 6.2.2), libc6 (>= 2.28), libqt6widgets6t64 (>= 6.2.2) | libqt6widget6 (>= 6.2.2), libqt6gui6t64 (>= 6.2.2) | libqt6gui6 (>= 6.2.2), libqt6core6t64 (>= 6.2.2) | libqt6core6 (>= 6.2.2)")
 
 SET(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
 SET(CPACK_DEBIAN_PACKAGE_SECTION "science")

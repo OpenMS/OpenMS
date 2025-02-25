@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,6 +12,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 
 namespace OpenMS
 {
@@ -124,10 +125,17 @@ namespace OpenMS
     /// get the AggregationMethod enum from a @p method_string
     AggregationMethod aggFromString_(const std::string& method_string) const;
 
-    /// check if a @p score_type is compatible to the chosen @p aggregation_method
+    /// check if a @p score_name is compatible to the chosen @p aggregation_method
     /// I.e. only probabilities can be used for multiplication
     void checkCompat_(
         const String& score_type,
+        const AggregationMethod& aggregation_method
+        ) const;
+
+    /// check if a @p score_type is compatible to the chosen @p aggregation_method
+    /// I.e. only probabilities can be used for multiplication
+    void checkCompat_(
+        const IDScoreSwitcherAlgorithm::ScoreType& score_type,
         const AggregationMethod& aggregation_method
         ) const;
 

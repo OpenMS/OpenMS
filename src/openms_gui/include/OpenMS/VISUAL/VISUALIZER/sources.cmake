@@ -9,7 +9,6 @@ BaseVisualizer.h               ### not a QObject -- should not be autoMOC'd
 BaseVisualizerGUI.h
 ContactPersonVisualizer.h
 DataProcessingVisualizer.h
-DigestionVisualizer.h
 DocumentIdentifierVisualizer.h
 ExperimentalSettingsVisualizer.h
 GradientVisualizer.h
@@ -21,7 +20,6 @@ IonSourceVisualizer.h
 MassAnalyzerVisualizer.h
 MetaInfoDescriptionVisualizer.h
 MetaInfoVisualizer.h
-ModificationVisualizer.h
 PeptideHitVisualizer.h
 PeptideIdentificationVisualizer.h
 PrecursorVisualizer.h
@@ -32,7 +30,6 @@ ScanWindowVisualizer.h
 SoftwareVisualizer.h
 SourceFileVisualizer.h
 SpectrumSettingsVisualizer.h
-TaggingVisualizer.h
 ProductVisualizer.h
 )
 

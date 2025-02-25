@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -147,7 +147,7 @@ namespace OpenMS
     i = 1;
     for (auto it = rt.cbegin(); it != rt.cend(); ++it)
     {
-      projection_rt[i].setMZ(it->first);
+      projection_rt[i].setRT(it->first);
       projection_rt[i].setIntensity(it->second);
       ++i;
     }

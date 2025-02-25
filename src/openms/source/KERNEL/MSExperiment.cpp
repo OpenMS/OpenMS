@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -17,15 +17,14 @@
 
 #include <algorithm>
 #include <limits>
+#include <unordered_set>
 
 namespace OpenMS
 {
   /// Constructor
   MSExperiment::MSExperiment() :
     RangeManagerContainerType(),
-    ExperimentalSettings(),
-    ms_levels_(),
-    total_size_(0)
+    ExperimentalSettings()
   {}
 
   /// Copy constructor
@@ -41,8 +40,6 @@ namespace OpenMS
     RangeManagerContainerType::operator=(source);
     ExperimentalSettings::operator=(source);
 
-    ms_levels_ = source.ms_levels_;
-    total_size_ = source.total_size_;
     chromatograms_ = source.chromatograms_;
     spectra_ = source.spectra_;
 
@@ -232,13 +229,8 @@ namespace OpenMS
   */
   void MSExperiment::updateRanges(Int ms_level)
   {
-    // clear MS levels
-    ms_levels_.clear();
-
     // reset mz/rt/int range
     this->clearRanges();
-    // reset point count
-    total_size_ = 0;
 
     // empty
     if (spectra_.empty() && chromatograms_.empty())
@@ -251,15 +243,6 @@ namespace OpenMS
     {
       if (ms_level < Int(0) || Int(it->getMSLevel()) == ms_level)
       {
-        //ms levels
-        if (std::find(ms_levels_.begin(), ms_levels_.end(), it->getMSLevel()) == ms_levels_.end())
-        {
-          ms_levels_.push_back(it->getMSLevel());
-        }
-
-        // calculate size
-        total_size_ += it->size();
-
         // ranges
         this->extendRT(it->getRT()); // RT
         // m/z, intensity and ion mobility from spectrum's range
@@ -275,9 +258,7 @@ namespace OpenMS
           this->extendMZ(it->getPrecursors()[0].getMZ());
         }
       }
-
     }
-    std::sort(ms_levels_.begin(), ms_levels_.end());
 
     if (this->chromatograms_.empty())
     {
@@ -297,8 +278,6 @@ namespace OpenMS
         continue;
       }
 
-      total_size_ += cp.size();
-
       // ranges
       this->extendMZ(cp.getMZ());// MZ
       this->extend(cp);// RT and intensity from chroms's range
@@ -307,14 +286,25 @@ namespace OpenMS
 
   /// returns the total number of peaks
   UInt64 MSExperiment::getSize() const
-  {
-    return total_size_;
+  {    
+    Size total_size{};
+    for (const auto& spec : spectra_) total_size += spec.size(); // sum up all peaks in all spectra
+    for (const auto& chrom : chromatograms_) total_size += chrom.size(); // sum up all peaks in all chromatograms
+    return total_size;
   }
 
-  /// returns an array of MS levels
-  const std::vector<UInt>& MSExperiment::getMSLevels() const
+  /// returns an array of MS levels (calculated on demand)
+  std::vector<UInt> MSExperiment::getMSLevels() const
   {
-    return ms_levels_;
+    std::unordered_set<UInt> level_set;
+    for (const auto& spec : spectra_)
+    {
+      level_set.insert(spec.getMSLevel());
+    }
+    
+    std::vector<UInt> ms_levels(level_set.begin(), level_set.end());
+    std::sort(ms_levels.begin(), ms_levels.end());
+    return ms_levels;
   }
 
   const String sqMassRunID = "sqMassRunID";
@@ -547,44 +537,53 @@ namespace OpenMS
     return pc_spec - spectra_.cbegin(); 
   }
 
-  MSExperiment::ConstIterator MSExperiment::getFirstProductSpectrum(ConstIterator iterator) const
+  MSExperiment::ConstIterator MSExperiment::getFirstProductSpectrum(ConstIterator parent_iterator) const
   {
-    // if we are after the end we can't go "down"
-    if (iterator == spectra_.end())
+    // if we are already at or after the end -> there can be no product after it
+    if (parent_iterator == spectra_.end() 
+      || parent_iterator == spectra_.end() - 1)
     {
       return spectra_.end();
     }
-    UInt ms_level = iterator->getMSLevel();
 
-    auto tmp_spec_iter = iterator; // such that we can reiterate later
-    do
-    {
-      ++tmp_spec_iter;
-      if ((tmp_spec_iter->getMSLevel() - ms_level) == 1)
-      {
-        if (!tmp_spec_iter->getPrecursors().empty())
+    UInt parent_ms_level = parent_iterator->getMSLevel();
+    const auto& parent_native_id = parent_iterator->getNativeID();
+
+    auto it = parent_iterator; // such that we can reiterate later
+    it++; // start at the next spectrum
+
+    while (it != spectra_.end())
+    { 
+      if (it->getMSLevel() < parent_ms_level) return spectra_.end();
+
+      if ((it->getMSLevel() - parent_ms_level) == 1) 
+      { // it is a potential product spectrum (one level higher than parent)
+
+        // does it have precursors referencing the parents?
+        if (it->getPrecursors().empty()) 
         {
-          // Warn if there are multiple precursors
-          if (tmp_spec_iter->getPrecursors().size() > 1)
-          {
-              OPENMS_LOG_WARN << "Spectrum at index " << std::distance(spectra_.begin(), tmp_spec_iter)
-                        << " has multiple precursors. Only the first precursor will be considered."
-                        << std::endl;
-          }
+          ++it; // no precursors, so we can't check if it is a product of the parent
+          continue;
+        }      
 
-          const auto precursor = tmp_spec_iter->getPrecursors()[0];
-          String ref = precursor.getMetaValue("spectrum_ref", "");  
-          if (!ref.empty() && ref == iterator->getNativeID())
-          {
-            return tmp_spec_iter;
-          }
+        // warn if there are multiple precursors (should not happen)
+        if (it->getPrecursors().size() > 1)
+        {
+            OPENMS_LOG_WARN << "Spectrum at index " << std::distance(spectra_.begin(), it)
+                      << " has multiple precursors. Only the first precursor will be considered."
+                      << std::endl;
         }
+
+        // check if it has the parent a precursor
+        const auto precursor = it->getPrecursors()[0];
+        String ref = precursor.getMetaValue("spectrum_ref", "");  
+        if (!ref.empty() && ref == parent_native_id)
+        {
+          return it;
+        }     
       }
-      else if (tmp_spec_iter->getMSLevel() < ms_level)
-      {
-        return spectra_.end();
-      }
-    } while (tmp_spec_iter != spectra_.end());
+      ++it; 
+    } 
 
     return spectra_.end();
   }
@@ -592,6 +591,11 @@ namespace OpenMS
   // same as above but easier to wrap in python
   int MSExperiment::getFirstProductSpectrum(int zero_based_index) const
   {
+    if (zero_based_index < 0 
+      || zero_based_index >= static_cast<int>(spectra_.size()))
+    {
+      return -1;
+    }
     auto spec = spectra_.cbegin();
     spec += zero_based_index;
     auto pc_spec = getFirstProductSpectrum(spec);
@@ -620,9 +624,6 @@ namespace OpenMS
     //swap peaks
     spectra_.swap(from.getSpectra());
 
-    //swap remaining members
-    ms_levels_.swap(from.ms_levels_);
-    std::swap(total_size_, from.total_size_);
   }
 
   /// sets the spectrum list
@@ -812,8 +813,6 @@ namespace OpenMS
       clearRanges();
       this->ExperimentalSettings::operator=(ExperimentalSettings());             // no "clear" method
       chromatograms_.clear();
-      ms_levels_.clear();
-      total_size_ = 0;
     }
   }
 

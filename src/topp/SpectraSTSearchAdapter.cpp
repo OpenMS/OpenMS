@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // -----------------------------------------
@@ -13,7 +13,6 @@
 #include <sstream> 
 
 #include <QDir>
-#include <QProcess>
 
 using namespace OpenMS;
 using namespace std;
@@ -281,13 +280,10 @@ protected:
      OPENMS_LOG_DEBUG << ss.str() << endl;
 
      // Run SpectraST
-     QProcess spectrast_process;
-     spectrast_process.start(executable.toQString(), arguments);
-
-     if (! spectrast_process.waitForFinished(-1))
+     TOPPBase::ExitCodes exit_code = runExternalProcess_(executable.toQString(), arguments);
+     if (exit_code != EXECUTION_OK)
      {
-         OPENMS_LOG_ERROR << "Fatal error running SpectraST\nDoes the spectrast executable exist?" << endl;
-         return EXTERNAL_PROGRAM_ERROR;
+       return exit_code;
      }
 
      // Copy the output files to the specified location
