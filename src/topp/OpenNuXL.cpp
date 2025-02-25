@@ -94,7 +94,6 @@
 #include <iterator>
 #include <cmath>
 
-
 #ifdef _OPENMP
 #include <omp.h>
 #define NUMBER_OF_THREADS (omp_get_num_threads())
@@ -888,21 +887,23 @@ protected:
     // NuXL specific
     registerTOPPSubsection_("NuXL", "NuXL Options");
 
-    registerStringOption_("NuXL:presets", "<option>", "none", "Set precursor and fragment adducts form presets (recommended).", false, false);
-
-    StringList presets(NuXLPresets::presets_names.begin(), NuXLPresets::presets_names.end()); 
-    setValidStrings_("NuXL:presets", presets);
+    registerStringOption_("NuXL:presets", "<option>", "none", "Set precursor and fragment adducts from presets (recommended). Custom presets can be defined in a 'nuxl_presets.json' file placed in the share/OpenMS/NUXL/ directory or specified via NuXL:presets_file.", false, false);
+    registerInputFile_("NuXL:presets_file", "<file>", "", "Optional custom path to nuxl_presets.json file. If not provided, the default file in share/OpenMS/NUXL/ will be used.", false, true);
+    setValidFormats_("NuXL:presets_file", ListUtils::create<String>("json"));
+    // append StringLists
+    String custom_presets_file = getStringOption_("NuXL:presets_file");
+    StringList all_presets = NuXLPresets::getAllPresetsNames(custom_presets_file);
+    setValidStrings_("NuXL:presets", all_presets);
 
     // store presets (for visual inspection only) in ini
-    for (const auto& p : presets)
+    for (const auto& p : all_presets)
     {
       if (p == "none") continue;
       String subsection_name = "presets:" + p;
       registerTOPPSubsection_(subsection_name, "Presets for " + p + " cross-link protocol (Note: changes will be ignored).");
       StringList target_nucleotides, mappings, modifications, fragment_adducts;
-
       String can_cross_link;
-      NuXLPresets::getPresets(p, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link);
+      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link);
 
       registerStringList_(subsection_name + ":target_nucleotides", "", target_nucleotides, "", false, true);
       registerStringList_(subsection_name + ":mapping", "", mappings, "", false, true);
@@ -5085,7 +5086,9 @@ static void scoreXLIons_(
     else
     { // set from presets
       String p = getStringOption_("NuXL:presets");
-      NuXLPresets::getPresets(p, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link);
+      String custom_presets_file = getStringOption_("NuXL:presets_file");
+      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link);
+      
       // set if DNA or RNA preset
       if (p.hasSubstring("RNA"))
       {      
@@ -6641,7 +6644,7 @@ static void scoreXLIons_(
           {
             TextFile csv_file;
             csv_file.addLine(NuXLReportRowHeader().getString("\t", meta_values_to_export));
-            for (const NuXLReportRow r : csv_rows_percolator)
+            for (const NuXLReportRow& r : csv_rows_percolator)
             {
               csv_file.addLine(r.getString("\t"));
             }
