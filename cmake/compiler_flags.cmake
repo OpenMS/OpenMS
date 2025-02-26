@@ -34,102 +34,177 @@
 
 #------------------------------------------------------------------------------
 # This cmake file handles all the project specific compiler flags
+# It defines variables and options and provides functions to apply flags to targets
 
-# allow additional custom compile flags on the cmake command line by using -DMY_CXX_FLAGS="-g -D_GLIBCXX_ASSERTIONS ..."
-# useful for e.g. Release with debug symbols on gcc/clang
+#------------------------------------------------------------------------------
+# PART 1: Define variables and options
+#------------------------------------------------------------------------------
+
+# Custom compile flags
 if (MY_CXX_FLAGS) ## do not change this name! it's used in configh.cmake
-  message(STATUS "Custom compile flags: '${MY_CXX_FLAGS}' will be added to targets via target_compiler_flags.cmake")
-  # Note: These flags will be added to targets via the helper functions in target_compiler_flags.cmake
+  message(STATUS "Custom compile flags: '${MY_CXX_FLAGS}' will be added to targets")
 endif()
 
-########
-########    deal with SSE/AVX flags
-########
+# SIMD extensions
 set(x64_CPU "x86|AMD64") ## CMake returns 'x86-64' on Linux and 'AMD64' on Windows..
 message(STATUS "Processor is : ${CMAKE_SYSTEM_PROCESSOR}")
-# if we support more ISA's in the future (MIPS, SPARC), then also update OpenMSOSInfo::getActiveSIMDExtensions
-if (MSVC)
-  ## enable 'AVX' on x86-64, to achive faster base64 en-/decoding via SIMDe
-  ## note: MSVC lacks flags for SSE3/SSE4 (only unofficial ones like /d2archSSE42 are available, but SIMDe does not care about them)
-  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}") 
-    ## for SIMDe we need to use explicit compiler flags, which in turn define macros (like '#define __AVX__'), which SIMDe will check for and only then create vectorized code
-    ## Disabling AVX will actually make the SIMDe code slower compared to the non-SSE version (for Base64 encoding/decoding at least)
-    # Note: SIMD flags are now applied per-target in target_compiler_flags.cmake
-  endif()
-else()  ## GCC/Clang/AppleClang
-  ## enable SSE3 on x86, to achive faster base64 en-/decoding
-  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}") 
-    # Note: SIMD flags are now applied per-target in target_compiler_flags.cmake
-  endif()
-endif()
-## do nothing for ARM at the moment, since SIMDe will do the right thing upon detecting ARM: https://github.com/simd-everywhere/simde/blob/master/simde/simde-arch.h#L117
-## (and it seems that neon instructions compile without error even if no compile flag is given -- as opposed to x64 intrinsics)
 
-####
-####  more flags...
-####
+# ARM processors: SIMDe will do the right thing upon detecting ARM
+# https://github.com/simd-everywhere/simde/blob/master/simde/simde-arch.h#L117
+# (neon instructions compile without error even if no compile flag is given -- as opposed to x64 intrinsics)
 
-if (CMAKE_COMPILER_IS_GNUCXX)
-
+# Compiler-specific options
+if(CMAKE_COMPILER_IS_GNUCXX)
+  # GCC options
   option(ENABLE_GCC_WERROR "Enable -Werror on gcc compilers" OFF)
-  if (ENABLE_GCC_WERROR)
+  if(ENABLE_GCC_WERROR)
     message(STATUS "Enable -Werror for gcc - note that this may not work on all compilers and system settings!")
-    # Note: -Werror flag is now applied per-target in target_compiler_flags.cmake
   endif()
-
-
-  # Recommended setting for eclipse, see http://www.cmake.org/Wiki/CMake:Eclipse
-  if (CMAKE_GENERATOR STREQUAL "Eclipse CDT4 - Unix Makefiles")
-    # Note: -fmessage-length=0 flag is now applied per-target in target_compiler_flags.cmake
-  endif()
-  
-elseif (MSVC)
-	# do not use add_definitions
-	# add definitions also lands in stuff like RC_DEFINITION which tend to fail if you use
-	# Eclipse CDT 4 - NMAKE generator
-	# use set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} ...") instead
-
-	# Note: MSVC-specific flags are now applied per-target in target_compiler_flags.cmake
-	# This includes:
-	# - /wd4251 /wd4275 (disable dll-interface warning)
-	# - /wd4996 (disable deprecated functions warning)
-	# - /wd4661 (disable explicit template instantiation request warning)
-	# - /wd4503 (disable decorated name length exceeded warning)
-	# - /wd4068 (disable unknown pragma warning)
-	# - /bigobj (for large object files)
-	# - /MP (use multiple CPU cores)
-  
-	# Note: MSVC-specific definitions are now applied per-target in target_compiler_flags.cmake
-	# This includes:
-	# - _SCL_SECURE_NO_WARNINGS
-	# - _CRT_SECURE_NO_WARNINGS
-	# - _CRT_SECURE_NO_DEPRECATE
-	# - OPENMS_XERCESDLL (xerces bug workaround)
-	# - NOMINMAX (coinor windows.h include bug workaround)
-
-	## hdf5 linkage for windows (in case we want to build dynamically)
-	# add_definitions(-DH5_BUILT_AS_DYNAMIC_LIB)
-
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang") # using regular Clang or AppleClang
-
+elseif(MSVC)
+  # MSVC options
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  # Clang options
   set(CMAKE_COMPILER_IS_CLANG true CACHE INTERNAL "Is CLang compiler (clang++)")
-  # Note: Clang-specific flags are now applied per-target in target_compiler_flags.cmake
 else()
+  # Intel compiler options
   set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
 endif()
 
-## platform dependent compiler flags:
+# Platform-dependent options
 include(CheckCXXCompilerFlag)
-if (NOT WIN32) # we only want fPIC on non-windows systems (fPIC is implicitly true there)
+if(NOT WIN32) # we only want fPIC on non-windows systems (fPIC is implicitly true there)
   CHECK_CXX_COMPILER_FLAG("-fPIC" WITH_FPIC)
-  # Note: fPIC flag is now applied per-target in target_compiler_flags.cmake
-endif()
-
-## -Wconversion flag for GCC
-set(CXX_WARN_CONVERSION OFF CACHE BOOL "Enables warnings for type conversion problems (GCC only)")
-if (CXX_WARN_CONVERSION)
-  if (CMAKE_COMPILER_IS_GNUCXX)
-    # Note: -Wconversion flag is now applied per-target in target_compiler_flags.cmake
+  if(WITH_FPIC)
+    message(STATUS "Position-independent code (-fPIC) is supported and will be applied to targets")
   endif()
 endif()
+
+# Conversion warnings
+set(CXX_WARN_CONVERSION OFF CACHE BOOL "Enables warnings for type conversion problems (GCC only)")
 message(STATUS "Compiler checks for conversion: ${CXX_WARN_CONVERSION}")
+
+#------------------------------------------------------------------------------
+# PART 2: Functions to apply compiler flags to targets
+#------------------------------------------------------------------------------
+
+# Function to add common compiler flags to a target
+function(openms_add_common_compiler_flags target_name)
+  if(CMAKE_COMPILER_IS_GNUCXX)
+    target_compile_options(${target_name} PRIVATE
+      -Wall -Wextra
+      -Wno-unknown-pragmas
+      -Wno-long-long 
+      -Wno-unused-function
+      -Wno-variadic-macros
+    )
+    
+    if(ENABLE_GCC_WERROR)
+      target_compile_options(${target_name} PRIVATE -Werror)
+    endif()
+    
+    if(CMAKE_GENERATOR STREQUAL "Eclipse CDT4 - Unix Makefiles")
+      target_compile_options(${target_name} PRIVATE -fmessage-length=0)
+    endif()
+  elseif(MSVC)
+    target_compile_options(${target_name} PRIVATE
+      /wd4251 /wd4275  # disable dll-interface warning
+      /wd4996          # disable deprecated functions warning
+      /wd4661          # disable explicit template instantiation request warning
+      /wd4503          # disable decorated name length exceeded warning
+      /wd4068          # disable unknown pragma warning
+      /bigobj          # for large object files
+      /MP              # use multiple CPU cores
+    )
+    
+    target_compile_definitions(${target_name} PRIVATE
+      _SCL_SECURE_NO_WARNINGS
+      _CRT_SECURE_NO_WARNINGS
+      _CRT_SECURE_NO_DEPRECATE
+      OPENMS_XERCESDLL  # xerces bug workaround
+      NOMINMAX          # coinor windows.h include bug workaround
+    )
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(${target_name} PRIVATE
+      -ffp-contract=off
+      -Wall -Wextra
+      -Wno-sign-conversion
+      -Wno-long-long
+      -Wno-padded
+      -Wno-global-constructors
+      -Wno-exit-time-destructors
+      -Wno-weak-vtables
+      -Wno-documentation-unknown-command
+      -Wno-undef
+      -Wno-documentation
+      -Wno-source-uses-openmp
+      -Wno-old-style-cast
+      -Wno-c++98-compat
+      -Wno-c++98-compat-pedantic
+      -Wno-unknown-warning-option
+      -Wno-double-promotion
+      -Wno-unused-template
+      -Wno-conversion
+      -Wno-float-equal
+      -Wno-switch-enum
+      -Wno-missing-prototypes
+      -Wno-missing-variable-declarations
+      -Wno-deprecated
+      -Wno-deprecated-register
+      -Wno-covered-switch-default
+      -Wno-date-time
+      -Wno-missing-noreturn
+    )
+  endif()
+  
+  # Platform-dependent flags
+  if(NOT WIN32 AND WITH_FPIC)
+    target_compile_options(${target_name} PRIVATE -fPIC)
+  endif()
+  
+  # Conversion warnings
+  if(CXX_WARN_CONVERSION AND CMAKE_COMPILER_IS_GNUCXX)
+    target_compile_options(${target_name} PRIVATE -Wconversion)
+  endif()
+  
+  # SIMD extensions
+  if(MSVC AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}")
+    target_compile_options(${target_name} PRIVATE /arch:AVX)
+  elseif(NOT MSVC AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}")
+    target_compile_options(${target_name} PRIVATE -mssse3)
+  endif()
+  
+  # Custom flags
+  if(MY_CXX_FLAGS)
+    separate_arguments(MY_CXX_FLAGS_LIST UNIX_COMMAND "${MY_CXX_FLAGS}")
+    target_compile_options(${target_name} PRIVATE ${MY_CXX_FLAGS_LIST})
+  endif()
+endfunction()
+
+# Function to add library-specific compiler flags
+function(openms_add_library_compiler_flags target_name)
+  # Add common flags first
+  openms_add_common_compiler_flags(${target_name})
+  
+  # Library-specific flags
+  if(CMAKE_COMPILER_IS_GNUCXX)
+    target_compile_options(${target_name} PRIVATE -Wno-non-virtual-dtor)
+  endif()
+  
+  # Address sanitizer
+  if(ADDRESS_SANITIZER)
+    add_asan_to_target(${target_name})
+  endif()
+endfunction()
+
+# Function to add executable-specific compiler flags
+function(openms_add_executable_compiler_flags target_name)
+  # Add common flags first
+  openms_add_common_compiler_flags(${target_name})
+  
+  # Executable-specific flags can be added here
+  
+  # Address sanitizer
+  if(ADDRESS_SANITIZER)
+    add_asan_to_target(${target_name})
+  endif()
+endfunction()

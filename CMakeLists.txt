@@ -207,8 +207,6 @@ set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build,
 # for OpenMS internal flags (not promoted to external compiler flags) append to CMAKE_CXX_FLAGS
 # see OpenMS/cmake/OpenMSConfig.cmake.in to see how its configured and used (i.e. as OPENMS_ADDCXX_FLAGS)
 include(cmake/compiler_flags.cmake)
-# Include target-specific compiler flags helper functions
-include(cmake/target_compiler_flags.cmake)
 
 # Visibility settings
 if (NOT CMAKE_CXX_VISIBILITY_PRESET)
