@@ -4429,45 +4429,79 @@ def testPrecursor():
     """
     @tests: Precursor
      Precursor.__init__
-     Precursor.getIntensity
-     Precursor.getMZ
-     Precursor.setIntensity
-     Precursor.setMZ
-     Precursor.setActivationMethods
      Precursor.getActivationMethods
-     Precursor.setActivationEnergy
+     Precursor.setActivationMethods
      Precursor.getActivationEnergy
-     Precursor.setIsolationWindowUpperOffset
-     Precursor.getIsolationWindowUpperOffset
-     Precursor.setIsolationWindowLowerOffset
+     Precursor.setActivationEnergy
      Precursor.getIsolationWindowLowerOffset
-     Precursor.setCharge
+     Precursor.setIsolationWindowLowerOffset
+     Precursor.getDriftTime
+     Precursor.setDriftTime
+     Precursor.getIsolationWindowUpperOffset
+     Precursor.setIsolationWindowUpperOffset 
+     Precursor.getDriftTimeWindowLowerOffset
+     Precursor.setDriftTimeWindowLowerOffset
+     Precursor.getDriftTimeWindowUpperOffset
+     Precursor.setDriftTimeWindowUpperOffset
      Precursor.getCharge
-     Precursor.setPossibleChargeStates
+     Precursor.setCharge
      Precursor.getPossibleChargeStates
+     Precursor.setPossibleChargeStates
      Precursor.getUnchargedMass
+     Precursor.__eq__
+     Precursor.__ne__
     """
-    pc = pyopenms.Precursor()
-    pc.setMZ(123.0)
-    pc.setIntensity(12.0)
-    assert pc.getMZ() == 123.0
-    assert pc.getIntensity() == 12.0
 
-    pc.setActivationMethods(pc.getActivationMethods())
-    pc.setActivationEnergy(6.0)
-    pc.getActivationEnergy()
+    # Test constructors
+    prec = pyopenms.Precursor()
+    prec2 = pyopenms.Precursor(prec)
+    assert prec == prec2
+    assert not prec != prec2
 
-    pc.setIsolationWindowUpperOffset(500.0)
-    pc.getIsolationWindowUpperOffset()
-    pc.setIsolationWindowLowerOffset(600.0)
-    pc.getIsolationWindowLowerOffset()
+    # Test activation methods
+    methods = set([pyopenms.Precursor.ActivationMethod.CID, 
+                  pyopenms.Precursor.ActivationMethod.HCD])
+    prec.setActivationMethods(methods)
+    assert prec.getActivationMethods() == methods
 
-    pc.setCharge(2)
-    pc.getCharge()
+    # Test activation energy  
+    prec.setActivationEnergy(25.0)
+    assert abs(prec.getActivationEnergy() - 25.0) < 1e-5
 
-    pc.setPossibleChargeStates(pc.getPossibleChargeStates())
+    # Test isolation window
+    prec.setIsolationWindowLowerOffset(0.5)
+    assert abs(prec.getIsolationWindowLowerOffset() - 0.5) < 1e-5
+    
+    prec.setIsolationWindowUpperOffset(1.5) 
+    assert abs(prec.getIsolationWindowUpperOffset() - 1.5) < 1e-5
 
-    pc.getUnchargedMass()
+    # Test drift time
+    prec.setDriftTime(5.0)
+    assert abs(prec.getDriftTime() - 5.0) < 1e-5
+
+    # Test drift time window
+    prec.setDriftTimeWindowLowerOffset(0.2)
+    assert abs(prec.getDriftTimeWindowLowerOffset() - 0.2) < 1e-5
+    
+    prec.setDriftTimeWindowUpperOffset(0.8)
+    assert abs(prec.getDriftTimeWindowUpperOffset() - 0.8) < 1e-5
+
+    # Test charge
+    prec.setCharge(2)
+    assert prec.getCharge() == 2
+
+    # Test possible charge states
+    charges = [2,3,4]
+    prec.setPossibleChargeStates(charges)
+    assert list(prec.getPossibleChargeStates()) == charges
+
+    # Test uncharged mass calculation
+    mz = 200.0
+    prec.setMZ(mz)
+    charge = 2
+    prec.setCharge(charge)
+    expected_mass = mz * charge - charge * 1.007276466879  # mass of proton
+    assert abs(prec.getUnchargedMass() - expected_mass) < 1e-5
 
 @report
 def testProcessingAction():

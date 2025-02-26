@@ -55,22 +55,45 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
 
 cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS::Precursor":
     cdef enum ActivationMethod:
-      CID,                      #< Collision-induced dissociation
-      PSD,                      #< Post-source decay
-      PD,                       #< Plasma desorption
-      SID,                      #< Surface-induced dissociation
-      BIRD,                     #< Blackbody infrared radiative dissociation
-      ECD,                      #< Electron capture dissociation
-      IMD,                      #< Infrared multiphoton dissociation
-      SORI,                     #< Sustained off-resonance irradiation
-      HCID,                     #< High-energy collision-induced dissociation
-      LCID,                     #< Low-energy collision-induced dissociation
-      PHD,                      #< Photodissociation
-      ETD,                      #< Electron transfer dissociation
-      PQD,                      #< Pulsed q dissociation
-      TRAP,                     #< trap-type collision-induced dissociation (MS:1002472)
-      HCD,                      #< beam-type collision-induced dissociation (MS:1000422) / HCD
-      INSOURCE,                 #< in-source collision-induced dissociation (MS:1001880)
-      LIFT,                     #< Bruker proprietary method (MS:1002000)
+      # wrap-doc:
+      #  Enum for activation/fragmentation methods of mass spectra
+      #  
+      #  - CID: Collision-induced dissociation (MS:1000133) (also CAD; parent term, but unless otherwise stated often used as synonym for trap-type CID)
+      #  - PSD: Post-source decay
+      #  - PD: Plasma desorption
+      #  - SID: Surface-induced dissociation
+      #  - BIRD: Blackbody infrared radiative dissociation
+      #  - ECD: Electron capture dissociation (MS:1000250)
+      #  - IMD: Infrared multiphoton dissociation
+      #  - SORI: Sustained off-resonance irradiation
+      #  - HCID: High-energy collision-induced dissociation
+      #  - LCID: Low-energy collision-induced dissociation
+      #  - PHD: Photodissociation
+      #  - ETD: Electron transfer dissociation
+      #  - ETciD: Electron transfer and collision-induced dissociation (MS:1003182)
+      #  - EThcD: Electron transfer and higher-energy collision dissociation (MS:1002631)
+      #  - PQD: Pulsed q dissociation (MS:1000599)
+      #  - TRAP: trap-type collision-induced dissociation (MS:1002472)
+      #  - HCD: beam-type collision-induced dissociation (MS:1000422)
+      #  - INSOURCE: in-source collision-induced dissociation (MS:1001880)
+      #  - LIFT: Bruker proprietary method (MS:1002000)
+      CID,
+      PSD,
+      PD,
+      SID,
+      BIRD,
+      ECD,
+      IMD,
+      SORI,
+      HCID,
+      LCID,
+      PHD,
+      ETD,
+      ETciD,
+      EThcD,
+      PQD,
+      TRAP,
+      HCD,
+      INSOURCE,
+      LIFT,
       SIZE_OF_ACTIVATIONMETHOD
-
