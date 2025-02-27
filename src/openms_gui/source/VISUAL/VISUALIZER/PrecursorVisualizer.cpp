@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD  static_cast<int>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD);// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -53,7 +53,7 @@ namespace OpenMS
 
     //actions
     activation_methods_->clear();
-    for (Size i = 0; i < Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
+    for (Size i = 0; i < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD; ++i)
     {
       QListWidgetItem * item = new QListWidgetItem(activation_methods_);
       item->setText(QString::fromStdString(Precursor::NamesOfActivationMethod[i]));
@@ -89,7 +89,7 @@ namespace OpenMS
     ptr_->setIsolationWindowUpperOffset(window_up_->text().toFloat());
 
     ptr_->getActivationMethods().clear();
-    for (UInt i = 0; i < Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
+    for (UInt i = 0; i < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD; ++i)
     {
       if (activation_methods_->item(i)->checkState() == Qt::Checked)
       {

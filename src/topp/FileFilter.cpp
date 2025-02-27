@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD  static_cast<int>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD);// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -328,7 +328,7 @@ protected:
 
     addEmptyLine_();
     registerStringOption_("spectra:remove_activation", "<activation>", "", "Remove MSn scans where any of its precursors features a certain activation method", false);
-    setValidStrings_("spectra:remove_activation", Precursor::NamesOfActivationMethod, (int)Precursor::SIZE_OF_ACTIVATIONMETHOD);
+    setValidStrings_("spectra:remove_activation", Precursor::NamesOfActivationMethod, (int)Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD);
 
     registerStringOption_("spectra:remove_collision_energy", "[min]:[max]", ":", "Remove MSn scans with a collision energy in the given interval", false);
     registerStringOption_("spectra:remove_isolation_window_width", "[min]:[max]", ":", "Remove MSn scans whose isolation window width is in the given interval", false);
@@ -338,7 +338,7 @@ protected:
     registerStringOption_("spectra:select_mode", "<mode>", "", "Selects scans by scan mode\n", false);
     setValidStrings_("spectra:select_mode", InstrumentSettings::NamesOfScanMode, (int)InstrumentSettings::SIZE_OF_SCANMODE);
     registerStringOption_("spectra:select_activation", "<activation>", "", "Retain MSn scans where any of its precursors features a certain activation method", false);
-    setValidStrings_("spectra:select_activation", Precursor::NamesOfActivationMethod, (int)Precursor::SIZE_OF_ACTIVATIONMETHOD);
+    setValidStrings_("spectra:select_activation", Precursor::NamesOfActivationMethod, (int)Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD);
     registerStringOption_("spectra:select_collision_energy", "[min]:[max]", ":", "Select MSn scans with a collision energy in the given interval", false);
     registerStringOption_("spectra:select_isolation_window_width", "[min]:[max]", ":", "Select MSn scans whose isolation window width is in the given interval", false);
 
@@ -778,7 +778,7 @@ protected:
       if (!remove_activation.empty())
       {
         writeDebug_("Removing scans with activation mode: " + remove_activation, 3);
-        for (Size i = 0; i < Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
+        for (Size i = 0; i < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD; ++i)
         {
           if (Precursor::NamesOfActivationMethod[i] == remove_activation)
           {
@@ -792,7 +792,7 @@ protected:
       if (!select_activation.empty())
       {
         writeDebug_("Selecting scans with activation mode: " + select_activation, 3);
-        for (Size i = 0; i < Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
+        for (Size i = 0; i < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD; ++i)
         {
           if (Precursor::NamesOfActivationMethod[i] == select_activation)
           {
