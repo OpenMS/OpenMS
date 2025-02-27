@@ -126,7 +126,7 @@ namespace OpenMS
     defaults_.setValue("select_activation", "auto", "Operate only on MSn scans where any of its precursors features a certain activation method. Setting to \"auto\" uses HCD and HCID spectra. Set to empty string if you want to disable filtering.");
     std::vector<std::string> activation_list;
     activation_list.emplace_back("auto");
-    activation_list.insert(activation_list.end(), Precursor::NamesOfActivationMethod, Precursor::NamesOfActivationMethod + Precursor::SIZE_OF_ACTIVATIONMETHOD - 1);
+    activation_list.insert(activation_list.end(), Precursor::NamesOfActivationMethod, Precursor::NamesOfActivationMethod + static_cast<int>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD) - 1);
     activation_list.emplace_back("any"); // allow disabling this
 
     defaults_.setValidStrings("select_activation", activation_list);
@@ -438,7 +438,7 @@ namespace OpenMS
     // Select the two possible HCD activation modes according to PSI-MS ontology: HCID and HCD
     if (selected_activation_ == "auto") 
     {
-      selected_activation_ = Precursor::NamesOfActivationMethod[Precursor::HCID] + "," + Precursor::NamesOfActivationMethod[Precursor::HCD];
+      selected_activation_ = Precursor::NamesOfActivationMethod[static_cast<int>(Precursor::ActivationMethod::HCID)] + "," + Precursor::NamesOfActivationMethod[static_cast<int>(Precursor::ActivationMethod::HCD)];
     }
 
     HasActivationMethod<PeakMap::SpectrumType> isValidActivation(ListUtils::create<String>(selected_activation_));

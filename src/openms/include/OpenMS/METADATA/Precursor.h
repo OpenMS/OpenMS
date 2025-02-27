@@ -55,7 +55,7 @@ public:
     Precursor& operator=(Precursor&&) & = default;
 
     /// Method of activation
-    enum ActivationMethod
+    enum class ActivationMethod
     {
       CID,                      ///< Collision-induced dissociation (MS:1000133) (also CAD; parent term, but unless otherwise stated often used as synonym for trap-type CID)
       PSD,                      ///< Post-source decay
@@ -79,8 +79,8 @@ public:
       SIZE_OF_ACTIVATIONMETHOD
     };
     /// Names of activation methods
-    static const std::string NamesOfActivationMethod[SIZE_OF_ACTIVATIONMETHOD];
-    static const std::string NamesOfActivationMethodShort[SIZE_OF_ACTIVATIONMETHOD];
+    static const std::string NamesOfActivationMethod[static_cast<int>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)];
+    static const std::string NamesOfActivationMethodShort[static_cast<int>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)];
 
     /// Equality operator
     bool operator==(const Precursor & rhs) const;

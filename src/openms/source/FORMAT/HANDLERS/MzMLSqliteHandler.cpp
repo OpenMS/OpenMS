@@ -645,7 +645,7 @@ namespace OpenMS::Internal
           product.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 11));
         }
         if (sqlite3_column_type(stmt, 12) != SQLITE_NULL && sqlite3_column_int(stmt, 12) != -1
-            && sqlite3_column_int(stmt, 12) < static_cast<int>(OpenMS::Precursor::SIZE_OF_ACTIVATIONMETHOD))
+            && sqlite3_column_int(stmt, 12) < static_cast<int>(OpenMS::Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
         {
           precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(sqlite3_column_int(stmt, 12)));
         }
@@ -772,7 +772,7 @@ namespace OpenMS::Internal
           }
         }
         if (sqlite3_column_type(stmt, 15) != SQLITE_NULL && sqlite3_column_int(stmt, 15) != -1
-            && sqlite3_column_int(stmt, 15) < static_cast<int>(OpenMS::Precursor::SIZE_OF_ACTIVATIONMETHOD))
+            && sqlite3_column_int(stmt, 15) < static_cast<int>(OpenMS::Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
         {
           precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(sqlite3_column_int(stmt, 15)));
         }
@@ -1087,7 +1087,7 @@ namespace OpenMS::Internal
           int activation_method = -1;
           if (!prec.getActivationMethods().empty() )
           {
-            activation_method = *prec.getActivationMethods().begin();
+            activation_method = static_cast<int>(*prec.getActivationMethods().begin());
           }
           String pepseq;
           if (prec.metaValueExists("peptide_sequence"))
@@ -1296,9 +1296,9 @@ namespace OpenMS::Internal
         OpenMS::Precursor prec = chrom.getPrecursor();
         // see src/openms/include/OpenMS/METADATA/Precursor.h for activation modes
         int activation_method = -1;
-        if (!prec.getActivationMethods().empty() )
+        if (!prec.getActivationMethods().empty())
         {
-          activation_method = *prec.getActivationMethods().begin();
+          activation_method = static_cast<int>(*prec.getActivationMethods().begin());
         }
         String pepseq;
         if (prec.metaValueExists("peptide_sequence"))

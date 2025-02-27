@@ -110,7 +110,7 @@ namespace OpenMS
     am.reserve(activation_methods_.size());
     for (const auto& m : activation_methods_)
     {
-      am.push_back(NamesOfActivationMethod[m]);
+      am.push_back(NamesOfActivationMethod[static_cast<int>(m)]);
     }
     return am;
   }

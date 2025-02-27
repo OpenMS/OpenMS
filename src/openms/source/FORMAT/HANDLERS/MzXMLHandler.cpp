@@ -226,10 +226,10 @@ namespace OpenMS::Internal
         if (optionalAttributeAsString_(activation, attributes, s_activationMethod_))
         {
           auto it = std::find(Precursor::NamesOfActivationMethodShort, 
-                              Precursor::NamesOfActivationMethodShort + Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD, 
+                              Precursor::NamesOfActivationMethodShort + static_cast<int>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD), 
                               activation);
 
-          if (it != Precursor::NamesOfActivationMethodShort + Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)
+          if (it != Precursor::NamesOfActivationMethodShort + static_cast<int>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD))
           {
             spectrum_data_.back().spectrum.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod(it - Precursor::NamesOfActivationMethodShort));
           }
@@ -1016,7 +1016,7 @@ namespace OpenMS::Internal
           else if (options_.getForceMQCompatability())
           { // a missing activation would make old MQ versions crash...
             OPENMS_LOG_WARN << "Warning: An MS2 scan does not have data on it's activation method. Using 'CID' as fallback!\n";
-            os << " activationMethod=\"" << Precursor::NamesOfActivationMethodShort[Precursor::ActivationMethod::CID] << "\" ";
+            os << " activationMethod=\"" << Precursor::NamesOfActivationMethodShort[static_cast<int>(Precursor::ActivationMethod::CID)] << "\" ";
           }
 
           //m/z

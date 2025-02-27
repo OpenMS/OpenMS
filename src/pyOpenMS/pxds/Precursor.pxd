@@ -54,7 +54,9 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
         bool operator!=(Precursor)  except + nogil 
 
 cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS::Precursor":
-    cdef enum ActivationMethod:
+    # wrap-attach:
+    #     Precursor
+    cdef enum class ActivationMethod:
       # wrap-doc:
       #  Enum for activation/fragmentation methods of mass spectra
       #  
