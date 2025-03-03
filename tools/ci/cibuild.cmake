@@ -187,7 +187,7 @@ else()
   set(_build_errors 0)
 endif()
 ## send test results to CDash
-ctest_submit(PARTS build CAPTURE_CMAKE_ERROR _submit_result)
+ctest_submit(PARTS Build CAPTURE_CMAKE_ERROR _submit_result)
 
 if(NOT _submit_result EQUAL 0)
     message(WARNING "CTest submission failed, no detailed logs will be available.")
