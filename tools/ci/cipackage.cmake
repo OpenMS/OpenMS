@@ -37,7 +37,11 @@ ctest_start(Nightly GROUP Package)
 
 ctest_configure(OPTIONS "${CONFIGURE_OPTIONS}" RETURN_VALUE _reconfig_package_ret_val)
 ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "dist" NUMBER_ERRORS _build_errors)
-ctest_submit(PARTS Build)
+ctest_submit(PARTS build CAPTURE_CMAKE_ERROR _submit_result)
+
+if(NOT _submit_result EQUAL 0)
+    message(WARNING "CTest submission failed, no detailed logs will be available.")
+endif()
 
 string(REPLACE "+" "%2B" BUILD_NAME_SAFE ${CTEST_BUILD_NAME})
 string(REPLACE "." "%2E" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
