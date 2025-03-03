@@ -165,8 +165,11 @@ set(CTEST_UPDATE_COMMAND "${GIT_EXECUTABLE}")
 ctest_update()
 
 ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" OPTIONS "${OWN_OPTIONS}" RETURN_VALUE _configure_ret)
-ctest_submit(PARTS Update Configure)
+ctest_submit(PARTS Update Configure CAPTURE_CMAKE_ERROR _submit_result)
 
+if(NOT _submit_result EQUAL 0)
+    message(WARNING "CTest submission failed, no detailed logs will be available.")
+endif()
 
 
 # we only build when we do non-style testing and we may have special targets like pyopenms
@@ -183,7 +186,12 @@ if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
 else()
   set(_build_errors 0)
 endif()
-ctest_submit(PARTS Build)
+## send test results to CDash
+ctest_submit(PARTS build CAPTURE_CMAKE_ERROR _submit_result)
+
+if(NOT _submit_result EQUAL 0)
+    message(WARNING "CTest submission failed, no detailed logs will be available.")
+endif()
 
 
 string(REPLACE "+" "%2B" BUILD_NAME_SAFE ${CTEST_BUILD_NAME})
