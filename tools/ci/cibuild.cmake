@@ -193,7 +193,7 @@ endif()
 ctest_submit(PARTS Build CAPTURE_CMAKE_ERROR _submit_result)
 
 if(NOT _submit_result EQUAL 0)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E echo "::warning file=cibuild.cmake,line=168::CTest submission failed, CDASH server is not available. Continuing execution.")
+  execute_process(COMMAND ${CMAKE_COMMAND} -E echo "::warning file=cibuild.cmake,line=193::CTest submission failed, CDASH server is not available. Continuing execution.")
   message(WARNING "CTest submission failed, no detailed logs will be available.")
   if (_test_errors)
     message(FATAL_ERROR "There were errors: aborting")
