@@ -34,7 +34,11 @@ else()
   ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" PARALLEL_LEVEL 3 RETURN_VALUE _test_errors)
 endif()
 ## send test results to CDash
-ctest_submit(PARTS Test Done)
+ctest_submit(PARTS Test Done CAPTURE_CMAKE_ERROR _submit_result)
+
+if(NOT _submit_result EQUAL 0)
+    message(WARNING "CTest submission failed, no detailed logs will be available.")
+endif()
 
 string(REPLACE "+" "%2B" BUILD_NAME_SAFE ${CTEST_BUILD_NAME})
 string(REPLACE "." "%2E" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
