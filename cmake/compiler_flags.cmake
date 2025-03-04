@@ -124,9 +124,8 @@ function(openms_add_compiler_flags target_name)
     target_compile_options(${target_name} PRIVATE
       -Wall -Wextra
       -Wno-unknown-pragmas
-      -Wno-long-long 
+
       -Wno-unused-function
-      -Wno-variadic-macros
     )
     
     if(ENABLE_GCC_WERROR)
@@ -141,8 +140,7 @@ function(openms_add_compiler_flags target_name)
       /wd4251 /wd4275  # disable dll-interface warning
       /wd4996          # disable deprecated functions warning
       /wd4661          # disable explicit template instantiation request warning
-      /wd4503          # disable decorated name length exceeded warning
-      /wd4068          # disable unknown pragma warning
+      /wd4503          # disable decorated name length exceeded warning9
       /bigobj          # for large object files
       /MP              # use multiple CPU cores
     )
@@ -158,8 +156,6 @@ function(openms_add_compiler_flags target_name)
       -ffp-contract=off
       -Wall -Wextra
       -Wno-sign-conversion
-      -Wno-long-long
-      -Wno-padded
       -Wno-global-constructors
       -Wno-exit-time-destructors
       -Wno-weak-vtables
@@ -168,8 +164,6 @@ function(openms_add_compiler_flags target_name)
       -Wno-documentation
       -Wno-source-uses-openmp
       -Wno-old-style-cast
-      -Wno-c++98-compat
-      -Wno-c++98-compat-pedantic
       -Wno-unknown-warning-option
       -Wno-double-promotion
       -Wno-unused-template
@@ -179,7 +173,6 @@ function(openms_add_compiler_flags target_name)
       -Wno-missing-prototypes
       -Wno-missing-variable-declarations
       -Wno-deprecated
-      -Wno-deprecated-register
       -Wno-covered-switch-default
       -Wno-date-time
       -Wno-missing-noreturn
