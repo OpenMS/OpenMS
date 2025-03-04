@@ -87,8 +87,39 @@ message(STATUS "Compiler checks for conversion: ${CXX_WARN_CONVERSION}")
 # PART 2: Functions to apply compiler flags to targets
 #------------------------------------------------------------------------------
 
-# Function to add common compiler flags to a target
-function(openms_add_common_compiler_flags target_name)
+# Function to add compiler flags to a target with proper PUBLIC/PRIVATE visibility
+function(openms_add_compiler_flags target_name)
+  #------------------------------------------------------------------------------
+  # PUBLIC flags (propagated to dependent targets)
+  #------------------------------------------------------------------------------
+  
+  # Language standard
+  target_compile_features(${target_name} PUBLIC cxx_std_20)
+  
+  # Position-independent code
+  if(NOT WIN32 AND WITH_FPIC)
+    target_compile_options(${target_name} PUBLIC -fPIC)
+  endif()
+  
+  # Essential preprocessor definitions
+  if(MSVC)
+    target_compile_definitions(${target_name} PUBLIC
+      NOMINMAX  # coinor windows.h include bug workaround
+    )
+  endif()
+  
+  # SIMD extensions (PUBLIC for binary compatibility)
+  if(MSVC AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}")
+    target_compile_options(${target_name} PUBLIC /arch:AVX)
+  elseif(NOT MSVC AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}")
+    target_compile_options(${target_name} PUBLIC -mssse3)
+  endif()
+  
+  #------------------------------------------------------------------------------
+  # PRIVATE flags (not propagated to dependent targets)
+  #------------------------------------------------------------------------------
+  
+  # Warning controls
   if(CMAKE_COMPILER_IS_GNUCXX)
     target_compile_options(${target_name} PRIVATE
       -Wall -Wextra
@@ -121,7 +152,6 @@ function(openms_add_common_compiler_flags target_name)
       _CRT_SECURE_NO_WARNINGS
       _CRT_SECURE_NO_DEPRECATE
       OPENMS_XERCESDLL  # xerces bug workaround
-      NOMINMAX          # coinor windows.h include bug workaround
     )
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(${target_name} PRIVATE
@@ -156,21 +186,9 @@ function(openms_add_common_compiler_flags target_name)
     )
   endif()
   
-  # Platform-dependent flags
-  if(NOT WIN32 AND WITH_FPIC)
-    target_compile_options(${target_name} PRIVATE -fPIC)
-  endif()
-  
   # Conversion warnings
   if(CXX_WARN_CONVERSION AND CMAKE_COMPILER_IS_GNUCXX)
     target_compile_options(${target_name} PRIVATE -Wconversion)
-  endif()
-  
-  # SIMD extensions
-  if(MSVC AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}")
-    target_compile_options(${target_name} PRIVATE /arch:AVX)
-  elseif(NOT MSVC AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}")
-    target_compile_options(${target_name} PRIVATE -mssse3)
   endif()
   
   # Custom flags
@@ -182,15 +200,15 @@ endfunction()
 
 # Function to add library-specific compiler flags
 function(openms_add_library_compiler_flags target_name)
-  # Add common flags first
-  openms_add_common_compiler_flags(${target_name})
+  # Add common flags first (both PUBLIC and PRIVATE)
+  openms_add_compiler_flags(${target_name})
   
-  # Library-specific flags
+  # Library-specific PRIVATE flags
   if(CMAKE_COMPILER_IS_GNUCXX)
     target_compile_options(${target_name} PRIVATE -Wno-non-virtual-dtor)
   endif()
   
-  # Address sanitizer
+  # Address sanitizer (PRIVATE)
   if(ADDRESS_SANITIZER)
     add_asan_to_target(${target_name})
   endif()
@@ -198,12 +216,12 @@ endfunction()
 
 # Function to add executable-specific compiler flags
 function(openms_add_executable_compiler_flags target_name)
-  # Add common flags first
-  openms_add_common_compiler_flags(${target_name})
+  # Add common flags first (both PUBLIC and PRIVATE)
+  openms_add_compiler_flags(${target_name})
   
-  # Executable-specific flags can be added here
+  # Executable-specific PRIVATE flags can be added here
   
-  # Address sanitizer
+  # Address sanitizer (PRIVATE)
   if(ADDRESS_SANITIZER)
     add_asan_to_target(${target_name})
   endif()
