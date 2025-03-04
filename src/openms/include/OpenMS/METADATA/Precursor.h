@@ -93,6 +93,12 @@ public:
     std::set<ActivationMethod>& getActivationMethods();
     /// convenience function, returning string representation of getActivationMethods()
     StringList getActivationMethodsAsString() const;    
+    /// convenience function, returning short string representation of getActivationMethods()
+    StringList getActivationMethodsAsShortString() const;
+    /// returns all available activation method names
+    static StringList getNamesOfAllActivationMethods();
+    /// returns all available activation method short names
+    static StringList getShortNamesOfAllActivationMethods();
     /// sets the activation methods
     void setActivationMethods(const std::set<ActivationMethod> & activation_methods);
 

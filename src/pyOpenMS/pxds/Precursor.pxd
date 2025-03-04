@@ -23,7 +23,14 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
         Precursor(Precursor &) except + nogil 
 
         libcpp_set[ActivationMethod] getActivationMethods() except + nogil  # wrap-doc:Returns the activation methods
+        libcpp_vector[String] getActivationMethodsAsString() except + nogil  # wrap-doc:Returns the activation methods as strings
+        libcpp_vector[String] getActivationMethodsAsShortString() except + nogil  # wrap-doc:Returns the activation methods as short strings
         void setActivationMethods(libcpp_set[ActivationMethod] activation_methods) except + nogil  # wrap-doc:Sets the activation methods
+
+        @staticmethod
+        libcpp_vector[String] getNamesOfAllActivationMethods() except + nogil  # wrap-doc:Returns all available activation method names
+        @staticmethod
+        libcpp_vector[String] getShortNamesOfAllActivationMethods() except + nogil  # wrap-doc:Returns all available activation method short names
 
         double getActivationEnergy() except + nogil  # wrap-doc:Returns the activation energy (in electronvolt)
         void setActivationEnergy(double activation_energy) except + nogil  # wrap-doc:Sets the activation energy (in electronvolt)
