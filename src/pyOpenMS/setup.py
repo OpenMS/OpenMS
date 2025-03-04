@@ -253,6 +253,7 @@ setup(
     package_data= {
         'pyopenms': ['py.typed', '*.pyi']
     },
+    python_requires=">=3.8, <3.13",
 	install_requires=[
           'numpy>=1.25.0',
           'pandas',
