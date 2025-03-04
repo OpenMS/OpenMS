@@ -33,6 +33,9 @@ Misc:
 - TOPP tools and TOPPAS/ExecutePipeline return exit code 14 when external third-party tools (such as Comet or Sage) are not found (#7758)
 - ProteinInference tool: Algorithm:score_type allows switching the main score (e.g., "RAW", "PEP") for BasicProteinInference. (#7769)
 
+Fixes:
+- fix Doxygen Docs contain stty warning for TOPP tool output (#7865)
+
 Library:
 - IDScoreSwitcherAlgorithm: Added switchToScoreType and switchBackScoreType methods for score switching and reversion. (#7769)
 
