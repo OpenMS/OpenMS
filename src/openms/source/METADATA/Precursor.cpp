@@ -126,7 +126,7 @@ namespace OpenMS
     return am;
   }
 
-  StringList Precursor::getNamesOfAllActivationMethods()
+  StringList Precursor::getAllNamesOfActivationMethods()
   {
     StringList am;
     am.reserve(SIZE_OF_ACTIVATIONMETHOD);
@@ -137,7 +137,7 @@ namespace OpenMS
     return am;
   }
 
-  StringList Precursor::getShortNamesOfAllActivationMethods()
+  StringList Precursor::getAllShortNamesOfActivationMethods()
   {
     StringList am;
     am.reserve(SIZE_OF_ACTIVATIONMETHOD);

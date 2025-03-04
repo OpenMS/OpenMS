@@ -4477,11 +4477,11 @@ def testPrecursor():
     assert sorted([s.decode() for s in long_strings]) == sorted(methods_long)
 
     # Test static methods for all activation methods
-    all_names = pyopenms.Precursor.getNamesOfAllActivationMethods()
+    all_names = pyopenms.Precursor.getAllNamesOfActivationMethods()
     assert len(all_names) == pyopenms.Precursor.ActivationMethod.SIZE_OF_ACTIVATIONMETHOD
     assert all_names[pyopenms.Precursor.ActivationMethod.CID].decode() == "Collision-induced dissociation"
     
-    all_short_names = pyopenms.Precursor.getShortNamesOfAllActivationMethods()
+    all_short_names = pyopenms.Precursor.getAllShortNamesOfActivationMethods()
     assert len(all_short_names) == pyopenms.Precursor.ActivationMethod.SIZE_OF_ACTIVATIONMETHOD
     assert all_short_names[pyopenms.Precursor.ActivationMethod.CID].decode() == "CID"
 
