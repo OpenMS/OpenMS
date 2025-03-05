@@ -254,14 +254,14 @@ START_SECTION(([EXTRA]~HasActivationMethod()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-	HasActivationMethod<MSSpectrum> s(ListUtils::create<String>(Precursor::NamesOfActivationMethod[1]+","+Precursor::NamesOfActivationMethod[2]));
-	HasActivationMethod<MSSpectrum> s2(ListUtils::create<String>(Precursor::NamesOfActivationMethod[1]+","+Precursor::NamesOfActivationMethod[2]),true);
+	HasActivationMethod<MSSpectrum> s(ListUtils::create<String>(Precursor::NamesOfActivationMethod[static_cast<int>(1)]+","+Precursor::NamesOfActivationMethod[static_cast<int>(2)]));
+	HasActivationMethod<MSSpectrum> s2(ListUtils::create<String>(Precursor::NamesOfActivationMethod[static_cast<int>(1)]+","+Precursor::NamesOfActivationMethod[static_cast<int>(2)]),true);
 	MSSpectrum spec;
 	std::vector<Precursor> pc;
 	Precursor p;
 	set <Precursor::ActivationMethod> sa1;
-	sa1.insert( Precursor::PSD ); //occurs
-	sa1.insert( Precursor::BIRD );//just a dummy
+	sa1.insert( Precursor::ActivationMethod::PSD ); //occurs
+	sa1.insert( Precursor::ActivationMethod::BIRD );//just a dummy
 
 	p.setActivationMethods(sa1);
 	pc.push_back(p);
@@ -272,7 +272,7 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 
 	// does not occur as activation method
 	set <Precursor::ActivationMethod> sa2;
-	sa2.insert( Precursor::BIRD );
+	sa2.insert( Precursor::ActivationMethod::BIRD );
 	p.setActivationMethods(sa2);
 	pc[0] = p;
 	spec.setPrecursors(pc);
@@ -283,7 +283,7 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 	// multiple precursors:
 	// adding another dummy
 	set <Precursor::ActivationMethod> sa3;
-	sa3.insert( Precursor::LCID );
+	sa3.insert( Precursor::ActivationMethod::LCID );
 	p.setActivationMethods(sa3);
 	pc.push_back(p);
 	spec.setPrecursors(pc);
@@ -293,7 +293,7 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 
 	// adding a matching precursor
 	set <Precursor::ActivationMethod> sa4;
-	sa4.insert( Precursor::PD );
+	sa4.insert( Precursor::ActivationMethod::PD );
 	p.setActivationMethods(sa4);
 	pc.push_back(p);
 	spec.setPrecursors(pc);

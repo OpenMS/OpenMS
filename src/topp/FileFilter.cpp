@@ -1,4 +1,4 @@
-Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD  static_cast<int>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD);// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -778,9 +778,9 @@ protected:
       if (!remove_activation.empty())
       {
         writeDebug_("Removing scans with activation mode: " + remove_activation, 3);
-        for (Size i = 0; i < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD; ++i)
+        for (Size i = 0; i < static_cast<int>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD); ++i)
         {
-          if (Precursor::NamesOfActivationMethod[i] == remove_activation)
+          if (Precursor::NamesOfActivationMethod[static_cast<int>(i)] == remove_activation)
           {
             exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(ListUtils::create<String>(remove_activation))), exp.end());
           }
@@ -792,9 +792,9 @@ protected:
       if (!select_activation.empty())
       {
         writeDebug_("Selecting scans with activation mode: " + select_activation, 3);
-        for (Size i = 0; i < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD; ++i)
+        for (Size i = 0; i < static_cast<int>(Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD); ++i)
         {
-          if (Precursor::NamesOfActivationMethod[i] == select_activation)
+          if (Precursor::NamesOfActivationMethod[static_cast<int>(i)] == select_activation)
           {
             exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(ListUtils::create<String>(select_activation), true)), exp.end());
           }

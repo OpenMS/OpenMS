@@ -72,14 +72,14 @@ END_SECTION
 
 START_SECTION((set<ActivationMethod>& getActivationMethods()))
   Precursor tmp;
-	tmp.getActivationMethods().insert(Precursor::CID);
+	tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
   TEST_EQUAL(tmp.getActivationMethods().size(),1);
 END_SECTION
 
 START_SECTION((void setActivationMethods(const set<ActivationMethod>& activation_methods)))
   Precursor tmp;
 	set<Precursor::ActivationMethod> methods;
-	methods.insert(Precursor::CID);
+	methods.insert(Precursor::ActivationMethod::CID);
 	tmp.setActivationMethods(methods);
   TEST_EQUAL(tmp.getActivationMethods().size(),1);
 END_SECTION
@@ -160,7 +160,7 @@ END_SECTION
 START_SECTION((Precursor(const Precursor& source)))
 {
   Precursor tmp;
-  tmp.getActivationMethods().insert(Precursor::CID);
+  tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
   tmp.setActivationEnergy(47.11);
   tmp.setIsolationWindowUpperOffset(22.7);
   tmp.setIsolationWindowLowerOffset(22.8);
@@ -190,8 +190,8 @@ END_SECTION
 START_SECTION((Precursor(const Precursor&& source)))
 {
   Precursor tmp;
-  tmp.getActivationMethods().insert(Precursor::CID);
-  tmp.getActivationMethods().insert(Precursor::BIRD);
+  tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
+  tmp.getActivationMethods().insert(Precursor::ActivationMethod::BIRD);
   tmp.setActivationEnergy(40.11);
   tmp.setIsolationWindowUpperOffset(20.7);
   tmp.setIsolationWindowLowerOffset(20.8);
@@ -227,7 +227,7 @@ END_SECTION
 START_SECTION((Precursor& operator= (const Precursor& source)))
 {
   Precursor tmp;
-  tmp.getActivationMethods().insert(Precursor::CID);
+  tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
   tmp.setActivationEnergy(47.11);
   tmp.setIsolationWindowUpperOffset(22.7);
   tmp.setIsolationWindowLowerOffset(22.8);
@@ -273,8 +273,8 @@ END_SECTION
 START_SECTION((Precursor& operator= (const Precursor&& source)))
 {
   Precursor tmp;
-  tmp.getActivationMethods().insert(Precursor::CID);
-  tmp.getActivationMethods().insert(Precursor::BIRD);
+  tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
+  tmp.getActivationMethods().insert(Precursor::ActivationMethod::BIRD);
   tmp.setActivationEnergy(40.11);
   tmp.setIsolationWindowUpperOffset(20.7);
   tmp.setIsolationWindowLowerOffset(20.8);
@@ -325,7 +325,7 @@ START_SECTION((bool operator== (const Precursor& rhs) const))
 	TEST_EQUAL(tmp==tmp2, false);
 
 	tmp2 = tmp;
-	tmp.getActivationMethods().insert(Precursor::CID);
+	tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
 	TEST_EQUAL(tmp==tmp2, false);
 	
 	tmp2 = tmp;
@@ -374,7 +374,7 @@ START_SECTION((bool operator!= (const Precursor& rhs) const))
 	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
-	tmp.getActivationMethods().insert(Precursor::CID);
+	tmp.getActivationMethods().insert(Precursor::ActivationMethod::CID);
 	TEST_FALSE(tmp == tmp2);
 	
 	tmp2 = tmp;	tmp2 = tmp;
