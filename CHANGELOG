@@ -38,6 +38,7 @@ Fixes:
 
 Library:
 - IDScoreSwitcherAlgorithm: Added switchToScoreType and switchBackScoreType methods for score switching and reversion. (#7769)
+- Precusor only stores a single charge state to simplify design/semantics.
 
 - removed tools:
   - XTandemAdapter
