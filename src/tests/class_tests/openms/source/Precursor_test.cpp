@@ -104,13 +104,13 @@ START_SECTION((StringList getActivationMethodsAsShortString() const))
   TEST_EQUAL(result[0], "CID");
 END_SECTION
 
-START_SECTION((static StringList getNamesOfAllActivationMethods()))
-  StringList result = Precursor::getNamesOfAllActivationMethods();
+START_SECTION((static StringList getAllNamesOfActivationMethods()))
+  StringList result = Precursor::getAllNamesOfActivationMethods();
   TEST_EQUAL(result.size(), Precursor::SIZE_OF_ACTIVATIONMETHOD);
 END_SECTION
 
-START_SECTION((static StringList getShortNamesOfAllActivationMethods()))
-  StringList result = Precursor::getShortNamesOfAllActivationMethods();
+START_SECTION((static StringList getAllShortNamesOfActivationMethods()))
+  StringList result = Precursor::getAllShortNamesOfActivationMethods();
   TEST_EQUAL(result.size(), Precursor::SIZE_OF_ACTIVATIONMETHOD);
 END_SECTION
 
