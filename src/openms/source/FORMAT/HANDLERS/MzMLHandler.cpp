@@ -1631,14 +1631,8 @@ namespace OpenMS::Internal
         }
         else if (accession == "MS:1000633") //possible charge state
         {
-          if (in_spectrum_list_)
-          {
-            spec_.getPrecursors().back().getPossibleChargeStates().push_back(value.toInt());
-          }
-          else
-          {
-            chromatogram_.getPrecursor().getPossibleChargeStates().push_back(value.toInt());
-          }
+          // Log the CV term and that it was ignored
+          warning(LOAD, String("Ignoring CV term 'MS:1000633' (possible charge state) with value '") + value + "' as this functionality has been removed.");
         }
         else if (accession == "MS:1002476" || accession == "MS:1002815" || accession == "MS:1001581") //ion mobility drift time or FAIM compensation voltage
         {
@@ -3745,7 +3739,6 @@ namespace OpenMS::Internal
           precursor.getIntensity() > 0.0 ||
           precursor.getDriftTime() >= 0.0 ||
           precursor.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE ||
-          !precursor.getPossibleChargeStates().empty() ||
           precursor.getMZ() > 0.0)
       {
         // precursor m/z may come from "isolation window":
@@ -3761,10 +3754,6 @@ namespace OpenMS::Internal
         if ( precursor.getIntensity() > 0.0)
         {
           os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000042\" name=\"peak intensity\" value=\"" << precursor.getIntensity() << "\" unitAccession=\"MS:1000132\" unitName=\"percent of base peak\" unitCvRef=\"MS\" />\n";
-        }
-        for (Size j = 0; j < precursor.getPossibleChargeStates().size(); ++j)
-        {
-          os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000633\" name=\"possible charge state\" value=\"" << precursor.getPossibleChargeStates()[j] << "\" />\n";
         }
 
         if (precursor.getDriftTime() != IMTypes::DRIFTTIME_NOT_SET)

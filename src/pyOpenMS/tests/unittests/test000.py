@@ -4445,8 +4445,6 @@ def testPrecursor():
      Precursor.setDriftTimeWindowUpperOffset
      Precursor.getCharge
      Precursor.setCharge
-     Precursor.getPossibleChargeStates
-     Precursor.setPossibleChargeStates
      Precursor.getUnchargedMass
      Precursor.__eq__
      Precursor.__ne__
@@ -4489,11 +4487,6 @@ def testPrecursor():
     # Test charge
     prec.setCharge(2)
     assert prec.getCharge() == 2
-
-    # Test possible charge states
-    charges = [2,3,4]
-    prec.setPossibleChargeStates(charges)
-    assert list(prec.getPossibleChargeStates()) == charges
 
     # Test uncharged mass calculation
     mz = 200.0

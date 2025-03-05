@@ -139,24 +139,6 @@ START_SECTION((void setCharge(Int charge)))
   TEST_EQUAL(tmp.getCharge(), 2);
 END_SECTION
 
-START_SECTION((const std::vector<Int>& getPossibleChargeStates() const))
-  Precursor tmp;
-  TEST_EQUAL(tmp.getPossibleChargeStates().size(), 0);
-END_SECTION
-
-START_SECTION((std::vector<Int>& getPossibleChargeStates()))
-  Precursor tmp;
-  tmp.getPossibleChargeStates().resize(1);
-  TEST_EQUAL(tmp.getPossibleChargeStates().size(), 1);
-END_SECTION
-
-START_SECTION((void setPossibleChargeStates(const std::vector<Int>& possible_charge_states)))
-  Precursor tmp;
-  vector<Int> states(1);
-  tmp.setPossibleChargeStates(states);
-  TEST_EQUAL(tmp.getPossibleChargeStates().size(), 1);
-END_SECTION
-
 START_SECTION((Precursor(const Precursor& source)))
 {
   Precursor tmp;
@@ -169,7 +151,6 @@ START_SECTION((Precursor(const Precursor& source)))
   tmp.setDriftTimeWindowLowerOffset(12.7);
   tmp.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
   tmp.setCharge(2);
-  tmp.getPossibleChargeStates().resize(2);
   tmp.setMetaValue("label",String("label"));
   
   Precursor tmp2(tmp);
@@ -182,7 +163,6 @@ START_SECTION((Precursor(const Precursor& source)))
   TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowLowerOffset(), 12.7);
   TEST_EQUAL(tmp2.getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true);
   TEST_EQUAL(tmp2.getCharge(),2);
-  TEST_EQUAL(tmp2.getPossibleChargeStates().size(),2);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 }
 END_SECTION
@@ -200,7 +180,6 @@ START_SECTION((Precursor(const Precursor&& source)))
   tmp.setDriftTimeWindowLowerOffset(10.7);
   tmp.setDriftTimeUnit(DriftTimeUnit::VSSC);
   tmp.setCharge(8);
-  tmp.getPossibleChargeStates().resize(4);
   tmp.setMetaValue("label",String("label2"));
   TEST_EQUAL(tmp.getActivationMethods().size(),2);
 
@@ -219,7 +198,6 @@ START_SECTION((Precursor(const Precursor&& source)))
   TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowLowerOffset(), 10.7);
   TEST_EQUAL(tmp2.getDriftTimeUnit() == DriftTimeUnit::VSSC, true);
   TEST_EQUAL(tmp2.getCharge(),8);
-  TEST_EQUAL(tmp2.getPossibleChargeStates().size(),4);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label2");
 }
 END_SECTION
@@ -236,7 +214,6 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
   tmp.setDriftTimeWindowLowerOffset(12.7);
   tmp.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
   tmp.setCharge(9);
-  tmp.getPossibleChargeStates().resize(5);
   tmp.setMetaValue("label",String("label"));
   
   //normal assignment
@@ -251,7 +228,6 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
   TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowLowerOffset(), 12.7);
   TEST_EQUAL(tmp2.getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true);
   TEST_EQUAL(tmp2.getCharge(),9);
-  TEST_EQUAL(tmp2.getPossibleChargeStates().size(),5);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
     
   //assignment of empty object
@@ -265,7 +241,6 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
   TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowLowerOffset(), 0.0);
   TEST_EQUAL(tmp2.getDriftTimeUnit() == DriftTimeUnit::NONE, true);
   TEST_EQUAL(tmp2.getCharge(),0);
-  TEST_EQUAL(tmp2.getPossibleChargeStates().size(),0);
   TEST_EQUAL(tmp2.getMetaValue("label").isEmpty(), true);
 }
 END_SECTION
@@ -283,7 +258,6 @@ START_SECTION((Precursor& operator= (const Precursor&& source)))
   tmp.setDriftTimeWindowLowerOffset(10.7);
   tmp.setDriftTimeUnit(DriftTimeUnit::VSSC);
   tmp.setCharge(8);
-  tmp.getPossibleChargeStates().resize(4);
   tmp.setMetaValue("label",String("label2"));
 
   //copy tmp so we can move one of them
@@ -303,7 +277,6 @@ START_SECTION((Precursor& operator= (const Precursor&& source)))
   TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowLowerOffset(), 10.7);
   TEST_EQUAL(tmp2.getDriftTimeUnit() == DriftTimeUnit::VSSC, true);
   TEST_EQUAL(tmp2.getCharge(),8);
-  TEST_EQUAL(tmp2.getPossibleChargeStates().size(),4);
   TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label2");
 }
 END_SECTION
@@ -349,10 +322,6 @@ START_SECTION((bool operator== (const Precursor& rhs) const))
 	TEST_EQUAL(tmp==tmp2, false);
 
 	tmp2 = tmp;
-  tmp.getPossibleChargeStates().resize(5);
-	TEST_EQUAL(tmp==tmp2, false);
-
-	tmp2 = tmp;
 	tmp.setMetaValue("label",String("label"));
 	TEST_EQUAL(tmp==tmp2, false);
 END_SECTION
@@ -395,10 +364,6 @@ START_SECTION((bool operator!= (const Precursor& rhs) const))
 
 	tmp2 = tmp;
   tmp.setCharge(13);
-	TEST_FALSE(tmp == tmp2);
-
-	tmp2 = tmp;
-  tmp.getPossibleChargeStates().resize(5);
 	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;

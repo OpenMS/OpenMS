@@ -68,8 +68,7 @@ namespace OpenMS
       drift_window_low_(rhs.drift_window_low_),
       drift_window_up_(rhs.drift_window_up_),
       drift_time_unit_(rhs.drift_time_unit_),
-      charge_(rhs.charge_),
-      possible_charge_states_(std::move(rhs.possible_charge_states_))
+      charge_(rhs.charge_)
   {
   }
 
@@ -84,7 +83,6 @@ namespace OpenMS
            drift_window_low_ == rhs.drift_window_low_ &&
            drift_time_unit_ == rhs.drift_time_unit_ &&
            charge_ == rhs.charge_ &&
-           possible_charge_states_ == rhs.possible_charge_states_ &&
            Peak1D::operator==(rhs) &&
            CVTermList::operator==(rhs);
   }
@@ -210,20 +208,6 @@ namespace OpenMS
     charge_ = charge;
   }
 
-  std::vector<Int> & Precursor::getPossibleChargeStates()
-  {
-    return possible_charge_states_;
-  }
-
-  const std::vector<Int> & Precursor::getPossibleChargeStates() const
-  {
-    return possible_charge_states_;
-  }
-
-  void Precursor::setPossibleChargeStates(const std::vector<Int> & possible_charge_states)
-  {
-    possible_charge_states_ = possible_charge_states;
-  }
 
 }
 

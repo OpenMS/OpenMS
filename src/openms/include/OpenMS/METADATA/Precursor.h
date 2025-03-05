@@ -24,7 +24,7 @@ namespace OpenMS
 
         - isolation window
         - activation
-        - selected ion (m/z, intensity, charge, possible charge states)
+        - selected ion (m/z, intensity, charge)
         - ion mobility drift time
 
       @ingroup Metadata
@@ -184,13 +184,6 @@ public:
     /// Mutable access to the charge
     void setCharge(Int charge);
 
-    /// Mutable access to possible charge states
-    std::vector<Int>& getPossibleChargeStates();
-    /// Non-mutable access to possible charge states
-    const std::vector<Int>& getPossibleChargeStates() const;
-    /// Sets the possible charge states
-    void setPossibleChargeStates(const std::vector<Int> & possible_charge_states);
-
     /// Returns the uncharged mass of the precursor, if charge is unknown, i.e. 0, our best guess is doubly charged
     inline double getUnchargedMass() const
     {
@@ -210,7 +203,6 @@ protected:
     double drift_window_up_{};
     DriftTimeUnit drift_time_unit_{DriftTimeUnit::NONE};
     Int charge_{};
-    std::vector<Int> possible_charge_states_;
   };
 } // namespace OpenMS
 

@@ -452,10 +452,6 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getActivationEnergy(),35)
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getIsolationWindowLowerOffset(),6.66)
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getIsolationWindowUpperOffset(),7.77)
-    TEST_EQUAL(spec.getPrecursors()[0].getPossibleChargeStates().size(),3)
-    TEST_EQUAL(spec.getPrecursors()[0].getPossibleChargeStates()[0],1)
-    TEST_EQUAL(spec.getPrecursors()[0].getPossibleChargeStates()[1],3)
-    TEST_EQUAL(spec.getPrecursors()[0].getPossibleChargeStates()[2],4)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getMZ(),15.55)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getDriftTime(),-1) // none set
     TEST_EQUAL(spec.getPrecursors()[1].getDriftTimeUnit() == DriftTimeUnit::NONE, true) // none set
@@ -466,7 +462,6 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getActivationEnergy(),36)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getIntensity(),0.0f)
     TEST_EQUAL(spec.getPrecursors()[1].getCharge(),0)
-    TEST_EQUAL(spec.getPrecursors()[1].getPossibleChargeStates().size(),0)
     //products
     TEST_EQUAL(spec.getProducts().size(),0)
     //source file
@@ -1073,9 +1068,9 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
     // store map in our output buffer
     std::string out;
     file.storeBuffer(out, exp_original);
-    TEST_EQUAL(out.size(), 38070)
+    TEST_EQUAL(out.size(), 37791)
     TEST_EQUAL(out.substr(0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
-    TEST_EQUAL(out.substr(38070 - 99, 38070 - 1), "</indexList>\n<indexListOffset>37622</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
+    TEST_EQUAL(out.substr(37791 - 99, 37791 - 1), "</indexList>\n<indexListOffset>37343</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
 
     TEST_EQUAL(String(out).hasSubstring("<spectrumList count=\"4\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
     TEST_EQUAL(String(out).hasSubstring("<chromatogramList count=\"2\" defaultDataProcessingRef=\"dp_sp_0\">"), true)

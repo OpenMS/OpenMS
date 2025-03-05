@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
         #
         #  - isolation window
         #  - activation
-        #  - selected ion (m/z, intensity, charge, possible charge states)
+        #  - selected ion (m/z, intensity, charge)
         #  - ion mobility drift time
 
         Precursor() except + nogil 
@@ -44,9 +44,6 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
 
         int getCharge() except + nogil  # wrap-doc:Returns the charge
         void setCharge(int charge) except + nogil  # wrap-doc:Sets the charge
-
-        libcpp_vector[int] getPossibleChargeStates() except + nogil  # wrap-doc:Returns the possible charge states
-        void setPossibleChargeStates(libcpp_vector[int] possible_charge_states) except + nogil  # wrap-doc:Sets the possible charge states
 
         double getUnchargedMass() except + nogil  # wrap-doc:Returns the uncharged mass of the precursor, if charge is unknown, i.e. 0 best guess is its doubly charged
 
