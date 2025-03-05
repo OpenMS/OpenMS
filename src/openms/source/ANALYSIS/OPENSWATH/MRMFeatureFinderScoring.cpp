@@ -310,22 +310,12 @@ namespace OpenMS
                                                                      const double det_intensity_ratio_score,
                                                                      const double det_mi_ratio_score,
                                                                      const std::vector<OpenSwath::SwathMap>& swath_maps,
-                                                                     const double drift_target) const
+                                                                     const double drift_target,
+                                                                     RangeMobility& im_range) const
   {
     MRMFeature idmrmfeature = trgr_ident.getFeaturesMuteable()[feature_idx];
     OpenSwath::IMRMFeature* idimrmfeature;
     idimrmfeature = new MRMFeatureOpenMS(idmrmfeature);
-
-    // get drift time upper/lower offset (this assumes that all chromatograms
-    // are derived from the same precursor with the same drift time)
-    RangeMobility im_range;
-
-    if ( (!trgr_ident.getChromatograms().empty()) || (!trgr_ident.getPrecursorChromatograms().empty()) )
-    {
-      auto & prec = trgr_ident.getChromatograms()[0].getPrecursor();
-      im_range.setMin(prec.getDriftTime()); // sets the minimum and maximum
-      im_range.minSpanIfSingular(prec.getDriftTimeWindowLowerOffset());
-    }
 
     std::vector<std::string> native_ids_identification;
     std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators_identification;
@@ -764,14 +754,14 @@ namespace OpenMS
         {
           OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification, transition_group_detection, scorer, feature_idx,
                                                                native_ids_detection, det_intensity_ratio_score,
-                                                               det_mi_ratio_score, swath_maps,drift_target);
+                                                               det_mi_ratio_score, swath_maps,drift_target, im_range);
           mrmfeature.IDScoresAsMetaValue(false, idscores);
         }
         if (su_.use_uis_scores && !transition_group_identification_decoy.getTransitions().empty())
         {
           OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification_decoy, transition_group_detection, scorer, feature_idx,
                                                                native_ids_detection, det_intensity_ratio_score,
-                                                               det_mi_ratio_score, swath_maps, drift_target);
+                                                               det_mi_ratio_score, swath_maps, drift_target, im_range);
           mrmfeature.IDScoresAsMetaValue(true, idscores);
         }
 
