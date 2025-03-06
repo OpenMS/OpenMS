@@ -243,7 +243,7 @@ private:
      *                  the chromatograms were extracted. Use empty map if no
      *                  data is available.
      * @param drift_target The target drift value
-     * @param im_range Ion mobility subrange to consider (used as filter); can be empty (i.e. no IM filtering)
+     * @param im_range Ion mobility subrange to consider (used as filter); can be empty (i.e. no IM filtering). If scoring non-IMS data, this should be empty, otherwise a missing information exception is thrown when integrating spectra for scoring.
      * @return a struct of type OpenSwath_Ind_Scores containing either target or decoy values
     */
     OpenSwath_Ind_Scores scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
