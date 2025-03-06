@@ -24,7 +24,8 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
 
         ActivationMethod getActivationMethod() except + nogil  # wrap-doc:Returns the activation method
         void setActivationMethod(ActivationMethod activation_method) except + nogil  # wrap-doc:Sets the activation method
-        StringList getActivationMethodsAsString() except + nogil  # wrap-doc:Returns the activation method as string
+        String getActivationMethodAsString() except + nogil  # wrap-doc:Returns the activation method as string
+        String getActivationMethodAsShortString() except + nogil # wrap-doc:Returns the activation method as short string
 
         double getActivationEnergy() except + nogil  # wrap-doc:Returns the activation energy (in electronvolt)
         void setActivationEnergy(double activation_energy) except + nogil  # wrap-doc:Sets the activation energy (in electronvolt)

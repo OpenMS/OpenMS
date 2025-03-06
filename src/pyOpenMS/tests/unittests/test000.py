@@ -4436,6 +4436,21 @@ def testPrecursor():
     prec.setActivationEnergy(25.0)
     assert abs(prec.getActivationEnergy() - 25.0) < 1e-5
 
+    # Test activation methods as strings
+    short_strings = prec.getActivationMethodsAsShortString()
+    assert sorted([s.decode() for s in short_strings]) == sorted(methods_short)
+    long_strings = prec.getActivationMethodsAsString()
+    assert sorted([s.decode() for s in long_strings]) == sorted(methods_long)
+
+    # Test static methods for all activation methods
+    all_names = pyopenms.Precursor.getAllNamesOfActivationMethods()
+    assert len(all_names) == pyopenms.Precursor.ActivationMethod.SIZE_OF_ACTIVATIONMETHOD
+    assert all_names[pyopenms.Precursor.ActivationMethod.CID].decode() == "Collision-induced dissociation"
+    
+    all_short_names = pyopenms.Precursor.getAllShortNamesOfActivationMethods()
+    assert len(all_short_names) == pyopenms.Precursor.ActivationMethod.SIZE_OF_ACTIVATIONMETHOD
+    assert all_short_names[pyopenms.Precursor.ActivationMethod.CID].decode() == "CID"
+
     # Test isolation window
     prec.setIsolationWindowLowerOffset(0.5)
     assert abs(prec.getIsolationWindowLowerOffset() - 0.5) < 1e-5

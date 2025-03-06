@@ -83,6 +83,11 @@ public:
     static const std::string NamesOfActivationMethod[SIZE_OF_ACTIVATIONMETHOD];
     static const std::string NamesOfActivationMethodShort[SIZE_OF_ACTIVATIONMETHOD];
 
+    /// returns all activation method full names (e.g., "Collision-induced dissociation") known to OpenMS
+    static StringList getAllNamesOfActivationMethods();
+    /// returns all activation method abbreviations (e.g., "CID") known to OpenMS
+    static StringList getAllShortNamesOfActivationMethods();
+
     /// Equality operator
     bool operator==(const Precursor & rhs) const;
     /// Equality operator
@@ -92,8 +97,12 @@ public:
     ActivationMethod getActivationMethod() const;
     /// sets the activation method
     void setActivationMethod(ActivationMethod activation_method);
+
     /// convenience function, returning string representation of getActivationMethod()
-    StringList getActivationMethodsAsString() const;
+    const String& getActivationMethodAsString() const;
+
+    /// returns the activation method as short string
+    const String& getActivationMethodAsShortString() const;
 
     /// returns the activation energy (in electronvolt)
     double getActivationEnergy() const;

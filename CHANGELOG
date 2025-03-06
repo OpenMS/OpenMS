@@ -27,6 +27,7 @@ OpenSwath:
 - Add auto add up spectra across the peak width in retention time for ion mobility extraction (#7742)
 - Add peak-picking for extracted ion mobilogram (#7759)
 - Add ion mobility scoring for identifying transitions for IPF (#7760)
+- Bug fix, pass `im_range` to `scoreIdentification_` instead of computing it in the function. Addresses issue #7883. (PR #7885)
 
 Misc:
 - pyOpenMS: improve developer experience (installation/compilation) (#7735)

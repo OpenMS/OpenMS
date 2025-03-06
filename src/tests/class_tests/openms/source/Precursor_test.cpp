@@ -79,9 +79,26 @@ END_SECTION
 START_SECTION((StringList getActivationMethodsAsString() const))
   Precursor tmp;
 	tmp.setActivationMethod(Precursor::CID);
-  StringList methods = tmp.getActivationMethodsAsString();
-  TEST_EQUAL(methods.size(), 1);
-  TEST_EQUAL(methods[0], "Collision-induced dissociation");
+  String method = tmp.getActivationMethodAsString();
+  TEST_EQUAL(method, "Collision-induced dissociation");
+END_SECTION
+
+
+START_SECTION((StringList getActivationMethodsAsShortString() const))
+  Precursor tmp;
+	tmp.setActivationMethod(Precursor::CID);
+  String method = tmp.getActivationMethodAsShortString();
+  TEST_EQUAL(method, "CID");
+END_SECTION
+
+START_SECTION((static StringList getAllNamesOfActivationMethods()))
+  StringList result = Precursor::getAllNamesOfActivationMethods();
+  TEST_EQUAL(result.size(), Precursor::SIZE_OF_ACTIVATIONMETHOD);
+END_SECTION
+
+START_SECTION((static StringList getAllShortNamesOfActivationMethods()))
+  StringList result = Precursor::getAllShortNamesOfActivationMethods();
+  TEST_EQUAL(result.size(), Precursor::SIZE_OF_ACTIVATIONMETHOD);
 END_SECTION
 
 START_SECTION((double getIsolationWindowUpperOffset() const))

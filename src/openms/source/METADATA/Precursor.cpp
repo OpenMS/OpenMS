@@ -94,6 +94,16 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
+  StringList Precursor::getAllNamesOfActivationMethods()
+  {
+    return StringList(std::begin(NamesOfActivationMethod), std::end(NamesOfActivationMethod));
+  }
+
+  StringList Precursor::getAllShortNamesOfActivationMethods()
+  {
+    return StringList(std::begin(NamesOfActivationMethodShort), std::end(NamesOfActivationMethodShort));
+  }
+
   Precursor::ActivationMethod Precursor::getActivationMethod() const
   {
     return activation_method_;
@@ -104,17 +114,15 @@ namespace OpenMS
     activation_method_ = activation_method;
   }
 
-  StringList Precursor::getActivationMethodsAsString() const
+  const String& Precursor::getActivationMethodAsString() const
   {
-    StringList am;
-    // Only add the activation method if it's valid (not SIZE_OF_ACTIVATIONMETHOD)
-    if (activation_method_ != UNKNOWN)
-    {
-      am.push_back(NamesOfActivationMethod[activation_method_]);
-    }
-    return am;
+    return NamesOfActivationMethod[activation_method_];
   }
 
+  const String& Precursor::getActivationMethodAsShortString() const
+  {
+    return NamesOfActivationMethodShort[activation_method_];
+  }
 
   double Precursor::getActivationEnergy() const
   {
