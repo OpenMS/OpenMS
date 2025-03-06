@@ -44,7 +44,6 @@ namespace OpenMS
     TypeNameBinding(FileTypes::UNKNOWN, "unknown", "unknown file extension", {}),
     TypeNameBinding(FileTypes::DTA, "dta", "dta raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::PROVIDES_SPECTRUM, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::DTA2D, "dta2d", "dta2d raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE}),
-    TypeNameBinding(FileTypes::MZDATA, "mzData", "mzData raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::MZXML, "mzXML", "mzXML raw data file", {PROP::PROVIDES_EXPERIMENT, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::FEATUREXML, "featureXML", "OpenMS feature map", {PROP::PROVIDES_FEATURES, PROP::READABLE, PROP::WRITEABLE}),
     TypeNameBinding(FileTypes::IDXML, "idXML", "OpenMS peptide identification file", {PROP::PROVIDES_IDENTIFICATIONS, PROP::READABLE, PROP::WRITEABLE}),
@@ -235,7 +234,6 @@ namespace OpenMS
       case FileTypes::DTA: return "DTA file";
       case FileTypes::DTA2D: return "DTA file"; // technically not correct, but closer than just a random CV term (currently mzData) - entry cannot be left empty
       case FileTypes::MZML: return "mzML file";
-      case FileTypes::MZDATA: return "PSI mzData file";
       case FileTypes::MZXML: return "ISB mzXML file";
       case FileTypes::MGF: return "Mascot MGF file";
       case FileTypes::XMASS: return "Bruker FID file";

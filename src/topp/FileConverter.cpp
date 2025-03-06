@@ -83,7 +83,6 @@ reading or writing.
 Some information about the supported input types:
 @ref OpenMS::MzMLFile "mzML"
 @ref OpenMS::MzXMLFile "mzXML"
-@ref OpenMS::MzDataFile "mzData"
 @ref OpenMS::MascotGenericFile "mgf"
 @ref OpenMS::DTA2DFile "dta2d"
 @ref OpenMS::DTAFile "dta"
@@ -140,7 +139,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, false); // optional and not advanced (for workflow engines to show this param)
-    vector<String> input_formats = {"mzML", "mzXML", "mgf", "raw", "cachedMzML", "mzData", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "tsv", "peplist", "kroenik", "edta", "oms"};
+    vector<String> input_formats = {"mzML", "mzXML", "mgf", "raw", "cachedMzML", "dta", "dta2d", "featureXML", "consensusXML", "ms2", "fid", "tsv", "peplist", "kroenik", "edta", "oms"};
     setValidFormats_("in", input_formats);
     setValidStrings_("in_type", input_formats);
 
@@ -148,7 +147,7 @@ protected:
     String method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
 
-    vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "featureXML", "consensusXML", "edta", "mzData", "dta2d", "csv", "sqmass", "oms"};
+    vector<String> output_formats = {"mzML", "mzXML", "cachedMzML", "mgf", "featureXML", "consensusXML", "edta", "dta2d", "csv", "sqmass", "oms"};
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", output_formats);
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, false); // optional and not advanced (for workflow engines to show this param)
@@ -480,20 +479,6 @@ protected:
       ChromatogramTools().convertSpectraToChromatograms(exp, true, convert_to_chromatograms);
       mzmlFile.storeExperiment(out, exp, {FileTypes::MZML});
     }
-    else if (out_type == FileTypes::MZDATA)
-    {
-      if (exp == empty_exp)
-      {
-        OPENMS_LOG_ERROR << "No input data: no MS1/MS2 data present! Cannot write mzData. Please use another input/output format combination.";
-        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
-      }
-
-      //annotate output with data processing info
-      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
-                                                 CONVERSION_MZDATA));
-      ChromatogramTools().convertChromatogramsToSpectra<MSExperiment>(exp);
-      FileHandler().storeExperiment(out, exp, {FileTypes::MZDATA});
-    }
     else if (out_type == FileTypes::MZXML)
     {
       if (exp == empty_exp)
@@ -503,8 +488,7 @@ protected:
       }
 
       //annotate output with data processing info
-      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
-                                                 CONVERSION_MZXML));
+      addDataProcessing_(exp, getProcessingInfo_(DataProcessing::CONVERSION_MZXML));
       FileHandler f;
       f.getOptions().setForceMQCompatability(force_MaxQuant_compatibility);
       f.getOptions().setWriteIndex(write_scan_index);

@@ -1727,81 +1727,81 @@ namespace OpenMS::Internal
           }
           else if (accession == "MS:1000133") //collision-induced dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::CID);
+            spec_.getPrecursors().back().setActivationMethod(Precursor::ActivationMethod::CID);
           }
           else if (accession == "MS:1000134") //plasma desorption
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PD);
+            spec_.getPrecursors().back().setActivationMethod(Precursor::ActivationMethod::PD);
           }
           else if (accession == "MS:1000135") //post-source decay
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PSD);
+            spec_.getPrecursors().back().setActivationMethod(Precursor::ActivationMethod::PSD);
           }
           else if (accession == "MS:1000136") //surface-induced dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::SID);
+            spec_.getPrecursors().back().setActivationMethod(Precursor::ActivationMethod::SID);
           }
           else if (accession == "MS:1000242") //blackbody infrared radiative dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::BIRD);
+            spec_.getPrecursors().back().setActivationMethod(Precursor::ActivationMethod::BIRD);
           }
           else if (accession == "MS:1000250") //electron capture dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ECD);
+            spec_.getPrecursors().back().setActivationMethod(Precursor::ActivationMethod::ECD);
           }
           else if (accession == "MS:1000262") //infrared multiphoton dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::IMD);
+            spec_.getPrecursors().back().setActivationMethod(Precursor::ActivationMethod::IMD);
           }
           else if (accession == "MS:1000282") //sustained off-resonance irradiation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::SORI);
+            spec_.getPrecursors().back().setActivationMethod(Precursor::ActivationMethod::SORI);
           }
           else if (accession == "MS:1000422") //beam-type collision-induced dissociation / HCD
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::HCD);
+            spec_.getPrecursors().back().setActivationMethod(Precursor::ActivationMethod::HCD);
           }
           else if (accession == "MS:1002472") //trap-type collision-induced dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::TRAP);
+            spec_.getPrecursors().back().setActivationMethod(Precursor::ActivationMethod::TRAP);
           }          
           else if (accession == "MS:1002481") //high-energy collision-induced dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::HCID);
+            spec_.getPrecursors().back().setActivationMethod(Precursor::ActivationMethod::HCID);
           }
           else if (accession == "MS:1000433") //low-energy collision-induced dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::LCID);
+            spec_.getPrecursors().back().setActivationMethod(Precursor::ActivationMethod::LCID);
           }
           else if (accession == "MS:1000435") //photodissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PHD);
+            spec_.getPrecursors().back().setActivationMethod(Precursor::ActivationMethod::PHD);
           }
           else if (accession == "MS:1000598") //electron transfer dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ETD);
+            spec_.getPrecursors().back().setActivationMethod(Precursor::ActivationMethod::ETD);
           }
           else if (accession == "MS:1003182"  //electron transfer and collision-induced dissociation
             || accession == "MS:1002679")  // workaround: supplemental collision-induced dissociation (see https://github.com/compomics/ThermoRawFileParser/issues/182)
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ETciD);
+            spec_.getPrecursors().back().setActivationMethod(Precursor::ActivationMethod::ETciD);
           }
           else if (accession == "MS:1002631" //electron transfer and higher-energy collision dissociation
             || accession == "MS:1002678") // workaround: supplemental beam-type collision-induced dissociation (see https://github.com/compomics/ThermoRawFileParser/issues/182)
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::EThcD);
+            spec_.getPrecursors().back().setActivationMethod(Precursor::ActivationMethod::EThcD);
           }
           else if (accession == "MS:1000599") //pulsed q dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::PQD);
+            spec_.getPrecursors().back().setActivationMethod(Precursor::ActivationMethod::PQD);
           }
           else if (accession == "MS:1001880") //in-source collision-induced dissociation
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::INSOURCE);
+            spec_.getPrecursors().back().setActivationMethod(Precursor::ActivationMethod::INSOURCE);
           }
           else if (accession == "MS:1002000") //LIFT
           {
-            spec_.getPrecursors().back().getActivationMethods().insert(Precursor::LIFT);
+            spec_.getPrecursors().back().setActivationMethod(Precursor::ActivationMethod::LIFT);
           }          
           else
             warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
@@ -1849,79 +1849,79 @@ namespace OpenMS::Internal
           }
           else if (accession == "MS:1000133") //collision-induced dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::CID);
+            chromatogram_.getPrecursor().setActivationMethod(Precursor::ActivationMethod::CID);
           }
           else if (accession == "MS:1000134") //plasma desorption
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::PD);
+            chromatogram_.getPrecursor().setActivationMethod(Precursor::ActivationMethod::PD);
           }
           else if (accession == "MS:1000135") //post-source decay
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::PSD);
+            chromatogram_.getPrecursor().setActivationMethod(Precursor::ActivationMethod::PSD);
           }
           else if (accession == "MS:1000136") //surface-induced dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::SID);
+            chromatogram_.getPrecursor().setActivationMethod(Precursor::ActivationMethod::SID);
           }
           else if (accession == "MS:1000242") //blackbody infrared radiative dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::BIRD);
+            chromatogram_.getPrecursor().setActivationMethod(Precursor::ActivationMethod::BIRD);
           }
           else if (accession == "MS:1000250") //electron capture dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ECD);
+            chromatogram_.getPrecursor().setActivationMethod(Precursor::ActivationMethod::ECD);
           }
           else if (accession == "MS:1000262") //infrared multiphoton dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::IMD);
+            chromatogram_.getPrecursor().setActivationMethod(Precursor::ActivationMethod::IMD);
           }
           else if (accession == "MS:1000282") //sustained off-resonance irradiation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::SORI);
+            chromatogram_.getPrecursor().setActivationMethod(Precursor::ActivationMethod::SORI);
           }
           else if (accession == "MS:1000422") //beam-type collision-induced dissociation / HCD
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::HCD);
+            chromatogram_.getPrecursor().setActivationMethod(Precursor::ActivationMethod::HCD);
           }
           else if (accession == "MS:1002472") //trap-type collision-induced dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::TRAP);
+            chromatogram_.getPrecursor().setActivationMethod(Precursor::ActivationMethod::TRAP);
           }
           else if (accession == "MS:1002481") //high-energy collision-induced dissociation          
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::HCID);
+            chromatogram_.getPrecursor().setActivationMethod(Precursor::ActivationMethod::HCID);
           }
           else if (accession == "MS:1000433") //low-energy collision-induced dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::LCID);
+            chromatogram_.getPrecursor().setActivationMethod(Precursor::ActivationMethod::LCID);
           }
           else if (accession == "MS:1000435") //photodissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::PHD);
+            chromatogram_.getPrecursor().setActivationMethod(Precursor::ActivationMethod::PHD);
           }
           else if (accession == "MS:1000598") //electron transfer dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ETD);
+            chromatogram_.getPrecursor().setActivationMethod(Precursor::ActivationMethod::ETD);
           }
           else if (accession == "MS:1003182") //electron transfer and collision-induced dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::ETciD);
+            chromatogram_.getPrecursor().setActivationMethod(Precursor::ActivationMethod::ETciD);
           }
           else if (accession == "MS:1002631") //electron transfer and higher-energy collision dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::EThcD);
+            chromatogram_.getPrecursor().setActivationMethod(Precursor::ActivationMethod::EThcD);
           }
           else if (accession == "MS:1000599") //pulsed q dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::PQD);
+            chromatogram_.getPrecursor().setActivationMethod(Precursor::ActivationMethod::PQD);
           }
           else if (accession == "MS:1001880") //in-source collision-induced dissociation
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::INSOURCE);
+            chromatogram_.getPrecursor().setActivationMethod(Precursor::ActivationMethod::INSOURCE);
           }
           else if (accession == "MS:1002000") //LIFT
           {
-            chromatogram_.getPrecursor().getActivationMethods().insert(Precursor::LIFT);
+            chromatogram_.getPrecursor().setActivationMethod(Precursor::ActivationMethod::LIFT);
           }          
           else
           {
@@ -3790,86 +3790,70 @@ namespace OpenMS::Internal
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000509\" name=\"activation energy\" value=\"" << precursor.getActivationEnergy() << "\" unitAccession=\"UO:0000266\" unitName=\"electronvolt\" unitCvRef=\"UO\" />\n";
       }
-      if (precursor.getActivationMethods().count(Precursor::CID) != 0)
+      switch (precursor.getActivationMethod())
       {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000133\" name=\"collision-induced dissociation\" />\n";
+        case Precursor::ActivationMethod::UNKNOWN:
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000044\" name=\"dissociation method\" />\n";
+          break;
+        case Precursor::ActivationMethod::CID:
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000133\" name=\"collision-induced dissociation\" />\n";
+          break;
+        case Precursor::ActivationMethod::PD:
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000134\" name=\"plasma desorption\" />\n";
+          break;
+        case Precursor::ActivationMethod::PSD:
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000135\" name=\"post-source decay\" />\n";
+          break;
+        case Precursor::ActivationMethod::SID:
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000136\" name=\"surface-induced dissociation\" />\n";
+          break;
+        case Precursor::ActivationMethod::BIRD:
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000242\" name=\"blackbody infrared radiative dissociation\" />\n";
+          break;
+        case Precursor::ActivationMethod::ECD:
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000250\" name=\"electron capture dissociation\" />\n";
+          break;
+        case Precursor::ActivationMethod::IMD:
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000262\" name=\"infrared multiphoton dissociation\" />\n";
+          break;
+        case Precursor::ActivationMethod::SORI:
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000282\" name=\"sustained off-resonance irradiation\" />\n";
+          break;
+        case Precursor::ActivationMethod::HCID:
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002481\" name=\"high-energy collision-induced dissociation\" />\n"; 
+          break;
+        case Precursor::ActivationMethod::HCD:
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000422\" name=\"beam-type collision-induced dissociation\" />\n";
+          break;
+        case Precursor::ActivationMethod::TRAP:
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002472\" name=\"trap-type collision-induced dissociation\" />\n";
+          break;
+        case Precursor::ActivationMethod::LCID:
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000433\" name=\"low-energy collision-induced dissociation\" />\n";
+          break;
+        case Precursor::ActivationMethod::PHD:
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000435\" name=\"photodissociation\" />\n";
+          break;
+        case Precursor::ActivationMethod::ETD:
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000598\" name=\"electron transfer dissociation\" />\n";
+          break;
+        case Precursor::ActivationMethod::ETciD:
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1003182\" name=\"electron transfer and collision-induced dissociation\" />\n";
+          break;
+        case Precursor::ActivationMethod::EThcD:
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002631\" name=\"electron transfer and higher-energy collision dissociation\" />\n";
+          break;
+        case Precursor::ActivationMethod::PQD:
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000599\" name=\"pulsed q dissociation\" />\n";
+          break;
+        case Precursor::ActivationMethod::INSOURCE:
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001880\" name=\"in-source collision-induced dissociation\" />\n";
+          break;
+        case Precursor::ActivationMethod::LIFT:
+          os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001881\" name=\"low-energy in-source fragmentation\" />\n";
+          break;
       }
-      if (precursor.getActivationMethods().count(Precursor::PD) != 0)
-      {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000134\" name=\"plasma desorption\" />\n";
-      }
-      if (precursor.getActivationMethods().count(Precursor::PSD) != 0)
-      {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000135\" name=\"post-source decay\" />\n";
-      }
-      if (precursor.getActivationMethods().count(Precursor::SID) != 0)
-      {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000136\" name=\"surface-induced dissociation\" />\n";
-      }
-      if (precursor.getActivationMethods().count(Precursor::BIRD) != 0)
-      {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000242\" name=\"blackbody infrared radiative dissociation\" />\n";
-      }
-      if (precursor.getActivationMethods().count(Precursor::ECD) != 0)
-      {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000250\" name=\"electron capture dissociation\" />\n";
-      }
-      if (precursor.getActivationMethods().count(Precursor::IMD) != 0)
-      {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000262\" name=\"infrared multiphoton dissociation\" />\n";
-      }
-      if (precursor.getActivationMethods().count(Precursor::SORI) != 0)
-      {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000282\" name=\"sustained off-resonance irradiation\" />\n";
-      }
-      if (precursor.getActivationMethods().count(Precursor::HCID) != 0)
-      {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002481\" name=\"high-energy collision-induced dissociation\" />\n";
-      }
-      if (precursor.getActivationMethods().count(Precursor::HCD) != 0)
-      {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000422\" name=\"beam-type collision-induced dissociation\" />\n";
-      }
-      if (precursor.getActivationMethods().count(Precursor::TRAP) != 0)
-      {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002472\" name=\"trap-type collision-induced dissociation\" />\n";
-      }
-      if (precursor.getActivationMethods().count(Precursor::LCID) != 0)
-      {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000433\" name=\"low-energy collision-induced dissociation\" />\n";
-      }
-      if (precursor.getActivationMethods().count(Precursor::PHD) != 0)
-      {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000435\" name=\"photodissociation\" />\n";
-      }
-      if (precursor.getActivationMethods().count(Precursor::ETD) != 0)
-      {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000598\" name=\"electron transfer dissociation\" />\n";
-      }
-      if (precursor.getActivationMethods().count(Precursor::ETciD) != 0)
-      {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1003182\" name=\"electron transfer and collision-induced dissociation\" />\n";
-      }
-      if (precursor.getActivationMethods().count(Precursor::EThcD) != 0)
-      {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002631\" name=\"electron transfer and higher-energy collision dissociation\" />\n";
-      }
-      if (precursor.getActivationMethods().count(Precursor::PQD) != 0)
-      {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000599\" name=\"pulsed q dissociation\" />\n";
-      }
-      if (precursor.getActivationMethods().count(Precursor::INSOURCE) != 0)
-      {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001880\" name=\"in-source collision-induced dissociation\" />\n";
-      }
-      if (precursor.getActivationMethods().count(Precursor::LIFT) != 0)
-      {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002000\" name=\"LIFT\" />\n";
-      }      
-      if (precursor.getActivationMethods().empty())
-      {
-        os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000044\" name=\"dissociation method\" />\n";
-      }
+
       // as "precursor" has no own user param its userParam is stored here;
       // don't write out parameters that are used internally to distinguish
       // between precursor m/z values from different sources:

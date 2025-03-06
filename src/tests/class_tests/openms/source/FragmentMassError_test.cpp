@@ -26,7 +26,7 @@ const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const String& id, Pr
   Precursor precursor;
   std::set<Precursor::ActivationMethod> am;
   am.insert(precursor_method);
-  precursor.setActivationMethods(am);
+  precursor.setActivationMethod(precursor_method);
 
   MSSpectrum ms_spec;
   ms_spec.setRT(rt);

@@ -9,7 +9,6 @@ FidHandler.h
 IndexedMzMLDecoder.h
 IndexedMzMLHandler.h
 MascotXMLHandler.h
-MzDataHandler.h
 MzIdentMLDOMHandler.h
 MzIdentMLHandler.h
 MzMLHandler.h

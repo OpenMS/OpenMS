@@ -27,7 +27,6 @@ cdef extern from "<OpenMS/FORMAT/FileTypes.h>" namespace "OpenMS::FileTypes":
           UNKNOWN,            # < Unknown file extension
           DTA,                # < DTA file (.dta)
           DTA2D,              # < DTA2D file (.dta2d)
-          MZDATA,             # < MzData file (.mzData)
           MZXML,              # < MzXML file (.mzXML)
           FEATUREXML,         # < %OpenMS feature file (.featureXML)
           IDXML,              # < %OpenMS identification format (.idXML)

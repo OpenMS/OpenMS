@@ -31,7 +31,6 @@ FileHandler tmp;
 TEST_EQUAL(tmp.getTypeByFileName("test.bla"), FileTypes::UNKNOWN)
 TEST_EQUAL(tmp.getTypeByFileName("test.dta"), FileTypes::DTA)
 TEST_EQUAL(tmp.getTypeByFileName("test.DTA2D"), FileTypes::DTA2D)
-TEST_EQUAL(tmp.getTypeByFileName("test.MzData"), FileTypes::MZDATA)
 TEST_EQUAL(tmp.getTypeByFileName("test.MZXML"), FileTypes::MZXML)
 TEST_EQUAL(tmp.getTypeByFileName("test.featureXML"), FileTypes::FEATUREXML)
 TEST_EQUAL(tmp.getTypeByFileName("test.idXML"), FileTypes::IDXML)
@@ -81,7 +80,6 @@ END_SECTION
 
 START_SECTION((static FileTypes::Type getTypeByContent(const String &filename)))
   FileHandler tmp;
-  TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData")), FileTypes::MZDATA)
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML")), FileTypes::MZXML)
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML")), FileTypes::MZML)
   TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.bz2")), FileTypes::MZML)
@@ -167,16 +165,6 @@ FileHandler tmp;
 PeakMap exp;
 TEST_EXCEPTION(Exception::FileNotFound, tmp.loadExperiment("test.bla", exp))
 
-tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), exp);
-TEST_REAL_SIMILAR(exp[1][0].getPosition()[0], 110)
-TEST_REAL_SIMILAR(exp[1][1].getPosition()[0], 120)
-TEST_REAL_SIMILAR(exp[1][2].getPosition()[0], 130)
-
-// starts with 110, so this one should skip the first
-tmp.getOptions().setMZRange(DRange<1>(115, 1000));
-tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), exp);
-TEST_REAL_SIMILAR(exp[1][0].getPosition()[0], 120)
-TEST_REAL_SIMILAR(exp[1][1].getPosition()[0], 130)
 
 tmp.getOptions() = PeakFileOptions();
 tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"), exp);
@@ -233,7 +221,6 @@ FileHandler tmp;
 TEST_EQUAL(false, tmp.isSupported(FileTypes::UNKNOWN));
 TEST_EQUAL(true, tmp.isSupported(FileTypes::DTA));
 TEST_EQUAL(true, tmp.isSupported(FileTypes::DTA2D));
-TEST_EQUAL(true, tmp.isSupported(FileTypes::MZDATA));
 TEST_EQUAL(true, tmp.isSupported(FileTypes::MZML));
 TEST_EQUAL(true, tmp.isSupported(FileTypes::MZXML));
 TEST_EQUAL(true, tmp.isSupported(FileTypes::XMASS));

@@ -16,7 +16,6 @@
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
@@ -66,7 +65,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "file to validate");
-    setValidFormats_("in", ListUtils::create<String>("mzML,mzData,featureXML,mzid,idXML,consensusXML,mzXML,ini,pepXML,traML,xml"));
+    setValidFormats_("in", ListUtils::create<String>("mzML,featureXML,mzid,idXML,consensusXML,mzXML,ini,pepXML,traML,xml"));
     registerInputFile_("schema", "<file>", "", "schema to validate against.\nIf no schema is given, the file is validated against the latest schema of the file type.", false);
     setValidFormats_("schema", ListUtils::create<String>("xsd"));
   }
@@ -94,11 +93,6 @@ protected:
       cout << endl << "Validating " << FileTypes::typeToName(in_type) << " file";
       switch (in_type)
       {
-      case FileTypes::MZDATA:
-        cout << " against schema version " << MzDataFile().getVersion() << endl;
-        valid = MzDataFile().isValid(in, std::cerr);
-        break;
-
       case FileTypes::FEATUREXML:
         cout << " against schema version " << FeatureXMLFile().getVersion() << endl;
         valid = FeatureXMLFile().isValid(in, std::cerr);

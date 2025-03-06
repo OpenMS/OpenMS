@@ -647,7 +647,7 @@ namespace OpenMS::Internal
         if (sqlite3_column_type(stmt, 12) != SQLITE_NULL && sqlite3_column_int(stmt, 12) != -1
             && sqlite3_column_int(stmt, 12) < static_cast<int>(OpenMS::Precursor::SIZE_OF_ACTIVATIONMETHOD))
         {
-          precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(sqlite3_column_int(stmt, 12)));
+          precursor.setActivationMethod(static_cast<OpenMS::Precursor::ActivationMethod>(sqlite3_column_int(stmt, 12)));
         }
         if (sqlite3_column_type(stmt, 13) != SQLITE_NULL)
         {
@@ -774,7 +774,7 @@ namespace OpenMS::Internal
         if (sqlite3_column_type(stmt, 15) != SQLITE_NULL && sqlite3_column_int(stmt, 15) != -1
             && sqlite3_column_int(stmt, 15) < static_cast<int>(OpenMS::Precursor::SIZE_OF_ACTIVATIONMETHOD))
         {
-          precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(sqlite3_column_int(stmt, 15)));
+          precursor.setActivationMethod(static_cast<OpenMS::Precursor::ActivationMethod>(sqlite3_column_int(stmt, 15)));
         }
         if (sqlite3_column_type(stmt, 16) != SQLITE_NULL)
         {
@@ -1077,7 +1077,7 @@ namespace OpenMS::Internal
           {
             std::cout << "WARNING cannot store more than first precursor" << std::endl;
           }
-          if (spec.getPrecursors()[0].getActivationMethods().size() > 1)
+          if (spec.getPrecursors()[0].getActivationMethod() != Precursor::ActivationMethod::UNKNOWN)
           {
             std::cout << "WARNING cannot store more than one activation method" << std::endl;
           }
@@ -1085,9 +1085,9 @@ namespace OpenMS::Internal
           OpenMS::Precursor prec = spec.getPrecursors()[0];
           // see src/openms/include/OpenMS/METADATA/Precursor.h for activation modes
           int activation_method = -1;
-          if (!prec.getActivationMethods().empty() )
+          if (prec.getActivationMethod() != Precursor::ActivationMethod::UNKNOWN)
           {
-            activation_method = *prec.getActivationMethods().begin();
+            activation_method = prec.getActivationMethod();
           }
           String pepseq;
           if (prec.metaValueExists("peptide_sequence"))
@@ -1296,9 +1296,9 @@ namespace OpenMS::Internal
         OpenMS::Precursor prec = chrom.getPrecursor();
         // see src/openms/include/OpenMS/METADATA/Precursor.h for activation modes
         int activation_method = -1;
-        if (!prec.getActivationMethods().empty() )
+        if (prec.getActivationMethod() != Precursor::ActivationMethod::UNKNOWN )
         {
-          activation_method = *prec.getActivationMethods().begin();
+          activation_method = prec.getActivationMethod();
         }
         String pepseq;
         if (prec.metaValueExists("peptide_sequence"))

@@ -34,8 +34,6 @@ IBSpectraFile.cpp
 IdXMLFile.cpp
 IndentedStream.cpp
 IndexedMzMLFileLoader.cpp
-InspectInfile.cpp
-InspectOutfile.cpp
 KroenikFile.cpp
 MRMFeaturePickerFile.cpp
 MRMFeatureQCFile.cpp
@@ -44,12 +42,10 @@ MSNumpressCoder.cpp
 MSPFile.cpp
 MSPGenericFile.cpp
 MSstatsFile.cpp
-MascotInfile.cpp
 MascotGenericFile.cpp
 MascotRemoteQuery.cpp
 MascotXMLFile.cpp
 MsInspectFile.cpp
-MzDataFile.cpp
 MzIdentMLFile.cpp
 MzMLFile.cpp
 MzQCFile.cpp

@@ -254,53 +254,46 @@ START_SECTION(([EXTRA]~HasActivationMethod()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-	HasActivationMethod<MSSpectrum> s(ListUtils::create<String>(Precursor::NamesOfActivationMethod[1]+","+Precursor::NamesOfActivationMethod[2]));
-	HasActivationMethod<MSSpectrum> s2(ListUtils::create<String>(Precursor::NamesOfActivationMethod[1]+","+Precursor::NamesOfActivationMethod[2]),true);
+	HasActivationMethod<MSSpectrum> s(ListUtils::create<String>(
+		Precursor::NamesOfActivationMethod[static_cast<int>(Precursor::ActivationMethod::PSD)]+","+
+		Precursor::NamesOfActivationMethod[static_cast<int>(Precursor::ActivationMethod::PD)]));
+	HasActivationMethod<MSSpectrum> s2(ListUtils::create<String>(
+		Precursor::NamesOfActivationMethod[static_cast<int>(Precursor::ActivationMethod::PSD)]+","+
+		Precursor::NamesOfActivationMethod[static_cast<int>(Precursor::ActivationMethod::PD)]), true);
 	MSSpectrum spec;
 	std::vector<Precursor> pc;
 	Precursor p;
-	set <Precursor::ActivationMethod> sa1;
-	sa1.insert( Precursor::PSD ); //occurs
-	sa1.insert( Precursor::BIRD );//just a dummy
-
-	p.setActivationMethods(sa1);
+	p.setActivationMethod(Precursor::PSD);
 	pc.push_back(p);
-	spec.setPrecursors(pc);
+	spec.setPrecursors(pc); // spec has precursor with PSD
 
 	TEST_EQUAL(s(spec), true);
 	TEST_EQUAL(s2(spec), false);
 
 	// does not occur as activation method
-	set <Precursor::ActivationMethod> sa2;
-	sa2.insert( Precursor::BIRD );
-	p.setActivationMethods(sa2);
+	p.setActivationMethod(Precursor::BIRD);
 	pc[0] = p;
-	spec.setPrecursors(pc);
+	spec.setPrecursors(pc); // spec has precursor with BIRD
 
 	TEST_EQUAL(s(spec), false);
 	TEST_EQUAL(s2(spec), true);
 
 	// multiple precursors:
 	// adding another dummy
-	set <Precursor::ActivationMethod> sa3;
-	sa3.insert( Precursor::LCID );
-	p.setActivationMethods(sa3);
+	p.setActivationMethod(Precursor::LCID);
 	pc.push_back(p);
-	spec.setPrecursors(pc);
+	spec.setPrecursors(pc); // spec has precursors with LCID and BIRD
 
 	TEST_EQUAL(s(spec), false);
 	TEST_EQUAL(s2(spec), true);
 
 	// adding a matching precursor
-	set <Precursor::ActivationMethod> sa4;
-	sa4.insert( Precursor::PD );
-	p.setActivationMethods(sa4);
+	p.setActivationMethod(Precursor::PD);
 	pc.push_back(p);
-	spec.setPrecursors(pc);
+	spec.setPrecursors(pc); // spec has precursors with LCID , BRID, and PD
 
 	TEST_EQUAL(s(spec), true);
 	TEST_EQUAL(s2(spec), false);
-
 
 END_SECTION
 

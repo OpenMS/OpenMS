@@ -184,7 +184,7 @@ private:
     {
       for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
       {
-        if (!it->getActivationMethods().empty()) return Precursor::NamesOfActivationMethod[*(it->getActivationMethods().begin())];
+        if (it->getActivationMethod() != Precursor::ActivationMethod::UNKNOWN) return Precursor::NamesOfActivationMethod[static_cast<int>(it->getActivationMethod())];
       }
       return "";
     }

@@ -16,7 +16,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -272,14 +271,6 @@ namespace OpenMS::Internal::ClassTest
               }
             }
             break;
-
-            case FileTypes::MZDATA:
-              if (!MzDataFile().isValid(file_names[i], std::cerr))
-              {
-                std::cout << " - Error: Invalid mzData file '" << file_names[i] << "'" << std::endl;
-                passed_single = false;
-              }
-              break;
 
             case FileTypes::MZXML:
               if (!MzXMLFile().isValid(file_names[i], std::cerr))

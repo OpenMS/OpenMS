@@ -61,9 +61,9 @@ namespace OpenMS
     {
       peptide_ID.setMetaValue("ion_injection_time", spectrum.getAcquisitionInfo()[0].getMetaValue("MS:1000927"));
     }
-    if (!spectrum.getPrecursors().empty() && !spectrum.getPrecursors()[0].getActivationMethods().empty())
+    if (!spectrum.getPrecursors().empty() && spectrum.getPrecursors()[0].getActivationMethod() != Precursor::ActivationMethod::UNKNOWN)
     {
-      peptide_ID.setMetaValue("activation_method", Precursor::NamesOfActivationMethodShort[*spectrum.getPrecursors()[0].getActivationMethods().begin()]);
+      peptide_ID.setMetaValue("activation_method", Precursor::NamesOfActivationMethodShort[spectrum.getPrecursors()[0].getActivationMethod()]);
     }
   }
 

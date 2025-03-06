@@ -1964,8 +1964,6 @@ def testFileHandler():
     fh.loadExperiment("test1.mzML", mse)
     fh.storeExperiment("test1.mzXML", mse)
     fh.loadExperiment("test1.mzXML", mse)
-    fh.storeExperiment("test1.mzData", mse)
-    fh.loadExperiment("test1.mzData", mse)
 
 
 @report
@@ -2581,8 +2579,6 @@ def testSample():
      Sample.getConcentration
      Sample.getSubsamples
      Sample.setSubsamples
-     Sample.removeTreatment
-     Sample.countTreatments
      """
     ins = pyopenms.Sample()
 
@@ -2608,13 +2604,6 @@ def testSample():
     a = ins.getSubsamples()
     ins.setSubsamples(a)
 
-    has_exception = False
-    try:
-        ins.removeTreatment(0)
-    except Exception:
-        has_exception = True
-    assert has_exception
-    assert ins.countTreatments() == 0
 
 @report
 def testLogType():
@@ -3935,17 +3924,7 @@ def testMapAlignmentTransformer():
 @report
 def testMxxxFile():
     """
-    @tests: MzDataFile
-     MzDataFile.__init__
-     MzDataFile.endProgress
-     MzDataFile.getLogType
-     MzDataFile.load
-     MzDataFile.setLogType
-     MzDataFile.setProgress
-     MzDataFile.startProgress
-     MzDataFile.store
-     MzDataFile.getOptions
-     MzDataFile.setOptions
+    @tests: MzMLFile
 
      MzMLFile.__init__
      MzMLFile.endProgress
@@ -3973,13 +3952,6 @@ def testMxxxFile():
     mse = pyopenms.MSExperiment()
     s = pyopenms.MSSpectrum()
     mse.addSpectrum(s)
-
-    fh = pyopenms.MzDataFile()
-    _testProgressLogger(fh)
-    fh.store("test.mzData", mse)
-    fh.load("test.mzData", mse)
-
-    fh.setOptions(fh.getOptions())
 
     fh = pyopenms.MzMLFile()
     _testProgressLogger(fh)
@@ -4429,8 +4401,8 @@ def testPrecursor():
     """
     @tests: Precursor
      Precursor.__init__
-     Precursor.getActivationMethods
-     Precursor.setActivationMethods
+     Precursor.getActivationMethod
+     Precursor.setActivationMethod
      Precursor.getActivationEnergy
      Precursor.setActivationEnergy
      Precursor.getIsolationWindowLowerOffset
@@ -4457,10 +4429,8 @@ def testPrecursor():
     assert not prec != prec2
 
     # Test activation methods
-    methods = set([pyopenms.Precursor.ActivationMethod.CID, 
-                  pyopenms.Precursor.ActivationMethod.HCD])
-    prec.setActivationMethods(methods)
-    assert prec.getActivationMethods() == methods
+    prec.setActivationMethod(pyopenms.Precursor.ActivationMethod.CID)
+    assert prec.getActivationMethod() == pyopenms.Precursor.ActivationMethod.CID
 
     # Test activation energy  
     prec.setActivationEnergy(25.0)
@@ -4938,7 +4908,6 @@ def testType():
      Type.MGF
      Type.MS2
      Type.MSP
-     Type.MZDATA
      Type.MZIDENTML
      Type.MZML
      Type.MZXML
@@ -4971,7 +4940,6 @@ def testType():
      ,pyopenms.FileType.MGF
      ,pyopenms.FileType.MS2
      ,pyopenms.FileType.MSP
-     ,pyopenms.FileType.MZDATA
      ,pyopenms.FileType.MZIDENTML
      ,pyopenms.FileType.MZML
      ,pyopenms.FileType.MZXML

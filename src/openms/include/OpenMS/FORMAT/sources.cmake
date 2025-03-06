@@ -47,8 +47,6 @@ IBSpectraFile.h
 IdXMLFile.h
 IndentedStream.h
 IndexedMzMLFileLoader.h
-InspectInfile.h
-InspectOutfile.h
 KroenikFile.h
 MRMFeaturePickerFile.h
 MRMFeatureQCFile.h
@@ -57,12 +55,10 @@ MSNumpressCoder.h
 MSPFile.h
 MSPGenericFile.h
 MSstatsFile.h
-MascotInfile.h
 MascotGenericFile.h
 MascotRemoteQuery.h
 MascotXMLFile.h
 MsInspectFile.h
-MzDataFile.h
 MzMLFile.h
 MzQCFile.h
 MzTab.h

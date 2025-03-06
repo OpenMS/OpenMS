@@ -244,7 +244,7 @@ START_SECTION([EXTRA_LOSSY] void store(const String& filename, MapType& map))
   {
     Precursor p;
     std::set<Precursor::ActivationMethod> tmp = {Precursor::ActivationMethod::BIRD};
-    p.setActivationMethods(tmp);
+    p.setActivationMethod(Precursor::ActivationMethod::BIRD);
     p.setActivationEnergy(500);
     p.setCharge(4);
     p.setMZ(600);
@@ -359,7 +359,7 @@ START_SECTION([EXTRA_FULL_META] void store(const String& filename, MapType& map)
   {
     Precursor p;
     std::set<Precursor::ActivationMethod> tmp = {Precursor::ActivationMethod::BIRD};
-    p.setActivationMethods(tmp);
+    p.setActivationMethod(Precursor::ActivationMethod::BIRD);
     p.setActivationEnergy(500);
     p.setCharge(4);
     p.setMZ(600);

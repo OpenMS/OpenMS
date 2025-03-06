@@ -65,23 +65,23 @@ START_SECTION((void setDriftTimeUnit(double dt)))
   TEST_EQUAL(tmp.getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true);
 END_SECTION
 
-START_SECTION((const set<ActivationMethod>& getActivationMethods() const))
+START_SECTION((ActivationMethod getActivationMethod() const))
   Precursor tmp;
-  TEST_EQUAL(tmp.getActivationMethods().size(),0);
+  TEST_EQUAL(tmp.getActivationMethod(),Precursor::UNKNOWN);
 END_SECTION
 
-START_SECTION((set<ActivationMethod>& getActivationMethods()))
+START_SECTION((void setActivationMethod(ActivationMethod activation_method)))
   Precursor tmp;
-	tmp.getActivationMethods().insert(Precursor::CID);
-  TEST_EQUAL(tmp.getActivationMethods().size(),1);
+	tmp.setActivationMethod(Precursor::CID);
+  TEST_EQUAL(tmp.getActivationMethod(),Precursor::CID);
 END_SECTION
 
-START_SECTION((void setActivationMethods(const set<ActivationMethod>& activation_methods)))
+START_SECTION((StringList getActivationMethodsAsString() const))
   Precursor tmp;
-	set<Precursor::ActivationMethod> methods;
-	methods.insert(Precursor::CID);
-	tmp.setActivationMethods(methods);
-  TEST_EQUAL(tmp.getActivationMethods().size(),1);
+	tmp.setActivationMethod(Precursor::CID);
+  StringList methods = tmp.getActivationMethodsAsString();
+  TEST_EQUAL(methods.size(), 1);
+  TEST_EQUAL(methods[0], "Collision-induced dissociation");
 END_SECTION
 
 START_SECTION((double getIsolationWindowUpperOffset() const))
@@ -142,7 +142,7 @@ END_SECTION
 START_SECTION((Precursor(const Precursor& source)))
 {
   Precursor tmp;
-  tmp.getActivationMethods().insert(Precursor::CID);
+  tmp.setActivationMethod(Precursor::CID);
   tmp.setActivationEnergy(47.11);
   tmp.setIsolationWindowUpperOffset(22.7);
   tmp.setIsolationWindowLowerOffset(22.8);
@@ -154,7 +154,7 @@ START_SECTION((Precursor(const Precursor& source)))
   tmp.setMetaValue("label",String("label"));
   
   Precursor tmp2(tmp);
-  TEST_EQUAL(tmp2.getActivationMethods().size(),1);
+  TEST_EQUAL(tmp2.getActivationMethod(),Precursor::CID);
   TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),47.11);
   TEST_REAL_SIMILAR(tmp2.getIsolationWindowUpperOffset(), 22.7);
   TEST_REAL_SIMILAR(tmp2.getIsolationWindowLowerOffset(), 22.8);
@@ -170,8 +170,7 @@ END_SECTION
 START_SECTION((Precursor(const Precursor&& source)))
 {
   Precursor tmp;
-  tmp.getActivationMethods().insert(Precursor::CID);
-  tmp.getActivationMethods().insert(Precursor::BIRD);
+  tmp.setActivationMethod(Precursor::CID);
   tmp.setActivationEnergy(40.11);
   tmp.setIsolationWindowUpperOffset(20.7);
   tmp.setIsolationWindowLowerOffset(20.8);
@@ -181,7 +180,6 @@ START_SECTION((Precursor(const Precursor&& source)))
   tmp.setDriftTimeUnit(DriftTimeUnit::VSSC);
   tmp.setCharge(8);
   tmp.setMetaValue("label",String("label2"));
-  TEST_EQUAL(tmp.getActivationMethods().size(),2);
 
   //copy tmp so we can move one of them
   Precursor orig = tmp;
@@ -189,7 +187,7 @@ START_SECTION((Precursor(const Precursor&& source)))
   Precursor tmp2(std::move(tmp));
   TEST_EQUAL(tmp2, orig);
 
-  TEST_EQUAL(tmp2.getActivationMethods().size(),2);
+  TEST_EQUAL(tmp2.getActivationMethod(),Precursor::CID);
   TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),40.11);
   TEST_REAL_SIMILAR(tmp2.getIsolationWindowUpperOffset(), 20.7);
   TEST_REAL_SIMILAR(tmp2.getIsolationWindowLowerOffset(), 20.8);
@@ -205,7 +203,7 @@ END_SECTION
 START_SECTION((Precursor& operator= (const Precursor& source)))
 {
   Precursor tmp;
-  tmp.getActivationMethods().insert(Precursor::CID);
+  tmp.setActivationMethod(Precursor::CID);
   tmp.setActivationEnergy(47.11);
   tmp.setIsolationWindowUpperOffset(22.7);
   tmp.setIsolationWindowLowerOffset(22.8);
@@ -219,7 +217,7 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
   //normal assignment
   Precursor tmp2;
   tmp2 = tmp;
-  TEST_EQUAL(tmp2.getActivationMethods().size(),1);
+  TEST_EQUAL(tmp2.getActivationMethod(),Precursor::CID);
   TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),47.11);
   TEST_REAL_SIMILAR(tmp2.getIsolationWindowUpperOffset(), 22.7);
   TEST_REAL_SIMILAR(tmp2.getIsolationWindowLowerOffset(), 22.8);
@@ -232,7 +230,7 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
     
   //assignment of empty object
   tmp2 = Precursor();
-  TEST_EQUAL(tmp2.getActivationMethods().size(),0);
+  TEST_EQUAL(tmp2.getActivationMethod(),Precursor::UNKNOWN);
   TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),0.0);
   TEST_REAL_SIMILAR(tmp2.getIsolationWindowUpperOffset(), 0.0);
   TEST_REAL_SIMILAR(tmp2.getIsolationWindowLowerOffset(), 0.0);
@@ -248,8 +246,7 @@ END_SECTION
 START_SECTION((Precursor& operator= (const Precursor&& source)))
 {
   Precursor tmp;
-  tmp.getActivationMethods().insert(Precursor::CID);
-  tmp.getActivationMethods().insert(Precursor::BIRD);
+  tmp.setActivationMethod(Precursor::CID);
   tmp.setActivationEnergy(40.11);
   tmp.setIsolationWindowUpperOffset(20.7);
   tmp.setIsolationWindowLowerOffset(20.8);
@@ -268,7 +265,7 @@ START_SECTION((Precursor& operator= (const Precursor&& source)))
   tmp2 = std::move(tmp);
   TEST_EQUAL(tmp2, orig);
 
-  TEST_EQUAL(tmp2.getActivationMethods().size(),2);
+  TEST_EQUAL(tmp2.getActivationMethod(),Precursor::CID);
   TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),40.11);
   TEST_REAL_SIMILAR(tmp2.getIsolationWindowUpperOffset(), 20.7);
   TEST_REAL_SIMILAR(tmp2.getIsolationWindowLowerOffset(), 20.8);
@@ -298,7 +295,7 @@ START_SECTION((bool operator== (const Precursor& rhs) const))
 	TEST_EQUAL(tmp==tmp2, false);
 
 	tmp2 = tmp;
-	tmp.getActivationMethods().insert(Precursor::CID);
+	tmp.setActivationMethod(Precursor::CID);
 	TEST_EQUAL(tmp==tmp2, false);
 	
 	tmp2 = tmp;
@@ -343,7 +340,7 @@ START_SECTION((bool operator!= (const Precursor& rhs) const))
 	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
-	tmp.getActivationMethods().insert(Precursor::CID);
+	tmp.setActivationMethod(Precursor::CID);
 	TEST_FALSE(tmp == tmp2);
 	
 	tmp2 = tmp;	tmp2 = tmp;

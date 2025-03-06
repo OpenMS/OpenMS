@@ -14,6 +14,7 @@ namespace OpenMS
 {
 
   const std::string Precursor::NamesOfActivationMethod[] = {
+    "Unknown",
     "Collision-induced dissociation", 
     "Post-source decay", 
     "Plasma desorption", 
@@ -35,7 +36,8 @@ namespace OpenMS
     "Bruker proprietary method"
     };
   
-  const std::string Precursor::NamesOfActivationMethodShort[] = { 
+  const std::string Precursor::NamesOfActivationMethodShort[] = {
+    "UNKNOWN",
     "CID", 
     "PSD", 
     "PD", 
@@ -60,7 +62,7 @@ namespace OpenMS
   Precursor::Precursor(Precursor&& rhs) noexcept :
       CVTermList(std::move(rhs)),
       Peak1D(std::move(rhs)),
-      activation_methods_(std::move(rhs.activation_methods_)),
+      activation_method_(rhs.activation_method_),
       activation_energy_(rhs.activation_energy_),
       window_low_(rhs.window_low_),
       window_up_(rhs.window_up_),
@@ -74,7 +76,7 @@ namespace OpenMS
 
   bool Precursor::operator==(const Precursor& rhs) const
   {
-    return activation_methods_ == rhs.activation_methods_ &&
+    return activation_method_ == rhs.activation_method_ &&
            activation_energy_ == rhs.activation_energy_ &&
            window_low_ == rhs.window_low_ &&
            window_up_ == rhs.window_up_ &&
@@ -92,31 +94,27 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
-  const set<Precursor::ActivationMethod>& Precursor::getActivationMethods() const
+  Precursor::ActivationMethod Precursor::getActivationMethod() const
   {
-    return activation_methods_;
+    return activation_method_;
   }
 
-  set<Precursor::ActivationMethod>& Precursor::getActivationMethods()
+  void Precursor::setActivationMethod(Precursor::ActivationMethod activation_method)
   {
-    return activation_methods_;
+    activation_method_ = activation_method;
   }
 
   StringList Precursor::getActivationMethodsAsString() const
   {
     StringList am;
-    am.reserve(activation_methods_.size());
-    for (const auto& m : activation_methods_)
+    // Only add the activation method if it's valid (not SIZE_OF_ACTIVATIONMETHOD)
+    if (activation_method_ != UNKNOWN)
     {
-      am.push_back(NamesOfActivationMethod[m]);
+      am.push_back(NamesOfActivationMethod[activation_method_]);
     }
     return am;
   }
 
-  void Precursor::setActivationMethods(const set<Precursor::ActivationMethod> & activation_methods)
-  {
-    activation_methods_ = activation_methods;
-  }
 
   double Precursor::getActivationEnergy() const
   {

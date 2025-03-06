@@ -508,7 +508,6 @@ namespace OpenMS::Internal
       std::map<FileTypes::Type, std::pair<String, String> > formats_map;
       formats_map[FileTypes::MZML] = make_pair("mzML format", "mzML unique identifier");
       formats_map[FileTypes::MZXML] = make_pair("ISB mzXML format", "scan number only nativeID format");
-      formats_map[FileTypes::MZDATA] = make_pair("PSI mzData format", "spectrum identifier nativeID format");
       formats_map[FileTypes::MGF] = make_pair("Mascot MGF format", "multiple peak list nativeID format");
 
 

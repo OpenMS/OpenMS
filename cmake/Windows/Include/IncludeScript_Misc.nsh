@@ -4,7 +4,7 @@
 ;; Function that register one extension for VLC
 
 Function RegisterExtension
-  ; back up old value for extension $R0 (eg. ".mzData") and Program $R1 (e.g. TOPPView)
+  ; back up old value for extension $R0 (eg. ".mzML") and Program $R1 (e.g. TOPPView)
   ReadRegStr $1 HKCR "$R0" ""
   StrCmp $1 "" NoBackup
     StrCmp $1 "OPENMS$R0" "NoBackup"

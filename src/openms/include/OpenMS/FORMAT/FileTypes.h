@@ -32,7 +32,6 @@ namespace OpenMS
       UNKNOWN,            ///< Unknown file extension
       DTA,                ///< DTA file (.dta)
       DTA2D,              ///< DTA2D file (.dta2d)
-      MZDATA,             ///< MzData file (.mzData)
       MZXML,              ///< MzXML file (.mzXML)
       FEATUREXML,         ///< %OpenMS feature file (.featureXML)
       IDXML,              ///< %OpenMS identification format (.idXML)
@@ -157,7 +156,7 @@ namespace OpenMS
     /**
       @brief Convert a Qt filter back to a Type if possible.
 
-      E.g. from a full filter such as '"mzML files (*.mzML);;mzData files (*.mzData);;mzXML files (*.mzXML);;all files (*)"',
+      E.g. from a full filter such as '"mzML files (*.mzML);;mzXML files (*.mzXML);;all files (*)"',
       as created by toFileDialogFilter(), the selected @p filter could be "mzML files (*.mzML)", in which case the type is Type::MZML .
       However, for the filter "all files (*)", Type::UNKNOWN will be returned.
 

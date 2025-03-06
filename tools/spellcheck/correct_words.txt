@@ -1698,7 +1698,6 @@ MSLevels
 MSPepHits
 MSn
 MSstats
-MascotAdapter
 MassHunter
 MassTable
 MedianPRMScore

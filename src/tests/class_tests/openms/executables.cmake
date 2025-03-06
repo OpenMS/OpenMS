@@ -188,23 +188,17 @@ set(format_executables_list
   IndexedMzMLDecoder_test
   IndexedMzMLFile_test
   IndexedMzMLFileLoader_test
-  InspectInfile_test
-  InspectOutfile_test
   KroenikFile_test
   MRMFeatureQCFile_test
   MS2File_test
   MSPFile_test
   MSPGenericFile_test
   MascotGenericFile_test
-  MascotInfile_test
   MascotRemoteQuery_test
   MascotXMLFile_test
-  #MSDataWritingConsumer_test
   MRMFeaturePickerFile_test
   MsInspectFile_test
-  MzDataFile_test
   MzIdentMLFile_test
-  MzDataValidator_test
   MzIdentMLValidator_test
   MzMLFile_test
   MzMLSpectrumDecoder_test

@@ -38,7 +38,6 @@ SetCompressor /SOLID lzma
 
 # which extensions to connect to TOPPView and TOPPAS
 !macro OpenMSGUIExtensions _action
-  !insertmacro ${_action} ".mzData" "TOPPView"
   !insertmacro ${_action} ".mzXML" "TOPPView"
   !insertmacro ${_action} ".mzML" "TOPPView"
   !insertmacro ${_action} ".sqMass" "TOPPView"

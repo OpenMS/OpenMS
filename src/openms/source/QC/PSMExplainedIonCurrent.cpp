@@ -65,14 +65,14 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The matching spectrum of the mzML is not an MS2 Spectrum.");
     }
     Precursor::ActivationMethod act_method;
-    if (exp_spectrum.getPrecursors().empty() || exp_spectrum.getPrecursors()[0].getActivationMethods().empty())
+    if (exp_spectrum.getPrecursors().empty() || exp_spectrum.getPrecursors()[0].getActivationMethod() == Precursor::ActivationMethod::UNKNOWN)
     {
       OPENMS_LOG_DEBUG << "No MS2 activation method provided. Using CID as fallback to compute fragment mass errors." << std::endl;
       act_method = Precursor::ActivationMethod::CID;
     }
     else
     {
-      act_method = *exp_spectrum.getPrecursors()[0].getActivationMethods().begin();
+      act_method = exp_spectrum.getPrecursors()[0].getActivationMethod();
     }
 
     //---------------------------------------------------------------------

@@ -89,7 +89,7 @@ namespace OpenMS
     }
     else
     {
-      if (exp_spectrum.getPrecursors()[0].getActivationMethods().empty())
+      if (exp_spectrum.getPrecursors()[0].getActivationMethod() == Precursor::ActivationMethod::UNKNOWN)
       {
         if (print_warning)
         {
@@ -98,7 +98,7 @@ namespace OpenMS
         print_warning = false; // only print it once
         act_method = Precursor::ActivationMethod::CID;
       }
-      act_method = *exp_spectrum.getPrecursors()[0].getActivationMethods().begin();
+      act_method = exp_spectrum.getPrecursors()[0].getActivationMethod();
     }
 
     //---------------------------------------------------------------------

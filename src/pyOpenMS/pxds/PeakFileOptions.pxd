@@ -15,8 +15,8 @@ cdef extern from "<OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>" namespace "OpenMS":
         void setMetadataOnly(bool) except + nogil  # wrap-doc:Sets whether or not to load only meta data
         bool getMetadataOnly()     except + nogil  # wrap-doc:Returns whether or not to load only meta data
 
-        void setWriteSupplementalData(bool) except + nogil  # wrap-doc:Sets whether or not to write supplemental peak data in MzData files
-        bool getWriteSupplementalData()     except + nogil  # wrap-doc:Returns whether or not to write supplemental peak data in MzData files
+        void setWriteSupplementalData(bool) except + nogil  # wrap-doc:Sets whether or not to write supplemental peak data
+        bool getWriteSupplementalData()     except + nogil  # wrap-doc:Returns whether or not to write supplemental peak data
 
         void setMSLevels(libcpp_vector[int] levels) except + nogil  # wrap-doc:Sets the desired MS levels for peaks to load
         void addMSLevel(Int level) except + nogil  # wrap-doc:Adds a desired MS level for peaks to load

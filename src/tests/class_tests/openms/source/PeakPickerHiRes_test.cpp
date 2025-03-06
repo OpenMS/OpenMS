@@ -56,7 +56,7 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap.mzML"),input
 
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap_sn1_out.mzML"),output);
 
-//set data type (this is not stored correctly in mzData)
+//set data type
 for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
 {
   output[scan_idx].setType(SpectrumSettings::CENTROID);

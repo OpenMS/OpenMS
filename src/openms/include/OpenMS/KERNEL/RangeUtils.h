@@ -325,7 +325,8 @@ public:
     {
       for (const Precursor& p : s.getPrecursors())
       {
-        for (const Precursor::ActivationMethod am : p.getActivationMethods())
+        Precursor::ActivationMethod am = p.getActivationMethod();
+        if (am != Precursor::SIZE_OF_ACTIVATIONMETHOD)
         {
           if (ListUtils::contains(methods_, Precursor::NamesOfActivationMethod[am]))
           {
@@ -665,4 +666,3 @@ private:
   };
 
 } // namespace OpenMS
-

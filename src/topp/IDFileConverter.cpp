@@ -218,7 +218,7 @@ protected:
 
     addEmptyLine_();
     registerInputFile_("mz_file", "<file>", "", "[pepXML, Sequest, Mascot, X! Tandem, mzid, Percolator only] Retention times and native spectrum ids (spectrum_references) will be looked up in this file", false);
-    setValidFormats_("mz_file", ListUtils::create<String>("mzML,mzXML,mzData"));
+    setValidFormats_("mz_file", ListUtils::create<String>("mzML,mzXML"));
     addEmptyLine_();
     registerStringOption_("mz_name", "<file>", "", "[pepXML only] Experiment filename/path (extension will be removed) to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
     registerFlag_("peptideprophet_analyzed", "[pepXML output only] Write output in the format of a PeptideProphet analysis result. By default a 'raw' pepXML is produced that contains only search engine results.", false);

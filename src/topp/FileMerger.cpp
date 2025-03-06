@@ -86,7 +86,7 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    StringList valid_in = ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML,fasta");
+    StringList valid_in = ListUtils::create<String>("mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML,fasta");
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", valid_in);
     registerStringOption_("in_type", "<type>", "", "Input file type (default: determined from file extension or content)", false);

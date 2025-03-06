@@ -231,7 +231,7 @@ namespace OpenMS::Internal
 
           if (it != Precursor::NamesOfActivationMethodShort + Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)
           {
-            spectrum_data_.back().spectrum.getPrecursors().back().getActivationMethods().insert(Precursor::ActivationMethod(it - Precursor::NamesOfActivationMethodShort));
+            spectrum_data_.back().spectrum.getPrecursors().back().setActivationMethod(Precursor::ActivationMethod(it - Precursor::NamesOfActivationMethodShort));
           }
         }
       }
@@ -1009,9 +1009,9 @@ namespace OpenMS::Internal
           {
             os << " windowWideness=\"" << (precursor.getIsolationWindowUpperOffset() + precursor.getIsolationWindowLowerOffset()) << "\"";
           }
-          if (!precursor.getActivationMethods().empty())
+          if (precursor.getActivationMethod() != Precursor::UNKNOWN)
           { // must not be empty, but technically only ETD, ECD, CID are allowed in mzXML 3.1
-            os << " activationMethod=\"" << Precursor::NamesOfActivationMethodShort[int(*(precursor.getActivationMethods().begin()))] << "\" ";
+            os << " activationMethod=\"" << Precursor::NamesOfActivationMethodShort[precursor.getActivationMethod()] << "\" ";
           } 
           else if (options_.getForceMQCompatability())
           { // a missing activation would make old MQ versions crash...

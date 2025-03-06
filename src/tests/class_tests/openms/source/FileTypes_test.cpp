@@ -30,7 +30,6 @@ START_SECTION((static String typeToName(Type type)))
   TEST_EQUAL(FileTypes::typeToName(FileTypes::UNKNOWN), "unknown");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::DTA), "dta");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::DTA2D), "dta2d");
-  TEST_EQUAL(FileTypes::typeToName(FileTypes::MZDATA), "mzData");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::MZXML), "mzXML");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::MZML), "mzML");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::FEATUREXML), "featureXML");
@@ -63,7 +62,6 @@ START_SECTION((static Type nameToType(const String& name)))
   TEST_EQUAL(FileTypes::UNKNOWN, FileTypes::nameToType("unknown"));
   TEST_EQUAL(FileTypes::DTA, FileTypes::nameToType("dta"));
   TEST_EQUAL(FileTypes::DTA2D, FileTypes::nameToType("dta2d"));
-  TEST_EQUAL(FileTypes::MZDATA, FileTypes::nameToType("mzData"));
   TEST_EQUAL(FileTypes::MZXML, FileTypes::nameToType("mzXML"));
   TEST_EQUAL(FileTypes::FEATUREXML, FileTypes::nameToType("featureXML"));
   TEST_EQUAL(FileTypes::IDXML, FileTypes::nameToType("idXmL")); // case-insensitivity
@@ -100,7 +98,6 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
   FileTypeList list({ FileTypes::MZML, FileTypes::BZ2 });
   TEST_EQUAL(list.contains(FileTypes::MZML), true);
   TEST_EQUAL(list.contains(FileTypes::BZ2), true);
-  TEST_EQUAL(list.contains(FileTypes::MZDATA), false);
 
   TEST_EQUAL(list.toFileDialogFilter(FilterLayout::BOTH, true), "all readable files (*.mzML *.bz2);;mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2);;all files (*)")
   TEST_EQUAL(list.toFileDialogFilter(FilterLayout::COMPACT, true), "all readable files (*.mzML *.bz2);;all files (*)")
@@ -127,9 +124,9 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
     std::vector<FileTypes::FileProperties> f;
     f.push_back(FileTypes::FileProperties::READABLE);
     FileTypeList g = FileTypeList::typesWithProperties(f);
-    TEST_EQUAL(g.getTypes().size(), 37);
+    TEST_EQUAL(g.getTypes().size(), 36);
     // Test that empty filter returns the full list
-    TEST_EQUAL(FileTypeList::typesWithProperties({}).size(), 60);
+    TEST_EQUAL(FileTypeList::typesWithProperties({}).size(), 59);
     // Test that the full list is equal to the list of known file types
     TEST_EQUAL(FileTypeList::typesWithProperties({}).size(),static_cast<size_t>(FileTypes::Type::SIZE_OF_TYPE));
     // Check that we don't have duplicate Types in our type_with_annotation__

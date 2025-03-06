@@ -62,7 +62,7 @@ protected:
     setValidStrings_("itemenclosed", ListUtils::create<String>("true,false"));
 
     registerInputFile_("spec", "<file>", "", "spectra");
-    setValidFormats_("spec", ListUtils::create<String>("mzData,mzXML"));
+    setValidFormats_("spec", ListUtils::create<String>("mzXML"));
 
     registerOutputFile_("out", "<file>", "", "output MSP formatted spectra library");
     setValidFormats_("out", ListUtils::create<String>("msp"));
@@ -169,9 +169,9 @@ protected:
     {
       writeLogWarn_("Warning: Could not determine input file type!");
     }
-    else if (in_type == FileTypes::MZDATA || in_type == FileTypes::MZXML)
+    else if (in_type == FileTypes::MZXML)
     {
-      FileHandler().loadExperiment(spec, msexperiment, {FileTypes::MZDATA, FileTypes::MZXML});
+      FileHandler().loadExperiment(spec, msexperiment, {FileTypes::MZXML});
     }
     if (msexperiment.getMinRT() == 0)
     {
@@ -240,7 +240,7 @@ protected:
     // writing output
     //-------------------------------------------------------------
     in_type = fh.getType(out);
-    FileHandler().storeExperiment(out, library, {FileTypes::MZDATA, FileTypes::MZXML, FileTypes::MSP});
+    FileHandler().storeExperiment(out, library, {FileTypes::MZXML, FileTypes::MSP});
     return EXECUTION_OK;
   }
 

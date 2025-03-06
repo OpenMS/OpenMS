@@ -174,7 +174,7 @@ public:
     /**
       @brief Stores an MSExperiment to a file
 
-      The file type to store the data in is determined by the file name. Supported formats for storing are mzML, mzXML, mzData and DTA2D. If the file format cannot be determined from the file name, the mzML format is used.
+      The file type to store the data in is determined by the file name. Supported formats for storing are mzML, mzXML and DTA2D. If the file format cannot be determined from the file name, the mzML format is used.
 
       @param filename The name of the file to store the data in.
       @param exp The experiment to store.

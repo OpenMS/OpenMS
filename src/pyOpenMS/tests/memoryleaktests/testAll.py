@@ -248,13 +248,6 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
             p.loadExperiment("../test.mzML".encode(), e)
             show_mem("after load mzML")
 
-            p = pyopenms.FileHandler()
-            ct.convertChromatogramsToSpectra(e)
-            p.storeExperiment("../test.mzData".encode(), e)
-            show_mem("after store mzData")
-            p.loadExperiment("../test.mzData".encode(), e)
-            show_mem("after load mzData")
-
             del e
             del p
             del ct

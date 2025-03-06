@@ -79,7 +79,7 @@ public:
     /// set the file_type according to the type of the file loaded from (see FileHandler::Type) preferably done whilst loading
     void setLoadedFileType(const String & file_name);
 
-    /// get the file_type (e.g. featureXML, consensusXML, mzData, mzXML, mzML, ...) of the file loaded from
+    /// get the file_type (e.g. featureXML, consensusXML, mzXML, mzML, ...) of the file loaded from
     const FileTypes::Type & getLoadedFileType() const;
 
     //@}

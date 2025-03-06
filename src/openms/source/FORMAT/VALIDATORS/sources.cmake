@@ -5,7 +5,6 @@ set(directory source/FORMAT/VALIDATORS)
 set(sources_list
 XMLValidator.cpp
 MzMLValidator.cpp
-MzDataValidator.cpp
 SemanticValidator.cpp
 MzIdentMLValidator.cpp
 TraMLValidator.cpp

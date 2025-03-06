@@ -24,7 +24,6 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
@@ -149,7 +148,7 @@ public:
 protected:
   void registerOptionsAndFlags_() override
   {
-    StringList in_types = { "mzData", "mzXML", "mzML", "sqMass", "dta", "dta2d", "mgf", "featureXML", "consensusXML", "idXML", "pepXML", "mzTab", "fid", "mzid", "trafoXML", "fasta", "pqp" };
+    StringList in_types = { "mzXML", "mzML", "sqMass", "dta", "dta2d", "mgf", "featureXML", "consensusXML", "idXML", "pepXML", "mzTab", "fid", "mzid", "trafoXML", "fasta", "pqp" };
     registerInputFile_("in", "<file>", "", "input file");
     setValidFormats_("in", in_types);
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content", false);
@@ -163,7 +162,7 @@ protected:
     registerFlag_("s", "Computes a five-number statistics of intensities, qualities, and widths");
     registerFlag_("d", "Show detailed listing of all spectra and chromatograms (peak files only)");
     registerFlag_("c", "Check for corrupt data in the file (peak files only)");
-    registerFlag_("v", "Validate the file only (for mzML, mzData, mzXML, featureXML, idXML, consensusXML, pepXML)");
+    registerFlag_("v", "Validate the file only (for mzML,  mzXML, featureXML, idXML, consensusXML, pepXML)");
     registerFlag_("i", "Check whether a given mzML file contains valid indices (conforming to the indexedmzML standard)");
   }
 
@@ -270,11 +269,6 @@ protected:
          << "Validating " << FileTypes::typeToName(in_type) << " file";
       switch (in_type)
       {
-      case FileTypes::MZDATA:
-        os << " against XML schema version " << MzDataFile().getVersion() << '\n';
-        valid = MzDataFile().isValid(in, os);
-        break;
-
       case FileTypes::MZML:
         os << " against XML schema version " << MzMLFile().getVersion() << '\n';
         valid = MzMLFile().isValid(in, os);
@@ -334,7 +328,7 @@ protected:
       }
 
       // semantic validation:
-      if ((in_type == FileTypes::MZML) || (in_type == FileTypes::MZDATA))
+      if (in_type == FileTypes::MZML)
       {
         if (!valid)
         {
@@ -347,8 +341,6 @@ protected:
           os << '\n'
              << "Semantically validating " << FileTypes::typeToName(in_type)
              << " file";
-          if (in_type == FileTypes::MZDATA)
-            os << " (EXPERIMENTAL)";
           os << ":"
              << '\n';
 
@@ -356,10 +348,6 @@ protected:
           if (in_type == FileTypes::MZML)
           {
             valid = MzMLFile().isSemanticallyValid(in, errors, warnings);
-          }
-          else
-          {
-            valid = MzDataFile().isSemanticallyValid(in, errors, warnings);
           }
 
           for (Size i = 0; i < warnings.size(); ++i)
@@ -921,7 +909,9 @@ protected:
         Precursor::ActivationMethod am;
         bool operator<(const ChAM& rhs) const
         {
-          return std::tie(mslevel, am) < std::tie(rhs.mslevel, rhs.am); 
+          int left_am = static_cast<int>(am);
+          int right_am = static_cast<int>(rhs.am);
+          return std::tie(mslevel, left_am ) < std::tie(rhs.mslevel, right_am); 
         }
       };
       map<ChAM, Size> act_method_counts;
@@ -933,10 +923,8 @@ protected:
 
         for (auto const& pc : spectrum.getPrecursors())
         {
-          for (auto const& am : pc.getActivationMethods())
-          {
-            ++act_method_counts[{level, am}];
-          }
+          auto const& am = pc.getActivationMethod();
+          ++act_method_counts[{level, am}];
         }
 
         // annotate peak type (profile / centroided) from meta data
@@ -1133,7 +1121,8 @@ protected:
                << "  charge: " << pc.getCharge() << '\n'
                << "  mz:     " << pc.getMZ() << '\n'
                << "  activation methods: \n";
-            for (auto const& am : pc.getActivationMethods())
+            
+            if (auto const& am = pc.getActivationMethod(); am != Precursor::ActivationMethod::UNKNOWN)
             {
               os << "    " << Precursor::NamesOfActivationMethodShort[am] << " (" << Precursor::NamesOfActivationMethod[am] << ")\n";
             }

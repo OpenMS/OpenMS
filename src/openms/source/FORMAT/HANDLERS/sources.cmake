@@ -11,7 +11,6 @@ set(sources_list
   IndexedMzMLDecoder.cpp
   IndexedMzMLHandler.cpp
   MascotXMLHandler.cpp
-  MzDataHandler.cpp
   MzIdentMLHandler.cpp
   MzIdentMLDOMHandler.cpp
   MzMLHandler.cpp

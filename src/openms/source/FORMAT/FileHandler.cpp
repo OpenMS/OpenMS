@@ -15,7 +15,6 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MS2File.h>
 #include <OpenMS/FORMAT/MSPFile.h>
@@ -301,11 +300,6 @@ namespace OpenMS
     if (all_simple.hasSubstring("<mzXML"))
     {
       return FileTypes::MZXML;
-    }
-    //mzData (all lines)
-    if (all_simple.hasSubstring("<mzData"))
-    { 
-      return FileTypes::MZDATA;
     }
     //mzML (all lines)
     if (all_simple.hasSubstring("<mzML"))
@@ -709,14 +703,6 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::MZDATA: 
-      {
-        MzDataFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        f.load(filename, exp);
-      }
-      break;
 
       case FileTypes::MZML: 
       {
@@ -882,23 +868,6 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::MZDATA: 
-      {
-        MzDataFile f;
-        f.getOptions() = options_;
-        f.setLogType(log);
-        if (!exp.getChromatograms().empty())
-        {
-          PeakMap exp2 = exp;
-          ChromatogramTools().convertChromatogramsToSpectra<PeakMap>(exp2);
-          f.store(filename, exp2);
-        }
-        else
-        {
-          f.store(filename, exp);
-        }
-      }
-      break;
 
       case FileTypes::MZML: 
       {

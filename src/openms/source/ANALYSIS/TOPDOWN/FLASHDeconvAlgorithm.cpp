@@ -1555,14 +1555,10 @@ namespace OpenMS
     double end_mz = 0;
     for (auto& precursor : deconvolved_spectrum_.getOriginalSpectrum().getPrecursors())
     {
-      for (auto& activation_method : precursor.getActivationMethods())
+      deconvolved_spectrum_.setActivationMethod(precursor.getActivationMethod());
+      if (deconvolved_spectrum_.getActivationMethod() == Precursor::ActivationMethod::HCID)
       {
-        deconvolved_spectrum_.setActivationMethod(activation_method);
-        if (deconvolved_spectrum_.getActivationMethod() == Precursor::HCID)
-        {
-          deconvolved_spectrum_.setActivationMethod(Precursor::HCD);
-        }
-        break;
+        deconvolved_spectrum_.setActivationMethod(Precursor::ActivationMethod::HCD);
       }
       deconvolved_spectrum_.setPrecursor(precursor);
 

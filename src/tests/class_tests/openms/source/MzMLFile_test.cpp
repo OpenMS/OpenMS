@@ -446,9 +446,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getMZ(),5.55)
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getDriftTime(),8.1)
     TEST_EQUAL(spec.getPrecursors()[0].getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true)
-    TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().size(),2)
-    TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().count(Precursor::CID),1)
-    TEST_EQUAL(spec.getPrecursors()[0].getActivationMethods().count(Precursor::PD),1)
+    TEST_EQUAL(spec.getPrecursors()[0].getActivationMethod(), Precursor::PD) // PD = plasma disorption
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getActivationEnergy(),35)
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getIsolationWindowLowerOffset(),6.66)
     TEST_REAL_SIMILAR(spec.getPrecursors()[0].getIsolationWindowUpperOffset(),7.77)
@@ -457,8 +455,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_EQUAL(spec.getPrecursors()[1].getDriftTimeUnit() == DriftTimeUnit::NONE, true) // none set
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getIsolationWindowLowerOffset(),16.66)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getIsolationWindowUpperOffset(),17.77)
-    TEST_EQUAL(spec.getPrecursors()[1].getActivationMethods().size(),1)
-    TEST_EQUAL(spec.getPrecursors()[1].getActivationMethods().count(Precursor::ETD),1)
+    TEST_EQUAL(spec.getPrecursors()[1].getActivationMethod(),Precursor::ETD)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getActivationEnergy(),36)
     TEST_REAL_SIMILAR(spec.getPrecursors()[1].getIntensity(),0.0f)
     TEST_EQUAL(spec.getPrecursors()[1].getCharge(),0)
@@ -1068,9 +1065,9 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
     // store map in our output buffer
     std::string out;
     file.storeBuffer(out, exp_original);
-    TEST_EQUAL(out.size(), 37791)
+    TEST_EQUAL(out.size(), 37700)
     TEST_EQUAL(out.substr(0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
-    TEST_EQUAL(out.substr(37791 - 99, 37791 - 1), "</indexList>\n<indexListOffset>37343</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
+    TEST_EQUAL(out.substr(37700 - 99, 37700 - 1), "</indexList>\n<indexListOffset>37252</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
 
     TEST_EQUAL(String(out).hasSubstring("<spectrumList count=\"4\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
     TEST_EQUAL(String(out).hasSubstring("<chromatogramList count=\"2\" defaultDataProcessingRef=\"dp_sp_0\">"), true)

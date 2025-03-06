@@ -57,6 +57,7 @@ public:
     /// Method of activation
     enum ActivationMethod
     {
+      UNKNOWN,                  ///< Unknown activation method
       CID,                      ///< Collision-induced dissociation (MS:1000133) (also CAD; parent term, but unless otherwise stated often used as synonym for trap-type CID)
       PSD,                      ///< Post-source decay
       PD,                       ///< Plasma desorption
@@ -87,14 +88,12 @@ public:
     /// Equality operator
     bool operator!=(const Precursor & rhs) const;
   
-    /// returns a const reference to the activation methods
-    const std::set<ActivationMethod>& getActivationMethods() const;
-    /// returns a mutable reference to the activation methods
-    std::set<ActivationMethod>& getActivationMethods();
-    /// convenience function, returning string representation of getActivationMethods()
-    StringList getActivationMethodsAsString() const;    
-    /// sets the activation methods
-    void setActivationMethods(const std::set<ActivationMethod> & activation_methods);
+    /// returns the activation method
+    ActivationMethod getActivationMethod() const;
+    /// sets the activation method
+    void setActivationMethod(ActivationMethod activation_method);
+    /// convenience function, returning string representation of getActivationMethod()
+    StringList getActivationMethodsAsString() const;
 
     /// returns the activation energy (in electronvolt)
     double getActivationEnergy() const;
@@ -192,9 +191,9 @@ public:
       return getMZ() * c - c * Constants::PROTON_MASS_U;
     }
 
-protected:
+private:
 
-    std::set<ActivationMethod> activation_methods_;
+    ActivationMethod activation_method_{ActivationMethod::UNKNOWN};
     double activation_energy_{};
     double window_low_{};
     double window_up_{};

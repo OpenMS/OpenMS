@@ -41,7 +41,7 @@ const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const String& id, Pr
   Precursor precursor;
   std::set<Precursor::ActivationMethod> am;
   am.insert(precursor_method);
-  precursor.setActivationMethods(am);
+  precursor.setActivationMethod(precursor_method);
 
   MSSpectrum ms_spec;
   ms_spec.setRT(rt);
@@ -68,7 +68,7 @@ const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const String& id, co
   t.getSpectrum(ms_spec, seq, 1, charge <= 2 ? 1 : 2);
   std::set<Precursor::ActivationMethod> am;
   am.insert(precursor_method);
-  ms_spec.getPrecursors()[0].setActivationMethods(am);
+  ms_spec.getPrecursors()[0].setActivationMethod(precursor_method);
 
   return ms_spec;
 }
