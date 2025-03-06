@@ -79,7 +79,7 @@ namespace OpenMS
     // the next section should not be shown to TOPP users
     Param p;
     p.setValue("format", "Mascot generic", "Sets the format type of the peak list, this should not be changed unless you write the header only.", {"advanced"});
-    p.setValidStrings("format", {"Mascot generic","mzData (.XML)","mzML (.mzML)"}); // Mascot's HTTP interface supports more, but we don't :)
+    p.setValidStrings("format", {"Mascot generic","mzML (.mzML)"}); // Mascot's HTTP interface supports more, but we don't :)
     p.setValue("boundary", "GZWgAaYKjHFeUaLOLEIOMq", "MIME boundary for parameter header (if using HTTP format)", {"advanced"});
     p.setValue("HTTP_format", "false", "Write header with MIME boundaries instead of simple key-value pairs. For HTTP submission only.", {"advanced"});
     p.setValidStrings("HTTP_format", {"true","false"});
