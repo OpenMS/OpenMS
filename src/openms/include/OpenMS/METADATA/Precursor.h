@@ -99,10 +99,10 @@ public:
     void setActivationMethod(ActivationMethod activation_method);
 
     /// convenience function, returning string representation of getActivationMethod()
-    const String& getActivationMethodAsString() const;
+    String getActivationMethodAsString() const;
 
     /// returns the activation method as short string
-    const String& getActivationMethodAsShortString() const;
+    String getActivationMethodAsShortString() const;
 
     /// returns the activation energy (in electronvolt)
     double getActivationEnergy() const;

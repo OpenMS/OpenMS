@@ -3852,6 +3852,9 @@ namespace OpenMS::Internal
         case Precursor::ActivationMethod::LIFT:
           os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001881\" name=\"low-energy in-source fragmentation\" />\n";
           break;
+        default:
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown activation method", String(static_cast<int>(precursor.getActivationMethod())));
+          break;
       }
 
       // as "precursor" has no own user param its userParam is stored here;

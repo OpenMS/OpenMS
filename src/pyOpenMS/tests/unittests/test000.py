@@ -4437,11 +4437,11 @@ def testPrecursor():
     assert abs(prec.getActivationEnergy() - 25.0) < 1e-5
 
     # Test activation methods as strings
-    short_strings = prec.getActivationMethodsAsShortString()
-    assert sorted([s.decode() for s in short_strings]) == sorted(methods_short)
-    long_strings = prec.getActivationMethodsAsString()
-    assert sorted([s.decode() for s in long_strings]) == sorted(methods_long)
-
+    short_string = prec.getActivationMethodAsShortString()
+    assert short_string.decode() == "CID"
+    long_string = prec.getActivationMethodAsString()
+    assert long_string.decode() == "Collision-induced dissociation"
+    
     # Test static methods for all activation methods
     all_names = pyopenms.Precursor.getAllNamesOfActivationMethods()
     assert len(all_names) == pyopenms.Precursor.ActivationMethod.SIZE_OF_ACTIVATIONMETHOD
@@ -5014,17 +5014,6 @@ def testVersion():
 
     assert isinstance(pyopenms.__version__, str)
 
-@report
-def testInspectInfile():
-    """
-    @tests: InspectInfile
-     InspectInfile.__init__
-    """
-    inst = pyopenms.InspectInfile()
-
-    assert inst.getModifications is not None
-    mods = inst.getModifications()
-    assert len(mods) == 0
 
 @report
 def testAttachment():

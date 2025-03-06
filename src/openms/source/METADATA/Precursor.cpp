@@ -114,12 +114,12 @@ namespace OpenMS
     activation_method_ = activation_method;
   }
 
-  const String& Precursor::getActivationMethodAsString() const
+  String Precursor::getActivationMethodAsString() const
   {
     return NamesOfActivationMethod[activation_method_];
   }
 
-  const String& Precursor::getActivationMethodAsShortString() const
+  String Precursor::getActivationMethodAsShortString() const
   {
     return NamesOfActivationMethodShort[activation_method_];
   }
