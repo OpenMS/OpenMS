@@ -16,18 +16,25 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 
 General:
 - OpenMS now expects a compiler that supports C++20
-
+- OpenMSInfo now informs about custom CXX compile flags (#7846)
+ 
 OpenSwath:
 - Changes to -out_features (# 7793)
 	- Deprecate .tsv feature output
 	- Deprecate -out_osw, -out_tsv. -out_features is used for outputting .osw or .featureXML files and file format is autodetected.
 	- Enable outputting any feature file (.osw or .featureXML) from a .tsv library 
 - Add warning message if irt_im_extraction_window not set and im_window is set (#7813)
+- Add auto add up spectra across the peak width in retention time for ion mobility extraction (#7742)
+- Add peak-picking for extracted ion mobilogram (#7759)
+- Add ion mobility scoring for identifying transitions for IPF (#7760)
 
 Misc:
 - pyOpenMS: improve developer experience (installation/compilation) (#7735)
 - TOPP tools and TOPPAS/ExecutePipeline return exit code 14 when external third-party tools (such as Comet or Sage) are not found (#7758)
 - ProteinInference tool: Algorithm:score_type allows switching the main score (e.g., "RAW", "PEP") for BasicProteinInference. (#7769)
+
+Fixes:
+- fix Doxygen Docs contain stty warning for TOPP tool output (#7865)
 
 Library:
 - IDScoreSwitcherAlgorithm: Added switchToScoreType and switchBackScoreType methods for score switching and reversion. (#7769)

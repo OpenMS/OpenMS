@@ -34,6 +34,36 @@ namespace OpenMS
     }
   }
 
+  const Mobilogram::FloatDataArrays &Mobilogram::getFloatDataArrays() const
+  {
+    return float_data_arrays_;
+  }
+
+  Mobilogram::FloatDataArrays &Mobilogram::getFloatDataArrays()
+  {
+    return float_data_arrays_;
+  }
+
+  const Mobilogram::StringDataArrays &Mobilogram::getStringDataArrays() const
+  {
+    return string_data_arrays_;
+  }
+
+  Mobilogram::StringDataArrays &Mobilogram::getStringDataArrays()
+  {
+    return string_data_arrays_;
+  }
+
+  const Mobilogram::IntegerDataArrays &Mobilogram::getIntegerDataArrays() const
+  {
+    return integer_data_arrays_;
+  }
+
+  Mobilogram::IntegerDataArrays &Mobilogram::getIntegerDataArrays()
+  {
+    return integer_data_arrays_;
+  }
+
   String Mobilogram::getDriftTimeUnitAsString() const
   {
     return NamesOfDriftTimeUnit[(size_t)drift_time_unit_];

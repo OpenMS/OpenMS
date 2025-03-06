@@ -63,6 +63,8 @@ public:
 
     void filter(MSChromatogram & chromatogram);
 
+    void filter(Mobilogram & mobilogram);
+
     /**
       @brief Smoothes an MSExperiment containing profile data.
 
