@@ -57,7 +57,7 @@ namespace OpenMS
     {
       QListWidgetItem * item = new QListWidgetItem(activation_methods_);
       item->setText(QString::fromStdString(Precursor::NamesOfActivationMethod[i]));
-      if (temp_.getActivationMethod().count(Precursor::ActivationMethod(i)) == 1)
+      if (temp_.getActivationMethod() == Precursor::ActivationMethod(i))
       {
         item->setCheckState(Qt::Checked);
       }
