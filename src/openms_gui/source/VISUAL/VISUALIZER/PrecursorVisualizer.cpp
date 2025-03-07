@@ -65,14 +65,9 @@ namespace OpenMS
       {
         item->setCheckState(Qt::Unchecked);
       }
-      if (isEditable())
-      {
-        item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
-      }
-      else
-      {
-        item->setFlags(Qt::ItemIsEnabled);
-      }
+
+      item->setFlags(Qt::ItemIsEnabled);
+      
       activation_methods_->addItem(item);
     }
 
@@ -88,12 +83,12 @@ namespace OpenMS
     ptr_->setIsolationWindowLowerOffset(window_low_->text().toFloat());
     ptr_->setIsolationWindowUpperOffset(window_up_->text().toFloat());
 
-    ptr_->getActivationMethods().clear();
+    ptr_->setActivationMethod(Precursor::ActivationMethod::UNKNOWN);
     for (UInt i = 0; i < Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
     {
       if (activation_methods_->item(i)->checkState() == Qt::Checked)
       {
-        ptr_->getActivationMethods().insert(Precursor::ActivationMethod(i));
+        ptr_->setActivationMethod(Precursor::ActivationMethod(i));
       }
     }
     ptr_->setActivationEnergy(activation_energy_->text().toFloat());

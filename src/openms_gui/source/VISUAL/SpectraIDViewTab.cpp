@@ -1036,7 +1036,7 @@ namespace OpenMS
       table_widget_->setAtBottomRow(first_precursor.getMZ(), Clmn::PRECURSOR_MZ, background_color, Qt::blue);
 
       // set activation method
-      table_widget_->setAtBottomRow(ListUtils::concatenate(first_precursor.getActivationMethodsAsString(), ",").toQString(), Clmn::DISSOCIATION, background_color);
+      table_widget_->setAtBottomRow(first_precursor.getActivationMethodAsString().toQString(), Clmn::DISSOCIATION, background_color);
 
       // set precursor intensity
       table_widget_->setAtBottomRow(first_precursor.getIntensity(), Clmn::PREC_INT, background_color);

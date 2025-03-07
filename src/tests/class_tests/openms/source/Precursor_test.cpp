@@ -76,7 +76,7 @@ START_SECTION((void setActivationMethod(ActivationMethod activation_method)))
   TEST_EQUAL(tmp.getActivationMethod(),Precursor::CID);
 END_SECTION
 
-START_SECTION((StringList getActivationMethodsAsString() const))
+START_SECTION((String getActivationMethodAsString() const))
   Precursor tmp;
 	tmp.setActivationMethod(Precursor::CID);
   String method = tmp.getActivationMethodAsString();
@@ -84,7 +84,7 @@ START_SECTION((StringList getActivationMethodsAsString() const))
 END_SECTION
 
 
-START_SECTION((StringList getActivationMethodsAsShortString() const))
+START_SECTION((String getActivationMethodAsShortString() const))
   Precursor tmp;
 	tmp.setActivationMethod(Precursor::CID);
   String method = tmp.getActivationMethodAsShortString();

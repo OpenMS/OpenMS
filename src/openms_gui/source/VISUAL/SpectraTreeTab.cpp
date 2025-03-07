@@ -276,7 +276,7 @@ namespace OpenMS
       {
         const Precursor& current_pc = current_precursors[0];
         precursor_mz = current_pc.getMZ();
-        item->setText(ClmnPeak::DISSOCIATION, ListUtils::concatenate(current_pc.getActivationMethodsAsString(), ",").toQString());
+        item->setText(ClmnPeak::DISSOCIATION, current_pc.getActivationMethodAsString().toQString());
       }
       item->setData(ClmnPeak::PRECURSOR_MZ, Qt::DisplayRole, precursor_mz);
     }
