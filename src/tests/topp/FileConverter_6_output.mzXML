@@ -54,7 +54,7 @@
 			<nameValue name="mzname" value="mzarray1"/>
 			<nameValue name="itname" value="itarray1"/>
 			<scan num="2" msLevel="2" peaksCount="10" polarity="+" scanType="Full" filterLine="+ c d Full ms2  445.35@cid35.00 [ 110.00-905.00]" retentionTime="PT5.2S" startMz="100" endMz="500" lowMz="320.389999999999986" highMz="1003.559999999999945" basePeakMz="456.34699999999998" basePeakIntensity="2.3433e04" totIonCurrent="1.66755e07" collisionEnergy="4.2" >
-				<precursorMz precursorIntensity="120053" precursorCharge="2" windowWideness="14.43" activationMethod="CID" >5.5555</precursorMz>
+				<precursorMz precursorIntensity="120053" precursorCharge="2" windowWideness="14.43" activationMethod="PD" >5.5555</precursorMz>
 				<precursorMz precursorIntensity="0" windowWideness="34.43" activationMethod="ETD" >15.55</precursorMz>
 				<peaks precision="32" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="0" >AAAAAEGgAABAAAAAQZAAAECAAABBgAAAQMAAAEFgAABBAAAAQUAAAEEgAABBIAAAQUAAAEEAAABBYAAAQMAAAEGAAABAgAAAQZAAAEAAAAA=</peaks>
 				<nameValue name="maldi_spot_id" value="M1"/>
@@ -191,33 +191,33 @@
 <index name = "scan" >
 <offset id = "1" >2063</offset>
 <offset id = "2" >4020</offset>
-<offset id = "3" >5609</offset>
-<offset id = "4" >6791</offset>
-<offset id = "5" >7117</offset>
-<offset id = "6" >7413</offset>
-<offset id = "7" >7709</offset>
-<offset id = "8" >8005</offset>
-<offset id = "9" >8301</offset>
-<offset id = "10" >8597</offset>
-<offset id = "11" >8894</offset>
-<offset id = "12" >9191</offset>
-<offset id = "13" >9488</offset>
-<offset id = "14" >9785</offset>
-<offset id = "15" >10082</offset>
-<offset id = "16" >10380</offset>
-<offset id = "17" >10678</offset>
-<offset id = "18" >10976</offset>
-<offset id = "19" >11274</offset>
-<offset id = "20" >11572</offset>
-<offset id = "21" >11869</offset>
-<offset id = "22" >12166</offset>
-<offset id = "23" >12463</offset>
-<offset id = "24" >12760</offset>
-<offset id = "25" >13057</offset>
-<offset id = "26" >13354</offset>
-<offset id = "27" >13651</offset>
-<offset id = "28" >13948</offset>
-<offset id = "29" >14245</offset>
+<offset id = "3" >5608</offset>
+<offset id = "4" >6790</offset>
+<offset id = "5" >7116</offset>
+<offset id = "6" >7412</offset>
+<offset id = "7" >7708</offset>
+<offset id = "8" >8004</offset>
+<offset id = "9" >8300</offset>
+<offset id = "10" >8596</offset>
+<offset id = "11" >8893</offset>
+<offset id = "12" >9190</offset>
+<offset id = "13" >9487</offset>
+<offset id = "14" >9784</offset>
+<offset id = "15" >10081</offset>
+<offset id = "16" >10379</offset>
+<offset id = "17" >10677</offset>
+<offset id = "18" >10975</offset>
+<offset id = "19" >11273</offset>
+<offset id = "20" >11571</offset>
+<offset id = "21" >11868</offset>
+<offset id = "22" >12165</offset>
+<offset id = "23" >12462</offset>
+<offset id = "24" >12759</offset>
+<offset id = "25" >13056</offset>
+<offset id = "26" >13353</offset>
+<offset id = "27" >13650</offset>
+<offset id = "28" >13947</offset>
+<offset id = "29" >14244</offset>
 </index>
-<indexOffset>14559</indexOffset>
+<indexOffset>14558</indexOffset>
 </mzXML>

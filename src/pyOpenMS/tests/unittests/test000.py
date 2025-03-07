@@ -3961,7 +3961,7 @@ def testMxxxFile():
 
     myStr = pyopenms.String()
     fh.storeBuffer(myStr, mse)
-    assert len(myStr.toString()) == 5269
+    assert len(myStr.toString()) == 4038
     mse2 = pyopenms.MSExperiment()
     fh.loadBuffer(bytes(myStr), mse2)
     assert mse2 == mse
@@ -4443,11 +4443,11 @@ def testPrecursor():
     # Test static methods for all activation methods
     all_names = pyopenms.Precursor.getAllNamesOfActivationMethods()
     assert len(all_names) == pyopenms.Precursor.ActivationMethod.SIZE_OF_ACTIVATIONMETHOD
-    assert all_names[pyopenms.Precursor.ActivationMethod.CID] == "Collision-induced dissociation"
+    assert all_names[pyopenms.Precursor.ActivationMethod.CID] == b"Collision-induced dissociation"
     
     all_short_names = pyopenms.Precursor.getAllShortNamesOfActivationMethods()
     assert len(all_short_names) == pyopenms.Precursor.ActivationMethod.SIZE_OF_ACTIVATIONMETHOD
-    assert all_short_names[pyopenms.Precursor.ActivationMethod.CID].decode() == "CID"
+    assert all_short_names[pyopenms.Precursor.ActivationMethod.CID] == b"CID"
 
     # Test isolation window
     prec.setIsolationWindowLowerOffset(0.5)

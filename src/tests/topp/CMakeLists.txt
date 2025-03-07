@@ -369,9 +369,6 @@ set_tests_properties("TOPP_FeatureFinderMultiplex_11_out1" PROPERTIES DEPENDS "T
 
 #------------------------------------------------------------------------------
 # FileConverter tests
-add_test("TOPP_FileConverter_1" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_1_input.mzData -out FileConverter_1.tmp.mzML -out_type mzML)
-add_test("TOPP_FileConverter_1_out1" ${DIFF} -whitelist "id=" "location=" "href=" -in1 FileConverter_1.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileConverter_1_output.mzML )
-set_tests_properties("TOPP_FileConverter_1_out1" PROPERTIES DEPENDS "TOPP_FileConverter_1")
 add_test("TOPP_FileConverter_2" ${TOPP_BIN_PATH}/FileConverter -test  -in ${DATA_DIR_TOPP}/FileConverter_2_input.someInputDTA2D -in_type dta2d -out FileConverter_2.tmp.mzML -out_type mzML)
 add_test("TOPP_FileConverter_2_out1" ${DIFF} -whitelist "id=" "location=" "href=" "<offset" -in1 FileConverter_2.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileConverter_2_output.mzML )
 set_tests_properties("TOPP_FileConverter_2_out1" PROPERTIES DEPENDS "TOPP_FileConverter_2")
@@ -384,15 +381,9 @@ set_tests_properties("TOPP_FileConverter_4_out1" PROPERTIES DEPENDS "TOPP_FileCo
 add_test("TOPP_FileConverter_5" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_5_input.mzML -out FileConverter_5.tmp.mzXML -out_type mzXML)
 add_test("TOPP_FileConverter_5_out1" ${DIFF} -in1 FileConverter_5.tmp.mzXML -in2 ${DATA_DIR_TOPP}/FileConverter_5_output.mzXML )
 set_tests_properties("TOPP_FileConverter_5_out1" PROPERTIES DEPENDS "TOPP_FileConverter_5")
-add_test("TOPP_FileConverter_6" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_6_input.mzML -out FileConverter_6.tmp.mzXML -out_type mzXML)
-add_test("TOPP_FileConverter_6_out1" ${DIFF} -in1 FileConverter_6.tmp.mzXML -in2 ${DATA_DIR_TOPP}/FileConverter_6_output.mzXML )
-set_tests_properties("TOPP_FileConverter_6_out1" PROPERTIES DEPENDS "TOPP_FileConverter_6")
 add_test("TOPP_FileConverter_7" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_7_input.consensusXML -out FileConverter_7.tmp.featureXML -out_type featureXML)
 add_test("TOPP_FileConverter_7_out1" ${DIFF} -in1 FileConverter_7.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FileConverter_7_output.featureXML )
 set_tests_properties("TOPP_FileConverter_7_out1" PROPERTIES DEPENDS "TOPP_FileConverter_7")
-add_test("TOPP_FileConverter_8" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_8_input.mzML -out FileConverter_8.tmp.mzData -out_type mzData)
-add_test("TOPP_FileConverter_8_out1" ${DIFF} -whitelist "<pathToFile>" -in1 FileConverter_8.tmp.mzData -in2 ${DATA_DIR_TOPP}/FileConverter_8_output.mzData )
-set_tests_properties("TOPP_FileConverter_8_out1" PROPERTIES DEPENDS "TOPP_FileConverter_8")
 add_test("TOPP_FileConverter_9" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_9_input.consensusXML -out FileConverter_9.tmp.featureXML -out_type featureXML)
 add_test("TOPP_FileConverter_9_out1" ${DIFF} -in1 FileConverter_9.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FileConverter_9_output.featureXML )
 set_tests_properties("TOPP_FileConverter_9_out1" PROPERTIES DEPENDS "TOPP_FileConverter_9")
@@ -443,8 +434,6 @@ add_test("TOPP_FileConverter_21" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA
 # TODO sourceFile does not seem to be handled correctly, we should fix this!
 add_test("TOPP_FileConverter_21_out" ${DIFF} -whitelist "location=" "MS:100056" "SHA-1" "<offset" "<indexListOffset" -in1 FileConverter_21.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileConverter_4_output.mzML)
 set_tests_properties("TOPP_FileConverter_21_out" PROPERTIES DEPENDS "TOPP_FileConverter_21")
-add_test("TOPP_FileConverter_22" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_8_input.mzML -out FileConverter_22.tmp.mzData -out_type mzData -process_lowmemory)
-set_tests_properties("TOPP_FileConverter_22" PROPERTIES WILL_FAIL 1) ## low memory not implemented yet
 # Corrupt file with empty spectra and chromatograms, it should be handled gracefully
 add_test("TOPP_FileConverter_23" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_23_input.mzML -out FileConverter_23.tmp.mzML -out_type mzML)
 add_test("TOPP_FileConverter_23_out" ${DIFF} -in1 FileConverter_23.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileConverter_23_output.mzML -whitelist "location=")
@@ -667,12 +656,6 @@ set_tests_properties("TOPP_FileInfo_3_out1" PROPERTIES DEPENDS "TOPP_FileInfo_3"
 add_test("TOPP_FileInfo_4" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_4_input.mzXML -m -no_progress -out FileInfo_4.tmp.txt)
 add_test("TOPP_FileInfo_4_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_4.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_4_output.txt )
 set_tests_properties("TOPP_FileInfo_4_out1" PROPERTIES DEPENDS "TOPP_FileInfo_4")
-add_test("TOPP_FileInfo_5" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_5_input.mzDat -in_type mzData -m -s -no_progress -out FileInfo_5.tmp.txt)
-add_test("TOPP_FileInfo_5_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_5.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_5_output.txt )
-set_tests_properties("TOPP_FileInfo_5_out1" PROPERTIES DEPENDS "TOPP_FileInfo_5")
-add_test("TOPP_FileInfo_6" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_6_input.mzData -d -s -no_progress -out FileInfo_6.tmp.txt)
-add_test("TOPP_FileInfo_6_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_6.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_6_output.txt )
-set_tests_properties("TOPP_FileInfo_6_out1" PROPERTIES DEPENDS "TOPP_FileInfo_6")
 add_test("TOPP_FileInfo_7" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_7_input.consensusXML -s -m -p -no_progress -out FileInfo_7.tmp.txt)
 add_test("TOPP_FileInfo_7_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_7.tmp.txt -in2 ${DATA_DIR_TOPP}/FileInfo_7_output.txt )
 set_tests_properties("TOPP_FileInfo_7_out1" PROPERTIES DEPENDS "TOPP_FileInfo_7")

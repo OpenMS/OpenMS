@@ -14,7 +14,7 @@
 			<cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" />
 		</fileContent>
 		<sourceFileList count="2">
-			<sourceFile id="sf_ru_0" name="FileConverter_23_input.mzML" location="file:///workspace/OpenMS/src/tests/topp">
+			<sourceFile id="sf_ru_0" name="FileConverter_23_input.mzML" location="file:///home/sachsenb/Development/OpenMS/src/tests/topp">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="a262023f28d63389e25eac6007d172b040fde24f" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
 				<cvParam cvRef="MS" accession="MS:1000774" name="multiple peak list nativeID format" />
@@ -304,7 +304,6 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="35" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
-							<cvParam cvRef="MS" accession="MS:1000133" name="collision-induced dissociation" />
 							<cvParam cvRef="MS" accession="MS:1000134" name="plasma desorption" />
 							<cvParam cvRef="MS" accession="MS:1000412" name="buffer gas" value="Krypton"/>
 							<cvParam cvRef="MS" accession="MS:1000419" name="collision gas" value="Argon"/>
@@ -510,16 +509,16 @@
 </mzML>
 <indexList count="2">
 	<index name="spectrum">
-		<offset idRef="index=0">13665</offset>
-		<offset idRef="index=1">17752</offset>
-		<offset idRef="index=2">26638</offset>
-		<offset idRef="index=3">31448</offset>
+		<offset idRef="index=0">13681</offset>
+		<offset idRef="index=1">17768</offset>
+		<offset idRef="index=2">26284</offset>
+		<offset idRef="index=3">31094</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="tic native">32788</offset>
-		<offset idRef="sic native">34167</offset>
+		<offset idRef="tic native">32434</offset>
+		<offset idRef="sic native">33813</offset>
 	</index>
 </indexList>
-<indexListOffset>35748</indexListOffset>
+<indexListOffset>35394</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

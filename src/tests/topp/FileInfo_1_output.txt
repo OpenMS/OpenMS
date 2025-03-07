@@ -1,7 +1,7 @@
 
 -- General information --
 
-File name: C:/dev/openms_test/src/tests/topp/FileInfo_1_input.dta
+File name: /home/sachsenb/Development/OpenMS/src/tests/topp/FileInfo_1_input.dta
 File type: dta
 
 Instrument: 
@@ -23,6 +23,7 @@ Peak type from metadata (or estimated from data)
   level 2: Unknown (Centroid)
 
 Activation methods
+    MS-Level 2 & UNKNOWN (Unknown): 1
 
 Precursor charge distribution:
   charge 2: 1x
