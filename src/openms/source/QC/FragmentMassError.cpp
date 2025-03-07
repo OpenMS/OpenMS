@@ -98,7 +98,11 @@ namespace OpenMS
         print_warning = false; // only print it once
         act_method = Precursor::ActivationMethod::CID;
       }
-      act_method = exp_spectrum.getPrecursors()[0].getActivationMethod();
+      else
+      {
+        act_method = exp_spectrum.getPrecursors()[0].getActivationMethod();
+      }
+      
     }
 
     //---------------------------------------------------------------------
