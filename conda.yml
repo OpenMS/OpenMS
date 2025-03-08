@@ -1,0 +1,27 @@
+name: pyopenms-env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.9
+  - numpy
+  - pandas
+  - scipy
+  - matplotlib
+  - lxml
+  - pyyaml
+  - cython
+  - pybind11
+  - swig
+  - cmake
+  - boost
+  - eigen
+  - bzip2
+  - zlib
+  - libxml2
+  - libxslt
+  - qtpy
+  - pyqt6
+  - openms
+  - pyopenms
