@@ -240,7 +240,8 @@ tuple<double, double, double> SimpleSVM::Impl::chooseBestParameters_(bool higher
     neighbor_value /= n_neighbors; // avg. performance of neighbors
     tiebreaker.insert(make_pair(make_pair(neighbor_value, n_neighbors), i));
   }
-  const auto& indexes = best_indexes[tiebreaker.rbegin()->second]; // TODO: use begin if higher_better == false
+  // Use rbegin() for higher values (when higher_better is true) and begin() for lower values
+  const auto& indexes = best_indexes[higher_better ? tiebreaker.rbegin()->second : tiebreaker.begin()->second];
 
   return make_tuple(log2_C_[std::get<1>(indexes)],
       log2_gamma_[std::get<0>(indexes)], 
