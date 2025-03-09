@@ -17,6 +17,9 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 General:
 - OpenMS now expects a compiler that supports C++20
 - OpenMSInfo now informs about custom CXX compile flags (#7846)
+
+Dependencies:
+- Switch to Qt 6 (>= 6.5)
  
 OpenSwath:
 - Changes to -out_features (# 7793)
