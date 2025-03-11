@@ -222,19 +222,51 @@ namespace OpenMS
     return (infile_.peek() == std::streambuf::traits_type::eof());
   }
 
-  void FASTAFile::load(const String &filename, vector<FASTAEntry> &data) const
-  {
-    startProgress(0, 1, "Loading FASTA file");
+  void FASTAFile::load(const String& filename, std::vector<FASTAEntry>& data)
+ {
     data.clear();
-    FASTAEntry p;
-    FASTAFile f;
-    f.readStart(filename);
-    while (f.readNext(p))
+    TextFile file(filename, true); // Trim lines automatically
+    
+    // Skip initial empty lines
+    String line;
+    while (file.readLine(line) && line.empty())
     {
-      data.push_back(std::move(p));
+        // Continue until a non-empty line is found
     }
-    endProgress();
-  }
+    
+    // Process the first non-empty line
+    if (!file.eof() && !line.empty())
+    {
+        if (line[0] != '>')
+        {
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "First non-empty line must start with '>'");
+        }
+        FASTAEntry entry;
+        entry.identifier = line.substr(1);
+        
+        // Continue parsing the rest of the file
+        while (file.readLine(line))
+        {
+            if (line.empty()) continue; // Skip mid-file empty lines
+            if (line[0] == '>')
+            {
+                data.push_back(entry);
+                entry = FASTAEntry();
+                entry.identifier = line.substr(1);
+            }
+            else
+            {
+                entry.sequence += line;
+            }
+        }
+        if (!entry.sequence.empty()) data.push_back(entry);
+    }
+    
+    if (data.empty())
+    {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "No valid FASTA entries found!");
+    }
+}
 
   void FASTAFile::writeStart(const String &filename)
   {
