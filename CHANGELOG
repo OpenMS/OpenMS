@@ -17,6 +17,9 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 General:
 - OpenMS now expects a compiler that supports C++20
 - OpenMSInfo now informs about custom CXX compile flags (#7846)
+
+Dependencies:
+- Switch to Qt 6 (>= 6.5)
  
 OpenSwath:
 - Changes to -out_features (# 7793)
@@ -27,6 +30,7 @@ OpenSwath:
 - Add auto add up spectra across the peak width in retention time for ion mobility extraction (#7742)
 - Add peak-picking for extracted ion mobilogram (#7759)
 - Add ion mobility scoring for identifying transitions for IPF (#7760)
+- Bug fix, pass `im_range` to `scoreIdentification_` instead of computing it in the function. Addresses issue #7883. (PR #7885)
 
 Misc:
 - pyOpenMS: improve developer experience (installation/compilation) (#7735)
