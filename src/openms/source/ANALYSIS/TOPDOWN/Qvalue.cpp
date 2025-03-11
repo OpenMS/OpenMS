@@ -99,7 +99,7 @@ namespace OpenMS
         }
       }
 
-      Size num_bin = 5;//std::min(Size(5), 1 + dscore_noise.size()/100);
+      Size num_bin = 10;//std::min(Size(5), 1 + dscore_noise.size()/100);
       auto qscore_vec = getDistVector(qscores, num_bin, min_score_for_weight_calculation, max_score_for_weight_calculation);
       auto qscore_noise_vec = getDistVector(dscore_noise, num_bin, min_score_for_weight_calculation, max_score_for_weight_calculation);
       auto qscore_signal_vec = getDistVector(dscore_signal, num_bin, min_score_for_weight_calculation, max_score_for_weight_calculation);
@@ -125,7 +125,6 @@ namespace OpenMS
 
       if (std::isnan(noise_weight)) noise_weight = 1.0;
       noise_weight = std::max(noise_weight, 0.01);
-      //std::cout<< "noise weight " << noise_weight << std::endl;
       std::sort(qscores.rbegin(), qscores.rend());
       std::sort(dscore_signal.rbegin(), dscore_signal.rend());
       std::sort(dscore_noise.rbegin(), dscore_noise.rend());

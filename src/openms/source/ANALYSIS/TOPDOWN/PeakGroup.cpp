@@ -147,7 +147,7 @@ int PeakGroup::updateQscore(const std::vector<LogMzPeak>& noisy_peaks,
   isotope_cosine_score_ = SpectralDeconvolution::getIsotopeCosineAndIsoOffset(
     monoisotopic_mass_, per_isotope_int_, h_offset, avg,
     -min_negative_isotope_index_, // change if to select cosine calculation and if to get second best hits
-    window_width, allowed_iso_error, is_last ? PeakGroup::target : target_decoy_type_);
+    window_width, allowed_iso_error);
   if (h_offset != 0) return h_offset;
 
   if (isotope_cosine_score_ < min_cos) { return 0; }
@@ -167,7 +167,7 @@ int PeakGroup::updateQscore(const std::vector<LogMzPeak>& noisy_peaks,
 float PeakGroup::getNoisePeakPower_(const std::vector<FLASHHelperClasses::LogMzPeak>& noisy_peaks, const int z, const double tol) const
 {
   if (noisy_peaks.empty()) return 0;
-  const Size max_noisy_peak_number = z == 0? 200:40; // too many noise peaks will slow down the process
+  const Size max_noisy_peak_number = z == 0? std::min(200, 40 * (max_abs_charge_ - min_abs_charge_ + 1)) :40; // too many noise peaks will slow down the process
   const Size bin_number_margin = 8;
   const Size max_bin_number = bin_number_margin + 12; // 12 bin + 8 extra bin
   float threshold = -1;
@@ -175,7 +175,7 @@ float PeakGroup::getNoisePeakPower_(const std::vector<FLASHHelperClasses::LogMzP
   all_peaks.reserve(max_noisy_peak_number + logMzpeaks_.size());
 
   int noise_peak_count = std::count_if(noisy_peaks.begin(), noisy_peaks.end(), [&](const auto& noisy_peak) {
-    return noisy_peak.abs_charge == z;
+    return z == 0 || noisy_peak.abs_charge == z;
   });
 
   if (noise_peak_count == 0) return 0;
@@ -194,7 +194,6 @@ float PeakGroup::getNoisePeakPower_(const std::vector<FLASHHelperClasses::LogMzP
     std::sort(intensities.rbegin(), intensities.rend());
     threshold = intensities[max_noisy_peak_number];
   }
-
 
   // filter peaks and check which mzs are signal and which are noise.
   for (const auto& noisy_peak : noisy_peaks)
@@ -441,8 +440,8 @@ void PeakGroup::updatePerChargeInformation_(const std::vector<LogMzPeak>& noisy_
     for (const auto& p : noisy_peaks)
     {
       float pwr = p.intensity * p.intensity;
-      per_charge_noise_pwr_[0] += pwr;
       if (p.abs_charge < min_abs_charge_ || p.abs_charge > max_abs_charge_) continue;
+      per_charge_noise_pwr_[0] += pwr;
       per_charge_noise_pwr_[p.abs_charge] += pwr;
     }
   }
@@ -907,16 +906,16 @@ bool PeakGroup::isTargeted() const
 void PeakGroup::updateSNR_(float mul_factor)
 {
   per_charge_snr_ = std::vector<float>(1 + max_abs_charge_, .0);
-  float total_nom = 1e-6;
-  float total_denom = 1e-6;
+  float total_nom = 0;
+  float total_denom = 0;
   for (size_t c = min_abs_charge_; (int)c < 1 + max_abs_charge_; ++c)
   {
     if (per_charge_cos_.size() > c)
     {
       float per_charge_cos_squared = per_charge_cos_[c] * per_charge_cos_[c];
       float sig_pwr = per_charge_sum_signal_squared_[c] * per_charge_cos_squared;
-      float nom = 1e-6f + mul_factor * sig_pwr;
-      float denom = 1e-6f + per_charge_noise_pwr_[c] + (1 - per_charge_cos_squared) * per_charge_sum_signal_squared_[c];
+      float nom = 1e-6f * mul_factor + mul_factor * sig_pwr;
+      float denom = 1e-6f * mul_factor + per_charge_noise_pwr_[c] + (1 - per_charge_cos_squared) * per_charge_sum_signal_squared_[c];
 
       per_charge_snr_[c] = denom <= 0 ? .0f : (nom / denom);
 
@@ -925,7 +924,7 @@ void PeakGroup::updateSNR_(float mul_factor)
     }
   }
 
-  snr_ = mul_factor * total_nom * total_nom / (total_denom + per_charge_noise_pwr_[0]);
+  snr_ = mul_factor * (1e-6f + total_nom * total_nom) / (1e-6f * mul_factor + total_denom + per_charge_noise_pwr_[0]);
 
   per_charge_sum_signal_squared_.clear();
   per_charge_noise_pwr_.clear();

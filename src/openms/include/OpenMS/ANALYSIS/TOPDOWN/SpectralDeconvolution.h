@@ -116,8 +116,7 @@ namespace OpenMS
         @return calculated cosine similarity score
      */
     static float getIsotopeCosineAndIsoOffset(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg, int iso_int_shift = 0,
-                                                          int window_width = -1, int allowed_isotope_error = 0,
-                                                          PeakGroup::TargetDecoyType target_decoy_type = PeakGroup::TargetDecoyType::target);
+                                                          int window_width = -1, int allowed_isotope_error = -1);
 
     /**
      *  set target dummy type for the SpectralDeconvolution run. All masses from the target SpectralDeconvolution run will have the target_decoy_type_.
@@ -136,7 +135,7 @@ namespace OpenMS
     /// FLASHDeconv parameters
 
     /// allowed isotope error in deconvolved mass to calculate qvalue
-    int allowed_iso_error_ = 1;
+    int allowed_iso_error_ = -1;
 
     /// min charge and max charge subject to analysis, set by users
     int min_abs_charge_, max_abs_charge_;
@@ -160,8 +159,12 @@ namespace OpenMS
     DoubleList bin_mul_factors_;
     /// Isotope cosine threshold for each MS level
     DoubleList min_isotope_cosine_;
-    /// SNR threshold for each MS level
-    DoubleList min_snr_;
+    /// Qscore threshold for each MS level
+    DoubleList min_qscore_, min_snr_;
+
+    /// snr threshold
+    //double min_snr_ = .1;
+    //double min_charge_snr_ = .1;
 
     /// the peak group vector from normal run. This is used when dummy masses are generated.
     const DeconvolvedSpectrum* target_dspec_for_decoy_calculation_;
@@ -183,6 +186,7 @@ namespace OpenMS
     boost::dynamic_bitset<> excluded_log_mz_bins_for_decoy_runs_;
     std::vector<double> excluded_peak_masses_for_decoy_runs_;
     std::vector<double> excluded_masses_for_decoy_runs_;
+    std::set<double> signal_mzs_;
 
     /// Stores log mz peaks
     std::vector<LogMzPeak> log_mz_peaks_;
@@ -293,5 +297,6 @@ namespace OpenMS
 
     void setTargetPrecursorCharge_();
 
+    bool isPeakGroupInExcludedMassForDecoyRuns_(const PeakGroup& peak_group, double tol, int offset = 0) const;
   };
 } // namespace OpenMS

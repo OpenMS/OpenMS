@@ -94,7 +94,7 @@ namespace OpenMS
       {
         ss << pg.getTargetDecoyType() << "\t";
       }
-      ss << std::to_string(dspec.getOriginalSpectrum().getRT()) << "\t" << dspec.size() << "\t" << std::to_string(avg_mass) << "\t" << std::to_string(mono_mass) << "\t" << intensity << "\t"
+      ss << std::to_string(dspec.getOriginalSpectrum().getRT()/60.0) << "\t" << dspec.size() << "\t" << std::to_string(avg_mass) << "\t" << std::to_string(mono_mass) << "\t" << intensity << "\t"
          << min_charge << "\t" << max_charge << "\t" << pg.size() << "\t";
 
       if (write_detail)

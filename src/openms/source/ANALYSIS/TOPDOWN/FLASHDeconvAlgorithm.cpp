@@ -337,6 +337,7 @@ namespace OpenMS
           double qscore_low_threshold_for_decoy = deconvolved_spectrum.back().getQscore2D();
           double qscore_high_threshold_for_decoy = deconvolved_spectrum[0].getQscore2D();
           //decoy_deconvolved_spectrum.setOriginalSpectrum(spec);
+
           deconvolved_spectrum.reserve(deconvolved_spectrum.size() + sd_signal_decoy_.getDeconvolvedSpectrum().size()
                                              + sd_noise_decoy_.getDeconvolvedSpectrum().size());
 
@@ -354,7 +355,6 @@ namespace OpenMS
 
           deconvolved_spectrum.sort();
         }
-
         deconvolved_spectra.push_back(deconvolved_spectrum);
       }
       std::sort(deconvolved_spectra.begin(), deconvolved_spectra.end());

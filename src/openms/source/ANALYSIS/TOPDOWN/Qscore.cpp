@@ -26,11 +26,13 @@ namespace OpenMS
   std::vector<double> Qscore::weight_CV_60_ {-29.2526, -3.0124, -0.1005, -0.619, 26.9777};
 
   //====================================== Normal
-  std::vector<double> Qscore::weight_centroid_ { -28.0219, -0.1854, -0.1084, 0.0312, 25.2087};//;{-34.5625, -0.5184, -0.0291, -0.1775, 31.8576}; // apr23 all Att0                       28.0219
-  //Att1                        0.1854
-  //  Att2                        0.1084
-  //  Att3                       -0.0312
-  //  Intercept                 -25.2087
+  std::vector<double> Qscore::weight_centroid_ { -16.8657, -0.0718, -0.2958, -0.0891, 1.0803, 15.7806};//;{-34.5625, -0.5184, -0.0291, -0.1775, 31.8576}; // apr23 all Att0                       28.0219
+  // Att0               16.8657
+  // Att1                0.0718
+  // Att2                0.2958
+  // Att3                0.0891
+  // Att4               -1.0803
+  // Intercept         -15.7806
   std::vector<double> Qscore::weight_profile_ (weight_centroid_);// {-10.3777, 0.5173, -0.0154, 0.4278, 9.4117}; // yeast
 
   double Qscore::getQscore(const PeakGroup* pg, const MSSpectrum& spectrum)
@@ -98,17 +100,19 @@ namespace OpenMS
 
   std::vector<double> Qscore::toFeatureVector_(const PeakGroup* pg)
   {
-    std::vector<double> fvector(4, .0); // length of weights vector - 1, excluding the intercept weight.
+    std::vector<double> fvector(5, .0); // length of weights vector - 1, excluding the intercept weight.
     if (pg->empty())
       return fvector;
     int index = 0;
     fvector[index++] = pg->getIsotopeCosine(); // (log2(a + d));
 
-    fvector[index++] = pg->getIsotopeCosine() - pg->getChargeIsotopeCosine(pg->getRepAbsCharge()); // (log2(d + a / (d + a)));
+    fvector[index++] = pg->getChargeIsotopeCosine(pg->getRepAbsCharge()); // (log2(d + a / (d + a)));
 
-    fvector[index++] = log2(1 + pg->getChargeSNR(pg->getRepAbsCharge())); //(log2(d + a / (d + a)));
+    fvector[index++] = log2(1 + std::min(300.0f, pg->getChargeSNR(pg->getRepAbsCharge()))); //(log2(d + a / (d + a)));
 
-    fvector[index++] = log2(1 + pg->getChargeSNR(pg->getRepAbsCharge())) - log2(1 + pg->getSNR()); //(log2(a + d));
+    fvector[index++] = log2(1 + std::min(300.0f, pg->getSNR())); //(log2(a + d));
+
+    fvector[index++] = pg->getAvgPPMError() / 10.0;
 
     return fvector;
   }

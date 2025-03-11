@@ -65,7 +65,7 @@ namespace OpenMS
       }
 
       ss << "\t" << std::to_string(mass) << "\t" << std::to_string(avg_mass) << "\t" // massdiff
-         << mt.getSize() << "\t" << mt.begin()->getRT() << "\t" << mt.rbegin()->getRT() << "\t" << mt.getTraceLength() << "\t" << mt[mt.findMaxByIntPeak()].getRT() << "\t" << sum_intensity << "\t"
+         << mt.getSize() << "\t" << mt.begin()->getRT()/60.0 << "\t" << mt.rbegin()->getRT()/60.0 << "\t" << mt.getTraceLength() << "\t" << mt[mt.findMaxByIntPeak()].getRT()/60.0 << "\t" << sum_intensity << "\t"
          << mt.getMaxIntensity(false) << "\t" << mt.computePeakArea() << "\t" << mass_feature.min_charge << "\t" << mass_feature.max_charge << "\t" << mass_feature.charge_count << "\t"
          << mass_feature.isotope_score << "\t" << std::setprecision (15) << (mass_feature.qscore) << std::setprecision (-1) << "\t";
 
@@ -121,9 +121,9 @@ namespace OpenMS
         }
 
         const auto& apex = mass_feature.mt[mass_feature.mt.findMaxByIntPeak()];
-        ss << file_name << "\t0\t" << mass_feature.index << "\t" << std::to_string(mass_feature.mt.getCentroidMZ()) << "\t" << std::to_string(sum_intensity) << "\t" << std::to_string(mass_feature.mt.begin()->getRT())
-           << "\t" << std::to_string(mass_feature.mt.rbegin()->getRT()) << "\t" << mass_feature.min_scan_number << "\t" << mass_feature.max_scan_number << "\t"
-           << mass_feature.min_charge << "\t" << mass_feature.max_charge << "\t" << std::to_string(apex.getRT()) << "\t" << mass_feature.scan_number << "\t"
+        ss << file_name << "\t0\t" << mass_feature.index << "\t" << std::to_string(mass_feature.mt.getCentroidMZ()) << "\t" << std::to_string(sum_intensity) << "\t" << std::to_string(mass_feature.mt.begin()->getRT()/60.0)
+           << "\t" << std::to_string(mass_feature.mt.rbegin()->getRT()/60.0) << "\t" << mass_feature.min_scan_number << "\t" << mass_feature.max_scan_number << "\t"
+           << mass_feature.min_charge << "\t" << mass_feature.max_charge << "\t" << std::to_string(apex.getRT()/60.0) << "\t" << mass_feature.scan_number << "\t"
            << std::to_string(apex.getIntensity()) << "\t" << mass_feature.rep_charge << "\t" << mass_feature.rep_mz << "\t0\t0\n";
 
         max_feature_index = std::max(max_feature_index, mass_feature.index);
@@ -134,7 +134,7 @@ namespace OpenMS
         if (dspec.getPrecursorPeakGroup().getFeatureIndex() != 0) continue;
         auto pg = dspec.getPrecursorPeakGroup();
 
-        double rt = scan_rt_map.at(pg.getScanNumber());
+        double rt = scan_rt_map.at(pg.getScanNumber())/60.0;
         const auto& [z, Z] = pg.getAbsChargeRange();
         pg.setFeatureIndex(++max_feature_index);
         dspec.setPrecursorPeakGroup(pg);
@@ -176,13 +176,13 @@ namespace OpenMS
           {
             sum_intensity += m.getIntensity();
           }
-          ss << std::to_string(sum_intensity) << "\t0\t" << std::to_string(mass_feature.mt.begin()->getRT())
-             << "\t" << std::to_string(mass_feature.mt.rbegin()->getRT()) << "\t" << std::to_string(apex.getRT()) << "\t" << std::to_string(mass_feature.mt.getCentroidMZ())
+          ss << std::to_string(sum_intensity) << "\t0\t" << std::to_string(mass_feature.mt.begin()->getRT()/60.0)
+             << "\t" << std::to_string(mass_feature.mt.rbegin()->getRT()/60.0) << "\t" << std::to_string(apex.getRT()/60.0) << "\t" << std::to_string(mass_feature.mt.getCentroidMZ())
              << "\t" << std::to_string(mass_feature.rep_mz) << "\t" << mass_feature.rep_charge << "\t" << std::to_string(dspec.getPrecursor().getIntensity()) << "\n";
         }
         else
         {
-          double rt = scan_rt_map.at(pg.getScanNumber());
+          double rt = scan_rt_map.at(pg.getScanNumber()) / 60.0;
           double rep_mz = 0;
           double p_int = 0;
 
