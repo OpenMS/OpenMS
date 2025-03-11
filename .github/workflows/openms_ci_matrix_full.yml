@@ -332,7 +332,9 @@ jobs:
           # For MacOS 14 we also want to copy over any tools that we only have in x86_64 flavor. cp -n avoids overwriting the arm specific executables that we've already copied above
           if [[ "${{ matrix.os }}" == macos-14 ]]; then
             echo "Copying x86_64 tools for MacOS 14"
-            cp -Rn OpenMS/THIRDPARTY/${{ steps.set-vars.outputs.tp_folder }}/x86_64/* _thirdparty/
+            cp -R OpenMS/THIRDPARTY/MacOS/x86_64/MaRaCluster/* _thirdparty/
+            cp -R OpenMS/THIRDPARTY/MacOS/x86_64/SpectraST/* _thirdparty/
+            cp -R OpenMS/THIRDPARTY/MacOS/x86_64/XTandem/* _thirdparty/
           fi
           cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
           # add third-party binaries to PATH
