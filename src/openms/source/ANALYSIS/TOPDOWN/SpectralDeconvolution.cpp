@@ -1043,7 +1043,7 @@ void SpectralDeconvolution::scoreAndFilterPeakGroups_()
 
     if (target_decoy_type_ == PeakGroup::signal_decoy)
     {
-      peak_group.setQscore(std::min(peak_group.getQscore() + .01, target_max_qscore));
+      peak_group.setQscore(std::min(peak_group.getQscore() + .005, target_max_qscore));
     }
 
     if (! mass_determined || peak_group.empty() || peak_group.getQscore() <= 0 || peak_group.getMonoMass() < current_min_mass_
