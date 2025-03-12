@@ -148,6 +148,11 @@ namespace OpenMS
     Internal::MzMLHandler handler(map, filename, getVersion(), *this);
     handler.setOptions(options_);
     safeParse_(filename, &handler);
+
+    if (options_.getSkipChromatograms())
+    {
+      map.getChromatograms().clear();
+    }
   }
 
   void MzMLFile::store(const String& filename, const PeakMap& map) const

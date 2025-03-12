@@ -312,4 +312,14 @@ namespace OpenMS
     return (has_rt_range_ || hasMSLevels());
   }
 
+  void PeakFileOptions::setSkipChromatograms(bool skip)
+  {
+    skip_chromatograms_ = skip;
+  }
+
+  bool PeakFileOptions::getSkipChromatograms() const
+  {
+    return skip_chromatograms_;
+  }
+
 } // namespace OpenMS

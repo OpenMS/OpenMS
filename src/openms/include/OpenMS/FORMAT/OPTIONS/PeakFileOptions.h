@@ -206,6 +206,9 @@ public:
     /// do these options skip spectra or chromatograms due to RT or MSLevel filters?
     bool hasFilters() const;
 
+    void setSkipChromatograms(bool skip);
+    bool getSkipChromatograms() const;
+
 private:
     bool metadata_only_;
     bool force_maxquant_compatibility_; ///< for mzXML-writing only: set a fixed vendor (Thermo Scientific), mass analyzer (FTMS)
@@ -232,6 +235,7 @@ private:
     MSNumpressCoder::NumpressConfig np_config_fda_;
     Size maximal_data_pool_size_;
     bool precursor_mz_selected_ion_;
+    bool skip_chromatograms_;
   };
 
 } // namespace OpenMS
