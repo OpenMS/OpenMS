@@ -159,10 +159,10 @@ namespace OpenMS
     DoubleList bin_mul_factors_;
     /// Isotope cosine threshold for each MS level
     DoubleList min_isotope_cosine_;
-    /// Qscore threshold for each MS level
-    DoubleList min_qscore_, min_snr_;
+    /// snr threshold for each MS level
+    DoubleList min_snr_;
+    double min_qscore_ = .2;
 
-    /// snr threshold
     //double min_snr_ = .1;
     //double min_charge_snr_ = .1;
 
@@ -183,7 +183,7 @@ namespace OpenMS
     std::vector<double> excluded_masses_;
 
     /// mass bins that are previously deconvolved and excluded for decoy mass generation
-    boost::dynamic_bitset<> excluded_log_mz_bins_for_decoy_runs_;
+    boost::dynamic_bitset<> excluded_mass_bins_for_decoy_runs_;
     std::vector<double> excluded_peak_masses_for_decoy_runs_;
     std::vector<double> excluded_masses_for_decoy_runs_;
     std::set<double> signal_mzs_;

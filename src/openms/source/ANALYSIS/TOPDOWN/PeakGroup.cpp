@@ -121,11 +121,11 @@ void PeakGroup::updatePerChargeCos_(const FLASHHelperClasses::PrecalculatedAvera
 int PeakGroup::updateQscore(const std::vector<LogMzPeak>& noisy_peaks,
                             const MSSpectrum& spec,
                             const FLASHHelperClasses::PrecalculatedAveragine& avg,
-                            double min_cos,
-                            double tol,
-                            bool is_low_charge,
-                            int allowed_iso_error,
-                            bool is_last)
+                            const double min_cos,
+                            const double tol,
+                            const bool is_low_charge,
+                            const int allowed_iso_error,
+                            const bool is_last)
 {
   qscore_ = 0;
 
@@ -143,7 +143,7 @@ int PeakGroup::updateQscore(const std::vector<LogMzPeak>& noisy_peaks,
   int window_width = is_last ? 0 : -1;
   // auto target_decoy_type = is_last && target_decoy_type_ == PeakGroup::TargetDecoyType::signal_decoy ? PeakGroup::TargetDecoyType::target :
   // target_decoy_type_;
-  allowed_iso_error = is_last ? -1 : allowed_iso_error;
+  //allowed_iso_error = is_last ? -1 : allowed_iso_error;
   isotope_cosine_score_ = SpectralDeconvolution::getIsotopeCosineAndIsoOffset(
     monoisotopic_mass_, per_isotope_int_, h_offset, avg,
     -min_negative_isotope_index_, // change if to select cosine calculation and if to get second best hits

@@ -124,7 +124,7 @@ void SpectralDeconvolution::performSpectrumDeconvolution(const MSSpectrum& spec,
                        : Constants::ISOTOPE_MASSDIFF_55K_U;
 
   excluded_peak_masses_for_decoy_runs_.clear();
-  excluded_log_mz_bins_for_decoy_runs_.reset();
+  excluded_mass_bins_for_decoy_runs_.reset();
   excluded_masses_for_decoy_runs_.clear();
 
   if (target_decoy_type_ == PeakGroup::signal_decoy) // charge decoy
@@ -392,7 +392,7 @@ void SpectralDeconvolution::updateCandidateMassBins_(std::vector<float>& mass_in
       if (mass_bin_index < 0) { continue; }
       if (mass_bin_index >= bin_end) { break; }
 
-      if (! excluded_log_mz_bins_for_decoy_runs_.empty() && excluded_log_mz_bins_for_decoy_runs_[mass_bin_index]) { continue; }
+      if (! excluded_mass_bins_for_decoy_runs_.empty() && excluded_mass_bins_for_decoy_runs_[mass_bin_index]) { continue; }
 
       auto& spc = support_peak_count[mass_bin_index];
       const int abs_charge = (j + 1);
@@ -755,6 +755,7 @@ void SpectralDeconvolution::getCandidatePeakGroups_(const Matrix<int>& per_mass_
       {
         continue;
       }
+
       // now we have a matching peak for this mass of charge  abs_charge. From here, isotope peaks are collected
       const double mz = log_mz_peaks_[max_peak_index].mz; // charged mz
       const double iso_delta = iso_da_distance_ / (double)abs_charge;
@@ -773,7 +774,7 @@ void SpectralDeconvolution::getCandidatePeakGroups_(const Matrix<int>& per_mass_
         if (abs(mz_diff - tmp_i * iso_delta) < mz_delta) // if peak is signal
         {
           const Size bin = peak_bin_numbers[peak_index] + bin_offset;
-          if (bin < mass_bin_size && ! (bin < excluded_log_mz_bins_for_decoy_runs_.size() && excluded_log_mz_bins_for_decoy_runs_[bin]))
+          if (bin < mass_bin_size && ! (bin < excluded_mass_bins_for_decoy_runs_.size() && excluded_mass_bins_for_decoy_runs_[bin]))
           {
             LogMzPeak p(log_mz_peaks_[peak_index]);
             p.abs_charge = (int)abs_charge;
@@ -793,7 +794,7 @@ void SpectralDeconvolution::getCandidatePeakGroups_(const Matrix<int>& per_mass_
         if (abs(mz_diff - tmp_i * iso_delta) < mz_delta)
         {
           const Size bin = peak_bin_numbers[peak_index] + bin_offset;
-          if (bin < mass_bin_size && ! (bin < excluded_log_mz_bins_for_decoy_runs_.size() && excluded_log_mz_bins_for_decoy_runs_[bin]))
+          if (bin < mass_bin_size && ! (bin < excluded_mass_bins_for_decoy_runs_.size() && excluded_mass_bins_for_decoy_runs_[bin]))
           {
             LogMzPeak p(log_mz_peaks_[peak_index]);
             p.abs_charge = (int)abs_charge;
@@ -912,17 +913,17 @@ void SpectralDeconvolution::generatePeakGroupsFromSpectrum_()
   // for FDR estimation
   if (! excluded_peak_masses_for_decoy_runs_.empty())
   {
-    excluded_log_mz_bins_for_decoy_runs_ = boost::dynamic_bitset<>(binned_log_masses_.size());
+    excluded_mass_bins_for_decoy_runs_ = boost::dynamic_bitset<>(binned_log_masses_.size());
     // always positive
     int bin_offset = (int)round(tol_div_factor);
     for (double m : excluded_peak_masses_for_decoy_runs_)
     {
       if (m <= 0) { continue; }
       Size j = getBinNumber_(log(m), mass_bin_min_value_, bin_mul_factors_[ms_level_ - 1]);
-      if ((int)j >= bin_offset && j < excluded_log_mz_bins_for_decoy_runs_.size() - bin_offset)
+      if ((int)j >= bin_offset && j < excluded_mass_bins_for_decoy_runs_.size() - bin_offset)
       {
         for (int k = -bin_offset; k <= bin_offset; k++)
-          excluded_log_mz_bins_for_decoy_runs_[j + k] = true;
+          excluded_mass_bins_for_decoy_runs_[j + k] = true;
       }
     }
   }
@@ -1029,7 +1030,7 @@ void SpectralDeconvolution::scoreAndFilterPeakGroups_()
                                                                             peak_group.getMonoMass() + offset * iso_da_distance_);
 
         peak_group.updateQscore(noisy_peaks, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], tol,
-                                (z1 + z2) < 2 * low_charge_, allowed_iso_error_, true);
+                                (z1 + z2) < 2 * low_charge_, -1, true);
         mass_determined = true;
         break;
       }
@@ -1039,11 +1040,6 @@ void SpectralDeconvolution::scoreAndFilterPeakGroups_()
     if (isPeakGroupInExcludedMassForDecoyRuns_(peak_group, tol))
     {
       continue;
-    }
-
-    if (target_decoy_type_ == PeakGroup::signal_decoy)
-    {
-      peak_group.setQscore(std::min(peak_group.getQscore() + .005, target_max_qscore));
     }
 
     if (! mass_determined || peak_group.empty() || peak_group.getQscore() <= 0 || peak_group.getMonoMass() < current_min_mass_
@@ -1111,7 +1107,6 @@ void SpectralDeconvolution::scoreAndFilterPeakGroups_()
 
     for (auto hz : harmonic_charges_)
     {
-      // if (z1 * hz > current_max_charge_) break;
       PeakGroup pg(std::min(current_max_charge_, z1 * hz), std::min(current_max_charge_, z2 * hz), is_positive_);
       pg.setIsotopeDaDistance(iso_da_distance_);
       const auto& [z1_, z2_] = pg.getAbsChargeRange();
@@ -1119,7 +1114,7 @@ void SpectralDeconvolution::scoreAndFilterPeakGroups_()
       pg.setMonoisotopicMass(peak_group.getMonoMass() * hz);
       auto nps = pg.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, pg.getMonoMass());
       pg.updateQscore(nps, deconvolved_spectrum_.getOriginalSpectrum(), avg_, min_isotope_cosine_[ms_level_ - 1], tol,
-                      (z1 + z2) * hz < 2 * low_charge_, allowed_iso_error_, true);
+                      (z1 + z2) * hz < 2 * low_charge_, -1, true);
 
       if (pg.getQscore() > 0 && pg.getSNR() > peak_group.getSNR())
       {
@@ -1158,18 +1153,63 @@ void SpectralDeconvolution::scoreAndFilterPeakGroups_()
   removeOverlappingPeakGroups_(deconvolved_spectrum_, tol * 1.2, target_decoy_type_);
   removeExcludedMasses_(deconvolved_spectrum_, excluded_masses_, tol);
 
+  /// test
   filtered_peak_groups.clear();
   filtered_peak_groups.reserve(deconvolved_spectrum_.size());
-  for (const auto& peak_group : deconvolved_spectrum_)
+
+  std::set<Size> indices;
+  if (target_decoy_type_ == PeakGroup::signal_decoy)
   {
-    if (peak_group.getQscore() >= .2 && peak_group.getChargeSNR(peak_group.getRepAbsCharge()) > snr_threshold)
-      filtered_peak_groups.push_back(peak_group);
+    for (Size k = 0; k < deconvolved_spectrum_.size(); k++)
+    {
+      const auto& pg = deconvolved_spectrum_[k];
+      std::set<double> mzs;
+      for (const auto& p : pg)
+        mzs.insert(p.mz);
+      int max_overlap = 0;
+      double max_overlap_isotope = .0;
+
+      for (const auto & pg2 : *target_dspec_for_decoy_calculation_)
+      {
+        int overlap = 0;
+        for (const auto& p : pg2)
+        {
+          if (mzs.find(p.mz) == mzs.end()) continue;
+          overlap++;
+        }
+        if (max_overlap <= overlap)
+        {
+          max_overlap = overlap;
+          max_overlap_isotope = pg2.getIsotopeCosine();
+        }
+      }
+      if (max_overlap == 0) continue;
+
+      if (std::abs(max_overlap_isotope - pg.getIsotopeCosine()) > pg.getIsotopeCosine() * .025) continue; //
+      indices.insert(k);
+    }
   }
+
+  for (Size k = 0; k < deconvolved_spectrum_.size(); k++)
+  {
+    auto& pg = deconvolved_spectrum_[k];
+
+    if (!indices.empty() && (indices.find(k) == indices.end()))
+    {
+      continue;
+    }
+    if (pg.getQscore() >= min_qscore_ && pg.getChargeSNR(pg.getRepAbsCharge()) > snr_threshold)
+    {
+      if (target_decoy_type_ == PeakGroup::signal_decoy)
+      {
+        pg.setQscore(std::min(pg.getQscore() + .008, target_max_qscore));
+      }
+      filtered_peak_groups.push_back(pg);
+    }
+  }
+
   deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
   deconvolved_spectrum_.sort();
-
-
-
 }
 
 float SpectralDeconvolution::getIsotopeCosineAndIsoOffset(double mono_mass,
