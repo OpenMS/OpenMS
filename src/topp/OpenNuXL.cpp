@@ -1016,10 +1016,6 @@ protected:
        << "-ln(poisson)"
        << "NuXL:explained_peak_fraction"
        << "NuXL:theo_peak_fraction"
-#ifdef ANNOTATED_QUANTILES
-       << "NuXL:QQ_TIC"
-       << "NuXL:QQ_EXPLAINED_FRACTION"
-#endif
        << "NuXL:wTop50"
 
        << "NuXL:marker_ions_score"
@@ -5274,14 +5270,6 @@ static void scoreXLIons_(
     for (size_t i = 0; i != annotated_peptides_lock.size(); i++) { omp_init_lock(&(annotated_peptides_lock[i])); }
 #endif
 
-#ifdef ANNOTATED_QUANTILES
-    vector<quantile_accu_t> annotated_peptides_quantiles_peptides(spectra.size(), quantile_accu_t(quantile_probability = 0.95));
-    vector<quantile_accu_t> annotated_peptides_quantiles_XLs(spectra.size(), quantile_accu_t(quantile_probability = 0.95));
-
-    vector<SpectrumLevelScoreQuantiles> QQ_TIC(spectra.size(), SpectrumLevelScoreQuantiles() );
-    vector<SpectrumLevelScoreQuantiles> QQ_EXPLAINED_FRACTION(spectra.size(), SpectrumLevelScoreQuantiles() );
-#endif
-
     // load fasta file
     progresslogger.startProgress(0, 1, "Load database from FASTA file...");
     FASTAFile fastaFile;
@@ -5628,12 +5616,6 @@ static void scoreXLIons_(
                     omp_set_lock(&(annotated_peptides_lock[scan_index]));
   #endif
                     {
-  #ifdef ANNOTATED_QUANTILES
-                      annotated_peptides_quantiles_peptides[scan_index](ah.total_loss_score);
-
-                      QQ_TIC[scan_index].insert(ah.total_MIC);
-                      QQ_EXPLAINED_FRACTION[scan_index].insert(ah.explained_peak_fraction);
-  #endif
                       annotated_peptides[scan_index].emplace_back(move(ah));
 
                       // prevent vector from growing indefinitly (memory) but don't shrink the vector every time
@@ -5896,12 +5878,6 @@ static void scoreXLIons_(
                       omp_set_lock(&(annotated_XLs_lock[scan_index]));
   #endif
                       {
-  #ifdef ANNOTATED_QUANTILES
-                        annotated_peptides_quantiles_XLs[scan_index](ah.total_loss_score + ah.partial_loss_score);
-
-                        QQ_TIC[scan_index].insert(ah.total_MIC);
-                        QQ_EXPLAINED_FRACTION[scan_index].insert(ah.explained_peak_fraction);
-  #endif
                         annotated_XLs[scan_index].emplace_back(move(ah));
 
                         // prevent vector from growing indefinitely (memory) but don't shrink the vector every time
@@ -6103,189 +6079,6 @@ static void scoreXLIons_(
 
     // annotate NuXL related information to hits and create report
     vector<NuXLReportRow> csv_rows = NuXLReport::annotate(spectra, peptide_ids, meta_values_to_export, marker_ions_tolerance);
-
-#ifdef ANNOTATED_QUANTILES    
-      for (Size scan_index = 0; scan_index != peptide_ids.size(); ++scan_index)
-      {
-        PeptideIdentification& pi = peptide_ids[scan_index];
-//        cout << "score\tpeptides\tXLs\ttype" << endl;
-        for (auto & ph : pi.getHits())
-        {
-          if (ph.getMetaValue("NuXL:isXL") == "1")
-          {
-            ph.setMetaValue("NuXL:total_HS", (double)ph.getMetaValue("NuXL:total_HS") / (1.0 + p_square_quantile(annotated_peptides_quantiles_XLs[scan_index])));
-          }
-          else
-          {
-            ph.setMetaValue("NuXL:total_HS", (double)ph.getMetaValue("NuXL:total_HS") / (1.0 + p_square_quantile(annotated_peptides_quantiles_peptides[scan_index])));
-          }
-        }
-
-        for (auto & ph : pi.getHits())
-        {
-          ph.setMetaValue("NuXL:QQ_TIC", QQ_TIC[scan_index].quantileOfValue(ph.getMetaValue("NuXL:total_MIC")));
-          ph.setMetaValue("NuXL:QQ_EXPLAINED_FRACTION", QQ_EXPLAINED_FRACTION[scan_index].quantileOfValue(ph.getMetaValue("NuXL:explained_peak_fraction")));
-        }
-      }
-#endif
-
-/*
-  if (generate_decoys) 
-  {
-    struct td_count_
-    {
-      size_t targets = 0;
-      size_t decoys = 0;
-    };
-
-    map<std::string, td_count_> adduct2td_counts;
-    for (auto& p : peptide_ids)
-    {
-      if (p.getHits().empty()) continue;
-      bool isDecoy(false);
-      if (p.getHits()[0].getMetaValue("target_decoy") == "decoy")
-      {
-        isDecoy = true;
-      };
-      std::string s = p.getHits()[0].getMetaValue("NuXL:NA");
-      if (isDecoy) 
-      {
-        adduct2td_counts[s].decoys++;
-      }
-      else
-      {
-        adduct2td_counts[s].targets++;
-      }
-    }
-
-    map<std::string, int> adduct2td_diffs;
-    multimap<int, std::string> diffs2adducts;
-    //map<std::string, double> adduct2td_ratio;
-    for (const auto& [k, v] : adduct2td_counts)
-    {
-      adduct2td_diffs[k] = v.targets - v.decoys;
-      diffs2adducts.insert({v.targets - v.decoys, k});
-      //adduct2td_ratio[k] = (v.targets+1) / (v.decoys+1); // +1 to prevent division by zero
-      cout << "MS1 adduct, #targets, #decoys: " << v.targets << "\t" << v.decoys << endl;
-    }
-
-
-    for (const auto& [k, v] : diffs2adducts)
-    {
-      cout << "MS1 adduct,diff: " << v << "," << k << endl;
-    }
-
-    for (auto& p : peptide_ids)
-    {
-      auto& phs = p.getHits();
-
-      auto new_end = std::remove_if(phs.begin(), phs.end(),
-          [&adduct2td_diffs](const PeptideHit & ph) 
-        { 
-         std::string s = ph.getMetaValue("NuXL:NA");
-         return adduct2td_diffs[s] < 0; 
-        });
-      phs.erase(new_end, phs.end());
-    }
-    IDFilter::removeEmptyIdentifications(peptide_ids);
-  }
-*/
-
-/* 
-  if (generate_decoys) 
-  {
-    vector<double> decoy_scores;
-    for (auto& p : peptide_ids)
-    {
-      if (p.getHits().empty()) continue;
-      if (p.getHits()[0].getMetaValue("target_decoy") == "decoy")
-      {
-        decoy_scores.push_back(p.getHits()[0].getScore());
-      }
-    }
-    std::sort(decoy_scores.begin(), decoy_scores.end());
-    
-    cout << "Collected: " << decoy_scores.size() << " decoy scores." << endl;
-    if (!decoy_scores.empty()) 
-    {
-      for (auto& p : peptide_ids)
-      {
-        for (auto& h : p.getHits())
-        {
-          auto it = std::lower_bound(decoy_scores.begin(), decoy_scores.end(), h.getScore()); // TODO: doesn't consider score orientation
-          size_t distance = it - decoy_scores.begin(); // index in decoy_scores vector
-          double p = 1.0 - (double) distance / (double) decoy_scores.size();
-#          p = 1.0 - std::pow(1.0 - p, (double)h.getMetaValue("nr_candidates")); // Sidak correction
-          h.setScore(p); // note: several good target hits might get a score of 1.0 here
-        }
-      }
-    }
-
-    StringList scores_for_calibration;
-    scores_for_calibration
-       << "NuXL:mass_error_p"
-       << "NuXL:err"
-       << "NuXL:total_loss_score"
-       << "NuXL:modds"
-       << "NuXL:immonium_score"
-       << "NuXL:precursor_score"
-       << "NuXL:MIC"
-       << "NuXL:Morph"
-       << "NuXL:total_MIC"
-       << "NuXL:ladder_score"
-       << "NuXL:sequence_score"
-       << "NuXL:total_Morph"
-       << "NuXL:total_HS"
-       << "NuXL:tag_XLed"
-       << "NuXL:tag_unshifted"
-       << "NuXL:tag_shifted"
-       << "NuXL:explained_peak_fraction"
-       << "NuXL:theo_peak_fraction"
-       << "NuXL:wTop50"
-       << "NuXL:marker_ions_score"
-       << "NuXL:partial_loss_score"
-       << "NuXL:pl_MIC"
-       << "NuXL:pl_err"
-       << "NuXL:pl_Morph"
-       << "NuXL:pl_modds"
-       << "NuXL:pl_pc_MIC"
-       << "NuXL:pl_im_MIC"
-       << "NuXL:score"
-       << "nucleotide_mass_tags";
-
-    /// calibrate all relevant meta values
-    for (const auto& s : scores_for_calibration)
-    {
-      vector<double> decoy_scores;
-      for (auto& p : peptide_ids)
-      {
-        if (p.getHits().empty()) continue;
-        if (p.getHits()[0].getMetaValue("target_decoy") == "decoy")
-        {
-          decoy_scores.push_back((double)p.getHits()[0].getMetaValue(s));
-        }
-      }
-      std::sort(decoy_scores.begin(), decoy_scores.end());
-    
-      cout << "Collected: " << decoy_scores.size() << " decoy scores." << endl;
-      if (!decoy_scores.empty()) 
-      {
-        for (auto& p : peptide_ids)
-        {
-          for (auto& h : p.getHits())
-          {
-            auto it = std::lower_bound(decoy_scores.begin(), decoy_scores.end(), (double)h.getMetaValue(s)); // TODO: doesn't consider score orientation
-            size_t distance = it - decoy_scores.begin(); // index in decoy_scores vector
-            double p = 1.0 - (double) distance / (double) decoy_scores.size();
- #           p = 1.0 - std::pow(1.0 - p, (double)h.getMetaValue("nr_candidates")); // Sidak correction
-            h.setMetaValue(s, p); // note: several good target hits might get a score of 1.0 here
-          }
-        }
-      }
-    }
-  }
-  */  
-
 
   if (generate_decoys) 
   {
@@ -6807,14 +6600,6 @@ static void scoreXLIons_(
       //const double p_random_match = exp_spectrum.getFloatDataArrays()[1][0];
       const double p_random_match = 1e-3;
       plss_modds = matchOddsScore_(pl_spec->size(), (int)plss_Morph, p_random_match);
-/*
-      const float fragment_mass_tolerance_Da = 2.0 * fragment_mass_tolerance * 1e-6 * 1000.0;
-      plss_modds = matchOddsScore_(pl_spec->size(), 
-        fragment_mass_tolerance_Da,
-        exp_spectrum.size(),
-        exp_spectrum.back().getMZ(),
-        (int)plss_Morph);
-*/
     }
 #ifdef DEBUG_OpenNuXL
     OPENMS_LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
