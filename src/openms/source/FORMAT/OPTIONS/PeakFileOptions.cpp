@@ -37,7 +37,8 @@ namespace OpenMS
     np_config_int_(),
     np_config_fda_(),
     maximal_data_pool_size_(100),
-    precursor_mz_selected_ion_(true)
+    precursor_mz_selected_ion_(true),
+    skip_chromatograms_(false)
   {
   }
 
