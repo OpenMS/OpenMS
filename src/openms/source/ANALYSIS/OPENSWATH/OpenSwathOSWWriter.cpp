@@ -331,7 +331,8 @@ namespace OpenMS
         "VAR_MI_SCORE, VAR_MI_WEIGHTED_SCORE, VAR_MI_RATIO_SCORE, VAR_NORM_RT_SCORE, "\
         "VAR_XCORR_COELUTION,VAR_XCORR_COELUTION_WEIGHTED, VAR_XCORR_SHAPE, "\
         "VAR_XCORR_SHAPE_WEIGHTED, VAR_YSERIES_SCORE, VAR_ELUTION_MODEL_FIT_SCORE, "\
-        "VAR_IM_XCORR_SHAPE, VAR_IM_XCORR_COELUTION, VAR_IM_DELTA_SCORE, VAR_IM_LOG_INTENSITY"
+        "VAR_IM_XCORR_SHAPE, VAR_IM_XCORR_COELUTION, VAR_IM_DELTA_SCORE, VAR_IM_LOG_INTENSITY, "\
+        "VAR_BSERIES_LADDER_SCORE, VAR_YSERIES_LADDER_SCORE"\
         << ") VALUES ("
                       << feature_id << ", "
                       << feature_it.getIntensity() << ", "
@@ -342,7 +343,7 @@ namespace OpenMS
                       << getScore(feature_it, "im_drift_right") << ", "
                       << getScore(feature_it, "im_delta") << ", "
                       << getScore(feature_it, "total_mi") << ", "
-                      << getScore(feature_it, "var_bseries_score") << ", "
+                      << getScore(feature_it, "var_bseries_score") << ", "                      
                       << getScore(feature_it, "var_dotprod_score") << ", "
                       << getScore(feature_it, "var_intensity_score") << ", "
                       << getScore(feature_it, "var_isotope_correlation_score") << ", "
@@ -370,7 +371,10 @@ namespace OpenMS
                       << getScore(feature_it, "var_im_xcorr_shape") << ", "
                       << getScore(feature_it, "var_im_xcorr_coelution") << ", "
                       << getScore(feature_it, "var_im_delta_score") << ", "
-                      << getScore(feature_it, "im_log_intensity");
+                      << getScore(feature_it, "im_log_intensity") << ", "
+                      << getScore(feature_it, "var_bseries_ladder_score") << ", "
+                      << getScore(feature_it, "var_yseries_ladder_score");
+
       sql_feature_ms2 << "); ";
 
       bool enable_ms1 = feature_it.metaValueExists("var_ms1_ppm_diff");

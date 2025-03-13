@@ -876,6 +876,9 @@ namespace OpenMS
           {
             mrmfeature.addScore("var_bseries_score", scores.bseries_score);
             mrmfeature.addScore("var_yseries_score", scores.yseries_score);
+
+            mrmfeature.addScore("var_bseries_ladder_score", scores.bseries_ladder_score);
+            mrmfeature.addScore("var_yseries_ladder_score", scores.yseries_ladder_score);
           }
 
           if (su_.use_ms2_isotope_scores)

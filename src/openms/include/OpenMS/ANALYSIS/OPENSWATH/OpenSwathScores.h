@@ -70,6 +70,9 @@ namespace OpenMS
 
     double yseries_score = 0;
     double bseries_score = 0;
+    double bseries_ladder_score = 0;
+    double yseries_ladder_score = 0;
+    
     double log_sn_score = 0;
 
     double weighted_coelution_score = 0;
