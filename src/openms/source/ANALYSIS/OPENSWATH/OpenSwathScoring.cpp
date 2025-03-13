@@ -173,6 +173,8 @@ namespace OpenMS
       int by_charge_state = 1; // for which charge states should we check b/y series
       OpenSwathDataAccessHelper::convertPeptideToAASequence(compound, aas);
       diascoring.dia_by_ion_score(spectra, aas, by_charge_state, im_range, scores.bseries_score, scores.yseries_score);
+      // Presence of b/y series ladder
+      diascoring.dia_by_ion_ladder_score(spectra, aas, by_charge_state, im_range, scores.bseries_ladder_score, scores.yseries_ladder_score);
     }
 
 
