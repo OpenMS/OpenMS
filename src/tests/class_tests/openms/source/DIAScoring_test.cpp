@@ -804,6 +804,56 @@ START_SECTION ( void dia_by_ion_score(std::vector<SpectrumType> spectrum, AASequ
 }
 END_SECTION
 
+START_SECTION ( void dia_by_ion_ladder_score(std::vector<SpectrumType> spectrum, AASequence &sequence, int charge, RangeMobility& im_range, double &bseries_ladder_score, double &yseries_ladder_score) )
+{
+  OpenSwath::SpectrumPtr sptr = (OpenSwath::SpectrumPtr)(new OpenSwath::Spectrum);
+  std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
+  OpenSwath::BinaryDataArrayPtr data1 = (OpenSwath::BinaryDataArrayPtr)(new OpenSwath::BinaryDataArray);
+  OpenSwath::BinaryDataArrayPtr data2 = (OpenSwath::BinaryDataArrayPtr)(new OpenSwath::BinaryDataArray);
+
+  OpenMS::RangeMobility empty_imRange;
+  std::vector<double> intensity(6, 100);
+  std::vector<double> mz {
+    // four of the naked b/y ions
+    // as well as one of the modified b and y ions ion each
+    350.17164, // b3
+    421.20875, // b4
+    421.20875 + 79.9657, // b4 + P
+    547.26291, // y4
+    646.33133, // y5
+    809.39466 + 79.9657 // y6 + P
+  };
+
+  data1->data = mz;
+  data2->data = intensity;
+
+  sptr->setMZArray(data1);
+  sptr->setIntensityArray( data2 );
+
+  DIAScoring diascoring;
+  diascoring.setParameters(p_dia);
+  String sequence = "SYVAWDR";
+  std::vector<double> bseries, yseries;
+  AASequence a = AASequence::fromString(sequence);
+
+  double bseries_ladder_score = 0, yseries_ladder_score = 0;
+  SpectrumSequence sptrArr;
+  sptrArr.push_back(sptr);
+  diascoring.dia_by_ion_ladder_score(sptrArr, a, 1, empty_imRange, bseries_ladder_score, yseries_ladder_score);
+
+  TEST_REAL_SIMILAR (bseries_ladder_score, 2); // b3 + b4
+  TEST_REAL_SIMILAR (yseries_ladder_score, 2); // y4 + y5
+
+  // now add a modification to the sequence
+  a.setModification(1, "Phospho" ); // modify the Y
+  bseries_ladder_score = 0, yseries_ladder_score = 0;
+  diascoring.dia_by_ion_ladder_score(sptrArr, a, 1, empty_imRange, bseries_ladder_score, yseries_ladder_score);
+
+  TEST_REAL_SIMILAR (bseries_ladder_score, 1); // b3
+  TEST_REAL_SIMILAR (yseries_ladder_score, 3); // y4 + y5 + y6(Phospho)
+}
+END_SECTION
+
 START_SECTION( void score_with_isotopes(std::vector<SpectrumType> spectrum, const std::vector< TransitionType > &transitions, double &dotprod, double &manhattan))
 {
   OpenSwath::LightTransition mock_tr1;

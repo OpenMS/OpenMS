@@ -32,6 +32,35 @@ const double C13C12_MASSDIFF_U = 1.0033548;
 
 namespace OpenMS
 {
+  // returns the length of the longest sequence of non-zeros in the vector
+  static Size longestCompleteLadder_(std::vector<double>::const_iterator b, std::vector<double>::const_iterator e)
+  {
+    Size max_l = 0;
+    auto best_start = b; 
+    for (auto i = b; i != e;) // iterate once over vector
+    {
+      for (; i != e && *i <= 0.0; ++i) {}; // skip zeros
+      if (i == e) // end?
+      {
+        return max_l;
+      }
+
+      int l = 0;
+      auto start = i; // remember start of sequence
+      for (; i != e && *i > 0.0; ++i) { ++l; } // count sequence of non-zeros
+      if (l > max_l) // longer sequence found?  
+      {
+        best_start = start;
+        max_l = l;
+      }
+
+      if (i == e) // end?
+      {
+        return max_l;
+      }
+    }
+   return  max_l;
+  }
 
   DIAScoring::DIAScoring() :
     DefaultParamHandler("DIAScoring")
@@ -260,6 +289,68 @@ namespace OpenMS
     }
   }
 
+  // TODO: could also calculate the b/y series score here to avoid double calculation
+  void DIAScoring::dia_by_ion_ladder_score(
+    const SpectrumSequence& spectrum, 
+    AASequence& sequence,
+    int charge, 
+    const RangeMobility& im_range, 
+    double& bseries_ladder_score, 
+    double& yseries_ladder_score) const
+  {        
+    OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer"); // for peptides, charge should be positive
+    OPENMS_PRECONDITION(sequence.size() > 0, "Sequence is empty"); // for peptides, sequence should not be empty
+
+    const Size n = sequence.size();
+
+    bseries_ladder_score = 0;
+    yseries_ladder_score = 0;
+
+    // generate ion serries
+    double mz, intensity, im;
+    std::vector<double> yseries, bseries;
+    OpenMS::DIAHelpers::getBYSeries(sequence, bseries, yseries, generator, charge);
+
+    // count b-ions higher than threshold
+    std::vector<double> intensity_sum_b(n, 0.0);
+    Size b_ion_index = 0;
+    UInt b_ion_count = 0;
+    for (const auto& b_ion_mz : bseries)
+    {      
+      RangeMZ mz_range = DIAHelpers::createMZRangePPM(b_ion_mz, dia_extract_window_, dia_extraction_ppm_);
+
+      bool signalFound = DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
+      double ppmdiff = Math::getPPMAbs(mz, b_ion_mz);
+      if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
+      {
+        intensity_sum_b[b_ion_index]++;
+        b_ion_count++;
+      }
+      b_ion_index++;
+    }
+
+    std::vector<double> intensity_sum_y(n, 0.0);
+    Size y_ion_index = 0;
+    UInt y_ion_count(0);
+    // count y-ions higher than threshold
+    for (const auto& y_ion_mz : yseries)
+    {
+      RangeMZ mz_range = DIAHelpers::createMZRangePPM(y_ion_mz, dia_extract_window_, dia_extraction_ppm_);
+
+      bool signalFound = DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
+      double ppmdiff = Math::getPPMAbs(mz, y_ion_mz);
+      if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
+      {
+        intensity_sum_y[y_ion_index]++;
+        ++y_ion_count;
+      }
+      y_ion_index++;
+    }
+
+    bseries_ladder_score = longestCompleteLadder_(intensity_sum_b.begin(), intensity_sum_b.end());
+    yseries_ladder_score = longestCompleteLadder_(intensity_sum_y.begin(), intensity_sum_y.end());
+  }
+
   void DIAScoring::score_with_isotopes(SpectrumSequence& spectrum, const std::vector<TransitionType>& transitions, const RangeMobility& im_range, double& dotprod, double& manhattan) const
   {
     OpenMS::DiaPrescore dp(dia_extract_window_, dia_nr_isotopes_, dia_nr_charges_);
@@ -433,4 +524,7 @@ namespace OpenMS
     }
     return int_score;
   } //end of dia_isotope_corr_sub
+
+  
 }
+  

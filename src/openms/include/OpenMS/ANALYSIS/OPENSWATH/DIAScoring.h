@@ -124,6 +124,10 @@ public:
     void dia_by_ion_score(const SpectrumSequence& spectrum, AASequence& sequence,
                           int charge, const RangeMobility& im_range, double& bseries_score, double& yseries_score) const;
 
+    /// b/y ion ladder scores
+    void dia_by_ion_ladder_score(const SpectrumSequence& spectrum, AASequence& sequence,
+                                  int charge, const RangeMobility& im_range, double& bseries_ladder_score, double& yseries_ladder_score) const;
+
     /// Dotproduct / Manhattan score with theoretical spectrum
     void score_with_isotopes(SpectrumSequence& spectrum,
                              const std::vector<TransitionType>& transitions,
