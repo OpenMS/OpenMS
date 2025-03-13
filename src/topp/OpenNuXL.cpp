@@ -5354,7 +5354,7 @@ static void scoreXLIons_(
 #ifdef _OPENMP
 #pragma omp parallel for schedule(guided)
 #endif
-    for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
+    for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index) // iterate over all proteins from the fasta file
     {
 #ifdef _OPENMP
 #pragma omp atomic
@@ -5372,8 +5372,10 @@ static void scoreXLIons_(
 
       bool is_decoy = current_fasta_entry.identifier[5] == '_'; // faster check than current_fasta_entry.identifier.hasPrefix("DECOY_")
 
+      // digest the protein into peptides (filter out too short or too long peptides)
       digestor.digestUnmodified(current_fasta_entry.sequence, current_digest, min_peptide_length, max_peptide_length);
 
+      // for each peptide of the current digest
       for (auto cit = current_digest.begin(); cit != current_digest.end(); ++cit)
       {
         bool already_processed = false;
@@ -5422,8 +5424,10 @@ static void scoreXLIons_(
         // determine which residues might give rise to an immonium ion
         ImmoniumIonsInPeptide iip(unmodified_sequence);
 
-        AASequence aas = AASequence::fromString(unmodified_sequence);
+	// create an AASequence object from the peptide sequence and modify it to contain static modification
+        AASequence aas = AASequence::fromString(unmodified_sequence);	
         ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, aas);
+	// use the peptide with fixed modification(s) to generate all variably modified versions of the peptide (e.g., with Oxidiation (M) )
         vector<AASequence> all_modified_peptides;
         ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, aas, max_variable_mods_per_peptide, all_modified_peptides);
         
@@ -5432,15 +5436,16 @@ static void scoreXLIons_(
           const AASequence& fixed_and_variable_modified_peptide = all_modified_peptides[mod_pep_idx];
           double current_peptide_mass_without_NA = fixed_and_variable_modified_peptide.getMonoWeight();
 
-          //create empty theoretical spectrum.  total_loss_spectrum_z2 contains both charge 1 and charge 2 peaks
+          //create an empty theoretical spectrum.  total_loss_spectrum_z2 contains both charge 1 and charge 2 peaks
           vector<double> total_loss_template_z1_b_ions, total_loss_template_z1_y_ions;
 
           // spectrum containing additional peaks for sub scoring
           PeakSpectrum marker_ions_sub_score_spectrum;
 
-          // iterate over all NA sequences, calculate peptide mass and generate complete loss spectrum only once as this can potentially be reused
+          // iterate over all NA sequences, calculate peptide mass, and generate complete loss spectrum only once as this can potentially be reused
           Size NA_mod_index = 0;
 
+	  // for the current variably and statically modified peptide, apply all precursor adducts (RNA/DNA oligos with/without losses)
           for (std::map<String, double>::const_iterator na_mod_it = mm.formula2mass.begin(); 
             na_mod_it != mm.formula2mass.end(); 
             ++na_mod_it, ++NA_mod_index)
@@ -5466,7 +5471,9 @@ static void scoreXLIons_(
 
             // add peaks for b- and y- ions with charge 1 (sorted by m/z)
             // total / complete loss spectra are generated for fast and (slow) full scoring
-            if (total_loss_template_z1_b_ions.empty()) // only create complete loss spectrum once as this is rather costly and need only to be done once per petide
+
+            // only create complete loss spectrum (=without RNA/RNA) once as this is rather costly and needs only to be done once per peptide		  
+            if (total_loss_template_z1_b_ions.empty()) 
             {
               generateTheoreticalMZsZ1_(fixed_and_variable_modified_peptide, Residue::ResidueType::BIon, total_loss_template_z1_b_ions);
               generateTheoreticalMZsZ1_(fixed_and_variable_modified_peptide, Residue::ResidueType::YIon, total_loss_template_z1_y_ions);
@@ -5897,7 +5904,7 @@ static void scoreXLIons_(
   #endif
                         annotated_XLs[scan_index].emplace_back(move(ah));
 
-                        // prevent vector from growing indefinitly (memory) but don't shrink the vector every time
+                        // prevent vector from growing indefinitely (memory) but don't shrink the vector every time
                         if (annotated_XLs[scan_index].size() >= 2 * report_top_hits)
                         {
                           std::partial_sort(annotated_XLs[scan_index].begin(), annotated_XLs[scan_index].begin() + report_top_hits, annotated_XLs[scan_index].end(), NuXLAnnotatedHit::hasBetterScore);
@@ -5960,7 +5967,7 @@ static void scoreXLIons_(
           }
         }
       }
-    }
+    } // end: all proteins have been processed
     progresslogger.endProgress();
 
     OPENMS_LOG_INFO << "Proteins: " << count_proteins << endl;
