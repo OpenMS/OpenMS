@@ -757,12 +757,19 @@ namespace OpenMS::Internal
       }
       else if (tag == "chromatogram")
       {
+        if (load_detail_ == XMLHandler::LD_NO_CHROMATOGRAMS)
+        {
+          skip_chromatogram_ = true; 
+          ++chromatogram_count_; 
+          return;
+        }
+    
         if (load_detail_ == XMLHandler::LD_COUNTS_WITHOPTIONS)
         { //, but we only want to count
           skip_chromatogram_ = true; // skip the remaining chrom, until endElement(chromatogram)
           ++chromatogram_count_;
         }
-
+    
         chromatogram_ = ChromatogramType();
         default_array_length_ = attributeAsInt_(attributes, s_default_array_length);
         String source_file_ref;
@@ -810,9 +817,16 @@ namespace OpenMS::Internal
       }
       else if (tag == "chromatogramList")
       {
+        // Skip entire chromatogramList if LD_NO_CHROMATOGRAMS is set
+        if (load_detail_ == XMLHandler::LD_NO_CHROMATOGRAMS)
+        {
+          skip_chromatogram_ = true;
+          return;
+        }
+    
         // default data processing
         default_processing_ = attributeAsString_(attributes, s_default_data_processing_ref);
-
+    
         //Abort if we need meta data only
         if (options_.getMetadataOnly())
         {

@@ -12,35 +12,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  PeakFileOptions::PeakFileOptions() :
-    metadata_only_(false),
-    force_maxquant_compatibility_(false),
-    force_tpp_compatibility_(false),
-    write_supplemental_data_(true),
-    has_rt_range_(false),
-    has_mz_range_(false),
-    has_intensity_range_(false),
-    mz_32_bit_(false),
-    int_32_bit_(true),
-    rt_range_(),
-    mz_range_(),
-    intensity_range_(),
-    ms_levels_(),
-    zlib_compression_(false),
-    always_append_data_(false),
-    skip_xml_checks_(false),
-    sort_spectra_by_mz_(true),
-    sort_chromatograms_by_rt_(true),
-    fill_data_(true),
-    write_index_(true),
-    np_config_mz_(),
-    np_config_int_(),
-    np_config_fda_(),
-    maximal_data_pool_size_(100),
-    precursor_mz_selected_ion_(true),
-    skip_chromatograms_(false)
-  {
-  }
+  PeakFileOptions::PeakFileOptions() {}
 
   PeakFileOptions::PeakFileOptions(const PeakFileOptions& options) = default;
 

@@ -223,9 +223,9 @@ END_SECTION
 START_SECTION((skipChromatograms))
 {
   PeakFileOptions opts;
-  TEST_EQUAL(opts.getSkipChromatograms(), false)
+  TEST_FALSE(opts.getSkipChromatograms())
   opts.setSkipChromatograms(true);
-  TEST_EQUAL(opts.getSkipChromatograms(), true)
+  TEST_TRUE(opts.getSkipChromatograms())
 }
 END_SECTION
 
