@@ -141,9 +141,7 @@ int PeakGroup::updateQscore(const std::vector<LogMzPeak>& noisy_peaks,
   if (per_isotope_int_.empty() || max_abs_charge_ < min_abs_charge_) { return 0; }
   int h_offset;
   int window_width = is_last ? 0 : -1;
-  // auto target_decoy_type = is_last && target_decoy_type_ == PeakGroup::TargetDecoyType::signal_decoy ? PeakGroup::TargetDecoyType::target :
-  // target_decoy_type_;
-  //allowed_iso_error = is_last ? -1 : allowed_iso_error;
+
   isotope_cosine_score_ = SpectralDeconvolution::getIsotopeCosineAndIsoOffset(
     monoisotopic_mass_, per_isotope_int_, h_offset, avg,
     -min_negative_isotope_index_, // change if to select cosine calculation and if to get second best hits
@@ -154,6 +152,7 @@ int PeakGroup::updateQscore(const std::vector<LogMzPeak>& noisy_peaks,
   updatePerChargeCos_(avg, tol);
   updateAvgMassError_();
   updateSNR_((float)avg.getSNRMultiplicationFactor(monoisotopic_mass_));
+  //if (target_decoy_type_ == PeakGroup::signal_decoy) isotope_cosine_score_ = std::min(1.0f, isotope_cosine_score_ + .02f); // the smaller
 
   for (int abs_charge = min_abs_charge_; abs_charge <= max_abs_charge_; abs_charge++)
   {
