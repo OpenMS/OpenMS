@@ -12,7 +12,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  PeakFileOptions::PeakFileOptions() {}
+  PeakFileOptions::PeakFileOptions() = default;
 
   PeakFileOptions::PeakFileOptions(const PeakFileOptions& options) = default;
 

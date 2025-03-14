@@ -64,7 +64,15 @@ namespace OpenMS::Internal
     {
       options_ = opt;
       spectrum_data_.reserve(options_.getMaxDataPoolSize());
-      chromatogram_data_.reserve(options_.getMaxDataPoolSize());
+
+      if (!options_.getSkipChromatograms())
+      {
+        chromatogram_data_.reserve(options_.getMaxDataPoolSize());
+      }
+      else
+      {
+        skip_chromatogram_ = true;
+      }
     }
 
     /// Get the peak file options
@@ -757,13 +765,12 @@ namespace OpenMS::Internal
       }
       else if (tag == "chromatogram")
       {
-        if (load_detail_ == XMLHandler::LD_NO_CHROMATOGRAMS)
+        if (skip_chromatogram_)
         {
-          skip_chromatogram_ = true; 
           ++chromatogram_count_; 
           return;
         }
-    
+      
         if (load_detail_ == XMLHandler::LD_COUNTS_WITHOPTIONS)
         { //, but we only want to count
           skip_chromatogram_ = true; // skip the remaining chrom, until endElement(chromatogram)
@@ -817,10 +824,9 @@ namespace OpenMS::Internal
       }
       else if (tag == "chromatogramList")
       {
-        // Skip entire chromatogramList if LD_NO_CHROMATOGRAMS is set
-        if (load_detail_ == XMLHandler::LD_NO_CHROMATOGRAMS)
+        // Skip_chromatogram_ is already set in setOptions if needed
+        if (skip_chromatogram_)
         {
-          skip_chromatogram_ = true;
           return;
         }
     

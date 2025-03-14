@@ -147,10 +147,6 @@ namespace OpenMS
 
     Internal::MzMLHandler handler(map, filename, getVersion(), *this);
     handler.setOptions(options_);
-    if (options_.getSkipChromatograms())
-    {
-      handler.setLoadDetail(Internal::XMLHandler::LD_NO_CHROMATOGRAMS);
-    }
     safeParse_(filename, &handler);
   }
 

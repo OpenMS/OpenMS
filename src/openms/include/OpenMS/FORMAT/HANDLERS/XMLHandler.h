@@ -325,8 +325,7 @@ public:
       {  
         LD_ALLDATA,       // default; load all data
         LD_RAWCOUNTS,     // only count the total number of spectra and chromatograms (usually very fast)
-        LD_COUNTS_WITHOPTIONS, // count the number of spectra, while respecting PeakFileOptions (msLevel and RTRange) and chromatograms (fast)
-        LD_NO_CHROMATOGRAMS // don't read any chromatograms (but spectra are OK)
+        LD_COUNTS_WITHOPTIONS // count the number of spectra, while respecting PeakFileOptions (msLevel and RTRange) and chromatograms (fast)
       };
 
 
