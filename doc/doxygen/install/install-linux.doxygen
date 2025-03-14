@@ -288,15 +288,15 @@
   @note If you use another generator, such as Ninja (`cmake -G Ninja ...`), then swap `make` for the new command, such as `ninja`.
   - **Using Ninja (faster alternative):**
   First ensure Ninja is installed:
-  /code
+  \code
   sudo apt install ninja-build
-  /endcode
+  \endcode
 
   Then configure again explicitly with Ninja and build:
-  /code
+  \code
   cmake -G Ninja -DBOOST_USE_STATIC=OFF ../OpenMS
   ninja -j4
-  /endcode
+  \endcode
 
   @subsection linux_openms_environment Getting your environment ready to use OpenMS
 
