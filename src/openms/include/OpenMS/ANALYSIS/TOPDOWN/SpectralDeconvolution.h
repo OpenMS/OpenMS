@@ -186,6 +186,7 @@ namespace OpenMS
     boost::dynamic_bitset<> excluded_mass_bins_for_decoy_runs_;
     std::vector<double> excluded_peak_masses_for_decoy_runs_;
     std::vector<double> excluded_masses_for_decoy_runs_;
+    //std::set<double> signal_mzs_;
 
     /// Stores log mz peaks
     std::vector<LogMzPeak> log_mz_peaks_;

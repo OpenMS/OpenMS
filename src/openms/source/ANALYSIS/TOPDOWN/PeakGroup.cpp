@@ -148,6 +148,7 @@ int PeakGroup::updateQscore(const std::vector<LogMzPeak>& noisy_peaks,
     window_width, allowed_iso_error);
   if (h_offset != 0) return h_offset;
 
+
   if (isotope_cosine_score_ < min_cos) { return 0; }
   updatePerChargeCos_(avg, tol);
   updateAvgMassError_();
