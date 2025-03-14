@@ -451,7 +451,7 @@ namespace OpenMS
   {
     Size cnt_phospho_events = 0;
     
-    for (Size i = sequence.find("Phospho"); i != std::string::npos; i = sequence.find("Phospho", i + 7))
+    for (Size i = sequence.find("(Phospho)"); i != std::string::npos; i = sequence.find("(Phospho)", i + 9))
     {
       ++cnt_phospho_events;
     }
