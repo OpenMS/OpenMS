@@ -271,7 +271,7 @@ namespace OpenMS
 
   void FLASHDeconvAlgorithm::runSpectralDeconvolution_(MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra)
   {
-    startProgress(0, (SignedSize)map.size(), "running FLASHDeconv");
+    startProgress(0, (SignedSize)map.size(), "running FLASHDeconv spectral deconvolution");
     std::map<double, int> rt_scan_map;
     for (Size index = 0; index < map.size(); index++)
     {
@@ -279,6 +279,7 @@ namespace OpenMS
       rt_scan_map[map[index].getRT()] = scan_number;
     }
 
+    // spectral deconvolution takes place per MS level, from 1, 2, ...
     for (uint ms_level = 1; ms_level <= current_max_ms_level_; ms_level++)
     {
       if (ms_level > 1) // TODO maybe this can go after merge_spec > 0
@@ -286,6 +287,8 @@ namespace OpenMS
         // here, register precursor peak groups to the ms2 spectra.
         findPrecursorPeakGroupsForMSnSpectra_(map, deconvolved_spectra, ms_level);
       }
+
+      // if merging spectra option is active, perform spectral merging
       if (merge_spec_ > 0)
       {
         mergeSpectra_(map, ms_level);
@@ -311,11 +314,12 @@ namespace OpenMS
         if (spec.empty()) { continue; }
         String native_id = spec.getNativeID();
 
+        // for MS N, fetch the precursor information
         PeakGroup precursor_pg;
         if (native_id_precursor_peak_group_map_.find(native_id) != native_id_precursor_peak_group_map_.end())
           precursor_pg = native_id_precursor_peak_group_map_[native_id];
 
-        // now do it
+        // now do it, for the target masses
         sd_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
 
         auto& deconvolved_spectrum = sd_.getDeconvolvedSpectrum();
@@ -324,34 +328,28 @@ namespace OpenMS
 
         if (report_decoy_)
         {
-  #pragma omp parallel sections default(none) shared(spec, scan_number, precursor_pg, deconvolved_spectrum)
+  #pragma omp parallel sections default(none) shared(spec, scan_number, precursor_pg)
           {
   #pragma omp section
             sd_noise_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
   #pragma omp section
             sd_signal_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
           }
-         // DeconvolvedSpectrum decoy_deconvolved_spectrum(scan_number);
 
-          deconvolved_spectrum.sortByQscore();
-          double qscore_low_threshold_for_decoy = deconvolved_spectrum.back().getQscore2D();
-          double qscore_high_threshold_for_decoy = deconvolved_spectrum[0].getQscore2D();
-          //decoy_deconvolved_spectrum.setOriginalSpectrum(spec);
+          //deconvolved_spectrum.sortByQscore();
+          //double qscore_low_threshold_for_decoy = deconvolved_spectrum.back().getQscore2D();
+          //double qscore_high_threshold_for_decoy = deconvolved_spectrum[0].getQscore2D();
 
           deconvolved_spectrum.reserve(deconvolved_spectrum.size() + sd_signal_decoy_.getDeconvolvedSpectrum().size()
                                              + sd_noise_decoy_.getDeconvolvedSpectrum().size());
 
-          //for (const auto& pg : sd_charge_decoy_.getDeconvolvedSpectrum())
-          //  if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
-          //    deconvolved_spectrum.push_back(pg);
-
           for (const auto& pg : sd_signal_decoy_.getDeconvolvedSpectrum())
-            if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
-              deconvolved_spectrum.push_back(pg);
+            //if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
+            deconvolved_spectrum.push_back(pg);
 
           for (const auto& pg : sd_noise_decoy_.getDeconvolvedSpectrum())
-            if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
-              deconvolved_spectrum.push_back(pg);
+           // if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
+           deconvolved_spectrum.push_back(pg);
 
           deconvolved_spectrum.sort();
         }
@@ -484,6 +482,7 @@ namespace OpenMS
     OPENMS_LOG_INFO<< "Done" << std::endl;
     const auto& avg = sd_.getAveragine();
 
+    // determine if the spectra are centroid or profile
     bool is_centroid = true;
     for (auto& it : map)
     {
@@ -492,7 +491,7 @@ namespace OpenMS
       break;
     }
 
-    // determine tolerance in case tolerance input is negative
+    // if input tolerance is negative, determine tolerance
     for (uint ms_level = 1; ms_level <= current_max_ms_level_; ms_level++)
     {
       if (tols_[ms_level - 1] > 0) continue;
@@ -504,10 +503,12 @@ namespace OpenMS
 
     if (report_decoy_)
     {
+      // initialize noise decoy run
       sd_noise_decoy_.setParameters(sd_param);
       sd_noise_decoy_.setTargetDecoyType(PeakGroup::TargetDecoyType::noise_decoy, sd_.getDeconvolvedSpectrum()); // noise
       sd_noise_decoy_.calculateAveragine(use_RNA_averagine_, is_centroid); // for noise, averagine needs to be calculated differently.
 
+      // initialize signal decoy run
       sd_signal_decoy_.setParameters(sd_param);
       sd_signal_decoy_.setTargetDecoyType(PeakGroup::TargetDecoyType::signal_decoy, sd_.getDeconvolvedSpectrum()); // isotope
       sd_signal_decoy_.setAveragine(avg);
