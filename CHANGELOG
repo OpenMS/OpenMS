@@ -38,6 +38,7 @@ Misc:
 - ProteinInference tool: Algorithm:score_type allows switching the main score (e.g., "RAW", "PEP") for BasicProteinInference. (#7769)
 
 Fixes:
+- Refactored Doxygen_Warning_Checker: Moved Implementation to Header(#7904)
 - fix Doxygen Docs contain stty warning for TOPP tool output (#7865)
 
 Library:
