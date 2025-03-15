@@ -7,8 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include "ExampleLibraryFile.h"
-
-using namespace std;
+#include <string> // Explicitly include necessary headers
 
 namespace OpenMSExternal //optional namespace... however you like it
 {
