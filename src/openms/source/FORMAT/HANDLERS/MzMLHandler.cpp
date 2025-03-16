@@ -59,6 +59,23 @@ namespace OpenMS::Internal
     /// Destructor
     MzMLHandler::~MzMLHandler() = default;
 
+    void MzMLHandler::populateSpectraWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data, Size& length, const PeakFileOptions& peak_file_options, SpectrumType& spectrum)
+    {
+        if (peak_file_options.getSkipSpectra())
+        {
+            return; // Skip loading spectra if the option is set
+        }
+        // Existing logic to populate spectra with data
+    }
+
+    void MzMLHandler::populateChromatogramsWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data, Size& length, const PeakFileOptions& peak_file_options, ChromatogramType& chromatogram)
+    {
+        if (peak_file_options.getSkipChromatograms())
+        {
+            return; // Skip loading chromatograms if the option is set
+        }
+        // Existing logic to populate chromatograms with data
+    }
     /// Set the peak file options
     void MzMLHandler::setOptions(const PeakFileOptions& opt)
     {
