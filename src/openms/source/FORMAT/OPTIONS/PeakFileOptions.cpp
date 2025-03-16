@@ -45,6 +45,26 @@ namespace OpenMS
 
   PeakFileOptions::~PeakFileOptions() = default;
 
+  void PeakFileOptions::setSkipChromatograms(bool skip_chromatograms)
+  {
+    skip_chromatograms_ = skip_chromatograms;
+  }
+
+  bool PeakFileOptions::getSkipChromatograms() const
+  {
+    return skip_chromatograms_;
+  }
+
+  void PeakFileOptions::setSkipSpectra(bool skip_spectra)
+  {
+    skip_spectra_ = skip_spectra;
+  }
+
+  bool PeakFileOptions::getSkipSpectra() const
+  {
+    return skip_spectra_;
+  }
+
   void PeakFileOptions::setMetadataOnly(bool only)
   {
     metadata_only_ = only;
