@@ -299,6 +299,11 @@ protected:
               String tmp = line.substr(7);
               spectrum.setMetaValue(Constants::UserParam::MSM_SMILES_STRING, tmp);
             }
+            else if (line.hasPrefix("IONMODE"))
+            {
+              String tmp = line.substr(8);
+              spectrum.setMetaValue("IONMODE", tmp);
+            }
             else if (line.hasPrefix("SPECTRUMID"))
             {
               String tmp = line.substr(11);
