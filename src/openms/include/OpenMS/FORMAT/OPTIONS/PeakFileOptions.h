@@ -30,6 +30,15 @@ public:
     ///Destructor
     ~PeakFileOptions();
 
+    // Set whether to skip loading chromatograms
+    void setSkipChromatograms(bool skip_chromatograms);
+    // Get whether to skip loading chromatograms
+    bool getSkipChromatograms() const;
+
+    // Set whether to skip loading spectra
+    void setSkipSpectra(bool skip_spectra);
+    // Get whether to skip loading spectra
+    bool getSkipSpectra() const;
     ///@name Meta data and file format option
     //@{
     ///sets whether or not to load only meta data
@@ -207,6 +216,8 @@ public:
     bool hasFilters() const;
 
 private:
+    bool skip_chromatograms_; // Flag to skip loading chromatograms
+    bool skip_spectra_; // Flag to skip loading spectra
     bool metadata_only_;
     bool force_maxquant_compatibility_; ///< for mzXML-writing only: set a fixed vendor (Thermo Scientific), mass analyzer (FTMS)
     bool force_tpp_compatibility_; ///< for mzML-writing only: work around some bugs in TPP file parsers
