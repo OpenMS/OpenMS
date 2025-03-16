@@ -65,13 +65,10 @@ namespace OpenMS::Internal
       options_ = opt;
       spectrum_data_.reserve(options_.getMaxDataPoolSize());
 
-      if (!options_.getSkipChromatograms())
+      skip_chromatogram_ = options_.getSkipChromatograms();
+      if (skip_chromatogram_ )
       {
         chromatogram_data_.reserve(options_.getMaxDataPoolSize());
-      }
-      else
-      {
-        skip_chromatogram_ = true;
       }
     }
 
@@ -765,12 +762,6 @@ namespace OpenMS::Internal
       }
       else if (tag == "chromatogram")
       {
-        if (skip_chromatogram_)
-        {
-          ++chromatogram_count_; 
-          return;
-        }
-      
         if (load_detail_ == XMLHandler::LD_COUNTS_WITHOPTIONS)
         { //, but we only want to count
           skip_chromatogram_ = true; // skip the remaining chrom, until endElement(chromatogram)
@@ -824,7 +815,6 @@ namespace OpenMS::Internal
       }
       else if (tag == "chromatogramList")
       {
-        // Skip_chromatogram_ is already set in setOptions if needed
         if (skip_chromatogram_)
         {
           return;
@@ -1309,7 +1299,10 @@ namespace OpenMS::Internal
         {
           case XMLHandler::LD_ALLDATA:
           case XMLHandler::LD_COUNTS_WITHOPTIONS:
-            skip_chromatogram_ = false; // don't skip the next chrom
+            if (!options_.getSkipChromatograms())
+            {
+              skip_chromatogram_ = false;  // don't skip the next chrom
+            }
             break;
           case XMLHandler::LD_RAWCOUNTS:
             skip_chromatogram_ = true; // we always skip chroms; we only need the outer <spectrumList/chromatogramList count=...>
