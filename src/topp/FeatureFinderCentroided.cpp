@@ -48,14 +48,16 @@ using namespace std;
 Reference:\n
 Weisser <em>et al.</em>: <a href="https://doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
 
-This module identifies "features" in a LC/MS map. By feature, we understand a peptide in a MS sample that
-reveals a characteristic isotope distribution. The algorithm
-computes positions in rt and m/z dimension and a charge estimate
+This module identifies "features" in a LC/MS map. By feature, we understand a peptide in an MS sample that
+reveals a characteristic isotope distribution over time. The algorithm
+computes positions in RT and m/z dimension and a charge estimate
 of each peptide.
 
 The algorithm identifies pronounced regions of the data around so-called <tt>seeds</tt>.
+The user can provide a list of seeds (e.g. from an identification run of MS/MS spectra) or the algorithm can compute seeds itself.
+
 In the next step, we iteratively fit a model of the isotope profile and the retention time to
-these data points. Data points with a low probability under this model are removed from the
+the initial seed data points. Data points with a low probability under this model are removed from the
 feature region. The intensity of the feature is then given by the sum of the data points included
 in its regions.
 
@@ -119,7 +121,9 @@ public:
                          "A novel feature detection algorithm for centroided data",
                          "Dissertation, 2010-09-15, p.37 ff",
                          "https://publikationen.uni-tuebingen.de/xmlui/bitstream/handle/10900/49453/pdf/Dissertation_Marc_Sturm.pdf"
-                       }
+                       },
+                Citation {"Weisser H", "An automated pipeline for high-throughput label-free quantitative proteomics",
+                          "J. Proteome Res., 2013, PMID: 23391308", "https://doi.org/10.1021/pr300992u"}
              })
   {}
 
