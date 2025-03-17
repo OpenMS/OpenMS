@@ -45,6 +45,9 @@ namespace OpenMS
 
   PeakFileOptions::~PeakFileOptions() = default;
 
+// Remove the duplicate constructor definition (originally at lines 48-78)
+
+// Updated original constructor (e.g., starting at line 15)
 PeakFileOptions::PeakFileOptions() :
     metadata_only_(false),
     force_maxquant_compatibility_(false),
