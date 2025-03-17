@@ -94,7 +94,174 @@ void MzMLHandler::populateSpectraWithData_(std::vector<MzMLHandlerHelper::Binary
     return;
   }
 
-  // Rest of the implementation...
+ void MzMLHandler::populateSpectraWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
+                                               Size& default_arr_length,
+                                               const PeakFileOptions& peak_file_options,
+                                               SpectrumType& spectrum)
+    {
+      typedef SpectrumType::PeakType PeakType;
+
+      // decode all base64 arrays
+      MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());
+
+      //look up the precision and the index of the intensity and m/z array
+      bool mz_precision_64 = true;
+      bool int_precision_64 = true;
+      SignedSize mz_index = -1;
+      SignedSize int_index = -1;
+      MzMLHandlerHelper::computeDataProperties_(input_data, mz_precision_64, mz_index, "m/z array");
+      MzMLHandlerHelper::computeDataProperties_(input_data, int_precision_64, int_index, "intensity array");
+
+      //Abort if no m/z or intensity array is present
+      if (int_index == -1 || mz_index == -1)
+      {
+        //if defaultArrayLength > 0 : warn that no m/z or int arrays is present
+        if (default_arr_length != 0)
+        {
+          warning(LOAD, String("The m/z or intensity array of spectrum '") + spectrum.getNativeID() + "' is missing and default_arr_length is " + default_arr_length + ".");
+        }
+        return;
+      }
+
+      // Error if intensity or m/z is encoded as int32|64 - they should be float32|64!
+      if ((!input_data[mz_index].ints_32.empty()) || (!input_data[mz_index].ints_64.empty()))
+      {
+        fatalError(LOAD, "Encoding m/z array as integer is not allowed!");
+      }
+      if ((!input_data[int_index].ints_32.empty()) || (!input_data[int_index].ints_64.empty()))
+      {
+        fatalError(LOAD, "Encoding intensity array as integer is not allowed!");
+      }
+
+      // Warn if the decoded data has a different size than the defaultArrayLength
+      Size mz_size = mz_precision_64 ? input_data[mz_index].floats_64.size() : input_data[mz_index].floats_32.size();
+      Size int_size = int_precision_64 ? input_data[int_index].floats_64.size() : input_data[int_index].floats_32.size();
+      // Check if int-size and mz-size are equal
+      if (mz_size != int_size)
+      {
+        fatalError(LOAD, String("The length of m/z and integer values of spectrum '") + spectrum.getNativeID() + "' differ (mz-size: " + mz_size + ", int-size: " + int_size + "! Not reading spectrum!");
+      }
+      bool repair_array_length = false;
+      if (default_arr_length != mz_size)
+      {
+        warning(LOAD, String("The m/z array of spectrum '") + spectrum.getNativeID() + "' has the size " + mz_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
+        repair_array_length = true;
+      }
+      if (default_arr_length != int_size)
+      {
+        warning(LOAD, String("The intensity array of spectrum '") + spectrum.getNativeID() + "' has the size " + int_size + ", but it should have size " + default_arr_length + " (defaultArrayLength).");
+        repair_array_length = true;
+      }
+      if (repair_array_length)
+      {
+        default_arr_length = int_size;
+        warning(LOAD, String("Fixing faulty defaultArrayLength to ") + default_arr_length + ".");
+      }
+
+      //create meta data arrays and reserve enough space for the content
+      if (input_data.size() > 2)
+      {
+        for (Size i = 0; i < input_data.size(); i++)
+        {
+          if (input_data[i].meta.getName() != "m/z array" && input_data[i].meta.getName() != "intensity array")
+          {
+            if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)
+            {
+              //create new array
+              spectrum.getFloatDataArrays().resize(spectrum.getFloatDataArrays().size() + 1);
+              //reserve space in the array
+              spectrum.getFloatDataArrays().back().reserve(input_data[i].size);
+              //copy meta info into MetaInfoDescription
+              spectrum.getFloatDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
+            }
+            else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
+            {
+              //create new array
+              spectrum.getIntegerDataArrays().resize(spectrum.getIntegerDataArrays().size() + 1);
+              //reserve space in the array
+              spectrum.getIntegerDataArrays().back().reserve(input_data[i].size);
+              //copy meta info into MetaInfoDescription
+              spectrum.getIntegerDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
+            }
+            else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
+            {
+              //create new array
+              spectrum.getStringDataArrays().resize(spectrum.getStringDataArrays().size() + 1);
+              //reserve space in the array
+              spectrum.getStringDataArrays().back().reserve(input_data[i].decoded_char.size());
+              //copy meta info into MetaInfoDescription
+              spectrum.getStringDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
+            }
+          }
+        }
+      }
+
+      // Copy meta data from m/z and intensity binary
+      // We don't have this as a separate location => store it in spectrum
+      for (Size i = 0; i < input_data.size(); i++)
+      {
+        if (input_data[i].meta.getName() == "m/z array" || input_data[i].meta.getName() == "intensity array")
+        {
+          std::vector<UInt> keys;
+          input_data[i].meta.getKeys(keys);
+          for (Size k = 0; k < keys.size(); ++k)
+          {
+            spectrum.setMetaValue(keys[k], input_data[i].meta.getMetaValue(keys[k]));
+          }
+        }
+      }
+
+      // We found that the push back approach is about 5% faster than using
+      // iterators (e.g. spectrum iterator that gets updated)
+
+      //add the peaks and the meta data to the container (if they pass the restrictions)
+      PeakType tmp;
+      spectrum.reserve(default_arr_length);
+
+      // the most common case: no ranges, 64 / 32 precision
+      //  -> this saves about 10 % load time
+      if ( mz_precision_64 && !int_precision_64 &&
+           input_data.size() == 2 &&
+           !peak_file_options.hasMZRange() &&
+           !peak_file_options.hasIntensityRange()
+         )
+      {
+        std::vector< double >::const_iterator mz_it = input_data[mz_index].floats_64.begin();
+        std::vector< float >::const_iterator int_it = input_data[int_index].floats_32.begin();
+        for (Size n = 0; n < default_arr_length; n++)
+        {
+          //add peak
+          tmp.setIntensity(*int_it);
+          tmp.setMZ(*mz_it);
+          ++mz_it;
+          ++int_it;
+          spectrum.push_back(tmp);
+        }
+        return;
+      }
+
+      for (Size n = 0; n < default_arr_length; n++)
+      {
+        double mz = mz_precision_64 ? input_data[mz_index].floats_64[n] : input_data[mz_index].floats_32[n];
+        double intensity = int_precision_64 ? input_data[int_index].floats_64[n] : input_data[int_index].floats_32[n];
+        if ((!peak_file_options.hasMZRange() || peak_file_options.getMZRange().encloses(DPosition<1>(mz)))
+           && (!peak_file_options.hasIntensityRange() || peak_file_options.getIntensityRange().encloses(DPosition<1>(intensity))))
+        {
+          //add peak
+          tmp.setIntensity(intensity);
+          tmp.setMZ(mz);
+          spectrum.push_back(tmp);
+
+          // Only if there are more than 2 data arrays, we need to check
+          // for meta data (as there will always be an m/z and intensity
+          // array)
+          if (input_data.size() > 2)
+          {
+            addSpectrumMetaData_(input_data, n, spectrum);
+          }
+        }
+      }
+    }
 }
 
 void MzMLHandler::populateChromatogramsWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
