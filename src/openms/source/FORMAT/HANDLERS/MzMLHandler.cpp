@@ -65,7 +65,34 @@ namespace OpenMS::Internal
         {
             return; // Skip loading spectra if the option is set
         }
-        // Existing logic to populate spectra with data
+        void MzMLHandler::populateSpectraWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
+                                               Size& default_arr_length,
+                                               const PeakFileOptions& peak_file_options,
+                                               SpectrumType& spectrum)
+    {
+      typedef SpectrumType::PeakType PeakType;
+
+      // decode all base64 arrays
+      MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());
+
+      //look up the precision and the index of the intensity and m/z array
+      bool mz_precision_64 = true;
+      bool int_precision_64 = true;
+      SignedSize mz_index = -1;
+      SignedSize int_index = -1;
+      MzMLHandlerHelper::computeDataProperties_(input_data, mz_precision_64, mz_index, "m/z array");
+      MzMLHandlerHelper::computeDataProperties_(input_data, int_precision_64, int_index, "intensity array");
+
+      //Abort if no m/z or intensity array is present
+      if (int_index == -1 || mz_index == -1)
+      {
+        //if defaultArrayLength > 0 : warn that no m/z or int arrays is present
+        if (default_arr_length != 0)
+        {
+          warning(LOAD, String("The m/z or intensity array of spectrum '") + spectrum.getNativeID() + "' is missing and default_arr_length is " + default_arr_length + ".");
+        }
+        return;
+      }
     }
 
     void MzMLHandler::populateChromatogramsWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data, Size& length, const PeakFileOptions& peak_file_options, ChromatogramType& chromatogram)
@@ -74,7 +101,34 @@ namespace OpenMS::Internal
         {
             return; // Skip loading chromatograms if the option is set
         }
-        // Existing logic to populate chromatograms with data
+        void MzMLHandler::populateSpectraWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
+                                               Size& default_arr_length,
+                                               const PeakFileOptions& peak_file_options,
+                                               SpectrumType& spectrum)
+    {
+      typedef SpectrumType::PeakType PeakType;
+
+      // decode all base64 arrays
+      MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());
+
+      //look up the precision and the index of the intensity and m/z array
+      bool mz_precision_64 = true;
+      bool int_precision_64 = true;
+      SignedSize mz_index = -1;
+      SignedSize int_index = -1;
+      MzMLHandlerHelper::computeDataProperties_(input_data, mz_precision_64, mz_index, "m/z array");
+      MzMLHandlerHelper::computeDataProperties_(input_data, int_precision_64, int_index, "intensity array");
+
+      //Abort if no m/z or intensity array is present
+      if (int_index == -1 || mz_index == -1)
+      {
+        //if defaultArrayLength > 0 : warn that no m/z or int arrays is present
+        if (default_arr_length != 0)
+        {
+          warning(LOAD, String("The m/z or intensity array of spectrum '") + spectrum.getNativeID() + "' is missing and default_arr_length is " + default_arr_length + ".");
+        }
+        return;
+      }
     }
     /// Set the peak file options
     void MzMLHandler::setOptions(const PeakFileOptions& opt)
