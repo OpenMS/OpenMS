@@ -112,8 +112,6 @@ public:
        * @name XML Handling and data parsing
        **/
       //@{
-	void populateSpectraWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data, Size& length, const PeakFileOptions& peak_file_options, SpectrumType& spectrum);
-	void populateChromatogramsWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data, Size& length, const PeakFileOptions& peak_file_options, ChromatogramType& chromatogram);
 
       /// Docu in base class XMLHandler::endElement
       void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
