@@ -13,7 +13,7 @@ namespace OpenMSExternal //optional namespace... however you like it
 {
   std::string ExampleLibraryFile::printSomething()
   {
-    return "this is the external library.";
+    return "Hello World from OpenMS!";
   }
 
 }
