@@ -165,8 +165,14 @@ set(CTEST_UPDATE_COMMAND "${GIT_EXECUTABLE}")
 ctest_update()
 
 ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" OPTIONS "${OWN_OPTIONS}" RETURN_VALUE _configure_ret)
-ctest_submit(PARTS Update Configure)
+ctest_submit(PARTS Update Configure CAPTURE_CMAKE_ERROR _submit_result)
 
+if(NOT _submit_result EQUAL 0)
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E echo "::warning file=cibuild.cmake,line=168::CTest submission failed, CDASH server is not available. Continuing execution."
+    )
+    message(WARNING "CTest submission failed, no detailed logs will be available.")
+endif()
 
 
 # we only build when we do non-style testing and we may have special targets like pyopenms
@@ -183,15 +189,23 @@ if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
 else()
   set(_build_errors 0)
 endif()
-ctest_submit(PARTS Build)
+## send test results to CDash
+ctest_submit(PARTS Build CAPTURE_CMAKE_ERROR _submit_result)
 
-
-string(REPLACE "+" "%2B" BUILD_NAME_SAFE ${CTEST_BUILD_NAME})
-string(REPLACE "." "%2E" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
-string(REPLACE "/" "%2F" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
-
-if (_build_errors)
-  message(FATAL_ERROR "There were errors: Please check the build results at: https://cdash.seqan.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}")
+if(NOT _submit_result EQUAL 0)
+  execute_process(COMMAND ${CMAKE_COMMAND} -E echo "::warning file=cibuild.cmake,line=193::CTest submission failed, CDASH server is not available. Continuing execution.")
+  message(WARNING "CTest submission failed, no detailed logs will be available.")
+  if (_test_errors)
+    message(FATAL_ERROR "There were errors: aborting")
+  endif()
 else()
-  message("Build successful: Please check the build results at: https://cdash.seqan.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}")
+  string(REPLACE "+" "%2B" BUILD_NAME_SAFE ${CTEST_BUILD_NAME})
+  string(REPLACE "." "%2E" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
+  string(REPLACE "/" "%2F" BUILD_NAME_SAFE ${BUILD_NAME_SAFE})
+  
+  if (_build_errors)
+    message(FATAL_ERROR "There were errors: Please check the build results at: https://cdash.seqan.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}")
+  else()
+    message("Build successful: Please check the build results at: https://cdash.seqan.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${BUILD_NAME_SAFE}")
+  endif()
 endif()
