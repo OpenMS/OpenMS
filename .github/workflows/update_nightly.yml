@@ -45,7 +45,7 @@ jobs:
         git merge develop --ff-only
         git push origin nightly
       env:
-        GITHUB_TOKEN: ${{ secrets.OPENMS_GITHUB_APP_PRIVATE_KEY }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Forcibly reset nightly 
       if: inputs.force
@@ -54,7 +54,7 @@ jobs:
         git reset --hard develop
         git push origin nightly -f
       env:
-        GITHUB_TOKEN: ${{ secrets.OPENMS_GITHUB_APP_PRIVATE_KEY }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Call CI
       if: steps.compare_branches.outputs.behind == 'true' || inputs.force
