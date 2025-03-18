@@ -31,6 +31,7 @@
 
 #include <vector>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
+#include <OpenMS/CONCEPT/CommonEnums.h>
 #include <numeric>
 #include <fstream>
 #include <iostream>
@@ -1040,7 +1041,8 @@ namespace OpenMS
     // finalize consensus map
 
     //TODO only if sample labels are not empty
-    consensus_map_.setExperimentType("labeled_MS1");
+    // Possible values are "label-free", "labeled_MS1", or "labeled_MS2" (see ConsensusMap::experiment_type_)
+    consensus_map_.setExperimentType("labeled_MS1"); 
     consensus_map_.sortByPosition();
     consensus_map_.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
@@ -1147,15 +1149,15 @@ namespace OpenMS
         // Add FAIMS CV as metadata to features
         for (Feature& feature : feature_map_temp)
         {
-          feature.setMetaValue("FAIMS_CV", cv_value);
+          feature.setMetaValue(std::string(DIM_NAMES[(int)DIM_UNIT::FAIMS_CV]), cv_value);
         }
         
         // Add FAIMS CV as metadata to consensus features
         for (ConsensusFeature& cf : consensus_map_temp)
         {
-          cf.setMetaValue("FAIMS_CV", cv_value);
+          cf.setMetaValue(std::string(DIM_NAMES[(int)DIM_UNIT::FAIMS_CV]), cv_value);
           
-          // Also add FAIMS CV to all feature handles in this consensus feature
+          // Note: We can't add FAIMS CV to feature handles as they don't support setMetaValue
           // Note: FeatureHandle doesn't support setMetaValue directly
           
         }
@@ -1187,7 +1189,8 @@ namespace OpenMS
       consensus_map_.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
       // Set experiment type
-      consensus_map_.setExperimentType("labeled_MS1");
+      // Possible values are "label-free", "labeled_MS1", or "labeled_MS2" (see ConsensusMap::experiment_type_)
+      consensus_map_.setExperimentType("labeled_MS1"); 
 
       // Set column headers
       Size i{0};
@@ -1198,11 +1201,11 @@ namespace OpenMS
       }
 
       // Add FAIMS information to the consensus map metadata
-      consensus_map_.setMetaValue("has_FAIMS_data", "true");
+      consensus_map_.setMetaValue("has_FAIMS_data", true);
       std::vector<double> cv_values(CVs.begin(), CVs.end());
-      consensus_map_.setMetaValue("FAIMS_compensation_voltages", cv_values);
-      consensus_map_.setMetaValue("FAIMS_compensation_voltage_count", static_cast<int>(CVs.size()));
-      feature_map_.setMetaValue("has_FAIMS_data", "true");
+      consensus_map_.setMetaValue(std::string(DIM_NAMES[(int)DIM_UNIT::FAIMS_CV]) + "_values", cv_values);
+      consensus_map_.setMetaValue(std::string(DIM_NAMES[(int)DIM_UNIT::FAIMS_CV]) + "_count", static_cast<int>(CVs.size()));
+      feature_map_.setMetaValue("has_FAIMS_data", true);
       
       return;  // We've processed all the FAIMS data, so we're done
     }
