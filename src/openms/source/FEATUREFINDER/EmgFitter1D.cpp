@@ -5,7 +5,6 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
-
 #include <OpenMS/FEATUREFINDER/EmgFitter1D.h>
 #include <OpenMS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/FEATUREFINDER/EmgModel.h>
@@ -205,7 +204,7 @@ namespace OpenMS
     for (Size i = 0; i < set.size(); ++i)
     {
       real_data.push_back(set[i].getIntensity());
-      model_data.push_back(model->getIntensity(DPosition<1>(set[i].getPosition())));
+      model_data.push_back(model->getIntensity(DPosition<1>(set[i].getPos())));
     }
 
     QualityType correlation = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
