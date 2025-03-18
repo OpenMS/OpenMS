@@ -107,6 +107,23 @@ namespace OpenMS
 
     defaultsToParam_();
   }
+ // Add the constructor definition here
+  FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound::FeatureFinderMetaboIdentCompound(const String& _name, 
+                                                                                                         const String& _formula, 
+                                                                                                         double _mass, 
+                                                                                                         const std::vector<int>& _charges, 
+                                                                                                         const std::vector<double>& _rts, 
+                                                                                                         const std::vector<double>& _rt_ranges, 
+                                                                                                         const std::vector<double>& _iso_distrib) :
+    name_(_name),
+    formula_(_formula),
+    mass_(_mass),
+    charges_(_charges),
+    rts_(_rts),
+    rt_ranges_(_rt_ranges),
+    iso_distrib_(_iso_distrib)
+  {
+  }
 
  void FeatureFinderAlgorithmMetaboIdent::updateMembers_()
   {
