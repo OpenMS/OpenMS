@@ -13,6 +13,26 @@
 
 namespace OpenMS
 {
+ LevMarqFitter1D::LevMarqFitter1D() : Fitter1D()
+  {
+    this->defaults_.setValue("max_iteration", 500, "Maximum number of iterations using by Levenberg-Marquardt algorithm.", {"advanced"});
+  }
+
+  LevMarqFitter1D::LevMarqFitter1D(const LevMarqFitter1D& source) 
+    : Fitter1D(source), max_iteration_(source.max_iteration_) {}
+
+  LevMarqFitter1D::~LevMarqFitter1D() {}
+
+  LevMarqFitter1D& LevMarqFitter1D::operator=(const LevMarqFitter1D& source)
+  {
+    if (&source == this)
+      return *this;
+
+    Fitter1D::operator=(source);
+    max_iteration_ = source.max_iteration_;
+
+    return *this;
+  }
 
     void LevMarqFitter1D::optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor) const
     {
