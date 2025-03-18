@@ -67,7 +67,7 @@ namespace OpenMS::Internal
 
       // Reserve memory for chromatogram data based on the maximum data pool size if chromatograms are to be skipped.
       skip_chromatogram_ = options_.getSkipChromatograms();
-      if (skip_chromatogram_ )
+      if (!skip_chromatogram_)
       {
         chromatogram_data_.reserve(options_.getMaxDataPoolSize());
       }
