@@ -94,10 +94,6 @@ void MzMLHandler::populateSpectraWithData_(std::vector<MzMLHandlerHelper::Binary
     return;
   }
 
- void MzMLHandler::populateSpectraWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
-                                               Size& default_arr_length,
-                                               const PeakFileOptions& peak_file_options,
-                                               SpectrumType& spectrum)
     {
       typedef SpectrumType::PeakType PeakType;
 
