@@ -29,41 +29,20 @@ namespace OpenMS
 
 
     /// Default constructor.
-    BaseModel() : DefaultParamHandler("BaseModel")
-    {
-      defaults_.setValue("cutoff", 0.0, "Low intensity cutoff of the model.  Peaks below this intensity are not considered part of the model.");
-    }
-
+    BaseModel();
     /// copy constructor
-    BaseModel(const BaseModel& source) : DefaultParamHandler(source), cut_off_(source.cut_off_)
-    {
-    }
-
+    BaseModel(const BaseModel& source);
     /// Destructor
-    ~BaseModel() override
-    {
-    }
+    ~BaseModel() override;
 
     /// assignment operator
-    BaseModel& operator=(const BaseModel& source)
-    {
-      if (&source == this)
-        return *this;
-
-      DefaultParamHandler::operator=(source);
-      cut_off_ = source.cut_off_;
-
-      return *this;
-    }
+    BaseModel& operator=(const BaseModel& source);
 
     /// access model predicted intensity at position @p pos
     virtual IntensityType getIntensity(const PositionType& pos) const = 0;
 
     /// check if position @p pos is part of the model regarding the models cut-off.
-    virtual bool isContained(const PositionType& pos) const
-    {
-      return getIntensity(pos) >= cut_off_;
-    }
+    virtual bool isContained(const PositionType& pos) const;
 
     /**@brief Convenience function to set the intensity of a peak to the
     predicted intensity at its current position, calling virtual void
@@ -88,38 +67,20 @@ namespace OpenMS
     }
 
     /// get cutoff value
-    virtual IntensityType getCutOff() const
-    {
-      return cut_off_;
-    }
+    virtual IntensityType getCutOff() const;
 
     /// set cutoff value
-    virtual void setCutOff(IntensityType cut_off)
-    {
-      cut_off_ = cut_off;
-      param_.setValue("cutoff", cut_off_);
-    }
+    virtual void setCutOff(IntensityType cut_off);
 
     /// get reasonable set of samples from the model (i.e. for printing)
     virtual void getSamples(SamplesType& cont) const = 0;
 
     /// fill stream with reasonable set of samples from the model (i.e. for printing)
-    virtual void getSamples(std::ostream& os)
-    {
-      SamplesType samples;
-      getSamples(samples);
-      for (typename SamplesType::const_iterator it = samples.begin(); it != samples.end(); ++it)
-      {
-        os << *it << std::endl;
-      }
-    }
+    virtual void getSamples(std::ostream& os);
 
   protected:
     IntensityType cut_off_;
 
-    void updateMembers_() override
-    {
-      cut_off_ = (double)param_.getValue("cutoff");
-    }
+    void updateMembers_() override;
   };
 } // namespace OpenMS
