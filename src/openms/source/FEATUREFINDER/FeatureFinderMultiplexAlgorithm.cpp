@@ -28,10 +28,10 @@
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-
-#include <vector>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/CONCEPT/CommonEnums.h>
+
+#include <vector>
 #include <numeric>
 #include <fstream>
 #include <iostream>
