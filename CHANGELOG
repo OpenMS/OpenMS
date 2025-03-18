@@ -25,7 +25,8 @@ OpenSwath:
 - Changes to -out_features (# 7793)
 	- Deprecate .tsv feature output
 	- Deprecate -out_osw, -out_tsv. -out_features is used for outputting .osw or .featureXML files and file format is autodetected.
-	- Enable outputting any feature file (.osw or .featureXML) from a .tsv library 
+	- Enable outputting any feature file (.osw or .featureXML) from a .tsv library
+- Move code from header (.h) to the implementation (.cpp file) fixes (#7904).
 - Add warning message if irt_im_extraction_window not set and im_window is set (#7813)
 - Add auto add up spectra across the peak width in retention time for ion mobility extraction (#7742)
 - Add peak-picking for extracted ion mobilogram (#7759)
