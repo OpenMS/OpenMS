@@ -38,8 +38,6 @@ public:
         const std::vector<double>& _rts, 
         const std::vector<double>& _rt_ranges, 
         const std::vector<double>& _iso_distrib);
-      {        
-      }
     
     private:
       String name_;
