@@ -13,6 +13,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
@@ -40,6 +41,7 @@ public:
   /// get methods
   FeatureMap& getFeatureMap();
   ConsensusMap& getConsensusMap();
+  /// @brief Returns the blacklist of peaks that were associated with detected features (for FAIMS data, this is a combined blacklist from all compensation voltages)
   MSExperiment& getBlacklist();
 
 protected:
@@ -67,7 +69,8 @@ protected:
   // final results, maps of detected features
   FeatureMap feature_map_;
   ConsensusMap consensus_map_;
-
+  
+  // blacklist of peaks that were associated with detected features (for FAIMS data, this is a combined blacklist from all compensation voltages)
   // blacklist
   MSExperiment exp_blacklist_;
 
@@ -130,6 +133,17 @@ protected:
    * @param cluster_results    clusters of filter results
    */
   void generateMapsProfile_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, const std::vector<std::map<int, GridBasedCluster> >& cluster_results);
+
+  /**
+   * @brief Process an individual peakmap and store results in the provided output parameters
+   *
+   * @param peakmap    The peakmap to process
+   * @param feature_map_out    Output feature map
+   * @param consensus_map_out    Output consensus map
+   * @param blacklist_out    Output blacklist
+   * @param progress    Show progress information
+   */
+  void processIndividualPeakmap_(PeakMap& peakmap, FeatureMap& feature_map_out, ConsensusMap& consensus_map_out, MSExperiment& blacklist_out, bool progress);
 
 };
 

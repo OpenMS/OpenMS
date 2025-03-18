@@ -30,6 +30,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <vector>
+#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <numeric>
 #include <fstream>
 #include <iostream>
@@ -872,6 +873,187 @@ namespace OpenMS
     endProgress();
   }
 
+  void FeatureFinderMultiplexAlgorithm::processIndividualPeakmap_(PeakMap& exp, FeatureMap& feature_map_out, ConsensusMap& consensus_map_out, MSExperiment& blacklist_out, bool progress) 
+  {
+    // This method contains the core processing logic from the run method,
+    // but stores results in the provided output parameters instead of member variables
+
+    progress_ = progress;
+
+    // check for empty experimental data
+    if (exp.getSpectra().empty())
+    {
+      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS1 spectra in input file.");
+    }
+
+    // update m/z and RT ranges
+    exp.updateRanges();
+
+    // sort according to RT and MZ
+    exp.sortSpectra();
+
+    // Clear the feature and consensus maps before processing non-FAIMS data
+    feature_map_.clear();
+    consensus_map_.clear();
+
+    // determine type of spectral data (profile or centroided)
+    SpectrumSettings::SpectrumType spectrum_type;
+
+    if (param_.getValue("algorithm:spectrum_type") == "automatic")
+    {
+      spectrum_type = exp[0].getType(true);
+      // The following means that UNKNOWN will be handled as profile.
+      centroided_ = (spectrum_type == SpectrumSettings::CENTROID);
+    }
+    else if (param_.getValue("algorithm:spectrum_type") == "centroid")
+    {
+      centroided_ = true;
+    }
+    else  // "profile"
+    {
+      centroided_ = false;
+    }
+
+    // Create local variables for this peakmap's results
+    FeatureMap feature_map_local;
+    ConsensusMap consensus_map_local;
+    MSExperiment exp_blacklist_local;
+    MSExperiment exp_centroid_local;
+    MSExperiment exp_profile_local;
+
+    // store experiment in local variables
+    if (centroided_)
+    {
+      exp.swap(exp_centroid_local);
+      // exp_profile_local will never be used.
+    }
+    else
+    {
+      exp.swap(exp_profile_local);
+      // exp_centroid_local will be constructed later on.
+    }
+
+    // Clear the member variables for this peakmap's processing
+    exp_blacklist_.clear(true);
+
+    /**
+     * pick peaks (if input data are in profile mode)
+     */
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s; // peak boundaries for spectra
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c; // peak boundaries for chromatograms
+
+    if (!centroided_)
+    {
+      PeakPickerHiRes picker;
+      Param param = picker.getParameters();
+      picker.setLogType(getLogType());
+      param.setValue("ms_levels", ListUtils::create<Int>("1"));
+      param.setValue("signal_to_noise", 0.0); // signal-to-noise estimation switched off
+      picker.setParameters(param);
+
+      picker.pickExperiment(exp_profile_local, exp_centroid_local, boundaries_exp_s, boundaries_exp_c);
+    }
+
+    /**
+     * generate peak patterns for subsequent filtering step
+     */
+    MultiplexDeltaMassesGenerator generator = MultiplexDeltaMassesGenerator(param_.getValue("algorithm:labels").toString(), param_.getValue("algorithm:missed_cleavages"), label_mass_shift_);
+    if (param_.getValue("algorithm:knock_out") == "true")
+    {
+      generator.generateKnockoutDeltaMasses();
+    }
+
+    #ifdef DEBUG
+    generator.printSamplesLabelsList(std::cout);
+    generator.printDeltaMassesList(std::cout);
+    #endif
+
+    std::vector<MultiplexDeltaMasses> masses = generator.getDeltaMassesList();
+    std::vector<MultiplexIsotopicPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
+
+    // Switch off averagine_similarity_scaling if we search for single peptide features only.
+    // (This scaling parameter is only relevant if we search for multiplets and (!) singlets.)
+    double averagine_similarity_scaling;
+    std::vector<std::vector<String> > list = generator.getSamplesLabelsList();
+    if (list.size() == 1 && list[0].size() == 1 && list[0][0] == "no_label")
+    {
+      // search for singlets only
+      averagine_similarity_scaling = 0.0;
+    }
+    else
+    {
+      // search for multiplets (and optionally singlets, if knock_out switched on)
+      averagine_similarity_scaling = param_.getValue("algorithm:averagine_similarity_scaling");
+    }
+
+    if (centroided_)
+    {
+      // centroided data
+
+      /**
+       * filter for peak patterns
+       */
+      MultiplexFilteringCentroided filtering(exp_centroid_local, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), averagine_similarity_scaling, param_.getValue("algorithm:averagine_type").toString());
+      filtering.setLogType(getLogType());
+      std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
+
+      /**
+       * cluster filter results
+       */
+      MultiplexClustering clustering(exp_centroid_local, param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:rt_typical"));
+      clustering.setLogType(getLogType());
+      std::vector<std::map<int, GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
+
+      /**
+       * construct feature and consensus maps i.e. the final results
+       */
+      filtering.getCentroidedExperiment().swap(exp_centroid_local);
+      generateMapsCentroided_(patterns, filter_results, cluster_results);
+    }
+    else
+    {
+      // profile data
+
+      /**
+       * filter for peak patterns
+       */
+      MultiplexFilteringProfile filtering(exp_profile_local, exp_centroid_local, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), averagine_similarity_scaling, param_.getValue("algorithm:averagine_type").toString());
+      filtering.setLogType(getLogType());
+      std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
+      exp_blacklist_local = filtering.getBlacklist();
+
+      /**
+       * cluster filter results
+       */
+      MultiplexClustering clustering(exp_profile_local, exp_centroid_local, boundaries_exp_s, param_.getValue("algorithm:rt_typical"));
+      clustering.setLogType(getLogType());
+      std::vector<std::map<int, GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
+
+      /**
+       * construct feature and consensus maps i.e. the final results
+       */
+      filtering.getCentroidedExperiment().swap(exp_centroid_local);
+      filtering.getPeakBoundaries().swap(boundaries_exp_s);
+      generateMapsProfile_(patterns, filter_results, cluster_results);
+    }
+
+    // finalize consensus map
+
+    //TODO only if sample labels are not empty
+    consensus_map_.setExperimentType("labeled_MS1");
+    consensus_map_.sortByPosition();
+    consensus_map_.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
+    // Copy the results to the output parameters
+    feature_map_out = feature_map_;
+    consensus_map_out = consensus_map_;
+    blacklist_out = exp_blacklist_local;
+
+    // Clear member variables for next use
+    feature_map_.clear();
+    consensus_map_.clear();
+  }
+
   void FeatureFinderMultiplexAlgorithm::run(MSExperiment& exp, bool progress)
   {
     // parameter section: algorithm, get selected charge range
@@ -914,6 +1096,115 @@ namespace OpenMS
     if (exp.getSpectra().empty())
     {
       throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS1 spectra in input file.");
+    }
+
+    // Check if this is FAIMS data
+    std::set<double> CVs = FAIMSHelper::getCompensationVoltages(exp);
+    bool is_faims_data = !CVs.empty();
+
+    // Clear the blacklist before processing (true = also clear meta data)
+    exp_blacklist_.clear(true);
+
+    if (is_faims_data)
+    {
+      if (progress_)
+      {
+        startProgress(0, CVs.size(), "processing FAIMS data");
+        OPENMS_LOG_INFO << "Detected FAIMS data with " << CVs.size() << " compensation voltages." << std::endl;
+      }
+
+      // Split the experiment by FAIMS CV
+      std::vector<PeakMap> split_peakmaps = IMDataConverter::splitByFAIMSCV(std::move(exp));
+      
+      // Clear the feature and consensus maps before processing FAIMS data
+      feature_map_.clear();
+      consensus_map_.clear();
+      
+      // Process each peakmap and combine results
+      for (size_t i = 0; i < split_peakmaps.size(); ++i)
+      {
+        if (progress_)
+        {
+          setProgress(i+1);
+          // Get the CV value for logging
+          auto it = CVs.begin();
+          std::advance(it, i);
+          OPENMS_LOG_INFO << "Processing FAIMS CV " << i+1 << " of " << split_peakmaps.size() << std::endl;
+        }
+        
+        FeatureMap feature_map_temp;
+        ConsensusMap consensus_map_temp;
+        MSExperiment blacklist_temp;
+        
+        // Process this peakmap
+        processIndividualPeakmap_(split_peakmaps[i], feature_map_temp, consensus_map_temp, blacklist_temp, progress);
+        
+        // Get the CV value for this peakmap
+        auto it = CVs.begin();
+        std::advance(it, i);
+        double cv_value = *it;
+        
+        // Add FAIMS CV as metadata to features
+        for (Feature& feature : feature_map_temp)
+        {
+          feature.setMetaValue("FAIMS_CV", cv_value);
+        }
+        
+        // Add FAIMS CV as metadata to consensus features
+        for (ConsensusFeature& cf : consensus_map_temp)
+        {
+          cf.setMetaValue("FAIMS_CV", cv_value);
+          
+          // Also add FAIMS CV to all feature handles in this consensus feature
+          // Note: FeatureHandle doesn't support setMetaValue directly
+          
+        }
+
+        // Add results to combined maps
+        feature_map_.insert(feature_map_.end(), feature_map_temp.begin(), feature_map_temp.end());
+        consensus_map_.insert(consensus_map_.end(), consensus_map_temp.begin(), consensus_map_temp.end());
+        
+        // Combine blacklists from all peakmaps
+        // Each peakmap has its own blacklist that needs to be added to the final result
+        // MSExperiment doesn't have an insert method, so we need to add spectra one by one
+        for (const auto& spec : blacklist_temp)
+        {
+          exp_blacklist_.addSpectrum(spec);
+        }
+        
+      }
+
+      if (progress_)
+      {
+        endProgress();
+      }
+      
+      // Finalize combined maps
+      feature_map_.sortByPosition();
+      feature_map_.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+      
+      consensus_map_.sortByPosition();
+      consensus_map_.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
+      // Set experiment type
+      consensus_map_.setExperimentType("labeled_MS1");
+
+      // Set column headers
+      Size i{0};
+      for (auto & ch : consensus_map_.getColumnHeaders())
+      {
+        ch.second.setMetaValue("channel_id", i);
+        ++i;
+      }
+
+      // Add FAIMS information to the consensus map metadata
+      consensus_map_.setMetaValue("has_FAIMS_data", "true");
+      std::vector<double> cv_values(CVs.begin(), CVs.end());
+      consensus_map_.setMetaValue("FAIMS_compensation_voltages", cv_values);
+      consensus_map_.setMetaValue("FAIMS_compensation_voltage_count", static_cast<int>(CVs.size()));
+      feature_map_.setMetaValue("has_FAIMS_data", "true");
+      
+      return;  // We've processed all the FAIMS data, so we're done
     }
 
     //TODO allow skipping?
@@ -1035,6 +1326,7 @@ namespace OpenMS
       /**
        * filter for peak patterns
        */
+      // For profile data, the blacklist is populated by the MultiplexFilteringProfile class in the filter() method
       MultiplexFilteringProfile filtering(exp_profile_, exp_centroid_, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), averagine_similarity_scaling, param_.getValue("algorithm:averagine_type").toString());
       filtering.setLogType(getLogType());
       std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
