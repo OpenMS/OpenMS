@@ -18,7 +18,7 @@ BaseModel::BaseModel() : DefaultParamHandler("BaseModel")
 }
 
 // Copy constructor
- BaseModel(const BaseModel& source) = default;
+BaseModel::BaseModel(const BaseModel& source) = default;
 
 // Destructor
 ~BaseModel() override = default;
