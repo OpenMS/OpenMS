@@ -18,14 +18,10 @@ BaseModel::BaseModel() : DefaultParamHandler("BaseModel")
 }
 
 // Copy constructor
-BaseModel::BaseModel(const BaseModel& source) : DefaultParamHandler(source), cut_off_(source.cut_off_)
-{
-}
+ BaseModel(const BaseModel& source) = default;
 
 // Destructor
-BaseModel::~BaseModel()
-{
-}
+~BaseModel() override = default;
 
 // Assignment operator
 BaseModel& BaseModel::operator=(const BaseModel& source)
