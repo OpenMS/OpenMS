@@ -18,7 +18,7 @@ namespace Eigen
   class Matrix;
   using MatrixXd = Matrix<double, -1, -1, 0, -1, -1>;
   using VectorXd = Matrix<double, -1, 1, 0, -1, 1>;
-}
+}// namespace Eigen
 
 namespace OpenMS
 {
@@ -57,4 +57,4 @@ namespace OpenMS
     void optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor) const;
     void updateMembers_() override;
   };
-}
+}// namespace OpenMS
