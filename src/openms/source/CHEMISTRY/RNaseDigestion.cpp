@@ -34,7 +34,7 @@ namespace OpenMS
     {
       three_prime_code = "3'-c";
     }
-    else
+    else if (three_prime_code != "")
     {
       three_prime_code = '['+three_prime_code+']';
     }
