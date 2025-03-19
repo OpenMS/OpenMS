@@ -48,6 +48,7 @@ START_SECTION(~FLASHDeconvAlgorithm())
   delete ptr;
 END_SECTION
 
+ptr = new FLASHDeconvAlgorithm();
 START_SECTION(FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& source))
   FLASHDeconvAlgorithm temp;
   temp.setParameters(ptr->getParameters());
@@ -69,7 +70,7 @@ END_SECTION
 ptr = new FLASHDeconvAlgorithm();
 Param params;
 START_SECTION(std::vector<double> getTolerances())
-  params.setValue("Algorithm:tol", ListUtils::create<double>("10.0,5.0"));
+  params.setValue("SD:tol", ListUtils::create<double>("10.0,5.0"));
   ptr->setParameters(params);
   auto tolerances = ptr->getTolerances();
   TEST_EQUAL(tolerances.size(), 2)
@@ -78,6 +79,7 @@ START_SECTION(std::vector<double> getTolerances())
 END_SECTION
 
 // load test data
+// TODO: minimize
 PeakMap input;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("thermo.mzML"), input);
 
