@@ -21,7 +21,7 @@ BaseModel::BaseModel() : DefaultParamHandler("BaseModel")
 BaseModel::BaseModel(const BaseModel& source) = default;
 
 // Destructor
-~BaseModel() override = default;
+BaseModel::~BaseModel() override = default;
 
 // Assignment operator
 BaseModel& BaseModel::operator=(const BaseModel& source)
