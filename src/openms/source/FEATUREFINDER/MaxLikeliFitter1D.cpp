@@ -13,7 +13,27 @@
 
 namespace OpenMS
 {
+MaxLikeliFitter1D::MaxLikeliFitter1D() : Fitter1D()
+  {
+  }
 
+  MaxLikeliFitter1D::MaxLikeliFitter1D(const MaxLikeliFitter1D& source) : Fitter1D(source)
+  {
+  }
+
+  MaxLikeliFitter1D::~MaxLikeliFitter1D()
+  {
+  }
+
+  MaxLikeliFitter1D& MaxLikeliFitter1D::operator=(const MaxLikeliFitter1D& source)
+  {
+    if (&source == this)
+      return *this;
+
+    Fitter1D::operator=(source);
+
+    return *this;
+  }
   void MaxLikeliFitter1D::updateMembers_()
   {
     Fitter1D::updateMembers_();
