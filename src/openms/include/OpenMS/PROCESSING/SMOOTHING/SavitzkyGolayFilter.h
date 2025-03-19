@@ -11,6 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/Mobilogram.h> 
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
@@ -180,6 +181,19 @@ public:
       filter(chromatogram.begin(), chromatogram.end(), output.begin());
       // swap back
       std::swap(chromatogram, output);
+    }
+
+    /**
+      @brief Removed the noise from an Mobilogram
+    */
+    void filter(Mobilogram & mobilogram)
+    {
+      // copy the data AND META DATA to the output container
+      Mobilogram output = mobilogram;
+      // filter
+      filter(mobilogram.begin(), mobilogram.end(), output.begin());
+      // swap back
+      std::swap(mobilogram, output);
     }
 
     /**

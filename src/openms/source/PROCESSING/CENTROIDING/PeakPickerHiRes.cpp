@@ -12,6 +12,7 @@
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/KERNEL/Mobilogram.h>
 #include <OpenMS/MATH/MISC/SplineBisection.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
@@ -68,6 +69,12 @@ namespace OpenMS
     pick(input, output, boundaries);
   }
 
+  void PeakPickerHiRes::pick(const Mobilogram& input, Mobilogram& output) const
+  {
+    std::vector<PeakBoundary> boundaries;
+    pick(input, output, boundaries);
+  }
+
   void PeakPickerHiRes::pick(const MSSpectrum& input, MSSpectrum& output, std::vector<PeakBoundary>& boundaries, bool check_spacings) const
   {
     // copy meta data of the input spectrum
@@ -92,6 +99,16 @@ namespace OpenMS
     output.ChromatogramSettings::operator=(input);
     output.MetaInfoInterface::operator=(input);
     output.setName(input.getName());
+
+    pick_(input, output, boundaries, check_spacings);
+  }
+
+  void PeakPickerHiRes::pick(const Mobilogram& input, Mobilogram& output, std::vector<PeakBoundary>& boundaries, bool check_spacings) const
+  {
+    // copy meta data of the input mobilogram
+    output.clear();
+    output.setRT(input.getRT());
+    output.setDriftTimeUnit(input.getDriftTimeUnit());
 
     pick_(input, output, boundaries, check_spacings);
   }

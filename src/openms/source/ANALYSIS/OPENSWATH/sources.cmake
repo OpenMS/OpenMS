@@ -30,6 +30,7 @@ set(sources_list
   OpenSwathWorkflow.cpp
   PeakIntegrator.cpp
   PeakPickerChromatogram.cpp
+  PeakPickerMobilogram.cpp
   SwathMapMassCorrection.cpp
   SwathWindowLoader.cpp
   SwathQC.cpp

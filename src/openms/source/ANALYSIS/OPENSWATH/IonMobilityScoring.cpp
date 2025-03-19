@@ -21,6 +21,7 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMobilogram.h>
 
 // #define DEBUG_IMSCORING
 
@@ -128,6 +129,16 @@ namespace OpenMS
     }
   }
 
+  std::vector<double> IonMobilityScoring::extractIntensities(const Mobilogram& mobilogram) {
+    std::vector<double> mobility_int;
+    mobility_int.reserve(mobilogram.size());
+    for (const auto& k : mobilogram) 
+    {
+      mobility_int.push_back(k.getIntensity());
+    }
+    return mobility_int;
+  }
+
   // compute ion mobilogram as well as im weighted average. This is based off of integrateWindows() in DIAHelper.cpp
   void IonMobilityScoring::computeIonMobilogram(const SpectrumSequence& spectra,
                               const RangeMZ& mz_range,
@@ -200,6 +211,41 @@ namespace OpenMS
     }
   }
 
+  Mobilogram sumAlignedMobilograms(const std::vector<Mobilogram>& aligned_mobilograms) 
+  {
+    if (aligned_mobilograms.empty()) return {};
+
+    OPENMS_PRECONDITION(
+      std::all_of(aligned_mobilograms.begin() + 1, aligned_mobilograms.end(),
+                  [reference_size = aligned_mobilograms[0].size()](const Mobilogram& mobilogram) {
+                      return mobilogram.size() == reference_size;
+                  }),
+      "All Mobilograms in aligned_mobilograms must have the same size."
+  );
+
+    Mobilogram summed_mobilogram;
+
+    // Use the first mobilogram to set the structure
+    const auto& first_mobilogram = aligned_mobilograms[0];
+    // Reserve space in advance
+    summed_mobilogram.reserve(first_mobilogram.size()); 
+
+    for (size_t j = 0; j < first_mobilogram.size(); ++j) {
+      MobilityPeak1D summed_peak{first_mobilogram[j].getMobility(), 0.0}; 
+
+      // Sum intensities from all mobilograms
+      for (const auto& mobilogram : aligned_mobilograms) {
+        if (j < mobilogram.size()) {
+          summed_peak.setIntensity(summed_peak.getIntensity() + mobilogram[j].getIntensity());
+        }
+      }
+
+      summed_mobilogram.push_back(summed_peak);
+    }
+
+    return summed_mobilogram;
+  }
+
   /// Constructor
   IonMobilityScoring::IonMobilityScoring() = default;
 
@@ -243,7 +289,7 @@ namespace OpenMS
     im_range.scaleBy(drift_extra * 2. + 1); // multiple by 2 because want drift extra to be extended by that amount on either side
 
     // Step 1: MS2 extraction
-    std::vector< OpenMS::Mobilogram > ms2_mobilograms;
+    std::vector< Mobilogram > ms2_mobilograms;
     for (std::size_t k = 0; k < transitions.size(); k++)
     {
       double im(0), intensity(0);
@@ -260,7 +306,7 @@ namespace OpenMS
     // Step 2: MS1 extraction
     double im(0), intensity(0);
     Mobilogram ms1_profile;
-    std::vector< OpenMS::Mobilogram > ms1_mobilograms;
+    std::vector< Mobilogram > ms1_mobilograms;
     RangeMZ mz_range = DIAHelpers::createMZRangePPM(transitions[0].getPrecursorMZ(), dia_extract_window_, dia_extraction_ppm_);
 
     computeIonMobilogram(ms1spectrum, mz_range, im_range, im, intensity, ms1_profile, eps); // TODO: aggregate over isotopes
@@ -270,7 +316,7 @@ namespace OpenMS
     ms2_mobilograms.pop_back();
 
     // Step 3: Align the IonMobilogram vectors to the grid
-    std::vector< OpenMS::Mobilogram > aligned_ms2_mobilograms;
+    std::vector< Mobilogram > aligned_ms2_mobilograms;
     for (const auto & mobilogram : ms2_mobilograms)
     {
       Mobilogram aligned_mobilogram;
@@ -331,7 +377,6 @@ namespace OpenMS
                                            RangeMobility im_range,
                                            const double dia_extract_window_,
                                            const bool dia_extraction_ppm_,
-                                           const bool /* use_spline */,
                                            const double drift_extra)
   {
     OPENMS_PRECONDITION(!spectra.empty(), "Spectra cannot be empty")
@@ -367,8 +412,8 @@ namespace OpenMS
                                         RangeMobility im_range,
                                         const double dia_extract_window_,
                                         const bool dia_extraction_ppm_,
-                                        const bool /* use_spline */,
-                                        const double drift_extra)
+                                        const double drift_extra,
+                                        const bool apply_im_peak_picking)
   {
     OPENMS_PRECONDITION(!spectra.empty(), "Spectra cannot be empty");
     for (auto s:spectra)
@@ -392,7 +437,7 @@ namespace OpenMS
     int tr_used = 0;
 
     // Step 1: MS2 extraction
-    std::vector< OpenMS::Mobilogram > ms2_mobilograms;
+    std::vector< Mobilogram > ms2_mobilograms;
     for (std::size_t k = 0; k < transitions.size(); k++)
     {
       const TransitionType transition = transitions[k];
@@ -443,16 +488,42 @@ namespace OpenMS
     scores.im_delta = delta_drift;
     scores.im_drift = computed_im;
     scores.im_drift_weighted = computed_im_weighted;
+    scores.im_log_intensity = std::log(sum_intensity + 1);
 
     // Step 2: Align the IonMobilogram vectors to the grid
     std::vector<double> im_grid = computeGrid_(ms2_mobilograms, eps);
-    std::vector< OpenMS::Mobilogram > aligned_ms2_mobilograms;
+    std::vector< Mobilogram > aligned_ms2_mobilograms;
     for (const auto & mobilogram : ms2_mobilograms)
     {
       Mobilogram aligned_mobilogram;
       Size max_peak_idx = 0;
       alignToGrid_(mobilogram, im_grid, aligned_mobilogram, eps, max_peak_idx);
       if (!aligned_mobilogram.empty()) aligned_ms2_mobilograms.push_back(std::move(aligned_mobilogram));
+    }
+
+    if ( apply_im_peak_picking ) {
+      PeakPickerMobilogram::PeakPositions peak_pos{};
+      // Ion mobilogram cannot be empty and cannot have a single point
+      if ( !aligned_ms2_mobilograms.empty() && aligned_ms2_mobilograms[0].size()!=1 )
+      {
+        Mobilogram summed_mobilogram = sumAlignedMobilograms(aligned_ms2_mobilograms);
+        PeakPickerMobilogram picker_;
+        Param picker_params = picker_.getParameters();
+        picker_params.setValue("method", "corrected");
+        picker_.setParameters(picker_params);
+        Mobilogram picked_mobilogram;
+
+        picker_.pickMobilogram(summed_mobilogram, picked_mobilogram);
+        picker_.filterTopPeak(picked_mobilogram, aligned_ms2_mobilograms, peak_pos);
+
+        scores.im_drift_left = im_grid[peak_pos.left];
+        scores.im_drift_right = im_grid[peak_pos.right];
+      }
+      else
+      {
+        scores.im_drift_left = -1;
+        scores.im_drift_right = -1;
+      }
     }
 
     // Step 3: Compute cross-correlation scores based on ion mobilograms
@@ -473,5 +544,184 @@ namespace OpenMS
 
     scores.im_xcorr_coelution_score = xcorr_coelution_score;
     scores.im_xcorr_shape_score = xcorr_shape_score;
+  }
+
+  void IonMobilityScoring::driftIdScoring(const SpectrumSequence& spectra,
+                                          const std::vector<TransitionType> & transition,
+                                          MRMTransitionGroupType& trgr_detect,
+                                          OpenSwath_Scores &scores,
+                                          const double drift_target,
+                                          RangeMobility im_range,
+                                          const double dia_extract_window_,
+                                          const bool dia_extraction_ppm_,
+                                          const double drift_extra,
+                                          const bool apply_im_peak_picking)
+  {
+      // OPENMS_PRECONDITION(spectrum != nullptr, "Spectrum cannot be null");
+      // OPENMS_PRECONDITION(!transition.empty(), "Need at least one transition");
+
+      // if (spectrum->getDriftTimeArray() == nullptr)
+      // {
+      //   OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << std::endl;
+      //   return;
+      // }
+
+      OPENMS_PRECONDITION(!spectra.empty(), "Spectra cannot be empty");
+      for (auto s:spectra)
+      {
+        if (s->getDriftTimeArray() == nullptr)
+        {
+          OPENMS_LOG_DEBUG << " ERROR: Drift time is missing in ion mobility spectrum!" << std::endl;
+          return;
+        }
+      }
+
+      double eps = 1e-5; // eps for two grid cells to be considered equal
+
+      im_range.scaleBy(drift_extra * 2. + 1); // multiple by 2 because want drift extra to be extended by that amount on either side
+
+      Mobilogram res;
+      double im(0), intensity(0);
+      RangeMZ mz_range = DIAHelpers::createMZRangePPM(transition[0].getProductMZ(), dia_extract_window_, dia_extraction_ppm_);
+      computeIonMobilogram(spectra, mz_range, im_range, im, intensity, res, eps);
+
+      // Record the measured ion mobility
+      scores.im_drift = im;
+
+      // Calculate the difference of the theoretical ion mobility and the actually measured ion mobility
+      scores.im_delta_score = fabs(drift_target - im);
+      scores.im_delta = drift_target - im;
+
+      scores.im_log_intensity = std::log1p(intensity);
+      OPENMS_LOG_DEBUG << "Identification Transition IM Scoring for " << transition[0].transition_name << " range (" << im_range.getMin() << " - " << im_range.getMax() << ") IM = " << im << " im_delta = " << drift_target - im << " int = " << intensity << " log int = " << std::log(intensity+1) << std::endl;
+
+      // Cross-Correlation of Identification against Detection Mobilogram Features
+
+      std::vector< Mobilogram > mobilograms;
+
+      // Step 1: MS2 detection transitions extraction
+      for (std::size_t k = 0; k < trgr_detect.getTransitions().size(); k++)
+      {
+        double detection_im(0), detection_intensity(0);
+        Mobilogram detection_mobilograms;
+        const TransitionType detection_transition = trgr_detect.getTransitions()[k];
+
+        RangeMZ detection_mz_range = DIAHelpers::createMZRangePPM(detection_transition.getProductMZ(), dia_extract_window_, dia_extraction_ppm_);
+        computeIonMobilogram(spectra, detection_mz_range, im_range, detection_im, detection_intensity, detection_mobilograms, eps);
+        mobilograms.push_back( std::move(detection_mobilograms) );
+      }
+
+      // Step 2: MS2 single identification transition extraction
+      double identification_im(0), identification_intensity(0);
+      Mobilogram identification_mobilogram;
+
+      RangeMZ identification_mz_range = DIAHelpers::createMZRangePPM(transition[0].getProductMZ(), dia_extract_window_, dia_extraction_ppm_);
+      computeIonMobilogram(spectra, identification_mz_range, im_range, identification_im, identification_intensity, identification_mobilogram, eps);
+      mobilograms.push_back(identification_mobilogram);
+
+      // Check to make sure IM of identification is not -1, otherwise assign 0 for scores
+      if ( identification_im != -1 )
+      {
+        std::vector<double> im_grid = computeGrid_(mobilograms, eps); // ensure grid is based on all profiles!
+        mobilograms.pop_back();
+
+        // Step 3.0: Align the IonMobilogram vectors to the grid
+        std::vector< Mobilogram > aligned_mobilograms;
+        for (const auto &mobilogram : mobilograms)
+        {
+          Mobilogram aligned_mobilogram;
+          Size max_peak_idx = 0;
+          alignToGrid_(mobilogram, im_grid, aligned_mobilogram, eps, max_peak_idx);
+          aligned_mobilograms.push_back(std::move(aligned_mobilogram));
+        }
+
+        // Step 3.1: Align the Identification IonMobilogram vectors to the same grid as the detection transitions
+        Mobilogram aligned_identification_mobilogram;
+        Size max_peak_idx = 0;
+        alignToGrid_(identification_mobilogram,
+                    im_grid,
+                    aligned_identification_mobilogram,
+                    eps,
+                    max_peak_idx);
+
+        if ( apply_im_peak_picking ) 
+        {
+          PeakPickerMobilogram::PeakPositions peak_pos{};
+          PeakPickerMobilogram picker_;
+          Param picker_params = picker_.getParameters();
+          picker_params.setValue("method", "corrected");
+          picker_.setParameters(picker_params);
+          Mobilogram picked_mobilogram;
+          // Ion mobilogram cannot be empty and cannot have a single point
+          if ( !aligned_mobilograms.empty() && aligned_mobilograms[0].size()!=1 )
+          {
+            Mobilogram summed_mobilogram = sumAlignedMobilograms(aligned_mobilograms);
+
+            picker_.pickMobilogram(summed_mobilogram, picked_mobilogram);
+            picker_.filterTopPeak(picked_mobilogram, aligned_mobilograms, peak_pos);
+
+            scores.im_drift_left = im_grid[peak_pos.left];
+            scores.im_drift_right = im_grid[peak_pos.right];
+          }
+          else
+          {
+            scores.im_drift_left = -1;
+            scores.im_drift_right = -1;
+          }
+
+          // Identification ion mobilogram cannot be empty and cannot have a single point
+          if ( !aligned_identification_mobilogram.empty() && aligned_identification_mobilogram.size()!=1 )
+          {
+            picker_.filterTopPeak(picked_mobilogram, aligned_identification_mobilogram, peak_pos);
+          }
+        }
+
+        std::vector< std::vector< double > > aligned_int_vec;
+        extractIntensities(aligned_mobilograms, aligned_int_vec);
+        std::vector< double > identification_int_values = extractIntensities(aligned_identification_mobilogram);
+
+        // Step 4: Identification transition contrast scores
+        {
+          OpenSwath::MRMScoring mrmscore_;
+          mrmscore_.initializeXCorrPrecursorContrastMatrix({identification_int_values}, aligned_int_vec);
+          OPENMS_LOG_DEBUG << "all-all: Contrast Scores : coelution identification transition : "
+                           << mrmscore_.calcXcorrPrecursorContrastCoelutionScore()
+                           << " / shape  identification transition " <<
+                           mrmscore_.calcXcorrPrecursorContrastShapeScore() << std::endl;
+          scores.im_ind_contrast_coelution = mrmscore_.calcXcorrPrecursorContrastCoelutionScore();
+          scores.im_ind_contrast_shape = mrmscore_.calcXcorrPrecursorContrastShapeScore();
+        }
+
+        // Step 5: contrast identification transition vs summed detecting transition ions
+        std::vector<double> fragment_values;
+        fragment_values.resize(identification_int_values.size(), 0);
+        for (Size k = 0; k < fragment_values.size(); k++)
+        {
+          for (Size i = 0; i < aligned_int_vec.size(); i++)
+          {
+            fragment_values[k] += aligned_int_vec[i][k];
+          }
+        }
+
+        OpenSwath::MRMScoring mrmscore_;
+        // horribly broken: provides vector of length 1, but expects at least length 2 in calcXcorrPrecursorContrastCoelutionScore()
+        mrmscore_.initializeXCorrPrecursorContrastMatrix({identification_int_values}, {fragment_values});
+        OPENMS_LOG_DEBUG << "Contrast Scores : coelution identification transition : "
+                         << mrmscore_.calcXcorrPrecursorContrastSumFragCoelutionScore()
+                         << " / shape  identification transition " <<
+                         mrmscore_.calcXcorrPrecursorContrastSumFragShapeScore() << std::endl;
+
+        // in order to prevent assertion error call calcXcorrPrecursorContrastSumFragCoelutionScore, same as calcXcorrPrecursorContrastCoelutionScore() however different assertion
+        scores.im_ind_sum_contrast_coelution = mrmscore_.calcXcorrPrecursorContrastSumFragCoelutionScore();
+
+        // in order to prevent assertion error call calcXcorrPrecursorContrastSumFragShapeScore(), same as calcXcorrPrecursorContrastShapeScore() however different assertion.
+        scores.im_ind_sum_contrast_shape = mrmscore_.calcXcorrPrecursorContrastSumFragShapeScore();
+      } else {
+        OPENMS_LOG_DEBUG << "Identification Transition IM Scoring for " << transition[0].transition_name << " was -1. There was most likely no drift spectrum for the transition, setting cross-correlation scores to 0!" << std::endl;
+        scores.im_ind_contrast_coelution = 0;
+        scores.im_ind_contrast_shape = 0;
+        scores.im_ind_sum_contrast_coelution = 0;
+        scores.im_ind_sum_contrast_shape = 0;
+      }
   }
 }
