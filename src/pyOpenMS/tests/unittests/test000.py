@@ -2581,8 +2581,6 @@ def testSample():
      Sample.getConcentration
      Sample.getSubsamples
      Sample.setSubsamples
-     Sample.removeTreatment
-     Sample.countTreatments
      """
     ins = pyopenms.Sample()
 
@@ -2614,7 +2612,6 @@ def testSample():
     except Exception:
         has_exception = True
     assert has_exception
-    assert ins.countTreatments() == 0
 
 @report
 def testLogType():
@@ -4459,8 +4456,8 @@ def testPrecursor():
     assert not prec != prec2
 
     # Test activation methods
-    methods = set([pyopenms.Precursor.ActivationMethod.CID, 
-                  pyopenms.Precursor.ActivationMethod.HCD])
+    methods = set([pyopenms.ActivationMethod.CID, 
+                  pyopenms.ActivationMethod.HCD])
     methods_short = ["CID", "HCD"]
     methods_long = ["Collision-induced dissociation", "beam-type collision-induced dissociation"]
     prec.setActivationMethods(methods)
@@ -4478,12 +4475,12 @@ def testPrecursor():
 
     # Test static methods for all activation methods
     all_names = pyopenms.Precursor.getAllNamesOfActivationMethods()
-    assert len(all_names) == pyopenms.Precursor.ActivationMethod.SIZE_OF_ACTIVATIONMETHOD
-    assert all_names[pyopenms.Precursor.ActivationMethod.CID].decode() == "Collision-induced dissociation"
+    assert len(all_names) == pyopenms.ActivationMethod.SIZE_OF_ACTIVATIONMETHOD
+    assert all_names[pyopenms.ActivationMethod.CID].decode() == "Collision-induced dissociation"
     
     all_short_names = pyopenms.Precursor.getAllShortNamesOfActivationMethods()
-    assert len(all_short_names) == pyopenms.Precursor.ActivationMethod.SIZE_OF_ACTIVATIONMETHOD
-    assert all_short_names[pyopenms.Precursor.ActivationMethod.CID].decode() == "CID"
+    assert len(all_short_names) == pyopenms.ActivationMethod.SIZE_OF_ACTIVATIONMETHOD
+    assert all_short_names[pyopenms.ActivationMethod.CID].decode() == "CID"
 
     # Test isolation window
     prec.setIsolationWindowLowerOffset(0.5)
