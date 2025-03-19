@@ -39,6 +39,7 @@ public:
     QualityType fit1d(const RawDataArrayType& range, std::unique_ptr<InterpolationModel>& model) override;
 
 protected:
+/// Helper struct (contains the size of an area and a raw data container)
     void setInitialParameters_(const RawDataArrayType& set);
     void setInitialParametersMOM_(const RawDataArrayType& set);
     void updateMembers_() override;
@@ -46,9 +47,13 @@ protected:
     // Inner classes and member variables
     struct Data;
     class EgmFitterFunctor;
+/// Parameter of emg - peak height
     CoordinateType height_;
+/// Parameter of emg - peak width
     CoordinateType width_;
+/// Parameter of emg - peak symmetry
     CoordinateType symmetry_;
+/// Parameter of emg - peak retention time
     CoordinateType retention_;
   };
 }
