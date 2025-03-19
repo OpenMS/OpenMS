@@ -68,7 +68,6 @@ MapNormalizer
 MapRTTransformer
 MapStatistics
 MaRaClusterAdapter
-MascotAdapter
 MascotAdapterOnline
 MassCalculator
 MassTraceExtractor
