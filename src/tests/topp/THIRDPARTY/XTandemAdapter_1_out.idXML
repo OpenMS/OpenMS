@@ -44,6 +44,7 @@
 				<UserParam type="string" name="XTandemAdapter:1:allow_nterm_protein_cleavage" value="true"/>
 				<UserParam type="string" name="XTandemAdapter:1:name" value="auto"/>
 				<UserParam type="string" name="XTandemAdapter:1:specificity" value="auto"/>
+				<UserParam type="string" name="extra_features" value="XTANDEM:frac_ion_b,XTANDEM:frac_ion_y,XTANDEM:deltascore"/>
 	</SearchParameters>
 	<IdentificationRun date="2021-10-12T14:46:32" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="XTandem" higher_score_better="false" significance_threshold="0" >
@@ -72,6 +73,9 @@
 				<UserParam type="int" name="y_ions" value="18"/>
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTANDEM:deltascore" value="48.5"/>
+				<UserParam type="float" name="XTANDEM:frac_ion_b" value="0.142857142857143"/>
+				<UserParam type="float" name="XTANDEM:frac_ion_y" value="1.285714285714286"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0.0" MZ="1063.209838867190001" RT="4587.6689453125" spectrum_reference="spectrum=1" >
@@ -87,6 +91,9 @@
 				<UserParam type="int" name="y_ions" value="10"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTANDEM:deltascore" value="69.9"/>
+				<UserParam type="float" name="XTANDEM:frac_ion_b" value="0.571428571428571"/>
+				<UserParam type="float" name="XTANDEM:frac_ion_y" value="0.357142857142857"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0.0" MZ="775.38720703125" RT="4923.77734375" spectrum_reference="spectrum=2" >
@@ -102,6 +109,9 @@
 				<UserParam type="int" name="y_ions" value="13"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTANDEM:deltascore" value="78.6"/>
+				<UserParam type="float" name="XTANDEM:frac_ion_b" value="0.695652173913044"/>
+				<UserParam type="float" name="XTANDEM:frac_ion_y" value="0.565217391304348"/>
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

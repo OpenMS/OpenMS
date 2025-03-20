@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -474,6 +474,19 @@ namespace OpenMS
     {
     public:
       FileNotFound(const char* file, int line, const char* function, const std::string& filename) noexcept;
+    };
+
+    /**
+      @brief External executable (e.g. comet.exe) not found exception.
+
+      A given file could not be found. Usually used in Adapters for external tools.
+
+      @ingroup Exceptions
+    */
+    class OPENMS_DLLAPI ExternalExecutableNotFound : public BaseException
+    {
+    public:
+      ExternalExecutableNotFound(const char* file, int line, const char* function, const std::string& filename) noexcept;
     };
 
     /**

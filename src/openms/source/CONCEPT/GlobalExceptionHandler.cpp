@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -17,12 +17,9 @@
 #include <iostream>
 
 #ifndef OPENMS_WINDOWSPLATFORM
-#ifdef OPENMS_HAS_UNISTD_H
-#include <unistd.h> // for getpid
-#endif
-#ifdef OPENMS_HAS_PROCESS_H
-#include <process.h>
-#endif
+  #ifdef OPENMS_HAS_UNISTD_H
+  #include <unistd.h> // for getpid
+  #endif
 #endif
 
 #define OPENMS_CORE_DUMP_ENVNAME "OPENMS_DUMP_CORE"

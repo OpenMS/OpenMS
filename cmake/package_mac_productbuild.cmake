@@ -1,8 +1,8 @@
 # --------------------------------------------------------------------------
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
+# Copyright OpenMS Inc. -- Eberhard Karls University Tuebingen,
+# ETH Zurich, and Freie Universitaet Berlin 2002-present.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -40,7 +40,6 @@
 # For info about productbuild and the flat package format see https://matthew-brett.github.io/docosx/flat_packages.html
 
 set(CPACK_PACKAGING_INSTALL_PREFIX "/Applications/${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}")
-set(CPACK_GENERATOR "productbuild")
 set(CPACK_PRODUCTBUILD_IDENTIFIER "de.openms")
 set(CPACK_PRODUCTBUILD_RESOURCES_DIR ${PROJECT_SOURCE_DIR}/cmake/MacOSX)
 set(CPACK_PRODUCTBUILD_BACKGROUND ${OPENMS_LOGOSMALL_NAME})
@@ -58,9 +57,8 @@ endif()
 # The template would go in cmake/Modules which is already in our Module path.
 # Official template is here: https://gitlab.kitware.com/cmake/cmake/-/blob/v3.27.4/Modules/Internal/CPack/CPack.distribution.dist.in?ref_type=tags
 
-# reuse signing identity from signing app bundles (as in dmg)
-if(NOT DEFINED CPACK_PKGBUILD_IDENTITY_NAME)
-  message(WARNING "CPACK_PKGBUILD_IDENTITY_NAME not set. PKG will not be signed. Make sure to specify an identity with a Developer ID: Installer certificate (not Application certificate).")
+if(NOT DEFINED CPACK_PRODUCTBUILD_IDENTITY_NAME)
+  message(WARNING "CPACK_PRODUCTBUILD_IDENTITY_NAME not set. PKG will not be signed. Make sure to specify an identity with a Developer ID: Installer certificate (not Application certificate).")
 endif()
 
 set(MACOS_TARGET_ARCHS ${CMAKE_OSX_ARCHITECTURES})
@@ -80,7 +78,11 @@ else ()
   message(WARNING "Couldn't determine MACOS_TARGET_ARCHS.")
 endif()
 
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-macOS-${ARCH_SUFFIX}")
+if((DEFINED ENV{CPACK_PACKAGE_FILE_NAME}) AND (NOT "$ENV{CPACK_PACKAGE_FILE_NAME}" STREQUAL ""))
+  set(CPACK_PACKAGE_FILE_NAME "$ENV{CPACK_PACKAGE_FILE_NAME}")
+else()
+  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-macOS-${ARCH_SUFFIX}")
+endif()
 
 ## Additionally install TOPPShell into root of install folder
 ########################################################### TOPPShell

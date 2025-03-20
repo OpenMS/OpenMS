@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -108,7 +108,7 @@ void OpenMS::TestTSGDialog::testIonsIntensities_()
       QRect rect = UI->ion_types->visualItemRect(item);
 
       // imitate the click on check box c
-      QTest::mouseClick(UI->ion_types->viewport(), Qt::LeftButton, 0, rect.center());
+      QTest::mouseClick(UI->ion_types->viewport(), Qt::LeftButton, Qt::NoModifier, rect.center());
       QTest::qWait(DELAY);
 
       // verfiy the check state changed

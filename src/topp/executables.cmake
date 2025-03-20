@@ -68,7 +68,6 @@ MapNormalizer
 MapRTTransformer
 MapStatistics
 MaRaClusterAdapter
-MascotAdapter
 MascotAdapterOnline
 MassCalculator
 MassTraceExtractor
@@ -137,7 +136,6 @@ TICCalculator
 TextExporter
 TriqlerConverter
 XFDR
-XTandemAdapter
 XMLValidator
 )
 

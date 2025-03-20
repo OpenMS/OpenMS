@@ -22,7 +22,8 @@ cdef extern from "<OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>" namespace "OpenM
                 bool annotate_iso_peak_count,
                 bool use_decreasing_model,
                 unsigned int start_intensity_check,
-                bool add_up_intensity) except + nogil  # wrap-attach:Deisotoper
+                bool add_up_intensity,
+                bool annotate_features) except + nogil  # wrap-attach:Deisotoper
 
     
         void deisotopeAndSingleCharge(MSSpectrum & spectra,

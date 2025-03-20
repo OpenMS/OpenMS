@@ -1,8 +1,8 @@
 # --------------------------------------------------------------------------
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
+# Copyright OpenMS Inc. -- Eberhard Karls University Tuebingen,
+# ETH Zurich, and Freie Universitaet Berlin 2002-present.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -83,6 +83,7 @@ option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
 option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." ON)
 option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript views in TOPPView." OFF)
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
+option(ENABLE_CWL "Build and validate the CWL description files for all TOPP tools." OFF)
 
 if(MSVC)
   option(MT_ENABLE_NESTED_OPENMP "Enable nested parallelism." OFF)
@@ -105,7 +106,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 #------------------------------------------------------------------------------
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "3")
-set(OPENMS_PACKAGE_VERSION_MINOR "1")
+set(OPENMS_PACKAGE_VERSION_MINOR "4")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 set(OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
 
@@ -205,9 +206,7 @@ set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build,
 # Fill this with compile flags that external projects should use as well
 # for OpenMS internal flags (not promoted to external compiler flags) append to CMAKE_CXX_FLAGS
 # see OpenMS/cmake/OpenMSConfig.cmake.in to see how its configured and used (i.e. as OPENMS_ADDCXX_FLAGS)
-set(CF_OPENMS_ADDCXX_FLAGS)
 include(cmake/compiler_flags.cmake)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CF_OPENMS_ADDCXX_FLAGS}")
 
 # Visibility settings
 if (NOT CMAKE_CXX_VISIBILITY_PRESET)
@@ -313,7 +312,8 @@ set(VALID_PACKAGE_TYPES "none" # the classical build type make/make install
                         "deb"  # deb package
                         "dmg"  # a drag&drop dmg package for macOS
                         "pkg"  # a productbuild installer for macOS
-                        "nsis") # an NSIS installer for Windows
+                        "nsis" # an NSIS installer for Windows
+                        "zip") # a portable version for Windows
 
 set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
 message(STATUS "Package type is '${PACKAGE_TYPE}'")
@@ -324,7 +324,8 @@ is_valid_package(${PACKAGE_TYPE})
 if("${PACKAGE_TYPE}" STREQUAL "dmg" OR "${PACKAGE_TYPE}" STREQUAL "pkg")
   if (NOT DEFINED SIGNING_IDENTITY OR "${SIGNING_IDENTITY}" STREQUAL "" OR NOT DEFINED SIGNING_EMAIL OR "${SIGNING_EMAIL}" STREQUAL "")
     message(WARNING "Trying to create macOS package/image without SIGNING_IDENTITY and SIGNING_EMAIL being set. "
-                    "This disables notarization and might lead to problems with macOS' Gatekeeper on target machines.")
+                    "Using ad hoc (https://developer.apple.com/documentation/security/seccodesignatureflags/adhoc) identity.")
+    set(CPACK_BUNDLE_APPLE_CERT_APP "-")
   else()
     ## CPack has a special variable for the identity
     set(CPACK_BUNDLE_APPLE_CERT_APP "${SIGNING_IDENTITY}")
@@ -473,9 +474,11 @@ if (ENABLE_PREPARE_KNIME_PACKAGE)
 endif()
 
 #------------------------------------------------------------------------------
-# CWL generation (updates openms/workflow/cwl/*.cwl files for all TOPP tools)
+# CWL generation (updates openms/share/commonwl/*.cwl files for all TOPP tools)
 #------------------------------------------------------------------------------
-include(${OPENMS_HOST_DIRECTORY}/cmake/cwl_generation.cmake)
+if (ENABLE_CWL)
+  include(${OPENMS_HOST_DIRECTORY}/cmake/cwl_generation.cmake)
+endif()
 
 #------------------------------------------------------------------------------
 # Handle export of targets and install them
@@ -486,17 +489,21 @@ install_export_targets()
 # Installation and packaging:
 #------------------------------------------------------------------------------
 
-
-# packaging routines:
 if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
+
+  # packaging routines:
   include(cmake/package_general.cmake)
   if("${PACKAGE_TYPE}" STREQUAL "dmg") # .. macOS dmg
+    set(CPACK_GENERATOR "DragNDrop")
     include(cmake/package_dragndrop_dmg.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "pkg") # .. macOS pkg
+    set(CPACK_GENERATOR "productbuild")
     include(cmake/package_mac_productbuild.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "rpm") # .. rpms
+    set(CPACK_GENERATOR "RPM")
     include(cmake/package_rpm.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "deb") # .. debs
+    set(CPACK_GENERATOR "DEB")
     include(cmake/package_deb.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "nsis") # .. Windows nsis
     # For now we use the old NSIS script AS IS
@@ -504,6 +511,16 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
     # will use everything from the usual build folder like before.
     # TODO automate more and let CMake generate install commands
     # in the script. Unfortunately we have a lot of specific code in the script.
+    set(CPACK_GENERATOR "NSIS")
+    include(cmake/package_nsis.cmake)
+  elseif("${PACKAGE_TYPE}" STREQUAL "zip")
+    if(NOT WIN32)
+      message(FATAL_ERROR "The package type ZIP is only supported for windows.")
+    endif()
+    set(CPACK_GENERATOR "ZIP")
+    # For now we use the package nsis script to ensure all dependencies
+    # are met for the portable version. 
+    # TODO refactor this to only execute the relevant processing steps
     include(cmake/package_nsis.cmake)
   endif()
   include(CPack)

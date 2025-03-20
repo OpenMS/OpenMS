@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -453,7 +453,7 @@ private:
   /// Macro for general debugging information
 #define OPENMS_LOG_DEBUG \
   OPENMS_THREAD_CRITICAL(LOGSTREAM) \
-  OpenMS_Log_debug << [](){ constexpr const char* x = (past_last_slash(__FILE__)); return x; }() << "(" << __LINE__ << "): "
+  OpenMS_Log_debug << past_last_slash(__FILE__) << "(" << __LINE__ << "): "
 
   /// Macro for general debugging information (without information on file)
 #define OPENMS_LOG_DEBUG_NOFILE \

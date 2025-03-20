@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -288,6 +288,7 @@ struct OPENMS_DLLAPI RangeRT : public RangeBase
 
   // Rule of 0!
   using RangeBase::RangeBase; // inherit C'tors from base
+  using RangeBase::operator=; // inherit assignment operator from base
 
   /** @name Accessors for min and max
 
@@ -348,6 +349,7 @@ struct OPENMS_DLLAPI RangeMZ : public RangeBase
 
   // Rule of 0!
   using RangeBase::RangeBase; // inherit C'tors from base
+  using RangeBase::operator=; // inherit assignment operator
 
   /** @name Accessors for min and max
 
@@ -407,6 +409,7 @@ struct OPENMS_DLLAPI RangeIntensity : public RangeBase
 
   // Rule of 0!
   using RangeBase::RangeBase; // inherit C'tors from base
+  using RangeBase::operator=; // inherit assignment operator
 
   /** @name Accessors for min and max
 
@@ -465,6 +468,7 @@ struct OPENMS_DLLAPI RangeMobility : public RangeBase
 
   // Rule of 0!
   using RangeBase::RangeBase; // inherit C'tors from base
+  using RangeBase::operator=; // inherit assignment operator
 
   /** @name Accessors for min and max
 
@@ -796,7 +800,7 @@ public:
     for_each_base_([&](auto* base) { base->clear(); });
   }
 
-  /// Resets the dimension of the given @p range. Any type of ion mobility in @p range will clear the RTMobility dimension.
+  /// Resets the dimension of the given @p range. Any type of ion mobility in @p range will clear the Mobility dimension.
   /// If the @p range is not contained in this class, then nothing happens.
   ThisRangeType& clear(const DIM_UNIT range)
   {

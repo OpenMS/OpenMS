@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -298,7 +298,7 @@ namespace OpenMS
     }
   }
 
-  // TODO write version where you look up in a specific run (e.g. first inference run
+  // TODO write version where you look up in a specific run (e.g. first inference run)
   void IDFilter::updateProteinReferences(ConsensusMap& cmap, bool remove_peptides_without_reference)
   {
     vector<ProteinIdentification>& proteins = cmap.getProteinIdentifications();
@@ -732,7 +732,7 @@ namespace OpenMS
       }
     }
 
-    // there might be less spectra identified than n -> adapt
+    // there might be fewer spectra identified than n -> adapt
     n = std::min(n, peptides.size());
 
     auto has_better_peptidehit = [](const PeptideIdentification& l, const PeptideIdentification& r) {

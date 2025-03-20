@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -38,7 +38,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
-#include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
@@ -47,7 +46,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMobilogram.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
@@ -406,6 +405,7 @@ int main(int argc, char** argv)
   DOCME(PeakPickerHiRes);
   DOCME(PeakPickerIterative);
   DOCME(PeakPickerChromatogram);
+  DOCME(PeakPickerMobilogram);
   DOCME(PeptideIndexing);
   DOCME(PoseClusteringAffineSuperimposer);
   DOCME(PoseClusteringShiftSuperimposer);
@@ -413,7 +413,6 @@ int main(int argc, char** argv)
   DOCME(SavitzkyGolayFilter);
   DOCME(LowessSmoothing);
   DOCME(SimpleSVM);
-  DOCME(SONARScoring);
   DOCME(StablePairFinder);
   DOCME(SpectrumAlignment);
   DOCME(SpectrumAlignmentScore);
@@ -430,7 +429,6 @@ int main(int argc, char** argv)
   DOCME(ZhangSimilarityScore);
   DOCME(MorphologicalFilter);
   DOCME(MassDecompositionAlgorithm);
-  DOCME(MRMFragmentSelection);
   DOCME(MascotRemoteQuery);
   DOCME(MascotGenericFile);
   DOCME(Fitter1D);  

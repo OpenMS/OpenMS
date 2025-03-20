@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -97,7 +97,6 @@
   <b>Identification of Proteins/Peptides (SearchEngines)</b>
   - @subpage TOPP_CometAdapter - Identifies MS/MS spectra using Comet (external).
   - @subpage TOPP_LuciphorAdapter - Scores potential phosphorylation sites in order to localize the most probable sites.
-  - @subpage TOPP_MascotAdapter - Identifies MS/MS spectra using Mascot (external).
   - @subpage TOPP_MascotAdapterOnline - Identifies MS/MS spectra using Mascot (external).
   - @subpage TOPP_MSFraggerAdapter - Peptide Identification with MSFragger.
   - @subpage TOPP_MSGFPlusAdapter - Identifies MS/MS spectra using MSGFPlus (external).
@@ -106,7 +105,6 @@
   - @subpage TOPP_SimpleSearchEngine - A simple database search engine for annotating MS/MS spectra.
   - @subpage TOPP_SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
   - @subpage TOPP_SpectraSTSearchAdapter - An interface to the 'SEARCH' mode of the SpectraST program (external, beta).
-  - @subpage TOPP_XTandemAdapter - Identifies MS/MS spectra using XTandem (external).
 
 
   <b>Identification Processing</b>

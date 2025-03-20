@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -1500,7 +1500,6 @@ namespace OpenMS
 
         UInt spectrum_count = 0;
         Size peptide_hit_count = 0;
-        UInt runs_count = 0;
         Size protein_hit_count = 0;
         set<String> peptides;
         set<String> proteins;
@@ -1531,7 +1530,6 @@ namespace OpenMS
 
         for (Size i = 0; i < prot_ids.size(); ++i)
         {
-          ++runs_count;
           protein_hit_count += prot_ids[i].getHits().size();
           const vector<ProteinHit>& temp_hits = prot_ids[i].getHits();
           for (Size j = 0; j < temp_hits.size(); ++j)

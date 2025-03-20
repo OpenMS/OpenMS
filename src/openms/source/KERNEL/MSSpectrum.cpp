@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -510,19 +510,12 @@ namespace OpenMS
     return *this;
   }
 
-  MSSpectrum::MSSpectrum() :
-    ContainerType(),
-    RangeManagerContainerType(),
-    SpectrumSettings(),
-    retention_time_(-1),
-    drift_time_(-1),
-    drift_time_unit_(DriftTimeUnit::NONE),
-    ms_level_(1),
-    name_(),
-    float_data_arrays_(),
-    string_data_arrays_(),
-    integer_data_arrays_()
-  {}
+  MSSpectrum::MSSpectrum() = default;
+
+  MSSpectrum::MSSpectrum(const std::initializer_list<Peak1D>& init)
+    : ContainerType(init)
+  {
+  }
 
   MSSpectrum::MSSpectrum(const MSSpectrum &source) = default;
 
@@ -776,6 +769,19 @@ namespace OpenMS
     }
 
     return {index, unit };
+  }
+
+  std::pair<DriftTimeUnit, std::vector<float>> MSSpectrum::maybeGetIMData() const
+  {
+    Size index;
+    DriftTimeUnit unit = DriftTimeUnit::NONE;
+    bool has_IM = getIonMobilityArray__(this->getFloatDataArrays(), index, unit);
+
+    if (!has_IM)
+    {
+      return {unit, {}}; // empty vector
+    }
+    return {unit, this->getFloatDataArrays()[index]};
   }
   
 } // namespace OpenMS

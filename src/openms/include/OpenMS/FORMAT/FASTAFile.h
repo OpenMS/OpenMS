@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -96,22 +96,31 @@ namespace OpenMS
         ~FASTAFile() override = default;
 
         /**
-          @brief Prepares a FASTA file given by 'filename' for streamed reading using readNext().
+          @brief Prepares a FASTA file given by @p filename for streamed reading using readNext().
+
           @exception Exception::FileNotFound is thrown if the file does not exists.
           @exception Exception::ParseError is thrown if the file does not suit to the standard.
         */
         void readStart(const String& filename);
 
+        /// same as readStart(), but does internal progress logging whenever readNextWithProgress() is called
+        void readStartWithProgress(const String& filename, const String& progress_label);
+
         /**
-        @brief Reads the next FASTA entry from file.
-        If you want to read all entries in one go, use load().
-        @return true if entry was read; false if EOF was reached
-        @exception Exception::FileNotFound is thrown if the file does not exists.
-        @exception Exception::ParseError is thrown if the file does not suit to the standard.
+          @brief Reads the next FASTA entry from file.
+
+          If you want to read all entries in one go, use load().
+          @return true if entry was read; false if EOF was reached
+          @exception Exception::FileNotFound is thrown if the file does not exists.
+          @exception Exception::ParseError is thrown if the file does not suit to the standard.
         */
         bool readNext(FASTAEntry& protein);
 
-        /// current stream position
+        /// same as readNext(), but does internal progress logging; use readStartWithProgress() to enable this
+        /// Calls progressEnd() when EOF is reached (i.e. when returning false)
+        bool readNextWithProgress(FASTAEntry& protein);
+
+        /// current stream position when reading a file
         std::streampos position();
 
         /// is stream at EOF?

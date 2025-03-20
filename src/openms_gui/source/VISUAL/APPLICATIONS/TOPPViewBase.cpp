@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,7 +8,6 @@
 
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/EnumHelpers.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -199,13 +198,7 @@ namespace OpenMS
     intensity_button_group_->addButton(b, PlotCanvas::IM_LOG);
     tool_bar_->addWidget(b);
 
-    /*
-     * Suppressed warning QButtonGroup buttonClicked(int) till Qt 5.15
-     */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    connect(intensity_button_group_, CONNECTCAST(QButtonGroup,buttonClicked,(int)), this, &TOPPViewBase::setIntensityMode);
-#pragma GCC diagnostic pop
+    connect(intensity_button_group_, &QButtonGroup::idClicked, this, &TOPPViewBase::setIntensityMode);
     tool_bar_->addSeparator();
 
     // common buttons
@@ -240,14 +233,7 @@ namespace OpenMS
     draw_group_1d_->addButton(b, Plot1DCanvas::DM_CONNECTEDLINES);
     tool_bar_1d_->addWidget(b);
 
-    /*
-     * Suppressed warning QButtonGroup buttonClicked(int) till Qt 5.15
-     */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    connect(draw_group_1d_, CONNECTCAST(QButtonGroup, buttonClicked, (int)), this, &TOPPViewBase::setDrawMode1D);
-#pragma GCC diagnostic pop
-
+    connect(draw_group_1d_, &QButtonGroup::idClicked, this, &TOPPViewBase::setDrawMode1D);
     tool_bar_->addSeparator();
 
     //--2D peak toolbar--
@@ -742,7 +728,7 @@ namespace OpenMS
     glock.unlock();
 
     if (!annotate_path.empty())
-    {
+    { // this opens a new window with raw data + annotation; we want the actual idXML data on top
       auto load_res = addDataFile(annotate_path, false, false);
       if (load_res == LOAD_RESULT::OK)
       {
@@ -759,6 +745,7 @@ namespace OpenMS
             log_->appendNewHeader(LogWindow::LogState::NOTICE, "Error", "Annotation failed.");
           }
         }
+        window_id = getActivePlotWidget()->getWindowId(); // add ids on top of raw data
       }
     }
 
@@ -909,31 +896,30 @@ namespace OpenMS
     {
       if (data_type == LayerDataBase::DT_FEATURE) // features
       {
-        if (!target_window->canvas()->addLayer(feature_map, filename))
+        if (!target_window->canvas()->addLayer(feature_map, filename, caption))
         {
           return;
         }
       }
       else if (data_type == LayerDataBase::DT_CONSENSUS) // consensus features
       {
-        if (!target_window->canvas()->addLayer(consensus_map, filename))
+        if (! target_window->canvas()->addLayer(consensus_map, filename, caption))
           return;
       }
       else if (data_type == LayerDataBase::DT_IDENT)
       {
-        if (!target_window->canvas()->addLayer(peptides, filename))
+        if (! target_window->canvas()->addLayer(peptides, filename, caption))
           return;
       }
       else // peaks or chrom
       {
-        if (data_type == LayerDataBase::DT_PEAK &&
-            !target_window->canvas()->addPeakLayer(peak_map, on_disc_peak_map, filename, use_intensity_cutoff))
+        if (data_type == LayerDataBase::DT_PEAK && ! target_window->canvas()->addPeakLayer(peak_map, on_disc_peak_map, filename, caption, use_intensity_cutoff))
         {
           return;
         }
         
         if (data_type == LayerDataBase::DT_CHROMATOGRAM &&
-            !target_window->canvas()->addChromLayer(peak_map, on_disc_peak_map, filename))
+            !target_window->canvas()->addChromLayer(peak_map, on_disc_peak_map, filename, caption))
         {
           return;
         }
@@ -960,6 +946,8 @@ namespace OpenMS
       {
         canvas->mergeIntoLayer(merge_layer, peptides);
       }
+      // combine layer names
+      canvas->setLayerName(merge_layer, canvas->getLayerName(merge_layer) + " + " + caption);
     }
 
     if (as_new_window)

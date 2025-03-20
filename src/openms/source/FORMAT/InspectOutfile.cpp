@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,7 +14,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
-#include <QtCore/QRegExp>
+#include <QtCore/QRegularExpression>
 
 #include <fstream>
 
@@ -1127,12 +1127,13 @@ namespace OpenMS
     protein_identification.setSearchEngineVersion("unknown");
     // searching for something like this: InsPecT version 20060907, InsPecT version 20100331
     QString response(cmd_output.toQString());
-    QRegExp rx("InsPecT (version|vesrion) (\\d+)"); // older versions of InsPecT have typo...
-    if (rx.indexIn(response) == -1)
+    QRegularExpression rx("InsPecT (version|vesrion) (\\d+)"); // older versions of InsPecT have typo...
+    auto match = rx.match(response);
+    if (!match.hasMatch())
     {
       return false;
     }
-    protein_identification.setSearchEngineVersion(String(rx.cap(2)));
+    protein_identification.setSearchEngineVersion(match.captured(2));
     return true;
   }
 

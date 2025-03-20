@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,9 +11,6 @@
 #include <ui_TOPPASInputFileDialog.h>
 
 #include <QtWidgets/QMessageBox>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QCompleter>
-#include <QtWidgets/QDirModel>
 #include <QtCore/QFileInfo>
 
 namespace OpenMS

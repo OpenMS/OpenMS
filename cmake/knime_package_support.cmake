@@ -1,8 +1,8 @@
 # --------------------------------------------------------------------------
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
+# Copyright OpenMS Inc. -- Eberhard Karls University Tuebingen,
+# ETH Zurich, and Freie Universitaet Berlin 2002-present.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -90,9 +90,9 @@ if(DEFINED OLD_CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP)
   set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP ${OLD_CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP})
 endif()
 
-# Find Qt5 includes for KNIME packaging
-find_package(Qt5 COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
-get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+# Find Qt6 includes for KNIME packaging
+find_package(Qt6 COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
+get_target_property(QT_QMAKE_EXECUTABLE Qt6::qmake IMPORTED_LOCATION)
 exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_LIBS" OUTPUT_VARIABLE QT_INSTALL_LIBS)
 exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_BINS" OUTPUT_VARIABLE QT_INSTALL_BINS)
 
@@ -196,7 +196,6 @@ list(REMOVE_ITEM CTD_executables OpenMSInfo Resampler ExecutePipeline INIUpdater
 # TODO do regex with "Adapter". Safe enough?
 set(THIRDPARTY_ADAPTERS
     "MaRaClusterAdapter"
-    "XTandemAdapter"
     "MSGFPlusAdapter"
     "LuciphorAdapter"
     "CometAdapter"
@@ -243,8 +242,6 @@ add_custom_target(
   final_ctds
   # MaRaClusterAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MaRaClusterAdapter -DPARAM=maracluster_executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-  # XTandemAdapter
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=XTandemAdapter -DPARAM=xtandem_executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # MSGFPlusAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MSGFPlusAdapter -DPARAM=executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # LuciPhorAdapter
@@ -338,7 +335,7 @@ add_custom_target(
 #add_custom_command(
 #    TARGET prepare_knime_payload_libs POST_BUILD
 #    COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_LIB_PATH}/plugins/
-#    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Qt5::QSQLiteDriverPlugin> ${PAYLOAD_LIB_PATH}/plugins/
+#    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Qt6::QSQLiteDriverPlugin> ${PAYLOAD_LIB_PATH}/plugins/
 #)
 # create qt.conf file that specifies plugin dir location
 #add_custom_command(
@@ -361,7 +358,7 @@ endforeach()
 # assemble the libraries
 if (APPLE) ## On APPLE use our script because the executables' install_names need to be changed. Probably can be changed as soon as all
   ## of our dynamically built dependencies build with rpath enabled on brew. Qt recently did the switch for example. This is because if the default install_name of
-  ## Qt is /usr/local/qt5/QtCore, then this will be hardcoded in our libOpenMS and tools, even if we use @rpath throughout all of our
+  ## Qt is /usr/local/qt6/QtCore, then this will be hardcoded in our libOpenMS and tools, even if we use @rpath throughout all of our
   ## cmake build system. See e.g., https://discourse.cmake.org/t/how-to-get-an-lc-rpath-and-rpath-prefix-on-a-dylib-on-macos/5540
   add_custom_command(
     TARGET prepare_knime_payload_libs POST_BUILD
@@ -380,10 +377,10 @@ if (APPLE) ## On APPLE use our script because the executables' install_names nee
   )
 elseif(WIN32)
   # on Win everything should be linked statically for distribution except Qt
-  foreach (KNIME_TOOLS_QT5_DEPENDENCY ${OpenMS_QT_COMPONENTS})
+  foreach (KNIME_TOOLS_QT6_DEPENDENCY ${OpenMS_QT_COMPONENTS})
     add_custom_command(
 		TARGET prepare_knime_payload_libs POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Qt5::${KNIME_TOOLS_QT5_DEPENDENCY}> ${PAYLOAD_LIB_PATH}
+		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Qt6::${KNIME_TOOLS_QT6_DEPENDENCY}> ${PAYLOAD_LIB_PATH}
 	  )
   endforeach()
   # copying multiple files is possible since CMake 3.5. Last entry is destination. Copy all runtime libs

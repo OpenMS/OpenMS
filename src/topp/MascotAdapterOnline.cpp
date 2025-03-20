@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -6,6 +6,7 @@
 // $Authors: Andreas Bertsch, Daniel Jameson, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
@@ -444,6 +445,11 @@ protected:
     // write all (!) parameters as metavalues to the search parameters
     DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), all_prot_ids[0].getSearchParameters(), this->getToolPrefix());
 
+    // get feature set used in percolator
+    StringList feature_set;
+    PercolatorFeatureSetHelper::addMASCOTFeatures(all_pep_ids, feature_set);
+    all_prot_ids.front().getSearchParameters().setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
+    
     FileHandler().storeIdentifications(out, all_prot_ids, all_pep_ids, {FileTypes::IDXML});
     
     return EXECUTION_OK;
