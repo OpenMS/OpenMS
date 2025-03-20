@@ -2581,8 +2581,6 @@ def testSample():
      Sample.getConcentration
      Sample.getSubsamples
      Sample.setSubsamples
-     Sample.removeTreatment
-     Sample.countTreatments
      """
     ins = pyopenms.Sample()
 
@@ -2614,7 +2612,6 @@ def testSample():
     except Exception:
         has_exception = True
     assert has_exception
-    assert ins.countTreatments() == 0
 
 @report
 def testLogType():
