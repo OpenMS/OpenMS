@@ -18,18 +18,29 @@ BaseModel::BaseModel() : DefaultParamHandler("BaseModel")
 }
 
 // Copy constructor
-BaseModel::BaseModel(const BaseModel& source) = default;
+BaseModel::BaseModel(const BaseModel& source) noexcept = default;
 
 // Destructor
-BaseModel::~BaseModel() override = default;
+BaseModel::~BaseModel() noexcept override = default;
 
 // Assignment operator
-BaseModel& BaseModel::operator=(const BaseModel& source)
+BaseModel& BaseModel::operator=(const BaseModel& source) noexcept
 {
   if (&source == this)
     return *this;
 
   DefaultParamHandler::operator=(source);
+  cut_off_ = source.cut_off_;
+
+  return *this;
+}
+// Move assignment operator
+BaseModel& BaseModel::operator=(BaseModel&& source) noexcept
+{
+  if (&source == this)
+    return *this;
+
+  DefaultParamHandler::operator=(std::move(source));
   cut_off_ = source.cut_off_;
 
   return *this;
@@ -59,14 +70,14 @@ void BaseModel::getSamples(std::ostream& os)
 {
   SamplesType samples;
   getSamples(samples);
-  for (typename SamplesType::const_iterator it = samples.begin(); it != samples.end(); ++it)
+  for (const auto& sample : samples)
   {
-    os << *it << std::endl;
+    os << sample << std::endl;
   }
 }
 
 // Update members
 void BaseModel::updateMembers_()
 {
-  cut_off_ = (double)param_.getValue("cutoff");
+  cut_off_ = static_cast<double>(param_.getValue("cutoff"));
 }
