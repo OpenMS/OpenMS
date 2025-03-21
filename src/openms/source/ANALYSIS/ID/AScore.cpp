@@ -38,9 +38,8 @@ namespace OpenMS
 
     defaults_.setValue("unambiguous_score", 1000, "Score to use for unambiguous assignments, where all sites on a peptide are phosphorylated. (Note: If a peptide is not phosphorylated at all, its score is set to '-1'.)", advanced);
 
-    defaults_.setValue("include_phospho_decoy", "true", "Include PhosphoDecoy sites (A, G, L) in phosphorylation site analysis for FLR calculation", advanced);
-    defaults_.setValidStrings("include_phospho_decoy", {"true", "false"});
-
+    defaults_.setValue("add_decoys", "false", "Include PhosphoDecoy sites (A, G, L) in phosphorylation site analysis for FLR calculation", advanced);
+    defaults_.setValidStrings("add_decoys", {"true", "false"});
 
     defaultsToParam_();
   }
@@ -88,7 +87,7 @@ namespace OpenMS
       pos += 14; // Move past "(PhosphoDecoy)"
     }
     
-    if (include_phospho_decoy_) {
+    if (add_decoys_) {
       OPENMS_LOG_DEBUG << "Found " << regular_phospho_count << " regular phosphorylation events and " 
                       << decoy_phospho_count << " PhosphoDecoy events in sequence: " << sequence_str << std::endl;
     }
@@ -149,7 +148,7 @@ namespace OpenMS
     phospho.setMetaValue("search_engine_sequence", hit.getSequence().toString());
 
     // Add metadata about phosphorylation types
-    if (include_phospho_decoy_)
+    if (add_decoys_)
     {
       phospho.setMetaValue("regular_phospho_count", regular_phospho_count);
       phospho.setMetaValue("phospho_decoy_count", decoy_phospho_count);
@@ -437,7 +436,7 @@ namespace OpenMS
         tupel.push_back(i);
       }
       // Include PhosphoDecoy sites (A, G, L) if enabled
-      else if (include_phospho_decoy_ && isPhosphoDecoySite_(unmodified[i]))
+      else if (add_decoys_ && isPhosphoDecoySite_(unmodified[i]))
       {
         tupel.push_back(i);
       }
@@ -558,7 +557,7 @@ namespace OpenMS
           char residue = seq_string[as];
           
           // Determine which modification to apply based on residue type
-          if (include_phospho_decoy_ && isPhosphoDecoySite_(residue))
+          if (add_decoys_ && isPhosphoDecoySite_(residue))
           {
             // This is a PhosphoDecoy site (A, G, L)
             seq.setModification(as, "PhosphoDecoy");
@@ -703,7 +702,7 @@ namespace OpenMS
     max_peptide_length_ = param_.getValue("max_peptide_length");
     max_permutations_ = param_.getValue("max_num_perm");
     unambiguous_score_ = param_.getValue("unambiguous_score");
-    include_phospho_decoy_ = param_.getValue("include_phospho_decoy").toBool();
+    add_decoys_ = param_.getValue("add_decoys").toBool();
   }
   
 } // namespace OpenMS

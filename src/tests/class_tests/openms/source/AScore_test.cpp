@@ -453,35 +453,35 @@ END_SECTION
 START_SECTION(std::vector<Size> getSitesTest_(const AASequence& without_phospho))
 {
   AASequence phospho = AASequence::fromString("VTQSPSSP");
-  String unmodified_sequence = phospho.toUniModString();
+  String unmodified_sequence = phospho.toUnmodifiedString();
   vector<Size> tupel(ptr_test->getSitesTest_(unmodified_sequence));
-  TEST_EQUAL(4, tupel.size())
+  TEST_EQUAL(4, tupel.size()) // vTqSpSSp
   TEST_EQUAL(1, tupel[0])
   TEST_EQUAL(3, tupel[1])
   TEST_EQUAL(5, tupel[2])
   TEST_EQUAL(6, tupel[3])
   
-  // Test with include_phospho_decoy=true
+  // Test with add_decoys=true
   Param params;
-  params.setValue("include_phospho_decoy", "true");
+  params.setValue("add_decoys", "true");
   ptr_test->setParameters(params);
   
   AASequence phospho_decoy = AASequence::fromString("VTLAGSPS");
-  String unmodified_sequence_decoy = phospho_decoy.toUniModString();
+  String unmodified_sequence_decoy = phospho_decoy.toUnmodifiedString();
   vector<Size> tupel_with_decoy(ptr_test->getSitesTest_(unmodified_sequence_decoy));
-  TEST_EQUAL(7, tupel_with_decoy.size())
-  TEST_EQUAL(1, tupel_with_decoy[0]) // L
-  TEST_EQUAL(2, tupel_with_decoy[1]) // A
-  TEST_EQUAL(3, tupel_with_decoy[2]) // G
-  TEST_EQUAL(4, tupel_with_decoy[3]) // S
-  TEST_EQUAL(5, tupel_with_decoy[4]) // P
-  TEST_EQUAL(6, tupel_with_decoy[5]) // S
+  TEST_EQUAL(6, tupel_with_decoy.size())  // vTLAGSpS
+  TEST_EQUAL(tupel_with_decoy[0], 1) // T
+  TEST_EQUAL(tupel_with_decoy[1], 2) // L
+  TEST_EQUAL(tupel_with_decoy[2], 3) // A
+  TEST_EQUAL(tupel_with_decoy[3], 4) // G
+  TEST_EQUAL(tupel_with_decoy[4], 5) // S
+  TEST_EQUAL(tupel_with_decoy[5], 7) // S
   
-  // Test with include_phospho_decoy=false
-  params.setValue("include_phospho_decoy", "false");
+  // Test with add_decoys=false
+  params.setValue("add_decoys", "false");
   ptr_test->setParameters(params);
   vector<Size> tupel_no_decoy(ptr_test->getSitesTest_(unmodified_sequence_decoy));
-  TEST_EQUAL(2, tupel_no_decoy.size()) // Only S residues should be found
+  TEST_EQUAL(tupel_no_decoy.size(), 3) // S and P residues should be found
 }
 END_SECTION
 
@@ -650,6 +650,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   PeakSpectrum real_spectrum;
   Param params;
   params.setValue("fragment_mass_tolerance", 0.6);
+  params.setValue("add_decoys", "false");
   ptr_test->setParameters(params);
   
   DTAFile().load(OPENMS_GET_TEST_DATA_PATH("Ascore_test_input1.dta"), real_spectrum);
@@ -700,6 +701,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   
   params.setValue("fragment_mass_tolerance", 700.0); // 0.6 Da were converted to ppm based on a small peptide 
   params.setValue("fragment_mass_unit", "ppm");
+  
   ptr_test->setParameters(params);
   
   DTAFile().load(OPENMS_GET_TEST_DATA_PATH("Ascore_test_input1.dta"), real_spectrum);
@@ -732,7 +734,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   // Test PhosphoDecoy functionality
   // ===========================================================================
   
-  params.setValue("include_phospho_decoy", "true");
+  params.setValue("add_decoys", "true");
   ptr_test->setParameters(params);
   
   // Test with PhosphoDecoy modification
@@ -752,14 +754,14 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   TEST_EQUAL(hit_mixed.getMetaValue("phospho_decoy_count"), 1);
   
   // Test with PhosphoDecoy disabled
-  params.setValue("include_phospho_decoy", "false");
+  params.setValue("add_decoys", "false");
   ptr_test->setParameters(params);
   
   PeptideHit hit_disabled(1.0, 1, 1, AASequence::fromString("ATPL(PhosphoDecoy)NLGSSVLHSK"));
   hit_disabled = ptr_test->compute(hit_disabled, real_spectrum);
   
   // The PhosphoDecoy sites should be ignored when the option is disabled
-  TEST_EQUAL(hit_disabled.hasMetaValue("phospho_decoy_count"), false);
+  TEST_EQUAL(hit_disabled.metaValueExists("phospho_decoy_count"), false);
 }
 END_SECTION 
 
