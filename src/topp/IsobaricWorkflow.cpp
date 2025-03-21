@@ -46,9 +46,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_IsobaricWorkflow IsobaricWorkflow
+@page TOPP_IsobaricWorkflow IsobaricWorkflow
 
-    @brief Extracts and normalizes isobaric labeling information from an LC-MS/MS experiment.
+@brief Extracts and normalizes isobaric labeling information from an LC-MS/MS experiment.
 
 <CENTER>
     <table>
@@ -132,11 +132,10 @@ using namespace std;
   you can use @ref TOPP_TextExporter to obtain a simple text format which you can feed to other software tools (e.g., R),
   or you can apply @ref TOPP_ProteinQuantifier.
 
-
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_IsobaricWorkflow.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_IsobaricWorkflow.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_IsobaricWorkflow.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_IsobaricWorkflow.html
 */
 
 // We do not want this class to show up in the docu:
