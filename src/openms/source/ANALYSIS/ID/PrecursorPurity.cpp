@@ -10,7 +10,7 @@
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #ifdef _OPENMP
 #include <omp.h>
