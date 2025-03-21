@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -392,7 +392,7 @@ namespace OpenMS
     return psm_data_;
   }
 
-  const size_t MzTab::getNumberOfPSMs() const
+  size_t MzTab::getNumberOfPSMs() const
   {
     std::unordered_set<Int> psm_ids;
     for (const auto& psm : psm_data_)
@@ -2601,14 +2601,16 @@ state0:
 
     // pre-reserve to prevent reallocations
     size_t new_size = peptide_ids_.size();
+
     for (const auto& elem : consensus_map) new_size += elem.getPeptideIdentifications().size();
+
     if (export_unassigned_ids)
     {
       new_size += consensus_map.getUnassignedPeptideIdentifications().size();
     }
+
     peptide_ids_.reserve(new_size);
 
- 
     // extract mapped IDs
     for (Size i = 0; i < consensus_map.size(); ++i)
     {

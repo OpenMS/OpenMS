@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -477,7 +477,7 @@ public:
 
     /// Returns the number of PSMs in the PSM section (which is not necessarily the number of rows in the section, due to duplication of rows for each protein)
     /// @note Relies on the PSM_ID to be set correctly for each PSM row
-    const size_t getNumberOfPSMs() const;
+    size_t getNumberOfPSMs() const;
 
     void setPSMSectionRows(const MzTabPSMSectionRows& psd);
 

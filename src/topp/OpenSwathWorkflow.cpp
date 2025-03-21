@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -19,7 +19,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathQC.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathTSVWriter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -426,15 +425,11 @@ protected:
     registerStringOption_("enable_ipf", "<name>", "true", "Enable additional scoring of identification assays using IPF (see online documentation)", false, true);
     setValidStrings_("enable_ipf", ListUtils::create<String>("true,false"));
 
-    // one of the following two needs to be set
-    registerOutputFile_("out_features", "<file>", "", "output file", false);
-    setValidFormats_("out_features", ListUtils::create<String>("featureXML"));
+    registerOutputFile_("out_features", "<file>", "", "feature output file, either .osw (PyProphet-compatible SQLite file) or .featureXML", false);
+    setValidFormats_("out_features", ListUtils::create<String>("osw,featureXML"));
 
-    registerOutputFile_("out_tsv", "<file>", "", "TSV output file (mProphet-compatible TSV file)", false);
-    setValidFormats_("out_tsv", ListUtils::create<String>("tsv"));
-
-    registerOutputFile_("out_osw", "<file>", "", "OSW output file (PyProphet-compatible SQLite file)", false);
-    setValidFormats_("out_osw", ListUtils::create<String>("osw"));
+    registerStringOption_("out_features_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
+    setValidStrings_("out_features_type", {"osw","featureXML"});
 
     registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms output in mzML (chrom.mzML) or sqMass (SQLite format)", false, true);
     setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass"));
@@ -446,7 +441,6 @@ protected:
 
     // misc options
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the upper edge of a Swath window to still consider a precursor, in Thomson", false, true);
-    registerFlag_("sonar", "data is scanning SWATH data");
     registerFlag_("pasef", "data is PASEF data");
 
     // RT, mz and IM windows
@@ -624,6 +618,7 @@ protected:
     ///////////////////////////////////
     StringList file_list = getStringList_("in");
     String tr_file = getStringOption_("tr");
+    String out_features = getStringOption_("out_features");
 
     //tr_file input file type
     FileTypes::Type tr_type = FileTypes::nameToType(getStringOption_("tr_type"));
@@ -639,9 +634,19 @@ protected:
       return PARSE_ERROR;
     }
 
-    String out = getStringOption_("out_features");
-    String out_tsv = getStringOption_("out_tsv");
-    String out_osw = getStringOption_("out_osw");
+    //tr_file input file type
+    FileTypes::Type out_features_type = FileTypes::nameToType(getStringOption_("out_features_type"));
+    if (out_features_type == FileTypes::UNKNOWN)
+    {
+      out_features_type = FileHandler::getType(out_features);
+      writeDebug_(String("Input file type (-out): ") + FileTypes::typeToName(out_features_type), 2);
+    }
+
+    if (out_features_type == FileTypes::UNKNOWN)
+    {
+      writeLogError_("Error: Could not determine input file type for '-out_features' !");
+      return PARSE_ERROR;
+    }
 
     String out_qc = getStringOption_("out_qc");
 
@@ -655,7 +660,6 @@ protected:
     bool split_file = getFlag_("split_file_input");
     bool use_emg_score = getFlag_("use_elution_model_score");
     bool force = getFlag_("force");
-    bool sonar = getFlag_("sonar");
     bool pasef = getFlag_("pasef");
     bool sort_swath_maps = getFlag_("sort_swath_maps");
     bool use_ms1_traces = getStringOption_("enable_ms1") == "true";
@@ -704,16 +708,6 @@ protected:
       std::cout << "Since neither rt_norm nor tr_irt is set, OpenSWATH will " <<
         "not use RT-transformation (rather a null transformation will be applied)" << std::endl;
     }
-    if ( int(!out.empty()) + int(!out_tsv.empty()) + int(!out_osw.empty()) != 1 )
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Either out_features, out_tsv or out_osw needs to be set (but not two or three at the same time)");
-    }
-    if (!out_osw.empty() && tr_type != FileTypes::PQP)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "OSW output files can only be generated in combination with PQP input files (-tr).");
-    }
 
     // Check swath window input
     if (!swath_windows_file.empty())
@@ -746,6 +740,12 @@ protected:
     cp_irt.rt_extraction_window = -1; // extract the whole RT range for iRT measurements
     cp_irt.mz_extraction_window = getDoubleOption_("irt_mz_extraction_window");
     cp_irt.im_extraction_window = getDoubleOption_("irt_im_extraction_window");
+
+    if ( (cp_irt.im_extraction_window == -1) & (cp.im_extraction_window != -1) )
+    {
+      OPENMS_LOG_WARN << "Warning: -irt_im_extraction_window is not set, this will lead to no ion mobility calibration" << std::endl;
+    }
+
     cp_irt.ppm                  = getStringOption_("irt_mz_extraction_window_unit") == "ppm";
 
     ChromExtractParams cp_ms1 = cp;
@@ -788,13 +788,61 @@ protected:
     OPENMS_LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, " <<
       transition_exp.getCompounds().size() << " compounds with " << transition_exp.getTransitions().size() << " transitions." << std::endl;
 
-    if (tr_type == FileTypes::PQP)
+    if (out_features_type == FileTypes::OSW)
     {
-      if (!out_osw.empty())
-      { // copy the PQP file and name it OSW file
-        std::ifstream  src(tr_file.c_str(), std::ios::binary);
-        std::ofstream  dst(out_osw.c_str(), std::ios::binary | std::ios::trunc);
-        dst << src.rdbuf();
+      if (tr_type == FileTypes::PQP)
+      {
+         // copy the PQP file and name it OSW file
+          std::ifstream  src(tr_file.c_str(), std::ios::binary);
+          std::ofstream  dst(out_features.c_str(), std::ios::binary | std::ios::trunc);
+          dst << src.rdbuf();
+      }
+      else if (tr_type == FileTypes::TSV)
+      {
+        // Convert TSV to .PQP 
+        TransitionTSVFile tsv_reader;
+        TargetedExperiment transition_exp_heavy;
+        tsv_reader.setParameters(tsv_reader_param);
+        tsv_reader.convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp_heavy);
+        TransitionPQPFile().convertTargetedExperimentToPQP(out_features.c_str(), transition_exp_heavy);
+
+        // instead of reloading - edit the already loaded transition_exp to be compatible with .pqp format
+        // read the PQP to traMLID mapping
+        auto precursor_traml_to_pqp = TransitionPQPFile().getPQPIDToTraMLIDMap(out_features.c_str(), "PRECURSOR");
+        auto transition_traml_to_pqp = TransitionPQPFile().getPQPIDToTraMLIDMap(out_features.c_str(), "TRANSITION");
+
+        // convert tramlID in transitionExp to PQP ID
+        for (auto & prec : transition_exp.getCompounds())
+        {
+          if (auto id = precursor_traml_to_pqp.find(prec.id); id != precursor_traml_to_pqp.end())
+          {
+            prec.id = id->second;
+          }
+        }
+
+        for (auto & tr : transition_exp.getTransitions())
+        {
+          // convert transition tramlID peptide reference in transitionExp to PQP ID 
+          auto pep = precursor_traml_to_pqp.find(tr.getPeptideRef());
+          if (pep != precursor_traml_to_pqp.end())
+          {
+            tr.peptide_ref = pep->second;
+          }
+
+          // Update transition id
+          auto id = transition_traml_to_pqp.find(tr.transition_name);
+          if (id != transition_traml_to_pqp.end())
+          {
+            tr.transition_name = id->second;
+          }
+        }
+      }
+      else if (tr_type == FileTypes::TRAML)
+      {
+        if (out_features_type == FileTypes::OSW)
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Conversion from TraML to OSW is not supported."));
+        }
       }
     }
 
@@ -827,7 +875,7 @@ protected:
       qc_consumer.setExperimentalSettingsFunc(qc.getExpSettingsFunc());
       if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions,
                           swath_windows_file, min_upper_edge_dist, force,
-                          sort_swath_maps, sonar, prm, pasef, &qc_consumer))
+                          sort_swath_maps, prm, pasef, &qc_consumer))
       {
         return PARSE_ERROR;
       }
@@ -837,7 +885,7 @@ protected:
     {
       if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions,
                           swath_windows_file, min_upper_edge_dist, force,
-                          sort_swath_maps, sonar, prm, pasef))
+                          sort_swath_maps, prm, pasef))
       {
         return PARSE_ERROR;
       }
@@ -861,7 +909,7 @@ protected:
       trafo_rtnorm = performCalibration(trafo_in, irt_tr_file, swath_maps,
                                         min_rsq, min_coverage, feature_finder_param,
                                         cp_irt, irt_detection_param, calibration_param,
-                                        debug_level, sonar, pasef, load_into_memory,
+                                        debug_level, pasef, load_into_memory,
                                         irt_trafo_out, irt_mzml_out);
     }
     else
@@ -877,7 +925,7 @@ protected:
       trafo_rtnorm = performCalibration(trafo_in, irt_tr_file, swath_maps,
                                         min_rsq, min_coverage, feature_finder_param,
                                         cp_irt, linear_irt, no_calibration,
-                                        debug_level, sonar, pasef, load_into_memory,
+                                        debug_level, pasef, load_into_memory,
                                         irt_trafo_out, irt_mzml_out);
 
       cp_irt.rt_extraction_window = 900; // extract some substantial part of the RT range (should be covered by linear correction)
@@ -893,7 +941,7 @@ protected:
       OpenSwathCalibrationWorkflow wf;
       wf.setLogType(log_type_);
       wf.simpleExtractChromatograms_(swath_maps, transition_exp_nl, chromatograms,
-                                    trafo_rtnorm, cp_irt, sonar, pasef, load_into_memory);
+                                    trafo_rtnorm, cp_irt, pasef, load_into_memory);
 
       // always use estimateBestPeptides for the nonlinear approach
       Param nonlinear_irt = irt_detection_param;
@@ -924,35 +972,26 @@ protected:
     prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom, run_id);
 
     ///////////////////////////////////
-    // Set up peakgroup file output (.tsv or .osw file)
+    // Set up peakgroup file output .osw file
     ///////////////////////////////////
+
     FeatureMap out_featureFile;
-    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, sonar); // only active if filename not empty
-    OpenSwathOSWWriter oswwriter(out_osw, run_id, file_list[0], enable_uis_scoring); // only active if filename not empty
+    // store features if not writing to .featureXML
+    bool store_features = (out_features_type != FileTypes::FEATUREXML);
+    String osw_out_filename = store_features ? out_features : "";
+    OpenSwathOSWWriter oswwriter(osw_out_filename, run_id, file_list[0], enable_uis_scoring);
 
-    ///////////////////////////////////
-    // Extract and score
-    ///////////////////////////////////
-    if (sonar)
-    {
-      OpenSwathWorkflowSonar wf(use_ms1_traces);
-      wf.setLogType(log_type_);
-      wf.performExtractionSonar(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
-          out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, load_into_memory);
-    }
-    else
-    {
-      OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, outer_loop_threads);
-      wf.setLogType(log_type_);
-      wf.performExtraction(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
-          out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory);
-    }
+    OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im, prm, pasef, outer_loop_threads);
+    wf.setLogType(log_type_);
+    wf.performExtraction(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
+        out_featureFile, true, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory);
 
-    if (!out.empty())
+    if ( out_features_type == FileTypes::FEATUREXML )
     {
+      std::cout << "Writing features ..." << std::endl;
       addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));
       out_featureFile.ensureUniqueId();
-      FileHandler().storeFeatures(out, out_featureFile, {FileTypes::FEATUREXML});
+      FileHandler().storeFeatures(out_features, out_featureFile, {FileTypes::FEATUREXML});
     }
 
     delete chromatogramConsumer;

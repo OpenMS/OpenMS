@@ -1,232 +1,96 @@
-Tool name	Added/removed	Parameter name	Type	Default value	Restrictions	Supported formats
-AssayGeneratorMetabo	-	consensus_spectrum_precursor_rt_tolerance	double	5.0		
-AssayGeneratorMetabo	-	decoy_generation	bool	false		
-AssayGeneratorMetabo	-	decoy_generation_method	string	original	original,resolve_overlap,add_shift,both	
-AssayGeneratorMetabo	+	deisotoping_annotate_charge	bool	false		
-AssayGeneratorMetabo	-	deisotoping:annotate_charge	bool	false		
-AssayGeneratorMetabo	+	deisotoping_fragment_tolerance	double	1.0		
-AssayGeneratorMetabo	-	deisotoping:fragment_tolerance	double	1.0		
-AssayGeneratorMetabo	+	deisotoping_fragment_unit	string	ppm	ppm,Da	
-AssayGeneratorMetabo	-	deisotoping:fragment_unit	string	ppm	ppm,Da	
-AssayGeneratorMetabo	+	deisotoping_keep_only_deisotoped	bool	false		
-AssayGeneratorMetabo	-	deisotoping:keep_only_deisotoped	bool	false		
-AssayGeneratorMetabo	+	deisotoping_max_charge	int	1	1:	
-AssayGeneratorMetabo	-	deisotoping:max_charge	int	1	1:	
-AssayGeneratorMetabo	+	deisotoping_max_isopeaks	int	3	3:	
-AssayGeneratorMetabo	-	deisotoping:max_isopeaks	int	3	3:	
-AssayGeneratorMetabo	+	deisotoping_min_charge	int	1	1:	
-AssayGeneratorMetabo	-	deisotoping:min_charge	int	1	1:	
-AssayGeneratorMetabo	+	deisotoping_min_isopeaks	int	2	2:	
-AssayGeneratorMetabo	-	deisotoping:min_isopeaks	int	2	2:	
-AssayGeneratorMetabo	+	deisotoping_use_deisotoper	bool	false		
-AssayGeneratorMetabo	-	deisotoping:use_deisotoper	bool	false		
-AssayGeneratorMetabo	+	feature_only	string	false	false,true	
-AssayGeneratorMetabo	+	filter_by_num_masstraces	int	1	1:	
-AssayGeneratorMetabo	-	fingerid:db	string			
-AssayGeneratorMetabo	-	fragment_annotation_score_threshold	double	0.8	0.0:1.0	
-AssayGeneratorMetabo	-	fragment_annotation	string	sirius	none,sirius	
-AssayGeneratorMetabo	+	in_featureinfo	input-file			*.featureXML
-AssayGeneratorMetabo	-	in_id	input-file			*.featureXML
-AssayGeneratorMetabo	-	out_workspace_directory	string			
-AssayGeneratorMetabo	+	precursor_consensus_spectrum_rt_tolerance	double	5.0		
-AssayGeneratorMetabo	+	precursor_mz_tolerance	double	10.0		
-AssayGeneratorMetabo	+	precursor_mz_tolerance_unit	string	ppm	ppm,Da	
-AssayGeneratorMetabo	+	precursor_rt_tolerance	double	5.0		
-AssayGeneratorMetabo	-	preprocessing:feature_only	bool	false		
-AssayGeneratorMetabo	-	preprocessing:filter_by_num_masstraces	int	1	1:	
-AssayGeneratorMetabo	-	preprocessing:isotope_pattern_iterations	int	3		
-AssayGeneratorMetabo	-	preprocessing:no_masstrace_info_isotope_pattern	bool	false		
-AssayGeneratorMetabo	-	preprocessing:precursor_mz_tolerance	double	10.0		
-AssayGeneratorMetabo	-	preprocessing:precursor_mz_tolerance_unit	string	ppm	Da,ppm	
-AssayGeneratorMetabo	-	preprocessing:precursor_rt_tolerance	double	5.0		
-AssayGeneratorMetabo	-	project:ignore_formula	bool	false		
-AssayGeneratorMetabo	-	project:loglevel	string			
-AssayGeneratorMetabo	-	project:maxmz	int	-1		
-AssayGeneratorMetabo	-	project:processors	int	1		
-AssayGeneratorMetabo	-	project:q	bool	false		
-AssayGeneratorMetabo	-	read_sirius_stdout	bool	false		
-AssayGeneratorMetabo	-	sirius:candidates	int	10	0:	
-AssayGeneratorMetabo	-	sirius:candidates_per_ion	int	1		
-AssayGeneratorMetabo	-	sirius:compound_timeout	int	100	0:	
-AssayGeneratorMetabo	-	sirius:db	string	none		
-AssayGeneratorMetabo	-	sirius:elements_considered	string	SBrClBSe		
-AssayGeneratorMetabo	-	sirius:elements_enforced	string	CHNOP		
-AssayGeneratorMetabo	-	sirius_executable	input-file			
-AssayGeneratorMetabo	-	sirius:formulas	string			
-AssayGeneratorMetabo	-	sirius:ions_considered	string	[M+H]+,[M+K]+,[M+Na]+,[M+H-H2O]+,[M+H-H4O2]+,[M+NH4]+,[M-H]-,[M+Cl]-,[M-H2O-H]-,[M+Br]-		
-AssayGeneratorMetabo	-	sirius:ions_enforced	string			
-AssayGeneratorMetabo	-	sirius:no_isotope_filter	bool	false		
-AssayGeneratorMetabo	-	sirius:no_isotope_score	bool	false		
-AssayGeneratorMetabo	-	sirius:no_recalibration	bool	false		
-AssayGeneratorMetabo	-	sirius:ppm_max	double	10.0		
-AssayGeneratorMetabo	-	sirius:ppm_max_ms2	double	10.0		
-AssayGeneratorMetabo	-	sirius:profile	string	default	default,qtof,orbitrap,fticr	
-AssayGeneratorMetabo	-	sirius:solver	string	CLP		
-AssayGeneratorMetabo	-	sirius:tree_timeout	int	100	0:	
-AssayGeneratorMetabo	-	use_exact_mass	bool	false		
-CometAdapter	-	enzyme	string	Trypsin	Asp-N,Trypsin,Arg-C,Chymotrypsin,CNBr,no cleavage,unspecific cleavage,Lys-C,Lys-N,PepsinA,Trypsin/P,glutamyl endopeptidase	
-CometAdapter	+	enzyme	string	Trypsin	glutamyl endopeptidase,Arg-C/P,Asp-N,Trypsin,Arg-C,no cleavage,unspecific cleavage,Chymotrypsin,CNBr,Lys-C,Lys-N,PepsinA,Trypsin/P	
-CometAdapter	-	PeptideIndexing:enzyme:name	string	auto	auto,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,Trypsin,Arg-C,Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage	
-CometAdapter	+	PeptideIndexing:enzyme:name	string	auto	auto,Trypsin/P,V8-DE,V8-E,leukocyte elastase,Trypsin,Arg-C,PepsinA,TrypChymo,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,Lys-N,Lys-C/P,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage	
-CometAdapter	-	second_enzyme	string		Asp-N,Trypsin,Arg-C,Chymotrypsin,CNBr,no cleavage,unspecific cleavage,Lys-C,Lys-N,PepsinA,Trypsin/P,glutamyl endopeptidase	
-CometAdapter	+	second_enzyme	string		glutamyl endopeptidase,Arg-C/P,Asp-N,Trypsin,Arg-C,no cleavage,unspecific cleavage,Chymotrypsin,CNBr,Lys-C,Lys-N,PepsinA,Trypsin/P	
-DecoyDatabase	+	enzyme	string	Trypsin	Arg-C/P,Asp-N,Asp-N/B,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,Trypsin,Arg-C,glutamyl endopeptidase,Alpha-lytic protease,no cleavage,unspecific cleavage,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR	
-DecoyDatabase	-	enzyme	string	Trypsin	glutamyl endopeptidase,Alpha-lytic protease,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Trypsin,Arg-C,Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR	
-Digestor	+	enzyme	string	Trypsin	Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Trypsin,Arg-C,Arg-C/P,Asp-N,Asp-N/B,leukocyte elastase,proline endopeptidase,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate	
-Digestor	-	enzyme	string	Trypsin	Trypsin,Arg-C,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,V8-E,leukocyte elastase,Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR	
-DigestorMotif	+	enzyme	string	Trypsin	Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Trypsin,Arg-C,Arg-C/P,Asp-N,Asp-N/B,leukocyte elastase,proline endopeptidase,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate	
-DigestorMotif	-	enzyme	string	Trypsin	Trypsin,Arg-C,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,V8-DE,V8-E,Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D	
-FeatureFinderCentroided	+	algorithm:advanced:pseudo_rt_shift	double	500.0	1.0:	
-FeatureFinderCentroided	-	algorithm:debug:pseudo_rt_shift	double	500.0	1.0:	
-FeatureFinderCentroided	-	out_mzq	output-file			*.mzq
-FileConverter	-	change_im_format	string	none	none,concatenated,multiple_spectra,mixed	
-FileConverter	-	include_noise	bool	false		
-FileConverter	-	NET_executable	input-file			
-FileConverter	-	no_peak_picking	bool	false		
-FileConverter	-	no_zlib_compression	bool	false		
-FileConverter	+	RawToMzML:include_noise	bool	false		
-FileConverter	+	RawToMzML:NET_executable	input-file			
-FileConverter	+	RawToMzML:no_peak_picking	bool	false		
-FileConverter	+	RawToMzML:no_zlib_compression	bool	false		
-FileConverter	+	RawToMzML:ThermoRaw_executable	input-file	ThermoRawFileParser.exe		*.exe
-FileConverter	-	ThermoRaw_executable	input-file	ThermoRawFileParser.exe		*.exe
-FileFilter	+	spectra:remove_activation	string		Collision-induced dissociation,Post-source decay,Plasma desorption,Surface-induced dissociation,Blackbody infrared radiative dissociation,Electron capture dissociation,Infrared multiphoton dissociation,Sustained off-resonance irradiation,High-energy collision-induced dissociation,Low-energy collision-induced dissociation,Photodissociation,Electron transfer dissociation,Electron transfer and collision-induced dissociation,Electron transfer and higher-energy collision dissociation,Pulsed q dissociation,trap-type collision-induced dissociation,beam-type collision-induced dissociation,in-source collision-induced dissociation,Bruker proprietary method	
-FileFilter	-	spectra:remove_activation	string		Collision-induced dissociation,Post-source decay,Plasma desorption,Surface-induced dissociation,Blackbody infrared radiative dissociation,Electron capture dissociation,Infrared multiphoton dissociation,Sustained off-resonance irradiation,High-energy collision-induced dissociation,Low-energy collision-induced dissociation,Photodissociation,Electron transfer dissociation,Pulsed q dissociation,trap-type collision-induced dissociation,beam-type collision-induced dissociation,in-source collision-induced dissociation,Bruker proprietary method	
-FileFilter	+	spectra:select_activation	string		Collision-induced dissociation,Post-source decay,Plasma desorption,Surface-induced dissociation,Blackbody infrared radiative dissociation,Electron capture dissociation,Infrared multiphoton dissociation,Sustained off-resonance irradiation,High-energy collision-induced dissociation,Low-energy collision-induced dissociation,Photodissociation,Electron transfer dissociation,Electron transfer and collision-induced dissociation,Electron transfer and higher-energy collision dissociation,Pulsed q dissociation,trap-type collision-induced dissociation,beam-type collision-induced dissociation,in-source collision-induced dissociation,Bruker proprietary method	
-FileFilter	-	spectra:select_activation	string		Collision-induced dissociation,Post-source decay,Plasma desorption,Surface-induced dissociation,Blackbody infrared radiative dissociation,Electron capture dissociation,Infrared multiphoton dissociation,Sustained off-resonance irradiation,High-energy collision-induced dissociation,Low-energy collision-induced dissociation,Photodissociation,Electron transfer dissociation,Pulsed q dissociation,trap-type collision-induced dissociation,beam-type collision-induced dissociation,in-source collision-induced dissociation,Bruker proprietary method	
-FileInfo	-	out_tsv	output-file			*.csv
-FileInfo	+	out_tsv	output-file			*.tsv
-IDFileConverter	+	fasta_to_mzml:add_zp1_ions	bool	false		
-IDFileConverter	+	fasta_to_mzml:add_zp2_ions	bool	false		
-IDFileConverter	+	fasta_to_mzml:enzyme	string	Trypsin	Arg-C/P,Asp-N,Asp-N/B,Trypsin,Arg-C,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,leukocyte elastase,proline endopeptidase,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate	
-IDFileConverter	-	fasta_to_mzml:enzyme	string	Trypsin	staphylococcal protease/D,proline-endopeptidase/HKR,Trypsin,Arg-C,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage	
-IDFilter	-	in_silico_digestion:enzyme	string	Trypsin	Trypsin,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Arg-C,Arg-C/P,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Lys-C/P,PepsinA,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,TrypChymo,Trypsin/P,V8-DE,V8-E,Asp-N,Asp-N/B,Asp-N_ambic,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase	
-IDFilter	+	in_silico_digestion:enzyme	string	Trypsin	Trypsin,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Asp-N,Asp-N/B,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,Arg-C,Arg-C/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase	
-IDFilter	-	missed_cleavages:enzyme	string	Trypsin	Trypsin,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Arg-C,Arg-C/P,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Lys-C/P,PepsinA,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,TrypChymo,Trypsin/P,V8-DE,V8-E,Asp-N,Asp-N/B,Asp-N_ambic,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase	
-IDFilter	+	missed_cleavages:enzyme	string	Trypsin	Trypsin,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Asp-N,Asp-N/B,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,Arg-C,Arg-C/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase	
-IDMapper	+	in	input-file			*.featureXML,*.consensusXML
-IDMapper	-	in	input-file			*.featureXML,*.consensusXML,*.mzq
-IDMapper	+	out	output-file			*.featureXML,*.consensusXML
-IDMapper	-	out	output-file			*.featureXML,*.consensusXML,*.mzq
-IsobaricAnalyzer	+	extraction:select_activation	string	auto	auto,Collision-induced dissociation,Post-source decay,Plasma desorption,Surface-induced dissociation,Blackbody infrared radiative dissociation,Electron capture dissociation,Infrared multiphoton dissociation,Sustained off-resonance irradiation,High-energy collision-induced dissociation,Low-energy collision-induced dissociation,Photodissociation,Electron transfer dissociation,Electron transfer and collision-induced dissociation,Electron transfer and higher-energy collision dissociation,Pulsed q dissociation,trap-type collision-induced dissociation,beam-type collision-induced dissociation,in-source collision-induced dissociation,any	
-IsobaricAnalyzer	-	extraction:select_activation	string	auto	auto,Collision-induced dissociation,Post-source decay,Plasma desorption,Surface-induced dissociation,Blackbody infrared radiative dissociation,Electron capture dissociation,Infrared multiphoton dissociation,Sustained off-resonance irradiation,High-energy collision-induced dissociation,Low-energy collision-induced dissociation,Photodissociation,Electron transfer dissociation,Pulsed q dissociation,trap-type collision-induced dissociation,beam-type collision-induced dissociation,in-source collision-induced dissociation,any	
-MRMTransitionGroupPicker	+	algorithm:PeakPickerChromatogram:gauss_width	double	50.0		
-MRMTransitionGroupPicker	+	algorithm:PeakPickerChromatogram:method	string	corrected	legacy,corrected,crawdad	
-MRMTransitionGroupPicker	+	algorithm:PeakPickerChromatogram:peak_width	double	-1.0		
-MRMTransitionGroupPicker	+	algorithm:PeakPickerChromatogram:remove_overlapping_peaks	string	false	false,true	
-MRMTransitionGroupPicker	+	algorithm:PeakPickerChromatogram:sgolay_frame_length	int	15		
-MRMTransitionGroupPicker	+	algorithm:PeakPickerChromatogram:sgolay_polynomial_order	int	3		
-MRMTransitionGroupPicker	+	algorithm:PeakPickerChromatogram:signal_to_noise	double	1.0	0.0:	
-MRMTransitionGroupPicker	+	algorithm:PeakPickerChromatogram:sn_bin_count	int	30		
-MRMTransitionGroupPicker	+	algorithm:PeakPickerChromatogram:sn_win_len	double	1000.0		
-MRMTransitionGroupPicker	+	algorithm:PeakPickerChromatogram:use_gauss	string	true	false,true	
-MRMTransitionGroupPicker	+	algorithm:PeakPickerChromatogram:write_sn_log_messages	bool	false		
-MRMTransitionGroupPicker	-	algorithm:PeakPickerMRM:gauss_width	double	50.0		
-MRMTransitionGroupPicker	-	algorithm:PeakPickerMRM:method	string	corrected	legacy,corrected,crawdad	
-MRMTransitionGroupPicker	-	algorithm:PeakPickerMRM:peak_width	double	-1.0		
-MRMTransitionGroupPicker	-	algorithm:PeakPickerMRM:remove_overlapping_peaks	string	false	false,true	
-MRMTransitionGroupPicker	-	algorithm:PeakPickerMRM:sgolay_frame_length	int	15		
-MRMTransitionGroupPicker	-	algorithm:PeakPickerMRM:sgolay_polynomial_order	int	3		
-MRMTransitionGroupPicker	-	algorithm:PeakPickerMRM:signal_to_noise	double	1.0	0.0:	
-MRMTransitionGroupPicker	-	algorithm:PeakPickerMRM:sn_bin_count	int	30		
-MRMTransitionGroupPicker	-	algorithm:PeakPickerMRM:sn_win_len	double	1000.0		
-MRMTransitionGroupPicker	-	algorithm:PeakPickerMRM:use_gauss	string	true	false,true	
-MRMTransitionGroupPicker	-	algorithm:PeakPickerMRM:write_sn_log_messages	bool	false		
-MSFraggerAdapter	+	digest:search_enzyme_name	string	Trypsin	Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,2-iodobenzoate,iodosobenzoate,Trypsin,Arg-C,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P	
-MSFraggerAdapter	-	digest:search_enzyme_name	string	Trypsin	Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,glutamyl endopeptidase,Alpha-lytic protease,Trypsin,Arg-C,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR	
-MSFraggerAdapter	+	PeptideIndexing:enzyme:name	string	auto	auto,Lys-C,Lys-N,Trypsin,Arg-C,Lys-C/P,PepsinA,V8-E,leukocyte elastase,proline endopeptidase,Chymotrypsin/P,CNBr,Formic_acid,TrypChymo,Trypsin/P,V8-DE,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate	
-MSFraggerAdapter	-	PeptideIndexing:enzyme:name	string	auto	auto,TrypChymo,Trypsin/P,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,Trypsin,Arg-C,V8-DE,V8-E,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,glutamyl endopeptidase,Alpha-lytic protease,Arg-C/P,Asp-N,Asp-N/B,leukocyte elastase,proline endopeptidase,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR	
-MSGFPlusAdapter	+	min_peaks	int	10	10:	
-MSGFPlusAdapter	+	PeptideIndexing:enzyme:name	string	auto	auto,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Trypsin,TrypChymo,Trypsin/P,V8-DE,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,Arg-C,Arg-C/P,Lys-C/P,PepsinA,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,V8-E,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase	
-MSGFPlusAdapter	-	PeptideIndexing:enzyme:name	string	auto	auto,no cleavage,unspecific cleavage,Trypsin,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,Arg-C,Arg-C/P,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,Asp-N,Asp-N/B,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,Formic_acid,Lys-C,Lys-N,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,V8-DE,V8-E,leukocyte elastase,proline endopeptidase	
-NucleicAcidSearchEngine	-	oligo:enzyme	string	no cleavage	mazF,colicin_E5,no cleavage,cusativin,RNase_A,RNase_MC1,RNase_H,unspecific cleavage,RNase_U2,RNase_T1	
-NucleicAcidSearchEngine	+	oligo:enzyme	string	no cleavage	RNase_T1,RNase_T1_Phosphatase,cusativin,RNase_4,RNase_4p,mazF,colicin_E5,no cleavage,unspecific cleavage,RNase_U2,RNase_A,RNase_MC1,RNase_H	
-OpenPepXLLF	+	peptide:enzyme	string	Trypsin	Arg-C,Arg-C/P,Asp-N,Trypsin,TrypChymo,Trypsin/P,V8-DE,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Lys-C/P,PepsinA,Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,V8-E,leukocyte elastase,proline endopeptidase,Formic_acid,Lys-C,Lys-N	
-OpenPepXLLF	-	peptide:enzyme	string	Trypsin	Trypsin,Arg-C,Arg-C/P,Asp-N,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,Lys-C/P,PepsinA,Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,TrypChymo,Trypsin/P,V8-DE,V8-E,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage	
-OpenPepXL	+	peptide:enzyme	string	Trypsin	leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,TrypChymo,Trypsin/P,V8-DE,V8-E,Trypsin,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,Lys-C/P,PepsinA,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Arg-C,Arg-C/P,no cleavage,unspecific cleavage	
-OpenPepXL	-	peptide:enzyme	string	Trypsin	Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Trypsin/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Arg-C,Arg-C/P,Asp-N	
-OpenSwathAnalyzer	+	algorithm:Scores:use_peak_shape_metrics	string	false		
-OpenSwathAnalyzer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:gauss_width	double	50.0		
-OpenSwathAnalyzer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:method	string	corrected	legacy,corrected,crawdad	
-OpenSwathAnalyzer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:peak_width	double	-1.0		
-OpenSwathAnalyzer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:remove_overlapping_peaks	string	false	false,true	
-OpenSwathAnalyzer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:sgolay_frame_length	int	15		
-OpenSwathAnalyzer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:sgolay_polynomial_order	int	3		
-OpenSwathAnalyzer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:signal_to_noise	double	1.0	0.0:	
-OpenSwathAnalyzer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:sn_bin_count	int	30		
-OpenSwathAnalyzer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:sn_win_len	double	1000.0		
-OpenSwathAnalyzer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:use_gauss	string	true	false,true	
-OpenSwathAnalyzer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:write_sn_log_messages	bool	false		
-OpenSwathAnalyzer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:gauss_width	double	50.0		
-OpenSwathAnalyzer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:method	string	corrected	legacy,corrected,crawdad	
-OpenSwathAnalyzer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:peak_width	double	-1.0		
-OpenSwathAnalyzer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:remove_overlapping_peaks	string	false	false,true	
-OpenSwathAnalyzer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:sgolay_frame_length	int	15		
-OpenSwathAnalyzer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:sgolay_polynomial_order	int	3		
-OpenSwathAnalyzer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:signal_to_noise	double	1.0	0.0:	
-OpenSwathAnalyzer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:sn_bin_count	int	30		
-OpenSwathAnalyzer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:sn_win_len	double	1000.0		
-OpenSwathAnalyzer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:use_gauss	string	true	false,true	
-OpenSwathAnalyzer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages	bool	false		
-OpenSwathAnalyzer	+	algorithm:use_ms1_ion_mobility	string	true		
-OpenSwathRTNormalizer	+	algorithm:Scores:use_peak_shape_metrics	string	false		
-OpenSwathRTNormalizer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:gauss_width	double	50.0		
-OpenSwathRTNormalizer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:method	string	corrected	legacy,corrected,crawdad	
-OpenSwathRTNormalizer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:peak_width	double	-1.0		
-OpenSwathRTNormalizer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:remove_overlapping_peaks	string	false	false,true	
-OpenSwathRTNormalizer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:sgolay_frame_length	int	15		
-OpenSwathRTNormalizer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:sgolay_polynomial_order	int	3		
-OpenSwathRTNormalizer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:signal_to_noise	double	1.0	0.0:	
-OpenSwathRTNormalizer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:sn_bin_count	int	30		
-OpenSwathRTNormalizer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:sn_win_len	double	1000.0		
-OpenSwathRTNormalizer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:use_gauss	string	true	false,true	
-OpenSwathRTNormalizer	+	algorithm:TransitionGroupPicker:PeakPickerChromatogram:write_sn_log_messages	bool	false		
-OpenSwathRTNormalizer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:gauss_width	double	50.0		
-OpenSwathRTNormalizer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:method	string	corrected	legacy,corrected,crawdad	
-OpenSwathRTNormalizer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:peak_width	double	-1.0		
-OpenSwathRTNormalizer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:remove_overlapping_peaks	string	false	false,true	
-OpenSwathRTNormalizer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:sgolay_frame_length	int	15		
-OpenSwathRTNormalizer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:sgolay_polynomial_order	int	3		
-OpenSwathRTNormalizer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:signal_to_noise	double	1.0	0.0:	
-OpenSwathRTNormalizer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:sn_bin_count	int	30		
-OpenSwathRTNormalizer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:sn_win_len	double	1000.0		
-OpenSwathRTNormalizer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:use_gauss	string	true	false,true	
-OpenSwathRTNormalizer	-	algorithm:TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages	bool	false		
-OpenSwathRTNormalizer	+	algorithm:use_ms1_ion_mobility	string	true		
-OpenSwathWorkflow	+	Scoring:Scores:use_peak_shape_metrics	string	false		
-OpenSwathWorkflow	+	Scoring:TransitionGroupPicker:PeakPickerChromatogram:gauss_width	double	30.0		
-OpenSwathWorkflow	+	Scoring:TransitionGroupPicker:PeakPickerChromatogram:method	string	corrected	legacy,corrected,crawdad	
-OpenSwathWorkflow	+	Scoring:TransitionGroupPicker:PeakPickerChromatogram:peak_width	double	-1.0		
-OpenSwathWorkflow	+	Scoring:TransitionGroupPicker:PeakPickerChromatogram:remove_overlapping_peaks	string	true	false,true	
-OpenSwathWorkflow	+	Scoring:TransitionGroupPicker:PeakPickerChromatogram:sgolay_frame_length	int	11		
-OpenSwathWorkflow	+	Scoring:TransitionGroupPicker:PeakPickerChromatogram:sgolay_polynomial_order	int	3		
-OpenSwathWorkflow	+	Scoring:TransitionGroupPicker:PeakPickerChromatogram:signal_to_noise	double	0.1	0.0:	
-OpenSwathWorkflow	+	Scoring:TransitionGroupPicker:PeakPickerChromatogram:use_gauss	string	false	false,true	
-OpenSwathWorkflow	+	Scoring:TransitionGroupPicker:PeakPickerChromatogram:write_sn_log_messages	bool	false		
-OpenSwathWorkflow	-	Scoring:TransitionGroupPicker:PeakPickerMRM:gauss_width	double	30.0		
-OpenSwathWorkflow	-	Scoring:TransitionGroupPicker:PeakPickerMRM:method	string	corrected	legacy,corrected,crawdad	
-OpenSwathWorkflow	-	Scoring:TransitionGroupPicker:PeakPickerMRM:peak_width	double	-1.0		
-OpenSwathWorkflow	-	Scoring:TransitionGroupPicker:PeakPickerMRM:remove_overlapping_peaks	string	true	false,true	
-OpenSwathWorkflow	-	Scoring:TransitionGroupPicker:PeakPickerMRM:sgolay_frame_length	int	11		
-OpenSwathWorkflow	-	Scoring:TransitionGroupPicker:PeakPickerMRM:sgolay_polynomial_order	int	3		
-OpenSwathWorkflow	-	Scoring:TransitionGroupPicker:PeakPickerMRM:signal_to_noise	double	0.1	0.0:	
-OpenSwathWorkflow	-	Scoring:TransitionGroupPicker:PeakPickerMRM:use_gauss	string	false	false,true	
-OpenSwathWorkflow	-	Scoring:TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages	bool	false		
-OpenSwathWorkflow	+	Scoring:use_ms1_ion_mobility	string	true		
-PeptideIndexer	-	enzyme:name	string	auto	auto,Arg-C/P,Asp-N,Asp-N/B,TrypChymo,Trypsin/P,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,V8-DE,V8-E,leukocyte elastase,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Trypsin,Arg-C,Lys-C,Lys-N,Lys-C/P,PepsinA,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate	
-PeptideIndexer	+	enzyme:name	string	auto	auto,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,elastase-trypsin-chymotrypsin,no cleavage,Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,TrypChymo,Trypsin/P,Trypsin,Arg-C,Lys-N,Lys-C/P,PepsinA,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,unspecific cleavage	
-RNADigestor	-	enzyme	string	RNase_T1	RNase_A,RNase_MC1,RNase_H,RNase_T1,RNase_U2,cusativin,mazF,colicin_E5,no cleavage,unspecific cleavage	
-RNADigestor	+	enzyme	string	RNase_T1	RNase_MC1,RNase_H,RNase_4,RNase_4p,cusativin,RNase_U2,RNase_A,RNase_T1,RNase_T1_Phosphatase,mazF,colicin_E5,no cleavage,unspecific cleavage	
-SageAdapter	-	enzyme	string	Trypsin	Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Lys-C,Lys-N,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,proline-endopeptidase/HKR,Glu-C+P,Trypsin,Arg-C,unspecific cleavage,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage	
-SageAdapter	+	enzyme	string	Trypsin	glutamyl endopeptidase,Alpha-lytic protease,Arg-C/P,Asp-N,Asp-N/B,Trypsin,Arg-C,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR	
-SageAdapter	-	PeptideIndexing:enzyme:name	string	auto	auto,Trypsin,Asp-N,Asp-N/B,Asp-N_ambic,TrypChymo,Trypsin/P,V8-DE,V8-E,no cleavage,unspecific cleavage,Lys-C/P,PepsinA,Arg-C,Arg-C/P,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease	
-SageAdapter	+	PeptideIndexing:enzyme:name	string	auto	auto,Trypsin,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,Arg-C,Arg-C/P,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,TrypChymo,Trypsin/P,Asp-N,Asp-N/B,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Lys-C/P,PepsinA	
-SimpleSearchEngine	+	Search:enzyme	string	Trypsin	glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,Trypsin,Asp-N,Asp-N/B,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Arg-C,Arg-C/P,Chymotrypsin/P,CNBr,Formic_acid,Asp-N_ambic,Chymotrypsin,TrypChymo,Trypsin/P,Lys-C/P,PepsinA,Lys-C,Lys-N	
-SimpleSearchEngine	-	Search:enzyme	string	Trypsin	Lys-C,Lys-N,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,Arg-C,Arg-C/P,Trypsin,CNBr,Formic_acid,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Asp-N,Asp-N/B,Lys-C/P,PepsinA,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P	
-SpecLibSearcher	-	compare_function	string	ZhangSimilarityScore	PeakAlignment,SpectrumAlignmentScore,SpectrumCheapDPCorr,SpectrumPrecursorComparator,SteinScottImproveScore,ZhangSimilarityScore	
-SpecLibSearcher	+	compare_function	string	ZhangSimilarityScore	ZhangSimilarityScore,SpectraSTSimilarityScore	
-XTandemAdapter	-	enzyme	string	Trypsin	Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Arg-C,Arg-C/P,Asp-N,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,no cleavage,unspecific cleavage,Trypsin,V8-DE,V8-E,leukocyte elastase,Formic_acid,Lys-C,Lys-N	
-XTandemAdapter	+	enzyme	string	Trypsin	Lys-N,Lys-C/P,PepsinA,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Trypsin,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,glutamyl endopeptidase,Alpha-lytic protease,Asp-N/B,Asp-N_ambic,Chymotrypsin,2-iodobenzoate,Arg-C,Arg-C/P,Asp-N,no cleavage,unspecific cleavage	
-XTandemAdapter	-	PeptideIndexing:enzyme:name	string	auto	auto,Asp-N,Asp-N/B,Asp-N_ambic,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,Chymotrypsin,Chymotrypsin/P,CNBr,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,Arg-C,Arg-C/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Trypsin,Formic_acid,Lys-C,Lys-N	
-XTandemAdapter	+	PeptideIndexing:enzyme:name	string	auto	auto,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,TrypChymo,Trypsin/P,V8-DE,V8-E,Arg-C,Arg-C/P,Lys-C/P,PepsinA,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,Lys-C,Lys-N,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,Trypsin,unspecific cleavage,Asp-N,Asp-N/B,Asp-N_ambic	
 
+- ADDED:
+
+
+
+- REMOVED:
+
+
+
+- CHANGED PARAMETERS:
+
+Tool name	Added/removed	Parameter name	Type	Default value	Restrictions	Supported formats
+CometAdapter	+	enzyme	string	Trypsin	Arg-C/P,Asp-N,no cleavage,unspecific cleavage,Trypsin,Arg-C,Chymotrypsin,CNBr,Lys-C,Lys-N,PepsinA,Trypsin/P,glutamyl endopeptidase	
+CometAdapter	-	enzyme	string	Trypsin	Arg-C/P,Asp-N,no cleavage,unspecific cleavage,Trypsin,Arg-C,leukocyte elastase,Chymotrypsin,CNBr,Lys-C,Lys-N,Lys-C/P,PepsinA,Trypsin/P,glutamyl endopeptidase	
+CometAdapter	-	PeptideIndexing:enzyme:name	string	auto	auto,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Trypsin,Asp-N,Asp-N/B,Asp-N_ambic,Lys-C,Lys-N,Lys-C/P,PepsinA,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,Arg-C,Arg-C/P	
+CometAdapter	+	PeptideIndexing:enzyme:name	string	auto	auto,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Trypsin,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,Lys-C/P,PepsinA,Arg-C,Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P	
+CometAdapter	+	second_enzyme	string		Arg-C/P,Asp-N,no cleavage,unspecific cleavage,Trypsin,Arg-C,Chymotrypsin,CNBr,Lys-C,Lys-N,PepsinA,Trypsin/P,glutamyl endopeptidase
+CometAdapter	-	second_enzyme	string		Arg-C/P,Asp-N,no cleavage,unspecific cleavage,Trypsin,Arg-C,leukocyte elastase,Chymotrypsin,CNBr,Lys-C,Lys-N,Lys-C/P,PepsinA,Trypsin/P,glutamyl endopeptidase	
+DigestorMotif	+	enzyme	string	Trypsin	no cleavage,unspecific cleavage,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,Trypsin,Arg-C,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,V8-DE,V8-E,Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase	
+DigestorMotif	-	enzyme	string	Trypsin	unspecific cleavage,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,Trypsin,Arg-C,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,V8-E,leukocyte elastase,Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease	
+FalseDiscoveryRate	-	protein_base_score_orientation	string		higher_better,lower_better	
+FalseDiscoveryRate	-	protein_base_score	string			
+FalseDiscoveryRate	-	proteingroup	bool	false		
+FalseDiscoveryRate	-	protein_score	string		MS:1001492,Mascot,OMSSA,SEQUEST:xcorr,XTandem,hyperscore,ln(hyperscore),mvh,svm,E-Value,MS:1002053,MS:1002257,SpecEValue,evalue,expect,Posterior Probability,MS:1001493,Posterior Error Probability,pep,FDR,false discovery rate,fdr,MS:1001491,q-Value,q-value,qval,qvalue	
+FalseDiscoveryRate	-	PSM_peptide_base_score_orientation	string		higher_better,lower_better	
+FalseDiscoveryRate	-	PSM_peptide_base_score	string			
+FeatureFinderIdentification	-	debug	int	0		
+FeatureFinderIdentification	+	debug	int	0	0:	
+FeatureFinderMetabo	-	algorithm:ffm:report_smoothed_intensities	string	true	false,true	
+FeatureFinderMetaboIdent	-	debug	int	0		
+FeatureFinderMetaboIdent	+	debug	int	0	0:	
+FileInfo	+	in	input-file			*.mzData,*.mzXML,*.mzML,*.sqMass,*.dta,*.dta2d,*.mgf,*.featureXML,*.consensusXML,*.idXML,*.pepXML,*.fid,*.mzid,*.trafoXML,*.fasta,*.pqp
+FileInfo	-	in	input-file			*.mzData,*.mzXML,*.mzML,*.sqMass,*.dta,*.dta2d,*.mgf,*.featureXML,*.consensusXML,*.idXML,*.pepXML,*.mzTab,*.fid,*.mzid,*.trafoXML,*.fasta,*.pqp
+FileInfo	+	in_type	string		mzData,mzXML,mzML,sqMass,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML,fasta,pqp	
+FileInfo	-	in_type	string		mzData,mzXML,mzML,sqMass,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,mzTab,fid,mzid,trafoXML,fasta,pqp	
+IDFileConverter	+	fasta_to_mzml:enzyme	string	Trypsin	Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Arg-C/P,Asp-N,Asp-N/B,Trypsin,Arg-C,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,leukocyte elastase,proline endopeptidase,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate	
+IDFileConverter	-	fasta_to_mzml:enzyme	string	Trypsin	leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,V8-DE,V8-E,Trypsin,Arg-C,Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D	
+IDFilter	-	in_silico_digestion:enzyme	string	Trypsin	glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Arg-C,Arg-C/P,Trypsin,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,Asp-N,Asp-N/B,Asp-N_ambic	
+IDFilter	+	in_silico_digestion:enzyme	string	Trypsin	Trypsin,V8-E,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,Formic_acid,Lys-C,Lys-N,Lys-C/P,Arg-C,Arg-C/P,Asp-N,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,PepsinA,TrypChymo,Trypsin/P,V8-DE,Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr	
+IDFilter	-	missed_cleavages:enzyme	string	Trypsin	glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Arg-C,Arg-C/P,Trypsin,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,Asp-N,Asp-N/B,Asp-N_ambic	
+IDFilter	+	missed_cleavages:enzyme	string	Trypsin	Trypsin,V8-E,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,Formic_acid,Lys-C,Lys-N,Lys-C/P,Arg-C,Arg-C/P,Asp-N,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,PepsinA,TrypChymo,Trypsin/P,V8-DE,Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr	
+IDFilter	-	score:peptide	double	NaN		
+IDFilter	+	score:protein	double	nan		
+IDFilter	-	score:protein	double	NaN		
+IDFilter	+	score:proteingroup	double	nan		
+IDFilter	-	score:proteingroup	double	NaN		
+IDFilter	+	score:psm	double	nan		
+IDFilter	-	score:psm	double	NaN		
+IDFilter	-	score:type_peptide	string		MS:1001492,Mascot,OMSSA,SEQUEST:xcorr,XTandem,hyperscore,ln(hyperscore),mvh,svm,E-Value,MS:1002053,MS:1002257,SpecEValue,evalue,expect,Posterior Probability,MS:1001493,Posterior Error Probability,pep,FDR,false discovery rate,fdr,MS:1001491,q-Value,q-value,qval,qvalue	
+IDFilter	-	score:type_protein	string		MS:1001492,Mascot,OMSSA,SEQUEST:xcorr,XTandem,hyperscore,ln(hyperscore),mvh,svm,E-Value,MS:1002053,MS:1002257,SpecEValue,evalue,expect,Posterior Probability,MS:1001493,Posterior Error Probability,pep,FDR,false discovery rate,fdr,MS:1001491,q-Value,q-value,qval,qvalue	
+IsobaricAnalyzer	-	extraction:reporter_mass_shift	double	2.0000000000000000e-03	1.0e-04:0.5	
+IsobaricAnalyzer	+	extraction:reporter_mass_shift	double	2.0e-03	1.0e-04:0.5	
+MapAlignerPoseClustering	-	algorithm:superimposer:scaling_bucket_size	double	5.0000000000000000e-03	0.0:	
+MapAlignerPoseClustering	+	algorithm:superimposer:scaling_bucket_size	double	5.0e-03	0.0:	
+MSFraggerAdapter	-	PeptideIndexing:enzyme:name	string	auto	auto,Lys-C,Lys-N,Trypsin,Arg-C,TrypChymo,Trypsin/P,V8-DE,V8-E,Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,Lys-C/P,PepsinA,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Chymotrypsin/P,CNBr,Formic_acid,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase	
+MSFraggerAdapter	+	PeptideIndexing:enzyme:name	string	auto	auto,Lys-C,Lys-N,Trypsin,Arg-C,TrypChymo,Trypsin/P,V8-DE,V8-E,Chymotrypsin/P,CNBr,Formic_acid,Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Lys-C/P,PepsinA,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase	
+MSGFPlusAdapter	-	PeptideIndexing:enzyme:name	string	auto	auto,Asp-N,Asp-N/B,Asp-N_ambic,Trypsin,Arg-C,Arg-C/P,Lys-C,Lys-N,Lys-C/P,PepsinA,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,TrypChymo,Trypsin/P,V8-DE,V8-E,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid	
+MSGFPlusAdapter	+	PeptideIndexing:enzyme:name	string	auto	auto,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Trypsin,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,Arg-C,Arg-C/P,Trypsin/P,V8-DE,V8-E,leukocyte elastase,Lys-N,Lys-C/P,PepsinA,TrypChymo	
+NucleicAcidSearchEngine	-	oligo:enzyme	string	no cleavage	cusativin,RNase_H,RNase_4,RNase_4p,mazF,colicin_E5,no cleavage,RNase_T1_Phosphatase,RNase_T1,unspecific cleavage,RNase_U2,RNase_A,RNase_MC1	
+NucleicAcidSearchEngine	+	oligo:enzyme	string	no cleavage	RNase_4p,mazF,colicin_E5,no cleavage,unspecific cleavage,RNase_T1_Phosphatase,RNase_T1,cusativin,RNase_U2,RNase_A,RNase_MC1,RNase_H,RNase_4	
+OpenPepXLLF	+	peptide:enzyme	string	Trypsin	Asp-N,Asp-N/B,Asp-N_ambic,Trypsin,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,Lys-C,Lys-N,Lys-C/P,PepsinA,Arg-C,Arg-C/P,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage	
+OpenPepXLLF	-	peptide:enzyme	string	Trypsin	Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,Trypsin,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,TrypChymo,Trypsin/P,V8-DE,V8-E,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,Asp-N,Asp-N/B,Asp-N_ambic,Arg-C,Arg-C/P,Chymotrypsin,Chymotrypsin/P,CNBr	
+OpenPepXL	+	peptide:enzyme	string	Trypsin	Asp-N,Asp-N/B,Asp-N_ambic,Trypsin,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,Lys-C,Lys-N,Lys-C/P,PepsinA,Arg-C,Arg-C/P,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage	
+OpenPepXL	-	peptide:enzyme	string	Trypsin	Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,Trypsin,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,TrypChymo,Trypsin/P,V8-DE,V8-E,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,Asp-N,Asp-N/B,Asp-N_ambic,Arg-C,Arg-C/P,Chymotrypsin,Chymotrypsin/P,CNBr	
+OpenSwathAnalyzer	-	algorithm:spacing_for_spectra_resampling	double	5.0000000000000000e-03	0.0:	
+OpenSwathAnalyzer	+	algorithm:spacing_for_spectra_resampling	double	5.0e-03	0.0:	
+OpenSwathRTNormalizer	-	algorithm:spacing_for_spectra_resampling	double	5.0000000000000000e-03	0.0:	
+OpenSwathRTNormalizer	+	algorithm:spacing_for_spectra_resampling	double	5.0e-03	0.0:	
+OpenSwathWorkflow	-	Scoring:spacing_for_spectra_resampling	double	5.0000000000000000e-03	0.0:	
+OpenSwathWorkflow	+	Scoring:spacing_for_spectra_resampling	double	5.0e-03	0.0:	
+PeptideIndexer	-	enzyme:name	string	auto	auto,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,leukocyte elastase,proline endopeptidase,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Trypsin,Arg-C,V8-DE,V8-E,Arg-C/P,Asp-N,Asp-N/B,TrypChymo,Trypsin/P,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate	
+PeptideIndexer	+	enzyme:name	string	auto	auto,V8-DE,V8-E,unspecific cleavage,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,Trypsin,Arg-C,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Arg-C/P,Asp-N,Asp-N/B,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage	
+QualityControl	+	out_evd	string			
+QualityControl	+	out_msms	string			
+QualityControl	-	out_txt:directory	string			
+QualityControl	-	out_txt:omit_mq_evidence	bool	false		
+QualityControl	-	out_txt:omit_mq_msms	bool	false		
+RNADigestor	-	enzyme	string	RNase_T1	RNase_T1,RNase_A,RNase_MC1,RNase_H,RNase_U2,cusativin,RNase_T1_Phosphatase,RNase_4,RNase_4p,mazF,colicin_E5,no cleavage,unspecific cleavage	
+RNADigestor	+	enzyme	string	RNase_T1	RNase_U2,RNase_A,RNase_MC1,RNase_T1,cusativin,RNase_T1_Phosphatase,RNase_H,RNase_4,RNase_4p,mazF,colicin_E5,no cleavage,unspecific cleavage	
+SageAdapter	-	annotate_matches	string	true		
+SageAdapter	-	chimera	string	false		
+SageAdapter	-	deisotope	string	false		
+SageAdapter	+	enzyme	string	Trypsin	proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,Trypsin,Arg-C,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage	
+SageAdapter	-	enzyme	string	Trypsin	proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,Trypsin,Arg-C,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage	
+SageAdapter	-	PeptideIndexing:enzyme:name	string	auto	auto,Arg-C,Arg-C/P,Chymotrypsin,Chymotrypsin/P,CNBr,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,Trypsin,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,TrypChymo,Trypsin/P,Formic_acid,Lys-C,Lys-N,Asp-N,Asp-N/B,Asp-N_ambic,no cleavage,unspecific cleavage,Lys-C/P,PepsinA	
+SageAdapter	+	PeptideIndexing:enzyme:name	string	auto	auto,Arg-C/P,Asp-N,Asp-N/B,Formic_acid,Lys-C,Lys-N,Lys-C/P,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Trypsin,Arg-C,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D	
+SageAdapter	-	predict_rt	string	false		
+SageAdapter	-	q_value_threshold	double	1.0		
+SageAdapter	-	smoothing	string	true		
+SageAdapter	-	wide_window	string	false		
+SimpleSearchEngine	-	Search:enzyme	string	Trypsin	Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,Trypsin,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Arg-C,Arg-C/P	
+SimpleSearchEngine	+	Search:enzyme	string	Trypsin	PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,Lys-N,Lys-C/P,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Arg-C/P,Asp-N,Asp-N/B,Trypsin,Arg-C,CNBr,Formic_acid,Lys-C,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,proline endopeptidase,glutamyl endopeptidase,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P	
+XTandemAdapter	-	enzyme	string	Trypsin	Arg-C,Arg-C/P,Asp-N,no cleavage,unspecific cleavage,Trypsin/P,V8-DE,V8-E,leukocyte elastase,Trypsin,Lys-N,Lys-C/P,PepsinA,TrypChymo,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,Asp-N/B,Asp-N_ambic,Chymotrypsin	
+XTandemAdapter	+	enzyme	string	Trypsin	Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,Trypsin,Arg-C,Arg-C/P,Asp-N,Asp-N/B,no cleavage,unspecific cleavage	
+XTandemAdapter	+	PeptideIndexing:enzyme:name	string	auto	auto,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Lys-C/P,PepsinA,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,V8-E,leukocyte elastase,proline endopeptidase,Trypsin,Arg-C,Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Lys-C,Lys-N,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,TrypChymo,Trypsin/P,V8-DE	
+XTandemAdapter	-	PeptideIndexing:enzyme:name	string	auto	auto,Trypsin/P,V8-DE,V8-E,glutamyl endopeptidase,Alpha-lytic protease,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,Asp-N,Asp-N/B,Arg-C,Arg-C/P,Trypsin,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,CNBr,Formic_acid,Lys-C,PepsinA,TrypChymo,Lys-N,Lys-C/P,leukocyte elastase,proline endopeptidase,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P	

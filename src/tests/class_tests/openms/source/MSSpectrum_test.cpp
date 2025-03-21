@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -1448,6 +1448,62 @@ START_SECTION(([MSSpectrum::RTLess] bool operator()(const MSSpectrum &a, const M
   TEST_EQUAL(MSSpectrum::RTLess()(s1,s2), true);
   TEST_EQUAL(MSSpectrum::RTLess()(s2,s1), false);
   TEST_EQUAL(MSSpectrum::RTLess()(s2,s2), false);
+}
+END_SECTION
+
+START_SECTION((std::pair<DriftTimeUnit, std::vector<float>> maybeGetIMData() const))
+{
+  // Test successful retrieval of ion mobility data
+  MSSpectrum spec;
+  
+  // Create a float data array with ion mobility data
+  DataArrays::FloatDataArray im_array;
+  im_array.setName("Ion Mobility");
+  im_array.resize(3);
+  im_array[0] = 1.0f;
+  im_array[1] = 2.0f;
+  im_array[2] = 3.0f;
+  im_array.setMetaValue("unit", "millisecond");
+  
+  // Add the array to spectrum's float data arrays
+  std::vector<DataArrays::FloatDataArray> fda;
+  fda.push_back(im_array);
+  spec.setFloatDataArrays(fda);
+  
+  // Test successful case
+  std::pair<DriftTimeUnit, std::vector<float>> result = spec.maybeGetIMData();
+  TEST_TRUE(result.first == DriftTimeUnit::MILLISECOND)
+  TEST_EQUAL(result.second.size(), 3)
+  TEST_REAL_SIMILAR(result.second[0], 1.0)
+  TEST_REAL_SIMILAR(result.second[1], 2.0)
+  TEST_REAL_SIMILAR(result.second[2], 3.0)
+  
+  // Test case with missing ion mobility data
+  MSSpectrum spec_no_im;
+  result = spec_no_im.maybeGetIMData();
+  TEST_TRUE(result.first == DriftTimeUnit::NONE)
+  TEST_EQUAL(result.second.empty(), true)
+  
+  // Test case with empty float arrays
+  MSSpectrum spec_empty;
+  spec_empty.getFloatDataArrays().clear();
+  result = spec_empty.maybeGetIMData();
+  TEST_TRUE(result.first == DriftTimeUnit::NONE)
+  TEST_EQUAL(result.second.empty(), true)
+  
+  // Test case with wrong array name
+  MSSpectrum spec_wrong_name;
+  DataArrays::FloatDataArray wrong_array;
+  wrong_array.setName("Wrong Name");
+  wrong_array.resize(2);
+  wrong_array[0] = 4.0f;
+  wrong_array[1] = 5.0f;
+  fda.clear();
+  fda.push_back(wrong_array);
+  spec_wrong_name.setFloatDataArrays(fda);
+  result = spec_wrong_name.maybeGetIMData();
+  TEST_TRUE(result.first == DriftTimeUnit::NONE)
+  TEST_EQUAL(result.second.empty(), true)
 }
 END_SECTION
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -451,7 +451,7 @@ namespace OpenMS
   {
     Size cnt_phospho_events = 0;
     
-    for (Size i = sequence.find("Phospho"); i != std::string::npos; i = sequence.find("Phospho", i + 7))
+    for (Size i = sequence.find("(Phospho)"); i != std::string::npos; i = sequence.find("(Phospho)", i + 9))
     {
       ++cnt_phospho_events;
     }

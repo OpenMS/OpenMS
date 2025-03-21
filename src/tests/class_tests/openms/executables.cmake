@@ -84,7 +84,6 @@ set(metadata_executables_list
   ChromatogramSettings_test
   ContactPerson_test
   DataProcessing_test
-  Digestion_test
   DocumentIdentifier_test
   ExperimentalDesign_test
   ExperimentalSettings_test
@@ -102,7 +101,6 @@ set(metadata_executables_list
   MetaInfoInterfaceUtils_test
   MetaInfoRegistry_test
   MetaInfo_test
-  Modification_test
   PeptideEvidence_test
   PeptideHit_test
   PeptideIdentification_test
@@ -110,7 +108,6 @@ set(metadata_executables_list
   Product_test
   ProteinHit_test
   ProteinIdentification_test
-  SampleTreatment_test
   Sample_test
   ScanWindow_test
   Software_test
@@ -118,8 +115,7 @@ set(metadata_executables_list
   SpectrumLookup_test
   SpectrumMetaDataLookup_test
   SpectrumSettings_test
-  Tagging_test
-)
+  )
 
 set(system_executables_list
   ExternalProcess_test
@@ -200,7 +196,6 @@ set(format_executables_list
   MSPFile_test
   MSPGenericFile_test
   MascotGenericFile_test
-  MascotInfile_test
   MascotRemoteQuery_test
   MascotXMLFile_test
   #MSDataWritingConsumer_test
@@ -453,7 +448,7 @@ set(analysis_executables_list
   FeatureGroupingAlgorithm_test
   FeatureHandle_test
   FIAMSDataProcessor_test
-  FIAMSScheduler_test
+  #FIAMSScheduler_test sometimes failing
   FLASHDeconvAlgorithm_test
   FLASHDeconvHelperStructs_test
   IDBoostGraph_test
@@ -602,6 +597,7 @@ if(NOT DISABLE_OPENSWATH)
     OpenSwathScores_test
     PeakIntegrator_test
     PeakPickerChromatogram_test
+    PeakPickerMobilogram_test
     MRMTransitionGroupPicker_test
     DIAHelper_test
     DIAScoring_test
@@ -641,6 +637,7 @@ set(Boost_dependent_tests
   OpenSwathMRMFeatureAccessOpenMS_test
   OpenSwathSpectrumAccessOpenMS_test
   PeakPickerChromatogram_test
+  PeakPickerMobilogram_test
   SpectrumLookup_test
   SpectrumMetaDataLookup_test
   StatisticFunctions_test

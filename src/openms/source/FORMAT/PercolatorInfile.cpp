@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -87,7 +87,6 @@ namespace OpenMS
       //map PSMID to vec of PeakAnnotation 
       StringList sage_tsv_header;
       tsv.getRow(0, sage_tsv_header); 
-      to_idx_t; // map column name to column index, for full .tsv file 
       {
         int idx_t{};
         for (const auto& h : sage_tsv_header) { to_idx_t[h] = idx_t++; }

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //  
 // --------------------------------------------------------------------------
@@ -273,6 +273,85 @@ protected:
     combined.insert("ProteinQuantification:", pq_defaults);
 
     registerFullParam_(combined);
+  }
+
+  // Map between mzML file and corresponding id file
+  // Warn if the primaryMSRun indicates that files were provided in the wrong order.
+  map<String, String> mapMzML2Ids_(StringList & in, StringList & in_ids)
+  {
+    // validate file lists (use only basename and ignore extension)
+    auto validation_result = File::validateMatchingFileNames(in, in_ids, true, true);
+    // we try to fail early (without parsing files) if the input is obviously wrong
+    // check for two major mistakes:
+    //  1. different number of files (-> certainly wrong)
+    //  2. same number of files but different order (-> certainly wrong)
+    // If some files differ in names, we can't be sure at this point and skip this test for now.
+    // We need to look into the ID files to infer the spectra filenames later to be sure a mistake was made.
+    switch (validation_result)
+    {
+      case File::MatchingFileListsStatus::SET_MISMATCH:
+        if (in.size() != in_ids.size())
+        {
+          OPENMS_LOG_FATAL_ERROR << "ID and spectra file lists differ in size. Please provide the same number of files for spectra and ID." << endl;
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "ID and spectra file lists differ in size. Please provide the same number of files for spectra and ID.");          
+        }
+        else
+        { // same number of files but filenames differ (we will try to read the spectra filenames from the id files later)
+          writeDebug_("ID and spectra file lists differ. Please provide the same files in the same order.", 1);
+          writeDebug_("File in spectra file list:", 1);
+          for (const auto& f : in)
+          {
+            writeDebug_(f + '\n', 1);
+          }
+          writeDebug_("File in ID file list:", 1);
+          for (const auto& f : in_ids)
+          {
+            writeDebug_(f, 1);
+          }
+          writeDebug_("Will try to infere spectra filenames from id files later.", 1);
+        }
+        break;
+      case File::MatchingFileListsStatus::ORDER_MISMATCH:
+        writeDebug_("ID and spectra file match but order of file names seem to differ. Please provide the same files in the same order.", 1);
+        writeDebug_("File in spectra file list:", 1);
+        for (const auto& f : in)
+        {
+          writeDebug_(f, 1);
+        }
+        OPENMS_LOG_WARN << "File in ID file list: " << endl;
+        for (const auto& f : in_ids)
+        {
+          writeDebug_(f, 1);
+        }
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "ID and spectra file match but order of file names seem to differ. They need to be provided in the same order.");
+        break;
+      case File::MatchingFileListsStatus::MATCH:
+        writeLogInfo_("Info: ID files have the same names as spectra files.");
+        break;      
+    }
+
+    map<String, String> mzfile2idfile;
+    for (Size i = 0; i != in.size(); ++i)
+    {
+      const String& in_abs_path = File::absolutePath(in[i]);
+      const String& id_abs_path = File::absolutePath(in_ids[i]);
+      mzfile2idfile[in_abs_path] = id_abs_path;      
+      writeDebug_("Spectra: " + in[i] + "\t Ids: " + in_ids[i],  1);
+    }
+    return mzfile2idfile;
+  }
+
+  // map back
+  map<String, String> mapId2MzMLs_(const map<String, String>& m2i)
+  {
+    map<String, String> idfile2mzfile;
+    for (const auto& m : m2i)
+    {
+      idfile2mzfile[m.second] = m.first;
+    }
+    return idfile2mzfile;
   }
 
   ExitCodes centroidAndCorrectPrecursors_(const String & mz_file, MSExperiment & ms_centroided)
@@ -1140,13 +1219,22 @@ protected:
       ++fraction_group;
     }
 
-    // Check for common mistake that order of input files have been switched.
-    // This is the case if basenames are identical but the order does not match.
-    if (!File::validateMatchingFileNames(in_MS_run, id_MS_run_ref, true, true, false)) // only basenames, without extension, only order
+    // validate file lists (use only basename and ignore extension)
+    auto validation_result = File::validateMatchingFileNames(in_MS_run, id_MS_run_ref, true, true);
+    switch(validation_result)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__,
-        OPENMS_PRETTY_FUNCTION, "MS run path reference in ID files and spectra filenames match but order differs.");
-    }
+      case File::MatchingFileListsStatus::SET_MISMATCH:
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "MS run path reference in ID files and spectra filenames differ.");
+        break;
+      case File::MatchingFileListsStatus::ORDER_MISMATCH:
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "MS run path reference in ID files and spectra filenames match but order differs.");
+        break;
+      case File::MatchingFileListsStatus::MATCH:
+        writeLogInfo_("ID files reference same names as spectra files.");
+        break;
+    }    
 
     //-------------------------------------------------------------
     // Align all features of this fraction (if not already aligned)

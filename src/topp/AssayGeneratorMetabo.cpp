@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -206,7 +206,7 @@ protected:
                                           "Number of .mzML do not match to the number of .featureXML files. \n Please check and provide the corresponding files.");
     }
 
-    vector<MetaboTargetedAssay> v_mta;
+    std::vector<MetaboTargetedAssay> v_mta;
 
     // iterate over all the files
     for (unsigned file_counter = 0; file_counter < in.size(); file_counter++)
@@ -279,9 +279,7 @@ protected:
       }
 
       // annotate and recalibrate precursor mz and intensity
-      vector<double> delta_mzs;
-      vector<double> mzs;
-      vector<double> rts;
+      std::vector<double> delta_mzs, mzs, rts;
       PrecursorCorrection::correctToHighestIntensityMS1Peak(spectra, pre_recal_win, ppm_recal, delta_mzs, mzs, rts);
 
       // always use preprocessing: 
@@ -366,13 +364,13 @@ protected:
           spectrum.erase(remove_if(spectrum.begin(),
                                     spectrum.end(),
                                     InIntensityRange<PeakMap::PeakType>(1,
-                                                                        numeric_limits<PeakMap::PeakType::IntensityType>::max(),
+                                                                        std::numeric_limits<PeakMap::PeakType::IntensityType>::max(),
                                                                         true)), spectrum.end());
         }
       }
 
       // potential transitions of one file
-      vector<MetaboTargetedAssay> tmp_mta;
+      std::vector<MetaboTargetedAssay> tmp_mta;
       tmp_mta = MetaboTargetedAssay::extractMetaboTargetedAssay(spectra,
                                                                 feature_mapping,
                                                                 consensus_spectrum_precursor_rt_tolerance,
@@ -390,14 +388,14 @@ protected:
 
     // group ambiguous identification based on precursor_mz and feature retention time
     // Use featureMap and use FeatureGroupingAlgorithmQT
-    std::unordered_map< UInt64, vector<MetaboTargetedAssay> > ambiguity_groups = MetaboTargetedAssay::buildAmbiguityGroup(v_mta, ar_mz_tol, ar_rt_tol, ar_mz_tol_unit_res, in.size());
+    std::unordered_map< UInt64, std::vector<MetaboTargetedAssay> > ambiguity_groups = MetaboTargetedAssay::buildAmbiguityGroup(v_mta, ar_mz_tol, ar_rt_tol, ar_mz_tol_unit_res, in.size());
 
     // resolve identification ambiguity based on highest occurrence and highest intensity
     MetaboTargetedAssay::resolveAmbiguityGroup(ambiguity_groups, total_occurrence_filter ,in.size());
 
     // merge possible transitions
-    vector<TargetedExperiment::Compound> v_cmp;
-    vector<ReactionMonitoringTransition> v_rmt_all;
+    std::vector<TargetedExperiment::Compound> v_cmp;
+    std::vector<ReactionMonitoringTransition> v_rmt_all;
     for (const auto &it : ambiguity_groups)
     {
       for (const auto &comp_it : it.second)

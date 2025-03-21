@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -32,6 +32,36 @@ namespace OpenMS
       extendMobility(peak.getMobility());
       extendIntensity(peak.getIntensity());
     }
+  }
+
+  const Mobilogram::FloatDataArrays &Mobilogram::getFloatDataArrays() const
+  {
+    return float_data_arrays_;
+  }
+
+  Mobilogram::FloatDataArrays &Mobilogram::getFloatDataArrays()
+  {
+    return float_data_arrays_;
+  }
+
+  const Mobilogram::StringDataArrays &Mobilogram::getStringDataArrays() const
+  {
+    return string_data_arrays_;
+  }
+
+  Mobilogram::StringDataArrays &Mobilogram::getStringDataArrays()
+  {
+    return string_data_arrays_;
+  }
+
+  const Mobilogram::IntegerDataArrays &Mobilogram::getIntegerDataArrays() const
+  {
+    return integer_data_arrays_;
+  }
+
+  Mobilogram::IntegerDataArrays &Mobilogram::getIntegerDataArrays()
+  {
+    return integer_data_arrays_;
   }
 
   String Mobilogram::getDriftTimeUnitAsString() const

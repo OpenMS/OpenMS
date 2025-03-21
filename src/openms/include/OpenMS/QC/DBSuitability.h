@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -281,7 +281,7 @@ namespace OpenMS
     * @brief Looks through meta values of SearchParameters to find out which search adapter was used
     *
     * Checks for the following adapters:
-    * CometAdapter, MSGFPlusAdapter, MSFraggerAdapter, MyriMatchAdapter, OMSSAAdapter and XTandemAdapter
+    * CometAdapter, MSGFPlusAdapter, MSFraggerAdapter
     *
     * @param meta_values   SearchParameters object, since the adapters write their parameters here
     * @returns             A pair containing the name of the adapter and the parameters used to run it
