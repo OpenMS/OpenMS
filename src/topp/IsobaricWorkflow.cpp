@@ -540,9 +540,7 @@ protected:
               qc[i].mz_deltas[pep_idx] = channel_qc[i].first;
               if (channel_qc[i].second > 1)
               {
-                #ifdef _OPENMP
                 #pragma omp atomic
-                #endif
                 qc[i].signal_not_unique++;
               }
             }

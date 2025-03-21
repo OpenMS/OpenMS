@@ -22,11 +22,6 @@ namespace OpenMS
   /// small quality control class, holding temporary data for reporting
   struct ChannelQC
   {
-    // C'tor
-    ChannelQC() :
-      mz_deltas()
-      
-    {}
 
     std::vector<double> mz_deltas; ///< m/z distance between expected and observed reporter ion closest to expected position
     int signal_not_unique{0};  ///< counts if more than one peak was found within the search window of each reporter position
