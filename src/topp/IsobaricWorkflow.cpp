@@ -46,7 +46,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_IsobaricAnalyzer IsobaricWorkflow
+    @page TOPP_IsobaricWorkflow IsobaricWorkflow
 
     @brief Extracts and normalizes isobaric labeling information from an LC-MS/MS experiment.
 
@@ -134,9 +134,9 @@ using namespace std;
 
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_IsobaricAnalyzer.cli
+    @verbinclude TOPP_IsobaricWorkflow.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_IsobaricAnalyzer.html
+    @htmlinclude TOPP_IsobaricWorkflow.html
 */
 
 // We do not want this class to show up in the docu:
@@ -502,10 +502,8 @@ protected:
         column.second.filename = mz_file;
       }
 
-      #ifdef _OPENMP
       #pragma omp parallel for /*num_threads(inner_threads)*/
-      #endif
-      for (Size pep_idx = 0; pep_idx < pep_ids.size(); ++pep_idx)
+      for (int64_t pep_idx = 0; pep_idx < static_cast<int64_t>(pep_ids.size()); ++pep_idx)
       {
         auto& pep = pep_ids[pep_idx];
         const auto& spec_ref = pep.getSpectrumReference();
