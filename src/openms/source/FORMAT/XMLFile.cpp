@@ -109,14 +109,19 @@ private:
     {
       // ensure handler->reset() is called to save memory (in case the XMLFile
       // reader, e.g. FeatureXMLFile, is used again)
+      cout << 1 << endl;
       XMLCleaner_ clean(handler);
+      cout << 2 << endl;
 
       StringManager sm;
+      cout << 3 << endl;
       //try to open file
       if (!File::exists(filename))
       {
         throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
+      cout << 4 << endl;
+
 
       // initialize parser
       try
@@ -129,7 +134,7 @@ private:
             "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
       }
 
-
+      cout << 5 << endl;
       // peak ahead into the file: is it bzip2 or gzip compressed?
       String bz;
       {
@@ -139,8 +144,12 @@ private:
         tmp_bz[2] = '\0';
         bz = String(tmp_bz);
       }
+      cout << 6 << endl;
+
 
       unique_ptr<xercesc::InputSource> source;
+
+      cout << 7 << endl;
 
       char g1 = 0x1f;
       char g2 = 0;
@@ -151,20 +160,32 @@ private:
       //g2 = static_cast<char>(0x8b); // can make troubles if it is casted to 0x7F which is the biggest number signed char can save
       if ((bz[0] == 'B' && bz[1] == 'Z') || (bz[0] == g1 && bz[1] == g2))
       {
+        cout << 'a' << endl;
         source.reset(new CompressedInputSource(sm.convert(filename).c_str(), bz));
+        cout << 'b' << endl;
       }
       else
       {
+        cout << 'c' << endl;
         source.reset(new xercesc::LocalFileInputSource(sm.convert(filename).c_str()));
+        cout << 'd' << endl;
       }
       // what if no encoding given http://xerces.apache.org/xerces-c/apiDocs-3/classInputSource.html
       if (!enforced_encoding_.empty())
       {
+        cout << 'e' << endl;
         static const XMLCh* s_enc = xercesc::XMLString::transcode(enforced_encoding_.c_str());
+        cout << 'f' << endl;
         source->setEncoding(s_enc);
+        cout << 'g' << endl;
+
       }
+      cout << 8 << endl;
+
       
       parse(source.get(), handler);
+      cout << 9 << endl;
+
     }
 
     void XMLFile::parseBuffer_(const std::string & buffer, XMLHandler * handler)
