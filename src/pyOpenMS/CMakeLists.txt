@@ -549,7 +549,7 @@ ENDIF()
 # actually have gone wrong. Thus we add additional tests below ...
 enable_testing()
 add_test(NAME test_pyopenms_unittests
-         COMMAND ${Python_EXECUTABLE} -m pytest tests/unittests
+         COMMAND ${Python_EXECUTABLE} -m pytest -s tests/unittests
          WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS
         )
 if(NOT WIN32)
@@ -591,7 +591,7 @@ test_MRMRTNormalizer.py
 # Loop through all the test files
 foreach (t ${pyopenms_unittest_testfiles})
   add_test(NAME "pyopenms_unittest_${t}"
-    COMMAND ${Python_EXECUTABLE} -m pytest ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests/${t}
+    COMMAND ${Python_EXECUTABLE} -m pytest -s ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests/${t}
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
   if(NOT WIN32)
     set_tests_properties("pyopenms_unittest_${t}" PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
@@ -600,7 +600,7 @@ endforeach(t)
 
 foreach (t ${pyopenms_integrationtest_testfiles})
   add_test(NAME "pyopenms_integrationtest_${t}"
-    COMMAND ${Python_EXECUTABLE} -m pytest ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests/${t}
+    COMMAND ${Python_EXECUTABLE} -m pytest -s ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests/${t}
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
   if(NOT WIN32)
     set_tests_properties("pyopenms_integrationtest_${t}" PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
@@ -610,7 +610,7 @@ endforeach(t)
 # Finally add the memory leaks test (in folder tests/memoryleaktests/)
 if(NOT PY_MEMLEAK_DISABLE)
   add_test(NAME pyopenms_test_memoryleaktests
-    COMMAND ${Python_EXECUTABLE} -m pytest ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests/testAll.py
+    COMMAND ${Python_EXECUTABLE} -m pytest -s ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests/testAll.py
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
   if(NOT WIN32)
       set_tests_properties(pyopenms_test_memoryleaktests PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
