@@ -71,19 +71,30 @@ private:
 
     void parse(xercesc::InputSource* const source, XMLHandler* handler)
     {
+      cout << 11 << endl;
       unique_ptr<xercesc::SAX2XMLReader> parser(xercesc::XMLReaderFactory::createXMLReader());
+      cout << 11 << endl;
 
       parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces, false);
+      cout << 11 << endl;
+      
       parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes, false);
+      cout << 11 << endl;
 
       parser->setContentHandler(handler);
+      cout << 11 << endl;
+
       parser->setErrorHandler(handler);
 
+      cout << 11 << endl;
+      
 
       // try to parse file
       try
       {
+        cout << "a1a" << endl;
         parser->parse(*source);
+        cout << "a1b" << endl;
       }
       catch (const xercesc::XMLException& toCatch)
       {
@@ -103,6 +114,8 @@ private:
         // re-throw
         throw;
       }
+      cout << 12 << endl;
+
     }
 
     void XMLFile::parse_(const String & filename, XMLHandler * handler)
