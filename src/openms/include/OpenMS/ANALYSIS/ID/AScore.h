@@ -41,6 +41,9 @@ namespace OpenMS
       For each phosphorylation site a probability score is calculated.
       The algorithm is implemented according to Beausoleil et al. (Nat. Biotechnol. 2006).
 
+      In addition to standard phosphorylation on S, T, and Y residues, this implementation also supports
+      PhosphoDecoy modifications on A, G, and L residues which can be used for false localization rate (FLR) calculations.
+
       @htmlinclude OpenMS_AScore.parameters
   */
   class OPENMS_DLLAPI AScore: public DefaultParamHandler
@@ -126,6 +129,9 @@ namespace OpenMS
     /// return all phospho sites
     std::vector<Size> getSites_(const String& unmodified_sequence) const;
 
+    /// Checks if the residue at a specific position is a PhosphoDecoy site (A, G, L)
+    bool isPhosphoDecoySite_(char residue) const;
+
     /// calculate all n_phosphorylation_events sized sets of phospho sites (all versions of the peptides with exactly n_phosphorylation_events)
     std::vector<std::vector<Size>> computePermutations_(const std::vector<Size>& sites, Int n_phosphorylation_events) const;
 
@@ -175,6 +181,7 @@ namespace OpenMS
     Size max_permutations_; ///< Limit for number of sequence permutations that can be handled
     double unambiguous_score_; ///< Score for unambiguous assignments (all sites phosphorylated)
     double base_match_probability_; ///< Probability of a match at a peak depth of 1
+    bool include_phospho_decoy_; ///< Include PhosphoDecoy sites (A, G, L) in phosphorylation site analysis
   };
 
 } // namespace OpenMS

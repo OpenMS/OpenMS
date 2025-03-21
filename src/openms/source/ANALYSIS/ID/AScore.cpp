@@ -38,6 +38,10 @@ namespace OpenMS
 
     defaults_.setValue("unambiguous_score", 1000, "Score to use for unambiguous assignments, where all sites on a peptide are phosphorylated. (Note: If a peptide is not phosphorylated at all, its score is set to '-1'.)", advanced);
 
+    defaults_.setValue("include_phospho_decoy", "true", "Include PhosphoDecoy sites (A, G, L) in phosphorylation site analysis for FLR calculation", advanced);
+    defaults_.setValidStrings("include_phospho_decoy", {"true", "false"});
+
+
     defaultsToParam_();
   }
 
@@ -56,9 +60,38 @@ namespace OpenMS
     
     String sequence_str = phospho.getSequence().toString();
     String unmodified_sequence_str = phospho.getSequence().toUnmodifiedString();
-    
+
+    // Count phosphorylation events in the sequence
     Size number_of_phosphorylation_events = numberOfPhosphoEvents_(sequence_str);
     AASequence seq_without_phospho = removePhosphositesFromSequence_(sequence_str);
+
+    // Initialize counters for regular and decoy phosphorylation events
+    // These will be used for metadata in the output
+    // We need to count them separately from the total number of phosphorylation events
+    // to provide detailed information about the types of modifications
+    Size regular_phospho_count = 0;
+    Size decoy_phospho_count = 0;
+    
+    // Count regular phosphorylation events
+    Size pos = 0;
+    while ((pos = sequence_str.find("(Phospho)", pos)) != std::string::npos)
+    {
+      ++regular_phospho_count;
+      pos += 9; // Move past "(Phospho)"
+    }
+    
+    // Count PhosphoDecoy events
+    pos = 0;
+    while ((pos = sequence_str.find("(PhosphoDecoy)", pos)) != std::string::npos)
+    {
+      ++decoy_phospho_count;
+      pos += 14; // Move past "(PhosphoDecoy)"
+    }
+    
+    if (include_phospho_decoy_) {
+      OPENMS_LOG_DEBUG << "Found " << regular_phospho_count << " regular phosphorylation events and " 
+                      << decoy_phospho_count << " PhosphoDecoy events in sequence: " << sequence_str << std::endl;
+    }
 
     if ((max_peptide_length_ > 0) && (unmodified_sequence_str.size() > max_peptide_length_))
     {
@@ -115,6 +148,12 @@ namespace OpenMS
     phospho.setSequence(AASequence::fromString(seq1));
     phospho.setMetaValue("search_engine_sequence", hit.getSequence().toString());
 
+    // Add metadata about phosphorylation types
+    if (include_phospho_decoy_)
+    {
+      phospho.setMetaValue("regular_phospho_count", regular_phospho_count);
+      phospho.setMetaValue("phospho_decoy_count", decoy_phospho_count);
+    }
     double peptide1_score = rev->first;
     phospho.setMetaValue("AScore_pep_score", peptide1_score); // initialize score with highest peptide score (aka highest weighted score)
 
@@ -382,17 +421,54 @@ namespace OpenMS
            / 7.0;
   }
 
+  bool AScore::isPhosphoDecoySite_(char residue) const
+  {
+    return (residue == 'A' || residue == 'G' || residue == 'L');
+  }
+
   vector<Size> AScore::getSites_(const String& unmodified) const
   {
     vector<Size> tupel;
     for (Size i = 0; i < unmodified.size(); ++i)
     {
-      if (unmodified[i] == 'Y' || unmodified[i] == 'T' || unmodified[i] == 'S')
+      // Always include standard phosphorylation sites (S, T, Y)
+      if (unmodified[i] == 'S' || unmodified[i] == 'T' || unmodified[i] == 'Y')
+      {
+        tupel.push_back(i);
+      }
+      // Include PhosphoDecoy sites (A, G, L) if enabled
+      else if (include_phospho_decoy_ && isPhosphoDecoySite_(unmodified[i]))
       {
         tupel.push_back(i);
       }
     }
     return tupel;
+  }
+
+  /// Count all phosphorylation events in a sequence, including both regular and decoy events
+  Size AScore::numberOfPhosphoEvents_(const String& sequence) const 
+  {
+    Size cnt_phospho_events = 0;
+    Size pos = 0;
+    
+    // Count regular phosphorylation events
+    while ((pos = sequence.find("(Phospho)", pos)) != std::string::npos)
+    {
+      ++cnt_phospho_events;
+      pos += 9; // Move past "(Phospho)"
+    }
+    
+    // Count PhosphoDecoy events
+    pos = 0; // Reset position for PhosphoDecoy search
+    while ((pos = sequence.find("(PhosphoDecoy)", pos)) != std::string::npos)
+    {
+      ++cnt_phospho_events;
+      pos += 14; // Move past "(PhosphoDecoy)"
+    }
+    
+    OPENMS_LOG_DEBUG << "Found " << cnt_phospho_events << " phosphorylation events in sequence: " << sequence << std::endl;
+    
+    return cnt_phospho_events;
   }
 
   vector<vector<Size>> AScore::computePermutations_(const vector<Size>& sites, Int n_phosphorylation_events) const
@@ -446,24 +522,14 @@ namespace OpenMS
     }
   }
   
-  /// Computes number of phospho events in a sequence
-  Size AScore::numberOfPhosphoEvents_(const String& sequence) const 
-  {
-    Size cnt_phospho_events = 0;
-    
-    for (Size i = sequence.find("(Phospho)"); i != std::string::npos; i = sequence.find("(Phospho)", i + 9))
-    {
-      ++cnt_phospho_events;
-    }
-    
-    return cnt_phospho_events;
-  }
     
   /// Create variant of the peptide with all phosphorylations removed
   AASequence AScore::removePhosphositesFromSequence_(const String& sequence) const 
   {
     String seq(sequence);
+    // Remove both regular and decoy phosphorylation markers
     seq.substitute("(Phospho)", "");
+    seq.substitute("(PhosphoDecoy)", "");
     AASequence without_phospho = AASequence::fromString(seq);
     
     return without_phospho;
@@ -475,6 +541,9 @@ namespace OpenMS
     vector<PeakSpectrum> th_spectra;
     TheoreticalSpectrumGenerator spectrum_generator;
     
+    // Get the unmodified sequence as a string to check residue types
+    String seq_string = seq_without_phospho.toUnmodifiedString();
+
     th_spectra.resize(permutations.size());
     for (Size i = 0; i < permutations.size(); ++i)
     {
@@ -485,7 +554,32 @@ namespace OpenMS
       {
         if (as == permutations[i][permu])
         {
-          seq.setModification(as, "Phospho");
+          // Apply the appropriate modification based on residue type
+          char residue = seq_string[as];
+          
+          // Determine which modification to apply based on residue type
+          if (include_phospho_decoy_ && isPhosphoDecoySite_(residue))
+          {
+            // This is a PhosphoDecoy site (A, G, L)
+            seq.setModification(as, "PhosphoDecoy");
+            OPENMS_LOG_DEBUG << "Set PhosphoDecoy modification at position " << as 
+                            << " (residue " << residue << ")" << std::endl;
+          }
+          else if (residue == 'S' || residue == 'T' || residue == 'Y')
+          {
+            // This is a standard phosphorylation site (S, T, Y)
+            seq.setModification(as, "Phospho");
+            OPENMS_LOG_DEBUG << "Set Phospho modification at position " << as 
+                            << " (residue " << residue << ")" << std::endl;
+          }
+          else
+          {
+            // This is neither a standard phosphorylation site nor a PhosphoDecoy site
+            // This should not happen, but log it just in case
+            OPENMS_LOG_WARN << "Attempted to set phosphorylation on non-phosphorylatable residue " 
+                           << residue << " at position " << as << std::endl;
+          }
+          
           ++permu;
         }
         
@@ -609,6 +703,7 @@ namespace OpenMS
     max_peptide_length_ = param_.getValue("max_peptide_length");
     max_permutations_ = param_.getValue("max_num_perm");
     unambiguous_score_ = param_.getValue("unambiguous_score");
+    include_phospho_decoy_ = param_.getValue("include_phospho_decoy").toBool();
   }
   
 } // namespace OpenMS

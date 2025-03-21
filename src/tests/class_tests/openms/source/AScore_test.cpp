@@ -59,6 +59,11 @@ class AScoreTest : public AScore
       return removePhosphositesFromSequence_(sequence);
     }
     
+    bool isPhosphoDecoySiteTest_(char residue) const
+    {
+      return isPhosphoDecoySite_(residue);
+    }
+    
     std::vector<PeakSpectrum> createTheoreticalSpectraTest_(const std::vector<std::vector<Size>>& permutations, const AASequence& seq_without_phospho) const
     {
       return createTheoreticalSpectra_(permutations, seq_without_phospho);
@@ -431,6 +436,20 @@ START_SECTION(computeSiteDeterminingIonsTest_(const std::vector<PeakSpectrum>& t
 }
 END_SECTION
 
+START_SECTION(bool isPhosphoDecoySiteTest_(char residue))
+{
+  // Test PhosphoDecoy sites recognition
+  TEST_EQUAL(ptr_test->isPhosphoDecoySiteTest_('A'), true)
+  TEST_EQUAL(ptr_test->isPhosphoDecoySiteTest_('G'), true)
+  TEST_EQUAL(ptr_test->isPhosphoDecoySiteTest_('L'), true)
+  
+  // Test non-PhosphoDecoy sites
+  TEST_EQUAL(ptr_test->isPhosphoDecoySiteTest_('S'), false)
+  TEST_EQUAL(ptr_test->isPhosphoDecoySiteTest_('T'), false)
+  TEST_EQUAL(ptr_test->isPhosphoDecoySiteTest_('Y'), false)
+}
+END_SECTION
+
 START_SECTION(std::vector<Size> getSitesTest_(const AASequence& without_phospho))
 {
   AASequence phospho = AASequence::fromString("VTQSPSSP");
@@ -441,6 +460,28 @@ START_SECTION(std::vector<Size> getSitesTest_(const AASequence& without_phospho)
   TEST_EQUAL(3, tupel[1])
   TEST_EQUAL(5, tupel[2])
   TEST_EQUAL(6, tupel[3])
+  
+  // Test with include_phospho_decoy=true
+  Param params;
+  params.setValue("include_phospho_decoy", "true");
+  ptr_test->setParameters(params);
+  
+  AASequence phospho_decoy = AASequence::fromString("VTLAGSPS");
+  String unmodified_sequence_decoy = phospho_decoy.toUniModString();
+  vector<Size> tupel_with_decoy(ptr_test->getSitesTest_(unmodified_sequence_decoy));
+  TEST_EQUAL(7, tupel_with_decoy.size())
+  TEST_EQUAL(1, tupel_with_decoy[0]) // L
+  TEST_EQUAL(2, tupel_with_decoy[1]) // A
+  TEST_EQUAL(3, tupel_with_decoy[2]) // G
+  TEST_EQUAL(4, tupel_with_decoy[3]) // S
+  TEST_EQUAL(5, tupel_with_decoy[4]) // P
+  TEST_EQUAL(6, tupel_with_decoy[5]) // S
+  
+  // Test with include_phospho_decoy=false
+  params.setValue("include_phospho_decoy", "false");
+  ptr_test->setParameters(params);
+  vector<Size> tupel_no_decoy(ptr_test->getSitesTest_(unmodified_sequence_decoy));
+  TEST_EQUAL(2, tupel_no_decoy.size()) // Only S residues should be found
 }
 END_SECTION
 
@@ -502,7 +543,10 @@ END_SECTION
 START_SECTION(AASequence removePhosphositesFromSequenceTest_(const String sequence))
 {
   String sequence = "QSSVTQVTEQS(Phospho)PK";
+  String sequence_decoy = "QA(PhosphoDecoy)SVTQVTEQS(Phospho)PK";
+  
   TEST_EQUAL(ptr_test->removePhosphositesFromSequenceTest_(sequence).toString(), "QSSVTQVTEQSPK");
+  TEST_EQUAL(ptr_test->removePhosphositesFromSequenceTest_(sequence_decoy).toString(), "QASVTQVTEQSPK");
 }
 END_SECTION
 
@@ -683,6 +727,39 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   PeptideHit hit7(1.0, 1, 1, AASequence::fromString("PEPT(Phospho)IDE"));
   hit7 = ptr_test->compute(hit7, real_spectrum);
   TEST_REAL_SIMILAR(hit7.getScore(), ptr_test->getParameters().getValue("unambiguous_score"));
+  
+  // ===========================================================================
+  // Test PhosphoDecoy functionality
+  // ===========================================================================
+  
+  params.setValue("include_phospho_decoy", "true");
+  ptr_test->setParameters(params);
+  
+  // Test with PhosphoDecoy modification
+  PeptideHit hit_decoy(1.0, 1, 1, AASequence::fromString("ATPL(PhosphoDecoy)NLGSSVLHSK"));
+  hit_decoy = ptr_test->compute(hit_decoy, real_spectrum);
+  
+  // Check that metadata is stored correctly
+  TEST_EQUAL(hit_decoy.getMetaValue("regular_phospho_count"), 0);
+  TEST_EQUAL(hit_decoy.getMetaValue("phospho_decoy_count"), 1);
+  
+  // Test with both regular phosphorylation and PhosphoDecoy
+  PeptideHit hit_mixed(1.0, 1, 1, AASequence::fromString("ATPL(PhosphoDecoy)NLGSSVLHS(Phospho)K"));
+  hit_mixed = ptr_test->compute(hit_mixed, real_spectrum);
+  
+  // Check that both types are recognized and counted
+  TEST_EQUAL(hit_mixed.getMetaValue("regular_phospho_count"), 1);
+  TEST_EQUAL(hit_mixed.getMetaValue("phospho_decoy_count"), 1);
+  
+  // Test with PhosphoDecoy disabled
+  params.setValue("include_phospho_decoy", "false");
+  ptr_test->setParameters(params);
+  
+  PeptideHit hit_disabled(1.0, 1, 1, AASequence::fromString("ATPL(PhosphoDecoy)NLGSSVLHSK"));
+  hit_disabled = ptr_test->compute(hit_disabled, real_spectrum);
+  
+  // The PhosphoDecoy sites should be ignored when the option is disabled
+  TEST_EQUAL(hit_disabled.hasMetaValue("phospho_decoy_count"), false);
 }
 END_SECTION 
 
