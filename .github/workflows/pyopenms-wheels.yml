@@ -184,7 +184,7 @@ jobs:
         path: pyopenms_whls
         
   build-macos-arm:
-    runs-on: macos-latest
+    runs-on: macos-15
     env:
       SYSTEM_VERSION_COMPAT: 0 # workaround for mac see https://github.com/actions/setup-python/issues/469 for details.
     steps:
