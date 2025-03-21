@@ -71,6 +71,13 @@ if(WIN32)
         message(FATAL_ERROR "Either reconfigure with the correct Visual Studio generator, select a different Python version with -DPython_EXECUTABLE:FILEPATH=/path/to/python or disable pyOpenMS.")
     endif()
 
+    # Configure runtime library for pyOpenMS
+    if(DEFINED ENV{GITHUB_ACTIONS})
+        # On GitHub Actions, use static runtime for better compatibility
+        set(USE_STATIC_RUNTIME ON CACHE BOOL "Use static runtime (/MT) for MSVC builds" FORCE)
+        message(STATUS "GitHub Actions detected - Using static runtime for pyOpenMS")
+    endif()
+
     # Try to find MSVS runtime libs
     include(InstallRequiredSystemLibraries)
 
@@ -81,7 +88,7 @@ if(WIN32)
     if("${MSVS_RTLIBS}" STREQUAL "")
         message(FATAL_ERROR "Did not find MSVS runtime, either provide with -DMSVS_RTLIBS='lib1;lib2' or disable pyOpenMS.")
     else()
-    message(STATUS "Found MSVS runtime: ${MSVS_RTLIBS}")
+        message(STATUS "Found MSVS runtime: ${MSVS_RTLIBS}")
     endif()
 
 endif(WIN32)
