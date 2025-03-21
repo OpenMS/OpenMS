@@ -139,15 +139,27 @@ namespace OpenMS
 
   void MzMLFile::load(const String& filename, PeakMap& map)
   {
+    std::cout << "_1" << std::endl;
     map.reset();
+    std::cout << "_2" << std::endl;
 
     //set DocumentIdentifier
     map.setLoadedFileType(filename);
+    std::cout << "_3" << std::endl;
+
     map.setLoadedFilePath(filename);
+    std::cout << "_4" << std::endl;
+
 
     Internal::MzMLHandler handler(map, filename, getVersion(), *this);
+    std::cout << "_5" << std::endl;
+
     handler.setOptions(options_);
+    std::cout << "_6" << std::endl;
+
     safeParse_(filename, &handler);
+    std::cout << "_7" << std::endl;
+
   }
 
   void MzMLFile::store(const String& filename, const PeakMap& map) const
