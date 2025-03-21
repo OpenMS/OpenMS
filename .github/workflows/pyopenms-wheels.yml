@@ -298,7 +298,7 @@ jobs:
           # make -j${{ steps.cpu-cores.outputs.count }} pyopenms
 
           # copy to directory
-          cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
+          # cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
 
           # clean up
           # conda deactivate
