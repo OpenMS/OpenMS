@@ -201,6 +201,24 @@ endif()
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 
 #------------------------------------------------------------------------------
+# Visual C++ Runtime Library Configuration
+#------------------------------------------------------------------------------
+option(USE_STATIC_RUNTIME "Use static runtime (/MT) for MSVC builds. Only enable for pyOpenMS on GitHub Actions." OFF)
+
+if(MSVC)
+  # Use modern CMake approach with MSVC_RUNTIME_LIBRARY
+  cmake_policy(SET CMP0091 NEW)
+  
+  if(USE_STATIC_RUNTIME)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    message(STATUS "Using static runtime library (/MT) for MSVC builds")
+  else()
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+    message(STATUS "Using dynamic runtime library (/MD) for MSVC builds")
+  endif()
+endif()
+
+#------------------------------------------------------------------------------
 # Project specific compiler flags
 #------------------------------------------------------------------------------
 # Fill this with compile flags that external projects should use as well
