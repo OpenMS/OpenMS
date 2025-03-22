@@ -60,9 +60,9 @@ namespace OpenMS
     String sequence_str = phospho.getSequence().toString();
     String unmodified_sequence_str = phospho.getSequence().toUnmodifiedString();
 
-    // Count phosphorylation events in the sequence
-    Size number_of_phosphorylation_events = numberOfPhosphoEvents_(sequence_str);
-    AASequence seq_without_phospho = removePhosphositesFromSequence_(sequence_str);
+    // Count phosphorylation events in the sequence (both normal and decoy)
+    Size number_of_phosphorylation_events = numberOfPhosphoEvents_(sequence_str); 
+    AASequence seq_without_phospho = removePhosphositesFromSequence_(sequence_str); // remove Phospho and PhosphoDecoy from sequence
 
     // Initialize counters for regular and decoy phosphorylation events
     // These will be used for metadata in the output
@@ -87,9 +87,17 @@ namespace OpenMS
       pos += 14; // Move past "(PhosphoDecoy)"
     }
     
-    if (add_decoys_) {
+    if (add_decoys_)
+    {
       OPENMS_LOG_DEBUG << "Found " << regular_phospho_count << " regular phosphorylation events and " 
                       << decoy_phospho_count << " PhosphoDecoy events in sequence: " << sequence_str << std::endl;
+    }
+    else if (decoy_phospho_count > 0)
+    {
+      OPENMS_LOG_WARN << "PhosphoDecoy sites found in sequence, but add_decoys is set to false. "
+                      << "Please enable add_decoys to include PhosphoDecoy sites in the analysis." 
+                      << "Returning original hit." << std::endl;
+      return phospho;
     }
 
     if ((max_peptide_length_ > 0) && (unmodified_sequence_str.size() > max_peptide_length_))
@@ -115,12 +123,13 @@ namespace OpenMS
     vector<vector<Size>> permutations = computePermutations_(sites, (Int)number_of_phosphorylation_events);
     OPENMS_LOG_DEBUG << "\tnumber of permutations: " << permutations.size() << std::endl;
 
-    // TODO: using a heuristic to calculate the best phospho sites if the number of permutations are exceeding the maximum.
-    // A heuristic could be to calculate the best site for the first phosphorylation and based on this the best site for the second 
-    // phosphorylation and so on until every site is determined
-    if ((max_permutations_ > 0) && (permutations.size() > max_permutations_))
+    // Check if permutations is empty (early termination) or exceeds the maximum
+    // TODO: using a heuristic to calculate the best phospho sites if the number of permutations exceeds the maximum.
+    // A heuristic could be to calculate the best site for the first phosphorylation and based on this the best site for the second
+    // phosphorylation and so on until every site is determined.
+    if (permutations.empty() || ((max_permutations_ > 0) && (permutations.size() > max_permutations_)))
     {
-      OPENMS_LOG_DEBUG << "\tcalculation aborted: number of permutations exceeded" << std::endl;
+      OPENMS_LOG_DEBUG << "\tcalculation aborted: number of permutations exceeded or early termination" << std::endl;
       return phospho;
     }
 
@@ -244,7 +253,7 @@ namespace OpenMS
       {
         coeff = boost::math::binomial_coefficient<double>((unsigned int)N, (unsigned int)k);
       }
-      catch (std::overflow_error const& /*e*/)
+      catch (std::exception const& /*e*/) // Catch any exception, not just overflow
       {
         // not sure if a warning is appropriate here, since if it happens, it will happen very often for the same spectrum and flood the stdout
 //        std::cout << "Warning: Binomial coefficient for AScore has overflowed! Setting value to the maximal double value." << std::endl;
@@ -472,7 +481,38 @@ namespace OpenMS
 
   vector<vector<Size>> AScore::computePermutations_(const vector<Size>& sites, Int n_phosphorylation_events) const
   {
-    vector<vector<Size>  > permutations;
+    vector<vector<Size>> permutations;
+
+    // Early termination if we can estimate that the number of permutations will exceed the maximum
+    if (max_permutations_ > 0 && n_phosphorylation_events >= 1)
+    {
+      // Estimate the number of permutations using the binomial coefficient (n choose k)
+      double estimated_permutations = 0.0;
+      
+      // Check if k > n (more phosphorylation events than sites)
+      if ((Size)n_phosphorylation_events > sites.size()) // TODO: check how this can happen
+      {
+        OPENMS_LOG_DEBUG << "\tEarly termination: more phosphorylation events (" << n_phosphorylation_events 
+                         << ") than available sites (" << sites.size() << ")" << std::endl;
+        return permutations; // Return empty permutations to signal that the calculation should be aborted
+      }
+      else
+      {
+        try
+        {
+          estimated_permutations = boost::math::binomial_coefficient<double>((unsigned int)sites.size(), (unsigned int)n_phosphorylation_events);
+        }
+        catch (std::exception const& /*e*/) // Catch any exception, not just overflow
+        {
+          estimated_permutations = std::numeric_limits<double>::max();
+        }
+      }
+      if (estimated_permutations > max_permutations_)
+      {
+        OPENMS_LOG_DEBUG << "\tEarly termination: estimated permutations (" << estimated_permutations << ") exceeds maximum (" << max_permutations_ << ")" << std::endl;
+        return permutations; // Return empty permutations to signal that the calculation should be aborted
+      }
+    }
     
     if (n_phosphorylation_events == 0)
     {
@@ -516,6 +556,14 @@ namespace OpenMS
 
       // all permutations with first site not selected
       vector<vector<Size>> other_possibilities(computePermutations_(tupel_left, n_phosphorylation_events));
+      
+      // Check if we've exceeded the maximum number of permutations during recursion
+      if (max_permutations_ > 0 && (permutations.size() + other_possibilities.size() > max_permutations_))
+      {
+        OPENMS_LOG_DEBUG << "\tEarly termination during recursion: current permutations (" << permutations.size() + other_possibilities.size() << ") exceeds maximum (" << max_permutations_ << ")" << std::endl;
+        permutations.clear(); // Clear permutations to signal that the calculation should be aborted
+        return permutations;
+      }
       permutations.insert(permutations.end(), other_possibilities.begin(), other_possibilities.end());
       return permutations;
     }
