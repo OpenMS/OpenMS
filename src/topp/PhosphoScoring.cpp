@@ -56,6 +56,10 @@ possible to recalculate the Ascore using the cumulative binomial probability for
 given values (see Fig. 3c).  In addition the site determining ions calculation seems not reliable,
 because in some test cases more site determining ions were calculated than it could be possible.
 
+The tool also supports the analysis of PhosphoDecoy sites (A, G, L) which can be used for false 
+localization rate (FLR) calculations. This can be enabled using the 'add_decoys' parameter.
+When enabled, both regular phosphorylation sites (S, T, Y) and decoy sites will be analyzed.
+
 @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool.
 Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
