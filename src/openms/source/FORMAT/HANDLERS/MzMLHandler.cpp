@@ -123,12 +123,15 @@ namespace OpenMS::Internal
 
         String error_message;
         std::cout << 'd' << std::endl;
+        std::cout << spectrum_data_.size() << std::endl;
 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
         for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
         {
+          std::cout << i << std::endl;
+
           std::cout << 'e' << std::endl;
 
           // parallel exception catching and re-throwing business
