@@ -297,7 +297,7 @@ protected:
       for (const PeptideHit& hit : pep.getHits())
       {
         PeptideHit scored_hit = hit;
-        addScoreToM())es_(scored_hit, pep.getScoreType()); // backup score value
+        addScoreToMetaValues_(scored_hit, pep.getScoreType()); // backup score value
         
         OPENMS_LOG_DEBUG << "starting to compute AScore RT=" << pep.getRT() << " SEQUENCE: " << scored_hit.getSequence().toString() << std::endl;
         

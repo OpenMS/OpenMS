@@ -67,6 +67,12 @@ namespace OpenMS
     */
     PeptideHit compute(const PeptideHit& hit, PeakSpectrum& real_spectrum);
 
+    /// return is char is a phospho decoy site
+    static bool isPhosphoDecoySite(char residue);
+
+    /// return is char is a phospho site
+    static bool isPhosphoSite(char residue);
+
   protected:
     int compareMZ_(double mz1, double mz2) const;
     
@@ -128,9 +134,6 @@ namespace OpenMS
 
     /// return all phospho sites
     std::vector<Size> getSites_(const String& unmodified_sequence) const;
-
-    /// Checks if the residue at a specific position is a PhosphoDecoy site (A, G, L)
-    bool isPhosphoDecoySite_(char residue) const;
 
     /// calculate all n_phosphorylation_events sized sets of phospho sites (all versions of the peptides with exactly n_phosphorylation_events)
     std::vector<std::vector<Size>> computePermutations_(const std::vector<Size>& sites, Int n_phosphorylation_events) const;

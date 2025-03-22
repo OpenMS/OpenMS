@@ -59,11 +59,6 @@ class AScoreTest : public AScore
       return removePhosphositesFromSequence_(sequence);
     }
     
-    bool isPhosphoDecoySiteTest_(char residue) const
-    {
-      return isPhosphoDecoySite_(residue);
-    }
-    
     std::vector<PeakSpectrum> createTheoreticalSpectraTest_(const std::vector<std::vector<Size>>& permutations, const AASequence& seq_without_phospho) const
     {
       return createTheoreticalSpectra_(permutations, seq_without_phospho);
@@ -436,17 +431,17 @@ START_SECTION(computeSiteDeterminingIonsTest_(const std::vector<PeakSpectrum>& t
 }
 END_SECTION
 
-START_SECTION(bool isPhosphoDecoySiteTest_(char residue))
+START_SECTION(bool isPhosphoDecoy(char residue))
 {
   // Test PhosphoDecoy sites recognition
-  TEST_EQUAL(ptr_test->isPhosphoDecoySiteTest_('A'), true)
-  TEST_EQUAL(ptr_test->isPhosphoDecoySiteTest_('G'), true)
-  TEST_EQUAL(ptr_test->isPhosphoDecoySiteTest_('L'), true)
+  TEST_EQUAL(ptr_test->isPhosphoDecoySite('A'), true)
+  TEST_EQUAL(ptr_test->isPhosphoDecoySite('G'), true)
+  TEST_EQUAL(ptr_test->isPhosphoDecoySite('L'), true)
   
   // Test non-PhosphoDecoy sites
-  TEST_EQUAL(ptr_test->isPhosphoDecoySiteTest_('S'), false)
-  TEST_EQUAL(ptr_test->isPhosphoDecoySiteTest_('T'), false)
-  TEST_EQUAL(ptr_test->isPhosphoDecoySiteTest_('Y'), false)
+  TEST_EQUAL(ptr_test->isPhosphoDecoySite('S'), false)
+  TEST_EQUAL(ptr_test->isPhosphoDecoySite('T'), false)
+  TEST_EQUAL(ptr_test->isPhosphoDecoySite('Y'), false)
 }
 END_SECTION
 

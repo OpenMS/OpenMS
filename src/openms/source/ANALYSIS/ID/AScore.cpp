@@ -429,9 +429,14 @@ namespace OpenMS
            / 7.0;
   }
 
-  bool AScore::isPhosphoDecoySite_(char residue) const
+  bool AScore::isPhosphoDecoySite(char residue)
   {
     return (residue == 'A' || residue == 'G' || residue == 'L');
+  }
+
+  bool AScore::isPhosphoSite(char residue)
+  {
+    return (residue == 'S' || residue == 'T' || residue == 'Y');
   }
 
   vector<Size> AScore::getSites_(const String& unmodified) const
@@ -440,12 +445,12 @@ namespace OpenMS
     for (Size i = 0; i < unmodified.size(); ++i)
     {
       // Always include standard phosphorylation sites (S, T, Y)
-      if (unmodified[i] == 'S' || unmodified[i] == 'T' || unmodified[i] == 'Y')
+      if (isPhosphoSite(unmodified[i]))
       {
         tupel.push_back(i);
       }
       // Include PhosphoDecoy sites (A, G, L) if enabled
-      else if (add_decoys_ && isPhosphoDecoySite_(unmodified[i]))
+      else if (add_decoys_ && isPhosphoDecoySite(unmodified[i]))
       {
         tupel.push_back(i);
       }
@@ -605,7 +610,7 @@ namespace OpenMS
           char residue = seq_string[as];
           
           // Determine which modification to apply based on residue type
-          if (add_decoys_ && isPhosphoDecoySite_(residue))
+          if (add_decoys_ && isPhosphoDecoySite(residue))
           {
             // This is a PhosphoDecoy site (A, G, L)
             seq.setModification(as, "PhosphoDecoy");
