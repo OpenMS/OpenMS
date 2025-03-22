@@ -631,6 +631,7 @@ namespace OpenMS::Internal
 
     void MzMLHandler::characters(const XMLCh* const chars, const XMLSize_t length)
     {
+      std::cout << "Enter characters" << std::endl;
       if (skip_spectrum_ || skip_chromatogram_)
       {
         return;
@@ -661,11 +662,13 @@ namespace OpenMS::Internal
         }
         */
       }
+      std::cout << "Exit characters" << std::endl;
     }
 
 
     void MzMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
+      std::cout << "Enter startElement" << std::endl;
       constexpr XMLCh s_count[] = {'c','o','u','n','t', 0};
       constexpr XMLCh s_default_array_length[] = { 'd','e','f','a','u','l','t','A','r','r','a','y','L','e','n','g','t','h' , 0};
       constexpr XMLCh s_array_length[] = { 'a','r','r','a','y','L','e','n','g','t','h' , 0};
@@ -1199,10 +1202,12 @@ namespace OpenMS::Internal
       {
         spec_.getInstrumentSettings().getScanWindows().emplace_back();
       }
+      std::cout << "Exit startElement" << std::endl;
     }
 
     void MzMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
+      std::cout << "Enter endElement" << std::endl;
       constexpr XMLCh s_spectrum[] = { 's','p','e','c','t','r','u','m' , 0};
       constexpr XMLCh s_chromatogram[] = { 'c','h','r','o','m','a','t','o','g','r','a','m' , 0};
       constexpr XMLCh s_spectrum_list[] = { 's','p','e','c','t','r','u','m','L','i','s','t' , 0};
@@ -1340,6 +1345,7 @@ namespace OpenMS::Internal
         pg_outer.endProgress(File::fileSize(file_)); // we cannot query the offset within the file when SAX'ing it (Xerces does not support that)
                                                      // , so we can only report I/O at the very end
       }
+      std::cout << "Exit endElement" << std::endl;
     }
 
     void MzMLHandler::handleCVParam_(const String& parent_parent_tag,
