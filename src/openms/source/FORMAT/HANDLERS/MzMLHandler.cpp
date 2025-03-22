@@ -111,29 +111,48 @@ namespace OpenMS::Internal
 
     void MzMLHandler::populateSpectraWithData_()
     {
+      std::cout << 'a' << std::endl;
 
       // Whether spectrum should be populated with data
       if (options_.getFillData())
       {
+        std::cout << 'b' << std::endl;
+
         size_t errCount = 0;
+        std::cout << 'c' << std::endl;
+
         String error_message;
+        std::cout << 'd' << std::endl;
+
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
         for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
         {
+          std::cout << 'e' << std::endl;
+
           // parallel exception catching and re-throwing business
           if (!errCount) // no need to parse further if already an error was encountered
           {
+            std::cout << 'f' << std::endl;
+
             try
             {
+              std::cout << 'g' << std::endl;
+
               populateSpectraWithData_(spectrum_data_[i].data,
                                        spectrum_data_[i].default_array_length,
                                        options_,
                                        spectrum_data_[i].spectrum);
-              if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
+                                       std::cout << 'h' << std::endl;
+              
+                                       if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
               {
+                std::cout << 'i' << std::endl;
+
                 spectrum_data_[i].spectrum.sortByPosition();
+                std::cout << 'j' << std::endl;
+
               }
             }
 
@@ -141,44 +160,84 @@ namespace OpenMS::Internal
             {
 #pragma omp critical(MZMLErrorHandling)
               {
+                std::cout << 'k' << std::endl;
+
                 ++errCount;
+                std::cout << 'l' << std::endl;
+
                 error_message = e.what();
+                std::cout << 'm' << std::endl;
+
               }
             }
             catch (...)
             {
+              std::cout << 'n' << std::endl;
+
 #pragma omp atomic
               ++errCount;
+              std::cout << 'o' << std::endl;
+
             }
           }
         }
+        std::cout << 'p' << std::endl;
+
         if (errCount != 0)
         {
+        std::cout << 'q' << std::endl;
+
           std::cerr << "  Parsing error: '" << error_message  << "'" << std::endl;
+        std::cout << 'r' << std::endl;
+
           std::cerr << "  You could try to disable sorting spectra while loading." << std::endl;
+        std::cout << 's' << std::endl;
+
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data: '" + error_message + "'");
+        std::cout << 't' << std::endl;
+
         }
       }
+      std::cout << 'u' << std::endl;
 
       // Append all spectra to experiment / consumer
       for (Size i = 0; i < spectrum_data_.size(); i++)
       {
+      std::cout << 'v' << std::endl;
+
         if (consumer_ != nullptr)
+
         {
+      std::cout << 'w' << std::endl;
+
           consumer_->consumeSpectrum(spectrum_data_[i].spectrum);
+      std::cout << 'x' << std::endl;
+
           if (options_.getAlwaysAppendData())
           {
+      std::cout << 'y' << std::endl;
+
+
             exp_->addSpectrum(std::move(spectrum_data_[i].spectrum));
+      std::cout << 'z' << std::endl;
+
           }
         }
         else
         {
+      std::cout << 'a1' << std::endl;
+
           exp_->addSpectrum(std::move(spectrum_data_[i].spectrum));
+      std::cout << 'b1' << std::endl;
+
         }
       }
+      std::cout << 'c1' << std::endl;
 
       // Delete batch
       spectrum_data_.clear();
+      std::cout << 'd1' << std::endl;
+
     }
 
     void MzMLHandler::populateChromatogramsWithData_()
