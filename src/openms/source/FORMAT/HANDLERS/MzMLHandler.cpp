@@ -1214,17 +1214,26 @@ namespace OpenMS::Internal
       constexpr XMLCh s_chromatogram_list[] = { 'c','h','r','o','m','a','t','o','g','r','a','m','L','i','s','t' , 0};
       constexpr XMLCh s_mzml[] = { 'm','z','M','L' , 0};
       constexpr XMLCh s_sourceFileList[] = { 's','o','u','r','c','e','F','i','l','e','L','i','s','t', 0};
+      std::cout << 1 << std::endl;
 
       open_tags_.pop_back();
+      std::cout << 2 << std::endl;
+
 
       if (equal_(qname, s_spectrum))
       {
+        std::cout << 3 << std::endl;
+
         if (!skip_spectrum_)
         {
+          std::cout << 4 << std::endl;
+
           // catch errors stemming from confusion about elution time and scan time
           if (!rt_set_ && spec_.metaValueExists("elution time (seconds)"))
           {
+            std::cout << 5 << std::endl;
             spec_.setRT(spec_.getMetaValue("elution time (seconds)"));
+            std::cout << 6 << std::endl;
           }
           /* this is too hot (could be SRM as well? -- check!):
           // correct spectrum type if possible (i.e., make it more specific)
@@ -1237,20 +1246,39 @@ namespace OpenMS::Internal
 
           // Move current data to (temporary) spectral data object
           SpectrumData tmp;
+          std::cout << 7 << std::endl;
+
           tmp.spectrum = std::move(spec_);
+          std::cout << 8 << std::endl;
+
           tmp.default_array_length = default_array_length_;
+          std::cout << 9 << std::endl;
+
           if (options_.getFillData())
           {
+            std::cout << 10 << std::endl;
+
             tmp.data = std::move(bin_data_);
+            std::cout << 11 << std::endl;
+
           }
+          std::cout << 12 << std::endl;
+
           // append current spectral data to buffer
           spectrum_data_.push_back(std::move(tmp));
+          std::cout << 13 << std::endl;
+
 
           if (spectrum_data_.size() >= options_.getMaxDataPoolSize())
           {
+            std::cout << 14 << std::endl;
+
             populateSpectraWithData_();
+            std::cout << 15 << std::endl;
+
           }
         }
+        std::cout << 16 << std::endl;
 
         switch (load_detail_)
         {
@@ -1262,33 +1290,66 @@ namespace OpenMS::Internal
             skip_spectrum_ = true; // we always skip spectra; we only need the outer <spectrumList/chromatogramList count=...>
             break;
         }
+        std::cout << 17 << std::endl;
+
 
         rt_set_ = false;
+        std::cout << 18 << std::endl;
+
         logger_.nextProgress();
+        std::cout << 19 << std::endl;
+
         bin_data_.clear();
+        std::cout << 20 << std::endl;
+
         default_array_length_ = 0;
+        std::cout << 21 << std::endl;
+
       }
       else if (equal_(qname, s_chromatogram))
       {
+        std::cout << 22 << std::endl;
+
         if (!skip_chromatogram_)
         {
+          std::cout << 23 << std::endl;
+          
 
           // Move current data to (temporary) spectral data object
           ChromatogramData tmp;
+          std::cout << 24 << std::endl;
+
           tmp.default_array_length = default_array_length_;
+          std::cout << 25 << std::endl;
+
           tmp.chromatogram = std::move(chromatogram_);
+          std::cout << 26 << std::endl;
+
           if (options_.getFillData())
           {
+            std::cout << 27 << std::endl;
+
             tmp.data = std::move(bin_data_);
+            std::cout << 28 << std::endl;
+
           }
+          std::cout << 29 << std::endl;
+
           // append current spectral data to buffer
           chromatogram_data_.push_back(std::move(tmp));
+          std::cout << 30 << std::endl;
+
 
           if (chromatogram_data_.size() >= options_.getMaxDataPoolSize())
           {
+            std::cout << 31 << std::endl;
+
             populateChromatogramsWithData_();
+            std::cout << 32 << std::endl;
+
           }
         }
+        std::cout << 33 << std::endl;
 
         switch (load_detail_)
         {
@@ -1300,50 +1361,97 @@ namespace OpenMS::Internal
             skip_chromatogram_ = true; // we always skip chroms; we only need the outer <spectrumList/chromatogramList count=...>
             break;
         }
+        std::cout << 34 << std::endl;
+
 
         logger_.nextProgress();
+        std::cout << 35 << std::endl;
+
         bin_data_.clear();
+        std::cout << 36 << std::endl;
+
         default_array_length_ = 0;
+        std::cout << 37 << std::endl;
+
       }
       else if (equal_(qname, s_spectrum_list))
       {
+        std::cout << 38 << std::endl;
+
         skip_spectrum_ = false; // no more spectra to come, so stop skipping (for the LD_RAWCOUNTS case)
         in_spectrum_list_ = false;
         logger_.endProgress();
+        std::cout << 39 << std::endl;
+
       }
       else if (equal_(qname, s_chromatogram_list))
       {
+        std::cout << 40 << std::endl;
+
         skip_chromatogram_ = false; // no more chromatograms to come, so stop skipping
         in_spectrum_list_ = false;
         logger_.endProgress();
+        std::cout << 41 << std::endl;
+
       }
+
       else if (equal_(qname, s_sourceFileList ))
       {        
+        std::cout << 42 << std::endl;
+        
+
         for (auto const& ref_sourcefile : source_files_)
         {
+          std::cout << 43 << std::endl;
+
           auto& sfs = exp_->getSourceFiles();
+          std::cout << 44 << std::endl;
+
           // only store source files once
           if (std::find(sfs.begin(), sfs.end(), ref_sourcefile.second) == sfs.end())
           {
+            std::cout << 45 << std::endl;
+            
             exp_->getSourceFiles().push_back(ref_sourcefile.second);
+            std::cout << 46 << std::endl;
+
           }
         }
       }
       else if (equal_(qname, s_mzml))
       {
+        std::cout << 47 << std::endl;
+
         ref_param_.clear();
+        std::cout << 48 << std::endl;
+
         current_id_ = "";
+        std::cout << 49 << std::endl;
+
         source_files_.clear();
+        std::cout << 50 << std::endl;
         samples_.clear();
+        std::cout << 51 << std::endl;
+        
         software_.clear();
+        std::cout << 52 << std::endl;
+
         instruments_.clear();
+        std::cout << 53 << std::endl;
+
         processing_.clear();
+        std::cout << 54 << std::endl;
 
         // Flush the remaining data
         populateSpectraWithData_();
+        std::cout << 55 << std::endl;
+
         populateChromatogramsWithData_();
+        std::cout << 56 << std::endl;
+
         pg_outer.endProgress(File::fileSize(file_)); // we cannot query the offset within the file when SAX'ing it (Xerces does not support that)
                                                      // , so we can only report I/O at the very end
+                                                     std::cout << 57 << std::endl;
       }
       std::cout << "Exit endElement" << std::endl;
     }
