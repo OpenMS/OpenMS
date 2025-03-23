@@ -304,6 +304,36 @@ protected:
               String tmp = line.substr(8);
               spectrum.setMetaValue("IONMODE", tmp);
             }
+            else if (line.hasPrefix("MSLEVEL"))
+            {
+              String tmp = line.substr(8);
+              spectrum.setMetaValue("MSLEVEL", tmp);
+            }
+            else if (line.hasPrefix("SOURCE_INSTRUMENT"))
+            {
+              String tmp = line.substr(18);
+              spectrum.setMetaValue("SOURCE_INSTRUMENT", tmp);
+            }
+            else if (line.hasPrefix("ORGANISM"))
+            {
+              String tmp = line.substr(9);
+              spectrum.setMetaValue("ORGANISM", tmp);
+            }
+            else if (line.hasPrefix("PI"))
+            {
+              String tmp = line.substr(3);
+              spectrum.setMetaValue("PI", tmp);
+            }
+            else if (line.hasPrefix("DATACOLLECTOR"))
+            {
+              String tmp = line.substr(14);
+              spectrum.setMetaValue("DATACOLLECTOR", tmp);
+            }
+            else if (line.hasPrefix("LIBRARYQUALITY"))
+            {
+              String tmp = line.substr(15);
+              spectrum.setMetaValue("LIBRARYQUALITY", tmp);
+            }
             else if (line.hasPrefix("SPECTRUMID"))
             {
               String tmp = line.substr(11);
