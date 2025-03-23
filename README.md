@@ -28,7 +28,7 @@ quantitation, SILAC, iTRAQ, TMT, SRM, SWATH, etc.
 It provides built-in algorithms for de-novo identification and database search,
 as well as adapters to other state-of-the art tools like X!Tandem, Mascot,
 Comet, etc. It supports easy integration of OpenMS built tools into workflow
-engines like KNIME, Galaxy, WS-Pgrade, and TOPPAS via the TOPPtools concept and
+engines like nextflow, KNIME, Galaxy, and TOPPAS via the TOPPTools concept and
 a unified parameter handling via a 'common tool description' (CTD) scheme.
 
 With pyOpenMS, OpenMS offers Python bindings to a large part of the OpenMS API
@@ -37,6 +37,13 @@ Initiative (PSI) formats for MS data. The main contributors of OpenMS are
 currently the Eberhard-Karls-Universität in Tübingen, the Freie Universität
 Berlin, and the ETH Zürich.
 
+Table of Contents
+--------
+- [Features](#features)
+- [Documentation](#documentation)
+- [Building OpenMS](#building-openms)
+- [Citation](#citation)
+
 Features
 --------
 - Core C++ library under three-clause BSD licence using modern C++20
@@ -44,16 +51,16 @@ Features
 - Major community file formats supported (mzML, mzXML, mzIdentXML, pepXML, mzTab, etc.)
 - Over 150+ individual analysis tools (TOPP Tools), covering most MS and LC-MS data processing and mining tasks
 - Powerful 1D, 2D and 3D visualization tools (TOPPView)
-- Support for most MS identification and quantification workflows (targeted, DIA, label-free, isobaric and stable isotope)
-- Support for all major platforms (Windows [XP, 7, 8, 10], macOS and Linux)
+- Support for most MS identification and quantification workflows (targeted, DIA, label-free, isobaric and stable isotope labelled)
+- Support for all major platforms (Windows [10, 11], macOS and Linux)
 
 Documentation
 -------------
 
-Users and developers should start by reading the [OpenMS documentation](https://openms.readthedocs.io/en/latest). OpenMS
-API reference documentation and advanced developer doxygen documentation can be browsed [here](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html).
+Users and developers should start by reading the [OpenMS documentation](https://openms.readthedocs.io/en/latest) on ReadTheDocs (RTD).
+The OpenMS API reference and advanced developer doxygen documentation can be browsed [here](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html).
 
-openms.readthedocs.io documentation aims at being an entry point for users and developers alike. It is trying to be mostly version-independent and therefore
+The OpenMS RTD documentation aims at being an entry point for users and developers alike. It is trying to be mostly version-independent and therefore
 only consists of one main branch. We may introduce tags for older releases in the future.
 
 The OpenMS API reference has several endpoints:
@@ -64,6 +71,17 @@ The OpenMS API reference has several endpoints:
 
 Documentation for the Python bindings pyOpenMS can be found on the [pyOpenMS online documentation](https://pyopenms.readthedocs.io).
 
+Building OpenMS
+--------
+
+For developers who want to build OpenMS from source:
+
+- [Build on Linux](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_linux.html) - Build instructions for Linux.
+- [Build on Windows](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_win.html) - Build instructions for Windows.
+- [Build on macOS](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_mac.html) - Build instructions for macOS.
+
+For more detailed instructions, see the [Developer Tutorial](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/developer_tutorial.html).
+
 Citation
 --------
 Please cite:
@@ -71,7 +89,3 @@ Please cite:
 Pfeuffer, J., Bielow, C., Wein, S. et al. OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data, Nat Methods 21, 365–367 (2024). https://doi.org/10.1038/s41592-024-02197-7
 
 The file [AUTHORS](AUTHORS) contains a list of all authors who worked on OpenMS.
-
-Licence
--------
-OpenMS is released under the [three clause BSD licence](LICENSE).

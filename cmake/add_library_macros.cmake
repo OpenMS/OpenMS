@@ -161,18 +161,8 @@ function(openms_add_library)
   # or specify a min version of each compiler.
   target_compile_features(${openms_add_library_TARGET_NAME} PUBLIC cxx_std_20)
 
-  if (CMAKE_COMPILER_IS_GNUCXX)
-    target_compile_options(${openms_add_library_TARGET_NAME} PRIVATE 
-    -Wall
-    -Wextra
-    #-fvisibility=hidden # This is now added as a target property for each library.     
-    -Wno-non-virtual-dtor
-    -Wno-unknown-pragmas
-    -Wno-long-long 
-    -Wno-unknown-pragmas
-    -Wno-unused-function
-    -Wno-variadic-macros)
-  endif()
+  # Add compiler flags using the new helper function
+  openms_add_library_compiler_flags(${openms_add_library_TARGET_NAME})
 
   if(ADDRESS_SANITIZER)
     add_asan_to_target(${openms_add_library_TARGET_NAME})

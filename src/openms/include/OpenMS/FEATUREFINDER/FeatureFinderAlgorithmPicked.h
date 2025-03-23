@@ -58,6 +58,23 @@ protected:
   /**
     @brief FeatureFinderAlgorithm for picked peaks.
 
+    This module identifies "features" in a LC/MS map. By feature, we understand a peptide in an MS sample that
+    reveals a characteristic isotope distribution over time. The algorithm
+    computes positions in RT and m/z dimension and a charge estimate
+    of each peptide.
+
+    The algorithm identifies pronounced regions of the data around so-called <tt>seeds</tt>.
+    The user can provide a list of seeds (e.g. from an identification run of MS/MS spectra) or the algorithm can compute seeds itself.
+
+    In the next step, we iteratively fit a model of the isotope profile and the retention time to
+    the initial seed data points. Data points with a low probability under this model are removed from the
+    feature region. The intensity of the feature is then given by the sum of the data points included
+    in its regions.
+
+    How to find suitable parameters and details of the different algorithms implemented are described
+    in the "TOPP tutorial" (on https://openms.readthedocs.io/).
+
+
     @htmlinclude OpenMS_FeatureFinderAlgorithmPicked.parameters
 
     @improvement RT model with tailing/fronting (Marc)
@@ -95,6 +112,23 @@ public:
 
     void setData(const MSExperiment& map, FeatureMap& features);
 
+    /**
+      @brief Main method of the FeatureFinderAlgorithmPicked.
+
+      @note The input map has to be sorted by RT and m/z. If this is not the case, the algorithm will sort the input data internally.
+
+      @note The algorithm will not work on profile data and throw an exception.
+
+      @note: The algorithm will not work on data with negative m/z values and throw an exception.
+
+      @note: the input data will be copied internally (leading to a memory overhead).
+
+      @param input_map The input map of centroided spectra with MS level 1.
+      @param features The output feature map.
+      @param param The parameters for the algorithm.
+      @param seeds The seeds that should be used for the feature finding. Provide an empty feature map if you want the algorithm to find seeds.
+
+    */
     void run(PeakMap& input_map, 
       FeatureMap& features, 
       const Param& param, 
