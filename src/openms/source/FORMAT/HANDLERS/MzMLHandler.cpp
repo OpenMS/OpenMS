@@ -128,7 +128,7 @@ namespace OpenMS::Internal
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-        for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
+        for (std::size_t i = 0; i < spectrum_data_.size(); i++)
         {
 
           // parallel exception catching and re-throwing business
@@ -143,7 +143,6 @@ namespace OpenMS::Internal
                                        spectrum_data_[i].default_array_length,
                                        local_options,
                                        spectrum_data_[i].spectrum);
-                                       std::cout << 'h' << std::endl;
               
                                        if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
               {
@@ -177,9 +176,9 @@ namespace OpenMS::Internal
         if (errCount != 0)
         {
 
-          std::cerr << "  Parsing error: '" << error_message  << "'" << std::endl;
+          // std::cerr << "  Parsing error: '" << error_message  << "'" << std::endl;
 
-          std::cerr << "  You could try to disable sorting spectra while loading." << std::endl;
+          // std::cerr << "  You could try to disable sorting spectra while loading." << std::endl;
 
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data: '" + error_message + "'");
 
