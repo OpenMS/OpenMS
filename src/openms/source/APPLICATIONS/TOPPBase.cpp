@@ -2505,6 +2505,13 @@ namespace OpenMS
           if (pos->second->type == ParameterInformation::FLAG) // flag
           {
             value = "true";
+            
+            // Check if there's an argument after the flag that isn't another option
+            if (!queue.empty() && !queue.front().hasPrefix("-"))
+            {
+              writeLogWarn_(String("Ignoring ") + queue.front() + " because " + arg + " is a flag");
+              queue.pop_front(); // Remove the argument as it's not applicable to a flag
+            }
           }
           else // option with argument(s)
           {
@@ -2572,7 +2579,17 @@ namespace OpenMS
               queue.pop_front(); // argument was already used
           }
           OPENMS_LOG_DEBUG << "Command line: setting parameter value: '" << pos->second->name << "' to '" << value << "'" << std::endl;
-          cmd_params.setValue(pos->second->name, value);
+          
+          // Check if this parameter was already set on the command line
+          if (cmd_params.exists(pos->second->name))
+          {
+            ParamValue first_value = cmd_params.getValue(pos->second->name);
+            writeLogWarn_(String("Duplicate ") + arg + " given. Using first with value " + first_value.toString());
+          }
+          else
+          {
+            cmd_params.setValue(pos->second->name, value);
+          }
         }
         else // unknown argument -> append to "unknown" list
         {
