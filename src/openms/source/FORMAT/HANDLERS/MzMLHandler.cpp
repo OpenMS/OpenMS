@@ -130,78 +130,58 @@ namespace OpenMS::Internal
 #endif
         for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
         {
-          #pragma omp critical
+
+          // parallel exception catching and re-throwing business
+          if (!errCount) // no need to parse further if already an error was encountered
           {
-          std::cout << i << std::endl;
 
-          std::cout << 'e' << std::endl;
-          }
+            try
+            {
+              auto local_options = options_; 
 
-//           // parallel exception catching and re-throwing business
-//           if (!errCount) // no need to parse further if already an error was encountered
-//           {
-//             std::cout << 'f' << std::endl;
-
-//             try
-//             {
-//               std::cout << 'g' << std::endl;
-//               auto local_options = options_; 
-
-//               populateSpectraWithData_(spectrum_data_[i].data,
-//                                        spectrum_data_[i].default_array_length,
-//                                        local_options,
-//                                        spectrum_data_[i].spectrum);
-//                                        std::cout << 'h' << std::endl;
+              populateSpectraWithData_(spectrum_data_[i].data,
+                                       spectrum_data_[i].default_array_length,
+                                       local_options,
+                                       spectrum_data_[i].spectrum);
+                                       std::cout << 'h' << std::endl;
               
-//                                        if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
-//               {
-//                 std::cout << 'i' << std::endl;
+                                       if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
+              {
 
-//                 spectrum_data_[i].spectrum.sortByPosition();
-//                 std::cout << 'j' << std::endl;
+                spectrum_data_[i].spectrum.sortByPosition();
 
-//               }
-//             }
+              }
+            }
 
-//             catch (OpenMS::Exception::BaseException& e)
-//             {
-// #pragma omp critical(MZMLErrorHandling)
-//               {
-//                 std::cout << 'k' << std::endl;
+            catch (OpenMS::Exception::BaseException& e)
+            {
+#pragma omp critical(MZMLErrorHandling)
+              {
 
-//                 ++errCount;
-//                 std::cout << 'l' << std::endl;
+                ++errCount;
 
-//                 error_message = e.what();
-//                 std::cout << 'm' << std::endl;
+                error_message = e.what();
 
-//               }
-//             }
-//             catch (...)
-//             {
-//               std::cout << 'n' << std::endl;
+              }
+            }
+            catch (...)
+            {
 
-// #pragma omp atomic
-//               ++errCount;
-//               std::cout << 'o' << std::endl;
+#pragma omp atomic
+              ++errCount;
 
-//             }
-//           }
+            }
+          }
         }
-        std::cout << 'p' << std::endl;
 
         if (errCount != 0)
         {
-        std::cout << 'q' << std::endl;
 
           std::cerr << "  Parsing error: '" << error_message  << "'" << std::endl;
-        std::cout << 'r' << std::endl;
 
           std::cerr << "  You could try to disable sorting spectra while loading." << std::endl;
-        std::cout << 's' << std::endl;
 
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, "Error during parsing of binary data: '" + error_message + "'");
-        std::cout << 't' << std::endl;
 
         }
       }
