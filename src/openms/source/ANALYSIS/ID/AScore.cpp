@@ -11,8 +11,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
-
-#include <boost/math/special_functions/binomial.hpp>
+#include <OpenMS/MATH/MathFunctions.h>
 
 using namespace std;
 
@@ -240,6 +239,7 @@ namespace OpenMS
     OPENMS_PRECONDITION(n <= N, "The number of matched ions (n) can be at most as large as the number of trials (N).");
     OPENMS_PRECONDITION(p >= 0 && p <= 1.0, "p must be a probability [0,1].");
 
+<<<<<<< HEAD
     // return bad p value if none has been matched (see Beausoleil et al.)
     if (n == 0) return 1.0;
 
@@ -268,6 +268,12 @@ namespace OpenMS
     }
 
     return score;
+=======
+    // Use the numerically stable implementation from MathFunctions
+    // This calculates P(X ≥ n) for a binomial distribution with parameters N and p
+    // which is exactly what we need for the AScore calculation
+    return Math::binomial_cdf_complement(N, n, p);
+>>>>>>> 068b7c9919 (use new methods)
   }
 
   void AScore::determineHighestScoringPermutations_(const std::vector<std::vector<double>>& peptide_site_scores, std::vector<ProbablePhosphoSites>& sites, const vector<vector<Size>>& permutations, std::multimap<double, Size>& ranking) const
