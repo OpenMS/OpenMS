@@ -51,11 +51,9 @@ namespace OpenMS
     
     //reset phospho
     phospho.setScore(-1);
-    if (real_spectrum.empty())
-    {
-      return phospho;
-    }
-    
+
+    if (real_spectrum.empty()) return phospho;
+        
     String sequence_str = phospho.getSequence().toString();
     String unmodified_sequence_str = phospho.getSequence().toUnmodifiedString();
 
@@ -105,15 +103,16 @@ namespace OpenMS
       return phospho;
     }
 
-    // determine all phospho sites
+    // determine all phospho sites (including decoy sites if add_decoys is true)
     vector<Size> sites = getSites_(unmodified_sequence_str);
-    Size number_of_STY = sites.size();
+    Size number_of_sites = sites.size();
 
-    if (number_of_phosphorylation_events == 0 || number_of_STY == 0)
+    if (number_of_phosphorylation_events == 0 || number_of_sites == 0)
     {
       return phospho;
     }
-    if (number_of_STY == number_of_phosphorylation_events)
+
+    if (number_of_sites == number_of_phosphorylation_events) 
     {
       phospho.setScore(unambiguous_score_);
       return phospho;
@@ -204,8 +203,8 @@ namespace OpenMS
         double P_second = computeCumulativeScore_(N2, n_second, p);
 
         //abs is used to avoid -0 score values
-        double score_first = abs(-10 * log10(P_first));
-        double score_second = abs(-10 * log10(P_second));
+        double score_first = abs(-10. * log10(P_first));
+        double score_second = abs(-10. * log10(P_second));
 
         OPENMS_LOG_DEBUG << "\tfirst - N: " << N << ",p: " << p << ",n: " << n_first << ", score: " << score_first << std::endl;
         OPENMS_LOG_DEBUG << "\tsecond - N: " << N2 << ",p: " << p << ",n: " << n_second << ", score: " << score_second << std::endl;
@@ -213,6 +212,7 @@ namespace OpenMS
         Ascore = score_first - score_second;
         OPENMS_LOG_DEBUG << "\tAscore_" << rank << ": " << Ascore << std::endl;
       }
+
       if (Ascore < best_Ascore)
       {
         best_Ascore = Ascore;
@@ -416,21 +416,21 @@ namespace OpenMS
 
   vector<Size> AScore::getSites_(const String& unmodified) const
   {
-    vector<Size> tupel;
+    vector<Size> ret;
     for (Size i = 0; i < unmodified.size(); ++i)
     {
       // Always include standard phosphorylation sites (S, T, Y)
       if (isPhosphoSite(unmodified[i]))
       {
-        tupel.push_back(i);
+        ret.push_back(i);
       }
       // Include PhosphoDecoy sites (A, G, L) if enabled
       else if (add_decoys_ && isPhosphoDecoySite(unmodified[i]))
       {
-        tupel.push_back(i);
+        ret.push_back(i);
       }
     }
-    return tupel;
+    return ret;
   }
 
   /// Count all phosphorylation events in a sequence, including both regular and decoy events
@@ -459,6 +459,34 @@ namespace OpenMS
     return cnt_phospho_events;
   }
 
+  /**
+   * @brief Computes all possible combinations of phosphorylation sites.
+   *
+   * This method generates all possible combinations of n_phosphorylation_events
+   * chosen from the given sites vector. It uses an iterative bitmask approach
+   * to generate combinations without recursion, which is more efficient and
+   * avoids stack overflow for large inputs.
+   *
+   * Algorithm:
+   * 1. Create a bitmask with k 1's followed by (n-k) 0's
+   * 2. For each permutation of the bitmask:
+   *    a. Select sites corresponding to 1's in the bitmask
+   *    b. Add the selected sites as a new permutation
+   * 3. Continue until all permutations are generated
+   *
+   * Early termination conditions:
+   * - If the estimated number of permutations exceeds max_permutations_
+   * - If more phosphorylation events are requested than available sites
+   * - If the actual number of permutations exceeds max_permutations_ during iteration
+   *
+   * Special cases:
+   * - n_phosphorylation_events = 0: Returns empty permutations
+   * - n_phosphorylation_events = 1: Returns each site individually
+   * - n_phosphorylation_events = sites.size(): Returns one permutation with all sites
+   *
+   * Time Complexity: O(C(n,k)) where C(n,k) is the binomial coefficient (n choose k)
+   * Space Complexity: O(k * C(n,k)) where k is n_phosphorylation_events
+   */
   vector<vector<Size>> AScore::computePermutations_(const vector<Size>& sites, Int n_phosphorylation_events) const
   {
     vector<vector<Size>> permutations;
@@ -520,27 +548,30 @@ namespace OpenMS
       Size k = n_phosphorylation_events;
       
       // Create a bitmask: k 1's followed by (n-k) 0's
+      // This represents selecting k elements from n elements
       vector<bool> bitmask(n, false);
       fill(bitmask.begin(), bitmask.begin() + k, true);
       
       // Generate all combinations using the bitmask
+      // std::prev_permutation generates all permutations in lexicographically decreasing order
       do 
       {
+        // For each permutation of the bitmask, create a combination of sites
         vector<Size> combination;
         for (Size i = 0; i < n; ++i)
         {
-          if (bitmask[i])
+          if (bitmask[i])  // If this position is selected in the bitmask
           {
-            combination.push_back(sites[i]);
+            combination.push_back(sites[i]);  // Add the corresponding site
           }
         }
         permutations.push_back(combination);
         
-        // Check if we've exceeded the maximum number of permutations
+        // Early termination check to avoid excessive computation
         if (max_permutations_ > 0 && permutations.size() > max_permutations_)
         {
           OPENMS_LOG_DEBUG << "\tEarly termination during iteration: current permutations (" << permutations.size() << ") exceeds maximum (" << max_permutations_ << ")" << std::endl;
-          permutations.clear(); // Clear permutations to signal that the calculation should be aborted
+          permutations.clear();  // Clear permutations to signal abortion
           return permutations;
         }
       }
@@ -567,7 +598,7 @@ namespace OpenMS
   vector<PeakSpectrum> AScore::createTheoreticalSpectra_(const vector<vector<Size>>& permutations, const AASequence& seq_without_phospho) const
   {
     vector<PeakSpectrum> th_spectra;
-    TheoreticalSpectrumGenerator spectrum_generator;
+    static TheoreticalSpectrumGenerator spectrum_generator;
     
     // Get the unmodified sequence as a string to check residue types
     String seq_string = seq_without_phospho.toUnmodifiedString();
@@ -706,8 +737,8 @@ namespace OpenMS
     
     if (fragment_tolerance_ppm_)
     {
-      double avg_mass = (mz1 + mz2) / 2;
-      tolerance = tolerance * avg_mass / 1e6;
+      double avg_mass = (mz1 + mz2) / 2.0;
+      tolerance = tolerance * avg_mass / 1.e6;
     }
     
     if (error < -tolerance)
