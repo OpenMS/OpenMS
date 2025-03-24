@@ -185,6 +185,8 @@ namespace OpenMS
     double unambiguous_score_; ///< Score for unambiguous assignments (all sites phosphorylated)
     double base_match_probability_; ///< Probability of a match at a peak depth of 1
     bool add_decoys_; ///< Include PhosphoDecoy sites (A, G, L) in phosphorylation site analysis
+    TheoreticalSpectrumGenerator spectrum_generator_;
   };
 
 } // namespace OpenMS
+#

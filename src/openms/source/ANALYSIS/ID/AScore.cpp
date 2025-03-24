@@ -41,6 +41,11 @@ namespace OpenMS
     defaults_.setValidStrings("add_decoys", {"true", "false"});
 
     defaultsToParam_();
+
+    Param p = spectrum_generator_.getDefaults();
+    p.setValue("isotope_mode", "none");
+    p.setValue("add_first_prefix_ion", "true");
+    spectrum_generator_.setParameters(p);
   }
 
   AScore::~AScore() = default;
@@ -598,7 +603,7 @@ namespace OpenMS
   vector<PeakSpectrum> AScore::createTheoreticalSpectra_(const vector<vector<Size>>& permutations, const AASequence& seq_without_phospho) const
   {
     vector<PeakSpectrum> th_spectra;
-    static TheoreticalSpectrumGenerator spectrum_generator;
+    
     
     // Get the unmodified sequence as a string to check residue types
     String seq_string = seq_without_phospho.toUnmodifiedString();
@@ -649,7 +654,7 @@ namespace OpenMS
       }
 
       // we mono-charge spectra, generating b- and y-ions is the default behavior of the TSG
-      spectrum_generator.getSpectrum(th_spectra[i], seq, 1, 1);
+      spectrum_generator_.getSpectrum(th_spectra[i], seq, 1, 1);
       th_spectra[i].setName(seq.toString());
     }
     return th_spectra;
