@@ -115,15 +115,22 @@ namespace OpenMS::Internal
       // Whether spectrum should be populated with data
       if (options_.getFillData())
       {
+        std::cout << "ping" << std::endl;
         size_t errCount = 0;
         String error_message;
 #ifdef _OPENMP
-#pragma omp parallel for
+#pragma omp parallel for shared(errCount, spectrum_data_) private(error_message, options_)
 #endif
         for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
         {
-          // parallel exception catching and re-throwing business
-          if (!errCount) // no need to parse further if already an error was encountered
+
+          bool errors;
+
+          # pragma omp critical
+          {
+            errors = (errCount != 0);
+          }
+          if (!errors) // no need to parse further if already an error was encountered
           {
             try
             {
@@ -152,6 +159,7 @@ namespace OpenMS::Internal
             }
           }
         }
+        std::cout << "pong" << std::endl;
         if (errCount != 0)
         {
           std::cerr << "  Parsing error: '" << error_message  << "'" << std::endl;
