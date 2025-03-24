@@ -122,6 +122,17 @@ namespace OpenMS::Internal
         std::cout << 'c' << std::endl;
 
         String error_message;
+
+        std::atomic<int> debug_counter{0};
+
+        #ifdef _OPENMP
+        #pragma omp parallel for
+        #endif
+        for (std::size_t i = 0; i < spectrum_data_.size(); i++)
+        {
+          debug_counter++;
+        }
+
         std::cout << 'd' << std::endl;
         std::cout << spectrum_data_.size() << std::endl;
 
