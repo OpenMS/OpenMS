@@ -130,9 +130,12 @@ namespace OpenMS::Internal
 #endif
         for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
         {
+          #pragma omp critical
+          {
           std::cout << i << std::endl;
 
           std::cout << 'e' << std::endl;
+          }
 
 //           // parallel exception catching and re-throwing business
 //           if (!errCount) // no need to parse further if already an error was encountered
