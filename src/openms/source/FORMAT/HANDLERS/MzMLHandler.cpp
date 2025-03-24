@@ -123,23 +123,24 @@ namespace OpenMS::Internal
 #endif
         for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
         {
-
-          bool errors = false;
+          size_t errors = 0;
 
           # pragma omp atomic read
-          errors = (errCount != 0);
+          errors = errCount;
 
+          # pragma omp critical
+          {
           if (!errors) // no need to parse further if already an error was encountered
           {
             try
             {
-              # pragma omp atomic read
+              
               auto options__ = options_;
               populateSpectraWithData_(spectrum_data_[i].data,
                                        spectrum_data_[i].default_array_length,
                                        options__,
                                        spectrum_data_[i].spectrum);
-              if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
+              if (options__.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
               {
                 spectrum_data_[i].spectrum.sortByPosition();
               }
@@ -159,6 +160,8 @@ namespace OpenMS::Internal
               ++errCount;
             }
           }
+        }
+
         }
         std::cout << "pong" << std::endl;
         if (errCount != 0)
