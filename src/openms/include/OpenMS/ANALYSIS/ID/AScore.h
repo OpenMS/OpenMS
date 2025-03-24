@@ -172,6 +172,10 @@ namespace OpenMS
     /// Rank weighted permutation scores ascending
     std::multimap<double, Size> rankWeightedPermutationPeptideScores_(const std::vector<std::vector<double>>& peptide_site_scores) const;
 
+    /// Generate a ProForma-like string with phosphorylation site localization scores
+    String generateProFormaString_(const AASequence& peptide, const std::vector<ProbablePhosphoSites>& phospho_sites, const std::map<Size, double>& ascores) const;
+    String generateProFormaString_(const AASequence& peptide, const std::vector<ProbablePhosphoSites>& phospho_sites, double best_Ascore) const;
+
     /// Reimplemented from @ref DefaultParamHandler
     void updateMembers_() override;
 

@@ -12,6 +12,9 @@
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
+#include <sstream>
+#include <iomanip>
+
 using namespace std;
 
 namespace OpenMS
@@ -222,6 +225,10 @@ namespace OpenMS
       phospho.setMetaValue("AScore_" + String(rank), Ascore);
       ++rank;      
     }
+    
+    // Add ProForma string as meta value
+    String proforma = generateProFormaString_(phospho.getSequence(), phospho_sites, best_Ascore);
+    phospho.setMetaValue("ProForma", proforma);
     phospho.setScore(best_Ascore);
     return phospho;
   }
@@ -755,6 +762,86 @@ namespace OpenMS
     { 
       return 0;
     }
+  }
+
+  String AScore::generateProFormaString_(const AASequence& peptide, const std::vector<ProbablePhosphoSites>& phospho_sites, const std::map<Size, double>& ascores) const
+  {
+    // Get the unmodified sequence as a string
+    String unmodified_str = peptide.toUnmodifiedString();
+    
+    // Create a map to store scores for each position
+    std::map<Size, double> position_scores;
+    
+    // Convert AScores to probabilities (0-1 range) for each phosphorylation site
+    for (const auto& site_pair : ascores)
+    {
+      Size position = site_pair.first;
+      double ascore = site_pair.second;
+      
+      // AScore is a -log10 scale, convert to probability
+      // Higher AScore means higher confidence
+      // We can use a simple conversion like: prob = 1.0 - (1.0 / (1.0 + AScore))
+      // This ensures that higher AScores give probabilities closer to 1
+      double probability = 1.0 - (1.0 / (1.0 + ascore));
+      
+      // Cap probability between 0 and 1
+      probability = std::max(0.0, std::min(1.0, probability));
+      
+      // Store the probability for this position
+      position_scores[position] = probability;
+    }
+    
+    // Build the ProForma string
+    String result;
+    for (Size i = 0; i < unmodified_str.size(); ++i)
+    {
+      result += unmodified_str[i];
+      
+      // Check if this position has a phosphorylation
+      auto it = position_scores.find(i);
+      if (it != position_scores.end())
+      {
+        // Determine the modification type based on the residue
+        char residue = unmodified_str[i];
+        String mod_name;
+        
+        if (isPhosphoSite(residue))
+        {
+          // Standard phosphorylation site (S, T, Y)
+          mod_name = "Phospho";
+        }
+        else if (add_decoys_ && isPhosphoDecoySite(residue))
+        {
+          // PhosphoDecoy site (A, G, L)
+          mod_name = "PhosphoDecoy";
+        }
+        else
+        {
+          continue; // Skip if not a valid phosphorylation site
+        }
+        
+        // Format the score with 2 decimal places
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(2) << it->second;
+        // Add the ProForma-like annotation
+        result += "[" + mod_name + "|score=" + ss.str() + "]";
+      }
+    }
+    
+    return result;
+  }
+
+  String AScore::generateProFormaString_(const AASequence& peptide, const std::vector<ProbablePhosphoSites>& phospho_sites, double best_Ascore) const
+  {
+    // Create a map to store AScores for each position
+    std::map<Size, double> ascores;
+    
+    for (Size i = 0; i < phospho_sites.size(); ++i)
+    {
+      ascores[phospho_sites[i].first] = best_Ascore;
+    }
+    
+    return generateProFormaString_(peptide, phospho_sites, ascores);
   }
 
   void AScore::updateMembers_()

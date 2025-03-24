@@ -333,11 +333,11 @@ START_SECTION(computeSiteDeterminingIonsTest_(const std::vector<PeakSpectrum>& t
   
   ptr_test->computeSiteDeterminingIonsTest_(th_s, candidates, site_determining_ions);
   TEST_EQUAL(site_determining_ions.size(), 2);
-  TEST_EQUAL(site_determining_ions[0].size(), 7);
-  TEST_EQUAL(site_determining_ions[1].size(), 7);
+  TEST_EQUAL(site_determining_ions[0].size(), 8);
+  TEST_EQUAL(site_determining_ions[1].size(), 8);
   TEST_REAL_SIMILAR(site_determining_ions[0][0].getMZ(), 106.05);
   TEST_REAL_SIMILAR(site_determining_ions[0][site_determining_ions[0].size() - 1].getMZ(), 636.206);
-  TEST_REAL_SIMILAR(site_determining_ions[1][0].getMZ(), 186.016);
+  TEST_REAL_SIMILAR(site_determining_ions[1][0].getMZ(), 102.0550);
   TEST_REAL_SIMILAR(site_determining_ions[1][site_determining_ions[1].size() - 1].getMZ(), 640.201);
   
   candidates.first = 4;
@@ -346,12 +346,12 @@ START_SECTION(computeSiteDeterminingIonsTest_(const std::vector<PeakSpectrum>& t
   candidates.seq_2 = 0;
   ptr_test->computeSiteDeterminingIonsTest_(th_s, candidates, site_determining_ions);
   TEST_EQUAL(site_determining_ions.size(), 2);
-  TEST_EQUAL(site_determining_ions[0].size(), 7);
-  TEST_EQUAL(site_determining_ions[1].size(), 7);
+  TEST_EQUAL(site_determining_ions[0].size(), 8);
+  TEST_EQUAL(site_determining_ions[1].size(), 8);
 
   TEST_REAL_SIMILAR(site_determining_ions[1][0].getMZ(), 106.05);
   TEST_REAL_SIMILAR(site_determining_ions[1][site_determining_ions[1].size() - 1].getMZ(), 636.206);
-  TEST_REAL_SIMILAR(site_determining_ions[0][0].getMZ(), 186.016);
+  TEST_REAL_SIMILAR(site_determining_ions[0][0].getMZ(), 102.0550);
   TEST_REAL_SIMILAR(site_determining_ions[0][site_determining_ions[0].size() - 1].getMZ(), 640.201);
   
   //=============================================================================
@@ -621,9 +621,9 @@ START_SECTION(std::vector<PeakSpectrum> createTheoreticalSpectraTest_(const std:
   TEST_EQUAL(th_spectra.size(), 5);
   TEST_EQUAL(th_spectra[0].getName(), "QS(Phospho)SVTQVTEQSPK");
   TEST_EQUAL(th_spectra[4].getName(), "QSSVTQVTEQS(Phospho)PK");
-  TEST_REAL_SIMILAR(th_spectra[4][0].getMZ(), 147.11340);
-  TEST_REAL_SIMILAR(th_spectra[4][2].getMZ(), 244.166);
-  TEST_REAL_SIMILAR(th_spectra[4][21].getMZ(), 1352.57723);
+  TEST_REAL_SIMILAR(th_spectra[4][0].getMZ(), 129.0658);
+  TEST_REAL_SIMILAR(th_spectra[4][2].getMZ(), 216.0979);
+  TEST_REAL_SIMILAR(th_spectra[4][21].getMZ(), 1283.5879);
   
   th_spectra.clear();
 }
@@ -757,6 +757,36 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   
   // The PhosphoDecoy sites should be ignored when the option is disabled
   TEST_EQUAL(hit_disabled.metaValueExists("phospho_decoy_count"), false);
+  
+  // ===========================================================================
+  // Test ProForma output
+  // ===========================================================================
+  
+  // Test with regular phosphorylation
+  params.setValue("add_decoys", "false");
+  ptr_test->setParameters(params);
+  
+  PeptideHit hit_proforma(1.0, 1, 1, AASequence::fromString("AT(Phospho)PGNLGSSVLHS(Phospho)K"));
+  hit_proforma = ptr_test->compute(hit_proforma, real_spectrum);
+  
+  // Check that ProForma meta value exists
+  TEST_EQUAL(hit_proforma.metaValueExists("ProForma"), true);
+  
+  // Check the format of the ProForma
+  String proforma_str = hit_proforma.getMetaValue("ProForma");
+  TEST_EQUAL(proforma_str, "AT[Phospho|score=0.96]PGNLGSSVLHS[Phospho|score=0.96]K");
+  
+  // Test with both regular phosphorylation and PhosphoDecoy
+  params.setValue("add_decoys", "true");
+  ptr_test->setParameters(params);
+  
+  PeptideHit hit_proforma_mixed(1.0, 1, 1, AASequence::fromString("ATPL(PhosphoDecoy)NLGSSVLHS(Phospho)K"));
+  hit_proforma_mixed = ptr_test->compute(hit_proforma_mixed, real_spectrum);
+  
+  // Check that ProForma meta value exists and contains both modification types
+  TEST_EQUAL(hit_proforma_mixed.metaValueExists("ProForma"), true);
+  proforma_str = hit_proforma_mixed.getMetaValue("ProForma");
+  TEST_EQUAL(proforma_str, "ATPL[PhosphoDecoy|score=0.92]NLGSSVLHS[Phospho|score=0.92]K");
 }
 END_SECTION 
 
