@@ -144,10 +144,10 @@ namespace OpenMS::Internal
               std::cout << 'g' << std::endl;
               auto local_options = options_; 
 
-              populateSpectraWithData_(spectrum_data_[i].data,
-                                       spectrum_data_[i].default_array_length,
-                                       local_options,
-                                       spectrum_data_[i].spectrum);
+              // populateSpectraWithData_(spectrum_data_[i].data,
+              //                          spectrum_data_[i].default_array_length,
+              //                          local_options,
+              //                          spectrum_data_[i].spectrum);
                                        std::cout << 'h' << std::endl;
               
                                        if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
