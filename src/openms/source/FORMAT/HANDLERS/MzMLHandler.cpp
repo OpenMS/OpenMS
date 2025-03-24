@@ -130,7 +130,7 @@ namespace OpenMS::Internal
         #endif
         for (std::size_t i = 0; i < spectrum_data_.size(); i++)
         {
-          debug_counter++;
+          debug_counter.fetch_add(1, std::memory_order_relaxed);
         }
 
         std::cout << 'd' << std::endl;
