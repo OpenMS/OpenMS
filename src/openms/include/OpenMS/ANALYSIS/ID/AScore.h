@@ -14,6 +14,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/ANALYSIS/ID/PScore.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 
 #include <limits>
 #include <vector>
@@ -23,16 +24,13 @@ namespace OpenMS
   class PeptideHit;
   class AASequence;
   
-  class ProbablePhosphoSites
+  struct ProbablePhosphoSites
   {
-  public:
-
-    Size first;
-    Size second;
-    Size seq_1; ///< index of best permutation with site in phosphorylated state
-    Size seq_2; ///< index of permutation with site in unphosphorylated state
-    Size peak_depth; ///< filtering level that gave rise to maximum discriminatory score
-    Size AScore;
+    Size first{}; ///< index of the site evaluated in the best scoring permutation
+    Size second{}; ///< index of the site evaluated in the second best scoring permutation
+    Size seq_1{}; ///< index of best permutation with site in phosphorylated state
+    Size seq_2{}; ///< index of permutation with site in unphosphorylated state
+    Size peak_depth{}; ///< filtering level that gave rise to maximum discriminatory score
   };
   
   /**
@@ -55,7 +53,7 @@ namespace OpenMS
     AScore();
 
     ///Destructor
-    ~AScore() override;
+    ~AScore() override = default;
 
     /**
         @brief Computes the AScore and returns all computed phospho-sites. The saved sequences contain only phospho information. All other modifications are dropped due to simplicity.
@@ -189,4 +187,3 @@ namespace OpenMS
   };
 
 } // namespace OpenMS
-#

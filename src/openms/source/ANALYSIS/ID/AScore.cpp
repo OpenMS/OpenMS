@@ -8,7 +8,6 @@
 
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/MATH/MathFunctions.h>
@@ -43,12 +42,10 @@ namespace OpenMS
     defaultsToParam_();
 
     Param p = spectrum_generator_.getDefaults();
-    p.setValue("isotope_mode", "none");
+    p.setValue("isotope_model", "none");
     p.setValue("add_first_prefix_ion", "true");
     spectrum_generator_.setParameters(p);
   }
-
-  AScore::~AScore() = default;
 
   PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& real_spectrum)
   {
