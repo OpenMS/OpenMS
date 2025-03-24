@@ -3500,8 +3500,9 @@ namespace OpenMS::Internal
       // validateCV_() is called very often for the same path-term-combinations, so we save lots of repetitive computations
       // By caching these combinations we save about 99% of the runtime of validateCV_()
 
-      const auto it = cached_terms_.find(std::make_pair(path, c.id));
-      if (it != cached_terms_.end())
+      thread_local std::map<std::pair<String, String>, bool> cached_terms_local; 
+      const auto it = cached_terms_local.find(std::make_pair(path, c.id));
+      if (it != cached_terms_local.end())
       {
         return it->second;
       }
@@ -3513,7 +3514,7 @@ namespace OpenMS::Internal
       sc.has_unit_name = false;
 
       bool isValid = validator.SemanticValidator::locateTerm(path, sc);
-      cached_terms_[std::make_pair(path, c.id)] = isValid;
+      cached_terms_local[std::make_pair(path, c.id)] = isValid;
       return isValid;
     }
 
