@@ -54,10 +54,15 @@ namespace OpenMS
   {
     PeptideHit phospho = hit;
     
-    //reset phospho
+    // reset phospho
     phospho.setScore(-1);
+    phospho.setMetaValue("search_engine_sequence", hit.getSequence().toString());
 
-    if (real_spectrum.empty()) return phospho;
+    if (real_spectrum.empty()) 
+    {
+      OPENMS_LOG_WARN << "Empty spectrum provided to AScore::compute. Returning original hit." << std::endl;
+      return phospho;
+    }
         
     String sequence_str = phospho.getSequence().toString();
     String unmodified_sequence_str = phospho.getSequence().toUnmodifiedString();
@@ -117,9 +122,25 @@ namespace OpenMS
       return phospho;
     }
 
+    phospho.setMetaValue("phospho_decoy_count", decoy_phospho_count);
+    phospho.setMetaValue("regular_phospho_count", regular_phospho_count);
+    phospho.setMetaValue("phospho_sites", number_of_phosphorylation_events);
+
     if (number_of_sites == number_of_phosphorylation_events) 
     {
       phospho.setScore(unambiguous_score_);
+      
+      // Create a map with scores of 1.0 for all phosphorylation sites
+      std::map<Size, double> site_scores;
+      for (Size site : sites)  // 'sites' contains all phosphorylation site positions
+      {
+        site_scores[site] = unambiguous_score_;  // This will be converted to probability ~1.0
+      }
+      
+      // Create ProForma string with scores for all sites
+      String proforma = generateProFormaString_(phospho.getSequence(), site_scores);
+      phospho.setMetaValue("ProForma", proforma);
+      phospho.setMetaValue("AScore_pep_score", unambiguous_score_); // initialize score with unambiguous score  
       return phospho;
     } 
 
@@ -157,7 +178,7 @@ namespace OpenMS
     multimap<double, Size>::reverse_iterator rev = ranking.rbegin();
     String seq1 = th_spectra[rev->second].getName();
     phospho.setSequence(AASequence::fromString(seq1));
-    phospho.setMetaValue("search_engine_sequence", hit.getSequence().toString());
+
 
     // Add metadata about phosphorylation types
     if (add_decoys_)
@@ -177,9 +198,10 @@ namespace OpenMS
 
     Int rank = 1;
     double best_Ascore = std::numeric_limits<double>::max(); // the lower the better
-    for (vector<ProbablePhosphoSites>::iterator s_it = phospho_sites.begin(); s_it != phospho_sites.end(); ++s_it)
+    map<Size, double> site2score; // map to store the scores for each phospho site
+    for (auto& phospho_site : phospho_sites)
     {
-      double Ascore = 0;
+      double Ascore = 0.0;
       if (peptide1_score == peptide2_score) // set Ascore = 0 for each phosphorylation site
       {
         OPENMS_LOG_DEBUG << "\tscore of best (" << seq1 << ") and second best peptide (" << seq2 << ") are equal (" << peptide1_score << ")" << std::endl;
@@ -188,21 +210,21 @@ namespace OpenMS
       {
         vector<PeakSpectrum> site_determining_ions;
 
-        computeSiteDeterminingIons_(th_spectra, *s_it, site_determining_ions);
+        computeSiteDeterminingIons_(th_spectra, phospho_site, site_determining_ions);
         Size N = site_determining_ions[0].size(); // all possibilities have the same number so take the first one
-        double p = static_cast<double>(s_it->peak_depth) * base_match_probability_;
+        double p = static_cast<double>(phospho_site.peak_depth) * base_match_probability_;
 
         Size n_first = 0; // number of matching peaks for first peptide
         for (Size window_idx = 0; window_idx != windows_top10.size(); ++window_idx) // for each 100 m/z window
         {
-          n_first += numberOfMatchedIons_(site_determining_ions[0], windows_top10[window_idx], s_it->peak_depth);        
+          n_first += numberOfMatchedIons_(site_determining_ions[0], windows_top10[window_idx], phospho_site.peak_depth);        
         }
         double P_first = computeCumulativeScore_(N, n_first, p);
 
         Size n_second = 0; // number of matching peaks for second peptide
-        for (Size window_idx = 0; window_idx <  windows_top10.size(); ++window_idx) //each 100 m/z window
+        for (Size window_idx = 0; window_idx < windows_top10.size(); ++window_idx) // each 100 m/z window
         {
-          n_second += numberOfMatchedIons_(site_determining_ions[1], windows_top10[window_idx], s_it->peak_depth);        
+          n_second += numberOfMatchedIons_(site_determining_ions[1], windows_top10[window_idx], phospho_site.peak_depth);        
         }
         Size N2 = site_determining_ions[1].size(); // all possibilities have the same number so take the first one
         double P_second = computeCumulativeScore_(N2, n_second, p);
@@ -223,11 +245,13 @@ namespace OpenMS
         best_Ascore = Ascore;
       }
       phospho.setMetaValue("AScore_" + String(rank), Ascore);
+      //std::cout << "Rank:" << phospho_site.first << " " << phospho_site.second << " " << phospho_site.peak_depth << " " << Ascore << std::endl;
+      site2score[phospho_site.first] = Ascore;
       ++rank;      
     }
     
     // Add ProForma string as meta value
-    String proforma = generateProFormaString_(phospho.getSequence(), phospho_sites, best_Ascore);
+    String proforma = generateProFormaString_(phospho.getSequence(), site2score);
     phospho.setMetaValue("ProForma", proforma);
     phospho.setScore(best_Ascore);
     return phospho;
@@ -764,7 +788,7 @@ namespace OpenMS
     }
   }
 
-  String AScore::generateProFormaString_(const AASequence& peptide, const std::vector<ProbablePhosphoSites>& phospho_sites, const std::map<Size, double>& ascores) const
+  String AScore::generateProFormaString_(const AASequence& peptide, const std::map<Size, double>& ascores) const
   {
     // Get the unmodified sequence as a string
     String unmodified_str = peptide.toUnmodifiedString();
@@ -820,9 +844,9 @@ namespace OpenMS
           continue; // Skip if not a valid phosphorylation site
         }
         
-        // Format the score with 2 decimal places
+        // Format the score with 4 decimal places
         std::stringstream ss;
-        ss << std::fixed << std::setprecision(2) << it->second;
+        ss << std::fixed << std::setprecision(4) << it->second;
         // Add the ProForma-like annotation
         result += "[" + mod_name + "|score=" + ss.str() + "]";
       }
@@ -830,20 +854,7 @@ namespace OpenMS
     
     return result;
   }
-
-  String AScore::generateProFormaString_(const AASequence& peptide, const std::vector<ProbablePhosphoSites>& phospho_sites, double best_Ascore) const
-  {
-    // Create a map to store AScores for each position
-    std::map<Size, double> ascores;
-    
-    for (Size i = 0; i < phospho_sites.size(); ++i)
-    {
-      ascores[phospho_sites[i].first] = best_Ascore;
-    }
-    
-    return generateProFormaString_(peptide, phospho_sites, ascores);
-  }
-
+  
   void AScore::updateMembers_()
   {
     fragment_mass_tolerance_ = param_.getValue("fragment_mass_tolerance");

@@ -37,5 +37,5 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AScore.h>" namespace "OpenMS":
         Size seq_1
         Size seq_2
         Size peak_depth
-        Size AScore
+        
 

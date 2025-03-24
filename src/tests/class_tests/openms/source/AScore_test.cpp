@@ -9,7 +9,8 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/DTAFile.h>
-
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/METADATA/DataArrays.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/AScore.h>
@@ -75,6 +76,124 @@ class AScoreTest : public AScore
     {
       return rankWeightedPermutationPeptideScores_(peptide_site_scores);
     }
+};
+
+/**
+ * @brief Helper class for AScore testing with TheoreticalSpectrumGenerator
+ * 
+ * This class provides utility methods for generating test cases for AScore
+ * using TheoreticalSpectrumGenerator to create synthetic spectra.
+ */
+class AScoreTestHelper
+{
+public:
+  /**
+   * @brief Generate a theoretical spectrum for a given peptide sequence
+   * 
+   * @param peptide The peptide sequence
+   * @param intensity Intensity to set for all peaks
+   * @param add_metainfo Whether to add meta information to the peaks
+   * @return PeakSpectrum The generated spectrum
+   */
+  static PeakSpectrum generateTheoreticalSpectrum(const AASequence& peptide, 
+                                                 double intensity = 100.0,
+                                                 bool add_metainfo = true)
+  {
+    TheoreticalSpectrumGenerator spectrum_generator;
+    Param params;
+    params.setValue("add_metainfo", add_metainfo ? "true" : "false");
+    params.setValue("add_first_prefix_ion", "true");
+    params.setValue("add_losses", "false");
+    spectrum_generator.setParameters(params);
+    
+    PeakSpectrum spectrum;
+    spectrum_generator.getSpectrum(spectrum, peptide, 1, 1); // MS2 spectrum
+    
+    // Set all intensities to the same value for consistent testing
+    for (Size i = 0; i < spectrum.size(); ++i)
+    {
+      spectrum[i].setIntensity(intensity);
+    }
+    
+    // Set the name of the spectrum to the peptide sequence (important for AScore)
+    spectrum.setName(peptide.toString());
+    spectrum.setMSLevel(2);  // MS/MS spectrum
+    spectrum.sortByPosition();
+    return spectrum;
+  }
+  
+  /**
+   * @brief Generate a PeptideHit with the given sequence
+   * 
+   * @param sequence The peptide sequence as a string
+   * @return PeptideHit The generated PeptideHit
+   */
+  static PeptideHit generatePeptideHit(const String& sequence)
+  {
+    return PeptideHit(1.0, 1, 2, AASequence::fromString(sequence));
+  }
+  
+  /**
+   * @brief Create a modified spectrum to simulate ambiguous localization
+   * 
+   * @param spectrum The original spectrum
+   * @param ion_names Names of ions to remove (e.g., "y8", "b3")
+   * @return PeakSpectrum The modified spectrum
+   */
+  static PeakSpectrum createAmbiguousSpectrum(const PeakSpectrum& spectrum, const std::vector<String>& ion_names)
+  {
+    PeakSpectrum modified_spectrum = spectrum;
+
+    OPENMS_PRECONDITION(!modified_spectrum.getStringDataArrays().empty(), "Spectrum must have string data arrays to identify ions by name.");
+
+    // Get the ion names data array (typically the first one)
+    const auto& ion_name_array = modified_spectrum.getStringDataArrays()[0];
+
+    // Remove peaks that would help distinguish between phosphorylation sites
+    if (ion_name_array.size() == modified_spectrum.size())
+    {
+      std::vector<Size> indices_to_remove;
+      for (Size i = 0; i < modified_spectrum.size(); ++i)
+      {
+        const String& ion_name = ion_name_array[i];
+        for (const String& name_to_remove : ion_names)
+        {
+          if (ion_name.hasSubstring(name_to_remove))
+          {
+            indices_to_remove.push_back(i);
+            break;
+          }
+        }
+      }
+      
+      // Remove peaks in reverse order to avoid index shifting
+      for (int i = indices_to_remove.size() - 1; i >= 0; --i)
+      {
+        modified_spectrum.erase(modified_spectrum.begin() + indices_to_remove[i]);
+      }
+      
+      // Update the data arrays to match the new peak count
+      for (Size i = 0; i < modified_spectrum.getStringDataArrays().size(); ++i)
+      {
+        auto& array = modified_spectrum.getStringDataArrays()[i];
+        for (int j = indices_to_remove.size() - 1; j >= 0; --j)
+        {
+          array.erase(array.begin() + indices_to_remove[j]);
+        }
+      }
+      
+      for (Size i = 0; i < modified_spectrum.getIntegerDataArrays().size(); ++i)
+      {
+        auto& array = modified_spectrum.getIntegerDataArrays()[i];
+        for (int j = indices_to_remove.size() - 1; j >= 0; --j)
+        {
+          array.erase(array.begin() + indices_to_remove[j]);
+        }
+      }
+    }
+    
+    return modified_spectrum;
+  }
 };
 
 ///////////////////////////
@@ -774,7 +893,7 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   
   // Check the format of the ProForma
   String proforma_str = hit_proforma.getMetaValue("ProForma");
-  TEST_EQUAL(proforma_str, "AT[Phospho|score=0.96]PGNLGSSVLHS[Phospho|score=0.96]K");
+  TEST_EQUAL(proforma_str, "AT[Phospho|score=0.9567]PGNLGSSVLHS[Phospho|score=0.9760]K");
   
   // Test with both regular phosphorylation and PhosphoDecoy
   params.setValue("add_decoys", "true");
@@ -786,9 +905,267 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   // Check that ProForma meta value exists and contains both modification types
   TEST_EQUAL(hit_proforma_mixed.metaValueExists("ProForma"), true);
   proforma_str = hit_proforma_mixed.getMetaValue("ProForma");
-  TEST_EQUAL(proforma_str, "ATPL[PhosphoDecoy|score=0.92]NLGSSVLHS[Phospho|score=0.92]K");
+  TEST_EQUAL(proforma_str, "ATPL[PhosphoDecoy|score=0.9239]NLGSSVLHS[Phospho|score=0.9718]K");
 }
 END_SECTION 
+
+START_SECTION(Enhanced AScore Tests Using TheoreticalSpectrumGenerator)
+{
+  // Create AScore instance with default parameters
+  AScore ascore;
+  Param params;
+  params.setValue("fragment_mass_tolerance", 0.1);
+  params.setValue("fragment_mass_unit", "Da");
+  params.setValue("add_decoys", "false");
+  ascore.setParameters(params);
+  
+  // Test case 1: Single phosphorylation site with clear localization
+  {
+    // Create peptide with one phosphorylation site
+    AASequence peptide = AASequence::fromString("PEPTIDES(Phospho)");
+    
+    // Generate theoretical spectrum
+    PeakSpectrum spectrum = AScoreTestHelper::generateTheoreticalSpectrum(peptide);
+    
+    // Create PeptideHit with the same sequence
+    PeptideHit hit = AScoreTestHelper::generatePeptideHit("PEPTIDES(Phospho)");
+    
+    // Run AScore
+    hit = ascore.compute(hit, spectrum);
+    
+    // Verify results
+    TEST_EQUAL(hit.getSequence().toString(), "PEPTIDES(Phospho)");
+    TEST_EQUAL(hit.metaValueExists("ProForma"), true);
+    
+    // Verify ProForma string
+    String proforma = hit.getMetaValue("ProForma");
+    TEST_EQUAL(proforma, "PEPTIDES[Phospho|score=0.9948]");
+  }
+  
+  // Test case 2: Multiple phosphorylation sites
+  {
+    // Create peptide with multiple phosphorylation sites
+    AASequence peptide = AASequence::fromString("PEPT(Phospho)IDES(Phospho)");
+    PeptideHit hit = AScoreTestHelper::generatePeptideHit(peptide.toString());
+    TEST_EQUAL(hit.getSequence().toString(), "PEPT(Phospho)IDES(Phospho)");
+
+    // Generate theoretical spectrum
+    PeakSpectrum spectrum = AScoreTestHelper::generateTheoreticalSpectrum(peptide);
+    TEST_TRUE(spectrum.size() > 0);
+
+    // Run AScore
+    hit = ascore.compute(hit, spectrum);
+    
+    // Verify results
+    TEST_TRUE(hit.metaValueExists("ProForma"));
+    
+    // Verify ProForma string contains both sites
+    String proforma = hit.getMetaValue("ProForma");
+    TEST_EQUAL(proforma, "PEPT[Phospho|score=0.9990]IDES[Phospho|score=0.9990]");
+  }
+  
+  // Test case 3: PhosphoDecoy sites
+  {
+    // Enable PhosphoDecoy
+    params.setValue("add_decoys", "true");
+    ascore.setParameters(params);
+    
+    // Create peptide with PhosphoDecoy site
+    AASequence peptide = AASequence::fromString("PEPTIDEA(PhosphoDecoy)");
+    
+    // Generate theoretical spectrum
+    PeakSpectrum spectrum = AScoreTestHelper::generateTheoreticalSpectrum(peptide);
+    
+    // Create PeptideHit with the same sequence
+    PeptideHit hit = AScoreTestHelper::generatePeptideHit("PEPTIDEA(PhosphoDecoy)");
+    
+    // Run AScore
+    hit = ascore.compute(hit, spectrum);
+    
+    // Verify results
+    TEST_EQUAL(hit.getSequence().toString(), "PEPTIDEA(PhosphoDecoy)");
+    TEST_TRUE(hit.metaValueExists("ProForma"));
+    
+    // Verify ProForma string
+    String proforma = hit.getMetaValue("ProForma");
+    TEST_EQUAL(proforma, "PEPTIDEA[PhosphoDecoy|score=0.9948]");
+    
+    // Verify metadata
+    TEST_EQUAL(hit.getMetaValue("phospho_decoy_count"), 1);
+    TEST_EQUAL(hit.getMetaValue("regular_phospho_count"), 0);
+  }
+  
+  // Test case 4: Mix of Phospho and PhosphoDecoy sites
+  {
+    // Create peptide with both types of sites
+    AASequence peptide = AASequence::fromString("PEPT(Phospho)IDEA(PhosphoDecoy)");
+    
+    // Generate theoretical spectrum
+    PeakSpectrum spectrum = AScoreTestHelper::generateTheoreticalSpectrum(peptide);
+    
+    // Create PeptideHit with the same sequence
+    PeptideHit hit = AScoreTestHelper::generatePeptideHit("PEPT(Phospho)IDEA(PhosphoDecoy)");
+    
+    // Run AScore
+    hit = ascore.compute(hit, spectrum);
+    
+    // Verify results
+    TEST_EQUAL(hit.getSequence().toString(), "PEPT(Phospho)IDEA(PhosphoDecoy)");
+    TEST_EQUAL(hit.metaValueExists("ProForma"), true);
+    
+    // Verify ProForma string contains both modification types
+    String proforma = hit.getMetaValue("ProForma");
+    TEST_EQUAL(proforma, "PEPT[Phospho|score=0.9990]IDEA[PhosphoDecoy|score=0.9990]");
+    
+    // Verify metadata
+    TEST_EQUAL(hit.getMetaValue("phospho_decoy_count"), 1);
+    TEST_EQUAL(hit.getMetaValue("regular_phospho_count"), 1);
+  }
+  
+  // Test case 5: All sites phosphorylated (unambiguous assignment)
+  {
+    // Create peptide with all S/T/Y residues phosphorylated
+    AASequence peptide = AASequence::fromString("PEPT(Phospho)IDES(Phospho)");
+    
+    // Generate theoretical spectrum
+    PeakSpectrum spectrum = AScoreTestHelper::generateTheoreticalSpectrum(peptide);
+    
+    // Create PeptideHit with the same sequence
+    PeptideHit hit = AScoreTestHelper::generatePeptideHit("PEPT(Phospho)IDES(Phospho)");
+    
+    // Run AScore
+    hit = ascore.compute(hit, spectrum);
+    
+    // Verify results - expect unambiguous score
+    TEST_EQUAL(hit.getScore(), ascore.getParameters().getValue("unambiguous_score"));
+    
+    // Verify ProForma string contains all sites
+    String proforma = hit.getMetaValue("ProForma");
+    TEST_EQUAL(proforma, "PEPT[Phospho|score=0.9990]IDES[Phospho|score=0.9990]");
+  }
+  
+  // Test case 6: Ambiguous phosphorylation site localization
+  {
+    // Create a peptide with multiple potential phosphorylation sites
+    // but only one actual phosphorylation
+    AASequence peptide = AASequence::fromString("PEPTIDES(Phospho)T");
+    
+    // Generate theoretical spectrum
+    PeakSpectrum spectrum = AScoreTestHelper::generateTheoreticalSpectrum(peptide);
+    
+    // Create a modified spectrum with some site-determining ions removed
+    // to make localization ambiguous
+    std::vector<String> ions_to_remove = {"y2", "y3", "b7", "b8"};
+    PeakSpectrum ambiguous_spectrum = AScoreTestHelper::createAmbiguousSpectrum(spectrum, ions_to_remove);
+    
+    // Create PeptideHit with the same sequence
+    PeptideHit hit = AScoreTestHelper::generatePeptideHit("PEPTIDES(Phospho)T");
+    
+    // Run AScore with the ambiguous spectrum
+    hit = ascore.compute(hit, ambiguous_spectrum);
+    
+    // Verify ProForma string exists
+    TEST_EQUAL(hit.metaValueExists("ProForma"), true);
+    
+    // The localization might be ambiguous, but we can't predict the exact outcome
+    // since it depends on the specific ions that were removed
+  }
+  
+  // Test case 7: Peptide with many potential phosphorylation sites but only a few actual phosphorylations
+  {
+    // Create a peptide with many S/T/Y residues but only some phosphorylated
+    AASequence peptide = AASequence::fromString("STYSTSYSTSTYS(Phospho)TSYT(Phospho)");
+    
+    // Generate theoretical spectrum
+    PeakSpectrum spectrum = AScoreTestHelper::generateTheoreticalSpectrum(peptide);
+    
+    // Create PeptideHit with the same sequence
+    PeptideHit hit = AScoreTestHelper::generatePeptideHit("STYSTSYSTSTYS(Phospho)TSYT(Phospho)");
+    
+    // Run AScore
+    hit = ascore.compute(hit, spectrum);
+    
+    // Verify results
+    TEST_EQUAL(hit.getSequence().toString(), "STYSTSYSTSTYS(Phospho)TSYT(Phospho)");
+    TEST_EQUAL(hit.metaValueExists("ProForma"), true);
+    
+    // Verify ProForma string contains the phosphorylated sites
+    String proforma = hit.getMetaValue("ProForma");
+    TEST_EQUAL(proforma, "STYSTSYSTSTYS[Phospho|score=0.9780]TSYT[Phospho|score=0.9780]");
+  }
+  
+  // Test case 8: Peptide with no phosphorylation sites
+  {
+    // Create a peptide with no S/T/Y residues
+    AASequence peptide = AASequence::fromString("PEPNIDEA");
+    
+    // Generate theoretical spectrum
+    PeakSpectrum spectrum = AScoreTestHelper::generateTheoreticalSpectrum(peptide);
+    
+    // Create PeptideHit with the same sequence
+    PeptideHit hit = AScoreTestHelper::generatePeptideHit("PEPNIDEA");
+    
+    // Run AScore
+    hit = ascore.compute(hit, spectrum);
+    
+    // Verify results - expect score of -1 for no phosphorylation
+    TEST_EQUAL(hit.getScore(), -1.0);
+    
+    // ProForma should not exist since there are no phosphorylation sites
+    TEST_EQUAL(hit.metaValueExists("ProForma"), false);
+  }
+  
+  // Test case 9: Peptide with a large number of permutations
+  {
+    // Create a peptide with many S/T/Y residues and multiple phosphorylations
+    // This will generate a large number of permutations
+    AASequence peptide = AASequence::fromString("STYSTSY(Phospho)STSTYS(Phospho)TSYT(Phospho)");
+    
+    // Set max_num_perm to a low value to test early termination
+    params.setValue("max_num_perm", 10);
+    ascore.setParameters(params);
+    
+    // Generate theoretical spectrum
+    PeakSpectrum spectrum = AScoreTestHelper::generateTheoreticalSpectrum(peptide);
+    
+    // Create PeptideHit with the same sequence
+    PeptideHit hit = AScoreTestHelper::generatePeptideHit("STYSTSY(Phospho)STSTYS(Phospho)TSYT(Phospho)");
+    
+    // Run AScore
+    hit = ascore.compute(hit, spectrum);
+    
+    // Reset max_num_perm for other tests
+    params.setValue("max_num_perm", 16384);
+    ascore.setParameters(params);
+  }
+  
+  // Test case 10: PhosphoDecoy sites with PhosphoDecoy disabled
+  {
+    // Disable PhosphoDecoy
+    params.setValue("add_decoys", "false");
+    ascore.setParameters(params);
+    
+    // Create peptide with PhosphoDecoy site
+    AASequence peptide = AASequence::fromString("PEPTIDEA(PhosphoDecoy)");
+    
+    // Generate theoretical spectrum
+    PeakSpectrum spectrum = AScoreTestHelper::generateTheoreticalSpectrum(peptide);
+    
+    // Create PeptideHit with the same sequence
+    PeptideHit hit = AScoreTestHelper::generatePeptideHit("PEPTIDEA(PhosphoDecoy)");
+    
+    // Run AScore - should return the original hit without processing
+    hit = ascore.compute(hit, spectrum);
+    
+    // Verify that the hit was not processed (score should be -1)
+    TEST_EQUAL(hit.getScore(), -1.0);
+  }
+  
+  // Reset parameters for other tests
+  params.setValue("add_decoys", "false");
+  ascore.setParameters(params);
+}
+END_SECTION
 
 delete ptr_test;
 /////////////////////////////////////////////////////////////
