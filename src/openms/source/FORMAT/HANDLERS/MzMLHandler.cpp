@@ -119,24 +119,25 @@ namespace OpenMS::Internal
         size_t errCount = 0;
         String error_message;
 #ifdef _OPENMP
-#pragma omp parallel for shared(errCount, spectrum_data_) private(error_message, options_)
+#pragma omp parallel for shared(errCount, spectrum_data_, error_message, options_)
 #endif
         for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
         {
 
-          bool errors;
+          bool errors = false;
 
-          # pragma omp critical
-          {
-            errors = (errCount != 0);
-          }
+          # pragma omp atomic read
+          errors = (errCount != 0);
+
           if (!errors) // no need to parse further if already an error was encountered
           {
             try
             {
+              # pragma omp atomic read
+              auto options__ = options_;
               populateSpectraWithData_(spectrum_data_[i].data,
                                        spectrum_data_[i].default_array_length,
-                                       options_,
+                                       options__,
                                        spectrum_data_[i].spectrum);
               if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
               {
