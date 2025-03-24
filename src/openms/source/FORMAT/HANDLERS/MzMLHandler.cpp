@@ -134,56 +134,56 @@ namespace OpenMS::Internal
 
           std::cout << 'e' << std::endl;
 
-          // parallel exception catching and re-throwing business
-          if (!errCount) // no need to parse further if already an error was encountered
-          {
-            std::cout << 'f' << std::endl;
+//           // parallel exception catching and re-throwing business
+//           if (!errCount) // no need to parse further if already an error was encountered
+//           {
+//             std::cout << 'f' << std::endl;
 
-            try
-            {
-              std::cout << 'g' << std::endl;
-              auto local_options = options_; 
+//             try
+//             {
+//               std::cout << 'g' << std::endl;
+//               auto local_options = options_; 
 
-              // populateSpectraWithData_(spectrum_data_[i].data,
-              //                          spectrum_data_[i].default_array_length,
-              //                          local_options,
-              //                          spectrum_data_[i].spectrum);
-                                       std::cout << 'h' << std::endl;
+//               populateSpectraWithData_(spectrum_data_[i].data,
+//                                        spectrum_data_[i].default_array_length,
+//                                        local_options,
+//                                        spectrum_data_[i].spectrum);
+//                                        std::cout << 'h' << std::endl;
               
-                                       if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
-              {
-                std::cout << 'i' << std::endl;
+//                                        if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
+//               {
+//                 std::cout << 'i' << std::endl;
 
-                spectrum_data_[i].spectrum.sortByPosition();
-                std::cout << 'j' << std::endl;
+//                 spectrum_data_[i].spectrum.sortByPosition();
+//                 std::cout << 'j' << std::endl;
 
-              }
-            }
+//               }
+//             }
 
-            catch (OpenMS::Exception::BaseException& e)
-            {
-#pragma omp critical(MZMLErrorHandling)
-              {
-                std::cout << 'k' << std::endl;
+//             catch (OpenMS::Exception::BaseException& e)
+//             {
+// #pragma omp critical(MZMLErrorHandling)
+//               {
+//                 std::cout << 'k' << std::endl;
 
-                ++errCount;
-                std::cout << 'l' << std::endl;
+//                 ++errCount;
+//                 std::cout << 'l' << std::endl;
 
-                error_message = e.what();
-                std::cout << 'm' << std::endl;
+//                 error_message = e.what();
+//                 std::cout << 'm' << std::endl;
 
-              }
-            }
-            catch (...)
-            {
-              std::cout << 'n' << std::endl;
+//               }
+//             }
+//             catch (...)
+//             {
+//               std::cout << 'n' << std::endl;
 
-#pragma omp atomic
-              ++errCount;
-              std::cout << 'o' << std::endl;
+// #pragma omp atomic
+//               ++errCount;
+//               std::cout << 'o' << std::endl;
 
-            }
-          }
+//             }
+//           }
         }
         std::cout << 'p' << std::endl;
 
