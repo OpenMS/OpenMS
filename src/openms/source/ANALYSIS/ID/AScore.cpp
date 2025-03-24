@@ -239,41 +239,10 @@ namespace OpenMS
     OPENMS_PRECONDITION(n <= N, "The number of matched ions (n) can be at most as large as the number of trials (N).");
     OPENMS_PRECONDITION(p >= 0 && p <= 1.0, "p must be a probability [0,1].");
 
-<<<<<<< HEAD
-    // return bad p value if none has been matched (see Beausoleil et al.)
-    if (n == 0) return 1.0;
-
-    double score = 0.0;
-    // score = sum_{k=n..N}(\choose{N}{k}p^k(1-p)^{N-k})
-    for (Size k = n; k <= N; ++k)
-    {
-      double coeff = 0;
-
-      try
-      {
-        coeff = boost::math::binomial_coefficient<double>((unsigned int)N, (unsigned int)k);
-      }
-      catch (std::exception const& /*e*/) // Catch any exception, not just overflow
-      {
-        // not sure if a warning is appropriate here, since if it happens, it will happen very often for the same spectrum and flood the stdout
-//        std::cout << "Warning: Binomial coefficient for AScore has overflowed! Setting value to the maximal double value." << std::endl;
-//        std::cout << "binomial_coefficient was called with N = " << N << " and k = " << k << std::endl;
-        coeff = std::numeric_limits<double>::max();
-      }
-
-      double pow1 = pow((double)p, (int)k);
-      double pow2 = pow(double(1 - p), double(N - k));
-
-      score += coeff * pow1 * pow2;
-    }
-
-    return score;
-=======
     // Use the numerically stable implementation from MathFunctions
     // This calculates P(X ≥ n) for a binomial distribution with parameters N and p
     // which is exactly what we need for the AScore calculation
     return Math::binomial_cdf_complement(N, n, p);
->>>>>>> 068b7c9919 (use new methods)
   }
 
   void AScore::determineHighestScoringPermutations_(const std::vector<std::vector<double>>& peptide_site_scores, std::vector<ProbablePhosphoSites>& sites, const vector<vector<Size>>& permutations, std::multimap<double, Size>& ranking) const
@@ -493,7 +462,6 @@ namespace OpenMS
   vector<vector<Size>> AScore::computePermutations_(const vector<Size>& sites, Int n_phosphorylation_events) const
   {
     vector<vector<Size>> permutations;
-
     // Early termination if we can estimate that the number of permutations will exceed the maximum
     if (max_permutations_ > 0 && n_phosphorylation_events >= 1)
     {
@@ -546,36 +514,38 @@ namespace OpenMS
       return permutations;
     }
     else
-    // Generate all n_phosphorylation_events sized sets from sites
     {
-      vector<Size> head;
-      vector<vector<Size>> tail;
+      // Generate all n_phosphorylation_events sized combinations from sites using an iterative approach
+      Size n = sites.size();
+      Size k = n_phosphorylation_events;
       
-      // all permutations with first site selected
-      head.push_back(sites[0]);
-      vector<Size> tupel_left(++sites.begin(), sites.end());
-      Int tail_phospho_sites = n_phosphorylation_events - 1;
+      // Create a bitmask: k 1's followed by (n-k) 0's
+      vector<bool> bitmask(n, false);
+      fill(bitmask.begin(), bitmask.begin() + k, true);
       
-      tail = computePermutations_(tupel_left, tail_phospho_sites);
-      
-      for (vector<vector<Size>>::iterator it = tail.begin(); it != tail.end(); ++it)
+      // Generate all combinations using the bitmask
+      do 
       {
-        vector<Size> temp(head);
-        temp.insert(temp.end(), it->begin(), it->end());
-        permutations.push_back(temp);
+        vector<Size> combination;
+        for (Size i = 0; i < n; ++i)
+        {
+          if (bitmask[i])
+          {
+            combination.push_back(sites[i]);
+          }
+        }
+        permutations.push_back(combination);
+        
+        // Check if we've exceeded the maximum number of permutations
+        if (max_permutations_ > 0 && permutations.size() > max_permutations_)
+        {
+          OPENMS_LOG_DEBUG << "\tEarly termination during iteration: current permutations (" << permutations.size() << ") exceeds maximum (" << max_permutations_ << ")" << std::endl;
+          permutations.clear(); // Clear permutations to signal that the calculation should be aborted
+          return permutations;
+        }
       }
-
-      // all permutations with first site not selected
-      vector<vector<Size>> other_possibilities(computePermutations_(tupel_left, n_phosphorylation_events));
+      while (std::prev_permutation(bitmask.begin(), bitmask.end()));
       
-      // Check if we've exceeded the maximum number of permutations during recursion
-      if (max_permutations_ > 0 && (permutations.size() + other_possibilities.size() > max_permutations_))
-      {
-        OPENMS_LOG_DEBUG << "\tEarly termination during recursion: current permutations (" << permutations.size() + other_possibilities.size() << ") exceeds maximum (" << max_permutations_ << ")" << std::endl;
-        permutations.clear(); // Clear permutations to signal that the calculation should be aborted
-        return permutations;
-      }
-      permutations.insert(permutations.end(), other_possibilities.begin(), other_possibilities.end());
       return permutations;
     }
   }
