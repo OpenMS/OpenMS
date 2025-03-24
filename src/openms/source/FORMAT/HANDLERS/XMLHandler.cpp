@@ -204,14 +204,27 @@ namespace OpenMS::Internal
       DataValue cv_value = value;
 
       // Abort on unknown terms
-      try
+      if (!cv.exists(accession))
       {
-        const ControlledVocabulary::CVTerm& term = cv.getTerm(accession); // throws Exception::InvalidValue if missing
+        // in 'sample' several external CVs are used (Brenda, GO, ...). Do not warn then.
+        if (parent_tag != "sample")
+        {
+          warning(LOAD, String("Unknown cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          return DataValue::EMPTY;
+        }
+      }
+      else
+      {
+        const ControlledVocabulary::CVTerm& term = cv.getTerm(accession);
 
         // check if term name and parsed name match
-        if (name != term.name) 
         {
-          warning(LOAD, String("Name of CV term not correct: '") + term.id + " - " + name + "' should be '" + term.name + "'");
+          const String parsed_name = String(name).trim();
+          const String correct_name = String(term.name).trim();
+          if (parsed_name != correct_name)
+          {
+            warning(LOAD, String("Name of CV term not correct: '") + term.id + " - " + parsed_name + "' should be '" + correct_name + "'");
+          }
         }
         if (term.obsolete)
         {
@@ -306,15 +319,6 @@ namespace OpenMS::Internal
         )
         {
           warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
-          return DataValue::EMPTY;
-        }
-      }
-      catch (const Exception::InvalidValue& /*e*/)
-      {
-        // in 'sample' several external CVs are used (Brenda, GO, ...). Do not warn then.
-        if (parent_tag != "sample")
-        {
-          warning(LOAD, String("Unknown cvParam '") + accession + "' in tag '" + parent_tag + "'.");
           return DataValue::EMPTY;
         }
       }
@@ -433,7 +437,6 @@ namespace OpenMS::Internal
       // and all bytes except the least significant one will be zero. Thus
       // we can convert to char directly (only keeping the least
       // significant byte).
-
       const XMLCh* it = chars;
       const XMLCh* end = it + length;
 
