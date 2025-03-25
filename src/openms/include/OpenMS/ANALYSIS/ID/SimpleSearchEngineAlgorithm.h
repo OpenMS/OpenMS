@@ -6,6 +6,8 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#pragma once
+
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
@@ -40,6 +42,12 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       const String& in_db, 
       std::vector<ProteinIdentification>& prot_ids,
       std::vector<PeptideIdentification>& pep_ids) const;
+
+    /// @brief filter, deisotope, decharge spectra
+    OPENMS_DLLAPI static void preprocessSpectra(PeakMap& exp, 
+      double fragment_mass_tolerance, 
+      bool fragment_mass_tolerance_unit_ppm);
+
   protected:
     void updateMembers_() override;
 
@@ -63,9 +71,6 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
         return a.sequence < b.sequence;
       }
     };
-
-    /// @brief filter, deisotope, decharge spectra
-    static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm);
 
     /// @brief filter and annotate search results
     /// most of the parameters are used to properly add meta data to the id objects

@@ -61,7 +61,7 @@ namespace OpenMS
       5. Determines the most likely phosphorylation site(s) based on score differences
 
       In addition to standard phosphorylation on S, T, and Y residues, this implementation also supports
-      PhosphoDecoy modifications on A, G, and L residues which can be used for false localization rate (FLR) calculations.
+      PhosphoDecoy modifications on A residues which can be used for false localization rate (FLR) calculations.
       
       The AScore value represents the probability of correct phosphorylation site localization. Higher scores
       indicate greater confidence in site localization. Typically, scores above 19 correspond to >99% certainty
@@ -197,12 +197,32 @@ namespace OpenMS
      * @brief Identifies all potential phosphorylation sites in a peptide sequence
      * 
      * Returns the positions of all residues that can be phosphorylated (S, T, Y)
-     * and optionally PhosphoDecoy sites (A, G, L) if enabled.
+     * and optionally PhosphoDecoy sites (A) if enabled.
      * 
      * @param unmodified_sequence The unmodified peptide sequence
      * @return Vector of positions (0-based) of potential phosphorylation sites
      */
     std::vector<Size> getSites_(const String& unmodified_sequence) const;
+
+    /**
+     * @brief Identifies standard phosphorylation sites (S, T, Y) in a peptide sequence
+     * 
+     * Returns the positions of all residues that can be phosphorylated (S, T, Y).
+     * 
+     * @param unmodified_sequence The unmodified peptide sequence
+     * @return Vector of positions (0-based) of standard phosphorylation sites
+     */
+    std::vector<Size> getPhosphoSites_(const String& unmodified_sequence) const;
+
+    /**
+     * @brief Identifies PhosphoDecoy sites (A) in a peptide sequence
+     * 
+     * Returns the positions of all residues that can be used as PhosphoDecoy sites (A).
+     * 
+     * @param unmodified_sequence The unmodified peptide sequence
+     * @return Vector of positions (0-based) of PhosphoDecoy sites
+     */
+    std::vector<Size> getPhosphoDecoySites_(const String& unmodified_sequence) const;
 
     /**
      * @brief Generates all possible combinations of phosphorylation sites

@@ -35,6 +35,7 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
+#include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 
 #include <algorithm>
 #include <map>
@@ -169,7 +170,7 @@ namespace OpenMS
   }
 
   // static
-  void SimpleSearchEngineAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
+  void SimpleSearchEngineAlgorithm::preprocessSpectra(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -420,7 +421,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     spectra.sortSpectra(true);
 
     startProgress(0, 1, "Filtering spectra...");
-    preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
+    preprocessSpectra(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
     endProgress();
 
     // build multimap of precursor mass to scan index

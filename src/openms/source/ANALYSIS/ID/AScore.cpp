@@ -44,10 +44,8 @@ namespace OpenMS
     defaults_.setValue("max_num_perm", 16384, "Maximum number of permutations a sequence can have to be processed ('0' for 'no restriction')", advanced);
     defaults_.setMinInt("max_num_perm", 0);
 
-    defaults_.setValue("unambiguous_score", 1000, "Score to use for unambiguous assignments, where all sites on a peptide are phosphorylated. (Note: If a peptide is not phosphorylated at all, its score is set to '-1'.)", advanced);
-
-    defaults_.setValue("add_decoys", "false", "Include PhosphoDecoy sites (A, G, L) in phosphorylation site analysis for FLR calculation", advanced);
-    defaults_.setValidStrings("add_decoys", {"true", "false"});
+    defaults_.setValue("add_decoy", "false", "Include PhosphoDecoy site (A) in phosphorylation site analysis for FLR calculation", advanced);
+    defaults_.setValidStrings("add_decoy", {"true", "false"});
 
     // Apply default parameters to the current parameter set
     defaultsToParam_();
@@ -139,7 +137,7 @@ namespace OpenMS
       return phospho;
     }
 
-    // Get all potential phosphorylation sites (S,T,Y and optionally A,G,L for decoys)
+    // Get all potential phosphorylation sites (S,T,Y and optionally A for decoys)
     // determine all phospho sites (including decoy sites if add_decoys is true)
     vector<Size> sites = getSites_(unmodified_sequence_str);
     Size number_of_sites = sites.size();
@@ -148,7 +146,6 @@ namespace OpenMS
     {
       return phospho;
     }
-
 
     // Add metadata about phosphorylation types
     if (add_decoys_)
@@ -397,43 +394,44 @@ namespace OpenMS
       multimap<double, Size>::reverse_iterator rev = ranking.rbegin();      
       sites[i].first = best_peptide_sites[i]; // store the site
       sites[i].seq_1 = rev->second; // and permutation
-      bool peptide_not_found = true;
+      bool continue_search = true;
       
       // iterate from best scoring peptide to the first peptide that doesn't contain the current phospho site
       do
       {
         // Move to the next permutation in the ranking
         ++rev;
-        // Check if this permutation has the same phosphorylation sites as the best one,
+        // Check if this permutation has each of the phosphorylation sites as the best one,
         // except for the current site (i) which should be different
+        // (and an additional one not present in the best scoring peptide - we don't test this here)
         for (Size j = 0; j < best_peptide_sites.size(); ++j)
         {
-          if (j == i)
+          if (j == i) // the site we are interested in
           {
             if (find(permutations[rev->second].begin(), permutations[rev->second].end(), best_peptide_sites[j]) != permutations[rev->second].end())
             {
-              peptide_not_found = true;
+              continue_search = true; // permutation is also (decoy-)phosphorilated -> skip this permutation
               break;
             }
             else
             {
-              peptide_not_found = false;
+              continue_search = false;
             }
           }
-          else
+          else // the other sites
           {
             if (find(permutations[rev->second].begin(), permutations[rev->second].end(), best_peptide_sites[j]) == permutations[rev->second].end())
             {
-              peptide_not_found = true;
+              continue_search = true; // phosphorylation state should be the same but it isn't -> continue with next best permutation
               break;
             }
             else
             {
-              peptide_not_found = false;
+              continue_search = false;
             }
           }
         }
-      } while (peptide_not_found);
+      } while (continue_search);
 
       // store permutation of peptide without the phospho site i (seq_2)
       sites[i].seq_2 = rev->second;
@@ -586,7 +584,7 @@ namespace OpenMS
    */
   bool AScore::isPhosphoDecoySite(char residue)
   {
-    return (residue == 'A' || residue == 'G' || residue == 'L');
+    return (residue == 'A');
   }
 
   /**
@@ -603,16 +601,51 @@ namespace OpenMS
 
   vector<Size> AScore::getSites_(const String& unmodified) const
   {
-    vector<Size> ret;
+    // Get both standard phosphorylation sites and PhosphoDecoy sites
+    vector<Size> phospho_sites = getPhosphoSites_(unmodified);
+    vector<Size> decoy_sites;
+
+    if (add_decoys_)
+    {
+      decoy_sites = getPhosphoDecoySites_(unmodified);
+    }
+    
+    // Combine both types of sites
+    phospho_sites.insert(phospho_sites.end(), decoy_sites.begin(), decoy_sites.end());
+    std::sort(phospho_sites.begin(), phospho_sites.end());
+    return phospho_sites;
+  }
+
+  /**
+   * @brief Identifies standard phosphorylation sites (S, T, Y) in a peptide sequence
+   * 
+   * Returns the positions of all residues that can be phosphorylated (S, T, Y).
+   * 
+   * @param unmodified_sequence The unmodified peptide sequence
+   * @return Vector of positions (0-based) of standard phosphorylation sites
+   */
+  std::vector<Size> AScore::getPhosphoSites_(const String& unmodified) const
+  {
+    std::vector<Size> ret;
     for (Size i = 0; i < unmodified.size(); ++i)
     {
-      // Always include standard phosphorylation sites (S, T, Y)
       if (isPhosphoSite(unmodified[i]))
       {
         ret.push_back(i);
       }
-      // Include PhosphoDecoy sites (A, G, L) if enabled
-      else if (add_decoys_ && isPhosphoDecoySite(unmodified[i]))
+    }
+    return ret;
+  }
+
+  /**
+   * @brief Identifies PhosphoDecoy sites (A) in a peptide sequence
+   */
+  std::vector<Size> AScore::getPhosphoDecoySites_(const String& unmodified) const
+  {
+    std::vector<Size> ret;
+    for (Size i = 0; i < unmodified.size(); ++i)
+    {
+      if (isPhosphoDecoySite(unmodified[i]))
       {
         ret.push_back(i);
       }
@@ -807,13 +840,12 @@ namespace OpenMS
    */
   vector<PeakSpectrum> AScore::createTheoreticalSpectra_(const vector<vector<Size>>& permutations, const AASequence& seq_without_phospho) const
   {
-    vector<PeakSpectrum> th_spectra;
-    
-    
+    vector<PeakSpectrum> th_spectra;        
+    th_spectra.resize(permutations.size());
+
     // Get the unmodified sequence as a string to check residue types
     String seq_string = seq_without_phospho.toUnmodifiedString();
 
-    th_spectra.resize(permutations.size());
     for (Size i = 0; i < permutations.size(); ++i)
     {
       AASequence seq(seq_without_phospho);
@@ -858,7 +890,7 @@ namespace OpenMS
         }
       }
 
-      // we mono-charge spectra, generating b- and y-ions is the default behavior of the TSG
+      // generate b- and y-ions for charge 1
       spectrum_generator_.getSpectrum(th_spectra[i], seq, 1, 1);
       th_spectra[i].setName(seq.toString());
     }
@@ -1093,7 +1125,7 @@ namespace OpenMS
     fragment_tolerance_ppm_ = (param_.getValue("fragment_mass_unit") == "ppm");
     max_peptide_length_ = param_.getValue("max_peptide_length");
     max_permutations_ = param_.getValue("max_num_perm");
-    add_decoys_ = param_.getValue("add_decoys").toBool();
+    add_decoys_ = param_.getValue("add_decoy").toBool();
   }
   
 } // namespace OpenMS
