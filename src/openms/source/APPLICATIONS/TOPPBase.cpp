@@ -220,6 +220,14 @@ namespace OpenMS
       return EXECUTION_OK;
     }
 
+    // test if value after flag is given
+    if (param_cmdline_.exists("val_flag"))
+    {
+      writeLogError_(String("Value after flag '") + getParamAsString_("val_flag") + "' given. Aborting!");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
+
     // test if unknown options were given
     if (param_cmdline_.exists("unknown"))
     {
@@ -2488,6 +2496,8 @@ namespace OpenMS
 
     // list to store "misc"/"unknown" items:
     map<std::string, std::vector<std::string> > misc_unknown;
+    // Keep track of parameters we've seen to detect duplicates
+    map<String, String> seen_params;
 
     list<String> queue; // queue for arguments
                         // we parse the arguments in reverse order, so that we have arguments already when we encounter the option that uses them!
@@ -2505,12 +2515,11 @@ namespace OpenMS
           if (pos->second->type == ParameterInformation::FLAG) // flag
           {
             value = "true";
-            
-            // Check if there's an argument after the flag that isn't another option
-            if (!queue.empty() && !queue.front().hasPrefix("-"))
+            // Check if there is a value after flag
+            if (!queue.empty() && queue.front()[0] != '-') // value doesn't start with '-'
             {
-              writeLogWarn_(String("Ignoring ") + queue.front() + " because " + arg + " is a flag");
-              queue.pop_front(); // Remove the argument as it's not applicable to a flag
+              // Store the flag name and its value in val_flag
+              misc_unknown["val_flag"].push_back(arg + " " + queue.front());
             }
           }
           else // option with argument(s)
@@ -2578,22 +2587,23 @@ namespace OpenMS
             if (!queue.empty())
               queue.pop_front(); // argument was already used
           }
-          OPENMS_LOG_DEBUG << "Command line: setting parameter value: '" << pos->second->name << "' to '" << value << "'" << std::endl;
           
-          // Check if this parameter was already set on the command line
-          if (cmd_params.exists(pos->second->name))
+          // Check for duplicate parameter
+          String param_name = pos->second->name;
+          if (seen_params.find(param_name) != seen_params.end())
           {
-            ParamValue first_value = cmd_params.getValue(pos->second->name);
-            writeLogWarn_(String("Duplicate ") + arg + " given. Using first with value " + first_value.toString());
+            // Log the warning about duplicate parameter with the exact format requested
+            writeLogError_("Duplicate '" + arg + "' argument given. Using the last value: " + seen_params[param_name]);
           }
-          else
-          {
-            cmd_params.setValue(pos->second->name, value);
-          }
+          
+          // Record the parameter we've seen
+          seen_params[param_name] = value.toString();
+          
+          cmd_params.setValue(pos->second->name, value);
         }
         else // unknown argument -> append to "unknown" list
         {
-          misc_unknown[unknown].push_back(arg);
+            misc_unknown[unknown].push_back(arg);
         }
         // rest of the queue is just text -> insert into "misc" list:
         std::vector<std::string>& misc_list = misc_unknown[misc];
