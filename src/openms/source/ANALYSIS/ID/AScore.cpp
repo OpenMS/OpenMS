@@ -20,8 +20,15 @@ using namespace std;
 namespace OpenMS
 {
 
+  /**
+   * @brief Constructor for AScore
+   * 
+   * Initializes the AScore object with default parameters:
+   * - fragment_mass_tolerance: 0.05 Da
+   * - Theoretical spectrum generator configured for phosphorylation analysis
+   */
   AScore::AScore():
-    DefaultParamHandler("AScore")
+    DefaultParamHandler("AScore") // Initialize base class with algorithm name
   {
     defaults_.setValue("fragment_mass_tolerance", 0.05, "Fragment mass tolerance for spectrum comparisons");
     defaults_.setMinFloat("fragment_mass_tolerance", 0.0);
@@ -42,6 +49,7 @@ namespace OpenMS
     defaults_.setValue("add_decoys", "false", "Include PhosphoDecoy sites (A, G, L) in phosphorylation site analysis for FLR calculation", advanced);
     defaults_.setValidStrings("add_decoys", {"true", "false"});
 
+    // Apply default parameters to the current parameter set
     defaultsToParam_();
 
     Param p = spectrum_generator_.getDefaults();
@@ -50,6 +58,21 @@ namespace OpenMS
     spectrum_generator_.setParameters(p);
   }
 
+  /**
+   * @brief Main method to compute phosphorylation site localization scores
+   * 
+   * This method implements the AScore algorithm for phosphorylation site localization:
+   * 1. Extracts phosphorylation sites from the peptide sequence
+   * 2. Generates all possible phosphorylation site permutations
+   * 3. Creates theoretical spectra for each permutation
+   * 4. Compares these with the experimental spectrum using a windowed peak picking approach
+   * 5. Calculates scores for each permutation and determines the most likely sites
+   * 
+   * @param hit The peptide hit containing the sequence with potential phosphorylation sites
+   * @param real_spectrum The experimental MS/MS spectrum
+   * @return A modified PeptideHit with AScore values for each phosphorylation site
+   *         The score field contains the best AScore value
+   */
   PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& real_spectrum)
   {
     PeptideHit phospho = hit;
@@ -58,6 +81,7 @@ namespace OpenMS
     phospho.setScore(-1);
     phospho.setMetaValue("search_engine_sequence", hit.getSequence().toString());
 
+    // Early termination for empty spectra
     if (real_spectrum.empty()) 
     {
       OPENMS_LOG_WARN << "Empty spectrum provided to AScore::compute. Returning original hit." << std::endl;
@@ -67,7 +91,8 @@ namespace OpenMS
     String sequence_str = phospho.getSequence().toString();
     String unmodified_sequence_str = phospho.getSequence().toUnmodifiedString();
 
-    // Count phosphorylation events in the sequence (both normal and decoy)
+    // Count phosphorylation events in the sequence (both normal and decoy phosphorylations)
+    // and remove phosphorylations to get the base peptide sequence
     Size number_of_phosphorylation_events = numberOfPhosphoEvents_(sequence_str); 
     AASequence seq_without_phospho = removePhosphositesFromSequence_(sequence_str); // remove Phospho and PhosphoDecoy from sequence
 
@@ -107,12 +132,14 @@ namespace OpenMS
       return phospho;
     }
 
+    // Check if peptide is too long for analysis (if max_peptide_length_ is set)
     if ((max_peptide_length_ > 0) && (unmodified_sequence_str.size() > max_peptide_length_))
     {
       OPENMS_LOG_DEBUG << "\tcalculation aborted: peptide too long: " << seq_without_phospho.toString() << std::endl;
       return phospho;
     }
 
+    // Get all potential phosphorylation sites (S,T,Y and optionally A,G,L for decoys)
     // determine all phospho sites (including decoy sites if add_decoys is true)
     vector<Size> sites = getSites_(unmodified_sequence_str);
     Size number_of_sites = sites.size();
@@ -122,10 +149,17 @@ namespace OpenMS
       return phospho;
     }
 
-    phospho.setMetaValue("phospho_decoy_count", decoy_phospho_count);
-    phospho.setMetaValue("regular_phospho_count", regular_phospho_count);
+
+    // Add metadata about phosphorylation types
+    if (add_decoys_)
+    {
+      phospho.setMetaValue("regular_phospho_count", regular_phospho_count);
+      phospho.setMetaValue("phospho_decoy_count", decoy_phospho_count);
+    }
     phospho.setMetaValue("phospho_sites", number_of_phosphorylation_events);
 
+    // Special case: If all possible sites are phosphorylated, the localization is unambiguous
+    // Set a high score to indicate certainty
     if (number_of_sites == number_of_phosphorylation_events) 
     {
       phospho.setScore(unambiguous_score_);
@@ -144,10 +178,13 @@ namespace OpenMS
       return phospho;
     } 
 
+    // Generate all possible permutations of phosphorylation sites
     vector<vector<Size>> permutations = computePermutations_(sites, (Int)number_of_phosphorylation_events);
     OPENMS_LOG_DEBUG << "\tnumber of permutations: " << permutations.size() << std::endl;
 
-    // Check if permutations is empty (early termination) or exceeds the maximum
+    // Check if permutations is empty (early termination) or exceeds the maximum allowed
+    // Early termination can happen if the number of permutations is too large to compute
+    // or if there are more phosphorylation events than available sites
     // TODO: using a heuristic to calculate the best phospho sites if the number of permutations exceeds the maximum.
     // A heuristic could be to calculate the best site for the first phosphorylation and based on this the best site for the second
     // phosphorylation and so on until every site is determined.
@@ -157,6 +194,7 @@ namespace OpenMS
       return phospho;
     }
 
+    // Create theoretical spectra for all permutations
     vector<PeakSpectrum> th_spectra = createTheoreticalSpectra_(permutations, seq_without_phospho);
 
     // prepare real spectrum windows
@@ -165,27 +203,45 @@ namespace OpenMS
       real_spectrum.sortByPosition();
     }
     vector<PeakSpectrum> windows_top10 = peakPickingPerWindowsInSpectrum_(real_spectrum);
-
+    
     // compute match probability for a peak depth of 1
+    // This is the probability of a random match between a theoretical and experimental peak
     base_match_probability_ = computeBaseProbability_(real_spectrum.back().getMZ());
 
     // calculate peptide score for each possible phospho site permutation
+    // This generates scores at 10 different peak depths for each permutation
     vector<vector<double>> peptide_site_scores = calculatePermutationPeptideScores_(th_spectra, windows_top10);
 
-    // rank peptide permutations ascending
+    // Sort peptide permutations by (weighted) peptide score. 
+    // Lower scores are better (represent lower p-values)
     multimap<double, Size> ranking = rankWeightedPermutationPeptideScores_(peptide_site_scores);
 
+    
+    // Get the best scoring permutation and set it as the peptide sequence
     multimap<double, Size>::reverse_iterator rev = ranking.rbegin();
+
+    // Note: there might be multiple permutations with the highest score. If the original
+    // sequence is one of them, we take this one. Otherwise, we take the first one.
+    double best_score = ranking.rbegin()->first;
+    auto best_range = ranking.equal_range(best_score);
+    for (auto it = best_range.first; it != best_range.second; ++it)
+    {
+      auto index = it->second; // Get the index of the permutation with the best score
+
+      // get sequence of this best-scoring permutation
+      String best_sequence = th_spectra[index].getName(); // Retrieve the sequence of the best scoring permutation
+      // if the sequence is the same as the original sequence choose this one
+      if (best_sequence == sequence_str)
+      {
+        std::swap(rev->second, it->second); // Swap the indices to ensure the original sequence is first
+        break;
+      }
+    }
+
+    // The name of the spectrum contains the peptide sequence
     String seq1 = th_spectra[rev->second].getName();
     phospho.setSequence(AASequence::fromString(seq1));
 
-
-    // Add metadata about phosphorylation types
-    if (add_decoys_)
-    {
-      phospho.setMetaValue("regular_phospho_count", regular_phospho_count);
-      phospho.setMetaValue("phospho_decoy_count", decoy_phospho_count);
-    }
     double peptide1_score = rev->first;
     phospho.setMetaValue("AScore_pep_score", peptide1_score); // initialize score with highest peptide score (aka highest weighted score)
 
@@ -193,9 +249,12 @@ namespace OpenMS
     String seq2 = th_spectra[rev->second].getName();
     double peptide2_score = rev->first;
 
+    // Determine the highest scoring permutations for each phosphorylation site
     vector<ProbablePhosphoSites> phospho_sites;
     determineHighestScoringPermutations_(peptide_site_scores, phospho_sites, permutations, ranking);
 
+    // Calculate AScore for each phosphorylation site
+    // AScore is the difference in scores between the best and second-best permutations
     Int rank = 1;
     double best_Ascore = std::numeric_limits<double>::max(); // the lower the better
     map<Size, double> site2score; // map to store the scores for each phospho site
@@ -208,6 +267,7 @@ namespace OpenMS
       }
       else
       {
+        // Calculate site-determining ions - these are ions that can distinguish between phosphorylation sites
         vector<PeakSpectrum> site_determining_ions;
 
         computeSiteDeterminingIons_(th_spectra, phospho_site, site_determining_ions);
@@ -215,6 +275,7 @@ namespace OpenMS
         double p = static_cast<double>(phospho_site.peak_depth) * base_match_probability_;
 
         Size n_first = 0; // number of matching peaks for first peptide
+        // Count matched ions across all windows for the first permutation
         for (Size window_idx = 0; window_idx != windows_top10.size(); ++window_idx) // for each 100 m/z window
         {
           n_first += numberOfMatchedIons_(site_determining_ions[0], windows_top10[window_idx], phospho_site.peak_depth);        
@@ -222,6 +283,7 @@ namespace OpenMS
         double P_first = computeCumulativeScore_(N, n_first, p);
 
         Size n_second = 0; // number of matching peaks for second peptide
+        // Count matched ions across all windows for the second permutation
         for (Size window_idx = 0; window_idx < windows_top10.size(); ++window_idx) // each 100 m/z window
         {
           n_second += numberOfMatchedIons_(site_determining_ions[1], windows_top10[window_idx], phospho_site.peak_depth);        
@@ -229,6 +291,7 @@ namespace OpenMS
         Size N2 = site_determining_ions[1].size(); // all possibilities have the same number so take the first one
         double P_second = computeCumulativeScore_(N2, n_second, p);
 
+        // Convert probabilities to scores: -10 * log10(P)
         //abs is used to avoid -0 score values
         double score_first = abs(-10. * log10(P_first));
         double score_second = abs(-10. * log10(P_second));
@@ -236,6 +299,7 @@ namespace OpenMS
         OPENMS_LOG_DEBUG << "\tfirst - N: " << N << ",p: " << p << ",n: " << n_first << ", score: " << score_first << std::endl;
         OPENMS_LOG_DEBUG << "\tsecond - N: " << N2 << ",p: " << p << ",n: " << n_second << ", score: " << score_second << std::endl;
 
+        // AScore is the difference between the two scores
         Ascore = score_first - score_second;
         OPENMS_LOG_DEBUG << "\tAscore_" << rank << ": " << Ascore << std::endl;
       }
@@ -249,7 +313,8 @@ namespace OpenMS
       site2score[phospho_site.first] = Ascore;
       ++rank;      
     }
-    
+
+    // Generate a ProForma-like string with phosphorylation site scores
     // Add ProForma string as meta value
     String proforma = generateProFormaString_(phospho.getSequence(), site2score);
     phospho.setMetaValue("ProForma", proforma);
@@ -257,6 +322,16 @@ namespace OpenMS
     return phospho;
   }
 
+  /**
+   * @brief Computes the base probability of a random peak match
+   * 
+   * The base probability is calculated as:
+   * - For Da tolerance: 2 * tolerance / 100
+   * - For ppm tolerance: 2 * tolerance * reference_mz * 1e-6 / 100
+   * 
+   * @param ppm_reference_mz Reference m/z value for ppm calculations
+   * @return Base probability of a random peak match
+   */
   double AScore::computeBaseProbability_(double ppm_reference_mz) const
   {
     double base_match_probability = 2. * fragment_mass_tolerance_ / 100.;
@@ -267,6 +342,17 @@ namespace OpenMS
     return base_match_probability;
   }
 
+  /**
+   * @brief Computes the cumulative binomial probability P(X ≥ n)
+   * 
+   * Calculates the probability of observing at least n successes in N trials
+   * with individual success probability p. This is used to determine the
+   * statistical significance of peak matches.
+   * 
+   * @param N Total number of trials (theoretical peaks)
+   * @param n Number of successes (matched peaks)
+   * @param p Probability of success for a single trial
+   */
   double AScore::computeCumulativeScore_(Size N, Size n, double p) const
   {
     OPENMS_PRECONDITION(n <= N, "The number of matched ions (n) can be at most as large as the number of trials (N).");
@@ -278,6 +364,22 @@ namespace OpenMS
     return Math::binomial_cdf_complement(N, n, p);
   }
 
+  /**
+   * @brief Determines the highest scoring permutations for each phosphorylation site
+   * 
+   * For each phosphorylation site in the highest-scoring permutation, this function:
+   * 1. Finds the next best permutation where this site is not phosphorylated
+   * 2. Determines the peak depth that maximizes the score difference between these permutations
+   * 3. Stores this information for AScore calculation
+   * 
+   * The algorithm is complex because it needs to find permutations that differ by exactly
+   * one phosphorylation site while keeping all other sites the same.
+   * 
+   * @param peptide_site_scores Scores for each permutation at each peak depth
+   * @param sites Output vector to store phosphorylation site information
+   * @param permutations Vector of all phosphorylation site permutations
+   * @param ranking Ranked permutations by their weighted peptide scores
+   */
   void AScore::determineHighestScoringPermutations_(const std::vector<std::vector<double>>& peptide_site_scores, std::vector<ProbablePhosphoSites>& sites, const vector<vector<Size>>& permutations, std::multimap<double, Size>& ranking) const
   {
     // For every phospho site of the highest (weighted) scoring phospho site assignment:
@@ -291,6 +393,7 @@ namespace OpenMS
 
     for (Size i = 0; i < best_peptide_sites.size(); ++i)  // for each phosphorylated site
     {
+      // Start with the highest scoring permutation
       multimap<double, Size>::reverse_iterator rev = ranking.rbegin();      
       sites[i].first = best_peptide_sites[i]; // store the site
       sites[i].seq_1 = rev->second; // and permutation
@@ -298,8 +401,11 @@ namespace OpenMS
       
       // iterate from best scoring peptide to the first peptide that doesn't contain the current phospho site
       do
-      {      
+      {
+        // Move to the next permutation in the ranking
         ++rev;
+        // Check if this permutation has the same phosphorylation sites as the best one,
+        // except for the current site (i) which should be different
         for (Size j = 0; j < best_peptide_sites.size(); ++j)
         {
           if (j == i)
@@ -343,6 +449,7 @@ namespace OpenMS
       }
     }
 
+    // Find the peak depth that maximizes the score difference for each phosphorylation site
     // store peak depth that achieves maximum score difference between best and runner up for every phospho site.
     for (Size i = 0; i < sites.size(); ++i)
     {
@@ -361,12 +468,23 @@ namespace OpenMS
         {
           maximum_score_difference = score_difference;
           sites[i].peak_depth = depth;
+          sites[i].ascore = maximum_score_difference;
         }
       }
     }
   }
   
-  // calculation of the number of different speaks between the theoretical spectra of the two best scoring peptide permutations, respectively
+  /**
+   * @brief Computes the site-determining ions for phosphorylation site candidates
+   * 
+   * Site-determining ions are fragment ions that can distinguish between different phosphorylation
+   * site localizations. This method identifies ions that are unique to each of the two best-scoring
+   * permutations for a given phosphorylation site.
+   * 
+   * @param th_spectra Vector of theoretical spectra for all permutations
+   * @param candidates The phosphorylation site candidates to evaluate
+   * @param site_determining_ions Output vector to store the site-determining ions
+   */
   void AScore::computeSiteDeterminingIons_(const vector<PeakSpectrum>& th_spectra, const ProbablePhosphoSites& candidates, vector<PeakSpectrum>& site_determining_ions) const
   {
     site_determining_ions.clear();
@@ -375,6 +493,7 @@ namespace OpenMS
     PeakSpectrum spectrum_first = th_spectra[candidates.seq_1];
     PeakSpectrum spectrum_second = th_spectra[candidates.seq_2];
     
+    // Find peaks that are unique to the first spectrum (not in the second)
     PeakSpectrum spectrum_first_diff;
     AScore::getSpectrumDifference_(
       spectrum_first.begin(), spectrum_first.end(),
@@ -382,6 +501,7 @@ namespace OpenMS
       std::inserter(spectrum_first_diff, spectrum_first_diff.begin()));
       
     PeakSpectrum spectrum_second_diff;
+    // Find peaks that are unique to the second spectrum (not in the first)
     AScore::getSpectrumDifference_(
       spectrum_second.begin(), spectrum_second.end(),
       spectrum_first.begin(), spectrum_first.end(),
@@ -397,6 +517,16 @@ namespace OpenMS
     site_determining_ions[1].sortByPosition(); 
   }
 
+  /**
+   * @brief Counts the number of matched ions between a theoretical spectrum and experimental spectrum window
+   * 
+   * Compares a theoretical spectrum with an experimental spectrum window and counts
+   * the number of matching peaks within the fragment mass tolerance.
+   * 
+   * @param th Theoretical spectrum (must be sorted by m/z)
+   * @param window Experimental spectrum window (must be sorted by m/z)
+   * @param depth Maximum number of peaks to consider from the window (peak depth)
+   */
   Size AScore::numberOfMatchedIons_(const PeakSpectrum& th, const PeakSpectrum& window, Size depth) const
   {
     PeakSpectrum window_reduced = window;
@@ -407,6 +537,7 @@ namespace OpenMS
     
     window_reduced.sortByPosition();
     Size matched_peaks(0);
+    // Use different matching iterators based on the tolerance type (ppm or Da)
     if (fragment_tolerance_ppm_)
     {
       MatchedIterator<PeakSpectrum, PpmTrait> it(th, window_reduced, fragment_mass_tolerance_);
@@ -421,6 +552,19 @@ namespace OpenMS
     return matched_peaks;
   }
 
+  /**
+   * @brief Computes the weighted peptide score according to Beausoleil et al.
+   * 
+   * Calculates a weighted average of scores at different peak depths according to
+   * the formula described in Beausoleil et al. (page 1291). The weights are:
+   * - 0.5 for depth 1
+   * - 0.75 for depth 2
+   * - 1.0 for depths 3-6
+   * - 0.75 for depth 7
+   * - 0.5 for depth 8
+   * - 0.25 for depths 9-10
+   * The sum is divided by 7.0 to normalize.
+   */
   double AScore::peptideScore_(const std::vector<double>& scores) const
   {
     OPENMS_PRECONDITION(scores.size() == 10, "Scores vector must contain a score for every peak level."); 
@@ -437,11 +581,21 @@ namespace OpenMS
            / 7.0;
   }
 
+  /**
+   * @brief Checks if a residue is a PhosphoDecoy site (A, G, L)
+   */
   bool AScore::isPhosphoDecoySite(char residue)
   {
     return (residue == 'A' || residue == 'G' || residue == 'L');
   }
 
+  /**
+   * @brief Checks if a residue is a standard phosphorylation site (S, T, Y)
+   * 
+   * These are the standard amino acids that can be phosphorylated in biological systems:
+   * - Serine (S)
+   * - Threonine (T)
+   * - Tyrosine (Y) */
   bool AScore::isPhosphoSite(char residue)
   {
     return (residue == 'S' || residue == 'T' || residue == 'Y');
@@ -466,7 +620,14 @@ namespace OpenMS
     return ret;
   }
 
-  /// Count all phosphorylation events in a sequence, including both regular and decoy events
+  /**
+   * @brief Counts the number of phosphorylation events in a peptide sequence
+   * 
+   * Counts both regular phosphorylation events (Phospho) and decoy phosphorylation
+   * events (PhosphoDecoy) if enabled.
+   * 
+   * @param sequence The peptide sequence as a string
+   */
   Size AScore::numberOfPhosphoEvents_(const String& sequence) const 
   {
     Size cnt_phospho_events = 0;
@@ -615,7 +776,13 @@ namespace OpenMS
   }
   
     
-  /// Create variant of the peptide with all phosphorylations removed
+  /**
+   * @brief Creates a variant of the peptide with all phosphorylations removed
+   * 
+   * Removes both regular Phospho and PhosphoDecoy modifications from the sequence.
+   * 
+   * @param sequence The peptide sequence as a string
+   */
   AASequence AScore::removePhosphositesFromSequence_(const String& sequence) const 
   {
     String seq(sequence);
@@ -627,7 +794,17 @@ namespace OpenMS
     return without_phospho;
   }
   
-  /// Create theoretical spectra
+  /**
+   * @brief Creates theoretical spectra for all phosphorylation site permutations
+   * 
+   * For each permutation of phosphorylation sites, this method:
+   * 1. Creates a peptide sequence with phosphorylations at the specified positions
+   * 2. Generates a theoretical spectrum with b- and y-ions
+   * 3. Sets the spectrum name to the peptide sequence
+   * 
+   * @param permutations Vector of all phosphorylation site permutations
+   * @param seq_without_phospho Base peptide sequence without phosphorylations
+   */
   vector<PeakSpectrum> AScore::createTheoreticalSpectra_(const vector<vector<Size>>& permutations, const AASequence& seq_without_phospho) const
   {
     vector<PeakSpectrum> th_spectra;
@@ -688,6 +865,15 @@ namespace OpenMS
     return th_spectra;
   }
 
+  /**
+   * @brief Picks the top 10 intensity peaks for each 100 Da window in the spectrum
+   * 
+   * Divides the spectrum into 100 Da windows and selects the 10 most intense peaks
+   * from each window. This approach normalizes for intensity variations across
+   * the m/z range and focuses on the most informative peaks.
+   * 
+   * @param real_spectrum The experimental MS/MS spectrum
+   */
   std::vector<PeakSpectrum> AScore::peakPickingPerWindowsInSpectrum_(PeakSpectrum& real_spectrum) const
   {
     vector<PeakSpectrum> windows_top10;
@@ -721,6 +907,17 @@ namespace OpenMS
     return windows_top10;
   }
   
+  /**
+   * @brief Calculates scores for each permutation at 10 different peak depths
+   * 
+   * For each theoretical spectrum (permutation), this method:
+   * 1. Counts matched ions at each peak depth (1-10)
+   * 2. Calculates the cumulative binomial probability
+   * 3. Converts to a score using -10*log10(probability)
+   * 
+   * @param th_spectra Vector of theoretical spectra for all permutations
+   * @param windows_top10 Vector of experimental spectra windows with top 10 peaks
+   */
   std::vector<std::vector<double>> AScore::calculatePermutationPeptideScores_(vector<PeakSpectrum>& th_spectra, const vector<PeakSpectrum>& windows_top10) const
   {
     //prepare peak depth for all windows in the actual spectrum
@@ -750,6 +947,13 @@ namespace OpenMS
     return permutation_peptide_scores;
   }
   
+  /**
+   * @brief Ranks permutations by their weighted peptide scores
+   * 
+   * Calculates the weighted peptide score for each permutation and
+   * creates a multimap ranking them in ascending order.
+   * @param peptide_site_scores Scores for each permutation at each peak depth
+   */
   std::multimap<double, Size> AScore::rankWeightedPermutationPeptideScores_(const vector<vector<double>>& peptide_site_scores) const
   {
     multimap<double, Size> ranking;
@@ -763,6 +967,17 @@ namespace OpenMS
     return ranking;
   }
   
+  /**
+   * @brief Compares two m/z values using the fragment mass tolerance
+   * 
+   * Determines if two m/z values are within the specified tolerance:
+   * - Returns -1 if mz1 < mz2 (outside tolerance)
+   * - Returns 1 if mz1 > mz2 (outside tolerance)
+   * - Returns 0 if they are within tolerance
+   * 
+   * @param mz1 First m/z value
+   * @param mz2 Second m/z value
+   */
   int AScore::compareMZ_(double mz1, double mz2) const
   {
     double tolerance = fragment_mass_tolerance_;        
@@ -788,6 +1003,17 @@ namespace OpenMS
     }
   }
 
+  /**
+   * @brief Generates a ProForma-like string with phosphorylation site localization scores
+   * 
+   * Creates a string representation of the peptide with phosphorylation sites
+   * annotated with their localization scores. The format is:
+   * X[Phospho|score=0.9999] where X is the amino acid and 0.9999 is the localization probability.
+   * 
+   * @param peptide The peptide sequence
+   * @param ascores Map of positions to AScore values
+   * @return ProForma-like string with phosphorylation site scores
+   */
   String AScore::generateProFormaString_(const AASequence& peptide, const std::map<Size, double>& ascores) const
   {
     // Get the unmodified sequence as a string
@@ -801,13 +1027,14 @@ namespace OpenMS
     {
       Size position = site_pair.first;
       double ascore = site_pair.second;
-      
+
+
       // AScore is a -log10 scale, convert to probability
-      // Higher AScore means higher confidence
-      // We can use a simple conversion like: prob = 1.0 - (1.0 / (1.0 + AScore))
-      // This ensures that higher AScores give probabilities closer to 1
+      // Higher AScore means higher confidence in site localization
+      // double probability = 1.0 - pow(10.0, -ascore); this would be the actual probability 
+      // but will lead to all numbers very close to 1.0.
       double probability = 1.0 - (1.0 / (1.0 + ascore));
-      
+
       // Cap probability between 0 and 1
       probability = std::max(0.0, std::min(1.0, probability));
       
@@ -855,13 +1082,17 @@ namespace OpenMS
     return result;
   }
   
+  /**
+   * @brief Updates member variables from the parameter object
+   * 
+   * Called when parameters are changed to update the internal state of the object
+   */
   void AScore::updateMembers_()
   {
     fragment_mass_tolerance_ = param_.getValue("fragment_mass_tolerance");
     fragment_tolerance_ppm_ = (param_.getValue("fragment_mass_unit") == "ppm");
     max_peptide_length_ = param_.getValue("max_peptide_length");
     max_permutations_ = param_.getValue("max_num_perm");
-    unambiguous_score_ = param_.getValue("unambiguous_score");
     add_decoys_ = param_.getValue("add_decoys").toBool();
   }
   
