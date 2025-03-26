@@ -313,7 +313,7 @@ jobs:
           MACOSX_DEPLOYMENT_TARGET: "12"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CMAKE_GENERATOR: "Ninja"
-          OPENMS_CONTRIB_LIBS: "$GITHUB_WORKSPACE/OpenMS/contrib"
+          # OPENMS_CONTRIB_LIBS: "$GITHUB_WORKSPACE/OpenMS/contrib"
           BUILD_TYPE: "Release"
           BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}" #TODO make this more expressive
           BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
@@ -324,7 +324,7 @@ jobs:
           CCACHE_COMPRESS: true
           CCACHE_COMPRESSLEVEL: 12
           CCACHE_MAXSIZE: 400M
-          MT_ENABLE_OPENMP: "OFF"
+          #MT_ENABLE_OPENMP: "OFF"
           PYOPENMS: "ON"
           PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
           ENABLE_TUTORIALS: "OFF"
