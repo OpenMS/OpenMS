@@ -254,7 +254,7 @@ jobs:
         # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
 
         # export OpenMP_ROOT="$(brew --prefix libomp)"
-        export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt6_DIR)/lib/cmake;${Qt6_DIR}"
+        # export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt6_DIR)/lib/cmake;${Qt6_DIR}"
 
         #ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
 
