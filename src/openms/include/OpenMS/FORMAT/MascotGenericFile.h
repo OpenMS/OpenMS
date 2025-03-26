@@ -309,14 +309,20 @@ protected:
              String tmp = line.substr(8);
             try 
             {
-              int ms_level = tmp.toInt();
-              spectrum.setMSLevel(ms_level); 
+            int ms_level = std::stoi(tmp); // C++11 standard conversion
+            spectrum.setMSLevel(ms_level);
             }
-            catch (Exception::ConversionError& /*e*/)
+            catch (const std::invalid_argument& /*e*/)
             {
-                // Default to MS2 if parsing fails
-              spectrum.setMSLevel(2);
-            }       
+            // Default to MS2 if parsing fails
+            spectrum.setMSLevel(2);
+            spectrum.setMetaValue("MSLEVEL", "2");
+            }
+            catch (const std::out_of_range& /*e*/)
+            {
+                spectrum.setMSLevel(2);
+            }
+            }               
             else if (line.hasPrefix("SOURCE_INSTRUMENT"))
             {
               String tmp = line.substr(18);
@@ -360,5 +366,4 @@ protected:
     }
 
   };
-
 } // namespace OpenMS
