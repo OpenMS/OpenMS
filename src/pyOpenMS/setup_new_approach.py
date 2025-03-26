@@ -123,7 +123,7 @@ class build_ext(_build_ext):
     # adapted from cmake_build_ext in dynd-python
     # github.com/libdynd/dynd-python
 
-    description = "Build the C-extensions for arrow"
+    description = "Build the Cpp-extensions for OpenMS"
     user_options = ([('cmake-generator=', None, 'CMake generator'),
                      ('extra-cmake-args=', None, 'extra arguments for CMake'),
                      ('num_modules=', None, 'number of modules to split cython cpps into'),
