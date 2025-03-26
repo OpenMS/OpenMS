@@ -304,11 +304,19 @@ protected:
               String tmp = line.substr(8);
               spectrum.setMetaValue("IONMODE", tmp);
             }
-            else if (line.hasPrefix("MSLEVEL"))
+            else if (line.hasPrefix("MSLEVEL")) 
             {
-              String tmp = line.substr(8);
-              spectrum.setMetaValue("MSLEVEL", tmp);
+             String tmp = line.substr(8);
+            try 
+            {
+              int ms_level = tmp.toInt();
+              spectrum.setMSLevel(ms_level); 
             }
+            catch (Exception::ConversionError& /*e*/)
+            {
+                // Default to MS2 if parsing fails
+              spectrum.setMSLevel(2);
+            }       
             else if (line.hasPrefix("SOURCE_INSTRUMENT"))
             {
               String tmp = line.substr(18);
