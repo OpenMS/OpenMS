@@ -309,7 +309,7 @@ protected:
              String tmp = line.substr(8);
             try 
             {
-            int ms_level = std::stoi(tmp); // C++11 standard conversion
+            int ms_level = std::stoi(tmp); 
             spectrum.setMSLevel(ms_level);
             }
             catch (const std::invalid_argument& /*e*/)
