@@ -246,8 +246,8 @@ jobs:
         # export MACOSX_DEPLOYMENT_TARGET=12
         # Unfortunately, on macOS due to the inofficial way of enabling OpenMP on AppleClang, passing the following
         # options to setup.py extra_compile_args does not work. See also https://gist.github.com/andyfaff/084005bee32aee83d6b59e843278ab3e
-        export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
-        export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
+        # export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
+        # export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
 
         # mkdir bld
         # pushd bld
