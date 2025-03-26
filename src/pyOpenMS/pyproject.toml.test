@@ -30,7 +30,9 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11"
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 
 [project.urls]
@@ -46,6 +48,7 @@ include_package_data = true
 
 [tool.setuptools.package-data]
 pyopenms = ["*.pxd", "*.pyx", "*.h", "*.cpp"]
+# add py.typed? Or maybe it's included by default by now.
 
 [tool.setuptools.packages.find]
 include = ["pyopenms"]
