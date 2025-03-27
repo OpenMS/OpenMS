@@ -254,10 +254,11 @@ jobs:
 
           # build pyopenms distribution (macOS)
           ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
-          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
-
-          # copy to directory
+          
+          # copy to directory (in case test fails later)
           cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
+          
+          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
 
           # clean up
           conda deactivate
@@ -378,6 +379,10 @@ jobs:
 
           # build pyopenms distribution (macOS)
           ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
+          
+          # copy to directory (in case test fails later)
+          cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
+          
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
 
           # copy to directory
