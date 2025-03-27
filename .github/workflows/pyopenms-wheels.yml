@@ -254,6 +254,7 @@ jobs:
 
           # build pyopenms distribution (macOS)
           ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
+          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
 
           # copy to directory
           cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
@@ -289,16 +290,6 @@ jobs:
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "OFF"
           ENABLE_CLASS_TESTING: "OFF"
-
-    - name: Run Unit Tests
-      shell: bash
-      run: |
-            ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
-      env:
-          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
-          CI_PROVIDER: "GitHub-Actions"
-          BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
-          # The rest of the vars should be saved in the CMakeCache
 
     - uses: actions/upload-artifact@v4
       name: Upload artifacts
@@ -386,6 +377,7 @@ jobs:
 
           # build pyopenms distribution (macOS)
           ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
+          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
 
           # copy to directory
           cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
@@ -423,16 +415,6 @@ jobs:
         ENABLE_PIPELINE_TESTING: "OFF"
         ENABLE_TOPP_TESTING: "OFF"
         ENABLE_CLASS_TESTING: "OFF"
-
-    - name: Test
-      shell: bash
-      run: |
-            ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
-      env:
-          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
-          CI_PROVIDER: "GitHub-Actions"
-          BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
-          # The rest of the vars should be saved in the CMakeCache
         
     - uses: actions/upload-artifact@v4
       name: Upload wheels
