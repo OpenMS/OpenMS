@@ -19,8 +19,41 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  build-win:
-    runs-on: windows-latest
+  build-matrix:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            # cl.exe is currently the only supported. Needs a VS shell to be set up (especially if used without VS CMake Generator)
+            # clang.exe is also installed but untested (might crash with our VS specific compiler definitions)
+            # clang-cl.exe might be used instead.
+            compiler: cl.exe
+            compiler_ver: default
+
+          - os: macos-13
+            # Since the appleclang version is dependent on the XCode versions that are installed
+            #  on the GH runners, use this as the choice for a specific version
+            # TODO currently unused but XCode/appleclang is the default
+            compiler: xcode
+            # TODO implement support for other versions
+            compiler_ver: 14.2
+
+          - os: macos-latest
+            # Since the appleclang version is dependent on the XCode versions that are installed
+            #  on the GH runners, use this as the choice for a specific version
+            # TODO currently unused but XCode/appleclang is the default
+            compiler: xcode
+            # TODO implement support for other versions
+            compiler_ver: 15.0.1
+
+          # Make sure the compilers are available in that version on the GH runners
+          # We are not installing anything.
+          - os: ubuntu-latest
+            compiler: g++
+            container: ghcr.io/openms/contrib_manylinux_2_34:latest
+
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -32,13 +65,15 @@ jobs:
         cmake-version: '3.25.x'
 
     - name: Reduce PATH # This fixes a bug described in https://github.com/facebook/watchman/commit/59bcfbf91d2a24ab580b8a78e384f133cc202383
+      if: startsWith(matrix.os, 'windows')
       run: echo "DISTUTILS_USE_SDK=1"
 
     - name: Get number of CPU cores
       uses: SimenB/github-actions-cpu-cores@v2
       id: cpu-cores
 
-    - name: Install Qt
+    - name: Install Qt for Windows
+      if: startsWith(matrix.os, 'windows')
       uses: jurplel/install-qt-action@v4
       with:
         version: '6.*'
@@ -49,14 +84,28 @@ jobs:
         cache: 'false'
 
     - name: Install Miniconda
-      shell: bash # uses git bash on windows
+      shell: bash
       run: |
+          if [[ "${{ matrix.os }}" == "Linux" ]]; then
+            MINICONDA_FILENAME=Miniconda3-latest-Linux-x86_64.sh
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
+            bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
+          elif [[ "${{ matrix.os }}" == "macOS" && "${{ runner.arch }}" == "X64" ]]; then
+            MINICONDA_FILENAME=Miniconda3-latest-MacOSX-x86_64.sh
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
+            bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
+          elif [[ "${{ matrix.os }}" == "macOS" && "${{ runner.arch }}" == "ARM64"  ]]; then
+            MINICONDA_FILENAME=Miniconda3-latest-MacOSX-arm64.sh
+            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
+            bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
+          elif [[ "${{ matrix.os }}" == "Windows" ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-Windows-x86_64.exe
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
-            ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S //D=$HOME/miniconda3
-
-
+            ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S
+          fi
+ 
     - name: Download contrib build from archive (Windows)
+      if: startsWith(matrix.os, 'windows')
       shell: bash
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -69,8 +118,23 @@ jobs:
           rm contrib_build-Windows.tar.gz
           ls -la
 
+    - name: Install contrib packages from brew
+      if: startsWith(matrix.os, 'macos')
+      run: |
+          ## Needed for Qt. Install before to overwrite the default softlinks on the GH runners
+          brew install ccache autoconf automake libtool ninja && brew link --overwrite ccache
+          brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@6 libomp
+
+    - name: Install jq and ninja-build from yum
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+          yum install -y jq
+          yum install -y ninja-build # Install Ninja for build files
+          yum install -y ccache
+    
     # https://github.com/marketplace/actions/visual-studio-shell
     - name: Set up Visual Studio shell
+      if: startsWith(matrix.os, 'windows')
       uses: egor-tensin/vs-shell@v2
       with:
         arch: x64
@@ -80,33 +144,58 @@ jobs:
       run: |
         echo "$HOME/miniconda3/bin" >> $GITHUB_PATH
         echo "$HOME/miniconda3/Scripts" >> $GITHUB_PATH
+    
+    - id: set-vars
+      name: Set extra variables
+      run: |
+        if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
+          echo "openms_contrib_libs=/contrib-build/" >> $GITHUB_OUTPUT
+          echo "no_dependencies=ON" >> $GITHUB_OUTPUT
+        else
+          echo "openms_contrib_libs=${{ github.workspace }}/OpenMS/contrib" >> $GITHUB_OUTPUT
+          echo "no_dependencies=OFF" >> $GITHUB_OUTPUT
+        fi
 
-    - name: Build on Windows
+        if [[ "${{ matrix.os }}" == windows-* ]]; then
+          echo "build_flags=" >> $GITHUB_OUTPUT
+          echo "cmake_generator=Visual Studio 17 2022" >> $GITHUB_OUTPUT
+          echo "cmake_generator_platform=x64" >> $GITHUB_OUTPUT
+        else
+          echo "build_flags=-j${{ steps.cpu-cores.outputs.count }}" >> $GITHUB_OUTPUT
+          echo "cmake_generator=Ninja" >> $GITHUB_OUTPUT
+          echo "cmake_generator_platform=" >> $GITHUB_OUTPUT
+        fi
+
+        if [[ "${{ matrix.os }}" == macos-* ]]; then
+          echo "boost_use_static=OFF" >> $GITHUB_OUTPUT
+          echo "macosx_deployment_target=12" >> $GITHUB_OUTPUT
+        else
+          echo "boost_use_static=ON" >> $GITHUB_OUTPUT
+          echo "macosx_deployment_target=" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Build
       shell: bash
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
-        CMAKE_PREFIX_PATH="$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}"
-        #mkdir bld
-        #pushd bld
-        # TODO: set generator via variable, then we can share this step
-        # cmake --version
-        # cmake -G "Visual Studio 17 2022" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/OpenMS/contrib" -DCMAKE_PREFIX_PATH="$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}" ../OpenMS
-        # Note: multiple --targets only supported by CMake 3.15+
-        # cmake --build . --config Release --target OpenMS
-        
-        #ctest --progress --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
-        export CXXFLAGS="-D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR $CXXFLAGS"
+
+        export CMAKE_PREFIX_PATH="$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}"
       
         mkdir pyopenms_whls
+
+        # Set OpenMP_ROOT for macOS
+        if [[ "${{ matrix.os }}" == macos-* ]]; then
+          export OpenMP_ROOT=$(brew --prefix libomp)
+        fi
 
         # The growing PATH leads to a failure in the last iteration of the pyopenms build process.
         # We will store the PATH variable in the beginning and reset it with every iteration.
         RESET_PATH=$PATH
+        # TODO this is only used on linux, figure out cleaner way to do this
+        LD_OLD_LIBRARY_PATH=$LD_LIBRARY_PATH
 
         for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
 
-          # clean previous pyopenms libs
-          find . -name "_pyopenms*.pyd" -exec rm -rf {} \;
           # reset the path
           PATH=$RESET_PATH
 
@@ -132,23 +221,50 @@ jobs:
           # build pyopenms distribution
           ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake --config Release
 
-          echo "Current dir is `pwd`"
-          echo "wheels are in `find . | grep whl`"
-          echo "current ls is `ls -la`"
+          # On Linux we also need to strip the libraries and repair the wheels
+
+          if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
+            # ensure auditwheel can find the libraries
+            export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/OpenMS/bld/lib
+
+            # strip the libraries before repairing
+            strip --strip-all OpenMS/bld/lib/libOpenMS.so
+            strip --strip-all OpenMS/bld/lib/libOpenSwathAlgo.so
+
+            pushd OpenMS/bld/pyOpenMS
+              # Bundle stripped plus external shared libraries into the wheels
+              for whl in dist/pyopenms*.whl; do
+                auditwheel repair "$whl" -w wheelhouse/
+              done
+
+              mv wheelhouse/* OpenMS/bld/pyOpenMS/dist/
+            popd
+            export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH
+          fi
+
           # copy to directory
           cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
+
           # clean up
-          #conda deactivate
-          #conda remove --name "pyoms-bld-${pynodot}" --all
+          conda deactivate
+          conda remove --name "pyoms-bld-${pynodot}" --all
+          
+          # clean previous pyopenms libs
+          find . -name "_pyopenms*.pyd" -exec rm -rf {} \;
+          find . -name "_pyopenms*.so" -exec rm -rf {} \;
+
         done
 
       env: 
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
-          CMAKE_GENERATOR: "Visual Studio 17 2022"
-          CMAKE_GENERATOR_PLATFORM: "x64"
-          OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
-          #CMAKE_PREFIX_PATH: "$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}" #TODO move this to env
+          CMAKE_GENERATOR: ${{ steps.set-vars.outputs.cmake_generator }}
+          CMAKE_GENERATOR_PLATFORM: ${{ steps.set-vars.outputs.cmake_generator }}
+          OPENMS_CONTRIB_LIBS: ${{ steps.set-vars.outputs.openms_contrib_libs }}
+          BUILD_FLAGS: ${{ steps.set-vars.outputs.build_flags }}
           BUILD_TYPE: "Release"
+          NO_DEPENDENCIES: ${{ steps.set-vars.outputs.no_dependencies }}
+          BOOST_USE_STATIC: ${{ steps.set-vars.outputs.boost_use_static }}
+          MACOSX_DEPLOYMENT_TARGET: ${{ steps.set-vars.outputs.macosx_deployment_target }}
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_CCACHE_EXE: "ccache"
           CCACHE_BASEDIR: ${{ github.workspace }}
@@ -164,7 +280,6 @@ jobs:
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "OFF"
           ENABLE_CLASS_TESTING: "OFF"
-
 
     - name: Run Unit Tests
       shell: bash
@@ -178,379 +293,25 @@ jobs:
           # The rest of the vars should be saved in the CMakeCache
 
     - uses: actions/upload-artifact@v4
-      name: Upload artifacts
-      with:
-        name: ${{ runner.os }}-${{ runner.arch }}-wheels
-        path: pyopenms_whls
-        
-  build-macos-arm:
-    runs-on: macos-latest
-    env:
-      SYSTEM_VERSION_COMPAT: 0 # workaround for mac see https://github.com/actions/setup-python/issues/469 for details.
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        path: OpenMS
-
-    - name: Get number of CPU cores
-      uses: SimenB/github-actions-cpu-cores@v2
-      id: cpu-cores
-
-    - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v2
-      with:
-        cmake-version: '3.25.x'
-
-    - name: Install Miniconda
-      shell: bash
-      run: |
-            MINICONDA_FILENAME=Miniconda3-latest-MacOSX-arm64.sh
-            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
-            bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
-
-    - name: Setup conda paths
-      shell: bash
-      run: |
-        echo "$HOME/miniconda3/bin" >> $GITHUB_PATH
-        echo "$HOME/miniconda3/Scripts" >> $GITHUB_PATH
-
-    - name: Install contrib packages from brew
-      run: |
-        ## Needed for Qt. Install before to overwrite the default softlinks on the GH runners
-        brew install ccache autoconf automake libtool ninja && brew link --overwrite ccache
-        brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@6 libomp
-
-    - name: Build on macos arm
-      run: |
-        PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
-        export OpenMP_ROOT=$(brew --prefix libomp)
-        export CMAKE_PREFIX_PATH="$(echo $Qt6_DIR)/lib/cmake;${Qt6_DIR}"
-
-        mkdir pyopenms_whls
-
-        for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
-
-          # clean previous pyopenms libs
-          # do at the top of the python version loop so that we leave the final libraries for testing
-          find . -name "_pyopenms*.so" -exec rm -rf {} \;
-
-          py=$(echo "$py" | tr -d " \n")
-          pynodot=$(echo "$py" | tr -d ".")
-          conda create -n pyoms-bld-"${pynodot}" python="${py}"
-          source activate pyoms-bld-"${pynodot}"
-
-          # set current python executable
-          CURRENT_PYTHON_EXECUTABLE=$(which python)
-          
-          ${CURRENT_PYTHON_EXECUTABLE} -m pip install --upgrade pip
-          # pip install all the stuff
-          ${CURRENT_PYTHON_EXECUTABLE} -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
-
-          # Get the Python root directory
-          export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
-          echo "Python root directory: $Python_ROOT_DIR"
-
-          export BUILD_NAME="pyopenms-wheels-${{ runner.arch }}-class-pyopenms-$py-${{ github.run_number }}" #TODO make this more expressive
-
-          # build pyopenms distribution (macOS)
-          ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
-          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
-
-          # copy to directory
-          cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
-
-          # clean up
-          conda deactivate
-          conda remove --name pyoms-bld-"${pynodot}" --all
-
-        done
-
-      env:
-          BOOST_USE_STATIC: "OFF"
-          MACOSX_DEPLOYMENT_TARGET: "12"
-          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
-          CMAKE_GENERATOR: "Ninja"
-          OPENMS_CONTRIB_LIBS: "$GITHUB_WORKSPACE/OpenMS/contrib"
-          BUILD_TYPE: "Release"
-          BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}" #TODO make this more expressive
-          BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
-          CI_PROVIDER: "GitHub-Actions"
-          CMAKE_CCACHE_EXE: "ccache"
-          CCACHE_BASEDIR: ${{ github.workspace }}
-          CCACHE_DIR: ${{ github.workspace }}/.ccache
-          CCACHE_COMPRESS: true
-          CCACHE_COMPRESSLEVEL: 12
-          CCACHE_MAXSIZE: 400M
-          # MT_ENABLE_OPENMP: "ON"
-          PYOPENMS: "ON"
-          PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
-          ENABLE_TUTORIALS: "OFF"
-          ENABLE_DOCS: "OFF"
-          ENABLE_PIPELINE_TESTING: "OFF"
-          ENABLE_STYLE_TESTING: "OFF"
-          ENABLE_TOPP_TESTING: "OFF"
-          ENABLE_CLASS_TESTING: "OFF"
-
-    - uses: actions/upload-artifact@v4
-      name: Upload artifacts
+      name: Upload buildfiles
       if: always()
       with:
-        name: ${{ runner.os }}-buildfiles
+        name: ${{ runner.os }}-${{runner.arch }}-buildfiles
         path: |
-          CMakeCache.txt
-          pyOpenMS/env.py
-        
+              CMakeCache.txt
+              pyOpenMS/env.py
+          
     - uses: actions/upload-artifact@v4
       name: Upload wheels
       if: always()
       with:
         name: ${{ runner.os }}-${{ runner.arch }}-wheels
         path: pyopenms_whls
-        
-  build-macos:
-    runs-on: macos-13
-    env:
-      SYSTEM_VERSION_COMPAT: 0 # workaround for mac see https://github.com/actions/setup-python/issues/469 for details.
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        path: OpenMS
 
-    - name: Get number of CPU cores
-      uses: SimenB/github-actions-cpu-cores@v2
-      id: cpu-cores
-
-    - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v2
-      with:
-        cmake-version: '3.25.x'
-
-    - name: Install Miniconda
-      shell: bash
-      run: |
-            MINICONDA_FILENAME=Miniconda3-latest-MacOSX-x86_64.sh
-            curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
-            bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
-
-    - name: Setup conda paths
-      shell: bash
-      run: |
-        echo "$HOME/miniconda3/bin" >> $GITHUB_PATH
-        echo "$HOME/miniconda3/Scripts" >> $GITHUB_PATH
-
-    - name: Install contrib packages from brew
-      run: |
-        brew install ccache autoconf automake libtool ninja && brew link --overwrite ccache
-        brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@6 libomp
-
-    - name: Build on macos intel
-      run: |
-        PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
-        export MACOSX_DEPLOYMENT_TARGET=12
-        export OpenMP_ROOT=$(brew --prefix libomp)
-        export CMAKE_PREFIX_PATH="$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}"
-
-        mkdir pyopenms_whls
-
-        for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
-
-          # clean previous pyopenms libs
-          # do at the top of the python version loop so that we leave the final libraries for testing
-          find . -name "_pyopenms*.so" -exec rm -rf {} \;
-
-          py=$(echo "$py" | tr -d " \n")
-          pynodot=$(echo "$py" | tr -d ".")
-          conda create -n pyoms-bld-"${pynodot}" python="${py}"
-          source activate pyoms-bld-"${pynodot}"
-
-          # set current python executable
-          CURRENT_PYTHON_EXECUTABLE=$(which python)
-
-          ${CURRENT_PYTHON_EXECUTABLE} -m pip install --upgrade pip
-          # pip install all the stuff
-          ${CURRENT_PYTHON_EXECUTABLE} -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
-
-          # Get the Python root directory
-          export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
-          echo "Python root directory: $Python_ROOT_DIR"
-
-          export BUILD_NAME="pyopenms-wheels-${{ runner.arch }}-class-pyopenms-$py-${{ github.run_number }}" #TODO make this more expressive
-
-          # build pyopenms distribution (macOS)
-          ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
-          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
-
-          # copy to directory
-          cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
-
-          # clean up
-          conda deactivate
-          conda remove --name pyoms-bld-"${pynodot}" --all
-
-        done
-
-      env:
-        CC: "clang"
-        CXX: "clang++"
-        MACOSX_DEPLOYMENT_TARGET: "12"
-        SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
-        CMAKE_GENERATOR: "Ninja"
-        OPENMS_CONTRIB_LIBS: "$GITHUB_WORKSPACE/OpenMS/contrib"
-        BOOST_USE_STATIC: "OFF"
-        BUILD_TYPE: "Release"
-        BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}" #TODO make this more expressive
-        BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
-        CI_PROVIDER: "GitHub-Actions"
-        CMAKE_CCACHE_EXE: "ccache"
-        CCACHE_BASEDIR: ${{ github.workspace }}
-        CCACHE_DIR: ${{ github.workspace }}/.ccache
-        CCACHE_COMPRESS: true
-        CCACHE_COMPRESSLEVEL: 12
-        CCACHE_MAXSIZE: 400M
-        #MT_ENABLE_OPENMP: "ON"
-        PYOPENMS: "ON"
-        PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
-        ENABLE_TUTORIALS: "OFF"
-        ENABLE_DOCS: "OFF"
-        ENABLE_STYLE_TESTING: "OFF"
-        ENABLE_PIPELINE_TESTING: "OFF"
-        ENABLE_TOPP_TESTING: "OFF"
-        ENABLE_CLASS_TESTING: "OFF"
-        
-    - uses: actions/upload-artifact@v4
-      name: Upload wheels
-      with:
-        name: ${{ runner.os }}-${{ runner.arch }}-wheels
-        path: pyopenms_whls
-
-  build-lnx:
-    runs-on: [ubuntu-latest]
-    container: ghcr.io/openms/contrib_manylinux_2_34:latest
-
-    steps:
-    # Cancels older builds if still running
-    - uses: rokroskar/workflow-run-cleanup-action@master
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-      # Disable warning for this line
-      if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'" # noqa
-
-    - uses: actions/checkout@v4
-      name: Checkout sources
-      with:
-        path: OpenMS
-
-    - name: Get number of CPU cores
-      uses: SimenB/github-actions-cpu-cores@v2
-      id: cpu-cores
-
-    - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v2
-      with:
-        cmake-version: '3.25.x'
-
-    - name: Build on manylinux for broad compatibility
-      shell: bash
-      run: |
-        PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
-        yum install -y jq
-        yum install -y ninja-build # Install Ninja for build files
-        cmake --version
-
-        mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
-        mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/before_fix/
-
-        LD_OLD_LIBRARY_PATH=$LD_LIBRARY_PATH
-
-        # compile and configure OpenMS
-        for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
-
-          # Check if there is already and existing build,
-          # if so: clean previous pyopenms libs,
-          # do at the top of the python version loop so that we leave the final libraries for testing
-
-          if [ -d "OpenMS/bld/pyOpenMS/pyopenms" ]; then
-            rm OpenMS/bld/pyOpenMS/pyopenms/_pyopenms*.so
-          fi
-        
-          py=$(echo "$py" | tr -d " \n")
-          pynodot=$(echo "$py" | tr -d ".")
-          PYBIN=$(echo /opt/python/cp*${pynodot})
-          
-          # Create a venv for this python version
-          "$PYBIN/bin/python" -m venv $pynodot
-          source $pynodot/bin/activate
-          
-          "$PYBIN/bin/pip" install --upgrade pip
-          # pip install all the stuff
-          "$PYBIN/bin/pip" install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
-
-          # configure (don't copy deps since we use auditwheel)
-
-          export Python_ROOT_DIR=$PYBIN
-          export BUILD_NAME="pyopenms-wheels-${{ runner.arch }}-class-pyopenms-$py-${{ github.run_number }}" #TODO make this more expressive
-
-          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
-          
-          # ensure auditwheel can find the libraries
-          export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/OpenMS/bld/lib
-
-          # strip the libraries before repairing
-          strip --strip-all OpenMS/bld/lib/libOpenMS.so
-          strip --strip-all OpenMS/bld/lib/libOpenSwathAlgo.so
-
-          pushd OpenMS/bld/pyOpenMS
-            # Bundle stripped plus external shared libraries into the wheels
-            for whl in dist/pyopenms*.whl; do
-              auditwheel repair "$whl" -w wheelhouse/
-            done
-
-            mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
-          popd
-          export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH
-          
-          # deactivate the venv
-          deactivate
-        done
-      env: 
-          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
-          CMAKE_GENERATOR: "Ninja"
-          OPENMS_CONTRIB_LIBS: "/contrib-build/"
-          BUILD_TYPE: "Release"
-          BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
-          NO_DEPENDENCIES: "ON"
-          Python_FIND_STRATEGY: "LOCATION"
-          PYOPENMS: "ON"
-          PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
-          CI_PROVIDER: "GitHub-Actions"
-          CMAKE_CXX_COMPILER: "g++"
-          CMAKE_PREFIX_PATH: "/contrib-build/"
-          ENABLE_TUTORIALS: "OFF"
-          ENABLE_DOCS: "OFF"
-          ENABLE_STYLE_TESTING: "OFF"
-          ENABLE_PIPELINE_TESTING: "OFF"
-          ENABLE_TOPP_TESTING: "OFF"
-          ENABLE_CLASS_TESTING: "OFF"
-
-    - name: Test
-      shell: bash
-      run: |
-            ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
-      env:
-          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
-          CI_PROVIDER: "GitHub-Actions"
-          BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
-          # The rest of the vars should be saved in the CMakeCache
-
-    - uses: actions/upload-artifact@v4
-      name: Upload artifacts
-      with:
-        name: ${{ runner.os }}-${{ runner.arch }}-wheels
-        path: data/wheelhouse/
 
 # Tests the build workflows
   test:
-    needs: [build-win, build-macos, build-lnx, build-macos-arm]
+    needs: [build-matrix]
     runs-on: ${{ matrix.os }}
     env:
       SYSTEM_VERSION_COMPAT: 0 #courtesy of https://github.com/actions/setup-python/issues/469 in lieu of an actual solution.
