@@ -431,11 +431,25 @@ namespace OpenMS
             continue;
           }
 
-
-
           raw_peaks_within_bounds.sortByPosition();
-
           MSSpectrum raw_mz_peaks = SumFrame(raw_peaks_within_bounds, 0.1);
+          // Summing peaks could result in spectrum.size() == 1 which causes error.
+          // in this case, simply sum the intensity values
+          if (raw_mz_peaks.size() == 1)
+          {
+            const Peak1D& single_peak = raw_mz_peaks.front();
+
+            centroided_frame.push_back(single_peak);
+            ion_mobility_array.push_back(centroid_im);
+            ion_mobility_fwhm.push_back(fwhm);
+            mz_fwhm_array.push_back(0.0);
+
+            std::cout << "[INFO] SumFrame reduced peaks to a single entry. Added directly to centroided_frame. m/z: " << single_peak.getMZ()
+                      << " intensity: " << single_peak.getIntensity() << std::endl;
+
+            continue;
+          }
+
           // Prepare data for spline
           std::map<double, double> peak_raw_data;
 
@@ -672,7 +686,7 @@ namespace OpenMS
       // This is currently set to +20 peaks in a mobilogram. (Should this be a user parameter?)
 
       // Add a parameter to allow user to control sampling). Here we simply multiply by 4.
-      double sampling_rate = computeOptimalSamplingRate(mobilogram_traces) * 4;
+      double sampling_rate = computeOptimalSamplingRate(mobilogram_traces) * 1;
       Param resampler_param;
       resampler_param.setValue("spacing", sampling_rate, "Spacing of the resampled output peaks.");
       resampler_param.setValue("ppm", "false", "Whether spacing is in ppm or Th");
@@ -710,13 +724,17 @@ namespace OpenMS
 
         std::cout << "Original summed trace ion mobility range: [" << im_start << ", " << im_end << "]" << std::endl;
 
+        // for SGolay smoothing -- pad the edges with the same number as SGolay window size.
+        // If the padded region is not matching, it will borrow the left points from the right
+        // aka window 15 --> 7 points to the right and 7 points to the left pushed to the right.
+        // This can create a fake peak in the padded edges.
         Peak1D front_padding;
-        front_padding.setMZ(im_start - 10 * sampling_rate);
+        front_padding.setMZ(im_start - 15 * sampling_rate);
         front_padding.setIntensity(0.0);
         summed_trace.insert(summed_trace.begin(), front_padding);
 
         Peak1D back_padding;
-        back_padding.setMZ(im_end + 10 * sampling_rate);
+        back_padding.setMZ(im_end + 15 * sampling_rate);
         back_padding.setIntensity(0.0);
         summed_trace.push_back(back_padding);
 
@@ -728,22 +746,31 @@ namespace OpenMS
 
         lin_resampler.raster(summed_trace);
         std::cout << "Size of resampled trace: " << summed_trace.size() << " peaks." << std::endl;
+        for (const auto& peak : summed_trace)
+        {
+          std::cout << "m/z: " << peak.getMZ() << ", intensity: " << peak.getIntensity() << std::endl;
+        }
 
-        // --- Step 3b: Apply Gaussian Smoothing ---
         /*
-
+        // --- Step 3b: Apply Gaussian Smoothing ---
         std::cout << "Applying Gaussian smoothing..." << std::endl;
 
-        GaussFilter gauss_filter;
+        GaussFilter gauss_filter_2;
         Param gauss_params;
         gauss_params.setValue("gaussian_width", 0.005);
         gauss_params.setValue("use_ppm_tolerance", "false"); // or "true" for ppm-based width
 
-        gauss_filter.setParameters(gauss_params);
-        gauss_filter.filter(summed_trace);
+        gauss_filter_2.setParameters(gauss_params);
+        gauss_filter_2.filter(summed_trace);
 
         std::cout << "Trace after Gaussian smoothing has " << summed_trace.size() << " peaks." << std::endl;
+
+        for (const auto& peak : summed_trace)
+        {
+          std::cout << "m/z: " << peak.getMZ() << ", intensity: " << peak.getIntensity() << std::endl;
+        }
         */
+
 
         // --- Step 3b: Apply SGolay Smoothing ---
         SavitzkyGolayFilter sgolay_filter;
@@ -761,6 +788,7 @@ namespace OpenMS
         {
           std::cout << "m/z: " << peak.getMZ() << ", intensity: " << peak.getIntensity() << std::endl;
         }
+
 
         // --- Step 4b: Apply PeakPickerHiRes ---
         // We will use ion mobility peak FWHM to define min/max ion mobility boundaries.
