@@ -49,6 +49,7 @@ jobs:
             # clang-cl.exe might be used instead.
             compiler: cl.exe
             compiler_ver: default
+            qt_arch: 'win64_msvc2022_64'
 
           - os: macos-13
             # Since the appleclang version is dependent on the XCode versions that are installed
@@ -218,7 +219,8 @@ jobs:
       if: startsWith(matrix.os, 'windows')
       uses: jurplel/install-qt-action@v4
       with:
-        version: '6.7.2'
+        version: '6.8.3'
+        arch: ${{ matrix.qt_arch }}
         cache: 'false'
         archives: 'qtsvg qtimageformats qtbase'
 
