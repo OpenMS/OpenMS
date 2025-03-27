@@ -333,6 +333,7 @@ jobs:
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "OFF"
           ENABLE_CLASS_TESTING: "OFF"
+          OpenMP_ROOT: "/opt/homebrew/opt/libomp"
 
     - name: Run Unit Tests
       shell: bash
