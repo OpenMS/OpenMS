@@ -54,6 +54,8 @@ jobs:
             container: ghcr.io/openms/contrib_manylinux_2_34:latest
 
     runs-on: ${{ matrix.os }}
+    container: 
+      image: ${{ matrix.container || '' }} 
     steps:
     - uses: actions/checkout@v4
       with:
