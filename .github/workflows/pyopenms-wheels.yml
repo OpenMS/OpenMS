@@ -261,7 +261,7 @@ jobs:
       env: 
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CMAKE_GENERATOR: ${{ steps.set-vars.outputs.cmake_generator }}
-          CMAKE_GENERATOR_PLATFORM: ${{ steps.set-vars.outputs.cmake_generator }}
+          CMAKE_GENERATOR_PLATFORM: ${{ steps.set-vars.outputs.cmake_generator_platform }}
           OPENMS_CONTRIB_LIBS: ${{ steps.set-vars.outputs.openms_contrib_libs }}
           BUILD_FLAGS: ${{ steps.set-vars.outputs.build_flags }}
           BUILD_TYPE: "Release"
