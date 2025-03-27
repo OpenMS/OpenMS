@@ -249,8 +249,8 @@ jobs:
           fi
 
           # clean up
-          conda deactivate
-          conda remove --name "pyoms-bld-${pynodot}" --all
+          #conda deactivate
+          #conda remove --name "pyoms-bld-${pynodot}" --all
           
           # clean previous pyopenms libs
           find . -name "_pyopenms*.pyd" -exec rm -rf {} \;
