@@ -302,6 +302,7 @@ jobs:
         
     - uses: actions/upload-artifact@v4
       name: Upload wheels
+      if: always()
       with:
         name: ${{ runner.os }}-${{ runner.arch }}-wheels
         path: pyopenms_whls
