@@ -185,7 +185,7 @@ jobs:
 
         export CMAKE_PREFIX_PATH="$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}"
       
-        mkdir pyopenms_whls
+        mkdir ${{ github.workspace }}/pyopenms_whls
 
         # Set OpenMP_ROOT for macOS
         if [[ "${{ matrix.os }}" == macos-* ]]; then
@@ -241,12 +241,12 @@ jobs:
                 auditwheel repair "$whl" -w wheelhouse/
               done
 
-              mv wheelhouse/* pyopenms_whls/
+              mv wheelhouse/* ${{ github.workspace }}/pyopenms_whls/
             popd
             export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH
           else
             # copy to directory
-            cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
+            cp OpenMS/bld/pyOpenMS/dist/*.whl ${{ github.workspace }}/pyopenms_whls/
           fi
 
           # clean up
@@ -310,7 +310,7 @@ jobs:
       if: always()
       with:
         name: ${{ runner.os }}-${{ runner.arch }}-wheels
-        path: pyopenms_whls
+        path: ${{ github.workspace }}/pyopenms_whls
 
 
 # Tests the build workflows
