@@ -69,10 +69,10 @@ def doCythonCompile(arg):
 if __name__ == '__main__':
 
   # import config
-  from env import (QT_QMAKE_VERSION_INFO, OPEN_MS_BUILD_TYPE, PYOPENMS_SRC_DIR,
-                   OPEN_MS_CONTRIB_BUILD_DIRS, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB,
-                   OPEN_MS_BUILD_DIR, MSVS_RTLIBS, OPEN_MS_VERSION,
-                   Boost_MAJOR_VERSION, Boost_MINOR_VERSION, PY_NUM_THREADS, PY_NUM_MODULES)
+  from env import (
+        QT_QMAKE_VERSION_INFO, OPEN_MS_BUILD_TYPE,
+        PYOPENMS_SRC_DIR, OPEN_MS_VERSION,
+        PY_NUM_THREADS, PY_NUM_MODULES)
 
   IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
 

@@ -19,12 +19,9 @@ if "--no-optimization" in sys.argv:
     sys.argv.remove("--no-optimization")
 
 # import config
-from env import  (OPEN_MS_COMPILER, PYOPENMS_SRC_DIR, OPEN_MS_GIT_BRANCH, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
-                  QT_INSTALL_LIBS, QT_INSTALL_BINS, MSVS_RTLIBS,
-                  OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, INCLUDE_DIRS_EXTEND, LIBRARIES_EXTEND,
-                  LIBRARY_DIRS_EXTEND, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, PYOPENMS_INCLUDE_DIRS,
-                  PY_NUM_MODULES, PY_NUM_THREADS, SYSROOT_OSX_PATH, LIBRARIES_TO_BE_PARSED_EXTEND,
-                  OPENMS_GIT_LC_DATE_FORMAT, OPENMP_FOUND, OPENMP_CXX_FLAGS)
+from env import  (OPEN_MS_COMPILER, PYOPENMS_SRC_DIR, OPEN_MS_GIT_BRANCH, OPEN_MS_BUILD_DIR,
+                  OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, PYOPENMS_INCLUDE_DIRS,
+                  PY_NUM_MODULES, OPENMS_GIT_LC_DATE_FORMAT, OPENMP_FOUND, OPENMP_CXX_FLAGS)
 
 IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
 OMP = (OPENMP_FOUND.upper() == "ON" or OPENMP_FOUND.upper() == "TRUE" or OPENMP_FOUND == "1")
@@ -38,7 +35,6 @@ import os
 import glob
 import re
 import shutil
-import time
 
 if OPEN_MS_GIT_BRANCH == "nightly":
     package_name = "pyopenms"
@@ -68,15 +64,6 @@ from setuptools import setup, Extension
 with open("pyopenms/version.py", "w") as fp:
     print("version=%r" % package_version, file=fp)
 
-# parse config
-
-if OPEN_MS_CONTRIB_BUILD_DIRS.endswith(";"):
-    OPEN_MS_CONTRIB_BUILD_DIRS = OPEN_MS_CONTRIB_BUILD_DIRS[:-1]
-
-for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
-    if os.path.exists(os.path.join(OPEN_MS_CONTRIB_BUILD_DIR, "lib")):
-        break
-
 
 # Package data expected to be installed. On Linux the debian package
 # contains share/ data and must be installed to get access to the OpenMS shared
@@ -102,62 +89,23 @@ if (iswin):
                     j(OPEN_MS_BUILD_DIR, "lib", "Release"),
                     j(OPEN_MS_BUILD_DIR, "bin", "Release"),
                     j(OPEN_MS_BUILD_DIR, "Release"),
-                    QT_INSTALL_BINS,
-                    QT_INSTALL_LIBS,
                     ]
 else:
     library_dirs = [OPEN_MS_BUILD_DIR,
                 j(OPEN_MS_BUILD_DIR, "lib"),
                 j(OPEN_MS_BUILD_DIR, "bin"),
-                QT_INSTALL_BINS,
-                QT_INSTALL_LIBS,
                 ]
-
-# extend with contrib lib dirs
-for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
-  library_dirs.append(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib"))
-
-import numpy
-
 
 include_dirs = [
     "extra_includes",
-    j(numpy.core.__path__[0], "include")
 ]
 
 # append all include and library dirs exported by CMake
 include_dirs.extend(PYOPENMS_INCLUDE_DIRS.split(";"))
 
-if INCLUDE_DIRS_EXTEND: # only add if not empty
-    include_dirs.extend(INCLUDE_DIRS_EXTEND.split(";"))
-if LIBRARY_DIRS_EXTEND: # only add if not empty
-    library_dirs.extend(LIBRARY_DIRS_EXTEND.split(";"))
-if LIBRARIES_EXTEND: # only add if not empty
-    libraries.extend(LIBRARIES_EXTEND.split(";"))
-
 
 # libraries of any type to be parsed and added
 objects = []
-add_libs = LIBRARIES_TO_BE_PARSED_EXTEND.split(";")
-for lib in add_libs:
-  if not iswin:
-    if lib.endswith(".a"):
-      objects.append(lib)
-      name_search = re.search('.*/lib(.*)\.a$', lib)
-      if name_search:
-        libraries.append(name_search.group(1))
-        library_dirs.append(os.path.dirname(lib))
-    if lib.endswith(".so") or lib.endswith(".dylib"):
-      name_search = re.search('.*/lib(.*)\.(so|dylib)$', lib)
-      if name_search:
-        libraries.append(name_search.group(1))
-        library_dirs.append(os.path.dirname(lib))
-  else:
-    if lib.endswith(".lib"):
-      name_search = re.search('.*/(.*)\.lib$', lib)
-      if name_search:
-        libraries.append(name_search.group(1))
-        library_dirs.append(os.path.dirname(lib))
 
 
 extra_link_args = []
@@ -198,9 +146,6 @@ if not iswin:
         extra_link_args.append("-mmacosx-version-min=10.9") # due to libc++
         extra_compile_args.append("-Wno-deprecated")
         extra_compile_args.append("-Wno-nullability-completeness")
-        if (osx_ver >= "10.14.0" and SYSROOT_OSX_PATH): # since macOS Mojave
-            extra_link_args.append("-isysroot" + SYSROOT_OSX_PATH)
-            extra_compile_args.append("-isysroot" + SYSROOT_OSX_PATH)
     else:
         extra_compile_args.append("-Wno-deprecated-copy")
     extra_compile_args.append("-Wno-redeclared-class-member")

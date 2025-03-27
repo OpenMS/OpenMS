@@ -241,25 +241,8 @@ jobs:
     - name: Build on macos arm
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
-        # export CC=clang
-        # export CXX=clang++
-        # export MACOSX_DEPLOYMENT_TARGET=12
-        # Unfortunately, on macOS due to the inofficial way of enabling OpenMP on AppleClang, passing the following
-        # options to setup.py extra_compile_args does not work. See also https://gist.github.com/andyfaff/084005bee32aee83d6b59e843278ab3e
-        export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
-        export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
-
-        # mkdir bld
-        # pushd bld
-        # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
-
-        # export OpenMP_ROOT="$(brew --prefix libomp)"
-        export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt6_DIR)/lib/cmake;${Qt6_DIR}"
-
-        #ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
-
-        #cmake -DCMAKE_BUILD_TYPE="Release" -DCMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt6_Dir)/lib/cmake;${Qt6_Dir}" -DCMAKE_OSX_DEPLOYMENT_TARGET=12 -DBOOST_USE_STATIC=OFF ../OpenMS
-        #make -j${{ steps.cpu-cores.outputs.count }} OpenMS
+        export OpenMP_ROOT=$(brew --prefix libomp)
+        export CMAKE_PREFIX_PATH="$(echo $Qt6_DIR)/lib/cmake;${Qt6_DIR}"
 
         mkdir pyopenms_whls
 
