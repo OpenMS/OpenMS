@@ -86,23 +86,24 @@ jobs:
     - name: Install Miniconda
       shell: bash
       run: |
-          if [[ "${{ matrix.os }}" == "Linux" ]]; then
+          if [[ "${{ runner.os }}" == "ubuntu-*" ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-Linux-x86_64.sh
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
-          elif [[ "${{ matrix.os }}" == "macOS" && "${{ runner.arch }}" == "X64" ]]; then
+          elif [[ "${{ runner.os }}" == "macos-*" && "${{ runner.arch }}" == "X64" ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-MacOSX-x86_64.sh
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
-          elif [[ "${{ matrix.os }}" == "macOS" && "${{ runner.arch }}" == "ARM64"  ]]; then
+          elif [[ "${{ runner.os }}" == "macos-*" && "${{ runner.arch }}" == "ARM64"  ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-MacOSX-arm64.sh
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
-          elif [[ "${{ matrix.os }}" == "Windows" ]]; then
+          elif [[ "${{ runner.os }}" == "windows-*" ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-Windows-x86_64.exe
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S
           fi
+
  
     - name: Download contrib build from archive (Windows)
       if: startsWith(matrix.os, 'windows')
@@ -327,19 +328,19 @@ jobs:
     - name: Install Miniconda
       shell: bash
       run: |
-          if [[ "${{ runner.os }}" == "Linux" ]]; then
+          if [[ "${{ runner.os }}" == "ubuntu-*" ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-Linux-x86_64.sh
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
-          elif [[ "${{ runner.os }}" == "macOS" && "${{ runner.arch }}" == "X64" ]]; then
+          elif [[ "${{ runner.os }}" == "macos-*" && "${{ runner.arch }}" == "X64" ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-MacOSX-x86_64.sh
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
-          elif [[ "${{ runner.os }}" == "macOS" && "${{ runner.arch }}" == "ARM64"  ]]; then
+          elif [[ "${{ runner.os }}" == "macos-*" && "${{ runner.arch }}" == "ARM64"  ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-MacOSX-arm64.sh
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
-          elif [[ "${{ runner.os }}" == "Windows" ]]; then
+          elif [[ "${{ runner.os }}" == "windows-*" ]]; then
             MINICONDA_FILENAME=Miniconda3-latest-Windows-x86_64.exe
             curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
             ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S
