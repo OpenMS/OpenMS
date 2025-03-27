@@ -241,13 +241,13 @@ jobs:
                 auditwheel repair "$whl" -w wheelhouse/
               done
 
-              mv wheelhouse/* OpenMS/bld/pyOpenMS/dist/
+              mv wheelhouse/* pyopenms_whls/
             popd
             export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH
+          else
+            # copy to directory
+            cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
           fi
-
-          # copy to directory
-          cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
 
           # clean up
           conda deactivate
