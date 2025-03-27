@@ -13,7 +13,7 @@
 namespace OpenMS
 {
 FLASHHelperClasses::PrecalculatedAveragine::PrecalculatedAveragine(const double min_mass, const double max_mass, const double delta, CoarseIsotopePatternGenerator& generator,
-                                                                   const bool use_RNA_averagine, double decoy_iso_distance, bool is_centroid) :
+                                                                   const bool use_RNA_averagine, const double decoy_iso_distance) :
     mass_interval_(delta),
     min_mass_(min_mass)
 {

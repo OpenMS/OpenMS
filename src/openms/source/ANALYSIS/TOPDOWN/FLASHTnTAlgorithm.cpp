@@ -6,7 +6,6 @@
 // $Authors: Kyowon Jeong$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/TOPDOWN/ConvolutionBasedProteinFilter.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHExtenderAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHTaggerAlgorithm.h>
@@ -166,12 +165,6 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
     mod_map[mod.getDiffMonoMass()].push_back(mod);
   }
   double precursor_tol = -1;
-  std::vector<boost::dynamic_bitset<>> vectorized_fasta_entry, rev_vectorized_fasta_entry;
-  std::vector<std::vector<int>> vectorized_fasta_entry_indices, rev_vectorized_fasta_entry_indices;
-  std::vector<std::map<int, double>> mass_map, rev_mass_map;
-  //std::vector<std::vector<Size>> bit_protein_indices, rev_bit_protein_indices;
-  ConvolutionBasedProteinFilter::vectorizeFasta(fasta_entry, vectorized_fasta_entry, vectorized_fasta_entry_indices, mass_map, false);
-  ConvolutionBasedProteinFilter::vectorizeFasta(fasta_entry, rev_vectorized_fasta_entry, rev_vectorized_fasta_entry_indices, rev_mass_map, true);
 
   std::vector<std::map<int,std::set<Size>>> fasta_index, rev_fasta_index;
 
@@ -180,8 +173,6 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
     auto spec = map[index];
     nextProgress();
     int scan = FLASHDeconvAlgorithm::getScanNumber(map, index);
-    //if (scan != 6887) continue; // TODO
-    //if (spec.getMSLevel() == 1 && precursor_tol > 0) { continue; }
 
     DeconvolvedSpectrum dspec(scan);
     dspec.setOriginalSpectrum(spec);
@@ -263,9 +254,23 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
       peak.setScanNumber(scan);
       dspec.push_back(peak);
     }
+    if (dspec.size() < 5) continue;
+
+    if(dspec.size() > max_node_cntr_)
+    {
+      dspec.sortByQscore();
+      std::vector<PeakGroup> filtered_peaks;
+      filtered_peaks.reserve(max_node_cntr_);
+      for (const auto& pg : dspec)
+      {
+        if (filtered_peaks.size() >= max_node_cntr_) break;
+        filtered_peaks.push_back(pg);
+      }
+      dspec.setPeakGroups(filtered_peaks);
+    }
+
     dspec.sort();
 
-    if (dspec.size() < 5) continue;
     FLASHTaggerAlgorithm tagger;
     // Run tagger
     tagger.setParameters(tagger_param_);
@@ -273,36 +278,19 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
     FLASHExtenderAlgorithm extender;
     extender.setParameters(extender_param_);
     extender.setModificationMap(mod_map);
-    tagger.getTags(tags_);
+    tagger.fillTags(tags_);
     std::vector<ProteinHit> hits;
     std::vector<FLASHHelperClasses::Tag> tags;
-   // bool hit_by_tag = false;
-   // bool proteoform_found = false;
 
-    tagger.runMatching(fasta_entry, dspec,  vectorized_fasta_entry, rev_vectorized_fasta_entry, mass_map, rev_mass_map, max_mod_mass);
-    tagger.getTags(tags);
-    tagger.getProteinHits(hits, max_hit_count);
+    tagger.runMatching(fasta_entry, dspec, max_mod_mass);
+    tagger.fillTags(tags);
+    tagger.fillProteinHits(hits, max_hit_count);
 
    // hit_by_tag |= !hits.empty();
-    extender.run(hits, tags, dspec,
-                 tagger.getSpectrum(), tol, multiple_hits_per_spec_);
+    extender.run(hits, tags, dspec,tol, multiple_hits_per_spec_);
     extender.getProteoforms(proteoform_hits_);
-   // proteoform_found = extender.hasProteoforms();
-//    if (false && !hit_by_tag && !proteoform_found) // TODO
-//    {
-//      ConvolutionBasedProteinFilter filter;
-//      hits.clear();
-//      tags.clear();
-//
-//      filter.runMatching(dspec, fasta_entry, vectorized_fasta_entry_indices, rev_vectorized_fasta_entry_indices,
-//                         bit_protein_indices, rev_bit_protein_indices,min_tag_length);
-//      filter.getProteinHits(hits, max_hit_count);
-//      extender.run(hits, tags, dspec, tagger.getSpectrum(), flanking_mass_tol, tol, multiple_hits_per_spec_);
-//      extender.getProteoforms(proteoform_hits_);
-//    }
 
     decoy_factor_ = tagger.getDecoyFactor();
-    // if (! out_tag_file.empty()) { FLASHTnTFile::writeTags(tagger, extender, out_tagger_stream); }
   }
   endProgress();
   // redefine tag index and proteoform to tag indics

@@ -17,7 +17,7 @@ namespace OpenMS
   @brief  Class describing a deconvolved mass.
      A mass contains multiple (LogMz) peaks of different charges and isotope indices.
      PeakGroup is the set of such peaks representing a single monoisotopic mass.
-     PeakGroup also contains features that define the quality of it. It is used by setQscore calculation.
+     PeakGroup also contains features that define the quality of it. It is used for Qscore calculation.
      DeconvolvedSpectrum consists of PeakGroups.
   @ingroup Topdown
     */
@@ -28,13 +28,13 @@ namespace OpenMS
     typedef FLASHHelperClasses::PrecalculatedAveragine PrecalculatedAveragine;
 
   public:
-    /// target decoy type of PeakGroup. This specifies if a PeakGroup is a target (0), charge decoy (1), noise decoy (2), or signal decoy (3). Added non_specific (4) to allow all types in some functions
+    /// target decoy type of PeakGroup.
+    /// This specifies if a PeakGroup is a target (0), noise decoy (1),or signal decoy (2)
     enum TargetDecoyType
     {
       target = 0,
       noise_decoy,
       signal_decoy,
-      non_specific
     };
 
 
@@ -76,7 +76,6 @@ namespace OpenMS
     /**
            @brief Update setQscore. Cosine and SNRs are also updated.
            @param noisy_peaks noisy peaks to calculate setQscore
-           @param spec the original spectrum that generated this peak group.
            @param avg precalculated averagine
            @param min_cos the peak groups with cosine score less than this will have setQscore 0.
            @param tol ppm tolerance
@@ -85,7 +84,7 @@ namespace OpenMS
            @param is_last if this is set, it means that Qscore calculation is at its last iteration. More detailed noise power calculation is activated and mono mass is not recalibrated.
            @return returns isotope offset after isotope cosine calculation
       */
-    int updateQscore(const std::vector<LogMzPeak>& noisy_peaks, const MSSpectrum& spec, const FLASHHelperClasses::PrecalculatedAveragine& avg, double min_cos, double tol, bool is_low_charge, int allowed_iso_error, const bool is_last = false);
+    int updateQscore(const std::vector<LogMzPeak>& noisy_peaks, const FLASHHelperClasses::PrecalculatedAveragine& avg, double min_cos, double tol, bool is_low_charge, int allowed_iso_error, bool is_last = false);
 
     /**
      * @brief given a monoisotopic mass, recruit raw peaks from the raw input spectrum and add to this peakGroup. This is a bit time-consuming and is done for only a small number of selected
@@ -238,7 +237,7 @@ namespace OpenMS
     /// get index of this peak group
     uint getIndex() const;
     /// get feature index of this peak group
-    int getFeatureIndex() const;
+    uint getFeatureIndex() const;
 
     /// iterators for the signal LogMz peaks in this PeakGroup
     std::vector<FLASHHelperClasses::LogMzPeak>::const_iterator begin() const noexcept;
@@ -248,13 +247,6 @@ namespace OpenMS
     std::vector<FLASHHelperClasses::LogMzPeak>::iterator end() noexcept;
 
     const FLASHHelperClasses::LogMzPeak& operator[](Size i) const;
-
-    /// iterators for the noisy LogMz peaks in this PeakGroup
-    std::vector<FLASHHelperClasses::LogMzPeak>::const_iterator getNoisePeakBegin() const noexcept;
-    std::vector<FLASHHelperClasses::LogMzPeak>::const_iterator getNoisePeakEnd() const noexcept;
-
-    std::vector<FLASHHelperClasses::LogMzPeak>::iterator getNoisePeakBegin() noexcept;
-    std::vector<FLASHHelperClasses::LogMzPeak>::iterator getNoisePeakEnd() noexcept;
 
     std::vector<float> getMassErrors(bool ppm = true) const;
 
@@ -305,7 +297,7 @@ namespace OpenMS
     std::vector<FLASHHelperClasses::LogMzPeak> logMzpeaks_;
     /// negative isotope index peaks
     std::vector<FLASHHelperClasses::LogMzPeak> negative_iso_peaks_;
-    /// per charge SNR, isotope cosine, and intensity vectors
+    /// per charge summed signal squared, noise pwr, SNR, isotope cosine, and intensity vectors
     std::vector<float> per_charge_sum_signal_squared_;
     std::vector<float> per_charge_noise_pwr_;
     std::vector<float> per_charge_cos_;
@@ -317,7 +309,7 @@ namespace OpenMS
     int min_abs_charge_ = 0, max_abs_charge_ = -1;
     /// peak group index
     uint index_ = 0;
-    /// feature index
+    /// feature index in which this peak group is included. 0 if not included in any feature
     uint findex_ = 0;
     /// scan number
     int scan_number_ = 0;
@@ -325,26 +317,34 @@ namespace OpenMS
     bool is_positive_ = false;
     /// if this peak group has been targeted
     bool is_targeted_ = false;
-    /// information on the deconvolved mass
+    /// monoisotopic mass
     double monoisotopic_mass_ = -1.0;
-    float intensity_ = 0.f; // total intensity
-    /// index to specify if this peak_group is a target (0), an isotope decoy (1), a noise (2), or a charge decoy (3)
+    /// summed intensity
+    float intensity_ = 0.f;
+    /// index to specify if this peak_group is a target, a noise, or a signal decoy.
     PeakGroup::TargetDecoyType target_decoy_type_ = target;
-    /// up to which negative isotope index should be considered. By considereing negative istoopes, one can reduce isotope index error.
+    /// up to which negative isotope index should be considered for isotope pattern matching.
+    /// By considering negative isotopes, one can reduce isotope index error.
     int min_negative_isotope_index_ = -1;
 
     /// distance between consecutive isotopes. Can be different for decoys
     double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;
     /// scoring variables
+    /// the charge for which the charge SNR is maximized
     int max_snr_abs_charge_ = -1;
+    /// cosine score between averagine and the observed isotope pattern
     float isotope_cosine_score_ = 0.f;
+    /// charge fit score
     float charge_score_ = 0.f;
+    /// quality score
     double qscore_ = .0;
+    /// quality score when considering correlation between masses within the same feature.
     double qscore2D_ = -1.0f;
     float avg_ppm_error_ = 0.f;
     float avg_da_error_ = 0.f;
+    /// total SNR
     float snr_ = 0.f;
-    /// q value
+    /// q value, only active when FDR report is activated.
     float qvalue_ = 1.f;
   };
 } // namespace OpenMS

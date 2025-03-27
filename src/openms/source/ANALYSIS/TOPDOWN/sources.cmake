@@ -3,7 +3,6 @@ set(directory source/ANALYSIS/TOPDOWN)
 
 ### list all filenames of the directory here
 set(sources_list
-        ConvolutionBasedProteinFilter.cpp
         DeconvolvedSpectrum.cpp
         SpectralDeconvolution.cpp
         FLASHDeconvAlgorithm.cpp

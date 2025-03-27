@@ -41,7 +41,7 @@ namespace OpenMS
     FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm&) = default;
 
     /// move constructor
-    FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other) = default;
+    FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other)  noexcept = default;
 
     /// assignment operator
     FLASHDeconvAlgorithm& operator=(const FLASHDeconvAlgorithm& fd) = default;
@@ -50,7 +50,7 @@ namespace OpenMS
     FLASHDeconvAlgorithm& operator=(FLASHDeconvAlgorithm&& fd) = default;
 
     /// destructor
-    ~FLASHDeconvAlgorithm() = default;
+    ~FLASHDeconvAlgorithm() override = default;
 
     std::vector<double> getTolerances() const;
 
@@ -70,7 +70,7 @@ namespace OpenMS
 
 
     /// get noise decoy weight
-    double getNoiseDecoyWeight()
+    double getNoiseDecoyWeight() const
     {
       return noise_decoy_weight_;
     }
@@ -115,7 +115,7 @@ namespace OpenMS
     bool report_decoy_ = false;
 
     /// default precursor isolation window size.
-    double isolation_window_size_;
+    double isolation_window_size_{3.0};
 
     /// noise decoy weight determined with qvalue calcualtion.
     double noise_decoy_weight_ = 1;
@@ -146,7 +146,7 @@ namespace OpenMS
     void findPrecursorPeakGroupsForMSnSpectra_(const MSExperiment& map, const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, uint ms_level);
 
     /// determine tolerance
-    void determineTolerance_(const MSExperiment& map, const Param& sd_param, const FLASHHelperClasses::PrecalculatedAveragine& avg, int ms_level);
+    void determineTolerance_(const MSExperiment& map, const Param& sd_param, const FLASHHelperClasses::PrecalculatedAveragine& avg, uint ms_level);
 
     /// get histogram
     static std::vector<int> getHistogram_(const std::vector<double>& data, double min_range, double max_range, double bin_size);

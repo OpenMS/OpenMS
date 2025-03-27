@@ -19,12 +19,16 @@ namespace OpenMS
 {
 /**
  * @brief Wrapper struct for all the structs needed by the FLASHDeconv
- * Three structures are defined: PrecalculatedAveragine, TopPicItem, and LogMzPeak
+ * The following structures/classes are defined: PrecalculatedAveragine, MassFeature, IsobaricQuantities, LogMzPeak,
+ * Tag, and DAG for tagging.
  * i) PrecalculatedAveragine - to match observed isotopic envelope against theoretical one, theoretical envelope from
  * averagine model should be quickly calculated. To do so, precalculate averagines for different masses at the beginning of FLASHDeconv runs
- * ii) TopPicItem - represent TopPic identification. Currently used for setQscore training. TopPic is the top-down proteomics identification tool
- * (https://www.toppic.org/). iii) LogMzPeak - Log transformed peak from original peak. Contains information such as charge, isotope index, and
+ * ii) MassFeature - the feature of the deconvolved masses (instead of m/zs for MS features).
+ * iii) IsobaricQuantities - the quantities from isobaric quantification (implemented within FLASHDeconv)
+ * iv) LogMzPeak - Log transformed peak from original peak. Contains information such as charge, isotope index, and
  * uncharged mass.
+ * v) Tag - the sequence tag generated on deconvolved spectra in FLASHTaggerAlgorithm
+ * vi) DAG - the graph for sequence tagging in FLASHTaggerAlgorithm and for proteoform characterization in FLASHExtenderAlgorithm
  * @see SpectralDeconvolution
  */
 
@@ -36,7 +40,7 @@ struct OPENMS_DLLAPI FLASHHelperClasses
   private:
     /// isotope distributions for different (binned) masses
     std::vector<IsotopeDistribution> isotopes_;
-    /// L2 norms_ for masses
+    /// L2 norms_ for masses - for quick isotope cosine calculation
     std::vector<double> norms_;
     /// mass differences between average mass and monoisotopic mass
     std::vector<double> average_mono_mass_difference_;
@@ -72,9 +76,8 @@ struct OPENMS_DLLAPI FLASHHelperClasses
      @param generator this generates (calculates) the distributions
      @param use_RNA_averagine if set, nucleotide-based isotope patters are calculated
      @param decoy_iso_distance if set to a positive value, nonsensical isotope patterns are generated - the distance between isotope = decoy_iso_distance * normal distance.
-     @param is_centroid whether or not the averagine is calculated for centroided data
   */
-    PrecalculatedAveragine(double min_mass, double max_mass, double delta, CoarseIsotopePatternGenerator& generator, bool use_RNA_averagine, double decoy_iso_distance = -1, bool is_centroid = true);
+    PrecalculatedAveragine(double min_mass, double max_mass, double delta, CoarseIsotopePatternGenerator& generator, bool use_RNA_averagine, double decoy_iso_distance = -1);
 
     /// copy constructor
     PrecalculatedAveragine(const PrecalculatedAveragine&) = default;
@@ -105,7 +108,7 @@ struct OPENMS_DLLAPI FLASHHelperClasses
     /// maximum mass (specified in constructor), output for the maximum mass
     Size getLeftCountFromApex(double mass) const;
 
-    /// get isotope distance (from apex to the rigth direction) to consider. This is specified in the constructor. index. If input mass exceeds the
+    /// get isotope distance (from apex to the right direction) to consider. This is specified in the constructor. index. If input mass exceeds the
     /// maximum mass (specified in constructor), output for the maximum mass
     Size getRightCountFromApex(double mass) const;
 
@@ -123,6 +126,7 @@ struct OPENMS_DLLAPI FLASHHelperClasses
     /// the maximum mass
     double getMostAbundantMassDelta(double mass) const;
 
+    /// get the SNR multiplication factor - used for quick SNR calculation
     double getSNRMultiplicationFactor(double mass) const;
   };
 
@@ -132,12 +136,18 @@ struct OPENMS_DLLAPI FLASHHelperClasses
   public:
     /// feature index;
     uint index;
+    /// the trace calculated from the masses
     MassTrace mt;
+    /// per charge and isotope intensities
     std::vector<float> per_charge_intensity;
     std::vector<float> per_isotope_intensity;
+    /// isotope offset between deconvolved masses and mass feature
     int iso_offset;
+    /// representative scan number, min and max scan numbers, and representative charge
     int scan_number, min_scan_number, max_scan_number, rep_charge;
+    /// average mass
     double avg_mass;
+    /// minimum maximum charges, and number of charges
     int min_charge, max_charge, charge_count;
     double isotope_score, qscore;
     double rep_mz;
@@ -209,8 +219,8 @@ struct OPENMS_DLLAPI FLASHHelperClasses
     /// destructor
     ~LogMzPeak() = default;
 
-    /// get uncharged mass of this peak. It is NOT a monoisotopic mass of a PeakGroup, rather a monoisotopic mass of each LogMzPeak. Returns 0 if no
-    /// charge set
+    /// get uncharged mass of this peak. It is NOT a monoisotopic mass of a PeakGroup, rather the mass of each LogMzPeak. Returns 0 if no
+    /// charge is set
     double getUnchargedMass() const;
 
     /// log mz values are compared
@@ -263,7 +273,6 @@ struct OPENMS_DLLAPI FLASHHelperClasses
       rt_ = i;
     }
 
-
     String toString() const;
     const std::vector<double>& getMzs() const;
 
@@ -302,13 +311,20 @@ struct OPENMS_DLLAPI FLASHHelperClasses
       return true;
     }
 
-    bool hasEdge(Size vertex1, Size vertex2) const
-    {
-      auto iter = adj_list_for_speed_up_.find(vertex2);
-      if (iter == adj_list_for_speed_up_.end()) return false;
-      return iter->second.find(vertex1) != iter->second.end();
-    }
+//    bool hasEdge(Size vertex1, Size vertex2) const
+//    {
+//      auto iter = adj_list_for_speed_up_.find(vertex2);
+//      if (iter == adj_list_for_speed_up_.end()) return false;
+//      return iter->second.find(vertex1) != iter->second.end();
+//    }
 
+    /**
+     * Simple path finding algorithm on DAG
+     * @param source source
+     * @param sink sink
+     * @param all_paths the resulting paths
+     * @param max_count maximum path count
+     */
     void findAllPaths(Size source, Size sink, std::vector<std::vector<Size>>& all_paths, Size max_count)
     {
       std::unordered_set<Size> visited;
@@ -337,6 +353,7 @@ struct OPENMS_DLLAPI FLASHHelperClasses
     // 0, 1, 2, ... ,vertex_count - 1
     std::map<Size, std::vector<Size>> adj_list_; //
     std::unordered_map<Size, std::unordered_set<Size>> adj_list_for_speed_up_; // vertex swapped for fast stroing of edges
+    /// recursive part for the findAllPaths
     void findAllPaths_(Size current,
                        Size destination,
                        std::unordered_set<Size>& visited,

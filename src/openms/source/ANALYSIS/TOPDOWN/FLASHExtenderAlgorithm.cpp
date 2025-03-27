@@ -85,7 +85,7 @@ void FLASHExtenderAlgorithm::calculatePrecursorMass_(const ProteinHit& hit,
 
   //PeakGroup pg;
   //pg.setQscore(.8);
-  const int terminal_score_threshold = 1;//(int)round(FLASHTaggerAlgorithm::getPeakGroupScore(pg) * 3); // n term or c term should have at least this score to be considered = three high quality masses
+  const int terminal_score_threshold = 1;//(int)round(FLASHTaggerAlgorithm::getNodeScore(pg) * 3); // n term or c term should have at least this score to be considered = three high quality masses
   int max_score = terminal_score_threshold; // need to exceed 20 for precursor correction
   double min_tol = 1000;
   Size pro_size = hi.pro_mass_map_[0].size();
@@ -226,7 +226,7 @@ void FLASHExtenderAlgorithm::defineNodes_(const DeconvolvedSpectrum& dspec, HitI
       {
         double mass = pg.getMonoMass() - shift;
         if (mass <= 0 || mass > max_mass + 1) continue;
-        node_spec.emplace_back(mass, std::max(1, FLASHTaggerAlgorithm::getPeakGroupScore(pg)));
+        node_spec.emplace_back(mass, std::max(1, FLASHTaggerAlgorithm::getNodeScore(pg)));
         tol_spec.emplace_back(mass, tol_ * pg.getMonoMass());
       }
 
@@ -237,7 +237,7 @@ void FLASHExtenderAlgorithm::defineNodes_(const DeconvolvedSpectrum& dspec, HitI
           double mass = pg.getMonoMass() - shift;
           if (mass <= 0 || mass >= proteoform_mass - i2f_mass) continue;
           double prefix_mass = proteoform_mass - i2f_mass - mass;
-          node_spec.emplace_back(prefix_mass, std::max(1, FLASHTaggerAlgorithm::getPeakGroupScore(pg)));
+          node_spec.emplace_back(prefix_mass, std::max(1, FLASHTaggerAlgorithm::getNodeScore(pg)));
           tol_spec.emplace_back(prefix_mass, tol_ * pg.getMonoMass());
         }
       }
@@ -342,7 +342,7 @@ void FLASHExtenderAlgorithm::run_(const ProteinHit& hit,
     std::vector<int> positions;
     std::vector<double> masses;
 
-    FLASHTaggerAlgorithm::getMatchedPositionsAndFlankingMassDiffs(positions, masses, -1, hit.getSequence(), tag);
+    FLASHTaggerAlgorithm::fillMatchedPositionsAndFlankingMassDiffs(positions, masses, -1, hit.getSequence(), tag);
     auto tag_masses = tag.getMzs();
     std::sort(tag_masses.begin(), tag_masses.end());
 
@@ -507,7 +507,6 @@ void FLASHExtenderAlgorithm::run_(const ProteinHit& hit,
 void FLASHExtenderAlgorithm::run(std::vector<ProteinHit>& hits,
                                  const std::vector<FLASHHelperClasses::Tag>& tags,
                                  const DeconvolvedSpectrum& dspec,
-                                 const MSSpectrum& spec,
                                  double ppm,
                                  bool multiple_hits_per_spec)
 {
@@ -537,11 +536,11 @@ void FLASHExtenderAlgorithm::run(std::vector<ProteinHit>& hits,
   std::vector<int> scores;
 
   proteoform_hits_.reserve(hits.size());
-  if (spec.metaValueExists("PrecursorMass")) { given_precursor_mass_ = spec.getMetaValue("PrecursorMass"); }
+  if (dspec.getPrecursorPeakGroup().getMonoMass() > 0) { given_precursor_mass_ = dspec.getPrecursorPeakGroup().getMonoMass(); }
 
   startProgress(0, (int)hits.size(), "running FLASHExtender ...");
 
-#pragma omp parallel for default(none) shared(hits, dspec, spec, multiple_hits_per_spec, i2f_mass, std::cout)
+#pragma omp parallel for default(none) shared(hits, dspec, multiple_hits_per_spec, i2f_mass, std::cout)
   for (int i = 0; i < ((int)hits.size()); i++)
   {
     nextProgress();
@@ -909,7 +908,7 @@ void FLASHExtenderAlgorithm::run(std::vector<ProteinHit>& hits,
             if (hi.protein_end_position_ >= 0) seq = seq.substr(0, hi.protein_end_position_);
             if (hi.protein_start_position_ >= 0) seq = seq.substr(hi.protein_start_position_);
 
-            FLASHTaggerAlgorithm::getMatchedPositionsAndFlankingMassDiffs(positions, masses, max_mod_mass_ * max_mod_cntr_ + 1, seq, tag);
+            FLASHTaggerAlgorithm::fillMatchedPositionsAndFlankingMassDiffs(positions, masses, max_mod_mass_ * max_mod_cntr_ + 1, seq, tag);
             tag_matched = ! positions.empty();
             break;
           }
@@ -946,8 +945,8 @@ void FLASHExtenderAlgorithm::run(std::vector<ProteinHit>& hits,
     hit.setMetaValue("EndPosition", hi.protein_end_position_);
     hit.setMetaValue("GivenMass", given_precursor_mass_);
     hit.setMetaValue("Mass", hi.calculated_precursor_mass_);
-    hit.setMetaValue("RT", spec.getRT());
-    hit.setMetaValue("NumMass", spec.size());
+    hit.setMetaValue("RT", dspec.getOriginalSpectrum().getRT());
+    hit.setMetaValue("NumMass", dspec.size());
     hit.setMetaValue("PrecursorScore", dspec.getPrecursorPeakGroup().getQscore2D());//dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursor().getCharge())
     hit.setMetaValue("PrecursorSNR", dspec.getPrecursorPeakGroup().getSNR()); // it should be charge SNR in theory. But mass SNR was written for ease of coding.
     hit.setMetaValue("ProteoformMassByFragmentMass", precursor_by_fragment? 1 : 0);
@@ -1394,11 +1393,11 @@ void FLASHExtenderAlgorithm::extendBetweenTags_(std::map<Size, std::set<std::pai
           if (std::abs(t_delta_mass - next_cumulative_mod_mass + truncation_mass) > t_margin) continue;
         }
 
-        next_score -= 1 + 2 * (multi_ion_score + FLASHTaggerAlgorithm::max_peak_group_score); // at least two best scoring peaks should exist
+        next_score -= 1 + 2 * (multi_ion_score + FLASHTaggerAlgorithm::max_node_score); // at least two best scoring peaks should exist
         auto iter = mod_map_.lower_bound(delta_delta - t_margin);
         if (std::abs(delta_delta - iter->first) > t_margin)
         {
-          next_score -= multi_ion_score + FLASHTaggerAlgorithm::max_peak_group_score;
+          next_score -= multi_ion_score + FLASHTaggerAlgorithm::max_node_score;
         } // if it was not found in unimod, subtract more
       }
 
