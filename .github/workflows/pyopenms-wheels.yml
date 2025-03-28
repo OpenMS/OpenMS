@@ -105,7 +105,7 @@ jobs:
     - name: Install packages from yum
       if: startsWith(matrix.os, 'ubuntu')
       run: |
-          yum install -y jq ninja-build ccache python pip
+          yum install -y jq ninja-build ccache python pip docker
 
     - id: set-vars
       name: Set extra variables
