@@ -50,12 +50,8 @@ jobs:
           # Make sure the compilers are available in that version on the GH runners
           # We are not installing anything.
           - os: ubuntu-latest
-            compiler: g++
-            container: ghcr.io/openms/contrib_manylinux_2_34:latest
 
     runs-on: ${{ matrix.os }}
-    container: 
-      image: ${{ matrix.container || '' }} 
     steps:
     - uses: actions/checkout@v4
       with:
@@ -105,7 +101,7 @@ jobs:
     - name: Install packages from yum
       if: startsWith(matrix.os, 'ubuntu')
       run: |
-          yum install -y jq ninja-build ccache python pip docker
+          sudo apt install -y python pip docker
 
     - id: set-vars
       name: Set extra variables
