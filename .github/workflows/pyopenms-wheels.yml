@@ -148,6 +148,7 @@ jobs:
           CCACHE_DIR: ${{ github.workspace }}/.ccache
           PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
           SETUPTOOLS_SCM_PRETEND_VERSION: "3.4.0" #FIXME figure out how to get this without having to run cmake configure first
+          CIBW_BUILD_VERBOSITY: 3 #FIXME remove
 
 
     - uses: actions/upload-artifact@v4
