@@ -56,7 +56,7 @@ fallback_version = "3.x.x-dev"
 
 
 [tool.cibuildwheel]
-skip = "pp* cp38-* cp37-*"  # Skip PyPy and old Python versions
+skip = "pp* win32"
 before-build = """
 pip install -r OpenMS/src/pyOpenMS/requirements_bld.txt
 ctest --output-on-failure -VV -S OpenMS/tools/ci/cibuild.cmake -C Release
