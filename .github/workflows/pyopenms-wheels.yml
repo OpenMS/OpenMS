@@ -102,10 +102,10 @@ jobs:
           brew install ccache autoconf automake libtool ninja && brew link --overwrite ccache
           brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@6 libomp
 
-    - name: Install jq and ninja-build from yum
+    - name: Install packages from yum
       if: startsWith(matrix.os, 'ubuntu')
       run: |
-          yum install -y jq ninja-build ccache python
+          yum install -y jq ninja-build ccache python pip
 
     - id: set-vars
       name: Set extra variables
