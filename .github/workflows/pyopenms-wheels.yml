@@ -105,6 +105,7 @@ jobs:
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
           echo "openms_contrib_libs=/contrib-build/" >> $GITHUB_OUTPUT
           echo "no_dependencies=ON" >> $GITHUB_OUTPUT
+          cp OpenMS/cibuildwheel.toml ./
         else
           echo "openms_contrib_libs=${{ github.workspace }}/OpenMS/contrib" >> $GITHUB_OUTPUT
           echo "no_dependencies=OFF" >> $GITHUB_OUTPUT
