@@ -184,7 +184,7 @@ namespace OpenMS
       {
         double rt = trace.peaks[i].first;
         double e = exp(c_fac * pow(rt - x0, 2));
-        double eConstant = constant * e
+        double eConstant = constant * e;
         J(count, 0) = eConstant;
         J(count, 1) = eConstant* height * (rt - x0) / sig_sq;
         J(count, 2) = 0.125* eConstant * height * pow(rt - x0, 2) / sig_3;
