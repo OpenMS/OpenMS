@@ -105,10 +105,8 @@ jobs:
     - name: Install jq and ninja-build from yum
       if: startsWith(matrix.os, 'ubuntu')
       run: |
-          yum install -y jq
-          yum install -y ninja-build # Install Ninja for build files
-          yum install -y ccache
-    
+          yum install -y jq ninja-build ccache python
+
     - id: set-vars
       name: Set extra variables
       shell: bash
@@ -144,7 +142,7 @@ jobs:
         python -m pip install --upgrade cibuildwheel
 
     - name: Build wheels
-      run: python -m cibuildwheel --output-dir pyopenms_whls/
+      run: python -m cibuildwheel OpenMS --output-dir pyopenms_whls/
       env: 
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CMAKE_GENERATOR: ${{ steps.set-vars.outputs.cmake_generator }}
