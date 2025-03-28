@@ -1,5 +1,5 @@
 [tool.cibuildwheel]
-skip = "pp* cp38-*"  # Skip PyPy and old Python versions
+skip = "pp* cp38-* cp37-*"  # Skip PyPy and old Python versions
 before-build = """
 pip install -r OpenMS/src/pyOpenMS/requirements_bld.txt
 ctest --output-on-failure -VV -S OpenMS/tools/ci/cibuild.cmake --config Release

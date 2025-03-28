@@ -2,7 +2,6 @@
 requires = [
     "setuptools",
     "wheel",
-    "scikit-build",
     "numpy>=1.25.0",
     "pandas",
     "matplotlib>=3.5",
@@ -22,7 +21,7 @@ maintainers = [
 ]
 license = { text = "BSD-3-Clause" }
 version = "${OPEN_MS_VERSION}"  # Dynamically set during build
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 dependencies = [
     "numpy>=1.25.0",
     "pandas",
