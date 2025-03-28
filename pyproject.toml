@@ -1,3 +1,52 @@
 [build-system]
-requires = ["setuptools", "wheel", "scikit-build"]
+requires = [
+    "setuptools",
+    "wheel",
+    "scikit-build",
+    "numpy>=1.25.0",
+    "pandas",
+    "matplotlib>=3.5",
+    "Cython"
+    ]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyopenms"
+description = "Python wrapper for C++ LC-MS library OpenMS"
+readme = "README.rst"
+authors = [
+    { name = "OpenMS team", email = "webmaster@openms.de" }
+]
+maintainers = [
+    { name = "The OpenMS team", email = "open-ms-general@lists.sourceforge.net" }
+]
+license = { text = "BSD-3-Clause" }
+version = "${OPEN_MS_VERSION}"  # Dynamically set during build
+requires-python = ">=3.7"
+dependencies = [
+    "numpy>=1.25.0",
+    "pandas",
+    "matplotlib>=3.5"
+]
+keywords = ["bioinformatics", "mass spectrometry", "chemistry"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Chemistry"
+]
+
+[project.urls]
+Homepage = "https://openms.de"
+Documentation = "https://pyopenms.readthedocs.io"
+Source = "https://github.com/OpenMS/OpenMS/tree/develop/src/pyOpenMS"
+Tracker = "https://github.com/OpenMS/OpenMS/issues"
+"Documentation Source" = "https://github.com/OpenMS/pyopenms-docs"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+pyopenms = ["py.typed", "*.pyi"]
+
