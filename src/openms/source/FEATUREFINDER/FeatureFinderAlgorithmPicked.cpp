@@ -1007,7 +1007,7 @@ namespace OpenMS
     {
       //store map of abort reasons for failed seeds
       FeatureMap abort_map;
-      abort_map.reserve(abort_reasons_.size());
+      abort_map.reserve( abort_reasons_.size());
       Size counter = 0;
       for (std::map<Seed, String>::iterator it2 = abort_reasons_.begin(); it2 != abort_reasons_.end(); ++it2, ++counter)
       {

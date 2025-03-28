@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FEATUREFINDER/GaussTraceFitter.h>
-
+#include <iostream>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <Eigen/Core>
 
@@ -171,19 +171,23 @@ namespace OpenMS
     double sig_sq = pow(sig, 2);
     double sig_3 = pow(sig, 3);
     double c_fac = -0.5 / sig_sq;
+    // std::cout << sig_3 << std::endl;
+
 
     Size count = 0;
     for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
     {
       const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace = (*m_data->traces_ptr)[t];
       double weight = m_data->weighted ? trace.theoretical_int : 1.0;
+      double constant = trace.theoretical_int * weight;
       for (Size i = 0; i < trace.peaks.size(); ++i)
       {
         double rt = trace.peaks[i].first;
         double e = exp(c_fac * pow(rt - x0, 2));
-        J(count, 0) = trace.theoretical_int * e * weight;
-        J(count, 1) = trace.theoretical_int * height * e * (rt - x0) / sig_sq * weight;
-        J(count, 2) = 0.125* trace.theoretical_int* height* e* pow(rt - x0, 2) / sig_3 * weight;
+        double eConstant = constant * e
+        J(count, 0) = eConstant;
+        J(count, 1) = eConstant* height * (rt - x0) / sig_sq;
+        J(count, 2) = 0.125* eConstant * height * pow(rt - x0, 2) / sig_3;
         ++count;
       }
     }
