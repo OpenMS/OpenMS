@@ -120,19 +120,7 @@ public:
 
         @throws Exception::InvalidParameter if compression is unknown.
       */
-      void setCompression(const std::string& compression)
-      {
-        const std::string* match = std::find(NamesOfNumpressCompression,
-                                             NamesOfNumpressCompression + SIZE_OF_NUMPRESSCOMPRESSION, compression);
-
-        if (match == NamesOfNumpressCompression + SIZE_OF_NUMPRESSCOMPRESSION) // == end()
-        {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "Value '" + compression + "' is not a valid Numpress compression scheme.");
-        }
-
-        np_compression = (NumpressCompression)std::distance(NamesOfNumpressCompression, match);
-      }
+      void setCompression(const std::string& compression);
 
     };
 
