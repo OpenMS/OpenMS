@@ -810,14 +810,17 @@ END_SECTION
 
 START_SECTION(([EXTRA] test for duplicate parameters))
 {
-  // Test that duplicate parameters are detected and the last value is used
+  // Test that duplicate parameters are detected and the first value is used
   const char* first_val = "first_value";
   const char* second_val = "second_value";
   const char* duplicate_cl[5] = {a1, a10, first_val, a10, second_val}; // command line: "TOPPBaseTest -stringoption first_value -stringoption second_value"
   
-  TOPPBaseCmdParseTest tmp;
+  TOPPBaseCmdParseSubsectionsTest tmp;
   TOPPBase::ExitCodes ec = tmp.run(5, duplicate_cl);
-  TEST_EQUAL(ec, TOPPBase::ILLEGAL_PARAMETERS)
+  TEST_EQUAL(ec, TOPPBase::EXECUTION_OK)
+
+  // Verify that the first value is used
+  TEST_EQUAL(tmp.getStringOption("stringoption"), first_val)
 }
 END_SECTION
 

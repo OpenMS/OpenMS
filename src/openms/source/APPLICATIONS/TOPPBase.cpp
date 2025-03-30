@@ -2593,7 +2593,7 @@ namespace OpenMS
           if (seen_params.find(param_name) != seen_params.end())
           {
             // Log the warning about duplicate parameter with the exact format requested
-            writeLogError_("Duplicate '" + arg + "' argument given. Using the last value: " + seen_params[param_name]);
+            writeLogWarn_("Duplicate '" + arg + "' argument given. Using the last value: " + seen_params[param_name]);
           }
           
           // Record the parameter we've seen
