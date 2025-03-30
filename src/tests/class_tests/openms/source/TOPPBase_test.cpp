@@ -798,6 +798,29 @@ START_SECTION(([EXTRA] misc options on command line))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] test for values after flags))
+{
+  // Test that providing a value after a flag is detected and reported
+  const char* value_after_flag_cl[3] = {a1, a11, a12}; // command line: "TOPPBaseTest -flag commandline"
+  TOPPBaseCmdParseTest tmp;
+  TOPPBase::ExitCodes ec = tmp.run(3, value_after_flag_cl);
+  TEST_EQUAL(ec, TOPPBase::ILLEGAL_PARAMETERS)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] test for duplicate parameters))
+{
+  // Test that duplicate parameters are detected and the last value is used
+  const char* first_val = "first_value";
+  const char* second_val = "second_value";
+  const char* duplicate_cl[5] = {a1, a10, first_val, a10, second_val}; // command line: "TOPPBaseTest -stringoption first_value -stringoption second_value"
+  
+  TOPPBaseCmdParseTest tmp;
+  TOPPBase::ExitCodes ec = tmp.run(5, duplicate_cl);
+  TEST_EQUAL(ec, TOPPBase::ILLEGAL_PARAMETERS)
+}
+END_SECTION
+
 const char* a22 = "-algorithm:param1";
 const char* a23 = "-algorithm:param2";
 const char* a24 = "-other:param3";
