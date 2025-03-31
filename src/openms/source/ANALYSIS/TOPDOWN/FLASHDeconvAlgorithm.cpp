@@ -326,11 +326,11 @@ void FLASHDeconvAlgorithm::runSpectralDeconvolution_(MSExperiment& map, std::vec
                                      + sd_noise_decoy_.getDeconvolvedSpectrum().size());
 
         for (const auto& pg : sd_signal_decoy_.getDeconvolvedSpectrum())
-          if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
+          //if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
             deconvolved_spectrum.push_back(pg);
 
         for (const auto& pg : sd_noise_decoy_.getDeconvolvedSpectrum())
-          if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
+          //if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
             deconvolved_spectrum.push_back(pg);
 
         deconvolved_spectrum.sort();

@@ -53,7 +53,7 @@ namespace OpenMS
 
     fvector[index++] = pg->getIsotopeCosine() - pg->getChargeIsotopeCosine(pg->getRepAbsCharge()); // (log2(d + a / (d + a)));
 
-    fvector[index++] = log2(1 + std::min(300.0f, pg->getChargeSNR(pg->getRepAbsCharge()))); //(log2(d + a / (d + a)));
+    fvector[index++] = log2(1 + pg->getChargeSNR(pg->getRepAbsCharge())); //(log2(d + a / (d + a)));
 
     fvector[index++] = log2(1 + pg->getChargeSNR(pg->getRepAbsCharge())) - log2(1 + pg->getSNR()); //(log2(a + d));
 

@@ -70,7 +70,6 @@ void FLASHTnTAlgorithm::updateMembers_()
   extender_param_ = param_.copy("ex:", true);
   extender_param_.setValue("ion_type", param_.getValue("ion_type"));
   prsm_fdr_ = param_.getValue("prsm_fdr");
-  pro_fdr_ = param_.getValue("pro_fdr");
   keep_decoy_ = param_.getValue("keep_decoy").toString() == "true";
   keep_underdetermined_ = param_.getValue("discard_underdetermined").toString() == "false";
   multiple_hits_per_spec_ = param_.getValue("only_single_hit").toString() == "false";

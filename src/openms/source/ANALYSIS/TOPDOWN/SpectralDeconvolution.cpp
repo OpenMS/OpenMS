@@ -1163,20 +1163,26 @@ void SpectralDeconvolution::scoreAndFilterPeakGroups_()
   {
     for (Size k = 0; k < deconvolved_spectrum_.size(); k++)
     {
-      const auto& pg = deconvolved_spectrum_[k];
-      bool pass = true;
+      double max_target_qscore = 0;
       for (const auto & pg2 : *target_dspec_for_decoy_calculation_)
       {
-        if (std::abs(pg.getMonoMass() - pg2.getMonoMass()) < (3 + allowed_iso_error_) * iso_da_distance_ + .1) // if they are close enough
+        max_target_qscore = std::max(max_target_qscore, pg2.getQscore());
+      }
+      auto& pg = deconvolved_spectrum_[k];
+      bool pass = true;
+      bool is_isotope_error = false;
+      for (const auto & pg2 : *target_dspec_for_decoy_calculation_)
+      {
+        if (std::abs(pg.getMonoMass() - pg2.getMonoMass()) < (1 + allowed_iso_error_) * iso_da_distance_ + .1) // if they are close enough
         {
-          //if (pg2.getIsotopeCosine() < pg.getIsotopeCosine())//  || pg2.getIsotopeCosine() - pg.getIsotopeCosine() > .02 / (1 + allowed_iso_error_)
-          if (std::abs(pg2.getIsotopeCosine() - pg.getIsotopeCosine()) > .02) // magic number at the end...
+          is_isotope_error = true;
+          if (pg2.getIsotopeCosine() < pg.getIsotopeCosine())
             pass = false;
           break;
         }
       }
       if (!pass) continue;
-
+      if (is_isotope_error) pg.setQscore(std::min(max_target_qscore, pg.getQscore() + .005));
       indices.insert(k);
     }
   }
@@ -1311,7 +1317,6 @@ void SpectralDeconvolution::removeChargeErrorPeakGroups_(DeconvolvedSpectrum& ds
   std::vector<PeakGroup> filtered_pg_vec;
   filtered_pg_vec.reserve(dspec.size());
   std::vector<float> overlap_intensity(dspec.size(), .0f);
-  // dspec.sort();
 
   for (Size i = 0; i < dspec.size(); i++)
   {
