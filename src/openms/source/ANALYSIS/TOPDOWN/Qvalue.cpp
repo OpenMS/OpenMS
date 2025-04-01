@@ -101,7 +101,7 @@ double Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvol
     {
       double v = score_dist_target.getValue(r, 0);
       v -= score_dist_signal_decoy.getValue(r, 0);
-      v = std::max(v, .0);
+      //v = std::max(v, .0);
       score_dist_target.setValue(r, 0, v);
       left.setValue(r, 0, score_dist_noise_decoy.getValue(r, 0));
     }
