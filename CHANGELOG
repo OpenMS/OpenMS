@@ -35,6 +35,7 @@ Misc:
 
 Library:
 - IDScoreSwitcherAlgorithm: Added switchToScoreType and switchBackScoreType methods for score switching and reversion. (#7769)
+- Made FASTA file reader more robust in presence of whitespaces
 
 - removed tools:
   - XTandemAdapter

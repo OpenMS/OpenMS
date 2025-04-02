@@ -12,6 +12,7 @@
 ///////////////////////////
 
 #include <string>
+#include <fstream>  // Required for temporary file creation
 
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -48,7 +49,6 @@ START_SECTION([FASTAFile::FASTAEntry] FASTAEntry())
   delete ptr_e;
 END_SECTION
 
-
 START_SECTION([FASTAFile::FASTAEntry] FASTAEntry(String id, String desc, String seq))
   FASTAFile::FASTAEntry entry("ID", "DESC", "DAVLDELNER");
   TEST_EQUAL(entry.identifier, "ID")
@@ -64,11 +64,7 @@ START_SECTION([FASTAFile::FASTAEntry] bool operator==(const FASTAEntry &rhs) con
   TEST_EQUAL(entry1 == entry3, false)
 END_SECTION
 
-
-START_SECTION((void
-                  load(
-                  const String &filename, std::vector<FASTAEntry>
-                  &data)))
+START_SECTION((void load(const String &filename, std::vector<FASTAEntry> &data)))
   vector<FASTAFile::FASTAEntry> data;
   FASTAFile file;
 
@@ -80,60 +76,46 @@ START_SECTION((void
   TEST_EQUAL(sequences_iterator->identifier, String("P68509|1433F_BOVIN"))
   TEST_EQUAL(sequences_iterator->description, String("This is the description of the first protein"))
   TEST_EQUAL(sequences_iterator->sequence, String("GDREQLLQRARLAEQAERYDDMASAMKAVTEL") +
-                                           String(
-                                               "NEPLSNEDRNLLSVAYKNVVGARRSSWRVISSIEQKTMADGNEKKLEKVKAYREKIEKELETVC") +
-                                           String(
-                                               "NDVLALLDKFLIKNCNDFQYESKVFYLKMKGDYYRYLAEVASGEKKNSVVEASEAAYKEAFEIS") +
-                                           String(
-                                               "KEHMQPTHPIRLGLALNFSVFYYEIQNAPEQACLLAKQAFDDAIAELDTLNEDSYKDSTLIMQL") +
+                                           String("NEPLSNEDRNLLSVAYKNVVGARRSSWRVISSIEQKTMADGNEKKLEKVKAYREKIEKELETVC") +
+                                           String("NDVLALLDKFLIKNCNDFQYESKVFYLKMKGDYYRYLAEVASGEKKNSVVEASEAAYKEAFEIS") +
+                                           String("KEHMQPTHPIRLGLALNFSVFYYEIQNAPEQACLLAKQAFDDAIAELDTLNEDSYKDSTLIMQL") +
                                            String("LRDNLTLWTSDQQDEEAGEGN"))
   sequences_iterator++;
   TEST_EQUAL(sequences_iterator->identifier, "Q9CQV8|1433B_MOUSE")
   TEST_EQUAL(sequences_iterator->sequence, String("TMDKSELVQKAKLAEQAERYDDMAAAMKAVTE") +
-                                           String(
-                                               "QGHELSNEERNLLSVAYKNVVGARRSSWRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICND") +
-                                           String(
-                                               "VLELLDKYLILNATQAESKVFYLKMKGDYFRYLSEVASGENKQTTVSNSQQAYQEAFEISKKEMQ") +
-                                           String(
-                                               "PTHPIRLGLALNFSVFYYEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLT") +
+                                           String("QGHELSNEERNLLSVAYKNVVGARRSSWRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICND") +
+                                           String("VLELLDKYLILNATQAESKVFYLKMKGDYFRYLSEVASGENKQTTVSNSQQAYQEAFEISKKEMQ") +
+                                           String("PTHPIRLGLALNFSVFYYEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLT") +
                                            String("LWTSENQGDEGDAGEGEN"))
   sequences_iterator++;
   TEST_EQUAL(sequences_iterator->identifier, "sp|P31946|1433B_HUMAN")
   TEST_EQUAL(sequences_iterator->description,
              String("14-3-3 protein beta/alpha OS=Homo sapiens GN=YWHAB PE=1 SV=3"))
-  TEST_EQUAL(sequences_iterator->sequence, String("MTMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSS")
-                                           +
-                                           String("WRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLIPNATQPESKVFY")
-                                           +
-                                           String("LKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFY")
-                                           +
-                                           String("YEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGD")
-                                           + String("AGEGEN"))
+  TEST_EQUAL(sequences_iterator->sequence, String("MTMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSS") +
+                                           String("WRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLIPNATQPESKVFY") +
+                                           String("LKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFY") +
+                                           String("YEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGD") + 
+                                           String("AGEGEN"))
 
   sequences_iterator++;
   TEST_EQUAL(sequences_iterator->identifier, "sp|P00000|0000A_UNKNOWN")
   TEST_EQUAL(sequences_iterator->description, String("Artificially modified version of sp|P31946|1433B_HUMAN"))
   TEST_EQUAL(sequences_iterator->sequence,
-             String("(ICPL:13C(6))MTMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSS")
-             + String("WRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLIPNATQPESKVFY")
-             + String("LKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFY")
-             + String("YEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGD")
+             String("(ICPL:13C(6))MTMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSS") +
+             String("WRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLIPNATQPESKVFY") +
+             String("LKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFY") +
+             String("YEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGD") +
+             String("AGEGEN"))
 
-             + String("AGEGEN"))
-
-
-
-
-  // test if the modifed sequence is convertable
+  // Test modified sequence conversion
   AASequence aa = AASequence::fromString(sequences_iterator->sequence);
-  TEST_EQUAL(aa.toUnmodifiedString(), String("MTMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSS")
-                                      + String("WRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLIPNATQPESKVFY")
-                                      + String("LKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFY")
-                                      + String("YEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGD")
-                                      + String("AGEGEN"))
-
+  TEST_EQUAL(aa.toUnmodifiedString(), String("MTMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSS") +
+                                      String("WRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLIPNATQPESKVFY") +
+                                      String("LKMKGDYFRYLSEVASGDNKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFY") +
+                                      String("YEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGD") +
+                                      String("AGEGEN"))
   TEST_EQUAL(aa.isModified(), true)
-  String expectedModification = ModificationsDB::getInstance()->getModification("ICPL:13C(6)", "",
+  String expectedModification = ModificationsDB::getInstance()->getModification("ICPL:13C(6)", "", 
                                                                                 ResidueModification::N_TERM)->getId();
   TEST_EQUAL(aa.getNTerminalModificationName(), expectedModification)
 
@@ -141,19 +123,15 @@ START_SECTION((void
   TEST_EQUAL(sequences_iterator->identifier, "test")
   TEST_EQUAL(sequences_iterator->description, String(" ##0"))
   TEST_EQUAL(sequences_iterator->sequence,
-             String("GSMTVDMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSFKEKVSELVS")
-             + String("PAVYTFGLFVQNASESLTSDDPSDVPTQRTFKSDFQSVGSMTVDMQEIGSTEMPYEVPTQ")
-             + String("PNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSFKEKVSELVSPAVYTFGL")
-             + String("FVQNASESLTSDDPSDVPTQRTFKSDFQSVAXXSTFDFYQRRLVTLAESPRAPSPGSMTV")
-             + String("DMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSF")
-             + String("KEKVSELVSPAVYTFGLFVQNASESLTSDDPSDVPTQRTFKSDFQSV"))
+             String("GSMTVDMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSFKEKVSELVS") +
+             String("PAVYTFGLFVQNASESLTSDDPSDVPTQRTFKSDFQSVGSMTVDMQEIGSTEMPYEVPTQ") +
+             String("PNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSFKEKVSELVSPAVYTFGL") +
+             String("FVQNASESLTSDDPSDVPTQRTFKSDFQSVAXXSTFDFYQRRLVTLAESPRAPSPGSMTV") +
+             String("DMQEIGSTEMPYEVPTQPNATSASAGRGWFDGPSFKVPSVPTRPSGIFRRPSRIKPEFSF") +
+             String("KEKVSELVSPAVYTFGLFVQNASESLTSDDPSDVPTQRTFKSDFQSV"))
 END_SECTION
 
-
-START_SECTION((void
-                  store(
-                  const String &filename,
-                  const std::vector<FASTAEntry> &data) const))
+START_SECTION((void store(const String &filename, const std::vector<FASTAEntry> &data) const))
   vector<FASTAFile::FASTAEntry> data, data2;
   String tmp_filename;
   NEW_TMP_FILE(tmp_filename);
@@ -163,12 +141,69 @@ START_SECTION((void
   TEST_EXCEPTION(Exception::UnableToCreateFile, file.store("/bla/bluff/blblb/sdfhsdjf/test.txt", data))
 
   file.store(tmp_filename, data);
-
   file.load(tmp_filename, data2);
-
-  file.load(tmp_filename, data2);
-
   TEST_TRUE(data == data2);
+END_SECTION
+
+START_SECTION(test_leading_whitespace_and_peff)
+{
+  String tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+
+  // Create test file with leading whitespace and PEFF headers
+  {
+    ofstream f(tmp_filename.c_str());
+    f << "\n";                   // Empty line
+    f << "   \n";                // Whitespace line
+    f << "# PEFF header 1\n";    // PEFF comment
+    f << "# PEFF header 2\n";    // PEFF comment
+    f << "   \t\n";              // Whitespace line
+    f << ">TEST_HEADER Test description\n";
+    f << "SEQ\n";
+  }
+
+  vector<FASTAFile::FASTAEntry> data;
+  FASTAFile file;
+  file.load(tmp_filename, data);
+
+  TEST_EQUAL(data.size(), 1)
+  if (!data.empty()) // CORRECTED: No semicolon here
+  {
+    TEST_EQUAL(data[0].identifier, "TEST_HEADER")
+    TEST_EQUAL(data[0].description, "Test description")
+    TEST_EQUAL(data[0].sequence, "SEQ")
+  }
+}
+END_SECTION
+
+START_SECTION(test_empty_lines_between_entries)
+{
+  String tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+
+  // Create test file with empty lines between entries
+  {
+    ofstream f(tmp_filename.c_str());
+    f << ">Header1\n";
+    f << "SEQ1\n";
+    f << "\n\n";  // Multiple empty lines
+    f << ">Header2\n";
+    f << "SEQ2\n";
+  }
+
+  vector<FASTAFile::FASTAEntry> data;
+  FASTAFile file;
+  file.load(tmp_filename, data);
+
+  TEST_EQUAL(data.size(), 2)
+  if (data.size() == 2) // CORRECTED: No semicolon here
+  {
+    TEST_EQUAL(data[0].identifier, "Header1")
+    TEST_EQUAL(data[0].sequence, "SEQ1")
+    TEST_EQUAL(data[1].identifier, "Header2")
+    TEST_EQUAL(data[1].sequence, "SEQ2")
+  }
+}
 END_SECTION
 
 
