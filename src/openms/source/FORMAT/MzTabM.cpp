@@ -242,7 +242,7 @@ namespace OpenMS
       OPENMS_LOG_WARN << "If the quantification of your computational analysis is not 'LC-MS label-free quantitation analysis'.\n"
                       << "Please contact a OpenMS Developer to add the appropriate tool and description to MzTab-M." << std::endl;
       
-      cvterm = cv.getTermByName("LC-MS label-free quantitation analysis");
+      ControlledVocabulary::CVTerm cvterm = cv.getTermByName("LC-MS label-free quantitation analysis");
       quantification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
     }
     m_meta_data.quantification_method = quantification_method;
@@ -360,7 +360,7 @@ namespace OpenMS
     meta_db.prefix.setNull(true);
     meta_db.version = MzTabString("Unknown");
     meta_db.database.fromCellString("[,, no database , null]");
-    meta_db.uri = MzTabString("Unknown");
+    meta_db.uri = MzTabString("https://hmdb.ca/"); // default if not set
 
     for (const auto& db : id_data.getDBSearchParams())
     {
@@ -502,8 +502,6 @@ namespace OpenMS
       }
       else
       { // default for unknown
-        cvterm_level.id = "MS:1000511";
-        cvterm_level.name = "MS level";
         id_mslevel = 1;
       }
       ControlledVocabulary::CVTerm cvterm_level = cv.getTermByName("ms level");
