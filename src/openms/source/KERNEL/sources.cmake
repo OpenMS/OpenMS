@@ -17,6 +17,7 @@ Feature.cpp
 FeatureHandle.cpp
 FeatureMap.cpp
 MassTrace.cpp
+IMFrameView.cpp
 MobilityPeak1D.cpp
 MobilityPeak2D.cpp
 Mobilogram.cpp

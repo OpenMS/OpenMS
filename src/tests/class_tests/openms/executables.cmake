@@ -141,6 +141,7 @@ set(kernel_executables_list
   FeatureMap_test
   Feature_test
   MassTrace_test
+  IMFrameView_test
   Mobilogram_test
   MobilityPeak1D_test
   MobilityPeak2D_test
