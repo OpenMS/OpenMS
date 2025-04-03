@@ -18,12 +18,6 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(IMFrameView, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-// Helper function to create a test spectrum with drift time array
 MSSpectrum createTestSpectrum()
 {
   MSSpectrum spectrum;
@@ -170,6 +164,11 @@ MSSpectrum createMultipleSpectraFormatSpectrum()
   return spectrum;
 }
 
+START_TEST(IMFrameView, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
 IMFrameView* imframe_ptr = nullptr;
 IMFrameView* nullPointer = nullptr;
 
@@ -297,27 +296,27 @@ END_SECTION
 START_SECTION((bool isValid() const))
 {
   MSSpectrum valid_spectrum = createTestSpectrum();
-  IMFrameView valid_imframe(&valid_spectrum);
+  IMFrameView valid_imframe(&valid_spectrum); // Constructor succeeds
   TEST_EQUAL(valid_imframe.isValid(), true)
   
   MSSpectrum invalid_spectrum = createInvalidSpectrum();
-  IMFrameView invalid_imframe(&invalid_spectrum);
-  TEST_EQUAL(invalid_imframe.isValid(), false)
+  // For spectra with IMFormat::NONE, the constructor should throw an exception
+  TEST_EXCEPTION(Exception::InvalidValue, IMFrameView invalid_imframe(&invalid_spectrum))
   
-  MSSpectrum mismatched_spectrum = createMismatchedSpectrum();
-  IMFrameView mismatched_imframe(&mismatched_spectrum);
-  TEST_EQUAL(mismatched_imframe.isValid(), false)
-  
-  MSSpectrum non_centroided_spectrum = createNonCentroidedSpectrum();
-  IMFrameView non_centroided_imframe(&non_centroided_spectrum);
-  TEST_EQUAL(non_centroided_imframe.isValid(), false)
-  
-  // Test with a spectrum that has MULTIPLE_SPECTRA format
+  // For spectra with IMFormat::MULTIPLE_SPECTRA, the constructor should throw an exception
   MSSpectrum multiple_spectra_spectrum = createMultipleSpectraFormatSpectrum();
+  TEST_EXCEPTION(Exception::InvalidValue, IMFrameView multiple_spectra_imframe(&multiple_spectra_spectrum))
   
-  // This should be invalid for IMFrameView since it requires CONCATENATED format
-  IMFrameView multiple_spectra_imframe(&multiple_spectra_spectrum);
-  TEST_EQUAL(multiple_spectra_imframe.isValid(), false)
+  // For non-centroided spectra, the constructor should throw an exception
+  MSSpectrum non_centroided_spectrum = createNonCentroidedSpectrum();
+  TEST_EXCEPTION(Exception::InvalidValue, IMFrameView non_centroided_imframe(&non_centroided_spectrum))
+  
+  // For spectra with mismatched drift time array size, the constructor should throw an exception
+  MSSpectrum mismatched_spectrum = createMismatchedSpectrum();
+  TEST_EXCEPTION(Exception::InvalidValue, IMFrameView mismatched_imframe(&mismatched_spectrum))
+  
+  // Note: isValid() always returns true if the constructor succeeds
+  // If the spectrum is invalid, the constructor will throw an exception
 }
 END_SECTION
 

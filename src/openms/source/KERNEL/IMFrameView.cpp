@@ -110,15 +110,8 @@ namespace OpenMS
 
   bool IMFrameView::isValid() const
   {
-    try
-    {
-      validateSpectrum_("isValid");
-      return true;
-    }
-    catch (...)
-    {
-      return false;
-    }
+    // If the constructor succeeded, the spectrum is valid
+    return true;
   }
 
   const MSSpectrum::FloatDataArray* IMFrameView::getDriftTimeDataArrayPtr() const
