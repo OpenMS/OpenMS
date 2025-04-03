@@ -114,8 +114,9 @@ namespace OpenMS
         @param target_decoy_type TODO: documentation
         @return calculated cosine similarity score
      */
-    static float getIsotopeCosineAndIsoOffset(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg, int iso_int_shift = 0,
-                                                          int window_width = -1, int allowed_isotope_error = -1);
+    static float getIsotopeCosineAndIsoOffset(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset,
+                                              const PrecalculatedAveragine& avg, int iso_int_shift,
+                                              int window_width, const std::vector<double>& excluded_masses);
 
     /**
      *  set target dummy type for the SpectralDeconvolution run. All masses from the target SpectralDeconvolution run will have the target_decoy_type_.

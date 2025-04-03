@@ -178,7 +178,7 @@ namespace OpenMS
       }
 
       int offset = 0;
-      float isotope_score = SpectralDeconvolution::getIsotopeCosineAndIsoOffset(mass, per_isotope_intensity, offset, averagine, 0, 0);
+      float isotope_score = SpectralDeconvolution::getIsotopeCosineAndIsoOffset(mass, per_isotope_intensity, offset, averagine, 0, 0, std::vector<double>{});
 
       if (isotope_score < cos_threshold)
       {

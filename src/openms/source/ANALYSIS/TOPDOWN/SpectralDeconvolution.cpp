@@ -1005,7 +1005,6 @@ void SpectralDeconvolution::scoreAndFilterPeakGroups_()
     int num_iteration = 10;
     bool mass_determined = false;
     double prev_cos = 0;
-
     // isotope pattern matching and qscore update part. Isotope pattern matching is done multiple times until finding the maximum isotope cosine
     for (int k = 0; k < num_iteration; k++)
     {
@@ -1015,9 +1014,9 @@ void SpectralDeconvolution::scoreAndFilterPeakGroups_()
       // min cosine is checked in here. mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
       const auto& [z1, z2] = peak_group.getAbsChargeRange();
       offset = peak_group.updateQscore(noisy_peaks, avg_, min_isotope_cosine_[ms_level_ - 1], tol,
-                                       (z1 + z2) < 2 * low_charge_, allowed_iso_error_, false);
+                                       (z1 + z2) < 2 * low_charge_, excluded_masses_for_decoy_runs_, false);
 
-      if (prev_cos > peak_group.getIsotopeCosine() || offset == 0 || k >= num_iteration - 1 || peak_group.getTargetDecoyType() == PeakGroup::signal_decoy) //
+      if (prev_cos > peak_group.getIsotopeCosine() || offset == 0 || k >= num_iteration - 1) //
       {
         if (peak_group.getChargeSNR(peak_group.getRepAbsCharge()) < snr_threshold) // to speed up
           break;
@@ -1025,7 +1024,7 @@ void SpectralDeconvolution::scoreAndFilterPeakGroups_()
                                                                             peak_group.getMonoMass() + offset * iso_da_distance_);
 
         peak_group.updateQscore(noisy_peaks, avg_, min_isotope_cosine_[ms_level_ - 1], tol,
-                                (z1 + z2) < 2 * low_charge_, -1, true);
+                                (z1 + z2) < 2 * low_charge_, std::vector<double>{}, true);
         mass_determined = true;
         break;
       }
@@ -1083,13 +1082,7 @@ void SpectralDeconvolution::scoreAndFilterPeakGroups_()
       filtered_peak_groups.push_back(deconvolved_spectrum_[index]);
     index = selected.find_next(index);
   }
-  if (target_decoy_type_ == PeakGroup::signal_decoy)
-  {
-    for (const auto& pg2 : *target_dspec_for_decoy_calculation_)
-    {
-      filtered_peak_groups.push_back(pg2);
-    }
-  }
+
   deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
   deconvolved_spectrum_.sort();
 
@@ -1115,7 +1108,7 @@ void SpectralDeconvolution::scoreAndFilterPeakGroups_()
       pg.setMonoisotopicMass(peak_group.getMonoMass() * hz);
       auto nps = pg.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, pg.getMonoMass());
       pg.updateQscore(nps, avg_, min_isotope_cosine_[ms_level_ - 1], tol,
-                      (z1 + z2) * hz < 2 * low_charge_, -1, true);
+                      (z1 + z2) * hz < 2 * low_charge_, excluded_masses_for_decoy_runs_, true);
 
       if (pg.getQscore() > 0 && pg.getSNR() > peak_group.getSNR())
       {
@@ -1154,6 +1147,7 @@ void SpectralDeconvolution::scoreAndFilterPeakGroups_()
   removeOverlappingPeakGroups_(deconvolved_spectrum_, tol * 1.2, target_decoy_type_);
   removeExcludedMasses_(deconvolved_spectrum_, excluded_masses_, tol);
 
+  /// test
   filtered_peak_groups.clear();
   filtered_peak_groups.reserve(deconvolved_spectrum_.size());
 
@@ -1213,7 +1207,7 @@ float SpectralDeconvolution::getIsotopeCosineAndIsoOffset(double mono_mass,
                                                           const PrecalculatedAveragine& avg,
                                                           const int iso_int_shift,
                                                           const int window_width,
-                                                          const int allowed_isotope_error)
+                                                          const std::vector<double>& excluded_masses)
 {
   offset = 0;
   if ((int)per_isotope_intensities.size() < min_iso_size + iso_int_shift) { return .0; }
@@ -1241,11 +1235,25 @@ float SpectralDeconvolution::getIsotopeCosineAndIsoOffset(double mono_mass,
 
   for (int tmp_offset = -left; tmp_offset <= right; tmp_offset++)
   {
-    if (allowed_isotope_error < 0 && window_width >= 0 && abs(tmp_offset - iso_int_shift) > window_width)
+    if (window_width >= 0 && abs(tmp_offset - iso_int_shift) > window_width)
       continue;
+    if (!excluded_masses.empty())
+    {
+      bool exclude = false;
+      for (auto em : excluded_masses)
+      {
+        if ( std::abs(mono_mass + (tmp_offset - iso_int_shift)* Constants::ISOTOPE_MASSDIFF_55K_U - em) < mono_mass * 1e-5) // tmp
+        {
+          exclude = true;
+          break;
+        }
+      }
+      if (exclude) continue;
+    }
     float tmp_cos = getCosine(per_isotope_intensities, min_isotope_index, max_isotope_index, iso, tmp_offset, min_iso_size);
     offset_cos.emplace_back(tmp_offset, tmp_cos);
   }
+  if (offset_cos.empty()) return max_cos;
 
   std::sort(offset_cos.begin(), offset_cos.end(),
             [](const std::pair<int, float>& p1, const std::pair<int, float>& p2) { return p1.second > p2.second; });
@@ -1255,26 +1263,53 @@ float SpectralDeconvolution::getIsotopeCosineAndIsoOffset(double mono_mass,
     if (o > right || o < -left) continue;
     if (window_width >= 0 && abs(o - iso_int_shift) > window_width) //
       continue;
+
     offset = o;
     max_cos = c;
     break;
   }
+//  if (!excluded_masses.empty())
+  //    {
+  //      bool exclude = false;
+  //      for (auto em : excluded_masses)
+  //      {
+  //        if ( std::abs(mono_mass + o * Constants::ISOTOPE_MASSDIFF_55K_U - em) < .1)
+  //        {
+  //          exclude = true;
+  //          break;
+  //        }
+  //      }
+  //      if (exclude) continue;
+  //    }
 
-  if (allowed_isotope_error >= 0)
-  {
-    int original_offset = offset;
-    max_cos = -1000;
-    for (const auto& [o, c] : offset_cos)
-    {
-      if (abs(original_offset - o) <= allowed_isotope_error) //
-        continue;
-
-      offset = o;
-      max_cos = c;
-      break;
-    }
-    if (original_offset == offset) return 0;
-  }
+//  if (!excluded_masses.empty())
+//  {
+//    //int original_offset = offset;
+//    max_cos = -1000;
+//    for (const auto& [o, c] : offset_cos)
+//    {
+//      bool exclude = false;
+//      for (auto em : excluded_masses)
+//      {
+//        if ( std::abs(mono_mass + (o - iso_int_shift) * Constants::ISOTOPE_MASSDIFF_55K_U - em) < mono_mass * 1e-5) // tmp
+//        {
+//          exclude = true;
+//          break;
+//        }
+//      }
+//      if (exclude) continue;
+//
+//
+//     // if (std::abs(mono_mass + o * Constants::ISOTOPE_MASSDIFF_55K_U - em) < .1)
+//        // if (abs(original_offset - o) <= allowed_isotope_error) //
+//        //continue;
+//
+//      offset = o;
+//      max_cos = c;
+//      break;
+//    }
+//    if (max_cos <= 0) return 0;
+//  }
 
   max_cos = std::max(max_cos, .0f);
   offset -= iso_int_shift;

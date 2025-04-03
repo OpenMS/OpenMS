@@ -123,7 +123,7 @@ int PeakGroup::updateQscore(const std::vector<LogMzPeak>& noisy_peaks,
                             const double min_cos,
                             const double tol,
                             const bool is_low_charge,
-                            const int allowed_iso_error,
+                            const std::vector<double>& excluded_masses,
                             const bool is_last)
 {
   qscore_ = 0;
@@ -144,9 +144,8 @@ int PeakGroup::updateQscore(const std::vector<LogMzPeak>& noisy_peaks,
   isotope_cosine_score_ = SpectralDeconvolution::getIsotopeCosineAndIsoOffset(
     monoisotopic_mass_, per_isotope_int_, h_offset, avg,
     -min_negative_isotope_index_, // change if to select cosine calculation and if to get second best hits
-    window_width, allowed_iso_error);
-  if (h_offset != 0) return h_offset;
-
+    window_width, excluded_masses);
+  if (!is_last && h_offset != 0) return h_offset;
 
   if (isotope_cosine_score_ < min_cos) { return 0; }
   updatePerChargeCos_(avg, tol);
