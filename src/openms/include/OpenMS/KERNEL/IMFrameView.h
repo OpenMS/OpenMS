@@ -221,6 +221,3 @@ namespace OpenMS
   }; // class IMFrameView
 
 } // namespace OpenMS
-
-// Free function to create an IMFrameView from an MSSpectrum reference
-OpenMS::IMFrameView make_imframe(OpenMS::MSSpectrum& spectrum);
