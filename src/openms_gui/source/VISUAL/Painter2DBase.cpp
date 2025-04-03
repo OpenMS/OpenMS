@@ -42,7 +42,6 @@ namespace OpenMS
     ConvexHull2D::PointArrayType ch_points = hull.getHullPoints();
     points.resize((int)ch_points.size());
     UInt index = 0;
-    QPoint pos;
     // iterate over hull points
     for (ConvexHull2D::PointArrayType::const_iterator it = ch_points.begin(); it != ch_points.end(); ++it, ++index)
     {

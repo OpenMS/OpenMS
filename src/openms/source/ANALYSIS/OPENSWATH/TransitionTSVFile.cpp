@@ -146,15 +146,14 @@ namespace OpenMS
   {
     std::string tmp;
     std::vector<std::string> header;
-    int nr_delimiters = 3;
-    Size min_header_size = 8;
-    const char possibleDelimiters[3] = {',', ';', '\t'};
+    Size min_header_size = 4;
+    const std::array<char, 3> possible_delimiters = {'\t', ';', ','};
 
-    for (int i = 0; i < nr_delimiters; i++)
+    for (auto possible_delimiter : possible_delimiters)
     {
       header.clear();
       std::stringstream lineStream(line);
-      delimiter = possibleDelimiters[i];
+      delimiter = possible_delimiter;
       while (std::getline(lineStream, tmp, delimiter))
       {
         String tmp2(tmp);
@@ -173,6 +172,7 @@ namespace OpenMS
     {
       header_dict[header[i]] = i;
     }
+
     char txt_delimiter = delimiter;
     if (txt_delimiter == '\t')
     {

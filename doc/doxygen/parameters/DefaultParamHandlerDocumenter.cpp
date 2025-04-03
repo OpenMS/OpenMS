@@ -46,6 +46,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMobilogram.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
@@ -404,6 +405,7 @@ int main(int argc, char** argv)
   DOCME(PeakPickerHiRes);
   DOCME(PeakPickerIterative);
   DOCME(PeakPickerChromatogram);
+  DOCME(PeakPickerMobilogram);
   DOCME(PeptideIndexing);
   DOCME(PoseClusteringAffineSuperimposer);
   DOCME(PoseClusteringShiftSuperimposer);

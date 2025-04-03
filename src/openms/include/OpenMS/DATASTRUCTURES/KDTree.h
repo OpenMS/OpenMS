@@ -41,6 +41,7 @@
 
 #include <cstddef>
 #include <cmath>
+#include <memory>
 
 namespace KDTree
 {
@@ -551,7 +552,7 @@ protected:
   void
   _M_destroy_node(_Node_* __p)
   {
-    _M_node_allocator.destroy(__p);
+    std::allocator_traits<allocator_type>::destroy(_M_node_allocator, __p);
   }
 };
 

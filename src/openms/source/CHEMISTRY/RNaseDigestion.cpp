@@ -29,7 +29,16 @@ namespace OpenMS
     if (three_prime_code == "p")
     {
       three_prime_code = "3'-p";
+    } 
+    else if (three_prime_code == "c")
+    {
+      three_prime_code = "3'-c";
     }
+    else if (three_prime_code != "")
+    {
+      three_prime_code = '['+three_prime_code+']';
+    }
+    
 
     static RibonucleotideDB* ribo_db = RibonucleotideDB::getInstance();
     five_prime_gain_ = five_prime_code.empty() ?

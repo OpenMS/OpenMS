@@ -112,7 +112,6 @@ namespace OpenMS
     tools_map["MapRTTransformer"] = Internal::ToolDescription("MapRTTransformer", cat_map_align);
     tools_map["MapStatistics"] = Internal::ToolDescription("MapStatistics", cat_file_filter_extract_merge);
     tools_map["MaRaClusterAdapter"] = Internal::ToolDescription("MaRaClusterAdapter", cat_signal_proc_misc);
-    tools_map["MascotAdapter"] = Internal::ToolDescription("MascotAdapter", cat_ID_search);
     tools_map["MascotAdapterOnline"] = Internal::ToolDescription("MascotAdapterOnline", cat_ID_search);
     tools_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", cat_misc);
     tools_map["MassTraceExtractor"] = Internal::ToolDescription("MassTraceExtractor", cat_quant);
@@ -190,7 +189,6 @@ namespace OpenMS
     tools_map["TriqlerConverter"] = Internal::ToolDescription("TriqlerConverter", cat_file_converter);
     tools_map["XFDR"] = Internal::ToolDescription("XFDR", cat_crosslinking);
     tools_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", cat_dev);
-    tools_map["XTandemAdapter"] = Internal::ToolDescription("XTandemAdapter", cat_ID_search);
     
     // STOP! insert your tool in alphabetical order for easier maintenance (tools requiring the GUI lib should be added below **in addition**)
 

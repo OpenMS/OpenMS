@@ -900,12 +900,12 @@ namespace OpenMS
     //TODO think about running grid search on the small CCs only (maybe it's enough)
     if (gs.getNrCombos() > 1)
     {
-     OPENMS_LOG_INFO << "Testing " << gs.getNrCombos() << " param combinations." << std::endl;
-      /*double res =*/ gs.evaluate(GridSearchEvaluator(param_, ibg, debug_lvl_), -1.0, bestParams);
+      OPENMS_LOG_INFO << "Testing " << gs.getNrCombos() << " param combinations." << std::endl;
+      gs.evaluate(GridSearchEvaluator(param_, ibg, debug_lvl_), -1.0, bestParams);
     }
     else
     {
-     OPENMS_LOG_INFO << "Only one combination specified: Skipping grid search." << std::endl;
+      OPENMS_LOG_INFO << "Only one combination specified: Skipping grid search." << std::endl;
     }
 
     double bestGamma = gamma_search[bestParams[2]];

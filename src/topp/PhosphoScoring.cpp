@@ -28,7 +28,7 @@ using namespace std;
       <th ALIGN = "center"> pot. successor tools </td>
     </tr>
     <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_CometAdapter (or other ID engines) </td>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeptideIndexer </td>
     </tr>
   </table>

@@ -105,9 +105,12 @@ namespace OpenMS
     return (rt_bounds.second - rt_bounds.first) < (min_rt_span * 5.0 * sigma_);
   }
 
+  /// a lot faster than std::pow(b, 2)
+  double pow2(double b) { return b*b;}
+
   double GaussTraceFitter::getValue(double rt) const
   {
-    return height_ * exp(-0.5 * pow(rt - x0_, 2) / pow(sigma_, 2));
+    return height_ * exp(-0.5 * pow2(rt - x0_) / pow2(sigma_));
   }
 
   double GaussTraceFitter::getArea()
@@ -144,7 +147,7 @@ namespace OpenMS
     double height = x(0);
     double x0 = x(1);
     double sig = x(2);
-    double c_fac = -0.5 / pow(sig, 2);
+    double c_fac = -0.5 / pow2(sig);
 
     Size count = 0;
     for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
@@ -154,7 +157,7 @@ namespace OpenMS
       for (Size i = 0; i < trace.peaks.size(); ++i)
       {
         fvec(count) = (m_data->traces_ptr->baseline + trace.theoretical_int * height
-                       * exp(c_fac * pow(trace.peaks[i].first - x0, 2)) - trace.peaks[i].second->getIntensity()) * weight;
+                       * exp(c_fac * pow2(trace.peaks[i].first - x0)) - trace.peaks[i].second->getIntensity()) * weight;
         ++count;
       }
     }
@@ -168,8 +171,10 @@ namespace OpenMS
     double height = x(0);
     double x0 = x(1);
     double sig = x(2);
-    double sig_sq = pow(sig, 2);
-    double sig_3 = pow(sig, 3);
+    double sig_sq = pow2(sig);
+    double inv_siq2 = 1 / sig_sq;
+    double sig_3 = sig * sig_sq;
+    double inv_sig3 = 1 / sig_3;
     double c_fac = -0.5 / sig_sq;
 
     Size count = 0;
@@ -180,10 +185,10 @@ namespace OpenMS
       for (Size i = 0; i < trace.peaks.size(); ++i)
       {
         double rt = trace.peaks[i].first;
-        double e = exp(c_fac * pow(rt - x0, 2));
+        double e = exp(c_fac * pow2(rt - x0));
         J(count, 0) = trace.theoretical_int * e * weight;
-        J(count, 1) = trace.theoretical_int * height * e * (rt - x0) / sig_sq * weight;
-        J(count, 2) = 0.125* trace.theoretical_int* height* e* pow(rt - x0, 2) / sig_3 * weight;
+        J(count, 1) = trace.theoretical_int * height * e * (rt - x0) * inv_siq2 * weight;
+        J(count, 2) = 0.125* trace.theoretical_int* height* e* pow2(rt - x0) * inv_sig3 * weight;
         ++count;
       }
     }

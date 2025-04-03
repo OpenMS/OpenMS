@@ -86,7 +86,7 @@ namespace OpenMS
      * @param p Marginalization norm
      * @param pep_prior Peptide prior (defines at which evidence probability, additional evidence is beneficial)
      */
-    MessagePasserFactory<Label>(double alpha, double beta, double gamma, double p, double pep_prior);
+    MessagePasserFactory(double alpha, double beta, double gamma, double p, double pep_prior);
 
 
 
