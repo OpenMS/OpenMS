@@ -1,6 +1,7 @@
 from libcpp cimport bool
 from Types cimport *
 from MSSpectrum cimport *
+from DefaultParamHandler cimport *
 
 cdef extern from "<OpenMS/PROCESSING/CENTROIDING/PeakPickerIM.h>" namespace "OpenMS":
 

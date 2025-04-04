@@ -16,6 +16,8 @@
 #include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/MATH/MISC/SplineBisection.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <iostream>
 
 namespace OpenMS
@@ -23,13 +25,20 @@ namespace OpenMS
     double PeakPickerIM::computeOptimalSamplingRate(const std::vector<MSSpectrum>& spectra)
     {
       std::vector<double> mz_diffs;
+      Size upper_peak_limit = 0;
+      for (size_t s = 0; s < spectra.size(); ++s)
+      {
+        upper_peak_limit += spectra[s].size();
+      }
+      mz_diffs.reserve(upper_peak_limit);
 
       for (size_t s = 0; s < spectra.size(); ++s)
       {
         const MSSpectrum& spectrum = spectra[s];
         // The spectrum could have multiple peaks at the same x position.
         // Sum the peak intensity
-        MSSpectrum summed_trace = SumFrame(spectrum, 7000.0);
+        MSSpectrum summed_trace;
+        SumFrame(spectrum, summed_trace, 7000.0);
 
         if (summed_trace.size() < 20)
         {
@@ -81,7 +90,7 @@ namespace OpenMS
       }
 
       // Compute the mode
-      std::map<double, int> freq_map;
+      std::unordered_map<double, int> freq_map;
       for (double diff : small_mz_diffs)
       {
         freq_map[diff]++;
@@ -118,31 +127,25 @@ namespace OpenMS
       return std::make_pair(low, high);
     }
 
+    // PRECONDITION: input_spectrum is sorted by m/z
     // This function sums peaks if they are nearly identical
     // OpenMS represents TimsTOF data in MSSpectrum() objects as one-array.
     // There could be multiple 500.0 m/z peaks with different ion mobility values.
     // Peak picking (such as HiRes) will not work properly if there are multiple y measurements at a given x m/z position.
-    MSSpectrum PeakPickerIM::SumFrame(const MSSpectrum& input_spectrum, double ppm_tolerance)
+    void PeakPickerIM::SumFrame(const MSSpectrum& input_spectrum, MSSpectrum& output_spectrum, double ppm_tolerance)
     {
-      MSSpectrum export_spectrum;
+      output_spectrum.clear(true);
+      if (input_spectrum.empty()) return;
 
-      if (input_spectrum.empty()) return export_spectrum;
+      OPENMS_PRECONDITION(input_spectrum.isSorted(), "Spectrum must be sorted by m/z before summing peaks.");
 
-      MSSpectrum spectrum = input_spectrum;
+      double current_mz = input_spectrum[0].getMZ();
+      double current_intensity = input_spectrum[0].getIntensity();
 
-      if (!spectrum.isSorted())
+      for (Size i = 1; i < input_spectrum.size(); ++i)
       {
-        std::cout << "Spectrum not sorted by m/z, sorting now..." << std::endl;
-        spectrum.sortByPosition();
-      }
-
-      double current_mz = spectrum[0].getMZ();
-      double current_intensity = spectrum[0].getIntensity();
-
-      for (Size i = 1; i < spectrum.size(); ++i)
-      {
-        double next_mz = spectrum[i].getMZ();
-        double next_intensity = spectrum[i].getIntensity();
+        double next_mz = input_spectrum[i].getMZ();
+        double next_intensity = input_spectrum[i].getIntensity();
 
         double delta_mz = std::abs(next_mz - current_mz);
         double ppm_diff = (delta_mz / current_mz) * 1e6;
@@ -153,21 +156,12 @@ namespace OpenMS
         }
         else
         {
-          Peak1D peak;
-          peak.setMZ(current_mz);
-          peak.setIntensity(current_intensity);
-          export_spectrum.push_back(peak);
-
+          output_spectrum.emplace_back(current_mz, current_intensity);
           current_mz = next_mz;
           current_intensity = next_intensity;
         }
       }
-      Peak1D last_peak;
-      last_peak.setMZ(current_mz);
-      last_peak.setIntensity(current_intensity);
-      export_spectrum.push_back(last_peak);
-
-      return export_spectrum;
+      output_spectrum.emplace_back(current_mz, current_intensity);
     }
 
     // We use peak FWHM (from PeakPickerHiRes) to extract ion mobility traces.
@@ -242,7 +236,7 @@ namespace OpenMS
         if (center_idx == -1)
         {
           std::cerr << "No raw peaks found near picked m/z: " << picked_mz << std::endl;
-          mobility_traces.push_back(MSSpectrum());
+          mobility_traces.emplace_back();
           continue;
         }
 
@@ -362,12 +356,20 @@ namespace OpenMS
         std::cout << "\n--- Processing picked_trace " << i << " ---\n";
 #endif
 
+        // Create reusable objects outside the loop to reduce memory allocations
+        MSSpectrum raw_peaks_within_bounds;
+        MSSpectrum raw_mz_peaks;
+        std::vector<double> mz_values;
+        std::vector<double> intensity_values;
+        std::vector<size_t> indices;
+        std::vector<double> sorted_mz;
+        std::vector<double> sorted_intensity;
+        
         // Iterate through picked peaks in this trace
         for (Size j = 0; j < picked_trace.size(); ++j)
         {
           double centroid_im = picked_trace[j].getMZ();   // Ion mobility centroid (stored as m/z)
           double fwhm = fwhm_array[j];
-
 
           double im_lower = centroid_im - (fwhm / 2.0);
           double im_upper = centroid_im + (fwhm / 2.0);
@@ -386,7 +388,8 @@ namespace OpenMS
             continue;
           }
 
-          MSSpectrum raw_peaks_within_bounds;
+          // Clear the spectrum for reuse
+          raw_peaks_within_bounds.clear(true);
 
           // --- Expand Left ---
           SignedSize left_idx = center_idx;
@@ -440,16 +443,27 @@ namespace OpenMS
             // Skip the rest of the loop and move on to the next picked_trace peak
             continue;
           }
+        
+          // If not sorted, sort both the peaks array and the corresponding raw m/z values array
+          if (!raw_peaks_within_bounds.isSorted())
+          {
+            raw_peaks_within_bounds.sortByPosition();
+          }
+           
+          // Clear the spectrum for reuse
+          raw_mz_peaks.clear(true);
+          SumFrame(raw_peaks_within_bounds, raw_mz_peaks, 0.1);
+          if (raw_mz_peaks.empty())
+          {
+            OPENMS_LOG_DEBUG << "No data in raw_mz_peaks for picked IM peak " << j << "!" << std::endl;
+            continue;
+          }
 
-          raw_peaks_within_bounds.sortByPosition();
-          MSSpectrum raw_mz_peaks = SumFrame(raw_peaks_within_bounds, 0.1);
           // Summing peaks could result in spectrum.size() == 1 which causes error.
           // in this case, simply sum the intensity values
           if (raw_mz_peaks.size() == 1)
           {
-            const Peak1D& single_peak = raw_mz_peaks.front();
-
-            centroided_frame.push_back(single_peak);
+            centroided_frame.push_back(raw_mz_peaks[0]);
             ion_mobility_array.push_back(centroid_im);
             ion_mobility_fwhm.push_back(fwhm);
             mz_fwhm_array.push_back(0.0);
@@ -461,25 +475,71 @@ namespace OpenMS
             continue;
           }
 
-          // Prepare data for spline
-          std::map<double, double> peak_raw_data;
+          // Clear and reuse vectors for spline data
+          mz_values.clear();
+          intensity_values.clear();
+          
+          // Reserve space for efficiency
+          mz_values.reserve(raw_mz_peaks.size());
+          intensity_values.reserve(raw_mz_peaks.size());
 
-          for (const auto& peak : raw_mz_peaks)
+          // Initialize sorting flag
+          bool is_sorted = true;
+
+          // Populate the vectors and check if sorted at the same time
+          for (size_t i = 0; i < raw_mz_peaks.size(); ++i)
           {
-            peak_raw_data[peak.getMZ()] = peak.getIntensity();
-          }
-          if (peak_raw_data.empty())
-          {
-            std::cerr << "No data in raw_mz_peaks for picked IM peak " << j << "!" << std::endl;
-            continue;
+            double current_mz = raw_mz_peaks[i].getMZ();
+            double current_intensity = raw_mz_peaks[i].getIntensity();
+            
+            // Check if still sorted (compare with previous value if not the first element)
+            if (i > 0 && current_mz < mz_values.back())
+            {
+              is_sorted = false;
+            }
+            
+            mz_values.push_back(current_mz);
+            intensity_values.push_back(current_intensity);
           }
 
-          // Initialize spline
-          CubicSpline2d spline(peak_raw_data);
+          // Sort the vectors if needed TODO: check with Mohammed if this is needed
+          if (!is_sorted)
+          {
+            // Reuse indices vector
+            indices.resize(mz_values.size());
+            for (size_t i = 0; i < indices.size(); ++i)
+            {
+              indices[i] = i;
+            }
+            
+            // Sort indices based on m/z values
+            std::sort(indices.begin(), indices.end(),
+                    [&mz_values](size_t i1, size_t i2) {
+                      return mz_values[i1] < mz_values[i2];
+                    });
+            
+            // Reuse sorted vectors
+            sorted_mz.resize(mz_values.size());
+            sorted_intensity.resize(intensity_values.size());
+            
+            // Reorder both vectors using the sorted indices
+            for (size_t i = 0; i < indices.size(); ++i)
+            {
+              sorted_mz[i] = mz_values[indices[i]];
+              sorted_intensity[i] = intensity_values[indices[i]];
+            }
+            
+            // Replace the original vectors with the sorted ones
+            mz_values = std::move(sorted_mz);
+            intensity_values = std::move(sorted_intensity);
+          }
+
+          // Initialize spline with the two vectors
+          CubicSpline2d spline(mz_values, intensity_values);
 
           // Define boundaries
-          const double left_bound = peak_raw_data.begin()->first;
-          const double right_bound = peak_raw_data.rbegin()->first;
+          const double left_bound = mz_values.front();
+          const double right_bound = mz_values.back();
 
           // Find maximum via spline bisection
           double apex_mz = (left_bound + right_bound) / 2.0;
@@ -565,11 +625,7 @@ namespace OpenMS
           std::cout << "m/z FWHM: " << mz_fwhm << std::endl;
 #endif
 
-          Peak1D centroided_peak;
-          centroided_peak.setMZ(apex_mz);
-          centroided_peak.setIntensity(apex_intensity);
-
-          centroided_frame.push_back(centroided_peak);
+          centroided_frame.emplace_back(apex_mz, apex_intensity);
           ion_mobility_array.push_back(centroid_im);
           ion_mobility_fwhm.push_back(fwhm);
           mz_fwhm_array.push_back(mz_fwhm);
@@ -661,7 +717,8 @@ namespace OpenMS
       // --- Step 1a: Sum m/z peaks
       // First, we project all timsTOF peaks into the m/z axis using SumFrame
       // The ppm tolerance is a dynamic way of testing m/z floats being almost identical. Set it to 0.1 ppm
-      MSSpectrum summed_spectrum = SumFrame(spectrum, 0.1);
+      MSSpectrum summed_spectrum;
+      SumFrame(spectrum, summed_spectrum, 0.1);
 #ifdef DEBUG_PICKER
       std::cout << "Spectrum after SumFrame has " << summed_spectrum.size() << " peaks." << std::endl;
 #endif
@@ -748,7 +805,8 @@ namespace OpenMS
         std::cout << "Original trace has " << trace.size() << " peaks." << std::endl;
 #endif
         // --- Step 1b: Sum peaks that are too close ---
-        MSSpectrum summed_trace = SumFrame(trace, 7000.0); // 7000 ppm tolerance (temporary. Change function to accept absolute number)
+        MSSpectrum summed_trace;
+        SumFrame(trace, summed_trace, 7000.0); // 7000 ppm tolerance (temporary. Change function to accept absolute number)
 #ifdef DEBUG_PICKER
         std::cout << "Trace after SumFrame has " << summed_trace.size() << " peaks." << std::endl;
 #endif

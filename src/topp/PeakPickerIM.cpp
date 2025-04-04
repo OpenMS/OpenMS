@@ -93,25 +93,27 @@ protected:
     {
       return doLowMemAlgorithm(picker, input_file, output_file);
     }
-
-    // Load input mzML file
-    PeakMap exp;
-    MzMLFile mzml;
-    mzml.load(input_file, exp);
-
-    // Process each spectrum with PeakPickerIM
-    PeakMap processed_exp;
-    for (MSSpectrum& spectrum : exp)
+    else
     {
-      std::cout << "Processing spectrum with " << spectrum.size() << " peaks." << std::endl;
-      picker.pickIMTraces(spectrum);
-      processed_exp.addSpectrum(spectrum);
-      std::cout << "Processed spectrum has " << spectrum.size() << " peaks." << std::endl;
-    }
-    // Save output mzML file
-    mzml.store(output_file, processed_exp);
+      // Load input mzML file
+      PeakMap exp;
+      MzMLFile mzml;
+      mzml.load(input_file, exp);
 
-    return EXECUTION_OK;
+      // Process each spectrum with PeakPickerIM
+      for (MSSpectrum& spectrum : exp)
+      {
+        OPENMS_LOG_DEBUG << "Processing MS" << spectrum.getMSLevel() << " spectrum with " 
+          << spectrum.size() << " peaks in the IM frame." << std::endl;
+        picker.pickIMTraces(spectrum);
+        OPENMS_LOG_DEBUG << "Processed spectrum has " << spectrum.size() << " centroided IM peaks." << std::endl;
+      }
+      // Save output mzML file
+      OPENMS_LOG_DEBUG << "Saving output mzML file: " << output_file << std::endl;
+      mzml.store(output_file, exp);
+
+      return EXECUTION_OK;
+    }
   }
 };
 

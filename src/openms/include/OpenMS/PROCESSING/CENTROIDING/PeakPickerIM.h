@@ -51,7 +51,7 @@ namespace OpenMS
     double computeOptimalSamplingRate(const std::vector<MSSpectrum>& spectra);
 
     /// Sum up the intensity of data points with nearly identical float values
-    MSSpectrum SumFrame(const MSSpectrum& spectrum, double ppm_tolerance = 0.01);
+    void SumFrame(const MSSpectrum& input_spectrum, MSSpectrum& output_spectrum, double ppm_tolerance = 0.01);
 
     /// Compute lower and upper m/z bounds based on ppm
     std::pair<double, double> ppmBounds(double mz, double ppm);
