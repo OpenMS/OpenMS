@@ -112,7 +112,7 @@ namespace OpenMS{
         defaults_.setValue("channel_134CD_description", "", "Description for the content of the 134CD channel.");
         defaults_.setValue("channel_135ND_description", "", "Description for the content of the 135ND channel.");
 
-        default_.setValue("reference_channel", "127D","The reference channel (126, 127N, 127C, 127D, 128N, 128C, 128ND, 128CD, 129N, 129C, 129ND, 129CD, 130N, 130C, 130ND, 130CD, 131N, 131C, 131ND, 131CD, 132N, 132C, 132ND, 132CD, 133N, 133C, 133ND, 133CD, 134N, 134ND, 134CD, 135ND).");
+        defaults_.setValue("reference_channel", "126","The reference channel (126, 127N, 127C, 127D, 128N, 128C, 128ND, 128CD, 129N, 129C, 129ND, 129CD, 130N, 130C, 130ND, 130CD, 131N, 131C, 131ND, 131CD, 132N, 132C, 132ND, 132CD, 133N, 133C, 133ND, 133CD, 134N, 134ND, 134CD, 135ND).");
         defaults_.setValidStrings("reference_channel", TMTThirtyTwoPlexQuantitationMethod::channel_names_);
 
         // TODO :verify these below values
