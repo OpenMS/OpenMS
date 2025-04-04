@@ -32,7 +32,7 @@ protected:
     setValidFormats_("out", { "mzML" });
 
     registerStringOption_("processOption", "<name>", "inmemory", "Whether to load all data and process them in-memory or whether to process the data on the fly (lowmemory) without loading the whole file into memory first", false, true);
-    setValidStrings_("processOption", ListUtils::create<String>("inmemory,lowmemory"));
+    setValidStrings_("processOption", { "inmemory", "lowmemory" } );
 
   }
 
