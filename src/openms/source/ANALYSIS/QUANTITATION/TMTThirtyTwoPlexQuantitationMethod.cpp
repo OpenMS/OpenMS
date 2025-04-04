@@ -113,7 +113,7 @@ void TMTThirtyTwoPlexQuantitationMethod::updateMembers_(){
     reference_channel_ = t_it - TMTThirtyTwoPlexQuantitationMethod::channel_names_.begin();
 }
 
-TMTThirtyTwoPlexQuantitationMethod::TMTThirtyTwoPlexQuantitationMethod(cosnt TMTThirtyTwoPlexQuantitationMethod& other) :IsobaricQuantitationMethod(other){
+TMTThirtyTwoPlexQuantitationMethod::TMTThirtyTwoPlexQuantitationMethod(const TMTThirtyTwoPlexQuantitationMethod& other) :IsobaricQuantitationMethod(other){
     channels_.clear();
     channels_.insert(channels_.begin(), other.channels_.begin(), other.channels_.end());
 
@@ -135,7 +135,7 @@ const IsobaricQuantitationMethod::IsobaricChannelList& TMTThirtyTwoPlexQuantitat
 
 Size TMTThirtyTwoPlexQuantitationMethod::getNumberOfChannels() const
 {
-    return 18;
+    return channels_.size();
 }
 
 Matrix<double> TMTThirtyTwoPlexQuantitationMethod::getIsotopeCorrectionMatrix() const

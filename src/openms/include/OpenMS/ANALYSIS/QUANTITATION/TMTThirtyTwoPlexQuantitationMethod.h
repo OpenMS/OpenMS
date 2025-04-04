@@ -51,6 +51,6 @@ namespace OpenMS{
             // implemented for DefaultParamHandler
             void setDefaultParams_();
 
-            void updateMembers_(); override;
+            void updateMembers_() override;
     };
 } // namespace OpenMS
