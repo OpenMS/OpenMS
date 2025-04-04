@@ -915,7 +915,7 @@ namespace OpenMS
       // swap the peaks and data arrays (while keeping meta data)
       centroided_frame = static_cast<SpectrumSettings>(spectrum); // swaps meta data
       centroided_frame.setMSLevel(spectrum.getMSLevel());
-      centroided_frame.setName(spectrum.getName();
+      centroided_frame.setName(spectrum.getName());
       centroided_frame.setRT(spectrum.getRT());
       spectrum = std::move(centroided_frame);
 
