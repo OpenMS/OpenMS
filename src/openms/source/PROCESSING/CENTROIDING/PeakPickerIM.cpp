@@ -914,6 +914,9 @@ namespace OpenMS
       // Maybe I am stupid but there is no better way if one just wants to 
       // swap the peaks and data arrays (while keeping meta data)
       centroided_frame = static_cast<SpectrumSettings>(spectrum); // swaps meta data
+      centroided_frame.setMSLevel(spectrum.getMSLevel());
+      centroided_frame.setName(spectrum.getName();
+      centroided_frame.setRT(spectrum.getRT());
       spectrum = std::move(centroided_frame);
 
 #ifdef DEBUG_PICKER
