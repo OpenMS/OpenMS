@@ -51,7 +51,7 @@ namespace OpenMS
     double computeOptimalSamplingRate(const std::vector<MSSpectrum>& spectra);
 
     /// Sum up the intensity of data points with nearly identical float values
-    void SumFrame(const MSSpectrum& input_spectrum, MSSpectrum& output_spectrum, double ppm_tolerance = 0.01);
+    void sumFrame_(const MSSpectrum& input_spectrum, MSSpectrum& output_spectrum, double ppm_tolerance = 0.01);
 
     /// Compute lower and upper m/z bounds based on ppm
     std::pair<double, double> ppmBounds(double mz, double ppm);
@@ -64,7 +64,7 @@ namespace OpenMS
       const MSSpectrum& raw_spectrum);
 
     /// compute m/z and ion mobility centers for picked traces. Returns centroided spectrum.
-    MSSpectrum ComputeCenters(const std::vector<MSSpectrum>& mobilogram_traces,
+    MSSpectrum computeCentroids_(const std::vector<MSSpectrum>& mobilogram_traces,
                               const std::vector<MSSpectrum>& picked_traces);
   };
 

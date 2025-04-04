@@ -38,7 +38,7 @@ namespace OpenMS
         // The spectrum could have multiple peaks at the same x position.
         // Sum the peak intensity
         MSSpectrum summed_trace;
-        SumFrame(spectrum, summed_trace, 7000.0);
+        sumFrame_(spectrum, summed_trace, 7000.0);
 
         if (summed_trace.size() < 20)
         {
@@ -138,7 +138,7 @@ namespace OpenMS
     // There could be multiple 500.0 m/z peaks with different ion mobility values.
     // Peak picking (such as HiRes) will not work properly if there are multiple y measurements at a given x m/z position.
     // Note: does not clear the output_spectrum but add peaks to it (required for fast padding)
-    void PeakPickerIM::SumFrame(const MSSpectrum& input_spectrum, MSSpectrum& output_spectrum, double ppm_tolerance)
+    void PeakPickerIM::sumFrame_(const MSSpectrum& input_spectrum, MSSpectrum& output_spectrum, double ppm_tolerance)
     {
       if (input_spectrum.empty()) return;
 
@@ -289,7 +289,7 @@ namespace OpenMS
     }
 
     // Function to compute m/z centers from mobilogram_traces and picked_traces
-    MSSpectrum PeakPickerIM::ComputeCenters(const std::vector<MSSpectrum>& mobilogram_traces,
+    MSSpectrum PeakPickerIM::computeCentroids_(const std::vector<MSSpectrum>& mobilogram_traces,
                               const std::vector<MSSpectrum>& picked_traces)
     {
       MSSpectrum centroided_frame;
@@ -449,7 +449,7 @@ namespace OpenMS
            
           // Clear the spectrum for reuse
           raw_mz_peaks.clear(true);
-          SumFrame(raw_peaks_within_bounds, raw_mz_peaks, 0.1);
+          sumFrame_(raw_peaks_within_bounds, raw_mz_peaks, 0.1);
           if (raw_mz_peaks.empty())
           {
             OPENMS_LOG_DEBUG << "No data in raw_mz_peaks for picked IM peak " << j << "!" << std::endl;
@@ -466,7 +466,7 @@ namespace OpenMS
             mz_fwhm_array.push_back(0.0);
 
 #ifdef DEBUG_PICKER
-            std::cout << "[INFO] SumFrame reduced peaks to a single entry. Added directly to centroided_frame. m/z: " << single_peak.getMZ()
+            std::cout << "[INFO] sumFrame_ reduced peaks to a single entry. Added directly to centroided_frame. m/z: " << single_peak.getMZ()
                       << " intensity: " << single_peak.getIntensity() << std::endl;
 #endif
             continue;
@@ -711,12 +711,12 @@ namespace OpenMS
 
 
       // --- Step 1a: Sum m/z peaks
-      // First, we project all timsTOF peaks into the m/z axis using SumFrame
+      // First, we project all timsTOF peaks into the m/z axis using sumFrame_
       // The ppm tolerance is a dynamic way of testing m/z floats being almost identical. Set it to 0.1 ppm
       MSSpectrum summed_spectrum;
-      SumFrame(spectrum, summed_spectrum, 0.1);
+      sumFrame_(spectrum, summed_spectrum, 0.1);
 #ifdef DEBUG_PICKER
-      std::cout << "Spectrum after SumFrame has " << summed_spectrum.size() << " peaks." << std::endl;
+      std::cout << "Spectrum after sumFrame_ has " << summed_spectrum.size() << " peaks." << std::endl;
 #endif
       // --- step 2a: smooth the data projected to the m/z axis.
 #ifdef DEBUG_PICKER
@@ -803,9 +803,9 @@ namespace OpenMS
         MSSpectrum summed_trace;
         summed_trace.reserve(trace.size() + 1);
         summed_trace.emplace_back(-1.0, -1.0); // add now as we need an entry for padding later (faster than insert at front)
-        SumFrame(trace, summed_trace, 7000.0); // 7000 ppm tolerance (temporary. Change function to accept absolute number)
+        sumFrame_(trace, summed_trace, 7000.0); // 7000 ppm tolerance (temporary. Change function to accept absolute number)
 #ifdef DEBUG_PICKER
-        std::cout << "Trace after SumFrame has " << summed_trace.size() << " peaks." << std::endl;
+        std::cout << "Trace after sumFrame_ has " << summed_trace.size() << " peaks." << std::endl;
 #endif
         // Determine im boundaries of current mobilogram. Add 10 padding points (should this be a parameter?)
         // If you do not pad the edges, peaks on the edge will have an odd shape and not be picked by PeakPickerHiRes!
@@ -904,14 +904,17 @@ namespace OpenMS
       }
 
       // Recompute m/z centers and output centroided frame
-      MSSpectrum centroided_frame = ComputeCenters(mobilogram_traces, picked_traces);
+      MSSpectrum centroided_frame = computeCentroids_(mobilogram_traces, picked_traces);
 
 #ifdef DEBUG_PICKER
       std::cout << "--- Centroided frame has  " << centroided_frame.size() << " --- peaks.\n";
 #endif
 
-      // Replace the input spectrum with the centroided result
-      spectrum = centroided_frame;
+      // Replace the input spectrum with the centroided result but ensure that other meta data is preserved
+      // Maybe I am stupid but there is no better way if one just wants to 
+      // swap the peaks and data arrays (while keeping meta data)
+      centroided_frame = static_cast<SpectrumSettings>(spectrum); // swaps meta data
+      spectrum = std::move(centroided_frame);
 
 #ifdef DEBUG_PICKER
       // Print peaks for debugging
