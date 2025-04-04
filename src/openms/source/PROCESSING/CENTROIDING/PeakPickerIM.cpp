@@ -54,12 +54,15 @@ namespace OpenMS
           double diff = summed_trace[i].getMZ() - summed_trace[i - 1].getMZ();
           mz_diffs.push_back(diff);
         }
+        if (mz_diffs.size() > 1000) break; // 1000 diffs should be enough to estimate sampling
       }
 
-      // If we found no valid m/z differences
+      // If we found no valid m/z differences (traces too short)
       if (mz_diffs.empty())
       {
+#ifdef DEBUG_PICKER
         std::cerr << "Warning: No valid m/z differences found in any spectra. Using default sampling rate of 0.01" << std::endl;
+#endif
         return 0.01; // Fallback value
       }
 
@@ -71,7 +74,9 @@ namespace OpenMS
       size_t percentile_index = static_cast<size_t>(mz_diffs.size() * 0.75);
       double threshold = mz_diffs[percentile_index];
 
+#ifdef DEBUG_PICKER
       std::cerr << "75th percentile of position differences is: " << threshold << std::endl;
+#endif
 
       // Filter out large differences (keep diffs <= threshold)
       std::vector<double> small_mz_diffs;
@@ -132,9 +137,9 @@ namespace OpenMS
     // OpenMS represents TimsTOF data in MSSpectrum() objects as one-array.
     // There could be multiple 500.0 m/z peaks with different ion mobility values.
     // Peak picking (such as HiRes) will not work properly if there are multiple y measurements at a given x m/z position.
+    // Note: does not clear the output_spectrum but add peaks to it (required for fast padding)
     void PeakPickerIM::SumFrame(const MSSpectrum& input_spectrum, MSSpectrum& output_spectrum, double ppm_tolerance)
     {
-      output_spectrum.clear(true);
       if (input_spectrum.empty()) return;
 
       OPENMS_PRECONDITION(input_spectrum.isSorted(), "Spectrum must be sorted by m/z before summing peaks.");
@@ -249,11 +254,7 @@ namespace OpenMS
         SignedSize left_idx = center_idx;
         while (left_idx >= 0 && raw_spectrum[left_idx].getMZ() >= lower_bound)
         {
-          Peak1D p;
-          p.setMZ((*ion_mobility_array)[left_idx]); // Ion Mobility as m/z
-          p.setIntensity(raw_spectrum[left_idx].getIntensity());
-
-          trace_spectrum.push_back(p);
+          trace_spectrum.emplace_back((*ion_mobility_array)[left_idx], raw_spectrum[left_idx].getIntensity()); // currently Ion Mobility as m/z
 
           // Store the raw m/z
           raw_mz_array.push_back(raw_spectrum[left_idx].getMZ());
@@ -266,11 +267,7 @@ namespace OpenMS
         while (right_idx < static_cast<SignedSize>(raw_spectrum.size()) &&
                raw_spectrum[right_idx].getMZ() <= upper_bound)
         {
-          Peak1D p;
-          p.setMZ((*ion_mobility_array)[right_idx]); // Ion Mobility as m/z
-          p.setIntensity(raw_spectrum[right_idx].getIntensity());
-
-          trace_spectrum.push_back(p);
+          trace_spectrum.emplace_back((*ion_mobility_array)[right_idx], raw_spectrum[right_idx].getIntensity());
 
           // Store the raw m/z data in floatDataArrays()
           raw_mz_array.push_back(raw_spectrum[right_idx].getMZ());
@@ -283,7 +280,7 @@ namespace OpenMS
         trace_float_arrays.push_back(std::move(raw_mz_array));
 
         // Sort the trace_spectrum by ion mobility (m/z), while keeping raw m/z aligned
-        trace_spectrum.sortByPosition();
+        trace_spectrum.sortByPosition(); // Note: having the float arrays attached ensures that sorting is performed on everything
 
         mobility_traces.push_back(std::move(trace_spectrum));
       }
@@ -640,11 +637,10 @@ namespace OpenMS
       centroided_frame_fda.push_back(std::move(ion_mobility_array));
       centroided_frame_fda.push_back(std::move(ion_mobility_fwhm));
       centroided_frame_fda.push_back(std::move(mz_fwhm_array));
-
       centroided_frame.sortByPosition();
-      std::cout << "Peaks in centroided frame: " << centroided_frame.size() << std::endl;
 
 #ifdef DEBUG_PICKER
+      std::cout << "Peaks in centroided frame: " << centroided_frame.size() << std::endl;
       std::cout << "Printing centroided_frame inside ComputerCenters function " << std::endl;
       for (const auto& peak : centroided_frame)
       {
@@ -735,9 +731,8 @@ namespace OpenMS
 
       gauss_filter.setParameters(gauss_params);
       gauss_filter.filter(summed_spectrum);
-      std::cout << "Spectrum after Gaussian smoothing has " << summed_spectrum.size() << " peaks." << std::endl;
-
 #ifdef DEBUG_PICKER
+      std::cout << "Spectrum after Gaussian smoothing has " << summed_spectrum.size() << " peaks." << std::endl;
       for (const auto& peak : summed_spectrum)
       {
         std::cout << "m/z: " << peak.getMZ() << ", intensity: " << peak.getIntensity() << std::endl;
@@ -806,13 +801,15 @@ namespace OpenMS
 #endif
         // --- Step 1b: Sum peaks that are too close ---
         MSSpectrum summed_trace;
+        summed_trace.reserve(trace.size() + 1);
+        summed_trace.emplace_back(-1.0, -1.0); // add now as we need an entry for padding later (faster than insert at front)
         SumFrame(trace, summed_trace, 7000.0); // 7000 ppm tolerance (temporary. Change function to accept absolute number)
 #ifdef DEBUG_PICKER
         std::cout << "Trace after SumFrame has " << summed_trace.size() << " peaks." << std::endl;
 #endif
         // Determine im boundaries of current mobilogram. Add 10 padding points (should this be a parameter?)
         // If you do not pad the edges, peaks on the edge will have an odd shape and not be picked by PeakPickerHiRes!
-        double im_start = summed_trace.front().getMZ();
+        double im_start = summed_trace[1].getMZ(); // first entry after padding
         double im_end = summed_trace.back().getMZ();
 
 #ifdef DEBUG_PICKER
@@ -825,7 +822,7 @@ namespace OpenMS
         Peak1D front_padding;
         front_padding.setMZ(im_start - 15 * sampling_rate);
         front_padding.setIntensity(0.0);
-        summed_trace.insert(summed_trace.begin(), front_padding);
+        summed_trace[0] = front_padding;
 
         Peak1D back_padding;
         back_padding.setMZ(im_end + 15 * sampling_rate);
@@ -908,14 +905,17 @@ namespace OpenMS
 
       // Recompute m/z centers and output centroided frame
       MSSpectrum centroided_frame = ComputeCenters(mobilogram_traces, picked_traces);
-      std::cout << "--- Centroided frame has been generated. It has  " << centroided_frame.size() << " --- peaks.";
+
+#ifdef DEBUG_PICKER
+      std::cout << "--- Centroided frame has  " << centroided_frame.size() << " --- peaks.\n";
+#endif
 
       // Replace the input spectrum with the centroided result
       spectrum = centroided_frame;
-      std::cout << "--- Spectrum final output object has ..  " << spectrum.size() << " --- peaks.";
 
 #ifdef DEBUG_PICKER
       // Print peaks for debugging
+      std::cout << "--- Spectrum final output object has ..  " << spectrum.size() << " --- peaks.\n";
       for (const auto& peak : spectrum)
       {
         std::cout << "m/z: " << peak.getMZ() << ", intensity: " << peak.getIntensity() << std::endl;

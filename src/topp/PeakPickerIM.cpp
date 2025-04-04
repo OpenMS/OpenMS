@@ -101,8 +101,10 @@ protected:
       mzml.load(input_file, exp);
 
       // Process each spectrum with PeakPickerIM
-      for (MSSpectrum& spectrum : exp)
+      #pragma omp parallel for
+      for (Int64 i = 0; i != exp.size(); i++)
       {
+        MSSpectrum& spectrum = exp[i];
         OPENMS_LOG_DEBUG << "Processing MS" << spectrum.getMSLevel() << " spectrum with " 
           << spectrum.size() << " peaks in the IM frame." << std::endl;
         picker.pickIMTraces(spectrum);
