@@ -118,7 +118,7 @@ namespace OpenMS{
         // TODO :verify these below values
         defaults_.setValue("correction_matrix", std::vector<std::string>{
                                             "NA/NA/NA/NA            /NA/NA/NA          /0.31/9.09/NA      /0.02/NA/0.32/NA",//126 
-                                            "NA/NA/NA/NA            /NA/NA/0.78        /NA/9.41//NA       /NA/NA/0.33/NA",//127N
+                                            "NA/NA/NA/NA            /NA/NA/0.78        /NA/9.41/NA        /NA/NA/0.33/NA",//127N
                                             "NA/NA/NA/NA            /NA/0.93/NA        /0.35/8.63/NA      /0.01/NA/0.27/NA",//127C
                                             "NA/NA/NA/NA            /0.82/NA/NA/       /0.30/8.71/0.33    /0.00/0.00/0.26/0.00",//127D
                                             "NA/NA/NA/0.00          /NA/0.82/0.65      /NA/8.13/NA        /NA/NA/0.26/NA",//128N
@@ -145,7 +145,7 @@ namespace OpenMS{
                                             "NA/0.22/NA/NA          /NA/4.96/NA        /0.34/1.03/NA      /0.00/NA/NA/NA",//133C
                                             "0.00/0.01/0.00/0.00    /0.89/2.48/0.63    /NA/3.14/0.51      /NA/NA/0.00/0.00",//133ND
                                             "0.01/0.01/NA/NA        /1.86/3.73/NA      /0.31/1.63/0.79    /0.00/0.00/0.00/0.00",//133CD
-                                            "NA/0.30/NA/0.03        /NA/5.49/0.62      /NA/1.14/NA        /NA/NA/NA/NA" //134N
+                                            "NA/0.30/NA/0.03        /NA/5.49/0.62      /NA/1.14/NA        /NA/NA/NA/NA", //134N
                                             "0.02/0.10/0.00/0.00    /1.66/3.76/0.22    /NA /1.73/0.31     /NA/NA/0.00/0.00",//134ND
                                             "0.03/0.23/NA/NA        /1.53/4.94/NA      /0.31/0.95/0.31    /0.00/0.00/NA/0.00",//134CD
                                             "0.04/0.23/0.00/0.00    /1.54/4.85/0.21    /NA/1.03/0.32      /NA/NA/NA/0.00",//135ND
