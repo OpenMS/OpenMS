@@ -156,6 +156,7 @@ public:
     addMethod_(make_unique<TMTElevenPlexQuantitationMethod>(), "TMT 11-plex");
     addMethod_(make_unique<TMTSixteenPlexQuantitationMethod>(), "TMT 16-plex");
     addMethod_(make_unique<TMTEighteenPlexQuantitationMethod>(), "TMT 18-plex");
+    addMethod_(make_unique<TMTThirtyTwoPlexQuantitationMethod>(), "TMT 32-plex");
   }
 
 protected:
