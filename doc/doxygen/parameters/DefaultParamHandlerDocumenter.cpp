@@ -58,6 +58,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h>
 #include <OpenMS/ML/SVM/SimpleSVM.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
