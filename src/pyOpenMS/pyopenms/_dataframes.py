@@ -672,7 +672,42 @@ def _add_meta_values(df: _pd.DataFrame, object: any) -> _pd.DataFrame:
 class _MSSpectrumDF(_MSSpectrum):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
+    def get_df(self, export_meta_values: bool = True) -> _pd.DataFrame:
+        """
+        Convert MSSpectrum to pandas DataFrame with peaks and metadata.
+        
+        Args:
+            export_meta_values (bool): Include meta values if True (default).
+            
+        Returns:
+            pd.DataFrame: Columns include 'mz', 'intensity', 'rt', 'ms_level', etc.
+        """
+        mz, intensity = self.get_peaks()
+        df = _pd.DataFrame({
+            "mz": mz, 
+            "intensity": intensity
+        })
+        
+        # Add spectrum metadata
+        df["rt"] = self.getRT()
+        df["ms_level"] = self.getMSLevel()
+        df["native_id"] = self.getNativeID()
+        
+        # Handle precursors
+        if self.getPrecursors():
+            precursor = self.getPrecursors()[0]
+            df["precursor_mz"] = precursor.getMZ()
+            df["precursor_charge"] = precursor.getCharge()
+        
+        # Export meta values if requested
+        if export_meta_values:
+            mvs = []
+            self.getKeys(mvs)
+            for key in mvs:
+                df[key.decode()] = self.getMetaValue(key)
+                
+        return df
+    
     def get_df(self, export_meta_values: bool = True) -> _pd.DataFrame:
         """
         Returns a DataFrame representation of the MSSpectrum.
