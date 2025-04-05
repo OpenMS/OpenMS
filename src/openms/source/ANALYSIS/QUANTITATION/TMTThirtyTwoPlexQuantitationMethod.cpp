@@ -36,7 +36,10 @@ namespace OpenMS{
 
         // create the channel map
         // the following values for the reportor ion mass is taken from
-        //  https://assets.thermofisher.com/TFS-Assets/LSG/manuals/MAN0018773_TMTproMassTagLabelingReagentsandKits_UG.pdf        
+        //  https://assets.thermofisher.com/TFS-Assets/LSG/manuals/MAN0018773_TMTproMassTagLabelingReagentsandKits_UG.pdf  
+                                                                                // here the affected channels int the 
+                                                                                // isobaric channel information as to updated
+                                                                                // for the 16plex deuterated data.
         channels_.push_back(IsobaricChannelInformation("126" ,  0,  "", 126.127726, {-1, -1, -1, -1, -1, -1, -1, -1}));
         channels_.push_back(IsobaricChannelInformation("127N",  1, "", 127.124761,  {-1, -1, -1,  0, -1,  3, -1,  5}));
         channels_.push_back(IsobaricChannelInformation("127C",  2, "", 127.131081,  {-1, -1,  0, -1,  3,  4,  5,  6}));
