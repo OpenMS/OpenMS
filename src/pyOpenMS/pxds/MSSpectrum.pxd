@@ -74,7 +74,7 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #    MzMLFile().store("testfile.mzML", exp)
         #  
         #  
-
+        DataFrame get_df() except +
         MSSpectrum() except + nogil 
         MSSpectrum(MSSpectrum &) except + nogil 
 
