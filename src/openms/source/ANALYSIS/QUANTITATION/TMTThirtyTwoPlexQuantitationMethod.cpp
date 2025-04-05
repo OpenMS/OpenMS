@@ -27,11 +27,10 @@ namespace OpenMS{
                                                                                         "132N","132C","132ND","132CD",
                                                                                         "133N","133C","133ND","133CD",
                                                                                         "134N","134ND", "134CD",
-                                                                                        "135ND"}
+                                                                                        "135ND"};
 
     // const std::vector<std::string> TMTThirtyTwoPlexQuantitationMethod::channel_names_ = {""}
-    TMTThirtyTwoPlexQuantitationMethod::TMTThirtyTwoPlexQuantitationMethod()
-    {
+    TMTThirtyTwoPlexQuantitationMethod::TMTThirtyTwoPlexQuantitationMethod(){
         setName("TMTThirtyTwoPlexQuantitationMethod");
 
         // create the channel map
