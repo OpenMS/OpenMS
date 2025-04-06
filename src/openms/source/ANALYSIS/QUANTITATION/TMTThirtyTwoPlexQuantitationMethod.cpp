@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // // --------------------------------------------------------------------------
+// $Maintainer: Chris Bielow $, Julianus Pfeuffer $
+// $Authors: Chris Bielow $
+// --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -14,9 +17,6 @@ namespace OpenMS{
     /*
         For 32plex experiments, use TMTpro 32plex Label Reagent Matched Set (Cat. No. A40000839) 
         or TMTpro 16plex Deuterated Label Reagent Set (Cat. No. A40000817) and TMTpro 16plex Label Reagent Set (Cat. No. A44520)
-        For 34plex experiments use TMTpro 32plex Label Reagent Matched Set (Cat. No. A40000839) and TMTpro-134C and TMTpro-135CD Label Reagents (Cat. No. A40000853) 
-        or TMTpro 16plex Deuterated Label Reagent Set (Cat. No. A40000817), TMTpro 16plex Label Reagent Set (Cat. No. A44520), and TMTpro-134C and TMTpro-135CD Label Reagents (Cat. No. A40000853).
-        For 35plex experiments use TMTpro 16plex Deuterated Label Reagent Set (Cat. No. A40000817), TMTpro-135CD Label Reagent (Cat. No. A40000818), and TMTpro 18plex Label Reagent Set (Cat. No. A52045).
     */
     const std::vector<std::string> TMTThirtyTwoPlexQuantitationMethod::channel_names_ = {"126",
                                                                                         "127N","127C","127D",
@@ -29,7 +29,6 @@ namespace OpenMS{
                                                                                         "134N","134ND", "134CD",
                                                                                         "135ND"};
 
-    // const std::vector<std::string> TMTThirtyTwoPlexQuantitationMethod::channel_names_ = {""}
     TMTThirtyTwoPlexQuantitationMethod::TMTThirtyTwoPlexQuantitationMethod(){
         setName("TMTThirtyTwoPlexQuantitationMethod");
 
@@ -39,40 +38,39 @@ namespace OpenMS{
                                                                                 // here the affected channels int the 
                                                                                 // isobaric channel information as to updated
                                                                                 // for the 16plex deuterated data.
-        channels_.push_back(IsobaricChannelInformation("126" ,  0,  "", 126.127726, {-1, -1, -1, -1, -1, -1, -1, -1}));
-        channels_.push_back(IsobaricChannelInformation("127N",  1, "", 127.124761,  {-1, -1, -1,  0, -1,  3, -1,  5}));
-        channels_.push_back(IsobaricChannelInformation("127C",  2, "", 127.131081,  {-1, -1,  0, -1,  3,  4,  5,  6}));
-        channels_.push_back(IsobaricChannelInformation("127D",  3,  "", 127.134003, {-1, -1, -1, -1, -1, -1, -1, -1}));
-        channels_.push_back(IsobaricChannelInformation("128N",  4, "", 128.128116, {-1,  0,  1,  2,   -1,  5, -1,  7}));
-        channels_.push_back(IsobaricChannelInformation("128C",  5, "", 128.134436, { 0, -1,  2, -1,    5,  6,  7,  8}));
-        channels_.push_back(IsobaricChannelInformation("128ND", 6,  "", 128.131038, {-1, -1, -1, -1, -1, -1, -1, -1}));
-        channels_.push_back(IsobaricChannelInformation("128CD", 7,  "", 128.137358, {-1, -1, -1, -1, -1, -1, -1, -1}));
-        channels_.push_back(IsobaricChannelInformation("129N",  8, "", 129.131471, { 1,  2,  3,  4,   -1,  7, -1,  9}));
-        channels_.push_back(IsobaricChannelInformation("129C",  9, "", 129.137790, { 2, -1,  4, -1,    7,  8,  9, 10}));
-        channels_.push_back(IsobaricChannelInformation("129ND", 10,  "", 129.134393, {-1, -1, -1, -1, -1, -1, -1, -1}));
-        channels_.push_back(IsobaricChannelInformation("129CD", 11,  "", 129.140713, {-1, -1, -1, -1, -1, -1, -1, -1}));
-        channels_.push_back(IsobaricChannelInformation("130N",  12, "", 130.134825, { 3,  4,  5,  6,   -1,  9, -1, 11}));
-        channels_.push_back(IsobaricChannelInformation("130C",  13, "", 130.141145, { 4, -1,  6, -1,    9, 10, 11, 12}));
-        channels_.push_back(IsobaricChannelInformation("130ND", 14,  "", 130.137748, {-1, -1, -1, -1, -1, -1, -1, -1}));
-        channels_.push_back(IsobaricChannelInformation("130CD", 15,  "", 130.144068, {-1, -1, -1, -1, -1, -1, -1, -1}));
-        channels_.push_back(IsobaricChannelInformation("131N",  16, "", 131.138180, { 5,  6,  7,  8,   -1, 11, -1, 13}));
-        channels_.push_back(IsobaricChannelInformation("131C", 17, "", 131.144500, { 6, -1,  8, -1,   11, 12, 13, 14}));
-        channels_.push_back(IsobaricChannelInformation("131ND", 18,  "", 131.141103, {-1, -1, -1, -1, -1, -1, -1, -1}));
-        channels_.push_back(IsobaricChannelInformation("131CD", 19,  "", 131.147423, {-1, -1, -1, -1, -1, -1, -1, -1}));
-        channels_.push_back(IsobaricChannelInformation("132N", 20, "", 132.141535, { 7,  8,  9, 10,   -1, 13, -1, 15}));
-        channels_.push_back(IsobaricChannelInformation("132C", 21, "", 132.147855, { 8, -1, 10, -1,   13, 14, 15, -1}));
-        channels_.push_back(IsobaricChannelInformation("132ND", 22,  "", 132.144458, {-1, -1, -1, -1, -1, -1, -1, -1}));
-        channels_.push_back(IsobaricChannelInformation("132CD", 23, "", 132.150778, {-1, -1, -1, -1, -1, -1, -1, -1}));
-        channels_.push_back(IsobaricChannelInformation("133N", 24, "", 133.144890, { 9, 10, 11, 12,   -1, 15, -1, -1}));
-        channels_.push_back(IsobaricChannelInformation("133C", 25, "", 133.151210, {10, -1, 12, -1,   15, -1, -1, -1}));
-        channels_.push_back(IsobaricChannelInformation("133ND", 26, "", 133.147813, {-1, -1, -1, -1, -1, -1, -1, -1}));
-        channels_.push_back(IsobaricChannelInformation("133CD", 27, "", 133.154133, {-1, -1, -1, -1, -1, -1, -1, -1}));
-        channels_.push_back(IsobaricChannelInformation("134N", 28, "", 134.148245, {11, 12, 13, 14,   -1, -1, -1, -1}));
-        channels_.push_back(IsobaricChannelInformation("134ND", 29, "", 134.151171, {-1, -1, -1, -1, -1, -1, -1, -1}));
-        channels_.push_back(IsobaricChannelInformation("134CD", 30, "", 134.157491, {-1, -1, -1, -1, -1, -1, -1, -1}));
-        channels_.push_back(IsobaricChannelInformation("135ND", 31, "", 135.154526, {-1, -1, -1, -1, -1, -1, -1, -1}));
-        //channels_.push_back(IsobaricChannelInformation("135CD", 32, "", 135.160846, {-1, -1, -1, -1, -1, -1, -1, -1})); /// not sure if to add this to the 32plex
-
+                                                                                // 
+        channels_.push_back(IsobaricChannelInformation("126" ,  0,  "", 126.127726, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("127N",  1, "", 127.124761,  {-1, -1, -1, -1,   -1, -1,  0,   -1,  3,-1,    -1,-1, 5,-1}));
+        channels_.push_back(IsobaricChannelInformation("127C",  2, "", 127.131081,  {-1, -1, -1, -1,   -1,  0, -1,    3,  4,-1,     5,-1, 6,-1}));
+        channels_.push_back(IsobaricChannelInformation("127D",  3,  "", 127.134003, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("128N",  4, "", 128.128116,  {-1, -1, -1,  0,   -1,  1,  2,   -1,  5,-1,    -1,-1, 7,-1}));
+        channels_.push_back(IsobaricChannelInformation("128C",  5, "", 128.134436,  {-1,  0, -1, -1,   -1,  2, -1,    5,  6,-1,     7,-1, 8,-1}));
+        channels_.push_back(IsobaricChannelInformation("128ND", 6,  "", 128.131038, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("128CD", 7,  "", 128.137358, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("129N",  8, "", 129.131471,  {-1,  1, -1,  2,   -1,  3,  4,   -1,  7,-1,    -1,-1, 9,-1}));
+        channels_.push_back(IsobaricChannelInformation("129C",  9, "", 129.137790,  {-1,  2, -1, -1,   -1,  4, -1,    7,  8,-1,     9,-1,10,-1}));
+        channels_.push_back(IsobaricChannelInformation("129ND", 10,  "", 129.134393,{-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("129CD", 11,  "", 129.140713,{-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("130N",  12, "", 130.134825, {-1,  3, -1,  4,   -1,  5,  6,   -1,  9,-1,    -1,-1,11,-1}));
+        channels_.push_back(IsobaricChannelInformation("130C",  13, "", 130.141145, {-1,  4, -1, -1,   -1,  6, -1,    9, 10,-1,    11,-1,12,-1}));
+        channels_.push_back(IsobaricChannelInformation("130ND", 14,  "", 130.137748,{-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("130CD", 15,  "", 130.144068,{-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("131N",  16, "", 131.138180, {-1,  5, -1,  6,   -1,  7,  8,   -1, 11,-1,    -1,-1,13,-1}));
+        channels_.push_back(IsobaricChannelInformation("131C", 17, "", 131.144500,  {-1,  6, -1, -1,   -1,  8, -1,   11, 12,-1,    13,-1,14,-1}));
+        channels_.push_back(IsobaricChannelInformation("131ND", 18,  "", 131.141103,{-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("131CD", 19,  "", 131.147423,{-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("132N", 20, "", 132.141535,  {-1,  7, -1,  8,   -1,  9, 10,   -1, 13,-1,    -1,-1,15,-1}));
+        channels_.push_back(IsobaricChannelInformation("132C", 21, "", 132.147855,  {-1,  8, -1, -1,   -1, 10, -1,   13, 14,-1,    15,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("132ND", 22,  "", 132.144458,{-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("132CD", 23, "", 132.150778, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("133N", 24, "", 133.144890,  {-1,  9, -1, 10,   -1, 11, 12,   -1, 15,-1,    -1,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("133C", 25, "", 133.151210,  {-1, 10, -1, -1,   -1, 12, -1,   15, -1,-1,    -1,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("133ND", 26, "", 133.147813, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("133CD", 27, "", 133.154133, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("134N", 28, "", 134.148245,  {-1, 11, -1, 12,   -1, 13, 14,   -1, -1,-1,    -1,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("134ND", 29, "", 134.151171, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("134CD", 30, "", 134.157491, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("135ND", 31, "", 135.154526, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
         // we assume 126 to be the reference
         reference_channel_ = 0;
 
@@ -198,12 +196,8 @@ void TMTThirtyTwoPlexQuantitationMethod::updateMembers_(){
     reference_channel_ = t_it - TMTThirtyTwoPlexQuantitationMethod::channel_names_.begin();
 }
 
-TMTThirtyTwoPlexQuantitationMethod::TMTThirtyTwoPlexQuantitationMethod(const TMTThirtyTwoPlexQuantitationMethod& other) :IsobaricQuantitationMethod(other){
-    channels_.clear();
-    channels_.insert(channels_.begin(), other.channels_.begin(), other.channels_.end());
+TMTThirtyTwoPlexQuantitationMethod::TMTThirtyTwoPlexQuantitationMethod(const TMTThirtyTwoPlexQuantitationMethod&) = default;
 
-    reference_channel_ = other.reference_channel_;  
-}
 
 TMTThirtyTwoPlexQuantitationMethod& TMTThirtyTwoPlexQuantitationMethod::operator=(const TMTThirtyTwoPlexQuantitationMethod& rhs)
 = default;
