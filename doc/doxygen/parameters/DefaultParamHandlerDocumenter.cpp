@@ -384,6 +384,7 @@ int main(int argc, char** argv)
   DOCME(TMTTenPlexQuantitationMethod);
   DOCME(TMTSixteenPlexQuantitationMethod);
   DOCME(TMTEighteenPlexQuantitationMethod);
+  DOCME(TMTThirtyTwoPlexQuantitationMethod);
   DOCME(ItraqEightPlexQuantitationMethod);
   DOCME(ItraqFourPlexQuantitationMethod);
   DOCME(LabeledPairFinder);
