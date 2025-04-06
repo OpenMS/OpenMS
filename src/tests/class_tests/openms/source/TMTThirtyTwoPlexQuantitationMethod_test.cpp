@@ -303,3 +303,6 @@ START_SECTION((TMTThirtyTwoPlexQuantitationMethod& operator=(const TMTThirtyTwoP
   TEST_STRING_EQUAL(channel_list[1].description, "new_description")
   TEST_EQUAL(qm2.getReferenceChannel(), 9)
 }
+END_SECTION
+
+END_TEST
