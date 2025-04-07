@@ -1,102 +1,82 @@
-
-
+from pyopenms cimport DataValue 
+import numpy as _np
 
 cdef class MSSpectrum:
-    def get_df(self, export_meta_values=True):
-        """Returns a pandas DataFrame with m/z, intensities, and properly typed metadata."""
+    def get_data_dict(self, export_meta_values=True):
+        """Returns a dictionary of NumPy arrays with m/z, intensities, and metadata"""
         # Get peak data using existing optimized method
-        cdef np.ndarray[np.float64_t, ndim=1] mzs
-        cdef np.ndarray[np.float32_t, ndim=1] intensities
+        cdef _np.ndarray[_np.float64_t, ndim=1] mzs
+        cdef _np.ndarray[_np.float32_t, ndim=1] intensities
         mzs, intensities = self.get_peaks()
         
         cnt = len(mzs)
-        df = pd.DataFrame({
+        data_dict = {
             'mz': mzs,
-            'intensity': intensities
-        })
+            'intensity': intensities,
+            'rt': _np.full(cnt, self.getRT(), dtype=_np.float64),
+            'ms_level': _np.full(cnt, self.getMSLevel(), dtype=_np.uint16),
+            'native_id': _np.full(cnt, self.getNativeID().decode(), dtype='U100')
+        }
 
-        # ====== Core Metadata ======
-        df['rt'] = np.full(cnt, self.getRT(), dtype=np.float64)
-        df['ms_level'] = np.full(cnt, self.getMSLevel(), dtype=np.uint16)
-        df['native_id'] = np.full(cnt, self.getNativeID().decode(), dtype='U100')
-
-        # ====== Ion Mobility ======
+        # Ion Mobility
         if self.containsIMData():
             im_arrays = self.getFloatDataArrays()
-            if im_arrays.size() > 0 and im_arrays[0].size() == cnt:
-                df['ion_mobility'] = np.array([im_arrays[0][i] for i in range(cnt)])
-                df['ion_mobility_unit'] = self.getDriftTimeUnitAsString().decode()
+            im_index = -1
+            for i in range(im_arrays.size()):
+                name = im_arrays[i].getName().decode().lower()
+                if name in ['ion_mobility', 'drift_time', 'mobility']:
+                    im_index = i
+                    break
+            
+            if im_index >= 0 and im_arrays[im_index].size() == cnt:
+                data_dict['ion_mobility'] = _np.array([im_arrays[im_index][i] for i in range(cnt)])
+                data_dict['ion_mobility_unit'] = _np.full(cnt, self.getDriftTimeUnitAsString().decode(), dtype='U50')
         else:
-            df['ion_mobility'] = np.nan
-            df['ion_mobility_unit'] = ''
+            data_dict['ion_mobility'] = _np.full(cnt, _np.nan, dtype=_np.float64)
+            data_dict['ion_mobility_unit'] = _np.full(cnt, '', dtype='U1')
 
-        # ====== Precursor Info ======
+        # Precursor Info
         precursors = self.getPrecursors()
         if precursors.size() > 0:
             precursor = precursors[0]
-            df['precursor_mz'] = np.full(cnt, precursor.getMZ(), dtype=np.float64)
-            df['precursor_charge'] = np.full(cnt, precursor.getCharge(), dtype=np.uint16)
+            data_dict['precursor_mz'] = _np.full(cnt, precursor.getMZ(), dtype=_np.float64)
+            data_dict['precursor_charge'] = _np.full(cnt, precursor.getCharge(), dtype=_np.uint16)
         else:
-            df['precursor_mz'] = np.nan
-            df['precursor_charge'] = np.nan
+            data_dict['precursor_mz'] = _np.full(cnt, _np.nan, dtype=_np.float64)
+            data_dict['precursor_charge'] = _np.full(cnt, 0, dtype=_np.uint16)
 
-        # ====== Peptide Sequence ======
+        # Peptide Sequence
         seq = ''
         pep_ids = self.getPeptideIdentifications()
         if pep_ids.size() > 0:
             hits = pep_ids[0].getHits()
             if hits.size() > 0:
                 seq = hits[0].getSequence().toString().decode()
-        df['sequence'] = np.full(cnt, seq, dtype=f"U{len(seq)}" if seq else 'U1')
+        data_dict['sequence'] = _np.full(cnt, seq, dtype=f"U{len(seq)}" if seq else 'U1')
 
-        # ====== Ion Annotations ======
-        ion_annotations = np.full(cnt, '', dtype='U1')
-        str_arrays = self.getStringDataArrays()
-        for sda in str_arrays:
-            if sda.getName().decode() in ['IonNames', 'IonName']:
-                decoded = [sda[i].decode() for i in range(sda.size())]
-                if len(decoded) == cnt:
-                    max_len = max(len(s) for s in decoded) if decoded else 1
-                    ion_annotations = np.array(decoded, dtype=f"U{max_len}")
-                    break
-        df['ion_annotation'] = ion_annotations
-
-        # ====== Metadata Handling ======
+        # Metadata Handling
         if export_meta_values:
             mvs = []
             self.getKeys(mvs)
-            
             for k in mvs:
-                if not self.metaValueExists(k):  # Key existence check
+                if not self.metaValueExists(k):
                     continue
-                
-                # Get DataValue and extract underlying value
                 cdef DataValue dv = self.getMetaValue(k)
                 k_str = k.decode()
-                
                 try:
-                    # Direct type checking with Cython
                     if dv.valueType() == DataValue.INT_VALUE:
-                        df[k_str] = np.full(cnt, dv.value(), dtype=np.int32)
+                        data_dict[k_str] = _np.full(cnt, dv.value(), dtype=_np.int32)
                     elif dv.valueType() == DataValue.DOUBLE_VALUE:
-                        df[k_str] = np.full(cnt, dv.value(), dtype=np.float64)
+                        data_dict[k_str] = _np.full(cnt, dv.value(), dtype=_np.float64)
                     elif dv.valueType() == DataValue.STRING_VALUE:
                         s = dv.value()
-                        df[k_str] = np.full(cnt, s, dtype=f"U{len(s)}")
-                    elif dv.valueType() == DataValue.EMPTY_VALUE:
-                        continue  # Skip empty values
-                    else:  # Handle booleans and others
-                        val = dv.value()
-                        if isinstance(val, bool):
-                            df[k_str] = np.full(cnt, val, dtype=bool)
-                        else:
-                            df[k_str] = np.full(cnt, str(val), dtype='object')
-                
-                except Exception as e:
-                    # Fallback to string representation
-                    df[k_str] = np.full(cnt, str(dv.toString().decode()), dtype='object')
+                        data_dict[k_str] = _np.full(cnt, s, dtype=f"U{len(s)}")
+                    elif dv.valueType() == DataValue.BOOL_VALUE:
+                        data_dict[k_str] = _np.full(cnt, dv.value(), dtype=bool)
+                except:
+                    data_dict[k_str] = _np.full(cnt, str(dv.toString().decode()), dtype='object')
 
-        return df
+        return data_dict
 
 
    
@@ -110,8 +90,8 @@ cdef class MSSpectrum:
         cdef _MSSpectrum * spec_ = self.inst.get()
 
         cdef unsigned int n = spec_.size()
-        cdef np.ndarray[np.float64_t, ndim=1] mzs
-        mzs = np.empty( (n,), dtype=np.float64)
+        cdef _np.ndarray[_np.float64_t, ndim=1] mzs
+        mzs = _np.empty( (n,), dtype=_np.float64)
         cdef _Peak1D p
 
         cdef libcpp_vector[_Peak1D].iterator it = spec_.begin()
@@ -134,8 +114,8 @@ cdef class MSSpectrum:
         cdef _MSSpectrum * spec_ = self.inst.get()
 
         cdef unsigned int n = spec_.size()
-        cdef np.ndarray[np.float32_t, ndim=1] intensities
-        intensities = np.empty( (n,), dtype=np.float32)
+        cdef _np.ndarray[_np.float32_t, ndim=1] intensities
+        intensities = _np.empty( (n,), dtype=_np.float32)
         cdef _Peak1D p
 
         cdef libcpp_vector[_Peak1D].iterator it = spec_.begin()
@@ -157,10 +137,10 @@ cdef class MSSpectrum:
         cdef _MSSpectrum * spec_ = self.inst.get()
 
         cdef unsigned int n = spec_.size()
-        cdef np.ndarray[np.float64_t, ndim=1] mzs
-        mzs = np.empty( (n,), dtype=np.float64)
-        cdef np.ndarray[np.float32_t, ndim=1] intensities
-        intensities = np.empty( (n,), dtype=np.float32)
+        cdef _np.ndarray[_np.float64_t, ndim=1] mzs
+        mzs = _np.empty( (n,), dtype=_np.float64)
+        cdef _np.ndarray[_np.float32_t, ndim=1] intensities
+        intensities = _np.empty( (n,), dtype=_np.float32)
         cdef _Peak1D p
 
         cdef libcpp_vector[_Peak1D].iterator it = spec_.begin()
@@ -188,12 +168,12 @@ cdef class MSSpectrum:
 
         # Select which function to use for set_peaks:
         # If we have numpy arrays, it helps to use optimized functions
-        if isinstance(mzs, np.ndarray) and isinstance(intensities, np.ndarray) and \
-          mzs.dtype == np.float64 and intensities.dtype == np.float32 and \
+        if isinstance(mzs, _np.ndarray) and isinstance(intensities, _np.ndarray) and \
+          mzs.dtype == _np.float64 and intensities.dtype == _np.float32 and \
           mzs.flags["C_CONTIGUOUS"] and intensities.flags["C_CONTIGUOUS"]  :
             self._set_peaks_fast_df(mzs, intensities)
-        elif isinstance(mzs, np.ndarray) and isinstance(intensities, np.ndarray) and \
-          mzs.dtype == np.float64 and intensities.dtype == np.float64 and \
+        elif isinstance(mzs, _np.ndarray) and isinstance(intensities, _np.ndarray) and \
+          mzs.dtype == _np.float64 and intensities.dtype == _np.float64 and \
           mzs.flags["C_CONTIGUOUS"] and intensities.flags["C_CONTIGUOUS"]  :
             self._set_peaks_fast_dd(mzs, intensities)
         else:
@@ -201,7 +181,7 @@ cdef class MSSpectrum:
 
 
 
-    def _set_peaks_fast_dd(self, np.ndarray[double, ndim=1, mode="c"] data_mz not None, np.ndarray[double, ndim=1, mode="c"] data_i not None):
+    def _set_peaks_fast_dd(self, _np.ndarray[double, ndim=1, mode="c"] data_mz not None, _np.ndarray[double, ndim=1, mode="c"] data_i not None):
 
         cdef _MSSpectrum * spec_ = self.inst.get()
 
@@ -223,7 +203,7 @@ cdef class MSSpectrum:
         spec_.updateRanges()
 
 
-    def _set_peaks_fast_df(self, np.ndarray[double, ndim=1, mode="c"] data_mz not None, np.ndarray[float, ndim=1, mode="c"] data_i not None):
+    def _set_peaks_fast_df(self, _np.ndarray[double, ndim=1, mode="c"] data_mz not None, _np.ndarray[float, ndim=1, mode="c"] data_i not None):
 
         cdef _MSSpectrum * spec_ = self.inst.get()
 
