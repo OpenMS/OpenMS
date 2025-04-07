@@ -1114,7 +1114,10 @@ namespace OpenMS
     {
       s.setRT(s.getDriftTime());
       s.setDriftTime(-1);
+      s.setMSLevel(1);
     }
+
+    if (frame_as_spectra.size() <= 3 ) return;
 
     // detect mass traces in IM frame
     MassTraceDetection mte;
