@@ -16,19 +16,18 @@
 #include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/MATH/MISC/SplineBisection.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-
+#include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
 #include <iostream>
+#include <deque>
 
+using namespace std;
 namespace OpenMS
 {
-  
-
-
-
-    double PeakPickerIM::computeOptimalSamplingRate(const std::vector<MSSpectrum>& spectra)
+    double PeakPickerIM::computeOptimalSamplingRate(const vector<MSSpectrum>& spectra)
     {
-      std::vector<double> mz_diffs;
+      vector<double> mz_diffs;
       Size upper_peak_limit = 0;
       for (size_t s = 0; s < spectra.size(); ++s)
       {
@@ -83,7 +82,7 @@ namespace OpenMS
 #endif
 
       // Filter out large differences (keep diffs <= threshold)
-      std::vector<double> small_mz_diffs;
+      vector<double> small_mz_diffs;
       for (double diff : mz_diffs)
       {
         if (diff <= threshold)
@@ -179,7 +178,7 @@ namespace OpenMS
     // To enable recomputing of m/z center after ion mobility peak picking, we tack raw m/z peak values
     // in FloatDataArrays().
 
-    std::vector<MSSpectrum> PeakPickerIM::extractIonMobilityTraces(
+    vector<MSSpectrum> PeakPickerIM::extractIonMobilityTraces(
       const MSSpectrum& picked_spectrum,
       const MSSpectrum& raw_spectrum)
     {
@@ -229,7 +228,7 @@ namespace OpenMS
       }
 
       // Vector of MSSpectra for each picked m/z peak (each spectrum is a mobilogram trace)
-      std::vector<MSSpectrum> mobility_traces;
+      vector<MSSpectrum> mobility_traces;
 
       for (size_t i = 0; i < picked_spectrum.size(); ++i)
       {
@@ -293,8 +292,8 @@ namespace OpenMS
     }
 
     // Function to compute m/z centers from mobilogram_traces and picked_traces
-    MSSpectrum PeakPickerIM::computeCentroids_(const std::vector<MSSpectrum>& mobilogram_traces,
-                              const std::vector<MSSpectrum>& picked_traces)
+    MSSpectrum PeakPickerIM::computeCentroids_(const vector<MSSpectrum>& mobilogram_traces,
+                              const vector<MSSpectrum>& picked_traces)
     {
       MSSpectrum centroided_frame;
 
@@ -360,11 +359,11 @@ namespace OpenMS
         // Create reusable objects outside the loop to reduce memory allocations
         MSSpectrum raw_peaks_within_bounds;
         MSSpectrum raw_mz_peaks;
-        std::vector<double> mz_values;
-        std::vector<double> intensity_values;
-        std::vector<size_t> indices;
-        std::vector<double> sorted_mz;
-        std::vector<double> sorted_intensity;
+        vector<double> mz_values;
+        vector<double> intensity_values;
+        vector<size_t> indices;
+        vector<double> sorted_mz;
+        vector<double> sorted_intensity;
         
         // Iterate through picked peaks in this trace
         for (Size j = 0; j < picked_trace.size(); ++j)
@@ -797,7 +796,7 @@ namespace OpenMS
         std::cout << "Trace " << i << " contains " << mobilogram_traces[i].size() << " points in ion mobility space." << std::endl;
       }
 #endif
-      std::vector<MSSpectrum> picked_traces;
+      vector<MSSpectrum> picked_traces;
 
 
       // TODO: check why there are so many mobilogram_traces that are empty. leads to segfault later
@@ -910,8 +909,7 @@ namespace OpenMS
 
         MSSpectrum picked_trace;
         picker.pick(summed_trace, picked_trace);
-        // populated picked_traces vector
-        picked_traces.push_back(picked_trace);
+        picked_traces.push_back(std::move(picked_trace));
 
 #ifdef DEBUG_PICKER
         std::cout << "--- Finished Processing Trace " << i << " ---\n\n";
@@ -946,37 +944,8 @@ namespace OpenMS
 #endif
     }
 
-
-
-    /**
-     * @brief Converts an ion mobility frame to a single spectrum with averaged IM values
-     *
-     * This function takes an MS spectrum containing ion mobility data and reduces it to
-     * a single spectrum where peaks that are close in both m/z and ion mobility space
-     * are averaged together. The averaging is intensity-weighted for both m/z and ion
-     * mobility values.
-     *
-     * The algorithm processes peaks sequentially and groups them based on two criteria:
-     * 1. m/z tolerance: peaks must be within specified ppm of each other
-     * 2. ion mobility tolerance: the range of IM values must not exceed the specified tolerance
-     *
-     * @param input Spectrum containing ion mobility data in its FloatDataArrays
-     * @param ppm_tolerance Mass tolerance in parts per million (default: 50.0 ppm)
-     * @param im_tolerance Ion mobility tolerance (default: 0.1 units)
-     *
-     * @throws Exception::MissingInformation if input spectrum lacks ion mobility data
-     *
-     * @note The input spectrum should contain ion mobility data in its FloatDataArrays.
-     *       The output spectrum will contain averaged peaks with their corresponding
-     *       intensity-weighted average ion mobility values.
-     *
-     * Example:
-     * @code
-     * MSSpectrum input;  // spectrum with IM data
-     * IMFrame::toSpectrum(input_spectrum);
-     * @endcode
-     */
-  static void PeakPickerIM::pickIMCluster(MSSpectrum& spec, double ppm_tolerance = 50.0, double im_tolerance = 0.1)
+  // static function to pick IM clusters
+  void PeakPickerIM::pickIMCluster(MSSpectrum& input, double ppm_tolerance, double im_tolerance)
   {
         if (input.empty()) return;
 
@@ -1131,8 +1100,7 @@ namespace OpenMS
         input.updateRanges(); // TODO: maybe needed
   }
 
-  static void pickIMElutionProfiles(MSSpectrum& input,
-                        double ppm_tolerance = 50.0)
+  void PeakPickerIM::pickIMElutionProfiles(MSSpectrum& input, double ppm_tolerance)
   {
     if (input.empty()) return;
 
@@ -1177,8 +1145,5 @@ namespace OpenMS
     input.sortByPosition(); // TODO: maybe needed
     input.updateRanges(); // TODO: maybe needed
   }
-
-
-
 
 } // namespace OpenMS

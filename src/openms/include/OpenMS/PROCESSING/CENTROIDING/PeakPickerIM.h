@@ -36,6 +36,47 @@ namespace OpenMS
     /// Gets the current parameters.
     Param getParameters() const;
 
+        /**
+     * @brief Converts an ion mobility frame to a single spectrum with averaged IM values
+     *
+     * This function takes an MS spectrum containing ion mobility data and reduces it to
+     * a single spectrum where peaks that are close in both m/z and ion mobility space
+     * are averaged together. The averaging is intensity-weighted for both m/z and ion
+     * mobility values.
+     *
+     * The algorithm processes peaks sequentially and groups them based on two criteria:
+     * 1. m/z tolerance: peaks must be within specified ppm of each other
+     * 2. ion mobility tolerance: the range of IM values must not exceed the specified tolerance
+     *
+     * @param input Spectrum containing ion mobility data in its FloatDataArrays
+     * @param ppm_tolerance Mass tolerance in parts per million (default: 50.0 ppm)
+     * @param im_tolerance Ion mobility tolerance (default: 0.1 units)
+     *
+     * @throws Exception::MissingInformation if input spectrum lacks ion mobility data
+     *
+     * @note The input spectrum should contain ion mobility data in its FloatDataArrays.
+     *       The output spectrum will contain averaged peaks with their corresponding
+     *       intensity-weighted average ion mobility values.
+     *
+     * Example:
+     * @code
+     * MSSpectrum input;  // spectrum with IM data
+     * IMFrame::toSpectrum(input_spectrum);
+     * @endcode
+     */
+    static void pickIMCluster(MSSpectrum& spec, double ppm_tolerance = 50.0, double im_tolerance = 0.1);
+
+    /**
+     * @brief Picks ion mobility elution profiles from the given spectrum using eluting profiles.
+     *
+     * This function processes an MS spectrum containing ion mobility data and
+     * extracts IM elution profiles based on the specified ppm tolerance.
+     *
+     * @param input Spectrum containing ion mobility data in its FloatDataArrays
+     * @param ppm_tolerance Mass tolerance in parts per million (default: 50.0 ppm)
+     */
+    static void pickIMElutionProfiles(MSSpectrum& input, double ppm_tolerance = 50.0);
+
   protected:
     /// Updates internal member variables when parameters are changed.
     void updateMembers_();
