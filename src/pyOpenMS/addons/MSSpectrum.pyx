@@ -1,5 +1,105 @@
 
 
+
+cdef class MSSpectrum:
+    def get_df(self, export_meta_values=True):
+        """Returns a pandas DataFrame with m/z, intensities, and properly typed metadata."""
+        # Get peak data using existing optimized method
+        cdef np.ndarray[np.float64_t, ndim=1] mzs
+        cdef np.ndarray[np.float32_t, ndim=1] intensities
+        mzs, intensities = self.get_peaks()
+        
+        cnt = len(mzs)
+        df = pd.DataFrame({
+            'mz': mzs,
+            'intensity': intensities
+        })
+
+        # ====== Core Metadata ======
+        df['rt'] = np.full(cnt, self.getRT(), dtype=np.float64)
+        df['ms_level'] = np.full(cnt, self.getMSLevel(), dtype=np.uint16)
+        df['native_id'] = np.full(cnt, self.getNativeID().decode(), dtype='U100')
+
+        # ====== Ion Mobility ======
+        if self.containsIMData():
+            im_arrays = self.getFloatDataArrays()
+            if im_arrays.size() > 0 and im_arrays[0].size() == cnt:
+                df['ion_mobility'] = np.array([im_arrays[0][i] for i in range(cnt)])
+                df['ion_mobility_unit'] = self.getDriftTimeUnitAsString().decode()
+        else:
+            df['ion_mobility'] = np.nan
+            df['ion_mobility_unit'] = ''
+
+        # ====== Precursor Info ======
+        precursors = self.getPrecursors()
+        if precursors.size() > 0:
+            precursor = precursors[0]
+            df['precursor_mz'] = np.full(cnt, precursor.getMZ(), dtype=np.float64)
+            df['precursor_charge'] = np.full(cnt, precursor.getCharge(), dtype=np.uint16)
+        else:
+            df['precursor_mz'] = np.nan
+            df['precursor_charge'] = np.nan
+
+        # ====== Peptide Sequence ======
+        seq = ''
+        pep_ids = self.getPeptideIdentifications()
+        if pep_ids.size() > 0:
+            hits = pep_ids[0].getHits()
+            if hits.size() > 0:
+                seq = hits[0].getSequence().toString().decode()
+        df['sequence'] = np.full(cnt, seq, dtype=f"U{len(seq)}" if seq else 'U1')
+
+        # ====== Ion Annotations ======
+        ion_annotations = np.full(cnt, '', dtype='U1')
+        str_arrays = self.getStringDataArrays()
+        for sda in str_arrays:
+            if sda.getName().decode() in ['IonNames', 'IonName']:
+                decoded = [sda[i].decode() for i in range(sda.size())]
+                if len(decoded) == cnt:
+                    max_len = max(len(s) for s in decoded) if decoded else 1
+                    ion_annotations = np.array(decoded, dtype=f"U{max_len}")
+                    break
+        df['ion_annotation'] = ion_annotations
+
+        # ====== Metadata Handling ======
+        if export_meta_values:
+            mvs = []
+            self.getKeys(mvs)
+            
+            for k in mvs:
+                if not self.metaValueExists(k):  # Key existence check
+                    continue
+                
+                # Get DataValue and extract underlying value
+                cdef DataValue dv = self.getMetaValue(k)
+                k_str = k.decode()
+                
+                try:
+                    # Direct type checking with Cython
+                    if dv.valueType() == DataValue.INT_VALUE:
+                        df[k_str] = np.full(cnt, dv.value(), dtype=np.int32)
+                    elif dv.valueType() == DataValue.DOUBLE_VALUE:
+                        df[k_str] = np.full(cnt, dv.value(), dtype=np.float64)
+                    elif dv.valueType() == DataValue.STRING_VALUE:
+                        s = dv.value()
+                        df[k_str] = np.full(cnt, s, dtype=f"U{len(s)}")
+                    elif dv.valueType() == DataValue.EMPTY_VALUE:
+                        continue  # Skip empty values
+                    else:  # Handle booleans and others
+                        val = dv.value()
+                        if isinstance(val, bool):
+                            df[k_str] = np.full(cnt, val, dtype=bool)
+                        else:
+                            df[k_str] = np.full(cnt, str(val), dtype='object')
+                
+                except Exception as e:
+                    # Fallback to string representation
+                    df[k_str] = np.full(cnt, str(dv.toString().decode()), dtype='object')
+
+        return df
+
+
+   
     def get_mz_array(MSSpectrum self):
         """Cython signature: numpy_vector get_mz_array()
         
