@@ -16,6 +16,7 @@ from . import MSSpectrum as _MSSpectrum
 from . import PeakSpectrum as _PeakSpectrum
 from . import MSChromatogram as _MSChromatogram
 from . import MRMTransitionGroupCP as _MRMTransitionGroupCP
+from . import DataValue as _DataValue 
 
 import pandas as _pd
 import numpy as _np
@@ -652,31 +653,31 @@ def _add_meta_values(df: _pd.DataFrame, object: any) -> _pd.DataFrame:
     """
     mvs = []
     object.getKeys(mvs)
-    cnt = df.shape[0]
-
+    
     for k in mvs:
-        k_str = k.decode()
-        if not object.metaValueExists(k):
-            continue
-
-        v = object.getMetaValue(k)
-        if isinstance(v, DataValue):
-            v = v.value()  # Extract actual value from DataValue wrapper
-
-        dtype = 'object'  # Fallback type
-        if isinstance(v, int):
-            dtype = 'int64'
-        elif isinstance(v, float):
-            dtype = 'float64'
-        elif isinstance(v, str):
-            dtype = f'U{len(v)}'
-        elif isinstance(v, bool):
-            dtype = 'bool'
-
+        dv = object.getMetaValue(k)  
+        col_name = k.decode()
+        
         try:
-            df[k_str] = np.full(cnt, v, dtype=dtype)
-        except Exception as e:
-            df[k_str] = np.full(cnt, str(v), dtype='object')
+            if dv.valueType() == _DataValue.STRING_VALUE:
+                value = dv.toString().decode()
+                dtype = f"U{len(value)}"
+            elif dv.valueType() == _DataValue.INT_VALUE:
+                value = dv.toInt()
+                dtype = "int32"
+            elif dv.valueType() == _DataValue.DOUBLE_VALUE:
+                value = dv.toDouble()
+                dtype = "float64"
+            elif dv.valueType() == _DataValue.EMPTY_VALUE:
+                continue
+            else:
+                value = str(dv)
+                dtype = "object"
+            
+            df[col_name] = _np.full(df.shape[0], value, dtype=dtype)
+            
+        except Exception: 
+            df[col_name] = _np.full(df.shape[0], str(dv), dtype='object')
 
     return df
 
