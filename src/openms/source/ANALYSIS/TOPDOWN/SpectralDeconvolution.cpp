@@ -1024,7 +1024,7 @@ void SpectralDeconvolution::scoreAndFilterPeakGroups_()
                                                                             peak_group.getMonoMass() + offset * iso_da_distance_);
 
         peak_group.updateQscore(noisy_peaks, avg_, min_isotope_cosine_[ms_level_ - 1], tol,
-                                (z1 + z2) < 2 * low_charge_, std::vector<double>{}, true);
+                                (z1 + z2) < 2 * low_charge_, excluded_masses_for_decoy_runs_, true);
         mass_determined = true;
         break;
       }
@@ -1156,29 +1156,29 @@ void SpectralDeconvolution::scoreAndFilterPeakGroups_()
   {
     for (Size k = 0; k < deconvolved_spectrum_.size(); k++)
     {
-      double max_target_qscore = 0;
-      for (const auto & pg2 : *target_dspec_for_decoy_calculation_)
-      {
-        max_target_qscore = std::max(max_target_qscore, pg2.getQscore());
-      }
+//      double max_target_qscore = 0;
+//      for (const auto & pg2 : *target_dspec_for_decoy_calculation_)
+//      {
+//        max_target_qscore = std::max(max_target_qscore, pg2.getQscore());
+//      }
       auto& pg = deconvolved_spectrum_[k];
       bool pass = true;
-      bool is_isotope_error = false;
-      double qs = pg.getQscore();
+      //bool is_isotope_error = false;
+      //double qs = pg.getQscore();
       for (const auto & pg2 : *target_dspec_for_decoy_calculation_)
       {
-        if (pg.getRepAbsCharge() == pg2.getRepAbsCharge() && std::abs(pg.getMonoMass() - pg2.getMonoMass()) < (2 + allowed_iso_error_) * iso_da_distance_ + .1) // if they are close enough
+        if (std::abs(pg.getMonoMass() - pg2.getMonoMass()) < (2 + allowed_iso_error_) * iso_da_distance_ + .1) // if they are close enough
         {
-          is_isotope_error = true;
+          //is_isotope_error = true;
           if (pg.getQscore() < pg2.getQscore()) pg.setQscore(pg2.getQscore());
-          if (std::abs(pg2.getIsotopeCosine() - pg.getIsotopeCosine()) > .01 * pg.getIsotopeCosine())
+          if (std::abs(pg2.getIsotopeCosine() - pg.getIsotopeCosine()) > .003)
           {
             pass = false;
             break;
           }
         }
       }
-      if (!pass || (is_isotope_error && qs == pg.getQscore())) continue;
+      if (!pass) continue;// || (is_isotope_error && qs == pg.getQscore())
       indices.insert(k);
     }
   }
