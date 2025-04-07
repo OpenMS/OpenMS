@@ -34,6 +34,8 @@ protected:
     registerStringOption_("processOption", "<name>", "inmemory", "Whether to load all data and process them in-memory or whether to process the data on the fly (lowmemory) without loading the whole file into memory first", false, true);
     setValidStrings_("processOption", { "inmemory", "lowmemory" } );
 
+    registerStringOption_("method", "<name>", "", "Method to pick peaks in IM dimension", false, true);
+    setValidStrings_("method", { "mobilogram", "cluster", "traces" } );
   }
 
     /**
@@ -43,32 +45,41 @@ protected:
   {
     public:
 
-    Consumer(String filename, const PeakPickerIM& pp) :
-      MSDataWritingConsumer(std::move(filename))
-    {
-      pp_ = pp;
-    }
+    Consumer(String filename, const String& method, const PeakPickerIM& pp) :
+      MSDataWritingConsumer(std::move(filename)), pp_(pp), method_(method) {}
 
     void processSpectrum_(MapType::SpectrumType& spectrum) override
     {
-      pp_.pickIMTraces(spectrum);
+      if (method_ == "mobilogram")
+      {
+        pp_.pickIMTraces(spectrum);
+      }
+      else if (method_ == "cluster")
+      {
+        PeakPickerIM::pickIMCluster(spectrum, 50.0, 0.1);
+      }
+      else if (method_ == "traces")
+      {    
+        PeakPickerIM::pickIMElutionProfiles(spectrum, 50.0);
+      }
     }
 
-    void processChromatogram_(MapType::ChromatogramType & c) override
+    void processChromatogram_(MapType::ChromatogramType & ) override
     {
     }
 
   private:
     PeakPickerIM pp_;
+    String method_ = "mobilogram";
   };
 
 
-  ExitCodes doLowMemAlgorithm(const PeakPickerIM& pp, const String& input_file, const String& output_file)
+  ExitCodes doLowMemAlgorithm(const String method, const PeakPickerIM& pp, const String& input_file, const String& output_file)
   {
     ///////////////////////////////////
     // Create the consumer object, add data processing
     ///////////////////////////////////
-    Consumer pp_consumer(output_file, pp);
+    Consumer pp_consumer(output_file, method, pp);
     pp_consumer.addDataProcessing(getProcessingInfo_(DataProcessing::PEAK_PICKING));
 
     ///////////////////////////////////
@@ -87,11 +98,12 @@ protected:
     String input_file = getStringOption_("in");
     String output_file = getStringOption_("out");
     String process_option = getStringOption_("processOption");
+    String method = getStringOption_("method");
 
     PeakPickerIM picker;
     if (process_option == "lowmemory")
     {
-      return doLowMemAlgorithm(picker, input_file, output_file); // TODO: needs parallelization
+      return doLowMemAlgorithm(method, picker, input_file, output_file); // TODO: needs parallelization
     }
     else
     {
@@ -107,7 +119,18 @@ protected:
         MSSpectrum& spectrum = exp[i];
         OPENMS_LOG_DEBUG << "Processing MS" << spectrum.getMSLevel() << " spectrum with " 
           << spectrum.size() << " peaks in the IM frame." << std::endl;
-        picker.pickIMTraces(spectrum);
+        if (method == "mobilogram")
+        {
+          picker.pickIMTraces(spectrum);
+        }
+        else if (method == "cluster")
+        {
+          PeakPickerIM::pickIMCluster(spectrum, 50.0, 0.1);
+        }
+        else if (method == "traces")
+        {    
+          PeakPickerIM::pickIMElutionProfiles(spectrum, 50.0);
+        }
         OPENMS_LOG_DEBUG << "Processed spectrum has " << spectrum.size() << " centroided IM peaks." << std::endl;
       }
       // Save output mzML file
