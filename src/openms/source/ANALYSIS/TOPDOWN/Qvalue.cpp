@@ -75,8 +75,8 @@ double Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvol
     std::sort(scores_noise_decoy.begin(), scores_noise_decoy.end());
 
     double sum = 0;
-    double max_score_for_weight_calculation = .75;
-    double min_score_for_weight_calculation = .2;
+    double max_score_for_weight_calculation = .7;
+    double min_score_for_weight_calculation = .3;
     double iso_sum = std::accumulate(scores_signal_decoy.begin(), scores_signal_decoy.end(), .0);
 
     for (int i = scores_signal_decoy.size() - 1; i >= 0; i--)
@@ -89,7 +89,7 @@ double Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvol
       }
     }
 
-    Size num_bin = 10;
+    Size num_bin = 6;
     // get the score distributions
     auto score_dist_target = getDistVector(scores_target, num_bin, min_score_for_weight_calculation, max_score_for_weight_calculation);
     auto score_dist_noise_decoy = getDistVector(scores_noise_decoy, num_bin, min_score_for_weight_calculation, max_score_for_weight_calculation);

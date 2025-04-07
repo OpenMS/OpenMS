@@ -135,7 +135,7 @@ void SpectralDeconvolution::performSpectrumDeconvolution(const MSSpectrum& spec,
   {
     for (const auto& pg : *target_dspec_for_decoy_calculation_) // pg are the target peak groups from normal spectrum deconvolution
     {
-      for (int i = -allowed_iso_error_; i <= allowed_iso_error_; i++)
+      for (int i = -0; i <= 0; i++)
       {
         excluded_masses_for_decoy_runs_.push_back(pg.getMonoMass() + i * iso_da_distance_);
         excluded_peak_masses_for_decoy_runs_.push_back(pg.getMonoMass() + avg_.getAverageMassDelta(pg.getMonoMass()) + i * iso_da_distance_);
@@ -274,7 +274,7 @@ void SpectralDeconvolution::calculateAveragine(const bool use_RNA_averagine)
 
   generator.setMaxIsotope(max_isotope);
   avg_ = FLASHHelperClasses::PrecalculatedAveragine(50, current_max_mass_, 25, generator, use_RNA_averagine,
-                                                    target_decoy_type_ == PeakGroup::noise_decoy ? noise_iso_delta_ : -1);
+                                                    target_decoy_type_ == PeakGroup::noise_decoy ? Constants::ISOTOPE_MASSDIFF_55K_U * noise_iso_delta_ : -1);
   avg_.setMaxIsotopeIndex((int)(max_isotope - 1));
 }
 
@@ -1083,6 +1083,14 @@ void SpectralDeconvolution::scoreAndFilterPeakGroups_()
     index = selected.find_next(index);
   }
 
+  if (target_decoy_type_ == PeakGroup::noise_decoy)
+  {
+    for (const auto& pg2 : *target_dspec_for_decoy_calculation_)
+    {
+      filtered_peak_groups.push_back(pg2);
+    }
+  }
+
   deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
   deconvolved_spectrum_.sort();
 
@@ -1154,24 +1162,26 @@ void SpectralDeconvolution::scoreAndFilterPeakGroups_()
   std::set<Size> indices;
   if (target_decoy_type_ == PeakGroup::signal_decoy)
   {
+    excluded_masses_for_decoy_runs_.clear();
+    for (const auto& pg : *target_dspec_for_decoy_calculation_) // pg are the target peak groups from normal spectrum deconvolution
+    {
+      for (int j = -allowed_iso_error_; j <= allowed_iso_error_; j++)
+      {
+        excluded_masses_for_decoy_runs_.push_back(pg.getMonoMass() + j * iso_da_distance_);
+      }
+    }
+
     for (Size k = 0; k < deconvolved_spectrum_.size(); k++)
     {
-//      double max_target_qscore = 0;
-//      for (const auto & pg2 : *target_dspec_for_decoy_calculation_)
-//      {
-//        max_target_qscore = std::max(max_target_qscore, pg2.getQscore());
-//      }
       auto& pg = deconvolved_spectrum_[k];
+      if (isPeakGroupInExcludedMassForDecoyRuns_(pg, tol)) continue;
       bool pass = true;
-      //bool is_isotope_error = false;
-      //double qs = pg.getQscore();
       for (const auto & pg2 : *target_dspec_for_decoy_calculation_)
       {
-        if (std::abs(pg.getMonoMass() - pg2.getMonoMass()) < (2 + allowed_iso_error_) * iso_da_distance_ + .1) // if they are close enough
+        if (std::abs(pg.getMonoMass() - pg2.getMonoMass()) < (3 + allowed_iso_error_) * iso_da_distance_ + .1) // if they are close enough
         {
-          //is_isotope_error = true;
-          if (pg.getQscore() < pg2.getQscore()) pg.setQscore(pg2.getQscore());
-          if (std::abs(pg2.getIsotopeCosine() - pg.getIsotopeCosine()) > .003)
+          //if (pg.getQscore() < pg2.getQscore()) pg.setQscore(pg2.getQscore());
+          if (std::abs(pg2.getIsotopeCosine() - pg.getIsotopeCosine()) > .005 * (allowed_iso_error_ + 1))
           {
             pass = false;
             break;
