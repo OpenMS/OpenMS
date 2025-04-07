@@ -652,92 +652,33 @@ def _add_meta_values(df: _pd.DataFrame, object: any) -> _pd.DataFrame:
     """
     mvs = []
     object.getKeys(mvs)
+    cnt = df.shape[0]
+
     for k in mvs:
+        k_str = k.decode()
+        if not object.metaValueExists(k):
+            continue
+
         v = object.getMetaValue(k)
-        dtype = 'U100'
+        if isinstance(v, DataValue):
+            v = v.value()  # Extract actual value from DataValue wrapper
+
+        dtype = 'object'  # Fallback type
+        if isinstance(v, int):
+            dtype = 'int64'
+        elif isinstance(v, float):
+            dtype = 'float64'
+        elif isinstance(v, str):
+            dtype = f'U{len(v)}'
+        elif isinstance(v, bool):
+            dtype = 'bool'
+
         try:
-            v = int(v)
-            dtype = int
-        except ValueError:
-            try:
-                v = float(v)
-                dtype = 'double'
-            except ValueError:
-                dtype = f'U{len(v)}'
-        
-        df[k.decode()] = _np.full(df.shape[0], v, dtype=_np.dtype(dtype))
+            df[k_str] = np.full(cnt, v, dtype=dtype)
+        except Exception as e:
+            df[k_str] = np.full(cnt, str(v), dtype='object')
 
     return df
-class _MSSpectrumDF(_MSSpectrum):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        
-    def get_df(self, export_meta_values: bool = True) -> _pd.DataFrame:
-        """
-        Returns a DataFrame representation of the MSSpectrum with both peak data and metadata.
-        
-        Args:
-            export_meta_values (bool): Whether to include meta values (default: True)
-            
-        Returns:
-            pd.DataFrame: Contains columns for m/z, intensity, metadata, and annotations
-        """
-        mzs, intensities = self.get_peaks()
-        cnt = len(mzs)
-        
-        # Base DataFrame with peaks
-        df = _pd.DataFrame({
-            'mz': mzs,
-            'intensity': intensities
-        })
-        
-        # Spectrum metadata
-        df['rt'] = _np.full(cnt, self.getRT(), dtype='double')
-        df['ms_level'] = _np.full(cnt, self.getMSLevel(), dtype='uint16')
-        df['native_id'] = _np.full(cnt, self.getNativeID(), dtype='U100')
-        
-        # Ion mobility data
-        if self.containsIMData():
-            df['ion_mobility'] = self.getFloatDataArrays()[0]
-            df['ion_mobility_unit'] = self.getDriftTimeUnitAsString()
-        else:
-            df['ion_mobility'] = _np.nan
-            df['ion_mobility_unit'] = ''
-            
-        # Precursor information
-        precs = self.getPrecursors()
-        df['precursor_mz'] = _np.full(cnt, precs[0].getMZ() if precs else 0.0, dtype='double')
-        df['precursor_charge'] = _np.full(cnt, precs[0].getCharge() if precs else 0, dtype='uint16')
-        
-        # Peptide sequence
-        seq = ''
-        if self.getPeptideIdentifications():
-            hits = self.getPeptideIdentifications()[0].getHits()
-            if hits:
-                seq = hits[0].getSequence().toString()
-        df['sequence'] = _np.full(cnt, seq, dtype=f'U{len(seq)}')
-        
-        # Ion annotations
-        ion_annotations = _np.full(cnt, '', dtype='U1')
-        for sda in self.getStringDataArrays():
-            if sda.getName() in ['IonNames', 'IonName']:
-                ion_annotations = [ion.decode() for ion in sda]
-                break
-        df['ion_annotation'] = ion_annotations
-        
-        # Add meta values if requested
-        if export_meta_values:
-            df = _add_meta_values(df, self)
-            
-        return df
-
-MSSpectrum = _MSSpectrumDF
-MSSpectrum.__module__ = _MSSpectrum.__module__
-MSSpectrum.__name__ = 'MSSpectrum'
-
-PeakSpectrum = _MSSpectrumDF
-PeakSpectrum.__module__ = _PeakSpectrum.__module__
-PeakSpectrum.__name__ = 'PeakSpectrum'
 
 class _ChromatogramType(_Enum):
     MASS_CHROMATOGRAM = 0
