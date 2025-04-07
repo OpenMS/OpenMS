@@ -91,7 +91,7 @@ protected:
     PeakPickerIM picker;
     if (process_option == "lowmemory")
     {
-      return doLowMemAlgorithm(picker, input_file, output_file);
+      return doLowMemAlgorithm(picker, input_file, output_file); // TODO: needs parallelization
     }
     else
     {

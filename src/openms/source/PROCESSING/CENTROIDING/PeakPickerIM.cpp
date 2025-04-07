@@ -22,6 +22,10 @@
 
 namespace OpenMS
 {
+  
+
+
+
     double PeakPickerIM::computeOptimalSamplingRate(const std::vector<MSSpectrum>& spectra)
     {
       std::vector<double> mz_diffs;
@@ -661,6 +665,20 @@ namespace OpenMS
     {
     }
 
+    void removeAllFloatDataArraysExcept(OpenMS::MSSpectrum& spectrum, const String& keep_name)
+    {
+      auto& float_arrays = spectrum.getFloatDataArrays();
+  
+      // Use remove_if to move all elements to remove to the end
+      auto new_end = std::remove_if(float_arrays.begin(), float_arrays.end(),
+                               [&keep_name](const MSSpectrum::FloatDataArray& array) {
+                                 return array.getName() != keep_name;  // Remove if NOT the one we want to keep
+                               });
+  
+      // Erase the removed elements
+      float_arrays.erase(new_end, float_arrays.end());
+    }
+
     Param PeakPickerIM::getDefaultParameters() const
     {
       Param p;
@@ -690,9 +708,6 @@ namespace OpenMS
 
     void PeakPickerIM::pickIMTraces(MSSpectrum& spectrum)
     {
-      // Debugging: Print the input spectrum size
-      std::cout << "Processing spectrum with " << spectrum.size() << " peaks." << std::endl;
-
       /*
       // IM format determination (Temporarily commented out)
       IMFormat format = IMTypes::determineIMFormat(spectrum);
@@ -917,7 +932,9 @@ namespace OpenMS
       centroided_frame.setMSLevel(spectrum.getMSLevel());
       centroided_frame.setName(spectrum.getName());
       centroided_frame.setRT(spectrum.getRT());
+      removeAllFloatDataArraysExcept(centroided_frame, "Ion Mobility");
       spectrum = std::move(centroided_frame);
+      
 
 #ifdef DEBUG_PICKER
       // Print peaks for debugging
@@ -928,4 +945,240 @@ namespace OpenMS
       }
 #endif
     }
+
+
+
+    /**
+     * @brief Converts an ion mobility frame to a single spectrum with averaged IM values
+     *
+     * This function takes an MS spectrum containing ion mobility data and reduces it to
+     * a single spectrum where peaks that are close in both m/z and ion mobility space
+     * are averaged together. The averaging is intensity-weighted for both m/z and ion
+     * mobility values.
+     *
+     * The algorithm processes peaks sequentially and groups them based on two criteria:
+     * 1. m/z tolerance: peaks must be within specified ppm of each other
+     * 2. ion mobility tolerance: the range of IM values must not exceed the specified tolerance
+     *
+     * @param input Spectrum containing ion mobility data in its FloatDataArrays
+     * @param ppm_tolerance Mass tolerance in parts per million (default: 50.0 ppm)
+     * @param im_tolerance Ion mobility tolerance (default: 0.1 units)
+     *
+     * @throws Exception::MissingInformation if input spectrum lacks ion mobility data
+     *
+     * @note The input spectrum should contain ion mobility data in its FloatDataArrays.
+     *       The output spectrum will contain averaged peaks with their corresponding
+     *       intensity-weighted average ion mobility values.
+     *
+     * Example:
+     * @code
+     * MSSpectrum input;  // spectrum with IM data
+     * IMFrame::toSpectrum(input_spectrum);
+     * @endcode
+     */
+  static void PeakPickerIM::pickIMCluster(MSSpectrum& spec, double ppm_tolerance = 50.0, double im_tolerance = 0.1)
+  {
+        if (input.empty()) return;
+
+        // Get IM data array
+        const auto [im_data_index, im_unit] = input.getIMData();
+        auto& im_data = input.getFloatDataArrays()[im_data_index];
+
+        /**
+         * @brief Internal structure to hold peak information during processing
+         */
+        struct Point {
+            double mz;        ///< m/z value
+            double im;        ///< ion mobility value
+            float intensity; ///< intensity value
+            Point(double mz_val, double im_val, double int_val) :
+                mz(mz_val), im(im_val), intensity(int_val) {}
+        };
+
+        // Convert peaks to Points for processing
+        vector<Point> points;
+        points.reserve(input.size());
+        
+        for (size_t i = 0; i < input.size(); ++i)
+        {
+            const auto& peak = input[i];
+            points.emplace_back(peak.getMZ(), im_data[i], peak.getIntensity());
+        }
+
+        // Sort points by m/z if not already sorted
+        if (!input.isSorted())
+        {
+            sort(points.begin(), points.end(), 
+                 [](const Point& a, const Point& b) { return a.mz < b.mz; });
+        }
+
+        // Deques for maintaining min/max of IM values in current window
+        deque<double> minDeque;  ///< Maintains minimum IM values
+        deque<double> maxDeque;  ///< Maintains maximum IM values
+
+        double ppm_factor = 1.0 + (ppm_tolerance * 1e-6);
+        size_t start = 0;
+        vector<Point> averaged_points;
+
+        /**
+         * @brief Helper function to compute intensity-weighted averages for a cluster
+         * @param s Start index of the cluster
+         * @param e End index of the cluster
+         */
+        auto finalize_cluster = [&](int s, int e) {
+            if (s <= e) {
+                double sum_intensity = 0.0;
+                double sum_mv = 0.0;
+                double sum_iv = 0.0;
+                
+                for (int idx = s; idx <= e; ++idx) {
+                    sum_intensity += points[idx].intensity;
+                    sum_mv += points[idx].mz * points[idx].intensity;
+                    sum_iv += points[idx].im * points[idx].intensity;
+                }
+                
+                averaged_points.emplace_back(
+                    sum_mv / sum_intensity,
+                    sum_iv / sum_intensity,
+                    sum_intensity
+                );
+            }
+        };
+
+        // Main clustering loop
+        for (size_t end = 0; end < points.size(); ++end)
+        {
+            double current_i = points[end].im;
+
+            // Update minDeque
+            while (!minDeque.empty() && minDeque.back() > current_i)
+                minDeque.pop_back();
+            minDeque.push_back(current_i);
+
+            // Update maxDeque
+            while (!maxDeque.empty() && maxDeque.back() < current_i)
+                maxDeque.pop_back();
+            maxDeque.push_back(current_i);
+
+            // Check and update window start
+            while (start <= end)
+            {
+                double m_min = points[start].mz;
+                double m_max = points[end].mz;
+                bool m_ok = (m_max <= m_min * ppm_factor);
+
+                double i_min = minDeque.front();
+                double i_max = maxDeque.front();
+                bool i_ok = ((i_max - i_min) <= im_tolerance);
+
+                if (m_ok && i_ok)
+                    break;
+
+                // Remove start point from deques
+                double i_to_remove = points[start].im;
+                if (i_to_remove == minDeque.front())
+                    minDeque.pop_front();
+                if (i_to_remove == maxDeque.front())
+                    maxDeque.pop_front();
+                start++;
+            }
+
+            // Check if next point would violate constraints
+            if (end + 1 < points.size())
+            {
+                double next_m = points[end + 1].mz;
+                double next_i = points[end + 1].im;
+
+                double m_min = points[start].mz;
+                bool m_ok = (next_m <= m_min * ppm_factor);
+
+                double i_min_next = min(minDeque.front(), next_i);
+                double i_max_next = max(maxDeque.front(), next_i);
+                bool i_ok = ((i_max_next - i_min_next) <= im_tolerance);
+
+                if (!(m_ok && i_ok))
+                {
+                    finalize_cluster(start, end);
+                    start = end + 1;
+                    minDeque.clear();
+                    maxDeque.clear();
+                }
+            }
+        }
+
+        // Finalize last cluster
+        if (start < points.size())
+        {
+            finalize_cluster(start, points.size() - 1);
+        }
+
+        // Convert averaged points back to MSSpectrum
+        input.resize(averaged_points.size());
+        input.shrink_to_fit();        
+        
+        im_data.resize(averaged_points.size());
+        im_data.shrink_to_fit();
+
+        for (size_t i = 0; i != averaged_points.size(); ++i)
+        {
+          const auto& p = averaged_points[i];
+          input[i].setMZ(p.mz);
+          input[i].setIntensity(p.intensity);
+          im_data[i] = p.im;
+        }
+
+        input.sortByPosition();
+        input.updateRanges(); // TODO: maybe needed
+  }
+
+  static void pickIMElutionProfiles(MSSpectrum& input,
+                        double ppm_tolerance = 50.0)
+  {
+    if (input.empty()) return;
+
+    // Get IM data array
+    const auto [im_data_index, im_unit] = input.getIMData();
+    auto& im_data = input.getFloatDataArrays()[im_data_index];
+
+    // convert to MSExperiment and set drift time as RT
+    MSExperiment frame_as_spectra = IMDataConverter::reshapeIMFrameToMany(input);
+    for (auto& s : frame_as_spectra)
+    {
+      s.setRT(s.getDriftTime());
+      s.setDriftTime(-1);
+    }
+
+    // detect mass traces in IM frame
+    MassTraceDetection mte;
+    Param param = mte.getParameters();
+    param.setValue("min_trace_length", 0.0001);
+    param.setValue("reestimate_mt_sd", "true");
+    param.setValue("mass_error_ppm", ppm_tolerance);
+    param.setValue("trace_termination_criterion", "sample_rate");
+    mte.setLogType(ProgressLogger::NONE);
+    mte.setParameters(param);
+    vector<MassTrace> output_mt;
+    mte.run(frame_as_spectra, output_mt);
+    
+    // copy mass traces centroids back to peaks
+    input.resize(output_mt.size());
+    input.shrink_to_fit();        
+      
+    im_data.resize(output_mt.size());
+    im_data.shrink_to_fit();
+
+    for (Size i = 0; i < output_mt.size(); ++i)
+    {      
+      const MassTrace& mt = output_mt[i];
+      input[i].setMZ(mt.getCentroidMZ());
+      input[i].setIntensity(mt.computeIntensitySum()); //TODO: somewhat related: why is getIntensity() zero?
+      im_data[i] = mt.getCentroidRT(); // IM
+    }    
+    input.sortByPosition(); // TODO: maybe needed
+    input.updateRanges(); // TODO: maybe needed
+  }
+
+
+
+
 } // namespace OpenMS
