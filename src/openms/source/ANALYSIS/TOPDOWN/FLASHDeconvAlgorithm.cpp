@@ -139,7 +139,7 @@ void FLASHDeconvAlgorithm::filterLowPeaks_(MSExperiment& map)
   threshold_mower_filter.filterPeakMap(map);
 
 #pragma omp parallel for default(none), shared(map)
-  for (Size i = 0; i < map.size(); i++)
+  for (int i = 0; i < (int) map.size(); i++)
   {
     auto& it = map[i];
     if (it.empty()) continue;
