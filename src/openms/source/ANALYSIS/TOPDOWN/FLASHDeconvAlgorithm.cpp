@@ -57,16 +57,6 @@ FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(): DefaultParamHandler("FLASHDeconvAl
     "Specify the isolation window width for precursor determination. Used when this information is absent in the mzML file.");
   defaults_.addTag("isolation_window", "advanced");
 
-  // defaults_.setValue("max_MS_level", 2, "Maximum MS level (inclusive) for deconvolution.");
-  // defaults_.setMinInt("max_MS_level", 1);
-  // defaults_.addTag("max_MS_level", "advanced");
-
-  //    defaults_.setValue("forced_MS_level", 0,
-  //                       "If set to an integer N, MS level of all spectra will be set to N regardless of original MS level. Useful when deconvolving "
-  //                       "datasets containing only MS2 spectra.");
-  //    defaults_.setMinInt("forced_MS_level", 0);
-  //    defaults_.addTag("forced_MS_level", "advanced");
-
   defaults_.setValue("merging_method", 0,
                      "Method for merging spectra before deconvolution. 0: No merging  1: Gaussian averaging per MS level, effective for Q-TOF datasets. For MSn (n > 1), only the spectra from the same precursor mass "
                      "(subject to tolerance set by SD:tol) are averaged. 2: Block merging, combining all spectra into one per MS level (e.g., for NativeMS datasets).");
@@ -106,9 +96,6 @@ FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(): DefaultParamHandler("FLASHDeconvAl
 
 void FLASHDeconvAlgorithm::updateMembers_()
 {
-  //forced_ms_level_ = param_.getValue("forced_MS_level");
-  // max_ms_level_ = param_.getValue("max_MS_level");
-
   tols_ = param_.getValue("SD:tol");
   min_cos_ = param_.getValue("SD:min_cos");
   precursor_MS1_window_ = param_.getValue("precursor_MS1_window");
@@ -152,7 +139,7 @@ void FLASHDeconvAlgorithm::filterLowPeaks_(MSExperiment& map)
   threshold_mower_filter.filterPeakMap(map);
 
 #pragma omp parallel for default(none), shared(map)
-  for (int i = 0; i < map.size(); i++)
+  for (Size i = 0; i < map.size(); i++)
   {
     auto& it = map[i];
     if (it.empty()) continue;
@@ -178,8 +165,8 @@ void FLASHDeconvAlgorithm::mergeSpectra_(MSExperiment& map, uint ms_level)
   Param sm_param = merger.getDefaults();
   sm_param.setValue("mz_binning_width", tols_[ms_level - 1] / 2.5);
   sm_param.setValue("mz_binning_width_unit", "ppm");
-  int min_ms_level = param_.getValue("merging_min_ms_level");
-  int max_ms_level = param_.getValue("merging_max_ms_level");
+  uint min_ms_level = param_.getValue("merging_min_ms_level");
+  uint max_ms_level = param_.getValue("merging_max_ms_level");
   if (merge_spec_ == 1 && ms_level >= min_ms_level && ms_level <= max_ms_level)
   {
     if (ms_level == 1)
@@ -199,7 +186,7 @@ void FLASHDeconvAlgorithm::mergeSpectra_(MSExperiment& map, uint ms_level)
         auto spec = map[i];
         if (spec.getMSLevel() != ms_level) continue;
 
-        auto native_id = spec.getNativeID();
+        const auto& native_id = spec.getNativeID();
         original_precursor_map[native_id] = spec.getPrecursors();
 
         if (! spec.getPrecursors().empty() && native_id_precursor_peak_group_map_.find(native_id) != native_id_precursor_peak_group_map_.end())
@@ -215,7 +202,7 @@ void FLASHDeconvAlgorithm::mergeSpectra_(MSExperiment& map, uint ms_level)
       // merge MS n using precursor method
       OPENMS_LOG_INFO << "Merging MS" << ms_level << " spectra from the same deconvolved precursor masses... " << std::endl;
       sm_param.setValue("precursor_method:mz_tolerance", 0.2);
-      sm_param.setValue("precursor_method:rt_tolerance", 30.0); // TODO
+      sm_param.setValue("precursor_method:rt_tolerance", 30.0); // TODO make this as a user input?
       merger.setParameters(sm_param);
       map.sortSpectra();
       merger.mergeSpectraPrecursors(map);
@@ -281,7 +268,7 @@ void FLASHDeconvAlgorithm::runSpectralDeconvolution_(MSExperiment& map, std::vec
 
   for (uint ms_level = 1; ms_level <= current_max_ms_level_; ms_level++)
   {
-    if (ms_level > 1) // TODO maybe this can go after merge_spec > 0
+    if (ms_level > 1)
     {
       // here, register precursor peak groups to the ms2 spectra.
       findPrecursorPeakGroupsForMSnSpectra_(map, deconvolved_spectra, ms_level);
@@ -331,26 +318,19 @@ void FLASHDeconvAlgorithm::runSpectralDeconvolution_(MSExperiment& map, std::vec
 #pragma omp section
           sd_signal_decoy_.performSpectrumDeconvolution(spec, scan_number, precursor_pg);
         }
-        // DeconvolvedSpectrum decoy_deconvolved_spectrum(scan_number);
-
         deconvolved_spectrum.sortByQscore();
         double qscore_low_threshold_for_decoy = deconvolved_spectrum.back().getQscore2D();
         double qscore_high_threshold_for_decoy = deconvolved_spectrum[0].getQscore2D();
-        //decoy_deconvolved_spectrum.setOriginalSpectrum(spec);
 
         deconvolved_spectrum.reserve(deconvolved_spectrum.size() + sd_signal_decoy_.getDeconvolvedSpectrum().size()
                                      + sd_noise_decoy_.getDeconvolvedSpectrum().size());
 
-        //for (const auto& pg : sd_charge_decoy_.getDeconvolvedSpectrum())
-        //  if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
-        //    deconvolved_spectrum.push_back(pg);
-
         for (const auto& pg : sd_signal_decoy_.getDeconvolvedSpectrum())
-          if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
+          //if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
             deconvolved_spectrum.push_back(pg);
 
         for (const auto& pg : sd_noise_decoy_.getDeconvolvedSpectrum())
-          if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
+          //if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
             deconvolved_spectrum.push_back(pg);
 
         deconvolved_spectrum.sort();
@@ -389,7 +369,7 @@ std::vector<int> FLASHDeconvAlgorithm::getHistogram_(const std::vector<double>& 
   return bins;
 }
 
-void FLASHDeconvAlgorithm::determineTolerance_(const MSExperiment& map, const Param& sd_param, const FLASHHelperClasses::PrecalculatedAveragine& avg, int ms_level)
+void FLASHDeconvAlgorithm::determineTolerance_(const MSExperiment& map, const Param& sd_param, const FLASHHelperClasses::PrecalculatedAveragine& avg, const uint ms_level)
 {
   OPENMS_LOG_INFO << "Determining tolerance for MS" << ms_level << " ... ";
   auto sd = SpectralDeconvolution();
@@ -407,7 +387,7 @@ void FLASHDeconvAlgorithm::determineTolerance_(const MSExperiment& map, const Pa
   std::vector<double> sampled_tols;
   for (const auto& spec : map)
   {
-    if (ms_level != spec.getMSLevel()) { continue; }
+    if (ms_level != (uint)spec.getMSLevel()) { continue; }
     if (spec.empty()) { continue; }
     if (count++ % sample_rate != 0) continue;
     PeakGroup precursor_pg;
@@ -484,14 +464,6 @@ void FLASHDeconvAlgorithm::run(MSExperiment& map,
   OPENMS_LOG_INFO<< "Done" << std::endl;
   const auto& avg = sd_.getAveragine();
 
-  bool is_centroid = true;
-  for (auto& it : map)
-  {
-    if (it.empty()) continue;
-    is_centroid = it.getType(false) == SpectrumSettings::CENTROID;
-    break;
-  }
-
   // determine tolerance in case tolerance input is negative
   for (uint ms_level = 1; ms_level <= current_max_ms_level_; ms_level++)
   {
@@ -506,7 +478,7 @@ void FLASHDeconvAlgorithm::run(MSExperiment& map,
   {
     sd_noise_decoy_.setParameters(sd_param);
     sd_noise_decoy_.setTargetDecoyType(PeakGroup::TargetDecoyType::noise_decoy, sd_.getDeconvolvedSpectrum()); // noise
-    sd_noise_decoy_.calculateAveragine(use_RNA_averagine_, is_centroid); // for noise, averagine needs to be calculated differently.
+    sd_noise_decoy_.calculateAveragine(use_RNA_averagine_); // for noise, averagine needs to be calculated differently.
 
     sd_signal_decoy_.setParameters(sd_param);
     sd_signal_decoy_.setTargetDecoyType(PeakGroup::TargetDecoyType::signal_decoy, sd_.getDeconvolvedSpectrum()); // isotope
@@ -692,7 +664,7 @@ void FLASHDeconvAlgorithm::findPrecursorPeakGroupsForMSnSpectra_(const MSExperim
         double max_intensity = .0;
         const FLASHHelperClasses::LogMzPeak* tmp_precursor = nullptr;
 
-        int c = int(.5 + pg.getMonoMass() / start_mz);
+        int c = int(round(pg.getMonoMass() / start_mz));
         for (auto& tmp_peak : pg)
         {
           if (tmp_peak.abs_charge != c) { continue; }
@@ -782,11 +754,11 @@ void FLASHDeconvAlgorithm::runFeatureFinding_(std::vector<DeconvolvedSpectrum>& 
   mass_tracer.setParameters(mf_param); // maybe go to set param
   // decoy_mass_tracer.setParameters(mf_param);
   // Find features for MS1 or the minimum MS level in the dataset.
-  deconvolved_features = mass_tracer.findFeaturesAndUpdateQscore2D(sd_.getAveragine(), deconvolved_spectra, current_min_ms_level_, false);
+  deconvolved_features = mass_tracer.findFeaturesAndUpdateQscore2D(sd_.getAveragine(), deconvolved_spectra, (int)current_min_ms_level_, false);
 
   if (report_decoy_)
   {
-    const auto& decoy_deconvolved_features = mass_tracer.findFeaturesAndUpdateQscore2D(sd_.getAveragine(), deconvolved_spectra, current_min_ms_level_, true);
+    const auto& decoy_deconvolved_features = mass_tracer.findFeaturesAndUpdateQscore2D(sd_.getAveragine(), deconvolved_spectra, (int)current_min_ms_level_, true);
     deconvolved_features.insert(deconvolved_features.end(), decoy_deconvolved_features.begin(), decoy_deconvolved_features.end());
   }
 

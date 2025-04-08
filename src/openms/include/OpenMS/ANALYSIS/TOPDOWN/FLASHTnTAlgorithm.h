@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2024, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-2025, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -70,8 +70,12 @@ protected:
   void setDefaultParams_();
 
 private:
+
   Param tagger_param_, extender_param_;
-  double decoy_factor_ = 0, prsm_fdr_ = 1, pro_fdr_ = 1;
+  double decoy_factor_ = 0, prsm_fdr_ = 1;
+  /// how many nodes (massses) will be used
+  Size max_node_cntr_ = 300;
+
   bool keep_decoy_ = false;
   bool keep_underdetermined_ = true;
   bool multiple_hits_per_spec_ = false;

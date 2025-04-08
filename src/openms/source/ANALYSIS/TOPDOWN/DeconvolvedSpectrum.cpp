@@ -29,57 +29,11 @@ namespace OpenMS
     return this->scan_number_ == a.scan_number_;
   }
 
-  /*
-  std::vector<PeakGroup> DeconvolvedSpectrum::getNonOverlappingPeakGroups() const
-  {
-    std::map<double, std::set<int>> peak_to_pgs;
-    std::vector<PeakGroup> filtered_pg_vec;
-    filtered_pg_vec.reserve(size());
-    std::vector<PeakGroup> ret;
-    ret.reserve(size());
-
-    int i = 0;
-    for (const auto& pg : *this)
-    {
-      for (const auto& p : pg)
-      {
-        peak_to_pgs[p.mz].insert(i);
-      }
-      i++;
-    }
-
-    std::set<int> max_indices;
-    for (const auto& e : peak_to_pgs)
-    {
-      int max_index = 0;
-      double max_qscore = 0;
-      for (const auto pg_index : e.second)
-      {
-        auto pg = peak_groups_[pg_index];
-        if (max_qscore > pg.getFeatureQscore())
-          continue;
-
-        max_qscore = pg.getQscore2D();
-        max_index = pg_index;
-      }
-      max_indices.insert(max_index);
-    }
-    for (int mi : max_indices) ret.push_back(peak_groups_[mi]);
-
-    std::sort(ret.begin(), ret.end());
-    return ret;
-  }*/
-
-
   MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge, double tol, bool retain_undeconvolved)
   {
     auto out_spec = MSSpectrum(spec_);
     out_spec.clear(false);
 
-   // if ((spec_.getMSLevel() > min_ms_level && precursor_peak_group_.empty()) || empty())
-   // {
-    //  return out_spec;
-   // }
     double charge_mass_offset = (double)abs(to_charge) * FLASHHelperClasses::getChargeMass(to_charge >= 0);
     std::unordered_set<double> deconvolved_mzs;
     std::stringstream val {};
@@ -255,11 +209,6 @@ namespace OpenMS
   void DeconvolvedSpectrum::setPrecursor(const Precursor& precursor)
   {
     precursor_peak_ = precursor;
-  }
-
-  void DeconvolvedSpectrum::setPrecursorIntensity(const float i)
-  {
-    precursor_peak_.setIntensity(i);
   }
 
   void DeconvolvedSpectrum::setActivationMethod(const Precursor::ActivationMethod& method)

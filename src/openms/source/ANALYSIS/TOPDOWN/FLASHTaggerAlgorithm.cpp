@@ -6,14 +6,17 @@
 // $Authors: Kyowon Jeong$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/TOPDOWN/ConvolutionBasedProteinFilter.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHTaggerAlgorithm.h>
 #include <utility>
 
 namespace OpenMS
 {
-inline const Size max_node_cntr = 300;
+// define static variables
+std::vector<boost::dynamic_bitset<>> FLASHTaggerAlgorithm::vectorized_fasta_entry_;
+std::vector<boost::dynamic_bitset<>> FLASHTaggerAlgorithm::rev_vectorized_fasta_entry_;
+std::vector<std::map<int, double>> FLASHTaggerAlgorithm::mass_map_;
+std::vector<std::map<int, double>> FLASHTaggerAlgorithm::rev_mass_map_;
 
 std::vector<Residue> FLASHTaggerAlgorithm::getAA_(double l, double r, double tol, int consider_ion_diff, int mode) const
 {
@@ -402,11 +405,6 @@ void FLASHTaggerAlgorithm::updateMembers_()
   max_edge_mass_ += gap_mass_map_.empty() ? aa_mass_map_.rbegin()->first : std::max(aa_mass_map_.rbegin()->first, gap_mass_map_.rbegin()->first);
 }
 
-const MSSpectrum& FLASHTaggerAlgorithm::getSpectrum() const
-{
-  return spec_;
-}
-
 void FLASHTaggerAlgorithm::run(const DeconvolvedSpectrum& deconvolved_spectrum, double ppm)
 {
   // setLogType(CMD);
@@ -415,14 +413,8 @@ void FLASHTaggerAlgorithm::run(const DeconvolvedSpectrum& deconvolved_spectrum, 
   auto tags = std::vector<FLASHHelperClasses::Tag>();
   tags.reserve(max_tag_length_ * max_tag_counts_.back());
 
-  spec_.setRT(deconvolved_spectrum.getOriginalSpectrum().getRT());
-  if (deconvolved_spectrum.getPrecursorPeakGroup().getMonoMass() > 0)
-  {
-    spec_.setMetaValue("PrecursorMass", deconvolved_spectrum.getPrecursorPeakGroup().getMonoMass());
-  }
-
   for (int mode = 0; mode < (common_shifts_.empty() ? 3 : 1); mode++)
-    getTags_(deconvolved_spectrum, ppm, mode);
+    generateTags_(deconvolved_spectrum, ppm, mode);
 
   std::sort(tags_.rbegin(), tags_.rend());
 
@@ -434,49 +426,12 @@ void FLASHTaggerAlgorithm::run(const DeconvolvedSpectrum& deconvolved_spectrum, 
   }
 }
 
-void FLASHTaggerAlgorithm::indexFasta_(const std::vector<FASTAFile::FASTAEntry>& fasta_entry)
+int FLASHTaggerAlgorithm::getNodeScore(const PeakGroup& peak_group)
 {
-  if (!indexed_fasta_.empty()) return;
-  std::vector<String> keys = {""};
-  keys.reserve( std::pow(aas_.size(), min_tag_length_) + 1);
-  for (Size d = 0; d < min_tag_length_; d++)
-  {
-    auto t_keys = keys;
-    for (const auto& aa : aas_)
-    {
-      const auto& aaStr = aa->toString();
-      for (const auto& key : t_keys)
-      {
-        if (key.length() != d) continue;
-        keys.push_back(key + aaStr);
-      }
-    }
-  }
-
-#pragma omp parallel for default(none) shared(keys, fasta_entry, std::cout)
-  for (int i = 0 ; i < (int) keys.size(); i++)
-  {
-    const auto& key = keys[i];
-    if (key.length() < min_tag_length_) continue;
-    std::set<Size> value;
-    for (Size j = 0 ; j < fasta_entry.size(); j++)
-    {
-      if (!fasta_entry[j].sequence.hasSubstring(key)) continue;
-      value.insert(j);
-    }
-    //std::cout<<key<< " " << value.size()<<std::endl;
-#pragma omp critical
-    indexed_fasta_[key] = value;
-  }
+  return std::max(1, (int)round(max_node_score * peak_group.getQscore()));
 }
 
-int FLASHTaggerAlgorithm::getPeakGroupScore(const PeakGroup& peak_group)
-{
-  // (int)round(5 * log10(std::max(1e-1, pg.getQscore() / std::max(1e-1, (1.0 - pg.getQscore())))));
-  return std::max(1, (int)round(max_peak_group_score * peak_group.getQscore()));
-}
-
-void FLASHTaggerAlgorithm::getTags_(const DeconvolvedSpectrum& dspec, double ppm, int mode) // mode 0 : common 1 : n 2 : c term
+void FLASHTaggerAlgorithm::generateTags_(const DeconvolvedSpectrum& dspec, double ppm, int mode) // mode 0 : common 1 : n 2 : c term
 {
   if (mode == 0 && common_shifts_.empty()) return;
   if (mode == 1 && n_term_shifts_.empty()) return;
@@ -489,7 +444,7 @@ void FLASHTaggerAlgorithm::getTags_(const DeconvolvedSpectrum& dspec, double ppm
 
   for (const auto& pg : dspec)
   {
-    int score = getPeakGroupScore(pg);
+    int score = getNodeScore(pg);
     // if (score <= -5) continue;
     scores.push_back(score);
     mzs.push_back(pg.getMonoMass());
@@ -600,7 +555,6 @@ void FLASHTaggerAlgorithm::updateTagSet_(std::set<FLASHHelperClasses::Tag>& tag_
 
 void FLASHTaggerAlgorithm::getScoreAndMatchCount_(const std::vector<int>& spec_vec,
                                                   const boost::dynamic_bitset<>& pro_vec,
-                                                  // const boost::dynamic_bitset<>& mask_pro_vec,
                                                   const std::set<int>& spec_pro_diffs,
                                                   const std::vector<int>& spec_scores,
                                                   int& max_score,
@@ -636,35 +590,14 @@ void FLASHTaggerAlgorithm::getTags_(const std::vector<double>& mzs, const std::v
   std::vector<double> _mzs;
   int threshold;
 
-  if (mzs.size() >= max_node_cntr)
-  {
-    _scores = scores;
-    std::sort(_scores.rbegin(), _scores.rend());
-    threshold = _scores[max_node_cntr - 1];
-    _scores.clear();
-
-    _mzs.reserve(max_node_cntr + 1);
-    _scores.reserve(max_node_cntr + 1);
-  }
-  else
-  {
-    _mzs.reserve(mzs.size() + 1);
-    _scores.reserve(mzs.size() + 1);
-    threshold = *std::min_element(scores.begin(), scores.end());
-  }
-
   _mzs.push_back(.0);
   _scores.push_back(0);
-  spec_.reserve(_mzs.size());
+
   for (int i = 0; i < (int)mzs.size(); i++)
   {
-    if (scores[i] < threshold) continue;
     _mzs.push_back(mzs[i]);
     _scores.push_back(scores[i]);
-    spec_.emplace_back(mzs[i], scores[i]);
   }
-
-  // filtration of top 500 masses is done
 
   int max_vertex_score = *std::max_element(_scores.begin(), _scores.end());
   int min_vertex_score = *std::min_element(_scores.begin(), _scores.end());
@@ -749,22 +682,59 @@ Size FLASHTaggerAlgorithm::find_with_X_(const std::string_view& A, const String&
   return String::npos;
 }
 
+void FLASHTaggerAlgorithm::vectorizeFasta_(const std::vector<FASTAFile::FASTAEntry>& fasta_entry, bool reverse)
+{
+  auto& vectorized_fasta_entry = reverse? rev_vectorized_fasta_entry_: vectorized_fasta_entry_;
+  auto& mass_map = reverse? rev_mass_map_: mass_map_;
+
+  vectorized_fasta_entry.reserve(fasta_entry.size());
+  mass_map.reserve(fasta_entry.size());
+  int max_vec_size = 0;
+  for (const auto& i : fasta_entry)
+  {
+    auto seq = i.sequence;
+    seq.erase(remove(seq.begin(), seq.end(), 'X'), seq.end()); // remove all X
+    // boost::dynamic_bitset<> vec(1 + round(multi_factor_for_vectorization * AASequence::fromString(seq).getMonoWeight(Residue::Internal)));
+    boost::dynamic_bitset<> vec;
+    int pro_vec_len = 1 + round(AASequence::fromString(seq).getMonoWeight(Residue::Internal));
+    max_vec_size = std::max(max_vec_size, pro_vec_len);
+    vec.resize(pro_vec_len);
+    std::map<int, double> masses;
+    double nmass = 0;
+    vec[0] = true;
+    masses[reverse ? seq.size() : 0] = .0;
+    for (Size j = 0; j < seq.size(); j++)
+    {
+      Size index = reverse ? (seq.size() - j - 1) : j;
+      nmass += AASequence::fromString(seq[index]).getMonoWeight(Residue::Internal);
+      masses[index + (reverse ? 0 : 1)] = nmass;
+      int vindex = int(round(nmass));
+
+      vec[vindex] = true;
+      max_vec_size = std::max(max_vec_size, vindex);
+      // vec[(l/2 + SpectralDeconvolution::getNominalMass(nmass)) % l] = true;
+    }
+
+    mass_map.push_back(masses);
+    vectorized_fasta_entry.push_back(vec);
+  }
+}
+
 // Make output struct containing all information about matched entries and tags, coverage, score etc.
 void FLASHTaggerAlgorithm::runMatching(const std::vector<FASTAFile::FASTAEntry>& fasta_entry,
                                        const DeconvolvedSpectrum& deconvolved_spectrum,
-                                       const std::vector<boost::dynamic_bitset<>>& vectorized_fasta_entry,
-                                       const std::vector<boost::dynamic_bitset<>>& reversed_vectorized_fasta_entry,
-                                       const std::vector<std::map<int, double>>& mass_map,
-                                       const std::vector<std::map<int, double>>& rev_mass_map,
                                        const double max_mod_mass)
 {
-  //indexFasta_(fasta_entry);
   std::vector<std::pair<ProteinHit, std::vector<int>>> pairs;
-  //std::set<Size> matched_fasta_entries;
   int scan = deconvolved_spectrum.getScanNumber();
   protein_hits_.clear();
 
-  // int min_hit_tag_score = max_path_score_;
+  if (vectorized_fasta_entry_.empty())
+  {
+    vectorizeFasta_(fasta_entry, false);
+    vectorizeFasta_(fasta_entry, true);
+  }
+
   startProgress(0, (SignedSize)fasta_entry.size(), "Running FLASHTagger: searching database");
 
   if (decoy_factor_ < 0)
@@ -789,14 +759,14 @@ void FLASHTaggerAlgorithm::runMatching(const std::vector<FASTAFile::FASTAEntry>&
   spec_scores.push_back(1);
   for (const auto& pg : deconvolved_spectrum)
   {
-    Size mn = round(ConvolutionBasedProteinFilter::multi_factor_for_vectorization * pg.getMonoMass());
+    Size mn = round(pg.getMonoMass());
     spec_vec.push_back(mn);
-    spec_scores.push_back(FLASHTaggerAlgorithm::getPeakGroupScore(pg));
+    spec_scores.push_back(FLASHTaggerAlgorithm::getNodeScore(pg));
   }
 
 #pragma omp parallel for default(none)                                                                                                     \
-  shared(mass_map, rev_mass_map, spec_vec, spec_scores, deconvolved_spectrum, pairs, fasta_entry, \
-           scan, max_mod_mass, vectorized_fasta_entry, reversed_vectorized_fasta_entry, std::cout)
+  shared(spec_vec, spec_scores, deconvolved_spectrum, pairs, fasta_entry, \
+           scan, max_mod_mass, std::cout)
   for (int i = 0; i < fasta_entry.size(); i++)
   {
     const auto& fe = fasta_entry[i];
@@ -805,10 +775,10 @@ void FLASHTaggerAlgorithm::runMatching(const std::vector<FASTAFile::FASTAEntry>&
     String seq = fe.sequence;
     seq.erase(remove(seq.begin(), seq.end(), 'X'), seq.end()); // remove all X
     // auto x_pos = fe.sequence.find('X');
-    const auto& pro_vec = vectorized_fasta_entry[i];
-    const auto& rev_pro_vec = reversed_vectorized_fasta_entry[i];
-    const auto& pro_masses = mass_map[i];
-    const auto& rev_pro_masses = rev_mass_map[i];
+    const auto& pro_vec = vectorized_fasta_entry_[i];
+    const auto& rev_pro_vec = rev_vectorized_fasta_entry_[i];
+    const auto& pro_masses = mass_map_[i];
+    const auto& rev_pro_masses = rev_mass_map_[i];
 
     // find range, match allowing X.
     std::set<double> matched_masses;
@@ -844,14 +814,14 @@ void FLASHTaggerAlgorithm::runMatching(const std::vector<FASTAFile::FASTAEntry>&
           n_term_mass = pro_masses.at(pos);
           double flanking_mass = n_term_mass - tag.getNtermMass();
           if (max_mod_mass > 0 && flanking_mass < -max_mod_mass) continue;
-          n_spec_pro_diffs.insert(round(ConvolutionBasedProteinFilter::multi_factor_for_vectorization * flanking_mass));
+          n_spec_pro_diffs.insert(round(flanking_mass));
         }
         else if (! isNterm && pos + tag.getSequence().length() < seq.length())
         {
           c_term_mass = rev_pro_masses.at(pos + tag.getSequence().length());
           double flanking_mass = c_term_mass - tag.getCtermMass();
           if (max_mod_mass > 0 && flanking_mass < -max_mod_mass) continue;
-          c_spec_pro_diffs.insert(round(ConvolutionBasedProteinFilter::multi_factor_for_vectorization * flanking_mass));
+          c_spec_pro_diffs.insert(round(flanking_mass));
         }
         else
           continue;
@@ -900,7 +870,7 @@ void FLASHTaggerAlgorithm::runMatching(const std::vector<FASTAFile::FASTAEntry>&
   });
 }
 
-void FLASHTaggerAlgorithm::getProteinHits(std::vector<ProteinHit>& hits, int max_target_out) const
+void FLASHTaggerAlgorithm::fillProteinHits(std::vector<ProteinHit>& hits, int max_target_count) const
 {
   hits.reserve(protein_hits_.size());
   int count = 0;
@@ -912,8 +882,7 @@ void FLASHTaggerAlgorithm::getProteinHits(std::vector<ProteinHit>& hits, int max
 
     if (hit.getScore() <= 0) break;
     hits.push_back(hit);
-    //if (hit.getAccession().hasPrefix("DECOY")) continue;
-    if (max_target_out > 0 && count++ >= max_target_out)
+    if (max_target_count > 0 && count++ >= max_target_count)
     {
       if (hit.getScore() < prev_score) break; // keep adding if the score is the same
     }
@@ -921,7 +890,7 @@ void FLASHTaggerAlgorithm::getProteinHits(std::vector<ProteinHit>& hits, int max
   }
 }
 
-void FLASHTaggerAlgorithm::getTags(std::vector<FLASHHelperClasses::Tag>& tags, int tag_length) const
+void FLASHTaggerAlgorithm::fillTags(std::vector<FLASHHelperClasses::Tag>& tags, int tag_length) const
 {
   for (const auto& tag : tags_)
   {
@@ -930,7 +899,7 @@ void FLASHTaggerAlgorithm::getTags(std::vector<FLASHHelperClasses::Tag>& tags, i
   }
 }
 
-void FLASHTaggerAlgorithm::getMatchedPositionsAndFlankingMassDiffs(std::vector<int>& positions,
+void FLASHTaggerAlgorithm::fillMatchedPositionsAndFlankingMassDiffs(std::vector<int>& positions,
                                                                    std::vector<double>& masses,
                                                                    double flanking_mass_tol,
                                                                    const String& seq, //

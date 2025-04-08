@@ -40,8 +40,8 @@ std::vector<float> PeakGroup::getMassErrors(bool ppm) const
 {
   std::vector<float> errors;
   int i = 0;
-  int i_cntr = 0;
-  double i_error = 0;
+  float i_cntr = 0;
+  float i_error = .0f;
   for (const auto& p : *this)
   {
     if (i != p.isotopeIndex)
@@ -72,13 +72,13 @@ void PeakGroup::updateAvgMassError_()
   const auto& ppm_errors = getMassErrors();
   for (const auto e : ppm_errors)
     avg_ppm_error_ += std::abs(e);
-  avg_ppm_error_ /= ppm_errors.size();
+  avg_ppm_error_ /= (float)ppm_errors.size();
 
   avg_da_error_ = .0f;
   const auto& da_errors = getMassErrors(false);
   for (const auto e : da_errors)
     avg_da_error_ += std::abs(e);
-  avg_da_error_ /= da_errors.size();
+  avg_da_error_ /= (float)da_errors.size();
 }
 
 float PeakGroup::getPPMError_(const LogMzPeak& p) const
@@ -119,12 +119,11 @@ void PeakGroup::updatePerChargeCos_(const FLASHHelperClasses::PrecalculatedAvera
 }
 
 int PeakGroup::updateQscore(const std::vector<LogMzPeak>& noisy_peaks,
-                            const MSSpectrum& spec,
                             const FLASHHelperClasses::PrecalculatedAveragine& avg,
                             const double min_cos,
                             const double tol,
                             const bool is_low_charge,
-                            const int allowed_iso_error,
+                            const std::vector<double>& excluded_masses,
                             const bool is_last)
 {
   qscore_ = 0;
@@ -145,9 +144,8 @@ int PeakGroup::updateQscore(const std::vector<LogMzPeak>& noisy_peaks,
   isotope_cosine_score_ = SpectralDeconvolution::getIsotopeCosineAndIsoOffset(
     monoisotopic_mass_, per_isotope_int_, h_offset, avg,
     -min_negative_isotope_index_, // change if to select cosine calculation and if to get second best hits
-    window_width, allowed_iso_error);
-  if (h_offset != 0) return h_offset;
-
+    window_width, excluded_masses);
+  if (!is_last && h_offset != 0) return h_offset;
 
   if (isotope_cosine_score_ < min_cos) { return 0; }
   updatePerChargeCos_(avg, tol);
@@ -160,7 +158,7 @@ int PeakGroup::updateQscore(const std::vector<LogMzPeak>& noisy_peaks,
     if (getChargeSNR(abs_charge) > getChargeSNR(max_snr_abs_charge_)) { max_snr_abs_charge_ = abs_charge; }
   }
 
-  qscore_ = Qscore::getQscore(this, spec);
+  qscore_ = Qscore::getQscore(this);
   return h_offset;
 }
 
@@ -174,7 +172,7 @@ float PeakGroup::getNoisePeakPower_(const std::vector<FLASHHelperClasses::LogMzP
   std::vector<std::pair<Peak1D, bool>> all_peaks; // peak + is signal?
   all_peaks.reserve(max_noisy_peak_number + logMzpeaks_.size());
 
-  int noise_peak_count = std::count_if(noisy_peaks.begin(), noisy_peaks.end(), [&](const auto& noisy_peak) {
+  auto noise_peak_count = std::count_if(noisy_peaks.begin(), noisy_peaks.end(), [&](const auto& noisy_peak) {
     return z == 0 || noisy_peak.abs_charge == z;
   });
 
@@ -290,7 +288,6 @@ float PeakGroup::getNoisePeakPower_(const std::vector<FLASHHelperClasses::LogMzP
   auto unused = boost::dynamic_bitset<>(all_peaks.size());
   unused.flip();
 
-  //auto signal_pwr = per_charge_int_[z] * per_charge_int_[z];
   // Now from the highest intensity path to the lowest, sum up intensities excluding already used peaks or signal peaks.
   for (auto it = max_intensity_sum_to_bin.rbegin(); it != max_intensity_sum_to_bin.rend(); ++it)
   {
@@ -353,13 +350,13 @@ float PeakGroup::getNoisePeakPower_(const std::vector<FLASHHelperClasses::LogMzP
       }
       else { break; }
 
-      for (Size j = edges[index]; j < edges.size(); j = edges[j])
+      for (Size k = edges[index]; k < edges.size(); k = edges[j])
       {
-        if (j == 0) { break; }
-        if (unused[j])
+        if (k == 0) { break; }
+        if (unused[k])
         {
-          sum_intensity += all_peaks[j].first.getIntensity();
-          unused[j] = false;
+          sum_intensity += all_peaks[k].first.getIntensity();
+          unused[k] = false;
         }
         else
           break;
@@ -416,7 +413,7 @@ void PeakGroup::updatePerChargeInformation_(const std::vector<LogMzPeak>& noisy_
 
   for (int z = min_abs_charge_; z <= max_abs_charge_; z++)
   {
-    for (Size i = 0; i < per_charge_isotope_int.cols(); i++)
+    for (Size i = 0; i < (Size)per_charge_isotope_int.cols(); i++)
     {
       float v = per_charge_isotope_int.getValue(z, i);
       per_charge_sum_signal_squared_[0] += v * v;
@@ -450,7 +447,7 @@ void PeakGroup::updatePerChargeInformation_(const std::vector<LogMzPeak>& noisy_
 void PeakGroup::updateChargeRange_()
 {
   int max_sig_charge = 0;
-  float max_sig = 0;
+  double max_sig = 0;
 
   // first, find the maximum snr charge.
   for (int z = min_abs_charge_; z <= max_abs_charge_; z++)
@@ -470,7 +467,7 @@ void PeakGroup::updateChargeRange_()
   int new_min_abs_charge;
 
   new_max_abs_charge = new_min_abs_charge = max_sig_charge;
-  float threshold = std::min(max_sig / 10, 1.0f);
+  double threshold = std::min(max_sig / 10, 1.0);
   for (int z = max_sig_charge; z <= max_abs_charge_; z++)
   {
     float per_charge_signal_power = per_charge_int_[z] * per_charge_int_[z];
@@ -678,8 +675,8 @@ void PeakGroup::getPerIsotopeIntensities_(std::vector<float>& intensities,
     for (int margin = -da_tol; margin <= da_tol; margin++)
     {
       int index = peak.isotopeIndex + margin - min_negative_isotope_index;
-      if (index < 0 || index >= intensities.size()) continue;
-      intensities[index] += denom > 0 ? peak.intensity * exp(-margin * margin / denom) : peak.intensity;
+      if (index < 0 || index >= (int)intensities.size()) continue;
+      intensities[index] += denom > 0 ? float(peak.intensity * exp(-margin * margin / denom)) : peak.intensity;
     }
   }
 
@@ -696,8 +693,8 @@ void PeakGroup::getPerIsotopeIntensities_(std::vector<float>& intensities,
       for (int margin = -da_tol; margin <= da_tol; margin++)
       {
         int index = peak.isotopeIndex + margin - min_negative_isotope_index;
-        if (index < 0 || index >= intensities.size()) continue;
-        intensities[index] += denom > 0 ? peak.intensity * exp(-margin * margin / denom) : peak.intensity;
+        if (index < 0 || index >= (int)intensities.size()) continue;
+        intensities[index] += denom > 0 ? float(peak.intensity * exp(-margin * margin / denom)) : peak.intensity;
       }
     }
   }
@@ -705,7 +702,7 @@ void PeakGroup::getPerIsotopeIntensities_(std::vector<float>& intensities,
 
 void PeakGroup::updateMonoMassAndIsotopeIntensities(double tol)
 {
-  if (logMzpeaks_.size() == 0) { return; }
+  if (logMzpeaks_.empty()) { return; }
   int min_isotope_index, max_isotope_index;
   std::sort(logMzpeaks_.begin(), logMzpeaks_.end());
 
@@ -727,11 +724,9 @@ void PeakGroup::updateMonoMassAndIsotopeIntensities(double tol)
 
 bool PeakGroup::isSignalMZ(const double mz, const double tol) const
 {
-  for (const auto& p : logMzpeaks_)
-  {
-    if (abs(p.mz - mz) < p.mz * tol * 1e-6) { return true; }
-  }
-  return false;
+  return std::any_of(logMzpeaks_.begin(), logMzpeaks_.end(), [&](const auto& p) {
+    return std::abs(p.mz - mz) < p.mz * tol * 1e-6;
+  });
 }
 
 void PeakGroup::setSNR(const float snr)
@@ -857,7 +852,7 @@ float PeakGroup::getPeakOccupancy() const
   for (const auto& b : used)
     if (b) count++;
 
-  return (float)count / used.size();
+  return (float)count / (float)used.size();
 }
 
 
@@ -1009,7 +1004,7 @@ uint PeakGroup::getIndex() const
   return index_;
 }
 
-int PeakGroup::getFeatureIndex() const
+uint PeakGroup::getFeatureIndex() const
 {
   return findex_;
 }
@@ -1086,7 +1081,7 @@ void PeakGroup::sort()
 
 void PeakGroup::setQvalue(double q)
 {
-  qvalue_ = q;
+  qvalue_ = (float)q;
 }
 
 std::tuple<std::vector<double>, std::vector<double>> PeakGroup::getDLVector(const MSSpectrum& spec,
@@ -1111,11 +1106,11 @@ std::tuple<std::vector<double>, std::vector<double>> PeakGroup::getDLVector(cons
     apex_charge = z;
   }
 
-  int min_z = apex_charge - charge_count / 2;
-  int max_z = apex_charge + charge_count / 2; // inclusive
+  int min_z = int(apex_charge - charge_count / 2);
+  int max_z = int(apex_charge + charge_count / 2); // inclusive
 
-  int min_iso_index = apex_iso_index - isotope_count / 2;
-  int max_iso_index = apex_iso_index + isotope_count / 2; // inclusive
+  int min_iso_index = int(apex_iso_index - isotope_count / 2);
+  int max_iso_index = int(apex_iso_index + isotope_count / 2); // inclusive
 
   auto& [sig, noise] = sig_noise;
   sig.resize(charge_count * isotope_count, .0);
@@ -1126,10 +1121,9 @@ std::tuple<std::vector<double>, std::vector<double>> PeakGroup::getDLVector(cons
     if (min_z > p.abs_charge || max_z < p.abs_charge) continue;
     if (min_iso_index > p.isotopeIndex || max_iso_index < p.isotopeIndex) continue;
 
-    int z_index = p.abs_charge - apex_charge + charge_count / 2;
-    int iso_index = p.isotopeIndex - apex_iso_index + isotope_count / 2;
-    int v_index = z_index * isotope_count + iso_index;
-    //std::cout<<p.abs_charge << " " << p.isotopeIndex << " apexz " << apex_charge << " apexi " << apex_iso_index <<  " into " << v_index << std::endl;
+    int z_index = int(p.abs_charge - apex_charge + charge_count / 2);
+    int iso_index = int(p.isotopeIndex - apex_iso_index + isotope_count / 2);
+    int v_index = int(z_index * isotope_count + iso_index);
 
     sig[v_index] += p.intensity;
     max_intensity = std::max(max_intensity, sig[v_index]);
@@ -1140,11 +1134,11 @@ std::tuple<std::vector<double>, std::vector<double>> PeakGroup::getDLVector(cons
     if (min_z > p.abs_charge || max_z < p.abs_charge) continue;
     if (min_iso_index > p.isotopeIndex || max_iso_index < p.isotopeIndex) continue;
 
-    int z_index = p.abs_charge - apex_charge + charge_count / 2;
-    int iso_index = p.isotopeIndex - apex_iso_index + isotope_count / 2;
+    int z_index = int(p.abs_charge - apex_charge + charge_count / 2);
+    int iso_index = int(p.isotopeIndex - apex_iso_index + isotope_count / 2);
 
     //int bin = floor((p.getUnchargedMass() - getMonoMass() - iso_da_distance_ * p.isotopeIndex) / (iso_da_distance_ / bin_count));
-    int v_index = z_index * isotope_count + iso_index;
+    int v_index = int(z_index * isotope_count + iso_index);
     if (sig[v_index] > 0)
     {
       bool too_close = false;
@@ -1160,10 +1154,6 @@ std::tuple<std::vector<double>, std::vector<double>> PeakGroup::getDLVector(cons
       }
       if (too_close) continue;
     }
-      //std::cout<< p.getUnchargedMass() << " " << getMonoMass() + iso_da_distance_ * p.isotopeIndex << " " <<
-    //  p.getUnchargedMass() - getMonoMass() - iso_da_distance_ * p.isotopeIndex << " " << bin << std::endl;
-
-    //std::cout<<p.abs_charge << " " << p.isotopeIndex << " apexz " << apex_charge << " apexi " << apex_iso_index <<  " into " << v_index << std::endl;
 
     noise[v_index] += p.intensity;
   }

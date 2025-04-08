@@ -83,11 +83,11 @@ void FLASHTnTFile::writeTags(const FLASHTnTAlgorithm& tnt, double flanking_mass_
         int protein_end_position = hit.getMetaValue("EndPosition");
         protein_start_position--;
         String seq = hit.getSequence();
-        FLASHTaggerAlgorithm::getMatchedPositionsAndFlankingMassDiffs(pos, masses, -1, seq, tag);
+        FLASHTaggerAlgorithm::fillMatchedPositionsAndFlankingMassDiffs(pos, masses, -1, seq, tag);
 
         if (protein_end_position >= 0) seq = seq.substr(0, protein_end_position);
         if (protein_start_position >= 0) seq = seq.substr(protein_start_position);
-        FLASHTaggerAlgorithm::getMatchedPositionsAndFlankingMassDiffs(pos_in_truncated, masses_in_truncated, flanking_mass_tol, seq, tag);
+        FLASHTaggerAlgorithm::fillMatchedPositionsAndFlankingMassDiffs(pos_in_truncated, masses_in_truncated, flanking_mass_tol, seq, tag);
         if (!pos_in_truncated.empty())
         {
           for (int i = 0; i < pos.size(); i++)

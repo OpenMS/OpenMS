@@ -11,6 +11,7 @@
 
 namespace OpenMS
 {
+/// simple function to generate distribution from input vector values
 Matrix<double> getDistVector(const std::vector<double>& values, Size num_bin, double minv, double maxv)
 {
   Matrix<double> ret(num_bin, 1, .0);
@@ -28,10 +29,10 @@ Matrix<double> getDistVector(const std::vector<double>& values, Size num_bin, do
 double Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra) // per ms level + precursor update as well.
 {
   double noise_weight = 1;
-  std::map<uint, std::vector<double>> tscore_map; // per ms level
-  std::map<uint, std::vector<double>> dscore_signal_decoy_map;
-  std::map<uint, std::vector<double>> dscore_noise_decoy_map;
-  std::map<uint, std::map<double, double>> qscore_qvalue_map; //
+  std::map<uint, std::vector<double>> score_map_target; // target Qscore vector per ms level
+  std::map<uint, std::vector<double>> score_signal_decoy_map; // signal decoy Qscore vector per ms level
+  std::map<uint, std::vector<double>> score_noise_decoy_map; // noise decoy Qscore vector per ms level
+  std::map<uint, std::map<double, double>> qscore_qvalue_map; // mapping from qscore to qvalue
 
   // to calculate qvalues per ms level, store Qscores per ms level
   std::set<uint> used_feature_indices;
@@ -44,111 +45,102 @@ double Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvol
     uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
     for (auto& pg : deconvolved_spectrum)
     {
-      if (pg.getTargetDecoyType() != PeakGroup::TargetDecoyType::target) continue;
       if (pg.getFeatureIndex() > 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
         continue;
       used_feature_indices.insert(pg.getFeatureIndex());
-      tscore_map[ms_level].push_back(pg.getQscore2D());
-    }
-  }
 
-  for (auto& decoy_deconvolved_spectrum : deconvolved_spectra)
-  {
-    if (decoy_deconvolved_spectrum.empty())
-      continue;
-
-    uint ms_level = decoy_deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
-    for (auto& pg : decoy_deconvolved_spectrum)
-    {
-      if (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::target) continue;
-      if (pg.getFeatureIndex() > 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
-        continue;
-      used_feature_indices.insert(pg.getFeatureIndex());
-      if (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::signal_decoy)
-      { dscore_signal_decoy_map[ms_level].push_back(pg.getQscore2D());
+      if (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::target)
+      {
+        score_map_target[ms_level].push_back(pg.getQscore2D());
+      }
+      else if (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::signal_decoy)
+      {
+        score_signal_decoy_map[ms_level].push_back(pg.getQscore2D());
       }
       else if (pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::noise_decoy)
       {
-        dscore_noise_decoy_map[ms_level].push_back(pg.getQscore2D());
+        score_noise_decoy_map[ms_level].push_back(pg.getQscore2D());
       }
     }
   }
 
-  for (auto& [ms_level, qscores] : tscore_map)
+  // per ms score, calculate Qvalues
+  for (auto& [ms_level, scores_target] : score_map_target)
   {
-    auto& dscore_signal = dscore_signal_decoy_map[ms_level];
-    auto& dscore_noise = dscore_noise_decoy_map[ms_level];
+    auto& scores_signal_decoy = score_signal_decoy_map[ms_level];
+    auto& scores_noise_decoy = score_noise_decoy_map[ms_level];
 
-    std::sort(qscores.begin(), qscores.end());
-    std::sort(dscore_signal.begin(), dscore_signal.end());
-    std::sort(dscore_noise.begin(), dscore_noise.end());
+    std::sort(scores_target.begin(), scores_target.end());
+    std::sort(scores_signal_decoy.begin(), scores_signal_decoy.end());
+    std::sort(scores_noise_decoy.begin(), scores_noise_decoy.end());
 
     double sum = 0;
-    double max_score_for_weight_calculation = .75;
-    double min_score_for_weight_calculation = .0;
-    double iso_sum = std::accumulate(dscore_signal.begin(), dscore_signal.end(), .0);
-    //double noise_sum = std::accumulate(dscore_noise.begin(), dscore_noise.end(), .0);
+    double max_score_for_weight_calculation = .7;
+    double min_score_for_weight_calculation = .3;
+    double iso_sum = std::accumulate(scores_signal_decoy.begin(), scores_signal_decoy.end(), .0);
 
-    for (int i = dscore_signal.size() - 1; i >= 0; i--)
+    for (int i = scores_signal_decoy.size() - 1; i >= 0; i--)
     {
-      sum += dscore_signal[i];
-      if (sum > iso_sum * .8 || dscore_signal[i] < .5)
+      sum += scores_signal_decoy[i];
+      if (sum > iso_sum * .8 || scores_signal_decoy[i] < .5)
       {
-        max_score_for_weight_calculation = std::min(max_score_for_weight_calculation, dscore_signal[i]);
+        max_score_for_weight_calculation = std::min(max_score_for_weight_calculation, scores_signal_decoy[i]);
         break;
       }
     }
 
-    Size num_bin = 10;//std::min(Size(5), 1 + dscore_noise.size()/100);
-    auto qscore_vec = getDistVector(qscores, num_bin, min_score_for_weight_calculation, max_score_for_weight_calculation);
-    auto qscore_noise_vec = getDistVector(dscore_noise, num_bin, min_score_for_weight_calculation, max_score_for_weight_calculation);
-    auto qscore_signal_vec = getDistVector(dscore_signal, num_bin, min_score_for_weight_calculation, max_score_for_weight_calculation);
+    Size num_bin = 6;
+    // get the score distributions
+    auto score_dist_target = getDistVector(scores_target, num_bin, min_score_for_weight_calculation, max_score_for_weight_calculation);
+    auto score_dist_noise_decoy = getDistVector(scores_noise_decoy, num_bin, min_score_for_weight_calculation, max_score_for_weight_calculation);
+    auto score_dist_signal_decoy = getDistVector(scores_signal_decoy, num_bin, min_score_for_weight_calculation, max_score_for_weight_calculation);
 
-    Matrix<double> left( qscore_vec.rows(), 2, 1);
-    for (int r = 0; r < qscore_vec.rows(); r++)
+    // noise decoy weight calculation using Least Square
+    Matrix<double> left(score_dist_target.rows(), 2, 1);
+    for (int r = 0; r < score_dist_target.rows(); r++)
     {
-      double v = qscore_vec.getValue(r, 0);
-      v -= qscore_signal_vec.getValue(r, 0);
-      v = std::max(v, .0);
-      qscore_vec.setValue(r, 0, v);
-      left.setValue(r, 0, qscore_noise_vec.getValue(r, 0));
+      double v = score_dist_target.getValue(r, 0);
+      v -= score_dist_signal_decoy.getValue(r, 0);
+      //v = std::max(v, .0);
+      score_dist_target.setValue(r, 0, v);
+      left.setValue(r, 0, score_dist_noise_decoy.getValue(r, 0));
     }
 
-    auto calculated_vec = left.completeOrthogonalDecomposition().pseudoInverse() * qscore_vec;
+    auto calculated_vec = left.completeOrthogonalDecomposition().pseudoInverse() * score_dist_target;
     noise_weight = calculated_vec.row(0)[0];
 
     if (calculated_vec.row(1)[0] < 0)
     {
-      auto calculated_vec_non_negative = qscore_noise_vec.completeOrthogonalDecomposition().pseudoInverse() * qscore_vec;
+      auto calculated_vec_non_negative = score_dist_noise_decoy.completeOrthogonalDecomposition().pseudoInverse() * score_dist_target;
       noise_weight = calculated_vec_non_negative.row(0)[0];
     }
 
     if (std::isnan(noise_weight)) noise_weight = 1.0;
     noise_weight = std::max(noise_weight, 0.01);
-    std::sort(qscores.rbegin(), qscores.rend());
-    std::sort(dscore_signal.rbegin(), dscore_signal.rend());
-    std::sort(dscore_noise.rbegin(), dscore_noise.rend());
+    std::sort(scores_target.rbegin(), scores_target.rend());
+    std::sort(scores_signal_decoy.rbegin(), scores_signal_decoy.rend());
+    std::sort(scores_noise_decoy.rbegin(), scores_noise_decoy.rend());
 
-    //noise_weight = noise_weight * noise_weight;
+    // now get the qvalues
     auto& map_qvalue = qscore_qvalue_map[ms_level];
     double nom_i = 0, nom_c = 0, nom_n = 0;
     Size j_i = 0, j_n = 0;
 
-    for (Size i = 0; i < qscores.size(); i++)
+    for (Size i = 0; i < scores_target.size(); i++)
     {
-      double ts = qscores[i];
+      double ts = scores_target[i];
       double di = 0, dc = 0, dn = 0;
-      while (i < qscores.size() - 1 && qscores[i + 1] == ts)
+      while (i < scores_target.size() - 1 && scores_target[i + 1] == ts)
       {
         i++;
       }
 
-      while (j_n < dscore_noise.size() && dscore_noise[j_n] >= ts)
+      while (j_n < scores_noise_decoy.size() && scores_noise_decoy[j_n] >= ts)
       {
         dn += noise_weight;
         ++j_n;
       }
-      while (j_i < dscore_signal.size() && dscore_signal[j_i] >= ts)
+      while (j_i < scores_signal_decoy.size() && scores_signal_decoy[j_i] >= ts)
       {
         di++;
         ++j_i;
@@ -161,7 +153,8 @@ double Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvol
     }
   }
 
-  for (auto& titem : tscore_map)
+  // refine qvalues to make them monotonic decreasing
+  for (const auto& titem : score_map_target)
   {
     uint ms_level = titem.first;
     auto& map_qvalue = qscore_qvalue_map[ms_level];
@@ -180,6 +173,7 @@ double Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvol
       if (deconvolved_spectrum.empty() || deconvolved_spectrum.isDecoy())
         continue;
 
+      // set precursor Qvalue here
       if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() == ms_level + 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
       {
         auto precursor_pg = deconvolved_spectrum.getPrecursorPeakGroup();

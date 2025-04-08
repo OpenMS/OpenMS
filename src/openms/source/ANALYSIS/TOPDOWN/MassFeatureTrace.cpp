@@ -9,7 +9,6 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 
-
 namespace OpenMS
 {
   MassFeatureTrace::MassFeatureTrace() : DefaultParamHandler("MassFeatureTrace")
@@ -166,7 +165,7 @@ namespace OpenMS
           charges[z - min_abs_charge] = true;
           per_charge_intensity[z] += zint;
         }
-        int iso_off = int(.5 + (pg->getMonoMass() - mass) / pg->getIsotopeDaDistance());
+        int iso_off = (int)round((pg->getMonoMass() - mass) / pg->getIsotopeDaDistance());
         auto iso_int = pg->getIsotopeIntensities();
         for (int i = 0; i + iso_off < (int)per_isotope_intensity.size(); i++)
         {
@@ -179,7 +178,7 @@ namespace OpenMS
       }
 
       int offset = 0;
-      float isotope_score = SpectralDeconvolution::getIsotopeCosineAndIsoOffset(mass, per_isotope_intensity, offset, averagine, 0, 0);
+      float isotope_score = SpectralDeconvolution::getIsotopeCosineAndIsoOffset(mass, per_isotope_intensity, offset, averagine, 0, 0, std::vector<double>{});
 
       if (isotope_score < cos_threshold)
       {

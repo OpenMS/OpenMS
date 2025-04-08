@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-2025, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -172,7 +172,7 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
 
       for (auto& pg : cluster)
       {
-        precursor_cluster_index[pg] = precursor_clusters.size() - 1;
+        precursor_cluster_index[pg] = (int)precursor_clusters.size() - 1;
       }
     }
 
@@ -186,7 +186,7 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
       if (precursor.empty() || precursor_cluster_index.find(precursor) != precursor_cluster_index.end())
         continue;
       precursor_clusters.push_back(std::vector<PeakGroup> {precursor});
-      precursor_cluster_index[precursor] = precursor_clusters.size() - 1;
+      precursor_cluster_index[precursor] = (int)precursor_clusters.size() - 1;
     }
 
     std::map<int, std::vector<double>> ms2_ints; // from ms2 scan to intensities
@@ -256,7 +256,7 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
 
     for (Size i = 0; i < intensity_clusters.size(); i++)
     {
-      auto intensities = intensity_clusters[i];
+      const auto& intensities = intensity_clusters[i];
       if (intensities.empty())
         continue;
       merged_intensity_clusters[i] = intensities[0];

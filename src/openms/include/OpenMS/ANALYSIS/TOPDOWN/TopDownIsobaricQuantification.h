@@ -19,7 +19,8 @@
 namespace OpenMS
 {
   /**
-  @brief
+  @brief Isobaric quantification for Top down proteomics. The report ion ratios from multiple MS2 are
+   merged when their precursor masses belong to the same deconvolved features (MassFeature instances).
   @ingroup Topdown
   */
 
@@ -58,6 +59,7 @@ namespace OpenMS
   private:
     /// The quantification method used for the dataset to be analyzed.
     std::map<String, std::unique_ptr<IsobaricQuantitationMethod>> quant_methods_;
+    /// retain only fully quantified ratios
     bool only_fully_quantified_ = false;
     void addMethod_(std::unique_ptr<IsobaricQuantitationMethod> ptr)
     {

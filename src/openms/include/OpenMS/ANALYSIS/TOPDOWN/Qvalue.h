@@ -17,7 +17,7 @@ namespace OpenMS
   class PeakGroup;
 
   /**
-@brief   Qvalue : contains functions to calculate Qvalues from deconvolution quality score
+@brief   Qvalue : contains functions to calculate Qvalues from deconvolution quality score Qscore
 @ingroup Topdown
 */
 

@@ -46,8 +46,7 @@ public:
   FLASHExtenderAlgorithm& operator=(const FLASHExtenderAlgorithm& other);
 
   void run(std::vector<ProteinHit>& hits, const std::vector<FLASHHelperClasses::Tag>& tags,
-           const DeconvolvedSpectrum& dspec,
-           const MSSpectrum& spec, double ppm, bool multiple_hits_per_spec);
+           const DeconvolvedSpectrum& dspec, double ppm, bool multiple_hits_per_spec);
 
   void getProteoforms(std::vector<ProteinHit>& hits) const
   {

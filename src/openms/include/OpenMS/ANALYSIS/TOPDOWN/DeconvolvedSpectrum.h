@@ -19,10 +19,10 @@ namespace OpenMS
 
   /**
        @brief A class representing a deconvolved spectrum.
-       DeconvolvedSpectrum consists of PeakGroups representing masses.
+       DeconvolvedSpectrum consists of PeakGroup instances representing masses.
        For MSn n>1, a PeakGroup representing the precursor mass is also added in this class. Properly assigning a precursor mass
        from the original precursor peak and its deconvolution result is very important in top down proteomics. This assignment is
-       performed here for conventional datasets. But for FLASHIda acquired datasets, the assignment is already done by FLASHIda.
+       performed here for conventional DIA acquired datasets. But for FLASHIda acquired datasets, the assignment is already done by FLASHIda.
        So this class simply use the results from FLASHIda log file for assignment. The parsing of FLASHIda log file is done
        in FLASHDeconv tool class.
   */
@@ -70,7 +70,7 @@ namespace OpenMS
     /// get precursor peak
     const Precursor& getPrecursor() const;
 
-    /// get CV
+    /// get CV for FAIMS
     double getCV() const;
 
     /// get possible max mass of the deconvolved masses - for MS1, max mass specified by user
@@ -106,9 +106,6 @@ namespace OpenMS
     /// set precursor for MSn for n>1
     void setPrecursor(const Precursor& precursor);
 
-    /// set precursor peak intensity
-    void setPrecursorIntensity(float i);
-
     /// set precursor scan number
     void setPrecursorScanNumber(int scan_number);
 
@@ -124,8 +121,6 @@ namespace OpenMS
     /// set peak groups in this spectrum
     void setPeakGroups(std::vector<PeakGroup>& x);
 
-    //std::vector<PeakGroup> getNonOverlappingPeakGroups() const;
-
     /// iterators and vector operators for std::vector<PeakGroup> peak_groups_ in this spectrum
     std::vector<PeakGroup>::const_iterator begin() const noexcept;
     std::vector<PeakGroup>::const_iterator end() const noexcept;
@@ -133,6 +128,7 @@ namespace OpenMS
     std::vector<PeakGroup>::iterator begin() noexcept;
     std::vector<PeakGroup>::iterator end() noexcept;
 
+    /// PeakGroup vector functions and operators
     const PeakGroup& operator[](Size i) const;
     PeakGroup& operator[](Size i);
     void push_back(const PeakGroup& pg);

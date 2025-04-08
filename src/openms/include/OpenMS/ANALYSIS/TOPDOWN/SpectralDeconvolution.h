@@ -79,9 +79,8 @@ namespace OpenMS
 
     /** @brief precalculate averagine (for predefined mass bins) to speed up averagine generation
         @param use_RNA_averagine if set, averagine for RNA (nucleotides) is calculated
-        @param is_centroid this is for noise averagine calculation. For noise, centroid and profile averagines are different.
-     */
-    void calculateAveragine(bool use_RNA_averagine, const bool is_centroid = true);
+       */
+    void calculateAveragine(bool use_RNA_averagine);
 
     /// when estimating tolerance, max_mass_dalton_tolerance_ should be large
     void setToleranceEstimation()
@@ -115,8 +114,9 @@ namespace OpenMS
         @param target_decoy_type TODO: documentation
         @return calculated cosine similarity score
      */
-    static float getIsotopeCosineAndIsoOffset(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg, int iso_int_shift = 0,
-                                                          int window_width = -1, int allowed_isotope_error = -1);
+    static float getIsotopeCosineAndIsoOffset(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset,
+                                              const PrecalculatedAveragine& avg, int iso_int_shift,
+                                              int window_width, const std::vector<double>& excluded_masses);
 
     /**
      *  set target dummy type for the SpectralDeconvolution run. All masses from the target SpectralDeconvolution run will have the target_decoy_type_.
@@ -186,7 +186,6 @@ namespace OpenMS
     boost::dynamic_bitset<> excluded_mass_bins_for_decoy_runs_;
     std::vector<double> excluded_peak_masses_for_decoy_runs_;
     std::vector<double> excluded_masses_for_decoy_runs_;
-    //std::set<double> signal_mzs_;
 
     /// Stores log mz peaks
     std::vector<LogMzPeak> log_mz_peaks_;
@@ -258,7 +257,7 @@ namespace OpenMS
     void generatePeakGroupsFromSpectrum_();
 
     /// filter out overlapping masses
-    void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec, double tol, PeakGroup::TargetDecoyType target_decoy_type = PeakGroup::TargetDecoyType::target);
+    static void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec, double tol, PeakGroup::TargetDecoyType target_decoy_type = PeakGroup::TargetDecoyType::target);
 
     /** @brief Update binned_log_masses_. It select candidate mass bins using the universal pattern, eliminate possible harmonic masses. This function does not perform deisotoping
         @param mz_intensities per mz bin intensity

@@ -24,8 +24,7 @@ namespace OpenMS
   In other words, per spectrum deconvolved masses are converted into deconvolved features
   Currently only works for MS1 spectra. (Top-down DIA is not yet used much).
   Every time an MS1 spectrum is deconvolved, the relevant information is stored in this class.
-  Tracing is performed at the end of FLASHDeconv run.
-  This class also comes with tsv, TopFD, ProMex format output functions.
+  This class also comes with tsv, TopFD feature file formats.
   @ingroup Topdown
   */
 

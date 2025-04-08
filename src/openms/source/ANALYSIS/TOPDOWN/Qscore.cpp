@@ -13,91 +13,36 @@
 
 namespace OpenMS
 {
-  //==================================== CV 0
-  std::vector<double> Qscore::weight_CV_0_ {-7.7938, -0.1906, -0.0416, -0.1163, 7.0469};
+//-28.0219, -0.1854, -0.1084, 0.0312, 0, 25.2087
+  std::vector<double> Qscore::weight_centroid_ { -21.0476, 1.5045, -0.1303, 0.183, 0.1834, 17.804};
+  // Att0                21.0476
+  // Att1                -1.5045
+  // Att2                 0.1303
+  // Att3                 -0.183
+  // Att4                -0.1834
+  // Intercept           -17.804
 
-  //====================================== CV 40
-  std::vector<double> Qscore::weight_CV_40_ {-27.9965, -1.0965, 0.0433, -0.4031, 25.4324};
-
-  // ====================================== CV 50
-  std::vector<double> Qscore::weight_CV_50_ {-24.3951, -4.5628, -0.0825, -0.5998, 22.4699};
-
-  //====================================== CV 60
-  std::vector<double> Qscore::weight_CV_60_ {-29.2526, -3.0124, -0.1005, -0.619, 26.9777};
-
-  //====================================== Normal
-  std::vector<double> Qscore::weight_centroid_ { -16.8657, -0.0718, -0.2958, -0.0891, 1.0803, 15.7806};//;{-34.5625, -0.5184, -0.0291, -0.1775, 31.8576}; // apr23 all Att0                       28.0219
-  // Att0               16.8657
-  // Att1                0.0718
-  // Att2                0.2958
-  // Att3                0.0891
-  // Att4               -1.0803
-  // Intercept         -15.7806
-  std::vector<double> Qscore::weight_profile_ (weight_centroid_);// {-10.3777, 0.5173, -0.0154, 0.4278, 9.4117}; // yeast
-
-  double Qscore::getQscore(const PeakGroup* pg, const MSSpectrum& spectrum)
+  /// calculate Qscore using PeakGroup attributes
+  double Qscore::getQscore(const PeakGroup* pg)
   {
     if (pg->empty())
     { // all zero
       return .0;
     }
 
-    bool is_profile = spectrum.getType(false) == SpectrumSettings::PROFILE;
-    auto filter_str = spectrum.getMetaValue("filter string").toString();
-    Size pos = filter_str.find("cv=");
-    double cv = 1;
-
-    if (pos != String::npos)
-    {
-      Size end = filter_str.find(" ", pos);
-      if (end == String::npos)
-        end = filter_str.length() - 1;
-      cv = std::stod(filter_str.substr(pos + 3, end - pos));
-    }
-    auto weights = (is_profile ? weight_profile_ : weight_centroid_);
-    /*if (cv <= 0)
-    {
-      const std::vector<double> cvs {.0, -40.0, -50.0, -60.0};
-      double min_val = cvs.back();
-      for (double i : cvs)
-      {
-        double diff = std::abs(cv - i);
-        if (diff > std::abs(cv - min_val))
-          continue;
-        min_val = i;
-      }
-
-      if (min_val == .0)
-      {
-        weights = weight_CV_0_;
-      }
-      else if (min_val == -40.0)
-      {
-        weights = weight_CV_40_;
-      }
-      else if (min_val == -50.0)
-      {
-        weights = weight_CV_50_;
-      }
-      else
-      {
-        weights = weight_CV_60_;
-      }
-    }*/
-
-    double score = weights.back() + .5;
+    double score = weight_centroid_.back() + .5;
     auto fv = toFeatureVector_(pg);
 
-    for (Size i = 0; i < weights.size() - 1; i++)
+    for (Size i = 0; i < weight_centroid_.size() - 1; i++)
     {
-      score += fv[i] * weights[i];
+      score += fv[i] * weight_centroid_[i];
     }
     double qscore = 1.0 / (1.0 + exp(score));
 
     return qscore;
   }
 
-
+  /// convert PeakGroup into feature (attribute) vector
   std::vector<double> Qscore::toFeatureVector_(const PeakGroup* pg)
   {
     std::vector<double> fvector(5, .0); // length of weights vector - 1, excluding the intercept weight.
@@ -106,17 +51,18 @@ namespace OpenMS
     int index = 0;
     fvector[index++] = pg->getIsotopeCosine(); // (log2(a + d));
 
-    fvector[index++] = pg->getChargeIsotopeCosine(pg->getRepAbsCharge()); // (log2(d + a / (d + a)));
+    fvector[index++] = pg->getIsotopeCosine() - pg->getChargeIsotopeCosine(pg->getRepAbsCharge()); // (log2(d + a / (d + a)));
 
-    fvector[index++] = log2(1 + std::min(300.0f, pg->getChargeSNR(pg->getRepAbsCharge()))); //(log2(d + a / (d + a)));
+    fvector[index++] = log2(1 + pg->getChargeSNR(pg->getRepAbsCharge())); //(log2(d + a / (d + a)));
 
-    fvector[index++] = log2(1 + std::min(300.0f, pg->getSNR())); //(log2(a + d));
+    fvector[index++] = log2(1 + pg->getChargeSNR(pg->getRepAbsCharge())) - log2(1 + pg->getSNR()); //(log2(a + d));
 
-    fvector[index++] = pg->getAvgPPMError() / 10.0;
+    fvector[index++] = pg->getAvgPPMError();
 
     return fvector;
   }
 
+  /// to write down training csv file header.
   void Qscore::writeAttCsvForQscoreTrainingHeader(std::fstream& f)
   {
     PeakGroup pg;
@@ -126,6 +72,7 @@ namespace OpenMS
     f << "Class\n";
   }
 
+  /// to write down training csv file rows
   void Qscore::writeAttCsvForQscoreTraining(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f)
   {
     DeconvolvedSpectrum dspec;
