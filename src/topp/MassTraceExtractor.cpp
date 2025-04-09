@@ -252,6 +252,23 @@ protected:
         fcons.setRT(m_traces_final[i].getCentroidRT());
         fcons.setMZ(m_traces_final[i].getCentroidMZ());
         fcons.setIntensity(m_traces_final[i].getIntensity(false));
+
+        // attach mz and ion mobility as meta data
+        if (m_traces_final[i].fwhm_mz_avg > 0)
+        {
+          fcons.setMetaValue("FWHM_mz_avg", m_traces_final[i].fwhm_mz_avg);
+        }
+        // Similarly, check for ion mobility centroid presence. Annotate output with ion mobility
+        if (m_traces_final[i].getCentroidIM() > 0)
+        {
+          fcons.setMetaValue("Ion Mobility Centroid", m_traces_final[i].getCentroidIM());
+        }
+        // if ion mobility peak FWHM is presnt, add to meta data
+        if (m_traces_final[i].fwhm_im_avg > 0)
+        {
+          fcons.setMetaValue("FWHM_im_avg", m_traces_final[i].fwhm_im_avg);
+        }
+
         consensus_map.push_back(fcons);
       }
       consensus_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
@@ -304,6 +321,15 @@ protected:
         if (m_traces_final[i].fwhm_mz_avg > 0)
         {
           f.setMetaValue("FWHM_mz_avg", m_traces_final[i].fwhm_mz_avg);
+        }
+        // Similarly, check for ion mobility centroid presence. Annotate output with ion mobility
+        if (m_traces_final[i].getCentroidIM() > 0)
+        {
+          f.setMetaValue("Ion Mobility Centroid", m_traces_final[i].getCentroidIM());
+        }
+        if (m_traces_final[i].fwhm_im_avg > 0)
+        {
+          f.setMetaValue("FWHM_im_avg", m_traces_final[i].fwhm_im_avg);
         }
         stats_sd.push_back(m_traces_final[i].getCentroidSD());
         ms_feat_map.push_back(f);

@@ -155,6 +155,12 @@ public:
       return centroid_mz_;
     }
 
+    /// Returns the centroid ion mobility.
+    double getCentroidIM() const
+    {
+      return centroid_im_;
+    }
+
     /// Returns the centroid RT.
     double getCentroidRT() const
     {
@@ -169,6 +175,11 @@ public:
     void setCentroidSD(const double & tmp_sd)
     {
       centroid_sd_ = tmp_sd;
+    }
+
+    void setCentroidIM(const double & im)
+    {
+      centroid_im_ = im;
     }
 
     double getFWHM() const
@@ -295,6 +306,9 @@ public:
     /// Average FWHM of m/z peaks
     double fwhm_mz_avg = 0;
 
+    /// Average FWHM of ion mobility peaks
+    double fwhm_im_avg = 0;
+
 private:
 
     /// median of trace intensities
@@ -310,6 +324,9 @@ private:
 
     /// Centroid m/z
     double centroid_mz_ = 0.0;
+
+    /// centroid ion mobility peak
+    double centroid_im_ = 0;
 
     /// intensity-weighted STD
     double centroid_sd_ = 0.0;
