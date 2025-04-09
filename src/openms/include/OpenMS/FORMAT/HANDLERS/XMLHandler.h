@@ -224,8 +224,18 @@ namespace OpenMS
 
       // Converts from a wide-character string to a narrow-character string.
       inline static String toNative_(const XMLCh* str)
-      {
-        return String(unique_xerces_ptr<char>(xercesc::XMLString::transcode(str)).get());
+      { 
+        String r;
+        XMLSize_t l = xercesc::XMLString::stringLen(str);
+        if(isASCII(str, l))
+        {
+          appendASCII(str,l,r);
+        }
+        else
+        {
+          r = (unique_xerces_ptr<char>(xercesc::XMLString::transcode(str)).get());
+        }
+        return r;
       }
 
       // Converts from a wide-character string to a narrow-character string.
@@ -283,7 +293,12 @@ public:
       {
         return toNative_(str);
       }
+      /// Checks if supplied if chars in XMLCh* can be encoded with ASCII
+      static bool isASCII(const XMLCh * chars, const XMLSize_t length);
 
+      /// Compresses eight 8x16bit Chars in XMLCh* to 8x8bit Chars by cutting upper byte
+      static void compress64 (const XMLCh * input_it, char* output_it);
+      
       /**
        * @brief Transcodes the supplied XMLCh* and appends it to the OpenMS String
        *

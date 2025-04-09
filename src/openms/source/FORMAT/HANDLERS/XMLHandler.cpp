@@ -13,6 +13,7 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/SYSTEM/SIMDe.h>
 
 #include <algorithm>
 #include <set>
@@ -302,7 +303,7 @@ namespace OpenMS::Internal
         }
         // no value, although there should be a numerical value
         else if (term.xref_type != ControlledVocabulary::CVTerm::NONE && term.xref_type != ControlledVocabulary::CVTerm::XSD_STRING && // should be numerical
-                 !cv.isChildOf(accession, "MS:1000513") // here the value type relates to the binary data array, not the 'value=' attribute!
+                 !cv.isChildOf(accession, "MS:1000513") // here the value type relates to the bits data array, not the 'value=' attribute!
         )
         {
           warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
@@ -425,34 +426,100 @@ namespace OpenMS::Internal
     StringManager::~StringManager()
     = default;
 
+    void StringManager::compress64 (const XMLCh* input_it, char* output_it) {
+      alignas(16) simde__m128i bits = simde_mm_loadu_si128((simde__m128i*)input_it);
+      simde__m128i compressed = simde_mm_packus_epi16(bits, simde_mm_setzero_si128());
+      simde_mm_storel_epi64((simde__m128i*)output_it, compressed);
+    }
+
+    bool StringManager::isASCII(const XMLCh * chars, const XMLSize_t length) {
+
+      
+      std::div_t quotient_and_remainder = std::div(length, 8);
+      size_t quotient = quotient_and_remainder.quot;  // Ganzzahliger Quotient
+      size_t remainder = quotient_and_remainder.rem;
+      // std::cout << "Remainer: " << remainder << std::endl;
+      // std::cout << "Quotient: " << quotient << std::endl;
+      // cout << "length: " << length << endl; 
+    
+      const XMLCh* it = chars;
+      const XMLCh* end = it + (quotient * 8);
+      simde__m128i mask = simde_mm_set1_epi16(0xFF00);
+      bool bitmask = true;
+      while (it != end && bitmask){
+        simde__m128i bits = simde_mm_loadu_si128((simde__m128i*)it);
+        simde__m128i zero = simde_mm_setzero_si128();
+        simde__m128i andOP = simde_mm_and_si128(bits, mask);
+        simde__m128i cmp = simde_mm_cmpeq_epi16(andOP, zero);
+        bitmask = simde_mm_movemask_epi8(cmp) == 0xFFFF;
+        // bitmask = simde_mm_testz_si128(bits, mask);
+        it+=8;
+      }  
+    
+      end += remainder;
+      while (it != end && bitmask){
+        bitmask = *it & 0xFF00;
+        it++;
+      }
+        
+        return bitmask;
+    }
+
     void StringManager::appendASCII(const XMLCh * chars, const XMLSize_t length, String & result)
     {
-      // XMLCh are characters in UTF16 (usually stored as 16bit unsigned
-      // short but this is not guaranteed).
-      // We know that the Base64 string here can only contain plain ASCII
-      // and all bytes except the least significant one will be zero. Thus
-      // we can convert to char directly (only keeping the least
-      // significant byte).
+        // XMLCh are characters in UTF16 (usually stored as 16bit unsigned
+        // short but this is not guaranteed).
+        // We know that the Base64 string here can only contain plain ASCII
+        // and all bytes except the least significant one will be zero. Thus
+        // we can convert to char directly (only keeping the least
+        // significant byte).
+
+
+
+      
+      std::div_t quotient_and_remainder = std::div(length, 8);
+      size_t quotient = quotient_and_remainder.quot;  // Ganzzahliger Quotient
+      size_t remainder = quotient_and_remainder.rem;
+      // std::cout << "Remainer: " << remainder << std::endl;
+      // std::cout << "Quotient: " << quotient << std::endl; 
+      // cout << "length: " << length << endl;
+
 
       const XMLCh* it = chars;
-      const XMLCh* end = it + length;
+      const XMLCh* end = it + (quotient * 8);
+      // std::cout << "Anzahl der Elemente zwischen it1 und it2: "
+      //         << std::distance(it, end) << std::endl;
 
       size_t curr_size = result.size();
       result.resize(curr_size + length);
       std::string::iterator str_it = result.begin();
       std::advance(str_it, curr_size);
+      // int i = 0;
+
+    //Copy Block of 8 chars at a time. Then jumps to the next eight Blocks
       while (it!=end)
-      {   
-        *str_it = (char)*it;
-        ++str_it;
-        ++it;
+      {  
+        // std::cout << "Aktueller Wert: " << *it << std::endl;
+
+        compress64(it, &(*str_it));
+        // printf("loop: %d\n", i);
+        str_it += 8;
+        it += 8;
+        // i++;
       }
 
-      // This is ca. 50 % faster than 
-      // for (size_t i = 0; i < length; i++)
-      // {
-      //   result[curr_size + i] = (char)chars[i];
-      // }
+  
+
+      end = it + remainder;
+  
+      while (it!=end)
+      { 
+        *str_it = static_cast<char>(*it & 0xFF);
+        // std::cout << "Aktueller Wert: " << *str_it << std::endl;
+        str_it ++;
+        it ++;
+        // i++;
+      }
 
     }
 
