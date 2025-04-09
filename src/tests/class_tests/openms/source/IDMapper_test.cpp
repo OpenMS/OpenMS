@@ -81,7 +81,7 @@ START_SECTION((IDMapper& operator = (const IDMapper& rhs)))
   TEST_EQUAL(m2.getParameters(), p);
 END_SECTION
 
-START_SECTION((template <typename PeakType> void annotate(AnnotatedMSRawData& map, FeatureMap fmap, const bool clear_ids = false, const bool mapMS1 = false)))
+START_SECTION((void annotate(AnnotatedMSRawData& map, FeatureMap fmap, const bool clear_ids = false, const bool mapMS1 = false)))
   // create id
   FeatureMap fm;
   Feature f;
@@ -159,7 +159,7 @@ START_SECTION((template <typename PeakType> void annotate(AnnotatedMSRawData& ma
 
 END_SECTION
 
-START_SECTION((template <typename PeakType> void annotate(AnnotatedMSRawData& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)))
+START_SECTION((void annotate(AnnotatedMSRawData& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)))
   // load id
   vector<PeptideIdentification> identifications;
   vector<ProteinIdentification> protein_identifications;
