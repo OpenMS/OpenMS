@@ -117,20 +117,16 @@ START_SECTION(void load(const String &filename, std::vector< PeptideIdentificati
 
 END_SECTION
 
-START_SECTION(void store(const String& filename, const AnnotatedMSRawData& exp) const)
+START_SECTION(void store(const String& filename, const AnnotatedMSRawData& annot_exp) const)
 	MSPFile msp_file;
-	vector<PeptideIdentification> ids;
-	MSExperiment exp;
-	msp_file.load(OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"), ids, exp);
-
+	AnnotatedMSRawData annot_exp;
+	msp_file.load(OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"), annot_exp);
 	String filename;
-	NEW_TMP_FILE(filename)
-	AnnotatedMSRawData annot_exp(std::move(exp));
-	// annot_exp.setAllPeptideIdentifications(std::move(ids)); TODO
+	NEW_TMP_FILE(filename);
 	msp_file.store(filename, annot_exp);
 
-	exp.clear(true);
-	ids.clear();
+	PeakMap exp;
+	vector<PeptideIdentification> ids;
 	msp_file.load(filename, ids, exp);
 	TEST_EQUAL(ids.size(), 7)
 	TEST_EQUAL(exp.size(), 7)

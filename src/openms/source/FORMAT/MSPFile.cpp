@@ -323,6 +323,22 @@ namespace OpenMS
     }
   }
 
+  void MSPFile::load(const String & filename, AnnotatedMSRawData & annot_exp)
+  {
+    // use existing load function
+    vector<PeptideIdentification> ids;
+    MSExperiment exp;
+    this->load(filename, ids, exp);
+
+    vector<vector<PeptideIdentification>> peptide_ids; // turn into per spectrum list
+    for (auto& id : ids)
+    {
+      peptide_ids.emplace_back(1, std::move(id));
+    }   
+    annot_exp.setAllPeptideIdentifications(std::move(peptide_ids));  
+    annot_exp.getMSExperiment() = std::move(exp);
+  }
+
   void MSPFile::parseHeader_(const String & header, PeakSpectrum & spec)
   {
     // first header from std_protein of NIST spectra DB

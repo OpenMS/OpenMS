@@ -206,7 +206,7 @@ namespace OpenMS
 
   void IDMapper::annotate(AnnotatedMSRawData& map, FeatureMap fmap, const bool clear_ids, const bool map_ms1)
   {
-    const vector<ProteinIdentification>& protein_ids = fmap.getProteinIdentifications();
+    const auto& protein_ids = fmap.getProteinIdentifications();
     vector<PeptideIdentification> peptide_ids;
 
     for (FeatureMap::const_iterator it = fmap.begin(); it != fmap.end(); ++it)
@@ -219,7 +219,6 @@ namespace OpenMS
         if (!itp->hasMZ()) peptide_ids.back().setMZ(it->getMZ());
         if (!itp->hasRT()) peptide_ids.back().setRT(it->getRT());
       }
-
     }
     annotate(map, peptide_ids, protein_ids, clear_ids, map_ms1);
   }

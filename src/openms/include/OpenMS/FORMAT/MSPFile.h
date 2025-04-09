@@ -61,6 +61,18 @@ public:
     void load(const String & filename, std::vector<PeptideIdentification> & ids, PeakMap & exp);
 
     /**
+        @brief Loads a map from a MSPFile file.
+
+        @param filename the filename of the experiment
+        @param annot_exp annotated experiment with spectra and ids
+
+        @throw FileNotFound is thrown if the file could not be found
+        @throw ParseError is thrown if the given file could not be parsed
+        @throw ElementNotFound is thrown if a annotated modification cannot be found in ModificationsDB (PSI-MOD definitions)
+    */
+    void load(const String & filename, AnnotatedMSRawData & exp);
+
+    /**
         @brief Stores a map in a MSPFile file.
 
         @throw UnableToCreateFile is thrown if the given file could not be created

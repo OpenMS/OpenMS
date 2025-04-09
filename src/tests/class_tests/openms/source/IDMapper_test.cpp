@@ -81,7 +81,7 @@ START_SECTION((IDMapper& operator = (const IDMapper& rhs)))
   TEST_EQUAL(m2.getParameters(), p);
 END_SECTION
 
-START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>& map, FeatureMap fmap, const bool clear_ids = false, const bool mapMS1 = false)))
+START_SECTION((template <typename PeakType> void annotate(AnnotatedMSRawData& map, FeatureMap fmap, const bool clear_ids = false, const bool mapMS1 = false)))
   // create id
   FeatureMap fm;
   Feature f;
@@ -210,7 +210,6 @@ START_SECTION((template <typename PeakType> void annotate(AnnotatedMSRawData& ma
   p.setValue("ignore_charge", "true");
   mapper.setParameters(p);
   
-
   mapper.annotate(annotated_experiment, identifications, protein_identifications);
 
   //test
