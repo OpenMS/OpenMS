@@ -80,14 +80,14 @@ namespace OpenMS
     const vector<ProteinIdentification>& protein_ids, 
     const bool clear_ids, 
     const bool map_ms1)
-  {
+  {    
     checkHits_(peptide_ids);
     SpectrumLookup lookup;
 
     if (clear_ids)
     { // start with empty IDs
       map.clearAllPeptideIdentifications();
-      map.getMSExperiment().getProteinIdentifications().clear();
+      map.getProteinIdentifications().clear();
     }
 
     if (peptide_ids.empty()) return;
@@ -95,35 +95,38 @@ namespace OpenMS
     // append protein identifications
     map.getProteinIdentifications().insert(map.getProteinIdentifications().end(), protein_ids.begin(), protein_ids.end()); 
 
+    map.getAllPeptideIdentifications().resize(map.getMSExperiment().size());
+    
+    // set up the lookup table for the spectra
     lookup.readSpectra(map.getMSExperiment());
 
     // remember which peptides were mapped (for stats later)
     unordered_set<Size> peptides_mapped;
+
     // store mapping of identification RT to index (ignore empty hits)
     multimap<double, Size> identifications_precursors;
     for (Size i = 0; i < peptide_ids.size(); ++i)
     {
-      if (!peptide_ids[i].empty())
-      { // mapping is done by either native id or by comparing peptide_id RT with experiment RT
-        if (!peptide_ids[i].metaValueExists(Constants::UserParam::SPECTRUM_REFERENCE)) 
-        { // use RT for mapping 
-          identifications_precursors.insert(make_pair(peptide_ids[i].getRT(), i));
+      if (peptide_ids[i].empty()) continue;      
+      // mapping is done by either native id or by comparing peptide_id RT with experiment RT
+      if (!peptide_ids[i].metaValueExists(Constants::UserParam::SPECTRUM_REFERENCE)) 
+      { // use RT for mapping 
+        identifications_precursors.insert(make_pair(peptide_ids[i].getRT(), i));
+      } 
+      else 
+      { // use native id for mapping
+        DataValue native_id = peptide_ids[i].getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
+        try 
+        { // spectrum can be retrieved
+          Size spectrum_idx = lookup.findByNativeID(native_id);
+          map.getPeptideIdentifications(spectrum_idx).push_back(peptide_ids[i]);
+          peptides_mapped.insert(i);
         } 
-        else 
-        { // use native id for mapping
-          DataValue native_id = peptide_ids[i].getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
-          try 
-          { // spectrum can be retrieved
-            Size spectrum_idx = lookup.findByNativeID(native_id);
-            map.getPeptideIdentifications(spectrum_idx).push_back(peptide_ids[i]);
-            peptides_mapped.insert(i);
-          } 
-          catch (const Exception::ElementNotFound& /*e*/) 
-          { // use RT for mapping
-            identifications_precursors.insert(make_pair(peptide_ids[i].getRT(), i));
-          }
+        catch (const Exception::ElementNotFound& /*e*/) 
+        { // use RT for mapping
+          identifications_precursors.insert(make_pair(peptide_ids[i].getRT(), i));
         }
-      }
+      }      
     }
 
     if (!identifications_precursors.empty()) 
@@ -185,6 +188,7 @@ namespace OpenMS
               }
             }
           }
+
           if (success)
           {
             map.getPeptideIdentifications(experiment_iterator->second).push_back(peptide_ids[identifications_iterator->second]);

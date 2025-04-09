@@ -1136,9 +1136,8 @@ namespace OpenMS
                                   double peptide_threshold_score,
                                   double protein_threshold_score)
     {
-      MSExperiment& exp = annotated_data.getMSExperiment();
       // filter protein hits:
-      filterHitsByScore(exp.getProteinIdentifications(),
+      filterHitsByScore(annotated_data.getProteinIdentifications(),
                         protein_threshold_score);
       // don't remove empty protein IDs - they contain search meta data and may
       // be referenced by peptide IDs (via run ID)
@@ -1148,7 +1147,7 @@ namespace OpenMS
       {
         filterHitsByScore(peptide_ids, peptide_threshold_score);
         removeEmptyIdentifications(peptide_ids);
-        updateProteinReferences(peptide_ids, exp.getProteinIdentifications());
+        updateProteinReferences(peptide_ids, annotated_data.getProteinIdentifications());
       }
       // @TODO: remove proteins that aren't referenced by peptides any more?
     }
@@ -1159,17 +1158,16 @@ namespace OpenMS
       // don't filter the protein hits by "N best" here - filter the peptides
       // and update the protein hits!
       std::vector<PeptideIdentification> all_peptides; // IDs from all spectra
-      MSExperiment& experiment = annotated_data.getMSExperiment();
       // filter peptide hits:
       for (std::vector<PeptideIdentification>& peptide_ids : annotated_data.getAllPeptideIdentifications())
       {
         keepNBestHits(peptide_ids, n);
         removeEmptyIdentifications(peptide_ids);
-        updateProteinReferences(peptide_ids, experiment.getProteinIdentifications());
+        updateProteinReferences(peptide_ids, annotated_data.getProteinIdentifications());
         all_peptides.insert(all_peptides.end(), peptide_ids.begin(), peptide_ids.end());
       }
       // update protein hits:
-      removeUnreferencedProteins(experiment.getProteinIdentifications(), all_peptides);
+      removeUnreferencedProteins(annotated_data.getProteinIdentifications(), all_peptides);
     }
 
     /// Filter identifications by "N best" PeptideIdentification objects (better PeptideIdentification means better [best] PeptideHit than other).
@@ -1347,9 +1345,8 @@ namespace OpenMS
       }
 
       // filter protein hits:
-      keepHitsMatchingProteins(experiment.getMSExperiment().getProteinIdentifications(),
-                               accessions);
-      updateHitRanks(experiment.getMSExperiment().getProteinIdentifications());
+      keepHitsMatchingProteins(experiment.getProteinIdentifications(), accessions);
+      updateHitRanks(experiment.getProteinIdentifications());
 
       // filter peptide hits:
       for (auto [spectrum, peptide_ids] : experiment)

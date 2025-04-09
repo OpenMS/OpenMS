@@ -87,7 +87,7 @@ START_SECTION((template <typename PeakType> void annotate(AnnotatedMSRawData& ma
   Feature f;
   f.setMZ(900.0);
   f.setRT(9.0);
-  std::vector< PeptideIdentification > pids;
+  std::vector<PeptideIdentification> pids;
   PeptideIdentification pid;
   pid.setIdentifier("myID");
   pid.setHits(std::vector<PeptideHit>(4));
@@ -97,7 +97,7 @@ START_SECTION((template <typename PeakType> void annotate(AnnotatedMSRawData& ma
   pids.push_back(pid); // with MZ&RT from PID
   f.setPeptideIdentifications(pids);
   fm.push_back(f);
-  std::vector< ProteinIdentification > prids(2);
+  std::vector<ProteinIdentification> prids(2);
   fm.setProteinIdentifications(prids);
 
   // create experiment
@@ -144,7 +144,10 @@ START_SECTION((template <typename PeakType> void annotate(AnnotatedMSRawData& ma
   //scan 3
   TEST_EQUAL(annotated_experiment.getPeptideIdentifications(2).size(), 0)
 
+  std::cout << annotated_experiment.getProteinIdentifications().size() << std::endl;
+  std::cout << fm.getProteinIdentifications().size() << std::endl;
   mapper.annotate(annotated_experiment, fm, true, false); // no MS1 mapping. MZ threshold never fulfilled
+  std::cout << annotated_experiment.getProteinIdentifications().size() << std::endl;
   //test
   TEST_EQUAL(annotated_experiment.getProteinIdentifications().size(), 2)
   //scan 1
