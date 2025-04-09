@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -44,7 +18,7 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
 
@@ -54,155 +28,7 @@ using namespace std;
 
 namespace OpenMS
 {
-
-  bool MzTabParameterList::isNull() const
-  {
-    return parameters_.empty();
-  }
-
-  void MzTabParameterList::setNull(bool b)
-  {
-    if (b) { parameters_.clear(); }
-  }
-
-  String MzTabParameterList::toCellString() const
-  {
-    if (isNull())
-    {
-      return "null";
-    }
-    else
-    {
-      String ret;
-      for (std::vector<MzTabParameter>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
-      {
-        if (it != parameters_.begin())
-        {
-          ret += "|";
-        }
-        ret += it->toCellString();
-      }
-      return ret;
-    }
-  }
-
-  void MzTabParameterList::fromCellString(const String& s)
-  {
-    String lower = s;
-    lower.toLower().trim();
-
-    if (lower == "null")
-    {
-      setNull(true);
-    }
-    else
-    {
-      std::vector<String> fields;
-      s.split("|", fields);
-      for (Size i = 0; i != fields.size(); ++i)
-      {
-        MzTabParameter p;
-        lower = fields[i];
-        lower.toLower().trim();
-        if (lower == "null")
-        {
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("MzTabParameter in MzTabParameterList must not be null '") + s);
-        }
-        p.fromCellString(fields[i]);
-        parameters_.push_back(p);
-      }
-    }
-  }
-
-  std::vector<MzTabParameter> MzTabParameterList::get() const
-  {
-    return parameters_;
-  }
-
-  void MzTabParameterList::set(const std::vector<MzTabParameter>& parameters)
-  {
-    parameters_ = parameters;
-  }
-
-  MzTabStringList::MzTabStringList() :
-    sep_('|')
-  {
-  }
-
-  void MzTabStringList::setSeparator(char sep)
-  {
-    sep_ = sep;
-  }
-
-  bool MzTabStringList::isNull() const
-  {
-    return entries_.empty();
-  }
-
-  void MzTabStringList::setNull(bool b)
-  {
-    if (b)
-    {
-      entries_.clear();
-    }
-  }
-
-  String MzTabStringList::toCellString() const
-  {
-    if (isNull())
-    {
-      return "null";
-    }
-    else
-    {
-      String ret;
-      for (std::vector<MzTabString>::const_iterator it = entries_.begin(); it != entries_.end(); ++it)
-      {
-        if (it != entries_.begin())
-        {
-          ret += sep_;
-        }
-        ret += it->toCellString();
-      }
-      return ret;
-    }
-  }
-
-  void MzTabStringList::fromCellString(const String& s)
-  {
-    String lower = s;
-    lower.toLower().trim();
-
-    if (lower == "null")
-    {
-      setNull(true);
-    }
-    else
-    {
-      std::vector<String> fields;
-      s.split(sep_, fields);
-      for (Size i = 0; i != fields.size(); ++i)
-      {
-        MzTabString ts;
-        ts.fromCellString(fields[i]);
-        entries_.push_back(ts);
-      }
-    }
-  }
-
-  std::vector<MzTabString> MzTabStringList::get() const
-  {
-    return entries_;
-  }
-
-  void MzTabStringList::set(const std::vector<MzTabString>& entries)
-  {
-    entries_ = entries;
-  }
-
-  MzTabModification::MzTabModification()
-  {
-  }
+  MzTabModification::MzTabModification() = default;
 
   bool MzTabModification::isNull() const
   {
@@ -458,102 +284,6 @@ namespace OpenMS
     entries_ = entries;
   }
 
-  MzTabSpectraRef::MzTabSpectraRef() :
-    ms_run_(0)
-  {
-  }
-
-  bool MzTabSpectraRef::isNull() const
-  {
-    return (ms_run_ < 1) || (spec_ref_.empty());
-  }
-
-  void MzTabSpectraRef::setNull(bool b)
-  {
-    if (b)
-    {
-      ms_run_ = 0;
-      spec_ref_.clear();
-    }
-  }
-
-  void MzTabSpectraRef::setMSFile(Size index)
-  {
-    assert(index >= 1);
-    if (index >= 1)
-    {
-      ms_run_ = index;
-    }
-  }
-
-  void MzTabSpectraRef::setSpecRef(const String& spec_ref)
-  {
-    assert(!spec_ref.empty());
-    if (!spec_ref.empty())
-    {
-      spec_ref_ = spec_ref;
-    }
-    else
-    {
-      OPENMS_LOG_WARN << "Spectrum reference not set." << endl;
-    }
-  }
-
-  String MzTabSpectraRef::getSpecRef() const
-  {
-    assert(!isNull());
-    return spec_ref_;
-  }
-
-  Size MzTabSpectraRef::getMSFile() const
-  {
-    assert(!isNull());
-    return ms_run_;
-  }
-
-  void MzTabSpectraRef::setSpecRefFile(const String& spec_ref)
-  {
-    assert(!spec_ref.empty());
-    if (!spec_ref.empty())
-    {
-      spec_ref_ = spec_ref;
-    }
-  }
-
-  String MzTabSpectraRef::toCellString() const
-  {
-    if (isNull())
-    {
-      return "null";
-    }
-    else
-    {
-      return String("ms_run[") + String(ms_run_) + "]:" + spec_ref_;
-    }
-  }
-
-  void MzTabSpectraRef::fromCellString(const String& s)
-  {
-    String lower = s;
-    lower.toLower().trim();
-    if (lower == "null")
-    {
-      setNull(true);
-    }
-    else
-    {
-      std::vector<String> fields;
-      s.split(":", fields);
-      if (fields.size() != 2)
-      {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can not convert to MzTabSpectraRef from '") + s + "'");
-      }
-
-      spec_ref_ = fields[1];
-      ms_run_ = (Size)(fields[0].substitute("ms_run[", "").remove(']').toInt());
-    }
-  }
-
   MzTabProteinSectionRow::MzTabProteinSectionRow()
   {
     // use "," as list separator because "|" can be used for go terms and protein accessions
@@ -662,6 +392,16 @@ namespace OpenMS
     return psm_data_;
   }
 
+  size_t MzTab::getNumberOfPSMs() const
+  {
+    std::unordered_set<Int> psm_ids;
+    for (const auto& psm : psm_data_)
+    {
+      psm_ids.insert(psm.PSM_ID.get());
+    }
+    return psm_ids.size();
+  }
+
   void MzTab::setPSMSectionRows(const MzTabPSMSectionRows& psd)
   {
     psm_data_ = psd;
@@ -762,631 +502,6 @@ namespace OpenMS
     return getOptionalColumnNames_(osm_data_);
   }
 
-  MzTabParameter::MzTabParameter()
-    : CV_label_(""),
-    accession_(""),
-    name_(""),
-    value_("")
-  {
-
-  }
-
-  bool MzTabParameter::isNull() const
-  {
-    return CV_label_.empty() && accession_.empty() && name_.empty() && value_.empty();
-  }
-
-  void MzTabParameter::setNull(bool b)
-  {
-    if (b)
-    {
-      CV_label_.clear();
-      accession_.clear();
-      name_.clear();
-      value_.clear();
-    }
-  }
-
-  void MzTabParameter::setCVLabel(const String& CV_label)
-  {
-    CV_label_ = CV_label;
-  }
-
-  void MzTabParameter::setAccession(const String& accession)
-  {
-    accession_ = accession;
-  }
-
-  void MzTabParameter::setName(const String& name)
-  {
-    name_ = name;
-  }
-
-  void MzTabParameter::setValue(const String& value)
-  {
-    value_ = value;
-  }
-
-  String MzTabParameter::getCVLabel() const
-  {
-    assert(!isNull());
-    return CV_label_;
-  }
-
-  String MzTabParameter::getAccession() const
-  {
-    assert(!isNull());
-    return accession_;
-  }
-
-  String MzTabParameter::getName() const
-  {
-    assert(!isNull());
-    return name_;
-  }
-
-  String MzTabParameter::getValue() const
-  {
-    assert(!isNull());
-    return value_;
-  }
-
-  String MzTabParameter::toCellString() const
-  {
-    if (isNull())
-    {
-      return "null";
-    }
-    else
-    {
-      String ret = "[";
-      ret += CV_label_ + ", ";
-      ret += accession_ + ", ";
-
-      if (name_.hasSubstring(", "))
-      {
-        ret += String("\"") + name_ + String("\""); // quote name if it contains a ","
-      }
-      else
-      {
-        ret += name_;
-      }
-
-      ret += String(", ");
-
-      if (value_.hasSubstring(", "))
-      {
-        ret += String("\"") + value_ + String("\""); // quote value if it contains a ","
-      }
-      else
-      {
-        ret += value_;
-      }
-
-      ret += "]";
-      return ret;
-    }
-  }
-
-  void MzTabParameter::fromCellString(const String& s)
-  {
-    String lower = s;
-    lower.toLower().trim();
-    if (lower == "null")
-    {
-      setNull(true);
-    }
-    else
-    {
-      StringList fields;
-      String field;
-      bool in_quotes = false;
-      for (String::const_iterator sit = s.begin(); sit != s.end(); ++sit)
-      {
-        if (*sit == '\"') // start or end of quotes
-        {
-          in_quotes = !in_quotes;
-        }
-        else if (*sit == ',') // , encountered
-        {
-          if (in_quotes) // case 1: , in quote
-          {
-            field += ','; // add , (no split)
-          }
-          else // split at , if not in quotes
-          {
-            fields.push_back(field.trim());
-            field.clear();
-          }
-        }
-        else if (*sit != '[' && *sit != ']')
-        {
-          // skip leading ws
-          if (*sit == ' ' && field.empty())
-          {
-            continue;
-          }
-          field += *sit;
-        }
-      }
-
-      fields.push_back(field.trim());
-
-      if (fields.size() != 4)
-      {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert String '") + s + "' to MzTabParameter");
-      }
-
-      CV_label_ = fields[0];
-      accession_ = fields[1];
-      name_ = fields[2];
-      value_ = fields[3];
-    }
-  }
-
-  MzTabString::MzTabString(const String& s)
-  {
-    set(s);
-  }
-
-  void MzTabString::set(const String& value)
-  {
-    String lower = value;
-    lower.toLower().trim();
-    if (lower == "null")
-    {
-      setNull(true);
-    }
-    else
-    {
-      value_ = value;
-      value_.trim();
-    }
-  }
-
-  String MzTabString::get() const
-  {
-    return value_;
-  }
-
-  bool MzTabString::isNull() const
-  {
-    return value_.empty();
-  }
-
-  void MzTabString::setNull(bool b)
-  {
-    if (b)
-    {
-      value_.clear();
-    }
-  }
-
-  MzTabString::MzTabString()
-    : value_()
-  {
-  }
-
-  String MzTabString::toCellString() const
-  {
-    if (isNull())
-    {
-      return "null";
-    }
-    else
-    {
-      return value_;
-    }
-  }
-
-  void MzTabString::fromCellString(const String& s)
-  {
-    set(s);
-  }
-
-  MzTabBoolean::MzTabBoolean(bool v)
-  {
-    set((int)v);
-  }
-
-  MzTabBoolean::MzTabBoolean()
-    : value_(-1)
-  {
-  }
-
-  void MzTabBoolean::set(const bool& value)
-  {
-    value_ = (int)value;
-  }
-
-  Int MzTabBoolean::get() const
-  {
-    return value_;
-  }
-
-  bool MzTabBoolean::isNull() const
-  {
-    return value_ < 0;
-  }
-
-  void MzTabBoolean::setNull(bool b)
-  {
-    if (!b)
-      value_ = -1;
-    else
-      value_ = 0;
-  }
-
-  String MzTabBoolean::toCellString() const
-  {
-    if (isNull())
-    {
-      return "null";
-    }
-    else
-    {
-      if (value_)
-      {
-        return "1";
-      }
-      else
-      {
-        return "0";
-      }
-    }
-  }
-
-  void MzTabBoolean::fromCellString(const String& s)
-  {
-    String lower = s;
-    lower.toLower().trim();
-    if (lower == "null")
-    {
-      setNull(true);
-    }
-    else
-    {
-      if (s == "0")
-      {
-        set(false);
-      }
-      else if (s == "1")
-      {
-        set(true);
-      }
-      else
-      {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert String '") + s + "' to MzTabBoolean");
-      }
-    }
-  }
-
-  bool MzTabIntegerList::isNull() const
-  {
-    return entries_.empty();
-  }
-
-  void MzTabIntegerList::setNull(bool b)
-  {
-    if (b)
-    {
-      entries_.clear();
-    }
-  }
-
-  String MzTabIntegerList::toCellString() const
-  {
-    if (isNull())
-    {
-      return "null";
-    }
-    else
-    {
-      String ret;
-      for (std::vector<MzTabInteger>::const_iterator it = entries_.begin(); it != entries_.end(); ++it)
-      {
-        if (it != entries_.begin())
-        {
-          ret += ",";
-        }
-        ret += it->toCellString();
-      }
-      return ret;
-    }
-  }
-
-  void MzTabIntegerList::fromCellString(const String& s)
-  {
-    String lower = s;
-    lower.toLower().trim();
-    if (lower == "null")
-    {
-      setNull(true);
-    }
-    else
-    {
-      std::vector<String> fields;
-      s.split(",", fields);
-      for (Size i = 0; i != fields.size(); ++i)
-      {
-        MzTabInteger ds;
-        ds.fromCellString(fields[i]);
-        entries_.push_back(ds);
-      }
-    }
-  }
-
-  std::vector<MzTabInteger> MzTabIntegerList::get() const
-  {
-    return entries_;
-  }
-
-  void MzTabIntegerList::set(const std::vector<MzTabInteger>& entries)
-  {
-    entries_ = entries;
-  }
-
-  MzTabInteger::MzTabInteger(const int v)
-  {
-    set(v);
-  }
-
-  MzTabInteger::MzTabInteger()
-    : value_(0), state_(MZTAB_CELLSTATE_NULL)
-  {
-  }
-
-  void MzTabInteger::set(const Int& value)
-  {
-    state_ = MZTAB_CELLSTATE_DEFAULT;
-    value_ = value;
-  }
-
-  Int MzTabInteger::get() const
-  {
-    if (state_ == MZTAB_CELLSTATE_DEFAULT)
-    {
-      return value_;
-    }
-    else
-    {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Trying to extract MzTab Integer value from non-integer valued cell. Did you check the cell state before querying the value?"));
-    }
-  }
-
-  String MzTabInteger::toCellString() const
-  {
-    switch (state_)
-    {
-    case MZTAB_CELLSTATE_NULL:
-      return "null";
-
-    case MZTAB_CELLSTATE_NAN:
-      return "NaN";
-
-    case MZTAB_CELLSTATE_INF:
-      return "Inf";
-
-    case MZTAB_CELLSTATE_DEFAULT:
-    default:
-      return String(value_);
-    }
-  }
-
-  void MzTabInteger::fromCellString(const String& s)
-  {
-    String lower = s;
-    lower.toLower().trim();
-    if (lower == "null")
-    {
-      setNull(true);
-    }
-    else if (lower == "nan")
-    {
-      setNaN();
-    }
-    else if (lower == "inf")
-    {
-      setInf();
-    }
-    else // default case
-    {
-      set(lower.toInt());
-    }
-  }
-
-  bool MzTabInteger::isNull() const
-  {
-    return state_ == MZTAB_CELLSTATE_NULL;
-  }
-
-  void MzTabInteger::setNull(bool b)
-  {
-    state_ = b ? MZTAB_CELLSTATE_NULL : MZTAB_CELLSTATE_DEFAULT;
-  }
-
-  bool MzTabInteger::isNaN() const
-  {
-    return state_ == MZTAB_CELLSTATE_NAN;
-  }
-
-  void MzTabInteger::setNaN()
-  {
-    state_ = MZTAB_CELLSTATE_NAN;
-  }
-
-  bool MzTabInteger::isInf() const
-  {
-    return state_ == MZTAB_CELLSTATE_INF;
-  }
-
-  void MzTabInteger::setInf()
-  {
-    state_ = MZTAB_CELLSTATE_INF;
-  }
-
-  bool MzTabDouble::isNull() const
-  {
-    return state_ == MZTAB_CELLSTATE_NULL;
-  }
-
-  void MzTabDouble::setNull(bool b)
-  {
-    state_ = b ? MZTAB_CELLSTATE_NULL : MZTAB_CELLSTATE_DEFAULT;
-  }
-
-  bool MzTabDouble::isNaN() const
-  {
-    return state_ == MZTAB_CELLSTATE_NAN;
-  }
-
-  void MzTabDouble::setNaN()
-  {
-    state_ = MZTAB_CELLSTATE_NAN;
-  }
-
-  bool MzTabDouble::isInf() const
-  {
-    return state_ == MZTAB_CELLSTATE_INF;
-  }
-
-  void MzTabDouble::setInf()
-  {
-    state_ = MZTAB_CELLSTATE_INF;
-  }
-
-  MzTabDouble::MzTabDouble()
-    : value_(0.0), state_(MZTAB_CELLSTATE_NULL)
-  {
-  }
-
-  MzTabDouble::MzTabDouble(const double v)
-  {
-    set(v);
-  }
-
-  void MzTabDouble::set(const double& value)
-  {
-    state_ = MZTAB_CELLSTATE_DEFAULT;
-    value_ = value;
-  }
-
-  double MzTabDouble::get() const
-  {
-    if (state_ != MZTAB_CELLSTATE_DEFAULT)
-    {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Trying to extract MzTab Double value from non-double valued cell. Did you check the cell state before querying the value?"));
-    }
-
-    return value_;
-  }
-
-  String MzTabDouble::toCellString() const
-  {
-    switch (state_)
-    {
-    case MZTAB_CELLSTATE_NULL:
-      return "null";
-
-    case MZTAB_CELLSTATE_NAN:
-      return "NaN";
-
-    case MZTAB_CELLSTATE_INF:
-      return "Inf";
-
-    case MZTAB_CELLSTATE_DEFAULT:
-    default:
-      return String(value_);
-    }
-  }
-
-  void MzTabDouble::fromCellString(const String& s)
-  {
-    String lower = s;
-    lower.toLower().trim();
-    if (lower == "null")
-    {
-      setNull(true);
-    }
-    else if (lower == "nan")
-    {
-      setNaN();
-    }
-    else if (lower == "inf")
-    {
-      setInf();
-    }
-    else // default case
-    {
-      set(lower.toDouble());
-    }
-  }
-
-  bool MzTabDoubleList::isNull() const
-  {
-    return entries_.empty();
-  }
-
-  void MzTabDoubleList::setNull(bool b)
-  {
-    if (b)
-    {
-      entries_.clear();
-    }
-  }
-
-  String MzTabDoubleList::toCellString() const
-  {
-    if (isNull())
-    {
-      return "null";
-    }
-    else
-    {
-      String ret;
-      for (std::vector<MzTabDouble>::const_iterator it = entries_.begin(); it != entries_.end(); ++it)
-      {
-        if (it != entries_.begin())
-        {
-          ret += "|";
-        }
-        ret += it->toCellString();
-      }
-      return ret;
-    }
-  }
-
-  void MzTabDoubleList::fromCellString(const String& s)
-  {
-    String lower = s;
-    lower.toLower().trim();
-    if (lower == "null")
-    {
-      setNull(true);
-    }
-    else
-    {
-      std::vector<String> fields;
-      s.split("|", fields);
-      for (Size i = 0; i != fields.size(); ++i)
-      {
-        MzTabDouble ds;
-        ds.fromCellString(fields[i]);
-        entries_.push_back(ds);
-      }
-    }
-  }
-
-  std::vector<MzTabDouble> MzTabDoubleList::get() const
-  {
-    return entries_;
-  }
-
-  void MzTabDoubleList::set(const std::vector<MzTabDouble>& entries)
-  {
-    entries_ = entries;
-  }
-
   void MzTabPSMSectionRow::addPepEvidenceToRows(const vector<PeptideEvidence>& peptide_evidences)
   {
     if (peptide_evidences.empty())
@@ -1476,10 +591,12 @@ namespace OpenMS
       MzTabOptionalColumnEntry opt_entry;
       // column names must not contain spaces
       opt_entry.first = "opt_" + id + "_" + String(key).substitute(' ','_');
+      
       if (meta.metaValueExists(key))
       {
         opt_entry.second = MzTabString(meta.getMetaValue(key).toString());
       } // otherwise it is default ("null")
+
       opt.push_back(opt_entry);
     }
   }
@@ -1594,7 +711,6 @@ namespace OpenMS
     meta_data.variable_mod = generateMzTabStringFromVariableModifications(var_mods);
     meta_data.fixed_mod = generateMzTabStringFromFixedModifications(fixed_mods);
 
-
     // mandatory meta values
     meta_data.mz_tab_type = MzTabString("Quantification");
     meta_data.mz_tab_mode = MzTabString("Summary");
@@ -1626,13 +742,23 @@ namespace OpenMS
     // pre-analyze data for occurring meta values at feature and peptide hit level
     // these are used to build optional columns containing the meta values in internal data structures
     set<String> feature_user_value_keys;
+    set<String> peptide_identifications_user_value_keys;
     set<String> peptide_hit_user_value_keys;
-    MzTab::getFeatureMapMetaValues_(feature_map, feature_user_value_keys, peptide_hit_user_value_keys);
+    MzTab::getFeatureMapMetaValues_(
+      feature_map,     
+      feature_user_value_keys,
+      peptide_identifications_user_value_keys,
+      peptide_hit_user_value_keys);
 
     for (Size i = 0; i < feature_map.size(); ++i)
     {
       const Feature& f = feature_map[i];
-      auto row = peptideSectionRowFromFeature_(f, feature_user_value_keys, peptide_hit_user_value_keys, fixed_mods);
+      auto row = peptideSectionRowFromFeature_(
+        f,
+        feature_user_value_keys, 
+        peptide_identifications_user_value_keys, 
+        peptide_hit_user_value_keys, 
+        fixed_mods);
       mztab.getPeptideSectionRows().emplace_back(std::move(row));
     }
 
@@ -1642,6 +768,7 @@ namespace OpenMS
   MzTabPeptideSectionRow MzTab::peptideSectionRowFromFeature_(
     const Feature& f, 
     const set<String>& feature_user_value_keys,
+    const set<String>& peptide_identifications_user_value_keys,
     const set<String>& peptide_hit_user_value_keys,
     const vector<String>& fixed_mods)
   {
@@ -1682,8 +809,14 @@ namespace OpenMS
     const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
     if (pep_ids.empty())
     {
+      // still add empty opt_ columns before returning
+      addMetaInfoToOptionalColumns(peptide_identifications_user_value_keys, row.opt_, "global", MetaInfoInterface());
+      addMetaInfoToOptionalColumns(peptide_hit_user_value_keys, row.opt_, "global", MetaInfoInterface());      
       return row;
     }
+
+    const PeptideIdentification& best_pid = f.getPeptideIdentifications()[0];
+    addMetaInfoToOptionalColumns(peptide_identifications_user_value_keys, row.opt_, "global", best_pid);
 
     // TODO: here we assume that all have the same score type etc.
     vector<PeptideHit> all_hits;
@@ -1694,6 +827,7 @@ namespace OpenMS
 
     if (all_hits.empty())
     { 
+      addMetaInfoToOptionalColumns(peptide_identifications_user_value_keys, row.opt_, "global", MetaInfoInterface());
       return row;
     }
 
@@ -1743,6 +877,7 @@ namespace OpenMS
     const StringList& ms_runs,
     const Size n_study_variables,
     const set<String>& consensus_feature_user_value_keys,
+    const set<String>& peptide_identifications_user_value_keys,
     const set<String>& peptide_hit_user_value_keys,
     const map<String, size_t>& idrun_2_run_index,
     const map<pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
@@ -1762,7 +897,7 @@ namespace OpenMS
     row.opt_.push_back(opt_global_modified_sequence);
 
     // Defines how to consume user value keys for the upcoming keys
-    const auto addUserValueToRowBy = [&row](function<void(const String &s, MzTabOptionalColumnEntry &entry)> f) -> function<void(const String &key)>
+    const auto addUserValueToRowBy = [&row](const function<void(const String &s, MzTabOptionalColumnEntry &entry)>& f) -> function<void(const String &key)>
     {
       return [f,&row](const String &user_value_key)
         {
@@ -1783,6 +918,14 @@ namespace OpenMS
           {
             opt_entry.second = MzTabString(c.getMetaValue(key).toString());
           }
+        })
+      );
+
+    // add optional columns for first peptide identification in consensus feature
+    for_each(peptide_identifications_user_value_keys.begin(), peptide_identifications_user_value_keys.end(),
+      addUserValueToRowBy([&c](const String &key, MzTabOptionalColumnEntry &opt_entry)
+        {
+          opt_entry.second = MzTabString(c.getMetaValue(key).toString());
         })
       );
 
@@ -1825,7 +968,7 @@ namespace OpenMS
       UInt label = ch.getLabelAsUInt(experiment_type);
       // convert from column index to study variable index
       auto pl = make_pair(ch.filename, label);
-      study_variable = path_label_to_assay.at(pl); // for now, a study_variable is one assay
+      study_variable = path_label_to_assay.at(pl) + 1; // for now, a study_variable is one assay (both 1-based). And pathLabelToSample mapping reports 0-based.
 
       //TODO implement aggregation in case we generalize study_variable to include multiple assays.
       row.peptide_abundance_stdev_study_variable[study_variable];
@@ -1853,7 +996,8 @@ namespace OpenMS
 
       // Overall information for this feature in PEP section
       // Features need to be resolved for this. First is not necessarily the best since ids were resorted by map_index.
-      const PeptideHit& best_ph = curr_pep_ids[0].getHits()[0];
+      const PeptideIdentification& best_id = curr_pep_ids[0];
+      const PeptideHit& best_ph = best_id.getHits()[0];
       const AASequence& aas = best_ph.getSequence();
       row.sequence = MzTabString(aas.toUnmodifiedString());
 
@@ -1868,6 +1012,25 @@ namespace OpenMS
       row.accession = peptide_evidences.empty() ? MzTabString() : MzTabString(peptide_evidences[0].getProteinAccession());
 
       // fill opt_ columns based on best ID in the feature
+      vector<String> id_keys;
+      best_id.getKeys(id_keys);
+
+      for (Size k = 0; k != id_keys.size(); ++k)
+      {
+        String mztabstyle_key = id_keys[k];
+        std::replace(mztabstyle_key.begin(), mztabstyle_key.end(), ' ', '_');
+
+        // find matching entry in opt_ (TODO: speed this up)
+        for (Size i = 0; i != row.opt_.size(); ++i)
+        {
+          MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
+
+          if (opt_entry.first == String("opt_global_") + mztabstyle_key)
+          {
+            opt_entry.second = MzTabString(best_id.getMetaValue(id_keys[k]).toString());
+          }
+        }
+      }
 
       // find opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)
       for (Size i = 0; i != row.opt_.size(); ++i)
@@ -1920,9 +1083,9 @@ namespace OpenMS
         }
         else
         {
-          if (pep.metaValueExists("id_merge_index"))
+          if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
           {
-            id_merge_index = pep.getMetaValue("id_merge_index");
+            id_merge_index = pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
             msfile_index = map_run_fileidx_2_msfileidx.at({spec_run_index, id_merge_index});
           }
           else
@@ -1954,7 +1117,7 @@ namespace OpenMS
           best_score = curr_score;
           if (pep.metaValueExists("spectrum_reference"))
           {
-            row.spectra_ref.setSpecRef(pep.getMetaValue("spectrum_reference").toString());
+            row.spectra_ref.setSpecRef(pep.getSpectrumReference());
             row.spectra_ref.setMSFile(msfile_index);
           }
         }
@@ -2008,7 +1171,7 @@ namespace OpenMS
     addMetaInfoToOptionalColumns(pid_key_set, row.opt_, String("global"), pid);
 
     // link to spectrum in MS run
-    String spectrum_nativeID = pid.getMetaValue("spectrum_reference").toString();
+    String spectrum_nativeID = pid.getSpectrumReference();
     size_t run_index = idrun_2_run_index.at(pid.getIdentifier());
     StringList filenames;
     prot_ids[run_index]->getPrimaryMSRunPath(filenames);
@@ -2026,9 +1189,9 @@ namespace OpenMS
     }
     else
     {
-      if (pid.metaValueExists("id_merge_index"))
+      if (pid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
       {
-        msfile_index = map_run_fileidx_2_msfileidx[{run_index, pid.getMetaValue("id_merge_index")}];
+        msfile_index = map_run_fileidx_2_msfileidx[{run_index, pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)}];
       }
       else
       {
@@ -3108,7 +2271,10 @@ state0:
 
   bool MzTab::IDMzTabStream::nextPSMRow(MzTabPSMSectionRow& row)
   {
-    if (pep_id_ >= peptide_ids_.size()) return false;
+    if (pep_id_ >= peptide_ids_.size()) 
+    {
+      return false;
+    }
     const PeptideIdentification* pid = peptide_ids_[pep_id_];
 
     auto psm_row = MzTab::PSMSectionRowFromPeptideID_(
@@ -3137,10 +2303,13 @@ state0:
 
     if (psm_row) // valid row?
     {
-      std::swap(row, *psm_row);
-      return true;
+      row = *psm_row;
     }
-    return false;
+    else
+    {
+      row = MzTabPSMSectionRow();
+    }
+    return true;
   }
 
   MzTab MzTab::exportIdentificationsToMzTab(
@@ -3255,25 +2424,30 @@ state0:
     return mod_list;
   }
 
-  void MzTab::getFeatureMapMetaValues_(const FeatureMap& feature_map, set<String>& feature_user_value_keys, set<String>& peptide_hit_user_value_keys)
+  void MzTab::getFeatureMapMetaValues_(const FeatureMap& feature_map,
+    set<String>& feature_user_value_keys, 
+    set<String>& peptide_identification_user_value_keys, 
+    set<String>& peptide_hit_user_value_keys)
   {
     for (Size i = 0; i < feature_map.size(); ++i)
     {
       const Feature& f = feature_map[i];
       vector<String> keys;
       f.getKeys(keys); //TODO: why not just return it?
-      replaceWhiteSpaces_(keys.begin(), keys.end());
 
       feature_user_value_keys.insert(keys.begin(), keys.end());
 
       const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
       for (PeptideIdentification const & pep_id : pep_ids)
       {
+        vector<String> pep_keys;
+        pep_id.getKeys(pep_keys);
+        peptide_identification_user_value_keys.insert(pep_keys.begin(), pep_keys.end());
+
         for (PeptideHit const & hit : pep_id.getHits())
         {
           vector<String> ph_keys;
           hit.getKeys(ph_keys);
-          replaceWhiteSpaces_(ph_keys.begin(), ph_keys.end());
           peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
         }
       }
@@ -3282,31 +2456,80 @@ state0:
     peptide_hit_user_value_keys.erase("spectrum_reference");
   }
 
-  void MzTab::getConsensusMapMetaValues_(const ConsensusMap& consensus_map, set<String>& consensus_feature_user_value_keys, set<String>& peptide_hit_user_value_keys)
-  {
-    for (ConsensusFeature const & c : consensus_map)
+  // local helper to extract meta values with space substituted with '_'
+  void extractMetaValuesFromIDs(const vector<PeptideIdentification> & curr_pep_ids, 
+    set<String>& peptide_identification_user_value_keys,
+    set<String>& peptide_hit_user_value_keys)
     {
-      vector<String> keys;
-      c.getKeys(keys);
-      replaceWhiteSpaces_(keys.begin(), keys.end());
-
-      consensus_feature_user_value_keys.insert(keys.begin(), keys.end());
-
-      const vector<PeptideIdentification> & curr_pep_ids = c.getPeptideIdentifications();
       for (auto const & pep_id : curr_pep_ids)
-      {
+      {      
+        vector<String> pep_keys;
+        pep_id.getKeys(pep_keys);
+        // replace whitespaces with underscore
+        std::transform(pep_keys.begin(), pep_keys.end(), pep_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
+        peptide_identification_user_value_keys.insert(pep_keys.begin(), pep_keys.end());
+
         for (auto const & hit : pep_id.getHits())
         {
           vector<String> ph_keys;
           hit.getKeys(ph_keys);
-          replaceWhiteSpaces_(ph_keys.begin(), ph_keys.end());
+          // replace whitespaces with underscore
+          std::transform(ph_keys.begin(), ph_keys.end(), ph_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
           peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
         }
       }
     }
 
+  // local helper to extract meta values with space substituted with '_'
+  void extractMetaValuesFromIDPointers(const vector<const PeptideIdentification*> & curr_pep_ids, 
+    set<String>& peptide_identification_user_value_keys,
+    set<String>& peptide_hit_user_value_keys)
+    {
+      for (auto const * pep_id : curr_pep_ids)
+      {      
+        vector<String> pep_keys;
+        pep_id->getKeys(pep_keys);
+        // replace whitespaces with underscore
+        std::transform(pep_keys.begin(), pep_keys.end(), pep_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
+        peptide_identification_user_value_keys.insert(pep_keys.begin(), pep_keys.end());
+
+        for (auto const & hit : pep_id->getHits())
+        {
+          vector<String> ph_keys;
+          hit.getKeys(ph_keys);
+          // replace whitespaces with underscore
+          std::transform(ph_keys.begin(), ph_keys.end(), ph_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
+          peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
+        }
+      }
+    }
+
+  // extract *all* meta values stored at consensus feature, peptide id and peptide hit level
+  void MzTab::getConsensusMapMetaValues_(const ConsensusMap& consensus_map,
+    set<String>& consensus_feature_user_value_keys,
+    set<String>& peptide_identification_user_value_keys,
+    set<String>& peptide_hit_user_value_keys)
+  {
+    // extract meta values from unassigned peptide identifications
+    const vector<PeptideIdentification> & curr_pep_ids = consensus_map.getUnassignedPeptideIdentifications();
+    extractMetaValuesFromIDs(curr_pep_ids, peptide_identification_user_value_keys, peptide_hit_user_value_keys);
+
+    for (ConsensusFeature const & c : consensus_map)
+    {
+      vector<String> keys;
+      c.getKeys(keys);
+      // replace whitespaces with underscore
+      std::transform(keys.begin(), keys.end(), keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
+
+      consensus_feature_user_value_keys.insert(keys.begin(), keys.end());
+
+      // extract meta values from assigned peptide identifications
+      const vector<PeptideIdentification> & curr_pep_ids = c.getPeptideIdentifications();
+      extractMetaValuesFromIDs(curr_pep_ids, peptide_identification_user_value_keys, peptide_hit_user_value_keys);
+    }
+
     // we don't want spectrum reference to show up as meta value (already in dedicated column)
-    peptide_hit_user_value_keys.erase("spectrum_reference");
+    peptide_identification_user_value_keys.erase("spectrum_reference");
   }
 
   void MzTab::getIdentificationMetaValues_(
@@ -3322,26 +2545,13 @@ state0:
       {
         vector<String> keys;
         hit.getKeys(keys);
-        replaceWhiteSpaces_(keys.begin(), keys.end());
+        // replace whitespaces with underscore
+        std::transform(keys.begin(), keys.end(), keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
         protein_hit_user_value_keys.insert(keys.begin(), keys.end());
       }
     }
 
-    for (auto const & pep_id : peptide_ids_)
-    {
-      vector<String> pid_keys;
-      pep_id->getKeys(pid_keys);
-      replaceWhiteSpaces_(pid_keys.begin(), pid_keys.end());
-      peptide_id_user_value_keys.insert(pid_keys.begin(), pid_keys.end());
-
-      for (auto const & hit : pep_id->getHits())
-      {
-        vector<String> ph_keys;
-        hit.getKeys(ph_keys);
-        replaceWhiteSpaces_(ph_keys.begin(), ph_keys.end());
-        peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
-      }
-    }
+    extractMetaValuesFromIDPointers(peptide_ids_, peptide_id_user_value_keys, peptide_hit_user_value_keys);
   }
 
   void MzTab::getSearchModifications_(const vector<const ProteinIdentification*>& prot_ids, StringList& var_mods, StringList& fixed_mods)
@@ -3384,17 +2594,28 @@ state0:
     // fill ID datastructure without copying
     const vector<ProteinIdentification>& prot_id = consensus_map.getProteinIdentifications();
     prot_ids_.reserve(prot_id.size());
-    for (Size i = 0; i < prot_id.size(); ++i)
+    for (const auto & i : prot_id)
     {
-      prot_ids_.push_back(&(prot_id[i]));
+      prot_ids_.push_back(&i);
     }
- 
+
+    // pre-reserve to prevent reallocations
+    size_t new_size = peptide_ids_.size();
+
+    for (const auto& elem : consensus_map) new_size += elem.getPeptideIdentifications().size();
+
+    if (export_unassigned_ids)
+    {
+      new_size += consensus_map.getUnassignedPeptideIdentifications().size();
+    }
+
+    peptide_ids_.reserve(new_size);
+
     // extract mapped IDs
     for (Size i = 0; i < consensus_map.size(); ++i)
     {
       const ConsensusFeature& c = consensus_map[i];
       const vector<PeptideIdentification>& p = c.getPeptideIdentifications();
-      peptide_ids_.reserve(peptide_ids_.size() + p.size());
       for (const PeptideIdentification& pi : p) { peptide_ids_.push_back(&pi); }
     }
 
@@ -3402,7 +2623,6 @@ state0:
     if (export_unassigned_ids)
     {
       const vector<PeptideIdentification>& up = consensus_map.getUnassignedPeptideIdentifications();
-      peptide_ids_.reserve(peptide_ids_.size() + up.size());
       for (const PeptideIdentification& pi : up) { peptide_ids_.push_back(&pi); }
     }
 
@@ -3410,7 +2630,7 @@ state0:
     // create some lookup structures and precalculate some values
     idrunid_2_idrunindex_ = MzTab::mapIDRunIdentifier2IDRunIndex_(prot_ids_);
 
-    bool has_inference_data = prot_ids_.empty() ? false : prot_ids_[0]->hasInferenceData();
+    bool has_inference_data = !prot_ids_.empty() && prot_ids_[0]->hasInferenceData();
 
     first_run_inference_ = has_inference_data && first_run_inference_only;
     if (first_run_inference_)
@@ -3448,21 +2668,41 @@ state0:
       run_to_search_engines_settings_,
       search_engine_to_settings);
 
-    // Pre-analyze data for re-occurring meta values at consensus feature and contained peptide hit level.
+    // Pre-analyze data for re-occurring meta values at consensus feature and contained peptide id and hit level.
     // These are stored in optional columns of the PEP section.
     MzTab::getConsensusMapMetaValues_(consensus_map, 
-      consensus_feature_user_value_keys_, 
+      consensus_feature_user_value_keys_,
+      consensus_feature_peptide_identification_user_value_keys_,
       consensus_feature_peptide_hit_user_value_keys_);
 
     // create column names from meta values
-    for (const auto& k : consensus_feature_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
-    //maybe it's better not to output the PSM information here as it is already stored in the PSM section and referenceable via spectra_ref
-    for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
-    std::replace(pep_optional_column_names_.begin(), pep_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
+    // feature meta values
+    for (const auto& k : consensus_feature_user_value_keys_) 
+    {
+      pep_optional_column_names_.emplace_back("opt_global_" + k);
+    }      
+
+    /* 
+      Note: In the PEP section, meta values in peptide identifications are better omitted as they can be easily looked up from the PSM-level are otherwise duplicates.
+      For debug purposes one can enable this line:
+      for (const auto& k : consensus_feature_peptide_identification_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
+    */
+
+    // peptide hit (PSM) meta values
+    
+    // whitelisted meta values "target_decoy". Expose in the PEP section with special CV term (for PRIDE compatibility):
+    if (auto it = consensus_feature_peptide_hit_user_value_keys_.find("target_decoy");
+      it != consensus_feature_peptide_hit_user_value_keys_.end())
+    {
+      pep_optional_column_names_.emplace_back("opt_global_cv_MS:1002217_decoy_peptide");
+    }
+    // added during export (for PRIDE compatibility):
+    pep_optional_column_names_.emplace_back("opt_global_cv_MS:1000889_peptidoform_sequence");
 
     // PSM optional columns: also from meta values in consensus features
     for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) psm_optional_column_names_.emplace_back("opt_global_" + k);
     std::replace(psm_optional_column_names_.begin(), psm_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
+    psm_optional_column_names_.emplace_back("opt_global_cv_MS:1000889_peptidoform_sequence");
 
     ///////////////////////////////////////////////////////////////////////
     // Export protein/-group quantifications (stored as meta value in protein IDs)
@@ -3531,8 +2771,16 @@ state0:
         protein_hit_user_value_keys_.insert(protein_hit_user_value_keys_tmp.begin(), protein_hit_user_value_keys_tmp.end());
       }
     }
+
     // column headers may not contain spaces
-    replaceWhiteSpaces_(protein_hit_user_value_keys_);
+    set<String> protein_hit_user_value_keys_tmp_2;
+    // replace whitespaces with underscore
+    std::transform(protein_hit_user_value_keys_.begin(),
+                   protein_hit_user_value_keys_.end(),
+                   std::inserter(protein_hit_user_value_keys_tmp_2, protein_hit_user_value_keys_tmp_2.begin()),
+                   [](String s) { return s.substitute(' ', '_'); });
+
+    std::swap(protein_hit_user_value_keys_, protein_hit_user_value_keys_tmp_2);
 
     // PRT optional columns
     for (const auto& k : protein_hit_user_value_keys_) prt_optional_column_names_.emplace_back("opt_global_" + k);
@@ -3619,7 +2867,7 @@ state0:
       MzTabParameter quantification_reagent;
       Size label = c.second.getLabelAsUInt(experiment_type);
       auto pl = make_pair(c.second.filename, label);
-      assay_index = path_label_to_assay_[pl];
+      assay_index = path_label_to_assay_[pl] + 1; // sample rows are a vector and therefore their IDs zero-based, mzTab assays 1-based
 
       if (experiment_type == "label-free")
       {
@@ -3798,6 +3046,7 @@ state0:
      ms_runs_,
      n_study_variables_, 
      consensus_feature_user_value_keys_, 
+     consensus_feature_peptide_identification_user_value_keys_, 
      consensus_feature_peptide_hit_user_value_keys_,
      idrunid_2_idrunindex_,
      map_id_run_fileidx_2_msfileidx_,
@@ -3841,10 +3090,13 @@ state0:
 
     if (psm_row) // valid row?
     {
-      std::swap(row, *psm_row);
-      return true;
+      row = *psm_row;
     }
-    return false;
+    else
+    {
+      row = MzTabPSMSectionRow();
+    }
+    return true;
   }
 
   MzTab MzTab::exportConsensusMapToMzTab(
@@ -3888,7 +3140,12 @@ state0:
     MzTabPSMSectionRow psm_row;
     while (s.nextPSMRow(psm_row))
     {
-      m.getPSMSectionRows().emplace_back(std::move(psm_row));
+      // TODO better return a State enum instead of relying on some uninitialized
+      // parts of a row..
+      if (!psm_row.sequence.isNull())
+      {
+        m.getPSMSectionRows().push_back(psm_row);
+      }
     }
 
     return m;

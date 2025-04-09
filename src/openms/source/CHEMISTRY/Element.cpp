@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -33,9 +7,12 @@
 // --------------------------------------------------------------------------
 //
 
+#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 
 #include <ostream>
+#include <algorithm>
+#include <cassert>
 
 using namespace std;
 
@@ -50,15 +27,7 @@ namespace OpenMS
   {
   }
 
-  Element::Element(const Element & e) :
-    name_(e.name_),
-    symbol_(e.symbol_),
-    atomic_number_(e.atomic_number_),
-    average_weight_(e.average_weight_),
-    mono_weight_(e.mono_weight_),
-    isotopes_(e.isotopes_)
-  {
-  }
+  Element::Element(const Element & e) = default;
 
   Element::Element(const string & name,
                    const string & symbol,
@@ -70,14 +39,12 @@ namespace OpenMS
     symbol_(symbol),
     atomic_number_(atomic_number),
     average_weight_(average_weight),
-    mono_weight_(mono_weight),
-    isotopes_(isotopes)
+    mono_weight_(mono_weight)
   {
+    this->setIsotopeDistribution(isotopes);
   }
 
-  Element::~Element()
-  {
-  }
+  Element::~Element() = default;
 
   void Element::setAtomicNumber(unsigned int atomic_number)
   {
@@ -111,6 +78,8 @@ namespace OpenMS
 
   void Element::setIsotopeDistribution(const IsotopeDistribution & distribution)
   {
+    //force sortedness by mz. A lot of code relies on this.
+    assert(std::is_sorted(distribution.begin(), distribution.end(), Peak1D::MZLess()));
     isotopes_ = distribution;
   }
 
@@ -139,16 +108,7 @@ namespace OpenMS
     return symbol_;
   }
 
-  Element & Element::operator=(const Element & element)
-  {
-    name_ = element.name_;
-    symbol_ = element.symbol_;
-    atomic_number_ = element.atomic_number_;
-    average_weight_ = element.average_weight_;
-    mono_weight_ = element.mono_weight_;
-    isotopes_ = element.isotopes_;
-    return *this;
-  }
+  Element & Element::operator=(const Element & element) = default;
 
   bool Element::operator==(const Element & element) const
   {

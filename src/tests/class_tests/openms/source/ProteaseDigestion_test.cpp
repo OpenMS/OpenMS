@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -602,6 +576,64 @@ START_SECTION((bool isValidProduct(const AASequence& protein, int pep_pos, int p
     TEST_EQUAL(pd.isValidProduct(prot, 6, 28, false, true, true), true); // valid C and N-term (but 2 missed)
     TEST_EQUAL(pd.isValidProduct(prot, 6, 28, false, true, false), true); // valid C and N-term (but 2 missed)
 
+    /// no cleavage:
+    pd.setEnzyme("no cleavage");
+    pd.setSpecificity(EnzymaticDigestion::SPEC_FULL); // require both sides
+
+    prot = AASequence::fromString("MADPDE"); // something which start with 'M' to test nterm prot cleavage
+    TEST_EQUAL(pd.isValidProduct(prot, 100, 3), false); // invalid position
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 300), false); // invalid length
+    TEST_EQUAL(pd.isValidProduct(prot, 3, 0), false);   // invalid size
+
+    const bool with_nterm_prot_cleavage = true;
+    const bool no_nterm_prot_cleavage = false;
+    const bool with_rnd_asppro_cleavage = true;
+    const bool no_rnd_asppro_cleavage = false;
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 6, true, with_nterm_prot_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 6, true, no_nterm_prot_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 5, true, with_nterm_prot_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 5, true, no_nterm_prot_cleavage), false);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 5, true, with_nterm_prot_cleavage), false);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 5, true, no_nterm_prot_cleavage), false);
+
+    // asppro_cleavage should make no difference
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 6, true, with_nterm_prot_cleavage, with_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 6, true, no_nterm_prot_cleavage, no_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 5, true, with_nterm_prot_cleavage, with_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 5, true, no_nterm_prot_cleavage, no_rnd_asppro_cleavage), false);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 5, true, with_nterm_prot_cleavage, with_rnd_asppro_cleavage), false);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 5, true, no_nterm_prot_cleavage, no_rnd_asppro_cleavage), false);
+    // ... unless we hit one
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 2, true, no_nterm_prot_cleavage, no_rnd_asppro_cleavage), false);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 3, true, with_nterm_prot_cleavage, with_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 3, true, no_nterm_prot_cleavage, no_rnd_asppro_cleavage), false);
+
+    pd.setSpecificity(EnzymaticDigestion::SPEC_SEMI); // require one side
+
+    prot = AASequence::fromString("MADPDE");            // something which starts with 'M' to test nterm prot cleavage and has a D/P cleavage
+    TEST_EQUAL(pd.isValidProduct(prot, 100, 3), false); // invalid position
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 300), false); // invalid length
+    TEST_EQUAL(pd.isValidProduct(prot, 3, 0), false);   // invalid size
+
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 6, true, with_nterm_prot_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 6, true, no_nterm_prot_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 5, true, with_nterm_prot_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 5, true, no_nterm_prot_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 5, true, with_nterm_prot_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 5, true, no_nterm_prot_cleavage), true);
+
+    // asppro_cleavage should make no difference
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 6, true, with_nterm_prot_cleavage, with_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 6, true, no_nterm_prot_cleavage, no_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 5, true, with_nterm_prot_cleavage, with_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 5, true, no_nterm_prot_cleavage, no_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 5, true, with_nterm_prot_cleavage, with_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 5, true, no_nterm_prot_cleavage, no_rnd_asppro_cleavage), true);
+    // ... unless we hit one
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 2, true, no_nterm_prot_cleavage, no_rnd_asppro_cleavage), false);
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 2, true, no_nterm_prot_cleavage, with_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 3, true, with_nterm_prot_cleavage, with_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 3, true, no_nterm_prot_cleavage, no_rnd_asppro_cleavage), true);
 
 END_SECTION
 

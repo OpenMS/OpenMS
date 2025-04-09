@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -71,9 +45,7 @@ namespace OpenMS
     return *this;
   }
 
-  MRMFeature::~MRMFeature()
-  {
-  }
+  MRMFeature::~MRMFeature() = default;
 
   const OpenSwath_Scores & MRMFeature::getScores() const
   {
@@ -150,12 +122,12 @@ namespace OpenMS
     }
   }
 
-  Feature & MRMFeature::getPrecursorFeature(String key)
+  Feature & MRMFeature::getPrecursorFeature(const String& key)
   {
     return precursor_features_.at(precursor_feature_map_[key]);
   }
 
-  const Feature & MRMFeature::getPrecursorFeature(String key) const
+  const Feature & MRMFeature::getPrecursorFeature(const String& key) const
   {
     return precursor_features_.at(precursor_feature_map_.at(key));
   }
@@ -174,6 +146,8 @@ namespace OpenMS
     setMetaValue(id + "intensity_score", idscores.ind_intensity_score);
     setMetaValue(id + "intensity_ratio_score", idscores.ind_intensity_ratio);
     setMetaValue(id + "apex_intensity", idscores.ind_apex_intensity);
+    setMetaValue(id + "peak_apex_position", idscores.ind_apex_position);
+    setMetaValue(id + "width_at_50", idscores.ind_fwhm);
     setMetaValue(id + "total_mi", idscores.ind_total_mi);
     setMetaValue(id + "transition_names", idscores.ind_transition_names);
     setMetaValue(id + "ind_log_intensity", idscores.ind_log_intensity);
@@ -185,6 +159,35 @@ namespace OpenMS
     setMetaValue(id + "ind_massdev_score", idscores.ind_massdev_score);
     setMetaValue(id + "ind_mi_score", idscores.ind_mi_score);
     setMetaValue(id + "ind_mi_ratio_score", idscores.ind_mi_ratio);
+
+    // Ion mobility scores
+    setMetaValue(id + "ind_im_drift", idscores.ind_im_drift);
+    setMetaValue(id + "ind_im_drift_left", idscores.ind_im_drift_left);
+    setMetaValue(id + "ind_im_drift_right", idscores.ind_im_drift_right);
+    setMetaValue(id + "ind_im_delta", idscores.ind_im_delta);
+    setMetaValue(id + "ind_im_delta_score", idscores.ind_im_delta_score);
+    setMetaValue(id + "ind_im_log_intensity", idscores.ind_im_log_intensity);
+    setMetaValue(id + "ind_im_contrast_coelution", idscores.ind_im_contrast_coelution);
+    setMetaValue(id + "ind_im_contrast_shape", idscores.ind_im_contrast_shape);
+    setMetaValue(id + "ind_im_sum_contrast_coelution", idscores.ind_im_sum_contrast_coelution);
+    setMetaValue(id + "ind_im_sum_contrast_shape", idscores.ind_im_sum_contrast_shape);
+
+    // peak shape metrics
+    setMetaValue(id + "ind_start_position_at_5", idscores.ind_start_position_at_5);
+    setMetaValue(id + "ind_end_position_at_5", idscores.ind_end_position_at_5);
+    setMetaValue(id + "ind_start_position_at_10", idscores.ind_start_position_at_10);
+    setMetaValue(id + "ind_end_position_at_10", idscores.ind_end_position_at_10);
+    setMetaValue(id + "ind_start_position_at_50", idscores.ind_start_position_at_50);
+    setMetaValue(id + "ind_end_position_at_50", idscores.ind_end_position_at_50);
+    setMetaValue(id + "ind_total_width", idscores.ind_total_width);
+    setMetaValue(id + "ind_tailing_factor", idscores.ind_tailing_factor);
+    setMetaValue(id + "ind_asymmetry_factor", idscores.ind_asymmetry_factor);
+    setMetaValue(id + "ind_slope_of_baseline", idscores.ind_slope_of_baseline);
+    setMetaValue(id + "ind_baseline_delta_2_height", idscores.ind_baseline_delta_2_height);
+    setMetaValue(id + "ind_points_across_baseline", idscores.ind_points_across_baseline);
+    setMetaValue(id + "ind_points_across_half_height", idscores.ind_points_across_half_height);
+
+
   }
 }
 

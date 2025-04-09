@@ -7,43 +7,43 @@ cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS":
 
     cdef cppclass IonSource(MetaInfoInterface):
         # wrap-inherits:
-        #    MetaInfoInterface
+        #   MetaInfoInterface
 
-        IonSource() nogil except + # wrap-doc:Description of an ion source (part of a MS Instrument)
-        IonSource(IonSource &) nogil except +
+        IonSource() except + nogil  # wrap-doc:Description of an ion source (part of a MS Instrument)
+        IonSource(IonSource &) except + nogil 
 
-        Polarity getPolarity() nogil except + # wrap-doc:Returns the ionization mode
-        void setPolarity(Polarity polarity) nogil except + # wrap-doc:Sets the ionization mode
+        Polarity getPolarity() except + nogil  # wrap-doc:Returns the ionization mode
+        void setPolarity(Polarity polarity) except + nogil  # wrap-doc:Sets the ionization mode
 
-        InletType getInletType() nogil except + # wrap-doc:Returns the inlet type
-        void setInletType(InletType inlet_type) nogil except + # wrap-doc:Sets the  inlet type
+        InletType getInletType() except + nogil  # wrap-doc:Returns the inlet type
+        void setInletType(InletType inlet_type) except + nogil  # wrap-doc:Sets the  inlet type
 
-        IonizationMethod getIonizationMethod() nogil except + # wrap-doc:Returns the ionization method
-        void setIonizationMethod(IonizationMethod ionization_type) nogil except + # wrap-doc:Sets the ionization method
+        IonizationMethod getIonizationMethod() except + nogil  # wrap-doc:Returns the ionization method
+        void setIonizationMethod(IonizationMethod ionization_type) except + nogil  # wrap-doc:Sets the ionization method
 
-        Int getOrder() nogil except +
+        Int getOrder() except + nogil 
             # wrap-doc:
-                #   Returns the position of this part in the whole Instrument
-                #   -----
-                #   Order can be ignored, as long the instrument has this default setup:
-                #     - one ion source
-                #     - one or many mass analyzers
-                #     - one ion detector
-                #   -----
-                #   For more complex instruments, the order should be defined.
+                #  Returns the position of this part in the whole Instrument
+                #  
+                #  Order can be ignored, as long the instrument has this default setup:
+                #    - one ion source
+                #    - one or many mass analyzers
+                #    - one ion detector
+                #  
+                #  For more complex instruments, the order should be defined.
 
-        void setOrder(Int order) nogil except + # wrap-doc:Sets the order
+        void setOrder(Int order) except + nogil  # wrap-doc:Sets the order
 
 cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS::IonSource":
 
     cdef enum Polarity:
         # wrap-attach:
-        #     IonSource
+        #    IonSource
         POLNULL, POSITIVE, NEGATIVE, SIZE_OF_POLARITY
 
     cdef enum InletType:
         # wrap-attach:
-        #     IonSource
+        #    IonSource
         INLETNULL,                                                        #]Unknown
         DIRECT,                                                               #]Direct
         BATCH,                                                                #]Batch (e.g. in MALDI)
@@ -70,7 +70,7 @@ cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS::IonSource":
     # ionization method
     cdef enum IonizationMethod:
         # wrap-attach:
-        #     IonSource
+        #    IonSource
         IONMETHODNULL,        #]Unknown
         ESI,                              #]electrospray ionisation
         EI,                               #]electron ionization

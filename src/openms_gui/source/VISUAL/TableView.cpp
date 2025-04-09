@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -35,6 +9,7 @@
 #include <OpenMS/VISUAL/TableView.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Qt5Port.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <QFile>
@@ -100,6 +75,11 @@ namespace OpenMS
     context_menu.exec(mapToGlobal(pos));
   }
 
+  void TableView::setMandatoryExportColumns(QStringList& cols)
+  {
+    mandatory_export_columns_ = cols;
+  }
+
   void TableView::exportEntries()
   {
     QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "tsv file (*.tsv)");
@@ -111,17 +91,39 @@ namespace OpenMS
     }
     QTextStream ts(&f);
     QStringList str_list;
+    
+    QStringList cols_to_export = (getHeaderNames(WidgetHeader::VISIBLE_ONLY, true) + mandatory_export_columns_);    
+    cols_to_export.removeDuplicates();
+
+    QStringList all_header_names = getHeaderNames(WidgetHeader::WITH_INVISIBLE, true);
 
     // write header
-    ts << getHeaderNames(WidgetHeader::VISIBLE_ONLY, true).join("\t") + "\n";
+    bool first{true};
+    for (int c = 0; c < columnCount(); ++c)
+    {
+      // columns marked for export
+      if (cols_to_export.indexOf(all_header_names[c]) != -1)
+      {
+        if (!first) 
+        { 
+          ts << "\t"; 
+        }
+        else 
+        {
+          first = false;
+        }
+        ts << all_header_names[c];        
+      }
+    }
+    ts << "\n";
 
     // write entries
     for (int r = 0; r < rowCount(); ++r)
     {
       for (int c = 0; c < columnCount(); ++c)
       {
-        // do not export hidden columns
-        if (isColumnHidden(c))
+        // only export columns we marked for export
+        if (cols_to_export.indexOf(all_header_names[c]) == -1)
         {
           continue;
         }
@@ -167,7 +169,7 @@ namespace OpenMS
 
   void TableView::hideColumns(const QStringList& header_names)
   {
-    auto hset = header_names.toSet();
+    auto hset = toQSet(header_names);
     // add actions which show/hide columns
     for (int i = 0; i != columnCount(); ++i)
     {
@@ -184,7 +186,7 @@ namespace OpenMS
     }
     if (!hset.empty())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "header_names contains a column name which is unknown: " + String(hset.toList().join(", ")));
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "header_names contains a column name which is unknown: " + String(hset.values().join(", ")));
     }
   }
 
@@ -232,7 +234,7 @@ namespace OpenMS
 
   QTableWidgetItem* TableView::setAtBottomRow(QTableWidgetItem* item, size_t column_index, const QColor& background, const QColor& foreground)
   {
-    item->setBackgroundColor(background);
+    item->setBackground(QBrush(background));
     if (foreground.isValid())
     {
       item->setForeground(QBrush(foreground));

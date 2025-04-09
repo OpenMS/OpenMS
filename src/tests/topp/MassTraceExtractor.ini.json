@@ -1,0 +1,38 @@
+{
+  "algorithm": {
+    "common": {
+      "chrom_fwhm": 5.0,
+      "chrom_peak_snr": 3.0,
+      "noise_threshold_int": 10.0
+    },
+    "epd": {
+      "enabled": true,
+      "masstrace_snr_filtering": false,
+      "max_fwhm": 60.0,
+      "min_fwhm": 3.0,
+      "width_filtering": "off"
+    },
+    "mtd": {
+      "mass_error_ppm": 20.0,
+      "max_trace_length": -1.0,
+      "min_sample_rate": 0.5,
+      "min_trace_length": 5.0,
+      "quant_method": "area",
+      "reestimate_mt_sd": true,
+      "trace_termination_criterion": "outlier",
+      "trace_termination_outliers": 5
+    }
+  },
+  "debug": 0,
+  "force": false,
+  "in": {
+    "class": "File",
+    "path": ""
+  },
+  "log": "",
+  "no_progress": false,
+  "out": "",
+  "out_type": "",
+  "test": false,
+  "threads": 1
+}

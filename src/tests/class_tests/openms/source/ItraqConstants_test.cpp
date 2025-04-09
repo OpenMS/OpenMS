@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -69,9 +43,9 @@ START_SECTION((static StringList getIsotopeMatrixAsStringList(const int itraq_ty
 {
 	ItraqConstants::IsotopeMatrices ic;
   ic.resize(3);
-	ic[0].setMatrix<4,4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
-	ic[1].setMatrix<8,4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
-  ic[2].setMatrix<6,4>(ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX);
+	ic[0].setMatrix<double,4,4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
+	ic[1].setMatrix<double,8,4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
+  ic[2].setMatrix<double,6,4>(ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX);
 
   {
 		StringList ics = ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::FOURPLEX, ic);
@@ -95,16 +69,16 @@ START_SECTION((static void updateIsotopeMatrixFromStringList(const int itraq_typ
 {
 	ItraqConstants::IsotopeMatrices ic;
   ic.resize(3);
-	ic[0].setMatrix<4,4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
-	ic[1].setMatrix<8,4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
-  ic[2].setMatrix<6,4>(ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX);
+	ic[0].setMatrix<double,4,4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
+	ic[1].setMatrix<double,8,4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
+  ic[2].setMatrix<double,6,4>(ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX);
 
 //StringList t_ics = ListUtils::create<String>("114:0/1/5.9/0.2,115:0/2/5.6/0.1,116:0/3/4.5/0.1,117:0.1/4/3.5/0.1"); // the default
 	StringList t_ics = ListUtils::create<String>("114:0/1/5.9/4.2,115:3/2/5.6/0.1,116:0/3/4.5/0.1,117:0.1/4/3.5/2");
 
-	ic[0].setValue(0,3,4.2);
-	ic[0].setValue(1,0,3);
-	ic[0].setValue(3,3,2);
+	ic[0](0,3) = 4.2;
+	ic[0](1,0) = 3;
+	ic[0](3,3) = 2;
 
 	ItraqConstants::IsotopeMatrices ic_new;
   ItraqConstants::updateIsotopeMatrixFromStringList(ItraqConstants::FOURPLEX, t_ics, ic_new);
@@ -116,10 +90,10 @@ START_SECTION((static void updateIsotopeMatrixFromStringList(const int itraq_typ
   }
 
   // reset previously updated and update TMT isotope corrections
-  ic[0].setMatrix<4,4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
-  ic[2].setValue(0,2,3.4);
-  ic[2].setValue(1,0,2.1);
-  ic[2].setValue(4,3,5.1);
+  ic[0].setMatrix<double,4,4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
+  ic[2](0,2) = 3.4;
+  ic[2](1,0) = 2.1;
+  ic[2](4,3) = 5.1;
 
   // StringList tmt_ics = ListUtils::create<String>("126:0/0/0/0,127:0/0/0/0,128:0/0/0/0,129:0/0/0/0,130:0/0/0/0,131:0/0/0/0"); // the original one
   StringList tmt_ics = ListUtils::create<String>("126:0/0/3.4/0,127:2.1/0/0/0,128:0/0/0/0,129:0/0/0/0,130:0/0/0/5.1,131:0/0/0/0");
@@ -201,15 +175,15 @@ START_SECTION((static Matrix<double> translateIsotopeMatrix(const int &itraq_typ
 {
   ItraqConstants::IsotopeMatrices ic;
   ic.resize(3);
-	ic[0].setMatrix<4,4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
-	ic[1].setMatrix<8,4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
-  ic[2].setMatrix<6,4>(ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX);
+	ic[0].setMatrix<double,4,4>(ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX);
+	ic[1].setMatrix<double,8,4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
+  ic[2].setMatrix<double,6,4>(ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX);
 
   Matrix<double> channel_frequency = ItraqConstants::translateIsotopeMatrix(ItraqConstants::FOURPLEX, ic);
 
 	std::cout << "CF: \n" << channel_frequency << "\n";
-	TEST_REAL_SIMILAR(channel_frequency.getValue(0,0), 0.929)
-	TEST_REAL_SIMILAR(channel_frequency.getValue(3,0), 0)
+	TEST_REAL_SIMILAR(channel_frequency(0,0), 0.929)
+	TEST_REAL_SIMILAR(channel_frequency(3,0), 0)
 
   channel_frequency = ItraqConstants::translateIsotopeMatrix(ItraqConstants::EIGHTPLEX, ic);
 
@@ -226,16 +200,16 @@ START_SECTION((static Matrix<double> translateIsotopeMatrix(const int &itraq_typ
 
   */
   // test lower right triangle
-  TEST_REAL_SIMILAR(channel_frequency.getValue(6,7), 0.0027)
-  TEST_REAL_SIMILAR(channel_frequency.getValue(7,7), 0.9211)
-  TEST_REAL_SIMILAR(channel_frequency.getValue(7,6), 0.0000)
+  TEST_REAL_SIMILAR(channel_frequency(6,7), 0.0027)
+  TEST_REAL_SIMILAR(channel_frequency(7,7), 0.9211)
+  TEST_REAL_SIMILAR(channel_frequency(7,6), 0.0000)
 
   channel_frequency = ItraqConstants::translateIsotopeMatrix(ItraqConstants::TMT_SIXPLEX, ic);
   std::cout << "CF: \n" << channel_frequency << "\n";
-  TEST_REAL_SIMILAR(channel_frequency.getValue(0,0), 1.0)
-  TEST_REAL_SIMILAR(channel_frequency.getValue(1,0), 0.0)
-  TEST_REAL_SIMILAR(channel_frequency.getValue(0,1), 0.0)
-  TEST_REAL_SIMILAR(channel_frequency.getValue(3,3), 1.0)
+  TEST_REAL_SIMILAR(channel_frequency(0,0), 1.0)
+  TEST_REAL_SIMILAR(channel_frequency(1,0), 0.0)
+  TEST_REAL_SIMILAR(channel_frequency(0,1), 0.0)
+  TEST_REAL_SIMILAR(channel_frequency(3,3), 1.0)
 }
 END_SECTION
 

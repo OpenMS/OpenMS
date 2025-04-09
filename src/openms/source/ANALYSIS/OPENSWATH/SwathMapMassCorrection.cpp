@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest$
@@ -35,19 +9,19 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
-#include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
+#include <OpenMS/ML/REGRESSION/LinearRegression.h>
+#include <OpenMS/ML/REGRESSION/QuadraticRegression.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
+#include <fstream>
+
 #define SWATHMAPMASSCORRECTION_DEBUG
 
 namespace OpenMS
 {
-
-
   void findBestFeature(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group, double& bestRT)
   {
     // Find the feature with the highest score
@@ -64,9 +38,9 @@ namespace OpenMS
   }
 
   std::vector<OpenSwath::SwathMap> findSwathMaps(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group,
-                                                 const std::vector< OpenSwath::SwathMap > & swath_maps) 
+                                                 const std::vector< OpenSwath::SwathMap > & swath_maps)
   {
-    // Get the corresponding SWATH map(s), for SONAR there will be more than one map
+    // Get the corresponding SWATH map
     std::vector<OpenSwath::SwathMap> used_maps;
     for (const auto& m : swath_maps)
     {
@@ -74,6 +48,41 @@ namespace OpenMS
           m.upper >= transition_group.getTransitions()[0].precursor_mz)
       {
         used_maps.push_back(m);
+      }
+    }
+    return used_maps;
+  }
+
+  // Computes the SwathMaps for PASEF data in which windows can have the same m/z but differ by ion mobility
+  // NOTE: swathMap is stored as a vector to enable compatibility with downstream function calls (as SONAR) can have multiple windows
+  std::vector<OpenSwath::SwathMap> SwathMapMassCorrection::findSwathMapsPasef(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group,
+                                                 const std::vector< OpenSwath::SwathMap > & swath_maps)
+  {
+    OPENMS_PRECONDITION(transition_group.getTransitions()[0].precursor_im != -1, "All transitions must have a valid IM value (not -1)");
+    // Although theoretically there can be more than one map, for this case, just use the "best" map, best map is defined as the one in which the IM is closest to the center of the window
+    std::vector<OpenSwath::SwathMap> used_maps;
+    for (const auto& m : swath_maps)
+    {
+      // If precursor m/z and IM in Swath window
+      if (m.lower < transition_group.getTransitions()[0].precursor_mz &&
+          m.upper >= transition_group.getTransitions()[0].precursor_mz &&
+          m.imLower < transition_group.getTransitions()[0].precursor_im &&
+          m.imUpper >= transition_group.getTransitions()[0].precursor_im)
+      {
+        // if no other windows at this position just add it
+        if (used_maps.size() == 0)
+        {
+          used_maps.push_back(m);
+        }
+        else //there is another window at this position, check if the new window found is better
+        {
+          double imCenterDiffOld = std::fabs(((used_maps[0].imLower + used_maps[0].imUpper) / 2) - transition_group.getTransitions()[0].precursor_im);
+          double imCenterDiffNew = std::fabs(((m.imLower + m.imUpper) / 2) - transition_group.getTransitions()[0].precursor_im);
+          if (imCenterDiffOld > imCenterDiffNew)
+          {
+            used_maps[0] = m;
+          }
+        }
       }
     }
     return used_maps;
@@ -116,6 +125,7 @@ namespace OpenMS
     const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
     const OpenSwath::LightTargetedExperiment& targeted_exp,
     const std::vector< OpenSwath::SwathMap > & swath_maps,
+    const bool pasef,
     TransformationDescription& im_trafo)
   {
     bool ppm = mz_extraction_window_ppm_;
@@ -159,6 +169,7 @@ namespace OpenMS
     TransformationDescription::DataPoints data_im;
     std::vector<double> exp_im;
     std::vector<double> theo_im;
+
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -172,7 +183,16 @@ namespace OpenMS
       double bestRT;
       findBestFeature(*transition_group, bestRT);
       // Get the corresponding SWATH map(s), for SONAR there will be more than one map
-      std::vector<OpenSwath::SwathMap> used_maps = findSwathMaps(*transition_group, swath_maps);
+      std::vector<OpenSwath::SwathMap> used_maps;
+      if (!pasef)
+      {
+        used_maps = findSwathMaps(*transition_group, swath_maps);
+      }
+      // If pasef then have to check for overlap across IM
+      else
+      {
+        used_maps = findSwathMapsPasef(*transition_group, swath_maps);
+      }
 
       std::vector<OpenSwath::SwathMap> ms1_maps;
       for (const auto& m : swath_maps) {if (m.ms1) ms1_maps.push_back(m);}
@@ -192,27 +212,35 @@ namespace OpenMS
 #pragma omp critical
 #endif
       {
+        RangeMobility im_range;
         if (ms1_im_)
         {
-          sp_ms1 = OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1, 0, 0);
+          std::vector<OpenSwath::SpectrumPtr> fetchSpectrumArr = OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1, im_range);
+          sp_ms1 = (!fetchSpectrumArr.empty()) ? fetchSpectrumArr[0] : *new(OpenSwath::SpectrumPtr);
         }
         else
         {
-          sp_ms2 = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, 0, 0);
+          std::vector<OpenSwath::SpectrumPtr> fetchSpectrumArr = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, im_range);
+          sp_ms2 = (!fetchSpectrumArr.empty()) ? fetchSpectrumArr[0] : *new(OpenSwath::SpectrumPtr);
         }
       }
 
       for (const auto& tr : transition_group->getTransitions())
       {
         if (ms1_im_) {continue;}
-        double intensity(0), im(0), left(tr.product_mz), right(tr.product_mz);
+        double intensity(0), im(0), mz(0);
+        RangeMZ mz_range = DIAHelpers::createMZRangePPM(tr.product_mz, mz_extr_window, ppm);
 
         // get drift time upper/lower offset (this assumes that all chromatograms
         // are derived from the same precursor with the same drift time)
         auto pepref = tr.getPeptideRef();
         double drift_target = pep_im_map[pepref];
-        double drift_left(drift_target), drift_right(drift_target);
-        DIAHelpers::adjustExtractionWindow(drift_right, drift_left, im_extraction_win, false);
+        RangeMobility im_range;
+        if (im_extraction_win != -1 ) // im_extraction_win is set
+        {
+          im_range.setMax(drift_target);
+          im_range.minSpanIfSingular(im_extraction_win);
+        }
 
         // Check that the spectrum really has a drift time array
         if (sp_ms2->getDriftTimeArray() == nullptr)
@@ -225,8 +253,7 @@ namespace OpenMS
           continue;
         }
 
-        DIAHelpers::adjustExtractionWindow(right, left, mz_extr_window, ppm);
-        DIAHelpers::integrateDriftSpectrum(sp_ms2, left, right, im, intensity, drift_left, drift_right);
+        DIAHelpers::integrateWindow(sp_ms2, mz, im, intensity, mz_range, im_range);
 
         // skip empty windows
         if (im <= 0)
@@ -254,14 +281,17 @@ namespace OpenMS
       if (!transition_group->getTransitions().empty() && ms1_im_)
       {
         const auto& tr = transition_group->getTransitions()[0];
-        double intensity(0), im(0), left(tr.precursor_mz), right(tr.precursor_mz);
+        double intensity(0), im(0), mz(0);
+        RangeMZ mz_range = DIAHelpers::createMZRangePPM(tr.precursor_mz, mz_extr_window, ppm);
 
         // get drift time upper/lower offset (this assumes that all chromatograms
         // are derived from the same precursor with the same drift time)
         auto pepref = tr.getPeptideRef();
         double drift_target = pep_im_map[pepref];
-        double drift_left(drift_target), drift_right(drift_target);
-        DIAHelpers::adjustExtractionWindow(drift_right, drift_left, im_extraction_win, false);
+
+        // do not need to check for IM because we are correcting IM
+        RangeMobility im_range(drift_target);
+        im_range.minSpanIfSingular(im_extraction_win);
 
         // Check that the spectrum really has a drift time array
         if (sp_ms1->getDriftTimeArray() == nullptr)
@@ -274,8 +304,7 @@ namespace OpenMS
           continue;
         }
 
-        DIAHelpers::adjustExtractionWindow(right, left, mz_extr_window, ppm);
-        DIAHelpers::integrateDriftSpectrum(sp_ms1, left, right, im, intensity, drift_left, drift_right);
+        DIAHelpers::integrateWindow(sp_ms1, mz, im, intensity, mz_range, im_range);
 
         // skip empty windows
         if (im <= 0)
@@ -302,6 +331,11 @@ namespace OpenMS
 
     if (!debug_im_file_.empty()) {os_im.close();}
 
+    if (exp_im.empty())
+    {
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-LinearRegression", String("Could not fit a linear model to the data (0 points)."));
+    }
+
     // linear correction is default (none returns in the beginning of the function)
     std::vector<double> im_regression_params;
     double confidence_interval_P(0.0);
@@ -327,11 +361,13 @@ namespace OpenMS
   void SwathMapMassCorrection::correctMZ(
     const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
     const OpenSwath::LightTargetedExperiment& targeted_exp,
-    std::vector< OpenSwath::SwathMap > & swath_maps)
+    std::vector< OpenSwath::SwathMap > & swath_maps,
+    const bool pasef)
   {
     bool ppm = mz_extraction_window_ppm_;
     double mz_extr_window = mz_extraction_window_;
     std::string corr_type = mz_correction_function_;
+    double im_extraction = im_extraction_window_;
 
     OPENMS_LOG_DEBUG << "SwathMapMassCorrection::correctMZ with type " << corr_type << " and window " << mz_extr_window << " in ppm " << ppm << std::endl;
 
@@ -380,24 +416,42 @@ namespace OpenMS
       double bestRT;
       findBestFeature(*transition_group, bestRT);
       // Get the corresponding SWATH map(s), for SONAR there will be more than one map
-      std::vector<OpenSwath::SwathMap> used_maps = findSwathMaps(*transition_group, swath_maps);
+      std::vector<OpenSwath::SwathMap> used_maps;
+      if (!pasef)
+      {
+        used_maps = findSwathMaps(*transition_group, swath_maps);
+      }
+      // If pasef then have to check for overlap across IM
+      else
+      {
+        used_maps = findSwathMapsPasef(*transition_group, swath_maps);
+      }
 
       if (used_maps.empty())
       {
         continue;
       }
 
+      // if ion mobility extraction window is set than extract with ion mobility
+      RangeMobility im_range;
+      if (im_extraction != -1) // ion mobility extraction is set
+      {
+        im_range.setMax(drift_target);
+        im_range.minSpanIfSingular(im_extraction);
+      }
+
       // Get the spectrum for this RT and extract raw data points for all the
       // calibrating transitions (fragment m/z values) from the spectrum
-      OpenSwath::SpectrumPtr sp = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, 0, 0);
+      std::vector<OpenSwath::SpectrumPtr> spArr = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, im_range);
+      OpenSwath::SpectrumPtr sp = (!spArr.empty()) ? spArr[0] : *new(OpenSwath::SpectrumPtr);
       for (const auto& tr : transition_group->getTransitions())
       {
-        double mz, intensity, left(tr.product_mz), right(tr.product_mz);
+        double mz, intensity, im;
+        RangeMZ mz_range = DIAHelpers::createMZRangePPM(tr.product_mz, mz_extr_window, ppm);
         bool centroided = false;
 
         // integrate spectrum at the position of the theoretical mass
-        DIAHelpers::adjustExtractionWindow(right, left, mz_extr_window, ppm);
-        DIAHelpers::integrateWindow(sp, left, right, mz, intensity, centroided);
+        DIAHelpers::integrateWindow(sp, mz, im, intensity, mz_range, im_range, centroided); // Correct using the irt_im
 
         // skip empty windows
         if (mz == -1)

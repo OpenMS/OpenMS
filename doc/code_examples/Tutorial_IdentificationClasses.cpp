@@ -1,38 +1,12 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Petra Gutenbrunner $
 // $Authors: Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
-//! [Identification]
+//! [doxygen_snippet_Identification]
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -49,19 +23,17 @@ using namespace std;
 int main()
 {
   // Create new protein identification object corresponding to a single search
-  vector<ProteinIdentification> protein_ids;
-  ProteinIdentification protein_id;
-
-  protein_id.setIdentifier("Identifier");
 
   // Each ProteinIdentification object stores a vector of protein hits
   vector<ProteinHit> protein_hits;
-  ProteinHit protein_hit = ProteinHit();
+  ProteinHit protein_hit;
   protein_hit.setAccession("MyAccession");
   protein_hit.setSequence("PEPTIDEPEPTIDEPEPTIDEPEPTIDER");
   protein_hit.setScore(1.0);
   protein_hits.push_back(protein_hit);
 
+  ProteinIdentification protein_id;
+  protein_id.setIdentifier("Identifier");
   protein_id.setHits(protein_hits);
 
   DateTime now = DateTime::now();
@@ -79,16 +51,17 @@ int main()
   protein_id.setSearchEngine("SearchEngine");
   protein_id.setScoreType("HyperScore");
 
+  vector<ProteinIdentification> protein_ids;
   protein_ids.push_back(protein_id);
 
   // Iterate over protein identifications and protein hits
-  for (auto it = protein_ids.begin(); it != protein_ids.end(); ++it)
+  for (const auto& prot : protein_ids)
   {
-    for (auto hit = it->getHits().begin(); hit < it->getHits().end(); ++hit)
+    for (const auto& hit : prot.getHits())
     {
-      cout << "Protein hit accession: " << hit->getAccession() << endl;
-      cout << "Protein hit sequence: " << hit->getSequence() << endl;
-      cout << "Protein hit score: " << hit->getScore() << endl;
+      cout << "Protein hit accession: " << hit.getAccession() << '\n';
+      cout << "Protein hit sequence: " << hit.getSequence() << '\n';
+      cout << "Protein hit score: " << hit.getScore() << '\n';
     }
   }
 
@@ -128,29 +101,27 @@ int main()
   peptide_ids.push_back(peptide_id);
 
   // We could now store the identification data in an idXML file
-  // IdXMLFile().store(outfile, protein_ids, peptide_ids);
+  // FileHandler().storeIdentifications(outfile, protein_ids, peptide_ids);
   // And load it back with
-  // IdXMLFile().load(outfile, protein_ids, peptide_ids);
+  // FileHandler().loadIdentifications(outfile, protein_ids, peptide_ids);
 
   // Iterate over PeptideIdentification
   for (const auto& peptide_id : peptide_ids)
   {
     // Peptide identification values
-    cout << "Peptide ID m/z: " << peptide_id.getMZ() << endl;
-    cout << "Peptide ID rt: " << peptide_id.getRT() << endl;
-    cout << "Peptide ID score type: " << peptide_id.getScoreType() << endl;
+    cout << "Peptide ID m/z: " << peptide_id.getMZ() << '\n';
+    cout << "Peptide ID rt: " << peptide_id.getRT() << '\n';
+    cout << "Peptide ID score type: " << peptide_id.getScoreType() << '\n';
 
     // PeptideHits
     for (const auto& scored_hit : peptide_id.getHits())
     {
-      cout << " - Peptide hit rank: " << scored_hit.getRank() << endl;
-      cout << " - Peptide hit sequence: " << scored_hit.getSequence().toString() << endl;
-      cout << " - Peptide hit score: " << scored_hit.getScore() << endl;
+      cout << " - Peptide hit rank: " << scored_hit.getRank() << '\n';
+      cout << " - Peptide hit sequence: " << scored_hit.getSequence().toString() << '\n';
+      cout << " - Peptide hit score: " << scored_hit.getScore() << '\n';
     }
   }
-  // ...
-  return 0;
 }
 
 
-//! [Identification]
+//! [doxygen_snippet_Identification]

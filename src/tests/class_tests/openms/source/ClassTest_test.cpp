@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -127,6 +101,48 @@ START_SECTION("NEW_TMP_FILE()")
 	NEW_TMP_FILE(tmp_filename);
 	TEST::this_test = (!tmp_filename.empty());
 	TEST_EQUAL(!tmp_filename.empty(), true);
+END_SECTION
+
+START_SECTION("TEST_EQUAL()")
+{
+  TEST_EQUAL(2, 3); FAILURE_IS_SUCCESS;
+  TEST_EQUAL(2, 2);
+  TEST_EQUAL(2, 3.0); FAILURE_IS_SUCCESS;
+  TEST_EQUAL(2, 2.0);
+  TEST_EQUAL(2, 2.0f);
+  TEST_EQUAL(2.0, 2);
+  TEST_EQUAL(2.0, 2.0f);
+  TEST_EQUAL(2.0f, 2);
+  TEST_EQUAL(2.0f, 2.0);
+  enum Enum1 { A, B, C };
+  enum Enum2 { AA, BB, CC };
+  TEST_EQUAL(Enum1::A, Enum1::A);
+  TEST_EQUAL(Enum1::A, Enum1::B); FAILURE_IS_SUCCESS;
+  TEST_EQUAL(Enum1::A, Enum2::AA);
+  TEST_EQUAL(Enum1::A, Enum2::BB); FAILURE_IS_SUCCESS;
+
+  enum class Enum3 { A, B, C };
+  enum class Enum4 { A, B, C };
+  TEST_EQUAL(Enum3::A, Enum4::A);
+  TEST_EQUAL(Enum3::A, Enum3::B); FAILURE_IS_SUCCESS;
+  TEST_EQUAL(Enum3::B, Enum3::B);
+  TEST_EQUAL(Enum3::C, Enum3::A); FAILURE_IS_SUCCESS;  
+}
+END_SECTION
+
+
+START_SECTION("TEST_TRUE()")
+{
+  TEST_TRUE(2==3); FAILURE_IS_SUCCESS;
+  TEST_TRUE(2==2);
+}
+END_SECTION
+
+START_SECTION("TEST_FALSE()")
+{
+  TEST_FALSE(2 == 2);	FAILURE_IS_SUCCESS;
+  TEST_FALSE(2 == 3);
+}
 END_SECTION
 
 START_SECTION("TEST_REAL_SIMILAR()")

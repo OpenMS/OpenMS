@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Xiao Liang $
@@ -36,12 +10,12 @@
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <set>
+#include <map>
 
 namespace OpenMS
 {
@@ -109,13 +83,13 @@ namespace OpenMS
     /// @throw Exception::IllegalArgument if enzyme regex  is unregistered.
     const DigestionEnzymeType* getEnzymeByRegEx(const String& cleavage_regex) const
     {
-      if (!enzyme_regex_.has(cleavage_regex))
+      if (!hasRegEx(cleavage_regex))
       {
         // @TODO: why does this use a different exception than "getEnzyme"?
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          String("Enzyme with regex " + cleavage_regex + " was not registered in Enzyme DB, register first!").c_str());
       }
-      return enzyme_regex_[cleavage_regex];
+      return enzyme_regex_.at(cleavage_regex);
     }
 
     /// returns all the enzyme names (does NOT include synonym names)
@@ -141,7 +115,7 @@ namespace OpenMS
     /// returns true if the db contains a enzyme with the given regex
     bool hasRegEx(const String& cleavage_regex) const
     {
-      return enzyme_regex_.has(cleavage_regex);
+      return (enzyme_regex_.find(cleavage_regex) != enzyme_regex_.end());
     }
 
     /// returns true if the db contains the enzyme of the given pointer
@@ -196,7 +170,7 @@ namespace OpenMS
 
       try
       {
-        Map<String, String> values;
+        std::map<String, String> values;
         String previous_enzyme = split[1];
         // this iterates over all the "ITEM" elements in the XML file:
         for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
@@ -222,11 +196,11 @@ namespace OpenMS
     }
 
     /// parses an enzyme, given the key/value pairs from an XML file
-    const DigestionEnzymeType* parseEnzyme_(Map<String, String>& values) const
+    const DigestionEnzymeType* parseEnzyme_(std::map<String, String>& values) const
     {
       DigestionEnzymeType* enzy_ptr = new DigestionEnzymeType();
 
-      for (Map<String, String>::iterator it = values.begin(); it != values.end(); ++it)
+      for (std::map<String, String>::iterator it = values.begin(); it != values.end(); ++it)
       {
         const String& key = it->first;
         const String& value = it->second;
@@ -259,9 +233,9 @@ namespace OpenMS
       return;
     }
 
-    Map<String, const DigestionEnzymeType*> enzyme_names_; ///< index by names
+    std::map<String, const DigestionEnzymeType*> enzyme_names_; ///< index by names
 
-    Map<String, const DigestionEnzymeType*> enzyme_regex_; ///< index by regex
+    std::map<String, const DigestionEnzymeType*> enzyme_regex_; ///< index by regex
 
     std::set<const DigestionEnzymeType*> const_enzymes_; ///< set of enzymes
 

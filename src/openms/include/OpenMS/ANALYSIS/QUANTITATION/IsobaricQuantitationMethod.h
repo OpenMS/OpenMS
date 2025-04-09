@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -40,6 +14,7 @@
 
 #include <OpenMS/KERNEL/Peak2D.h>
 
+#include <utility>
 #include <vector>
 
 namespace OpenMS
@@ -70,35 +45,22 @@ public:
       String description;
       /// The expected centroid position of the channel peak in m/z.
       Peak2D::CoordinateType center;
+      /// Ids of the affected channels. Must contain 4 or 8 entries, depending on the number of columns in the Thermo data sheet (with or without subchannels). Order has to match the ones from the correction matrix parameter.
+      std::vector<Int> affected_channels;
 
       /// C'tor
-      IsobaricChannelInformation(const String local_name,
+      IsobaricChannelInformation(String local_name,
                                  const Int local_id,
-                                 const String& local_description,
+                                 String  local_description,
                                  const Peak2D::CoordinateType& local_center,
-                                 const Int minus_2,
-                                 const Int minus_1,
-                                 const Int plus_1,
-                                 const Int plus_2) :
-        name(local_name),
-        id(local_id),
-        description(local_description),
-        center(local_center),
-        channel_id_minus_2(minus_2),
-        channel_id_minus_1(minus_1),
-        channel_id_plus_1(plus_1),
-        channel_id_plus_2(plus_2)
+                                 const std::vector<Int>& affected_channels) :
+          name(std::move(local_name)),
+          id(local_id),
+          description(std::move(local_description)),
+          center(local_center),
+          affected_channels(affected_channels)
       {
       }
-
-      /// Id of the -2 isotopic channel (== -1 -> no channel)
-      Int channel_id_minus_2;
-      /// Id of the -1 isotopic channel (== -1 -> no channel)
-      Int channel_id_minus_1;
-      /// Id of the +1 isotopic channel (== -1 -> no channel)
-      Int channel_id_plus_1;
-      // Id of the +2 isotopic channel (== -1 -> no channel)
-      Int channel_id_plus_2;
     };
 
     /// @brief c'tor setting the name for the underlying param handler
@@ -119,7 +81,7 @@ public:
     /**
       @brief Returns information on the different channels used by the quantitation method.
 
-      @return A st::vector containing the channel information for this quantitation method.
+      @return A std::vector containing the channel information for this quantitation method.
     */
     virtual const IsobaricChannelList& getChannelInformation() const = 0;
 
@@ -147,7 +109,7 @@ protected:
       @param stringlist The StringList to convert.
       @return An isotope correction matrix as Matrix<double>.
     */
-    Matrix<double> stringListToIsotopCorrectionMatrix_(const std::vector<String>& stringlist) const;
+    Matrix<double> stringListToIsotopeCorrectionMatrix_(const std::vector<String>& stringlist) const;
   };
 } // namespace
 

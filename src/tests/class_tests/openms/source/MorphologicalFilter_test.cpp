@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -33,12 +7,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/CONCEPT/TypeAsString.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
 
-#include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
+#include <OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak2D.h>
@@ -285,10 +258,10 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 
     for ( Int struc_length = 3; struc_length <= 2 * data_size + 2; struc_length += 2 )
     {
-      STATUS("data_size: " << data_size);
-      STATUS("struc_elem_length: " << struc_length);
+      //STATUS("data_size: " << data_size);
+      //STATUS("struc_elem_length: " << struc_length);
       {
-        STATUS("erosion");
+        //STATUS("erosion");
         filtered.clear();
         filtered.resize(data_size);
         simple_filtered_1.clear();
@@ -309,13 +282,13 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
                      );
         for ( Int i = 0; i != data_size; ++i )
         {
-          STATUS(i);
+          //STATUS(i);
           TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
         }
       }
 
       {
-        STATUS("dilation");
+        //STATUS("dilation");
         filtered.clear();
         filtered.resize(data_size);
         simple_filtered_1.clear();
@@ -336,11 +309,10 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
                       );
         for ( Int i = 0; i != data_size; ++i )
         {
-          STATUS(i);
+          //STATUS(i);
           TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
         }
       }
-
     }
   }
 
@@ -364,10 +336,10 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 
     for ( Int struc_length = 3; struc_length <= 2 * data_size + 2; struc_length += 2 )
     {
-      STATUS("data_size: " << data_size);
-      STATUS("struc_elem_length: " << struc_length);
+      //STATUS("data_size: " << data_size);
+      //STATUS("struc_elem_length: " << struc_length);
       {
-        STATUS("erosion");
+        //STATUS("erosion");
         filtered.clear();
         filtered.resize(data_size);
         simple_filtered_1.clear();
@@ -388,13 +360,13 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
                      );
         for ( Int i = 0; i != data_size; ++i )
         {
-          STATUS(i);
+          //STATUS(i);
           TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
         }
       }
 
       {
-        STATUS("dilation");
+        //STATUS("dilation");
         filtered.clear();
         filtered.resize(data_size);
         simple_filtered_1.clear();
@@ -415,7 +387,7 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
                       );
         for ( Int i = 0; i != data_size; ++i )
         {
-          STATUS(i);
+          //STATUS(i);
           TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
         }
       }
@@ -446,10 +418,9 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
   MorphologicalFilter mf;
   for ( UInt struc_length = 3; struc_length <= 2 * data_size + 2; struc_length += 2 )
   {
-    STATUS("struc_elem_length: " << struc_length);
-
+    //STATUS("struc_elem_length: " << struc_length);
     {
-      STATUS("erosion");
+      //STATUS("erosion");
       filtered.clear();
       filtered.resize(data_size);
       simple_filtered_1.clear();
@@ -467,11 +438,11 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
       STHF::erosion(inputf,simple_filtered_1,struc_length);
       for ( UInt i = 0; i != data_size; ++i )
       {
-        STATUS(i);
+        //STATUS(i);
         TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
       }
 
-      STATUS("erosion_simple");
+      //STATUS("erosion_simple");
       filtered.clear();
       filtered.resize(data_size);
       simple_filtered_1.clear();
@@ -491,7 +462,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
         TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
       }
 
-      STATUS("opening");
+      //STATUS("opening");
       filtered.clear();
       filtered.resize(data_size);
       simple_filtered_2.clear();
@@ -511,7 +482,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
         TEST_REAL_SIMILAR(filtered[i],simple_filtered_2[i]);
       }
 
-      STATUS("tophat");
+      //STATUS("tophat");
       filtered.clear();
       filtered.resize(data_size);
       simple_filtered_3.clear();
@@ -533,7 +504,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
     }
 
     {
-      STATUS("dilation");
+      //STATUS("dilation");
       filtered.clear();
       filtered.resize(data_size);
       simple_filtered_1.clear();
@@ -554,7 +525,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
         TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
       }
 
-      STATUS("dilation_simple");
+      //STATUS("dilation_simple");
       filtered.clear();
       filtered.resize(data_size);
       simple_filtered_1.clear();
@@ -574,7 +545,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
         TEST_REAL_SIMILAR(filtered[i],simple_filtered_1[i]);
       }
 
-      STATUS("closing");
+      //STATUS("closing");
       filtered.clear();
       filtered.resize(data_size);
       simple_filtered_2.clear();
@@ -594,7 +565,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
         TEST_REAL_SIMILAR(filtered[i],simple_filtered_2[i]);
       }
 
-      STATUS("bothat");
+      //STATUS("bothat");
       filtered.clear();
       filtered.resize(data_size);
       simple_filtered_3.clear();
@@ -645,8 +616,8 @@ START_SECTION((template <typename PeakType> void filter(MSSpectrum& spectrum)))
     UInt struc_size_datapoints = UInt ( ceil ( struc_size / spacing ) );
     if ( !Math::isOdd(struc_size_datapoints) ) ++struc_size_datapoints;
     STH::dilation( input, dilation, struc_size_datapoints );
-    STATUS( "struc_size: " << struc_size << "  struc_size_datapoints: " << struc_size_datapoints );
-     for ( UInt i = 0; i != data_size; ++i )
+    //STATUS( "struc_size: " << struc_size << "  struc_size_datapoints: " << struc_size_datapoints );
+    for ( UInt i = 0; i != data_size; ++i )
     {
       STATUS("i: " << i);
       TEST_REAL_SIMILAR(filtered[i].getIntensity(),dilation[i]);
@@ -687,13 +658,13 @@ START_SECTION((template <typename PeakType > void filterExperiment(MSExperiment<
     UInt struc_size_datapoints = UInt ( ceil ( struc_size / spacing ) );
     if ( !Math::isOdd(struc_size_datapoints) ) ++struc_size_datapoints;
     STH::dilation( input, dilation, struc_size_datapoints );
-    STATUS( "struc_size: " << struc_size << "  struc_size_datapoints: " << struc_size_datapoints );
+    //STATUS( "struc_size: " << struc_size << "  struc_size_datapoints: " << struc_size_datapoints );
     for ( UInt scan = 0; scan < 3; ++scan )
     {
       TEST_STRING_EQUAL(mse_raw[scan].getComment(),"Let's see if this comment is copied by the filter.");
       for ( UInt i = 0; i != data_size; ++i )
       {
-        STATUS("i: " << i);
+        //STATUS("i: " << i);
         TEST_REAL_SIMILAR(mse_raw[scan][i].getIntensity(),dilation[i]);
       }
     }

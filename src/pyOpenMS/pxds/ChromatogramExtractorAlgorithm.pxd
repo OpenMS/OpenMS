@@ -14,10 +14,10 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" 
 
     cdef cppclass ChromatogramExtractorAlgorithm(ProgressLogger):
         # wrap-inherits:
-        #    ProgressLogger
+        #   ProgressLogger
 
-        ChromatogramExtractorAlgorithm() nogil except +
-        ChromatogramExtractorAlgorithm(ChromatogramExtractorAlgorithm &) nogil except + # compiler
+        ChromatogramExtractorAlgorithm() except + nogil 
+        ChromatogramExtractorAlgorithm(ChromatogramExtractorAlgorithm &) except + nogil  # compiler
 
         # abstract base class ISpectrumAccess given as first input arg
         void extractChromatograms(
@@ -27,20 +27,21 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" 
             double mz_extraction_window,
             bool ppm,
             double im_extraction_window,
-            String filter) nogil except +
+            String filter) except + nogil 
             # wrap-doc:
-            #     Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates
-            #     -----
-            #     :param: input Input spectral map
-            #     :param output: Output chromatograms (XICs)
-            #     :param extraction_coordinates: Extracts around these coordinates (from
-            #      rt_start to rt_end in seconds - extracts the whole chromatogram if
-            #      rt_end - rt_start < 0).
-            #     :param mz_extraction_window: Extracts a window of this size in m/z
-            #     dimension in Th or ppm (e.g. a window of 50 ppm means an extraction of
-            #     25 ppm on either side)
-            #     :param ppm: Whether mz_extraction_window is in ppm or in Th
-            #     :param filter: Which function to apply in m/z space (currently "tophat" only)
+            #    Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates
+            #      
+            #  
+            #  :param input: Input spectral map
+            #  :param output: Output chromatograms (XICs)
+            #  :param extraction_coordinates: Extracts around these coordinates (from
+            #   rt_start to rt_end in seconds - extracts the whole chromatogram if
+            #   rt_end - rt_start < 0).
+            #  :param mz_extraction_window: Extracts a window of this size in m/z
+            #    dimension in Th or ppm (e.g. a window of 50 ppm means an extraction of
+            #    25 ppm on either side)
+            #  :param ppm: Whether mz_extraction_window is in ppm or in Th
+            #  :param filter: Which function to apply in m/z space (currently "tophat" only)
 
         # void extract_value_tophat # -> uses iterators
 
@@ -48,8 +49,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" 
 
     cdef cppclass ExtractionCoordinates:
 
-        ExtractionCoordinates() nogil except +
-        ExtractionCoordinates(ExtractionCoordinates) nogil except +
+        ExtractionCoordinates() except + nogil 
+        ExtractionCoordinates(ExtractionCoordinates) except + nogil 
 
         double mz # mz around which should be extracted
         double mz_precursor # precursor m/z value (is currently ignored by the algorithm)

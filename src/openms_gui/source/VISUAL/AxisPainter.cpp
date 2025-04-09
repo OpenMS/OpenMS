@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -33,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/AxisPainter.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 using namespace std;
 
@@ -43,7 +17,7 @@ namespace OpenMS
 
   void AxisPainter::paint(QPainter * painter, QPaintEvent *, const double & min, const double & max, const GridVector & grid,
                           const Int width, const Int height, const AxisPainter::Alignment alignment, const UInt margin,
-                          bool show_legend, String legend, bool shorten_number,
+                          bool show_legend, const String& legend, bool shorten_number,
                           bool is_log, bool is_inverse_orientation)
   {
     // position of the widget
@@ -125,7 +99,7 @@ namespace OpenMS
     // Painting tick levels
     for (Size i = 0; i != grid.size(); i++)
     {
-      // Just draw text on big intervalls
+      // Just draw text on big intervals
       if (is_log && i > 0)
       {
         break;
@@ -289,28 +263,28 @@ namespace OpenMS
     }
   }
 
-  void AxisPainter::getShortenedNumber_(QString & short_num, double number)
+  void AxisPainter::getShortenedNumber_(QString& short_num, double number)
   {
-    if (number < 1000.0)
+    if (number < 1e3)
     {
       short_num = QString("%1").arg(number);
     }
-    else if (number < 1000000.0)
+    else if (number < 1e6)
     {
-      short_num = QString("%1k").arg(Math::roundDecimal(number / 1000.0, -2));
+      short_num = QString("%1k").arg(Math::roundDecimal(number /1e3, -2));
     }
-    else if (number < 1000000000.0)
+    else if (number < 1e9)
     {
-      short_num = QString("%1M").arg(number / 1000000.0);
+      short_num = QString("%1M").arg(number / 1e6);
     }
     else
     {
-      short_num = QString("%1G").arg(number / 1000000000.0);
+      short_num = QString("%1G").arg(number / 1e9);
     }
   }
 
   double AxisPainter::scale_(double x, bool is_log)
-  {
+  { // 
     return (is_log) ? Math::roundDecimal(pow(10, x), -8) : Math::roundDecimal(x, -8);
   }
 

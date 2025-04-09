@@ -19,7 +19,7 @@ def run_peak_picker(input_map, params, out_path):
     out_map = pms.MSExperiment()
     pp.pickExperiment(input_map, out_map)
 
-    out_map = addDataProcessing(out_map, params, pms.ProcessingAction.PEAK_PICKING)
+    out_map = addDataProcessing(out_map, params, pms.DataProcessing.ProcessingAction.PEAK_PICKING)
     fh = pms.FileHandler()
     fh.storeExperiment(out_path, out_map)
 

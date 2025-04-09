@@ -10,18 +10,18 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/XFDRAlgorithm.h>" namespace "OpenMS":
     cdef cppclass XFDRAlgorithm(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler
-        XFDRAlgorithm() nogil except +
-        XFDRAlgorithm(XFDRAlgorithm &) nogil except +
+        XFDRAlgorithm() except + nogil 
+        XFDRAlgorithm(XFDRAlgorithm &) except + nogil 
 
         XFDRAlgorithm_ExitCodes run(libcpp_vector[ PeptideIdentification ]& peptide_ids,
-                                    ProteinIdentification& protein_id) nogil except +
+                                    ProteinIdentification& protein_id) except + nogil 
 
-        XFDRAlgorithm_ExitCodes validateClassArguments() nogil except +
+        XFDRAlgorithm_ExitCodes validateClassArguments() except + nogil 
 
 cdef extern from "<OpenMS/ANALYSIS/XLMS/XFDRAlgorithm.h>" namespace "OpenMS::XFDRAlgorithm":
     cdef enum XFDRAlgorithm_ExitCodes "OpenMS::XFDRAlgorithm::ExitCodes":
         #wrap-attach:
-        #    XFDRAlgorithm
+        #   XFDRAlgorithm
         EXECUTION_OK
         ILLEGAL_PARAMETERS
         UNEXPECTED_RESULT

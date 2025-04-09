@@ -1,0 +1,126 @@
+/**
+ * Jenkinsfile for building, testing, and deploying pyOpenMS
+ */
+
+pipeline {
+    agent {
+        // Specifies the label for the Jenkins agent
+        label "macos && silicon"
+    }
+
+    environment {
+        BRANCH_NAME = "${env.GIT_BRANCH.split('/').size() == 1 ? env.GIT_BRANCH.split('/')[-1] : env.GIT_BRANCH.split('/')[1..-1].join('/')}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Deletes the workspace directory and checks out the OpenMS repository
+                deleteDir()
+                dir("OpenMS") {
+                    checkout scm: [
+                        $class: 'GitSCM',
+                        branches: scm.branches,
+                        extensions: [
+                            // Configures the Git submodule options
+                            [$class: 'SubmoduleOption',
+                            disableSubmodules: false,
+                            parentCredentials: false,
+                            recursiveSubmodules: true,
+                            reference: 'https://github.com/OpenMS/OpenMS.git',
+                            shallow: true,
+                            trackingSubmodules: false],
+                            [$class: 'LocalBranch']
+                        ],
+                        submoduleCfg: [],
+                        userRemoteConfigs: scm.userRemoteConfigs
+                    ]
+                }
+            }
+        }
+
+        stage('Build and Test') {
+            steps {
+                sh '''
+                    #!/bin/zsh
+                    echo 'Building..'
+                    
+                    PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
+
+                    # Creates a contrib-build directory and builds the dependencies
+                    mkdir -p contrib-build && pushd contrib-build
+                        CC=clang CXX=clang++ cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../OpenMS/contrib
+                    popd
+                    
+                    # Activates the conda environment and builds pyOpenMS
+                    . "/Users/builder/mambaforge/etc/profile.d/conda.sh"
+
+                    mkdir -p pyopenms_whls
+                    
+                    mkdir -p OpenMS-build && pushd OpenMS-build
+                        cmake -G Ninja -DQt5_DIR="/opt/homebrew/opt/qt@5/lib/cmake/Qt5" -DOPENMS_CONTRIB_LIBS="$WORKSPACE/contrib-build" ../OpenMS
+                        ninja OpenMS
+                        for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
+                            py=$(echo "$py" | tr -d " \n")
+                            pynodot=$(echo "$py" | tr -d ".")
+                            conda create -n pyoms-bld-"${pynodot}" python="${py}"
+                            conda activate pyoms-bld-"${pynodot}"
+
+                            # set current python executable
+                            CURRENT_PYTHON_EXECUTABLE=$(which python)
+
+                            # pip install all the stuff
+                            pip install -U setuptools
+                            pip install -U pip
+                            pip install -U autowrap
+                            pip install -U pytest
+                            pip install -U numpy
+                            pip install -U wheel
+                            pip install -U pandas
+
+                            # build pyopenms distribution (macOS)
+                            cmake -DPYTHON_EXECUTABLE:FILEPATH="$CURRENT_PYTHON_EXECUTABLE" -DPYOPENMS=ON .
+                            ninja pyopenms
+
+                            ctest -R pyopenms
+
+                            # copy to directory
+                            cp pyOpenMS/dist/*.whl ../pyopenms_whls/
+
+                            # clean up
+                            conda deactivate
+                            conda remove --name pyoms-bld-"${pynodot}" --all
+                        done
+                    popd
+                '''
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                withCredentials(
+                    [
+                        usernamePassword(credentialsId: 'pypi_ut', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD'),
+                        usernamePassword(credentialsId: 'pypiorg_api_token_pyopenms', usernameVariable: 'USERNAME_RELEASE', passwordVariable: 'PASSWORD_RELEASE')
+                    ]
+                    ) {
+                    sh '''
+                        echo "Branch: ${BRANCH_NAME}"
+                        
+                        if [[ "${BRANCH_NAME}" == "nightly" || "${BRANCH_NAME}" == "develop" ]]
+                        then
+                            # Uploads the pyOpenMS distribution to our PyPI repository
+                            twine upload pyopenms_whls/* --repository-url https://pypi.cs.uni-tuebingen.de/ -u $USERNAME -p $PASSWORD
+                        elif [[ "${BRANCH_NAME}" == *"Release"* ]]
+                        then
+                            # Like above but with default repository pypi.org and corresponding credentials
+                            twine upload pyopenms_whls/* -u $USERNAME_RELEASE -p $PASSWORD_RELEASE
+                        else
+                            echo "Not uploading for experimental branch ${BRANCH_NAME}"
+                        fi
+                    '''
+                }
+            }
+        }
+    }
+}

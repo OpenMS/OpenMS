@@ -5,17 +5,17 @@ from ChromatogramPeak cimport *
 from Peak1D cimport *
 from DefaultParamHandler cimport *
 
-cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/NLargest.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/FILTERING/NLargest.h>" namespace "OpenMS":
 
     cdef cppclass NLargest(DefaultParamHandler):
         # wrap-inherits:
-        #    DefaultParamHandler
+        #   DefaultParamHandler
         # wrap-doc:
-        #   NLargest removes all but the n largest peaks
+        #  NLargest removes all but the n largest peaks
         
-        NLargest() nogil except + 
-        NLargest(NLargest &) nogil except +
+        NLargest() except + nogil  
+        NLargest(NLargest &) except + nogil 
 
-        void filterSpectrum(MSSpectrum & spec) nogil except + # wrap-doc:Keep only n-largest peaks in spectrum
-        void filterPeakSpectrum(MSSpectrum & spec) nogil except + # wrap-doc:Keep only n-largest peaks in spectrum
-        void filterPeakMap(MSExperiment & exp) nogil except + # wrap-doc:Keep only n-largest peaks in each spectrum of a peak map
+        void filterSpectrum(MSSpectrum & spec) except + nogil  # wrap-doc:Keep only n-largest peaks in spectrum
+        void filterPeakSpectrum(MSSpectrum & spec) except + nogil  # wrap-doc:Keep only n-largest peaks in spectrum
+        void filterPeakMap(MSExperiment & exp) except + nogil  # wrap-doc:Keep only n-largest peaks in each spectrum of a peak map

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
@@ -36,10 +10,12 @@
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
+
+#include <utility>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -240,10 +216,10 @@ namespace OpenMS
 
   std::vector<OPXLDataStructs::AASeqWithMass> OPXLHelper::digestDatabase(
     vector<FASTAFile::FASTAEntry> fasta_db,
-    EnzymaticDigestion digestor,
+    const EnzymaticDigestion& digestor,
     Size min_peptide_length,
-    StringList cross_link_residue1,
-    StringList cross_link_residue2,
+    const StringList& cross_link_residue1,
+    const StringList& cross_link_residue2,
     const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
     const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,
     Size max_variable_mods_per_peptide)
@@ -372,7 +348,7 @@ namespace OpenMS
                                                                                 const DoubleList & cross_link_mass_mono_link,
                                                                                 const std::vector< double >& spectrum_precursor_vector,
                                                                                 const std::vector< double >& allowed_error_vector,
-                                                                                String cross_link_name)
+                                                                                const String& cross_link_name)
   {
     bool n_term_linker = false;
     bool c_term_linker = false;
@@ -1321,9 +1297,9 @@ namespace OpenMS
                                                                                                 bool precursor_mass_tolerance_unit_ppm,
                                                                                                 const vector<OPXLDataStructs::AASeqWithMass>& filtered_peptide_masses,
                                                                                                 double cross_link_mass,
-                                                                                                DoubleList cross_link_mass_mono_link,
-                                                                                                StringList cross_link_residue1,
-                                                                                                StringList cross_link_residue2,
+                                                                                                const DoubleList& cross_link_mass_mono_link,
+                                                                                                const StringList& cross_link_residue1,
+                                                                                                const StringList& cross_link_residue2,
                                                                                                 String cross_link_name,
                                                                                                 bool use_sequence_tags,
                                                                                                 const std::vector<std::string>& tags)
@@ -1367,12 +1343,9 @@ namespace OpenMS
       Size candidates_size = candidates.size();
       OPXLHelper::filterPrecursorsByTags(candidates, precursor_correction_positions, tags);
 
-#pragma omp critical (LOG_DEBUG_access)
-      {
-        OPENMS_LOG_DEBUG << "Number of sequence tags: " << tags.size() << std::endl;
-        OPENMS_LOG_DEBUG << "Candidate Peptide Pairs before sequence tag filtering: " << candidates_size << std::endl;
-        OPENMS_LOG_DEBUG << "Candidate Peptide Pairs  after sequence tag filtering: " << candidates.size() << std::endl;
-      }
+      OPENMS_LOG_DEBUG << "Number of sequence tags: " << tags.size() << std::endl;
+      OPENMS_LOG_DEBUG << "Candidate Peptide Pairs before sequence tag filtering: " << candidates_size << std::endl;
+      OPENMS_LOG_DEBUG << "Candidate Peptide Pairs  after sequence tag filtering: " << candidates.size() << std::endl;
     }
 
     vector< int > precursor_corrections;
@@ -1380,11 +1353,11 @@ namespace OpenMS
     {
       precursor_corrections.push_back(precursor_correction_steps[precursor_correction_positions[pc]]);
     }
-    vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, precursor_correction_positions, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, spectrum_precursor_vector, allowed_error_vector, cross_link_name);
+    vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, precursor_correction_positions, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, spectrum_precursor_vector, allowed_error_vector, std::move(cross_link_name));
     return cross_link_candidates;
   }
 
-  double OPXLHelper::computePrecursorError(OPXLDataStructs::CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge)
+  double OPXLHelper::computePrecursorError(const OPXLDataStructs::CrossLinkSpectrumMatch& csm, double precursor_mz, int precursor_charge)
   {
     // Error calculation
     double weight = csm.cross_link.alpha->getMonoWeight();
@@ -1403,50 +1376,27 @@ namespace OpenMS
     return rel_error;
   }
 
-  void OPXLHelper::isoPeakMeans(OPXLDataStructs::CrossLinkSpectrumMatch& csm, DataArrays::IntegerDataArray& num_iso_peaks_array, std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta)
+  void OPXLHelper::isoPeakMeans(OPXLDataStructs::CrossLinkSpectrumMatch& csm,
+    const DataArrays::IntegerDataArray& num_iso_peaks_array,
+    const std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha,
+    const std::vector< std::pair< Size, Size > >& matched_spec_linear_beta,
+    const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha,
+    const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta)
   {
     csm.num_iso_peaks_mean = Math::mean(num_iso_peaks_array.begin(), num_iso_peaks_array.end());
 
-    vector< double > iso_peaks_linear_alpha;
-    vector< double > iso_peaks_linear_beta;
-    vector< double > iso_peaks_xlinks_alpha;
-    vector< double > iso_peaks_xlinks_beta;
-
-    if (!matched_spec_linear_alpha.empty())
+    auto addUp = [&](const auto& data) -> double
     {
-      for (const auto& match : matched_spec_linear_alpha)
-      {
-        iso_peaks_linear_alpha.push_back(num_iso_peaks_array[match.second]);
-      }
-      csm.num_iso_peaks_mean_linear_alpha = Math::mean(iso_peaks_linear_alpha.begin(), iso_peaks_linear_alpha.end());
-    }
+      double sum{};
+      if (data.empty()) return sum;
+      for (const auto& p : data) sum += num_iso_peaks_array[p.second];
+      return sum / data.size();
+    };
 
-    if (!matched_spec_linear_beta.empty())
-    {
-      for (const auto& match : matched_spec_linear_beta)
-      {
-        iso_peaks_linear_beta.push_back(num_iso_peaks_array[match.second]);
-      }
-      csm.num_iso_peaks_mean_linear_beta = Math::mean(iso_peaks_linear_beta.begin(), iso_peaks_linear_beta.end());
-    }
-
-    if (!matched_spec_xlinks_alpha.empty())
-    {
-      for (const auto& match : matched_spec_xlinks_alpha)
-      {
-        iso_peaks_xlinks_alpha.push_back(num_iso_peaks_array[match.second]);
-      }
-      csm.num_iso_peaks_mean_xlinks_alpha = Math::mean(iso_peaks_xlinks_alpha.begin(), iso_peaks_xlinks_alpha.end());
-    }
-
-    if (!matched_spec_xlinks_beta.empty())
-    {
-      for (const auto& match : matched_spec_xlinks_beta)
-      {
-        iso_peaks_xlinks_beta.push_back(num_iso_peaks_array[match.second]);
-      }
-      csm.num_iso_peaks_mean_xlinks_beta = Math::mean(iso_peaks_xlinks_beta.begin(), iso_peaks_xlinks_beta.end());
-    }
+    csm.num_iso_peaks_mean_linear_alpha = addUp(matched_spec_linear_alpha);
+    csm.num_iso_peaks_mean_linear_beta = addUp(matched_spec_linear_beta);
+    csm.num_iso_peaks_mean_xlinks_alpha = addUp(matched_spec_xlinks_alpha);
+    csm.num_iso_peaks_mean_xlinks_beta = addUp(matched_spec_xlinks_beta);
   }
 
   void OPXLHelper::filterPrecursorsByTags(std::vector <OPXLDataStructs::XLPrecursor>& candidates, std::vector< int >& precursor_correction_positions, const std::vector<std::string>& tags)

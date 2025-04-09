@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -137,7 +111,6 @@ void MSstatsFile::constructFile_(const String& retention_time_summarization_meth
   // sanity check that the triples (peptide_sequence, precursor_charge, run) only appears once
   set<tuple<String, String, String> > peptideseq_precursor_charge_run;
 
-  int count_similar = 0;
   for (const auto &peptideseq : peptideseq_quantifyable)
   {
     for (const auto &line :
@@ -160,16 +133,7 @@ void MSstatsFile::constructFile_(const String& retention_time_summarization_meth
           intensities.insert(get<0>(p));
         }
       }
-
-      tuple<String, String, String> tpl = make_tuple(
-          line.first.sequence(), line.first.precursor_charge(), line.first.run());
-
-      if (peptideseq_precursor_charge_run.find(tpl) != peptideseq_precursor_charge_run.end())
-      {
-        //TODO What is this doing here??
-        count_similar += 1;
-      }
-      peptideseq_precursor_charge_run.insert(tpl);
+      peptideseq_precursor_charge_run.emplace(line.first.sequence(), line.first.precursor_charge(), line.first.run());
 
       // If the rt summarization method is set to manual, we simply output all it,rt pairs
       if (rt_summarization_manual)
@@ -389,8 +353,8 @@ void MSstatsFile::storeLFQ(const String& filename,
 
         //Note: In general as long as we only support merged proteins across conditions,
         // we check if the map is already set at this sequence since
-        // it cannot happen that to peptides with the same sequence map to different proteins unless something is wrong.
-        // Also I think MSstats cannot handle different associations to proteins across conditions.
+        // it cannot happen that two peptides with the same sequence map to different proteins unless something is wrong.
+        // Also, I think MSstats cannot handle different associations to proteins across conditions.
         if (isQuantifyable_(accs, accession_to_group))
         {
           peptideseq_quantifyable.emplace(sequence);
@@ -422,7 +386,7 @@ void MSstatsFile::storeLFQ(const String& filename,
           const unsigned label(aggregatedInfo.consensus_feature_labels[i][j]);
 
           const pair< String, unsigned> tpl1 = make_pair(current_filename, label);
-          const unsigned sample = path_label_to_sample[tpl1];
+          const unsigned sample_idx = path_label_to_sample[tpl1];
           const unsigned fraction = path_label_to_fraction[tpl1];
 
           const pair< String, unsigned> tpl2 = make_pair(current_filename, fraction);
@@ -443,8 +407,8 @@ void MSstatsFile::storeLFQ(const String& filename,
                   fragment_ion,
                   frag_charge,
                   isotope_label_type,
-                  sampleSection.getFactorValue(sample, condition),
-                  sampleSection.getFactorValue(sample, bioreplicate),
+                  sampleSection.getFactorValue(sample_idx, condition),
+                  sampleSection.getFactorValue(sample_idx, bioreplicate),
                   String(run),
                   (has_fraction ? String(fraction) : "")
           );

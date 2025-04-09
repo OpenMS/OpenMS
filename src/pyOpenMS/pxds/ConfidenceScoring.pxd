@@ -7,10 +7,10 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h>" namespace "Op
 
     cdef cppclass ConfidenceScoring:
 
-        ConfidenceScoring() nogil except +
-        ConfidenceScoring(ConfidenceScoring &) nogil except + # compiler
+        ConfidenceScoring() except + nogil 
+        ConfidenceScoring(ConfidenceScoring &) except + nogil  # compiler
 
-        void initialize(TargetedExperiment & targeted, Size n_decoys, Size n_transitions, TransformationDescription trafo) nogil except +
-        void initializeGlm(double intercept, double rt_coef, double int_coef) nogil except +
-        void scoreMap(FeatureMap & map) nogil except + # wrap-doc:Score a feature map -> make sure the class is properly initialized
+        void initialize(TargetedExperiment & targeted, Size n_decoys, Size n_transitions, TransformationDescription trafo) except + nogil 
+        void initializeGlm(double intercept, double rt_coef, double int_coef) except + nogil 
+        void scoreMap(FeatureMap & map) except + nogil  # wrap-doc:Score a feature map -> make sure the class is properly initialized
 

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -46,6 +20,8 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
 #include <cstdlib>
+
+#include <QStringList>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -183,6 +159,11 @@ class TOPPBaseTest
     bool parseRange(const String& text, double& low, double& high) const
     {
       return parseRange_(text, low, high);
+    }
+
+    TOPPBase::ExitCodes runExternalProcess(const QString& executable, const QStringList& arguments, const QString& workdir) const
+    {
+      return runExternalProcess_(executable, arguments, workdir);
     }
 
 };
@@ -723,6 +704,33 @@ START_SECTION(([EXTRA]void parseRange_(const String& text, double& low, double& 
 	TEST_REAL_SIMILAR(a, 6.5);
 	TEST_REAL_SIMILAR(b, 7.5);
   TEST_EQUAL(result, true);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir) const))
+{
+
+// we just need ANY commandline tool available on (hopefully) all boxes.
+// note that commands like "dir" or "type" are only known within cmd.exe and are not actual executables (unlike on Linux)
+#ifdef OPENMS_WINDOWSPLATFORM
+  const QString exe = "cmd";
+  const QStringList args = QStringList() << "/C" << "echo hi";
+  const QStringList args_broken = QStringList() << "/C" << "doesnotexist";
+#else
+  const QString exe = "ls";
+  const QStringList args("-l");
+  const QStringList args_broken = QStringList() << "-0";
+#endif // 
+
+  TOPPBaseTest topp;
+  auto result = topp.runExternalProcess("/path/does/not/exists.exe", QStringList(), "");
+  TEST_EQUAL(result, TOPPBase::EXTERNAL_PROGRAM_NOTFOUND);
+
+  result = topp.runExternalProcess(exe, args_broken, "");
+  TEST_EQUAL(result, TOPPBase::EXTERNAL_PROGRAM_ERROR);
+  
+  result = topp.runExternalProcess(exe, args, "");
+  TEST_EQUAL(result, TOPPBase::EXECUTION_OK);
 }
 END_SECTION
 

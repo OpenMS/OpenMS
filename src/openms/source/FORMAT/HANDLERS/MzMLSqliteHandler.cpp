@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -207,7 +181,7 @@ namespace OpenMS::Internal
           std::vector< double >::iterator data_it = data.begin();
           for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
-            it->setMZ(*data_it);
+            it->setPos(*data_it);
           }
           cont_data[curr_id] += 1;
         }
@@ -223,7 +197,7 @@ namespace OpenMS::Internal
           std::vector< double >::iterator data_it = data.begin();
           for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
-            it->setMZ(*data_it);
+            it->setPos(*data_it);
           }
           cont_data[curr_id] += 1;
         }
@@ -837,7 +811,7 @@ namespace OpenMS::Internal
 
       // prepare streams and set required precision (default is 6 digits)
       std::stringstream insert_run_sql;
-      std::string native_id = exp.getLoadedFilePath(); // TODO escape stuff like ' (SQL inject)
+      const std::string& native_id = exp.getLoadedFilePath(); // TODO escape stuff like ' (SQL inject)
       insert_run_sql << "INSERT INTO RUN (ID, FILENAME, NATIVE_ID) VALUES (" <<
             run_id_ << ",'" << native_id << "','" << native_id << "'); ";
       conn.executeStatement("BEGIN TRANSACTION");
@@ -874,7 +848,7 @@ namespace OpenMS::Internal
         // write the full metadata into the sql file (compress with zlib before)
         std::string encoded_string;
         OpenMS::ZlibCompression::compressString(output, encoded_string);
-        data.push_back(encoded_string);
+        data.emplace_back(encoded_string);
         // data.push_back(output); // in case you need to debug on the uncompressed string ...
         conn.executeBindStatement(prepare_statement, data);
       }

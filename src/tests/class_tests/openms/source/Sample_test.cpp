@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -38,9 +12,6 @@
 ///////////////////////////
 
 #include <OpenMS/METADATA/Sample.h>
-#include <OpenMS/METADATA/Digestion.h>
-#include <OpenMS/METADATA/Modification.h>
-#include <OpenMS/METADATA/Tagging.h>
 #include <sstream>
 
 ///////////////////////////
@@ -182,102 +153,6 @@ START_SECTION((void setSubsamples(const std::vector<Sample>& subsamples)))
 	TEST_EQUAL(s.getSubsamples()[1].getName(),"3")
 END_SECTION
 
-//treatments
-
-START_SECTION((Int countTreatments() const))
-	Sample s;
-	TEST_EQUAL(s.countTreatments(),0)
-	Digestion d;
-	s.addTreatment(d);
-	TEST_EQUAL(s.countTreatments(),1)
-END_SECTION
-
-START_SECTION((const SampleTreatment& getTreatment(UInt position) const))
-	Sample s;
-	TEST_EXCEPTION(Exception::IndexOverflow, s.getTreatment(0))
-END_SECTION
-
-START_SECTION((void addTreatment(const SampleTreatment& treatment, Int before_position=-1)))
-	Sample s;
-	Digestion d;
-	Modification m,m2,m3;
-	Tagging t;
-
-	//different treatments
-	d.setEnzyme("D");
-	m.setReagentName("m");
-	t.setMassShift(5.0);
-	s.addTreatment(d);
-	s.addTreatment(m);
-	s.addTreatment(t);
-	TEST_EQUAL(s.countTreatments(),3)
-	TEST_EQUAL(s.getTreatment(0).getType(),"Digestion")
-	TEST_EQUAL(s.getTreatment(1).getType(),"Modification")
-	TEST_EQUAL(s.getTreatment(2).getType(),"Tagging")
-
-	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(0))).getEnzyme(),"D")
-	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(1))).getReagentName(),"m")
-	TEST_REAL_SIMILAR((dynamic_cast<const Tagging&>(s.getTreatment(2))).getMassShift(),5.0)
-END_SECTION
-
-START_SECTION((SampleTreatment& getTreatment(UInt position)))
-	Sample s;
-	Digestion d;
-	s.addTreatment(d);
-	(dynamic_cast<Digestion&>(s.getTreatment(0))).setEnzyme("bluff");
-	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(0))).getEnzyme(),"bluff")
-END_SECTION
-
-START_SECTION((void removeTreatment(UInt position)))
-	Sample s;
-	Digestion d;
-	Modification m,m2,m3;
-	Tagging t;
-
-	//different treatments
-	d.setEnzyme("D");
-	m.setReagentName("m");
-	t.setMassShift(5.0);
-	s.addTreatment(d);
-	s.addTreatment(m);
-	s.addTreatment(t);
-
-	//removeTreatment
-	m2.setReagentName("m2");
-	m3.setReagentName("m3");
-	s.addTreatment(m2,0);
-	s.addTreatment(m3,3);
-	TEST_EQUAL(s.countTreatments(),5)
-	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(0))).getReagentName(),"m2")
-	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(1))).getEnzyme(),"D")
-	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(2))).getReagentName(),"m")
-	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(3))).getReagentName(),"m3")
-	TEST_REAL_SIMILAR((dynamic_cast<const Tagging&>(s.getTreatment(4))).getMassShift(),5.0)
-
-	s.removeTreatment(4);
-	TEST_EQUAL(s.countTreatments(),4)
-	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(0))).getReagentName(),"m2")
-	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(1))).getEnzyme(),"D")
-	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(2))).getReagentName(),"m")
-	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(3))).getReagentName(),"m3")
-
-	s.removeTreatment(2);
-	TEST_EQUAL(s.countTreatments(),3)
-	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(0))).getReagentName(),"m2")
-	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(1))).getEnzyme(),"D")
-	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(2))).getReagentName(),"m3")
-
-	s.removeTreatment(2);
-	TEST_EQUAL(s.countTreatments(),2)
-	TEST_EQUAL((dynamic_cast<const Modification&>(s.getTreatment(0))).getReagentName(),"m2")
-	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(1))).getEnzyme(),"D")
-
-	//exceptions: index overflow
-	TEST_EXCEPTION(Exception::IndexOverflow,s.removeTreatment(2))
-	TEST_EXCEPTION(Exception::IndexOverflow,s.getTreatment(2))
-	TEST_EXCEPTION(Exception::IndexOverflow,s.addTreatment(m,3))
-END_SECTION
-
 //copy ctr
 START_SECTION((Sample(const Sample& source)))
 	Sample s;
@@ -300,11 +175,6 @@ START_SECTION((Sample(const Sample& source)))
 	ss.setName("2");
 	s.getSubsamples().push_back(ss);
 
-	//treatments
-	Digestion d;
-	d.setEnzyme("D");
-	s.addTreatment(d);
-
 	//-----------------
 	//Copy construction
 	//-----------------
@@ -325,9 +195,6 @@ START_SECTION((Sample(const Sample& source)))
 
 	//subsamples
 	TEST_EQUAL(s.getSubsamples()[0].getName(),"2")
-
-	//treatments
-	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(0))).getEnzyme(),"D")
 END_SECTION
 
 //assignment operator
@@ -352,11 +219,6 @@ START_SECTION((Sample& operator= (const Sample& source)))
 	ss.setName("2");
 	s.getSubsamples().push_back(ss);
 
-	//treatments
-	Digestion d;
-	d.setEnzyme("D");
-	s.addTreatment(d);
-
 	//-----------------
 	//Copy construction
 	//-----------------
@@ -378,9 +240,6 @@ START_SECTION((Sample& operator= (const Sample& source)))
 
 	//subsamples
 	TEST_EQUAL(s.getSubsamples()[0].getName(),"2")
-
-	//treatments
-	TEST_EQUAL((dynamic_cast<const Digestion&>(s.getTreatment(0))).getEnzyme(),"D")
 END_SECTION
 
 START_SECTION((bool operator== (const Sample& rhs) const))
@@ -435,11 +294,6 @@ START_SECTION((bool operator== (const Sample& rhs) const))
 	TEST_EQUAL(edit==empty,true)
 
 	edit.setMetaValue("color",45);
-	TEST_EQUAL(edit==empty,false)
-	edit = empty;
-	TEST_EQUAL(edit==empty,true)
-
-	edit.addTreatment(Modification());
 	TEST_EQUAL(edit==empty,false)
 	edit = empty;
 	TEST_EQUAL(edit==empty,true)

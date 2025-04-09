@@ -9,14 +9,14 @@ cdef extern from "<OpenMS/KERNEL/RichPeak2D.h>" namespace "OpenMS":
 
     cdef cppclass RichPeak2D(Peak2D, UniqueIdInterface, MetaInfoInterface):
         # wrap-inherits:
-        #    Peak2D
-        #    UniqueIdInterface
-        #    MetaInfoInterface
+        #   Peak2D
+        #   UniqueIdInterface
+        #   MetaInfoInterface
 
-        RichPeak2D() nogil except + # wrap-doc:A 2-dimensional raw data point or peak with meta information
-        RichPeak2D(RichPeak2D &) nogil except +
-        #RichPeak2D(DPosition2 &, float) nogil except +
+        RichPeak2D() except + nogil  # wrap-doc:A 2-dimensional raw data point or peak with meta information
+        RichPeak2D(RichPeak2D &) except + nogil 
+        #RichPeak2D(DPosition2 &, float) except + nogil 
 
-        bool operator==(RichPeak2D) nogil except +
-        bool operator!=(RichPeak2D) nogil except +
+        bool operator==(RichPeak2D) except + nogil 
+        bool operator!=(RichPeak2D) except + nogil 
 

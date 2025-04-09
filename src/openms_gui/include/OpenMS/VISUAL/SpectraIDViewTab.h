@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -40,11 +14,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <QtWidgets>
-#include <QLineEdit>
-#include <QComboBox>
-#include <QTableWidget>
 #include <QCheckBox>
-#include <QWidget>
 
 #include <unordered_map>
 #include <vector>
@@ -54,7 +24,7 @@ namespace OpenMS
   /**
     @brief Tabular visualization / selection of identified spectra.
 
-    @htmlinclude OpenMS_DigestSimulation.parameters
+    @htmlinclude OpenMS_SpectraIDViewTab.parameters
   */
   class OPENMS_GUI_DLLAPI SpectraIDViewTab :
     public QWidget,
@@ -71,7 +41,7 @@ namespace OpenMS
     // docu in base class
     bool hasData(const LayerDataBase* layer) override;
 
-    /// set layer data and create table anew; if given a nullptr, behaves as clear()
+    /// set layer data and create table anew; if given a nullptr or the layer is not LayerDataPeak, behaves as clear()
     void updateEntries(LayerDataBase* model) override;
     /// get layer data
     LayerDataBase* getLayer();
@@ -110,7 +80,7 @@ namespace OpenMS
       void resizeEvent(QResizeEvent * event) override;
     };
 
-    LayerDataBase* layer_ = nullptr;
+    LayerDataPeak* layer_ = nullptr;
     QCheckBox* hide_no_identification_ = nullptr;
     QCheckBox* create_rows_for_commmon_metavalue_ = nullptr;
     TableView* table_widget_ = nullptr;
@@ -119,8 +89,6 @@ namespace OpenMS
     QSplitter* tables_splitter_ = nullptr;
     bool is_first_time_loading_ = true;
     std::unordered_map<String, std::vector<const PeptideIdentification*>> protein_to_peptide_id_map;
-
-
 
   private slots:
     /// Saves the (potentially filtered) IDs as an idXML or mzIdentML file
@@ -137,7 +105,7 @@ namespace OpenMS
     void currentSpectraSelectionChanged_();
 
     /// update ProteinHits, when data in the table changes (status of checkboxes)
-    void updatedSingleProteinCell_(QTableWidgetItem* item);
+    void updatedSingleProteinCell_(QTableWidgetItem* /*item*/);
     /// Protein Cell clicked in protein_table_widget; emits which protein (row) was clicked, and may show additional data
     void proteinCellClicked_(int row, int column);
   };

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -109,18 +83,12 @@ public:
     /**
         @brief Returns a pointer to canvas object
 
+        This method is overwritten for 1D, 2D, 3D to make the class specific members accessible.
+        
         The canvas object is set with the setCanvas_() method.
         This is usually done in the constructor.
     */
-    PlotCanvas * canvas()
-    {
-      return canvas_;
-    }
-
-    PlotCanvas * canvas() const
-    {
-      return canvas_;
-    }
+    virtual PlotCanvas* canvas() const = 0;
 
     /// Returns a pointer to the x-axis axis widget.
     virtual inline AxisWidget * xAxis()
@@ -156,13 +124,13 @@ signals:
     /// Emits a status message that should be displayed for @p time ms. If @p time is 0 the message should be displayed until the next message is emitted.
     void sendStatusMessage(std::string, OpenMS::UInt);
     /// Emitted when the cursor position changes (for displaying e.g. in status bar)
-    void sendCursorStatus(double mz = -1.0, double rt = -1.0);
+    void sendCursorStatus(const String& x_value, const String& y_value);
     /// Message about the destruction of this widget
     void aboutToBeDestroyed(int window_id);
     /// Shows the main preferences dialog
     void openPreferences();
     /// Signal that is emitted, when a drag-and-drop action ends on this widget
-    void dropReceived(const QMimeData * data, QWidget * source, int id);
+    void dropReceived(const QMimeData* data, QWidget* source, int id);
 
 public slots:
     /// Shows statistics about the data (count, min, max, avg of intensity, charge, quality and meta data)
@@ -196,6 +164,12 @@ public slots:
     /// Toggles the axis legend visibility
     void changeLegendVisibility();
 
+    /**
+     * \brief Set a new mapper for the canvas and axis. Internally, all dependent components are updated (e.g. projections in 2D View)
+     * \param mapper The new mapper for translating between units and axis
+     */
+    virtual void setMapper(const DimMapper<2>& mapper) = 0;
+
 protected:
     /// @name Reimplemented Qt events
     //@{
@@ -213,8 +187,6 @@ protected:
     virtual void intensityModeChange_();
     /// recalculates the Axis ticks
     virtual void recalculateAxes_() = 0;
-    /// correct given area X/Y-values if the values under-/overflow the min-/max values of the data
-    void correctAreaToObeyMinMaxRanges_(PlotCanvas::AreaType& area);
 
     ///@name reimplemented Qt events
     //@{
@@ -226,17 +198,17 @@ protected:
     //@}
 
     /// Pointer to the canvas widget
-    PlotCanvas * canvas_;
-    ///Main layout
-    QGridLayout * grid_;
+    PlotCanvas* canvas_;
+    /// Main layout
+    QGridLayout* grid_;
     /// Vertical axis
-    AxisWidget * y_axis_;
+    AxisWidget* y_axis_;
     /// Horizontal axis
-    AxisWidget * x_axis_;
+    AxisWidget* x_axis_;
     /// Horizontal scrollbar
-    QScrollBar * x_scrollbar_;
+    QScrollBar* x_scrollbar_;
     /// Vertical scrollbar
-    QScrollBar * y_scrollbar_;
+    QScrollBar* y_scrollbar_;
   };
 }
 

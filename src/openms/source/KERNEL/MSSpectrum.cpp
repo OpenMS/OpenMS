@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -365,9 +339,24 @@ namespace OpenMS
     return (max_intensity_it - this->begin());
   }
 
+  void MSSpectrum::sortByIonMobility()
+  {
+    // can throw if IM float data array is missing
+    const auto [im_data_index, im_unit] = getIMData();
+    // Capture IM array by Ref, because .getIMData() is expensive to call for every peak!
+    const auto& im_data = getFloatDataArrays()[im_data_index];
+
+    // check if data is sorted by IM... if not, sort
+    if (! std::is_sorted(im_data.begin(), im_data.end()))
+    { // sorts the spectrum (and its binary data arrays) according to IM
+      this->sort([&im_data](const Size i1, const Size i2) { return im_data[i1] < im_data[i2]; });
+    }
+  }
 
   void MSSpectrum::sortByPositionPresorted(const std::vector<Chunk>& chunks)
   {
+    if (chunks.empty()) return;
+
     if (chunks.size() == 1 && chunks[0].is_sorted)
     {
       return;
@@ -472,6 +461,14 @@ namespace OpenMS
     return std::is_sorted(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
   }
 
+  bool MSSpectrum::isSortedByIM() const
+  {
+    auto [im_data_index, D] = getIMData(); // may throw
+    const auto& im_data = getFloatDataArrays()[im_data_index];
+    // check if data is sorted by IM
+    return std::is_sorted(im_data.begin(), im_data.end());
+  }
+
   bool MSSpectrum::operator==(const MSSpectrum &rhs) const
   {
     //name_ can differ => it is not checked
@@ -513,33 +510,14 @@ namespace OpenMS
     return *this;
   }
 
-  MSSpectrum::MSSpectrum() :
-    ContainerType(),
-    RangeManagerContainerType(),
-    SpectrumSettings(),
-    retention_time_(-1),
-    drift_time_(-1),
-    drift_time_unit_(DriftTimeUnit::NONE),
-    ms_level_(1),
-    name_(),
-    float_data_arrays_(),
-    string_data_arrays_(),
-    integer_data_arrays_()
-  {}
+  MSSpectrum::MSSpectrum() = default;
 
-  MSSpectrum::MSSpectrum(const MSSpectrum &source) :
-    ContainerType(source),
-    RangeManagerContainerType(source),
-    SpectrumSettings(source),
-    retention_time_(source.retention_time_),
-    drift_time_(source.drift_time_),
-    drift_time_unit_(source.drift_time_unit_),
-    ms_level_(source.ms_level_),
-    name_(source.name_),
-    float_data_arrays_(source.float_data_arrays_),
-    string_data_arrays_(source.string_data_arrays_),
-    integer_data_arrays_(source.integer_data_arrays_)
-  {}
+  MSSpectrum::MSSpectrum(const std::initializer_list<Peak1D>& init)
+    : ContainerType(init)
+  {
+  }
+
+  MSSpectrum::MSSpectrum(const MSSpectrum &source) = default;
 
   MSSpectrum &MSSpectrum::operator=(const SpectrumSettings &source)
   {
@@ -554,6 +532,21 @@ namespace OpenMS
     {
       extendMZ(peak.getMZ()); 
       extendIntensity(peak.getIntensity());
+    }
+    // IM
+    // if this is an ion mobility frame, consider the binary data array as well
+    if (this->containsIMData())
+    {
+      auto [im_array_index, im_unit] = getIMData();
+      const auto& im_data = getFloatDataArrays()[im_array_index];
+      for (const auto& im : im_data)
+      {
+        this->extendMobility(im);
+      }
+    }
+    else if (getDriftTime() != IMTypes::DRIFTTIME_NOT_SET) // != -1
+    { 
+      this->extendMobility(getDriftTime());
     }
   }
 
@@ -733,8 +726,13 @@ namespace OpenMS
     return MZEnd(begin, mz, end);
   }
 
-  bool MSSpectrum::RTLess::operator()(const MSSpectrum &a, const MSSpectrum &b) const {
+  bool MSSpectrum::RTLess::operator()(const MSSpectrum &a, const MSSpectrum &b) const
+  {
     return a.getRT() < b.getRT();
+  }
+  bool MSSpectrum::IMLess::operator()(const MSSpectrum& a, const MSSpectrum& b) const
+  {
+    return a.getDriftTime() < b.getDriftTime();
   }
 
   bool getIonMobilityArray__(const MSSpectrum::FloatDataArrays& fdas, Size& index, DriftTimeUnit& unit)
@@ -772,4 +770,18 @@ namespace OpenMS
 
     return {index, unit };
   }
-}
+
+  std::pair<DriftTimeUnit, std::vector<float>> MSSpectrum::maybeGetIMData() const
+  {
+    Size index;
+    DriftTimeUnit unit = DriftTimeUnit::NONE;
+    bool has_IM = getIonMobilityArray__(this->getFloatDataArrays(), index, unit);
+
+    if (!has_IM)
+    {
+      return {unit, {}}; // empty vector
+    }
+    return {unit, this->getFloatDataArrays()[index]};
+  }
+  
+} // namespace OpenMS

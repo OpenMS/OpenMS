@@ -194,12 +194,6 @@
 				<userParam name="p3" type="xsd:string" value="value3"/>
 			</processingMethod>
 		</dataProcessing>
-		<dataProcessing id="dp_sp_1_bi_1">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
 	</dataProcessingList>
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" startTimeStamp="2007-06-27T15:23:45" defaultSourceFileRef="sf_ru_0">
 		<cvParam cvRef="MS" accession="MS:1000858" name="fraction identifier" value="the_best_fraction_ever" />
@@ -519,16 +513,16 @@
 </mzML>
 <indexList count="2">
 	<index name="spectrum">
-		<offset idRef="index=0">14001</offset>
-		<offset idRef="index=1">18088</offset>
-		<offset idRef="index=2">26974</offset>
-		<offset idRef="index=3">31784</offset>
+		<offset idRef="index=0">13665</offset>
+		<offset idRef="index=1">17752</offset>
+		<offset idRef="index=2">26638</offset>
+		<offset idRef="index=3">31448</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="tic native">33124</offset>
-		<offset idRef="sic native">34503</offset>
+		<offset idRef="tic native">32788</offset>
+		<offset idRef="sic native">34167</offset>
 	</index>
 </indexList>
-<indexListOffset>36084</indexListOffset>
+<indexListOffset>35748</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

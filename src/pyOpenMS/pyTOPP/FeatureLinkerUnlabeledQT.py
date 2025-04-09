@@ -59,7 +59,7 @@ def link(in_files, out_file, keep_subelements, params):
             algorithm.transferSubelements(maps, out_map)
 
     out_map.setUniqueIds()
-    addDataProcessing(out_map, params, pms.ProcessingAction.FEATURE_GROUPING)
+    addDataProcessing(out_map, params, pms.DataProcessing.ProcessingAction.FEATURE_GROUPING)
 
     pms.ConsensusXMLFile().store(out_file, out_map)
 

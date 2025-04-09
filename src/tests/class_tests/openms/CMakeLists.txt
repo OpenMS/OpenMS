@@ -1,8 +1,8 @@
 # --------------------------------------------------------------------------
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# Copyright OpenMS Inc. -- Eberhard Karls University Tuebingen,
+# ETH Zurich, and Freie Universitaet Berlin 2002-present.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -32,7 +32,7 @@
 # $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.9.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("OpenMS_class_tests_openms")
 
 #------------------------------------------------------------------------------
@@ -40,14 +40,6 @@ project("OpenMS_class_tests_openms")
 set(CF_OPENMS_TEST_DATA_PATH "${PROJECT_SOURCE_DIR}/data/")
 set (CONFIGURED_TEST_CONFIG_H "${PROJECT_BINARY_DIR}/include/OpenMS/test_config.h")
 configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/test_config.h.in ${CONFIGURED_TEST_CONFIG_H})
-
-#------------------------------------------------------------------------------
-# Some tests have a link dependency to boost so we find our own boost here
-find_boost(math_c99)
-
-if(NOT Boost_FOUND)
-  message(FATAL_ERROR "Boost was not found!")
-endif()
 
 #------------------------------------------------------------------------------
 # get the test executables
@@ -69,18 +61,11 @@ if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_
 endif()
 
 #------------------------------------------------------------------------------
-# QT dependencies
-find_package(Qt5 COMPONENTS Core Network Sql REQUIRED)
-if (NOT Qt5Network_FOUND)
-  message(STATUS "QtNetwork module not found!")
-  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
-endif()
-
-#------------------------------------------------------------------------------
 # Add the actual tests
 foreach(_class_test ${TEST_executables})
   add_executable(${_class_test} source/${_class_test}.cpp)
   target_link_libraries(${_class_test} ${OpenMS_LIBRARIES})
+  openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
   # only add OPENMP flags to gcc linker (except Mac OS X, due to compiler bug
   # see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)
@@ -96,10 +81,21 @@ endforeach(_class_test)
 set_tests_properties(StopWatch_test PROPERTIES RUN_SERIAL 1)
 
 #------------------------------------------------------------------------------
-# 2 - add link dependency
+# 2 - add link dependencies (TODO could be more finegrained for boost)
 foreach(t ${Boost_dependent_tests})
-  target_link_libraries(${t} ${Boost_LIBRARIES})
+  foreach(comp ${OpenMS_BOOST_COMPONENTS})
+    target_link_libraries(${t} Boost::${comp})
+  endforeach()
 endforeach()
+
+target_link_libraries(Base64_test ZLIB::ZLIB)
+target_link_libraries(LPWrapper_test CoinOR::CoinOR)
+target_link_libraries(SpectraSTSimilarityScore_test Eigen3::Eigen)
+target_link_libraries(BinnedSpectrum_test Eigen3::Eigen)
+
+if (WITH_HDF5)
+  target_link_libraries(HDF5_test HDF5::HDF5)
+endif()
 
 #------------------------------------------------------------------------------
 # restore old compiler flags

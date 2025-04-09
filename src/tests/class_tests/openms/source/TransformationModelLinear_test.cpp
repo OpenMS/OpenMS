@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -116,8 +90,8 @@ START_SECTION((void getParameters(Param & params) const))
   TEST_EQUAL(lm0.getParameters(), p_out);
 
   //add additional data and test without weightings
-  p_in.setValue("x_weight", "");
-  p_in.setValue("y_weight", "");
+  p_in.setValue("x_weight", "x");
+  p_in.setValue("y_weight", "y");
   p_in.setValue("x_datum_min", 10e-5);
   p_in.setValue("x_datum_max", 1e15);
   p_in.setValue("y_datum_min", 10e-8);
@@ -132,8 +106,8 @@ START_SECTION((void getParameters(Param & params) const))
   p_in.clear();
   p_in.setValue("slope", 12.3);
   p_in.setValue("intercept", -45.6);
-  p_in.setValue("x_weight", "");
-  p_in.setValue("y_weight", "");
+  p_in.setValue("x_weight", "x");
+  p_in.setValue("y_weight", "y");
   p_in.setValue("x_datum_min", 10e-5);
   p_in.setValue("x_datum_max", 1e15);
   p_in.setValue("y_datum_min", 10e-8);
@@ -149,7 +123,7 @@ START_SECTION(([EXTRA] void getParameters(double&, double&, String&, String&, do
   param.setValue("slope", 12.3);
   param.setValue("intercept", -45.6);  
   String x_weight_test, y_weight_test;
-  x_weight_test = "";
+  x_weight_test = "x";
   y_weight_test = "ln(y)";
   param.setValue("x_weight", x_weight_test);
   param.setValue("y_weight", y_weight_test);
@@ -203,16 +177,16 @@ START_SECTION((TransformationModelLinear(const DataPoints &, const Param &)))
 
   // test evaluate
   TransformationModelLinear lm(data1, param);
-  TEST_REAL_SIMILAR(lm.evaluate(2),4);
+  TEST_REAL_SIMILAR(lm.evaluate(2), 4);
 
   // test evaluate using the inverted model
   lm.invert();
-  TEST_REAL_SIMILAR(lm.evaluate(4),2);
+  TEST_REAL_SIMILAR(lm.evaluate(4), 2);
 
   // weighting/unweighting test 2
   // set-up the parameters
   x_weight_test = "1/x";
-  y_weight_test = "";
+  y_weight_test = "y";
   param.setValue("x_weight", x_weight_test);
   param.setValue("y_weight", y_weight_test);
 

@@ -1,48 +1,23 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Tom Waschischeck $
 // $Authors: Tom Waschischeck $
 // --------------------------------------------------------------------------
 
+
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/QC/DBSuitability.h>
@@ -107,7 +82,7 @@ namespace OpenMS
     }
 
     // calculate suitability
-    results_.push_back(SuitabilityData());
+    results_.emplace_back();
     SuitabilityData& suitability_data_full = results_.back();
 
     // make sure pep_ids are sorted
@@ -178,12 +153,9 @@ namespace OpenMS
     // get the score of the first two decoy hits
     double decoy_1 = DBL_MAX;
     double decoy_2 = DBL_MAX;
-    UInt curr_hit = 0;
 
     for (const auto& hit : pep_id.getHits())
     {
-      ++curr_hit;
-
       if (!hit.metaValueExists("target_decoy"))
       {
         throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
@@ -276,7 +248,7 @@ namespace OpenMS
   {
     Param p;
     // list of all allowed adapters
-    vector<String> working_adapters{ "CometAdapter", "CruxAdapter", "MSGFPlusAdapter", "MSFraggerAdapter", "MyriMatchAdapter", "OMSSAAdapter", "XTandemAdapter" };
+    vector<String> working_adapters{ "CometAdapter", "MSGFPlusAdapter", "MSFraggerAdapter" };
 
     vector<String> keys;
     search_params.getKeys(keys);
@@ -352,8 +324,8 @@ namespace OpenMS
     parameters.setValue(adapter_name + ":1:out", out_path);
 
     // store data in temporary files
-    MzMLFile spectra_file;
-    spectra_file.store(mzml_path, exp);
+    FileHandler spectra_file;
+    spectra_file.storeExperiment(mzml_path, exp,{FileTypes::MZML});
     FASTAFile database;
     database.store(db_path, fasta_data);
 
@@ -374,15 +346,15 @@ namespace OpenMS
       OPENMS_LOG_ERROR << "An error occured while running " << adapter_name << "." << endl;
       OPENMS_LOG_ERROR << "Standard output: " << proc_stdout << endl;
       OPENMS_LOG_ERROR << "Standard error: " << proc_stderr << endl;
-      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + static_cast<Int>(rt));
+      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + String(static_cast<Int>(rt)));
     }
     // search was successful
 
     // load result
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;
-    IdXMLFile id_file;
-    id_file.load(out_path, prot_ids, pep_ids);
+    FileHandler id_file;
+    id_file.loadIdentifications(out_path, prot_ids, pep_ids, {FileTypes::IDXML});
 
     // annotate target/decoy information
     PeptideIndexing indexer;
@@ -394,12 +366,12 @@ namespace OpenMS
     if (indexer_exit != PeptideIndexing::ExitCodes::EXECUTION_OK)
     {
       OPENMS_LOG_ERROR << "An error occured while trying to index the search results." << endl;
-      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + static_cast<Int>(indexer_exit));
+      throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Return state was: " + String(static_cast<Int>(indexer_exit)));
     }
 
     if (keep_files)
     {
-      id_file.store(tmp_dir.getPath() + "indexed_pre_FDR.idXML", prot_ids, pep_ids);
+      id_file.storeIdentifications(tmp_dir.getPath() + "indexed_pre_FDR.idXML", prot_ids, pep_ids, {FileTypes::IDXML});
     }
 
     return pep_ids;
@@ -674,7 +646,7 @@ namespace OpenMS
     return novo_hits_to_data.at(novo_data[ceil(novo_data.size() / 2)]);
   }
 
-  double DBSuitability::getScoreMatchingFDR_(const std::vector<PeptideIdentification>& pep_ids, double FDR, String score_name, bool higher_score_better) const
+  double DBSuitability::getScoreMatchingFDR_(const std::vector<PeptideIdentification>& pep_ids, double FDR, const String& score_name, bool higher_score_better) const
   {
     double worst_score = DBL_MAX;
     if (!higher_score_better)
@@ -739,15 +711,7 @@ namespace OpenMS
 
   void DBSuitability::SuitabilityData::clear()
   {
-    num_top_novo = 0;
-    num_top_db = 0;
-    num_re_ranked = 0;
-    cut_off = DBL_MAX;
-    suitability = 0;
-    suitability_no_rerank = 0;
-    num_top_novo_corr = 0;
-    suitability_corr = 0;
-    suitability_corr_no_rerank = 0;
+    *this = SuitabilityData();
   }
 
   void DBSuitability::SuitabilityData::setCorrectionFactor(double factor)

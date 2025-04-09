@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
@@ -52,27 +26,165 @@ using namespace std;
 namespace OpenMS::Internal
   {
 
-    MzIdentMLHandler::MzIdentMLHandler(const Identification& id, const String& filename, const String& version, const ProgressLogger& logger) :
-      XMLHandler(filename, version),
-      logger_(logger),
-      //~ ms_exp_(0),
-      id_(nullptr),
-      cid_(&id)
+    void IdentificationHit::setId(const std::string& id) noexcept 
     {
-      cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-      unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
+      id_ = id;
     }
 
-    MzIdentMLHandler::MzIdentMLHandler(Identification& id, const String& filename, const String& version, const ProgressLogger& logger) :
-      XMLHandler(filename, version),
-      logger_(logger),
-      //~ ms_exp_(0),
-      id_(&id),
-      cid_(nullptr)
+    const std::string& IdentificationHit::getId() const noexcept 
     {
-      cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-      unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
+      return id_;
     }
+
+    void IdentificationHit::setCharge(int charge) noexcept 
+    {
+      charge_ = charge;
+    }
+
+    int IdentificationHit::getCharge() const noexcept 
+    {
+      return charge_;
+    }
+
+    void IdentificationHit::setCalculatedMassToCharge(double mz) noexcept 
+    {
+      calculated_mass_to_charge_ = mz;
+    }
+
+    double IdentificationHit::getCalculatedMassToCharge() const noexcept 
+    {
+      return calculated_mass_to_charge_;
+    }
+
+    void IdentificationHit::setExperimentalMassToCharge(double mz) noexcept 
+    {
+      experimental_mass_to_charge_ = mz;
+    }
+
+    double IdentificationHit::getExperimentalMassToCharge() const noexcept 
+    {
+      return experimental_mass_to_charge_;
+    }
+
+    void IdentificationHit::setName(const std::string& name) noexcept 
+    {
+      name_ = name;
+    }
+
+    const std::string& IdentificationHit::getName() const noexcept 
+    {
+      return name_;
+    }
+
+    void IdentificationHit::setPassThreshold(bool pass) noexcept 
+    {
+      pass_threshold_ = pass;
+    }
+
+    bool IdentificationHit::getPassThreshold() const noexcept 
+    {
+      return pass_threshold_;
+    }
+
+    void IdentificationHit::setRank(int rank) noexcept 
+    {
+      rank_ = rank;
+    }
+
+    int IdentificationHit::getRank() const noexcept 
+    {
+      return rank_;
+    }
+
+    bool IdentificationHit::operator==(const IdentificationHit& rhs) const noexcept 
+    {
+      return MetaInfoInterface::operator==(rhs)
+          && id_ == rhs.id_
+          && charge_ == rhs.charge_
+          && calculated_mass_to_charge_ == rhs.calculated_mass_to_charge_
+          && experimental_mass_to_charge_ == rhs.experimental_mass_to_charge_
+          && name_ == rhs.name_
+          && pass_threshold_ == rhs.pass_threshold_
+          && rank_ == rhs.rank_;
+    }
+
+    bool IdentificationHit::operator!=(const IdentificationHit& rhs) const noexcept 
+    {
+      return !(*this == rhs);
+    }
+
+  SpectrumIdentification::~SpectrumIdentification() = default;
+
+  // Equality operator
+  bool SpectrumIdentification::operator==(const SpectrumIdentification & rhs) const
+  {
+    return MetaInfoInterface::operator==(rhs)
+           && id_ == rhs.id_
+           && hits_ == rhs.hits_;
+  }
+
+  // Inequality operator
+  bool SpectrumIdentification::operator!=(const SpectrumIdentification & rhs) const
+  {
+    return !(*this == rhs);
+  }
+
+  void SpectrumIdentification::setHits(const vector<IdentificationHit> & hits)
+  {
+    hits_ = hits;
+  }
+
+  void SpectrumIdentification::addHit(const IdentificationHit & hit)
+  {
+    hits_.push_back(hit);
+  }
+
+  const vector<IdentificationHit> & SpectrumIdentification::getHits() const
+  {
+    return hits_;
+  }
+
+  Identification::~Identification() = default;
+
+  // Equality operator
+  bool Identification::operator==(const Identification & rhs) const
+  {
+    return MetaInfoInterface::operator==(rhs)
+           && id_ == rhs.id_
+           && creation_date_ == rhs.creation_date_
+           && spectrum_identifications_ == rhs.spectrum_identifications_;
+  }
+
+  // Inequality operator
+  bool Identification::operator!=(const Identification & rhs) const
+  {
+    return !(*this == rhs);
+  }
+
+  void Identification::setCreationDate(const DateTime & date)
+  {
+    creation_date_ = date;
+  }
+
+  const DateTime & Identification::getCreationDate() const
+  {
+    return creation_date_;
+  }
+
+  void Identification::setSpectrumIdentifications(const vector<SpectrumIdentification> & ids)
+  {
+    spectrum_identifications_ = ids;
+  }
+
+  void Identification::addSpectrumIdentification(const SpectrumIdentification & id)
+  {
+    spectrum_identifications_.push_back(id);
+  }
+
+  const vector<SpectrumIdentification> & Identification::getSpectrumIdentifications() const
+  {
+    return spectrum_identifications_;
+  }
 
     MzIdentMLHandler::MzIdentMLHandler(const std::vector<ProteinIdentification>& pro_id, const std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
@@ -115,8 +227,7 @@ namespace OpenMS::Internal
     //~ }
 
     MzIdentMLHandler::~MzIdentMLHandler()
-    {
-    }
+    = default;
 
     void MzIdentMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
@@ -517,7 +628,7 @@ namespace OpenMS::Internal
         sip += "\t\t<AdditionalSearchParams>\n";
         if (is_ppxl)
         {
-          sip += "\n\t\t\t" + cv_.getTermByName("cross-linking search").toXMLString(cv_ns) + "\n";
+          sip += "\n\t\t\t" + cv_.getTermByName("crosslinking search").toXMLString(cv_ns) + "\n";
         }
         //remove MS:1001029 written if present in <SearchDatabase> as of SearchDatabase_may rule
         ProteinIdentification::SearchParameters search_params = it->getSearchParameters();
@@ -860,7 +971,7 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       os << "<cvList>\n"
          << "\t<cv id=\"PSI-MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Vocabularies\" "
-         << "uri=\"https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo\" "
+         << "uri=\"http://purl.obolibrary.org/obo/ms/psi-ms.obo\" "
          << "version=\"3.15.0\"></cv>\n "
          << "\t<cv id=\"UNIMOD\" fullName=\"UNIMOD\" uri=\"http://www.unimod.org/obo/unimod.obo\"></cv>\n"
          << "\t<cv id=\"UO\"     fullName=\"UNIT-ONTOLOGY\" "
@@ -989,7 +1100,7 @@ namespace OpenMS::Internal
         {
           s += String(indent, '\t') + "<userParam name=\"" + keys[i] + "\" unitName=\"";
 
-          DataValue d = meta.getMetaValue(keys[i]);
+          const DataValue& d = meta.getMetaValue(keys[i]);
           //determine type
           if (d.valueType() == DataValue::INT_VALUE)
           {
@@ -1008,13 +1119,13 @@ namespace OpenMS::Internal
       }
     }
 
-    void MzIdentMLHandler::writeEnzyme_(String& s, DigestionEnzymeProtein enzy, UInt miss, UInt indent) const
+    void MzIdentMLHandler::writeEnzyme_(String& s, const DigestionEnzymeProtein& enzy, UInt miss, UInt indent) const
     {
       String cv_ns = cv_.name();
       s += String(indent, '\t') + "<Enzymes independent=\"false\">\n";
       s += String(indent + 1, '\t') + "<Enzyme missedCleavages=\"" + String(miss) + "\" id=\"" + String("ENZ_") + String(UniqueIdGenerator::getUniqueId()) + "\">\n";
       s += String(indent + 2, '\t') + "<EnzymeName>\n";
-      String enzymename = enzy.getName();
+      const String& enzymename = enzy.getName();
       if (cv_.hasTermWithName(enzymename))
       {
         s += String(indent + 3, '\t') + cv_.getTermByName(enzymename).toXMLString(cv_ns) + "\n";
@@ -1187,7 +1298,7 @@ namespace OpenMS::Internal
 //</Fragmentation>
     }
 
-    String MzIdentMLHandler::trimOpenMSfileURI(const String file) const
+    String MzIdentMLHandler::trimOpenMSfileURI(const String& file) const
     {
       String r = file;
       if (r.hasPrefix("["))
@@ -1201,7 +1312,7 @@ namespace OpenMS::Internal
     void MzIdentMLHandler::writePeptideHit(const PeptideHit& hit,
                                                 std::vector<PeptideIdentification>::const_iterator& it,
                                                 std::map<String, String>& pep_ids,
-                                                String cv_ns, std::set<String>& sen_set,
+                                                const String& cv_ns, std::set<String>& sen_set,
                                                 std::map<String, String>& sen_ids,
                                                 std::map<String, std::vector<String> >& pep_evis,
                                                 std::map<String, double>& pp_identifier_2_thresh,
@@ -1498,8 +1609,8 @@ namespace OpenMS::Internal
 
     void MzIdentMLHandler::writeXLMSPeptideHit(const PeptideHit& hit,
                                                 std::vector<PeptideIdentification>::const_iterator& it,
-                                                String ppxl_linkid, std::map<String, String>& pep_ids,
-                                                String cv_ns, std::set<String>& sen_set,
+                                                const String& ppxl_linkid, std::map<String, String>& pep_ids,
+                                                const String& cv_ns, std::set<String>& sen_set,
                                                 std::map<String, String>& sen_ids,
                                                 std::map<String, std::vector<String> >& pep_evis,
                                                 std::map<String, double>& pp_identifier_2_thresh,

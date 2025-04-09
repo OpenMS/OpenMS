@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
@@ -35,7 +9,7 @@
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
 #include <OpenMS/FORMAT/Base64.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <fstream>
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 
@@ -46,9 +20,7 @@ namespace OpenMS
     n_hits_(-1)
   {
   }
-  XQuestResultXMLFile::~XQuestResultXMLFile()
-  {
-  }
+  XQuestResultXMLFile::~XQuestResultXMLFile() = default;
 
   void XQuestResultXMLFile::load(const String & filename,
                                  std::vector < PeptideIdentification > & pep_ids,
@@ -102,7 +74,7 @@ namespace OpenMS
   }
 
   // version for labeled linkers
-  void XQuestResultXMLFile::writeXQuestXMLSpec(const String& out_file, const String& base_name, const OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, const std::vector< std::pair<Size, Size> >& spectrum_pairs, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
+  void XQuestResultXMLFile::writeXQuestXMLSpec(const String& out_file, const String& base_name, const OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, const std::vector< std::pair<Size, Size> >& spectrum_pairs, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra, const bool& test_mode)
   {
     // XML Header
     std::ofstream spec_xml_file;
@@ -120,7 +92,7 @@ namespace OpenMS
       {
         if (all_top_csms[i][0].scan_index_light < spectra.size() && all_top_csms[i][0].scan_index_heavy < spectra.size())
         {
-          spectrum_indices.push_back( std::make_pair(all_top_csms[i][0].scan_index_light, all_top_csms[i][0].scan_index_heavy) );
+          spectrum_indices.emplace_back(all_top_csms[i][0].scan_index_light, all_top_csms[i][0].scan_index_heavy );
         }
       }
     }
@@ -139,11 +111,11 @@ namespace OpenMS
       {
         // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
         spec_xml_file << "<spectrum filename=\"" << spectrum_light_name << ".dta" << R"(" type="light">)" << std::endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[scan_index_light], String(""));
+        spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[scan_index_light], String(""), test_mode);
         spec_xml_file << "</spectrum>" << std::endl;
 
         spec_xml_file << "<spectrum filename=\"" << spectrum_heavy_name << ".dta" << R"(" type="heavy">)" << std::endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[scan_index_heavy], String(""));
+        spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[scan_index_heavy], String(""), test_mode);
         spec_xml_file << "</spectrum>" << std::endl;
 
         // the preprocessed pair spectra are sorted by another index
@@ -154,12 +126,12 @@ namespace OpenMS
 
         String spectrum_common_name = spectrum_name + String("_common.txt");
         spec_xml_file << "<spectrum filename=\"" << spectrum_common_name << R"(" type="common">)" << std::endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum_(preprocessed_pair_spectra.spectra_linear_peaks[pair_index], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+        spec_xml_file << getxQuestBase64EncodedSpectrum_(preprocessed_pair_spectra.spectra_linear_peaks[pair_index], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta", test_mode);
         spec_xml_file << "</spectrum>" << std::endl;
 
         String spectrum_xlink_name = spectrum_name + String("_xlinker.txt");
         spec_xml_file << "<spectrum filename=\"" << spectrum_xlink_name << R"(" type="xlinker">)" << std::endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum_(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+        spec_xml_file << getxQuestBase64EncodedSpectrum_(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta", test_mode);
         spec_xml_file << "</spectrum>" << std::endl;
       }
     }
@@ -171,7 +143,7 @@ namespace OpenMS
   }
 
   // version for label-free linkers
-  void XQuestResultXMLFile::writeXQuestXMLSpec(const String& out_file, const String& base_name, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
+  void XQuestResultXMLFile::writeXQuestXMLSpec(const String& out_file, const String& base_name, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra, const bool& test_mode)
   {
     // String spec_xml_filename = base_name + "_matched.spec.xml";
     // XML Header
@@ -205,21 +177,21 @@ namespace OpenMS
 
       // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
       spec_xml_file << "<spectrum filename=\"" << spectrum_light_name << ".dta" << R"(" type="light">)" << std::endl;
-      spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[spectrum_indices[i]], String(""));
+      spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[spectrum_indices[i]], String(""), test_mode);
       spec_xml_file << "</spectrum>" << std::endl;
 
       spec_xml_file << "<spectrum filename=\"" << spectrum_heavy_name << ".dta" << R"(" type="heavy">)" << std::endl;
-      spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[spectrum_indices[i]], String(""));
+      spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[spectrum_indices[i]], String(""), test_mode);
       spec_xml_file << "</spectrum>" << std::endl;
 
       String spectrum_common_name = spectrum_name + String("_common.txt");
       spec_xml_file << "<spectrum filename=\"" << spectrum_common_name << R"(" type="common">)" << std::endl;
-      spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[spectrum_indices[i]], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+      spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[spectrum_indices[i]], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta", test_mode);
       spec_xml_file << "</spectrum>" << std::endl;
 
       String spectrum_xlink_name = spectrum_name + String("_xlinker.txt");
       spec_xml_file << "<spectrum filename=\"" << spectrum_xlink_name << R"(" type="xlinker">)" << std::endl;
-      spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[spectrum_indices[i]], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+      spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[spectrum_indices[i]], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta", test_mode);
       spec_xml_file << "</spectrum>" << std::endl;
     }
 
@@ -229,7 +201,7 @@ namespace OpenMS
     return;
   }
 
-  String XQuestResultXMLFile::getxQuestBase64EncodedSpectrum_(const PeakSpectrum& spec, String header)
+  String XQuestResultXMLFile::getxQuestBase64EncodedSpectrum_(const PeakSpectrum& spec, const String& header, const bool& test_mode)
   {
     std::vector<String> in_strings;
     StringList sl;
@@ -238,7 +210,7 @@ namespace OpenMS
     double precursor_z = 0;
     if (!spec.getPrecursors().empty())
     {
-      precursor_mz = Math::roundDecimal(spec.getPrecursors()[0].getMZ(), -9);
+      precursor_mz = Math::roundDecimal(spec.getPrecursors()[0].getMZ(), -6);
       precursor_z = spec.getPrecursors()[0].getCharge();
     }
 
@@ -264,8 +236,8 @@ namespace OpenMS
     for (Size i = 0; i != spec.size(); ++i)
     {
       String s;
-      s += String(Math::roundDecimal(spec[i].getMZ(), -9)) + "\t";
-      s += String(spec[i].getIntensity()) + "\t";
+      s += String(Math::roundDecimal(spec[i].getMZ(), -6)) + "\t";
+      s += String(Math::roundDecimal(spec[i].getIntensity(), -4)) + "\t";
 
       if (!charges.empty())
       {
@@ -285,11 +257,18 @@ namespace OpenMS
     out.concatenate(sl.begin(), sl.end(), "");
     in_strings.push_back(out);
 
-    String out_encoded;
-    Base64().encodeStrings(in_strings, out_encoded, false, false);
-    String out_wrapped;
-    wrap_(out_encoded, 76, out_wrapped);
-    return out_wrapped;
+    if (!test_mode)
+    {
+      String out_encoded;
+      Base64().encodeStrings(in_strings, out_encoded, false, false);
+      String out_wrapped;
+      wrap_(out_encoded, 76, out_wrapped);
+      return out_wrapped;
+    }
+    else // skip base64 encoding in test mode
+    {
+      return out;
+    }
   }
 
   void XQuestResultXMLFile::wrap_(const String& input, Size width, String & output)

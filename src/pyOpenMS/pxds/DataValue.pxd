@@ -8,37 +8,37 @@ from DoubleList cimport *
 cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS":
 
     cdef cppclass DataValue:
-         DataValue() nogil except +
-         DataValue(DataValue &) nogil except +
-         DataValue(char *) nogil except +
-         DataValue(const String&) nogil except +
-         DataValue(int) nogil except +
-         DataValue(double) nogil except +
-         DataValue(StringList) nogil except +
-         DataValue(IntList) nogil except +
-         DataValue(DoubleList) nogil except +
-         DataValue(ParamValue) nogil except +
+         DataValue() except + nogil 
+         DataValue(DataValue &) except + nogil 
+         DataValue(char *) except + nogil 
+         DataValue(const String&) except + nogil 
+         DataValue(int) except + nogil 
+         DataValue(double) except + nogil 
+         DataValue(StringList) except + nogil 
+         DataValue(IntList) except + nogil 
+         DataValue(DoubleList) except + nogil 
+         DataValue(ParamValue) except + nogil 
 
          #conversion ops, different declarations as in c++ !
-         int operator()(DataValue) nogil except + #wrap-cast:toInt
-         String operator()(DataValue) nogil except + #wrap-cast:toString
-         double operator()(DataValue) nogil except + #wrap-cast:toDouble
-         StringList toStringList() nogil except +
-         libcpp_vector[ double ] toDoubleList() nogil except +
-         libcpp_vector[ int ] toIntList() nogil except +
-         String toString() nogil except +
-         bool toBool() nogil except +
+         int operator()(DataValue) except + nogil  #wrap-cast:toInt
+         String operator()(DataValue) except + nogil  #wrap-cast:toString
+         double operator()(DataValue) except + nogil  #wrap-cast:toDouble
+         StringList toStringList() except + nogil 
+         libcpp_vector[ double ] toDoubleList() except + nogil 
+         libcpp_vector[ int ] toIntList() except + nogil 
+         String toString() except + nogil 
+         bool toBool() except + nogil 
 
-         DataType valueType() nogil except +
+         DataType valueType() except + nogil 
 
-         int isEmpty() nogil except +
+         int isEmpty() except + nogil 
 
-         UnitType getUnitType() nogil except +
-         void setUnitType(UnitType u) nogil except +
+         UnitType getUnitType() except + nogil 
+         void setUnitType(UnitType u) except + nogil 
 
-         bool hasUnit() nogil except +
-         int getUnit() nogil except +
-         void setUnit(int unit_id) nogil except +
+         bool hasUnit() except + nogil 
+         int getUnit() except + nogil 
+         void setUnit(int unit_id) except + nogil 
 
 cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS::DataValue":
 

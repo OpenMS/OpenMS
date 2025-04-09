@@ -309,7 +309,6 @@ MIM
 MIS
 MSD
 MSDB
-MSQUANTIFICATIONS
 Marr
 NCCA
 NIST
@@ -322,7 +321,6 @@ PMF
 POSECLUSTERINGAFFINESUPERIMPOSER
 POSECLUSTERINGSHIFTSUPERIMPOSER
 PRECURSORIONSELECTION
-PROTEINRESOLVER
 PSB
 PSM
 PSMs
@@ -332,7 +330,6 @@ QA
 QIT
 QTCLUSTERFINDER
 QTOF
-QUANTITATIVEEXPERIMENTALDESIGN
 RANGEUTILS
 RBF
 RGB
@@ -348,7 +345,6 @@ STATSHELPERS
 STREAMTYPE
 SVC
 SVG
-SVMWRAPPER
 SVR
 TARGETEDEXPERIMENT
 TARGETEDEXPERIMENTHELPER
@@ -655,8 +651,6 @@ IsolationWindowLow
 IsolationWindowUp
 IsotopeDisribution
 IsotopeSpecies
-IsotopeWaveletFF
-IsotopeWaveletFeatureFinder
 KDTreeMaps
 LabelType
 LayerData
@@ -960,8 +954,6 @@ stringUnchecked
 tminus
 toLowercase
 tplus
-trypticCompressed
-trypticSeqan
 unassignedPeptideIDs
 updateCRC
 updateCombinedILPPeptideRule
@@ -1068,7 +1060,6 @@ PercentRSD
 PrimaryRunPaths
 ProtGroups
 ProtID's
-RTPredict
 RTPrediction
 SavitzkyGolay
 ScanNr
@@ -1743,7 +1734,6 @@ Phenylalanin
 PlotWidgets
 Precomputing
 Proc
-ProductModels
 ProteinAccession
 ProteinIDRun
 ProteinIdentifications
@@ -2365,7 +2355,6 @@ OpenSuse
 PYOPENMS
 PageDown
 PageUp
-PeakPickerRapid
 PeakPickers
 PeakPicking
 QMAKE
@@ -3215,7 +3204,7 @@ Selenocysteine
 Ser
 Serine
 SimTandem
-SiriusAdapter
+SiriusExport
 SparseVectors
 Specqual
 Spectronaut
@@ -3302,7 +3291,7 @@ humanE
 humanF
 humanG
 iRprop
-includedoc
+include
 incrementing
 indexListOffset
 indexedmzML

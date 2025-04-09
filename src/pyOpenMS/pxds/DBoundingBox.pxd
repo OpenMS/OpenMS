@@ -7,10 +7,10 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DBoundingBox.h>" namespace "OpenMS":
     # not be renamed when cipmorting, which might cause trouble !
 
     cdef cppclass DBoundingBox2 "OpenMS::DBoundingBox<2> ":
-        DBoundingBox2() nogil except +
-        DBoundingBox2(DBoundingBox2 &) nogil except +
-        DPosition2 minPosition() nogil except +
-        DPosition2 maxPosition() nogil except +
+        DBoundingBox2() except + nogil 
+        DBoundingBox2(DBoundingBox2 &) except + nogil 
+        DPosition2 minPosition() except + nogil 
+        DPosition2 maxPosition() except + nogil 
 
 
 

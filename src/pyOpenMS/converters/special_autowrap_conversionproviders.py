@@ -14,6 +14,9 @@ class OpenMSDPosition2(TypeConverterBase):
 
     def matching_python_type(self, cpp_type):
         return ""
+    
+    def matching_python_type_full(self, cpp_type):
+        return "Union[Sequence[int], Sequence[float]]"
 
     def type_check_expression(self, cpp_type, argument_var):
         return "len(%s) == 2 and isinstance(%s[0], (int, float)) "\
@@ -55,8 +58,18 @@ class OpenMSDPosition2Vector(TypeConverterBase):
 
     def matching_python_type(self, cpp_type):
         return "np.ndarray[np.float32_t,ndim=2]"
+    
+    def matching_python_type_full(self, cpp_type):
+        # TODO figure out the best way to do numpy typing. Being able to specify the dimensions would be nice:
+        #  might be available soon (without extensions): https://github.com/numpy/numpy/issues/16544
+        # Note that using those types will need a top-of-file import which we cannot inject to autowrap (yet).
+        # This means we would either need to support injection or import per default in autowraps pyi files.
+        # For now, we add it to all pyi files in a post-processing step of our build system.
+        return "'_np.ndarray[Any, _np.dtype[_np.float32]]'"
 
     def type_check_expression(self, cpp_type, argument_var):
+        # TODO in autowrap: More finegrained error reporting. Currently it just reports
+        #  if ANY of the input types to a function does not match. Not which, not why..
         return "%s.shape[1] == 2" % argument_var
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
@@ -125,8 +138,11 @@ class OpenMSDataValue(TypeConverterBase):
     def matching_python_type(self, cpp_type):
         return ""
 
+    def matching_python_type_full(self, cpp_type):
+        return "Union[int, float, bytes, str, List[int], List[float], List[bytes]]"
+
     def type_check_expression(self, cpp_type, argument_var):
-        return "isinstance(%s, (int, long, float, list, bytes, str, unicode))" % argument_var
+        return "isinstance(%s, (int, float, list, bytes, str))" % argument_var
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
         call_as = "deref(DataValue(%s).inst.get())" % argument_var
@@ -168,9 +184,12 @@ class OpenMSParamValue(TypeConverterBase):
 
     def matching_python_type(self, cpp_type):
         return ""
+      
+    def matching_python_type_full(self, cpp_type):
+        return "Union[int, float, bytes, str, List[int], List[float], List[bytes]]"
 
     def type_check_expression(self, cpp_type, argument_var):
-        return "isinstance(%s, (int, long, float, list, bytes, str, unicode))" % argument_var
+        return "isinstance(%s, (int, float, list, bytes, str))" % argument_var
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
         call_as = "deref(ParamValue(%s).inst.get())" % argument_var
@@ -214,6 +233,12 @@ class OpenMSStringConverter(TypeConverterBase):
     def matching_python_type(self, cpp_type):
         # We allow bytes, unicode, str and String
         return ""
+      
+    def matching_python_type_full(self, cpp_type):
+        if (cpp_type.is_ptr or cpp_type.is_ref) and not cpp_type.is_const:
+            return "String"
+        else:
+            return "Union[bytes, str, String]"
 
     def type_check_expression(self, cpp_type, argument_var):
         # Need to treat ptr and reference differently as these may be modified
@@ -221,9 +246,9 @@ class OpenMSStringConverter(TypeConverterBase):
         if (cpp_type.is_ptr or cpp_type.is_ref) and not cpp_type.is_const:
             return "isinstance(%s, String)" % (argument_var)
 
-        # Allow conversion from unicode str, bytes and OpenMS::String
-        return "(isinstance(%s, str) or isinstance(%s, unicode) or isinstance(%s, bytes) or isinstance(%s, String))" % (
-            argument_var,argument_var,argument_var, argument_var)
+        # Allow conversion from str, bytes and OpenMS::String
+        return "(isinstance(%s, str) or isinstance(%s, bytes) or isinstance(%s, String))" % (
+            argument_var,argument_var,argument_var)
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
 
@@ -258,6 +283,9 @@ class AbstractOpenMSListConverter(TypeConverterBase):
 
     def matching_python_type(self, cpp_type):
         return "list"
+      
+    def matching_python_type_full(self, cpp_type):
+        return "List[%s]" % (self.inner_py_type)
 
     def type_check_expression(self, cpp_type, argument_var):
         return\
@@ -327,6 +355,9 @@ class StdVectorStringConverter(TypeConverterBase):
 
     def matching_python_type(self, cpp_type):
         return "list"
+      
+    def matching_python_type_full(self, cpp_type):
+        return "List[bytes]"
 
     def type_check_expression(self, cpp_type, arg_var):
         return Code().add("""
@@ -358,7 +389,7 @@ class StdVectorStringConverter(TypeConverterBase):
             cleanup_code = "del %s" % temp_var
         return code, "deref(%s)" % temp_var, cleanup_code
 
-    def call_method(self, res_type, cy_call_str):
+    def call_method(self, res_type, cy_call_str, with_const=False):
         return "_r = %s" % (cy_call_str)
 
     def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
@@ -398,6 +429,9 @@ class OpenMSStringListConverter(StdVectorStringConverter):
 
     def matching_python_type(self, cpp_type):
         return "list"
+      
+    def matching_python_type_full(self, cpp_type):
+        return "List[%s]" % (self.inner_py_type)
 
     def type_check_expression(self, cpp_type, argument_var):
         return\
@@ -415,6 +449,9 @@ class StdSetStringConverter(TypeConverterBase):
 
     def matching_python_type(self, cpp_type):
         return "set"
+    
+    def matching_python_type_full(self, cpp_type):
+        return "Set[bytes]"
 
     def type_check_expression(self, cpp_type, arg_var):
         return Code().add("""
@@ -446,7 +483,7 @@ class StdSetStringConverter(TypeConverterBase):
             cleanup_code = "del %s" % temp_var
         return code, "deref(%s)" % temp_var, cleanup_code
 
-    def call_method(self, res_type, cy_call_str):
+    def call_method(self, res_type, cy_call_str, with_const=False):
         return "_r = %s" % (cy_call_str)
 
 
@@ -467,168 +504,23 @@ class StdSetStringConverter(TypeConverterBase):
         return code
 
 
-class OpenMSMapConverter(StdMapConverter):
-
-    def get_base_types(self):
-        return "Map",
-
-    def matches(self, cpp_type):
-        return True
-
-    def matching_python_type(self, cpp_type):
-        return "dict"
-
-    def type_check_expression(self, cpp_type, arg_var):
-        tt_key, tt_value = cpp_type.template_args
-        inner_conv_1 = self.converters.get(tt_key)
-        inner_conv_2 = self.converters.get(tt_value)
-
-        if inner_conv_1 is None:
-            raise Exception("arg type %s not supported" % tt_key)
-        if inner_conv_2 is None:
-            raise Exception("arg type %s not supported" % tt_value)
-
-        inner_check_1 = inner_conv_1.type_check_expression(tt_key, "k")
-        inner_check_2 = inner_conv_2.type_check_expression(tt_value, "v")
-
-        return Code().add("""
-          |isinstance($arg_var, dict)
-          + and all($inner_check_1 for k in $arg_var.keys())
-          + and all($inner_check_2 for v in $arg_var.values())
-          """, locals()).render()
-
-    def input_conversion(self, cpp_type, argument_var, arg_num):
-        tt_key, tt_value = cpp_type.template_args
-        temp_var = "v%d" % arg_num
-
-        cy_tt_key = self.converters.cython_type(tt_key)
-        cy_tt_value = self.converters.cython_type(tt_value)
-
-        if cy_tt_key.is_enum:
-            key_conv = "<%s> key" % cy_tt_key
-        elif tt_key.base_type in self.converters.names_to_wrap:
-            raise Exception("can not handle wrapped classes as keys in map")
-        else:
-            key_conv = "<%s> key" % cy_tt_key
-
-        if cy_tt_value.is_enum:
-            value_conv = "<%s> value" % cy_tt_value
-        elif tt_value.base_type in self.converters.names_to_wrap:
-            value_conv = "deref((<%s>value).inst.get())" % tt_value.base_type
-        else:
-            value_conv = "<%s> value" % cy_tt_value
-
-        code = Code().add("""
-            |cdef _Map[$cy_tt_key, $cy_tt_value] * $temp_var = new
-            + _Map[$cy_tt_key, $cy_tt_value]()
-
-            |for key, value in $argument_var.items():
-            |   deref($temp_var)[$key_conv] = $value_conv
-            """, locals())
-
-        if cpp_type.is_ref:
-            replace = mangle("replace_" + argument_var)
-            it = mangle("it_" + argument_var)
-
-            if cy_tt_key.is_enum:
-                key_conv = "<%s> deref(%s).first" % (cy_tt_key, it)
-            elif tt_key.base_type in self.converters.names_to_wrap:
-                raise Exception("can not handle wrapped classes as keys in map")
-            else:
-                key_conv = "<%s> deref(%s).first" % (cy_tt_key, it)
-
-            if not cy_tt_value.is_enum and tt_value.base_type in self.converters.names_to_wrap:
-                cy_tt = tt_value.base_type
-                item = mangle("item_" + argument_var)
-                cleanup_code = Code().add("""
-                    |cdef $replace = dict()
-                    |cdef _Map[$cy_tt_key, $cy_tt_value].iterator $it = $temp_var.begin()
-                    |cdef $cy_tt $item
-                    |while $it != $temp_var.end():
-                    |   $item = $cy_tt.__new__($cy_tt)
-                    |   $item.inst = shared_ptr[$cy_tt_value](new $cy_tt_value((deref($it)).second))
-                    |   $replace[$key_conv] = $item
-                    |   inc($it)
-                    |$argument_var.clear()
-                    |$argument_var.update($replace)
-                    |del $temp_var
-                    """, locals())
-            else:
-                value_conv = "<%s> deref(%s).second" % (cy_tt_value, it)
-                cleanup_code = Code().add("""
-                    |cdef $replace = dict()
-                    |cdef _Map[$cy_tt_key, $cy_tt_value].iterator $it = $temp_var.begin()
-                    |while $it != $temp_var.end():
-                    |   $replace[$key_conv] = $value_conv
-                    |   inc($it)
-                    |$argument_var.clear()
-                    |$argument_var.update($replace)
-                    |del $temp_var
-                    """, locals())
-        else:
-            cleanup_code = "del %s" % temp_var
-
-        return code, "deref(%s)" % temp_var, cleanup_code
-
-    def call_method(self, res_type, cy_call_str):
-        return "_r = %s" % (cy_call_str)
-
-    def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
-
-        if cpp_type.is_ptr:
-            raise AssertionError()
-
-        tt_key, tt_value = cpp_type.template_args
-        cy_tt_key = self.converters.cython_type(tt_key)
-        cy_tt_value = self.converters.cython_type(tt_value)
-
-        it = mangle("it_" + input_cpp_var)
-
-        if not cy_tt_key.is_enum and tt_key.base_type in self.converters.names_to_wrap:
-            raise Exception("can not handle wrapped classes as keys in map")
-        else:
-            key_conv = "<%s>(deref(%s).first)" % (cy_tt_key, it)
-
-        if not cy_tt_value.is_enum and tt_value.base_type in self.converters.names_to_wrap:
-            cy_tt = tt_value.base_type
-            item = mangle("item_" + output_py_var)
-            code = Code().add("""
-                |$output_py_var = dict()
-                |cdef _Map[$cy_tt_key, $cy_tt_value].iterator $it = $input_cpp_var.begin()
-                |cdef $cy_tt $item
-                |while $it != $input_cpp_var.end():
-                |   $item = $cy_tt.__new__($cy_tt)
-                |   $item.inst = shared_ptr[$cy_tt_value](new $cy_tt_value((deref($it)).second))
-                |   $output_py_var[$key_conv] = $item
-                |   inc($it)
-                """, locals())
-            return code
-        else:
-            value_conv = "<%s>(deref(%s).second)" % (cy_tt_value, it)
-            code = Code().add("""
-                |$output_py_var = dict()
-                |cdef _Map[$cy_tt_key, $cy_tt_value].iterator $it = $input_cpp_var.begin()
-                |while $it != $input_cpp_var.end():
-                |   $output_py_var[$key_conv] = $value_conv
-                |   inc($it)
-                """, locals())
-            return code
-
-
 import time
 
 class CVTermMapConverter(TypeConverterBase):
 
     def get_base_types(self):
-        return "Map",
+        return "libcpp_map",
 
     def matches(self, cpp_type):
         # print(str(cpp_type), "Map[String,libcpp_vector[CVTerm]]")
-        return str(cpp_type) == "Map[String,libcpp_vector[CVTerm]]" \
-           or  str(cpp_type) == "Map[String,libcpp_vector[CVTerm]] &"
+        return str(cpp_type) == "libcpp_map[String,libcpp_vector[CVTerm]]" \
+           or  str(cpp_type) == "libcpp_map[String,libcpp_vector[CVTerm]] &"
 
     def matching_python_type(self, cpp_type):
         return "dict"
+      
+    def matching_python_type_full(self, cpp_type):
+        return "Dict[bytes,List[CVTerm]]"
 
     def type_check_expression(self, cpp_type, arg_var):
         return Code().add("""
@@ -648,7 +540,7 @@ class CVTermMapConverter(TypeConverterBase):
         k_string = "_k_str_%d" % arg_num
 
         code = Code().add("""
-                |cdef Map[_String, libcpp_vector[_CVTerm]] $map_name
+                |cdef libcpp_map[_String, libcpp_vector[_CVTerm]] $map_name
                 |cdef libcpp_vector[_CVTerm] $v_vec
                 |cdef _String $k_string
                 |cdef CVTerm $v_i
@@ -668,7 +560,7 @@ class CVTermMapConverter(TypeConverterBase):
             inner_values = "inner_values_%d" % arg_num
             cleanup_code = Code().add("""
                 |cdef $replace = dict()
-                |cdef Map[_String, libcpp_vector[_CVTerm]].iterator $outer_it
+                |cdef libcpp_map[_String, libcpp_vector[_CVTerm]].iterator $outer_it
                 + = $map_name.begin()
 
                 |cdef libcpp_vector[_CVTerm].iterator $inner_it
@@ -696,7 +588,7 @@ class CVTermMapConverter(TypeConverterBase):
         return code, map_name, cleanup_code
 
 
-    def call_method(self, res_type, cy_call_str):
+    def call_method(self, res_type, cy_call_str, with_const=False):
         return "_r = %s" % (cy_call_str)
 
     def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
@@ -710,7 +602,7 @@ class CVTermMapConverter(TypeConverterBase):
 
         code = Code().add("""
             |$output_py_var = dict()
-            |cdef Map[_String, libcpp_vector[_CVTerm]].iterator $outer_it
+            |cdef libcpp_map[_String, libcpp_vector[_CVTerm]].iterator $outer_it
             + = $input_cpp_var.begin()
             |cdef libcpp_vector[_CVTerm].iterator $inner_it
             |cdef CVTerm $item

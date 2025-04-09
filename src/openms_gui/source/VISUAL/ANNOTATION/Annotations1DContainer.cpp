@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Veit $
@@ -34,112 +8,53 @@
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
 
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 
-#include <QtCore/QPoint>
-#include <QtCore/QObject>
-#include <QtCore/QRectF>
-#include <QtGui/QPainter>
-
-#include <iostream>
 
 namespace OpenMS
 {
+  Annotations1DContainer::Annotations1DContainer() = default;
 
-  Annotations1DContainer::Annotations1DContainer() :
-    std::list<Annotation1DItem *>()
+  Annotations1DContainer::Annotations1DContainer(const Annotations1DContainer& rhs)
+    : Base() // do not copy items here. They need cloning!
   {
-  }
-
-  Annotations1DContainer::Annotations1DContainer(const Annotations1DContainer & rhs) :
-    std::list<Annotation1DItem *>() //@todo all: why can't we use the copy constructor of the base container?
-  {
-    //copy annotations
-    Annotation1DItem * new_item = nullptr;
-    for (ConstIterator it = rhs.begin(); it != rhs.end(); ++it)
+    // copy annotations
+    for (auto item : rhs)
     {
-      const Annotation1DDistanceItem * distance_item = dynamic_cast<const Annotation1DDistanceItem *>(*it);
-      if (distance_item)
-      {
-        new_item = new Annotation1DDistanceItem(*distance_item);
-        push_back(new_item);
-        continue;
-      }
-      const Annotation1DTextItem * text_item = dynamic_cast<const Annotation1DTextItem *>(*it);
-      if (text_item)
-      {
-        new_item = new Annotation1DTextItem(*text_item);
-        push_back(new_item);
-        continue;
-      }
-      const Annotation1DPeakItem * peak_item = dynamic_cast<const Annotation1DPeakItem *>(*it);
-      if (peak_item)
-      {
-        new_item = new Annotation1DPeakItem(*peak_item);
-        push_back(new_item);
-        continue;
-      }
+      push_back(item->clone());
     }
   }
 
-  Annotations1DContainer & Annotations1DContainer::operator=(const Annotations1DContainer & rhs)
+  Annotations1DContainer& Annotations1DContainer::operator=(const Annotations1DContainer & rhs)
   {
     if (this != &rhs)
     {
-      //delete existing annotations
-      for (Iterator it = begin(); it != end(); ++it)
-      {
-        delete *it;
-      }
-      //clear list
+      deleteAllItems_();
+      // clear list
       clear();
-      //copy annotations
-      Annotation1DItem * new_item = nullptr;
-      for (ConstIterator it = rhs.begin(); it != rhs.end(); ++it)
+
+      // copy annotations
+      for (auto ptr_item : rhs)
       {
-        const Annotation1DDistanceItem * distance_item = dynamic_cast<const Annotation1DDistanceItem *>(*it);
-        if (distance_item)
-        {
-          new_item = new Annotation1DDistanceItem(*distance_item);
-          push_back(new_item);
-          continue;
-        }
-        const Annotation1DTextItem * text_item = dynamic_cast<const Annotation1DTextItem *>(*it);
-        if (text_item)
-        {
-          new_item = new Annotation1DTextItem(*text_item);
-          push_back(new_item);
-          continue;
-        }
-        const Annotation1DPeakItem * peak_item = dynamic_cast<const Annotation1DPeakItem *>(*it);
-        if (peak_item)
-        {
-          new_item = new Annotation1DPeakItem(*peak_item);
-          push_back(new_item);
-          continue;
-        }
+        push_back(ptr_item->clone());
       }
     }
     return *this;
   }
 
+
   Annotations1DContainer::~Annotations1DContainer()
   {
-    for (Iterator it = begin(); it != end(); ++it)
-    {
-      delete *it;
-    }
+    deleteAllItems_();
   }
 
   Annotation1DItem * Annotations1DContainer::getItemAt(const QPoint & pos) const
   {
-    for (ConstIterator it = begin(); it != end(); ++it)
+    for (const auto ptr_item : *this)
     {
-      if ((*it)->boundingBox().contains(pos))
+      if (ptr_item->boundingBox().contains(pos))
       {
-        return *it;
+        return ptr_item;
       }
     }
     return nullptr;
@@ -147,7 +62,7 @@ namespace OpenMS
 
   void Annotations1DContainer::selectItemAt(const QPoint & pos) const
   {
-    Annotation1DItem * item = getItemAt(pos);
+    Annotation1DItem* item = getItemAt(pos);
     if (item != nullptr)
     {
       item->setSelected(true);
@@ -156,7 +71,7 @@ namespace OpenMS
 
   void Annotations1DContainer::deselectItemAt(const QPoint & pos) const
   {
-    Annotation1DItem * item = getItemAt(pos);
+    Annotation1DItem* item = getItemAt(pos);
     if (item != nullptr)
     {
       item->setSelected(false);
@@ -165,27 +80,27 @@ namespace OpenMS
 
   void Annotations1DContainer::selectAll()
   {
-    for (Iterator it = begin(); it != end(); ++it)
+    for (const auto ptr_item : *this)
     {
-      (*it)->setSelected(true);
+      ptr_item->setSelected(true);
     }
   }
 
   void Annotations1DContainer::deselectAll()
   {
-    for (Iterator it = begin(); it != end(); ++it)
+    for (const auto ptr_item : *this)
     {
-      (*it)->setSelected(false);
+      ptr_item->setSelected(false);
     }
   }
 
   void Annotations1DContainer::removeSelectedItems()
   {
-    for (Iterator it = begin(); it != end(); )
+    for (auto it = begin(); it != end();)
     {
       if ((*it)->isSelected())
       {
-        delete *it;
+        delete (*it);
         it = erase(it);
       }
       else
@@ -205,6 +120,15 @@ namespace OpenMS
     annotation_items.resize(std::distance(annotation_items.begin(), it));
 
     return annotation_items;
+  }
+
+  
+  void Annotations1DContainer::deleteAllItems_() const
+  {
+    for (const auto ptr_item : *this)
+    {
+      delete ptr_item;
+    }
   }
 
 } //Namespace

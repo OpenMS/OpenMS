@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -40,6 +14,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+
 
 namespace OpenMS
 {
@@ -201,10 +176,9 @@ public:
     const ProteinQuant& getProteinResults();
 
     /// Annotate protein quant results as meta data to protein ids
-    static void annotateQuantificationsToProteins(
+    void annotateQuantificationsToProteins(
       const ProteinQuant& protein_quants, 
       ProteinIdentification& proteins,
-      const UInt n_samples,
       bool remove_unquantified = true);
 
 private:
@@ -249,46 +223,7 @@ private:
      */ 
     bool getBest_(
       const std::map<Int, std::map<Int, SampleAbundances>> & peptide_abundances, 
-      std::pair<size_t, size_t> & best)
-    {
-      size_t best_n_quant(0);
-      double best_abundance(0);
-      best = std::make_pair(0,0);
-
-      for (auto & fa : peptide_abundances)  // for all fractions 
-      {
-        for (auto & ca : fa.second) // for all charge states
-        {
-          const Int & fraction = fa.first;
-          const Int & charge = ca.first;
-
-          double current_abundance = std::accumulate(
-              std::begin(ca.second),
-              std::end(ca.second),
-              0.0,
-              [] (int value, const SampleAbundances::value_type& p)
-              { return value + p.second; }
-          ); // loop over abundances
-
-          if (current_abundance <= 0) { continue; }
-
-          const size_t current_n_quant = ca.second.size();
-          if (current_n_quant > best_n_quant)
-          {           
-            best_abundance = current_abundance;
-            best_n_quant = current_n_quant;
-            best = std::make_pair(fraction, charge);
-          }
-          else if (current_n_quant == best_n_quant 
-            && current_abundance > best_abundance)  // resolve tie by abundance
-          {
-            best_abundance = current_abundance;
-            best = std::make_pair(fraction, charge);
-          }
-        }
-      }
-      return best_abundance > 0.;
-    }
+      std::pair<size_t, size_t> & best);
 
     /**
          @brief Order keys (charges/peptides for peptide/protein quantification) according to how many samples they allow to quantify, breaking ties by total abundance.
@@ -345,11 +280,11 @@ private:
                          std::map<String, String>& accession_to_leader);
 
     /**
-         @brief Count the number of identifications (best hits only) of each peptide sequence and initializes the result structure over all fractions.
+         @brief Count the number of identifications (best hits only) of each peptide sequence.
 
          The peptide hits in @p peptides are sorted by score in the process.
     */
-    void countPeptides_(std::vector<PeptideIdentification>& peptides, const Size& n_fractions);
+    void countPeptides_(std::vector<PeptideIdentification>& peptides);
 
     /// Clear all data when parameters are set
     void updateMembers_() override;

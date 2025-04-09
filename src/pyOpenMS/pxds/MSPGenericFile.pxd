@@ -8,27 +8,29 @@ cdef extern from "<OpenMS/FORMAT/MSPGenericFile.h>" namespace "OpenMS":
         # wrap-inherits:
         #  DefaultParamHandler
 
-        MSPGenericFile() nogil except +
-        MSPGenericFile(MSPGenericFile &) nogil except + # compiler
-        MSPGenericFile(const String& filename, MSExperiment& library) nogil except +
+        MSPGenericFile() except + nogil 
+        MSPGenericFile(MSPGenericFile &) except + nogil  # compiler
+        MSPGenericFile(const String& filename, MSExperiment& library) except + nogil 
 
-        void load(const String& filename, MSExperiment& library) nogil except +
+        void load(const String& filename, MSExperiment& library) except + nogil 
             # wrap-doc:
-                #   Load the file's data and metadata, and save it into an `MSExperiment`
-                #   -----
-                #   :param filename: Path to the MSP input file
-                #   :param library: The variable into which the extracted information will be saved
-                #   :raises:
-                #     Exception: FileNotFound If the file could not be found
+                #  Load the file's data and metadata, and save it into an `MSExperiment`
+                #  
+                #  
+                #  :param filename: Path to the MSP input file
+                #  :param library: The variable into which the extracted information will be saved
+                #  :raises:
+                #    Exception: FileNotFound If the file could not be found
 
-        void store(const String& filename, const MSExperiment& library) nogil except +
+        void store(const String& filename, const MSExperiment& library) except + nogil 
             # wrap-doc:
-                #   Save data and metadata into a file
-                #   -----
-                #   :param filename: Path to the MSP input file
-                #   :param library: The variable from which extracted information will be saved
-                #   :raises:
-                #     Exception: FileNotWritable If the file is not writable
+                #  Save data and metadata into a file
+                #  
+                #  
+                #  :param filename: Path to the MSP input file
+                #  :param library: The variable from which extracted information will be saved
+                #  :raises:
+                #    Exception: FileNotWritable If the file is not writable
 
-        void getDefaultParameters(Param & params) nogil except + # wrap-doc:Returns the class' default parameters
+        void getDefaultParameters(Param & params) except + nogil  # wrap-doc:Returns the class' default parameters
 

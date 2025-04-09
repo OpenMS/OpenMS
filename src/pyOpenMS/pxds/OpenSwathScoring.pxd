@@ -8,55 +8,64 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
 
     cdef cppclass OpenSwathScoring:
 
-        OpenSwathScoring() nogil except +
-        OpenSwathScoring(OpenSwathScoring &) nogil except + # compiler
+        OpenSwathScoring() except + nogil 
+        OpenSwathScoring(OpenSwathScoring &) except + nogil  # compiler
 
         void initialize(double rt_normalization_factor,
                         int add_up_spectra,
                         double spacing_for_spectra_resampling,
+                        double merge_spectra_by_peak_width_fraction,
                         double drift_extra,
                         OpenSwath_Scores_Usage su,
-                        libcpp_string spectrum_addition_method) nogil except +
+                        libcpp_string spectrum_addition_method,
+                        libcpp_string spectrum_merge_method_type,
+                        bool use_ms1_ion_mobility,
+                        bool apply_im_peak_picking) except + nogil
             # wrap-doc:
-                #   Initialize the scoring object
-                #   -----
-                #   Sets the parameters for the scoring
-                #   -----
-                #   :param rt_normalization_factor: Specifies the range of the normalized retention time space
-                #   :param add_up_spectra: How many spectra to add up (default 1)
-                #   :param spacing_for_spectra_resampling: Spacing factor for spectra addition
-                #   :param su: Which scores to actually compute
-                #   :param spectrum_addition_method: Method to use for spectrum addition (valid: "simple", "resample")
+                #  Initialize the scoring object\n
+                #  Sets the parameters for the scoring
+                #  
+                #  
+                #  :param rt_normalization_factor: Specifies the range of the normalized retention time space
+                #  :param add_up_spectra: How many spectra to add up (default 1)
+                #  :param spacing_for_spectra_resampling: Spacing factor for spectra addition
+                #  :param merge_spectra_by_peak_width_fraction: Fraction of peak width to construct the number of spectra to add
+                #  :param drift_extra: Extend the extraction window to gain a larger field of view beyond drift_upper - drift_lower (in percent)
+                #  :param su: Which scores to actually compute
+                #  :param spectrum_addition_method: Method to use for spectrum addition (valid: "simple", "resample")
+                #  :param spectrum_merge_method_type: Type of method to use for spectrum addition. (valid: "fixed", "dynamic")
+                #  :param use_ms1_ion_mobility: Use MS1 ion mobility extraction in DIA scores
+                #  :param apply_im_peak_picking: Apply peak picking to the  extracted ion mobilograms
 
         # void calculateChromatographicScores(
-        #       OpenSwath::IMRMFeature* imrmfeature,
-        #       const std::vector<std::string>& native_ids,
-        #       const std::vector<double>& normalized_library_intensity,
-        #       std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
-        #       OpenSwath_Scores & scores) nogil except +
+        #      OpenSwath::IMRMFeature* imrmfeature,
+        #      const std::vector<std::string>& native_ids,
+        #      const std::vector<double>& normalized_library_intensity,
+        #      std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+        #      OpenSwath_Scores & scores) except + nogil 
 
         # void calculateLibraryScores(
-        #       OpenSwath::IMRMFeature* imrmfeature,
-        #       const std::vector<TransitionType> & transitions,
-        #       const PeptideType& pep,
-        #       const double normalized_feature_rt,
-        #       OpenSwath_Scores & scores) nogil except +
+        #      OpenSwath::IMRMFeature* imrmfeature,
+        #      const std::vector<TransitionType> & transitions,
+        #      const PeptideType& pep,
+        #      const double normalized_feature_rt,
+        #      OpenSwath_Scores & scores) except + nogil 
 
         # void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, 
-        #     const std::vector<TransitionType> & transitions,
-        #     OpenSwath::SpectrumAccessPtr swath_map,
-        #     OpenSwath::SpectrumAccessPtr ms1_map,
-        #     OpenMS::DIAScoring & diascoring,
-        #     const PeptideType& pep,
-        #     OpenSwath_Scores & scores) nogil except +
+        #    const std::vector<TransitionType> & transitions,
+        #    OpenSwath::SpectrumAccessPtr swath_map,
+        #    OpenSwath::SpectrumAccessPtr ms1_map,
+        #    OpenMS::DIAScoring & diascoring,
+        #    const PeptideType& pep,
+        #    OpenSwath_Scores & scores) except + nogil 
 
         void getNormalized_library_intensities_(libcpp_vector[LightTransition] transitions,
-                                                libcpp_vector[double] normalized_library_intensity) nogil except +
+                                                libcpp_vector[double] normalized_library_intensity) except + nogil 
 
     cdef cppclass OpenSwath_Scores_Usage:
 
-        OpenSwath_Scores_Usage() nogil except +
-        OpenSwath_Scores_Usage(OpenSwath_Scores_Usage) nogil except + # wrap-ignore
+        OpenSwath_Scores_Usage() except + nogil 
+        OpenSwath_Scores_Usage(OpenSwath_Scores_Usage) except + nogil  # wrap-ignore
 
         bool use_coelution_score_
         bool use_shape_score_
@@ -70,7 +79,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
         bool use_sn_score_
         bool use_mi_score_
         bool use_dia_scores_
-        bool use_sonar_scores
         bool use_ms1_correlation
         bool use_ms1_fullscan
         bool use_ms1_mi
@@ -78,17 +86,17 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
 
     cdef cppclass OpenSwath_Scores:
 
-        OpenSwath_Scores() nogil except +
-        OpenSwath_Scores(OpenSwath_Scores) nogil except + # wrap-ignore
+        OpenSwath_Scores() except + nogil 
+        OpenSwath_Scores(OpenSwath_Scores) except + nogil  # wrap-ignore
 
         double get_quick_lda_score(double library_corr_, double
                                    library_norm_manhattan_, double
                                    norm_rt_score_, double
                                    xcorr_coelution_score_, double
-                                   xcorr_shape_score_, double log_sn_score_) nogil except +
+                                   xcorr_shape_score_, double log_sn_score_) except + nogil 
 
-        double calculate_lda_prescore(OpenSwath_Scores scores) nogil except +
-        double calculate_swath_lda_prescore(OpenSwath_Scores scores) nogil except +
+        double calculate_lda_prescore(OpenSwath_Scores scores) except + nogil 
+        double calculate_swath_lda_prescore(OpenSwath_Scores scores) except + nogil 
 
         double elution_model_fit_score
         double library_corr
@@ -123,13 +131,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
         double ms1_mi_score
         double ms1_mi_contrast_score
         double ms1_mi_combined_score
-
-        double sonar_sn 
-        double sonar_diff
-        double sonar_trend
-        double sonar_rsq
-        double sonar_shape
-        double sonar_lag
 
         double library_manhattan
         double library_dotprod

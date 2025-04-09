@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -348,6 +322,34 @@ public:
     bool success; ///< did more than 40% of proteins have the *same* prefix or suffix
     String name; ///< on success, what was the decoy string?
     bool is_prefix; ///< on success, was it a prefix or suffix
+
+    bool operator==(const Result& rhs) const
+    {
+      return success == rhs.success
+             && name == rhs.name
+             && is_prefix == rhs.is_prefix;
+    }
+  };
+
+  /**
+    @brief struct for intermediate results needed for calculations on decoy proteins
+  */
+  struct DecoyStatistics
+  {
+    std::unordered_map<std::string, std::pair<Size, Size>> decoy_count; ///< map decoys to counts of occurrences as prefix/suffix
+    std::unordered_map<std::string, std::string> decoy_case_sensitive; ///< map case insensitive strings back to original case (as used in fasta)
+    Size all_prefix_occur{0}; ///< number of proteins with found decoy_prefix
+    Size all_suffix_occur{0}; ///< number of proteins with found decoy_suffix
+    Size all_proteins_count{0}; ///< number of all checked proteins
+
+    bool operator==(const DecoyStatistics& rhs) const
+    {
+      return decoy_count == rhs.decoy_count
+             && decoy_case_sensitive == rhs.decoy_case_sensitive
+             && all_prefix_occur == rhs.all_prefix_occur
+             && all_suffix_occur == rhs.all_suffix_occur
+             && all_proteins_count == rhs.all_proteins_count;
+    }
   };
 
   // decoy strings
@@ -360,26 +362,97 @@ public:
   /**
     @brief Heuristic to determine the decoy string given a set of protein names
 
-    Tested decoy strings are "decoy", "dec", "reverse", "rev", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo" and "random".
+    For tested decoy strings see DecoyHelper::affixes.
     Both prefix and suffix is tested and if one of the candidates above is found in at least 40% of all proteins,
     it is returned as the winner (see DecoyHelper::Result).
   */
   template<typename T>
   static Result findDecoyString(FASTAContainer<T>& proteins)
   {
+    // calls function to search for decoys in input data
+    DecoyStatistics decoy_stats = countDecoys(proteins);
+
+    // DEBUG ONLY: print counts of found decoys
+    for (const auto &a : decoy_stats.decoy_count)
+    {
+      OPENMS_LOG_DEBUG << a.first << "\t" << a.second.first << "\t" << a.second.second << std::endl;
+    }
+
+    // less than 40% of proteins are decoys -> won't be able to determine a decoy string and its position
+    // return default values
+    if (static_cast<double>(decoy_stats.all_prefix_occur + decoy_stats.all_suffix_occur) < 0.4 * static_cast<double>(decoy_stats.all_proteins_count))
+    {
+      OPENMS_LOG_ERROR << "Unable to determine decoy string (not enough occurrences; <40%)!" << std::endl;
+      return {false, "?", true};
+    }
+
+    if (decoy_stats.all_prefix_occur == decoy_stats.all_suffix_occur)
+    {
+      OPENMS_LOG_ERROR << "Unable to determine decoy string (prefix and suffix occur equally often)!" << std::endl;
+      return {false, "?", true};
+    }
+
+    // Decoy prefix occurred at least 80% of all prefixes + observed in at least 40% of all proteins -> set it as prefix decoy
+    for (const auto& pair : decoy_stats.decoy_count)
+    {
+      const std::string & case_insensitive_decoy_string = pair.first;
+      const std::pair<Size, Size>& prefix_suffix_counts = pair.second;
+      double freq_prefix = static_cast<double>(prefix_suffix_counts.first) / static_cast<double>(decoy_stats.all_prefix_occur);
+      double freq_prefix_in_proteins = static_cast<double>(prefix_suffix_counts.first) / static_cast<double>(decoy_stats.all_proteins_count);
+
+      if (freq_prefix >= 0.8 && freq_prefix_in_proteins >= 0.4)
+      {
+        if (prefix_suffix_counts.first != decoy_stats.all_prefix_occur)
+        {
+          OPENMS_LOG_WARN << "More than one decoy prefix observed!" << std::endl;
+          OPENMS_LOG_WARN << "Using most frequent decoy prefix (" << (int)(freq_prefix * 100) << "%)" << std::endl;
+        }
+
+        return { true, decoy_stats.decoy_case_sensitive[case_insensitive_decoy_string], true};
+      }
+    }
+
+    // Decoy suffix occurred at least 80% of all suffixes + observed in at least 40% of all proteins -> set it as suffix decoy
+    for (const auto& pair : decoy_stats.decoy_count)
+    {
+      const std::string& case_insensitive_decoy_string = pair.first;
+      const std::pair<Size, Size>& prefix_suffix_counts = pair.second;
+      double freq_suffix = static_cast<double>(prefix_suffix_counts.second) / static_cast<double>(decoy_stats.all_suffix_occur);
+      double freq_suffix_in_proteins = static_cast<double>(prefix_suffix_counts.second) / static_cast<double>(decoy_stats.all_proteins_count);
+
+      if (freq_suffix >= 0.8 && freq_suffix_in_proteins >= 0.4)
+      {
+        if (prefix_suffix_counts.second != decoy_stats.all_suffix_occur)
+        {
+          OPENMS_LOG_WARN << "More than one decoy suffix observed!" << std::endl;
+          OPENMS_LOG_WARN << "Using most frequent decoy suffix (" << (int)(freq_suffix * 100) << "%)" << std::endl;
+        }
+
+        return { true, decoy_stats.decoy_case_sensitive[case_insensitive_decoy_string], false};
+      }
+    }
+
+    OPENMS_LOG_ERROR << "Unable to determine decoy string and its position. Please provide a decoy string and its position as parameters." << std::endl;
+    return {false, "?", true};
+  }
+
+  /**
+  @brief Function to count the occurrences of decoy strings in a given set of protein names
+
+  For tested decoy strings see DecoyHelper::affixes.
+  Returns all data needed for interpretation (see DecoyHelper::DecoyStatistics).
+  */
+  template<typename T>
+  static DecoyStatistics countDecoys(FASTAContainer<T>& proteins)
+  {
     // common decoy strings in FASTA files
     // note: decoy prefixes/suffices must be provided in lower case
 
-    // map decoys to counts of occurrences as prefix/suffix
-    DecoyStringToAffixCount decoy_count;
-    // map case insensitive strings back to original case (as used in fasta)
-    CaseInsensitiveToCaseSensitiveDecoy decoy_case_sensitive;
+    DecoyStatistics ds;
 
     // setup regexes
     const boost::regex pattern_prefix(regexstr_prefix);
     const boost::regex pattern_suffix(regexstr_suffix);
-
-    Size all_prefix_occur(0), all_suffix_occur(0), all_proteins_count(0);
 
     constexpr size_t PROTEIN_CACHE_SIZE = 4e5;
 
@@ -389,7 +462,7 @@ public:
       if (!proteins.activateCache()) break;
 
       auto prot_count = (SignedSize)proteins.chunkSize();
-      all_proteins_count += prot_count;
+      ds.all_proteins_count += prot_count;
 
       boost::smatch sm;
       for (SignedSize i = 0; i < prot_count; ++i)
@@ -404,14 +477,14 @@ public:
         if (found_prefix)
         {
           std::string match = sm[0];
-          all_prefix_occur++;
+          ds.all_prefix_occur++;
 
           // increase count of observed prefix
-          decoy_count[match].first++;
+          ds.decoy_count[match].first++;
 
           // store observed (case sensitive and with special characters)
           std::string seq_decoy = StringUtils::prefix(seq, match.length());
-          decoy_case_sensitive[match] = seq_decoy;
+          ds.decoy_case_sensitive[match] = seq_decoy;
         }
 
         // search for suffix
@@ -419,82 +492,20 @@ public:
         if (found_suffix)
         {
           std::string match = sm[0];
-          all_suffix_occur++;
+          ds.all_suffix_occur++;
 
           // increase count of observed suffix
-          decoy_count[match].second++;
+          ds.decoy_count[match].second++;
 
           // store observed (case sensitive and with special characters)
           std::string seq_decoy = StringUtils::suffix(seq, match.length());
-          decoy_case_sensitive[match] = seq_decoy;
+          ds.decoy_case_sensitive[match] = seq_decoy;
         }
       }
     }
-
-    // DEBUG ONLY: print counts of found decoys
-    for (auto &a : decoy_count)
-    {
-      OPENMS_LOG_DEBUG << a.first << "\t" << a.second.first << "\t" << a.second.second << std::endl;
-    }
-
-    // less than 40% of proteins are decoys -> won't be able to determine a decoy string and its position
-    // return default values
-    if (static_cast<double>(all_prefix_occur + all_suffix_occur) < 0.4 * static_cast<double>(all_proteins_count))
-    {
-      OPENMS_LOG_ERROR << "Unable to determine decoy string (not enough occurrences; <40%)!" << std::endl;
-      return {false, "?", true};
-    }
-
-    if (all_prefix_occur == all_suffix_occur)
-    {
-      OPENMS_LOG_ERROR << "Unable to determine decoy string (prefix and suffix occur equally often)!" << std::endl;
-      return {false, "?", true};
-    }
-
-    // Decoy prefix occurred at least 80% of all prefixes + observed in at least 40% of all proteins -> set it as prefix decoy
-    for (const auto& pair : decoy_count)
-    {
-      const std::string & case_insensitive_decoy_string = pair.first;
-      const std::pair<Size, Size>& prefix_suffix_counts = pair.second;
-      double freq_prefix = static_cast<double>(prefix_suffix_counts.first) / static_cast<double>(all_prefix_occur);
-      double freq_prefix_in_proteins = static_cast<double>(prefix_suffix_counts.first) / static_cast<double>(all_proteins_count);
-
-      if (freq_prefix >= 0.8 && freq_prefix_in_proteins >= 0.4)
-      {
-        if (prefix_suffix_counts.first != all_prefix_occur)
-        {
-          OPENMS_LOG_WARN << "More than one decoy prefix observed!" << std::endl;
-          OPENMS_LOG_WARN << "Using most frequent decoy prefix (" << (int)(freq_prefix * 100) << "%)" << std::endl;
-        }
-
-        return { true, decoy_case_sensitive[case_insensitive_decoy_string], true};
-      }
-    }
-
-    // Decoy suffix occurred at least 80% of all suffixes + observed in at least 40% of all proteins -> set it as suffix decoy
-    for (const auto& pair : decoy_count)
-    {
-      const std::string& case_insensitive_decoy_string = pair.first;
-      const std::pair<Size, Size>& prefix_suffix_counts = pair.second;
-      double freq_suffix = static_cast<double>(prefix_suffix_counts.second) / static_cast<double>(all_suffix_occur);
-      double freq_suffix_in_proteins = static_cast<double>(prefix_suffix_counts.second) / static_cast<double>(all_proteins_count);
-
-      if (freq_suffix >= 0.8 && freq_suffix_in_proteins >= 0.4)
-      {
-        if (prefix_suffix_counts.second != all_suffix_occur)
-        {
-          OPENMS_LOG_WARN << "More than one decoy suffix observed!" << std::endl;
-          OPENMS_LOG_WARN << "Using most frequent decoy suffix (" << (int)(freq_suffix * 100) << "%)" << std::endl;
-        }
-
-        return { true, decoy_case_sensitive[case_insensitive_decoy_string], false};
-      }
-    }
-
-    OPENMS_LOG_ERROR << "Unable to determine decoy string and its position. Please provide a decoy string and its position as parameters." << std::endl;
-    return {false, "?", true};
+    return ds;
   }
-  
+
 private:
   using DecoyStringToAffixCount = std::unordered_map<std::string, std::pair<Size, Size>>;
   using CaseInsensitiveToCaseSensitiveDecoy = std::unordered_map<std::string, std::string>;

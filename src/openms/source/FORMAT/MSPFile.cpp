@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -41,6 +15,7 @@
 
 #include <fstream>
 #include <regex>
+#include <map>
 
 using namespace std;
 
@@ -54,7 +29,7 @@ namespace OpenMS
     defaults_.setValidStrings("parse_headers", parse_strings);
     defaults_.setValue("parse_peakinfo", "true", "Flag whether the peak annotation information should be parsed and stored for each peak");
     defaults_.setValidStrings("parse_peakinfo", parse_strings);
-    defaults_.setValue("parse_firstpeakinfo_only", "true", "Flag whether only the first (default for 1:1 correspondence in SpecLibSearcher) or all peak annotation information should be parsed and stored for each peak.");
+    defaults_.setValue("parse_firstpeakinfo_only", "true", "Flag whether only the first or all peak annotation information should be parsed and stored for each peak.");
     defaults_.setValidStrings("parse_firstpeakinfo_only", parse_strings);
     defaults_.setValue("instrument", "", "If instrument given, only spectra of these type of instrument (Inst= in header) are parsed");
     defaults_.setValidStrings("instrument", {"","it","qtof","toftof"});
@@ -102,7 +77,7 @@ namespace OpenMS
     String line;
     ifstream is(filename.c_str());
 
-    Map<String, String> modname_to_unimod;
+    std::map<String, String> modname_to_unimod;
     modname_to_unimod["Pyro-glu"] = "Gln->pyro-Glu";
     modname_to_unimod["CAM"] = "Carbamidomethyl";
     modname_to_unimod["AB_old_ICATd8"] = "ICAT-D:2H(8)";
@@ -207,7 +182,7 @@ namespace OpenMS
               mod_split[i].split(',', single_mod);
 
               String mod_name = single_mod[2];
-              if (modname_to_unimod.has(mod_name))
+              if (modname_to_unimod.find(mod_name) != modname_to_unimod.end())
               {
                 mod_name = modname_to_unimod[mod_name];
               }
@@ -473,7 +448,7 @@ namespace OpenMS
         int ion_name = -1;
         for (Size k = 0; k < rich_spec.getStringDataArrays().size(); k++)
         {
-          if (rich_spec.getStringDataArrays()[k].getName() == "IonName")
+          if (rich_spec.getStringDataArrays()[k].getName() == Constants::UserParam::IonNames)
           {
             ion_name = (int)k;
             break;

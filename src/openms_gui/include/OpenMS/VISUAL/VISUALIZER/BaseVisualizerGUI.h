@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer:Timo Sachsenberg $
@@ -87,9 +61,9 @@ public slots:
 protected:
 
     /// Adds a label to the grid layout.
-    void addLabel_(QString label);
+    void addLabel_(const QString& label);
     /// Adds a label to a certain row
-    void addLabel_(QString label, UInt row);
+    void addLabel_(const QString& label, UInt row);
     /// Adds a line edit field with label to the grid layout.
     void addLineEdit_(QLineEdit * & ptr, QString label);
     /// Adds a line edit field to the grid layout including a int validator
@@ -97,7 +71,7 @@ protected:
     /// Adds a line edit field to the grid layout including a double validator
     void addDoubleLineEdit_(QLineEdit * & ptr, QString label);
     /// Adds a line edit field with label and button to the next free position in the grid.
-    void addLineEditButton_(QString label, QLineEdit * & ptr1, QPushButton * & ptr2, QString buttonlabel);
+    void addLineEditButton_(const QString& label, QLineEdit * & ptr1, QPushButton * & ptr2, const QString& buttonlabel);
     /// Adds a list edit field to the grid layout.
     void addListView_(QListWidget * & ptr, QString label);
     /// Adds a text edit field to the grid layout.
@@ -111,9 +85,9 @@ protected:
     /// Adds vertical spacer.
     void addVSpacer_();
     /// Adds a button to the next free position in the grid.
-    void addButton_(QPushButton * & ptr, QString label);
+    void addButton_(QPushButton * & ptr, const QString& label);
     /// Adds two buttons in a row.
-    void add2Buttons_(QPushButton * & ptr1, QString label1, QPushButton * & ptr2, QString label2);
+    void add2Buttons_(QPushButton * & ptr1, const QString& label1, QPushButton * & ptr2, const QString& label2);
     /// Adds a horizontal line as a separator.
     void addSeparator_();
     /// Adds buttons common to all visualizers

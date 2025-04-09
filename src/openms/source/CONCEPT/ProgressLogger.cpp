@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -35,9 +9,9 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/CONCEPT/Factory.h>
 
 #include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <QtCore/QString>
 
@@ -47,17 +21,12 @@ using namespace std;
 
 namespace OpenMS
 {
+
   class CMDProgressLoggerImpl :
     public ProgressLogger::ProgressLoggerImpl
   {
 public:
-    CMDProgressLoggerImpl() :
-      stop_watch_(),
-      begin_(0),
-      end_(0),
-      current_(0)
-    {
-    }
+    CMDProgressLoggerImpl() = default;
 
     /// create new object (needed by Factory)
     static ProgressLogger::ProgressLoggerImpl* create()
@@ -65,18 +34,11 @@ public:
       return new CMDProgressLoggerImpl();
     }
 
-    /// name of the model (needed by Factory)
-    static const String getProductName()
-    {
-      return "CMD";
-    }
-
     void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int current_recursion_depth) const override
     {
       begin_ = begin;
       current_ = begin_;
       end_ = end;
-      if (current_recursion_depth) cout << '\n';
       cout << string(2 * current_recursion_depth, ' ') << "Progress of '" << label << "':" << endl;
       stop_watch_.reset();
       stop_watch_.start();
@@ -106,21 +68,22 @@ public:
       return current_;
     }
 
-    void endProgress(const int current_recursion_depth) const override
+    void endProgress(const int current_recursion_depth, UInt64 bytes_processed) const override
     {
       stop_watch_.stop();
-      if (current_recursion_depth)
+      String IO_stats;
+      if (bytes_processed)
       {
-        cout << '\n';
+        IO_stats = " @ " + bytesToHumanReadable(bytes_processed / stop_watch_.getClockTime()) + "/s";
       }
-      cout << '\r' << string(2 * current_recursion_depth, ' ') << "-- done [took " << StopWatch::toString(stop_watch_.getCPUTime()) << " (CPU), " << StopWatch::toString(stop_watch_.getClockTime()) << " (Wall)] -- " << endl;
+      cout << '\r' << string(2 * current_recursion_depth, ' ') << "-- done [took " << StopWatch::toString(stop_watch_.getCPUTime()) << " (CPU), " << StopWatch::toString(stop_watch_.getClockTime()) << " (Wall)" << IO_stats << "] -- " << endl;
     }
 
 private:
     mutable StopWatch stop_watch_;
-    mutable SignedSize begin_;
-    mutable SignedSize end_;
-    mutable SignedSize current_;
+    mutable SignedSize begin_{0};
+    mutable SignedSize end_{0};
+    mutable SignedSize current_{0};
   };
 
   class NoProgressLoggerImpl :
@@ -131,12 +94,6 @@ public:
     static ProgressLogger::ProgressLoggerImpl* create()
     {
       return new NoProgressLoggerImpl();
-    }
-
-    /// name of the model (needed by Factory)
-    static const String getProductName()
-    {
-      return "NONE";
     }
 
     void startProgress(const SignedSize /* begin */, const SignedSize /* end */, const String& /* label */, const int /* current_recursion_depth */) const override
@@ -152,62 +109,48 @@ public:
       return 0;
     }
     
-    void endProgress(const int /* current_recursion_depth */) const override
+    void endProgress(const int /* current_recursion_depth */, UInt64 /*bytes_processed*/) const override
     {
     }
 
   };
 
-
-
-  void ProgressLogger::ProgressLoggerImpl::registerChildren()
-  {
-    Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(CMDProgressLoggerImpl::getProductName(), &CMDProgressLoggerImpl::create);
-    // this will only be registered by GUI base app in OpenMS_GUI
-    // Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(GUIProgressLoggerImpl::getProductName(), &GUIProgressLoggerImpl::create);
-    Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(NoProgressLoggerImpl::getProductName(), &NoProgressLoggerImpl::create);
-  }
+  // Simple runtime plugin system for GUI progress logger.
+  // An external library (e.g., OpenMS_GUI) can set this function to provide a GUI logger.
+  // As default, it just uses the NonProgressLoggerImpl.
+  MakeGUIProgressLoggerFunc make_gui_progress_logger = 
+    []() -> ProgressLogger::ProgressLoggerImpl* { return new NoProgressLoggerImpl(); };
 
   int ProgressLogger::recursion_depth_ = 0;
-
-  String ProgressLogger::logTypeToFactoryName_(ProgressLogger::LogType type)
-  {
-    switch (type)
-    {
-      case NONE:
-      {
-        return "NONE";
-      }
-      case CMD:
-      {
-        return "CMD";
-      }
-      case GUI:
-      {
-        return "GUI";
-      }
-    }
-
-// should never happen but gcc emits a warning/error
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunreachable-code-return"
-    return "";
-#pragma clang diagnostic pop
-  }
 
   ProgressLogger::ProgressLogger() :
     type_(NONE),
     last_invoke_()
   {
-    current_logger_ = Factory<ProgressLogger::ProgressLoggerImpl>::create(logTypeToFactoryName_(type_));
+    current_logger_ = new NoProgressLoggerImpl();
   }
 
   ProgressLogger::ProgressLogger(const ProgressLogger& other) :
     type_(other.type_),
     last_invoke_(other.last_invoke_)
   {
-    // recreate our logger
-    current_logger_ = Factory<ProgressLogger::ProgressLoggerImpl>::create(logTypeToFactoryName_(type_));
+    switch (type_)
+    {
+      case NONE:
+      {
+        current_logger_ = new NoProgressLoggerImpl();
+        break;
+      }
+      case CMD:
+      {
+        current_logger_ = new CMDProgressLoggerImpl();
+        break;
+      }
+      case GUI:
+      {
+        current_logger_ = make_gui_progress_logger();
+      }
+    }
   }
 
   ProgressLogger& ProgressLogger::operator=(const ProgressLogger& other)
@@ -224,7 +167,23 @@ public:
     delete current_logger_;
 
     // .. and get a new one
-    current_logger_ = Factory<ProgressLogger::ProgressLoggerImpl>::create(logTypeToFactoryName_(type_));
+    switch (type_)
+    {
+      case NONE:
+      {
+        current_logger_ = new NoProgressLoggerImpl();
+        break;
+      }
+      case CMD:
+      {
+        current_logger_ = new CMDProgressLoggerImpl();
+        break;
+      }
+      case GUI:
+      {
+        current_logger_ = make_gui_progress_logger();
+      }
+    }
 
     return *this;
   }
@@ -240,7 +199,29 @@ public:
     // remove the old logger
     delete current_logger_;
 
-    current_logger_ = Factory<ProgressLogger::ProgressLoggerImpl>::create(logTypeToFactoryName_(type_));
+    switch (type)
+    {
+      case NONE:
+      {
+        current_logger_ = new NoProgressLoggerImpl();
+        break;
+      }
+      case CMD:
+      {
+        current_logger_ = new CMDProgressLoggerImpl();
+        break;
+      }
+      case GUI:
+      {
+        current_logger_ = make_gui_progress_logger();
+      }
+    }
+  }
+
+  void ProgressLogger::setLogger(ProgressLoggerImpl* logger)
+  {
+    delete current_logger_;
+    current_logger_ = logger;
   }
 
   ProgressLogger::LogType ProgressLogger::getLogType() const
@@ -279,14 +260,13 @@ public:
     current_logger_->setProgress(p, recursion_depth_);
   }
 
-  void ProgressLogger::endProgress() const
+  void ProgressLogger::endProgress(UInt64 bytes_processed) const
   {
     if (recursion_depth_)
     {
       --recursion_depth_;
     }
-    current_logger_->endProgress(recursion_depth_);
+    current_logger_->endProgress(recursion_depth_, bytes_processed);
   }
-
 
 } //namespace OpenMS

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -67,38 +41,9 @@ namespace OpenMS
   {
   }
 
-  PeakFileOptions::PeakFileOptions(const PeakFileOptions& options) :
-    metadata_only_(options.metadata_only_),
-    force_maxquant_compatibility_(options.force_maxquant_compatibility_),
-    force_tpp_compatibility_(options.force_tpp_compatibility_),
-    write_supplemental_data_(options.write_supplemental_data_),
-    has_rt_range_(options.has_rt_range_),
-    has_mz_range_(options.has_mz_range_),
-    has_intensity_range_(options.has_intensity_range_),
-    mz_32_bit_(options.mz_32_bit_),
-    int_32_bit_(options.int_32_bit_),
-    rt_range_(options.rt_range_),
-    mz_range_(options.mz_range_),
-    intensity_range_(options.intensity_range_),
-    ms_levels_(options.ms_levels_),
-    zlib_compression_(options.zlib_compression_),
-    always_append_data_(options.always_append_data_),
-    skip_xml_checks_(options.skip_xml_checks_),
-    sort_spectra_by_mz_(options.sort_spectra_by_mz_),
-    sort_chromatograms_by_rt_(options.sort_chromatograms_by_rt_),
-    fill_data_(options.fill_data_),
-    write_index_(options.write_index_),
-    np_config_mz_(options.np_config_mz_),
-    np_config_int_(options.np_config_int_),
-    np_config_fda_(options.np_config_fda_),
-    maximal_data_pool_size_(options.maximal_data_pool_size_),
-    precursor_mz_selected_ion_(options.precursor_mz_selected_ion_)
-  {
-  }
+  PeakFileOptions::PeakFileOptions(const PeakFileOptions& options) = default;
 
-  PeakFileOptions::~PeakFileOptions()
-  {
-  }
+  PeakFileOptions::~PeakFileOptions() = default;
 
   void PeakFileOptions::setMetadataOnly(bool only)
   {

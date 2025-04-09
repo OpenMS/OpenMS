@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Julianus Pfeuffer $
@@ -86,8 +60,9 @@ namespace OpenMS
      *  I.e. it only takes the better of the two scores for each target-decoy pair (based on the accession after
      *  removal of the @p decoy_prefix.
      * @param  picked_scores Target accessions to pairs of scores and target decoy labels (usually 1.0 for target and 0.0 for decoy) to be filled.
+     * @param  id The hits to iterate over
      * @param  decoy_string The decoy string to remove before comparing accesions for pairs.
-     * @param  prefix If the @p decoy_string is a prefix (true) or suffix.
+     * @param  decoy_prefix If the @p decoy_string is a prefix (true) or suffix.
      */
     static void getPickedProteinScores_(
         std::unordered_map<String, ScoreToTgtDecLabelPair>& picked_scores,
@@ -100,8 +75,9 @@ namespace OpenMS
      *  @todo describe more
      * @param  picked_scores Target accessions to pairs of scores and target decoy labels (usually 1.0 for target and 0.0 for decoy) to be used for lookup.
      * @param  scores_labels Scores and target-decoy value for all groups that had at least one picked protein. Targets preferred.
+     * @param  grps The groups to iterate over
      * @param  decoy_string The decoy string to remove before comparing accesions for pairs.
-     * @param  prefix If the @p decoy_string is a prefix (true) or suffix.
+     * @param  decoy_prefix If the @p decoy_string is a prefix (true) or suffix.
      */
     static void getPickedProteinGroupScores_(
         const std::unordered_map<String, ScoreToTgtDecLabelPair>& picked_scores,
@@ -113,14 +89,24 @@ namespace OpenMS
     /// removes the @p decoy_string from @p acc if present. Returns if string was removed and the new string.
     static std::pair<bool,String> removeDecoyStringIfPresent_(const String& acc, const String& decoy_string, bool decoy_prefix);
 
+    static void fillPeptideScoreMap_(
+      std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
+      std::vector<PeptideIdentification> const& ids);
+
+    static void fillPeptideScoreMap_(
+      std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
+      ConsensusMap const& map,
+      bool include_unassigned);
+
+
     /**
-     * \defgroup getScoresFunctions Get scores from ID structures for FDR
-     * @brief  Fills the scores_labels vector from an ID data structure
-     * @param  scores_labels Pairs of scores and boolean target decoy labels to be filled. target = true.
-     *
-     * Just use the one you need.
-     * @{
-     */
+    * \defgroup getScoresFunctions Get scores from ID structures for FDR
+    * @brief  Fills the scores_labels vector from an ID data structure
+    * @param  scores_labels Pairs of scores and boolean target decoy labels to be filled. target = true.
+    *
+    * Just use the one you need.
+    * @{
+    */
 
     //TODO could be done with set of target accessions, too
     //TODO even better: store nr targets and nr decoys when creating the groups!
@@ -130,11 +116,23 @@ namespace OpenMS
         const std::vector<ProteinIdentification::ProteinGroup> &grps,
         const std::unordered_set<std::string> &decoy_accs);
 
+
+    template<class ...Args>
+    static void getScores_(
+        ScoreToTgtDecLabelPairs &scores_labels,
+        const std::vector<PeptideIdentification> &ids,
+        Args &&... args)
+    {
+      for (const PeptideIdentification &id : ids)
+      {
+        getScores_(scores_labels, id, std::forward<Args>(args)...);
+      }
+    }
+
     static void getScores_(
         ScoreToTgtDecLabelPairs &scores_labels,
         const ProteinIdentification &id)
     {
-
       scores_labels.reserve(scores_labels.size() + id.getHits().size());
       std::transform(id.getHits().begin(), id.getHits().end(),
                      std::back_inserter(scores_labels),
@@ -144,49 +142,6 @@ namespace OpenMS
                        return std::make_pair<double, bool>(hit.getScore(), getTDLabel_(hit));
                      }
       );
-
-    }
-
-    static void getScores_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const PeptideIdentification &id, bool all_hits, int charge, const String &identifier)
-    {
-      if (id.getIdentifier() == identifier)
-      {
-        getScores_(scores_labels, id, all_hits, charge);
-      }
-    }
-
-
-    static void getScores_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const PeptideIdentification &id, bool all_hits, const String &identifier)
-    {
-      if (id.getIdentifier() == identifier)
-      {
-        getScores_(scores_labels, id, all_hits);
-      }
-    }
-
-    static void getScores_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const PeptideIdentification &id, int charge, const String &identifier)
-    {
-      if (id.getIdentifier() == identifier)
-      {
-        getScores_(scores_labels, id, charge);
-      }
-    }
-
-    template<typename IDType, typename std::enable_if<IsIDType<IDType>::value>::type * = nullptr>
-    static void getScores_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const IDType &id, const String &identifier)
-    {
-      if (id.getIdentifier() == identifier)
-      {
-        getScores_(scores_labels, id);
-      }
     }
 
     template<class ...Args>
@@ -194,7 +149,8 @@ namespace OpenMS
         ScoreToTgtDecLabelPairs &scores_labels,
         const PeptideIdentification &id,
         bool all_hits,
-        Args &&... args)
+        Args &&... args
+        )
     {
       if (all_hits)
       {
@@ -205,33 +161,50 @@ namespace OpenMS
       }
       else
       {
-        //TODO for speed I assume that they are sorted and first = best.
+        //TODO for speed and constness I assume that they are sorted and first = best.
         //id.sort();
         const PeptideHit &hit = id.getHits()[0];
         getScores_(scores_labels, hit, std::forward<Args>(args)...);
       }
     }
 
-    static void getScores_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const PeptideHit &hit,
-        int charge)
-    {
-      if (charge == hit.getCharge())
-      {
-        checkTDAnnotation_(hit);
-        scores_labels.emplace_back(hit.getScore(), getTDLabel_(hit));
-      }
-    }
-
+    template<typename IDPredicate, class ...Args>
     static void getScores_(
         ScoreToTgtDecLabelPairs &scores_labels,
         const PeptideIdentification &id,
-        int charge)
+        IDPredicate &&fun,
+        bool all_hits,
+        Args &&... args
+        )
     {
-      for (const PeptideHit &hit : id.getHits())
+      if (fun(id))
       {
-        getScores_(scores_labels, hit, charge);
+        if (all_hits)
+        {
+          for (const PeptideHit &hit : id.getHits())
+          {
+            getScores_(scores_labels, hit, std::forward<Args>(args)...);
+          }
+        }
+        else
+        {
+          //TODO for speed I assume that they are sorted and first = best.
+          //id.sort();
+          const PeptideHit &hit = id.getHits()[0];
+          getScores_(scores_labels, hit, std::forward<Args>(args)...);
+        }
+      }
+    }
+
+    template<typename HitPredicate>
+    static void getScores_(
+        ScoreToTgtDecLabelPairs &scores_labels,
+        const PeptideHit &hit,
+        HitPredicate &&fun)
+    {
+      if (fun(hit))
+      {
+        getScores_(scores_labels, hit);
       }
     }
 
@@ -242,29 +215,6 @@ namespace OpenMS
     {
       checkTDAnnotation_(hit);
       scores_labels.emplace_back(hit.getScore(), getTDLabel_(hit));
-    }
-
-    template<typename IDType, typename std::enable_if<IsIDType<IDType>::value>::type * = nullptr>
-    static void getScores_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const IDType &id)
-    {
-      for (const typename IDType::HitType &hit : id.getHits())
-      {
-        getScores_(scores_labels, hit);
-      }
-    }
-
-    template<class ...Args>
-    static void getScores_(
-        ScoreToTgtDecLabelPairs &scores_labels,
-        const std::vector<PeptideIdentification> &ids,
-        Args &&... args)
-    {
-      for (const auto &id : ids)
-      {
-        getScores_(scores_labels, id, std::forward<Args>(args)...);
-      }
     }
     /** @} */
 
@@ -605,16 +555,17 @@ namespace OpenMS
      * @tparam Args optional additional arguments (charge, run ID)
      * @param scores_to_FDR maps original scores to FDR
      * @param cmap the ConsensusMap
+     * @param include_unassigned_peptides Also modify unassigned peptide IDs in @p cmap?
      * @param score_type FDR or q-Value
      * @param higher_better usually false
      * @param keep_decoy read from Param object
      * @param args optional additional arguments (int charge, string run ID)
     */
     template<class ...Args>
-    static void setPeptideScoresForMap_(const std::map<double, double> &scores_to_FDR,
-                                 ConsensusMap &cmap,
+    static void setPeptideScoresForMap_(const std::map<double, double>& scores_to_FDR,
+                                 ConsensusMap& cmap,
                                  bool include_unassigned_peptides,
-                                 const std::string &score_type,
+                                 const std::string& score_type,
                                  bool higher_better,
                                  bool keep_decoy,
                                  Args&&... args)
@@ -642,5 +593,16 @@ namespace OpenMS
                                             "Meta value 'target_decoy' does not exist in all ProteinHits! Reindex the idXML file with 'PeptideIndexer'");
       }
     }
+
+    static void setPeptideScoresFromMap_(std::unordered_map<String, ScoreToTgtDecLabelPair> const& seq_to_fdr,
+                                         std::vector<PeptideIdentification>& ids,
+                                         std::string const& score_type,
+                                         bool keep_decoys);
+
+    static void setPeptideScoresFromMap_(std::unordered_map<String, ScoreToTgtDecLabelPair> const& seq_to_fdr,
+                                         ConsensusMap& map,
+                                         std::string const& score_type,
+                                         bool keep_decoys,
+                                         bool include_unassigned);
   };
 } // namespace OpenMS

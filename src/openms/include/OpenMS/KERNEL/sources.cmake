@@ -6,17 +6,22 @@ set(sources_list_h
 AnnotatedMSRawData.h
 AreaIterator.h
 BaseFeature.h
+BinnedSpectrum.h
 ChromatogramPeak.h
 ChromatogramTools.h
 ConsensusFeature.h
 ConversionHelper.h
 ConsensusMap.h
 ConversionHelper.h
+DimMapper.h
 DPeak.h
 Feature.h
 FeatureHandle.h
 FeatureMap.h
 MassTrace.h
+MobilityPeak1D.h
+MobilityPeak2D.h
+Mobilogram.h
 MRMFeature.h
 MRMTransitionGroup.h
 MSChromatogram.h
@@ -30,7 +35,6 @@ RangeManager.h
 RangeUtils.h
 RichPeak2D.h
 StandardTypes.h
-StandardDeclarations.h
 SpectrumHelper.h
 )
 

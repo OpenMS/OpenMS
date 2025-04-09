@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Veit $
@@ -34,7 +8,10 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h>
-
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>
+#include <OpenMS/DATASTRUCTURES/Adduct.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -105,9 +82,7 @@ namespace OpenMS
     setLogType(CMD);
   }
 
-  FeatureGroupingAlgorithmKD::~FeatureGroupingAlgorithmKD()
-  {
-  }
+  FeatureGroupingAlgorithmKD::~FeatureGroupingAlgorithmKD() = default;
 
   template <typename MapType>
   void FeatureGroupingAlgorithmKD::group_(const vector<MapType>& input_maps,
@@ -274,7 +249,7 @@ namespace OpenMS
       setProgress(progress++);
     }
     endProgress();
-
+    
     postprocess_(input_maps, out);
   }
 
@@ -415,14 +390,14 @@ namespace OpenMS
       if (merge_adduct == "Identical")
       {
         // subcase 1: one has adduct, other not
-        if (kd_data.feature(*it)->metaValueExists("dc_charge_adducts") != f_i->metaValueExists("dc_charge_adducts"))
+        if (kd_data.feature(*it)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS) != f_i->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
         {
           continue;
         }
         // subcase 2: both have adduct, but is it the same?
-        if (kd_data.feature(*it)->metaValueExists("dc_charge_adducts"))
+        if (kd_data.feature(*it)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
         {
-          if (EmpiricalFormula(kd_data.feature(*it)->getMetaValue("dc_charge_adducts")) != EmpiricalFormula(f_i->getMetaValue("dc_charge_adducts")))
+          if (EmpiricalFormula(kd_data.feature(*it)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) != EmpiricalFormula(f_i->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)))
           {
             continue;
           }  
@@ -433,16 +408,16 @@ namespace OpenMS
       else if (merge_adduct == "With_unknown_adducts")
       {
         // subcase1: *it has adduct, but i not. don't want to collect potentially different adducts to previous without adduct 
-        if ((kd_data.feature(*it)->metaValueExists("dc_charge_adducts")) && (!f_i->metaValueExists("dc_charge_adducts")))
+        if ((kd_data.feature(*it)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)) && (!f_i->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)))
         {
           continue;
         }
         // subcase2: both have adduct
-        if ((kd_data.feature(*it)->metaValueExists("dc_charge_adducts")) && (f_i->metaValueExists("dc_charge_adducts")))
+        if ((kd_data.feature(*it)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)) && (f_i->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)))
         {
           // cheaper string check first, only check EF extensively if strings differ (might be just different element orders)
-          if ((kd_data.feature(*it)->getMetaValue("dc_charge_adducts") != f_i->getMetaValue("dc_charge_adducts")) &&
-              (EmpiricalFormula(kd_data.feature(*it)->getMetaValue("dc_charge_adducts")) != EmpiricalFormula(f_i->getMetaValue("dc_charge_adducts"))))
+          if ((kd_data.feature(*it)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS) != f_i->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) &&
+              (EmpiricalFormula(kd_data.feature(*it)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) != EmpiricalFormula(f_i->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS))))
           {
             continue;
           }
@@ -492,12 +467,39 @@ namespace OpenMS
   void FeatureGroupingAlgorithmKD::addConsensusFeature_(const vector<Size>& indices, const KDTreeFeatureMaps& kd_data, ConsensusMap& out) const
   {
     ConsensusFeature cf;
+    Adduct adduct;
     float avg_quality = 0;
+    // determine best quality feature for adduct ion annotation (Constanst::UserParam::IIMN_BEST_ION)
+    float best_quality = 0;
+    size_t best_quality_index = 0;
+    // collect the "Group" MetaValues of Features in a ConsensusFeature MetaValue (Constant::UserParam::IIMN_LINKED_GROUPS)
+    vector<String> linked_groups;
     for (vector<Size>::const_iterator it = indices.begin(); it != indices.end(); ++it)
     {
       Size i = *it;
       cf.insert(kd_data.mapIndex(i), *(kd_data.feature(i)));
       avg_quality += kd_data.feature(i)->getQuality();
+      if (kd_data.feature(i)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS) &&
+         (kd_data.feature(i)->getQuality() > best_quality) &&
+         (kd_data.feature(i)->getCharge()))
+      {
+       best_quality = kd_data.feature(i)->getQuality();
+       best_quality_index = i;
+      }
+      if (kd_data.feature(i)->metaValueExists(Constants::UserParam::ADDUCT_GROUP))
+      {
+        linked_groups.emplace_back(kd_data.feature(i)->getMetaValue(Constants::UserParam::ADDUCT_GROUP));
+      }
+    }
+    if (kd_data.feature(best_quality_index)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
+    {
+      cf.setMetaValue(Constants::UserParam::IIMN_BEST_ION, 
+                      adduct.toAdductString(kd_data.feature(best_quality_index)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS),
+                                            kd_data.feature(best_quality_index)->getCharge()));
+    }
+    if (!linked_groups.empty())
+    {
+      cf.setMetaValue(Constants::UserParam::IIMN_LINKED_GROUPS, linked_groups);
     }
     avg_quality /= indices.size();
     cf.setQuality(avg_quality);

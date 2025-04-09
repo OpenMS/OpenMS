@@ -21,11 +21,16 @@ InputFile.ui
 InputFileList.cpp
 InputFileList.ui
 LayerListView.cpp
+LayerData1DBase.cpp
+LayerData1DChrom.cpp
+LayerData1DIonMobility.cpp
+LayerData1DPeak.cpp
 LayerDataBase.cpp
 LayerDataChrom.cpp
 LayerDataConsensus.cpp
 LayerDataFeature.cpp
 LayerDataIdent.cpp
+LayerDataIonMobility.cpp
 LayerDataPeak.cpp
 ListEditor.cpp
 LogWindow.cpp
@@ -34,6 +39,9 @@ MultiGradient.cpp
 MultiGradientSelector.cpp
 OutputDirectory.cpp
 OutputDirectory.ui
+Painter1DBase.cpp
+Painter2DBase.cpp
+PainterBase.cpp
 ParamEditor.cpp
 ParamEditor.ui
 Plot1DCanvas.cpp
@@ -56,7 +64,9 @@ TableView.cpp
 TOPPASEdge.cpp
 TOPPASInputFileListVertex.cpp
 TOPPASMergerVertex.cpp
+TOPPASOutputVertex.cpp
 TOPPASOutputFileListVertex.cpp
+TOPPASOutputFolderVertex.cpp
 TOPPASResource.cpp
 TOPPASResources.cpp
 TOPPASScene.cpp
@@ -90,6 +100,6 @@ source_group("Source Files\\VISUAL" FILES ${sources})
 ### icons
 # add   : icons are added to source/VISUAL/ICONS/resources.qrc
 # remove: after removing an icon, you have to rerun 'cmake' to fix the dependencies
-QT5_ADD_RESOURCES(qt_resource_file source/VISUAL/ICONS/resources.qrc)
+qt_add_resources(qt_resource_file source/VISUAL/ICONS/resources.qrc)
 set(OpenMSVisual_sources ${OpenMSVisual_sources} ${qt_resource_file})
 set_property(SOURCE ${qt_resource_file} PROPERTY SKIP_AUTOGEN ON)

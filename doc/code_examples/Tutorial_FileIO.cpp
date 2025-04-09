@@ -1,36 +1,12 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
 #include <iostream>
 
 using namespace OpenMS;
@@ -38,19 +14,40 @@ using namespace std;
 
 int main(int argc, const char** argv)
 {
-  if (argc < 2) return 1;
-  // the path to the data should be given on the command line
-  String tutorial_data_path(argv[1]);
-  
-  MzXMLFile mzxml;
-  MzMLFile mzml;
+  auto file_mzXML = OPENMS_DOC_PATH + String("/code_examples/data/Tutorial_FileIO.mzXML");
 
   // temporary data storage
   PeakMap map;
 
-  // convert MzXML to MzML
-  mzxml.load(tutorial_data_path + "/data/Tutorial_FileIO.mzXML", map);
-  mzml.store("Tutorial_FileIO.mzML", map);
+  // convert MzXML to MzML. Internally we use FileHandler to do the actual work.
+  // Here we limit the input type to be MzXML only
+  FileHandler().loadExperiment(file_mzXML, map, {FileTypes::MZXML});
+  FileHandler().storeExperiment("Tutorial_FileIO.mzML", map, {FileTypes::MZML});
 
-  return 0;
-} //end of main
+  // The FileHandler object can also hold options for how to load the file
+  FileHandler f;
+  PeakFileOptions opts;
+  // Here we set the MZ range to load to 100-200
+  opts.setMZRange({100, 200});
+  f.setOptions(opts);
+  f.loadExperiment(file_mzXML, map, {FileTypes::MZXML});
+
+
+  // we can also load an experiment from a file without any restrictions on the file type:
+  FileHandler().loadExperiment(File::path(file_mzXML) + "/Tutorial_Spectrum1D.dta", map);
+
+  // if we want to allow all types that can store MS2 data we can do the following:
+  FileHandler().loadExperiment(file_mzXML, map,
+                               FileTypeList::typesWithProperties({FileTypes::FileProperties::PROVIDES_EXPERIMENT}));
+  // The curly braces can contain multiple file properties. The FileTypeList that is created is the intersection of these properties
+  // so: FileTypeList::typesWithProperties({FileTypes::FileProperties::PROVIDES_EXPERIMENT, FileTypes::FileProperties::READABLE})
+  // returns only fileTypes which can store both MS1 and MS2 spectra
+
+  // We use various FileHandler functions to load other types.
+  FeatureMap feat;
+  FileHandler().loadFeatures(File::path(file_mzXML) + "/Tutorial_Labeled.featureXML", feat);
+
+  // If we try to load something from a file that can't store that info (for example trying to get an experiment from an idXML file)
+  // An error gets thrown at run time. Check out @p FileHandler class for more info
+
+} // end of main

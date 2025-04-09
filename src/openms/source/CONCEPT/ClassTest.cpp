@@ -1,35 +1,9 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm, Clemens Groepl $
+// $Authors: Marc Sturm, Clemens Groepl, Chris Bielow, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -55,11 +29,10 @@
 #include <iomanip>
 #include <fstream>
 
-#include <QFileInfo>
+#include <QtCore/QFileInfo>
 
 namespace OpenMS::Internal::ClassTest
 {
-
       bool all_tests = true;
       bool equal_files;
       bool newline = false;
@@ -93,6 +66,13 @@ namespace OpenMS::Internal::ClassTest
 
       void mainInit(const char* version, const char* class_name, int argc, const char* argv0)
       {
+        // if env var "OPENMS_TEST_VERBOSE=True" enable output of successfull line
+        char* pverbose = std::getenv("OPENMS_TEST_VERBOSE");
+        if (pverbose != nullptr)
+        {
+          if (std::string(pverbose) == "True") TEST::verbose = 2;
+        }
+
         OpenMS::UniqueIdGenerator::setSeed(2453440375);
         TEST::version_string = version;
 
@@ -119,8 +99,8 @@ namespace OpenMS::Internal::ClassTest
 
         if (TEST::infile.good() && TEST::templatefile.good())
         {
-          std::string TEST_FILE__template_line;
-          std::string TEST_FILE__line;
+          String TEST_FILE__template_line;
+          String TEST_FILE__line;
 
           while (TEST::infile.good() && TEST::templatefile.good())
           {
@@ -128,16 +108,15 @@ namespace OpenMS::Internal::ClassTest
             TEST_FILE__template_line = TEST::line_buffer;
             TEST::infile.getline(TEST::line_buffer, 65535);
             TEST_FILE__line = TEST::line_buffer;
-
-            TEST::equal_files &= (TEST_FILE__template_line == TEST_FILE__line);
+            TEST_FILE__template_line.trim(); // remove leading and trailing whitespaces (ignore CR/LF line endings on Unix)
+            TEST_FILE__line.trim();          // remove leading and trailing whitespaces (ignore CR/LF line endings on Unix)
             if (TEST_FILE__template_line != TEST_FILE__line)
             {
-              {
-                TEST::initialNewline();
-                stdcout << "   TEST_FILE_EQUAL: line mismatch:\n    got:      '"
-                        << TEST_FILE__line << "'\n    expected: '"
-                        << TEST_FILE__template_line << "'\n";
-              }
+              TEST::equal_files = false;
+              TEST::initialNewline();
+              stdcout << "   TEST_FILE_EQUAL: line mismatch:\n    got:      '"
+                      << TEST_FILE__line << "'\n    expected: '"
+                      << TEST_FILE__template_line << "'\n";
             }
           }
         }
@@ -176,13 +155,16 @@ namespace OpenMS::Internal::ClassTest
           TEST::initialNewline();
           if (TEST::this_test)
           {
-            stdcout << " +  line "
-                    << line
-                    << ": TEST_FILE_EQUAL("
-                    << filename_stringified
-                    << ", "
-                    << templatename_stringified
-                    << "): true";
+            if (TEST::verbose > 1)
+            {
+              stdcout << " +  line "
+                      << line
+                      << ": TEST_FILE_EQUAL("
+                      << filename_stringified
+                      << ", "
+                      << templatename_stringified
+                      << "): true";
+            }
           }
           else
           {
@@ -367,7 +349,7 @@ namespace OpenMS::Internal::ClassTest
             }
           }
         }
-        //output for all files
+        //output for all files        
         if (passed_all)
         {
           std::cout << ": passed" << std::endl << std::endl;
@@ -380,10 +362,18 @@ namespace OpenMS::Internal::ClassTest
       }
 
       std::string
-      tmpFileName(const std::string& file, int line)
+      createTmpFileName(const std::string& file, int line, const std::string& extension)
       {
         QFileInfo fi(file.c_str());
-        return String(fi.baseName()) + '_' + String(line) + ".tmp";
+        std::string filename = (String(fi.baseName())) + '_' + String(line) + ".tmp" + extension;
+        TEST::tmp_file_list.push_back(filename);
+        TEST::initialNewline();
+        stdcout << "    creating new temporary filename '"
+                << filename
+                << "' (line "
+                << __LINE__
+                << ")\n";
+        return filename;
       }
 
       void testRealSimilar(const char* /*file*/, int line,
@@ -414,11 +404,14 @@ namespace OpenMS::Internal::ClassTest
           {
             if (TEST::this_test)
             {
-              stdcout << " +  line " << line << ":  TEST_REAL_SIMILAR("
-                        << number_1_stringified << ',' << number_2_stringified
-                        << "): got " << std::setprecision(number_1_written_digits)
-                        << number_1 << ", expected "
-                        << std::setprecision(number_2_written_digits) << number_2 << std::endl;
+              if (TEST::verbose > 1)
+              {
+                stdcout << " +  line " << line << ":  TEST_REAL_SIMILAR("
+                          << number_1_stringified << ',' << number_2_stringified
+                          << "): got " << std::setprecision(number_1_written_digits)
+                          << number_1 << ", expected "
+                          << std::setprecision(number_2_written_digits) << number_2 << std::endl;
+              }
             }
             else
             {
@@ -579,10 +572,13 @@ namespace OpenMS::Internal::ClassTest
           initialNewline();
           if (this_test)
           {
+            if (TEST::verbose > 1)
+            {
             stdcout << " +  line " << line << ":  TEST_STRING_EQUAL("
-                      << string_1_stringified << ',' << string_2_stringified
-                      << "): got \"" << string_1 << "\", expected \"" << string_2
-                      << "\"" << std::endl;
+                    << string_1_stringified << ',' << string_2_stringified
+                    << "): got \"" << string_1 << "\", expected \"" << string_2
+                    << "\"" << std::endl;            
+            }
           }
           else
           {
@@ -627,16 +623,19 @@ namespace OpenMS::Internal::ClassTest
 
         TEST::initialNewline();
         if (TEST::this_test)
-        {
-          stdcout << " +  line " << line << ":  TEST_STRING_SIMILAR("
-                    << string_1_stringified << ',' << string_2_stringified << "):  "
-                                                                    "absolute: " << TEST::absdiff << " (" << TEST::absdiff_max_allowed
-                    << "), relative: " << TEST::ratio << " ("
-                    << TEST::ratio_max_allowed << ")    +\n";
-          stdcout << "got:\n";
-          TEST::printWithPrefix(string_1, TEST::line_num_1_max);
-          stdcout << "expected:\n";
-          TEST::printWithPrefix(string_2, TEST::line_num_2_max);
+        {          
+          if (TEST::verbose > 1)
+          {
+            stdcout << " +  line " << line << ":  TEST_STRING_SIMILAR("
+                      << string_1_stringified << ',' << string_2_stringified << "):  "
+                                                                      "absolute: " << TEST::absdiff << " (" << TEST::absdiff_max_allowed
+                      << "), relative: " << TEST::ratio << " ("
+                      << TEST::ratio_max_allowed << ")    +\n";
+            stdcout << "got:\n";
+            TEST::printWithPrefix(string_1, TEST::line_num_1_max);
+            stdcout << "expected:\n";
+            TEST::printWithPrefix(string_2, TEST::line_num_2_max);
+          }
         }
         else
         {
@@ -677,4 +676,104 @@ namespace OpenMS::Internal::ClassTest
 
         return result;
       }
-}
+
+
+      void printLastException(std::ostream& out)
+      {
+        std::exception_ptr ex = std::current_exception();
+        try
+        {
+          std::rethrow_exception(ex);
+        } 
+        catch (::OpenMS::Exception::BaseException& e)
+        {
+          TEST::this_test = false;
+          TEST::test = false;
+          TEST::all_tests = false;
+          {
+            TEST::initialNewline();
+            out << "Error: Caught unexpected OpenMS exception of type '" << e.getName() << "'";
+            if ((e.getLine() > 0) && std::strcmp(e.getFile(), ""))
+            {
+              out << " thrown in line " << e.getLine() << " of file '" << e.getFile() << "' in function '" << e.getFunction() << "'";
+            }
+            out << " - Message: " << e.what() << std::endl;
+          }
+        } /* catch std:: exceptions */
+        catch (std::exception& e)
+        {
+          TEST::this_test = false;
+          TEST::test = false;
+          TEST::all_tests = false;
+          {
+            TEST::initialNewline();
+            out << "Error: Caught unexpected std::exception\n";
+            out << " - Message: " << e.what() << std::endl;
+          }
+        } /* catch all other exceptions */
+        catch (...)
+        {
+          TEST::this_test = false;
+          TEST::test = false;
+          TEST::all_tests = false;
+          {
+            TEST::initialNewline();
+            out << "Error: Caught unidentified and unexpected exception - No message." << std::endl;
+          }
+        }
+      }
+
+      int endTestPostProcess(std::ostream& out)
+      {
+        /* check validity of temporary files if known */
+        if (!TEST::validate(TEST::tmp_file_list))
+        {
+          TEST::all_tests = false;
+        }
+        if (TEST::verbose == 0)
+        {
+          out << "Output of successful tests were suppressed. Set the environment variable 'OPENMS_TEST_VERBOSE=True' to enable them." << std::endl;
+        } /* check for exit code */
+        if (!TEST::all_tests)
+        {
+          out << "FAILED\n";
+          if (TEST::add_message != "")
+            out << "Message: " << TEST::add_message << '\n';
+          out << "Failed lines: ";
+          for (OpenMS::Size i = 0; i < TEST::failed_lines_list.size(); ++i)
+          {
+            out << TEST::failed_lines_list[i] << " ";
+          }
+          out << std::endl;
+          return 1;
+        }
+        else
+        { /* remove temporary files*/
+          TEST::removeTempFiles();
+          out << "PASSED";
+          if (TEST::add_message != "")
+            out << " (" << TEST::add_message << ")";
+          out << std::endl;
+          return 0;
+        }
+      }
+      
+      void endSectionPostProcess(std::ostream& out, const int line)
+      {
+        TEST::all_tests = TEST::all_tests && TEST::test;
+        if (TEST::test)
+        {
+          out << ": passed\n";
+        }
+        else
+        {
+          out << ": failed\n";
+        }
+        if (TEST::test_count == 0)
+        {
+          if (OpenMS::String(TEST::test_name).has('~'))
+            out << "Warning: no subtests performed in '" << TEST::test_name << "' (line " << line << ")!\n";
+        }
+        stdcout << std::endl;
+      }
+  }

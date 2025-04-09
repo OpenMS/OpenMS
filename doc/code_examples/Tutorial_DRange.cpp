@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 
 #include <OpenMS/DATASTRUCTURES/DRange.h>
@@ -35,15 +9,30 @@ using namespace OpenMS;
 
 Int main()
 {
+  // A D-dimensional range, without units;
+  // Note: if you want something more modern with dimensions for RT, m/z, intensity and mobility, then use RangeManager.
+  // 
+  // You can use any dimension you like; for D=2 and D=3 there are some convenience overloads though, especially for C'tors
+  // a 2-dimensional, i.e. [x_min..x_max, y_min..y_max],  range
   DRange<2> range;
-  range.setMin(DPosition<2>(2.0, 3.0));
-  range.setMax(DPosition<2>(1.0, 5.0));
+  range.setMin(DPosition<2>(2.0, 3.0)); // for (x_min, y_min)
+  range.setMax(DPosition<2>(4.0, 5.0)); // for (x_max, y_max)
+  std::cout << "values:\n" << range; // prints [2..4, 3..5]
 
-  for (UInt i = 0; i < DRange<2>::DIMENSION; ++i)
+  // Note: the class maintains the invariant min<=max for each dimension
+  //       Thus, setting a 'min' which is larger than the current 'max', also adjusts 'max' to the same value
+  range.setMin(DPosition<2>(10.0, 2.0)); // for (x_max, y_max)
+  std::cout << "\nadjusted max:\n" << range; // prints [10..10, 2..5]
+
+  // you can also set each dimension's min/max: 0 = X, 1 = Y
+  range.setDimMinMax(0, {0.6, 6.6});
+  std::cout << "\nnew X range:\n" << range;
+
+  // print values using a custom format
+  for (UInt i = 0; i < range.DIMENSION; ++i)
   {
-    std::cout << "min " << i << ": " << range.minPosition()[i] << std::endl;
-    std::cout << "max " << i << ": " << range.maxPosition()[i] << std::endl;
+    std::cout << "DIM " << i << ": " << range.minPosition()[i] << " ... " << range.maxPosition()[i] << '\n';
   }
 
-  return 0;
+
 } //end of main

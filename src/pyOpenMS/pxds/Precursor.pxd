@@ -1,76 +1,108 @@
+from libcpp.map cimport map as libcpp_map
 from Types cimport *
 from CVTermList cimport *
 from Peak1D cimport *
-from Map cimport *
 
 cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
 
     cdef cppclass Precursor(Peak1D, CVTermList):
         # wrap-inherits:
-        #    Peak1D
-        #    CVTermList
+        #   Peak1D
+        #   CVTermList
         # wrap-doc:
-        #   Precursor meta information
-        #   -----
-        #   This class contains precursor information:
+        #  Precursor meta information
+        #  
+        #  This class contains precursor information:
         #
-        #   - isolation window
-        #   - activation
-        #   - selected ion (m/z, intensity, charge, possible charge states)
-        #   - ion mobility drift time
+        #  - isolation window
+        #  - activation
+        #  - selected ion (m/z, intensity, charge, possible charge states)
+        #  - ion mobility drift time
 
-        Precursor() nogil except +
-        Precursor(Precursor &) nogil except +
+        Precursor() except + nogil 
+        Precursor(Precursor &) except + nogil 
 
-        libcpp_set[ActivationMethod] getActivationMethods() nogil except + # wrap-doc:Returns the activation methods
-        void setActivationMethods(libcpp_set[ActivationMethod] activation_methods) nogil except + # wrap-doc:Sets the activation methods
+        libcpp_set[ActivationMethod] getActivationMethods() except + nogil  # wrap-doc:Returns the activation methods
+        libcpp_vector[String] getActivationMethodsAsString() except + nogil  # wrap-doc:Returns the full names (e.g., "Collision-induced dissociation") of the activation methods set on this instance
+        libcpp_vector[String] getActivationMethodsAsShortString() except + nogil  # wrap-doc:Returns the abbreviations (e.g., "CID") of the activation methods set on this instance
+        void setActivationMethods(libcpp_set[ActivationMethod] activation_methods) except + nogil  # wrap-doc:Sets the activation methods
 
-        double getActivationEnergy() nogil except + # wrap-doc:Returns the activation energy (in electronvolt)
-        void setActivationEnergy(double activation_energy) nogil except + # wrap-doc:Sets the activation energy (in electronvolt)
+        @staticmethod
+        libcpp_vector[String] getAllNamesOfActivationMethods() except + nogil  # wrap-doc:Returns the full names (e.g., "Collision-induced dissociation") of ALL possible activation methods, not just those set on this instance
+        @staticmethod
+        libcpp_vector[String] getAllShortNamesOfActivationMethods() except + nogil  # wrap-doc:Returns the abbreviations (e.g., "CID") of ALL possible activation methods, not just those set on this instance
 
-        double getIsolationWindowLowerOffset() nogil except + # wrap-doc:Returns the lower offset from the target m/z
-        void setIsolationWindowLowerOffset(double bound) nogil except + # wrap-doc:Sets the lower offset from the target m/z
+        double getActivationEnergy() except + nogil  # wrap-doc:Returns the activation energy (in electronvolt)
+        void setActivationEnergy(double activation_energy) except + nogil  # wrap-doc:Sets the activation energy (in electronvolt)
 
-        double getDriftTime() nogil except + # wrap-doc:Returns the ion mobility drift time in milliseconds (-1 means it is not set)
-        void setDriftTime(double drift_time) nogil except + # wrap-doc:Sets the ion mobility drift time in milliseconds
+        double getIsolationWindowLowerOffset() except + nogil  # wrap-doc:Returns the lower offset from the target m/z
+        void setIsolationWindowLowerOffset(double bound) except + nogil  # wrap-doc:Sets the lower offset from the target m/z
 
-        double getIsolationWindowUpperOffset() nogil except + # wrap-doc:Returns the upper offset from the target m/z
-        void setIsolationWindowUpperOffset(double bound) nogil except + # wrap-doc:Sets the upper offset from the target m/z
+        double getDriftTime() except + nogil  # wrap-doc:Returns the ion mobility drift time in milliseconds (-1 means it is not set)
+        void setDriftTime(double drift_time) except + nogil  # wrap-doc:Sets the ion mobility drift time in milliseconds
 
-        double getDriftTimeWindowLowerOffset() nogil except + # wrap-doc:Returns the lower offset from the target ion mobility in milliseconds
-        void setDriftTimeWindowLowerOffset(double drift_time) nogil except + # wrap-doc:Sets the lower offset from the target ion mobility
-        double getDriftTimeWindowUpperOffset() nogil except + # wrap-doc:Returns the upper offset from the target ion mobility in milliseconds
-        void setDriftTimeWindowUpperOffset(double drift_time) nogil except + # wrap-doc:Sets the upper offset from the target ion mobility
+        double getIsolationWindowUpperOffset() except + nogil  # wrap-doc:Returns the upper offset from the target m/z
+        void setIsolationWindowUpperOffset(double bound) except + nogil  # wrap-doc:Sets the upper offset from the target m/z
 
-        int getCharge() nogil except + # wrap-doc:Returns the charge
-        void setCharge(int charge) nogil except + # wrap-doc:Sets the charge
+        double getDriftTimeWindowLowerOffset() except + nogil  # wrap-doc:Returns the lower offset from the target ion mobility in milliseconds
+        void setDriftTimeWindowLowerOffset(double drift_time) except + nogil  # wrap-doc:Sets the lower offset from the target ion mobility
+        double getDriftTimeWindowUpperOffset() except + nogil  # wrap-doc:Returns the upper offset from the target ion mobility in milliseconds
+        void setDriftTimeWindowUpperOffset(double drift_time) except + nogil  # wrap-doc:Sets the upper offset from the target ion mobility
 
-        libcpp_vector[int] getPossibleChargeStates() nogil except + # wrap-doc:Returns the possible charge states
-        void setPossibleChargeStates(libcpp_vector[int] possible_charge_states) nogil except + # wrap-doc:Sets the possible charge states
+        int getCharge() except + nogil  # wrap-doc:Returns the charge
+        void setCharge(int charge) except + nogil  # wrap-doc:Sets the charge
 
-        double getUnchargedMass() nogil except + # wrap-doc:Returns the uncharged mass of the precursor, if charge is unknown, i.e. 0 best guess is its doubly charged
+        libcpp_vector[int] getPossibleChargeStates() except + nogil  # wrap-doc:Returns the possible charge states
+        void setPossibleChargeStates(libcpp_vector[int] possible_charge_states) except + nogil  # wrap-doc:Sets the possible charge states
 
-        bool operator==(Precursor)  nogil except +
-        bool operator!=(Precursor)  nogil except +
+        double getUnchargedMass() except + nogil  # wrap-doc:Returns the uncharged mass of the precursor, if charge is unknown, i.e. 0 best guess is its doubly charged
+
+        bool operator==(Precursor)  except + nogil 
+        bool operator!=(Precursor)  except + nogil 
 
 cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS::Precursor":
     cdef enum ActivationMethod:
-      CID,                      #< Collision-induced dissociation
-      PSD,                      #< Post-source decay
-      PD,                       #< Plasma desorption
-      SID,                      #< Surface-induced dissociation
-      BIRD,                     #< Blackbody infrared radiative dissociation
-      ECD,                      #< Electron capture dissociation
-      IMD,                      #< Infrared multiphoton dissociation
-      SORI,                     #< Sustained off-resonance irradiation
-      HCID,                     #< High-energy collision-induced dissociation
-      LCID,                     #< Low-energy collision-induced dissociation
-      PHD,                      #< Photodissociation
-      ETD,                      #< Electron transfer dissociation
-      PQD,                      #< Pulsed q dissociation
-      TRAP,                     #< trap-type collision-induced dissociation (MS:1002472)
-      HCD,                      #< beam-type collision-induced dissociation (MS:1000422) / HCD
-      INSOURCE,                 #< in-source collision-induced dissociation (MS:1001880)
-      LIFT,                     #< Bruker proprietary method (MS:1002000)
+      # wrap-attach:
+      #  Precursor
+      # wrap-doc:
+      #  Enum for activation/fragmentation methods of mass spectra
+      #  
+      #  - CID: Collision-induced dissociation (MS:1000133) (also CAD; parent term, but unless otherwise stated often used as synonym for trap-type CID)
+      #  - PSD: Post-source decay
+      #  - PD: Plasma desorption
+      #  - SID: Surface-induced dissociation
+      #  - BIRD: Blackbody infrared radiative dissociation
+      #  - ECD: Electron capture dissociation (MS:1000250)
+      #  - IMD: Infrared multiphoton dissociation
+      #  - SORI: Sustained off-resonance irradiation
+      #  - HCID: High-energy collision-induced dissociation
+      #  - LCID: Low-energy collision-induced dissociation
+      #  - PHD: Photodissociation
+      #  - ETD: Electron transfer dissociation
+      #  - ETciD: Electron transfer and collision-induced dissociation (MS:1003182)
+      #  - EThcD: Electron transfer and higher-energy collision dissociation (MS:1002631)
+      #  - PQD: Pulsed q dissociation (MS:1000599)
+      #  - TRAP: trap-type collision-induced dissociation (MS:1002472)
+      #  - HCD: beam-type collision-induced dissociation (MS:1000422)
+      #  - INSOURCE: in-source collision-induced dissociation (MS:1001880)
+      #  - LIFT: Bruker proprietary method (MS:1002000)
+      CID,
+      PSD,
+      PD,
+      SID,
+      BIRD,
+      ECD,
+      IMD,
+      SORI,
+      HCID,
+      LCID,
+      PHD,
+      ETD,
+      ETciD,
+      EThcD,
+      PQD,
+      TRAP,
+      HCD,
+      INSOURCE,
+      LIFT,
       SIZE_OF_ACTIVATIONMETHOD
-

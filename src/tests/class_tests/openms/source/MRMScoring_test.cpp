@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -229,11 +203,11 @@ mean(xcorr_max) # shape score
 
           TEST_EQUAL(mrmscore.getXCorrMatrix().rows(), 2)
           TEST_EQUAL(mrmscore.getXCorrMatrix().cols(), 2)
-          TEST_EQUAL(mrmscore.getXCorrMatrix().getValue(0, 0).data.size(), 23)
+          TEST_EQUAL(mrmscore.getXCorrMatrix()(0, 0).data.size(), 23)
 
           // test auto-correlation = xcorrmatrix_0_0
           const OpenSwath::Scoring::XCorrArrayType auto_correlation =
-                  mrmscore.getXCorrMatrix().getValue(0, 0);
+                  mrmscore.getXCorrMatrix()(0, 0);
 
           TEST_EQUAL(auto_correlation.data[11].first, 0)
           TEST_EQUAL(auto_correlation.data[12].first, 1)
@@ -249,7 +223,7 @@ mean(xcorr_max) # shape score
 
           // test cross-correlation = xcorrmatrix_0_1
           const OpenSwath::Scoring::XCorrArrayType cross_correlation =
-                  mrmscore.getXCorrMatrix().getValue(0, 1);
+                  mrmscore.getXCorrMatrix()(0, 1);
 
           TEST_REAL_SIMILAR(cross_correlation.data[13].second, -0.31165141)   // find(2)->second,
           TEST_REAL_SIMILAR(cross_correlation.data[12].second, -0.35036919)   // find(1)->second,
@@ -278,16 +252,25 @@ mean(xcorr_max) # shape score
           TEST_EQUAL(mrmscore.getXCorrPrecursorContrastMatrix().cols(), 2)
 
           std::vector<double> sum_matrix;
-          for(auto e : mrmscore.getXCorrPrecursorContrastMatrix())
-          {
-            double sum{0};
-            for(size_t i = 0; i < e.data.size(); ++i)
-            {
-              sum += abs(e.data[i].second);
-            }
-            sum_matrix.push_back(sum);
-          }
 
+          const auto& cm = mrmscore.getXCorrPrecursorContrastMatrix();
+          // Note: the original code depens on col vs. row order and
+          // the old code: for (auto e : mrmscore.getXCorrPrecursorContrastMatrix()) fails with different data
+          for (size_t r = 0; r != cm.rows(); ++r) 
+            for (size_t c = 0; c != cm.cols(); ++c) 
+            {
+              double sum{0};
+              for (size_t i = 0; i < cm(r,c).data.size(); ++i)
+              {
+                sum += abs(cm(r,c).data[i].second);
+              }
+              sum_matrix.push_back(sum);
+            }
+/*
+          for (auto e : mrmscore.getXCorrPrecursorContrastMatrix())
+          {
+          }
+*/
           TEST_REAL_SIMILAR(sum_matrix[0], 3.40949220)
           TEST_REAL_SIMILAR(sum_matrix[1], 6.19794611)
           TEST_REAL_SIMILAR(sum_matrix[2], 3.68912454)
@@ -314,40 +297,36 @@ mean(xcorr_max) # shape score
           TEST_EQUAL(mrmscore.getXCorrPrecursorCombinedMatrix().cols(), 5)
 
           std::vector<double> sum_matrix;
-          for(auto e : mrmscore.getXCorrPrecursorCombinedMatrix())
-          {
-            double sum{0};
-            for(size_t i = 0; i < e.data.size(); ++i)
-            {
-              sum += abs(e.data[i].second);
-            }
-            sum_matrix.push_back(sum);
-          }
 
+          const auto& cm = mrmscore.getXCorrPrecursorCombinedMatrix();
+          // Note: the original code depens on col vs. row order and
+          // the old code: for (auto e : mrmscore.getXCorrPrecursorCombinedMatrix()) fails with different data
+          for (size_t r = 0; r != cm.rows(); ++r) 
+            for (size_t c = 0; c != cm.cols(); ++c) 
+            {
+              double sum{0};
+              for (size_t i = 0; i < cm(r,c).data.size(); ++i)
+              {
+                sum += abs(cm(r,c).data[i].second);
+              }
+              sum_matrix.push_back(sum);
+            }
+
+          // Check upper triangular matrix 
           TEST_REAL_SIMILAR(sum_matrix[0], 5.86440677)
           TEST_REAL_SIMILAR(sum_matrix[1], 6.05410398)
           TEST_REAL_SIMILAR(sum_matrix[2], 0)
           TEST_REAL_SIMILAR(sum_matrix[3], 3.40949220)
           TEST_REAL_SIMILAR(sum_matrix[4], 6.19794611)
-          TEST_REAL_SIMILAR(sum_matrix[5], 6.05410398)
           TEST_REAL_SIMILAR(sum_matrix[6], 6.30751744)
           TEST_REAL_SIMILAR(sum_matrix[7], 0)
           TEST_REAL_SIMILAR(sum_matrix[8], 3.68912454)
           TEST_REAL_SIMILAR(sum_matrix[9], 6.60757921)
-          TEST_REAL_SIMILAR(sum_matrix[10], 0)
-          TEST_REAL_SIMILAR(sum_matrix[11], 0)
           TEST_REAL_SIMILAR(sum_matrix[12], 0)
           TEST_REAL_SIMILAR(sum_matrix[13], 0)
           TEST_REAL_SIMILAR(sum_matrix[14], 0)
-          TEST_REAL_SIMILAR(sum_matrix[15], 3.40949220)
-          TEST_REAL_SIMILAR(sum_matrix[16], 3.68912454)
-          TEST_REAL_SIMILAR(sum_matrix[17], 0)
           TEST_REAL_SIMILAR(sum_matrix[18], 3.13711983)
           TEST_REAL_SIMILAR(sum_matrix[19], 3.57832717)
-          TEST_REAL_SIMILAR(sum_matrix[20], 6.19794611)
-          TEST_REAL_SIMILAR(sum_matrix[21], 6.60757921)
-          TEST_REAL_SIMILAR(sum_matrix[22], 0)
-          TEST_REAL_SIMILAR(sum_matrix[23], 3.57832717)
           TEST_REAL_SIMILAR(sum_matrix[24], 6.78303987)
         }
     END_SECTION
@@ -383,11 +362,11 @@ END_SECTION*/
 
           TEST_EQUAL(mrmscore.getXCorrContrastMatrix().rows(), 2)
           TEST_EQUAL(mrmscore.getXCorrContrastMatrix().cols(), 2)
-          TEST_EQUAL(mrmscore.getXCorrContrastMatrix().getValue(0, 0).data.size(), 23)
+          TEST_EQUAL(mrmscore.getXCorrContrastMatrix()(0, 0).data.size(), 23)
 
           // test auto-correlation = xcorrmatrix_0_0
           const OpenSwath::Scoring::XCorrArrayType auto_correlation =
-                  mrmscore.getXCorrContrastMatrix().getValue(0, 0);
+                  mrmscore.getXCorrContrastMatrix()(0, 0);
           TEST_REAL_SIMILAR(auto_correlation.data[11].second, 1)                     // find(0)->second,
           TEST_REAL_SIMILAR(auto_correlation.data[12].second, -0.227352707759245)    // find(1)->second,
           TEST_REAL_SIMILAR(auto_correlation.data[10].second,  -0.227352707759245)   // find(-1)->second,
@@ -396,7 +375,7 @@ END_SECTION*/
 
           // // test cross-correlation = xcorrmatrix_0_1
           const OpenSwath::Scoring::XCorrArrayType cross_correlation =
-                  mrmscore.getXCorrContrastMatrix().getValue(0, 1);
+                  mrmscore.getXCorrContrastMatrix()(0, 1);
           TEST_REAL_SIMILAR(cross_correlation.data[13].second, -0.31165141)   // find(2)->second,
           TEST_REAL_SIMILAR(cross_correlation.data[12].second, -0.35036919)   // find(1)->second,
           TEST_REAL_SIMILAR(cross_correlation.data[11].second, 0.03129565)    // find(0)->second,
@@ -733,10 +712,10 @@ mean(m4)
           TEST_EQUAL(mrmscore.getMIMatrix().rows(), 2)
           TEST_EQUAL(mrmscore.getMIMatrix().cols(), 2)
 
-          TEST_REAL_SIMILAR(mrmscore.getMIMatrix().getValue(0, 0), 3.2776)
-          TEST_REAL_SIMILAR(mrmscore.getMIMatrix().getValue(0, 1), 3.2776)
-          TEST_REAL_SIMILAR(mrmscore.getMIMatrix().getValue(1, 1), 3.4594)
-          TEST_REAL_SIMILAR(mrmscore.getMIMatrix().getValue(1, 0), 0) // value not initialized for lower diagonal half of matrix
+          TEST_REAL_SIMILAR(mrmscore.getMIMatrix()(0, 0), 3.2776)
+          TEST_REAL_SIMILAR(mrmscore.getMIMatrix()(0, 1), 3.2776)
+          TEST_REAL_SIMILAR(mrmscore.getMIMatrix()(1, 1), 3.4594)
+          TEST_REAL_SIMILAR(mrmscore.getMIMatrix()(1, 0), 0) // value not initialized for lower diagonal half of matrix
         }
     END_SECTION
 
@@ -755,11 +734,7 @@ mean(m4)
 
           TEST_EQUAL(mrmscore.getMIPrecursorContrastMatrix().rows(), 3)
           TEST_EQUAL(mrmscore.getMIPrecursorContrastMatrix().cols(), 2)
-          double sum{0};
-          for(auto e : mrmscore.getMIPrecursorContrastMatrix())
-          {
-            sum += e;
-          }
+          double sum = mrmscore.getMIPrecursorContrastMatrix().getEigenMatrix().sum();
           TEST_REAL_SIMILAR(sum, 12.01954465)
         }
     END_SECTION
@@ -780,11 +755,7 @@ mean(m4)
           TEST_EQUAL(mrmscore.getMIPrecursorCombinedMatrix().rows(), 5)
           TEST_EQUAL(mrmscore.getMIPrecursorCombinedMatrix().cols(), 5)
 
-          double sum{0};
-          for(auto e : mrmscore.getMIPrecursorCombinedMatrix())
-          {
-            sum += e;
-          }
+          double sum = mrmscore.getMIPrecursorCombinedMatrix().getEigenMatrix().sum();
           TEST_REAL_SIMILAR(sum, 48.98726953)
         }
     END_SECTION
@@ -794,17 +765,21 @@ mean(m4)
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
 
-          std::vector<std::string> native_ids;
-          fill_mock_objects(imrmfeature, native_ids);
+          std::vector<std::string> native_ids1, native_ids2;
+          fill_mock_objects(imrmfeature, native_ids1);
+          for (int i=native_ids1.size()-1; i>=0; i--)
+          {
+            native_ids2.push_back(native_ids1[i]);
+          }   
 
           //initialize the XCorr Matrix
-          mrmscore.initializeMIContrastMatrix(imrmfeature, native_ids, native_ids);
+          mrmscore.initializeMIContrastMatrix(imrmfeature, native_ids1, native_ids2);
           delete imrmfeature;
 
-          TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix().getValue(0, 0), 3.2776)
-          TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix().getValue(0, 1), 3.2776)
-          TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix().getValue(1, 1), 3.4594)
-          TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix().getValue(1, 0), 3.2776)
+          TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix()(0, 0), 3.2776)
+          TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix()(0, 1), 3.2776)
+          TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix()(1, 1), 3.2776)
+          TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix()(1, 0), 3.4594)
         }
     END_SECTION
 
@@ -824,9 +799,13 @@ mean(m4)
         {
           MockMRMFeature * imrmfeature = new MockMRMFeature();
           MRMScoring mrmscore;
-          std::vector<std::string> native_ids;
-          fill_mock_objects(imrmfeature, native_ids);
-          mrmscore.initializeMIContrastMatrix(imrmfeature, native_ids, native_ids);
+          std::vector<std::string> native_ids1, native_ids2;
+          fill_mock_objects(imrmfeature, native_ids1);
+          for (int i=native_ids1.size()-1; i>=0; i--)
+          {
+            native_ids2.push_back(native_ids1[i]);
+          }   
+          mrmscore.initializeMIContrastMatrix(imrmfeature, native_ids1, native_ids2);
           delete imrmfeature;
           TEST_REAL_SIMILAR(mrmscore.calcSeparateMIContrastScore()[0], 3.27761)
           TEST_REAL_SIMILAR(mrmscore.calcSeparateMIContrastScore()[1], 3.36852)

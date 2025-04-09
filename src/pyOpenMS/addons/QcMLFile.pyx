@@ -1,4 +1,4 @@
-
+from libcpp.map cimport map as libcpp_map
 
 
     def map2csv(self, dict csv_table, String separator):

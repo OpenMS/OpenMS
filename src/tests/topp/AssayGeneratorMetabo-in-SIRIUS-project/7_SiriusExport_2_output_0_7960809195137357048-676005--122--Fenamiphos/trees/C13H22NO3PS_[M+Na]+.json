@@ -1,0 +1,55 @@
+{
+  "molecularFormula" : "C13H22NO3PS",
+  "root" : "C13H22NO3PS",
+  "annotations" : {
+    "precursorIonType" : "[M + Na]+",
+    "nodeBoost" : 3.0,
+    "numberOfUnconsideredCandidates" : 0,
+    "lowestConsideredCandidateScore" : -2.3675697077238156,
+    "statistics" : {
+      "explainedIntensity" : 0.0,
+      "explainedIntensityOfExplainablePeaks" : 0.0,
+      "ratioOfExplainedPeaks" : 0.0
+    },
+    "recalibration" : {
+      "merged" : "1.0x"
+    }
+  },
+  "fragments" : [ {
+    "id" : 0,
+    "molecularFormula" : "C13H22NO3PS",
+    "ion" : "[M + Na]+",
+    "massDeviation" : "-1.7404143799237406 ppm (-5.675394775721543E-4 m/z)",
+    "recalibratedMassDeviation" : "-1.7404143799237406 ppm (-5.675394775721543E-4 m/z)",
+    "relativeIntensity" : 1.0,
+    "mz" : 326.094454354613,
+    "recalibratedMass" : 326.094454354613,
+    "peaks" : [ {
+      "intensity" : 90.0,
+      "ce" : "-1 eV (corrected -1 eV)",
+      "spectrum" : 0,
+      "mz" : 326.090792568903
+    } ],
+    "score" : -2.3675697077238156,
+    "scores" : {
+      "Chemical Prior" : 1.0,
+      "MS-Isotopes" : 0.0,
+      "CommonRootLoss" : 0.0,
+      "Mass Deviation" : -0.14869388285561508,
+      "CarbohydrogenCompound" : 0.0,
+      "motif-search" : 0.0,
+      "MS2-Isotopes" : 0.0,
+      "PhosphorScorer" : 0.0,
+      "BeautificationScorer" : -0.0,
+      "ImplicitAdductPeakScore" : 0.0,
+      "IntrinsicallyChargedScorer" : 0.0,
+      "StrangeElementRootScorer" : -3.2188758248682006
+    },
+    "isotopes" : {
+      "score" : -0.3066782904273615,
+      "mz" : [ 326.094454354613, 327.096383244799 ],
+      "relInt" : [ 1.0, 0.1609657297188478 ]
+    }
+  } ],
+  "losses" : [ ]
+}

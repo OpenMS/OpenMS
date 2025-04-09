@@ -36,17 +36,20 @@ ExperimentalDesignFile.h
 FASTAFile.h
 FeatureXMLFile.h
 FileHandler.h
+FLASHDeconvFeatureFile.h
+FLASHDeconvSpectrumFile.h
+GNPSMetaValueFile.h
 GNPSMGFFile.h
+GNPSQuantificationFile.h
 GzipIfstream.h
 GzipInputStream.h
-HDF5Connector.h
 IBSpectraFile.h
 IdXMLFile.h
+IndentedStream.h
 IndexedMzMLFileLoader.h
 InspectInfile.h
 InspectOutfile.h
 KroenikFile.h
-LibSVMEncoder.h
 MRMFeaturePickerFile.h
 MRMFeatureQCFile.h
 MS2File.h
@@ -54,7 +57,6 @@ MSNumpressCoder.h
 MSPFile.h
 MSPGenericFile.h
 MSstatsFile.h
-MascotInfile.h
 MascotGenericFile.h
 MascotRemoteQuery.h
 MascotXMLFile.h
@@ -63,7 +65,10 @@ MzDataFile.h
 MzMLFile.h
 MzQCFile.h
 MzTab.h
+MzTabBase.h
+MzTabM.h
 MzTabFile.h
+MzTabMFile.h
 MzXMLFile.h
 OMSFile.h
 OMSFileLoad.h
@@ -100,12 +105,15 @@ XTandemInfile.h
 XTandemXMLFile.h
 FileTypes.h
 MzIdentMLFile.h
-MzQuantMLFile.h
 TraMLFile.h
 XMassFile.h
 XQuestResultXMLFile.h
 ZlibCompression.h
 )
+
+if (WITH_HDF5)
+  list(APPEND sources_list_h HDF5Connector.h)  
+endif()
 
 ### add path to the filenames
 set(sources_h)

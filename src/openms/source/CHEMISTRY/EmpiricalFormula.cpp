@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow, Ahmed Khalil $
@@ -42,7 +16,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <boost/math/special_functions/binomial.hpp>
 
@@ -68,9 +42,7 @@ namespace OpenMS
     charge_ = charge;
   }
 
-  EmpiricalFormula::~EmpiricalFormula()
-  {
-  }
+  EmpiricalFormula::~EmpiricalFormula() = default;
 
   double EmpiricalFormula::getMonoWeight() const
   {
@@ -78,6 +50,18 @@ namespace OpenMS
     for (const auto& it : formula_)
     {
       weight += it.first->getMonoWeight() * (double)it.second;
+    }
+    return weight;
+  }
+
+  double EmpiricalFormula::getLightestIsotopeWeight() const
+  {
+    double weight = Constants::PROTON_MASS_U * charge_;
+    for (const auto& it : formula_)
+    {
+      // Isotopes should be filled sorted by mz in Elements, so we use
+      //  the first element instead of getMin()
+      weight += it.first->getIsotopeDistribution()[0].getMZ() * (double)it.second;
     }
     return weight;
   }
@@ -157,6 +141,43 @@ namespace OpenMS
 
     double remaining_mass = average_weight-getAverageWeight();
     SignedSize adjusted_H = Math::round(remaining_mass / db->getElement("H")->getAverageWeight());
+
+    // It's possible for a very small mass to get a negative value here.
+    if (adjusted_H < 0)
+    {
+      // The approximation can still be useful, but we set the return flag to false to explicitly notify the programmer.
+      return false;
+    }
+
+    // Only insert hydrogens if their number is not negative.
+    formula_.insert(make_pair(db->getElement("H"), adjusted_H));
+    // The approximation had no issues.
+    return true;
+  }
+
+  bool EmpiricalFormula::estimateFromMonoWeightAndComp(double mono_weight, double C, double H, double N, double O, double S, double P)
+  {
+    const ElementDB* db = ElementDB::getInstance();
+
+    double monoTotal = (C * db->getElement("C")->getMonoWeight() +
+                       H * db->getElement("H")->getMonoWeight() +
+                       N * db->getElement("N")->getMonoWeight() +
+                       O * db->getElement("O")->getMonoWeight() +
+                       S * db->getElement("S")->getMonoWeight() +
+                       P * db->getElement("P")->getMonoWeight());
+
+    double factor = mono_weight / monoTotal;
+
+    formula_.clear();
+
+    formula_.insert(make_pair(db->getElement("C"), (SignedSize) Math::round(C * factor)));
+    formula_.insert(make_pair(db->getElement("N"), (SignedSize) Math::round(N * factor)));
+    formula_.insert(make_pair(db->getElement("O"), (SignedSize) Math::round(O * factor)));
+    formula_.insert(make_pair(db->getElement("S"), (SignedSize) Math::round(S * factor)));
+    formula_.insert(make_pair(db->getElement("P"), (SignedSize) Math::round(P * factor)));
+
+    double remaining_mass = mono_weight-getMonoWeight();
+    SignedSize adjusted_H = Math::round(remaining_mass / db->getElement("H")->getMonoWeight());
 
     // It's possible for a very small mass to get a negative value here.
     if (adjusted_H < 0)
@@ -428,7 +449,7 @@ namespace OpenMS
     {
       if (!isalpha(formula[reverse_i]))
       {
-        suffix = formula[reverse_i] + suffix;
+        suffix.insert(0,1, formula[reverse_i]); // pre-pend
       }
       else
       {
@@ -510,40 +531,43 @@ namespace OpenMS
     }
 
     // split the formula
-    vector<String> splitter;
+    std::vector<std::string> splitter;
+    splitter.reserve(formula.size() / 2); // reasonable estimate for small formulae like C6H12O6
     if (!formula.empty())
     {
       if (!isdigit(formula[0]) || formula[0] == '(')
       {
         bool is_isotope(false), is_symbol(false);
-        String split;
-        for (Size i = 0; i < formula.size(); ++i)
+        bool char_is_upper, is_bracket;
+        std::string split;
+        for (const auto& curr : formula)
         {
-          if ((isupper(formula[i]) && (!is_isotope || is_symbol))
-             || formula[i] == '(')
+          char_is_upper = isupper(curr);
+          is_bracket = (curr == '(');
+          if ((char_is_upper && (!is_isotope || is_symbol)) || is_bracket)
           {
             if (!split.empty())
             {
-              splitter.push_back(split);
+              splitter.push_back(std::move(split));
               is_isotope = false;
               is_symbol = false;
             }
-            split = String(1, formula[i]);
+            split = curr;
           }
           else
           {
-            split += String(1, formula[i]);
+            split += curr;
           }
-          if (formula[i] == '(')
+          if (is_bracket)
           {
             is_isotope = true;
           }
-          if (isupper(formula[i]))
+          if (char_is_upper)
           {
             is_symbol = true;
           }
         }
-        splitter.push_back(split);
+        splitter.push_back(std::move(split));
       }
       else
       {
@@ -552,9 +576,10 @@ namespace OpenMS
     }
 
     // add up the elements
+    const ElementDB* db = ElementDB::getInstance();
     for (Size i = 0; i != splitter.size(); ++i)
     {
-      String split = splitter[i];
+      const String& split = splitter[i];
       String number;
       String symbol;
       bool had_symbol(false);
@@ -562,11 +587,11 @@ namespace OpenMS
       {
         if (!had_symbol && (isdigit(split[j]) || split[j] == '-'))
         {
-          number = split[j] + number;
+          number.insert(0,1, split[j]); // pre-pend
         }
         else
         {
-          symbol = split[j] + symbol;
+          symbol.insert(0,1, split[j]); // pre-pend
           had_symbol = true;
         }
       }
@@ -577,44 +602,12 @@ namespace OpenMS
         num = number.toInt();
       }
 
-      const ElementDB* db = ElementDB::getInstance();
-      // support D and T for Deuterium and Tritium
-      if (symbol == "D") // Deuterium is represented as (2)H in DB.
+      const Element* e = db->getElement(symbol);
+      if (e != nullptr)
       {
         if (num != 0)
         {
-          const Element* e = db->getElement("(2)H");
-          if (auto it = ef.find(e); it != ef.end())
-          {
-            it->second += num;
-          }
-          else
-          {
-            ef.insert({e, num});
-          }
-        }
-      }
-      else if (symbol == "T") // Tritium is represented as (3)H in DB
-      {
-        if (num != 0)
-        {
-          const Element* e = db->getElement("(3)H");
-          if (auto it = ef.find(e); it != ef.end())
-          {
-            it->second += num;
-          }
-          else
-          {
-            ef.insert({e, num});
-          }
-        }
-      } 
-      else if (db->hasElement(symbol))
-      {
-        if (num != 0)
-        {
-          const Element* e = db->getElement(symbol);
-          std::map<const Element*, SignedSize>::iterator it = ef.find(e);
+          auto it = ef.find(e);
           if (it != ef.end())
           {
             it->second += num;
@@ -632,7 +625,7 @@ namespace OpenMS
     }
 
     // remove elements with 0 counts
-    std::map<const Element*, SignedSize>::iterator it = ef.begin();
+    auto it = ef.begin();
     while (it != ef.end())
     {
       if (it->second == 0)

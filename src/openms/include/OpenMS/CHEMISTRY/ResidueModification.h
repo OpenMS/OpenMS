@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -45,9 +19,9 @@ namespace OpenMS
   // forward declaration
   class Residue;
 
-  /** @brief Representation of a modification
+  /** @brief Representation of a modification on an amino acid residue
 
-      This class represents a modification of a residue. A residue modification
+      This class represents a modification of a Residue. A residue modification
       has several attributes like the diff formula, a terminal specificity,
       a mass and maybe an origin which means a specific residue which it can
       be applied to. A residue modification can be represented by its Unimod name
@@ -56,12 +30,14 @@ namespace OpenMS
 
       Example: methionine sulfoxide formation by oxidation of methionine
 
+      @code
       Function              | Result
       ----------------------------------------------------
       getFullId()           | "Oxidation (M)"
       getId()               | "Oxidation"
       getFullName()         | "Oxidation or Hydroxylation"
       getUniModAccession()  | "UniMod:312"
+      @endcode
 
       Note that some modifications are not explicitly defined from an input
       file but get added on the fly when reading amino acid sequences with
@@ -94,11 +70,11 @@ public:
     */
     enum TermSpecificity
     {
-      ANYWHERE = 0,
-      C_TERM = 1,
-      N_TERM = 2,
-      PROTEIN_C_TERM = 3,
-      PROTEIN_N_TERM = 4,
+      ANYWHERE = 0,        ///< The modification can go anywhere
+      C_TERM = 1,          ///< The modification can only be C-terminal on the peptide
+      N_TERM = 2,          ///< The modification can only be N-terminal on the peptide
+      PROTEIN_C_TERM = 3,  ///< The modification can only be protein C-terminal (on a C-terminal peptide)
+      PROTEIN_N_TERM = 4,  ///< The modification can only be protein N-terminal (on a N-terminal peptide)
       NUMBER_OF_TERM_SPECIFICITY
     };
 
@@ -106,22 +82,22 @@ public:
     */
     enum SourceClassification
     {
-      ARTIFACT = 0,
-      HYPOTHETICAL,
-      NATURAL,
-      POSTTRANSLATIONAL,
-      MULTIPLE,
-      CHEMICAL_DERIVATIVE,
-      ISOTOPIC_LABEL,
-      PRETRANSLATIONAL,
-      OTHER_GLYCOSYLATION,
-      NLINKED_GLYCOSYLATION,
-      AA_SUBSTITUTION,
-      OTHER,
-      NONSTANDARD_RESIDUE,
-      COTRANSLATIONAL,
-      OLINKED_GLYCOSYLATION,
-      UNKNOWN,
+      ARTIFACT = 0,           ///< A technical or chemical artefact
+      HYPOTHETICAL,           ///< A hypothetical modification
+      NATURAL,                ///< A natural modification
+      POSTTRANSLATIONAL,      ///< A post-translational modification
+      MULTIPLE,               ///< A combination of multiple modifications
+      CHEMICAL_DERIVATIVE,    ///< A chemical derivative
+      ISOTOPIC_LABEL,         ///< A chemical label (artificial)
+      PRETRANSLATIONAL,       ///< A pre-translational modification
+      OTHER_GLYCOSYLATION,    ///<  Other glycosylation (i.e. neither N nor O-linked)
+      NLINKED_GLYCOSYLATION,  ///< N-linked glycosylation 
+      AA_SUBSTITUTION,        ///< An amino acid substitution that presents like a modification
+      OTHER,                  ///< Other modification
+      NONSTANDARD_RESIDUE,    ///< A non-standard amino acid
+      COTRANSLATIONAL,        ///< A co-translational modification
+      OLINKED_GLYCOSYLATION,  ///< A O-linked glycosylation
+      UNKNOWN,                ///< An unknown modification
       NUMBER_OF_SOURCE_CLASSIFICATIONS
     };
     //@}
@@ -347,7 +323,7 @@ public:
 
     //@}
 
-    /// Creates a new modification from a mass and adds it to ModificationDB.
+    /// Creates a new modification from a mass and adds it to ModificationsDB.
     /// If not terminal, needs a Residue to be put on.
 
     /// @param mod The mass to put between the brackets (might contain +/- at the front)
@@ -392,7 +368,7 @@ public:
     /// The mono_mass must not be negative (undistinguishable to delta_mono_mass when parsing)
     String toString() const;
 
-    /// converts the mass to a string with preceeding '+' or '-' sign
+    /// converts the mass to a string with preceding '+' or '-' sign
     /// e.g. '-19.34' or '+1.003'
     static String getDiffMonoMassString(const double diff_mono_mass);
 

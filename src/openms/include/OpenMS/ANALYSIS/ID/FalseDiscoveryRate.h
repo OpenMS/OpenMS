@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -60,7 +34,7 @@ namespace OpenMS
 
     Only simple target-decoy FDRs are supported with a formula depending on the "conservative" parameter:
     - false: (D+1)/T.
-    - true: (D+1)/(T+D) [for comparison with protein level FDR in Fido mostly]
+    - true: (D+1)/(T+D) [for comparison with protein level FDR used by other tools like e.g., Fido]
     For protein groups, a group is considered as a target when it contains at least one target protein.
     Group level FDRs assume the same score type as on protein level.
 
@@ -90,11 +64,12 @@ public:
     void apply(std::vector<PeptideIdentification>& fwd_ids, std::vector<PeptideIdentification>& rev_ids) const;
 
     /**
-    @brief Calculates the FDR of one run from a concatenated sequence DB search
+    @brief Calculates the FDR of one run from a concatenated sequence DB search.    
 
     @param id peptide identifications, containing target and decoy hits
+    @param annotate_peptide_fdr adds the peptide q-value or peptide fdr meta value to each PSM. Calculation uses best PSM per peptide.
     */
-    void apply(std::vector<PeptideIdentification>& id) const;
+    void apply(std::vector<PeptideIdentification>& id, bool annotate_peptide_fdr = false) const;
 
     /**
     @brief Calculates the FDR of two runs, a forward run and decoy run on protein level
@@ -150,8 +125,17 @@ public:
     */
     double applyEvaluateProteinIDs(ScoreToTgtDecLabelPairs& score_to_tgt_dec_fraction_pairs, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2) const;
 
-    /// simpler reimplementation of the apply function above.
-    void applyBasic(std::vector<PeptideIdentification> & ids);
+    /// simpler reimplementation of the apply function above for PSMs. With charge and identifier info from @p run_info
+    void applyBasic(const std::vector<ProteinIdentification> & run_info, std::vector<PeptideIdentification> & ids);
+
+    /// simpler reimplementation of the apply function above for PSMs or peptides.
+    void applyBasic(std::vector<PeptideIdentification> & ids, bool higher_score_better, int charge = 0, String identifier = "", bool only_best_per_pep = false);
+    /// like applyBasic with "only_best_per_peptide" but it assigns a score to EVERY PSM sharing the peptide sequence with the
+    /// best representative. Useful if all hits need to have a peptide score (e.g., for mzTab report). No support for specific charges, runs etc. yet
+    void applyBasicPeptideLevel(std::vector<PeptideIdentification> & ids);
+    /// like applyBasic with "only_best_per_peptide" but it assigns a score to EVERY PSM sharing the peptide sequence with the
+    /// best representative. Useful if all hits need to have a peptide score (e.g., for mzTab report). No support for specific charges, runs etc. yet
+    void applyBasicPeptideLevel(ConsensusMap & ids, bool use_unassigned_peptides = true);
     /// simpler reimplementation of the apply function above for peptides in ConsensusMaps.
     void applyBasic(ConsensusMap & cmap, bool use_unassigned_peptides = true);
     /// simpler reimplementation of the apply function above for proteins.
@@ -176,13 +160,13 @@ public:
     /// if fp_cutoff = 0, it will calculate the full AUC. Restricted to IDs from a specific ID run.
     double rocN(const std::vector<PeptideIdentification>& ids, Size fp_cutoff, const String& identifier) const;
 
-    /// calculates the AUC until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
+    /// calculates the AUC until the first @p fp_cutoff False positive pep IDs (takes all runs together)
     /// if fp_cutoff = 0, it will calculate the full AUC
-    double rocN(const ConsensusMap& ids, Size fp_cutoff) const;
+    double rocN(const ConsensusMap& ids, Size fp_cutoff, bool include_unassigned_peptides = false) const;
 
-    /// calculates the AUC until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
-    /// if fp_cutoff = 0, it will calculate the full AUC. Restricted to IDs from a specific ID run.
-    double rocN(const ConsensusMap& ids, Size fp_cutoff, const String& identifier) const;
+    /// calculates the AUC until the first @p fp_cutoff False positive pep IDs.
+    /// if fp_cutoff = 0, it will calculate the full AUC. Restricted to IDs from a specific ID run with @p identifier.
+    double rocN(const ConsensusMap& ids, Size fp_cutoff, const String& identifier, bool include_unassigned_peptides = false) const;
 
     //TODO the next two methods could potentially be merged for speed (they iterate over the same structure)
     //But since they have different cutoff types and it is more generic, I leave it like this.
@@ -197,7 +181,7 @@ public:
        @brief Calculate FDR on the level of observation matches (e.g. peptide-spectrum matches) for "general" identification data
 
        @param id_data Identification data
-       @param score_key Key of the score to use for FDR calculation
+       @param score_ref Key of the score to use for FDR calculation
 
        @return Key of the FDR score
     */

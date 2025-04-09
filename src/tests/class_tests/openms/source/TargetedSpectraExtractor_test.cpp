@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
@@ -764,6 +738,49 @@ START_SECTION(void extractSpectra(
 }
 END_SECTION
 
+START_SECTION(void extractSpectra(
+  const MSExperiment& experiment,
+  const FeatureMap& ms1_features,
+  std::vector<MSSpectrum>& extracted_spectra,
+  FeatureMap& extracted_features,
+  const bool compute_features) const)
+{
+  TargetedSpectraExtractor tse;
+  Param params = tse.getParameters();
+  params.setValue("min_select_score", 15.0);
+  params.setValue("GaussFilter:gaussian_width", 0.25);
+  params.setValue("peak_height_min", 15000.0);
+  params.setValue("peak_height_max", 110000.0);
+  params.setValue("fwhm_threshold", 0.23);
+  tse.setParameters(params);
+
+  const String msp_path = OPENMS_GET_TEST_DATA_PATH("Germicidin_A_standard.msp");
+  MSExperiment spectrum;
+  MSPGenericFile mse(msp_path, spectrum);
+  for (OpenMS::MSSpectrum& spec : spectrum)
+  {
+    spec.setMSLevel(2);
+  }
+
+  const String featurexml_path = OPENMS_GET_TEST_DATA_PATH("Germicidin_A_standard.featureXML");
+  OpenMS::FeatureXMLFile featurexml;
+  OpenMS::FeatureMap ms1_features;
+  featurexml.load(featurexml_path, ms1_features);
+
+  std::vector<OpenMS::MSSpectrum> annotated_spectra;
+  OpenMS::FeatureMap extracted_features;
+  tse.extractSpectra(spectrum, ms1_features, annotated_spectra, extracted_features);
+
+  TEST_EQUAL(annotated_spectra.size(), 1)
+  TEST_EQUAL(annotated_spectra.front().getName(), "HMDB:HMDB0000001")
+
+  TEST_EQUAL(extracted_features.size(), 1)
+  const auto& extracted_feature = extracted_features[0];
+  TEST_EQUAL(extracted_feature.getRT(), 391.75)
+  TEST_REAL_SIMILAR(extracted_feature.getIntensity(), 90780.0f)
+}
+END_SECTION
+
 START_SECTION(void matchSpectrum(
   const MSSpectrum& input_spectrum,
   const MSExperiment& library,
@@ -994,6 +1011,7 @@ START_SECTION(mergeFeatures(const OpenMS::FeatureMap& fmap_input, OpenMS::Featur
   f1.setUniqueId();
   std::vector<String> identifier1{"ident1"};
   f1.setMetaValue("identifier", identifier1);
+  f1.setMetaValue("PeptideRef", "PeptideRef1");
   f1.setIntensity(1);
   f1.setMZ(10);
   f1.setRT(100);
@@ -1003,15 +1021,17 @@ START_SECTION(mergeFeatures(const OpenMS::FeatureMap& fmap_input, OpenMS::Featur
   f2.setUniqueId();
   std::vector<String> identifier2{"ident1", "ident2"};
   f2.setMetaValue("identifier", identifier2);
+  f2.setMetaValue("PeptideRef", "PeptideRef1");
   f2.setIntensity(2);
   f2.setMZ(20);
-  f2.setRT(200);
+  f2.setRT(100);
   features.push_back(f2);
 
   OpenMS::Feature f3;
   f3.setUniqueId();
   std::vector<String> identifier3{"ident3"};
   f3.setMetaValue("identifier", identifier3);
+  f3.setMetaValue("PeptideRef", "PeptideRef3");
   f3.setIntensity(3);
   f3.setMZ(30);
   f3.setRT(300);
@@ -1023,9 +1043,9 @@ START_SECTION(mergeFeatures(const OpenMS::FeatureMap& fmap_input, OpenMS::Featur
   TEST_EQUAL(merged_features.size(), 2)
 
   const auto& merged_f1 = merged_features[0];
-  TEST_EQUAL(merged_f1.getMetaValue("PeptideRef"), "ident1");
+  TEST_EQUAL(merged_f1.getMetaValue("PeptideRef"), "PeptideRef1");
   TEST_REAL_SIMILAR(merged_f1.getMZ(), 16.6667);
-  TEST_REAL_SIMILAR(merged_f1.getRT(), 166.667);
+  TEST_REAL_SIMILAR(merged_f1.getRT(), 100.00);
   TEST_EQUAL(merged_f1.getSubordinates().size(), 2);
 
   const auto& merged_f1_sub1 = merged_f1.getSubordinates().at(0);
@@ -1036,10 +1056,10 @@ START_SECTION(mergeFeatures(const OpenMS::FeatureMap& fmap_input, OpenMS::Featur
   const auto& merged_f1_sub2 = merged_f1.getSubordinates().at(1);
   TEST_EQUAL(merged_f1_sub2.getMetaValue("identifier"), identifier2);
   TEST_REAL_SIMILAR(merged_f1_sub2.getMZ(), 20.0);
-  TEST_REAL_SIMILAR(merged_f1_sub2.getRT(), 200.0);
+  TEST_REAL_SIMILAR(merged_f1_sub2.getRT(), 100.0);
 
   const auto& merged_f2 = merged_features[1];
-  TEST_EQUAL(merged_f2.getMetaValue("PeptideRef"), "ident3");
+  TEST_EQUAL(merged_f2.getMetaValue("PeptideRef"), "PeptideRef3");
   TEST_REAL_SIMILAR(merged_f2.getMZ(), 30.0);
   TEST_REAL_SIMILAR(merged_f2.getRT(), 300.0);
   TEST_EQUAL(merged_f2.getSubordinates().size(), 1);
@@ -1100,7 +1120,7 @@ START_SECTION(annotateSpectra(const std::vector<MSSpectrum>& spectra, const Feat
   const auto& ms2_f1 = ms2_features[0];
   TEST_REAL_SIMILAR(ms2_f1.getMZ(), 0.0)
   TEST_REAL_SIMILAR(ms2_f1.getRT(), 100.0)
-  TEST_EQUAL(ms2_f1.getMetaValue("transition_name"), "ident1")
+  TEST_EQUAL(ms2_f1.getMetaValue("PeptideRef"), "ident1")
   TEST_EQUAL(ms2_f1.getSubordinates().size(), 0)
 
   TEST_EQUAL(annotated_spectra.size(), 1)
@@ -1110,7 +1130,7 @@ START_SECTION(annotateSpectra(const std::vector<MSSpectrum>& spectra, const Feat
 }
 END_SECTION
 
-START_SECTION(storeSpectraTraML(const String& filename, const OpenMS::FeatureMap& ms1_features, const OpenMS::FeatureMap& ms2_features) const)
+START_SECTION(constructTransitionsList(const String& filename, const OpenMS::FeatureMap& ms1_features, const OpenMS::FeatureMap& ms2_features) const)
 {
   OpenMS::FeatureMap ms1_features;
   OpenMS::Feature ms1_f1;
@@ -1130,7 +1150,7 @@ START_SECTION(storeSpectraTraML(const String& filename, const OpenMS::FeatureMap
   std::vector<OpenMS::Feature> ms2_subs1;
   OpenMS::Feature ms2_f1_sub1;
   ms2_f1_sub1.setUniqueId();
-  ms2_f1_sub1.setMetaValue("transition_name", "ident1");
+  ms2_f1_sub1.setMetaValue("PeptideRef", "ident1");
   ms2_f1_sub1.setMetaValue("native_id", "ms2_f1_sub1");
   ms2_f1_sub1.setIntensity(2);
   ms2_f1_sub1.setMZ(9);
@@ -1138,7 +1158,7 @@ START_SECTION(storeSpectraTraML(const String& filename, const OpenMS::FeatureMap
   ms2_subs1.push_back(ms2_f1_sub1);
   OpenMS::Feature ms2_f1_sub2;
   ms2_f1_sub2.setUniqueId();
-  ms2_f1_sub2.setMetaValue("transition_name", "ident1");
+  ms2_f1_sub2.setMetaValue("PeptideRef", "ident1");
   ms2_f1_sub2.setMetaValue("native_id", "ms2_f1_sub2");
   ms2_f1_sub2.setIntensity(2);
   ms2_f1_sub2.setMZ(29);
@@ -1147,20 +1167,14 @@ START_SECTION(storeSpectraTraML(const String& filename, const OpenMS::FeatureMap
   ms2_f1.setSubordinates(ms2_subs1);
   ms2_features.push_back(ms2_f1);
 
-  String output_filepath;
-  NEW_TMP_FILE(output_filepath)
   TargetedSpectraExtractor targeted_spectra_extractor;
-  targeted_spectra_extractor.storeSpectraTraML(output_filepath, ms1_features, ms2_features);
-
-  // read back the file
-  TraMLFile traml_file;
   TargetedExperiment t_exp;
-  traml_file.load(output_filepath, t_exp);
+  targeted_spectra_extractor.constructTransitionsList(ms1_features, ms2_features, t_exp);
 
   TEST_EQUAL(t_exp.getTransitions().size(), 1)
   const auto& transition = t_exp.getTransitions()[0];
   TEST_EQUAL(transition.getPeptideRef(), "ident1");
-  TEST_EQUAL(transition.getMetaValue("transition_name"), "ident1");
+  TEST_EQUAL(transition.getMetaValue("PeptideRef"), "ident1");
   TEST_EQUAL(transition.getMetaValue("native_id"), "ms2_f1_sub1");
 }
 END_SECTION
@@ -1188,7 +1202,7 @@ START_SECTION(void TargetedSpectraExtractor::storeSpectraMSP(const String& filen
   spectra.push_back(spectr1);
   
   String output_filepath;
-  NEW_TMP_FILE(output_filepath)
+  NEW_TMP_FILE_EXT(output_filepath, ".msp")
 
   experiment.setSpectra(spectra);
   TargetedSpectraExtractor targeted_spectra_extractor;

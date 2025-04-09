@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -43,6 +17,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/KERNEL/AnnotatedMSRawData.h>
 
 ///////////////////////////
 
@@ -126,7 +101,8 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>
   fm.setProteinIdentifications(prids);
 
   // create experiment
-  PeakMap experiment;
+  AnnotatedMSRawData annotated_experiment;
+  MSExperiment& experiment = annotated_experiment.getMSExperiment();
   MSSpectrum spectrum;
   Precursor precursor;
   precursor.setMZ(0);
@@ -152,35 +128,35 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>
   mapper.setParameters(p);
 
 
-  mapper.annotate(experiment, fm, true, true);
+  mapper.annotate(annotated_experiment, fm, true, true);
 
   //test
-  TEST_EQUAL(experiment.getProteinIdentifications().size(), 2)
+  TEST_EQUAL(annotated_experiment.getProteinIdentifications().size(), 2)
   //scan 1
-  TEST_EQUAL(experiment[0].getPeptideIdentifications().size(), 2)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(0).size(), 2)
   //scan 2
-  TEST_EQUAL(experiment[1].getPeptideIdentifications().size(), 2)
-  ABORT_IF(experiment[1].getPeptideIdentifications().size() != 2)
-  TEST_EQUAL(experiment[1].getPeptideIdentifications()[0].getHits().size(), 4)
-  TEST_EQUAL(experiment[1].getPeptideIdentifications()[0].getMZ(), 900.0)
-  TEST_EQUAL(experiment[1].getPeptideIdentifications()[1].getHits().size(), 4)
-  TEST_EQUAL(experiment[1].getPeptideIdentifications()[1].getMZ(), 800.0)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1).size(), 2)
+  ABORT_IF(annotated_experiment.getPeptideIdentifications(1).size() != 2)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1)[0].getHits().size(), 4)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1)[0].getMZ(), 900.0)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1)[1].getHits().size(), 4)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1)[1].getMZ(), 800.0)
   //scan 3
-  TEST_EQUAL(experiment[2].getPeptideIdentifications().size(), 0)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(2).size(), 0)
 
-  mapper.annotate(experiment, fm, true, false); // no MS1 mapping. MZ threshold never fulfilled
+  mapper.annotate(annotated_experiment, fm, true, false); // no MS1 mapping. MZ threshold never fulfilled
   //test
-  TEST_EQUAL(experiment.getProteinIdentifications().size(), 2)
+  TEST_EQUAL(annotated_experiment.getProteinIdentifications().size(), 2)
   //scan 1
-  TEST_EQUAL(experiment[0].getPeptideIdentifications().size(), 0)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(0).size(), 0)
   //scan 2
-  TEST_EQUAL(experiment[1].getPeptideIdentifications().size(), 0)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1).size(), 0)
   //scan 3
-  TEST_EQUAL(experiment[2].getPeptideIdentifications().size(), 0)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(2).size(), 0)
 
 END_SECTION
 
-START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)))
+START_SECTION((template <typename PeakType> void annotate(AnnotatedMSRawData& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)))
   // load id
   vector<PeptideIdentification> identifications;
   vector<ProteinIdentification> protein_identifications;
@@ -208,7 +184,8 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>
 
   // TEST RT MAPPING
   // create experiment
-  PeakMap experiment;
+  AnnotatedMSRawData annotated_experiment;
+  MSExperiment & experiment = annotated_experiment.getMSExperiment();
   MSSpectrum spectrum;
   Precursor precursor;
   precursor.setMZ(0);
@@ -232,31 +209,33 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>
   p.setValue("mz_measure","Da");
   p.setValue("ignore_charge", "true");
   mapper.setParameters(p);
+  
 
-  mapper.annotate(experiment, identifications, protein_identifications);
+  mapper.annotate(annotated_experiment, identifications, protein_identifications);
 
   //test
-  TEST_EQUAL(experiment.getProteinIdentifications().size(), 1)
-  TEST_EQUAL(experiment.getProteinIdentifications()[0].getHits().size(),2)
-  TEST_EQUAL(experiment.getProteinIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
-  TEST_EQUAL(experiment.getProteinIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
+  TEST_EQUAL(annotated_experiment.getProteinIdentifications().size(), 1)
+  TEST_EQUAL(annotated_experiment.getProteinIdentifications()[0].getHits().size(),2)
+  TEST_EQUAL(annotated_experiment.getProteinIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
+  TEST_EQUAL(annotated_experiment.getProteinIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
   //scan 1
-  TEST_EQUAL(experiment[0].getPeptideIdentifications().size(), 1)
-  TEST_EQUAL(experiment[0].getPeptideIdentifications()[0].getHits().size(), 2)
-  TEST_EQUAL(experiment[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
-  TEST_EQUAL(experiment[0].getPeptideIdentifications()[0].getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(0).size(), 1)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(0)[0].getHits().size(), 2)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(0)[0].getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(0)[0].getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
   //scan 2
-  TEST_EQUAL(experiment[1].getPeptideIdentifications().size(), 0)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1).size(), 0)
   //scan 3
-  TEST_EQUAL(experiment[2].getPeptideIdentifications().size(), 1)
-  TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits().size(), 1)
-  TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("HSKLSAK"))
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(2).size(), 1)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(2)[0].getHits().size(), 1)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(2)[0].getHits()[0].getSequence(), AASequence::fromString("HSKLSAK"))
 
   //-----------------------------------------------------------------------------------
   // TEST NATIVE_ID MAPPING
 
   // create experiment
-  PeakMap experiment2;
+  AnnotatedMSRawData annotated_experiment2;
+  MSExperiment& experiment2 = annotated_experiment2.getMSExperiment();  
   MSSpectrum spectrum2;
   Precursor precursor2;
   precursor2.setMZ(0);
@@ -283,24 +262,24 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>
   p2.setValue("ignore_charge", "true");
   mapper2.setParameters(p2);
 
-  mapper2.annotate(experiment2, identifications2, protein_identifications2);
+  mapper2.annotate(annotated_experiment2, identifications2, protein_identifications2);
 
   //test
-  TEST_EQUAL(experiment2.getProteinIdentifications().size(), 1)
-  TEST_EQUAL(experiment2.getProteinIdentifications()[0].getHits().size(),2)
-  TEST_EQUAL(experiment2.getProteinIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
-  TEST_EQUAL(experiment2.getProteinIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
+  TEST_EQUAL(annotated_experiment2.getProteinIdentifications().size(), 1)
+  TEST_EQUAL(annotated_experiment2.getProteinIdentifications()[0].getHits().size(),2)
+  TEST_EQUAL(annotated_experiment2.getProteinIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
+  TEST_EQUAL(annotated_experiment2.getProteinIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
   //scan 1
-  TEST_EQUAL(experiment2[0].getPeptideIdentifications().size(), 1)
-  TEST_EQUAL(experiment2[0].getPeptideIdentifications()[0].getHits().size(), 2)
-  TEST_EQUAL(experiment2[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
-  TEST_EQUAL(experiment2[0].getPeptideIdentifications()[0].getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
+  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications(0).size(), 1)
+  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications(0)[0].getHits().size(), 2)
+  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications(0)[0].getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
+  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications(0)[0].getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
   //scan 2
-  TEST_EQUAL(experiment2[1].getPeptideIdentifications().size(), 0)
+  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications(1).size(), 0)
   //scan 3
-  TEST_EQUAL(experiment2[2].getPeptideIdentifications().size(), 1)
-  TEST_EQUAL(experiment2[2].getPeptideIdentifications()[0].getHits().size(), 1)
-  TEST_EQUAL(experiment2[2].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("HSKLSAK"))
+  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications(2).size(), 1)
+  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications(2)[0].getHits().size(), 1)
+  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications(2)[0].getHits()[0].getSequence(), AASequence::fromString("HSKLSAK"))
 
 END_SECTION
 
@@ -601,7 +580,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
   experiment.clear(true);
 
 
-  // only 5 should be in the 0.01 Da tolerance (every second entry is to much off)
+  // only 5 should be in the 0.01 Da tolerance (every second entry is too much off)
   double mzs_5_mismatch[10] = { 426.85899, 405, 506.815, 484.85, 496.244, 430, 446.081, 453, 400.172, 437.239 }; 
 
   for (Size i = 0; i != 10; ++i)

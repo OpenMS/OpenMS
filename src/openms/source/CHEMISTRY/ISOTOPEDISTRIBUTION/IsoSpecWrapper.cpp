@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: $
@@ -48,8 +22,9 @@
 #define ISOSPEC_GOT_MMAN false
 #define ISOSPEC_BUILDING_OPENMS true
 
-#include <OpenMS/../../thirdparty/IsoSpec/IsoSpec/isoSpec++.h>
-
+// TODO Fix this weird way of including. Just make a library out of it,
+//  link to it and declare it PUBLIC such that it gets linked to dependents of OpenMS lib
+// But since it is PUBLIC, you should export the library also for installation (see evergreen thirdparty)
 #include "IsoSpec/allocator.cpp"
 #include "IsoSpec/dirtyAllocator.cpp"
 #include "IsoSpec/isoSpec++.cpp"
@@ -65,10 +40,11 @@ using namespace IsoSpec;
 
 namespace OpenMS
 {
+  /// Convert an set of isotope probabiities to IsoSpec input
   Iso _OMS_IsoFromParameters(const std::vector<int>& isotopeNr,
-                    const std::vector<int>& atomCounts,
-                    const std::vector<std::vector<double> >& isotopeMasses,
-                    const std::vector<std::vector<double> >& isotopeProbabilities)
+                             const std::vector<int>& atomCounts,
+                             const std::vector<std::vector<double> >& isotopeMasses,
+                             const std::vector<std::vector<double> >& isotopeProbabilities)
   {
     OPENMS_PRECONDITION(isotopeNr.size() == atomCounts.size(), "Vectors need to be of the same size")
     OPENMS_PRECONDITION(isotopeNr.size() == isotopeMasses.size(), "Vectors need to be of the same size")
@@ -88,18 +64,21 @@ namespace OpenMS
     // Convert vector of vector to double**
     std::unique_ptr<const double*[]> IM(new const double*[dimNumber]);
     std::unique_ptr<const double*[]> IP(new const double*[dimNumber]);
-    for (int i=0; i<dimNumber; i++)
+    for (int i = 0; i < dimNumber; i++)
     {
       IM[i] = isotopeMasses[i].data();
       IP[i] = isotopeProbabilities[i].data();
     }
 
+    // IsoSpec will *copy* these values, so once provided we are safe to
+    // destroy them here on the OpenMS side
     Iso ret(dimNumber, isotopeNr.data(), atomCounts.data(), IM.get(), IP.get());
     
     return ret;
   }
 
-    Iso _OMS_IsoFromEmpiricalFormula(const EmpiricalFormula& formula) 
+  /// Convert an OpenMS EmpiricalFormula to the input format for IsoSpec
+  Iso _OMS_IsoFromEmpiricalFormula(const EmpiricalFormula& formula) 
   {
     // Use our own isotopic tables
     std::vector<int> isotopeNumbers, atomCounts;
@@ -332,5 +311,5 @@ namespace OpenMS
     IsotopeDistribution ID;
     ID.set(std::move(distribution));
     return ID;
-}
+  }
 }  // namespace OpenMS

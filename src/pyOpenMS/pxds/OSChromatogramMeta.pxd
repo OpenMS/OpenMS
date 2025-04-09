@@ -4,8 +4,8 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace 
     
     cdef cppclass OSChromatogramMeta "OpenSwath::OSChromatogramMeta":
 
-        OSChromatogramMeta() nogil except + # TODO
-        OSChromatogramMeta(OSChromatogramMeta &) nogil except + # compiler
+        OSChromatogramMeta() except + nogil  # TODO
+        OSChromatogramMeta(OSChromatogramMeta &) except + nogil  # compiler
 
         size_t index
         libcpp_string id

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -33,11 +7,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
 
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
@@ -54,7 +30,7 @@ START_TEST(OMSFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-String oms_path;
+String oms_tmp;
 IdentificationData ids;
 
 START_SECTION(void store(const String& filename, const IdentificationData& id_data))
@@ -73,17 +49,16 @@ START_SECTION(void store(const String& filename, const IdentificationData& id_da
   match.adduct_opt = adduct_ref;
   ids.registerObservationMatch(match);
 
-  NEW_TMP_FILE(oms_path);
-  // oms_path = OPENMS_GET_TEST_DATA_PATH("OMSFile_test_1.oms");
-  OMSFile().store(oms_path, ids);
-  TEST_EQUAL(File::empty(oms_path), false);
+  NEW_TMP_FILE(oms_tmp);
+  OMSFile().store(oms_tmp, ids);
+  TEST_EQUAL(File::empty(oms_tmp), false);
 }
 END_SECTION
 
 START_SECTION(void load(const String& filename, IdentificationData& id_data))
 {
   IdentificationData out;
-  OMSFile().load(oms_path, out);
+  OMSFile().load(oms_tmp, out);
 
   TEST_EQUAL(ids.getInputFiles().size(), out.getInputFiles().size());
   TEST_EQUAL(ids.getScoreTypes().size(), out.getScoreTypes().size());
@@ -130,7 +105,7 @@ END_SECTION
 START_SECTION(void store(const String& filename, const FeatureMap& features))
 {
   FeatureMap features;
-  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), features);
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFileOMStest_1.featureXML"), features);
   // protein and peptide IDs use same score type (name) with different orientations;
   // IdentificationData doesn't allow this, so change it here:
   for (auto& run : features.getProteinIdentifications())
@@ -139,24 +114,109 @@ START_SECTION(void store(const String& filename, const FeatureMap& features))
   }
   IdentificationDataConverter::importFeatureIDs(features);
 
-  oms_path = OPENMS_GET_TEST_DATA_PATH("OMSFile_test_2.oms");
-  // NEW_TMP_FILE(oms_path);
-  OMSFile().store(oms_path, features);
-  TEST_EQUAL(File::empty(oms_path), false);
+  NEW_TMP_FILE(oms_tmp);
+  OMSFile().store(oms_tmp, features);
+  TEST_EQUAL(File::empty(oms_tmp), false);
 }
 END_SECTION
 
 START_SECTION(void load(const String& filename, FeatureMap& features))
 {
   FeatureMap features;
-  OMSFile().load(oms_path, features);
+  OMSFile().load(oms_tmp, features);
 
   TEST_EQUAL(features.size(), 2);
-  TEST_EQUAL(features[0].getSubordinates().size(), 2);
+  TEST_EQUAL(features.at(0).getSubordinates().size(), 2);
 
   IdentificationDataConverter::exportFeatureIDs(features);
-  FeatureXMLFile().store(OPENMS_GET_TEST_DATA_PATH("OMSFile_test_2.featureXML"),
-                         features);
+  // sort for reproducibility
+  auto& proteins = features.getProteinIdentifications();
+  for (auto& protein : proteins)
+  {
+    protein.sort();
+  }
+  auto& un_peptides = features.getUnassignedPeptideIdentifications();
+  for (auto& un_pep : un_peptides)
+  {
+    un_pep.sort();
+  }
+  //features.setProteinIdentifications(proteins);
+  //features.setUnassignedPeptideIdentifications(un_peptides);
+  features.sortByPosition();
+
+  String fxml_tmp;
+  NEW_TMP_FILE(fxml_tmp);
+  FeatureXMLFile().store(fxml_tmp, features);
+
+  FuzzyStringComparator fsc;
+  fsc.setAcceptableRelative(1.001);
+  fsc.setAcceptableAbsolute(1);
+  StringList sl;
+  sl.push_back("xml-stylesheet");
+  sl.push_back("UnassignedPeptideIdentification");
+  fsc.setWhitelist(sl);
+
+  TEST_EQUAL(fsc.compareFiles(fxml_tmp, OPENMS_GET_TEST_DATA_PATH("OMSFile_test_2.featureXML")), true);
+}
+END_SECTION
+
+START_SECTION(void store(const String& filename, const ConsensusMap& consensus))
+{
+  ConsensusMap consensus;
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), consensus);
+  // protein and peptide IDs use same score type (name) with different orientations;
+  // IdentificationData doesn't allow this, so change it here:
+  for (auto& run : consensus.getProteinIdentifications())
+  {
+    run.setScoreType(run.getScoreType() + "_protein");
+  }
+  IdentificationDataConverter::importConsensusIDs(consensus);
+
+  NEW_TMP_FILE(oms_tmp);
+  OMSFile().store(oms_tmp, consensus);
+  TEST_EQUAL(File::empty(oms_tmp), false);
+}
+END_SECTION
+
+START_SECTION(void load(const String& filename, ConsensusMap& consensus))
+{
+  ConsensusMap consensus;
+  OMSFile().load(oms_tmp, consensus);
+
+  TEST_EQUAL(consensus.size(), 6);
+  TEST_EQUAL(consensus.at(0).getFeatures().size(), 1);
+  TEST_EQUAL(consensus.at(1).getFeatures().size(), 2);
+
+  IdentificationDataConverter::exportConsensusIDs(consensus);
+  // sort for reproducibility
+  auto& proteins = consensus.getProteinIdentifications();
+  for (auto& protein : proteins)
+  {
+    protein.sort();
+  }
+  auto& un_peptides = consensus.getUnassignedPeptideIdentifications();
+  for (auto& un_pep : un_peptides)
+  {
+    un_pep.sort();
+  }
+  consensus.sortByPosition();
+
+  String cxml_tmp;
+  NEW_TMP_FILE(cxml_tmp);
+  ConsensusXMLFile().store(cxml_tmp, consensus);
+  TEST_EQUAL(File::empty(cxml_tmp), false);
+
+  /*
+  FuzzyStringComparator fsc;
+  fsc.setAcceptableRelative(1.001);
+  fsc.setAcceptableAbsolute(1);
+  StringList sl;
+  sl.push_back("xml-stylesheet");
+  sl.push_back("UnassignedPeptideIdentification");
+  fsc.setWhitelist(sl);
+
+  TEST_EQUAL(fsc.compareFiles(cxml_tmp, OPENMS_GET_TEST_DATA_PATH("OMSFile_test_2.consensusXML")), true);
+  */
 }
 END_SECTION
 

@@ -3,6 +3,7 @@ set(directory source/CHEMISTRY)
 
 ### list all filenames of the directory here
 set(sources_list
+AAIndex.cpp
 AASequence.cpp
 AdductInfo.cpp
 CrossLinksDB.cpp
@@ -10,7 +11,6 @@ DecoyGenerator.cpp
 Element.cpp
 ElementDB.cpp
 EmpiricalFormula.cpp
-EnzymaticDigestionLogModel.cpp
 EnzymaticDigestion.cpp
 DigestionEnzyme.cpp
 DigestionEnzymeProtein.cpp
@@ -34,13 +34,9 @@ Ribonucleotide.cpp
 RibonucleotideDB.cpp
 SpectrumAnnotator.cpp
 SimpleTSGXLMS.cpp
-SvmTheoreticalSpectrumGenerator.cpp
-SvmTheoreticalSpectrumGeneratorTrainer.cpp
-SvmTheoreticalSpectrumGeneratorSet.cpp
 Tagger.cpp
 TheoreticalSpectrumGenerator.cpp
 TheoreticalSpectrumGeneratorXLMS.cpp
-WeightWrapper.cpp
 )
 
 ### add path to the filenames

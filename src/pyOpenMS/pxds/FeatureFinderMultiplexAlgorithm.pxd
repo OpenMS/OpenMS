@@ -4,22 +4,21 @@ from FeatureMap cimport *
 from MSExperiment cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
-from FeatureFinder cimport *
 from ConsensusMap cimport *
 from DefaultParamHandler cimport *
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>" namespace "OpenMS":
 
     cdef cppclass FeatureFinderMultiplexAlgorithm(DefaultParamHandler):
 
         # wrap-inherits:
-        #    DefaultParamHandler
-        FeatureFinderMultiplexAlgorithm() nogil except +
+        #   DefaultParamHandler
+        FeatureFinderMultiplexAlgorithm() except + nogil 
 
-        FeatureFinderMultiplexAlgorithm(FeatureFinderMultiplexAlgorithm &) nogil except + # compiler
+        FeatureFinderMultiplexAlgorithm(FeatureFinderMultiplexAlgorithm &) except + nogil  # compiler
 
-        void run(MSExperiment& exp, bool progress) nogil except + # wrap-doc:Main method for feature detection
+        void run(MSExperiment& exp, bool progress) except + nogil  # wrap-doc:Main method for feature detection
 
-        FeatureMap getFeatureMap() nogil except + # TODO
+        FeatureMap getFeatureMap() except + nogil  # TODO
 
-        ConsensusMap getConsensusMap() nogil except + # TODO
+        ConsensusMap getConsensusMap() except + nogil  # TODO

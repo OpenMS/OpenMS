@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -108,7 +82,7 @@ namespace OpenMS
   Fields indicated with * are strictly required to create a TraML file. Fields
   indicated with ** are recommended, but only required for a specific
   application (such as using the transition list for an analysis tool such as
-  \ref UTILS_OpenSwathWorkflow) or in a specific context (proteomics or metabolomics).
+  \ref TOPP_OpenSwathWorkflow) or in a specific context (proteomics or metabolomics).
 
 <p>
 Remarks:
@@ -268,10 +242,10 @@ private:
     void readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list);
 
     /// Extract retention time from a SpectraST comment string
-    void spectrastRTExtract(const String str_inp, double & value, bool & spectrast_legacy);
+    void spectrastRTExtract(const String& str_inp, double & value, bool & spectrast_legacy);
 
     /// Extract annotation from a SpectraST comment string
-    bool spectrastAnnotationExtract(const String str_inp, TSVTransition & mytransition);
+    bool spectrastAnnotationExtract(const String& str_inp, TSVTransition & mytransition);
 
     /** @brief Cleanup of the read fields (removing quotes etc.)
     */
@@ -302,12 +276,12 @@ private:
                            OpenMS::ReactionMonitoringTransition& rm_trans);
 
     /// Populate a new TargetedExperiment::Protein object from a row in the csv
-    void createProtein_(String protein_name, String uniprot_id,
+    void createProtein_(String protein_name, const String& uniprot_id,
                         OpenMS::TargetedExperiment::Protein& protein);
 
     /// Helper function to assign retention times to compounds and peptides
     void interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retention_times,
-                                 const OpenMS::DataValue rt_value);
+                                 const OpenMS::DataValue& rt_value);
 
     /// Populate a new TargetedExperiment::Peptide object from a row in the csv
     void createPeptide_(std::vector<TSVTransition>::const_iterator tr_it,

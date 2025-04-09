@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -54,29 +28,63 @@ static bool SortSwathMapByLower(const OpenSwath::SwathMap left, const OpenSwath:
   return left.lower < right.lower;
 }
 
-void getSwathFile(PeakMap& exp, int nr_swathes=32, bool ms1=true)
+void getSwathFile(PeakMap& exp, int nr_swathes=32, bool ms1=true, bool im=false)
 {
   if (ms1)
   {
     MSSpectrum s;
     s.setMSLevel(1);
     Peak1D p; p.setMZ(100); p.setIntensity(200);
+
+    // add ion mobility (if needed)
+    if (im)
+    {
+      s.setMetaValue("ion mobility lower offset", 0.6);
+      s.setMetaValue("ion mobility upper offset", 1.5);
+    }
     s.push_back(p);
     exp.addSpectrum(s);
   }
-  for (int i = 0; i< nr_swathes; i++)
+  // add MS2 (with IM)
+  // if im then add 2*nr_swathes every swath has a corresponding swath with the same m/z isolation but distinct IM
+  if (im)
   {
-    MSSpectrum s;
-    s.setMSLevel(2);
-    std::vector<Precursor> prec(1);
-    prec[0].setIsolationWindowLowerOffset(12.5);
-    prec[0].setIsolationWindowUpperOffset(12.5);
-    prec[0].setMZ(400 + i*25 + 12.5);
-    s.setPrecursors(prec);
-    Peak1D p; p.setMZ(101 + i); p.setIntensity(201 + i);
-    s.push_back(p);
-    exp.addSpectrum(s);
+    for (int scheme=0; scheme<2; scheme++)
+    {
+      for (int i = 0; i< nr_swathes; i++)
+      {
+        MSSpectrum s;
+        s.setMSLevel(2);
+        std::vector<Precursor> prec(1);
+        prec[0].setIsolationWindowLowerOffset(12.5);
+        prec[0].setIsolationWindowUpperOffset(12.5);
+        prec[0].setMZ(400 + i*25 + 12.5);
+        s.setPrecursors(prec);
+        Peak1D p; p.setMZ(101 + i); p.setIntensity(201 + i);
+        s.push_back(p);
+        s.setMetaValue("ion mobility lower limit", 0.6 + i *0.05 + scheme*0.1);
+        s.setMetaValue("ion mobility upper limit", 0.6 + i *0.05 + scheme*0.1);
+        exp.addSpectrum(s);
+      }
+    }
+  } 
+  else 
+  {  // add MS2 (without IM)
+    for (int i = 0; i< nr_swathes; i++)
+    {
+      MSSpectrum s;
+      s.setMSLevel(2);
+      std::vector<Precursor> prec(1);
+      prec[0].setIsolationWindowLowerOffset(12.5);
+      prec[0].setIsolationWindowUpperOffset(12.5);
+      prec[0].setMZ(400 + i*25 + 12.5);
+      s.setPrecursors(prec);
+      Peak1D p; p.setMZ(101 + i); p.setIntensity(201 + i);
+      s.push_back(p);
+      exp.addSpectrum(s);
+    }
   }
+
 }
 
 START_TEST(SwathFileConsumer, "$Id$")
@@ -539,6 +547,45 @@ START_SECTION(([EXTRA] void consumeSpectrum(MapType::SpectrumType & s)))
 }
 END_SECTION
 }
+
+START_SECTION(([EXTRA] consumeAndRetrieve_with_ion_mobility))
+{
+
+  RegularSwathFileConsumer* regular_sfc_ptr = nullptr;
+  regular_sfc_ptr = new RegularSwathFileConsumer();
+  PeakMap exp;
+  getSwathFile(exp, 32, true, true );
+  // Consume all the spectra
+  for (Size i = 0; i < exp.getSpectra().size(); i++)
+  {
+    regular_sfc_ptr->consumeSpectrum(exp.getSpectra()[i]);
+  }
+
+  std::vector< OpenSwath::SwathMap > maps;
+  regular_sfc_ptr->retrieveSwathMaps(maps);
+
+  TEST_EQUAL(maps.size(), 65)
+  TEST_EQUAL(maps[0].ms1, true)
+
+  // for a scheme there are 32 swath windows cycling from 400-1200. a new scheme is the same m/z windows however im is shifted
+  for (int scheme =0; scheme<2; scheme++)
+  {
+    for (Size i = 0; i< 32; i++)
+    {
+      TEST_EQUAL(maps[i+1+scheme*32].ms1, false)
+      TEST_EQUAL(maps[i+1+scheme*32].sptr->getNrSpectra(), 1)
+      TEST_EQUAL(maps[i+1+scheme*32].sptr->getSpectrumById(0)->getMZArray()->data.size(), 1)
+      TEST_REAL_SIMILAR(maps[i+1+scheme*32].sptr->getSpectrumById(0)->getMZArray()->data[0], 101.0+i)
+      TEST_REAL_SIMILAR(maps[i+1+scheme*32].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 201.0+i)
+      TEST_REAL_SIMILAR(maps[i+1+scheme*32].lower, 400+i*25.0)
+      TEST_REAL_SIMILAR(maps[i+1+scheme*32].upper, 425+i*25.0)
+      TEST_REAL_SIMILAR(maps[i+1+scheme*32].imLower, 0.6+i*0.05 + scheme *0.1)
+      TEST_REAL_SIMILAR(maps[i+1+scheme*32].imUpper, 0.6 + i*0.05 + scheme*0.1)
+    }
+  }
+  delete regular_sfc_ptr;
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

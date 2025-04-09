@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Julianus Pfeuffer $
@@ -163,6 +137,81 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       TEST_EQUAL(prots[0].getIndistinguishableProteins()[0].probability, 0.9);
       TEST_EQUAL(prots[0].getIndistinguishableProteins()[1].probability, 0.8);
       TEST_EQUAL(prots[0].getIndistinguishableProteins()[2].probability, 0.6);
+    }
+    END_SECTION
+
+    START_SECTION(BasicProteinInferenceAlgorithm on Protein Peptide ID with grouping and user score)
+    {
+      vector<ProteinIdentification> prots;
+      vector<PeptideIdentification> peps;
+      IdXMLFile idf;
+      idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
+      BasicProteinInferenceAlgorithm bpia;
+      Param p = bpia.getParameters();
+      p.setValue("min_peptides_per_protein", 0);
+      p.setValue("annotate_indistinguishable_groups", "true");
+      p.setValue("score_type", "RAW");  // should use the XTandem score meta value      
+      bpia.setParameters(p);
+
+      TEST_EQUAL(peps[0].getScoreType(), "Posterior Error Probability"); // check if main score is PEP
+      bpia.run(peps, prots);
+      TEST_EQUAL(peps[0].getScoreType(), "Posterior Error Probability"); // check if main score has been reset again to PEP
+      
+      TEST_EQUAL(prots[0].getHits()[0].getScore(), 2.5)
+      TEST_EQUAL(prots[0].getHits()[1].getScore(), 2.5)
+      TEST_EQUAL(prots[0].getHits()[2].getScore(), -std::numeric_limits<double>::infinity())
+      TEST_EQUAL(prots[0].getHits()[3].getScore(), 5.0)
+      TEST_EQUAL(prots[0].getHits()[4].getScore(), 2.5)
+      TEST_EQUAL(prots[0].getHits()[5].getScore(), 10.0)
+
+      TEST_EQUAL(prots[0].getIndistinguishableProteins().size(), 4);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins()[0].probability, 10.0);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins()[1].probability, 5.0);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins()[2].probability, 2.5);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins()[3].probability, 2.5);
+
+      TEST_EQUAL(prots[0].getHits()[0].getMetaValue("nr_found_peptides"), 1)
+      TEST_EQUAL(prots[0].getHits()[1].getMetaValue("nr_found_peptides"), 1)
+      TEST_EQUAL(prots[0].getHits()[2].getMetaValue("nr_found_peptides"), 0)
+      TEST_EQUAL(prots[0].getHits()[3].getMetaValue("nr_found_peptides"), 2)
+      TEST_EQUAL(prots[0].getHits()[4].getMetaValue("nr_found_peptides"), 1)
+      TEST_EQUAL(prots[0].getHits()[5].getMetaValue("nr_found_peptides"), 1)
+    }
+    END_SECTION
+
+    START_SECTION(BasicProteinInferenceAlgorithm on Protein Peptide ID with grouping plus resolution and user set score type)
+    {
+      vector<ProteinIdentification> prots;
+      vector<PeptideIdentification> peps;
+      IdXMLFile idf;
+      idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
+      BasicProteinInferenceAlgorithm bpia;
+      Param p = bpia.getParameters();
+      p.setValue("min_peptides_per_protein", 0);
+      p.setValue("annotate_indistinguishable_groups", "true");
+      p.setValue("greedy_group_resolution", "true");
+      p.setValue("score_type", "RAW");  // should use the XTandem score meta value
+      bpia.setParameters(p);
+
+      TEST_EQUAL(peps[0].getScoreType(), "Posterior Error Probability"); // check if main score is PEP
+      bpia.run(peps, prots);
+      TEST_EQUAL(peps[0].getScoreType(), "Posterior Error Probability"); // check if main score has been reset again to PEP
+
+      TEST_EQUAL(prots[0].getHits().size(), 4)
+      TEST_EQUAL(prots[0].getHits().at(0).getScore(), 2.5)
+      TEST_EQUAL(prots[0].getHits().at(1).getScore(), 2.5)
+      TEST_EQUAL(prots[0].getHits().at(2).getScore(), 5.0) 
+      TEST_EQUAL(prots[0].getHits().at(3).getScore(), 10.0)
+
+      TEST_EQUAL(prots[0].getHits().at(0).getMetaValue("nr_found_peptides"), 1)
+      TEST_EQUAL(prots[0].getHits().at(1).getMetaValue("nr_found_peptides"), 1)
+      TEST_EQUAL(prots[0].getHits().at(2).getMetaValue("nr_found_peptides"), 2)
+      TEST_EQUAL(prots[0].getHits().at(3).getMetaValue("nr_found_peptides"), 1)    
+
+      TEST_EQUAL(prots[0].getIndistinguishableProteins().size(), 3);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins().at(0).probability, 10);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins().at(1).probability, 5.0);
+      TEST_EQUAL(prots[0].getIndistinguishableProteins().at(2).probability, 2.5);      
     }
     END_SECTION
 

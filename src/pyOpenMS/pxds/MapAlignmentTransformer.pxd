@@ -18,14 +18,14 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>" names
         # wrap-doc:
             #  This class collects functions for applying retention time transformations to data structures
 
-        MapAlignmentTransformer() nogil except + 
-        MapAlignmentTransformer(MapAlignmentTransformer &) nogil except +
+        MapAlignmentTransformer() except + nogil  
+        MapAlignmentTransformer(MapAlignmentTransformer &) except + nogil 
 
-        void transformRetentionTimes(MSExperiment&, TransformationDescription&, bool) nogil except + # wrap-doc:Applies the given transformation to a peak map
+        void transformRetentionTimes(MSExperiment&, TransformationDescription&, bool) except + nogil  # wrap-doc:Applies the given transformation to a peak map
 
-        void transformRetentionTimes(FeatureMap&, TransformationDescription&, bool) nogil except + # wrap-doc:Applies the given transformation to a feature map
+        void transformRetentionTimes(FeatureMap&, TransformationDescription&, bool) except + nogil  # wrap-doc:Applies the given transformation to a feature map
 
-        void transformRetentionTimes(ConsensusMap&, TransformationDescription&, bool) nogil except + # wrap-doc:Applies the given transformation to a consensus map
+        void transformRetentionTimes(ConsensusMap&, TransformationDescription&, bool) except + nogil  # wrap-doc:Applies the given transformation to a consensus map
 
-        void transformRetentionTimes(libcpp_vector[PeptideIdentification]&, TransformationDescription&, bool) nogil except + # wrap-doc:Applies the given transformation to peptide identifications
+        void transformRetentionTimes(libcpp_vector[PeptideIdentification]&, TransformationDescription&, bool) except + nogil  # wrap-doc:Applies the given transformation to peptide identifications
 

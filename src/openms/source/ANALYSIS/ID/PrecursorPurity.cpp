@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
@@ -49,7 +23,10 @@ namespace OpenMS
     double target_mz = pre.getMZ();
     double lower = target_mz - pre.getIsolationWindowLowerOffset();
     double upper = target_mz + pre.getIsolationWindowUpperOffset();
-    int charge = pre.getCharge();
+
+    int charge = abs(pre.getCharge());
+
+    if (charge == 0) charge = 1; // prevent division by zero
 
     double precursor_tolerance_abs = precursor_mass_tolerance_unit_ppm ? (target_mz * precursor_mass_tolerance*2 * 1e-6) : precursor_mass_tolerance*2;
 
@@ -103,7 +80,7 @@ namespace OpenMS
       {
         target_intensity += isolated_window[next_iso_index].getIntensity();
 
-        isolated_window.erase(isolated_window.begin()+next_iso_index);
+        isolated_window.erase(isolated_window.begin() + next_iso_index);
         target_peak_count++;
       }
       // always increment iso to progress the loop
@@ -120,7 +97,8 @@ namespace OpenMS
     score.target_intensity = target_intensity;
     score.signal_proportion = rel_sig;
     score.target_peak_count = target_peak_count;
-    score.residual_peak_count = isolated_window.size();
+    score.interfering_peak_count = isolated_window.size();
+    score.interfering_peaks = isolated_window;
 
     return score;
   }
@@ -135,18 +113,18 @@ namespace OpenMS
       score.signal_proportion = score.target_intensity / score.total_intensity;
     }
     score.target_peak_count = score1.target_peak_count + score2.target_peak_count;
-    score.residual_peak_count = score1.residual_peak_count + score2.residual_peak_count;
+    score.interfering_peak_count = score1.interfering_peak_count + score2.interfering_peak_count;
 
     return score;
   }
 
-  std::map<String, PrecursorPurity::PurityScores> PrecursorPurity::computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
+  std::map<String, PrecursorPurity::PurityScores> PrecursorPurity::computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, bool ignore_missing_precursor_spectra)
   {
     std::map<String, PrecursorPurity::PurityScores> purityscores;
     std::pair<std::map<String, PrecursorPurity::PurityScores>::iterator, bool> insert_return_value;
     int spectra_size = static_cast<int>(spectra.size());
 
-    if (spectra[0].getMSLevel() != 1)
+    if (spectra[0].getMSLevel() != 1 && !ignore_missing_precursor_spectra)
     {
       OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. First Spectrum is not MS1. Precursor Purity info will not be calculated!\n";
       return purityscores;
@@ -157,7 +135,7 @@ namespace OpenMS
       if (spectra[i].getMSLevel() == 2)
       {
         auto parent_spectrum_it = spectra.getPrecursorSpectrum(spectra.begin()+i);
-        if (parent_spectrum_it == spectra.end())
+        if (parent_spectrum_it == spectra.end() && !ignore_missing_precursor_spectra)
         {
           OPENMS_LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. An MS2 spectrum without parent spectrum detected. Precursor Purity info will not be calculated!\n";
           return std::map<String, PrecursorPurity::PurityScores>();
@@ -183,9 +161,12 @@ namespace OpenMS
     {
       if (spectra[i].getMSLevel() == 2)
       {
-        auto parent_spectrum_it = spectra.getPrecursorSpectrum(spectra.begin()+i);
-        PrecursorPurity::PurityScores score = PrecursorPurity::computePrecursorPurity((*parent_spectrum_it), spectra[i].getPrecursors()[0], precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
-
+        PrecursorPurity::PurityScores score;
+        auto parent_spectrum_it = spectra.getPrecursorSpectrum(spectra.begin() + i);
+        if (parent_spectrum_it != spectra.end())
+        {
+          score = PrecursorPurity::computePrecursorPurity((*parent_spectrum_it), spectra[i].getPrecursors()[0], precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+        }
 #pragma omp critical (purityscores_access)
         {
           // replace the initialized values

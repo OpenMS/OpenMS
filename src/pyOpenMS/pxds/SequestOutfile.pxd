@@ -12,37 +12,37 @@ cdef extern from "<OpenMS/FORMAT/SequestOutfile.h>" namespace "OpenMS":
     
     cdef cppclass SequestOutfile "OpenMS::SequestOutfile":
         # wrap-doc:
-        #   Representation of a Sequest output file
+        #  Representation of a Sequest output file
         
-        SequestOutfile() nogil except + # wrap-doc:Representation of a Sequest output file
-        SequestOutfile(SequestOutfile &) nogil except +
+        SequestOutfile() except + nogil  # wrap-doc:Representation of a Sequest output file
+        SequestOutfile(SequestOutfile &) except + nogil 
 
-        bool operator==(SequestOutfile &sequest_outfile) nogil except +
+        bool operator==(SequestOutfile &sequest_outfile) except + nogil 
         void load(const String &result_filename,
                   libcpp_vector[ PeptideIdentification ] &peptide_identifications,
                   ProteinIdentification &protein_identification,
                   double p_value_threshold,
                   libcpp_vector[ double ] &pvalues,
                   const String &database,
-                  bool ignore_proteins_per_peptide) nogil except +
+                  bool ignore_proteins_per_peptide) except + nogil 
             # wrap-doc:
-                #   Loads data from a Sequest outfile
-                #   -----
-                #   :param result_filename: The file to be loaded
-                #   :param peptide_identifications: The identifications
-                #   :param protein_identification: The protein identifications
-                #   :param p_value_threshold: The significance level (for the peptide hit scores)
-                #   :param pvalues: A list with the pvalues of the peptides (pvalues computed with peptide prophet)
-                #   :param database: The database used for the search
-                #   :param ignore_proteins_per_peptide: This is a hack to deal with files that use a suffix like "+1" in column "Reference", but do not actually list extra protein references in subsequent lines
+                #  Loads data from a Sequest outfile
+                #  
+                #  :param result_filename: The file to be loaded
+                #  :param peptide_identifications: The identifications
+                #  :param protein_identification: The protein identifications
+                #  :param p_value_threshold: The significance level (for the peptide hit scores)
+                #  :param pvalues: A list with the pvalues of the peptides (pvalues computed with peptide prophet)
+                #  :param database: The database used for the search
+                #  :param ignore_proteins_per_peptide: This is a hack to deal with files that use a suffix like "+1" in column "Reference", but do not actually list extra protein references in subsequent lines
 
-        bool getColumns(const String &line, libcpp_vector[ String ] &substrings, Size number_of_columns, Size reference_column) nogil except + # wrap-doc:Retrieves columns from a Sequest outfile line
+        bool getColumns(const String &line, libcpp_vector[ String ] &substrings, Size number_of_columns, Size reference_column) except + nogil  # wrap-doc:Retrieves columns from a Sequest outfile line
         void getSequences(const String &database_filename,
                           libcpp_map[ String, size_t ] &ac_position_map,
                           libcpp_vector[ String ] &sequences,
                           libcpp_vector[ libcpp_pair[ String, size_t ] ] &found,
-                          libcpp_map[ String, size_t ] &not_found) nogil except + # wrap-ignore
-        void getACAndACType(String line, String &accession, String &accession_type) nogil except + # wrap-doc:Retrieves the accession type and accession number from a protein description line
+                          libcpp_map[ String, size_t ] &not_found) except + nogil  # wrap-ignore
+        void getACAndACType(String line, String &accession, String &accession_type) except + nogil  # wrap-doc:Retrieves the accession type and accession number from a protein description line
 
         # TODO immutable types by reference
         # 
@@ -53,5 +53,5 @@ cdef extern from "<OpenMS/FORMAT/SequestOutfile.h>" namespace "OpenMS":
         # Int &rank_sp_column, Int &id_column, Int &mh_column, Int
         # &delta_cn_column, Int &xcorr_column, Int &sp_column, Int &sf_column,
         # Int &ions_column, Int &reference_column, Int &peptide_column, Int
-        # &score_column, Size &number_of_columns) nogil except +
+        # &score_column, Size &number_of_columns) except + nogil 
 

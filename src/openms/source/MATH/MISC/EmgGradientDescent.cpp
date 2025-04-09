@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
@@ -34,6 +8,8 @@
 
 #include <OpenMS/MATH/MISC/EmgGradientDescent.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+
+#include <numeric>
 
 namespace OpenMS
 {
@@ -482,19 +458,19 @@ namespace OpenMS
     std::vector<std::pair<double,double>> points;
 
     // Add points from the LEFT side, until `intensity_threshold` is reached
-    points.push_back({xs.front(), ys.front()}); // Add FIRST point, no matter the threshold
+    points.emplace_back(xs.front(), ys.front()); // Add FIRST point, no matter the threshold
     Size i = 1;
     for (; i < xs.size() - 1 && ys[i] < intensity_threshold; ++i)
     {
-      points.push_back({xs[i], ys[i]});
+      points.emplace_back(xs[i], ys[i]);
     }
 
     // Add points from the RIGHT side, until `intensity_threshold` is reached
-    points.push_back({xs.back(), ys.back()}); // Add LAST point, no matter the threshold
+    points.emplace_back(xs.back(), ys.back()); // Add LAST point, no matter the threshold
     Size j = xs.size() - 2;
     for (; i <= j && ys[j] < intensity_threshold; --j)
     {
-      points.push_back({xs[j], ys[j]});
+      points.emplace_back(xs[j], ys[j]);
     }
 
     // Compute the derivative for points of intensity greater than `intensity_threshold`
@@ -531,7 +507,7 @@ namespace OpenMS
       ++i
     )
     {
-      points.push_back({xs[i], ys[i]});
+      points.emplace_back(xs[i], ys[i]);
     }
 
     // Starting from `j` and proceeding toward the LEFT side,
@@ -545,7 +521,7 @@ namespace OpenMS
       --j
     )
     {
-      points.push_back({xs[j], ys[j]});
+      points.emplace_back(xs[j], ys[j]);
     }
 
     // Create the output vectors containing the training set

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -39,6 +13,8 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/TextFile.h>
+
+#include <utility>
 
 namespace OpenMS
 {
@@ -123,9 +99,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  TransitionTSVFile::~TransitionTSVFile()
-  {
-  }
+  TransitionTSVFile::~TransitionTSVFile() = default;
 
   void TransitionTSVFile::updateMembers_()
   {
@@ -172,15 +146,14 @@ namespace OpenMS
   {
     std::string tmp;
     std::vector<std::string> header;
-    int nr_delimiters = 3;
-    Size min_header_size = 8;
-    const char possibleDelimiters[3] = {',', ';', '\t'};
+    Size min_header_size = 4;
+    const std::array<char, 3> possible_delimiters = {'\t', ';', ','};
 
-    for (int i = 0; i < nr_delimiters; i++)
+    for (auto possible_delimiter : possible_delimiters)
     {
       header.clear();
       std::stringstream lineStream(line);
-      delimiter = possibleDelimiters[i];
+      delimiter = possible_delimiter;
       while (std::getline(lineStream, tmp, delimiter))
       {
         String tmp2(tmp);
@@ -199,6 +172,7 @@ namespace OpenMS
     {
       header_dict[header[i]] = i;
     }
+
     char txt_delimiter = delimiter;
     if (txt_delimiter == '\t')
     {
@@ -491,7 +465,7 @@ namespace OpenMS
     }
   }
 
-  void TransitionTSVFile::spectrastRTExtract(const String str_inp, double & value, bool & spectrast_legacy)
+  void TransitionTSVFile::spectrastRTExtract(const String& str_inp, double & value, bool & spectrast_legacy)
   {
     // If SpectraST was run in RT normalization mode, the retention time is annotated as following: "3887.50(57.30)"
     // 3887.50 refers to the non-normalized RT of the individual or consensus run, and 57.30 refers to the normalized
@@ -514,7 +488,7 @@ namespace OpenMS
     }
   }
 
-  bool TransitionTSVFile::spectrastAnnotationExtract(const String str_inp, TSVTransition & mytransition)
+  bool TransitionTSVFile::spectrastAnnotationExtract(const String& str_inp, TSVTransition & mytransition)
   {
     // Parses SpectraST fragment ion annotations
     // Example: y13^2/0.000,b16-18^2/-0.013,y7-45/0.000
@@ -689,6 +663,7 @@ namespace OpenMS
       transition.library_intensity  = tr_it->library_intensity;
       transition.precursor_mz  = tr_it->precursor;
       transition.product_mz  = tr_it->product;
+      transition.precursor_im = tr_it->drift_time;
       transition.fragment_charge = 0; // use zero for charge that is not set
       if (!tr_it->fragment_charge.empty() && tr_it->fragment_charge != "NA")
       {
@@ -980,13 +955,13 @@ namespace OpenMS
     }
   }
 
-  void TransitionTSVFile::createProtein_(String protein_name, String uniprot_id, OpenMS::TargetedExperiment::Protein& protein)
+  void TransitionTSVFile::createProtein_(String protein_name, const String& uniprot_id, OpenMS::TargetedExperiment::Protein& protein)
   {
     // the following attributes will be stored as CV values (CV):
     // - uniprot accession number (if available)
     // the following attributes will be stored as attributes:
     // - id
-    protein.id = protein_name;
+    protein.id = std::move(protein_name);
 
     if (!uniprot_id.empty())
     {
@@ -1001,7 +976,7 @@ namespace OpenMS
     }
   }
 
-  void TransitionTSVFile::interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retention_times, const OpenMS::DataValue rt_value)
+  void TransitionTSVFile::interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retention_times, const OpenMS::DataValue& rt_value)
   {
     TargetedExperiment::RetentionTime retention_time;
     retention_time.setRT(rt_value);
@@ -1242,7 +1217,7 @@ namespace OpenMS
           mytransition.ProteinName.push_back(prot.id);
           if (prot.hasCVTerm("MS:1000885"))
           {
-            mytransition.uniprot_id.push_back(prot.getCVTerms()["MS:1000885"][0].getValue().toString());
+            mytransition.uniprot_id.push_back(prot.getCVTerms().at("MS:1000885")[0].getValue().toString());
           }
         }
       }
@@ -1344,6 +1319,12 @@ namespace OpenMS
           case Residue::ZIon:
             mytransition.fragment_type = "z";
             break;
+          case Residue::Zp1Ion: 
+            mytransition.fragment_type = "z.";
+            break;
+          case Residue::Zp2Ion: 
+            mytransition.fragment_type = "z'";
+            break;
           case Residue::Precursor:
             mytransition.fragment_type = "prec";
             break;
@@ -1381,7 +1362,7 @@ namespace OpenMS
     mytransition.CE = -1;
     if (it->hasCVTerm("MS:1000045"))
     {
-      mytransition.CE = it->getCVTerms()["MS:1000045"][0].getValue().toString().toDouble();
+      mytransition.CE = it->getCVTerms().at("MS:1000045")[0].getValue().toString().toDouble();
     }
     mytransition.library_intensity = -1;
     if (it->getLibraryIntensity() > -100)

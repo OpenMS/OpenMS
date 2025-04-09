@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow, Stephan Aiche $
@@ -46,6 +20,7 @@
 #include <cstring>
 #include <cstdio>
 #include <algorithm>    // std::min
+#include <OpenMS/CONCEPT/Colorizer.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/StreamHandler.h>
 
@@ -64,15 +39,10 @@ namespace OpenMS
     const time_t LogStreamBuf::MAX_TIME = numeric_limits<time_t>::max();
     const std::string LogStreamBuf::UNKNOWN_LOG_LEVEL = "UNKNOWN_LOG_LEVEL";
 
-    LogStreamBuf::LogStreamBuf(std::string log_level) :
-      std::streambuf(),
-      pbuf_(nullptr),
-      level_(log_level),
-      stream_list_(),
-      incomplete_line_(),
-      log_cache_counter_(0),
-      log_cache_(),
-      log_time_cache_()
+    LogStreamBuf::LogStreamBuf(const std::string& log_level, Colorizer* col) 
+      : std::streambuf(),
+        level_(log_level),
+        colorizer_(col)
     {
       pbuf_ = new char[BUFFER_LENGTH];
       std::streambuf::setp(pbuf_, pbuf_ + BUFFER_LENGTH - 1);
@@ -219,15 +189,25 @@ namespace OpenMS
       log_time_cache_.clear();
     }
 
-    void LogStreamBuf::distribute_(std::string outstring)
+    void LogStreamBuf::distribute_(const std::string& outstring)
     {
       // if there are any streams in our list, we
       // copy the line into that streams, too and flush them
       std::list<StreamStruct>::iterator list_it = stream_list_.begin();
       for (; list_it != stream_list_.end(); ++list_it)
       {
-        *(list_it->stream) << expandPrefix_(list_it->prefix, time(nullptr)).c_str()
-                           << outstring.c_str() << std::endl;
+        if (colorizer_) 
+        {
+          *(list_it->stream) << (*colorizer_)(); // enable color
+        }        
+
+        *(list_it->stream) << expandPrefix_(list_it->prefix, time(nullptr))
+                           << outstring;
+        if (colorizer_)
+        {
+          *(list_it->stream) << (*colorizer_).undo(); // disable color
+        }
+        *(list_it->stream) << std::endl;
 
         if (list_it->target != nullptr)
         {
@@ -483,6 +463,15 @@ namespace OpenMS
       }
     }
 
+    void LogStream::removeAllStreams()
+    {
+      if (!bound_())
+        return;
+
+      rdbuf()->sync();
+      rdbuf()->stream_list_.clear();
+    }
+
     void LogStream::insertNotification(std::ostream & s, LogStreamNotifier & target)
     {
       if (!bound_())
@@ -562,11 +551,11 @@ namespace OpenMS
   OPENMS_DLLAPI StreamHandler STREAM_HANDLER;
 
   // global default logstream
-  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_fatal(new Logger::LogStreamBuf("FATAL_ERROR"), true, &cerr);
-  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_error(new Logger::LogStreamBuf("ERROR"), true, &cerr);
-  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_warn(new Logger::LogStreamBuf("WARNING"), true, &cout);
-  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_info(new Logger::LogStreamBuf("INFO"), true, &cout);
+  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_fatal(new Logger::LogStreamBuf("FATAL_ERROR", &red), true, &cerr);
+  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_error(new Logger::LogStreamBuf("ERROR", &red), true, &cerr);
+  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_warn(new Logger::LogStreamBuf("WARNING", &yellow), true, &cout);
+  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_info(new Logger::LogStreamBuf("INFO", nullptr), true, &cout);
   // OPENMS_LOG_DEBUG is disabled by default, but will be enabled in TOPPAS.cpp or TOPPBase.cpp if started in debug mode (--debug or -debug X)
-  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_debug(new Logger::LogStreamBuf("DEBUG"), false); // last param should be 'true', but segfaults...
+  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_debug(new Logger::LogStreamBuf("DEBUG", &magenta), false); // last param should be 'true', but segfaults...
 
 } // namespace OpenMS

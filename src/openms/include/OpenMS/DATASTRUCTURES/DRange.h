@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -128,6 +102,7 @@ public:
       min_[1] = miny;
       max_[0] = maxx;
       max_[1] = maxy;
+      Base::normalize_();
     }
 
     /// Assignment operator
@@ -292,19 +267,6 @@ public:
       return true;
     }
 
-    /// Checks if the range is empty
-    bool isEmpty() const
-    {
-      for (UInt i = 0; i != D; i++)
-      {
-        if (max_[i] <= min_[i])
-        {
-          return true;
-        }
-      }
-      return false;
-    }
-
     /**
          @brief Extends the range in all dimensions by a certain multiplier.
 
@@ -315,8 +277,9 @@ public:
            factor = 2.00 doubles the total range, e.g. from [0,100] to [-50,150]
 
          @param factor Multiplier (allowed is [0, inf)).
+         @return A reference to self
     */
-    void extend(double factor)
+    DRange<D>& extend(double factor)
     {
       if (factor < 0)
       {
@@ -329,6 +292,47 @@ public:
         min_[i] -= extra;
         max_[i] += extra;
       }
+      return *this;
+    }
+
+    /**
+     @brief Extends the range in all dimensions by a certain amount.
+
+     Extends the range, while maintaining the original center position.
+     If a negative @p addition is given, the range shrinks and may result in min==max (but never min>max).
+
+     Examples (for D=1):
+       addition = 0.5 extends the range by 1 in total, i.e. 0.5 left and right.
+   
+     @param addition Additive for each dimension (can be negative). Resulting invalid min/max are not fixed automatically!
+     @return A reference to self
+    */
+    DRange<D>& extend(typename Base::PositionType addition)
+    {
+      addition /= 2;
+      min_ -= addition;
+      max_ += addition;
+      for (UInt i = 0; i != D; ++i)
+      {
+        // invalid range --> reduce to single center point
+        if (min_[i] > max_[i]) min_[i] = max_[i] = (min_[i] + max_[i]) / 2;
+      }
+      return *this;
+    }
+
+    DRange<D>& ensureMinSpan(typename Base::PositionType min_span)
+    {
+      typename Base::PositionType extend_by {};
+      for (UInt i = 0; i != D; ++i)
+      {
+        // invalid range --> reduce to single center point
+        if (max_[i] - min_[i] < min_span[i])
+        {
+          extend_by[i] = min_span[i] - (max_[i] - min_[i]); // add whatever is missing to get to min_span
+        }
+      }
+      extend(extend_by);
+      return *this;
     }
 
     /// swaps dimensions for 2D data (i.e. x and y coordinates)
@@ -340,6 +344,18 @@ public:
       return *this;
     }
 
+    /**
+     * @brief Make sure @p point is inside the current area
+     * @param point A point potentially outside the current range, which will be pulled into the current range.
+     */
+    void pullIn(DPosition<D>& point) const
+    {
+      for (UInt i = 0; i != D; ++i)
+      {
+        point[i] = std::max(min_[i], std::min(point[i], max_[i]));
+      }
+    }
+
     //@}
   };
 
@@ -347,10 +363,10 @@ public:
   template <UInt D>
   std::ostream& operator<<(std::ostream& os, const DRange<D>& area)
   {
-    os << "--DRANGE BEGIN--" << std::endl;
-    os << "MIN --> " << area.min_ << std::endl;
-    os << "MAX --> " << area.max_ << std::endl;
-    os << "--DRANGE END--" << std::endl;
+    os << "--DRANGE BEGIN--\n";
+    os << "MIN --> " << area.min_ << '\n';
+    os << "MAX --> " << area.max_ << '\n';
+    os << "--DRANGE END--\n";
     return os;
   }
 

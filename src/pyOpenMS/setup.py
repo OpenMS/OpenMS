@@ -19,7 +19,7 @@ if "--no-optimization" in sys.argv:
     sys.argv.remove("--no-optimization")
 
 # import config
-from env import  (OPEN_MS_COMPILER, OPEN_MS_SRC, OPEN_MS_GIT_BRANCH, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
+from env import  (OPEN_MS_COMPILER, PYOPENMS_SRC_DIR, OPEN_MS_GIT_BRANCH, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
                   QT_INSTALL_LIBS, QT_INSTALL_BINS, MSVS_RTLIBS,
                   OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, INCLUDE_DIRS_EXTEND, LIBRARIES_EXTEND,
                   LIBRARY_DIRS_EXTEND, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, PYOPENMS_INCLUDE_DIRS,
@@ -41,7 +41,7 @@ import shutil
 import time
 
 if OPEN_MS_GIT_BRANCH == "nightly":
-    package_name = "pyopenms_nightly"
+    package_name = "pyopenms"
     package_version = OPEN_MS_VERSION + ".dev" + OPENMS_GIT_LC_DATE_FORMAT
 else:
     package_name = "pyopenms"
@@ -53,7 +53,7 @@ os.environ["CXX"] = OPEN_MS_COMPILER
 
 j = os.path.join
 
-src_pyopenms = j(OPEN_MS_SRC, "src/pyOpenMS")
+src_pyopenms = PYOPENMS_SRC_DIR
 extra_includes = glob.glob(src_pyopenms + "/extra_includes/*.h*")
 
 for include in extra_includes:
@@ -205,9 +205,6 @@ if not iswin:
         extra_compile_args.append("-Wno-deprecated-copy")
     extra_compile_args.append("-Wno-redeclared-class-member")
     extra_compile_args.append("-Wno-unused-local-typedefs")
-    extra_compile_args.append("-Wno-deprecated-register") # caused by seqan on gcc
-    extra_compile_args.append("-Wno-misleading-indentation") # caused by seqan on gcc
-    extra_compile_args.append("-Wno-register") #caused by seqan on clang c17
     extra_compile_args.append("-Wdeprecated-declarations")
     extra_compile_args.append("-Wno-sign-compare")
     extra_compile_args.append("-Wno-unknown-pragmas")
@@ -221,8 +218,12 @@ if not iswin:
         extra_compile_args.append("-O0")
         extra_link_args.append("-O0")
 
-mnames = ["pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
+mnames = ["_pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
 ext = []
+
+##WARNING debug
+libraries.extend("boost_regex-mt-x64")
+
 for module in mnames:
 
     ext.append(Extension(
@@ -235,13 +236,10 @@ for module in mnames:
         extra_compile_args=extra_compile_args,
         extra_objects=objects,
         extra_link_args=extra_link_args,
-		define_macros=[('BOOST_ALL_NO_LIB', None)] ## Deactivates boost autolink (esp. on win).
+		define_macros=[('BOOST_ALL_NO_LIB', None), ("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")] ## Deactivates boost autolink (esp. on win). Shuts up the damn "deprecated NumPy API" warning spam (https://docs.cython.org/en/latest/src/userguide/numpy_tutorial.html#numpy-compilation)
 		## Alternative is to specify the boost naming scheme (--layout param; easy if built from contrib)
 		## TODO just take over compile definitions from OpenMS (CMake)
     ))
-
-share_data = []
-share_data.append("License.txt")
 
 # enforce 64bit-only build as OpenMS is not available in 32bit on osx
 if sys.platform == "darwin":
@@ -252,20 +250,24 @@ setup(
     name=package_name,
     packages=["pyopenms"],
     ext_package="pyopenms",
+    package_data= {
+        'pyopenms': ['py.typed', '*.pyi']
+    },
 	install_requires=[
-          'numpy',
-          'pandas'
+          'numpy>=1.25.0',
+          'pandas',
+          'matplotlib>=3.5'
     ],
 
     version=package_version,
 
-    maintainer="Uwe Schmitt",
-    maintainer_email="uschmitt@mineway.de",
+    maintainer="The OpenMS team",
+    maintainer_email="open-ms-general@lists.sourceforge.net",
     license="http://opensource.org/licenses/BSD-3-Clause",
     platforms=["any"],
-    description="Python wrapper for C++ LCMS library OpenMS",
+    description="Python wrapper for C++ LC-MS library OpenMS",
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: BSD License",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
@@ -275,10 +277,16 @@ setup(
     long_description_content_type="text/x-rst",
     zip_safe=False,
 
-    url="http://open-ms.de",
+    url="https://openms.de",
+    project_urls={
+        "Documentation": "https://pyopenms.readthedocs.io",
+        "Source Code": "https://github.com/OpenMS/OpenMS/tree/develop/src/pyOpenMS",
+        "Tracker": "https://github.com/OpenMS/OpenMS/issues",
+        "Documentation Source": "https://github.com/OpenMS/pyopenms-docs",
+    },
 
-    author="Uwe Schmitt",
-    author_email="uschmitt@mineway.de",
+    author="OpenMS team",
+    author_email="webmaster@openms.de",
 
     ext_modules=ext,
     include_package_data=True  # see MANIFEST.in

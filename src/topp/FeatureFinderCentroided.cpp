@@ -1,46 +1,16 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors:  Clemens Groepl, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
+#include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/MzQuantMLFile.h>
-#include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <limits>
@@ -53,19 +23,19 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
- @page TOPP_FeatureFinderCentroided FeatureFinderCentroided
+@page TOPP_FeatureFinderCentroided FeatureFinderCentroided
 
- @brief The feature detection application for quantitation (centroided).
+@brief The feature detection application for quantitation (centroided).
 
 <CENTER>
  <table>
   <tr>
-   <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-   <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderCentroided \f$ \longrightarrow \f$</td>
-   <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+   <th ALIGN = "center"> pot. predecessor tools </td>
+   <td VALIGN="middle" ROWSPAN=3> &rarr; FeatureFinderCentroided &rarr;</td>
+   <th ALIGN = "center"> pot. successor tools </td>
   </tr>
   <tr>
-   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinkerUnlabeled @n (or another feature grouping tool) </td>
   </tr>
   <tr>
@@ -75,62 +45,64 @@ using namespace std;
  </table>
 </CENTER>
 
- Reference:\n
- Weisser <em>et al.</em>: <a href="https://doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
+Reference:\n
+Weisser <em>et al.</em>: <a href="https://doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
 
- This module identifies "features" in a LC/MS map. By feature, we understand a peptide in a MS sample that
- reveals a characteristic isotope distribution. The algorithm
- computes positions in rt and m/z dimension and a charge estimate
- of each peptide.
+This module identifies "features" in a LC/MS map. By feature, we understand a peptide in an MS sample that
+reveals a characteristic isotope distribution over time. The algorithm
+computes positions in RT and m/z dimension and a charge estimate
+of each peptide.
 
- The algorithm identifies pronounced regions of the data around so-called <tt>seeds</tt>.
- In the next step, we iteratively fit a model of the isotope profile and the retention time to
- these data points. Data points with a low probability under this model are removed from the
- feature region. The intensity of the feature is then given by the sum of the data points included
- in its regions.
+The algorithm identifies pronounced regions of the data around so-called <tt>seeds</tt>.
+The user can provide a list of seeds (e.g. from an identification run of MS/MS spectra) or the algorithm can compute seeds itself.
 
- How to find suitable parameters and details of the different algorithms implemented are described
- in the @ref TOPP_example_featuredetection "TOPP tutorial".
+In the next step, we iteratively fit a model of the isotope profile and the retention time to
+the initial seed data points. Data points with a low probability under this model are removed from the
+feature region. The intensity of the feature is then given by the sum of the data points included
+in its regions.
 
- Specialized tools are available for some experimental techniques: @ref TOPP_IsobaricAnalyzer.
+How to find suitable parameters and details of the different algorithms implemented are described
+in the "TOPP tutorial" (on https://openms.readthedocs.io/).
 
- <B>The command line parameters of this tool are:</B>
- @verbinclude TOPP_FeatureFinderCentroided.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_FeatureFinderCentroided.html
+Specialized tools are available for some experimental techniques: @ref TOPP_IsobaricAnalyzer.
 
- For the parameters of the algorithm section see the algorithms documentation: @n
-  @ref OpenMS::FeatureFinderAlgorithmPicked "centroided" @n
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FeatureFinderCentroided.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FeatureFinderCentroided.html
 
- In the following table you can find example values of the most important parameters for
- different instrument types. @n These parameters are not valid for all instruments of that type,
- but can be used as a starting point for finding suitable parameters.
+For the parameters of the algorithm section see the algorithms documentation: @n
+@ref OpenMS::FeatureFinderAlgorithmPicked "centroided" @n
 
- <b>'centroided' algorithm</b>:
- <table>
-  <tr>
-   <td>&nbsp;</td>
-   <td><b>Q-TOF</b></td>
-   <td><b>LTQ Orbitrap</b></td>
-  </tr>
-  <tr>
-   <td><b>intensity:bins</b></td>
-   <td>10</td>
-   <td>10</td>
-  </tr>
-  <tr>
-   <td><b>mass_trace:mz_tolerance</b></td>
-   <td>0.02</td>
-   <td>0.004</td>
-  </tr>
-  <tr>
-   <td><b>isotopic_pattern:mz_tolerance</b></td>
-   <td>0.04</td>
-   <td>0.005</td>
-  </tr>
- </table>
+In the following table you can find example values of the most important parameters for
+different instrument types. @n These parameters are not valid for all instruments of that type,
+but can be used as a starting point for finding suitable parameters.
 
- For the @em centroided algorithm centroided data is needed. In order to create centroided data from profile data use the @ref TOPP_PeakPickerWavelet.
+<b>'centroided' algorithm</b>:
+<table>
+<tr>
+ <td>&nbsp;</td>
+ <td><b>Q-TOF</b></td>
+ <td><b>LTQ Orbitrap</b></td>
+</tr>
+<tr>
+ <td><b>intensity:bins</b></td>
+ <td>10</td>
+ <td>10</td>
+</tr>
+<tr>
+ <td><b>mass_trace:mz_tolerance</b></td>
+ <td>0.02</td>
+ <td>0.004</td>
+</tr>
+<tr>
+ <td><b>isotopic_pattern:mz_tolerance</b></td>
+ <td>0.04</td>
+ <td>0.005</td>
+</tr>
+</table>
+
+For the @em centroided algorithm centroided data is needed. In order to create centroided data from profile data use the @ref TOPP_PeakPickerHiRes.
 */
 
 // We do not want this class to show up in the docu:
@@ -149,7 +121,9 @@ public:
                          "A novel feature detection algorithm for centroided data",
                          "Dissertation, 2010-09-15, p.37 ff",
                          "https://publikationen.uni-tuebingen.de/xmlui/bitstream/handle/10900/49453/pdf/Dissertation_Marc_Sturm.pdf"
-                       }
+                       },
+                Citation {"Weisser H", "An automated pipeline for high-throughput label-free quantitative proteomics",
+                          "J. Proteome Res., 2013, PMID: 23391308", "https://doi.org/10.1021/pr300992u"}
              })
   {}
 
@@ -164,25 +138,23 @@ protected:
     registerInputFile_("seeds", "<file>", "", "User specified seed list", false);
     setValidFormats_("seeds", ListUtils::create<String>("featureXML"));
 
-    registerOutputFile_("out_mzq", "<file>", "", "Optional output file of MzQuantML.", false, true);
-    setValidFormats_("out_mzq", ListUtils::create<String>("mzq"));
-
     addEmptyLine_();
 
     registerSubsection_("algorithm", "Algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const override
+
+  Param getSubsectionDefaults_(const String& ) const override
   {
-    return FeatureFinder().getParameters(FeatureFinderAlgorithmPicked::getProductName());
+    return FeatureFinderAlgorithmPicked().getDefaultParameters();
   }
+
 
   ExitCodes main_(int, const char**) override
   {
     //input file names
     String in = getStringOption_("in");
     String out = getStringOption_("out");
-    String out_mzq = getStringOption_("out_mzq");
 
     // prevent loading of fragment spectra
     PeakFileOptions options;
@@ -193,12 +165,11 @@ protected:
     options.setIntensityRange({std::numeric_limits<RP_TYPE>::min(), RP_TYPE::maxPositive()});
 
     // reading input data
-    MzMLFile f;
+    FileHandler f;
     f.getOptions() = options;
-    f.setLogType(log_type_);
 
     PeakMap exp;
-    f.load(in, exp);
+    f.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
     exp.updateRanges();
 
     if (exp.getSpectra().empty())
@@ -221,12 +192,12 @@ protected:
     FeatureMap seeds;
     if (!getStringOption_("seeds").empty())
     {
-      FeatureXMLFile().load(getStringOption_("seeds"), seeds);
+      FileHandler().loadFeatures(getStringOption_("seeds"), seeds, {FileTypes::FEATUREXML});
     }
 
     //setup of FeatureFinder
-    FeatureFinder ff;
-    ff.setLogType(log_type_);
+    FeatureFinderAlgorithmPicked ff;
+    //ff.setLogType(log_type_); TODO
 
     // A map for the resulting features
     FeatureMap features;
@@ -246,7 +217,7 @@ protected:
     writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 
     // Apply the feature finder
-    ff.run(FeatureFinderAlgorithmPicked::getProductName(), exp, features, feafi_param, seeds);
+    ff.run(exp, features, feafi_param, seeds);
     features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // DEBUG
@@ -275,7 +246,7 @@ protected:
     addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
 
     // write features to user specified output file
-    FeatureXMLFile map_file;
+    FileHandler map_file;
 
     // Remove detailed convex hull information and subordinate features
     // (unless requested otherwise) to reduce file size of feature files
@@ -293,20 +264,7 @@ protected:
       }
     }
 
-    map_file.store(out, features);
-
-    if (!out_mzq.trim().empty())
-    {
-      std::vector<DataProcessing> tmp;
-      for (Size i = 0; i < exp[0].getDataProcessing().size(); i++)
-      {
-        tmp.push_back(*exp[0].getDataProcessing()[i].get());
-      }
-      MSQuantifications msq(features, exp.getExperimentalSettings(), tmp );
-      msq.assignUIDs();
-      MzQuantMLFile file;
-      file.store(out_mzq, msq);
-    }
+    map_file.storeFeatures(out, features, {FileTypes::FEATUREXML});
 
     return EXECUTION_OK;
   }

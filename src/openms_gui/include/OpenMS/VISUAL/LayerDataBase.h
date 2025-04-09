@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -34,7 +8,7 @@
 
 #pragma once
 
-// OpenMS_GUI config
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -43,15 +17,18 @@
 #include <OpenMS/KERNEL/AnnotatedMSRawData.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
-#include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
+#include <OpenMS/PROCESSING/MISC/DataFilters.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
 #include <OpenMS/VISUAL/LogWindow.h>
+#include <OpenMS/VISUAL/MISC/CommonDefs.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -62,81 +39,75 @@ class QWidget;
 
 namespace OpenMS
 {
+  class LayerData1DBase;
+  class LayerStoreData;
   class LayerStatistics;
   class OnDiscMSExperiment;
 
   class OSWData;
+  class Painter1DBase;
+  class Painter2DBase;
 
-  /**
-  @brief Class that stores the data for one layer
+  template <int N_DIM> class DimMapper;
 
-  The data for a layer can be peak data, feature data (feature, consensus),
-  chromatogram or peptide identification data. 
-
-  For 2D and 3D data, the data is generally accessible through getPeakData()
-  while features are accessible through getFeatureMap() and getConsensusMap().
-  For 1D data, the current spectrum must be accessed through
-  getCurrentSpectrum().
-
-  Peak data is stored using a shared pointer to an MSExperiment data structure
-  as well as a shared pointer to a OnDiscMSExperiment data structure. Note that
-  the actual data may not be in memory as this is not efficient for large files
-  and therefore may have to be retrieved from disk on-demand. 
-
-  @note The spectrum for 1D viewing retrieved through getCurrentSpectrum() is a
-  copy of the actual raw data and *different* from the one retrieved through
-  getPeakData()[index]. Any changes to applied to getCurrentSpectrum() are
-  non-persistent and will be gone the next time the cache is updated.
-  Persistent changes can be applied to getPeakDataMuteable() and will be
-  available on the next cache update.
-
-  @note Layer is mainly used as a member variable of PlotCanvas which holds
-  a vector of LayerDataBase objects.
-
-  @ingroup PlotWidgets
-  */
-  class OPENMS_GUI_DLLAPI LayerDataBase
+  struct LayerDataDefs
   {
-  public:
+
+    /// Result of computing a projection on X and Y axis in a 2D Canvas; see LayerDataBase::getProjection()
+    struct ProjectionData
+    {
+      /// C'tor
+      ProjectionData();
+      /// Move C'tor
+      ProjectionData(ProjectionData&&);
+      /// D'tor
+      ~ProjectionData(); // needs to be implemented in cpp, since inline would require a full definition of LayerData1DBase;
+
+      std::unique_ptr<LayerData1DBase> projection_ontoX;
+      std::unique_ptr<LayerData1DBase> projection_ontoY;
+      struct Summary {
+        UInt number_of_datapoints {0};
+        Peak1D::IntensityType max_intensity {0};
+        double sum_intensity {0}; // double since sum could get large
+      } stats;
+    };
+
     /** @name Type definitions */
     //@{
     /// Dataset types.
     /// Order in the enum determines the order in which layer types are drawn.
     enum DataType
     {
-      DT_PEAK,        ///< Spectrum profile or centroided data
-      DT_CHROMATOGRAM,///< Chromatogram data
-      DT_FEATURE,     ///< Feature data
-      DT_CONSENSUS,   ///< Consensus feature data
-      DT_IDENT,       ///< Peptide identification data
-      DT_UNKNOWN      ///< Undefined data type indicating an error
+      DT_PEAK,         ///< Spectrum profile or centroided data
+      DT_CHROMATOGRAM, ///< Chromatogram data
+      DT_FEATURE,      ///< Feature data
+      DT_CONSENSUS,    ///< Consensus feature data
+      DT_IDENT,        ///< Peptide identification data
+      DT_UNKNOWN       ///< Undefined data type indicating an error
     };
 
     /// Flags that determine which information is shown.
     enum Flags
     {
-      F_HULL,       ///< Features: Overall convex hull
-      F_HULLS,      ///< Features: Convex hulls of single mass traces
-      F_UNASSIGNED, ///< Features: Unassigned peptide hits
-      P_PRECURSORS, ///< Peaks: Mark precursor peaks of MS/MS scans
-      P_PROJECTIONS,///< Peaks: Show projections
-      C_ELEMENTS,   ///< Consensus features: Show elements
-      I_PEPTIDEMZ,  ///< Identifications: m/z source
-      I_LABELS,     ///< Identifications: Show labels (not sequences)
+      F_HULL,        ///< Features: Overall convex hull
+      F_HULLS,       ///< Features: Convex hulls of single mass traces
+      F_UNASSIGNED,  ///< Features: Unassigned peptide hits
+      P_PRECURSORS,  ///< Peaks: Mark precursor peaks of MS/MS scans
+      P_PROJECTIONS, ///< Peaks: Show projections
+      C_ELEMENTS,    ///< Consensus features: Show elements
+      I_PEPTIDEMZ,   ///< Identifications: m/z source
+      I_LABELS,      ///< Identifications: Show labels (not sequences)
       SIZE_OF_FLAGS
     };
-
-    /// Actual state of each flag
-    std::bitset<SIZE_OF_FLAGS> flags;
 
     /// Label used in visualization
     enum LabelType
     {
-      L_NONE,      ///< No label is displayed
-      L_INDEX,     ///< The element number is used
-      L_META_LABEL,///< The 'label' meta information is used
-      L_ID,        ///< The best peptide hit of the first identification run is used
-      L_ID_ALL,    ///< All peptide hits of the first identification run are used
+      L_NONE,       ///< No label is displayed
+      L_INDEX,      ///< The element number is used
+      L_META_LABEL, ///< The 'label' meta information is used
+      L_ID,         ///< The best peptide hit of the first identification run is used
+      L_ID_ALL,     ///< All peptide hits of the first identification run are used
       SIZE_OF_LABEL_TYPE
     };
 
@@ -168,123 +139,144 @@ namespace OpenMS
 
     /// SharedPtr on OSWData
     typedef boost::shared_ptr<OSWData> OSWDataSharedPtrType;
+  };
+
+  /**
+  @brief Class that stores the data for one layer
+
+  The data for a layer can be peak data, feature data (feature, consensus),
+  chromatogram or peptide identification data. 
+
+  For 2D and 3D data, the data is generally accessible through getPeakData()
+  while features are accessible through getFeatureMap() and getConsensusMap().
+  For 1D data, the current spectrum must be accessed through
+  getCurrentSpectrum().
+
+  Peak data is stored using a shared pointer to an MSExperiment data structure
+  as well as a shared pointer to a OnDiscMSExperiment data structure. Note that
+  the actual data may not be in memory as this is not efficient for large files
+  and therefore may have to be retrieved from disk on-demand. 
+
+  @note The spectrum for 1D viewing retrieved through getCurrentSpectrum() is a
+  copy of the actual raw data and *different* from the one retrieved through
+  getPeakData()[index]. Any changes to applied to getCurrentSpectrum() are
+  non-persistent and will be gone the next time the cache is updated.
+  Persistent changes can be applied to getPeakDataMuteable() and will be
+  available on the next cache update.
+
+  @note Layer is mainly used as a member variable of PlotCanvas which holds
+  a vector of LayerDataBase objects.
+
+  @ingroup PlotWidgets
+  */
+#ifdef _MSC_VER
+  #pragma warning(disable : 4250) // 'class1' : inherits 'class2::member' via dominance
+#endif
+  class OPENMS_GUI_DLLAPI LayerDataBase : public LayerDataDefs
+  {
+  public:
+    /// Actual state of each flag
+    std::bitset<SIZE_OF_FLAGS> flags;
 
     //@}
 
-    /// Default constructor
-    LayerDataBase() = delete;
-    /// Ctor for child classes
-    LayerDataBase(const DataType type) : type(type) {};
-    /// no Copy-ctor (should not be needed)
-    LayerDataBase(const LayerDataBase& ld) = delete;
-    /// no assignment operator (should not be needed)
+    /// Default constructor (for virtual inheritance)
+    LayerDataBase() = delete;     // <-- this is the problem. Call assignment op in 1DPeak???
+    /// C'tor for child classes
+    explicit LayerDataBase(const DataType type) : type(type) {}
+    /// Copy-C'tor
+    LayerDataBase(const LayerDataBase& ld) = default;
+    /// Assignment operator
     LayerDataBase& operator=(const LayerDataBase& ld) = delete;
-    /// move Ctor
-    LayerDataBase(LayerDataBase&& ld) = default;
-    /// move assignment
-    LayerDataBase& operator=(LayerDataBase&& ld) = default;
-    /// Dtor
+    /// Move-C'tor - do not move from this class since its a virtual base class (diamond problem) and the move c'tor may be called twice (which would loose data!)
+    /// Instead of painstakingly writing user-defined move c'tors which check for moving for all the direct child classes, 
+    /// we'd rather use copy (which is the automatic fallback, and safe) and incur a small performance hit
+    LayerDataBase(LayerDataBase&& ld) = delete;
+    /// Move assignment -- deleted, by same argument as for move c'tor
+    LayerDataBase& operator=(LayerDataBase&& ld) = delete;
+    /// D'tor
     virtual ~LayerDataBase() = default;
 
+    /**
+     * \brief Obtain a painter which can draw the layer on a 2D canvas
+     * \return A painter
+     */
+    virtual std::unique_ptr<Painter2DBase> getPainter2D() const = 0;
 
-    /// Returns a const reference to the current feature data
-    const FeatureMapSharedPtrType& getFeatureMap() const
+
+    /**
+     * \brief Create a shallow copy (i.e. shared experimental data using shared_ptr) of the current layer, and make it 1D (i.e. support showing a single spec/chrom etc)
+     * \return A new layer for 1D
+     */
+    virtual std::unique_ptr <LayerData1DBase> to1DLayer() const = 0;
+
+    /// Returns a visitor which contains the current visible data and can write the data to disk
+    virtual std::unique_ptr<LayerStoreData> storeVisibleData(const RangeAllType& /*visible_range*/, const DataFilters& /*layer_filters*/) const
     {
-      return features_;
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+    /// Returns a visitor which contains the the full data of the layer and can write the data to disk in the appropriate format (e.g. mzML)
+    virtual std::unique_ptr<LayerStoreData> storeFullData() const
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
-    /// Returns a const reference to the current feature data
-    FeatureMapSharedPtrType& getFeatureMap()
-    {
-      return features_;
-    }
+    /// Calculate a projection of the current layer for the given unit and the given area.
+    /// E.g. the area might be restricted in RT and m/z, and then requested projection should return the XIC (@p unit == RT)
+    /// It is up to the implementation to decide on binning.
+    // todo: put this into a LayerData2DBase class, since a LayerData1DPeak should not implement this.
+    virtual ProjectionData getProjection(const DIM_UNIT unit_x, const DIM_UNIT unit_y, const RangeAllType& area) const = 0;
 
-    /// Returns a const reference to the consensus feature data
-    const ConsensusMapSharedPtrType& getConsensusMap() const
+    /**
+     * \brief Find the closest datapoint within the given range and return a proxy to that datapoint
+     * \param area Range to search in. Only dimensions used in the canvas are populated.
+     * \return A proxy (e.g. scan + peak index in an MSExperiment) which points to the data
+     */
+    virtual PeakIndex findClosestDataPoint(const RangeAllType& area) const
     {
-      return consensus_map_;
-    }
-
-    /// Returns current consensus map (mutable)
-    ConsensusMapSharedPtrType& getConsensusMap()
-    {
-      return consensus_map_;
+      (void)area; // allow doxygen to document the param
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     /**
-    @brief Returns a const reference to the current in-memory peak data
+     * \brief Find the datapoint with the highest intensity within the given range and return a proxy to that datapoint
+     * \param area Range to search in. Only dimensions used in the canvas are populated.
+     * \return A proxy (e.g. scan + peak index in an MSExperiment) which points to the data
+     */
+    virtual PeakIndex findHighestDataPoint(const RangeAllType& area) const
+    {
+      (void)area; // allow doxygen to document the param
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
 
-    @note Depending on the caching strategy (on-disk or in-memory), all or some
-    spectra may have zero size and contain only meta data since peak data is
-    cached on disk.
-
-    @note Do *not* use this function to access the current spectrum for the 1D view, use getCurrentSpectrum() instead.
-    */
-    const ConstExperimentSharedPtrType getPeakData() const;
 
     /**
-    @brief Returns a mutable reference to the current in-memory peak data
-
-    @note Depending on the caching strategy (on-disk or in-memory), all or some
-    spectra may have zero size and contain only meta data since peak data is
-    cached on disk.
-
-    @note Do *not* use this function to access the current spectrum for the 1D view, use getCurrentSpectrum() instead.
-    */
-    const ExperimentSharedPtrType& getPeakDataMuteable()
-    {
-      return peak_map_;
-    }
+     * \brief Convert a PeakIndex to a XY coordinate (via @p mapper).
+     * \param peak The Peak to convert
+     * \param mapper Converts the internal representation (e.g. Peak1D) to an XY coordinate
+     * \return XY coordinate in data units (e.g. X=m/z, Y=intensity)
+     */
+    virtual PointXYType peakIndexToXY(const PeakIndex& peak, const DimMapper<2>& mapper) const = 0;
 
     /**
-    @brief Set the current in-memory peak data
-    */
-    void setPeakData(ExperimentSharedPtrType p)
+     * \brief Get name and value of all data-arrays corresponding to the given datapoint
+     *
+     * Empty (or shorter) data-arrays are skipped.
+     *
+     * \param peak_index The datapoint
+     * \return A string, e.g. "fwhm: 20, im: 3.3", depending on which float/string dataarrays are populated for the given datapoint
+     */
+    virtual String getDataArrayDescription(const PeakIndex& peak_index)
     {
-      peak_map_ = p;
-      updateCache_();
+      (void)peak_index; // allow doxygen to document the param
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-
-    /// Set the current on-disc data
-    void setOnDiscPeakData(ODExperimentSharedPtrType p)
-    {
-      on_disc_peaks = p;
-    }
-
-    /// Returns a mutable reference to the on-disc data
-    const ODExperimentSharedPtrType& getOnDiscPeakData() const
-    {
-      return on_disc_peaks;
-    }
-
-    /// Returns a mutable reference to the current chromatogram data
-    const ExperimentSharedPtrType& getChromatogramData() const
-    {
-      return chromatogram_map_;
-    }
-
-    /// Returns a mutable reference to the current chromatogram data
-    ExperimentSharedPtrType& getChromatogramData()
-    {
-      return chromatogram_map_;
-    }
-
-    /// get annotation (e.g. to build a hierachical ID View)
-    /// Not const, because we might have incomplete data, which needs to be loaded from sql source
-    OSWDataSharedPtrType& getChromatogramAnnotation();
-
-    /// get annotation (e.g. to build a hierachical ID View)
-    /// Not actually const (only the pointer, not the data), because we might have incomplete data, which needs to be loaded from sql source
-    const OSWDataSharedPtrType& getChromatogramAnnotation() const;
-
-    /// add annotation from an OSW sqlite file.
-    void setChromatogramAnnotation(OSWData&& data);
 
     /// add peptide identifications to the layer
     /// Only supported for DT_PEAK, DT_FEATURE and DT_CONSENSUS.
     /// Will return false otherwise.
-    bool annotate(const std::vector<PeptideIdentification>& identifications,
-                  const std::vector<ProteinIdentification>& protein_identifications);
+    virtual bool annotate(const std::vector<PeptideIdentification>& identifications,
+                          const std::vector<ProteinIdentification>& protein_identifications);
 
 
     /// Returns a const reference to the annotations of the current spectrum (1D view)
@@ -383,9 +375,9 @@ namespace OpenMS
     @brief Check whether the current layer is a chromatogram
      
     This is needed because type will *not* distinguish properly between
-    chromatogram and spectra data. This is due to the fact that we store 
-    chromatograms for display in 1D in a data layer using MSSpectrum and 
-    so the layer looks like PEAK data to tools. 
+    chromatogram and spectra data. This is due to the fact that we store
+    chromatograms for display in 1D in a data layer using MSSpectrum and
+    so the layer looks like PEAK data to tools.
     */
     bool chromatogram_flag_set() const
     {
@@ -422,11 +414,12 @@ namespace OpenMS
 
     using RangeAllType = RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>;
 
-    /// Returns the data range in all known dimensions. If a layer does not support the dimension (or the layer is empty)
-    /// the dimension will be empty
+    /// Returns the data range of the whole layer (i.e. all scans/chroms/etc) in all known dimensions.
+    /// If a layer does not support the dimension (or the layer is empty) the dimension will be empty
+    /// If you need the data range for a 1D view (i.e. only a single spec/chrom/etc), call 'LayerDataBase1D::getRange1D()'
     virtual RangeAllType getRange() const = 0;
 
-    /// compute layer statistics (via visitor)
+    /// Compute layer statistics (via visitor)
     virtual std::unique_ptr<LayerStatistics> getStats() const = 0;
 
     /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
@@ -436,28 +429,36 @@ namespace OpenMS
     /// remove peak annotations in the given list from the currently active PeptideHit
     void removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem *>& selected_annotations);
 
-    /// if this layer is visible
-    bool visible = true;
-
-    /// if this layer is flipped (1d mirror view)
-    bool flipped = false;
-
-    /// data type (peak or feature data)
-    DataType type = DT_UNKNOWN;
-
-  private:
-    /// layer name
-    String name_;
-
-  public:
+    /// The name of the layer, usually the basename of the file
     const String& getName() const
     {
       return name_;
     }
+    /// Set the name of the layer, usually the basename of the file
     void setName(const String& new_name)
     {
       name_ = new_name;
     }
+
+    /// get the extra annotation to the layers name, e.g. '[39]' for which chromatogram index is currently shown in 1D
+    const String& getNameSuffix() const
+    {
+      return name_suffix_;
+    }
+    /// set an extra annotation as suffix to the layers name, e.g. '[39]' for which chromatogram index is currently shown in 1D
+    void setNameSuffix(const String& decorator)
+    {
+      name_suffix_ = decorator;
+    }
+
+    /// get name augmented with attributes, e.g. '*' if modified
+    virtual String getDecoratedName() const;
+
+    /// if this layer is visible
+    bool visible = true;
+
+    /// data type (peak or feature data, etc)
+    DataType type = DT_UNKNOWN;
 
     /// file name of the file the data comes from (if available)
     String filename;
@@ -470,12 +471,6 @@ namespace OpenMS
 
     /// Filters to apply before painting
     DataFilters filters;
-
-    /// Annotations of all spectra of the experiment (1D view)
-    std::vector<Annotations1DContainer> annotations_1d = std::vector<Annotations1DContainer>(1);
-
-    /// Peak colors of the currently shown spectrum
-    std::vector<QColor> peak_colors_1d;
 
     /// Flag that indicates if the layer data can be modified (so far used for features only)
     bool modifiable = false;
@@ -490,6 +485,7 @@ namespace OpenMS
     int peptide_id_index = -1;
     int peptide_hit_index = -1;
 
+<<<<<<< HEAD
     /// get name augmented with attributes, e.g. [flipped], or '*' if modified
     String getDecoratedName() const;
 
@@ -523,10 +519,18 @@ namespace OpenMS
 
     /// Current cached spectrum
     MSExperiment::SpectrumType cached_spectrum_;
+=======
+  private:
+    /// layer name
+    String name_;
+    /// an extra annotation as suffix to the layers name, e.g. '[39]' for which chromatogram index is currently shown in 1D
+    String name_suffix_;
+>>>>>>> origin
   };
 
   /// A base class to annotate layers of specific types with (identification) data
-  /// @hint Add new derived classes to getAnnotatorWhichSupports() to enable automatic annotation in TOPPView
+  /// 
+  /// @note Add new derived classes to getAnnotatorWhichSupports() to enable automatic annotation in TOPPView
   class LayerAnnotatorBase
   {
   public:
@@ -537,25 +541,28 @@ namespace OpenMS
         @param file_dialog_text The header text of the file dialog shown to the user
         @param gui_lock Optional GUI element which will be locked (disabled) during call to 'annotateWorker_'; can be null_ptr
       **/
-    LayerAnnotatorBase(const FileTypes::FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock);
+    LayerAnnotatorBase(const FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock);
+    
+    /// Make D'tor virtual for correct destruction from pointers to base
+    virtual ~LayerAnnotatorBase() = default;
 
     /// Annotates a @p layer, writing messages to @p log and showing QMessageBoxes on errors.
     /// The input file is selected via a file-dialog which is opened with @p current_path as initial path.
-    /// The filetype is checked to be one of the supported_types_ before the annotateWorker_ function is called
+    /// The file type is checked to be one of the supported_types_ before the annotateWorker_ function is called
     /// as implemented by the derived classes
     bool annotateWithFileDialog(LayerDataBase& layer, LogWindow& log, const String& current_path) const;
 
     /// Annotates a @p layer, given a filename from which to load the data.
-    /// The filetype is checked to be one of the supported_types_ before the annotateWorker_ function is called
+    /// The file type is checked to be one of the supported_types_ before the annotateWorker_ function is called
     /// as implemented by the derived classes
     bool annotateWithFilename(LayerDataBase& layer, LogWindow& log, const String& filename) const;
 
-    /// get a derived annotator class, which supports annotation of the given filetype.
+    /// get a derived annotator class, which supports annotation of the given file type.
     /// If multiple class support this type (currently not the case) an Exception::IllegalSelfOperation will be thrown
     /// If NO class supports this type, the unique_ptr points to nothing (.get() == nullptr).
     static std::unique_ptr<LayerAnnotatorBase> getAnnotatorWhichSupports(const FileTypes::Type& type);
 
-    /// see getAnnotatorWhichSupports(const FileTypes::Type& type). Filetype is queried from filename
+    /// see getAnnotatorWhichSupports(const FileTypes::Type& type). File type is queried from filename
     static std::unique_ptr<LayerAnnotatorBase> getAnnotatorWhichSupports(const String& filename);
 
   protected:
@@ -563,7 +570,7 @@ namespace OpenMS
     /// returns true on success
     virtual bool annotateWorker_(LayerDataBase& layer, const String& filename, LogWindow& log) const = 0;
 
-    const FileTypes::FileTypeList supported_types_;
+    const FileTypeList supported_types_;
     const String file_dialog_text_;
     QWidget* gui_lock_ = nullptr;///< optional widget which will be locked when calling annotateWorker_() in child-classes
   };

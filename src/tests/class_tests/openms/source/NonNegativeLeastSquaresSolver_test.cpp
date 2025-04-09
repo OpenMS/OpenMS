@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -36,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
+#include <OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -76,14 +50,14 @@ START_SECTION((static Int solve(const Matrix< double > &A, const Matrix< double 
 	double x_1[4][1] = {{0.931153},{0.36833},{0},{0}};
 
 	Matrix<double> A,b,x;
-	A.setMatrix<3,4>(A_1);
-	b.setMatrix<3,1>(b_1);
-	x.resize(4,1);
+	A.setMatrix<double,3,4>(A_1);
+	b.setMatrix<double,3,1>(b_1);
+	x.getEigenMatrix().resize(4,1);
 	
 	TOLERANCE_ABSOLUTE(0.0005);
 	
 	NonNegativeLeastSquaresSolver::solve(A,b,x);
-	for (size_t i=0;i<x.rows();++i)
+	for (size_t i = 0;i < x.rows(); ++i)
 	{
 		TEST_REAL_SIMILAR(x(i,0), x_1[i][0]);
 	}	
@@ -101,9 +75,9 @@ START_SECTION((static Int solve(const Matrix< double > &A, const Matrix< double 
 	double b_2[4][1] = {{5},{45},{4},{31}};
 	double x_2[4][1] = {{4.3395},{48.4364},{0},{33.4945}};	
 	
-	A.setMatrix<4,4>(A_2);
-	b.setMatrix<4,1>(b_2);
-	x.resize(4,1);
+	A.setMatrix<double,4,4>(A_2);
+	b.setMatrix<double,4,1>(b_2);
+	x.getEigenMatrix().resize(4,1);
 	
 	NonNegativeLeastSquaresSolver::solve(A,b,x);
 	for (size_t i=0;i<x.rows();++i)

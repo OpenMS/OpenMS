@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -34,6 +8,7 @@
 //
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <map>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -197,6 +172,19 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
     TEST_STRING_EQUAL(seq16.getNTerminalModification()->getId(), "Gln->pyro-Glu");
     TEST_STRING_EQUAL(seq16.getNTerminalModification()->getFullId(), "Gln->pyro-Glu (N-term Q)");
     TEST_STRING_EQUAL(seq16.getNTerminalModificationName(), "Gln->pyro-Glu");
+
+
+    AASequence seq17 = AASequence::fromString("[+42].MVLVQDLLHPTAASEAR");
+    TEST_EQUAL(seq17.hasNTerminalModification(), true)
+    TEST_STRING_EQUAL(seq17.getNTerminalModification()->getId(), "Acetyl");
+    TEST_STRING_EQUAL(seq17.getNTerminalModification()->getFullId(), "Acetyl (N-term)");
+    TEST_STRING_EQUAL(seq17.getNTerminalModificationName(), "Acetyl");
+
+    AASequence seq18 = AASequence::fromString("[+304.207].ETC[+57.0215]RQLGLGTNIYNAER");
+    TEST_EQUAL(seq18.hasNTerminalModification(), true)
+    TEST_STRING_EQUAL(seq18.getNTerminalModification()->getId(), "TMTpro");
+    TEST_STRING_EQUAL(seq18.getNTerminalModification()->getFullId(), "TMTpro (N-term)");
+    TEST_STRING_EQUAL(seq18.getNTerminalModificationName(), "TMTpro");    
   }
 
   // invalid test case: "Pyro-carbamidomethyl" is only defined as N-terminal
@@ -284,8 +272,25 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
     TEST_STRING_EQUAL(seq4.getCTerminalModification()->getFullId(), "Lys-loss (Protein C-term K)");
     // no terminal dot
     seq4 = AASequence::fromString("PEPTIDEK(UniMod:313)");
-    TEST_STRING_EQUAL(seq4.getCTerminalModification()->getFullId(), "Lys-loss (Protein C-term K)");
+    TEST_EQUAL(seq4[7].isModified(), true);
+    TEST_STRING_EQUAL(seq4[7].getModificationName(), "Lys-loss");
+    TEST_STRING_EQUAL(seq4.getResidue(7).getModification()->getFullId(), "Lys-loss (K)");
   }
+
+  // test with Selenocysteine
+  {
+    AASequence seq = AASequence::fromString("PEPTIDESEKUEM(Oxidation)CER");
+    TEST_EQUAL(seq.toUniModString(), "PEPTIDESEKUEM(UniMod:35)CER")
+    TEST_EQUAL(seq.getFormula(), EmpiricalFormula("C75H122N20O32S2Se1"))
+    TEST_REAL_SIMILAR(EmpiricalFormula("C75H122N20O32S2").getMonoWeight(), 1878.7975553518002)
+
+    // note that the monoisotopic weight of Selenium is 80 and not 74
+    TEST_REAL_SIMILAR(EmpiricalFormula("C75H122N20O32S2Se1").getAverageWeight(), 1958.981404189803)
+    TEST_REAL_SIMILAR(EmpiricalFormula("C75H122N20O32S2Se1").getMonoWeight(), 1958.7140766518)
+    TEST_REAL_SIMILAR(seq.getMonoWeight(), 1958.7140766518)
+    TEST_REAL_SIMILAR(seq.getAverageWeight(), 1958.981404189803)
+  }
+
 }
 END_SECTION
 
@@ -391,7 +396,7 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
 
   // test old OpenMS NIC definition
   AASequence seq2a = AASequence::fromString("(MOD:09998)DFPIANGER");
-  TEST_EQUAL(seq2 == seq2a, true)
+  TEST_TRUE(seq2 == seq2a)
 
   // test heavy modification
   AASequence seq3 = AASequence::fromString("(dNIC)DFPIANGER");
@@ -399,7 +404,7 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
 
   // test old OpenMS dNIC definition
   AASequence seq3a = AASequence::fromString("(MOD:09999)DFPIANGER");
-  TEST_EQUAL(seq3 == seq3a, true)
+  TEST_TRUE(seq3 == seq3a)
 
   TEST_REAL_SIMILAR(AASequence::fromString("TYQYS(Phospho)").getFormula().getMonoWeight(), AASequence::fromString("TYQYS(Phospho)").getMonoWeight());
 
@@ -654,7 +659,7 @@ START_SECTION(void setNTerminalModification(const String &modification))
   AASequence seq2 = AASequence::fromString("(MOD:00051)DFPIANGER");
   TEST_EQUAL(seq1 == seq2, false)
   seq1.setNTerminalModification("MOD:00051");
-  TEST_EQUAL(seq1 == seq2, true)
+  TEST_TRUE(seq1 == seq2)
 
   AASequence seq3 = AASequence::fromString("DABCDEF");
   AASequence seq4 = AASequence::fromString("(MOD:00051)DABCDEF");
@@ -662,7 +667,7 @@ START_SECTION(void setNTerminalModification(const String &modification))
   seq3.setNTerminalModification("MOD:00051");
   TEST_EQUAL(seq3.isModified(), true)
   TEST_EQUAL(seq4.isModified(), true)
-  TEST_EQUAL(seq3 == seq4, true)
+  TEST_TRUE(seq3 == seq4)
 
   AASequence seq5 = AASequence::fromString("DABCDEF");
   AASequence seq6 = seq5;
@@ -719,7 +724,7 @@ START_SECTION(void setCTerminalModification(const String& modification))
 
   TEST_EQUAL(seq1 == seq2, false)
   seq1.setCTerminalModification("Amidated");
-  TEST_EQUAL(seq1 == seq2, true)
+  TEST_TRUE(seq1 == seq2)
 
   AASequence seq3 = AASequence::fromString("DABCDER");
   AASequence seq4 = AASequence::fromString("DABCDER(Amidated)");
@@ -727,21 +732,21 @@ START_SECTION(void setCTerminalModification(const String& modification))
   seq3.setCTerminalModification("Amidated");
   TEST_EQUAL(seq3.isModified(), true)
   TEST_EQUAL(seq4.isModified(), true)
-  TEST_EQUAL(seq3 == seq4, true)
+  TEST_TRUE(seq3 == seq4)
 
   AASequence seq5 = AASequence::fromString("DABCDER(MOD:00177)");
   AASequence seq6 = AASequence::fromString("DABCDER(MOD:00177)(Amidated)");
   TEST_EQUAL(seq5.isModified(), true)
   TEST_EQUAL(seq6.isModified(), true)
   seq5.setCTerminalModification("Amidated");
-  TEST_EQUAL(seq5 == seq6, true)
+  TEST_TRUE(seq5 == seq6)
 
   AASequence seq7 = AASequence::fromString("DFPIANGER(MOD:00177)");
   AASequence seq8 = AASequence::fromString("DFPIANGER(MOD:00177)(Amidated)");
   TEST_EQUAL(seq7.isModified(), true)
   TEST_EQUAL(seq8.isModified(), true)
   seq7.setCTerminalModification("Amidated");
-  TEST_EQUAL(seq5 == seq6, true)
+  TEST_TRUE(seq5 == seq6)
 END_SECTION
 
 START_SECTION(const String& getCTerminalModificationName() const)
@@ -846,7 +851,7 @@ END_SECTION
 
 START_SECTION(void getAAFrequencies(Map<String, Size>& frequency_table) const)
   AASequence a = AASequence::fromString("THREEAAAWITHYYY");
-  Map<String, Size> table;
+  std::map<String, Size> table;
   a.getAAFrequencies(table);
 
   TEST_EQUAL(table["T"]==2, true);

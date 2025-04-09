@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -43,6 +17,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/MzTabMFile.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -50,6 +25,7 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 ///////////////////////////
 
@@ -191,7 +167,7 @@ START_SECTION((void queryByFeature(const Feature& feature, const Size& feature_i
   test_feat.setRT(300.0);
   test_feat.setMZ(399.33486);
   test_feat.setIntensity(100.0);
-  test_feat.setMetaValue("num_of_masstraces", 3);
+  test_feat.setMetaValue(Constants::UserParam::NUM_OF_MASSTRACES, 3);
   test_feat.setCharge(1.0);
 
   vector<double> masstrace_intenstiy = {100.0, 26.1, 4.0};
@@ -303,7 +279,9 @@ FuzzyStringComparator fsc;
 fsc.setAcceptableAbsolute(1e-8);
 StringList sl;
 sl.push_back("xml-stylesheet");
-sl.push_back("IdentificationRun");
+sl.push_back("IdentificationRun id=\"PI_0\" date=");
+sl.push_back("software[1]");
+sl.push_back("database[1]-uri");
 fsc.setWhitelist(sl);
 
 START_SECTION((void run(FeatureMap&, MzTab&) const))
@@ -347,6 +325,39 @@ START_SECTION((void run(FeatureMap&, MzTab&) const))
 }
 END_SECTION
 
+START_SECTION((void run(FeatureMap&, MzTabM&) const))
+{
+  FeatureMap exp_fm;
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm);
+  {
+    MzTabM test_mztabm;
+    ams_feat_test.run(exp_fm, test_mztabm);
+
+    String tmp_mztabm_file;
+    NEW_TMP_FILE(tmp_mztabm_file);
+    MzTabMFile().store(tmp_mztabm_file, test_mztabm);
+    TEST_EQUAL(fsc.compareFiles(tmp_mztabm_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1_mztabm_featureXML.mzTab")), true);
+
+    // test use of adduct information
+    Param ams_param_tmp = ams_param;
+    ams_param_tmp.setValue("use_feature_adducts", "true");
+
+    AccurateMassSearchEngine ams_feat_test2;
+    ams_feat_test2.setParameters(ams_param_tmp);
+    ams_feat_test2.init();
+
+    FeatureMap exp_fm2;
+    FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm2);
+    MzTabM test_mztabm2;
+    ams_feat_test2.run(exp_fm2, test_mztabm2);
+
+    String tmp_mztabm_file2;
+    NEW_TMP_FILE(tmp_mztabm_file2);
+    MzTabMFile().store(tmp_mztabm_file2, test_mztabm2);
+    TEST_EQUAL(fsc.compareFiles(tmp_mztabm_file2, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output2_mztabm_featureXML.mzTab")), true);
+  }
+}
+END_SECTION
 
 START_SECTION((void run(ConsensusMap&, MzTab&) const))
   ConsensusMap exp_cm;
@@ -381,13 +392,22 @@ START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MA
   ams.init();
 
   TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt)); // 'fm_p' has no scan_polarity meta value
-  fm_p[0].setMetaValue("scan_polarity", "something;somethingelse");
+  for (auto& f : fm_p)
+  {
+    f.setMetaValue("scan_polarity", "something;somethingelse");
+  }
   TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt)); // 'fm_p' scan_polarity meta value wrong
 
-  fm_p[0].setMetaValue("scan_polarity", "positive"); // should run ok
+  for (auto& f : fm_p)
+  {
+    f.setMetaValue("scan_polarity", "positive");
+  }
   ams.run(fm_p, mzt);
 
-  fm_p[0].setMetaValue("scan_polarity", "negative"); // should run ok
+  for (auto& f : fm_p)
+  {
+    f.setMetaValue("scan_polarity", "negative");
+  }
   ams.run(fm_p, mzt);
 END_SECTION
 

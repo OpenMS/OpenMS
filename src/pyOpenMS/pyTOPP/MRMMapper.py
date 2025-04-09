@@ -47,7 +47,7 @@ def algorithm(chromatogram_map, targeted, precursor_tolerance, product_tolerance
 
     dp = pyopenms.DataProcessing()
     # dp.setProcessingActions(ProcessingAction:::FORMAT_CONVERSION)
-    pa = pyopenms.ProcessingAction().FORMAT_CONVERSION
+    pa = pyopenms.DataProcessing().ProcessingAction().FORMAT_CONVERSION
     dp.setProcessingActions(set([pa]))
 
     chromatograms = output.getChromatograms();

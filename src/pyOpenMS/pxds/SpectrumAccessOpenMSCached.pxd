@@ -12,13 +12,13 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCach
 
         SpectrumAccessOpenMSCached() # wrap-pass-constructor
 
-        SpectrumAccessOpenMSCached(String filename) nogil except +
+        SpectrumAccessOpenMSCached(String filename) except + nogil 
         # wrap-doc:
-                #   An implementation of the Spectrum Access interface using on-disk caching
-                #   -----
-                #   This class implements the OpenSWATH Spectrum Access interface
-                #   (ISpectrumAccess) using the CachedmzML class which is able to read and
-                #   write a cached mzML file
+                #  An implementation of the Spectrum Access interface using on-disk caching
+                #  
+                #  This class implements the OpenSWATH Spectrum Access interface
+                #  (ISpectrumAccess) using the CachedmzML class which is able to read and
+                #  write a cached mzML file
 
-        SpectrumAccessOpenMSCached(SpectrumAccessOpenMSCached &) nogil except +
+        SpectrumAccessOpenMSCached(SpectrumAccessOpenMSCached &) except + nogil 
 

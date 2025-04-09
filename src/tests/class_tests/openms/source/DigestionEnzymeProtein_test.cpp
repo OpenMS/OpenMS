@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Xiao Liang $
@@ -81,10 +55,9 @@ START_SECTION(DigestionEnzymeProtein(const String& name,
                                      String psi_id,
                                      String xtandem_id,
                                      Int comet_id,
-                                     String crux_id,
                                      Int msgf_id,
                                      Int omssa_id))
-  DigestionEnzymeProtein copy(e_ptr->getName(), e_ptr->getRegEx(), e_ptr->getSynonyms(), e_ptr->getRegExDescription(), e_ptr->getNTermGain(), e_ptr->getCTermGain(), e_ptr->getPSIID(), e_ptr->getXTandemID(), e_ptr->getCometID(), e_ptr->getCruxID(), e_ptr->getMSGFID(), e_ptr->getOMSSAID());
+  DigestionEnzymeProtein copy(e_ptr->getName(), e_ptr->getRegEx(), e_ptr->getSynonyms(), e_ptr->getRegExDescription(), e_ptr->getNTermGain(), e_ptr->getCTermGain(), e_ptr->getPSIID(), e_ptr->getXTandemID(), e_ptr->getCometID(),  e_ptr->getMSGFID(), e_ptr->getOMSSAID());
   TEST_EQUAL(copy.getName(), e_ptr->getName())
   TEST_EQUAL(copy.getRegEx(), e_ptr->getRegEx())
   TEST_EQUAL(copy.getRegExDescription(), e_ptr->getRegExDescription())
@@ -93,7 +66,6 @@ START_SECTION(DigestionEnzymeProtein(const String& name,
   TEST_EQUAL(copy.getPSIID(), e_ptr->getPSIID())
   TEST_EQUAL(copy.getXTandemID(), e_ptr->getXTandemID())
   TEST_EQUAL(copy.getCometID(), e_ptr->getCometID())
-  TEST_EQUAL(copy.getCruxID(), e_ptr->getCruxID())
   TEST_EQUAL(copy.getMSGFID(), e_ptr->getMSGFID())
   TEST_EQUAL(copy.getOMSSAID(), e_ptr->getOMSSAID())
 END_SECTION

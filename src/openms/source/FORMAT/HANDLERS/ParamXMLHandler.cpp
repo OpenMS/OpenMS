@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -49,8 +23,7 @@ namespace OpenMS::Internal
     }
 
     ParamXMLHandler::~ParamXMLHandler()
-    {
-    }
+    = default;
 
     void ParamXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
     {
@@ -80,7 +53,7 @@ namespace OpenMS::Internal
         optionalAttributeAsString_(advanced_string, attributes, "advanced");
         if (advanced_string == "true")
         {
-          tags.push_back("advanced");
+          tags.emplace_back("advanced");
         }
 
         //required
@@ -88,7 +61,7 @@ namespace OpenMS::Internal
         optionalAttributeAsString_(advanced_string, attributes, "required");
         if (advanced_string == "true")
         {
-          tags.push_back("required");
+          tags.emplace_back("required");
         }
 
         //type
@@ -104,17 +77,17 @@ namespace OpenMS::Internal
         // since param v1.6.2 we support explicitly naming input/output files as types
         else if (type == "input-file")
         {
-          tags.push_back("input file");
+          tags.emplace_back("input file");
           param_.setValue(name, value, description, tags);
         }
         else if (type == "output-file")
         {
-          tags.push_back("output file");          
+          tags.emplace_back("output file");          
           param_.setValue(name, value, description, tags);
         }
         else if (type == "output-prefix")
         {
-          tags.push_back("output prefix");          
+          tags.emplace_back("output prefix");          
           param_.setValue(name, value, description, tags);
         }
         else if (type == "float" || type == "double")
@@ -237,12 +210,12 @@ namespace OpenMS::Internal
         if (list_.type == "input-file")
         {
           list_.type = "string";
-          list_.tags.push_back("input file");
+          list_.tags.emplace_back("input file");
         }
         else if (list_.type == "output-file")
         {
           list_.type = "string";
-          list_.tags.push_back("output file");
+          list_.tags.emplace_back("output file");
         }
 
         list_.name = path_ + attributeAsString_(attributes, "name");
@@ -257,7 +230,7 @@ namespace OpenMS::Internal
         optionalAttributeAsString_(advanced_string, attributes, "advanced");
         if (advanced_string == "true")
         {
-          list_.tags.push_back("advanced");
+          list_.tags.emplace_back("advanced");
         }
 
         //advanced
@@ -265,7 +238,7 @@ namespace OpenMS::Internal
         optionalAttributeAsString_(required_string, attributes, "required");
         if (required_string == "true")
         {
-          list_.tags.push_back("required");
+          list_.tags.emplace_back("required");
         }
         
         list_.restrictions_index = attributes.getIndex(s_restrictions);

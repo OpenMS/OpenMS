@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -42,9 +16,9 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <iosfwd>
+#include <map>
 
 namespace OpenMS
 {
@@ -62,9 +36,6 @@ namespace OpenMS
     @todo Take care that unique ids are assigned properly by TOPP tools before
     calling FeatureXMLFile::store().  There will be a message on OPENMS_LOG_INFO but
     we will make no attempt to fix the problem in this class.  (all developers)
-
-    @note This format will eventually be replaced by the HUPO-PSI AnalysisXML
-    (mzIdentML and mzQuantML) formats!
 
     @ingroup FileIO
   */
@@ -180,13 +151,13 @@ protected:
     /// Temporary peptide hit
     PeptideHit pep_hit_;
     /// Map from protein id to accession
-    Map<String, String> proteinid_to_accession_;
+    std::map<String, String> proteinid_to_accession_;
     /// Map from search identifier concatenated with protein accession to id
-    Map<String, Size> accession_to_id_;
+    std::map<String, Size> accession_to_id_;
     /// Map from identification run identifier to file xs:id (for linking peptide identifications to the corresponding run)
-    Map<String, String> identifier_id_;
+    std::map<String, String> identifier_id_;
     /// Map from file xs:id to identification run identifier (for linking peptide identifications to the corresponding run)
-    Map<String, String> id_identifier_;
+    std::map<String, String> id_identifier_;
     /// Temporary search parameters file
     ProteinIdentification::SearchParameters search_param_;
 

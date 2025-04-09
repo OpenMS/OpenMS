@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Tom Waschischeck $
@@ -40,8 +14,9 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <cfloat>
-#include <map>
 #include <vector>
+
+#include <boost/regex.hpp>
 
 namespace OpenMS
 {
@@ -133,12 +108,12 @@ namespace OpenMS
       SuitabilityData simulateNoReRanking() const;
 
     private:
-      /// #IDs with only deNovo search / #IDs with only database search
+      /// \#IDs with only deNovo search / \#IDs with only database search
       /// used for correcting the number of deNovo hits
       /// worse databases will have less IDs than good databases
       /// this punishes worse databases more than good ones and will result in
       /// a worse suitability
-      double corr_factor;
+      double corr_factor = -1;
 
       /// number of top deNovo hits multiplied by the correction factor
       double num_top_novo_corr = 0;
@@ -192,7 +167,7 @@ namespace OpenMS
     * database. This can be used to extrapolate the number of database hits that would be needed to get a suitability
     * of 1. This number in combination with the maximum number of deNovo hits (found with an identification search
     * where only deNovo is used as a database) can be used to calculate a correction factor like this:
-    *                     #database hits for suitability of 1 / #maximum deNovo hits
+    *                     \#database hits for suitability of 1 / \#maximum deNovo hits
     * This formula can be simplified in a way that the maximum number of deNovo hits isn't needed:
     *                     - (database hits slope) / deNovo hits slope
     * Both of these values can easily be calculated with the original suitability data in conjunction with the one sampled search.
@@ -306,13 +281,13 @@ namespace OpenMS
     * @brief Looks through meta values of SearchParameters to find out which search adapter was used
     *
     * Checks for the following adapters:
-    * CometAdapter, CruxAdapter, MSGFPlusAdapter, MSFraggerAdapter, MyriMatchAdapter, OMSSAAdapter and XTandemAdapter
+    * CometAdapter, MSGFPlusAdapter, MSFraggerAdapter
     *
     * @param meta_values   SearchParameters object, since the adapters write their parameters here
-    * @retruns             a pair containing the name of the adapter and the parameters used to run it
+    * @returns             A pair containing the name of the adapter and the parameters used to run it
     * @throws              MissingInformation if none of the adapters above is found in the meta values
     */
-    std::pair<String, Param> extractSearchAdapterInfoFromMetaValues_(const ProteinIdentification::SearchParameters& search_params) const;
+    std::pair<String, Param> extractSearchAdapterInfoFromMetaValues_(const ProteinIdentification::SearchParameters& meta_values) const;
 
     /**
     * @brief Writes parameters into a given file
@@ -442,13 +417,13 @@ namespace OpenMS
     * @param score_name           name of the score to search for
     *                             The score name doesn't need to be the exact metavalue name, but a metavalue key should contain it.
     *                             i.e. "e-value" as metavalue "e-value_score"
-    * @param higher_score_better  true/false depending if a higher or lower score (@score_name) is better
+    * @param higher_score_better  true/false depending if a higher or lower score (@p score_name) is better
     * @returns                    the worst score that is still in the FDR threshold
     *
-    * @throws                     IllegalArgument if @score_name isn't found in the metavalues
-    * @throws                     Precondition if main score of @pep_ids isn't 'q-value'
+    * @throws                     IllegalArgument if @p score_name isn't found in the metavalues
+    * @throws                     Precondition if main score of @p pep_ids isn't 'q-value'
     */
-    double getScoreMatchingFDR_(const std::vector<PeptideIdentification>& pep_ids, double FDR, String score_name, bool higher_score_better) const;
+    double getScoreMatchingFDR_(const std::vector<PeptideIdentification>& pep_ids, double FDR, const String& score_name, bool higher_score_better) const;
   };
 
   // friend class to test private member functions

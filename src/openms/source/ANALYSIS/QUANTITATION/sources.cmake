@@ -17,8 +17,7 @@ KDTreeFeatureMaps.cpp
 KDTreeFeatureNode.cpp
 PeptideAndProteinQuant.cpp
 ProteinInference.cpp
-ProteinResolver.cpp
-QuantitativeExperimentalDesign.cpp
+TMTEighteenPlexQuantitationMethod.cpp
 TMTSixteenPlexQuantitationMethod.cpp
 TMTElevenPlexQuantitationMethod.cpp
 TMTSixPlexQuantitationMethod.cpp

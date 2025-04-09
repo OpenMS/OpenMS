@@ -1,36 +1,11 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
+
 
 #include <OpenMS/VISUAL/TVDIATreeTabController.h>
 
@@ -38,16 +13,13 @@
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
+#include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DVerticalLineItem.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
-
-#include <QtWidgets/QMessageBox>
-#include <QtCore/QString>
 
 using namespace OpenMS;
 using namespace std;
@@ -61,7 +33,7 @@ namespace OpenMS
   typedef LayerDataBase::ODExperimentSharedPtrType ODExperimentSharedPtrType;
   typedef LayerDataBase::OSWDataSharedPtrType OSWDataSharedPtrType;
 
-  /// represents all the information we need from a layer
+  /// represents all the information we need from a chromatogram layer
   /// We cannot use a full layer, because the original layer might get destroyed in the process...
   struct MiniLayer
   {
@@ -71,8 +43,8 @@ namespace OpenMS
     String filename;
     String layername;
 
-    explicit MiniLayer(LayerDataBase& layer)
-    : full_chrom_exp_sptr(layer.getFullChromData()),
+    explicit MiniLayer(LayerDataChrom& layer)
+    : full_chrom_exp_sptr(layer.getChromatogramData()),
       ondisc_sptr(layer.getOnDiscPeakData()),
       annot_sptr(layer.getChromatogramAnnotation()),
       filename(layer.filename),
@@ -93,17 +65,18 @@ namespace OpenMS
     }
     transitions_seen.insert(transition_id);
 
-    String chrom_caption = FileHandler::stripExtension(File::basename(ml.filename)) + "[" + transition_id + "]";
-
     // convert from native id to chrom_index
     int chrom_index = ml.annot_sptr->fromNativeID(transition_id);
 
     // add data and return if something went wrong
-    if (!w->canvas()->addChromLayer(ml.full_chrom_exp_sptr, ml.ondisc_sptr, ml.annot_sptr, chrom_index, ml.filename, chrom_caption, false))
+    if (!w->canvas()->addChromLayer(ml.full_chrom_exp_sptr, ml.ondisc_sptr, ml.annot_sptr,
+                                    chrom_index, ml.filename, 
+                                    FileHandler::stripExtension(File::basename(ml.filename)),
+                                    String("[") + transition_id + "]"))
     {
       return false;
     }
-    w->canvas()->activateSpectrum(0, false);
+    w->canvas()->activateSpectrum(chrom_index, false);
     return true;
   }
 
@@ -150,7 +123,7 @@ namespace OpenMS
       // translate to axis units (our native 'data'):
       auto p_text = w->canvas()->widgetToDataDistance(text_size.width(), 0);
       auto chunk = od.placeItem(feature.getRTLeftWidth(), feature.getRTLeftWidth() + p_text.getX());
-      item->setTextYOffset(chunk * text_size.height());
+      item->setTextOffset(chunk * text_size.height());
 
       w->canvas()->getCurrentLayer().getCurrentAnnotations().push_back(item);
     }
@@ -170,14 +143,19 @@ namespace OpenMS
 
   void TVDIATreeTabController::showChromatogramsAsNew1D(const OSWIndexTrace& trace)
   {
-    LayerDataBase& layer = const_cast<LayerDataBase&>(tv_->getActiveCanvas()->getCurrentLayer());
-    MiniLayer ml(layer);
+    auto* layer_ptr = dynamic_cast<LayerDataChrom*>(&tv_->getActiveCanvas()->getCurrentLayer());
+    if (!layer_ptr)
+    { // not a chrom layer?
+      std::cerr << __FILE__ << ": " << __LINE__ << " showChromatograms() invoked on Non-Chrom layer... weird..\n";
+      return;
+    }
+    MiniLayer ml(*layer_ptr);
     // create new 1D widget; if we return due to error, the widget will be cleaned up
-    unique_ptr<Plot1DWidget> w(new Plot1DWidget(tv_->getCanvasParameters(1), (QWidget*)tv_->getWorkspace()));
+    unique_ptr<Plot1DWidget> w(new Plot1DWidget(tv_->getCanvasParameters(1), DIM::Y, (QWidget*)tv_->getWorkspace()));
 
     if (showChromatogramsInCanvas_(trace, ml, w.get()))
     { // success!
-      tv_->showPlotWidgetInWindow(w.get(), ml.layername);
+      tv_->showPlotWidgetInWindow(w.get());
       w.release(); // do NOT delete the widget; tv_ owns it now ...
       tv_->updateBarsAndMenus();
     }
@@ -190,7 +168,13 @@ namespace OpenMS
     { // currently not a 1d widget... ignore the signal
       return;
     }
-    MiniLayer ml(w->canvas()->getCurrentLayer());
+    auto* layer_ptr = dynamic_cast<LayerDataChrom*>(&w->canvas()->getCurrentLayer());
+    if (!layer_ptr)
+    { // not a chrom layer?
+      std::cerr << __FILE__ << ": " << __LINE__ << " showChromatograms() invoked on Non-Chrom layer... weird..\n";
+      return;
+    }
+    MiniLayer ml(*layer_ptr);
     // clear all layers
     w->canvas()->removeLayers();
     // add new layers

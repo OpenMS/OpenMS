@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-// 
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -148,7 +122,7 @@ START_SECTION(size_t size() const)
   FASTAFile::FASTAEntry pe, pe2;
   TEST_EQUAL(f.readAt(pe, 0), true);
   pe2 = f.chunkAt(0);
-  TEST_EQUAL(pe == pe2, true)
+  TEST_TRUE(pe == pe2)
   TEST_EQUAL(pe.description, "This is the description of the first protein")
   pe2 = f.chunkAt(1);
   TEST_EQUAL(pe == pe2, false)
@@ -168,7 +142,7 @@ START_SECTION(size_t size() const)
   pe = f.chunkAt(1);
   TEST_EQUAL(pe.description, " ##0")
   TEST_EQUAL(f.readAt(pe2, 4), true);
-  TEST_EQUAL(pe == pe2, true)
+  TEST_TRUE(pe == pe2)
   
   // reached the end after 5 entries
   TEST_EQUAL(f.cacheChunk(3), false)
@@ -198,7 +172,7 @@ START_SECTION(size_t size() const)
   FASTAFile::FASTAEntry pe3, pe4;
   TEST_EQUAL(f.readAt(pe3, 0), true);
   pe4 = f.chunkAt(0);
-  TEST_EQUAL(pe3 == pe4, true)
+  TEST_TRUE(pe3 == pe4)
   TEST_EQUAL(pe3.description, "This is the description of the first protein")
   pe4 = f.chunkAt(1);
   TEST_EQUAL(pe3 == pe4, false)
@@ -212,13 +186,40 @@ START_SECTION(size_t size() const)
   FASTAFile::FASTAEntry pe5, pe6;
   TEST_EQUAL(f.readAt(pe5, 0), true);
   pe6 = f.chunkAt(0);
-  TEST_EQUAL(pe5 == pe6, true)
+  TEST_TRUE(pe5 == pe6)
   TEST_EQUAL(pe5.description, "This is the description of the first protein")
   pe6 = f.chunkAt(1);
   TEST_EQUAL(pe5 == pe6, false)
   TEST_EQUAL(pe6.description, "This is the description of the second protein")
 
 END_SECTION
+
+START_SECTION(Result findDecoyString(FASTAContainer<T>& proteins))
+// test without decoys in input
+  FASTAContainer<TFI_File> f1{OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta")};
+  DecoyHelper::Result r1 = {false, "?", true};
+  TEST_EQUAL(DecoyHelper::findDecoyString(f1) == r1,true)
+  // test with decoys in input
+  FASTAContainer<TFI_File> f2{OPENMS_GET_TEST_DATA_PATH("FASTAContainer_test.fasta")};
+  DecoyHelper::Result r2 = {true, "DECOY_", true};
+  TEST_EQUAL(DecoyHelper::findDecoyString(f2) == r2, true);
+END_SECTION
+
+START_SECTION(Result countDecoys(FASTAContainer<T>& proteins))
+  // test without decoys in input
+  FCFile f1{OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta")};
+  std::unordered_map<std::string, std::pair<Size, Size>> decoy_count;
+  std::unordered_map<std::string, std::string> decoy_case_sensitive;
+  DecoyHelper::DecoyStatistics ds1 = {decoy_count, decoy_case_sensitive,0,0,5};
+  TEST_EQUAL(DecoyHelper::countDecoys(f1) == ds1, true)
+  // test with decoys in input
+  FCFile f2{OPENMS_GET_TEST_DATA_PATH("FASTAContainer_test.fasta")};
+  decoy_case_sensitive["decoy_"] = "DECOY_";
+  decoy_count["decoy_"] = std::make_pair(3,0);
+  DecoyHelper::DecoyStatistics ds2 = { decoy_count, decoy_case_sensitive, 3, 0, 6};
+  TEST_EQUAL(DecoyHelper::countDecoys(f2) == ds2, true)
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

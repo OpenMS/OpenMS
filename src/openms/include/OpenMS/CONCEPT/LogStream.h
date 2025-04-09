@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -46,6 +20,8 @@
 
 namespace OpenMS
 {
+  class Colorizer;
+
   /**
     @brief Log streams
 
@@ -116,11 +92,14 @@ public:
       /// @name Constructors and Destructors
       //@{
 
+
       /**
-        Create a new LogStreamBuf object and set the level to log_level
+        Create a new LogStreamBuf object and set the level to @p log_level
+
         @param log_level The log level of the LogStreamBuf (default is unknown)
+        @param col If messages should be colored, provide a colorizer here
       */
-      explicit LogStreamBuf(std::string log_level = UNKNOWN_LOG_LEVEL);
+      LogStreamBuf(const std::string& log_level = UNKNOWN_LOG_LEVEL, Colorizer* col = nullptr);
 
       /**
         Destruct the buffer and free all stored messages strings.
@@ -200,16 +179,16 @@ public:
 protected:
 
       /// Distribute a new message to connected streams.
-      void distribute_(std::string outstring);
+      void distribute_(const std::string& outstring);
 
       /// Interpret the prefix format string and return the expanded prefix.
       std::string expandPrefix_(const std::string & prefix, time_t time) const;
 
-      char * pbuf_;
+      char * pbuf_ = nullptr;
       std::string             level_;
       std::list<StreamStruct> stream_list_;
       std::string             incomplete_line_;
-
+      Colorizer* colorizer_ = nullptr; ///< optional Colorizer to color the output to stdout/stdcerr (if attached)
       /// @name Caching
       //@{
 
@@ -226,7 +205,7 @@ protected:
         Sequential counter to remember the sequence of occurrence
         of the cached log messages
       */
-      Size log_cache_counter_;
+      Size log_cache_counter_ = 0;
 
       /// Cache of the last two log messages
       std::map<std::string, LogCacheStruct> log_cache_;
@@ -395,6 +374,11 @@ public:
       */
       void remove(std::ostream & s);
 
+      /**
+        Remove all streams associated to this LogStream, effectively silencing it.
+      */
+      void removeAllStreams();
+
       /// Add a notification target
       void insertNotification(std::ostream & s,
                               LogStreamNotifier & target);
@@ -469,7 +453,7 @@ private:
   /// Macro for general debugging information
 #define OPENMS_LOG_DEBUG \
   OPENMS_THREAD_CRITICAL(LOGSTREAM) \
-  OpenMS_Log_debug << [](){ constexpr const char* x = (past_last_slash(__FILE__)); return x; }() << "(" << __LINE__ << "): "
+  OpenMS_Log_debug << past_last_slash(__FILE__) << "(" << __LINE__ << "): "
 
   /// Macro for general debugging information (without information on file)
 #define OPENMS_LOG_DEBUG_NOFILE \

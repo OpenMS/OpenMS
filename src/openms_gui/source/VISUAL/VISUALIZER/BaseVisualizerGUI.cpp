@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -34,16 +8,17 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
-#include <QtWidgets/QLayout>
-#include <QtWidgets/QWidget>
 #include <QtWidgets/QComboBox>
-#include <QtWidgets/QLineEdit>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QTextEdit>
 #include <QtWidgets/QGridLayout>
-#include <QtWidgets/QPushButton>
 #include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLayout>
+#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QListWidget>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QWidget>
+#include <utility>
 
 namespace OpenMS
 {
@@ -55,7 +30,7 @@ namespace OpenMS
     editable_(editable)
   {
     mainlayout_ = new QGridLayout(this);
-    mainlayout_->setMargin(0);
+    mainlayout_->setContentsMargins(0, 0, 0, 0);
   }
 
   bool BaseVisualizerGUI::isEditable() const
@@ -74,13 +49,13 @@ namespace OpenMS
     addVSpacer_();
   }
 
-  void BaseVisualizerGUI::addLabel_(QString label, UInt row)
+  void BaseVisualizerGUI::addLabel_(const QString& label, UInt row)
   {
     QLabel * label_item = new QLabel(label, this);
     mainlayout_->addWidget(label_item, row, 0);
   }
 
-  void BaseVisualizerGUI::addLabel_(QString label)
+  void BaseVisualizerGUI::addLabel_(const QString& label)
   {
     QLabel * label_item = new QLabel(label, this);
     mainlayout_->addWidget(label_item, row_, 0, 1, 3);
@@ -91,7 +66,7 @@ namespace OpenMS
   {
     ptr = new QLineEdit(this);
     ptr->setMinimumWidth(180);
-    addLabel_(label, row_);
+    addLabel_(std::move(label), row_);
     mainlayout_->addWidget(ptr, row_, 1, 1, 2);
     ptr->setReadOnly(!isEditable());
     row_++;
@@ -103,7 +78,7 @@ namespace OpenMS
     ptr->setMinimumWidth(180);
     QIntValidator * vali = new QIntValidator(ptr);
     ptr->setValidator(vali);
-    addLabel_(label, row_);
+    addLabel_(std::move(label), row_);
     mainlayout_->addWidget(ptr, row_, 1, 1, 2);
     ptr->setReadOnly(!isEditable());
     row_++;
@@ -116,14 +91,14 @@ namespace OpenMS
     ptr->setMinimumWidth(180);
     QDoubleValidator * vali = new QDoubleValidator(ptr);
     ptr->setValidator(vali);
-    addLabel_(label, row_);
+    addLabel_(std::move(label), row_);
     mainlayout_->addWidget(ptr, row_, 1, 1, 2);
     ptr->setReadOnly(!isEditable());
     row_++;
 
   }
 
-  void BaseVisualizerGUI::addLineEditButton_(QString label, QLineEdit * & ptr1, QPushButton * & ptr2, QString buttonlabel)
+  void BaseVisualizerGUI::addLineEditButton_(const QString& label, QLineEdit * & ptr1, QPushButton * & ptr2, const QString& buttonlabel)
   {
     QLabel * label_item = new QLabel(label, this);
     ptr1 = new QLineEdit(this);
@@ -141,7 +116,7 @@ namespace OpenMS
   void BaseVisualizerGUI::addTextEdit_(QTextEdit * & ptr, QString label)
   {
     ptr = new QTextEdit(this);
-    addLabel_(label, row_);
+    addLabel_(std::move(label), row_);
     mainlayout_->addWidget(ptr, row_, 1, 1, 2);
     ptr->setReadOnly(!isEditable());
     row_++;
@@ -150,7 +125,7 @@ namespace OpenMS
   void BaseVisualizerGUI::addComboBox_(QComboBox * & ptr, QString label)
   {
     ptr = new QComboBox(this);
-    addLabel_(label, row_);
+    addLabel_(std::move(label), row_);
     mainlayout_->addWidget(ptr, row_, 1, 1, 2);
     ptr->blockSignals(true);
     row_++;
@@ -161,7 +136,7 @@ namespace OpenMS
     ptr = new QComboBox(this);
     ptr->insertItem(0, "false");
     ptr->insertItem(1, "true");
-    addLabel_(label, row_);
+    addLabel_(std::move(label), row_);
     mainlayout_->addWidget(ptr, row_, 1, 1, 2);
     ptr->blockSignals(true);
     row_++;
@@ -175,7 +150,7 @@ namespace OpenMS
     }
   }
 
-  void BaseVisualizerGUI::addButton_(QPushButton * & ptr, QString label)
+  void BaseVisualizerGUI::addButton_(QPushButton * & ptr, const QString& label)
   {
     ptr = new QPushButton(label, this);
     QHBoxLayout * box = new QHBoxLayout();
@@ -193,7 +168,7 @@ namespace OpenMS
     row_++;
   }
 
-  void BaseVisualizerGUI::add2Buttons_(QPushButton * & ptr1, QString label1, QPushButton * & ptr2, QString label2)
+  void BaseVisualizerGUI::add2Buttons_(QPushButton * & ptr1, const QString& label1, QPushButton * & ptr2, const QString& label2)
   {
     ptr1 = new QPushButton(label1, this);
     ptr2 = new QPushButton(label2, this);
@@ -216,7 +191,7 @@ namespace OpenMS
   void BaseVisualizerGUI::addListView_(QListWidget * & ptr, QString label)
   {
     ptr = new QListWidget(this);
-    addLabel_(label, row_);
+    addLabel_(std::move(label), row_);
     mainlayout_->addWidget(ptr, row_, 1, 1, 2);
     row_++;
   }

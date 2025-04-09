@@ -14,27 +14,29 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.
         # problems.
 
         # wrap-instances:
-        #   IntegerMassDecomposer := IntegerMassDecomposer[int, int]
-        IntegerMassDecomposer(IMSWeights & alphabet) nogil except +
+        #  IntegerMassDecomposer := IntegerMassDecomposer[int, int]
+        IntegerMassDecomposer(IMSWeights & alphabet) except + nogil 
             # wrap-doc:
-            #   Constructor with weights
-            #   -----
-            #   :param alphabet: Weights over which masses to be decomposed
+            #  Constructor with weights
+            #  
+            #  
+            #  :param alphabet: Weights over which masses to be decomposed
 
-        IntegerMassDecomposer(IntegerMassDecomposer &) nogil except +
+        IntegerMassDecomposer(IntegerMassDecomposer &) except + nogil 
 
-        bool exist(ValueType mass) nogil except +
+        bool exist(ValueType mass) except + nogil 
             # wrap-doc:
-            #   Returns true if decomposition over the 'mass' exists, otherwise - false
-            #   -----
-            #   :param mass: Mass to be decomposed
-            #   :returns: true if decomposition over a given mass exists, otherwise - false
+            #  Returns true if decomposition over the 'mass' exists, otherwise - false
+            #  
+            #  
+            #  :param mass: Mass to be decomposed
+            #  :return: true if decomposition over a given mass exists, otherwise - false
 
         # Works in theory but may produce duplicate 
-        # libcpp_vector[libcpp_vector[int]] getDecomposition(ValueType mass) nogil except +
-        # DecompositionValueType getNumberOfDecompositions(ValueType mass) nogil except +
+        # libcpp_vector[libcpp_vector[int]] getDecomposition(ValueType mass) except + nogil 
+        # DecompositionValueType getNumberOfDecompositions(ValueType mass) except + nogil 
 
         # Does not work
-        # libcpp_vector[libcpp_vector[int]] getAllDecompositions(ValueType mass) nogil except +
+        # libcpp_vector[libcpp_vector[int]] getAllDecompositions(ValueType mass) except + nogil 
 
 

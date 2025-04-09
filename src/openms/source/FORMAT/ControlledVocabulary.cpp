@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg  $
@@ -34,11 +8,13 @@
 
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 
-#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <iostream>
 #include <fstream>
+#include <map>
 
 using namespace std;
 
@@ -59,20 +35,7 @@ namespace OpenMS
   {
   }
 
-  ControlledVocabulary::CVTerm::CVTerm(const CVTerm& rhs) :
-    name(rhs.name),
-    id(rhs.id),
-    parents(rhs.parents),
-    children(rhs.children),
-    obsolete(rhs.obsolete),
-    description(rhs.description),
-    synonyms(rhs.synonyms),
-    unparsed(rhs.unparsed),
-    xref_type(rhs.xref_type),
-    xref_binary(rhs.xref_binary),
-    units(rhs.units)
-  {
-  }
+  ControlledVocabulary::CVTerm::CVTerm(const CVTerm& rhs) = default;
 
   ControlledVocabulary::CVTerm& ControlledVocabulary::CVTerm::operator=(const CVTerm& rhs)
   {
@@ -181,10 +144,7 @@ namespace OpenMS
 
   }
 
-  ControlledVocabulary::~ControlledVocabulary()
-  {
-
-  }
+  ControlledVocabulary::~ControlledVocabulary() = default;
 
   void ControlledVocabulary::loadFromOBO(const String& name, const String& filename)
   {
@@ -212,6 +172,35 @@ namespace OpenMS
       {
         continue;
       }
+
+      if (line_wo_spaces.hasPrefix("data-version:"))
+      {
+        version_ = line.substr(line.find(':') + 1).trim();
+      }
+      if (line_wo_spaces.hasPrefix("default-namespace:"))
+      {
+        label_ = line.substr(line.find(':') + 1).trim();
+      }
+      if (line_wo_spaces.hasPrefix("remark:URL:"))
+      {
+        // Find the position of "http://" or "https://"
+        size_t httpPos = line.find("http://");
+        size_t httpsPos = line.find("https://");
+
+        // Determine the starting position of the URL
+        if (httpPos != std::string::npos) 
+        {
+          url_ = line.substr(httpPos).trim();
+        } else if (httpsPos != std::string::npos) 
+        {
+          url_ = line.substr(httpsPos).trim();
+        } else 
+        {
+          // No URL found
+          std::cerr << "No URL found in the line." << std::endl;
+        }
+      }
+
       //********************************************************************************
       //stanza line
       if (line_wo_spaces[0] == '[')
@@ -341,7 +330,9 @@ namespace OpenMS
         {
           term.obsolete = true;
         }
-        else if (line_wo_spaces.hasPrefix("xref:value-type") || line_wo_spaces.hasPrefix("xref_analog:value-type"))
+        else if (line_wo_spaces.hasPrefix("xref:value-type") 
+          || line_wo_spaces.hasPrefix("xref_analog:value-type")
+        )
         {
           line_wo_spaces.remove('\\');
           if (line_wo_spaces.hasSubstring("value-type:xsd:string"))
@@ -398,6 +389,73 @@ namespace OpenMS
           }
           cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << "\n";
         }
+        else if (line_wo_spaces.hasPrefix("relationship:has_value_type")) // since newer obo type in relationship instead of xref
+        {
+          if (line_wo_spaces.hasSubstring("xsd:string"))
+          {
+            term.xref_type = CVTerm::XSD_STRING;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:integer") 
+          || line_wo_spaces.hasSubstring("xsd:int"))
+          {
+            term.xref_type = CVTerm::XSD_INTEGER;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:decimal") ||
+              line_wo_spaces.hasSubstring("xsd:float") ||
+              line_wo_spaces.hasSubstring("xsd:double"))
+          {
+            term.xref_type = CVTerm::XSD_DECIMAL;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:negativeInteger"))
+          {
+            term.xref_type = CVTerm::XSD_NEGATIVE_INTEGER;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:positiveInteger"))
+          {
+            term.xref_type = CVTerm::XSD_POSITIVE_INTEGER;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:nonNegativeInteger"))
+          {
+            term.xref_type = CVTerm::XSD_NON_NEGATIVE_INTEGER;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:nonPositiveInteger"))
+          {
+            term.xref_type = CVTerm::XSD_NON_POSITIVE_INTEGER;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:boolean") 
+          || line_wo_spaces.hasSubstring("xsd:bool"))
+          {
+            term.xref_type = CVTerm::XSD_BOOLEAN;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:date"))
+          {
+            term.xref_type = CVTerm::XSD_DATE;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:anyURI"))
+          {
+            term.xref_type = CVTerm::XSD_ANYURI;
+            continue;
+          }
+          if (
+            line_wo_spaces.hasSubstring("MS:1002711") ||
+            line_wo_spaces.hasSubstring("MS:1002712") ||
+            line_wo_spaces.hasSubstring("MS:1002713")
+          )
+          {
+            term.xref_type = CVTerm::XSD_STRING; // store list as string
+            continue;
+          }
+          cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << "\n";
+        }       
         else if (line_wo_spaces.hasPrefix("xref:binary-data-type") || line_wo_spaces.hasPrefix("xref_analog:binary-data-type"))
         {
           line_wo_spaces.remove('\\');
@@ -426,7 +484,7 @@ namespace OpenMS
     }
 
     // now build all child terms
-    for (Map<String, CVTerm>::iterator it = terms_.begin(); it != terms_.end(); ++it)
+    for (std::map<String, CVTerm>::iterator it = terms_.begin(); it != terms_.end(); ++it)
     {
       //cerr << it->first << "\n";
       for (set<String>::const_iterator pit = it->second.parents.begin(); pit != it->second.parents.end(); ++pit)
@@ -435,7 +493,7 @@ namespace OpenMS
         terms_[*pit].children.insert(it->first);
       }
 
-      Map<String, String>::iterator mit = namesToIds_.find(it->second.name);
+      std::map<String, String>::iterator mit = namesToIds_.find(it->second.name);
       if (mit == namesToIds_.end())
       {
         namesToIds_.insert(pair<String, String>(it->second.name, it->first));
@@ -451,7 +509,7 @@ namespace OpenMS
 
   const ControlledVocabulary::CVTerm& ControlledVocabulary::getTerm(const String& id) const
   {
-    Map<String, CVTerm>::const_iterator it = terms_.find(id);
+    std::map<String, CVTerm>::const_iterator it = terms_.find(id);
     if (it == terms_.end())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid CV identifier!", id);
@@ -459,7 +517,7 @@ namespace OpenMS
     return it->second;
   }
 
-  const Map<String, ControlledVocabulary::CVTerm>& ControlledVocabulary::getTerms() const
+  const std::map<String, ControlledVocabulary::CVTerm>& ControlledVocabulary::getTerms() const
   {
     return terms_;
   }
@@ -478,7 +536,7 @@ namespace OpenMS
   const ControlledVocabulary::CVTerm& ControlledVocabulary::getTermByName(const String& name, const String& desc) const
   {
     //slow, but Vocabulary is very finite and this method will be called only a few times during write of a ML file using a CV
-    Map<String, String>::const_iterator it = namesToIds_.find(name);
+    std::map<String, String>::const_iterator it = namesToIds_.find(name);
     if (it == namesToIds_.end())
     {
       if (!desc.empty())
@@ -495,24 +553,24 @@ namespace OpenMS
       }
     }
 
-    return terms_[it->second];
+    return terms_.at(it->second);
   }
 
   bool ControlledVocabulary::exists(const String& id) const
   {
-    return terms_.has(id);
+    return terms_.find(id) != terms_.end();
   }
 
   const ControlledVocabulary::CVTerm* ControlledVocabulary::checkAndGetTermByName(const OpenMS::String& name) const
   {
-    Map<String, String>::const_iterator it = namesToIds_.find(name);
+    std::map<String, String>::const_iterator it = namesToIds_.find(name);
     if (it == namesToIds_.end()) return nullptr;
-    return &terms_[it->second];
+    return &terms_.at(it->second);
   }
 
   bool ControlledVocabulary::hasTermWithName(const OpenMS::String& name) const
   {
-    Map<String, String>::const_iterator it = namesToIds_.find(name);
+    std::map<String, String>::const_iterator it = namesToIds_.find(name);
     return it != namesToIds_.end();
   }
 
@@ -558,6 +616,21 @@ namespace OpenMS
   const String& ControlledVocabulary::name() const
   {
     return name_;
+  }
+
+  const String& ControlledVocabulary::label() const
+  {
+    return label_;
+  }
+
+  const String& ControlledVocabulary::version() const
+  {
+    return version_;
+  }
+
+  const String& ControlledVocabulary::url() const
+  {
+    return url_;
   }
 
   const ControlledVocabulary& ControlledVocabulary::getPSIMSCV()

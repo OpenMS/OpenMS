@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -40,6 +14,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/MzTab.h>
+#include <OpenMS/FORMAT/MzTabM.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -230,6 +205,8 @@ public:
     /// input map is not const, since it will get annotated with results
     void run(FeatureMap&, MzTab&) const;
 
+    void run(FeatureMap&, MzTabM&) const;
+
     /// main method of AccurateMassSearchEngine
     /// input map is not const, since it will get annotated with results
     /// @note Call init() before calling run!
@@ -293,8 +270,21 @@ private:
     void parseAdductsFile_(const String& filename, std::vector<AdductInfo>& result);
     void searchMass_(double neutral_query_mass, double diff_mass, std::pair<Size, Size>& hit_indices) const;
 
-    /// add search results to a Consensus/Feature
+    /// Add search results to a Consensus/Feature
     void annotate_(const std::vector<AccurateMassSearchResult>&, BaseFeature&) const;
+
+    /// Extract query results from feature
+    std::vector<AccurateMassSearchResult> extractQueryResults_(const Feature& feature, const Size& feature_index, const String& ion_mode_internal, Size& dummy_count) const;
+
+    /// Add resulting matches to IdentificationData
+    void addMatchesToID_(
+      IdentificationData& id,
+      const std::vector<AccurateMassSearchResult>& amr, 
+      const IdentificationData::InputFileRef& file_ref,
+      const IdentificationData::ScoreTypeRef& mass_error_ppm_score_ref,
+      const IdentificationData::ScoreTypeRef& mass_error_Da_score_ref,
+      const IdentificationData::ProcessingStepRef& step_ref,
+      BaseFeature& f) const;
 
     /// For two vectors of identical length, compute the cosine of the angle between them.
     /// Since we look at the angle, scaling of the vectors does not change the result (when ignoring numerical instability).
@@ -305,6 +295,8 @@ private:
     typedef std::vector<std::vector<AccurateMassSearchResult> > QueryResultsTable;
 
     void exportMzTab_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTab& mztab_out, const std::vector<String>& file_locations) const;
+
+    void exportMzTabM_(const FeatureMap& fmap, MzTabM& mztabm_out) const;
 
     /// private member variables
     typedef std::vector<std::vector<String> > MassIDMapping;
@@ -342,6 +334,8 @@ private:
 
     bool is_initialized_; ///< true if init_() was called without any subsequent param changes
 
+    bool legacyID_ = true;
+
     /// parameter stuff
     double mass_error_value_;
     String mass_error_unit_;
@@ -359,6 +353,7 @@ private:
 
     String database_name_;
     String database_version_;
+    String database_location_;
 
     bool keep_unidentified_masses_;
   };

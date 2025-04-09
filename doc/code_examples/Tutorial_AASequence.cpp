@@ -1,34 +1,10 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 
-//! [AASequence]
+//! [doxygen_snippet_AASequence]
+
+// This script calculates the mass-to-charge ratio of a 2+ charged b-ion and full peptide from a hardcoded sequence.
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <iostream>
@@ -42,21 +18,17 @@ int main()
   const String s = "DEFIANGER";
   AASequence peptide1 = AASequence::fromString(s);
 
-  // generate AASequence object from string literal
+  // ... or generate AASequence object from string literal
   AASequence peptide2 = AASequence::fromString("PEPTIDER");
 
-  // extract prefix and suffix
-  AASequence prefix(peptide1.getPrefix(2));
-  AASequence suffix(peptide1.getSuffix(3));
-  cout << peptide1.toString() << " "
-       << prefix << " "
-       << suffix << endl;
-  
+  // extract prefix and suffix of the first/last AA residues
+  AASequence prefix(peptide1.getPrefix(2)); // "PE"
+  AASequence suffix(peptide1.getSuffix(3)); // "DER"
+  cout << peptide1.toString() << " " << prefix << " " << suffix << endl;
+
   // create chemically modified peptide
   AASequence peptide_meth_ox = AASequence::fromString("PEPTIDESEKUEM(Oxidation)CER");
-  cout << peptide_meth_ox.toString() << " "
-       << peptide_meth_ox.toUnmodifiedString()
-       << endl;
+  cout << peptide_meth_ox.toString() << " --> unmodified: " << peptide_meth_ox.toUnmodifiedString() << endl;
 
   // mass of the full, uncharged peptide
   double peptide_mass_mono = peptide_meth_ox.getMonoWeight();
@@ -66,15 +38,20 @@ int main()
   cout << "Average mass of the uncharged, full peptide: " << peptide_mass_avg << endl;
 
   // mass of the 2+ charged b-ion with the given sequence
-  double ion_mass_2plus = peptide_meth_ox.getMonoWeight(Residue::BIon, 2);
-  cout << "Mass of the doubly positively charged b-ion: " << ion_mass_2plus << endl;
+  double ion_mass_b3_2plus = peptide_meth_ox.getPrefix(3).getMonoWeight(Residue::BIon, 2);
+  cout << "Mass of the doubly positively charged b3-ion: " << ion_mass_b3_2plus << endl;
 
   // mass-to-charge ratio (m/z) of the 2+ charged b-ion and full peptide with the given sequence
-  cout << "Mass-to-charge of the doubly positively charged b-ion: " << peptide_meth_ox.getMZ(2, Residue::BIon) << endl;
+  cout << "Mass-to-charge of the doubly positively charged b3-ion: " << peptide_meth_ox.getPrefix(3).getMZ(2, Residue::BIon) << endl;
   cout << "Mass-to-charge of the doubly positively charged peptide: " << peptide_meth_ox.getMZ(2) << endl;
 
-  // ... many more
+  // count AA's to get a frequency table
+  std::map<String, Size> aa_freq;
+  peptide_meth_ox.getAAFrequencies(aa_freq);
+  cout << "Number of Proline (P) residues in '" << peptide_meth_ox.toString() << "' is " << aa_freq['P'] << endl;
+
+
   return 0;
 }
 
-//! [AASequence]
+//! [doxygen_snippet_AASequence]

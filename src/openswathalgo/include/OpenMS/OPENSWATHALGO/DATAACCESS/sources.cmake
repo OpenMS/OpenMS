@@ -9,9 +9,10 @@ ISpectrumAccess.h
 ITrans2Trans.h
 ITransition.h
 MockObjects.h
+SpectrumHelpers.h
+SwathMap.h
 TransitionExperiment.h
 Transitions.h
-SpectrumHelpers.h
 )
 
 ### add path to the filenames
@@ -26,4 +27,3 @@ set_source_files_properties(${directory}/sources.cmake PROPERTIES HEADER_FILE_ON
 
 set(OpenSWATHALGO_DATAACCESS_sources_h ${sources_h})
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

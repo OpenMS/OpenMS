@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
@@ -36,8 +10,8 @@
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
+#include <OpenMS/COMPARISON/BinnedSpectralContrastAngle.h>
+#include <OpenMS/KERNEL/BinnedSpectrum.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -136,9 +110,9 @@ public:
     private:
       BinnedSpectralContrastAngle cmp_bs_;
       std::vector<BinnedSpectrum> bs_library_;
-      double bin_size_ = 1.0;
+      double bin_size_ = 0.02; // Default for nominal mass: 1.0;
       UInt peak_spread_ = 0;
-      double bin_offset_ = 0.4;
+      double bin_offset_ = 0.0; // Default for nominal mass resolution: 0.4;
     };
 
     void getDefaultParameters(Param& params) const;
@@ -209,11 +183,13 @@ public:
       @brief Search accurate masses and add identification (peptide hits) as features/sub-features
 
       @param[in] feat_map The feature map to search in
-      @param[in] feat_map_output The output feature map, with peptide identifaction as sub features
+      @param[out] feat_map_output The output feature map, with peptide identifaction as sub features
+      @param[in] add_unidentified_features Adds unidentified features to the feature map
     */
     void searchSpectrum(
         OpenMS::FeatureMap& feat_map,
-        OpenMS::FeatureMap& feat_map_output) const;
+        OpenMS::FeatureMap& feat_map_output,
+        bool add_unidentified_features = false) const;
 
     /**
       @brief Picks a spectrum's peaks and saves them in picked_spectrum.
@@ -353,7 +329,49 @@ public:
       const TargetedExperiment& targeted_exp,
       std::vector<MSSpectrum>& extracted_spectra
     ) const;
+    
+    /**
+      @brief Combines the functionalities given by all the other methods implemented
+      in this class.
 
+      The method expects an experiment and MS1 features in input,
+      and constructs the extracted spectra and features.
+      For each transition of the target list, the method tries to find its best
+      spectrum match. A FeatureMap is also filled with informations about the
+      extracted spectra.
+
+      @param[in] experiment The input experiment
+      @param[in] ms1_features The MS1 features map
+      @param[out] extracted_spectra The spectra related to the transitions
+    */
+    void extractSpectra(
+      const MSExperiment& experiment,
+      const FeatureMap& ms1_features,
+      std::vector<MSSpectrum>& extracted_spectra
+    ) const;
+    
+    /**
+      @brief Combines the functionalities given by all the other methods implemented
+      in this class.
+
+      The method expects an experiment and MS1 features in input,
+      and constructs the extracted spectra and features.
+      For each transition of the target list, the method tries to find its best
+      spectrum match. A FeatureMap is also filled with informations about the
+      extracted spectra.
+
+      @param[in] experiment The input experiment
+      @param[in] ms1_features The MS1 features map
+      @param[out] extracted_spectra The spectra related to the transitions
+      @param[out] extracted_features The features related to the output spectra
+    */
+    void extractSpectra(
+      const MSExperiment& experiment,
+      const FeatureMap& ms1_features,
+      std::vector<MSSpectrum>& extracted_spectra,
+      FeatureMap& extracted_features
+    ) const; 
+    
     /**
       @brief Searches the spectral library for the top scoring candidates that
       match the input spectrum.
@@ -388,7 +406,7 @@ public:
 
       @param[in] spectra The input spectra
       @param[in] cmp The `Comparator` object containing the spectral library
-      @param[in/out] features The `FeatureMap` to be updated with matching info
+      @param[in,out] features The `FeatureMap` to be updated with matching info
     */
     void targetedMatching(
       const std::vector<MSSpectrum>& spectra,
@@ -424,13 +442,13 @@ public:
     );
 
     /**
-      @brief store MS1 and the associated MS2 features
+      @brief compute transitions list from MS1 and the associated MS2 features
 
-      @param[in] filename the filename of the file to write
       @param[in] ms1_features the MS1 features
       @param[in] ms2_features the MS2 features
+      @param[out] t_exp the targeted experiment, containing the transitions
     */
-    void storeSpectraTraML(const String& filename, const OpenMS::FeatureMap& ms1_features, const OpenMS::FeatureMap& ms2_features) const;
+    void constructTransitionsList(const OpenMS::FeatureMap& ms1_features, const OpenMS::FeatureMap& ms2_features, TargetedExperiment& t_exp) const;
 
     /**
       @brief store spectra in MSP format
@@ -459,7 +477,32 @@ protected:
     void removeMS2SpectraPeaks_(MSExperiment& experiment) const;
 
     /// organize into a map by combining features and subordinates with the same `identifier`
-    void organizeMapWithSameIdentifier(const OpenMS::FeatureMap& fmap_input, std::map<std::string, std::vector<OpenMS::Feature>>& fmapmap) const;
+    void organizeMapWithSameIdentifier(const OpenMS::FeatureMap& fmap_input, std::map<OpenMS::String, std::vector<OpenMS::Feature>>& fmapmap) const;
+
+  private:
+    /**
+      @brief Combines the functionalities given by all the other methods implemented
+      in this class.
+
+      The method expects an experiment and MS1 features in input,
+      and constructs the extracted spectra and features.
+      For each transition of the target list, the method tries to find its best
+      spectrum match. A FeatureMap is also filled with informations about the
+      extracted spectra.
+
+      @param[in] experiment The input experiment
+      @param[in] ms1_features The MS1 features map
+      @param[out] extracted_spectra The spectra related to the transitions
+      @param[out] extracted_features The features related to the output spectra
+      @param[in] compute_features If false, `extracted_features` will be ignored
+    */
+    void extractSpectra(
+      const MSExperiment& experiment,
+      const FeatureMap& ms1_features,
+      std::vector<MSSpectrum>& extracted_spectra,
+      FeatureMap& extracted_features,
+      const bool compute_features
+    ) const;
 
   private:
     /**

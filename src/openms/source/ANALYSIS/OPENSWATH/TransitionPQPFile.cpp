@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: George Rosenberger $
@@ -54,20 +28,7 @@ namespace OpenMS
   {
   }
 
-  TransitionPQPFile::~TransitionPQPFile()
-  {
-  }
-
-  static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName)
-  {
-    int i;
-    for (i = 0; i < argc; i++)
-    {
-      printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-    }
-    printf("\n");
-    return 0;
-  }
+  TransitionPQPFile::~TransitionPQPFile() = default;
 
   void TransitionPQPFile::readPQPInput_(const char* filename, std::vector<TSVTransition>& transition_list, bool legacy_traml_id)
   {
@@ -108,10 +69,15 @@ namespace OpenMS
     bool gene_exists = SqliteConnector::tableExists(db, "GENE");
     if (gene_exists)
     {
-      select_gene = ", GENE.GENE_NAME AS gene_name ";
+      select_gene = ", GENE_AGGREGATED.GENE_NAME AS gene_name ";
       select_gene_null = ", 'NA' AS gene_name ";
       join_gene = "INNER JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " \
-                  "INNER JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID ";
+                  "INNER JOIN " \
+                  "(SELECT PEPTIDE_ID, GROUP_CONCAT(GENE_NAME,';') AS GENE_NAME " \
+                  "FROM GENE " \
+                  "INNER JOIN PEPTIDE_GENE_MAPPING ON GENE.ID = PEPTIDE_GENE_MAPPING.GENE_ID "\
+                  "GROUP BY PEPTIDE_ID) " \
+                  "AS GENE_AGGREGATED ON PEPTIDE.ID = GENE_AGGREGATED.PEPTIDE_ID ";
     }
 
     String select_annotation = "'' AS Annotation, ";
@@ -544,7 +510,7 @@ namespace OpenMS
       }
 
       if (gene_map.find(gene_name) == gene_map.end()) gene_map[gene_name] = (int)gene_map.size();
-      peptide_gene_map.push_back(std::make_pair(peptide_set_index, gene_map[gene_name]));
+      peptide_gene_map.emplace_back(peptide_set_index, gene_map[gene_name]);
 
       insert_precursor_sql <<
         "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, " <<
@@ -704,6 +670,42 @@ namespace OpenMS
   }
 
   // public methods
+  std::unordered_map<std::string, std::string> TransitionPQPFile::getPQPIDToTraMLIDMap(const char* filename, std::string tableName)
+  {
+    sqlite3 *db;
+    sqlite3_stmt * cntstmt;
+    sqlite3_stmt * stmt;
+    std::string select_sql;
+    std::unordered_map<std::string, std::string> out;
+
+    // Open database
+    SqliteConnector conn(filename);
+    db = conn.getDB();
+
+    // Count Precursors 
+    SqliteConnector::prepareStatement(db, &cntstmt, "SELECT COUNT(*) FROM " + tableName + ";");
+    sqlite3_step( cntstmt );
+    sqlite3_finalize(cntstmt);
+
+    std::string query = "SELECT ID, TRAML_ID FROM " + tableName + ";"; 
+
+    // Execute SQL select statement
+    SqliteConnector::prepareStatement(db, &stmt, query);
+    sqlite3_step(stmt);
+
+    while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
+    {
+      std::string traml_id, prec_id;
+
+      Sql::extractValue<std::string>(&prec_id, stmt, 0);
+      Sql::extractValue<std::string>(&traml_id, stmt, 1);
+
+      out[traml_id] = prec_id;
+      sqlite3_step( stmt );
+    }
+    return out;
+  }
+
   void TransitionPQPFile::convertTargetedExperimentToPQP(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
   {
     if (targeted_exp.containsInvalidReferences())

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -41,10 +15,14 @@
 
   @image html TOPPView.png
 
-  More information about TOPPView can be found in the @ref TOPP_tutorial.
+  More information about TOPPView can be found on the OpenMS ReadTheDocs
+  page: https://openms.readthedocs.io/en/latest/openms-applications-and-tools/visualize-with-openms.html
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_TOPPView.cli
+  
+  Note: By default, TOPPView scans for novel TOPP tools if there has been a version update. To force a rescan you
+  can pass the --force flag. To skip the scan for tools, you can pass the --skip_tool_scan flag.
 */
 
 //QT
@@ -55,10 +33,6 @@
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
-
-
-using namespace OpenMS;
-using namespace std;
 
 //STL
 #include <iostream>
@@ -71,6 +45,10 @@ using namespace std;
 #   endif
 #   include <Windows.h>
 #endif
+
+
+using namespace OpenMS;
+using namespace std;
 
 //-------------------------------------------------------------
 // command line name of this tool
@@ -92,7 +70,8 @@ void print_usage()
        << "Options are:" << "\n"
        << "  --help           Shows this help" << "\n"
        << "  -ini <File>      Sets the INI file (default: ~/.TOPPView.ini)" << "\n"
-       << "  --force          Forces scan for new tools/utils" << "\n"
+       << "  --force          Forces scan for new tools" << "\n"
+       << "  --skip_tool_scan Skips scan for new tools" << "\n"
        << "\n"
        << "Hints:" << "\n"
        << " - To open several files in one window put a '+' in between the files." << "\n"
@@ -108,10 +87,16 @@ void print_usage()
 
 int main(int argc, const char** argv)
 {
+ #ifdef OPENMS_WINDOWSPLATFORM
+  qputenv("QT_QPA_PLATFORM", "windows:darkmode=0"); // disable dark mode on Windows, since our buttons etc are not designed for it
+#endif
+
   //list of all the valid options
   std::map<std::string, std::string> valid_options, valid_flags, option_lists;
   valid_flags["--help"] = "help";
   valid_flags["--force"] = "force";
+  valid_flags["--skip_tool_scan"] = "skip_tool_scan";
+  valid_flags["--debug"] = "debug";
   valid_options["-ini"] = "ini";
 
   Param param;
@@ -140,11 +125,38 @@ int main(int argc, const char** argv)
 
   try
   {
+
+#if defined(__APPLE__)
+    // see https://bugreports.qt.io/browse/QTBUG-104871
+    // if you link to QtWebEngine and the corresponding macros are enabled, it will
+    // try to default to OpenGL 4.1 on macOS (for hardware acceleration of WebGL in Chromium, which we do not need yet)
+    // but our OpenGL code for 3D View is written in OpenGL 2.x.
+    // Now we force 2.1 which is also available on all? Macs.
+    QSurfaceFormat format;
+    format.setVersion(2, 1); // the default is 2, 0
+    QSurfaceFormat::setDefaultFormat(format); // should be done before creating a QApplication
+#endif
+
     QApplicationTOPP a(argc, const_cast<char**>(argv));
     a.connect(&a, &QApplicationTOPP::lastWindowClosed, &a, &QApplicationTOPP::quit);
 
-    TOPPViewBase::TOOL_SCAN mode = param.exists("force")? TOPPViewBase::TOOL_SCAN::FORCE_SCAN : TOPPViewBase::TOOL_SCAN::SCAN_IF_NEWER_VERSION;
-    TOPPViewBase tb(mode);
+    TOPPViewBase::TOOL_SCAN mode = TOPPViewBase::TOOL_SCAN::SCAN_IF_NEWER_VERSION;
+    if (param.exists("force"))
+    {
+      mode = TOPPViewBase::TOOL_SCAN::FORCE_SCAN;
+    }
+    else if (param.exists("skip_tool_scan"))
+    {
+      mode = TOPPViewBase::TOOL_SCAN::SKIP_SCAN;
+    }
+
+    TOPPViewBase::VERBOSITY verbosity = TOPPViewBase::VERBOSITY::DEFAULT;
+    if (param.exists("debug"))
+    {
+      verbosity = TOPPViewBase::VERBOSITY::VERBOSE;
+    }
+
+    TOPPViewBase tb(mode, verbosity);
     a.connect(&a, &QApplicationTOPP::fileOpen, &tb, &TOPPViewBase::openFile);
     tb.show();
 
@@ -152,11 +164,12 @@ int main(int argc, const char** argv)
     QPixmap qpm(":/TOPPView_Splashscreen.png");
     QPainter pt_ver(&qpm);
     pt_ver.setFont(QFont("Helvetica [Cronyx]", 15, 2, true));
-    pt_ver.setPen(QColor(44, 50, 152));
-    pt_ver.drawText(490, 94, VersionInfo::getVersion().toQString());
+    pt_ver.setPen(Qt::black);
+    // draw version number dynamcially on top left corner
+    pt_ver.drawText(5, 5 + 15, VersionInfo::getVersion().toQString());
     QSplashScreen splash_screen(qpm);
     splash_screen.show();
-
+    
     QApplication::processEvents();
     StopWatch stop_watch;
     stop_watch.start();
@@ -173,8 +186,8 @@ int main(int argc, const char** argv)
     }
 
     // We are about to show the application.
-    // Proper time to remove the splashscreen, if at least 1.5 seconds have passed...
-    while (stop_watch.getClockTime() < 1.5) /*wait*/
+    // Proper time to remove the splashscreen, if at least 3 seconds have passed...
+    while (stop_watch.getClockTime() < 3.0) /*wait*/
     {
     }
     stop_watch.stop();

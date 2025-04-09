@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -35,6 +9,7 @@
 #include <OpenMS/FORMAT/HANDLERS/MzDataHandler.h>
 
 #include <OpenMS/FORMAT/Base64.h>
+#include <map>
 
 namespace OpenMS::Internal
 {
@@ -244,7 +219,7 @@ namespace OpenMS::Internal
       // Do something depending on the tag
       if (tag == "sourceFile")
       {
-        exp_->getSourceFiles().push_back(SourceFile());
+        exp_->getSourceFiles().emplace_back();
       }
       if (tag == "contact")
       {
@@ -272,7 +247,7 @@ namespace OpenMS::Internal
       }
       else if (tag == "precursor")
       {
-        spec_.getPrecursors().push_back(Precursor());
+        spec_.getPrecursors().emplace_back();
       }
       else if (tag == "cvParam")
       {
@@ -425,7 +400,7 @@ namespace OpenMS::Internal
       }
       else if (tag == "supDesc")
       {
-        meta_id_descs_.push_back(std::make_pair(attributeAsString_(attributes, s_supdataarrayref), MetaInfoDescription()));
+        meta_id_descs_.emplace_back(attributeAsString_(attributes, s_supdataarrayref), MetaInfoDescription());
       }
       else if (tag == "data")
       {
@@ -437,7 +412,6 @@ namespace OpenMS::Internal
         if (parent_tag == "mzArrayBinary")
         {
           peak_count_ = attributeAsInt_(attributes, s_length);
-          spec_.reserve(peak_count_);
         }
       }
       else if (tag == "mzArrayBinary")
@@ -517,10 +491,10 @@ namespace OpenMS::Internal
             Base64::decode(data_to_decode_[i], Base64::BYTEORDER_LITTLEENDIAN, decoded_double);
           }
           // push_back the decoded double data - and an empty one into
-          // the dingle-precision vector, so that we don't mess up the index
+          // the single-precision vector, so that we don't mess up the index
           //std::cout << "list size: " << decoded_double.size() << std::endl;
           decoded_double_list_.push_back(decoded_double);
-          decoded_list_.push_back(std::vector<float>());
+          decoded_list_.emplace_back();
         }
         else                                                // precision 32 Bit
         {
@@ -536,7 +510,7 @@ namespace OpenMS::Internal
           }
           //std::cout << "list size: " << decoded.size() << std::endl;
           decoded_list_.push_back(decoded);
-          decoded_double_list_.push_back(std::vector<double>());
+          decoded_double_list_.emplace_back();
         }
       }
 
@@ -554,13 +528,32 @@ namespace OpenMS::Internal
           int_precision_64 = false;
         }
 
-        //reserve space for meta data arrays (peak count)
+        // no data was decoded?
+        if (data_to_decode_.size() < 2) return;
+
+        const size_t peak_count_mz = mz_precision_64 ? decoded_double_list_[0].size() : decoded_list_[0].size();
+        const size_t peak_count_int = int_precision_64 ? decoded_double_list_[1].size() : decoded_list_[1].size();
+        if (peak_count_mz != peak_count_int)
+        {
+          error(LOAD, String("Length of data array for m/z differs from length of intensity data: ") + peak_count_mz + " vs. " + peak_count_int + " . The first array starts with: '" +
+                        data_to_decode_[0].substr(0, 10) + " ...'");
+        }
+        if (peak_count_ != peak_count_mz)
+        {
+          warning(LOAD, String("Length of data arrays (m/z and int) differs from value in attribute 'length': ") + peak_count_mz + " vs. " + peak_count_ + ".");
+          peak_count_ = peak_count_mz;
+        }
+
+        // reserve space for spectrum
+        spec_.reserve(peak_count_);
+
+        // reserve space for meta data arrays (peak count)
         for (Size i = 0; i < spec_.getFloatDataArrays().size(); ++i)
         {
           spec_.getFloatDataArrays()[i].reserve(peak_count_);
         }
 
-        //push_back the peaks into the container
+        // push_back the peaks into the container
         for (Size n = 0; n < peak_count_; ++n)
         {
           double mz = mz_precision_64 ? decoded_double_list_[0][n] : decoded_list_[0][n];
@@ -804,7 +797,7 @@ namespace OpenMS::Internal
           warning(STORE, "Not all spectrum native IDs are numbers or correctly prefixed with 'spectrum='. The spectra are renumbered and the native IDs are lost!");
         }
         //Map to store the last spectrum ID for each MS level (needed to find precursor spectra)
-        Map<Int, Size> level_id;
+        std::map<Int, Size> level_id;
 
         os << "\t<spectrumList count=\"" << cexp_->size() << "\">\n";
         for (Size s = 0; s < cexp_->size(); ++s)
@@ -961,7 +954,7 @@ namespace OpenMS::Internal
           {
             Int precursor_ms_level = spec.getMSLevel() - 1;
             SignedSize precursor_id = -1;
-            if (level_id.has(precursor_ms_level))
+            if (level_id.find(precursor_ms_level) != level_id.end())
             {
               precursor_id = level_id[precursor_ms_level];
             }

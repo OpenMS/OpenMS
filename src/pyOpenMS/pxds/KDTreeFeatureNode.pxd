@@ -7,9 +7,9 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureNode.h>" namespace 
     # wrap-doc:
         # A node of the kD-tree with pointer to corresponding data and index
         
-        # KDTreeFeatureNode() nogil except +
-        KDTreeFeatureNode(KDTreeFeatureNode &) nogil except +
-        KDTreeFeatureNode(KDTreeFeatureMaps * data, Size idx) nogil except +
-        double operator[](Size i) nogil except +
-        Size getIndex() nogil except + # wrap-doc:Returns index of corresponding feature in data_
+        # KDTreeFeatureNode() except + nogil 
+        KDTreeFeatureNode(KDTreeFeatureNode &) except + nogil 
+        KDTreeFeatureNode(KDTreeFeatureMaps * data, Size idx) except + nogil 
+        double operator[](Size i) except + nogil 
+        Size getIndex() except + nogil  # wrap-doc:Returns index of corresponding feature in data_
 

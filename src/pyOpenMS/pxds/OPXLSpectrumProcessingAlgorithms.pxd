@@ -12,11 +12,11 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>" nam
 
     cdef cppclass OPXLSpectrumProcessingAlgorithms:
 
-        OPXLSpectrumProcessingAlgorithms() nogil except + # compiler
-        OPXLSpectrumProcessingAlgorithms(OPXLSpectrumProcessingAlgorithms &) nogil except + # compiler
+        OPXLSpectrumProcessingAlgorithms() except + nogil  # compiler
+        OPXLSpectrumProcessingAlgorithms(OPXLSpectrumProcessingAlgorithms &) except + nogil  # compiler
 
         MSSpectrum mergeAnnotatedSpectra(MSSpectrum& first_spectrum,
-                                         MSSpectrum& second_spectrum) nogil except +
+                                         MSSpectrum& second_spectrum) except + nogil 
 
         MSExperiment preprocessSpectra(MSExperiment& exp,
                                         double fragment_mass_tolerance,
@@ -25,7 +25,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>" nam
                                         Int min_precursor_charge,
                                         Int max_precursor_charge,
                                         bool deisotope,
-                                        bool labeled) nogil except +
+                                        bool labeled) except + nogil 
 
         void getSpectrumAlignmentFastCharge(libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& alignment,
                                             double fragment_mass_tolerance,
@@ -35,11 +35,11 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>" nam
                                             const IntegerDataArray& theo_charges,
                                             const IntegerDataArray& exp_charges,
                                             FloatDataArray& ppm_error_array,
-                                            double intensity_cutoff) nogil except +
+                                            double intensity_cutoff) except + nogil 
 
         void getSpectrumAlignmentSimple(libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& alignment,
                                             double fragment_mass_tolerance,
                                             bool fragment_mass_tolerance_unit_ppm,
                                             const libcpp_vector[ SimplePeak ]& theo_spectrum,
                                             const MSSpectrum& exp_spectrum,
-                                            const IntegerDataArray& exp_charges) nogil except +
+                                            const IntegerDataArray& exp_charges) except + nogil 

@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Rost $
@@ -60,10 +34,10 @@ namespace OpenMS
   /**
     * @brief Interface for the IsoSpec algorithm - a generator of infinitely-resolved theoretical spectra.
     *
-    * Provides an interface to the IsoSpec algorithm. See IsoSpecWrapper for a
-    * more convenient wrapper. Implements a generator pattern using the
-    * nextConf function, which can be used to iterate through all
-    * configurations:
+    * Provides an interface to the IsoSpec algorithm. See IsoSpecWrapper and
+    * FineIsotopePatternGenerator for a more convenient wrapper. Implements a
+    * generator pattern using the nextConf function, which can be used to
+    * iterate through all configurations:
     *
     * @code
     * IsoSpecGeneratorWrapperSubclass iso(...);
@@ -149,6 +123,8 @@ public:
 
   /** @brief A convenience class for the IsoSpec algorithm - easier to use than the IsoSpecGeneratorWrapper classes.
    *
+    * See FineIsotopePatternGenerator for a more convenient (but potentially
+    * slower) wrapper when using the algorithm in OpenMS.
    */
   class OPENMS_DLLAPI IsoSpecWrapper
   {
@@ -231,7 +207,7 @@ public:
              const std::vector<std::vector<double> >& isotopeProbabilities,
              double p);
 
-    // delete copy constructor
+    /// delete copy constructor
     IsoSpecTotalProbGeneratorWrapper(const IsoSpecTotalProbGeneratorWrapper&) = delete;
     /**
       * @brief Setup the algorithm to run on an EmpiricalFormula
@@ -324,11 +300,12 @@ protected:
    *
    * This generator walks through the entire set of isotopologues of a given molecule, allowing
    * the user to terminate the search on the fly. The returned isotopologues are guaranteed to
-   * be generated in order of descending probability (unlike the previous two generators which
-   * make no such guarantees).
+   * be generated in order of descending probability (unlike
+   * IsoSpecThresholdGeneratorWrapper and IsoSpecTotalProbGeneratorWrapper
+   * which make no such guarantees).
    *
-   * This causes the algorithm to run in O(n*log(n)) and means that is it much slower than the
-   * previous two.
+   * This causes the algorithm to run in \c O(n*log(n)) and means that is it much slower than the
+   * previous two classes IsoSpecThresholdGeneratorWrapper and IsoSpecTotalProbGeneratorWrapper.
    *
    * You should only use this generator if you don't know up-front when to stop the walk through
    * the configuration space, and need to make the decision on the fly. If you know the threshold

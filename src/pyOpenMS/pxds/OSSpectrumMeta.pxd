@@ -4,8 +4,8 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace 
     
     cdef cppclass OSSpectrumMeta "OpenSwath::OSSpectrumMeta":
 
-        OSSpectrumMeta() nogil except + # TODO
-        OSSpectrumMeta(OSSpectrumMeta &) nogil except + # compiler
+        OSSpectrumMeta() except + nogil  # TODO
+        OSSpectrumMeta(OSSpectrumMeta &) except + nogil  # compiler
 
         size_t index
         libcpp_string id

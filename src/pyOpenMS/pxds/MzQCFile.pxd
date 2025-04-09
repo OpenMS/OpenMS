@@ -9,13 +9,13 @@ cdef extern from "<OpenMS/FORMAT/MzQCFile.h>" namespace "OpenMS":
 
     cdef cppclass MzQCFile "OpenMS::MzQCFile":
         # wrap-doc:
-        #   File adapter for mzQC files used to load and store mzQC files
-        #   -----
-        #   This class collects the data for the mzQC File
+        #  File adapter for mzQC files used to load and store mzQC files
+        #  
+        #  This class collects the data for the mzQC File
 
-        MzQCFile() nogil except +
+        MzQCFile() except + nogil 
         
-        MzQCFile(MzQCFile) nogil except + #wrap-ignore
+        MzQCFile(MzQCFile) except + nogil  #wrap-ignore
 
         void store(String input_file,
                    String output_file,
@@ -26,16 +26,18 @@ cdef extern from "<OpenMS/FORMAT/MzQCFile.h>" namespace "OpenMS":
                    String label,
                    FeatureMap & feature_map,
                    libcpp_vector[ ProteinIdentification ] & prot_ids, 
-                   libcpp_vector[ PeptideIdentification ] & pep_ids) nogil except +
+                   libcpp_vector[ PeptideIdentification ] & pep_ids) except + nogil 
                    # wrap-doc:
-                   #   Stores QC data in mzQC file with JSON format
-                   #   :param input_file: MzML input file name
-                   #   :param output_file: MzQC output file name
-                   #   :param exp: MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
-                   #   :param contact_name: Name of the person creating the mzQC file
-                   #   :param contact_address: Contact address (mail/e-mail or phone) of the person creating the mzQC file
-                   #   :param description: Description and comments about the mzQC file contents
-                   #   :param label: Qnique and informative label for the run
-                   #   :param feature_map: FeatureMap from feature file (featureXML)
-                   #   :param prot_ids: Protein identifications from ID file (idXML)
-                   #   :param pep_ids: Protein identifications from ID file (idXML)
+                   #  Stores QC data in mzQC file with JSON format
+                   #   
+                   #  
+                   #  :param input_file: MzML input file name
+                   #  :param output_file: MzQC output file name
+                   #  :param exp: MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
+                   #  :param contact_name: Name of the person creating the mzQC file
+                   #  :param contact_address: Contact address (mail/e-mail or phone) of the person creating the mzQC file
+                   #  :param description: Description and comments about the mzQC file contents
+                   #  :param label: Qnique and informative label for the run
+                   #  :param feature_map: FeatureMap from feature file (featureXML)
+                   #  :param prot_ids: Protein identifications from ID file (idXML)
+                   #  :param pep_ids: Protein identifications from ID file (idXML)

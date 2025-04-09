@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Petra Gutenbrunner, Oliver Alka $
@@ -36,13 +10,11 @@
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
@@ -58,16 +30,16 @@
 //-------------------------------------------------------------
 
 /**
-   @page TOPP_LuciphorAdapter LuciphorAdapter
+@page TOPP_LuciphorAdapter LuciphorAdapter
 
-   @brief Adapter for the LuciPHOr2: a site localisation tool of generic post-translational modifications from tandem mass spectrometry data.
+@brief Adapter for the LuciPHOr2: a site localisation tool of generic post-translational modifications from tandem mass spectrometry data.
 
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ LuciphorAdapter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; LuciphorAdapter &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFileConverter</td>
@@ -76,15 +48,15 @@
     </table>
 </CENTER>
 
-    LuciPHOr2 must be installed before this wrapper can be used. Please make sure that Java and LuciPHOr2 are working.@n
-    The following LuciPHOr2 version is required: luciphor2 (JAVA-based version of Luciphor) (1.2014Oct10). At the time of writing, it could be downloaded from http://luciphor2.sourceforge.net.
+LuciPHOr2 must be installed before this wrapper can be used. Please make sure that Java and LuciPHOr2 are working.@n
+The following LuciPHOr2 version is required: luciphor2 (JAVA-based version of Luciphor) (1.2014Oct10). At the time of writing, it could be downloaded from http://luciphor2.sourceforge.net.
 
-    Input spectra for LuciPHOr2 have to be in pepXML file format. The input mzML file must be the same as the one used to create the pepXML input file.
+Input spectra for LuciPHOr2 have to be in pepXML file format. The input mzML file must be the same as the one used to create the pepXML input file.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_LuciphorAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_LuciphorAdapter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_LuciphorAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_LuciphorAdapter.html
 */
 
 // We do not want this class to show up in the docu:
@@ -98,7 +70,7 @@ class LuciphorAdapter :
 {
 public:
   LuciphorAdapter() :
-    TOPPBase("LuciphorAdapter", "Modification site localisation using LuciPHOr2.", true),
+    TOPPBase("LuciphorAdapter", "Modification site localisation using LuciPHOr2."),
     // parameter choices (the order of the values must be the same as in the LuciPHOr2 parameters!):
     fragment_methods_(ListUtils::create<String>("CID,HCD")),
     fragment_error_units_(ListUtils::create<String>("Da,ppm")),
@@ -303,7 +275,7 @@ protected:
       mod_param_value.split(' ', parts);
       if (parts.size() != 2)
       {
-        writeLog_("Error: cannot parse modification '" + mod_param_value + "'");
+        writeLogError_("Error: cannot parse modification '" + mod_param_value + "'");
         return PARSE_ERROR;
       }
       else
@@ -343,7 +315,7 @@ protected:
       vector<String> elements;
       if (!tsvfile.getRow(row_count, elements))
       {
-        writeLog_("Error: could not split row " + String(row_count) + " of file '" + l_out + "'");
+        writeLogError_("Error: could not split row " + String(row_count) + " of file '" + l_out + "'");
         return PARSE_ERROR;
       }
       
@@ -422,7 +394,7 @@ protected:
         {
           if (seq.getResidue(i).isModified())
           {
-            writeLog_("Error: ambiguous modifications on AA '" + iter->first + "' (" + seq.getResidue(i).getModificationName() + ", " + iter->second + ")");
+            writeLogError_("Error: ambiguous modifications on AA '" + iter->first + "' (" + seq.getResidue(i).getModificationName() + ", " + iter->second + ")");
             return PARSE_ERROR;
           }
           else 
@@ -480,13 +452,13 @@ protected:
     {
       if (!JavaInfo::canRun(java_executable))
       {
-        writeLog_("Fatal error: Java is needed to run LuciPHOr2!");
+        writeLogError_("Fatal error: Java is needed to run LuciPHOr2!");
         return EXTERNAL_PROGRAM_ERROR;
       }
     }
     else
     {
-      writeLog_("The installation of Java was not checked.");
+      writeLogWarn_("The installation of Java was not checked.");
     }
 
     //tmp_dir
@@ -507,19 +479,17 @@ protected:
     vector<ProteinIdentification> prot_ids;
 
     PeakMap exp;
-    MzMLFile file;
-    file.setLogType(log_type_);
     PeakFileOptions options;
     options.clearMSLevels();
     options.addMSLevel(2);
 
-    file.load(in, exp);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
     exp.sortSpectra(true);
 
     // convert idXML input to pepXML if necessary
     if (in_type == FileTypes::IDXML)
     {
-      IdXMLFile().load(id, prot_ids, pep_ids);
+      FileHandler().loadIdentifications(id, prot_ids, pep_ids, {FileTypes::IDXML});
       if (!pep_ids.empty())
       {
         IDFilter::keepNBestHits(pep_ids, 1); // LuciPHOR2 only calculates the best hit
@@ -536,7 +506,7 @@ protected:
     }
     else
     {
-      writeLog_("Error: Unknown input file type given. Aborting!");
+      writeLogError_("Error: Unknown input file type given. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -544,7 +514,7 @@ protected:
     vector<String> target_mods = getStringList_("target_modifications");
     if (target_mods.empty())
     {
-      writeLog_("Error: No target modification existing.");
+      writeLogError_("Error: No target modification existing.");
       return ILLEGAL_PARAMETERS;
     }
     
@@ -596,7 +566,7 @@ protected:
     if (!error.empty())
     {
       error = "Error: LuciPHOr2 output is not correctly formated. " + error;
-      writeLog_(error);
+      writeLogError_(error);
       return PARSE_ERROR;
     }
     
@@ -614,7 +584,7 @@ protected:
     for (PeptideIdentification& pep : pep_ids)
     {
       Size scan_idx;
-      const String& ID_native_ids = pep.getMetaValue("spectrum_reference");
+      const String& ID_native_ids = pep.getSpectrumReference();
       try
       {
         scan_idx = lookup.findByNativeID(ID_native_ids);
@@ -622,7 +592,7 @@ protected:
       catch (Exception::ElementNotFound&)
       {
         // fall-back if native ids are missing
-        writeLog_("Unable to map native ID of identification to spectrum native ID. " + ID_native_ids);
+        writeLogWarn_("Unable to map native ID of identification to spectrum native ID. " + ID_native_ids);
         scan_idx = lookup.findByRT(pep.getRT());
       }
 
@@ -659,7 +629,7 @@ protected:
       }
       else
       {
-        writeLog_("Error: LuciPHOr2 output does not match with idXML.");
+        writeLogError_("Error: LuciPHOr2 output does not match with idXML.");
         return PARSE_ERROR;
       }
       
@@ -676,7 +646,7 @@ protected:
     {
       p.getSearchParameters().setMetaValue(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM, getStringList_("target_modifications"));
     }
-    IdXMLFile().store(out, prot_ids, pep_out);
+    FileHandler().storeIdentifications(out, prot_ids, pep_out, {FileTypes::IDXML});
 
     return EXECUTION_OK;
   }

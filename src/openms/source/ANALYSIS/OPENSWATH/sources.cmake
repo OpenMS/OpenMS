@@ -26,12 +26,11 @@ set(sources_list
   OpenSwathHelper.cpp
   OpenSwathScores.cpp
   OpenSwathScoring.cpp
-  OpenSwathTSVWriter.cpp
   OpenSwathOSWWriter.cpp
   OpenSwathWorkflow.cpp
   PeakIntegrator.cpp
-  PeakPickerMRM.cpp
-  SONARScoring.cpp
+  PeakPickerChromatogram.cpp
+  PeakPickerMobilogram.cpp
   SwathMapMassCorrection.cpp
   SwathWindowLoader.cpp
   SwathQC.cpp

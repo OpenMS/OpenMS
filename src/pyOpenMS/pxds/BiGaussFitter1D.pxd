@@ -2,12 +2,11 @@
 # from BasicStatistics cimport *
 from String cimport *
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussFitter1D.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/BiGaussFitter1D.h>" namespace "OpenMS":
     
     cdef cppclass BiGaussFitter1D "OpenMS::BiGaussFitter1D":
-        BiGaussFitter1D() nogil except +
-        BiGaussFitter1D(BiGaussFitter1D &) nogil except +
-        # QualityType fit1d(RawDataArrayType &range, InterpolationModel *&model) nogil except +
-        # Fitter1D * create() nogil except +
-        String getProductName() nogil except + # wrap-doc:Name of the model (needed by Factory)
-
+        BiGaussFitter1D() except + nogil 
+        BiGaussFitter1D(BiGaussFitter1D &) except + nogil 
+        # QualityType fit1d(RawDataArrayType &range, InterpolationModel *&model) except + nogil 
+        # Fitter1D * create() except + nogil 
+       

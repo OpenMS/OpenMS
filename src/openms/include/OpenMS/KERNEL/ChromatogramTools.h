@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -34,12 +8,13 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+
+#include <map>
 
 namespace OpenMS
 {
@@ -111,10 +86,7 @@ public:
           }
 
           // new spec contains one peak, with product m/z and intensity
-          typename ExperimentType::PeakType peak;
-          peak.setMZ(it->getMZ());
-          peak.setIntensity(pit->getIntensity());
-          spec.push_back(peak);
+          spec.emplace_back(it->getMZ(), pit->getIntensity());
           exp.addSpectrum(spec);
         }
       }
@@ -138,8 +110,8 @@ public:
     void convertSpectraToChromatograms(ExperimentType & exp, bool remove_spectra = false, bool force_conversion = false)
     {
       typedef typename ExperimentType::SpectrumType SpectrumType;
-      Map<double, Map<double, std::vector<SpectrumType> > > chroms;
-      Map<double, MSChromatogram > chroms_xic;
+      std::map<double, std::map<double, std::vector<SpectrumType> > > chroms;
+      std::map<double, MSChromatogram > chroms_xic;
       for (typename ExperimentType::ConstIterator it = exp.begin(); it != exp.end(); ++it)
       {
         // TODO other types
@@ -206,10 +178,10 @@ public:
       for (auto & chrom: chroms_xic) exp.addChromatogram(chrom.second);
 
       // Add the SRM chromatograms
-      typename Map<double, Map<double, std::vector<SpectrumType> > >::const_iterator it1 = chroms.begin();
+      typename std::map<double, std::map<double, std::vector<SpectrumType> > >::const_iterator it1 = chroms.begin();
       for (; it1 != chroms.end(); ++it1)
       {
-        typename Map<double, std::vector<SpectrumType> >::const_iterator it2 = it1->second.begin();
+        typename std::map<double, std::vector<SpectrumType> >::const_iterator it2 = it1->second.begin();
         for (; it2 != it1->second.end(); ++it2)
         {
           typename ExperimentType::ChromatogramType chrom;

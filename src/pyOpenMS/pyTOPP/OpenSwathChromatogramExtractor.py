@@ -44,7 +44,7 @@ def main(options):
                 output.addChromatogram(chrom)
 
     dp = pyopenms.DataProcessing()
-    pa = pyopenms.ProcessingAction().SMOOTHING
+    pa = pyopenms.DataProcessing().ProcessingAction().SMOOTHING
     dp.setProcessingActions(set([pa]))
 
     chromatograms = output.getChromatograms();

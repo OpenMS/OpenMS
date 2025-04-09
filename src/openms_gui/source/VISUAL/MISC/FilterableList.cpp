@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -35,6 +9,8 @@
 #include <OpenMS/VISUAL/MISC/FilterableList.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Qt5Port.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <ui_FilterableList.h>
 
@@ -69,26 +45,27 @@ namespace OpenMS
 
     void FilterableList::setBlacklistItems(const QStringList& bl_items)
     {
-      blacklist_ = bl_items.toSet();
+      blacklist_ = toQSet(bl_items);
       updateInternalList_();
     }
 
     void FilterableList::addBlackListItems(const QStringList& items)
     {
-      blacklist_.unite(items.toSet());
+      blacklist_.unite(toQSet(items));
       updateInternalList_();
     }
 
     void FilterableList::removeBlackListItems(const QStringList& outdated_blacklist_items)
     {
-      // quadratic runtime, but maintains order of items (as opposed to converting to set)
-      for (const auto& bl : outdated_blacklist_items.toSet())
+      for (const auto& bl : outdated_blacklist_items)
       {
-        if (blacklist_.remove(bl) == 0)
+        if (!blacklist_.contains(bl))
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value cannot be taken from blacklist. Does not belong to set!", bl.toStdString());
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value '" + String(bl) + "' cannot be taken from blacklist. Does not belong to set!", bl.toStdString());
         }
       }
+      // remove all items from blacklist
+      blacklist_.subtract(toQSet(outdated_blacklist_items));
       updateInternalList_();
     }
 
@@ -130,7 +107,7 @@ namespace OpenMS
 
     void FilterableList::updateVisibleList_()
     {
-      QRegExp regex(ui_->filter_text->text(), Qt::CaseInsensitive, QRegExp::WildcardUnix);
+      QRegularExpression regex(ui_->filter_text->text(), QRegularExpression::CaseInsensitiveOption);
       ui_->list_items->clear();
       ui_->list_items->addItems(items_wo_bl_.filter(regex));
     }

@@ -6,5 +6,5 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>"
     cdef cppclass TMTTenPlexQuantitationMethod(IsobaricQuantitationMethod) :
         # wrap-inherits:
         #  IsobaricQuantitationMethod
-        TMTTenPlexQuantitationMethod() nogil except +
-        TMTTenPlexQuantitationMethod(TMTTenPlexQuantitationMethod &) nogil except +
+        TMTTenPlexQuantitationMethod() except + nogil 
+        TMTTenPlexQuantitationMethod(TMTTenPlexQuantitationMethod &) except + nogil 

@@ -7,27 +7,27 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Adduct.h>" namespace "OpenMS":
 
     cdef cppclass Adduct:
   
-        Adduct() nogil except +
-        Adduct(Adduct &) nogil except + # compiler
+        Adduct() except + nogil 
+        Adduct(Adduct &) except + nogil  # compiler
   
-        Adduct(Int charge) nogil except +
-        Adduct(Int charge, Int amount, double singleMass, String formula, double log_prob, double rt_shift, String label) nogil except +
+        Adduct(Int charge) except + nogil 
+        Adduct(Int charge, Int amount, double singleMass, String formula, double log_prob, double rt_shift, String label) except + nogil 
   
-        Int getCharge() nogil except +
+        Int getCharge() except + nogil 
   
-        void setCharge(Int charge) nogil except +
+        void setCharge(Int charge) except + nogil 
   
-        Int getAmount() nogil except +
-        void setAmount(Int amount) nogil except +
+        Int getAmount() except + nogil 
+        void setAmount(Int amount) except + nogil 
   
-        double getSingleMass() nogil except +
-        void setSingleMass(double singleMass) nogil except +
+        double getSingleMass() except + nogil 
+        void setSingleMass(double singleMass) except + nogil 
   
-        double getLogProb() nogil except +
-        void setLogProb(double log_prob) nogil except +
+        double getLogProb() except + nogil 
+        void setLogProb(double log_prob) except + nogil 
   
-        String getFormula() nogil except +
-        void setFormula(String formula) nogil except +
+        String getFormula() except + nogil 
+        void setFormula(String formula) except + nogil 
   
-        double getRTShift() nogil except +
-        String getLabel() nogil except +
+        double getRTShift() except + nogil 
+        String getLabel() except + nogil 
