@@ -485,47 +485,11 @@ namespace OpenMS
     int peptide_id_index = -1;
     int peptide_hit_index = -1;
 
-<<<<<<< HEAD
-    /// get name augmented with attributes, e.g. [flipped], or '*' if modified
-    String getDecoratedName() const;
-
-  protected:
-    /// Update current cached spectrum for easy retrieval
-    void updateCache_();
-
-    /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
-    void updatePeptideHitAnnotations_(PeptideHit& hit);
-
-    /// feature data
-    FeatureMapSharedPtrType features_ = FeatureMapSharedPtrType(new FeatureMapType());
-
-    /// consensus feature data
-    ConsensusMapSharedPtrType consensus_map_ = ConsensusMapSharedPtrType(new ConsensusMapType());
-
-    /// peak data
-    ExperimentSharedPtrType peak_map_ = ExperimentSharedPtrType(new ExperimentType());
-
-    /// on disc peak data
-    ODExperimentSharedPtrType on_disc_peaks = ODExperimentSharedPtrType(new OnDiscMSExperiment());
-
-    /// chromatogram data
-    ExperimentSharedPtrType chromatogram_map_ = ExperimentSharedPtrType(new ExperimentType());
-
-    /// Chromatogram annotation data
-    OSWDataSharedPtrType chrom_annotation_;
-
-    /// Index of the current spectrum
-    Size current_spectrum_idx_ = 0;
-
-    /// Current cached spectrum
-    MSExperiment::SpectrumType cached_spectrum_;
-=======
   private:
     /// layer name
     String name_;
     /// an extra annotation as suffix to the layers name, e.g. '[39]' for which chromatogram index is currently shown in 1D
     String name_suffix_;
->>>>>>> origin
   };
 
   /// A base class to annotate layers of specific types with (identification) data
