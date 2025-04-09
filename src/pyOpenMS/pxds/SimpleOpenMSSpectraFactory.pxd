@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAcces
         # wrap-ignore
         # no-pxd-import
 
-        SimpleOpenMSSpectraFactory() nogil except +
+        SimpleOpenMSSpectraFactory() except + nogil 
 
         # shared_ptr[ISpectrumAccess] getSpectrumAccessOpenMSPtr(MSExperiment exp) # wrap-ignore
         # OPENSWATHALGO_DLLAPI typedef boost::shared_ptr<ISpectrumAccess> SpectrumAccessPtr;

@@ -5,18 +5,18 @@ from MSSpectrum cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
 
-cdef extern from "<OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>" namespace "OpenMS":
 
     cdef cppclass MorphologicalFilter(DefaultParamHandler,ProgressLogger):
         # wrap-inherits:
         #   DefaultParamHandler
         #   ProgressLogger
 
-        MorphologicalFilter() nogil except +
+        MorphologicalFilter() except + nogil 
         # private
-        MorphologicalFilter(MorphologicalFilter) nogil except + # wrap-ignore
+        MorphologicalFilter(MorphologicalFilter) except + nogil  # wrap-ignore
 
-        void filter(MSSpectrum & spectrum)      nogil except +
+        void filter(MSSpectrum & spectrum)      except + nogil 
             # wrap-doc:
                 #  Applies the morphological filtering operation to an MSSpectrum
                 #  
@@ -30,7 +30,7 @@ cdef extern from "<OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>" namespace "
                 #          from struc_size and the average spacing, and rounded up to an odd
                 #          number
                 
-        void filterExperiment(MSExperiment & exp)      nogil except +
+        void filterExperiment(MSExperiment & exp)      except + nogil 
             # wrap-doc:
                 #  Applies the morphological filtering operation to an MSExperiment
                 #  

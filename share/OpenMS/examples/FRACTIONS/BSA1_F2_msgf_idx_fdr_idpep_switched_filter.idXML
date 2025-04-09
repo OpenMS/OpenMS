@@ -22,7 +22,6 @@
 				<UserParam type="string" name="MSGFPlusAdapter:1:mzid_out" value=""/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:executable" value="MSGFPlus.jar"/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:database" value="18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta"/>
-				<UserParam type="string" name="MSGFPlusAdapter:1:add_decoys" value="false"/>
 				<UserParam type="float" name="MSGFPlusAdapter:1:precursor_mass_tolerance" value="5.0"/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:precursor_error_units" value="ppm"/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:isotope_error_range" value="0,1"/>

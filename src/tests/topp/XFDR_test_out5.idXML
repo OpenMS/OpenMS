@@ -5,7 +5,7 @@
 				<UserParam type="int" name="decoy_prefix" value="1"/>
 				<UserParam type="string" name="decoy_string" value="decoy_reverse_"/>
 				<UserParam type="float" name="fragment:mass_tolerance_xlinks" value="10.0"/>
-				<UserParam type="float" name="cross_link:mass_mass" value="138.068079600000004"/>
+				<UserParam type="float" name="cross_link:mass_mass" value="-138.068079600000004"/>
 				<UserParam type="string" name="cross_link:name" value=""/>
 				<UserParam type="float" name="cross_link:mass_isoshift" value="0.0"/>
 				<UserParam type="stringList" name="cross_link:residue1" value="[K]"/>

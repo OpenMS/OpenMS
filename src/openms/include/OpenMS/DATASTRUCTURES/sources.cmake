@@ -23,6 +23,7 @@ Date.h
 DateTime.h
 DefaultParamHandler.h
 DistanceMatrix.h
+ExposedVector.h
 FASTAContainer.h
 FlagSet.h
 GridFeature.h

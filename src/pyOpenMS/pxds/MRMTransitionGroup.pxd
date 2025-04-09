@@ -16,38 +16,38 @@ cdef extern from "<OpenMS/KERNEL/MRMTransitionGroup.h>" namespace "OpenMS":
         #  MRMTransitionGroupCP := MRMTransitionGroup[MSChromatogram, ReactionMonitoringTransition]
         #  LightMRMTransitionGroupCP := MRMTransitionGroup[MSChromatogram, LightTransition]
 
-        MRMTransitionGroup() nogil except +# TODO(whole file)
-        MRMTransitionGroup(MRMTransitionGroup[SpectrumT, TransitionT] &) nogil except +
+        MRMTransitionGroup() except + nogil # TODO(whole file)
+        MRMTransitionGroup(MRMTransitionGroup[SpectrumT, TransitionT] &) except + nogil 
 
-        Size size() nogil except+
+        Size size() except + nogil
 
-        String getTransitionGroupID() nogil except+
-        void setTransitionGroupID(String tr_gr_id) nogil except +
+        String getTransitionGroupID() except + nogil
+        void setTransitionGroupID(String tr_gr_id) except + nogil 
 
-        libcpp_vector[TransitionT] getTransitions() nogil except+
-        libcpp_vector[TransitionT] getTransitionsMuteable() nogil except +
-        void addTransition(TransitionT transition, String key) nogil except +
-        TransitionT getTransition(String key)  nogil except +
-        bool hasTransition(String key) nogil except +
+        libcpp_vector[TransitionT] getTransitions() except + nogil
+        libcpp_vector[TransitionT] getTransitionsMuteable() except + nogil 
+        void addTransition(TransitionT transition, String key) except + nogil 
+        TransitionT getTransition(String key)  except + nogil 
+        bool hasTransition(String key) except + nogil 
 
-        libcpp_vector[SpectrumT] getChromatograms() nogil except+
-        void addChromatogram(SpectrumT chromatogram, String key) nogil except +
-        SpectrumT getChromatogram(String key) nogil except +
-        bool hasChromatogram(String key) nogil except +
+        libcpp_vector[SpectrumT] getChromatograms() except + nogil
+        void addChromatogram(SpectrumT chromatogram, String key) except + nogil 
+        SpectrumT getChromatogram(String key) except + nogil 
+        bool hasChromatogram(String key) except + nogil 
 
-        libcpp_vector[SpectrumT] getPrecursorChromatograms() nogil except+
-        void addPrecursorChromatogram(SpectrumT chromatogram, String key) nogil except +
-        SpectrumT getPrecursorChromatogram(String key) nogil except +
-        bool hasPrecursorChromatogram(String key) nogil except +
+        libcpp_vector[SpectrumT] getPrecursorChromatograms() except + nogil
+        void addPrecursorChromatogram(SpectrumT chromatogram, String key) except + nogil 
+        SpectrumT getPrecursorChromatogram(String key) except + nogil 
+        bool hasPrecursorChromatogram(String key) except + nogil 
 
-        libcpp_vector[MRMFeature] getFeatures() nogil except+
-        libcpp_vector[MRMFeature] getFeaturesMuteable() nogil except +
-        void addFeature(MRMFeature feature) nogil except +
-        MRMFeature getBestFeature() nogil except +
+        libcpp_vector[MRMFeature] getFeatures() except + nogil
+        libcpp_vector[MRMFeature] getFeaturesMuteable() except + nogil 
+        void addFeature(MRMFeature feature) except + nogil 
+        MRMFeature getBestFeature() except + nogil 
 
-        void getLibraryIntensity(libcpp_vector[double] result) nogil except+
-        MRMTransitionGroup[SpectrumT, TransitionT] subset(libcpp_vector[ libcpp_utf8_string ] tr_ids) nogil except +
+        void getLibraryIntensity(libcpp_vector[double] result) except + nogil
+        MRMTransitionGroup[SpectrumT, TransitionT] subset(libcpp_vector[ libcpp_utf8_string ] tr_ids) except + nogil 
 
-        bool isInternallyConsistent() nogil except +
+        bool isInternallyConsistent() except + nogil 
 
-        bool chromatogramIdsMatch() nogil except +
+        bool chromatogramIdsMatch() except + nogil 

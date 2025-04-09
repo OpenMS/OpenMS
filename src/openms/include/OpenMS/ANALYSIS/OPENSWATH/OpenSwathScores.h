@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
@@ -61,7 +35,6 @@ namespace OpenMS
     bool use_sn_score_ = true;
     bool use_mi_score_ = true;
     bool use_dia_scores_ = true;
-    bool use_sonar_scores = true;
     bool use_im_scores = true;
     bool use_ms1_correlation = true;
     bool use_ms1_fullscan = true;
@@ -69,6 +42,7 @@ namespace OpenMS
     bool use_uis_scores = true;
     bool use_ionseries_scores = true;
     bool use_ms2_isotope_scores = true;
+    bool use_peak_shape_metrics = false;
   };
 
   /** @brief A structure to hold the different scores computed by OpenSWATH
@@ -101,7 +75,7 @@ namespace OpenMS
     double weighted_coelution_score = 0;
     double weighted_xcorr_shape = 0;
     double weighted_massdev_score = 0;
-   
+
     double ms1_xcorr_coelution_score = -1;
     double ms1_xcorr_coelution_contrast_score = 0;
     double ms1_xcorr_coelution_combined_score = 0;
@@ -115,26 +89,27 @@ namespace OpenMS
     double ms1_mi_contrast_score = 0;
     double ms1_mi_combined_score = 0;
 
-    double sonar_sn = 0;
-    double sonar_diff = 0;
-    double sonar_trend = 0;
-    double sonar_rsq = 0;
-    double sonar_shape = 0;
-    double sonar_lag = 0;
-
     double im_xcorr_coelution_score = 0;
     double im_xcorr_shape_score = 0;
     double im_delta_score = 0;
     double im_ms1_delta_score = 0;
     double im_drift = 0;
+    double im_drift_left = 0;
+    double im_drift_right = 0;
     double im_drift_weighted = 0;
     double im_delta = -1;
+    double im_log_intensity = 0;
     double im_ms1_contrast_coelution = 0;
     double im_ms1_contrast_shape = 0;
     double im_ms1_sum_contrast_coelution = 0;
     double im_ms1_sum_contrast_shape = 0;
     double im_ms1_drift = 0;
     double im_ms1_delta = -1;
+    // additional ion mobility IPF identifying against detecting transition scores
+    double im_ind_contrast_coelution = 0;
+    double im_ind_contrast_shape = 0;
+    double im_ind_sum_contrast_coelution = 0;
+    double im_ind_sum_contrast_shape = 0;
 
     double library_manhattan = 0;
     double library_dotprod = 0;
@@ -174,9 +149,9 @@ namespace OpenMS
     double calculate_lda_prescore(const OpenSwath_Scores& scores) const;
 
     /** @brief A scoring model for peak groups with a single transition
-     * 
+     *
      * Manually derived scoring model for single transition peakgroups, only
-     * uses norm_rt_score, log_sn_score, and elution_model_fit_score. 
+     * uses norm_rt_score, log_sn_score, and elution_model_fit_score.
      *
      * @returns A score which is better when more negative
      *
@@ -194,6 +169,14 @@ namespace OpenMS
 
   };
 
+  /**
+   * @brief A structure to hold the individual scores computed for unique ion signatures (UIS) scores for the Inference of Peptidoforms (IPF) workflow
+   * 
+   * Most of the scores are computed for each individual identifying transition (theoretical transitions) against the peak-group detection transitions.
+   * 
+   * This struct also holds peak shape metrics for each individual transition.
+   * 
+   */
   struct OPENMS_DLLAPI OpenSwath_Ind_Scores
   {
     int ind_num_transitions = 0;
@@ -208,11 +191,40 @@ namespace OpenMS
     std::vector<double> ind_total_area_intensity;
     std::vector<double> ind_intensity_score;
     std::vector<double> ind_apex_intensity;
+    std::vector<double> ind_apex_position;
+    std::vector<double> ind_fwhm;
     std::vector<double> ind_total_mi;
     std::vector<double> ind_log_intensity;
     std::vector<double> ind_intensity_ratio;
     std::vector<double> ind_mi_ratio;
     std::vector<double> ind_mi_score;
+
+    // ion mobility scores
+    std::vector<double>  ind_im_drift;
+    std::vector<double>  ind_im_drift_left;
+    std::vector<double>  ind_im_drift_right;
+    std::vector<double>  ind_im_delta;
+    std::vector<double>  ind_im_delta_score;
+    std::vector<double>  ind_im_log_intensity;
+    std::vector<double>  ind_im_contrast_coelution;
+    std::vector<double>  ind_im_contrast_shape;
+    std::vector<double>  ind_im_sum_contrast_coelution;
+    std::vector<double>  ind_im_sum_contrast_shape;
+    
+    // peak shape metrics
+    std::vector<double> ind_start_position_at_5;
+    std::vector<double> ind_end_position_at_5;
+    std::vector<double> ind_start_position_at_10;
+    std::vector<double> ind_end_position_at_10;
+    std::vector<double> ind_start_position_at_50;
+    std::vector<double> ind_end_position_at_50;
+    std::vector<double> ind_total_width;
+    std::vector<double> ind_tailing_factor;
+    std::vector<double> ind_asymmetry_factor;
+    std::vector<double> ind_slope_of_baseline;
+    std::vector<double> ind_baseline_delta_2_height;
+    std::vector<double> ind_points_across_baseline;
+    std::vector<double> ind_points_across_half_height;
 
     OpenSwath_Ind_Scores() = default;
 

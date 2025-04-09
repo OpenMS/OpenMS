@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -34,13 +8,18 @@
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
+#include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+// TODO remove this once we have handler transform support
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -50,6 +29,7 @@
 #include <fstream>
 
 #include <QStringList>
+#include <QRegularExpression>
 
 using namespace OpenMS;
 using namespace std;
@@ -59,16 +39,16 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_CometAdapter CometAdapter
+@page TOPP_CometAdapter CometAdapter
 
-    @brief Identifies peptides in MS/MS spectra via Comet.
+@brief Identifies peptides in MS/MS spectra via Comet.
 
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ CometAdapter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; CometAdapter &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
@@ -77,27 +57,25 @@ using namespace std;
     </table>
 </CENTER>
 
-    @em Comet must be installed before this wrapper can be used. This wrapper
-    has been successfully tested with version 2016.01.2, 2016.01.3 and 2017.01.0beta of Comet.
-    
-    @warning We recommend to use Comet 2019.01 rev. 5 or later, due to a serious "empty result" bug in earlier versions (which occurs frequently on Windows; Linux seems not/less affected).
+@em Comet must be installed/downloaded before this wrapper can be used. OpenMS installers ship with Comet.
 
-    Comet settings not exposed by this adapter can be directly adjusted using a param file, which can be generated using comet -p.
-    By default, All (!) parameters available explicitly via this param file will take precedence over the wrapper parameters.
+@warning We recommend to use Comet 2019.01 rev. 5 or later, due to a serious "empty result" bug in earlier versions (which occurs frequently on Windows; Linux seems not/less affected).
 
-    Parameter names have been changed to match names found in other search engine adapters, however some are Comet specific.
-    For a detailed description of all available parameters check the Comet documentation at http://comet-ms.sourceforge.net/parameters/parameters_201601/
-    The default parameters are set for a high resolution instrument.
+@warning Skip over 'Comet v2024.01.0', since it contains several bugs (see https://github.com/UWPR/Comet/issues/63).
 
-    To cite Comet use: Eng, Jimmy K. and Jahan, Tahmina A. and Hoopmann, Michael R., Comet: An open-source MS/MS sequence database search tool
-    PROTEOMICS, 13, 1, 2013, 22--24, 10.1002/pmic.201200439
+Comet settings not exposed by this adapter can be directly adjusted using a param file, which can be generated using comet -p.
+By default, All (!) parameters available explicitly via this param file will take precedence over the wrapper parameters.
 
-    @note This adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
+Parameter names have been changed to match names found in other search engine adapters, however some are Comet specific.
+For a detailed description of all available parameters check the Comet documentation at https://uwpr.github.io/Comet/parameters/
+The default parameters are set for a high resolution instrument.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_CometAdapter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_CometAdapter.html
+@note This adapter supports 15N labeling by specifying the 20 AA modifications 'Label:15N(x)' as fixed modifications.
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_CometAdapter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_CometAdapter.html
 */
 
 // We do not want this class to show up in the docu:
@@ -209,7 +187,7 @@ protected:
     setMaxInt_("max_peptide_length", 63);
 
     //Output
-    registerIntOption_("num_hits", "<num>", 1, "Number of peptide hits in output file", false, false);
+    registerIntOption_("num_hits", "<num>", 1, "Number of peptide hits (PSMs) per spectrum in output file", false, false);
 
     //mzXML/mzML parameters
     registerStringOption_("precursor_charge", "[min]:[max]", "0:0", "Precursor charge range to search (if spectrum is not annotated with a charge or if override_charge!=keep any known): 0:[num] == search all charges, 2:6 == from +2 to +6, 3:3 == +3", false, false);
@@ -311,7 +289,35 @@ protected:
     isotope_error["-8/-4/0/4/8"] = 4;
     isotope_error["-1/0/1/2/3"] = 5;
 
-    os << "peptide_mass_tolerance = " << getDoubleOption_("precursor_mass_tolerance") << "\n";
+    // comet_version is something like "# comet_version 2017.01 rev. 1"
+    QRegularExpression comet_version_regex("(\\d{4})\\.(\\d*)rev");
+    if (auto match = comet_version_regex.match(comet_version.toQString().remove(' ')); match.hasMatch())
+    {
+      const int comet_year = match.captured(1).toInt();
+      if (comet_version.hasSubstring("2024.01 rev. 0"))
+      {
+        OPENMS_LOG_WARN << "Comet v2024.01.0 is known to have several bugs (see https://github.com/UWPR/Comet/issues/63). Please use a different version if possible." << std::endl;
+      }
+      // Comet v2024.01.0 introduces "peptide_mass_tolerance_lower" and "peptide_mass_tolerance_upper" parameters
+      // and deprecates "peptide_mass_tolerance" (which is buggy in this version, see https://github.com/UWPR/Comet/issues/59)
+      // We need to use the new parameters from this version onwards
+      double precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
+      if (comet_year >= 2024)
+      {
+        os << "peptide_mass_tolerance_lower = " << -precursor_mass_tolerance << "\n";
+        os << "peptide_mass_tolerance_upper = " << precursor_mass_tolerance << "\n";
+      }
+      else
+      { // for Comet versions before 2024, we use the old parameter
+        os << "peptide_mass_tolerance = " << precursor_mass_tolerance << "\n";
+      }
+    }
+    else
+    { 
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                               "Error: Could not extract year from Comet version string: " + comet_version + ". Please report this to the OpenMS team.");
+    }
+
     os << "peptide_mass_units = " << precursor_error_units[getStringOption_("precursor_error_units")] << "\n";                  // 0=amu, 1=mmu, 2=ppm
     os << "mass_type_parent = " << 1 << "\n";                    // 0=average masses, 1=monoisotopic masses
     os << "mass_type_fragment = " << 1 << "\n";                  // 0=average masses, 1=monoisotopic masses
@@ -482,6 +488,7 @@ protected:
     os << "output_sqtfile = " << 0 << "\n";                      // 0=no, 1=yes  write sqt file
     os << "output_txtfile = " << 0 << "\n";                     // 0=no, 1=yes  write tab-delimited txt file
     os << "output_pepxmlfile = " << 1 << "\n";                   // 0=no, 1=yes  write pep.xml file
+    os << "export_additional_pepxml_scores = " << 1 << "\n";     // Hidden parameter of comet that adds additional comet scores to the pep.xml
 
     os << "output_percolatorfile = " << !getStringOption_("pin_out").empty() << "\n";              // 0=no, 1=yes  write Percolator tab-delimited input file
     os << "print_expect_score = " << 1 << "\n";                  // 0=no, 1=yes to replace Sp with expect in out & sqt
@@ -525,9 +532,8 @@ protected:
     os << "peptide_length_range = " << getIntOption_("min_peptide_length") << " " << getIntOption_("max_peptide_length") << "\n";                       // minimum and maximum peptide length to analyze (default 5 63; max length 63)
     os << "spectrum_batch_size = " << getIntOption_("spectrum_batch_size") << "\n";                 // max. // of spectra to search at a time; 0 to search the entire scan range in one loop
     os << "max_duplicate_proteins = 20\n";                       // maximum number of protein names to report for each peptide identification; -1 reports all duplicates
-    os << "decoy_prefix = " << "--decoysearch-not-used--" << "\n";                 // decoy entries are denoted by this string which is pre-pended to each protein accession
     os << "equal_I_and_L = 1\n";
-    os << "output_suffix = " << "" << "\n";                      // add a suffix to output base names i.e. suffix "-C" generates base-C.pep.xml from base.mzXML input
+    os << "output_suffix =\n";                                   // add a suffix to output base names i.e. suffix "-C" generates base-C.pep.xml from base.mzXML input
     os << "mass_offsets = " << ListUtils::concatenate(getDoubleList_("mass_offsets"), " ") << "\n"; // one or more mass offsets to search (values subtracted from deconvoluted precursor mass)
     os << "precursor_NL_ions =\n"; //  one or more precursor neutral loss masses, will be added to xcorr analysis 
 
@@ -606,6 +612,10 @@ protected:
     os << "9.  PepsinA                1      FL          P" << "\n";
     os << "10. Chymotrypsin           1      FWYL        P" << "\n";
     os << "11. No_cut                 1      @           @" << "\n";
+    os << "12. Arg-C/P                1.     R           _" << "\n";
+    os << "13. Lys-C/P                1      K           -" << "\n";
+    os << "14. Leukocyte_elastase     1      ALIV        -" << "\n";
+    os << "15. Chymotrypsin/P         1      FWYL        -" << "\n";
 
     return ExitCodes::EXECUTION_OK;
   }
@@ -625,7 +635,7 @@ protected:
     TOPPBase::ExitCodes exit_code = runExternalProcess_(comet_executable.toQString(), QStringList() << "-p", tmp_dir.getPath().toQString());
     if (exit_code != EXECUTION_OK)
     {
-      return EXTERNAL_PROGRAM_ERROR;
+      return exit_code; // will do the right thing, since it's correctly mapping TOPPBase exit codes
     }
     // the first line of 'comet.params.new' contains a string like: "# comet_version 2017.01 rev. 1"
     String comet_version; 
@@ -672,14 +682,13 @@ protected:
     MSExperiment exp;
     MzMLFile mzml_file{};
     String input_file_with_index = inputfile_name;
-    auto index_offset = IndexedMzMLDecoder().findIndexListOffset(inputfile_name);
-    if (index_offset == (std::streampos)-1)
+    if (!mzml_file.hasIndex(inputfile_name))
     {
       OPENMS_LOG_WARN << "The mzML file provided to CometAdapter is not indexed, but comet requires one. "
                       << "We will add an index by writing a temporary file. If you run this analysis more often, consider indexing your mzML in advance!" << std::endl;
       // Low memory conversion
       // write mzML with index again
-      auto tmp_file = File::getTemporaryFile();
+      auto tmp_file = File::getTemporaryFile() + ".mzML";
       PlainMSDataWritingConsumer consumer(tmp_file);
       consumer.getOptions().addMSLevel(ms_level); // only load msLevel 2
       bool skip_full_count = true;
@@ -687,8 +696,13 @@ protected:
       input_file_with_index = tmp_file;
     }
 
-    mzml_file.getOptions().setMetadataOnly(true);
-    mzml_file.load(inputfile_name, exp); // always load metadata for raw file name
+	// Load spectra metadata to map to idXML
+    mzml_file.getOptions().setMetadataOnly(false);
+	mzml_file.getOptions().setFillData(false);
+	mzml_file.getOptions().clearMSLevels();
+	// Ion mobility data is currently stored in MS2
+	mzml_file.getOptions().addMSLevel(2);
+    mzml_file.load(inputfile_name, exp);
 
     //-------------------------------------------------------------
     // calculations
@@ -746,7 +760,18 @@ protected:
     // if "reindex" parameter is set to true will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
-    IdXMLFile().store(out, protein_identifications, peptide_identifications);
+	// Parse ion mobility information if present
+	bool all_ids_have_im = SpectrumMetaDataLookup::addMissingIMToPeptideIDs(peptide_identifications, exp);
+	if (all_ids_have_im) {
+		protein_identifications[0].setMetaValue(Constants::UserParam::IM, exp.getSpectrum(0).getDriftTimeUnitAsString());
+	}
+
+    // add percolator features
+    StringList feature_set;
+    PercolatorFeatureSetHelper::addCOMETFeatures(peptide_identifications, feature_set);
+    protein_identifications.front().getSearchParameters().setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
+
+    FileHandler().storeIdentifications(out, protein_identifications, peptide_identifications, {FileTypes::IDXML});
 
     //-------------------------------------------------------------
     // create (move) optional pin output

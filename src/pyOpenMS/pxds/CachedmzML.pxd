@@ -10,23 +10,23 @@ cdef extern from "<OpenMS/FORMAT/CachedMzML.h>" namespace "OpenMS":
 
     cdef cppclass CachedmzML:
 
-        CachedmzML() nogil except + # wrap-doc:A class that uses on-disk caching to read and write spectra and chromatograms
-        CachedmzML(CachedmzML &) nogil except +
+        CachedmzML() except + nogil  # wrap-doc:A class that uses on-disk caching to read and write spectra and chromatograms
+        CachedmzML(CachedmzML &) except + nogil 
 
-        CachedmzML(String filename) nogil except +
+        CachedmzML(String filename) except + nogil 
 
-        Size getNrSpectra() nogil except +
-        Size getNrChromatograms() nogil except +
+        Size getNrSpectra() except + nogil 
+        Size getNrChromatograms() except + nogil 
 
-        MSSpectrum getSpectrum(Size idx) nogil except +
-        MSChromatogram getChromatogram(Size idx) nogil except +
+        MSSpectrum getSpectrum(Size idx) except + nogil 
+        MSChromatogram getChromatogram(Size idx) except + nogil 
 
         # COMMENT: only retrieves experiment meta data (no actual data in spectra/chromatograms)
         # COMMENT: useful for filtering by attributes to then retrieve data
-        MSExperiment getMetaData() nogil except +
+        MSExperiment getMetaData() except + nogil 
 
 # COMMENT: wrap static methods
 cdef extern from "<OpenMS/FORMAT/CachedMzML.h>" namespace "OpenMS::CachedmzML":
     
-    void store(const String& filename, MSExperiment exp) nogil except + # wrap-attach:CachedmzML
-    void load(const String& filename, CachedmzML& exp) nogil except + # wrap-attach:CachedmzML
+    void store(const String& filename, MSExperiment exp) except + nogil  # wrap-attach:CachedmzML
+    void load(const String& filename, CachedmzML& exp) except + nogil  # wrap-attach:CachedmzML

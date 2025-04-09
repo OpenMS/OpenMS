@@ -25,34 +25,34 @@ cdef extern from "<OpenMS/METADATA/MetaInfo.h>" namespace "OpenMS":
                 #  member. MetaInfoInterface implements a full interface to a MetaInfo
                 #  member and is more memory efficient if no meta info gets added
 
-        MetaInfo() nogil except +
-        MetaInfo(MetaInfo &) nogil except +
+        MetaInfo() except + nogil 
+        MetaInfo(MetaInfo &) except + nogil 
 
-        DataValue getValue(String name) nogil except + # wrap-doc:Returns the value corresponding to a string
-        DataValue getValue(UInt index) nogil except + # wrap-doc:Returns the value corresponding to an index
+        DataValue getValue(String name) except + nogil  # wrap-doc:Returns the value corresponding to a string
+        DataValue getValue(UInt index) except + nogil  # wrap-doc:Returns the value corresponding to an index
 
-        DataValue getValue(String name, DataValue default_value) nogil except + # wrap-doc:Returns the value corresponding to a string
-        DataValue getValue(UInt index, DataValue default_value) nogil except + # wrap-doc:Returns the value corresponding to an index
+        DataValue getValue(String name, DataValue default_value) except + nogil  # wrap-doc:Returns the value corresponding to a string
+        DataValue getValue(UInt index, DataValue default_value) except + nogil  # wrap-doc:Returns the value corresponding to an index
 
-        bool exists(String name) nogil except + # wrap-doc:Returns if this MetaInfo is set
-        bool exists(UInt index) nogil except + # wrap-doc:Returns if this MetaInfo is set
+        bool exists(String name) except + nogil  # wrap-doc:Returns if this MetaInfo is set
+        bool exists(UInt index) except + nogil  # wrap-doc:Returns if this MetaInfo is set
 
-        void setValue(String name, DataValue value) nogil except + # wrap-doc:Sets the DataValue corresponding to a name
-        void setValue(UInt index, DataValue value) nogil except + # wrap-doc:Sets the DataValue corresponding to an index
+        void setValue(String name, DataValue value) except + nogil  # wrap-doc:Sets the DataValue corresponding to a name
+        void setValue(UInt index, DataValue value) except + nogil  # wrap-doc:Sets the DataValue corresponding to an index
 
-        void removeValue(String name) nogil except + # wrap-doc:Removes the DataValue corresponding to `name` if it exists
-        void removeValue(UInt index) nogil except + # wrap-doc:Removes the DataValue corresponding to `index` if it exists
+        void removeValue(String name) except + nogil  # wrap-doc:Removes the DataValue corresponding to `name` if it exists
+        void removeValue(UInt index) except + nogil  # wrap-doc:Removes the DataValue corresponding to `index` if it exists
 
         # returns a reference to the MetaInfoRegistry
-        # static MetaInfoRegistry registry() nogil except +
+        # static MetaInfoRegistry registry() except + nogil 
 
-        void getKeys(libcpp_vector[String] & keys) nogil except + # wrap-doc:Fills the given vector with a list of all keys for which a value is set
+        void getKeys(libcpp_vector[String] & keys) except + nogil  # wrap-doc:Fills the given vector with a list of all keys for which a value is set
 
         # fills the given vector with a list of all keys for which a value is set
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except +  # wrap-as:getKeysAsIntegers
+        void getKeys(libcpp_vector[unsigned int] & keys) except + nogil   # wrap-as:getKeysAsIntegers
 
-        bool empty() nogil except + # wrap-doc:Returns if the MetaInfo is empty
+        bool empty() except + nogil  # wrap-doc:Returns if the MetaInfo is empty
 
-        void clear() nogil except + # wrap-doc:Removes all meta values
+        void clear() except + nogil  # wrap-doc:Removes all meta values
 
-        MetaInfoRegistry  registry() nogil except +
+        MetaInfoRegistry  registry() except + nogil 

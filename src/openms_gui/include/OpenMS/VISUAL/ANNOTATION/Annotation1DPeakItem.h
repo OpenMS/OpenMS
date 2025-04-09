@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Johannes Veit $
@@ -78,8 +52,18 @@ public:
       canvas->dataToWidget(canvas->getMapper().map(position_), position_widget, flipped);
       canvas->dataToWidget(canvas->getMapper().map(peak_position_), peak_position_widget, flipped);
 
-      // compute bounding box of text_item on the specified painter
+      // pre-compute bounding box of text_item
+      const auto prebox = QApplication::fontMetrics().boundingRect(position_widget.x(), position_widget.y(), 0, 0, Qt::AlignCenter, getText());
+      // Shift position of the widget/text, so it sits 'on top' of the peak
+      // We can only do that there, since we do not know the state of 'flipped' in general
+      // Compute the delta in data-units, NOT pixels, since the shift (up/down, or even left/right) depends on state of 'flipped' and axis 
+      const auto deltaXY_in_units = canvas->widgetToDataDistance(prebox.width(), prebox.height()).abs(); // abs() to make sure y axis is not negative
+      const auto delta_gravity_in_units = canvas->getGravitator().swap().gravitateZero(deltaXY_in_units); // only keep gravity dim
+      // recompute 'position_widget', shifting the text up by 1/2 box
+      canvas->dataToWidget(canvas->getMapper().map(position_) + delta_gravity_in_units / 2, position_widget, flipped);
+      // re-compute bounding box of text_item on with new position!
       bounding_box_ = QApplication::fontMetrics().boundingRect(position_widget.x(), position_widget.y(), 0, 0, Qt::AlignCenter, getText());
+
 
       // draw connection line between anchor point and current position if pixel coordinates differ significantly
       if ((position_widget - peak_position_widget).manhattanLength() > 2)
@@ -96,32 +80,28 @@ public:
 
       // some pretty printing
       QString text = text_;
-      if (!text.contains(R"(<\)")) // don't process HTML strings again
+      if (!text.contains("<\\")) // don't process HTML strings again
       {
         // extract ion index
         {
-          QRegExp reg_exp(R"([abcdwxyz](\d+))");
-          int match_pos = reg_exp.indexIn(text);
-
-          if (match_pos == 0)
+          QRegularExpression reg_exp(R"(([abcdwxyz])(\d+))");
+          QRegularExpressionMatch match = reg_exp.match(text);
+          if (text.indexOf(reg_exp) == 0) // only process if at the beginning of the string
           {
-            QString index_str = reg_exp.cap(1);
-
-            // put sub html tag around number
-            text = text[match_pos] + QString("<sub>") + index_str + QString("</sub>") + text.right(text.size() - match_pos - index_str.size() - 1);
+            text.replace(reg_exp, "\\1<sub>\\2</sub>");
           }
           else // protein-protein XL specific ion names
-          {
-            QRegExp reg_exp_xlms(R"((ci|xi)[$][abcxyz](\d+))");
-            match_pos = reg_exp_xlms.indexIn(text);
+          { // e.g. "[alpha|ci$y1]"
+            QRegularExpression reg_exp_xlms(R"((ci|xi)[$][abcxyz](\d+))");
+            auto match_pos = text.indexOf(reg_exp_xlms);
             if ((match_pos == 6) || (match_pos == 7))
             {
               // set the match_pos to the position of the ion index
-              match_pos += 3;
-              QString index_str = reg_exp.cap(1);
-
+              match_pos += 3; // skip "ci$" or "xi$"
+              ++match_pos; // skip the ion type (=captured(1))
+              QString charge_str = match.captured(2);
               // put sub html tag around number
-              text = text.left(match_pos) + text[match_pos] + QString("<sub>") + index_str + QString("</sub>") + text.right(text.size() - match_pos - index_str.size() - 1);
+              text = text.left(match_pos) + QString("<sub>") + charge_str + QString("</sub>") + text.right(text.size() - match_pos - charge_str.size());
             }
           }
         }
@@ -139,41 +119,44 @@ public:
         text.replace("C3O", "C<sub>3</sub>O");
 
         // charge format: +z
-        QRegExp charge_rx(R"([\+|\-](\d+)$)");
-        int match_pos = charge_rx.indexIn(text);
+        QRegularExpression charge_rx(R"([\+|\-](\d+)$)");
+        int match_pos = text.indexOf(charge_rx);
         if (match_pos > 0)
         {
           text = text.left(match_pos) + QString("<sup>") + text[match_pos] // + or -
-                 + charge_rx.cap(1) + QString("</sup>");                   // charge
+                 + charge_rx.match(text).captured(1) + QString("</sup>");  // charge
         }
 
         // charge format: z+
-        charge_rx = QRegExp(R"((\d+)[\+|\-]$)");
-        match_pos = charge_rx.indexIn(text);
+        charge_rx = QRegularExpression(R"((\d+)[\+|\-]$)");
+        match_pos = text.indexOf(charge_rx);
         if (match_pos > 0)
         {
-          text = text.left(match_pos) + QString("<sup>") + charge_rx.cap(1)       // charge
-                 + text[match_pos + charge_rx.cap(1).size()] + QString("</sup>"); // + or -
+          auto charge_match = charge_rx.match(text).captured(1);
+          text = text.left(match_pos) + QString("<sup>") + charge_match       // charge
+                 + text[match_pos + charge_match.size()] + QString("</sup>"); // + or -
         }
 
-        text.replace(QRegExp(R"(\+\+$)"), "<sup>2+</sup>");
-        text.replace(QRegExp(R"(\+$)"), "");
-        text.replace(QRegExp(R"(\-\-$)"), "<sup>2-</sup>");
-        text.replace(QRegExp(R"(\-$)"), "");
+        text.replace(QRegularExpression(R"(\+\+$)"), "<sup>2+</sup>");
+        text.replace(QRegularExpression(R"(\+$)"), "");
+        text.replace(QRegularExpression(R"(\-\-$)"), "<sup>2-</sup>");
+        text.replace(QRegularExpression(R"(\-$)"), "");
       }
 
       text = "<font color=\"" + color_.name() + "\">" + text + "</font>";
-      QTextDocument td;
-      td.setHtml(text);
 
       // draw html text
-      painter.save();
-      double w = td.size().width();
-      double h = td.size().height();
-      painter.translate(position_widget.x() - w / 2, position_widget.y() - h / 2);
-      td.drawContents(&painter);
-      painter.restore();
-
+      {
+        QTextDocument td;
+        td.setHtml(text);
+        painter.save();
+        double w = td.size().width();
+        double h = td.size().height();
+        painter.translate(position_widget.x() - w / 2, position_widget.y() - h / 2);
+        td.drawContents(&painter);
+        painter.restore();
+      }
+      
       if (selected_)
       {
         drawBoundingBox_(painter);
@@ -232,24 +215,25 @@ public:
       // add new fragment annotation
       QString peak_anno = this->getText().trimmed();
 
-      // regular expression for a charge at the end of the annotation
-      QRegExp reg_exp(R"(([\+|\-]\d+)$)");
-
       // check for newlines in the label and only continue with the first line for charge determination
-      QStringList lines = peak_anno.split(QRegExp("[\r\n]"), QString::SkipEmptyParts);
+      peak_anno.remove('\r');
+      QStringList lines = peak_anno.split('\n', Qt::SkipEmptyParts);
       if (lines.size() > 1)
       {
         peak_anno = lines[0];
       }
 
+      // regular expression for a charge at the end of the annotation
+      QRegularExpression reg_exp(R"(([\+|\-]\d+)$)");
+
       // read charge and text from annotation item string
       // we support two notations for the charge suffix: '+2' or '++'
       // cut and convert the trailing + or - to a proper charge
-      int match_pos = reg_exp.indexIn(peak_anno);
+      int match_pos = peak_anno.indexOf(reg_exp);
       int tmp_charge(0);
       if (match_pos >= 0)
       {
-        tmp_charge = reg_exp.cap(1).toInt();
+        tmp_charge = reg_exp.match(peak_anno).captured(1).toInt();
         peak_anno = peak_anno.left(match_pos);
       }
       else

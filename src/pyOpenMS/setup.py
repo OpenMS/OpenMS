@@ -41,7 +41,7 @@ import shutil
 import time
 
 if OPEN_MS_GIT_BRANCH == "nightly":
-    package_name = "pyopenms_nightly"
+    package_name = "pyopenms"
     package_version = OPEN_MS_VERSION + ".dev" + OPENMS_GIT_LC_DATE_FORMAT
 else:
     package_name = "pyopenms"
@@ -236,13 +236,10 @@ for module in mnames:
         extra_compile_args=extra_compile_args,
         extra_objects=objects,
         extra_link_args=extra_link_args,
-		define_macros=[('BOOST_ALL_NO_LIB', None)] ## Deactivates boost autolink (esp. on win).
+		define_macros=[('BOOST_ALL_NO_LIB', None), ("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")] ## Deactivates boost autolink (esp. on win). Shuts up the damn "deprecated NumPy API" warning spam (https://docs.cython.org/en/latest/src/userguide/numpy_tutorial.html#numpy-compilation)
 		## Alternative is to specify the boost naming scheme (--layout param; easy if built from contrib)
 		## TODO just take over compile definitions from OpenMS (CMake)
     ))
-
-share_data = []
-share_data.append("License.txt")
 
 # enforce 64bit-only build as OpenMS is not available in 32bit on osx
 if sys.platform == "darwin":
@@ -254,11 +251,12 @@ setup(
     packages=["pyopenms"],
     ext_package="pyopenms",
     package_data= {
-        'pyopenms': ['py.typed']
+        'pyopenms': ['py.typed', '*.pyi']
     },
 	install_requires=[
-          'numpy',
-          'pandas'
+          'numpy>=1.25.0',
+          'pandas',
+          'matplotlib>=3.5'
     ],
 
     version=package_version,
@@ -267,9 +265,9 @@ setup(
     maintainer_email="open-ms-general@lists.sourceforge.net",
     license="http://opensource.org/licenses/BSD-3-Clause",
     platforms=["any"],
-    description="Python wrapper for C++ LCMS library OpenMS",
+    description="Python wrapper for C++ LC-MS library OpenMS",
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: BSD License",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
@@ -279,10 +277,16 @@ setup(
     long_description_content_type="text/x-rst",
     zip_safe=False,
 
-    url="http://open-ms.de",
+    url="https://openms.de",
+    project_urls={
+        "Documentation": "https://pyopenms.readthedocs.io",
+        "Source Code": "https://github.com/OpenMS/OpenMS/tree/develop/src/pyOpenMS",
+        "Tracker": "https://github.com/OpenMS/OpenMS/issues",
+        "Documentation Source": "https://github.com/OpenMS/pyopenms-docs",
+    },
 
-    author="Uwe Schmitt and the OpenMS team",
-    author_email="uschmitt@mineway.de",
+    author="OpenMS team",
+    author_email="webmaster@openms.de",
 
     ext_modules=ext,
     include_package_data=True  # see MANIFEST.in

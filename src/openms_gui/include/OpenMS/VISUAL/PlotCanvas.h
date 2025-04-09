@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -142,13 +116,11 @@ namespace OpenMS
 
       @ingroup PlotWidgets
   */
-  class OPENMS_GUI_DLLAPI PlotCanvas :
-    public QWidget,
-    public DefaultParamHandler
+  class OPENMS_GUI_DLLAPI PlotCanvas : public QWidget, public DefaultParamHandler
   {
     Q_OBJECT
 
-public:
+  public:
     /**@name Type definitions */
     //@{
 
@@ -175,7 +147,7 @@ public:
     typedef SpectrumType::PeakType PeakType;
     /// a generic range for the most common units
     using RangeType = RangeAllType;
-   
+
     /// The range of data shown on the X and Y axis (unit depends on runtime config)
     using AreaXYType = Area<2>::AreaXYType;
     /// The visible range of data on X and Y axis as shown on plot axis (not necessarily the range of actual data, e.g. no data to show).
@@ -195,18 +167,18 @@ public:
     /// Mouse action modes
     enum ActionModes
     {
-      AM_TRANSLATE,   ///< translate
-      AM_ZOOM,        ///< zoom
-      AM_MEASURE      ///< measure
+      AM_TRANSLATE, ///< translate
+      AM_ZOOM,      ///< zoom
+      AM_MEASURE    ///< measure
     };
 
     /// Display modes of intensity
     enum IntensityModes
     {
-      IM_NONE,        ///< Normal mode: f(x)=x
-      IM_PERCENTAGE,  ///< Shows intensities normalized by layer maximum: f(x)=x/max(x)*100
-      IM_SNAP,        ///< Shows the maximum displayed intensity as if it was the overall maximum intensity
-      IM_LOG          ///< Logarithmic mode
+      IM_NONE,       ///< Normal mode: f(x)=x; y-axis shows the maximum of all layers, no scaling
+      IM_PERCENTAGE, ///< Shows intensities normalized by each layer's maximum: f(x)=x/max(x)*100
+      IM_SNAP,       ///< Shows the maximum displayed intensity (across all layers) as if it was the overall maximum intensity
+      IM_LOG         ///< Logarithmic version of normal mode
     };
 
     //@}
@@ -337,8 +309,9 @@ public:
     /// sets a layer flag of the layer @p layer
     void setLayerFlag(Size layer, LayerDataBase::Flags f, bool value)
     {
-      //abort if there are no layers
-      if (layers_.empty()) return;
+      // abort if there are no layers
+      if (layers_.empty())
+        return;
 
       layers_.getLayer(layer).flags.set(f, value);
       update_buffer_ = true;
@@ -347,15 +320,16 @@ public:
 
     inline void setLabel(LayerDataBase::LabelType label)
     {
-      //abort if there are no layers
-      if (layers_.empty()) return;
+      // abort if there are no layers
+      if (layers_.empty())
+        return;
       layers_.getCurrentLayer().label = label;
       update_buffer_ = true;
       update();
     }
 
     /**
-        @brief Returns the currently visible area
+        @brief Returns the currently visible area. This is the authority which determines the X and Y axis' scale.
 
         @see visible_area_
     */
@@ -385,7 +359,7 @@ public:
     /**
         @brief Sets the filters applied to the data before drawing (for the current layer)
     */
-    virtual void setFilters(const DataFilters & filters);
+    virtual void setFilters(const DataFilters& filters);
 
     /**
         @name Dataset handling methods
@@ -399,9 +373,9 @@ public:
       return layers_.getLayerCount();
     }
 
-    ///change the active layer (the one that is used for selecting and so on)
+    /// change the active layer (the one that is used for selecting and so on)
     virtual void activateLayer(Size layer_index) = 0;
-    ///removes the layer with index @p layer_index
+    /// removes the layer with index @p layer_index
     virtual void removeLayer(Size layer_index) = 0;
 
     /// removes all layers by calling removeLayer() for all layer indices (from highest to lowest)
@@ -409,7 +383,7 @@ public:
     {
       for (Size i = getLayerCount(); i > 0; --i)
       {
-        removeLayer(i-1);
+        removeLayer(i - 1);
       }
       visible_area_.clear(); // reset visible area
     }
@@ -423,11 +397,16 @@ public:
       @param map Shared pointer to input map. It can be performed in constant time and does not double the required memory.
       @param od_map Shared pointer to on disk data which potentially caches some data to save memory (the map can be empty, but do not pass nullptr).
       @param filename This @em absolute filename is used to monitor changes in the file and reload the data
+      @param caption The caption of the layer (shown in the layer window)
       @param use_noise_cutoff Add a noise filter which removes low-intensity peaks
 
       @return If a new layer was created
     */
-    bool addPeakLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename = "", const bool use_noise_cutoff = false);
+    bool addPeakLayer(const ExperimentSharedPtrType& map,
+                      ODExperimentSharedPtrType od_map,
+                      const String& filename = "",
+                      const String& caption = "",
+                      const bool use_noise_cutoff = false);
 
     /**
       @brief Add a chrom data layer
@@ -435,10 +414,11 @@ public:
       @param map Shared pointer to input map. It can be performed in constant time and does not double the required memory.
       @param od_map Shared pointer to on disk data which potentially caches some data to save memory (the map can be empty, but do not pass nullptr).
       @param filename This @em absolute filename is used to monitor changes in the file and reload the data
+      @param caption The caption of the layer (shown in the layer window)
 
       @return If a new layer was created
     */
-    bool addChromLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename = "");
+    bool addChromLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename = "", const String& caption = "");
 
 
     /**
@@ -446,32 +426,36 @@ public:
 
         @param map Shared Pointer to input map. It can be performed in constant time and does not double the required memory.
         @param filename This @em absolute filename is used to monitor changes in the file and reload the data
+        @param caption The caption of the layer (shown in the layer window)
 
         @return If a new layer was created
     */
-    bool addLayer(FeatureMapSharedPtrType map, const String & filename = "");
+    bool addLayer(FeatureMapSharedPtrType map, const String& filename = "", const String& caption = "");
 
     /**
         @brief Add a consensus feature data layer
 
         @param map Shared Pointer to input map. It can be performed in constant time and does not double the required memory.
         @param filename This @em absolute filename is used to monitor changes in the file and reload the data
+        @param caption The caption of the layer (shown in the layer window)
 
         @return If a new layer was created
     */
-    bool addLayer(ConsensusMapSharedPtrType map, const String & filename = "");
+    bool addLayer(ConsensusMapSharedPtrType map, const String& filename = "", const String& caption = "");
     //@}
 
     /**
         @brief Add an identification data layer
 
-        @param peptides Input list of peptides, which has to be mutable and will be empty after adding. Swapping is used to insert the data. It can be performed in constant time and does not double the required memory.
+        @param peptides Input list of peptides, which has to be mutable and will be empty after adding. 
+               Swapping is used to insert the data. It can be performed in constant time and does not double
+               the required memory.
         @param filename This @em absolute filename is used to monitor changes in the file and reload the data
+        @param caption The caption of the layer (shown in the layer window)
 
         @return If a new layer was created
     */
-    bool addLayer(std::vector<PeptideIdentification> & peptides,
-                  const String & filename = "");
+    bool addLayer(std::vector<PeptideIdentification>& peptides, const String& filename = "", const String& caption = "");
 
     /// Returns the minimum intensity of the active layer
     inline float getCurrentMinIntensity() const
@@ -498,7 +482,7 @@ public:
     }
 
     /// Sets the @p name of layer @p i
-    void setLayerName(Size i, const String & name);
+    void setLayerName(Size i, const String& name);
 
     /// Gets the name of layer @p i
     String getLayerName(Size i);
@@ -515,7 +499,7 @@ public:
 
         @see overall_data_range_
     */
-    const RangeType& getDataRange() const;
+    virtual const RangeType& getDataRange() const;
 
     /**
         @brief Returns the first intensity scaling factor for 'snap to maximum intensity mode' (for the currently visible data range).
@@ -538,7 +522,7 @@ public:
     */
     virtual void showMetaData(bool modifiable = false, Int index = -1);
 
-public slots:
+  public slots:
 
     /**
         @brief change the visibility of a layer
@@ -571,7 +555,7 @@ public slots:
 
         @param repaint If @em true a repaint is forced. Otherwise only the new area is set.
     */
-    void resetZoom(bool repaint = true);
+    virtual void resetZoom(bool repaint = true);
 
     /**
         @brief Sets the visible area.
@@ -691,10 +675,10 @@ public slots:
     void recalculateAxes();
 
     /// Triggers the update of the vertical scrollbar
-    void updateVScrollbar(float, float, float, float);
+    void updateVScrollbar(float f_min, float disp_min, float disp_max, float f_max);
 
     /// Triggers the update of the horizontal scrollbar
-    void updateHScrollbar(float, float, float, float);
+    void updateHScrollbar(float f_min, float disp_min, float disp_max, float f_max);
 
     /// Toggle axis legend visibility change
     void changeLegendVisibility();
@@ -734,7 +718,7 @@ protected:
     void keyReleaseEvent(QKeyEvent * e) override;
     void focusOutEvent(QFocusEvent * e) override;
     void leaveEvent(QEvent * e) override;
-    void enterEvent(QEvent * e) override;
+    void enterEvent(QEnterEvent * e) override;
     //@}
 
     /// This method is called whenever the intensity mode changes. Reimplement if you need to react on such changes.
@@ -839,6 +823,9 @@ protected:
 
     /**
         @brief Stores the currently visible area in data units (e.g. seconds, m/z, intensity etc) and axis (X,Y) area.
+
+        This is always (and only) the data shown in the widget.
+        In 1D, the gravity axis may get some headroom on the y-axis, see Plot1DCanvas::correctGravityAxisOfVisibleArea_()
     */
     VisibleArea visible_area_;
 
@@ -847,7 +834,7 @@ protected:
 
         A small margin is added to each side of the range in order to display all data.
     */
-    void recalculateRanges_();
+    virtual void recalculateRanges_();
 
     /**
         @brief Stores the data range (m/z, RT and intensity) of all layers
@@ -898,9 +885,9 @@ protected:
 
         In this mode the highest currently visible intensity is treated like the maximum overall intensity.
 
-        Single entry for 1D. Multiple (one per layer) in 2D.
+        Only used in 2D mode.
     */
-    std::vector<double> snap_factors_ = {1.0};
+    std::vector<double> snap_factors_;
 
     /// Rubber band for selected area
     QRubberBand rubber_band_;

@@ -8,26 +8,23 @@ from StringList cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>" namespace "OpenMS":
 
-    cdef cppclass ModifiedPeptideGenerator:
-
-        ModifiedPeptideGenerator() nogil except + # compiler
-        ModifiedPeptideGenerator(ModifiedPeptideGenerator &) nogil except + # compiler
-
     cdef cppclass ModifiedPeptideGenerator_MapToResidueType "OpenMS::ModifiedPeptideGenerator::MapToResidueType":
 
-        ModifiedPeptideGenerator_MapToResidueType() nogil except + # compiler
-        ModifiedPeptideGenerator_MapToResidueType(ModifiedPeptideGenerator_MapToResidueType &) nogil except + # compiler
+        ModifiedPeptideGenerator_MapToResidueType() except + nogil  # compiler
+        ModifiedPeptideGenerator_MapToResidueType(ModifiedPeptideGenerator_MapToResidueType &) except + nogil  # compiler
 
+    cdef cppclass ModifiedPeptideGenerator:
+        # wrap-doc:
+        #  Generates modified peptides/proteins.
 
-    ## wrap static methods
-    cdef extern from "<OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>" namespace "OpenMS::ModifiedPeptideGenerator":
-        ModifiedPeptideGenerator_MapToResidueType getModifications(const StringList& modNames)  nogil except + # wrap-attach:ModifiedPeptideGenerator
+        ModifiedPeptideGenerator() except + nogil  # compiler
+        ModifiedPeptideGenerator(ModifiedPeptideGenerator &) except + nogil  # compiler
 
-        void applyFixedModifications(const ModifiedPeptideGenerator_MapToResidueType& fixed_mods, AASequence& peptide) nogil except +  # wrap-attach:ModifiedPeptideGenerator
+        @staticmethod
+        ModifiedPeptideGenerator_MapToResidueType getModifications(const StringList& modNames) except + nogil 
 
-        void applyVariableModifications(const ModifiedPeptideGenerator_MapToResidueType& var_mods, 
-          const AASequence& peptide, 
-          Size max_variable_mods_per_peptide, 
-          libcpp_vector[AASequence]& all_modified_peptides, 
-          bool keep_original) nogil except +  # wrap-attach:ModifiedPeptideGenerator
+        @staticmethod
+        void applyFixedModifications(const ModifiedPeptideGenerator_MapToResidueType& fixed_mods, AASequence& peptide) except + nogil 
 
+        @staticmethod
+        void applyVariableModifications(const ModifiedPeptideGenerator_MapToResidueType& var_mods, const AASequence& peptide, Size max_variable_mods_per_peptide, libcpp_vector[AASequence]& all_modified_peptides, bool keep_original) except + nogil 

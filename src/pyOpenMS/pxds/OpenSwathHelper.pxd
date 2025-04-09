@@ -11,18 +11,18 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>" namespace "Open
 
     cdef cppclass OpenSwathHelper:
 
-        OpenSwathHelper() nogil except + # compiler
-        OpenSwathHelper(OpenSwathHelper &) nogil except + # compiler
+        OpenSwathHelper() except + nogil  # compiler
+        OpenSwathHelper(OpenSwathHelper &) except + nogil  # compiler
 
         bool checkSwathMapAndSelectTransitions(
                                 MSExperiment & exp, 
                                 TargetedExperiment & targeted_exp,
                                 TargetedExperiment & transition_exp_used,
                                 double min_upper_edge_dist
-                                ) nogil except +
+                                ) except + nogil 
 
 
-        libcpp_pair[double, double] estimateRTRange(LightTargetedExperiment exp) nogil except +
+        libcpp_pair[double, double] estimateRTRange(LightTargetedExperiment exp) except + nogil 
             # wrap-doc:
                 #  Computes the min and max retention time value
                 #  
@@ -31,7 +31,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>" namespace "Open
                 #  
                 #  :return: A std `pair` that contains (min,max)
 
-        String computePrecursorId(const String & transition_group_id, int isotope) nogil except +
+        String computePrecursorId(const String & transition_group_id, int isotope) except + nogil 
             # wrap-doc:
                 #  Computes unique precursor identifier
                 #  

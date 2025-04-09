@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
@@ -201,7 +175,7 @@ namespace OpenMS
     /**
        @brief Read spectra and store their meta data
 
-       @param SpectrumContainer Spectrum container class, must support @p size and @p operator[]
+       @tparam SpectrumContainer Spectrum container class, must support @p size and @p operator[]
        @param spectra Container of spectra
        @param scan_regexp Regular expression for matching scan numbers in spectrum native IDs (must contain the named group "?<SCAN>")
        @param get_precursor_rt Assign precursor retention times? (This relies on all precursor spectra being present and in the right order.)
@@ -271,7 +245,7 @@ namespace OpenMS
        @brief Extract meta data via a spectrum reference
 
        @param spectrum_ref Spectrum reference to parse
-       @param metadata Meta data output
+       @param meta Meta data output
        @param flags What meta data to extract
 
        @throw Exception::ElementNotFound if a spectrum look-up was necessary, but no matching spectrum was found
@@ -281,19 +255,30 @@ namespace OpenMS
     void getSpectrumMetaData(const String& spectrum_ref, SpectrumMetaData& meta,
                              MetaDataFlags flags = MDF_ALL) const;
 
+	/**
+	   @brief Add missing retention time (RT) values to peptide identifications based on raw data
+
+	   @param peptides Peptide IDs with or without RT values
+	   @param exp The MSExperiment object representing the raw data file (e.g., mzML) used to look up RT values.
+
+	   @return True if all peptide IDs could be annotated successfully (including if all already had RT values), false otherwise.
+
+	*/
+	static bool addMissingRTsToPeptideIDs(std::vector<PeptideIdentification>& peptides, const MSExperiment& exp);
+
     /**
-       @brief Add missing retention time values to peptide identifications based on raw data
-
-       @param peptides Peptide IDs with or without RT values
-       @param filename Name of a raw data file (e.g. mzML) for looking up RTs
-       @param stop_on_error Stop when an ID could not be matched to a spectrum (or keep going)?
-
-       @return True if all peptide IDs could be annotated successfully (including if all already had RT values), false otherwise.
-
-       Look-up works by matching the "spectrum_reference" (meta value) of a peptide ID to the native ID of a spectrum. Only peptide IDs without RT (where PeptideIdentification::getRT() returns "NaN") are looked up; the RT is set to that of the corresponding spectrum.
+     * @brief Adds missing ion mobility information to peptide identifications.
+     * 
+     * This function adds missing ion mobility (IM) information to the peptide identifications.
+     * The missing IM information is retrieved from the MSExperiment.
+     * 
+     * @param peptides The vector of peptide identifications to update.
+     * @param exp The MSExperiment object representing the raw data file (e.g., mzML) used to look up IM values.
+     * 
+     * @return True if all missing IM information was successfully added to the peptide identifications, false otherwise.
     */
-    static bool addMissingRTsToPeptideIDs(std::vector<PeptideIdentification>& peptides, const String &filename,
-      bool stop_on_error = false);
+    static bool addMissingIMToPeptideIDs(std::vector<PeptideIdentification>& peptides,
+    									const MSExperiment& exp);
 
     /**
      * @brief Add missing "spectrum_reference"s to peptide identifications based on raw data
@@ -315,6 +300,8 @@ namespace OpenMS
       bool override_spectra_data = false, 
       bool override_spectra_references = false, 
       std::vector<ProteinIdentification> proteins = std::vector<ProteinIdentification>());
+
+
 
   protected:
 

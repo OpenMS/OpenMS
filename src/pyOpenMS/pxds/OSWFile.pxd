@@ -24,8 +24,8 @@ cdef extern from "<OpenMS/FORMAT/OSWFile.h>" namespace "OpenMS":
             #  These tables can be mapped to the corresponding feature tables, are very similar
             #  to PyProphet results and can thus be used interchangeably
 
-        OSWFile(const libcpp_utf8_string filename) nogil except +
-        OSWFile(OSWFile &) nogil except +
+        OSWFile(const libcpp_utf8_string filename) except + nogil 
+        OSWFile(OSWFile &) except + nogil 
         
         # Cannot wrap libcpp_ostream
         # void readToPIN(const libcpp_string & in_osw,
@@ -33,8 +33,8 @@ cdef extern from "<OpenMS/FORMAT/OSWFile.h>" namespace "OpenMS":
         #         libcpp_ostream & pin_output,
         #         const double ipf_max_peakgroup_pep,
         #         const double ipf_max_transition_isotope_overlap,
-        #         const double ipf_min_transition_sn) nogil except +
+        #         const double ipf_min_transition_sn) except + nogil 
 
         # NESTED STL 
-        # void writeFromPercolator(const libcpp_string & in_osw, const int osw_level, const libcpp_map[ libcpp_string, PercolatorFeature ] & features) nogil except +
+        # void writeFromPercolator(const libcpp_string & in_osw, const int osw_level, const libcpp_map[ libcpp_string, PercolatorFeature ] & features) except + nogil 
 

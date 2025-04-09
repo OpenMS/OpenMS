@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="SwissProt" db_version="SwissProt_2021_01.fasta" taxonomy="All entries" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="3" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+	<SearchParameters id="SP_0" db="SwissProt" db_version="SwissProt_2023_03.fasta" taxonomy="All entries" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="3" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 				<UserParam type="string" name="MascotAdapterOnline:1:in" value="/home/sachsenb/OMS/OpenMS/src/tests/topp/THIRDPARTY/spectra_comet.mzML"/>
-				<UserParam type="string" name="MascotAdapterOnline:1:out" value="MascotAdapterOnline_2_out1.tmp"/>
+				<UserParam type="string" name="MascotAdapterOnline:1:out" value="MascotAdapterOnline_2_out1.tmp.idXML"/>
 				<UserParam type="string" name="MascotAdapterOnline:1:log" value=""/>
 				<UserParam type="int" name="MascotAdapterOnline:1:debug" value="666"/>
 				<UserParam type="int" name="MascotAdapterOnline:1:threads" value="1"/>
@@ -48,9 +48,9 @@
 				<UserParam type="string" name="MascotAdapterOnline:1:skip_export" value="false"/>
 				<UserParam type="int" name="MascotAdapterOnline:1:batch_size" value="50000"/>
 	</SearchParameters>
-	<IdentificationRun date="2021-02-16T13:04:58" search_engine="Mascot" search_engine_version="2.7.0.7" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2023-07-06T13:17:46" search_engine="Mascot" search_engine_version="2.8.1.242" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
-			<UserParam type="string" name="SearchNumber" value="TtcfxanL"/>
+			<UserParam type="string" name="SearchNumber" value="ToArrueR"/>
 			<UserParam type="stringList" name="spectra_data" value="[/home/sachsenb/OMS/OpenMS/src/tests/topp/THIRDPARTY/spectra_comet.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="17.0" MZ="520.26279999999997" RT="2655.096000000000004" spectrum_reference="spectrum=0" >
@@ -62,14 +62,14 @@
 			<PeptideHit score="18.949999999999999" sequence="ELYRLVGVAHSADK" charge="3" >
 				<UserParam type="float" name="homology_threshold" value="13.0"/>
 				<UserParam type="float" name="identity_threshold" value="35.0"/>
-				<UserParam type="float" name="EValue" value="48.0"/>
+				<UserParam type="float" name="EValue" value="49.0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="13.0" MZ="775.387200000000007" RT="4923.777000000000044" spectrum_reference="spectrum=2" >
 			<PeptideHit score="85.75" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" >
 				<UserParam type="float" name="homology_threshold" value="13.0"/>
 				<UserParam type="float" name="identity_threshold" value="33.0"/>
-				<UserParam type="float" name="EValue" value="5.6e-06"/>
+				<UserParam type="float" name="EValue" value="5.699999999999999e-06"/>
 			</PeptideHit>
 			<PeptideHit score="12.039999999999999" sequence="FAFIACHDFSHAVSGQAGIKSK" charge="3" >
 				<UserParam type="float" name="homology_threshold" value="13.0"/>

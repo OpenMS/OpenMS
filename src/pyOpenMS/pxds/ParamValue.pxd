@@ -1,4 +1,5 @@
 from libcpp cimport bool
+from libcpp.string cimport string as libcpp_string
 from libcpp.string cimport string as libcpp_utf8_string # triggers input conversion provider for std string
 from libcpp.string cimport string as libcpp_utf8_output_string #triggers output conversion provider for std string
 from libcpp.vector cimport vector as libcpp_vector
@@ -13,28 +14,28 @@ cdef extern from "<OpenMS/DATASTRUCTURES/ParamValue.h>" namespace "OpenMS":
             #  - Automatic conversion is supported and throws Exceptions in case of invalid conversions
             #  - An empty object is created with the default constructor
 
-         ParamValue() nogil except +
-         ParamValue(ParamValue &) nogil except +
-         ParamValue(char *) nogil except +
-         ParamValue(const libcpp_utf8_string&) nogil except +
-         ParamValue(int) nogil except +
-         ParamValue(double) nogil except +
-         ParamValue(libcpp_vector[ libcpp_utf8_string ]) nogil except +
-         ParamValue(libcpp_vector[ int ]) nogil except +
-         ParamValue(libcpp_vector[ double ]) nogil except +
+         ParamValue() except + nogil 
+         ParamValue(ParamValue &) except + nogil 
+         ParamValue(char *) except + nogil 
+         ParamValue(const libcpp_utf8_string&) except + nogil 
+         ParamValue(int) except + nogil 
+         ParamValue(double) except + nogil 
+         ParamValue(libcpp_vector[ libcpp_utf8_string ]) except + nogil 
+         ParamValue(libcpp_vector[ int ]) except + nogil 
+         ParamValue(libcpp_vector[ double ]) except + nogil 
 
          #conversion ops, different declarations as in c++ !
-         int operator()(ParamValue) nogil except + #wrap-cast:toInt
-         libcpp_utf8_output_string operator()(ParamValue) nogil except + #wrap-cast:toString
-         double operator()(ParamValue) nogil except + #wrap-cast:toDouble
-         libcpp_vector[ libcpp_utf8_string ] toStringVector() nogil except + # wrap-doc:Explicitly convert ParamValue to string vector
-         libcpp_vector[ double ] toDoubleVector() nogil except + # wrap-doc:Explicitly convert ParamValue to DoubleList
-         libcpp_vector[ int ] toIntVector() nogil except + # wrap-doc:Explicitly convert ParamValue to IntList
-         bool toBool() nogil except + # wrap-doc:Converts the strings 'true' and 'false' to a bool
+         int operator()(ParamValue) except + nogil  #wrap-cast:toInt
+         libcpp_utf8_output_string operator()(ParamValue) except + nogil  #wrap-cast:toString
+         double operator()(ParamValue) except + nogil  #wrap-cast:toDouble
+         libcpp_vector[ libcpp_string ] toStringVector() except + nogil  # wrap-doc:Explicitly convert ParamValue to string vector
+         libcpp_vector[ double ] toDoubleVector() except + nogil  # wrap-doc:Explicitly convert ParamValue to DoubleList
+         libcpp_vector[ int ] toIntVector() except + nogil  # wrap-doc:Explicitly convert ParamValue to IntList
+         bool toBool() except + nogil  # wrap-doc:Converts the strings 'true' and 'false' to a bool
 
-         ValueType valueType() nogil except +
+         ValueType valueType() except + nogil 
 
-         int isEmpty() nogil except + # wrap-doc:Test if the value is empty
+         int isEmpty() except + nogil  # wrap-doc:Test if the value is empty
 
 cdef extern from "<OpenMS/DATASTRUCTURES/ParamValue.h>" namespace "OpenMS::ParamValue":
 

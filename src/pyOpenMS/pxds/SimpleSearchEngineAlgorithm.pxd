@@ -12,10 +12,10 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>" namespace 
         #   DefaultParamHandler
         #   ProgressLogger
 
-        SimpleSearchEngineAlgorithm() nogil except + # compiler
-        SimpleSearchEngineAlgorithm(SimpleSearchEngineAlgorithm &) nogil except + #  compiler
+        SimpleSearchEngineAlgorithm() except + nogil  # compiler
+        SimpleSearchEngineAlgorithm(SimpleSearchEngineAlgorithm &) except + nogil  #  compiler
 
         void search(const String& in_mzML, 
           const String& in_db, 
           libcpp_vector[ ProteinIdentification ] & prot_ids,
-          libcpp_vector[ PeptideIdentification ] & pep_ids) nogil except +
+          libcpp_vector[ PeptideIdentification ] & pep_ids) except + nogil 

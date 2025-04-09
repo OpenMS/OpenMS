@@ -14,13 +14,13 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>" nam
         # wrap-inherits:
         #  DefaultParamHandler
 
-        IsobaricChannelExtractor(IsobaricChannelExtractor &) nogil except +
+        IsobaricChannelExtractor(IsobaricChannelExtractor &) except + nogil 
 
-        # IsobaricChannelExtractor(IsobaricQuantitationMethod *quant_method) nogil except + #wrap-ignore
-        IsobaricChannelExtractor(ItraqEightPlexQuantitationMethod *quant_method) nogil except +
-        IsobaricChannelExtractor(ItraqFourPlexQuantitationMethod *quant_method) nogil except +
-        IsobaricChannelExtractor(TMTSixPlexQuantitationMethod *quant_method) nogil except +
-        IsobaricChannelExtractor(TMTTenPlexQuantitationMethod *quant_method) nogil except +
+        # IsobaricChannelExtractor(IsobaricQuantitationMethod *quant_method) except + nogil  #wrap-ignore
+        IsobaricChannelExtractor(ItraqEightPlexQuantitationMethod *quant_method) except + nogil 
+        IsobaricChannelExtractor(ItraqFourPlexQuantitationMethod *quant_method) except + nogil 
+        IsobaricChannelExtractor(TMTSixPlexQuantitationMethod *quant_method) except + nogil 
+        IsobaricChannelExtractor(TMTTenPlexQuantitationMethod *quant_method) except + nogil 
 
-        void extractChannels(MSExperiment & ms_exp_data, ConsensusMap & consensus_map) nogil except +
+        void extractChannels(MSExperiment & ms_exp_data, ConsensusMap & consensus_map) except + nogil 
 

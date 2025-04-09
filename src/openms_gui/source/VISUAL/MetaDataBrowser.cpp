@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
@@ -37,9 +11,6 @@
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/VISUAL/VISUALIZER/SampleVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
-#include <OpenMS/VISUAL/VISUALIZER/DigestionVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/ModificationVisualizer.h>
-#include <OpenMS/VISUAL/VISUALIZER/TaggingVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/HPLCVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/GradientVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/MetaInfoVisualizer.h>
@@ -250,30 +221,6 @@ namespace OpenMS
 
     QStringList labels;
     labels << "ContactPerson" << QString::number(ws_->addWidget(visualizer));
-
-    QTreeWidgetItem * item;
-    if (parent == nullptr)
-    {
-      item = new QTreeWidgetItem(treeview_, labels);
-    }
-    else
-    {
-      item = new QTreeWidgetItem(parent, labels);
-    }
-
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
-
-    connectVisualizer_(visualizer);
-  }
-
-  //Visualizing Digestion object
-  void MetaDataBrowser::visualize_(Digestion & meta, QTreeWidgetItem * parent)
-  {
-    DigestionVisualizer * visualizer = new DigestionVisualizer(isEditable(), this);
-    visualizer->load(meta);
-
-    QStringList labels;
-    labels << "Digestion" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
     if (parent == nullptr)
@@ -631,30 +578,6 @@ namespace OpenMS
     connectVisualizer_(visualizer);
   }
 
-  //Visualizing modification object
-  void MetaDataBrowser::visualize_(Modification & meta, QTreeWidgetItem * parent)
-  {
-    ModificationVisualizer * visualizer = new ModificationVisualizer(isEditable(), this);
-    visualizer->load(meta);
-
-    QStringList labels;
-    labels << "Modification" << QString::number(ws_->addWidget(visualizer));
-
-    QTreeWidgetItem * item;
-    if (parent == nullptr)
-    {
-      item = new QTreeWidgetItem(treeview_, labels);
-    }
-    else
-    {
-      item = new QTreeWidgetItem(parent, labels);
-    }
-
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
-
-    connectVisualizer_(visualizer);
-  }
-
   //Visualizing PeptideHit object
   void MetaDataBrowser::visualize_(PeptideHit & meta, QTreeWidgetItem * parent)
   {
@@ -826,28 +749,6 @@ namespace OpenMS
       item = new QTreeWidgetItem(parent, labels);
     }
 
-    //check for treatments
-    if (meta.countTreatments() != 0)
-    {
-      for (Int i = 0; i < meta.countTreatments(); ++i)
-      {
-        if (meta.getTreatment(i).getType() == "Digestion")
-        {
-          visualize_((const_cast<Digestion &>(dynamic_cast<const Digestion &>(meta.getTreatment(i)))), item);
-        }
-        else if (meta.getTreatment(i).getType() == "Modification")
-        {
-          //Cast SampleTreatment reference to a const modification reference
-          visualize_((const_cast<Modification &>(dynamic_cast<const Modification &>(meta.getTreatment(i)))), item);
-
-        }
-        else if (meta.getTreatment(i).getType() == "Tagging")
-        {
-          visualize_((const_cast<Tagging &>(dynamic_cast<const Tagging &>(meta.getTreatment(i)))), item);
-        }
-      }
-    }
-
     //subsamples
     visualizeAll_(meta.getSubsamples(), item);
 
@@ -948,26 +849,6 @@ namespace OpenMS
     //check for PeptideIdentification
     visualizeAll_(meta.getPeptideIdentifications(), item);
 
-    connectVisualizer_(visualizer);
-  }
-
-  //Visualizing tagging object
-  void MetaDataBrowser::visualize_(Tagging & meta, QTreeWidgetItem * parent)
-  {
-    TaggingVisualizer * visualizer = new TaggingVisualizer(isEditable(), this);
-    visualizer->load(meta);
-
-    QStringList labels;
-    labels << "Tagging" << QString::number(ws_->addWidget(visualizer));
-
-    if (parent == nullptr)
-    {
-      new QTreeWidgetItem(treeview_, labels);
-    }
-    else
-    {
-      new QTreeWidgetItem(parent, labels);
-    }
     connectVisualizer_(visualizer);
   }
 

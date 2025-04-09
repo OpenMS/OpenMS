@@ -1,8 +1,8 @@
 # --------------------------------------------------------------------------
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# Copyright OpenMS Inc. -- Eberhard Karls University Tuebingen,
+# ETH Zurich, and Freie Universitaet Berlin 2002-present.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -65,6 +65,7 @@ endif()
 foreach(_class_test ${TEST_executables})
   add_executable(${_class_test} source/${_class_test}.cpp)
   target_link_libraries(${_class_test} ${OpenMS_LIBRARIES})
+  openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
   # only add OPENMP flags to gcc linker (except Mac OS X, due to compiler bug
   # see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)
@@ -91,7 +92,10 @@ target_link_libraries(Base64_test ZLIB::ZLIB)
 target_link_libraries(LPWrapper_test CoinOR::CoinOR)
 target_link_libraries(SpectraSTSimilarityScore_test Eigen3::Eigen)
 target_link_libraries(BinnedSpectrum_test Eigen3::Eigen)
-target_link_libraries(HDF5_test HDF5::HDF5)
+
+if (WITH_HDF5)
+  target_link_libraries(HDF5_test HDF5::HDF5)
+endif()
 
 #------------------------------------------------------------------------------
 # restore old compiler flags

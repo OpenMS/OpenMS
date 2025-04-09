@@ -6,15 +6,9 @@ set(sources_list
 MetaboTargetedAssay.cpp
 MetaboTargetedTargetDecoy.cpp
 MRMMapping.cpp
-PrecursorIonSelectionPreprocessing.cpp
-PrecursorIonSelection.cpp
-OfflinePrecursorIonSelection.cpp
-PSLPFormulation.cpp
-PSProteinInference.cpp
 IncludeExcludeTarget.cpp
 TargetedExperiment.cpp
 TargetedExperimentHelper.cpp
-InclusionExclusionList.cpp
 )
 
 ### add path to the filenames

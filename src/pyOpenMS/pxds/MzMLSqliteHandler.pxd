@@ -15,10 +15,10 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>" namespace "OpenM
 
     cdef cppclass MzMLSqliteHandler:
 
-        MzMLSqliteHandler(String filename, UInt64 run_id) nogil except +
-        MzMLSqliteHandler(MzMLSqliteHandler &) nogil except + # compiler
+        MzMLSqliteHandler(String filename, UInt64 run_id) except + nogil 
+        MzMLSqliteHandler(MzMLSqliteHandler &) except + nogil  # compiler
 
-        void readExperiment(MSExperiment & exp, bool meta_only )  nogil except +
+        void readExperiment(MSExperiment & exp, bool meta_only )  except + nogil 
             # wrap-doc:
                 #  Read an experiment into an MSExperiment structure
                 #  
@@ -26,7 +26,7 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>" namespace "OpenM
                 #  :param exp: The result data structure
                 #  :param meta_only: Only read the meta data
   
-        void readSpectra(libcpp_vector[MSSpectrum] & exp, libcpp_vector[int] indices, bool meta_only ) nogil except +
+        void readSpectra(libcpp_vector[MSSpectrum] & exp, libcpp_vector[int] indices, bool meta_only ) except + nogil 
             # wrap-doc:
                 #  Read a set of spectra (potentially restricted to a subset)
                 #  
@@ -35,7 +35,7 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>" namespace "OpenM
                 #  :param indices: A list of indices restricting the resulting spectra only to those specified here
                 #  :param meta_only: Only read the meta data
 
-        void readChromatograms(libcpp_vector[MSChromatogram] & exp, libcpp_vector[int] indices, bool meta_only ) nogil except +
+        void readChromatograms(libcpp_vector[MSChromatogram] & exp, libcpp_vector[int] indices, bool meta_only ) except + nogil 
             # wrap-doc:
                 #  Read a set of chromatograms (potentially restricted to a subset)
                 #  
@@ -44,11 +44,11 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>" namespace "OpenM
                 #  :param indices: A list of indices restricting the resulting spectra only to those specified here
                 #  :param meta_only: Only read the meta data
   
-        Size getNrSpectra() nogil except + # wrap-doc:Returns number of spectra in the file, reutrns the number of spectra
+        Size getNrSpectra() except + nogil  # wrap-doc:Returns number of spectra in the file, reutrns the number of spectra
   
-        Size getNrChromatograms() nogil except + # wrap-doc:Returns the number of chromatograms in the file
+        Size getNrChromatograms() except + nogil  # wrap-doc:Returns the number of chromatograms in the file
   
-        void setConfig(bool write_full_meta, bool use_lossy_compression, double linear_abs_mass_acc)  nogil except +
+        void setConfig(bool write_full_meta, bool use_lossy_compression, double linear_abs_mass_acc)  except + nogil 
             # wrap-doc:
                 #  Sets file configuration
                 #  
@@ -57,7 +57,7 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>" namespace "OpenM
                 #  :param use_lossy_compression: Whether to use lossy compression (ms numpress)
                 #  :param linear_abs_mass_acc: Accepted loss in mass accuracy (absolute m/z, in Th)
   
-        libcpp_vector[size_t] getSpectraIndicesbyRT(double RT, double deltaRT, libcpp_vector[int] indices) nogil except +
+        libcpp_vector[size_t] getSpectraIndicesbyRT(double RT, double deltaRT, libcpp_vector[int] indices) except + nogil 
             # wrap-doc:
                 #  Returns spectral indices around a specific retention time
                 #  
@@ -66,15 +66,15 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>" namespace "OpenM
                 #  :param indices: Spectra to consider (if empty, all spectra are considered)
                 #  :return: The indices of the spectra within RT +/- deltaRT
   
-        void writeExperiment(MSExperiment exp) nogil except + # wrap-doc:Write an MSExperiment to disk
+        void writeExperiment(MSExperiment exp) except + nogil  # wrap-doc:Write an MSExperiment to disk
   
-        void createTables() nogil except + # wrap-doc:Create data tables for a new file
+        void createTables() except + nogil  # wrap-doc:Create data tables for a new file
   
-        void writeSpectra(libcpp_vector[MSSpectrum] spectra) nogil except + # wrap-doc:Writes a set of spectra to disk
+        void writeSpectra(libcpp_vector[MSSpectrum] spectra) except + nogil  # wrap-doc:Writes a set of spectra to disk
   
-        void writeChromatograms(libcpp_vector[MSChromatogram] chroms) nogil except + # wrap-doc:Writes a set of chromatograms to disk
+        void writeChromatograms(libcpp_vector[MSChromatogram] chroms) except + nogil  # wrap-doc:Writes a set of chromatograms to disk
   
-        void writeRunLevelInformation(MSExperiment exp, bool write_full_meta) nogil except +
+        void writeRunLevelInformation(MSExperiment exp, bool write_full_meta) except + nogil 
             # wrap-doc:
                 #  Write the run-level information for an experiment into tables
                 #  
@@ -84,5 +84,5 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>" namespace "OpenM
                 #  :param exp: The result data structure
                 #  :param meta_only: Only read the meta data
         
-        UInt64 getRunID() nogil except + # wrap-doc:Extract the `RUN` ID from the sqMass file
+        UInt64 getRunID() except + nogil  # wrap-doc:Extract the `RUN` ID from the sqMass file
         

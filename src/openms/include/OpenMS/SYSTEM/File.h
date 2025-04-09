@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -53,14 +27,10 @@ namespace OpenMS
   class OPENMS_DLLAPI File
   {
 public:
-
-    friend class TOPPBase;
-
     /**
       @brief Class representing a temporary directory
     
     */
-
     class OPENMS_DLLAPI TempDir
     {
     public:
@@ -101,6 +71,9 @@ public:
     /// Method used to test if a @p file is executable.
     static bool executable(const String& file);
 
+    /// The filesize in bytes (or -1 on error, e.g. if the file does not exist)
+    static UInt64 fileSize(const String& file);
+
     /**
        @brief Rename a file
        
@@ -136,6 +109,9 @@ public:
     enum class CopyOptions {OVERWRITE,SKIP,CANCEL};
     static bool copyDirRecursively(const QString &from_dir, const QString &to_dir, File::CopyOptions option = CopyOptions::OVERWRITE);
 
+    /// Copy a file (if it exists). Returns true if successful.
+    static bool copy(const String& from, const String& to);
+
     /**
       @brief Removes a file (if it exists).
 
@@ -148,6 +124,10 @@ public:
 
     /// Removes the directory and all subdirectories (absolute path).
     static bool removeDir(const QString& dir_name);
+
+    /// Creates a directory (absolute path or relative to the current working dir), even if subdirectories do not exist. Returns true if successful.
+    /// If the path already exists when this function is called, it will return true.
+    static bool makeDir(const String& dir_name);
 
     /// Replaces the relative path in the argument with the absolute path.
     static String absolutePath(const String& file);
@@ -303,27 +283,43 @@ public:
     */
     static String getTemporaryFile(const String& alternative_file = "");
 
+
+    enum class MatchingFileListsStatus 
+    {
+        MATCH = 0,           // Everything matches perfectly
+        ORDER_MISMATCH = 1,  // Same set of files but in wrong order
+        SET_MISMATCH = 2     // Different sets of files (including size mismatch)
+    };
+
     /**
       @brief Helper function to test if filenames provided in two StringLists match.
 
       Passing several InputFilesLists is error-prone as users may provide files in a different order.
-      To check for common mistakes this helper function checks:
-      - if both file lists have the same length (returns false otherwise)
-      - if the content is the same and provided in exactly the same order (returns false otherwise)
-
-      Note: Because workflow systems may assign file names randomly a non-strict comparison mode is enabled by default.      
-      Instead of the strict comparison (which returns false if there is a single mismatch), the non-strict comparison mode 
-      only returns false if the unique set of filenames match but some positions differ, i.e., only the order has been mixed up.
+      This helper function performs validation and returns one of three states:
+      - MATCH (0): Files match perfectly (considering basename/extension settings)
+      - ORDER_MISMATCH (1): Same set of files but in different order
+      - SET_MISMATCH (2): Different sets of files (including different counts)
 
       @param sl1 First StringList with filenames
       @param sl2 Second StringList with filenames
       @param basename If set to true, only basenames are compared
       @param ignore_extension If set to true, extensions are ignored (e.g., useful to compare spectra filenames to ID filenames)
-      @param strict If set to true, no mismatches (respecting basename and ignore_extension parameter) are allowed. 
-                    If set to false, only the order is compared if both share the same filenames.
-      @return False, if both StringLists are different (respecting the parameters)
+      @return MatchingFileListsStatus indicating the validation result
     */
-    static bool validateMatchingFileNames(const StringList& sl1, const StringList& sl2, bool basename = true, bool ignore_extension = true, bool strict = false);
+    static MatchingFileListsStatus validateMatchingFileNames(const StringList& sl1, 
+                                                       const StringList& sl2, 
+                                                       bool basename = true, 
+                                                       bool ignore_extension = true);
+
+    /**
+      @brief Download file from given URL into a download folder. Returns when done.
+      
+      If a file with same filename already exists, continues download and appends '.\#number' to basename.
+      
+      @throw FileNotFound exception if download failed. 
+    */
+    static void download(const std::string& url, const std::string& download_folder);
+
 private:
 
     /// get defaults for the system's Temp-path, user home directory etc.

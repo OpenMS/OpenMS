@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -51,12 +25,10 @@
 
   @image html TOPPAS_simple_example.png
 
-  More information about TOPPAS can be found on the OpenMS ReadTheDocs
-  page: https://openms.readthedocs.io/en/latest/docs/tutorials/TOPPAS/TOPPAS-tutorial.html
+  More information about TOPPAS can be found in the @ref TOPPAS_tutorial.
 
-
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_TOPPAS.cli
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_TOPPAS.cli
 */
 
 //QT
@@ -104,7 +76,7 @@ void print_usage(Logger::LogStream& stream = OpenMS_Log_info)
          << tool_name << " -- An assistant for GUI-driven TOPP workflow design." << "\n"
          << "\n"
          << "Usage:" << "\n"
-         << " " << tool_name << " [options] [files]" << "\n"
+         << " " << tool_name << " [options] [.toppas files]" << "\n"
          << "\n"
          << "Options are:" << "\n"
          << "  --help           Shows this help" << "\n"
@@ -115,6 +87,10 @@ void print_usage(Logger::LogStream& stream = OpenMS_Log_info)
 
 int main(int argc, const char** argv)
 {
+#ifdef OPENMS_WINDOWSPLATFORM
+  qputenv("QT_QPA_PLATFORM", "windows:darkmode=0"); // disable dark mode on Windows, since our buttons etc are not designed for it
+#endif
+
   // list of all the valid options
   std::map<std::string, std::string> valid_options, valid_flags, option_lists;
   valid_flags["--help"] = "help";
@@ -167,40 +143,43 @@ int main(int argc, const char** argv)
     QApplicationTOPP a(argc, const_cast<char**>(argv));
     a.connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
 
-    TOPPASBase* mw = new TOPPASBase();
-    mw->show();
+    TOPPASBase mw;
+    mw.show();
 
-    a.connect(&a, SIGNAL(fileOpen(QString)), mw, SLOT(openToppasFile(QString)));
+    a.connect(&a, &QApplicationTOPP::fileOpen, &mw, &TOPPASBase::openToppasFile);
 
     // Create the splashscreen that is displayed while the application loads (version is drawn dynamically)
     QPixmap qpm(":/TOPPAS_Splashscreen.png");
     QPainter pt_ver(&qpm);
     pt_ver.setFont(QFont("Helvetica [Cronyx]", 15, 2, true));
-    pt_ver.setPen(QColor(44, 50, 152));
-    pt_ver.drawText(490, 84, VersionInfo::getVersion().toQString());
+    pt_ver.setPen(Qt::black);
+    // draw version number dynamcially on top left corner
+    pt_ver.drawText(5, 5+15, VersionInfo::getVersion().toQString());
     QSplashScreen splash_screen(qpm);
     splash_screen.show();
+    
     QApplication::processEvents();
     StopWatch stop_watch;
     stop_watch.start();
 
     if (param.exists("ini"))
     {
-      mw->loadPreferences(param.getValue("ini").toString());
+      mw.loadPreferences(param.getValue("ini").toString());
     }
 
     if (param.exists("misc"))
     {
-      mw->loadFiles(ListUtils::toStringList<std::string>(param.getValue("misc")), &splash_screen);
+      mw.loadFiles(ListUtils::toStringList<std::string>(param.getValue("misc")), &splash_screen);
     }
     else 
     {
-      mw->newPipeline();
+      mw.newPipeline();
     }
 
     // We are about to show the application.
-    // Proper time to  remove the splash screen, if at least 1.5 seconds have passed...
-    while (stop_watch.getClockTime() < 1.5) /*wait*/
+    // Proper time to remove the splashscreen, if at least 3 seconds have passed...
+    while (stop_watch.getClockTime() < 3.0) /*wait*/
+
     {
     }
     stop_watch.stop();
@@ -212,7 +191,6 @@ int main(int argc, const char** argv)
 #endif
 
     int result = a.exec();
-    delete(mw);
     return result;
   }
   //######################## ERROR HANDLING #################################

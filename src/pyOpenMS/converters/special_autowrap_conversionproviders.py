@@ -60,13 +60,16 @@ class OpenMSDPosition2Vector(TypeConverterBase):
         return "np.ndarray[np.float32_t,ndim=2]"
     
     def matching_python_type_full(self, cpp_type):
-        # TODO figure out the best way to do numpy typing.
-        # Note that using e.g. the nptyping package will need a top-of-file import which we cannot inject.
-        # This means we would either need to support injection or import per default in autowraps pyi files
-        # For now, write a string which just serves as documentation
-        return "'np.ndarray[np.float32_t,ndim=2]'"
+        # TODO figure out the best way to do numpy typing. Being able to specify the dimensions would be nice:
+        #  might be available soon (without extensions): https://github.com/numpy/numpy/issues/16544
+        # Note that using those types will need a top-of-file import which we cannot inject to autowrap (yet).
+        # This means we would either need to support injection or import per default in autowraps pyi files.
+        # For now, we add it to all pyi files in a post-processing step of our build system.
+        return "'_np.ndarray[Any, _np.dtype[_np.float32]]'"
 
     def type_check_expression(self, cpp_type, argument_var):
+        # TODO in autowrap: More finegrained error reporting. Currently it just reports
+        #  if ANY of the input types to a function does not match. Not which, not why..
         return "%s.shape[1] == 2" % argument_var
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
@@ -136,10 +139,10 @@ class OpenMSDataValue(TypeConverterBase):
         return ""
 
     def matching_python_type_full(self, cpp_type):
-        return "Union[int, long, float, bytes, str, unicode, List[int], List[long], List[float], List[bytes]]"
+        return "Union[int, float, bytes, str, List[int], List[float], List[bytes]]"
 
     def type_check_expression(self, cpp_type, argument_var):
-        return "isinstance(%s, (int, long, float, list, bytes, str, unicode))" % argument_var
+        return "isinstance(%s, (int, float, list, bytes, str))" % argument_var
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
         call_as = "deref(DataValue(%s).inst.get())" % argument_var
@@ -183,10 +186,10 @@ class OpenMSParamValue(TypeConverterBase):
         return ""
       
     def matching_python_type_full(self, cpp_type):
-        return "Union[int, long, float, bytes, str, unicode, List[int], List[long], List[float], List[bytes]]"
+        return "Union[int, float, bytes, str, List[int], List[float], List[bytes]]"
 
     def type_check_expression(self, cpp_type, argument_var):
-        return "isinstance(%s, (int, long, float, list, bytes, str, unicode))" % argument_var
+        return "isinstance(%s, (int, float, list, bytes, str))" % argument_var
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
         call_as = "deref(ParamValue(%s).inst.get())" % argument_var
@@ -232,7 +235,10 @@ class OpenMSStringConverter(TypeConverterBase):
         return ""
       
     def matching_python_type_full(self, cpp_type):
-        return "Union[bytes, unicode, str, String]"
+        if (cpp_type.is_ptr or cpp_type.is_ref) and not cpp_type.is_const:
+            return "String"
+        else:
+            return "Union[bytes, str, String]"
 
     def type_check_expression(self, cpp_type, argument_var):
         # Need to treat ptr and reference differently as these may be modified
@@ -240,9 +246,9 @@ class OpenMSStringConverter(TypeConverterBase):
         if (cpp_type.is_ptr or cpp_type.is_ref) and not cpp_type.is_const:
             return "isinstance(%s, String)" % (argument_var)
 
-        # Allow conversion from unicode str, bytes and OpenMS::String
-        return "(isinstance(%s, str) or isinstance(%s, unicode) or isinstance(%s, bytes) or isinstance(%s, String))" % (
-            argument_var,argument_var,argument_var, argument_var)
+        # Allow conversion from str, bytes and OpenMS::String
+        return "(isinstance(%s, str) or isinstance(%s, bytes) or isinstance(%s, String))" % (
+            argument_var,argument_var,argument_var)
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
 

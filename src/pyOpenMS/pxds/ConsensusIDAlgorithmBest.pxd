@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmBest.h>" namespace "Op
         # wrap-inherits:
         #  ConsensusIDAlgorithmIdentity
 
-        ConsensusIDAlgorithmBest() nogil except +
+        ConsensusIDAlgorithmBest() except + nogil 
         # private
-        ConsensusIDAlgorithmBest(ConsensusIDAlgorithmBest) nogil except + # wrap-ignore
+        ConsensusIDAlgorithmBest(ConsensusIDAlgorithmBest) except + nogil  # wrap-ignore
 

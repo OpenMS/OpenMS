@@ -4,22 +4,22 @@ cdef extern from "<OpenMS/CHEMISTRY/AAIndex.h>" namespace "OpenMS":
     
     cdef cppclass AAIndex "OpenMS::AAIndex":
         # private
-        AAIndex() nogil except + # wrap-ignore
+        AAIndex() except + nogil  # wrap-ignore
         # private
-        AAIndex(AAIndex &) nogil except + # wrap-ignore
-        double aliphatic(char aa) nogil except +
-        double acidic(char aa) nogil except +
-        double basic(char aa) nogil except +
-        double polar(char aa) nogil except +
-        double getKHAG800101(char aa) nogil except +
-        double getVASM830103(char aa) nogil except +
-        double getNADH010106(char aa) nogil except +
-        double getNADH010107(char aa) nogil except +
-        double getWILM950102(char aa) nogil except +
-        double getROBB760107(char aa) nogil except +
-        double getOOBM850104(char aa) nogil except +
-        double getFAUJ880111(char aa) nogil except +
-        double getFINA770101(char aa) nogil except +
-        double getARGP820102(char aa) nogil except +
-        double calculateGB(AASequence &seq, double T) nogil except +
+        AAIndex(AAIndex &) except + nogil  # wrap-ignore
+        double aliphatic(char aa) except + nogil 
+        double acidic(char aa) except + nogil 
+        double basic(char aa) except + nogil 
+        double polar(char aa) except + nogil 
+        double getKHAG800101(char aa) except + nogil 
+        double getVASM830103(char aa) except + nogil 
+        double getNADH010106(char aa) except + nogil 
+        double getNADH010107(char aa) except + nogil 
+        double getWILM950102(char aa) except + nogil 
+        double getROBB760107(char aa) except + nogil 
+        double getOOBM850104(char aa) except + nogil 
+        double getFAUJ880111(char aa) except + nogil 
+        double getFINA770101(char aa) except + nogil 
+        double getARGP820102(char aa) except + nogil 
+        double calculateGB(AASequence &seq, double T) except + nogil 
 

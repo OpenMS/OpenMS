@@ -7,40 +7,40 @@ cdef extern from "<OpenMS/DATASTRUCTURES/CVMappingRule.h>" namespace "OpenMS":
 
     cdef cppclass CVMappingRule:
 
-        CVMappingRule() nogil except +
-        CVMappingRule(CVMappingRule &) nogil except +
+        CVMappingRule() except + nogil 
+        CVMappingRule(CVMappingRule &) except + nogil 
 
-        void setIdentifier(String identifier) nogil except + # wrap-doc:Sets the identifier of the rule
+        void setIdentifier(String identifier) except + nogil  # wrap-doc:Sets the identifier of the rule
 
-        String getIdentifier() nogil except + # wrap-doc:Returns the identifier of the rule
+        String getIdentifier() except + nogil  # wrap-doc:Returns the identifier of the rule
 
-        void setElementPath(String element_path) nogil except + # wrap-doc:Sets the path of the DOM element, where this rule is allowed
+        void setElementPath(String element_path) except + nogil  # wrap-doc:Sets the path of the DOM element, where this rule is allowed
 
-        String getElementPath() nogil except + # wrap-doc:Returns the path of the DOM element, where this rule is allowed
+        String getElementPath() except + nogil  # wrap-doc:Returns the path of the DOM element, where this rule is allowed
 
-        void setRequirementLevel(RequirementLevel level) nogil except + # wrap-doc:Sets the requirement level of this rule
+        void setRequirementLevel(RequirementLevel level) except + nogil  # wrap-doc:Sets the requirement level of this rule
 
-        RequirementLevel getRequirementLevel() nogil except + # wrap-doc:Returns the requirement level of this rule
+        RequirementLevel getRequirementLevel() except + nogil  # wrap-doc:Returns the requirement level of this rule
 
-        void setCombinationsLogic(CombinationsLogic combinations_logic) nogil except + # wrap-doc:Sets the combination operator of the rule
+        void setCombinationsLogic(CombinationsLogic combinations_logic) except + nogil  # wrap-doc:Sets the combination operator of the rule
 
-        CombinationsLogic getCombinationsLogic() nogil except + # wrap-doc:Returns the combinations operator of the rule
+        CombinationsLogic getCombinationsLogic() except + nogil  # wrap-doc:Returns the combinations operator of the rule
 
-        void setScopePath(String path) nogil except + # wrap-doc:Sets the scope path of the rule
+        void setScopePath(String path) except + nogil  # wrap-doc:Sets the scope path of the rule
 
-        String getScopePath() nogil except + # wrap-doc:Returns the scope path of the rule
+        String getScopePath() except + nogil  # wrap-doc:Returns the scope path of the rule
 
-        void setCVTerms(libcpp_vector[CVMappingTerm] cv_terms) nogil except + # wrap-doc:Sets the terms which are allowed
+        void setCVTerms(libcpp_vector[CVMappingTerm] cv_terms) except + nogil  # wrap-doc:Sets the terms which are allowed
 
-        libcpp_vector[CVMappingTerm] getCVTerms() nogil except + # wrap-doc:Returns the allowed terms
+        libcpp_vector[CVMappingTerm] getCVTerms() except + nogil  # wrap-doc:Returns the allowed terms
 
-        void addCVTerm(CVMappingTerm cv_terms) nogil except + # wrap-doc:Adds a term to the allowed terms
+        void addCVTerm(CVMappingTerm cv_terms) except + nogil  # wrap-doc:Adds a term to the allowed terms
 
         # equality operator
-        bool operator==(CVMappingRule rhs) nogil except +
+        bool operator==(CVMappingRule rhs) except + nogil 
 
         # inequality operator
-        bool operator!=(CVMappingRule rhs) nogil except +
+        bool operator!=(CVMappingRule rhs) except + nogil 
 
 cdef extern from "<OpenMS/DATASTRUCTURES/CVMappingRule.h>" namespace "OpenMS::CVMappingRule":
 

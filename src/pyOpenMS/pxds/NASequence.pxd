@@ -18,51 +18,51 @@ cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS":
         #  This class represents nucleic acid sequences in OpenMS. An NASequence
         #  instance primarily contains a sequence of ribonucleotides. 
 
-        NASequence() nogil except +
-        NASequence(NASequence &) nogil except +
+        NASequence() except + nogil 
+        NASequence(NASequence &) except + nogil 
 
-        bool operator==(const NASequence & rhs) nogil except +
-        bool operator!=(const NASequence & rhs) nogil except +
-        bool operator<(const NASequence & rhs) nogil except +
+        bool operator==(const NASequence & rhs) except + nogil 
+        bool operator!=(const NASequence & rhs) except + nogil 
+        bool operator<(const NASequence & rhs) except + nogil 
 
-        libcpp_vector[ const Ribonucleotide * ] getSequence() nogil except +
+        libcpp_vector[ const Ribonucleotide * ] getSequence() except + nogil 
 
-        const Ribonucleotide * operator[](size_t index) nogil except +
+        const Ribonucleotide * operator[](size_t index) except + nogil 
 
-        bool empty() nogil except + # wrap-doc:Check if sequence is empty
+        bool empty() except + nogil  # wrap-doc:Check if sequence is empty
 
-        void setSequence(const libcpp_vector[ const Ribonucleotide *] & seq) nogil except +
+        void setSequence(const libcpp_vector[ const Ribonucleotide *] & seq) except + nogil 
 
-        String toString() nogil except + # wrap-doc:Returns the peptide as string with modifications embedded in brackets
+        String toString() except + nogil  # wrap-doc:Returns the peptide as string with modifications embedded in brackets
 
-        void setFivePrimeMod(const RibonucleotideChainEnd * modification) nogil except + # wrap-doc:Sets the 5' modification
+        void setFivePrimeMod(const RibonucleotideChainEnd * modification) except + nogil  # wrap-doc:Sets the 5' modification
 
-        const RibonucleotideChainEnd * getFivePrimeMod() nogil except + # wrap-doc:Returns the name (ID) of the N-terminal modification, or an empty string if none is set
+        const RibonucleotideChainEnd * getFivePrimeMod() except + nogil  # wrap-doc:Returns the name (ID) of the N-terminal modification, or an empty string if none is set
 
-        void setThreePrimeMod(const RibonucleotideChainEnd * modification) nogil except + # wrap-doc:Sets the 3' modification
+        void setThreePrimeMod(const RibonucleotideChainEnd * modification) except + nogil  # wrap-doc:Sets the 3' modification
 
-        const RibonucleotideChainEnd * getThreePrimeMod() nogil except +
+        const RibonucleotideChainEnd * getThreePrimeMod() except + nogil 
 
-        const Ribonucleotide * get(Size index) nogil except + # wrap-doc:Returns the residue at position index
+        const Ribonucleotide * get(Size index) except + nogil  # wrap-doc:Returns the residue at position index
 
-        void set(size_t index, const Ribonucleotide * r) nogil except + # wrap-doc:Sets the residue at position index
+        void set(size_t index, const Ribonucleotide * r) except + nogil  # wrap-doc:Sets the residue at position index
 
-        EmpiricalFormula getFormula() nogil except + # wrap-doc:Returns the formula of the peptide
-        EmpiricalFormula getFormula(NASFragmentType type_, Int charge) nogil except +
+        EmpiricalFormula getFormula() except + nogil  # wrap-doc:Returns the formula of the peptide
+        EmpiricalFormula getFormula(NASFragmentType type_, Int charge) except + nogil 
 
-        double getAverageWeight() nogil except + # wrap-doc:Returns the average weight of the peptide
-        double getAverageWeight(NASFragmentType type_, Int charge) nogil except +
+        double getAverageWeight() except + nogil  # wrap-doc:Returns the average weight of the peptide
+        double getAverageWeight(NASFragmentType type_, Int charge) except + nogil 
 
-        double getMonoWeight() nogil except + # wrap-doc:Returns the mono isotopic weight of the peptide
-        double getMonoWeight(NASFragmentType type_, Int charge) nogil except +
+        double getMonoWeight() except + nogil  # wrap-doc:Returns the mono isotopic weight of the peptide
+        double getMonoWeight(NASFragmentType type_, Int charge) except + nogil 
 
-        Size size() nogil except + # wrap-doc:Returns the number of residues
+        Size size() except + nogil  # wrap-doc:Returns the number of residues
 
-        NASequence getPrefix(Size length) nogil except + # wrap-doc:Returns a peptide sequence of the first index residues
+        NASequence getPrefix(Size length) except + nogil  # wrap-doc:Returns a peptide sequence of the first index residues
 
-        NASequence getSuffix(Size length) nogil except + # wrap-doc:Returns a peptide sequence of the last index residues
+        NASequence getSuffix(Size length) except + nogil  # wrap-doc:Returns a peptide sequence of the last index residues
 
-        NASequence getSubsequence(Size start, Size length) nogil except + # wrap-doc:Returns a peptide sequence of number residues, beginning at position index
+        NASequence getSubsequence(Size start, Size length) except + nogil  # wrap-doc:Returns a peptide sequence of number residues, beginning at position index
 
 
 # COMMENT: wrap static methods
@@ -70,7 +70,7 @@ cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS::NASequence
         
         
         # static members
-        NASequence fromString(const String & s) nogil except +  # wrap-attach:NASequence
+        NASequence fromString(const String & s) except + nogil   # wrap-attach:NASequence
 
 cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS::NASequence":
     cdef enum NASFragmentType "OpenMS::NASequence::NASFragmentType":

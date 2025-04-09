@@ -6,7 +6,6 @@ from PeptideIdentification cimport *
 
 from String cimport *
 from ProgressLogger cimport *
-from Identification cimport *
 
 cdef extern from "<OpenMS/FORMAT/MzIdentMLFile.h>" namespace "OpenMS":
 
@@ -14,10 +13,10 @@ cdef extern from "<OpenMS/FORMAT/MzIdentMLFile.h>" namespace "OpenMS":
         # wrap-inherits:
         #  ProgressLogger
 
-        MzIdentMLFile() nogil except +
-        MzIdentMLFile(MzIdentMLFile &) nogil except +
+        MzIdentMLFile() except + nogil 
+        MzIdentMLFile(MzIdentMLFile &) except + nogil 
 
-        void load(String filename, libcpp_vector[ProteinIdentification] & poid, libcpp_vector[PeptideIdentification] & peid) nogil except +
+        void load(String filename, libcpp_vector[ProteinIdentification] & poid, libcpp_vector[PeptideIdentification] & peid) except + nogil 
             # wrap-doc:
                 #  Loads the identifications from a MzIdentML file
                 #  
@@ -28,7 +27,7 @@ cdef extern from "<OpenMS/FORMAT/MzIdentMLFile.h>" namespace "OpenMS":
                 #  :raises:
                 #    Exception: ParseError is thrown if an error occurs during parsin
 
-        void store(String filename, libcpp_vector[ProteinIdentification] & poid, libcpp_vector[PeptideIdentification] & peid) nogil except +
+        void store(String filename, libcpp_vector[ProteinIdentification] & poid, libcpp_vector[PeptideIdentification] & peid) except + nogil 
             # wrap-doc:
                 #  Stores the identifications in a MzIdentML file
                 #  
@@ -36,7 +35,7 @@ cdef extern from "<OpenMS/FORMAT/MzIdentMLFile.h>" namespace "OpenMS":
                 #  :raises:
                 #    Exception: UnableToCreateFile is thrown if the file could not be created
 
-        bool isSemanticallyValid(String filename, StringList errors, StringList warnings) nogil except +
+        bool isSemanticallyValid(String filename, StringList errors, StringList warnings) except + nogil 
             # wrap-doc:
                 #  Checks if a file is valid with respect to the mapping file and the controlled vocabulary
                 #  

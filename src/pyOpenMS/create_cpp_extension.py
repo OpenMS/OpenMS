@@ -235,8 +235,11 @@ if __name__ == '__main__':
 
   print("Created all %s pyopenms.cpps" % PY_NUM_MODULES)
 
-
   with open("pyopenms/_all_modules.py", "w") as fp:
+      for modname in mnames:
+          fp.write("from .%s import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)\n" % modname)
+
+  with open("pyopenms/_all_modules.pyi", "w") as fp:
       for modname in mnames:
           fp.write("from .%s import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)\n" % modname)
 

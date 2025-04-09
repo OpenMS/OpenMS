@@ -2,20 +2,20 @@ from Types cimport *
 from Matrix cimport *
 from DoubleList cimport *
 from String cimport *
+from libcpp.string cimport string as libcpp_utf8_string
 from Feature cimport *
 from FeatureMap cimport *
-from String cimport *
 from DefaultParamHandler cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespace "OpenMS":
     
     cdef cppclass IsotopeLabelingMDVs(DefaultParamHandler) :
         
-        IsotopeLabelingMDVs() nogil except +
-        IsotopeLabelingMDVs(IsotopeLabelingMDVs &) nogil except + # compiler
+        IsotopeLabelingMDVs() except + nogil 
+        IsotopeLabelingMDVs(IsotopeLabelingMDVs &) except + nogil  # compiler
 
         void isotopicCorrection(const Feature & normalized_feature, Feature & corrected_feature, 
-          Matrix[double] & correction_matrix, const DerivatizationAgent & correction_matrix_agent) nogil except +
+          Matrix[double] & correction_matrix, const DerivatizationAgent & correction_matrix_agent) except + nogil 
             # wrap-doc:
               #  This function performs an isotopic correction to account for unlabeled abundances coming from
               #  the derivatization agent (e.g., tBDMS) using correction matrix method and is calculated as follows:
@@ -28,7 +28,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
 
         void isotopicCorrections(
           const FeatureMap & normalized_featureMap, FeatureMap & corrected_featureMap,
-          Matrix[double] & correction_matrix, const DerivatizationAgent & correction_matrix_agent) nogil except +
+          Matrix[double] & correction_matrix, const DerivatizationAgent & correction_matrix_agent) except + nogil 
             # wrap-doc:
               #  This function performs an isotopic correction to account for unlabeled abundances coming from
               #  the derivatization agent (e.g., tBDMS) using correction matrix method and is calculated as follows:
@@ -41,7 +41,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
 
         void calculateIsotopicPurity(
           const Feature & normalized_feature,
-          const libcpp_vector[double] & experiment_data, const String & isotopic_purity_name) nogil except +
+          const libcpp_vector[double] & experiment_data, const String & isotopic_purity_name) except + nogil 
             # wrap-doc:
               #  This function calculates the isotopic purity of the MDV using the following formula:
               #  isotopic purity of tracer (atom % 13C) = n / [n + (M + n-1)/(M + n)],
@@ -56,11 +56,11 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
 
         # void calculateIsotopicPurities(
         #  const FeatureMap & normalized_feature,
-        #  const libcpp_vector[ DoubleList ] & experiment_data, const libcpp_vector[String] & isotopic_purity_name) nogil except +
+        #  const libcpp_vector[ DoubleList ] & experiment_data, const libcpp_vector[String] & isotopic_purity_name) except + nogil 
 
         void calculateMDVAccuracy(
           const Feature & normalized_feature,
-          const String & feature_name, const String & fragment_isotopomer_theoretical_formula) nogil except +
+          const String & feature_name, const String & fragment_isotopomer_theoretical_formula) except + nogil 
             # wrap-doc:
               #  This function calculates the accuracy of the MDV as compared to the theoretical MDV (only for 12C quality control experiments)
               #  using average deviation to the mean. The result is mapped to the meta value "average_accuracy" in the updated feature
@@ -72,7 +72,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
 
         void calculateMDVAccuracies(
           const FeatureMap & normalized_featureMap,
-          const String & feature_name, const libcpp_map[ libcpp_string, libcpp_string ] & fragment_isotopomer_theoretical_formulas) nogil except +
+          const String & feature_name, const libcpp_map[ libcpp_utf8_string, libcpp_utf8_string ] & fragment_isotopomer_theoretical_formulas) except + nogil 
             # wrap-doc:
               #  This function calculates the accuracy of the MDV as compared to the theoretical MDV (only for 12C quality control experiments)
               #  using average deviation to the mean
@@ -84,11 +84,11 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
 
         void calculateMDV(
           const Feature & measured_feature, Feature & normalized_feature,
-          const MassIntensityType & mass_intensity_type, const String & feature_name) nogil except +
+          const MassIntensityType & mass_intensity_type, const String & feature_name) except + nogil 
 
         void calculateMDVs(
           const FeatureMap & measured_featureMap, FeatureMap & normalized_featureMap,
-          const MassIntensityType & mass_intensity_type, const String & feature_name) nogil except +
+          const MassIntensityType & mass_intensity_type, const String & feature_name) except + nogil 
 
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespace "OpenMS::IsotopeLabelingMDVs":

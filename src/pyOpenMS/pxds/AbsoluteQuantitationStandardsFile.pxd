@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/FORMAT/AbsoluteQuantitationStandardsFile.h>" namespace
 
     cdef cppclass AbsoluteQuantitationStandardsFile:
 
-        AbsoluteQuantitationStandardsFile() nogil except +
-        AbsoluteQuantitationStandardsFile(AbsoluteQuantitationStandardsFile &) nogil except + # compiler
+        AbsoluteQuantitationStandardsFile() except + nogil 
+        AbsoluteQuantitationStandardsFile(AbsoluteQuantitationStandardsFile &) except + nogil  # compiler
 
-        void load(const String& filename, libcpp_vector[AQS_runConcentration]& run_concentrations) nogil except +
+        void load(const String& filename, libcpp_vector[AQS_runConcentration]& run_concentrations) except + nogil 

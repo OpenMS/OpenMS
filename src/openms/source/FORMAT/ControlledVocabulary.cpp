@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg  $
@@ -209,8 +183,22 @@ namespace OpenMS
       }
       if (line_wo_spaces.hasPrefix("remark:URL:"))
       {
-        // https://
-        url_ = line.substr(line.find_first_of('/') - 7).trim();
+        // Find the position of "http://" or "https://"
+        size_t httpPos = line.find("http://");
+        size_t httpsPos = line.find("https://");
+
+        // Determine the starting position of the URL
+        if (httpPos != std::string::npos) 
+        {
+          url_ = line.substr(httpPos).trim();
+        } else if (httpsPos != std::string::npos) 
+        {
+          url_ = line.substr(httpsPos).trim();
+        } else 
+        {
+          // No URL found
+          std::cerr << "No URL found in the line." << std::endl;
+        }
       }
 
       //********************************************************************************
@@ -342,7 +330,9 @@ namespace OpenMS
         {
           term.obsolete = true;
         }
-        else if (line_wo_spaces.hasPrefix("xref:value-type") || line_wo_spaces.hasPrefix("xref_analog:value-type"))
+        else if (line_wo_spaces.hasPrefix("xref:value-type") 
+          || line_wo_spaces.hasPrefix("xref_analog:value-type")
+        )
         {
           line_wo_spaces.remove('\\');
           if (line_wo_spaces.hasSubstring("value-type:xsd:string"))
@@ -399,6 +389,73 @@ namespace OpenMS
           }
           cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << "\n";
         }
+        else if (line_wo_spaces.hasPrefix("relationship:has_value_type")) // since newer obo type in relationship instead of xref
+        {
+          if (line_wo_spaces.hasSubstring("xsd:string"))
+          {
+            term.xref_type = CVTerm::XSD_STRING;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:integer") 
+          || line_wo_spaces.hasSubstring("xsd:int"))
+          {
+            term.xref_type = CVTerm::XSD_INTEGER;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:decimal") ||
+              line_wo_spaces.hasSubstring("xsd:float") ||
+              line_wo_spaces.hasSubstring("xsd:double"))
+          {
+            term.xref_type = CVTerm::XSD_DECIMAL;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:negativeInteger"))
+          {
+            term.xref_type = CVTerm::XSD_NEGATIVE_INTEGER;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:positiveInteger"))
+          {
+            term.xref_type = CVTerm::XSD_POSITIVE_INTEGER;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:nonNegativeInteger"))
+          {
+            term.xref_type = CVTerm::XSD_NON_NEGATIVE_INTEGER;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:nonPositiveInteger"))
+          {
+            term.xref_type = CVTerm::XSD_NON_POSITIVE_INTEGER;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:boolean") 
+          || line_wo_spaces.hasSubstring("xsd:bool"))
+          {
+            term.xref_type = CVTerm::XSD_BOOLEAN;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:date"))
+          {
+            term.xref_type = CVTerm::XSD_DATE;
+            continue;
+          }
+          if (line_wo_spaces.hasSubstring("xsd:anyURI"))
+          {
+            term.xref_type = CVTerm::XSD_ANYURI;
+            continue;
+          }
+          if (
+            line_wo_spaces.hasSubstring("MS:1002711") ||
+            line_wo_spaces.hasSubstring("MS:1002712") ||
+            line_wo_spaces.hasSubstring("MS:1002713")
+          )
+          {
+            term.xref_type = CVTerm::XSD_STRING; // store list as string
+            continue;
+          }
+          cerr << "ControlledVocabulary: OBOFile: unknown xsd type: " << line_wo_spaces << ", ignoring" << "\n";
+        }       
         else if (line_wo_spaces.hasPrefix("xref:binary-data-type") || line_wo_spaces.hasPrefix("xref_analog:binary-data-type"))
         {
           line_wo_spaces.remove('\\');

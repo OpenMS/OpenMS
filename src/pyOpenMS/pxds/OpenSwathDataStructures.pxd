@@ -5,8 +5,8 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace 
 
   # See ../addons/OSBinaryDataArray.pyx
   cdef cppclass OSBinaryDataArray:
-        OSBinaryDataArray() nogil except +
-        OSBinaryDataArray(OSBinaryDataArray &) nogil except + # compiler
+        OSBinaryDataArray() except + nogil 
+        OSBinaryDataArray(OSBinaryDataArray &) except + nogil  # compiler
         libcpp_vector[double] data
         libcpp_string description
 

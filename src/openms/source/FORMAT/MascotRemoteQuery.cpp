@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -36,9 +10,11 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <QtGui/QTextDocument>
-#include <QNetworkReply>
-#include <QNetworkProxy>
-#include <QSslSocket>
+#include <QtNetwork/QNetworkReply>
+#include <QtNetwork/QNetworkProxy>
+#include <QtNetwork/QSslSocket>
+
+#include <QRegularExpression>
 
 // #define MASCOTREMOTEQUERY_DEBUG
 // #define MASCOTREMOTEQUERY_DEBUG_FULL_QUERY
@@ -439,17 +415,14 @@ namespace OpenMS
       QByteArray tmp = QByteArray::fromStdString(String("Set-Cookie"));
       QString response = reply->rawHeader(tmp);
 
-      QRegExp rx("MASCOT_SESSION=(\\w+);\\spath");
-      rx.indexIn(response);
-      QString mascot_session(rx.cap(1));
+      QRegularExpression rx("MASCOT_SESSION=(\\w+);\\spath");
+      QString mascot_session(rx.match(response).captured(1));
 
       rx.setPattern("MASCOT_USERNAME=(\\w+);\\spath");
-      rx.indexIn(response);
-      QString mascot_username(rx.cap(1));
+      QString mascot_username(rx.match(response).captured(1));
 
       rx.setPattern("MASCOT_USERID=(\\d+);\\spath");
-      rx.indexIn(response);
-      QString mascot_user_ID(rx.cap(1));
+      QString mascot_user_ID(rx.match(response).captured(1));
 
       //Put the cookie together...
       cookie_ = "userName=; userEmail=; MASCOT_SESSION=";
@@ -559,10 +532,9 @@ namespace OpenMS
       // <A HREF="../cgi/master_results.pl?file=../data/20100728/F018032.dat">Click here to see Search Report</A>
       QString response(new_bytes);
 
-      QRegExp rx(R"(file=(.+/\d+/\w+\.dat))");
-      rx.setMinimal(true);
-      rx.indexIn(response);
-      dat_file_path_ = rx.cap(1);
+      QRegularExpression rx(R"(file=(.+/\d+/\w+\.dat))");
+      rx.setPatternOptions(QRegularExpression::InvertedGreedinessOption);
+      dat_file_path_ = rx.match(response).captured(1);
       search_identifier_ = getSearchIdentifierFromFilePath(dat_file_path_);
 
       if (param_.exists("skip_export") &&
@@ -606,10 +578,9 @@ namespace OpenMS
       // parsing mascot 2.4 continuation download link
       // <p>Finished after 0 s. <a id="continuation-link" ..
       QString response(new_bytes);
-      QRegExp rx("<a id=\"continuation-link\" href=\"(.*)\"");
-      rx.setMinimal(true);
-      rx.indexIn(response);
-      QString results_path = rx.cap(1);
+      QRegularExpression rx("<a id=\"continuation-link\" href=\"(.*)\"");
+      rx.setPatternOptions(QRegularExpression::InvertedGreedinessOption);
+      QString results_path = rx.match(response).captured(1);
 
       // fill result link again and download
       removeHostName_(results_path);
@@ -620,11 +591,12 @@ namespace OpenMS
     {
       // check whether Mascot responded using an error code e.g. [M00440], pipe through results else
       QString response_text = new_bytes;
-      QRegExp mascot_error_regex(R"(\[M[0-9][0-9][0-9][0-9][0-9]\])");
-      if (response_text.contains(mascot_error_regex))
+      QRegularExpression mascot_error_regex(R"(\[M[0-9][0-9][0-9][0-9][0-9]\])");
+      QRegularExpressionMatch match;
+      if (response_text.contains(mascot_error_regex, &match))
       {
         OPENMS_LOG_ERROR << "Received response with Mascot error message!" << std::endl;
-        if (mascot_error_regex.cap() == "[M00380]")
+        if (match.captured() == "[M00380]")
         {
           // we know this error, so we give a much shorter and readable error message for the user
           error_message_ = "You must enter an email address and user name when using the Matrix Science public web site [M00380].";
@@ -632,7 +604,7 @@ namespace OpenMS
         }
         else
         {
-          OPENMS_LOG_ERROR << "Error code: " << mascot_error_regex.cap().toStdString() << std::endl;
+          OPENMS_LOG_ERROR << "Error code: " << match.captured().toStdString() << std::endl;
           error_message_ = response_text;
         }
         endRun_();

@@ -4,12 +4,11 @@ from FeatureMap cimport *
 from MSExperiment cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
-from FeatureFinder cimport *
 from DefaultParamHandler cimport *
 from TargetedExperiment cimport *
 from TransformationDescription cimport *
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>" namespace "OpenMS":
 
     cdef cppclass FeatureFinderAlgorithmMetaboIdent(DefaultParamHandler):
 
@@ -48,25 +47,25 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMe
         #
         #      ff.run(library, fm, path_to_file)
 
-        FeatureFinderAlgorithmMetaboIdent() nogil except +
+        FeatureFinderAlgorithmMetaboIdent() except + nogil 
 
-        void setMSData(MSExperiment & input) nogil except + #wrap-doc:Sets spectra
-        const MSExperiment& getMSData() nogil except + #wrap-doc:Returns spectra
+        void setMSData(MSExperiment & input) except + nogil  #wrap-doc:Sets spectra
+        const MSExperiment& getMSData() except + nogil  #wrap-doc:Returns spectra
 
-        void run(const libcpp_vector[ FeatureFinderMetaboIdentCompound ] metaboIdentTable, FeatureMap& features, String spectra_path) nogil except +
+        void run(const libcpp_vector[ FeatureFinderMetaboIdentCompound ] metaboIdentTable, FeatureMap& features, String spectra_path) except + nogil 
         # wrap-doc:
         #   Run feature extraction. spectra_path get's annotated as primaryMSRunPath in the resulting feature map.
 
-        MSExperiment& getChromatograms() nogil except + #wrap-doc:Retrieves chromatograms (empty if run was not executed)
+        MSExperiment& getChromatograms() except + nogil  #wrap-doc:Retrieves chromatograms (empty if run was not executed)
 
-        const TargetedExperiment& getLibrary () nogil except + #wrap-doc:Retrieves the assay library (e.g., to store as TraML, empty if run was not executed)
+        const TargetedExperiment& getLibrary () except + nogil  #wrap-doc:Retrieves the assay library (e.g., to store as TraML, empty if run was not executed)
         
-        const TransformationDescription& getTransformations() nogil except + #wrap-doc:Retrieves deviations between provided coordinates and extacted ones (e.g., to store as TrafoXML or for plotting)
+        const TransformationDescription& getTransformations() except + nogil  #wrap-doc:Retrieves deviations between provided coordinates and extacted ones (e.g., to store as TrafoXML or for plotting)
 
-        size_t getNShared() nogil except + #wrap-doc:Retrieves number of features with shared identifications
+        size_t getNShared() except + nogil  #wrap-doc:Retrieves number of features with shared identifications
 
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>" namespace "OpenMS::FeatureFinderAlgorithmMetaboIdent":
+cdef extern from "<OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>" namespace "OpenMS::FeatureFinderAlgorithmMetaboIdent":
 
     cdef cppclass FeatureFinderMetaboIdentCompound "OpenMS::FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound":
                 
@@ -76,7 +75,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMe
             libcpp_vector[ int ] charges,
             libcpp_vector[ double ] rts,
             libcpp_vector[ double ] rt_ranges,
-            libcpp_vector[ double ] iso_distrib) nogil except +
+            libcpp_vector[ double ] iso_distrib) except + nogil 
         # wrap-doc:
         #    Represents a compound in the in the FeatureFinderMetaboIdent library table.
         #    
@@ -89,49 +88,49 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMe
         #    :param rt_ranges: List of possible retention time ranges (window around RT), either one value or one per RT entry.
         #    :param iso_distrib: List of relative abundances of isotopologues; if zero calculated from formula.
 
-        String getName() nogil except + 
+        String getName() except + nogil  
         # wrap-doc:
         #    Gets the compound name.
         #    
         #    
         #    :rtype: str
 
-        String getFormula() nogil except +
+        String getFormula() except + nogil 
         # wrap-doc:
         #    Gets the compound chemical formula.
         #    
         #    
         #    :rtype: str
 
-        double getMass() nogil except +
+        double getMass() except + nogil 
         # wrap-doc:
         #    Gets the compound mass.
         #    
         #    
         #    :rtype: float 
 
-        libcpp_vector[ int ] getCharges() nogil except +
+        libcpp_vector[ int ] getCharges() except + nogil 
         # wrap-doc:
         #    Gets the compound charge states.
         #    
         #    
         #    :rtype: list of int
 
-        libcpp_vector[ double ] getRTs() nogil except +
+        libcpp_vector[ double ] getRTs() except + nogil 
         # wrap-doc:
         #    Gets the compound retention times.
         #    
         #    
         #    :rtype: list of float
 
-        libcpp_vector[ double ] getRTRanges() nogil except +
+        libcpp_vector[ double ] getRTRanges() except + nogil 
         # wrap-doc:
         #    Gets the compound retention time ranges.
         #    
         #    
         #    :rtype: list of float
 
-        libcpp_vector[ double ] getIsotopeDistribution() nogil except +
+        libcpp_vector[ double ] getIsotopeDistribution() except + nogil 
         # wrap-doc:
         #    Gets the compound isotopic distributions.
         #    

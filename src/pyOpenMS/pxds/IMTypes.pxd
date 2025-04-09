@@ -6,10 +6,10 @@ cdef extern from "<OpenMS/IONMOBILITY/IMTypes.h>" namespace "OpenMS":
 
     cdef cppclass IMTypes:
 
-      IMTypes() nogil except +
-      IMTypes(IMTypes &) nogil except + # compiler
-      IMFormat determineIMFormat(const MSExperiment& exp) nogil except +
-      IMFormat determineIMFormat(const MSSpectrum& spec) nogil except +
+      IMTypes() except + nogil 
+      IMTypes(IMTypes &) except + nogil  # compiler
+      IMFormat determineIMFormat(const MSExperiment& exp) except + nogil 
+      IMFormat determineIMFormat(const MSSpectrum& spec) except + nogil 
 
 cdef extern from "<OpenMS/IONMOBILITY/IMTypes.h>" namespace "OpenMS":
 
@@ -31,10 +31,10 @@ cdef extern from "<OpenMS/IONMOBILITY/IMTypes.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/IONMOBILITY/IMTypes.h>" namespace "OpenMS":
         
     # static fxn
-    DriftTimeUnit toDriftTimeUnit(const libcpp_string& dtu_string) nogil except + # wrap-attach:IMTypes
-    libcpp_string toString(const DriftTimeUnit value) nogil except + # wrap-attach:IMTypes
+    DriftTimeUnit toDriftTimeUnit(const libcpp_string& dtu_string) except + nogil  # wrap-attach:IMTypes
+    libcpp_string toString(const DriftTimeUnit value) except + nogil  # wrap-attach:IMTypes
 
-    IMFormat toIMFormat(const libcpp_string& IM_format) nogil except + # wrap-attach:IMTypes
-    libcpp_string toString(const IMFormat value) nogil except + # wrap-attach:IMTypes
+    IMFormat toIMFormat(const libcpp_string& IM_format) except + nogil  # wrap-attach:IMTypes
+    libcpp_string toString(const IMFormat value) except + nogil  # wrap-attach:IMTypes
 
 

@@ -14,8 +14,8 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OpenPepXLAlgorithm.h>" namespace "OpenMS
     cdef cppclass OpenPepXLAlgorithm(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler
-        OpenPepXLAlgorithm() nogil except +
-        OpenPepXLAlgorithm(OpenPepXLAlgorithm &) nogil except + # compiler
+        OpenPepXLAlgorithm() except + nogil 
+        OpenPepXLAlgorithm(OpenPepXLAlgorithm &) except + nogil  # compiler
 
         OpenPepXLAlgorithm_ExitCodes run(MSExperiment& unprocessed_spectra,
                                          ConsensusMap& cfeatures,
@@ -25,7 +25,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OpenPepXLAlgorithm.h>" namespace "OpenMS
                                          OPXL_PreprocessedPairSpectra& preprocessed_pair_spectra,
                                          libcpp_vector[libcpp_pair[ size_t, size_t ] ]& spectrum_pairs,
                                          libcpp_vector[ libcpp_vector[ CrossLinkSpectrumMatch ] ]& all_top_csms,
-                                         MSExperiment& spectra) nogil except +
+                                         MSExperiment& spectra) except + nogil 
             # wrap-doc:
                 #  Performs the main function of this class, the search for cross-linked peptides
                 #  

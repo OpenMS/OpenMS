@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
@@ -35,6 +9,9 @@
 #pragma once
 
 #include <OpenMS/KERNEL/MobilityPeak1D.h>
+#include <OpenMS/METADATA/MetaInfoDescription.h>
+#include <OpenMS/KERNEL/RangeManager.h>
+#include <OpenMS/METADATA/DataArrays.h>
 
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/RangeManager.h>
@@ -71,6 +48,15 @@ namespace OpenMS
     /// RangeManager
     using RangeManagerContainerType = RangeManagerContainer<RangeMobility, RangeIntensity>;
     using RangeManagerType = RangeManager<RangeMobility, RangeIntensity>;
+    /// Float data array vector type
+    typedef OpenMS::DataArrays::FloatDataArray FloatDataArray ;
+    typedef std::vector<FloatDataArray> FloatDataArrays;
+    /// String data array vector type
+    typedef OpenMS::DataArrays::StringDataArray StringDataArray ;
+    typedef std::vector<StringDataArray> StringDataArrays;
+    /// Integer data array vector type
+    typedef OpenMS::DataArrays::IntegerDataArray IntegerDataArray ;
+    typedef std::vector<IntegerDataArray> IntegerDataArrays;
     //@}
 
     ///@name Peak container iterator type definitions
@@ -256,8 +242,6 @@ namespace OpenMS
     // Docu in base class (RangeManager)
     void updateRanges() override;
 
-    ///@name Accessors for meta information
-    ///@{
     /// Returns the retention time (in seconds)
     double getRT() const noexcept
     {
@@ -288,6 +272,56 @@ namespace OpenMS
 
     //@}
 
+    /**
+      @name Peak data array methods
+
+      These methods are used to annotate each peak in a chromatogram with meta information.
+      It is an intermediate way between storing the information in the peak's MetaInfoInterface
+      and deriving a new peak type with members for this information.
+
+      These statements should help you chose which approach to use
+        - Access to meta info arrays is slower than to a member variable
+        - Access to meta info arrays is faster than to a %MetaInfoInterface
+        - Meta info arrays are stored when using mzML format for storing
+    */
+    ///@{
+    /// Returns a const reference to the float meta data arrays
+    const FloatDataArrays& getFloatDataArrays() const;
+
+    /// Returns a mutable reference to the float meta data arrays
+    FloatDataArrays& getFloatDataArrays();
+
+    /// Sets the float meta data arrays
+    void setFloatDataArrays(const FloatDataArrays& fda)
+    {
+      float_data_arrays_ = fda;
+    }
+
+    /// Returns a const reference to the string meta data arrays
+    const StringDataArrays& getStringDataArrays() const;
+
+    /// Returns a mutable reference to the string meta data arrays
+    StringDataArrays& getStringDataArrays();
+
+    /// Sets the string meta data arrays
+    void setStringDataArrays(const StringDataArrays& sda)
+    {
+      string_data_arrays_ = sda;
+    }
+
+    /// Returns a const reference to the integer meta data arrays
+    const IntegerDataArrays& getIntegerDataArrays() const;
+
+    /// Returns a mutable reference to the integer meta data arrays
+    IntegerDataArrays& getIntegerDataArrays();
+
+    /// Sets the integer meta data arrays
+    void setIntegerDataArrays(const IntegerDataArrays& ida)
+    {
+      integer_data_arrays_ = ida;
+    }
+
+    ///@}
 
     ///@name Sorting peaks
     //@{
@@ -375,7 +409,8 @@ namespace OpenMS
       @brief Search for the peak with highest intensity among the peaks near to a specific mobility given two +/- tolerance windows in Th
 
       @param mb The target mobility value
-      @param tolerance The non-negative tolerance applied to both sides of @p mb
+      @param tolerance_left The non-negative tolerance applied left of @p mb
+      @param tolerance_right The non-negative tolerance applied right of @p mb
 
       @return Returns the index of the peak or -1 if no peak present in tolerance window or if mobilogram is empty
 
@@ -542,6 +577,15 @@ namespace OpenMS
 
     /// Drift time unit
     DriftTimeUnit drift_time_unit_ = DriftTimeUnit::NONE;
+
+    /// Float data arrays
+    FloatDataArrays float_data_arrays_;
+
+    /// String data arrays
+    StringDataArrays string_data_arrays_;
+
+    /// Integer data arrays
+    IntegerDataArrays integer_data_arrays_;
   };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Mobilogram& mb);

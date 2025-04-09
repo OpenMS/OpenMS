@@ -1,8 +1,8 @@
 # --------------------------------------------------------------------------
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# Copyright OpenMS Inc. -- Eberhard Karls University Tuebingen,
+# ETH Zurich, and Freie Universitaet Berlin 2002-present.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -63,6 +63,7 @@ add_dependencies(VISUAL_TEST ${visual_executables_list})
 foreach(_class_test ${visual_executables_list})
   add_executable(${_class_test} source/${_class_test}.cpp)
   target_link_libraries(${_class_test} ${OpenMS_GUI_LIBRARIES})
+  openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
 endforeach(_class_test)
 
@@ -80,10 +81,10 @@ if(HAS_XSERVER)
   #------------------------------------------------------------------------------
   # Use QtTest lib
 
-  find_package(Qt5 REQUIRED
+  find_package(Qt6 REQUIRED
     Test
   )
-  if (NOT Qt5Test_FOUND)
+  if (NOT Qt6Test_FOUND)
     message(STATUS "QtTest module not found!")
     message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
   endif()
@@ -96,7 +97,7 @@ if(HAS_XSERVER)
     # add headers
     target_include_directories(${_gui_test} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/GUI)
     # link against openms_gui and qt
-    target_link_libraries(${_gui_test} ${OpenMS_GUI_LIBRARIES} ${QT_LIBRARIES} Qt5::Test)
+    target_link_libraries(${_gui_test} ${OpenMS_GUI_LIBRARIES} ${QT_LIBRARIES} Qt6::Test)
     # add the test
     add_test(${_gui_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_gui_test})
   endforeach(_gui_test)

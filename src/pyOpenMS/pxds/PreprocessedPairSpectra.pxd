@@ -5,8 +5,8 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::O
 
     cdef cppclass OPXL_PreprocessedPairSpectra "OpenMS::OPXLDataStructs::PreprocessedPairSpectra":
 
-        OPXL_PreprocessedPairSpectra(Size size) nogil except +
-        OPXL_PreprocessedPairSpectra(OPXL_PreprocessedPairSpectra &) nogil except +
+        OPXL_PreprocessedPairSpectra(Size size) except + nogil 
+        OPXL_PreprocessedPairSpectra(OPXL_PreprocessedPairSpectra &) except + nogil 
 
         MSExperiment spectra_linear_peaks
         MSExperiment spectra_xlink_peaks

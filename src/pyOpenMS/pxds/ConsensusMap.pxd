@@ -27,8 +27,8 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMa
         Size size
         UInt64 unique_id
 
-        ColumnHeader() nogil except +
-        ColumnHeader(ColumnHeader &) nogil except +
+        ColumnHeader() except + nogil 
+        ColumnHeader(ColumnHeader &) except + nogil 
 
     # for msvc++ compiler, see addons/ConsensusMap.pyx
     # ... forgot why Map[..] did not work
@@ -60,71 +60,71 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         #  
         #  This class supports direct iteration in Python.
 
-        ConsensusMap() nogil except +
-        ConsensusMap(ConsensusMap &) nogil except +
+        ConsensusMap() except + nogil 
+        ConsensusMap(ConsensusMap &) except + nogil 
 
-        bool operator==(ConsensusMap) nogil except +
-        bool operator!=(ConsensusMap) nogil except +
+        bool operator==(ConsensusMap) except + nogil 
+        bool operator!=(ConsensusMap) except + nogil 
 
-        int size() nogil except +
-        bool empty() nogil except +
-        void reserve(Size s) nogil except +
-        ConsensusFeature & operator[](size_t) nogil except + #wrap-upper-limit:size()
-        void push_back(ConsensusFeature spec) nogil except +
+        int size() except + nogil 
+        bool empty() except + nogil 
+        void reserve(Size s) except + nogil 
+        ConsensusFeature & operator[](size_t) except + nogil  #wrap-upper-limit:size()
+        void push_back(ConsensusFeature spec) except + nogil 
 
-        ConsensusMap appendRows(ConsensusMap) nogil except + # wrap-doc:Add consensus map entries as new rows
-        ConsensusMap appendColumns(ConsensusMap) nogil except + # wrap-doc:Add consensus map entries as new columns
+        ConsensusMap appendRows(ConsensusMap) except + nogil  # wrap-doc:Add consensus map entries as new rows
+        ConsensusMap appendColumns(ConsensusMap) except + nogil  # wrap-doc:Add consensus map entries as new columns
 
-        void clear(bool clear_meta_data) nogil except + # wrap-doc:Clears all data and meta data
-        void clear() nogil except +
+        void clear(bool clear_meta_data) except + nogil  # wrap-doc:Clears all data and meta data
+        void clear() except + nogil 
 
-        void updateRanges() nogil except +
+        void updateRanges() except + nogil 
 
         libcpp_vector[ProteinIdentification] getProteinIdentifications(
-                ) nogil except + # TODO
+                ) except + nogil  # TODO
 
         void setProteinIdentifications(
                 libcpp_vector[ProteinIdentification]
-                ) nogil except + # wrap-doc:Sets the protein identifications
+                ) except + nogil  # wrap-doc:Sets the protein identifications
 
         libcpp_vector[PeptideIdentification]\
-                getUnassignedPeptideIdentifications() nogil except + # TODO
+                getUnassignedPeptideIdentifications() except + nogil  # TODO
 
         void setUnassignedPeptideIdentifications(
                 libcpp_vector[PeptideIdentification]
-                ) nogil except + # wrap-doc:Sets the unassigned peptide identifications
+                ) except + nogil  # wrap-doc:Sets the unassigned peptide identifications
 
-        libcpp_vector[DataProcessing] getDataProcessing() nogil except + # wrap-doc:Returns a const reference to the description of the applied data processing
-        void setDataProcessing(libcpp_vector[DataProcessing])   nogil except + # wrap-doc:Sets the description of the applied data processing
+        libcpp_vector[DataProcessing] getDataProcessing() except + nogil  # wrap-doc:Returns a const reference to the description of the applied data processing
+        void setDataProcessing(libcpp_vector[DataProcessing])   except + nogil  # wrap-doc:Sets the description of the applied data processing
 
-        void setPrimaryMSRunPath(StringList& s) nogil except + # wrap-doc:Sets the file paths to the primary MS run (stored in ColumnHeaders)
-        void setPrimaryMSRunPath(StringList& s, MSExperiment& e) nogil except +
-        void getPrimaryMSRunPath(StringList& toFill) nogil except + # wrap-doc:Returns the MS run path (stored in ColumnHeaders)
+        void setPrimaryMSRunPath(StringList& s) except + nogil  # wrap-doc:Sets the file paths to the primary MS run (stored in ColumnHeaders)
+        void setPrimaryMSRunPath(StringList& s, MSExperiment& e) except + nogil 
+        void getPrimaryMSRunPath(StringList& toFill) except + nogil  # wrap-doc:Returns the MS run path (stored in ColumnHeaders)
 
         libcpp_vector[ConsensusFeature].iterator begin(
-                ) nogil except + # wrap-iter-begin:__iter__(ConsensusFeature)
+                ) except + nogil  # wrap-iter-begin:__iter__(ConsensusFeature)
         libcpp_vector[ConsensusFeature].iterator end(
-                ) nogil except + # wrap-iter-end:__iter__(ConsensusFeature)
+                ) except + nogil  # wrap-iter-end:__iter__(ConsensusFeature)
 
         # wrapped in ../addons/ConsensusMap.pyx:
-        void applyMemberFunction(Size(* fun)()) nogil except + # wrap-ignore
+        void applyMemberFunction(Size(* fun)()) except + nogil  # wrap-ignore
 
-        void sortByIntensity(bool reverse) nogil except + # wrap-doc:Sorts the peaks according to ascending intensity.
-        void sortByIntensity() nogil except +
-        void sortByRT() nogil except + # wrap-doc:Sorts the peaks according to RT position
-        void sortByMZ() nogil except + # wrap-doc:Sorts the peaks according to m/z position
-        void sortByPosition() nogil except + # wrap-doc:Lexicographically sorts the peaks by their position (First RT then m/z)
-        void sortByQuality(bool reverse) nogil except + # wrap-doc:Sorts the peaks according to ascending quality.
-        void sortByQuality() nogil except +
-        void sortBySize() nogil except + # wrap-doc:Sorts with respect to the size (number of elements)
-        void sortByMaps() nogil except + # wrap-doc:Sorts with respect to the sets of maps covered by the consensus features (lexicographically)
+        void sortByIntensity(bool reverse) except + nogil  # wrap-doc:Sorts the peaks according to ascending intensity.
+        void sortByIntensity() except + nogil 
+        void sortByRT() except + nogil  # wrap-doc:Sorts the peaks according to RT position
+        void sortByMZ() except + nogil  # wrap-doc:Sorts the peaks according to m/z position
+        void sortByPosition() except + nogil  # wrap-doc:Lexicographically sorts the peaks by their position (First RT then m/z)
+        void sortByQuality(bool reverse) except + nogil  # wrap-doc:Sorts the peaks according to ascending quality.
+        void sortByQuality() except + nogil 
+        void sortBySize() except + nogil  # wrap-doc:Sorts with respect to the size (number of elements)
+        void sortByMaps() except + nogil  # wrap-doc:Sorts with respect to the sets of maps covered by the consensus features (lexicographically)
 
         # wrapped in ../addons/ConsensusMap.pyx:
         void setColumnHeaders(ColumnHeaders &)   #wrap-ignore
         ColumnHeaders & getColumnHeaders()       #wrap-ignore
 
-        String getExperimentType() nogil except + # wrap-doc:Non-mutable access to the experiment type
-        void setExperimentType(String experiment_type) nogil except + # wrap-doc:Mutable access to the experiment type
+        String getExperimentType() except + nogil  # wrap-doc:Non-mutable access to the experiment type
+        void setExperimentType(String experiment_type) except + nogil  # wrap-doc:Mutable access to the experiment type
 
-        void sortPeptideIdentificationsByMapIndex() nogil except + # wrap-doc:Sorts PeptideIdentifications of consensus features with respect to their map index.
+        void sortPeptideIdentificationsByMapIndex() except + nogil  # wrap-doc:Sorts PeptideIdentifications of consensus features with respect to their map index.
 

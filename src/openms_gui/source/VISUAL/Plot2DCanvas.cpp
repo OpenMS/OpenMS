@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -39,7 +13,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/DIALOGS/FeatureEditDialog.h>
@@ -532,17 +506,9 @@ namespace OpenMS
     painter.begin(this);
 
     // copy peak data from buffer
-     /*
-         * Suppressed warning QVector<QRect> QRegion::rects() const is deprecated
-         * Use begin()/end() instead, from Qt 5.8
-         */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    QVector<QRect> rects = e->region().rects();
-#pragma GCC diagnostic pop
-    for (int i = 0; i < (int)rects.size(); ++i)
+    for (const auto& rect : e->region())
     {
-      painter.drawImage(rects[i].topLeft(), buffer_, rects[i]);
+      painter.drawImage(rect.topLeft(), buffer_, rect);
     }
 
     // draw measurement peak
@@ -606,6 +572,14 @@ namespace OpenMS
     QStringList lines;
     lines << unit_mapper_.getDim(DIM::X).formattedValue(xy_point.getX()).toQString();
     lines << unit_mapper_.getDim(DIM::Y).formattedValue(xy_point.getY()).toQString();
+    if (unit_mapper_.getDim(DIM::X).getUnit() != DIM_UNIT::INT && unit_mapper_.getDim(DIM::Y).getUnit() != DIM_UNIT::INT)
+    { // if intensity is not mapped to X or Y, add it
+      // Note: it may be cleaner to hoist this function into the derived classes of Painter2D, 
+      //       if the logic here depends on the actual Layer type (currently, 'INT' should work fine for all).
+      DimMapper<2> int_mapper({DIM_UNIT::INT, DIM_UNIT::INT});
+      const auto int_point = getCurrentLayer().peakIndexToXY(peak, int_mapper);
+      lines << int_mapper.getDim(DIM::X).formattedValue(int_point.getX()).toQString();
+    }
     drawText_(painter, lines);
   }
 
@@ -884,19 +858,20 @@ namespace OpenMS
     context_menu->addAction(layer_name.toQString())->setEnabled(false);
     context_menu->addSeparator();
 
-    context_menu->addAction("Layer meta data");
+    context_menu->addAction("Layer meta data", [&]() { showMetaData(true); });
 
     QMenu * settings_menu = new QMenu("Settings");
     settings_menu->addAction("Show/hide grid lines");
     settings_menu->addAction("Show/hide axis legends");
     context_menu->addSeparator();
 
-    context_menu->addAction("Switch to 3D view");
+    context_menu->addAction("Switch to 3D view", [&]() { emit showCurrentPeaksAs3D(); });
 
     const RangeType e_units = [&](){ // mouse position in units
       RangeType r;
       unit_mapper_.fromXY(widgetToData_(e->pos()), r);
-      return r; }();
+      return r;
+    }();
 
     // a small 10x10 pixel area around the current mouse position
     auto check_area = visible_area_.cloneWith({widgetToData_(e->pos() - QPoint(10, 10)), widgetToData_(e->pos() + QPoint(10, 10))}).getAreaUnit();
@@ -913,9 +888,9 @@ namespace OpenMS
       //find nearest survey scan
       SignedSize size = lp->getPeakData()->size();
       Int current = lp->getPeakData()->RTBegin(e_units.getMinRT()) - lp->getPeakData()->begin();
-      if (current == size)  // if only one element is present RTBegin points to one after the last element (see RTBegin implementation)
+      if (current == size)  // if the user clicked right of the last MS1 scan
       {
-        current = 0;
+        current = std::max(SignedSize{0}, size - 1); // we want the rightmost valid scan index
       }
 
       SignedSize i = 0;
@@ -933,7 +908,7 @@ namespace OpenMS
         }
         ++i;
       }
-      //search for four scans in both directions
+      // search for four scans in both directions
       vector<Int> indices;
       indices.push_back(current);
       i = 1;
@@ -998,7 +973,7 @@ namespace OpenMS
         // risk of iterating through *all* the scans.
         check_area.RangeMZ::extend((RangeMZ)visible_area_.getAreaUnit());
         const auto& specs = lp->getPeakData()->getSpectra();
-        check_area.RangeRT::operator=({specs[indices.back()].getRT(), specs[indices.front()].getRT()});
+        check_area.RangeRT::operator=(RangeRT(specs[indices.back()].getRT(), specs[indices.front()].getRT()));
         item_added = collectFragmentScansInArea_(check_area, a, msn_scans, msn_meta);
 
         if (!item_added)
@@ -1012,6 +987,14 @@ namespace OpenMS
         context_menu->addMenu(msn_meta);
         context_menu->addSeparator();
       }
+      
+      auto it_closest_MS = lp->getPeakData()->getClosestSpectrumInRT(e_units.getMinRT());
+      if (it_closest_MS->containsIMData())
+      {
+        context_menu->addAction(("Switch to ion mobility view (MSLevel: " + String(it_closest_MS->getMSLevel()) + ";RT: " + String(it_closest_MS->getRT(), false) + ")").c_str(),
+                                [&]() {emit showCurrentPeaksAsIonMobility(*it_closest_MS); });
+      }
+
 
       finishContextMenu_(context_menu, settings_menu);
 
@@ -1031,7 +1014,7 @@ namespace OpenMS
     //-------------------FEATURES----------------------------------
     else if (auto* lf = dynamic_cast<const LayerDataFeature*>(&layer))
     {
-      //add settings
+      // add settings
       settings_menu->addSeparator();
       settings_menu->addAction("Show/hide convex hull");
       settings_menu->addAction("Show/hide trace convex hulls");
@@ -1046,11 +1029,12 @@ namespace OpenMS
       {
         if (check_area.containsMZ(it->getMZ()) && check_area.containsRT(it->getRT()))
         {
-          a = meta->addAction(QString("RT: ") + QString::number(it->getRT()) + "  m/z:" + QString::number(it->getMZ()) + "  charge:" + QString::number(it->getCharge()));
+          a = meta->addAction(QString("RT: ") + QString::number(it->getRT()) + "  m/z:" + QString::number(it->getMZ())
+                              + "  charge:" + QString::number(it->getCharge()));
           a->setData((int)(it - features.begin()));
         }
       }
-      if (!meta->actions().empty())
+      if (! meta->actions().empty())
       {
         context_menu->addMenu(meta);
         context_menu->addSeparator();
@@ -1058,7 +1042,7 @@ namespace OpenMS
 
       // add modifiable flag
       settings_menu->addSeparator();
-      settings_menu->addAction("Toggle edit/view mode");
+      settings_menu->addAction("Toggle edit/view mode", [&]() { getCurrentLayer().modifiable = ! getCurrentLayer().modifiable; });
 
       finishContextMenu_(context_menu, settings_menu);
 
@@ -1076,7 +1060,7 @@ namespace OpenMS
     {
       // add settings
       settings_menu->addSeparator();
-      settings_menu->addAction("Show/hide elements");
+      settings_menu->addAction("Show/hide elements", [&]() { setLayerFlag(LayerDataBase::C_ELEMENTS, ! getLayerFlag(LayerDataBase::C_ELEMENTS)); });
 
       // search for nearby features
       QMenu* consens_meta = new QMenu("Consensus meta data");
@@ -1191,7 +1175,7 @@ namespace OpenMS
           if (result->text() == "Show all")
           {
             std::vector<int> chrom_indices;
-            for (const auto var : result->data().toList())
+            for (const auto& var : result->data().toList())
             {
               chrom_indices.push_back(var.toInt());
               cout << "chrom_indices: " << var.toInt() << std::endl;
@@ -1265,22 +1249,7 @@ namespace OpenMS
           getCurrentLayer().label = LayerDataBase::L_NONE;
         }
       }
-      else if (result->text() == "Toggle edit/view mode")
-      {
-        getCurrentLayer().modifiable = !getCurrentLayer().modifiable;
-      }
-      else if (result->text() == "Show/hide elements")
-      {
-        setLayerFlag(LayerDataBase::C_ELEMENTS, !getLayerFlag(LayerDataBase::C_ELEMENTS));
-      }
-      else if (result->text() == "Layer meta data")
-      {
-        showMetaData(true);
-      }
-      else if (result->text() == "Switch to 3D view")
-      {
-        emit showCurrentPeaksAs3D();
-      }
+
     }
 
     e->accept();

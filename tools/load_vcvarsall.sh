@@ -1,4 +1,8 @@
-# You can source it or add this to your ~/.bashrc for example
+# This is a script for creating a "Visual Studio Command Line" in (git) bash on Windows
+# It basically invokes the corresponding vcvarsall.bat (that is also called when opening a VS Command Line)
+# and copies all the environment variables from it.
+
+# You can source it or add this function to your ~/.bashrc for example
 
 # call load_msenv [year] from a shell to load the x64 enviroment for the corresponding VS year.
 # it will cache the variables in $HOME/.msenv${msversion_year}_bash. Delete it if you want to reload.

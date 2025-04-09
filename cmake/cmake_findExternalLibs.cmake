@@ -1,8 +1,8 @@
 # --------------------------------------------------------------------------
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+# Copyright OpenMS Inc. -- Eberhard Karls University Tuebingen,
+# ETH Zurich, and Freie Universitaet Berlin 2002-present.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -54,9 +54,50 @@ find_boost(iostreams ${OpenMS_BOOST_COMPONENTS})
 if(Boost_FOUND)
   message(STATUS "Found Boost version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}" )
   set(CF_OPENMS_BOOST_VERSION_MAJOR ${Boost_MAJOR_VERSION})
-	set(CF_OPENMS_BOOST_VERSION_MINOR ${Boost_MINOR_VERSION})
+  set(CF_OPENMS_BOOST_VERSION_MINOR ${Boost_MINOR_VERSION})
   set(CF_OPENMS_BOOST_VERSION_SUBMINOR ${Boost_SUBMINOR_VERSION})
-	set(CF_OPENMS_BOOST_VERSION ${Boost_VERSION})
+  set(CF_OPENMS_BOOST_VERSION ${Boost_VERSION})
+
+  get_target_property(location Boost::iostreams LOCATION)
+  get_target_property(target_type Boost::iostreams TYPE)
+  if (target_type STREQUAL "STATIC_LIBRARY" AND location MATCHES "^/usr/local/")
+    message(WARNING "Statically linked Boost from system installations like brew, are not fully supported yet.
+Either use '-DBOOST_USE_STATIC=OFF' to use the shared library or build boost with our contrib. Nonetheless,
+we are going to try to continue building.")
+    get_target_property(libs Boost::iostreams INTERFACE_LINK_LIBRARIES)
+    # If boost from brew, replace simple "link flags" like "-lzstd" with
+    # find_package calls and their resulting imported targets
+    # since boost CMake does not expose this transitive dependency as targets!
+    # see https://github.com/boostorg/boost_install/issues/64
+    foreach (lib ${libs})
+      if (lib MATCHES "zstd")
+        find_package(zstd)
+      elseif (lib MATCHES "lzma")
+        find_package(LibLZMA)
+      endif()
+    endforeach ()
+    ##
+    set_target_properties(Boost::iostreams
+          PROPERTIES INTERFACE_LINK_LIBRARIES "BZip2::BZip2;ZLIB::ZLIB;zstd::libzstd_shared;LibLZMA::LibLZMA")
+  endif()
+
+  get_target_property(location Boost::regex LOCATION)
+  get_target_property(target_type Boost::regex TYPE)
+  if (target_type STREQUAL "STATIC_LIBRARY" AND location MATCHES "^/usr/local/")
+    get_target_property(libs Boost::regex INTERFACE_LINK_LIBRARIES)
+    # If boost from brew, replace simple "link flags" like "-lzstd" with
+    # find_package calls and their resulting imported targets
+    # since boost CMake does not expose this transitive dependency as targets!
+    # see https://github.com/boostorg/boost_install/issues/64
+    foreach (lib ${libs})
+      if (lib MATCHES "icui18n")
+        find_package(ICU COMPONENTS "data" "uc" "i18n")
+      endif()
+    endforeach ()
+    ##
+    set_target_properties(Boost::regex
+            PROPERTIES INTERFACE_LINK_LIBRARIES "ICU::data;ICU:uc;ICU::i18n")
+  endif()
 else()
   message(FATAL_ERROR "Boost or one of its components not found!")
 endif()
@@ -76,7 +117,7 @@ endif()
 # Our find module creates an imported CoinOR::CoinOR target
 find_package(COIN)
 if (COIN_FOUND)
-  set(CF_USECOINOR 1)
+  set(OPENMS_HAS_COINOR 1)
   set(LPTARGET "CoinOR::CoinOR")
 else()
   #------------------------------------------------------------------------------
@@ -105,8 +146,10 @@ find_package(BZip2 REQUIRED)
 #------------------------------------------------------------------------------
 # Find eigen3
 # creates Eigen3::Eigen3 package
-find_package(Eigen3 3.3.4 REQUIRED)
-
+find_package(Eigen3 3.4.0 REQUIRED)
+if(TARGET Eigen3::Eigen)
+    message(STATUS "Eigen version found: ${Eigen3_VERSION}")
+endif(TARGET Eigen3::Eigen)
 
 #------------------------------------------------------------------------------
 # Find Crawdad libraries if requested
@@ -123,11 +166,13 @@ endif()
 
 #------------------------------------------------------------------------------
 # HDF5
-# For MSVC use static linking to the HDF5 libraries
-if(MSVC)
-  set(HDF5_USE_STATIC_LIBRARIES ON)
+if (WITH_HDF5)
+  # For MSVC use static linking to the HDF5 libraries
+  if(MSVC)
+    set(HDF5_USE_STATIC_LIBRARIES ON)
+  endif()
+  find_package(HDF5 MODULE REQUIRED COMPONENTS C CXX)
 endif()
-find_package(HDF5 MODULE REQUIRED COMPONENTS C CXX)
 
 #------------------------------------------------------------------------------
 # Done finding contrib libraries
@@ -141,27 +186,27 @@ endif()
 #------------------------------------------------------------------------------
 # QT
 #------------------------------------------------------------------------------
-SET(QT_MIN_VERSION "5.6.0")
+SET(QT_MIN_VERSION "6.1.0")
 
 # find qt
-set(OpenMS_QT_COMPONENTS Core Network Sql CACHE INTERNAL "QT components for core lib")
-find_package(Qt5 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
+set(OpenMS_QT_COMPONENTS Core Network CACHE INTERNAL "QT components for core lib")
+find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 
-IF (NOT Qt5Core_FOUND)
-  message(STATUS "QT5Core not found!")
-  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
+IF (NOT Qt6Core_FOUND)
+  message(STATUS "Qt6Core not found!")
+  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt6Libs>' <src-dir>")
 ELSE()
-  message(STATUS "Found Qt ${Qt5Core_VERSION}")
+  message(STATUS "Found Qt ${Qt6Core_VERSION}")
 ENDIF()
 
-# see https://github.com/ethereum/solidity/issues/4124
-if("${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}" VERSION_LESS "1.59")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_VARIANT_USE_RELAXED_GET_BY_DEFAULT")
-endif()
 
 #------------------------------------------------------------------------------
 # PTHREAD
 #------------------------------------------------------------------------------
+# Prefer the -pthread compiler flag to be consistent with SQLiteCpp and avoid
+# rebuilds
+# TODO Do we even need this, when OpenMP is not active?
+set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
 
 
@@ -169,7 +214,7 @@ if (WITH_GUI)
   # --------------------------------------------------------------------------
   # Find additional Qt libs
   #---------------------------------------------------------------------------
-  set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Svg)
+  set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Svg OpenGLWidgets)
 
   # On macOS the platform plugin of QT requires PrintSupport. We link
   # so it's packaged via the bundling/dependency tools/scripts
@@ -179,34 +224,34 @@ if (WITH_GUI)
 
   set(OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} CACHE INTERNAL "QT components for GUI lib")
 
-  set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
+  if(NOT NO_WEBENGINE_WIDGETS)
+    set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
+  endif()
 
-  find_package(Qt5 REQUIRED COMPONENTS ${OpenMS_GUI_QT_COMPONENTS})
+  find_package(Qt6 REQUIRED COMPONENTS ${OpenMS_GUI_QT_COMPONENTS})
 
-  IF (NOT Qt5Widgets_FOUND OR NOT Qt5Gui_FOUND OR NOT Qt5Svg_FOUND)
-    message(STATUS "Qt5Widgets not found!")
-    message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
+  IF (NOT Qt6Widgets_FOUND OR NOT Qt6Gui_FOUND OR NOT Qt6Svg_FOUND)
+    message(STATUS "Qt6Widgets not found!")
+    message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt6Libs>' <src-dir>")
   ENDIF()
-
-  find_package(Qt5 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
+  find_package(Qt6 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
 
   # TODO only works if WebEngineWidgets is the only optional component
   set(OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
-  if(Qt5WebEngineWidgets_FOUND)
+  if(Qt6WebEngineWidgets_FOUND)
     list(APPEND OpenMS_GUI_QT_FOUND_COMPONENTS_OPT "WebEngineWidgets")
   else()
-    message(WARNING "Qt5WebEngineWidgets not found, disabling JS Views in TOPPView!")
+    message(WARNING "Qt6WebEngineWidgets not found or disabled, disabling JS Views in TOPPView!")
   endif()
-    
 
   set(OpenMS_GUI_DEP_LIBRARIES "OpenMS")
 
   foreach(COMP IN LISTS OpenMS_GUI_QT_COMPONENTS)
-    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt5::${COMP}")
+    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt6::${COMP}")
   endforeach()
 
   foreach(COMP IN LISTS OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
-    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt5::${COMP}")
+    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt6::${COMP}")
   endforeach()
 
 endif()

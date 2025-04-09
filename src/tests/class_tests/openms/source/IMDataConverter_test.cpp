@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
@@ -118,15 +92,22 @@ END_SECTION
 
 
 MSSpectrum frame;
-frame.push_back({1.0, 29.0f});
-frame.push_back({2.0, 60.0f});
-frame.push_back({3.0, 34.0f});
-frame.push_back({4.0, 29.0f});
-frame.push_back({5.0, 37.0f});
-frame.push_back({6.0, 31.0f});
+frame.push_back({1.0, 11.0f});
+frame.push_back({1.0 + Math::ppmToMass(4.0, 1.0), 12.0f}); // should merge with the one above
+frame.push_back({1.2, 13.0f});
+frame.push_back({2.0, 20.0f});
+frame.push_back({3.0 - Math::ppmToMass(3.0, 3.0), 32.0f}); // should merge with the one below
+frame.push_back({3.0, 31.0f});
+
+frame.push_back({4.0, 40.0f});
+
+frame.push_back({5.0, 50.0f});
+frame.push_back({6.0, 60.0f});
+frame.push_back({7.0, 70.0f});
 frame.setRT(1);
 MSSpectrum::FloatDataArray& afa = frame.getFloatDataArrays().emplace_back();
-afa.assign({1.1, 2.2, 3.3, 3.3, 5.5, 6.6});
+//           <---------- bin 1 ----------->   < bin 2 >  < -- bin 3 --->
+afa.assign({1.1, 1.11, 1.11, 2.2, 3.2, 3.22,    4.4,      5.6, 6.6, 7.7});
 IMDataConverter::setIMUnit(afa, DriftTimeUnit::MILLISECOND);
 
 MSSpectrum spec;
@@ -136,64 +117,73 @@ spec.push_back({333.0, -3.0f});
 spec.setRT(2); // just a spectrum with RT = 2
 
 
-START_SECTION(static MSExperiment splitByIonMobility(MSSpectrum im_frame, UInt number_of_bins = -1))
+START_SECTION(static MSExperiment reshapeIMFrameToMany(MSSpectrum im_frame))
+{
+  // not am IM frame:
+  TEST_EXCEPTION(Exception::MissingInformation, IMDataConverter::reshapeIMFrameToMany(spec))
 	
-TEST_EXCEPTION(Exception::MissingInformation, IMDataConverter::splitByIonMobility(spec))
-	{
-		auto exp = IMDataConverter::splitByIonMobility(frame);
-		TEST_EQUAL(exp.size(), 5);
+  {
+		auto exp = IMDataConverter::reshapeIMFrameToMany(frame);
+		TEST_EQUAL(exp.size(), 9); // nine different IM-values
 		TEST_EQUAL(exp[0].size(), 1);
-		TEST_EQUAL(exp[2].size(), 2);
-		TEST_EQUAL(exp[0][0].getIntensity(), 29.0f);
+    TEST_EQUAL(exp[1].size(), 2);
+    TEST_EQUAL(exp[1][0].getIntensity(), 12.0f);
+    TEST_EQUAL(exp[1][1].getIntensity(), 13.0f);
 
 		TEST_EQUAL(exp[0].getDriftTime(), 1.1f);
-		TEST_EQUAL(exp[0].getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true);
+		TEST_TRUE(exp[0].getDriftTimeUnit() == DriftTimeUnit::MILLISECOND);
 		TEST_EQUAL(exp[0].getRT(), 1);
+    TEST_EQUAL(exp[1].getDriftTime(), 1.11f);
+    TEST_EQUAL(exp[8].getDriftTime(), 7.7f);
+    TEST_TRUE(exp.isIMFrame());
 
-		auto frame_reconstruct = IMDataConverter::collapseFramesToSingle(exp);
+		auto frame_reconstruct = IMDataConverter::reshapeIMFrameToSingle(exp);
 		TEST_EQUAL(frame_reconstruct.size(), 1)
 		TEST_EQUAL(frame_reconstruct[0], frame);
 	}
-  {
-		auto exp_binned = IMDataConverter::splitByIonMobility(frame, 1);
-		TEST_EQUAL(exp_binned.size(), 1);
-		TEST_EQUAL(exp_binned[0].size(), frame.size());
-		TEST_EQUAL(exp_binned[0][0].getIntensity(), 29.0f);
-		TEST_REAL_SIMILAR(exp_binned[0].getDriftTime(), (6.6-1.1)/2 + 1.1);
-		TEST_EQUAL(exp_binned[0].getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true);
-		TEST_EQUAL(exp_binned[0].getRT(), 1);
-	}
+}
 END_SECTION
 
-START_SECTION(static MSExperiment splitByIonMobility(MSExperiment&& in, UInt number_of_bins = -1))
+START_SECTION((static std::tuple<std::vector<MSExperiment>, Math::BinContainer> splitExperimentByIonMobility(MSExperiment&& in, UInt number_of_IM_bins, double bin_extension_abs, double mz_binning_width, MZ_UNITS mz_binning_width_unit)))
+{
 	MSExperiment e_in;
 	e_in.addSpectrum(frame);
-  e_in.addSpectrum(spec); // just copy it...
-  auto frame3 = frame;
-  frame3.setRT(3);
-  e_in.addSpectrum(frame3);
+  auto frame2 = frame; // a second frame so we can test if two RT's show up in the result
+  frame2.setRT(3);
+  e_in.addSpectrum(frame2);
   
-	auto exp = IMDataConverter::splitByIonMobility(std::move(e_in));
-	TEST_EQUAL(exp.size(), 5+1+5);
-	TEST_EQUAL(exp[0].size(), 1);
-	TEST_EQUAL(exp[2].size(), 2);
-	TEST_EQUAL(exp[0][0].getIntensity(), 29.0f);
-  TEST_EQUAL(exp[0].getDriftTime(), 1.1f);
-  TEST_EQUAL(exp[0].getDriftTimeUnit() == DriftTimeUnit::MILLISECOND, true);
-  TEST_EQUAL(exp[0].getRT(), 1);
-  
-	TEST_EQUAL(exp[5], spec); // copied
-
-	TEST_EQUAL(exp[6].getRT(), 3);					  
-
-	auto frame_reconstruct = IMDataConverter::collapseFramesToSingle(exp);
-	TEST_EQUAL(frame_reconstruct.size(), 3)
-	TEST_EQUAL(frame_reconstruct[0] == frame, true);
-  TEST_EQUAL(frame_reconstruct[1] == spec, true);
-  TEST_EQUAL(frame_reconstruct[2] == frame3, true);
+  // IM-range is 7.7-1.1 = 6.6
+  // --> each bin is 2.2 wide
+	const auto [exp_slices, bin_values] = IMDataConverter::splitExperimentByIonMobility(std::move(e_in), 3, 0.0, 5.0, MZ_UNITS::PPM);
+  const auto ranges = Math::BinContainer { {1.1, 3.3},  {3.3, 5.5},  {5.5, 7.7}};
+  for (int i = 0; i < 3; ++i)
+  {
+    TEST_REAL_SIMILAR(bin_values[i].getMin(), ranges[i].getMin());
+    TEST_REAL_SIMILAR(bin_values[i].getMax(), ranges[i].getMax());
+  }
+  TEST_EQUAL(exp_slices.size(), 3);
+  const auto& exp11 = exp_slices[0];
+  const auto& exp33 = exp_slices[1];
+  const auto& exp55 = exp_slices[2];
+  TEST_EQUAL(exp11[0].size(), 4);
+  TEST_EQUAL(exp33[0].size(), 1);
+  TEST_EQUAL(exp55[0].size(), 3);
+  TEST_EQUAL(exp11[1].size(), 4); // second frame. Identical to first frame
+  TEST_EQUAL(exp33[1].size(), 1);
+  TEST_EQUAL(exp55[1].size(), 3);
+  TEST_EQUAL(exp11[0][0].getIntensity(), 11+12);
+  TEST_REAL_SIMILAR(exp11[0].getDriftTime(), 2.2f); // center of bin 1.1-3.3
+  TEST_TRUE(exp11[0].getDriftTimeUnit() == DriftTimeUnit::MILLISECOND);
+  TEST_EQUAL(exp11[0].getRT(), 1);
+  TEST_EQUAL(exp11[1].getRT(), 3);
+  TEST_EQUAL(exp33[0].getRT(), 1);
+  TEST_EQUAL(exp33[1].getRT(), 3);
+  TEST_EQUAL(exp55[0].getRT(), 1);
+  TEST_EQUAL(exp55[1].getRT(), 3);
+}
 END_SECTION
 
-START_SECTION(static MSExperiment collapseFramesToSingle(const MSExperiment& in))
+START_SECTION(static MSExperiment reshapeIMFrameToSingle(const MSExperiment& in))
 	NOT_TESTABLE // tested_above
 END_SECTION
 

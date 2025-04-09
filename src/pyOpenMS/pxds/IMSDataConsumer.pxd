@@ -8,11 +8,11 @@ cdef extern from "<OpenMS/INTERFACES/IMSDataConsumer.h>" namespace "OpenMS::Inte
         # no-pxd-import
         # ABSTRACT class
 
-        void consumeSpectrum(SpectrumType &) nogil except + # wrap-doc:Consume a spectrum. The spectrum will be consumed by the implementation and possibly modified
+        void consumeSpectrum(SpectrumType &) except + nogil  # wrap-doc:Consume a spectrum. The spectrum will be consumed by the implementation and possibly modified
 
-        void consumeChromatogram(ChromatogramType &) nogil except + # wrap-doc:Consume a chromatogram. The chromatogram will be consumed by the implementation and possibly modified
+        void consumeChromatogram(ChromatogramType &) except + nogil  # wrap-doc:Consume a chromatogram. The chromatogram will be consumed by the implementation and possibly modified
 
-        void setExpectedSize(Size, Size) nogil except + 
+        void setExpectedSize(Size, Size) except + nogil  
             # wrap-doc:
                 #  Set expected size of spectra and chromatograms to be consumed\n
                 #  
@@ -24,7 +24,7 @@ cdef extern from "<OpenMS/INTERFACES/IMSDataConsumer.h>" namespace "OpenMS::Inte
                 #  :param expectedSpectra: Number of spectra expected
                 #  :param expectedChromatograms: Number of chromatograms expected
 
-        void setExperimentalSettings(ExperimentalSettings &) nogil except +
+        void setExperimentalSettings(ExperimentalSettings &) except + nogil 
             # wrap-doc:
                 #  Set experimental settings (meta-data) of the data to be consumed\n
                 #  

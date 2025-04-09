@@ -7,9 +7,9 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>" namespace "OpenS
 
     cdef cppclass SwathMap:
 
-        SwathMap() nogil except + # wrap-doc:Data structure to hold one SWATH map with information about upper / lower isolation window and whether the map is MS1 or MS2
-        SwathMap(SwathMap &) nogil except +
-        SwathMap(double mz_start, double mz_end, double mz_center, bool is_ms1) nogil except +
+        SwathMap() except + nogil  # wrap-doc:Data structure to hold one SWATH map with information about upper / lower isolation window and whether the map is MS1 or MS2
+        SwathMap(SwathMap &) except + nogil 
+        SwathMap(double mz_start, double mz_end, double mz_center, bool is_ms1) except + nogil 
 
         double lower
         double upper

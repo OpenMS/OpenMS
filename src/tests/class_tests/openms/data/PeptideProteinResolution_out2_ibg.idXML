@@ -36,8 +36,8 @@
 		<PeptideIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0.0" MZ="703.351318359375" RT="2377.154599999979837" >
 			<PeptideHit score="0.01" sequence="AAA" charge="2" aa_before="[" aa_after="R" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
-				<UserParam type="float" name="XTandem_score" value="8.0"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTandem_score" value="8.0"/>
 				<UserParam type="float" name="E-Value" value="2.2"/>
 				<UserParam type="float" name="nextscore" value="8.0"/>
 			</PeptideHit>
@@ -45,8 +45,8 @@
 		<PeptideIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0.0" MZ="783.913208007812955" RT="2398.082299999980023" >
 			<PeptideHit score="0.66" sequence="CCC" charge="2" aa_before="R X" aa_after="C X" protein_refs="PH_1 PH_2" >
 				<UserParam type="string" name="target_decoy" value="target"/>
-				<UserParam type="float" name="XTandem_score" value="8.9"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
+				<UserParam type="float" name="XTandem_score" value="8.9"/>
 				<UserParam type="float" name="E-Value" value="20.0"/>
 				<UserParam type="float" name="nextscore" value="8.6"/>
 			</PeptideHit>
@@ -54,8 +54,8 @@
 		<PeptideIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0.0" MZ="784.913208007812955" RT="2399.082299999980023" >
 			<PeptideHit score="0.1" sequence="DDD" charge="2" aa_before="R X" aa_after="C X" protein_refs="PH_3 PH_4" >
 				<UserParam type="string" name="target_decoy" value="target"/>
-				<UserParam type="float" name="XTandem_score" value="8.9"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
+				<UserParam type="float" name="XTandem_score" value="8.9"/>
 				<UserParam type="float" name="E-Value" value="20.0"/>
 				<UserParam type="float" name="nextscore" value="8.6"/>
 			</PeptideHit>
@@ -63,8 +63,8 @@
 		<PeptideIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0.0" MZ="785.913208007812955" RT="2499.082299999980023" >
 			<PeptideHit score="0.99" sequence="EEE" charge="2" protein_refs="PH_6" >
 				<UserParam type="string" name="target_decoy" value="target"/>
-				<UserParam type="float" name="XTandem_score" value="8.9"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
+				<UserParam type="float" name="XTandem_score" value="8.9"/>
 				<UserParam type="float" name="E-Value" value="20.0"/>
 				<UserParam type="float" name="nextscore" value="8.6"/>
 			</PeptideHit>
@@ -72,8 +72,8 @@
 		<PeptideIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0.0" MZ="703.351318359375" RT="2377.154599999979837" >
 			<PeptideHit score="0.7" sequence="FFF" charge="2" aa_before="[" aa_after="R" protein_refs="PH_5" >
 				<UserParam type="string" name="target_decoy" value="target"/>
-				<UserParam type="float" name="XTandem_score" value="8.0"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTandem_score" value="8.0"/>
 				<UserParam type="float" name="E-Value" value="2.2"/>
 				<UserParam type="float" name="nextscore" value="8.0"/>
 			</PeptideHit>
@@ -81,8 +81,8 @@
 		<PeptideIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0.0" MZ="703.351318359375" RT="2377.154599999979837" >
 			<PeptideHit score="0.75" sequence="GGG" charge="2" aa_before="[" aa_after="R" protein_refs="PH_6" >
 				<UserParam type="string" name="target_decoy" value="target"/>
-				<UserParam type="float" name="XTandem_score" value="8.0"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTandem_score" value="8.0"/>
 				<UserParam type="float" name="E-Value" value="2.2"/>
 				<UserParam type="float" name="nextscore" value="8.0"/>
 			</PeptideHit>

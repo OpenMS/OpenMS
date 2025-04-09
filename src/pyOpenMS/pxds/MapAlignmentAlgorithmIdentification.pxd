@@ -19,17 +19,17 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentificati
         #   DefaultParamHandler
         #   ProgressLogger
 
-        MapAlignmentAlgorithmIdentification() nogil except +
+        MapAlignmentAlgorithmIdentification() except + nogil 
         # private
-        MapAlignmentAlgorithmIdentification(MapAlignmentAlgorithmIdentification &) nogil except + # wrap-ignore
+        MapAlignmentAlgorithmIdentification(MapAlignmentAlgorithmIdentification &) except + nogil  # wrap-ignore
         
-        void align(libcpp_vector[MSExperiment]&, libcpp_vector[TransformationDescription]&, int) nogil except +
-        void align(libcpp_vector[FeatureMap]&, libcpp_vector[TransformationDescription]&, int) nogil except +
-        void align(libcpp_vector[ConsensusMap]&, libcpp_vector[TransformationDescription]&, int) nogil except +
+        void align(libcpp_vector[MSExperiment]&, libcpp_vector[TransformationDescription]&, int) except + nogil 
+        void align(libcpp_vector[FeatureMap]&, libcpp_vector[TransformationDescription]&, int) except + nogil 
+        void align(libcpp_vector[ConsensusMap]&, libcpp_vector[TransformationDescription]&, int) except + nogil 
         # TODO nested STL
-        void align(libcpp_vector[libcpp_vector[PeptideIdentification]]& ids, libcpp_vector[TransformationDescription]& trafos, int ref_index) nogil except + #wrap-ignore
+        void align(libcpp_vector[libcpp_vector[PeptideIdentification]]& ids, libcpp_vector[TransformationDescription]& trafos, int ref_index) except + nogil  #wrap-ignore
 
-        void setReference(MSExperiment&) nogil except +
-        void setReference(FeatureMap&) nogil except +
-        void setReference(ConsensusMap&) nogil except +
-        void setReference(libcpp_vector[PeptideIdentification]&) nogil except +
+        void setReference(MSExperiment&) except + nogil 
+        void setReference(FeatureMap&) except + nogil 
+        void setReference(ConsensusMap&) except + nogil 
+        void setReference(libcpp_vector[PeptideIdentification]&) except + nogil 

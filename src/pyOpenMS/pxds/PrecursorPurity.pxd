@@ -20,17 +20,17 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PrecursorPurity.h>" namespace "OpenMS":
             #  compared to other sources
             #  These metrics are combined over the previous and the next MS1 spectrum
 
-        PrecursorPurity() nogil except +
-        PrecursorPurity(PrecursorPurity &) nogil except +
+        PrecursorPurity() except + nogil 
+        PrecursorPurity(PrecursorPurity &) except + nogil 
 
         # libcpp_map[String, PurityScores] computePrecursorPurities(MSExperiment spectra,
         #                                                    double precursor_mass_tolerance,
-        #                                                    bool precursor_mass_tolerance_unit_ppm) nogil except +
+        #                                                    bool precursor_mass_tolerance_unit_ppm) except + nogil 
 
         PurityScores computePrecursorPurity(MSSpectrum ms1,
                                             Precursor pre,
                                             double precursor_mass_tolerance,
-                                            bool precursor_mass_tolerance_unit_ppm) nogil except +
+                                            bool precursor_mass_tolerance_unit_ppm) except + nogil 
             # wrap-doc:
             #  Compute precursor purity metrics for one MS2 precursor
             #  
@@ -45,11 +45,12 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PrecursorPurity.h>" namespace "OpenMS":
 
     cdef cppclass PurityScores "OpenMS::PrecursorPurity::PurityScores":
 
-        PurityScores() nogil except +
-        PurityScores(PurityScores &) nogil except +
+        PurityScores() except + nogil 
+        PurityScores(PurityScores &) except + nogil 
 
         double total_intensity
         double target_intensity
         double signal_proportion
         Size target_peak_count
-        Size residual_peak_count
+        Size interfering_peak_count
+        MSSpectrum interfering_peaks

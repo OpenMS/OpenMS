@@ -1,14 +1,14 @@
-# Protein abundances computed from file 'ProteinQuantifier_input.idXML'
+# Protein abundances computed from file '/ceph/ibmi/abi/projects/sachsenb/OpenMS/src/tests/topp/ProteinQuantifier_input.idXML'
 # Parameters (relevant only): method=top, top:N=0, top:aggregate=sum
-# Files/samples associated with abundance values below: 1: 'X! Tandem (k-score)_2009-05-25T12:33:22', 2: 'SEQUEST_2009-05-25T12:33:22'
+# Files/samples associated with abundance values below: 1: 'file1.mzML', 2: 'file2.mzML'
 "protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance_1"	"abundance_2"
-"IPI00006803"	1	0.0	1	0	1
-"IPI00010790"	1	0.0	2	3	2
-"IPI00014592"	1	0.0	1	0	1
-"IPI00020987"	1	0.0	1	0	1
-"IPI00027377"	1	0.0	1	1	1
-"IPI00028030"	1	0.0	1	1	1
-"IPI00294556"	1	0.0	1	0	1
-"IPI00480049"	1	0.0	1	0	1
-"ddb000014286"	1	0.0	1	1	0
-"ddb000517740"	1	0.0	1	1	0
+"IPI00006803"	1	0	1	0.0	1.0
+"IPI00010790"	1	0	2	3.0	2.0
+"IPI00014592"	1	0	1	0.0	1.0
+"IPI00020987"	1	0	1	0.0	1.0
+"IPI00027377"	1	0	1	1.0	1.0
+"IPI00028030"	1	0	1	1.0	1.0
+"IPI00294556"	1	0	1	0.0	1.0
+"IPI00480049"	1	0	1	0.0	1.0
+"ddb000014286"	1	0	1	1.0	0.0
+"ddb000517740"	1	0	1	1.0	0.0

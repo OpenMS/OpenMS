@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
@@ -267,6 +241,9 @@ namespace OpenMS
     {
       OPENMS_LOG_WARN << "If the quantification of your computational analysis is not 'LC-MS label-free quantitation analysis'.\n"
                       << "Please contact a OpenMS Developer to add the appropriate tool and description to MzTab-M." << std::endl;
+      
+      ControlledVocabulary::CVTerm cvterm = cv.getTermByName("LC-MS label-free quantitation analysis");
+      quantification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
     }
     m_meta_data.quantification_method = quantification_method;
 
@@ -380,15 +357,14 @@ namespace OpenMS
     // these have to be added to the identification data
     // in the actual tool writes the mztam-m
     MzTabMDatabaseMetaData meta_db;
+    meta_db.prefix.setNull(true);
+    meta_db.version = MzTabString("Unknown");
+    meta_db.database.fromCellString("[,, no database , null]");
+    meta_db.uri = MzTabString("https://hmdb.ca/"); // default if not set
+
     for (const auto& db : id_data.getDBSearchParams())
     {
-      if (db.database == "") // no database
-      {
-        meta_db.prefix.setNull(true);
-        meta_db.version = MzTabString("Unknown");
-        meta_db.database.fromCellString("[,, no database , null]");
-      }
-      else if (db.database.find("custom") != std::string::npos) // custom database
+      if (db.database.find("custom") != std::string::npos) // custom database
       {
         meta_db.prefix.setNull(true);
         meta_db.version = MzTabString(db.database_version);
@@ -499,32 +475,34 @@ namespace OpenMS
     // set identification method based on OpenMS Tool(s)
     // usually only one identification_method in one featureXML
     MzTabParameter identification_method;
-    identification_method.setNull(true);
+    identification_method.fromCellString("[, , OpenMS TOPP, ]");
     MzTabParameter ms_level;
     ms_level.setNull(true);
     for (const auto& identification_software : action_software_name[DataProcessing::IDENTIFICATION])
     {
-      int id_mslevel = 0;
+      int id_mslevel = 1;
+      ControlledVocabulary::CVTerm cvterm;
       if (identification_software == "AccurateMassSearch")
       {
-        ControlledVocabulary::CVTerm cvterm;
         cvterm = cv.getTermByName("accurate mass");
         identification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
         id_mslevel = 1;
       }
-      if (identification_software == "SiriusAdapter")
+      else if (identification_software == "SiriusAdapter")
       {
-        ControlledVocabulary::CVTerm cvterm;
         cvterm = cv.getTermByName("de novo search");
         identification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
         id_mslevel = 2;
       }
-      if (identification_software == "MetaboliteSpectralMatcher")
+      else if (identification_software == "MetaboliteSpectralMatcher")
       {
-        ControlledVocabulary::CVTerm cvterm;
         cvterm = cv.getTermByName("TOPP SpecLibSearcher");
         identification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
         id_mslevel = 2;
+      }
+      else
+      { // default for unknown
+        id_mslevel = 1;
       }
       ControlledVocabulary::CVTerm cvterm_level = cv.getTermByName("ms level");
       ms_level.fromCellString("[MS, " + cvterm_level.id + ", " + cvterm_level.name + ", " + String(id_mslevel) + "]");

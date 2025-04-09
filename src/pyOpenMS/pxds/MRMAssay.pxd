@@ -10,8 +10,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
         # wrap-inherits:
         #  ProgressLogger
 
-        MRMAssay() nogil except +
-        MRMAssay(MRMAssay &) nogil except + # compiler
+        MRMAssay() except + nogil 
+        MRMAssay(MRMAssay &) except + nogil  # compiler
 
         void reannotateTransitions(TargetedExperiment & exp, 
                                    double precursor_mz_threshold,
@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
                                    libcpp_vector[ size_t ] fragment_charges, 
                                    bool enable_specific_losses, 
                                    bool enable_unspecific_losses,
-                                   int round_decPow) nogil except +
+                                   int round_decPow) except + nogil 
             # wrap-doc:
                 #  Annotates and filters transitions in a TargetedExperiment
                 #  
@@ -37,7 +37,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
         void restrictTransitions(TargetedExperiment & exp, 
                                  double lower_mz_limit,
                                  double upper_mz_limit,
-                                 libcpp_vector[ libcpp_pair[ double, double ] ] swathes) nogil except +
+                                 libcpp_vector[ libcpp_pair[ double, double ] ] swathes) except + nogil 
             # wrap-doc:
                 #  Restrict and filter transitions in a TargetedExperiment
                 #  
@@ -49,7 +49,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
 
         void detectingTransitions(TargetedExperiment & exp,
                                   int min_transitions,
-                                  int max_transitions) nogil except +
+                                  int max_transitions) except + nogil 
             # wrap-doc:
                 #  Select detecting fragment ions
                 #  
@@ -60,7 +60,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
 
         void filterMinMaxTransitionsCompound(TargetedExperiment & exp,
                                           int min_transitions,
-                                          int max_transitions) nogil except +
+                                          int max_transitions) except + nogil 
             # wrap-doc:
                 #  Filters target and decoy transitions by intensity, only keeping the top N transitions
                 #  
@@ -69,7 +69,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
                 #  :param min_transitions: The minimum number of transitions required per assay (targets only)
                 #  :param max_transitions: The maximum number of transitions allowed per assay
 
-        void filterUnreferencedDecoysCompound(TargetedExperiment & exp) nogil except +
+        void filterUnreferencedDecoysCompound(TargetedExperiment & exp) except + nogil 
             # wrap-doc:
                 #  Filters decoy transitions, which do not have respective target transition
                 #  based on the transitionID.
@@ -93,7 +93,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>" namespace "OpenMS":
                             libcpp_vector[ libcpp_pair[ double, double ] ] swathes,
                             int round_decPow,
                             size_t max_num_alternative_localizations,
-                            int shuffle_seed) nogil except +
+                            int shuffle_seed) except + nogil 
             # wrap-doc:
                 #  Annotate UIS / site-specific transitions
                 #  

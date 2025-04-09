@@ -1,31 +1,5 @@
-// --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
-// --------------------------------------------------------------------------
-// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
-//
-// This software is released under a three-clause BSD license:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS.
-// --------------------------------------------------------------------------
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
@@ -119,6 +93,11 @@ namespace OpenMS
         In units (\f$1.0033548\f$u)
     */
     inline const double C13C12_MASSDIFF_U = 1.0033548378; // u
+
+    /** Average mass difference between consecutive isotopes for proteins of mass 55kDa. Referred to the values used in TopPIC.
+        In units (\f$1.002371\f$u)
+    */
+    inline const double ISOTOPE_MASSDIFF_55K_U = 1.002371; // u
 
     /** Neutron mass.
             In units of kg (\f$1.6749286 \cdot 10^{-27}\f$ kg).
@@ -255,6 +234,16 @@ namespace OpenMS
 
     namespace UserParam
     {
+      /** User parameter name for general ion mobility values (e.g., if not further specified)
+              String
+      */
+      inline const std::string IM = "IM";
+
+      /** User parameter name for ion names (e.g., annotated by TheoreticalSpectrumGenerator)
+              String
+      */
+      inline const std::string IonNames = "IonNames";
+
       /** User parameter name for identifier of concatenated peptides
               String
       */
@@ -262,38 +251,38 @@ namespace OpenMS
 
       /** Metavalue to list unimod modifications used in site localization
       */    
-      inline const std::string   LOCALIZED_MODIFICATIONS_USERPARAM = "localized_modifications";
+      inline const std::string LOCALIZED_MODIFICATIONS_USERPARAM = "localized_modifications";
 
       /** User parameter name for the M/Z of other chromatograms which have been merged into this one
               String
        */
-      inline const std::string   MERGED_CHROMATOGRAM_MZS = "merged_chromatogram_mzs";
+      inline const std::string MERGED_CHROMATOGRAM_MZS = "merged_chromatogram_mzs";
 
       /** User parameter name for precursor mz error in ppm
               String
       */
-      inline const std::string   PRECURSOR_ERROR_PPM_USERPARAM = "precursor_mz_error_ppm";
+      inline const std::string PRECURSOR_ERROR_PPM_USERPARAM = "precursor_mz_error_ppm";
 
       /** User parameter name for median of fragment mz error in ppm
               String
       */
-      inline const std::string   FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM = "fragment_mz_error_median_ppm";
+      inline const std::string FRAGMENT_ERROR_MEDIAN_PPM_USERPARAM = "fragment_mz_error_median_ppm";
 
 
       /** User parameter name for fragment mz error in ppm
               String
       */
-      inline const std::string   FRAGMENT_ERROR_PPM_USERPARAM = "fragment_mass_error_ppm";
+      inline const std::string FRAGMENT_ERROR_PPM_USERPARAM = "fragment_mass_error_ppm";
 
       /** User parameter name for fragment mz error in dalton
               String
       */
-      inline const std::string   FRAGMENT_ERROR_DA_USERPARAM = "fragment_mass_error_da";
+      inline const std::string FRAGMENT_ERROR_DA_USERPARAM = "fragment_mass_error_da";
 
       /** User parameter name for fragment annotations
               String
       */
-      inline const std::string   FRAGMENT_ANNOTATION_USERPARAM = "fragment_annotation";
+      inline const std::string FRAGMENT_ANNOTATION_USERPARAM = "fragment_annotation";
 
       /** User parameter name for annotation of PSMExlpainedIonCurrent
               String
@@ -306,10 +295,16 @@ namespace OpenMS
       // User parameter name for the fraction of suffix ions that have been matched 
       inline const std::string MATCHED_SUFFIX_IONS_FRACTION = "matched_suffix_ions_fraction";
 
-      /** User parameter name for the spectrum reference in PeptideIdentification (is is not yet treated as a class attribute)
+      /** User parameter name for the spectrum reference in PeptideIdentification (it is not yet treated as a class attribute)
               String
       */
       inline const std::string   SPECTRUM_REFERENCE = "spectrum_reference";
+
+      /** User parameter name to store the index of the primary MS run associated with the PeptideIdentification (it is not yet treated as a class attribute).
+          Set by IDMerger algorithm or when reading ID files with info from multiple files (e.g., PercolatorInfile)
+              String
+      */
+      inline const std::string   ID_MERGE_INDEX = "id_merge_index";
 
       /** User parameter name for target/decoy annotation of a PeptideHit, e.g. as annotated by PeptideIndexer. One of: target, decoy, target+decoy
               String
@@ -437,8 +432,7 @@ namespace OpenMS
       */
       inline const std::string   OPENPEPXL_BETA_PEPEV_END = "BetaPepEv:end";
 
-      /** @name User parameters in/from Sirius annotated mzMLs
-        *  E.g., when running SiriusAdapter with annotation output
+      /** @name User parameters in spectra which have been annotated from subdirectories in SIRIUS workspace
        */
       ///@{
 
@@ -530,7 +524,7 @@ namespace OpenMS
       */
       inline const std::string   DC_CHARGE_ADDUCTS = "dc_charge_adducts";
 
-      /** User parameter name for the number of mass traces in a feature. (Required for SiriusAdapter)
+      /** User parameter name for the number of mass traces in a feature. (Required for SiriusExport)
               String
       */
       inline const std::string   NUM_OF_MASSTRACES = "num_of_masstraces";

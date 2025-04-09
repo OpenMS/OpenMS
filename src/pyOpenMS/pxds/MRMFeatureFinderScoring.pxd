@@ -29,15 +29,15 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespa
         #   DefaultParamHandler
         #   ProgressLogger
 
-        MRMFeatureFinderScoring() nogil except +
+        MRMFeatureFinderScoring() except + nogil 
         # copy constructor of 'MRMFeatureFinderScoring' is implicitly deleted because field 'diascoring_' has an inaccessible copy constructor
-        MRMFeatureFinderScoring(MRMFeatureFinderScoring &) nogil except + # wrap-ignore
+        MRMFeatureFinderScoring(MRMFeatureFinderScoring &) except + nogil  # wrap-ignore
 
         void pickExperiment(MSExperiment & chromatograms,
                             FeatureMap & output,
                             TargetedExperiment & transition_exp_,
                             TransformationDescription trafo,
-                            MSExperiment & swath_map) nogil except +
+                            MSExperiment & swath_map) except + nogil 
             # wrap-doc:
                 #  Pick features in one experiment containing chromatogram
                 #  
@@ -57,19 +57,19 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespa
         ##                     SwathMap swath_map,
         ##                     libcpp_map[String, MRMTransitionGroup[MSChromatogram, LightTransition] ] & transition_group_map)
 
-        void setStrictFlag(bool flag) nogil except +
+        void setStrictFlag(bool flag) except + nogil 
 
-        # void setMS1Map( shared_ptr[ ISpectrumAccess ] ms1_map) nogil except +
-        void setMS1Map( shared_ptr[ SpectrumAccessOpenMS ] ms1_map) nogil except +
-        void setMS1Map( shared_ptr[ SpectrumAccessOpenMSCached ] ms1_map) nogil except +
-        ### # void setMS1Map( shared_ptr[ SpectrumAccessOpenMSInMemory ] ms1_map) nogil except +
-        ### # void setMS1Map( shared_ptr[ SpectrumAccessQuadMZTransforming ] ms1_map) nogil except +
+        # void setMS1Map( shared_ptr[ ISpectrumAccess ] ms1_map) except + nogil 
+        void setMS1Map( shared_ptr[ SpectrumAccessOpenMS ] ms1_map) except + nogil 
+        void setMS1Map( shared_ptr[ SpectrumAccessOpenMSCached ] ms1_map) except + nogil 
+        ### # void setMS1Map( shared_ptr[ SpectrumAccessOpenMSInMemory ] ms1_map) except + nogil 
+        ### # void setMS1Map( shared_ptr[ SpectrumAccessQuadMZTransforming ] ms1_map) except + nogil 
 
         void scorePeakgroups(MRMTransitionGroup[MSChromatogram, LightTransition] transition_group,
                              TransformationDescription trafo,
                              libcpp_vector[ SwathMap ] swath_maps,
                              FeatureMap& output,
-                             bool ms1only) nogil except +
+                             bool ms1only) except + nogil 
             # wrap-doc:
                 #  Score all peak groups of a transition group
                 #  
@@ -85,7 +85,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespa
                 #      features will be added to this FeatureMap)
                 #  :param ms1only: Whether to only do MS1 scoring and skip all MS2 scoring
 
-        void prepareProteinPeptideMaps_(LightTargetedExperiment& transition_exp) nogil except +
+        void prepareProteinPeptideMaps_(LightTargetedExperiment& transition_exp) except + nogil 
             # wrap-doc:
                 #  Prepares the internal mappings of peptides and proteins
                 #  

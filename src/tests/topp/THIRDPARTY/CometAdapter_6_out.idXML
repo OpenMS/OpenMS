@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="/mnt/volume/OpenMS/src/tests/topp/THIRDPARTY/CometAdapter_3.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="0:0" enzyme="unspecific cleavage" missed_cleavages="1" precursor_peak_tolerance="20" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.01" peak_mass_tolerance_ppm="false" >
+		<FixedModification name="Carbamidomethyl (C)" />
+		<VariableModification name="Oxidation (M)" />
+				<UserParam type="string" name="CometAdapter:1:in" value="/mnt/volume/OpenMS/src/tests/topp/THIRDPARTY/CometAdapter_6_in.mzML"/>
+				<UserParam type="string" name="CometAdapter:1:out" value="CometAdapter_6_out1.tmp.idXML"/>
+				<UserParam type="string" name="CometAdapter:1:database" value="/mnt/volume/OpenMS/src/tests/topp/THIRDPARTY/CometAdapter_3.fasta"/>
+				<UserParam type="string" name="CometAdapter:1:comet_executable" value="/mnt/volume/OpenMS/THIRDPARTY/Linux/64bit/Comet/comet.exe"/>
+				<UserParam type="string" name="CometAdapter:1:pin_out" value=""/>
+				<UserParam type="string" name="CometAdapter:1:default_params_file" value=""/>
+				<UserParam type="float" name="CometAdapter:1:precursor_mass_tolerance" value="20.0"/>
+				<UserParam type="string" name="CometAdapter:1:precursor_error_units" value="ppm"/>
+				<UserParam type="string" name="CometAdapter:1:isotope_error" value="off"/>
+				<UserParam type="float" name="CometAdapter:1:fragment_mass_tolerance" value="0.01"/>
+				<UserParam type="string" name="CometAdapter:1:fragment_error_units" value="Da"/>
+				<UserParam type="float" name="CometAdapter:1:fragment_bin_offset" value="0.0"/>
+				<UserParam type="string" name="CometAdapter:1:instrument" value="high_res"/>
+				<UserParam type="string" name="CometAdapter:1:use_A_ions" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:use_B_ions" value="true"/>
+				<UserParam type="string" name="CometAdapter:1:use_C_ions" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:use_X_ions" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:use_Y_ions" value="true"/>
+				<UserParam type="string" name="CometAdapter:1:use_Z_ions" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:use_NL_ions" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:enzyme" value="unspecific cleavage"/>
+				<UserParam type="string" name="CometAdapter:1:second_enzyme" value=""/>
+				<UserParam type="string" name="CometAdapter:1:num_enzyme_termini" value="fully"/>
+				<UserParam type="int" name="CometAdapter:1:missed_cleavages" value="1"/>
+				<UserParam type="int" name="CometAdapter:1:min_peptide_length" value="5"/>
+				<UserParam type="int" name="CometAdapter:1:max_peptide_length" value="63"/>
+				<UserParam type="int" name="CometAdapter:1:num_hits" value="1"/>
+				<UserParam type="string" name="CometAdapter:1:precursor_charge" value="0:0"/>
+				<UserParam type="string" name="CometAdapter:1:override_charge" value="keep known search unknown"/>
+				<UserParam type="int" name="CometAdapter:1:ms_level" value="2"/>
+				<UserParam type="string" name="CometAdapter:1:activation_method" value="ALL"/>
+				<UserParam type="string" name="CometAdapter:1:digest_mass_range" value="600:5000"/>
+				<UserParam type="int" name="CometAdapter:1:max_fragment_charge" value="3"/>
+				<UserParam type="int" name="CometAdapter:1:max_precursor_charge" value="5"/>
+				<UserParam type="string" name="CometAdapter:1:clip_nterm_methionine" value="false"/>
+				<UserParam type="int" name="CometAdapter:1:spectrum_batch_size" value="20000"/>
+				<UserParam type="floatList" name="CometAdapter:1:mass_offsets" value="[0.0]"/>
+				<UserParam type="int" name="CometAdapter:1:minimum_peaks" value="10"/>
+				<UserParam type="float" name="CometAdapter:1:minimum_intensity" value="0.0"/>
+				<UserParam type="string" name="CometAdapter:1:remove_precursor_peak" value="no"/>
+				<UserParam type="float" name="CometAdapter:1:remove_precursor_tolerance" value="1.5"/>
+				<UserParam type="string" name="CometAdapter:1:clear_mz_range" value="0:0"/>
+				<UserParam type="stringList" name="CometAdapter:1:fixed_modifications" value="[Carbamidomethyl (C)]"/>
+				<UserParam type="stringList" name="CometAdapter:1:variable_modifications" value="[Oxidation (M)]"/>
+				<UserParam type="intList" name="CometAdapter:1:binary_modifications" value="[]"/>
+				<UserParam type="int" name="CometAdapter:1:max_variable_mods_in_peptide" value="5"/>
+				<UserParam type="string" name="CometAdapter:1:require_variable_mod" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:reindex" value="true"/>
+				<UserParam type="string" name="CometAdapter:1:log" value=""/>
+				<UserParam type="int" name="CometAdapter:1:debug" value="0"/>
+				<UserParam type="int" name="CometAdapter:1:threads" value="1"/>
+				<UserParam type="string" name="CometAdapter:1:no_progress" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:force" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:test" value="true"/>
+				<UserParam type="string" name="CometAdapter:1:decoy_string" value=""/>
+				<UserParam type="string" name="CometAdapter:1:decoy_string_position" value="prefix"/>
+				<UserParam type="string" name="CometAdapter:1:missing_decoy_action" value="warn"/>
+				<UserParam type="string" name="CometAdapter:1:write_protein_sequence" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:write_protein_description" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:keep_unreferenced_proteins" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:unmatched_action" value="error"/>
+				<UserParam type="int" name="CometAdapter:1:aaa_max" value="3"/>
+				<UserParam type="int" name="CometAdapter:1:mismatches_max" value="0"/>
+				<UserParam type="string" name="CometAdapter:1:IL_equivalent" value="false"/>
+				<UserParam type="string" name="CometAdapter:1:allow_nterm_protein_cleavage" value="true"/>
+				<UserParam type="string" name="CometAdapter:1:name" value="auto"/>
+				<UserParam type="string" name="CometAdapter:1:specificity" value="auto"/>
+				<UserParam type="string" name="extra_features" value="isotope_error,COMET:deltaCn,COMET:deltaLCn,COMET:lnExpect,MS:1002252,MS:1002255,COMET:lnNumSP,COMET:lnRankSP,COMET:IonFrac"/>
+				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
+	</SearchParameters>
+	<IdentificationRun date="2025-01-13T18:51:46" search_engine="Comet" search_engine_version="# comet_version 2023.01 rev. 2 (7c9150d)" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="DECOY_sp|P61313|RL15_HUMAN" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[/mnt/volume/OpenMS/src/tests/topp/THIRDPARTY/CometAdapter_6_in.mzML]"/>
+			<UserParam type="string" name="IM" value="1/K0"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="577.819547531899957" RT="0.9" spectrum_reference="index=7" >
+			<PeptideHit score="999.0" sequence="HVPKGYTAGKP" charge="2" aa_before="H" aa_after="V" start="118" end="128" protein_refs="PH_0" >
+				<UserParam type="string" name="MS:1002258" value="0"/>
+				<UserParam type="string" name="MS:1002259" value="20"/>
+				<UserParam type="string" name="num_matched_peptides" value="2"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
+				<UserParam type="float" name="MS:1002252" value="0.1106"/>
+				<UserParam type="float" name="COMET:xcorr" value="0.1106"/>
+				<UserParam type="float" name="MS:1002253" value="1.0"/>
+				<UserParam type="float" name="COMET:deltaCn" value="1.0"/>
+				<UserParam type="float" name="MS:1002255" value="0.0"/>
+				<UserParam type="float" name="COMET:spscore" value="0.0"/>
+				<UserParam type="float" name="MS:1002256" value="1.0"/>
+				<UserParam type="float" name="COMET:sprank" value="1.0"/>
+				<UserParam type="float" name="MS:1002257" value="999.0"/>
+				<UserParam type="float" name="Comet:lnrSp" value="0.0"/>
+				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
+				<UserParam type="float" name="COMET:deltaLCn" value="0.0"/>
+				<UserParam type="float" name="COMET:lnExpect" value="6.906754778648554"/>
+				<UserParam type="float" name="Comet:IonFrac" value="0.0"/>
+				<UserParam type="float" name="COMET:IonFrac" value="0.0"/>
+				<UserParam type="float" name="COMET:lnNumSP" value="0.6931"/>
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+			<UserParam type="float" name="IM" value="0.78486979007721"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="537.842461531899971" RT="10.199999999999999" spectrum_reference="index=57" >
+			<PeptideHit score="999.0" sequence="RVRIRYIV" charge="2" aa_before="R" aa_after="Y" start="137" end="144" protein_refs="PH_0" >
+				<UserParam type="string" name="MS:1002258" value="1"/>
+				<UserParam type="string" name="MS:1002259" value="14"/>
+				<UserParam type="string" name="num_matched_peptides" value="1"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
+				<UserParam type="float" name="MS:1002252" value="0.2442"/>
+				<UserParam type="float" name="COMET:xcorr" value="0.2442"/>
+				<UserParam type="float" name="MS:1002253" value="1.0"/>
+				<UserParam type="float" name="COMET:deltaCn" value="1.0"/>
+				<UserParam type="float" name="MS:1002255" value="1.8"/>
+				<UserParam type="float" name="COMET:spscore" value="1.8"/>
+				<UserParam type="float" name="MS:1002256" value="1.0"/>
+				<UserParam type="float" name="COMET:sprank" value="1.0"/>
+				<UserParam type="float" name="MS:1002257" value="999.0"/>
+				<UserParam type="float" name="Comet:lnrSp" value="0.0"/>
+				<UserParam type="float" name="COMET:lnRankSP" value="0.0"/>
+				<UserParam type="float" name="COMET:deltaLCn" value="0.0"/>
+				<UserParam type="float" name="COMET:lnExpect" value="6.906754778648554"/>
+				<UserParam type="float" name="Comet:IonFrac" value="0.0714"/>
+				<UserParam type="float" name="COMET:IonFrac" value="0.0714"/>
+				<UserParam type="float" name="COMET:lnNumSP" value="0.0"/>
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+			<UserParam type="float" name="IM" value="0.770198702812195"/>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

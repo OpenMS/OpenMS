@@ -6,9 +6,9 @@ from IMSAlphabetParser cimport *
 #    cdef cppclass IMSAlphabetTextParser(IMSAlphabetParser) :
 #        # wrap-inherits:
 #        #  IMSAlphabetParser
-#        IMSAlphabetTextParser() nogil except + 
-#        IMSAlphabetTextParser(IMSAlphabetTextParser &) nogil except +
+#        IMSAlphabetTextParser() except + nogil  
+#        IMSAlphabetTextParser(IMSAlphabetTextParser &) except + nogil 
 
-#        # ContainerType  getElements() nogil except +
-#        # NAMESPACE # void parse(std::istream & is_) nogil except +
+#        # ContainerType  getElements() except + nogil 
+#        # NAMESPACE # void parse(std::istream & is_) except + nogil 
 # 

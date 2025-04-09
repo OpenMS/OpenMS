@@ -11,23 +11,23 @@ from MSChromatogram cimport *
 cdef extern from "<OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>" namespace "OpenMS":
     
     cdef cppclass IndexedMzMLHandler "OpenMS::Internal::IndexedMzMLHandler":
-        IndexedMzMLHandler() nogil except +
-        IndexedMzMLHandler(IndexedMzMLHandler &) nogil except +
-        IndexedMzMLHandler(String filename) nogil except +
+        IndexedMzMLHandler() except + nogil 
+        IndexedMzMLHandler(IndexedMzMLHandler &) except + nogil 
+        IndexedMzMLHandler(String filename) except + nogil 
 
-        void openFile(String filename) nogil except +
-        bool getParsingSuccess() nogil except +
+        void openFile(String filename) except + nogil 
+        bool getParsingSuccess() except + nogil 
 
-        size_t getNrSpectra() nogil except +
-        size_t getNrChromatograms() nogil except +
+        size_t getNrSpectra() except + nogil 
+        size_t getNrChromatograms() except + nogil 
 
-        shared_ptr[Spectrum] getSpectrumById(int id_) nogil except +
-        shared_ptr[Chromatogram] getChromatogramById(int id_) nogil except +
+        shared_ptr[Spectrum] getSpectrumById(int id_) except + nogil 
+        shared_ptr[Chromatogram] getChromatogramById(int id_) except + nogil 
 
-        MSSpectrum getMSSpectrumById(int id_) nogil except +
-        void getMSSpectrumByNativeId(libcpp_string id_, MSSpectrum& spec) nogil except +
-        MSChromatogram getMSChromatogramById(int id_) nogil except +
-        void getMSChromatogramByNativeId(libcpp_string id_, MSChromatogram& chrom) nogil except +
+        MSSpectrum getMSSpectrumById(int id_) except + nogil 
+        void getMSSpectrumByNativeId(libcpp_string id_, MSSpectrum& spec) except + nogil 
+        MSChromatogram getMSChromatogramById(int id_) except + nogil 
+        void getMSChromatogramByNativeId(libcpp_string id_, MSChromatogram& chrom) except + nogil 
 
-        void setSkipXMLChecks(bool skip) nogil except +
+        void setSkipXMLChecks(bool skip) except + nogil 
 

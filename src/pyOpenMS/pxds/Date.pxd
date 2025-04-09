@@ -5,15 +5,15 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Date.h>" namespace "OpenMS":
 
     cdef cppclass Date:
 
-        Date() nogil except +
-        Date(Date &) nogil except +
+        Date() except + nogil 
+        Date(Date &) except + nogil 
 
-        void set(const String & date) nogil except +
+        void set(const String & date) except + nogil 
         # void set(UInt month, UInt day, UInt year);
 
-        Date today() nogil except +
-        String get()  nogil except +
-        # void get(UInt & month, UInt & day, UInt & year) nogil except +
+        Date today() except + nogil 
+        String get()  except + nogil 
+        # void get(UInt & month, UInt & day, UInt & year) except + nogil 
 
         # Sets the undefined date: 00/00/0000
-        void clear() nogil except +
+        void clear() except + nogil 

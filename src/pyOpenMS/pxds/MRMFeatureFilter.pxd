@@ -10,10 +10,10 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFilter.h>" namespace "Ope
         # wrap-inherits:
         #  DefaultParamHandler
 
-        MRMFeatureFilter() nogil except +
-        MRMFeatureFilter(MRMFeatureFilter &) nogil except + # compiler
+        MRMFeatureFilter() except + nogil 
+        MRMFeatureFilter(MRMFeatureFilter &) except + nogil  # compiler
 
-        void FilterFeatureMap(FeatureMap features, MRMFeatureQC filter_criteria, TargetedExperiment transitions) nogil except +
+        void FilterFeatureMap(FeatureMap features, MRMFeatureQC filter_criteria, TargetedExperiment transitions) except + nogil 
             # wrap-doc:
                 #  Flags or filters features and subordinates in a FeatureMap
                 #  
