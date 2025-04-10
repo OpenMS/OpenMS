@@ -13,7 +13,7 @@
 #include <algorithm>
 
 namespace OpenMS{
-    const String TMTThirtyFivePlexQuantitationMethod::name_ = "tmt32plex";
+    const String TMTThirtyFivePlexQuantitationMethod::name_ = "tmt35plex";
     /*
         For 35plex experiments use TMTpro 16plex Deuterated Label Reagent Set (Cat. No. A40000817), 
         TMTpro-135CD Label Reagent (Cat. No. A40000818), and TMTpro 18plex Label Reagent Set (Cat. No. A52045).

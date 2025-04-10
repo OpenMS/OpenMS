@@ -50,8 +50,8 @@ START_SECTION((const IsobaricChannelList& getChannelInformation() const ))
   TMTThirtyFivePlexQuantitationMethod quant_meth;
   IsobaricQuantitationMethod::IsobaricChannelList channel_list = quant_meth.getChannelInformation();
 
-  TEST_EQUAL(channel_list.size(), 32)
-  ABORT_IF(channel_list.size() != 32)
+  TEST_EQUAL(channel_list.size(), 35)
+  ABORT_IF(channel_list.size() != 35)
 
   // descriptions are empty by default
   TEST_STRING_EQUAL(channel_list[0].description, "")
@@ -227,7 +227,7 @@ START_SECTION((const IsobaricChannelList& getChannelInformation() const ))
   TEST_EQUAL(channel_list[33].id, 33)
   TEST_EQUAL(channel_list[33].center, 135.154526)
 
-  TEST_EQUAL(channel_list[34].name, "13CND")
+  TEST_EQUAL(channel_list[34].name, "135CD")
   TEST_EQUAL(channel_list[34].id, 34)
   TEST_EQUAL(channel_list[34].center, 135.160846)
 
@@ -241,7 +241,7 @@ END_SECTION
 START_SECTION((Size getNumberOfChannels() const ))
 {
   TMTThirtyFivePlexQuantitationMethod quant_meth;
-  TEST_EQUAL(quant_meth.getNumberOfChannels(), 32)
+  TEST_EQUAL(quant_meth.getNumberOfChannels(), 35)
 }
 END_SECTION
 
