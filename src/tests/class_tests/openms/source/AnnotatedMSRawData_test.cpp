@@ -76,10 +76,10 @@ START_SECTION((PeptideIdentification& getPeptideIdentification(size_t index)))
   // Add data to the first peptide identification
   PeptideHit hit;
   hit.setSequence(AASequence::fromString("PEPTIDE"));
-  annotated_data.getPeptideIdentification(0).insertHit(hit);
+  annotated_data.getPeptideIdentifications()[0].insertHit(hit);
   
-  TEST_EQUAL(annotated_data.getPeptideIdentification(0).getHits().size(), 1)
-  TEST_EQUAL(annotated_data.getPeptideIdentification(0).getHits()[0].getSequence().toString(), "PEPTIDE")
+  TEST_EQUAL(annotated_data.getPeptideIdentifications()[0].getHits().size(), 1)
+  TEST_EQUAL(annotated_data.getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPTIDE")
 END_SECTION
 
 START_SECTION((const PeptideIdentification& getPeptideIdentification(size_t index) const))
@@ -96,11 +96,11 @@ START_SECTION((const PeptideIdentification& getPeptideIdentification(size_t inde
   // Add data to the first peptide identification
   PeptideHit hit;
   hit.setSequence(AASequence::fromString("PEPTIDE"));
-  annotated_data.getPeptideIdentification(0).insertHit(hit);
+  annotated_data.getPeptideIdentifications()[0].insertHit(hit);
   
   const AnnotatedMSRawData& const_data = annotated_data;
-  TEST_EQUAL(const_data.getPeptideIdentification(0).getHits().size(), 1)
-  TEST_EQUAL(const_data.getPeptideIdentification(0).getHits()[0].getSequence().toString(), "PEPTIDE")
+  TEST_EQUAL(const_data.getPeptideIdentifications()[0].getHits().size(), 1)
+  TEST_EQUAL(const_data.getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPTIDE")
 END_SECTION
 
 
@@ -119,8 +119,8 @@ START_SECTION((std::vector<PeptideIdentification>& getPeptideIdentifications()))
   PeptideHit hit1, hit2;
   hit1.setSequence(AASequence("PEPTIDER"));
   hit2.setSequence(AASequence("PEPTIDAR"));
-  annotated_data.getPeptideIdentification(0).insertHit(hit1);
-  annotated_data.getPeptideIdentification(1).insertHit(hit2);
+  annotated_data.getPeptideIdentifications()[0].insertHit(hit1);
+  annotated_data.getPeptideIdentifications()[1].insertHit(hit2);
   
   TEST_EQUAL(annotated_data.getPeptideIdentifications().size(), 2)
   TEST_EQUAL(annotated_data.getPeptideIdentifications()[0].getHits().size(), 1)
@@ -144,8 +144,8 @@ START_SECTION((const std::vector<PeptideIdentification>& getPeptideIdentificatio
   PeptideHit hit1, hit2;
   hit1.setSequence(AASequence::fromString("PEPTIDER"));
   hit2.setSequence(AASequence::fromString("PEPTIDAR"));
-  annotated_data.getPeptideIdentification(0).insertHit(hit1);
-  annotated_data.getPeptideIdentification(1).insertHit(hit2);
+  annotated_data.getPeptideIdentifications()[0].insertHit(hit1);
+  annotated_data.getPeptideIdentifications()[1].insertHit(hit2);
   
   const AnnotatedMSRawData& const_data = annotated_data;
   TEST_EQUAL(const_data.getPeptideIdentifications().size(), 2)
@@ -174,10 +174,10 @@ START_SECTION((void setPeptideIdentification(PeptideIdentification&& id, size_t 
   pep_id.insertHit(hit);
   
   // Set the peptide identification
-  annotated_data.setPeptideIdentification(std::move(pep_id), 0);
+  annotated_data.getPeptideIdentifications()[0] = pep_id;
   
-  TEST_EQUAL(annotated_data.getPeptideIdentification(0).getHits().size(), 1)
-  TEST_EQUAL(annotated_data.getPeptideIdentification(0).getHits()[0].getSequence().toString(), "PEPTIDE")
+  TEST_EQUAL(annotated_data.getPeptideIdentifications()[0].getHits().size(), 1)
+  TEST_EQUAL(annotated_data.getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPTIDE")
 END_SECTION
 
 
@@ -204,10 +204,10 @@ START_SECTION((void setPeptideIdentifications(std::vector<PeptideIdentification>
   annotated_data.setPeptideIdentifications(std::move(pep_ids));
   
   TEST_EQUAL(annotated_data.getPeptideIdentifications().size(), 2)
-  TEST_EQUAL(annotated_data.getPeptideIdentification(0).getHits().size(), 1)
-  TEST_EQUAL(annotated_data.getPeptideIdentification(1).getHits().size(), 1)
-  TEST_EQUAL(annotated_data.getPeptideIdentification(0).getHits()[0].getSequence().toString(), "PEPTIDER")
-  TEST_EQUAL(annotated_data.getPeptideIdentification(1).getHits()[0].getSequence().toString(), "PEPTIDAR")
+  TEST_EQUAL(annotated_data.getPeptideIdentifications()[0].getHits().size(), 1)
+  TEST_EQUAL(annotated_data.getPeptideIdentifications()[1].getHits().size(), 1)
+  TEST_EQUAL(annotated_data.getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPTIDER")
+  TEST_EQUAL(annotated_data.getPeptideIdentifications()[1].getHits()[0].getSequence().toString(), "PEPTIDAR")
 END_SECTION
 
 
@@ -226,8 +226,8 @@ START_SECTION((void clearAllPeptideIdentifications()))
   PeptideHit hit1, hit2;
   hit1.setSequence(AASequence::fromString("PEPTIDER"));
   hit2.setSequence(AASequence::fromString("PEPTIDAR"));
-  annotated_data.getPeptideIdentification(0).insertHit(hit1);
-  annotated_data.getPeptideIdentification(1).insertHit(hit2);
+  annotated_data.getPeptideIdentifications()[0].insertHit(hit1);
+  annotated_data.getPeptideIdentifications()[1].insertHit(hit2);
   
   // Clear all peptide identifications
   annotated_data.clearAllPeptideIdentifications();
@@ -280,8 +280,8 @@ START_SECTION((Iterator functionality))
   PeptideHit hit1, hit2;
   hit1.setSequence(AASequence::fromString("PEPTIDER"));
   hit2.setSequence(AASequence::fromString("PEPTIDAR"));
-  annotated_data.getPeptideIdentification(0).insertHit(hit1);
-  annotated_data.getPeptideIdentification(1).insertHit(hit2);
+  annotated_data.getPeptideIdentifications()[0].insertHit(hit1);
+  annotated_data.getPeptideIdentifications()[1].insertHit(hit2);
   
   // Test iterator functionality
   size_t count = 0;
@@ -321,8 +321,8 @@ START_SECTION((Operator[] functionality))
   PeptideHit hit1, hit2;
   hit1.setSequence(AASequence::fromString("PEPTIDER"));
   hit2.setSequence(AASequence::fromString("PEPTIDAR"));
-  annotated_data.getPeptideIdentification(0).insertHit(hit1);
-  annotated_data.getPeptideIdentification(1).insertHit(hit2);
+  annotated_data.getPeptideIdentifications()[0].insertHit(hit1);
+  annotated_data.getPeptideIdentifications()[1].insertHit(hit2);
   
   // Test operator[] functionality
   auto [spectrum, peptide_id] = annotated_data[0];

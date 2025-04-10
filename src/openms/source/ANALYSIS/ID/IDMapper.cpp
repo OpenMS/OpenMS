@@ -120,7 +120,7 @@ namespace OpenMS
         { // spectrum can be retrieved
           Size spectrum_idx = lookup.findByNativeID(native_id);
           // Since we now have only one PeptideIdentification per spectrum, we need to merge the hits
-          PeptideIdentification& existing_id = map.getPeptideIdentification(spectrum_idx);
+          PeptideIdentification& existing_id = map.getPeptideIdentifications()[spectrum_idx];
           existing_id.getHits().insert(existing_id.getHits().end(),
                                       peptide_ids[i].getHits().begin(),
                                       peptide_ids[i].getHits().end());
@@ -196,7 +196,7 @@ namespace OpenMS
           if (success)
           {
             // Since we now have only one PeptideIdentification per spectrum, we need to merge the hits
-            PeptideIdentification& existing_id = map.getPeptideIdentification(experiment_iterator->second);
+            PeptideIdentification& existing_id = map.getPeptideIdentifications()[experiment_iterator->second];
             existing_id.getHits().insert(existing_id.getHits().end(),
                                         peptide_ids[identifications_iterator->second].getHits().begin(),
                                         peptide_ids[identifications_iterator->second].getHits().end());

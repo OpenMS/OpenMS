@@ -71,20 +71,6 @@ namespace OpenMS
     }
 
     /**
-     * @brief Get a single peptide identification for a spectrum
-     * @param index The index of the spectrum
-     * @return A reference to the peptide identification
-     */
-    PeptideIdentification& getPeptideIdentification(size_t index);
-    
-    /**
-     * @brief Get a single peptide identification for a spectrum (const version)
-     * @param index The index of the spectrum
-     * @return A const reference to the peptide identification
-     */
-    const PeptideIdentification& getPeptideIdentification(size_t index) const;
-
-    /**
      * @brief Get all peptide identifications for all spectra
      * @return A reference to the vector of peptide identifications
      */
@@ -95,13 +81,6 @@ namespace OpenMS
      * @return A const reference to the vector of peptide identifications
      */
     const std::vector<PeptideIdentification>& getPeptideIdentifications() const;
-
-    /**
-     * @brief Set a single spectrum's peptide identification
-     * @param id The peptide identification to set
-     * @param index The index of the spectrum
-     */
-    void setPeptideIdentification(PeptideIdentification&& id, size_t index);
 
     /**
      * @brief Set all peptide identifications for all spectra
