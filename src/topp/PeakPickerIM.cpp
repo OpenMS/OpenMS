@@ -56,7 +56,7 @@ protected:
       }
       else if (method_ == "cluster")
       {
-        PeakPickerIM::pickIMCluster(spectrum, 50.0, 0.1);
+        PeakPickerIM::pickIMCluster(spectrum, 50.0, 0.08);
       }
       else if (method_ == "traces")
       {    
@@ -125,11 +125,11 @@ protected:
         }
         else if (method == "cluster")
         {
-          PeakPickerIM::pickIMCluster(spectrum, 50.0, 0.1);
+          PeakPickerIM::pickIMCluster(spectrum, 100.0, 0.08);
         }
         else if (method == "traces")
         {    
-          PeakPickerIM::pickIMElutionProfiles(spectrum, 50.0);
+          PeakPickerIM::pickIMElutionProfiles(spectrum, 100.0);
         }
         OPENMS_LOG_DEBUG << "Processed spectrum has " << spectrum.size() << " centroided IM peaks." << std::endl;
       }

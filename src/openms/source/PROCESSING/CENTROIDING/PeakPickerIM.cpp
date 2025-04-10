@@ -885,7 +885,7 @@ namespace OpenMS
         SavitzkyGolayFilter sgolay_filter;
         Param sgolay_params;
 
-        sgolay_params.setValue("frame_length", 15);
+        sgolay_params.setValue("frame_length", 5);
         sgolay_params.setValue("polynomial_order", 3);
         sgolay_filter.setParameters(sgolay_params);
 
@@ -945,6 +945,7 @@ namespace OpenMS
     }
 
   // static function to pick IM clusters
+/*
   void PeakPickerIM::pickIMCluster(MSSpectrum& input, double ppm_tolerance, double im_tolerance)
   {
         if (input.empty()) return;
@@ -953,9 +954,8 @@ namespace OpenMS
         const auto [im_data_index, im_unit] = input.getIMData();
         auto& im_data = input.getFloatDataArrays()[im_data_index];
 
-        /**
-         * @brief Internal structure to hold peak information during processing
-         */
+        
+         // @brief Internal structure to hold peak information during processing        
         struct Point {
             double mz;        ///< m/z value
             double im;        ///< ion mobility value
@@ -989,11 +989,9 @@ namespace OpenMS
         size_t start = 0;
         vector<Point> averaged_points;
 
-        /**
-         * @brief Helper function to compute intensity-weighted averages for a cluster
-         * @param s Start index of the cluster
-         * @param e End index of the cluster
-         */
+         // @brief Helper function to compute intensity-weighted averages for a cluster
+         // @param s Start index of the cluster
+         // @param e End index of the cluster
         auto finalize_cluster = [&](int s, int e) {
             if (s <= e) {
                 double sum_intensity = 0.0;
@@ -1099,6 +1097,221 @@ namespace OpenMS
         input.sortByPosition();
         input.updateRanges(); // TODO: maybe needed
   }
+*/
+
+void PeakPickerIM::pickIMCluster(OpenMS::MSSpectrum& spectrum, double ppm_tolerance, double im_tolerance)
+{
+    if (spectrum.empty()) return;
+
+    // Get IM data array
+    const auto [im_data_index, im_unit] = spectrum.getIMData();
+    auto& im_data = spectrum.getFloatDataArrays()[im_data_index];
+
+
+    struct Point {
+        double mz;
+        double im;
+        float intensity;
+        OpenMS::Size original_index;
+
+        Point(double mz_val, double im_val, float int_val, OpenMS::Size idx) :
+            mz(mz_val), im(im_val), intensity(int_val), original_index(idx) {}
+    };
+
+    // Convert peaks to Points (same as before)
+    std::vector<Point> points;
+    points.reserve(spectrum.size());
+    for (OpenMS::Size i = 0; i < spectrum.size(); ++i) {
+        const auto& peak = spectrum[i];
+        points.emplace_back(peak.getMZ(), im_data[i], peak.getIntensity(), i);
+    }
+
+    // --- Setup for Clustering ---
+
+    // 1. Create m/z-sorted indices (needed for cluster expansion)
+    std::vector<OpenMS::Size> mz_sorted_indices(points.size());
+    std::iota(mz_sorted_indices.begin(), mz_sorted_indices.end(), 0);
+    std::sort(mz_sorted_indices.begin(), mz_sorted_indices.end(),
+              [&](OpenMS::Size a, OpenMS::Size b) {
+                  return points[a].mz < points[b].mz;
+              });
+
+    // Create reverse lookup: original_index -> mz_sorted_position (needed for cluster expansion)
+    std::vector<OpenMS::Size> original_to_sorted_pos(points.size());
+    for (OpenMS::Size i = 0; i < points.size(); ++i) {
+        original_to_sorted_pos[mz_sorted_indices[i]] = i;
+    }
+
+    // 2. ***OPTIMIZATION: Create intensity-sorted indices for seed picking***
+    std::vector<OpenMS::Size> intensity_sorted_indices(points.size());
+    std::iota(intensity_sorted_indices.begin(), intensity_sorted_indices.end(), 0);
+    std::sort(intensity_sorted_indices.begin(), intensity_sorted_indices.end(),
+              [&](OpenMS::Size a, OpenMS::Size b) {
+                  // Sort DESCENDING by intensity
+                  return points[a].intensity > points[b].intensity;
+              });
+
+    // 3. Keep track of used points
+    std::vector<bool> used(points.size(), false);
+    OpenMS::Size num_used = 0;
+
+    // Store results temporarily
+    std::vector<Point> averaged_points;
+    averaged_points.reserve(points.size());
+
+    double ppm_factor = ppm_tolerance * 1e-6;
+
+    // --- Main Clustering Loop ---
+    // Iterate through peaks in descending order of intensity to find seeds
+    for (OpenMS::Size current_intensity_rank = 0; current_intensity_rank < points.size(); ++current_intensity_rank)
+    {
+        // 4. Get the original index of the next potential seed (highest intensity first)
+        OpenMS::Size seed_original_idx = intensity_sorted_indices[current_intensity_rank];
+
+        // 5. Check if this peak has already been used (part of a previous cluster)
+        if (used[seed_original_idx]) {
+            continue; // Skip to the next highest intensity peak
+        }
+
+        // --- Found an unused seed, start clustering ---
+
+        // 6. Initialize the cluster with the seed
+        std::vector<OpenMS::Size> current_cluster_indices;
+        current_cluster_indices.push_back(seed_original_idx);
+        used[seed_original_idx] = true;
+        num_used++;
+
+        double cluster_mz_min = points[seed_original_idx].mz;
+        double cluster_mz_max = points[seed_original_idx].mz;
+        double cluster_im_min = points[seed_original_idx].im;
+        double cluster_im_max = points[seed_original_idx].im;
+
+        // 7. Expand the cluster using m/z sorted neighbors (same logic as before)
+        OpenMS::Size seed_sorted_pos = original_to_sorted_pos[seed_original_idx];
+        OpenMS::SignedSize left_idx = static_cast<OpenMS::SignedSize>(seed_sorted_pos) - 1;
+        OpenMS::SignedSize right_idx = static_cast<OpenMS::SignedSize>(seed_sorted_pos) + 1;
+
+        bool changed = true;
+        while (changed) {
+            changed = false;
+
+            // Check left neighbor
+            while (left_idx >= 0) {
+                 OpenMS::Size candidate_original_idx = mz_sorted_indices[left_idx];
+                 if (!used[candidate_original_idx]) {
+                    const auto& candidate_point = points[candidate_original_idx];
+                    double potential_mz_min = std::min(cluster_mz_min, candidate_point.mz);
+                    double potential_mz_max = std::max(cluster_mz_max, candidate_point.mz); // Fixed: Use max for the max value
+                    double potential_im_min = std::min(cluster_im_min, candidate_point.im);
+                    double potential_im_max = std::max(cluster_im_max, candidate_point.im);
+                    
+                    // Fixed m/z tolerance calculation
+                    bool mz_ok = (potential_mz_max - potential_mz_min) <= (potential_mz_min * ppm_factor);
+                    bool im_ok = (potential_im_max - potential_im_min) <= im_tolerance;
+
+                    if (mz_ok && im_ok) {
+                        current_cluster_indices.push_back(candidate_original_idx);
+                        used[candidate_original_idx] = true;
+                        num_used++;
+                        cluster_mz_min = potential_mz_min;
+                        cluster_mz_max = potential_mz_max; // Fixed: Update max value
+                        cluster_im_min = potential_im_min;
+                        cluster_im_max = potential_im_max;
+                        left_idx--;
+                        changed = true;
+                        break; // Added point, break inner while to re-evaluate from outer changed loop
+                    } else {
+                        left_idx = -1; // Stop checking left this round
+                        break;
+                    }
+                 } else {
+                     left_idx--; // Skip used point
+                 }
+            }
+
+            // Check right neighbor
+            while (right_idx < static_cast<OpenMS::SignedSize>(points.size())) {
+                 OpenMS::Size candidate_original_idx = mz_sorted_indices[right_idx];
+                 if (!used[candidate_original_idx]) {
+                     const auto& candidate_point = points[candidate_original_idx];
+                     double potential_mz_min = std::min(cluster_mz_min, candidate_point.mz); // Fixed: Use min
+                     double potential_mz_max = std::max(cluster_mz_max, candidate_point.mz);
+                     double potential_im_min = std::min(cluster_im_min, candidate_point.im);
+                     double potential_im_max = std::max(cluster_im_max, candidate_point.im);
+                     
+                     // Fixed m/z tolerance calculation
+                     bool mz_ok = (potential_mz_max - potential_mz_min) <= (potential_mz_min * ppm_factor);
+                     bool im_ok = (potential_im_max - potential_im_min) <= im_tolerance;
+
+                     if (mz_ok && im_ok) {
+                        current_cluster_indices.push_back(candidate_original_idx);
+                        used[candidate_original_idx] = true;
+                        num_used++;
+                        cluster_mz_min = potential_mz_min; // Fixed: Update min value
+                        cluster_mz_max = potential_mz_max;
+                        cluster_im_min = potential_im_min;
+                        cluster_im_max = potential_im_max;
+                        right_idx++;
+                        changed = true;
+                        break; // Added point, break inner while to re-evaluate from outer changed loop
+                     } else {
+                         right_idx = points.size(); // Stop checking right this round
+                         break;
+                     }
+                 } else {
+                     right_idx++; // Skip used point
+                 }
+            }
+        } // End cluster expansion (while changed)
+
+        // 8. Finalize the current cluster (same logic as before)
+        if (!current_cluster_indices.empty()) {
+            double sum_intensity = 0.0;
+            double sum_mz_intensity = 0.0;
+            double sum_im_intensity = 0.0;
+
+            for (OpenMS::Size original_idx : current_cluster_indices) {
+                const auto& p = points[original_idx];
+                sum_intensity += p.intensity;
+                sum_mz_intensity += p.mz * p.intensity;
+                sum_im_intensity += p.im * p.intensity;
+            }
+
+            if (sum_intensity > std::numeric_limits<double>::epsilon()) {
+                 averaged_points.emplace_back(
+                    sum_mz_intensity / sum_intensity,
+                    sum_im_intensity / sum_intensity,
+                    static_cast<float>(sum_intensity),
+                    0 // Original index is meaningless for averaged points
+                 );
+            }
+        }
+
+        // Optimization: Check if all points are processed
+        if (num_used == points.size()) {
+             break; // Exit the main loop early
+        }
+
+    } // End main loop (for intensity_sorted_indices)
+
+    // 9. Update spectrum (same logic as before)
+    spectrum.resize(averaged_points.size());
+    spectrum.shrink_to_fit();        
+    im_data.resize(averaged_points.size());
+    im_data.shrink_to_fit();
+
+    for (size_t i = 0; i != averaged_points.size(); ++i)
+    {
+      const auto& p = averaged_points[i];
+      spectrum[i].setMZ(p.mz);
+      spectrum[i].setIntensity(p.intensity);
+      im_data[i] = p.im;
+    }
+
+    spectrum.sortByPosition();
+    spectrum.updateRanges();
+
+} // End of pickIMCluster function
 
   void PeakPickerIM::pickIMElutionProfiles(MSSpectrum& input, double ppm_tolerance)
   {
