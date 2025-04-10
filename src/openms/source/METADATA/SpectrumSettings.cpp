@@ -28,7 +28,6 @@ namespace OpenMS
     acquisition_info_(),
     precursors_(),
     products_(),
-    identification_(),
     data_processing_()
   {
   }
@@ -46,7 +45,6 @@ namespace OpenMS
            source_file_ == rhs.source_file_ &&
            precursors_ == rhs.precursors_ &&
            products_ == rhs.products_ &&
-           identification_ == rhs.identification_ &&
            ( data_processing_.size() == rhs.data_processing_.size() &&
            std::equal(data_processing_.begin(),
                       data_processing_.end(),
@@ -80,7 +78,6 @@ namespace OpenMS
     //source_file_ == rhs.source_file_ &&
     precursors_.insert(precursors_.end(), rhs.precursors_.begin(), rhs.precursors_.end());
     products_.insert(products_.end(), rhs.products_.begin(), rhs.products_.end());
-    identification_.insert(identification_.end(), rhs.identification_.begin(), rhs.identification_.end());
     data_processing_.insert(data_processing_.end(), rhs.data_processing_.begin(), rhs.data_processing_.end());
   }
 
@@ -186,23 +183,6 @@ namespace OpenMS
     return os;
   }
 
-  /*
-  const std::vector<PeptideIdentification> & SpectrumSettings::getPeptideIdentifications() const
-  {
-    return identification_;
-  }
-
-  std::vector<PeptideIdentification> & SpectrumSettings::getPeptideIdentifications()
-  {
-    return identification_;
-  }
-
-  void SpectrumSettings::setPeptideIdentifications(const std::vector<PeptideIdentification> & identification)
-  {
-    identification_ = identification;
-  }
-   */
-
   const String & SpectrumSettings::getNativeID() const
   {
     return native_id_;
@@ -229,4 +209,3 @@ namespace OpenMS
   }
 
 }
-
