@@ -195,7 +195,7 @@ namespace OpenMS
 
           if (success)
           {
-            // Since we now have only one PeptideIdentification per spectrum, we need to merge the hits
+            // Since we have only one PeptideIdentification per spectrum, we need to merge the hits
             PeptideIdentification& existing_id = map.getPeptideIdentifications()[experiment_iterator->second];
             existing_id.getHits().insert(existing_id.getHits().end(),
                                         peptide_ids[identifications_iterator->second].getHits().begin(),
