@@ -820,12 +820,6 @@ add_test("TOPP_IDRTCalibration_2" ${TOPP_BIN_PATH}/IDRTCalibration -test -in ${D
 add_test("TOPP_IDRTCalibration_2_out1" ${DIFF} -in1 IDRTCalibration_2_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDRTCalibration_2_output.idXML )
 set_tests_properties("TOPP_IDRTCalibration_2_out1" PROPERTIES DEPENDS "TOPP_IDRTCalibration_2")
 
-
-#------------------------------------------------------------------------------
-# IDMassAccuracy tests
-add_test("TOPP_IDMassAccuracy_1" ${TOPP_BIN_PATH}/IDMassAccuracy -test -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -id_in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -number_of_bins 10 -out_fragment IDMassAccuracy_1_out_fragment.tsv -out_fragment_fit IDMassAccuracy_1_out_fragment_fit.tsv -out_precursor IDMassAccuracy_1_out_precursor.tsv -out_precursor_fit IDMassAccuracy_1_out_precursor_fit.tsv)
-# Currently just testing if the tool runs
-
 #------------------------------------------------------------------------------
 # IsobaricAnalyzer tests
 add_test("TOPP_IsobaricAnalyzer_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/IsobaricAnalyzer_input_1.mzML -ini ${DATA_DIR_TOPP}/IsobaricAnalyzer.ini -out IsobaricAnalyzer_output_1.tmp.consensusXML)

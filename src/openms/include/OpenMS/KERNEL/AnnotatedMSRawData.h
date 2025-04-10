@@ -20,101 +20,196 @@ namespace OpenMS
 
   class MSSpectrum;
 
+  /**
+   * @brief Class for storing MS raw data with peptide and protein identifications
+   *
+   * This class stores an MSExperiment (containing spectra) along with peptide and protein
+   * identifications. Each spectrum in the MSExperiment is associated with a single
+   * PeptideIdentification object.
+   *
+   * The class provides methods to access and modify these identifications, as well as
+   * iterators to traverse the spectra and their associated identifications together.
+   */
   class OPENMS_DLLAPI AnnotatedMSRawData
   {
   public:
-    typedef std::pair<MSSpectrum&, std::vector<PeptideIdentification>&> Mapping;
-    typedef std::pair<const MSSpectrum&, const std::vector<PeptideIdentification>&> ConstMapping;
+    typedef std::pair<MSSpectrum&, PeptideIdentification&> Mapping;
+    typedef std::pair<const MSSpectrum&, const PeptideIdentification&> ConstMapping;
 
     /// Default constructor
     AnnotatedMSRawData() = default;
 
-    /// Move constructor for efficiently loading a MSExperiment without a deep copy.
+    /**
+     * @brief Move constructor for efficiently loading a MSExperiment without a deep copy
+     * @param experiment The MSExperiment to move into this object
+     */
     explicit AnnotatedMSRawData(MSExperiment&& experiment) : data(std::move(experiment))
     {};
 
+    /// Move constructor
     AnnotatedMSRawData(AnnotatedMSRawData&&) = default;
 
+    /// Destructor
     ~AnnotatedMSRawData() = default;
 
+    /**
+     * @brief Get the protein identifications
+     * @return A reference to the vector of protein identifications
+     */
     std::vector<ProteinIdentification>& getProteinIdentifications()
     {
       return protein_ids_;
     }
 
+    /**
+     * @brief Get the protein identifications (const version)
+     * @return A const reference to the vector of protein identifications
+     */
     const std::vector<ProteinIdentification>& getProteinIdentifications() const
     {
       return protein_ids_;
     }
-    /// Get the peptide identifications for a single spectrum.
-    std::vector<PeptideIdentification>& getPeptideIdentifications(size_t index);
+
+    /**
+     * @brief Get a single peptide identification for a spectrum
+     * @param index The index of the spectrum
+     * @return A reference to the peptide identification
+     */
+    PeptideIdentification& getPeptideIdentification(size_t index);
     
-    /// Get the peptide identifications for a single spectrum (const version).
-    const std::vector<PeptideIdentification>& getPeptideIdentifications(size_t index) const;
+    /**
+     * @brief Get a single peptide identification for a spectrum (const version)
+     * @param index The index of the spectrum
+     * @return A const reference to the peptide identification
+     */
+    const PeptideIdentification& getPeptideIdentification(size_t index) const;
 
-    /// Get all peptide identifications for all spectra.
-    std::vector<std::vector<PeptideIdentification>>& getAllPeptideIdentifications();
+    /**
+     * @brief Get all peptide identifications for all spectra
+     * @return A reference to the vector of peptide identifications
+     */
+    std::vector<PeptideIdentification>& getPeptideIdentifications();
     
-    /// Get all peptide identifications for all spectra (const version).
-    const std::vector<std::vector<PeptideIdentification>>& getAllPeptideIdentifications() const;
+    /**
+     * @brief Get all peptide identifications for all spectra (const version)
+     * @return A const reference to the vector of peptide identifications
+     */
+    const std::vector<PeptideIdentification>& getPeptideIdentifications() const;
 
-    /// Set a single spectrum's peptide identification annotation
-    void setPeptideIdentifications(std::vector<PeptideIdentification>&& ids, size_t index);
+    /**
+     * @brief Set a single spectrum's peptide identification
+     * @param id The peptide identification to set
+     * @param index The index of the spectrum
+     */
+    void setPeptideIdentification(PeptideIdentification&& id, size_t index);
 
-    /// Set all peptide identifications for all spectra
-    void setAllPeptideIdentifications(std::vector<std::vector<PeptideIdentification>>&& ids);
+    /**
+     * @brief Set all peptide identifications for all spectra
+     * @param ids Vector of peptide identifications
+     */
+    void setPeptideIdentifications(std::vector<PeptideIdentification>&& ids);
 
+    /**
+     * @brief Clear all peptide identifications
+     */
     void clearAllPeptideIdentifications()
     {
-      std::vector<std::vector<PeptideIdentification>> empty_ids;
+      std::vector<PeptideIdentification> empty_ids;
       peptide_ids.swap(empty_ids);
     }
 
+    /**
+     * @brief Get the MSExperiment
+     * @return A reference to the MSExperiment
+     */
     MSExperiment& getMSExperiment();
     
-    /// Get the MSExperiment (const version).
+    /**
+     * @brief Get the MSExperiment (const version)
+     * @return A const reference to the MSExperiment
+     */
     const MSExperiment& getMSExperiment() const;
 
+    /**
+     * @brief Get a const iterator to the beginning of the data
+     * @return A const iterator to the beginning
+     */
     inline auto cbegin() const
     {
       return PairIterator(data.getSpectra().cbegin(), peptide_ids.cbegin());
     }
 
+    /**
+     * @brief Get an iterator to the beginning of the data
+     * @return An iterator to the beginning
+     */
     inline auto begin()
     {
       return PairIterator(data.getSpectra().begin(), peptide_ids.begin());
     }
 
+    /**
+     * @brief Get a const iterator to the beginning of the data
+     * @return A const iterator to the beginning
+     */
     inline auto begin() const
     {
       return PairIterator(data.getSpectra().cbegin(), peptide_ids.cbegin());
     }
 
+    /**
+     * @brief Get an iterator to the end of the data
+     * @return An iterator to the end
+     */
     inline auto end()
     {
       return PairIterator(data.getSpectra().end(), peptide_ids.end());
     }
 
+    /**
+     * @brief Get a const iterator to the end of the data
+     * @return A const iterator to the end
+     */
     inline auto end() const
     {
       return PairIterator(data.getSpectra().end(), peptide_ids.end());
     }
 
+    /**
+     * @brief Get a const iterator to the end of the data
+     * @return A const iterator to the end
+     */
     inline auto cend() const
     {
       return PairIterator(data.getSpectra().cend(), peptide_ids.cend());
     }
 
+    /**
+     * @brief Access a spectrum and its associated peptide identification
+     * @param idx The index of the spectrum
+     * @return A pair of references to the spectrum and its peptide identification
+     */
     inline Mapping operator[](size_t idx)
     {
       return {data.getSpectra()[idx], peptide_ids[idx]};
     }
 
+    /**
+     * @brief Access a spectrum and its associated peptide identification (const version)
+     * @param idx The index of the spectrum
+     * @return A pair of const references to the spectrum and its peptide identification
+     */
     inline ConstMapping operator[](size_t idx) const
     {
       return {data.getSpectra()[idx], peptide_ids[idx]};
     }
 
+    /**
+     * @brief Iterator for pairs of spectra and peptide identifications
+     *
+     * This iterator allows traversing the spectra and their associated peptide
+     * identifications together.
+     */
     template<typename T1, typename T2>
     struct PairIterator
     {
@@ -125,9 +220,18 @@ namespace OpenMS
       //using pointer = value_type*;
       //using reference = value_type&;
 
+      /**
+       * @brief Constructor
+       * @param ptr1 Iterator to the spectra
+       * @param ptr2 Iterator to the peptide identifications
+       */
       PairIterator(T1 ptr1, T2 ptr2) : m_ptr1(ptr1), m_ptr2(ptr2)
       {}
 
+      /**
+       * @brief Pre-increment operator
+       * @return Reference to this iterator after incrementing
+       */
       PairIterator& operator++()
       {
         ++m_ptr1;
@@ -135,6 +239,10 @@ namespace OpenMS
         return *this;
       }
 
+      /**
+       * @brief Post-increment operator
+       * @return Copy of this iterator before incrementing
+       */
       PairIterator operator++(int)
       {
         auto tmp(*this);
@@ -142,16 +250,32 @@ namespace OpenMS
         return tmp;
       }
 
+      /**
+       * @brief Dereference operator
+       * @return A pair of references to the current spectrum and peptide identification
+       */
       auto operator*()
       {
         return std::make_pair(std::ref(*m_ptr1), std::ref(*m_ptr2));
       }
 
+      /**
+       * @brief Equality operator
+       * @param a First iterator
+       * @param b Second iterator
+       * @return True if the iterators are equal
+       */
       inline friend bool operator==(const PairIterator& a, const PairIterator& b)
       {
         return a.m_ptr1 == b.m_ptr1 && a.m_ptr2 == b.m_ptr2;
       }
 
+      /**
+       * @brief Inequality operator
+       * @param a First iterator
+       * @param b Second iterator
+       * @return True if the iterators are not equal
+       */
       inline friend bool operator!=(const PairIterator& a, const PairIterator& b)
       {
         return !(a == b);
@@ -162,11 +286,11 @@ namespace OpenMS
       T2 m_ptr2;
     };
 
-    typedef AnnotatedMSRawData::PairIterator<std::vector<MSSpectrum>::iterator, std::vector<std::vector<PeptideIdentification>>::iterator> Iterator;
-    typedef AnnotatedMSRawData::PairIterator<std::vector<MSSpectrum>::const_iterator, std::vector<std::vector<PeptideIdentification>>::const_iterator> ConstIterator;
+    typedef AnnotatedMSRawData::PairIterator<std::vector<MSSpectrum>::iterator, std::vector<PeptideIdentification>::iterator> Iterator;
+    typedef AnnotatedMSRawData::PairIterator<std::vector<MSSpectrum>::const_iterator, std::vector<PeptideIdentification>::const_iterator> ConstIterator;
 
   private:
-    std::vector<std::vector<PeptideIdentification>> peptide_ids;
+    std::vector<PeptideIdentification> peptide_ids;
     std::vector<ProteinIdentification> protein_ids_;
     MSExperiment data;
   };

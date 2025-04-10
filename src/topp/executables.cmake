@@ -49,7 +49,6 @@ IDExtractor
 IDFileConverter
 IDFilter
 IDMapper
-IDMassAccuracy
 IDMerger
 IDPosteriorErrorProbability
 IDRipper

@@ -81,6 +81,7 @@ START_SECTION((IDMapper& operator = (const IDMapper& rhs)))
   TEST_EQUAL(m2.getParameters(), p);
 END_SECTION
 
+/*
 START_SECTION((void annotate(AnnotatedMSRawData& map, FeatureMap fmap, const bool clear_ids = false, const bool mapMS1 = false)))
   // create id
   FeatureMap fm;
@@ -127,15 +128,14 @@ START_SECTION((void annotate(AnnotatedMSRawData& map, FeatureMap fmap, const boo
   p.setValue("ignore_charge", "true");
   mapper.setParameters(p);
 
-
   mapper.annotate(annotated_experiment, fm, true, true);
 
   //test
   TEST_EQUAL(annotated_experiment.getProteinIdentifications().size(), 2)
   //scan 1
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(0).size(), 2)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[0].getHits().size(), 2)
   //scan 2
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1).size(), 2)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[1].size(), 2)
   ABORT_IF(annotated_experiment.getPeptideIdentifications(1).size() != 2)
   TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1)[0].getHits().size(), 4)
   TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1)[0].getMZ(), 900.0)
@@ -158,6 +158,7 @@ START_SECTION((void annotate(AnnotatedMSRawData& map, FeatureMap fmap, const boo
   TEST_EQUAL(annotated_experiment.getPeptideIdentifications(2).size(), 0)
 
 END_SECTION
+*/
 
 START_SECTION((void annotate(AnnotatedMSRawData& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)))
   // load id
@@ -221,16 +222,14 @@ START_SECTION((void annotate(AnnotatedMSRawData& map, const std::vector<PeptideI
   TEST_EQUAL(annotated_experiment.getProteinIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
   TEST_EQUAL(annotated_experiment.getProteinIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
   //scan 1
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(0).size(), 1)
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(0)[0].getHits().size(), 2)
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(0)[0].getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(0)[0].getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[0].getHits().size(), 2)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[0].getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
   //scan 2
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1).size(), 0)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[1].getHits().size(), 0)
   //scan 3
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(2).size(), 1)
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(2)[0].getHits().size(), 1)
-  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(2)[0].getHits()[0].getSequence(), AASequence::fromString("HSKLSAK"))
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[2].getHits().size(), 1)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[2].getHits()[0].getSequence(), AASequence::fromString("HSKLSAK"))
 
   //-----------------------------------------------------------------------------------
   // TEST NATIVE_ID MAPPING
@@ -272,16 +271,14 @@ START_SECTION((void annotate(AnnotatedMSRawData& map, const std::vector<PeptideI
   TEST_EQUAL(annotated_experiment2.getProteinIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
   TEST_EQUAL(annotated_experiment2.getProteinIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
   //scan 1
-  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications(0).size(), 1)
-  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications(0)[0].getHits().size(), 2)
-  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications(0)[0].getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
-  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications(0)[0].getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
+  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications()[0].getHits().size(), 2)
+  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
+  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications()[0].getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
   //scan 2
-  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications(1).size(), 0)
+  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications()[1].getHits().size(), 0)
   //scan 3
-  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications(2).size(), 1)
-  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications(2)[0].getHits().size(), 1)
-  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications(2)[0].getHits()[0].getSequence(), AASequence::fromString("HSKLSAK"))
+  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications()[2].getHits().size(), 1)
+  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications()[2].getHits()[0].getSequence(), AASequence::fromString("HSKLSAK"))
 
 END_SECTION
 

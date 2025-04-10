@@ -91,7 +91,6 @@ namespace OpenMS
     tools_map["IDFileConverter"] = Internal::ToolDescription("IDFileConverter", cat_file_converter);
     tools_map["IDFilter"] = Internal::ToolDescription("IDFilter", cat_file_filter_extract_merge);
     tools_map["IDMapper"] = Internal::ToolDescription("IDMapper", cat_ID_proc);
-    tools_map["IDMassAccuracy"] = Internal::ToolDescription("IDMassAccuracy", cat_ID_proc);
     tools_map["IDMerger"] = Internal::ToolDescription("IDMerger", cat_file_filter_extract_merge);
     tools_map["IDPosteriorErrorProbability"] = Internal::ToolDescription("IDPosteriorErrorProbability", cat_ID_proc);
     tools_map["IDRipper"] = Internal::ToolDescription("IDRipper", cat_file_filter_extract_merge);

@@ -31,6 +31,13 @@
 
 namespace OpenMS
 {
+  template<typename T>
+  concept IsPeptideOrProteinIdentification = 
+    std::is_same_v<T, PeptideIdentification> || std::is_same_v<T, ProteinIdentification>;
+
+  template<typename T>
+  concept IsFeatureOrConsensusMap = 
+    std::is_same_v<T, FeatureMap> || std::is_same_v<T, ConsensusMap>;
 
   /**
     @brief Collection of functions for filtering peptide and protein identifications.
@@ -622,7 +629,7 @@ namespace OpenMS
       removeMatchingItemsUnroll(prot_and_pep_ids.getUnassignedPeptideIdentifications(), pred);
     }
 
-    template<class MapType, class Predicate>
+    template<IsFeatureOrConsensusMap MapType, class Predicate>
     static void removeMatchingPeptideIdentifications(MapType& prot_and_pep_ids, Predicate& pred)
     {
       for (auto& feat : prot_and_pep_ids)
@@ -750,13 +757,17 @@ namespace OpenMS
     ///@{
 
     /// Updates the hit ranks on all peptide or protein IDs
-    template<class IdentificationType>
+    template<IsPeptideOrProteinIdentification IdentificationType>
+    static void updateHitRanks(IdentificationType& id)
+    {
+      id.assignRanks();
+    }
+
+    /// Updates the hit ranks on all peptide or protein IDs
+    template<IsPeptideOrProteinIdentification IdentificationType>
     static void updateHitRanks(std::vector<IdentificationType>& ids)
     {
-      for (typename std::vector<IdentificationType>::iterator it = ids.begin(); it != ids.end(); ++it)
-      {
-        it->assignRanks();
-      }
+      for (auto& id : ids) id.assignRanks();
     }
 
     /// Removes protein hits from the protein IDs in a @p cmap that are not referenced by a peptide in the features
@@ -819,7 +830,7 @@ namespace OpenMS
     ///@{
 
     /// Removes peptide or protein identifications that have no hits in them
-    template<class IdentificationType>
+    template<IsPeptideOrProteinIdentification IdentificationType>
     static void removeEmptyIdentifications(std::vector<IdentificationType>& ids)
     {
       struct HasNoHits<IdentificationType> empty_filter;
@@ -998,6 +1009,20 @@ namespace OpenMS
     /**
        @brief Filters peptide or protein identifications according to the given proteins (positive).
 
+       Hits with a matching protein accession in @p accessions are kept.
+
+       @note The ranks of the hits may be invalidated.
+    */
+    template<IsPeptideOrProteinIdentification IdentificationType>
+    static void keepHitsMatchingProteins(IdentificationType& id, const std::set<String>& accessions)
+    {
+      struct HasMatchingAccession<typename IdentificationType::HitType> acc_filter(accessions);
+      keepMatchingItems(id.getHits(), acc_filter);      
+    }
+
+    /**
+       @brief Filters peptide or protein identifications according to the given proteins (positive).
+
        Hits with no matching protein accession in @p accessions are removed.
 
        @note The ranks of the hits may be invalidated.
@@ -1005,11 +1030,7 @@ namespace OpenMS
     template<class IdentificationType>
     static void keepHitsMatchingProteins(std::vector<IdentificationType>& ids, const std::set<String>& accessions)
     {
-      struct HasMatchingAccession<typename IdentificationType::HitType> acc_filter(accessions);
-      for (auto& id_it : ids)
-      {
-        keepMatchingItems(id_it.getHits(), acc_filter);
-      }
+      for (auto& id_it : ids) keepHitsMatchingProteins(id_it, accessions);
     }
 
     ///@}
@@ -1143,13 +1164,11 @@ namespace OpenMS
       // be referenced by peptide IDs (via run ID)
 
       // filter peptide hits:
-      for (std::vector<PeptideIdentification>& peptide_ids : annotated_data.getAllPeptideIdentifications())
+      for (PeptideIdentification& peptide_id : annotated_data.getPeptideIdentifications())
       {
-        filterHitsByScore(peptide_ids, peptide_threshold_score);
-        removeEmptyIdentifications(peptide_ids);
-        updateProteinReferences(peptide_ids, annotated_data.getProteinIdentifications());
+        filterHitsByScore(peptide_id, peptide_threshold_score);
       }
-      // @TODO: remove proteins that aren't referenced by peptides any more?
+      updateProteinReferences(annotated_data.getPeptideIdentifications(), annotated_data.getProteinIdentifications());
     }
 
     /// Filters AnnotatedMSRawData by keeping the N best peptide hits for every spectrum
@@ -1159,12 +1178,26 @@ namespace OpenMS
       // and update the protein hits!
       std::vector<PeptideIdentification> all_peptides; // IDs from all spectra
       // filter peptide hits:
-      for (std::vector<PeptideIdentification>& peptide_ids : annotated_data.getAllPeptideIdentifications())
+      for (PeptideIdentification& peptide_id : annotated_data.getPeptideIdentifications())
       {
-        keepNBestHits(peptide_ids, n);
-        removeEmptyIdentifications(peptide_ids);
-        updateProteinReferences(peptide_ids, annotated_data.getProteinIdentifications());
-        all_peptides.insert(all_peptides.end(), peptide_ids.begin(), peptide_ids.end());
+        // Create a temporary vector with a single PeptideIdentification
+        std::vector<PeptideIdentification> temp_vec = {peptide_id};
+        keepNBestHits(temp_vec, n);
+        // Copy back the filtered hits
+        if (!temp_vec.empty())
+        {
+          peptide_id = temp_vec[0];
+        }
+        else
+        {
+          peptide_id.getHits().clear();
+        }
+        
+        // Since we're working with individual PeptideIdentifications, we don't need to remove empty ones
+        // but we still need to update protein references
+        temp_vec = {peptide_id};
+        updateProteinReferences(temp_vec, annotated_data.getProteinIdentifications());
+        all_peptides.push_back(peptide_id);
       }
       // update protein hits:
       removeUnreferencedProteins(annotated_data.getProteinIdentifications(), all_peptides);
@@ -1339,7 +1372,7 @@ namespace OpenMS
       const std::vector<FASTAFile::FASTAEntry>& proteins)
     {
       std::set<String> accessions;
-      for (std::vector<FASTAFile::FASTAEntry>::const_iterator it = proteins.begin(); it != proteins.end(); ++it)
+      for (auto it = proteins.begin(); it != proteins.end(); ++it)
       {
         accessions.insert(it->identifier);
       }
@@ -1349,16 +1382,15 @@ namespace OpenMS
       updateHitRanks(experiment.getProteinIdentifications());
 
       // filter peptide hits:
-      for (auto [spectrum, peptide_ids] : experiment)
+      for (auto [spectrum, peptide_id] : experiment)
       {
         if (spectrum.getMSLevel() == 2)
         {
-          keepHitsMatchingProteins(peptide_ids,
-                                   accessions);
-          removeEmptyIdentifications(peptide_ids);
-          updateHitRanks(peptide_ids);
+          keepHitsMatchingProteins(peptide_id, accessions);          
+          updateHitRanks(peptide_id);
         }
       }
+      removeEmptyIdentifications(experiment.getPeptideIdentifications());
     }
 
     ///@}

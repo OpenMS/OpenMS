@@ -10,32 +10,32 @@
 
 namespace OpenMS
 {
-  std::vector<PeptideIdentification>& AnnotatedMSRawData::getPeptideIdentifications(size_t index)
+  PeptideIdentification& AnnotatedMSRawData::getPeptideIdentification(size_t index)
   {
     return peptide_ids[index];
   }
 
-  const std::vector<PeptideIdentification>& AnnotatedMSRawData::getPeptideIdentifications(size_t index) const
+  const PeptideIdentification& AnnotatedMSRawData::getPeptideIdentification(size_t index) const
   {
     return peptide_ids[index];
   }
 
-  std::vector<std::vector<PeptideIdentification>>& AnnotatedMSRawData::getAllPeptideIdentifications()
+  std::vector<PeptideIdentification>& AnnotatedMSRawData::getPeptideIdentifications()
   {
     return peptide_ids;
   }
 
-  const std::vector<std::vector<PeptideIdentification>>& AnnotatedMSRawData::getAllPeptideIdentifications() const
+  const std::vector<PeptideIdentification>& AnnotatedMSRawData::getPeptideIdentifications() const
   {
     return peptide_ids;
   }
 
-  void AnnotatedMSRawData::setPeptideIdentifications(std::vector<PeptideIdentification>&& ids, size_t index)
+  void AnnotatedMSRawData::setPeptideIdentification(PeptideIdentification&& id, size_t index)
   {
-    peptide_ids[index] = std::move(ids);
+    peptide_ids[index] = std::move(id);
   }
 
-  void AnnotatedMSRawData::setAllPeptideIdentifications(std::vector<std::vector<PeptideIdentification>>&& ids)
+  void AnnotatedMSRawData::setPeptideIdentifications(std::vector<PeptideIdentification>&& ids)
   {
     peptide_ids = std::move(ids);
   }

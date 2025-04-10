@@ -180,11 +180,7 @@ namespace OpenMS
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
       AnnotatedMSRawData& experiment, SeqToList& rt_data)
   {
-    for (auto& peptide_identifications : experiment.getAllPeptideIdentifications())
-    {
-      getRetentionTimes_(peptide_identifications, rt_data);
-    }
-    // duplicate annotations should not be possible -> no need to remove them
+    getRetentionTimes_(experiment.getPeptideIdentifications(), rt_data);
     return false;
   }
 

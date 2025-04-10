@@ -116,7 +116,6 @@
   - @subpage TOPP_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy. WARNING: This utility is deprecated.
   - @subpage TOPP_IDExtractor - Extracts n peptides randomly or best n from idXML files.
   - @subpage TOPP_IDMapper - Assigns protein/peptide identifications to feature or consensus features.
-  - @subpage TOPP_IDMassAccuracy - Calculates a distribution of the mass error from given mass spectra and IDs.
   - @subpage TOPP_IDPosteriorErrorProbability - Estimates posterior error probabilities using a mixture model.
   - @subpage TOPP_IDScoreSwitcher - Switches between different scores of peptide or protein hits in identification data.
   - @subpage TOPP_PeptideIndexer - Refreshes the protein references for all peptide hits.

@@ -75,12 +75,12 @@ namespace OpenMS
     ignore_charge_ = param_.getValue("ignore_charge") == "true";
   }
 
-  void IDMapper::annotate(AnnotatedMSRawData& map, 
-    const vector<PeptideIdentification>& peptide_ids, 
-    const vector<ProteinIdentification>& protein_ids, 
-    const bool clear_ids, 
+  void IDMapper::annotate(AnnotatedMSRawData& map,
+    const vector<PeptideIdentification>& peptide_ids,
+    const vector<ProteinIdentification>& protein_ids,
+    const bool clear_ids,
     const bool map_ms1)
-  {    
+  {
     checkHits_(peptide_ids);
     SpectrumLookup lookup;
 
@@ -93,9 +93,9 @@ namespace OpenMS
     if (peptide_ids.empty()) return;
 
     // append protein identifications
-    map.getProteinIdentifications().insert(map.getProteinIdentifications().end(), protein_ids.begin(), protein_ids.end()); 
+    map.getProteinIdentifications().insert(map.getProteinIdentifications().end(), protein_ids.begin(), protein_ids.end());
 
-    map.getAllPeptideIdentifications().resize(map.getMSExperiment().size());
+    map.getPeptideIdentifications().resize(map.getMSExperiment().getSpectra().size());
     
     // set up the lookup table for the spectra
     lookup.readSpectra(map.getMSExperiment());
@@ -116,17 +116,21 @@ namespace OpenMS
       else 
       { // use native id for mapping
         DataValue native_id = peptide_ids[i].getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
-        try 
+        try
         { // spectrum can be retrieved
           Size spectrum_idx = lookup.findByNativeID(native_id);
-          map.getPeptideIdentifications(spectrum_idx).push_back(peptide_ids[i]);
+          // Since we now have only one PeptideIdentification per spectrum, we need to merge the hits
+          PeptideIdentification& existing_id = map.getPeptideIdentification(spectrum_idx);
+          existing_id.getHits().insert(existing_id.getHits().end(),
+                                      peptide_ids[i].getHits().begin(),
+                                      peptide_ids[i].getHits().end());
           peptides_mapped.insert(i);
-        } 
-        catch (const Exception::ElementNotFound& /*e*/) 
+        }
+        catch (const Exception::ElementNotFound& /*e*/)
         { // use RT for mapping
           identifications_precursors.insert(make_pair(peptide_ids[i].getRT(), i));
         }
-      }      
+      }
     }
 
     if (!identifications_precursors.empty()) 
@@ -191,7 +195,11 @@ namespace OpenMS
 
           if (success)
           {
-            map.getPeptideIdentifications(experiment_iterator->second).push_back(peptide_ids[identifications_iterator->second]);
+            // Since we now have only one PeptideIdentification per spectrum, we need to merge the hits
+            PeptideIdentification& existing_id = map.getPeptideIdentification(experiment_iterator->second);
+            existing_id.getHits().insert(existing_id.getHits().end(),
+                                        peptide_ids[identifications_iterator->second].getHits().begin(),
+                                        peptide_ids[identifications_iterator->second].getHits().end());
             peptides_mapped.insert(identifications_iterator->second);
           }
           ++identifications_iterator;
@@ -207,7 +215,7 @@ namespace OpenMS
              << "       Unmapped (empty) peptides: " << peptide_ids.size() - identifications_precursors.size() << endl;
   }
 
-
+/*
   void IDMapper::annotate(AnnotatedMSRawData& map, FeatureMap fmap, const bool clear_ids, const bool map_ms1)
   {
     const auto& protein_ids = fmap.getProteinIdentifications();
@@ -226,6 +234,7 @@ namespace OpenMS
     }
     annotate(map, peptide_ids, protein_ids, clear_ids, map_ms1);
   }
+  */
 
   enum class NATIVE_ID_TYPE
   {

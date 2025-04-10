@@ -330,12 +330,8 @@ namespace OpenMS
     MSExperiment exp;
     this->load(filename, ids, exp);
 
-    vector<vector<PeptideIdentification>> peptide_ids; // turn into per spectrum list
-    for (auto& id : ids)
-    {
-      peptide_ids.emplace_back(1, std::move(id));
-    }   
-    annot_exp.setAllPeptideIdentifications(std::move(peptide_ids));  
+    // Convert to the new data structure (one PeptideIdentification per spectrum)
+    annot_exp.setPeptideIdentifications(std::move(ids));
     annot_exp.getMSExperiment() = std::move(exp);
   }
 
@@ -375,11 +371,11 @@ namespace OpenMS
 
     ofstream out(filename.c_str());
 
-    for (auto [spectrum, peptide_ids] : exp)
+    for (auto [spectrum, peptide_id] : exp)
     {
-      if (!peptide_ids.empty() && !peptide_ids.begin()->getHits().empty())
+      if (!peptide_id.getHits().empty())
       {
-        PeptideHit hit = *peptide_ids.begin()->getHits().begin();
+        PeptideHit hit = peptide_id.getHits()[0];
         String peptide;
         for (const Residue& pit : hit.getSequence())
         {
