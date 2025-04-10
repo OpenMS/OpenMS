@@ -6,31 +6,31 @@
 // $Authors: David Voigt $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/AnnotatedMSRawData.h>
+#include <OpenMS/KERNEL/AnnotatedMSRun.h>
 
 namespace OpenMS
 {
-  std::vector<PeptideIdentification>& AnnotatedMSRawData::getPeptideIdentifications()
+  std::vector<PeptideIdentification>& AnnotatedMSRun::getPeptideIdentifications()
   {
     return peptide_ids;
   }
 
-  const std::vector<PeptideIdentification>& AnnotatedMSRawData::getPeptideIdentifications() const
+  const std::vector<PeptideIdentification>& AnnotatedMSRun::getPeptideIdentifications() const
   {
     return peptide_ids;
   }
 
-  void AnnotatedMSRawData::setPeptideIdentifications(std::vector<PeptideIdentification>&& ids)
+  void AnnotatedMSRun::setPeptideIdentifications(std::vector<PeptideIdentification>&& ids)
   {
     peptide_ids = std::move(ids);
   }
 
-  MSExperiment& AnnotatedMSRawData::getMSExperiment()
+  MSExperiment& AnnotatedMSRun::getMSExperiment()
   {
     return data;
   }
 
-  const MSExperiment& AnnotatedMSRawData::getMSExperiment() const
+  const MSExperiment& AnnotatedMSRun::getMSExperiment() const
   {
     return data;
   }

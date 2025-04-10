@@ -9,7 +9,7 @@
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
-#include <OpenMS/KERNEL/AnnotatedMSRawData.h>
+#include <OpenMS/KERNEL/AnnotatedMSRun.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -75,7 +75,7 @@ namespace OpenMS
     ignore_charge_ = param_.getValue("ignore_charge") == "true";
   }
 
-  void IDMapper::annotate(AnnotatedMSRawData& map,
+  void IDMapper::annotate(AnnotatedMSRun& map,
     const vector<PeptideIdentification>& peptide_ids,
     const vector<ProteinIdentification>& protein_ids,
     const bool clear_ids,
@@ -216,7 +216,7 @@ namespace OpenMS
   }
 
 /*
-  void IDMapper::annotate(AnnotatedMSRawData& map, FeatureMap fmap, const bool clear_ids, const bool map_ms1)
+  void IDMapper::annotate(AnnotatedMSRun& map, FeatureMap fmap, const bool clear_ids, const bool map_ms1)
   {
     const auto& protein_ids = fmap.getProteinIdentifications();
     vector<PeptideIdentification> peptide_ids;
@@ -1099,3 +1099,4 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
+

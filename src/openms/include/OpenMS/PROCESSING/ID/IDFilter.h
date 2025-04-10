@@ -13,7 +13,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/AnnotatedMSRawData.h>
+#include <OpenMS/KERNEL/AnnotatedMSRun.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
@@ -1149,11 +1149,11 @@ namespace OpenMS
     ///@}
 
 
-    /// @name Filter functions for AnnotatedMSRawData
+    /// @name Filter functions for AnnotatedMSRun
     ///@{
 
-    /// Filters AnnotatedMSRawData according to score thresholds
-    static void filterHitsByScore(AnnotatedMSRawData& annotated_data,
+    /// Filters AnnotatedMSRun according to score thresholds
+    static void filterHitsByScore(AnnotatedMSRun& annotated_data,
                                   double peptide_threshold_score,
                                   double protein_threshold_score)
     {
@@ -1171,8 +1171,8 @@ namespace OpenMS
       updateProteinReferences(annotated_data.getPeptideIdentifications(), annotated_data.getProteinIdentifications());
     }
 
-    /// Filters AnnotatedMSRawData by keeping the N best peptide hits for every spectrum
-    static void keepNBestHits(AnnotatedMSRawData& annotated_data, Size n)
+    /// Filters AnnotatedMSRun by keeping the N best peptide hits for every spectrum
+    static void keepNBestHits(AnnotatedMSRun& annotated_data, Size n)
     {
       // don't filter the protein hits by "N best" here - filter the peptides
       // and update the protein hits!
@@ -1366,9 +1366,9 @@ namespace OpenMS
       }
     }
 
-    /// Filters AnnotatedMSRawData according to the given proteins.
+    /// Filters AnnotatedMSRun according to the given proteins.
     static void keepHitsMatchingProteins(
-      AnnotatedMSRawData& experiment,
+      AnnotatedMSRun& experiment,
       const std::vector<FASTAFile::FASTAEntry>& proteins)
     {
       std::set<String> accessions;

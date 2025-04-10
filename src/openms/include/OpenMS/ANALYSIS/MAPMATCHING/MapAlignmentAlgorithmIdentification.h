@@ -29,7 +29,7 @@ namespace OpenMS
   template <typename MapType>
   concept IsFCMap = std::same_as<MapType, OpenMS::FeatureMap> || std::same_as<MapType, OpenMS::ConsensusMap>; 
 
-  class AnnotatedMSRawData;
+  class AnnotatedMSRun;
 
   /**
     @brief A map alignment algorithm based on peptide identifications from MS2 spectra.
@@ -208,7 +208,7 @@ protected:
 
       @return Are the RTs already sorted? (Here: false)
     */
-    bool getRetentionTimes_(AnnotatedMSRawData& experiment, SeqToList& rt_data);
+    bool getRetentionTimes_(AnnotatedMSRun& experiment, SeqToList& rt_data);
 
     /**
       @brief Collect retention time data from peptide IDs contained in feature maps or consensus maps

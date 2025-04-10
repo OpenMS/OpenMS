@@ -14,7 +14,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/AnnotatedMSRawData.h>
+#include <OpenMS/KERNEL/AnnotatedMSRun.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <OpenMS/PROCESSING/MISC/DataFilters.h>
@@ -127,7 +127,7 @@ namespace OpenMS
     typedef boost::shared_ptr<ConsensusMap> ConsensusMapSharedPtrType;
 
     /// Main data type (experiment)
-    typedef AnnotatedMSRawData ExperimentType;
+    typedef AnnotatedMSRun ExperimentType;
 
     /// SharedPtr on MSExperiment
     typedef boost::shared_ptr<ExperimentType> ExperimentSharedPtrType;

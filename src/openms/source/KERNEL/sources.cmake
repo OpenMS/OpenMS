@@ -3,7 +3,7 @@ set(directory source/KERNEL)
 
 ### list all filenames of the directory here
 set(sources_list
-AnnotatedMSRawData.cpp
+AnnotatedMSRun.cpp
 AreaIterator.cpp
 BaseFeature.cpp
 BinnedSpectrum.cpp

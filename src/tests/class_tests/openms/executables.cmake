@@ -128,7 +128,7 @@ set(system_executables_list
 )
 
 set(kernel_executables_list
-  AnnotatedMSRawData_test
+  AnnotatedMSRun_test
   AreaIterator_test
   BaseFeature_test
   ChromatogramPeak_test

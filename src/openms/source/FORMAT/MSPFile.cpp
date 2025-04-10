@@ -10,7 +10,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/AnnotatedMSRawData.h>
+#include <OpenMS/KERNEL/AnnotatedMSRun.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
@@ -323,7 +323,7 @@ namespace OpenMS
     }
   }
 
-  void MSPFile::load(const String & filename, AnnotatedMSRawData & annot_exp)
+  void MSPFile::load(const String & filename, AnnotatedMSRun & annot_exp)
   {
     // use existing load function
     vector<PeptideIdentification> ids;
@@ -356,7 +356,7 @@ namespace OpenMS
   }
 
   //TODO adapt store to write new? format
-  void MSPFile::store(const String & filename, const AnnotatedMSRawData & exp) const
+  void MSPFile::store(const String & filename, const AnnotatedMSRun & exp) const
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::MSP))
     {

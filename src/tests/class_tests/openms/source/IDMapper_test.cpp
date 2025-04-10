@@ -17,7 +17,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/KERNEL/AnnotatedMSRawData.h>
+#include <OpenMS/KERNEL/AnnotatedMSRun.h>
 
 ///////////////////////////
 
@@ -82,7 +82,7 @@ START_SECTION((IDMapper& operator = (const IDMapper& rhs)))
 END_SECTION
 
 /*
-START_SECTION((void annotate(AnnotatedMSRawData& map, FeatureMap fmap, const bool clear_ids = false, const bool mapMS1 = false)))
+START_SECTION((void annotate(AnnotatedMSRun& map, FeatureMap fmap, const bool clear_ids = false, const bool mapMS1 = false)))
   // create id
   FeatureMap fm;
   Feature f;
@@ -102,7 +102,7 @@ START_SECTION((void annotate(AnnotatedMSRawData& map, FeatureMap fmap, const boo
   fm.setProteinIdentifications(prids);
 
   // create experiment
-  AnnotatedMSRawData annotated_experiment;
+  AnnotatedMSRun annotated_experiment;
   MSExperiment& experiment = annotated_experiment.getMSExperiment();
   MSSpectrum spectrum;
   Precursor precursor;
@@ -160,7 +160,7 @@ START_SECTION((void annotate(AnnotatedMSRawData& map, FeatureMap fmap, const boo
 END_SECTION
 */
 
-START_SECTION((void annotate(AnnotatedMSRawData& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)))
+START_SECTION((void annotate(AnnotatedMSRun& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)))
   // load id
   vector<PeptideIdentification> identifications;
   vector<ProteinIdentification> protein_identifications;
@@ -188,7 +188,7 @@ START_SECTION((void annotate(AnnotatedMSRawData& map, const std::vector<PeptideI
 
   // TEST RT MAPPING
   // create experiment
-  AnnotatedMSRawData annotated_experiment;
+  AnnotatedMSRun annotated_experiment;
   MSExperiment & experiment = annotated_experiment.getMSExperiment();
   MSSpectrum spectrum;
   Precursor precursor;
@@ -235,7 +235,7 @@ START_SECTION((void annotate(AnnotatedMSRawData& map, const std::vector<PeptideI
   // TEST NATIVE_ID MAPPING
 
   // create experiment
-  AnnotatedMSRawData annotated_experiment2;
+  AnnotatedMSRun annotated_experiment2;
   MSExperiment& experiment2 = annotated_experiment2.getMSExperiment();  
   MSSpectrum spectrum2;
   Precursor precursor2;

@@ -10,7 +10,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
-#include <OpenMS/KERNEL/AnnotatedMSRawData.h>
+#include <OpenMS/KERNEL/AnnotatedMSRun.h>
 
 using namespace std;
 
@@ -178,7 +178,7 @@ namespace OpenMS
 
   // lists of peptide hits in "maps" will be sorted
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-      AnnotatedMSRawData& experiment, SeqToList& rt_data)
+      AnnotatedMSRun& experiment, SeqToList& rt_data)
   {
     getRetentionTimes_(experiment.getPeptideIdentifications(), rt_data);
     return false;

@@ -21,7 +21,7 @@ namespace OpenMS
   class MSSpectrum;
 
   /**
-   * @brief Class for storing MS raw data with peptide and protein identifications
+   * @brief Class for storing MS run data with peptide and protein identifications
    *
    * This class stores an MSExperiment (containing spectra) along with peptide and protein
    * identifications. Each spectrum in the MSExperiment is associated with a single
@@ -30,31 +30,31 @@ namespace OpenMS
    * The class provides methods to access and modify these identifications, as well as
    * iterators to traverse the spectra and their associated identifications together.
    */
-  class OPENMS_DLLAPI AnnotatedMSRawData
+  class OPENMS_DLLAPI AnnotatedMSRun
   {
   public:
     typedef std::pair<MSSpectrum&, PeptideIdentification&> Mapping;
     typedef std::pair<const MSSpectrum&, const PeptideIdentification&> ConstMapping;
 
     /// Default constructor
-    AnnotatedMSRawData() = default;
+    AnnotatedMSRun() = default;
 
     /**
      * @brief Move constructor for efficiently loading a MSExperiment without a deep copy
      * @param experiment The MSExperiment to move into this object
      */
-    explicit AnnotatedMSRawData(MSExperiment&& experiment) : data(std::move(experiment))
+    explicit AnnotatedMSRun(MSExperiment&& experiment) : data(std::move(experiment))
     {};
 
     /// Move constructor
-    AnnotatedMSRawData(AnnotatedMSRawData&&) = default;
+    AnnotatedMSRun(AnnotatedMSRun&&) = default;
 
     /// Destructor
-    ~AnnotatedMSRawData() = default;
+    ~AnnotatedMSRun() = default;
 
     /**
-     * @brief Get the protein identifications
-     * @return A reference to the vector of protein identifications
+     * @brief Get the protein identification
+     * @return A reference to the protein identification
      */
     std::vector<ProteinIdentification>& getProteinIdentifications()
     {
@@ -62,8 +62,8 @@ namespace OpenMS
     }
 
     /**
-     * @brief Get the protein identifications (const version)
-     * @return A const reference to the vector of protein identifications
+     * @brief Get the protein identification (const version)
+     * @return A const reference to the protein identification
      */
     const std::vector<ProteinIdentification>& getProteinIdentifications() const
     {
@@ -265,8 +265,8 @@ namespace OpenMS
       T2 m_ptr2;
     };
 
-    typedef AnnotatedMSRawData::PairIterator<std::vector<MSSpectrum>::iterator, std::vector<PeptideIdentification>::iterator> Iterator;
-    typedef AnnotatedMSRawData::PairIterator<std::vector<MSSpectrum>::const_iterator, std::vector<PeptideIdentification>::const_iterator> ConstIterator;
+    typedef AnnotatedMSRun::PairIterator<std::vector<MSSpectrum>::iterator, std::vector<PeptideIdentification>::iterator> Iterator;
+    typedef AnnotatedMSRun::PairIterator<std::vector<MSSpectrum>::const_iterator, std::vector<PeptideIdentification>::const_iterator> ConstIterator;
 
   private:
     std::vector<PeptideIdentification> peptide_ids;

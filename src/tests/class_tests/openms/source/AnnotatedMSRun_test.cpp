@@ -7,63 +7,60 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/KERNEL/AnnotatedMSRawData.h>
+#include <OpenMS/KERNEL/AnnotatedMSRun.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 
-START_TEST(AnnotatedMSRawData, "$Id$")
+START_TEST(AnnotatedMSRun, "$Id$")
 
 using namespace OpenMS;
 
 // Default constructor
-AnnotatedMSRawData* ptr = nullptr;
-AnnotatedMSRawData* nullPointer = nullptr;
+AnnotatedMSRun* ptr = nullptr;
+AnnotatedMSRun* nullPointer = nullptr;
 
-START_SECTION((AnnotatedMSRawData()))
-  ptr = new AnnotatedMSRawData();
+START_SECTION((AnnotatedMSRun()))
+  ptr = new AnnotatedMSRun();
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
-START_SECTION((~AnnotatedMSRawData()))
+START_SECTION((~AnnotatedMSRun()))
   delete ptr;
 END_SECTION
 
-START_SECTION((explicit AnnotatedMSRawData(MSExperiment&& experiment)))
+START_SECTION((explicit AnnotatedMSRun(MSExperiment&& experiment)))
   MSExperiment exp;
   MSSpectrum spec;
   spec.setRT(42.0);
   spec.setMSLevel(2);
   exp.addSpectrum(spec);
   
-  AnnotatedMSRawData annotated_data(std::move(exp));
+  AnnotatedMSRun annotated_data(std::move(exp));
   TEST_EQUAL(annotated_data.getMSExperiment().size(), 1)
   TEST_REAL_SIMILAR(annotated_data.getMSExperiment()[0].getRT(), 42.0)
 END_SECTION
 
-START_SECTION((std::vector<ProteinIdentification>& getProteinIdentifications()))
-  AnnotatedMSRawData annotated_data;
-  TEST_EQUAL(annotated_data.getProteinIdentifications().size(), 0)
+START_SECTION((ProteinIdentification& getProteinIdentifications()))
+  AnnotatedMSRun annotated_data;
   
-  ProteinIdentification prot_id;
-  prot_id.setIdentifier("Test");
-  annotated_data.getProteinIdentifications().push_back(prot_id);
-  TEST_EQUAL(annotated_data.getProteinIdentifications().size(), 1)
+  auto& prot_id = annotated_data.getProteinIdentifications();
+  prot_id.resize(1);
+  prot_id[0].setIdentifier("Test");
   TEST_EQUAL(annotated_data.getProteinIdentifications()[0].getIdentifier(), "Test")
 END_SECTION
 
-START_SECTION((const std::vector<ProteinIdentification>& getProteinIdentifications() const))
-  AnnotatedMSRawData annotated_data;
-  ProteinIdentification prot_id;
-  prot_id.setIdentifier("Test");
-  annotated_data.getProteinIdentifications().push_back(prot_id);
+START_SECTION((const ProteinIdentification& getProteinIdentifications() const))
+  AnnotatedMSRun annotated_data;
+  auto& prot_id = annotated_data.getProteinIdentifications();
+  prot_id.resize(1);
+  prot_id[0].setIdentifier("Test");
   
-  const AnnotatedMSRawData& const_data = annotated_data;
-  TEST_EQUAL(const_data.getProteinIdentifications().size(), 1)
+  const AnnotatedMSRun& const_data = annotated_data;
   TEST_EQUAL(const_data.getProteinIdentifications()[0].getIdentifier(), "Test")
 END_SECTION
 
 START_SECTION((PeptideIdentification& getPeptideIdentification(size_t index)))
-  AnnotatedMSRawData annotated_data;
+  AnnotatedMSRun annotated_data;
   MSExperiment exp;
   MSSpectrum spec1, spec2;
   exp.addSpectrum(spec1);
@@ -83,7 +80,7 @@ START_SECTION((PeptideIdentification& getPeptideIdentification(size_t index)))
 END_SECTION
 
 START_SECTION((const PeptideIdentification& getPeptideIdentification(size_t index) const))
-  AnnotatedMSRawData annotated_data;
+  AnnotatedMSRun annotated_data;
   MSExperiment exp;
   MSSpectrum spec1, spec2;
   exp.addSpectrum(spec1);
@@ -98,14 +95,14 @@ START_SECTION((const PeptideIdentification& getPeptideIdentification(size_t inde
   hit.setSequence(AASequence::fromString("PEPTIDE"));
   annotated_data.getPeptideIdentifications()[0].insertHit(hit);
   
-  const AnnotatedMSRawData& const_data = annotated_data;
+  const AnnotatedMSRun& const_data = annotated_data;
   TEST_EQUAL(const_data.getPeptideIdentifications()[0].getHits().size(), 1)
   TEST_EQUAL(const_data.getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPTIDE")
 END_SECTION
 
 
 START_SECTION((std::vector<PeptideIdentification>& getPeptideIdentifications()))
-  AnnotatedMSRawData annotated_data;
+  AnnotatedMSRun annotated_data;
   MSExperiment exp;
   MSSpectrum spec1, spec2;
   exp.addSpectrum(spec1);
@@ -130,7 +127,7 @@ START_SECTION((std::vector<PeptideIdentification>& getPeptideIdentifications()))
 END_SECTION
 
 START_SECTION((const std::vector<PeptideIdentification>& getPeptideIdentifications() const))
-  AnnotatedMSRawData annotated_data;
+  AnnotatedMSRun annotated_data;
   MSExperiment exp;
   MSSpectrum spec1, spec2;
   exp.addSpectrum(spec1);
@@ -147,7 +144,7 @@ START_SECTION((const std::vector<PeptideIdentification>& getPeptideIdentificatio
   annotated_data.getPeptideIdentifications()[0].insertHit(hit1);
   annotated_data.getPeptideIdentifications()[1].insertHit(hit2);
   
-  const AnnotatedMSRawData& const_data = annotated_data;
+  const AnnotatedMSRun& const_data = annotated_data;
   TEST_EQUAL(const_data.getPeptideIdentifications().size(), 2)
   TEST_EQUAL(const_data.getPeptideIdentifications()[0].getHits().size(), 1)
   TEST_EQUAL(const_data.getPeptideIdentifications()[1].getHits().size(), 1)
@@ -157,7 +154,7 @@ END_SECTION
 
 
 START_SECTION((void setPeptideIdentification(PeptideIdentification&& id, size_t index)))
-  AnnotatedMSRawData annotated_data;
+  AnnotatedMSRun annotated_data;
   MSExperiment exp;
   MSSpectrum spec1, spec2;
   exp.addSpectrum(spec1);
@@ -182,7 +179,7 @@ END_SECTION
 
 
 START_SECTION((void setPeptideIdentifications(std::vector<PeptideIdentification>&& ids)))
-  AnnotatedMSRawData annotated_data;
+  AnnotatedMSRun annotated_data;
   MSExperiment exp;
   MSSpectrum spec1, spec2;
   exp.addSpectrum(spec1);
@@ -212,7 +209,7 @@ END_SECTION
 
 
 START_SECTION((void clearAllPeptideIdentifications()))
-  AnnotatedMSRawData annotated_data;
+  AnnotatedMSRun annotated_data;
   MSExperiment exp;
   MSSpectrum spec1, spec2;
   exp.addSpectrum(spec1);
@@ -236,7 +233,7 @@ START_SECTION((void clearAllPeptideIdentifications()))
 END_SECTION
 
 START_SECTION((MSExperiment& getMSExperiment()))
-  AnnotatedMSRawData annotated_data;
+  AnnotatedMSRun annotated_data;
   MSExperiment exp;
   MSSpectrum spec;
   spec.setRT(42.0);
@@ -249,7 +246,7 @@ START_SECTION((MSExperiment& getMSExperiment()))
 END_SECTION
 
 START_SECTION((const MSExperiment& getMSExperiment() const))
-  AnnotatedMSRawData annotated_data;
+  AnnotatedMSRun annotated_data;
   MSExperiment exp;
   MSSpectrum spec;
   spec.setRT(42.0);
@@ -258,13 +255,13 @@ START_SECTION((const MSExperiment& getMSExperiment() const))
   
   annotated_data.getMSExperiment() = std::move(exp);
   
-  const AnnotatedMSRawData& const_data = annotated_data;
+  const AnnotatedMSRun& const_data = annotated_data;
   TEST_EQUAL(const_data.getMSExperiment().size(), 1)
   TEST_REAL_SIMILAR(const_data.getMSExperiment()[0].getRT(), 42.0)
 END_SECTION
 
 START_SECTION((Iterator functionality))
-  AnnotatedMSRawData annotated_data;
+  AnnotatedMSRun annotated_data;
   MSExperiment exp;
   MSSpectrum spec1, spec2;
   spec1.setRT(10.0);
@@ -305,7 +302,7 @@ START_SECTION((Iterator functionality))
 END_SECTION
 
 START_SECTION((Operator[] functionality))
-  AnnotatedMSRawData annotated_data;
+  AnnotatedMSRun annotated_data;
   MSExperiment exp;
   MSSpectrum spec1, spec2;
   spec1.setRT(10.0);
@@ -336,7 +333,7 @@ START_SECTION((Operator[] functionality))
   TEST_EQUAL(peptide_id2.getHits()[0].getSequence().toString(), "PEPTIDAR")
   
   // Test const operator[] functionality
-  const AnnotatedMSRawData& const_data = annotated_data;
+  const AnnotatedMSRun& const_data = annotated_data;
   auto [const_spectrum, const_peptide_id] = const_data[0];
   TEST_REAL_SIMILAR(const_spectrum.getRT(), 10.0)
   TEST_EQUAL(const_peptide_id.getHits().size(), 1)
