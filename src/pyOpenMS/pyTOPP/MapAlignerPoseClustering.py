@@ -37,7 +37,7 @@ def align(in_files, out_files, out_trafos, reference_index,
                 plog.setProgress(i)
         else:
             fh = pms.MzMLFile()
-            mse = pms.MSExperiment()
+            mse = pms.MSRun()
             plog.startProgress(0, len(in_files), "Determine Reference map")
             for i, in_f in enumerate(in_files):
                 fh.load(in_f, mse)
@@ -64,7 +64,7 @@ def align(in_files, out_files, out_trafos, reference_index,
         f_fxml_tmp.load(file_, map_ref)
         algorithm.setReference(map_ref)
     else:
-        map_ref = pms.MSExperiment()
+        map_ref = pms.MSRun()
         pms.MzMLFile().load(file_, map_ref)
         algorithm.setReference(map_ref)
 
@@ -85,7 +85,7 @@ def align(in_files, out_files, out_trafos, reference_index,
                 addDataProcessing(map_, params, pms.DataProcessing.ProcessingAction.ALIGNMENT)
                 f_fxml_tmp.store(out_files[i], map_)
         else:
-            map_ = pms.MSExperiment()
+            map_ = pms.MSRun()
             pms.MzMLFile().load(in_file, map_)
             if in_file == file_:
                 trafo.fitModel("identity")

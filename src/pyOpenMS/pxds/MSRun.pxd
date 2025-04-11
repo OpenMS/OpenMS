@@ -13,9 +13,9 @@ from Matrix cimport *
 
 # this class has addons, see the ./addons folder
 
-cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/KERNEL/MSRun.h>" namespace "OpenMS":
 
-    cdef cppclass MSExperiment(ExperimentalSettings, RangeManagerRtMzInt):
+    cdef cppclass MSRun(ExperimentalSettings, RangeManagerRtMzInt):
         # wrap-inherits:
         #  ExperimentalSettings
         #  RangeManagerRtMzInt
@@ -41,15 +41,15 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         #
         #  .. code-block:: python
         #  
-        #    exp = MSExperiment()
+        #    exp = MSRun()
         #    MzMLFile().load(path_to_file, exp)
         #    for spectrum in exp:
         #      print(spectrum.size()) # prints number of peaks
         #      mz, intensities = spectrum.get_peaks()
         #  
 
-        MSExperiment() except + nogil 
-        MSExperiment(MSExperiment &) except + nogil 
+        MSRun() except + nogil 
+        MSRun(MSRun &) except + nogil 
 
         ExperimentalSettings getExperimentalSettings() except + nogil 
         
@@ -104,9 +104,9 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         bool isSorted() except + nogil 
 
         void getPrimaryMSRunPath(StringList& toFill) except + nogil  # wrap-doc:References to the first MS file(s) after conversions. Used to trace results back to original data.
-        void swap(MSExperiment) except + nogil 
+        void swap(MSRun) except + nogil 
 
-        bool operator==(MSExperiment) except + nogil 
+        bool operator==(MSRun) except + nogil 
         void reset() except + nogil 
         bool clearMetaDataArrays() except + nogil 
 

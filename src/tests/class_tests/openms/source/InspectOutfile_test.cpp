@@ -394,7 +394,7 @@ START_SECTION(vector< Size > getWantedRecords(const String& result_filename, dou
 	if ( !wanted_records.empty() ) TEST_EQUAL (wanted_records.front(), 0)
 END_SECTION
 
-START_SECTION(template< typename PeakT > void getExperiment(MSExperiment< PeakT >& exp, String& type, const String& in_filename))
+START_SECTION(template< typename PeakT > void getExperiment(MSRun< PeakT >& exp, String& type, const String& in_filename))
 	PeakMap exp;
 	String type;
 

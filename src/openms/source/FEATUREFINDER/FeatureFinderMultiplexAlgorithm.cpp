@@ -10,7 +10,7 @@
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
-#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSRun.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteringCentroided.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/FEATUREFINDER/MultiplexClustering.h>
@@ -339,7 +339,7 @@ namespace OpenMS
           size_t mz_idx = (satellite_it->second).getMZidx();
 
           // find peak itself
-          MSExperiment::ConstIterator it_rt = exp_centroid_.begin();
+          MSRun::ConstIterator it_rt = exp_centroid_.begin();
           std::advance(it_rt, rt_idx);
           MSSpectrum::ConstIterator it_mz = it_rt->begin();
           std::advance(it_mz, mz_idx);
@@ -533,7 +533,7 @@ namespace OpenMS
     return intensity_peptide;
   }
 
-  void FeatureFinderMultiplexAlgorithm::generateMapsCentroided_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, std::vector<std::map<int, GridBasedCluster> >& cluster_results)
+  void FeatureFinderMultiplexAlgorithm::generateMapsCentroided_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSRun>& filter_results, std::vector<std::map<int, GridBasedCluster> >& cluster_results)
   {
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
@@ -616,7 +616,7 @@ namespace OpenMS
               size_t mz_idx = (satellite_it->second).getMZidx();
 
               // find peak itself
-              MSExperiment::ConstIterator it_rt = exp_centroid_.begin();
+              MSRun::ConstIterator it_rt = exp_centroid_.begin();
               std::advance(it_rt, rt_idx);
               MSSpectrum::ConstIterator it_mz = it_rt->begin();
               std::advance(it_mz, mz_idx);
@@ -712,7 +712,7 @@ namespace OpenMS
 
   }
 
-  void FeatureFinderMultiplexAlgorithm::generateMapsProfile_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, const std::vector<std::map<int, GridBasedCluster> >& cluster_results)
+  void FeatureFinderMultiplexAlgorithm::generateMapsProfile_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSRun>& filter_results, const std::vector<std::map<int, GridBasedCluster> >& cluster_results)
   {
     // progress logger
     unsigned progress = 0;
@@ -872,7 +872,7 @@ namespace OpenMS
     endProgress();
   }
 
-  void FeatureFinderMultiplexAlgorithm::run(MSExperiment& exp, bool progress)
+  void FeatureFinderMultiplexAlgorithm::run(MSRun& exp, bool progress)
   {
     // parameter section: algorithm, get selected charge range
     String charge_string = param_.getValue("algorithm:charge").toString();
@@ -1013,7 +1013,7 @@ namespace OpenMS
        */
       MultiplexFilteringCentroided filtering(exp_centroid_, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), averagine_similarity_scaling, param_.getValue("algorithm:averagine_type").toString());
       filtering.setLogType(getLogType());
-      std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
+      std::vector<MultiplexFilteredMSRun> filter_results = filtering.filter();
 
       /**
        * cluster filter results
@@ -1037,7 +1037,7 @@ namespace OpenMS
        */
       MultiplexFilteringProfile filtering(exp_profile_, exp_centroid_, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), averagine_similarity_scaling, param_.getValue("algorithm:averagine_type").toString());
       filtering.setLogType(getLogType());
-      std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
+      std::vector<MultiplexFilteredMSRun> filter_results = filtering.filter();
       exp_blacklist_ = filtering.getBlacklist();
 
       /**
@@ -1144,7 +1144,7 @@ namespace OpenMS
     return consensus_map_;
   }
 
-  MSExperiment& FeatureFinderMultiplexAlgorithm::getBlacklist()
+  MSRun& FeatureFinderMultiplexAlgorithm::getBlacklist()
   {
     return exp_blacklist_;
   }

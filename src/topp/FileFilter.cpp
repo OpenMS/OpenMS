@@ -9,7 +9,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
@@ -147,7 +147,7 @@ private:
     return false;
   }
 
-  static void replacePrecursorCharge(MSExperiment& e, int charge_in, int charge_out)
+  static void replacePrecursorCharge(MSRun& e, int charge_in, int charge_out)
   {
     for (auto& s : e.getSpectra())
     {

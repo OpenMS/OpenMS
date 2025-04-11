@@ -147,8 +147,8 @@ set(kernel_executables_list
   MRMFeature_test
   MRMTransitionGroup_test
   MSChromatogram_test
-  MSExperiment_test
-  OnDiscMSExperiment_test
+  MSRun_test
+  OnDiscMSRun_test
   MSSpectrum_test
   Peak1D_test
   Peak2D_test
@@ -317,7 +317,7 @@ set(filtering_executables_list
   MultiplexClustering_test
   MultiplexDeltaMasses_test
   MultiplexDeltaMassesGenerator_test
-  MultiplexFilteredMSExperiment_test
+  MultiplexFilteredMSRun_test
   MultiplexFilteredPeak_test
   MultiplexFiltering_test
   MultiplexFilteringCentroided_test

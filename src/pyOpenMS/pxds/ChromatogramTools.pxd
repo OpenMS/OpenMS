@@ -1,6 +1,6 @@
 from Peak1D cimport *
 from ChromatogramPeak cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 
 cdef extern from "<OpenMS/KERNEL/ChromatogramTools.h>" namespace "OpenMS":
 
@@ -9,11 +9,11 @@ cdef extern from "<OpenMS/KERNEL/ChromatogramTools.h>" namespace "OpenMS":
         ChromatogramTools(ChromatogramTools &) except + nogil 
 
         void convertChromatogramsToSpectra(
-                MSExperiment & epx
+                MSRun & epx
                 ) except + nogil  # wrap-doc:Converts the chromatogram to a list of spectra with instrument settings
 
         void convertSpectraToChromatograms(
-                MSExperiment & epx,
+                MSRun & epx,
                 bool remove_spectra,
                 bool force_conversion
                 ) except + nogil  # wrap-doc:Converts e.g. SRM spectra to chromatograms

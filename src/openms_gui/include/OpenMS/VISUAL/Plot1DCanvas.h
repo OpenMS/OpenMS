@@ -334,7 +334,7 @@ public:
     const DimBase& getNonGravityDim() const;
 
     /// add a chromatogram layer
-    /// @param chrom_exp_sptr An MSExperiment with chromatograms
+    /// @param chrom_exp_sptr An MSRun with chromatograms
     /// @param ondisc_sptr OnDisk experiment, as fallback to read the chromatogram from, should @p chrom_exp_sptr.getChromatograms(index) be empty
     /// @param chrom_annotation If OSWData was loaded, pass the shared_pointer from the LayerData. Otherwise leave empty.
     /// @param index Index of the chromatogram to show
@@ -517,7 +517,7 @@ signals:
     void showCurrentPeaksAsIonMobility(const MSSpectrum& spec);
 
     /// Requests to display all spectra as DIA
-    void showCurrentPeaksAsDIA(const Precursor& pc, const MSExperiment& exp);
+    void showCurrentPeaksAsDIA(const Precursor& pc, const MSRun& exp);
 
 public slots:
     // Docu in base class

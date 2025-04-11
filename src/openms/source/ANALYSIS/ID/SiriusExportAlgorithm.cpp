@@ -42,7 +42,7 @@ namespace OpenMS
   // Algorithm
   // ################
   void SiriusExportAlgorithm::preprocessing(const String& featureXML_path,
-                                            const MSExperiment& spectra,
+                                            const MSRun& spectra,
                                             FeatureMapping::FeatureMappingInfo& feature_mapping_info,
                                             FeatureMapping::FeatureToMs2Indices& feature_ms2_indices) const
 {
@@ -94,7 +94,7 @@ namespace OpenMS
 
   void SiriusExportAlgorithm::logFeatureSpectraNumber(const String& featureXML_path,
                                                         const FeatureMapping::FeatureToMs2Indices& feature_ms2_indices,
-                                                        const MSExperiment& spectra) const
+                                                        const MSRun& spectra) const
   {
     // number of features to be processed
     if (isFeatureOnly() && !featureXML_path.empty())
@@ -135,7 +135,7 @@ namespace OpenMS
     for (size_t i = 0; i < mzML_files.size(); ++i) 
     {
       // load experiment
-      MSExperiment spectra;
+      MSRun spectra;
       FileHandler().loadExperiment(mzML_files[i], spectra, {FileTypes::MZML});
 
       // run masstrace filter and feature mapping

@@ -37,8 +37,8 @@ namespace Internal
     and chromatogram data through the getSpectrumById and getChromatogramById
     functions. It thus allows random access to spectra and chromatograms data
     without having to read the whole file into memory. It does not provide the
-    same interface as MSExperiment, if this is desired, please use
-    IndexedMzMLFileLoader and OnDiscMSExperiment.
+    same interface as MSRun, if this is desired, please use
+    IndexedMzMLFileLoader and OnDiscMSRun.
 
     Internally, it uses the IndexedMzMLDecoder for initial parsing and
     extracting all the offsets of the &lt;chromatogram&gt; and &lt;spectrum&gt; tags. These

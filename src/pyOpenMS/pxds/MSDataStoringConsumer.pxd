@@ -1,7 +1,7 @@
 from Types cimport *
 from MSChromatogram cimport *
 from MSSpectrum cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataStoringConsumer.h>" namespace "OpenMS":
     
@@ -21,4 +21,4 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataStoringConsumer.h>" namespace 
         void consumeSpectrum(MSSpectrum & s) except + nogil 
         void consumeChromatogram(MSChromatogram & ) except + nogil 
 
-        MSExperiment getData() except + nogil 
+        MSRun getData() except + nogil 

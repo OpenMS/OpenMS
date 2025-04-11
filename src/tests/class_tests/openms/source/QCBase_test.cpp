@@ -12,7 +12,7 @@
 ///////////////////////////
 
 #include <OpenMS/QC/QCBase.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 ///////////////////////////
 
@@ -35,7 +35,7 @@ START_TEST(SpectraMap, "$Id$")
     }
   END_SECTION
   
-  MSExperiment exp;
+  MSRun exp;
   MSSpectrum spec1;
   spec1.setNativeID("XTandem::0");
   MSSpectrum spec2;
@@ -44,7 +44,7 @@ START_TEST(SpectraMap, "$Id$")
   spec3.setNativeID("XTandem::2");
   exp.setSpectra({spec1,spec2,spec3});
   
-  START_SECTION(QCBase::SpectraMap::calculateMap(const MSExperiment& exp))
+  START_SECTION(QCBase::SpectraMap::calculateMap(const MSRun& exp))
     QCBase::SpectraMap spec_map;
     spec_map.calculateMap(exp);
     ABORT_IF(spec_map.size() != 3);
@@ -54,7 +54,7 @@ START_TEST(SpectraMap, "$Id$")
     TEST_EXCEPTION(Exception::ElementNotFound, spec_map.at("XTandem::15"));
   END_SECTION
 
-  START_SECTION(QCBase::SpectraMap::SpectraMap(const MSExperiment& exp))
+  START_SECTION(QCBase::SpectraMap::SpectraMap(const MSRun& exp))
     QCBase::SpectraMap spec_map(exp);
     TEST_EQUAL(spec_map.size(), 3);
   END_SECTION

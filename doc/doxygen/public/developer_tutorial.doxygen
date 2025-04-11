@@ -285,7 +285,7 @@ The %OpenMS kernel contains the data structures that store the actual MS data.
 For storing the basic MS data (spectra, chromatograms, and full runs) %OpenMS uses
 - Peaks (Peak1D and ChromatogramPeak) stored in
 - MSSpectrum and MSChromatogram, which in turn can both be stored in an
-- MSExperiment
+- MSRun
 
 For storing quantified peptides or analytes in single MS runs, %OpenMS uses so called feature maps.
 
@@ -311,7 +311,7 @@ To store identified peptides %OpenMS has classes
  <tr><td>Spectrum of Mass Peaks</td><td>MSSpectrum</td></tr>
  <tr><td>Chromatogram of Elution Peaks</td><td>MSChromatogram</td></tr>
  <tr><td>Mass trace for small molecule detection</td><td>MassTrace</td></tr>
- <tr><td>Full MS run, containing both spectra and chromatograms</td><td>MSExperiment (alias PeakMap)</td></tr>
+ <tr><td>Full MS run, containing both spectra and chromatograms</td><td>MSRun (alias PeakMap)</td></tr>
  <tr><td>Feature (isotopic pattern of eluting analyte)</td><td>Feature</td></tr>
  <tr><td>All features detected in an MS Run</td><td>FeatureMap</td></tr>
  <tr><td>Linked / Grouped feature (e.g., same Peptide quantified in several MS runs) </td><td>ConsensusFeature</td></tr>
@@ -390,22 +390,22 @@ TrGroup createTransitionGroup()
 Note how the identifiers of the chromatograms and the assay information (ReactionMonitoringTransition) are matched so that downstream algorithms can utilize the meta-information stored in the assays for data analysis.
 
 @subsection tutorial_library_kernelclasses_map   Maps
-Although raw data maps, peak maps and feature maps are conceptually very similar they are stored in different data types. For raw data and peak maps, the default container is MSExperiment, which is an array of MSSpectrum instances. 
+Although raw data maps, peak maps and feature maps are conceptually very similar they are stored in different data types. For raw data and peak maps, the default container is MSRun, which is an array of MSSpectrum instances. 
 In contrast to raw data and peak maps, feature maps are not a collection of one-dimensional spectra, but an array of two-dimensional feature instances. The main data structure for feature maps is called FeatureMap.
 
-Although MSExperiment and FeatureMap differ in the data they store, they also have things in common. Both store metadata that is valid for the whole map, i.e. sample description and instrument description. This data is stored in the common base class ExperimentalSettings.
+Although MSRun and FeatureMap differ in the data they store, they also have things in common. Both store metadata that is valid for the whole map, i.e. sample description and instrument description. This data is stored in the common base class ExperimentalSettings.
 
-@subsection tutorial_library_kernelclasses_mse  MSExperiment
-MSExperiment contains ExperimentalSettings (metadata of the MS run) and a vector<MSSpectrum>. The one-dimensional spectrum MSSpectrum is derived from SpectrumSettings (metadata of a spectrum).
+@subsection tutorial_library_kernelclasses_mse  MSRun
+MSRun contains ExperimentalSettings (metadata of the MS run) and a vector<MSSpectrum>. The one-dimensional spectrum MSSpectrum is derived from SpectrumSettings (metadata of a spectrum).
 <br><br>
-<b>Example: Tutorial_MSExperiment.cpp</b>
+<b>Example: Tutorial_MSRun.cpp</b>
 <br>
-The following example creates a MSExperiment containing four MSSpectrum instances. We then iterate over RT range (2,3) and m/z range (603,802) and print the peak positions using an AreaIterator. Then we show how we iterate over all spectra and peaks. In the commented out part, we show how to load/store all spectra and associated metadata from/to an mzML file.
+The following example creates a MSRun containing four MSSpectrum instances. We then iterate over RT range (2,3) and m/z range (603,802) and print the peak positions using an AreaIterator. Then we show how we iterate over all spectra and peaks. In the commented out part, we show how to load/store all spectra and associated metadata from/to an mzML file.
 
-\snippet Tutorial_MSExperiment.cpp doxygen_snippet_MSExperiment
+\snippet Tutorial_MSRun.cpp doxygen_snippet_MSRun
 
 @subsection tutorial_library_kernelclasses_fmap FeatureMap
-FeatureMap, the container for features, is simply a vector<Feature>. Additionally, it is derived from ExperimentalSettings, to store the meta information. All peak and feature containers (MSSpectrum, MSExperiment, FeatureMap) are also derived from RangeManager. This class facilitates the handling of MS data ranges. It allows to calculate and store both the position range and the intensity range of the container.
+FeatureMap, the container for features, is simply a vector<Feature>. Additionally, it is derived from ExperimentalSettings, to store the meta information. All peak and feature containers (MSSpectrum, MSRun, FeatureMap) are also derived from RangeManager. This class facilitates the handling of MS data ranges. It allows to calculate and store both the position range and the intensity range of the container.
 <br><br>
 <b>Example: Tutorial_FeatureMap.cpp</b>
 <br>

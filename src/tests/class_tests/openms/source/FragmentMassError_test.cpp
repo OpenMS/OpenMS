@@ -74,7 +74,7 @@ END_SECTION
 FragmentMassError frag_ma_err;
 
 // tests compute function with fmap
-START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std::map<String, UInt64>& map_to_spectrum, const ToleranceUnit tolerance_unit = ToleranceUnit::AUTO,
+START_SECTION(void compute(FeatureMap& fmap, const MSRun& exp, const std::map<String, UInt64>& map_to_spectrum, const ToleranceUnit tolerance_unit = ToleranceUnit::AUTO,
                            const double tolerance = 20))
 {
   //--------------------------------------------------------------------
@@ -101,8 +101,8 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std:
   protId.setSearchParameters(param);
   fmap.setProteinIdentifications({protId});
 
-  // MSExperiment
-  MSExperiment exp;
+  // MSRun
+  MSRun exp;
 
   // create b- and y-ion spectrum of peptide sequence HIMALAYA with charge 1
   // shift every peak by 5 ppm
@@ -132,7 +132,7 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std:
   // put valid data in exp
   exp.setSpectra({ms_spec_empty, ms_spec_2_alabama, ms_spec_2_himalaya});
 
-  // map the MSExperiment
+  // map the MSRun
   QCBase::SpectraMap spectra_map(exp);
 
   //--------------------------------------------------------------------
@@ -179,7 +179,7 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std:
   //--------------------------------------------------------------------
   // test with no given fragmentation method
   //--------------------------------------------------------------------
-  // create MSExperiment with no given fragmentation method
+  // create MSRun with no given fragmentation method
   exp[0].setPrecursors({});
   // falls back to CID
   spectra_map.calculateMap(exp);
@@ -209,7 +209,7 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std:
   fmap_sori.setProteinIdentifications({protId});
   fmap_sori.setUnassignedPeptideIdentifications({createPeptideIdentification("XTandem::5")});
 
-  // MSExperiment with fragmentation method SORI (not supported)
+  // MSRun with fragmentation method SORI (not supported)
   exp.setSpectra({createMSSpectrum(2, 7, "XTandem::5", Precursor::ActivationMethod::SORI)});
   spectra_map.calculateMap(exp);
 
@@ -222,7 +222,7 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std:
   // put PeptideIdentification with RT matching to MSSpectrum with no peaks to fmap
   fmap.setUnassignedPeptideIdentifications({createPeptideIdentification("XTandem::6")});
 
-  // MSExperiment without peaks
+  // MSRun without peaks
   exp.setSpectra({createMSSpectrum(2, 4, "XTandem::6")});
   spectra_map.calculateMap(exp);
 
@@ -237,7 +237,7 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std:
 END_SECTION
 
 // tests compute function with pepIDs
-START_SECTION(void compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp,
+START_SECTION(void compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSRun& exp,
                            const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20));
 {
   //--------------------------------------------------------------------
@@ -258,8 +258,8 @@ START_SECTION(void compute(std::vector<PeptideIdentification>& pep_ids, const Pr
   param.fragment_mass_tolerance_ppm = false;
   param.fragment_mass_tolerance = 0.3;
 
-  // MSExperiment
-  MSExperiment exp;
+  // MSRun
+  MSRun exp;
 
   // create b- and y-ion spectrum of peptide sequence HIMALAYA with charge 1
   // shift every peak by 5 ppm
@@ -289,7 +289,7 @@ START_SECTION(void compute(std::vector<PeptideIdentification>& pep_ids, const Pr
   // put valid data in exp
   exp.setSpectra({ms_spec_empty, ms_spec_2_alabama, ms_spec_2_himalaya});
 
-  // map the MSExperiment
+  // map the MSRun
   QCBase::SpectraMap spectra_map(exp);
 
   //--------------------------------------------------------------------
@@ -335,7 +335,7 @@ START_SECTION(void compute(std::vector<PeptideIdentification>& pep_ids, const Pr
   //--------------------------------------------------------------------
   // test with no given fragmentation method
   //--------------------------------------------------------------------
-  // create MSExperiment with no given fragmentation method
+  // create MSRun with no given fragmentation method
   exp[0].setPrecursors({});
   // falls back to CID
   spectra_map.calculateMap(exp);
@@ -363,7 +363,7 @@ START_SECTION(void compute(std::vector<PeptideIdentification>& pep_ids, const Pr
   // PeptideIdentification with RT matching to MSSpectrum with fragmentation method SORI
   std::vector<PeptideIdentification> sori_id({createPeptideIdentification("XTandem::5")});
 
-  // MSExperiment with fragmentation method SORI (not supported)
+  // MSRun with fragmentation method SORI (not supported)
   exp.setSpectra({createMSSpectrum(2, 7, "XTandem::5", Precursor::ActivationMethod::SORI)});
   spectra_map.calculateMap(exp);
 
@@ -376,7 +376,7 @@ START_SECTION(void compute(std::vector<PeptideIdentification>& pep_ids, const Pr
   // PeptideIdentification with RT matching to MSSpectrum with no peaks
   std::vector<PeptideIdentification> no_peaks_id({createPeptideIdentification("XTandem::6")});
 
-  // MSExperiment without peaks
+  // MSRun without peaks
   exp.setSpectra({createMSSpectrum(2, 4, "XTandem::6")});
   spectra_map.calculateMap(exp);
 

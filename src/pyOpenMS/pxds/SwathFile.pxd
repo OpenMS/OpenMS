@@ -1,6 +1,6 @@
 from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
-from MSExperiment cimport *
+from MSRun cimport *
 from MzMLFile cimport *
 from MzXMLFile cimport *
 from SwathMap cimport *

@@ -61,16 +61,16 @@ p.setValue("positive_adducts", OPENMS_GET_TEST_DATA_PATH("FIAMS_negative_adducts
 p.setValue("negative_adducts", OPENMS_GET_TEST_DATA_PATH("FIAMS_positive_adducts.tsv"));
 fia_processor.setParameters(p);
 
-MSExperiment exp;
+MSRun exp;
 MzMLFile mzml;
 mzml.load(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_input")) + "/" + filename + ".mzML", exp);
 
-MSExperiment exp_merged;
+MSRun exp_merged;
 MzMLFile mzml_merged;
 mzml.load(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_input")) + "/" + filename + "_merged.mzML", exp_merged);
 MSSpectrum spec_merged = exp_merged.getSpectra()[0];
 
-MSExperiment exp_picked;
+MSRun exp_picked;
 MzMLFile mzml_picked;
 mzml.load(String(OPENMS_GET_TEST_DATA_PATH("FIAMS_input")) + "/" + filename + "_picked.mzML", exp_picked);
 MSSpectrum spec_picked = exp_picked.getSpectra()[0];
@@ -92,7 +92,7 @@ for (Size i = 0; i < rts.size(); ++i) {
 }
 MSSpectrum merged = fia_processor.mergeAlongTime(spectra);
 
-START_SECTION((void cutForTime(const MSExperiment & experiment, vector<MSSpectrum> & output, float n_seconds)))
+START_SECTION((void cutForTime(const MSRun & experiment, vector<MSSpectrum> & output, float n_seconds)))
 {
     vector<MSSpectrum> output1;
     fia_processor.cutForTime(input, 0, output1);

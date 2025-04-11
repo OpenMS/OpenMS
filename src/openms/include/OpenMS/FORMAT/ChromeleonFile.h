@@ -10,12 +10,12 @@
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 namespace OpenMS
 {
   /**
-    @brief Load Chromeleon HPLC text file and save it into a `MSExperiment`.
+    @brief Load Chromeleon HPLC text file and save it into a `MSRun`.
 
     An example of the expected format:
     > Raw Data:
@@ -33,12 +33,12 @@ public:
     virtual ~ChromeleonFile() = default;
 
     /**
-      @brief Load the file's data and metadata, and save it into a `MSExperiment`.
+      @brief Load the file's data and metadata, and save it into a `MSRun`.
 
       @param[in] filename Path to the Chromeleon input file
       @param[out] experiment The variable into which the extracted information will be saved
     */
-    void load(const String& filename, MSExperiment& experiment) const;
+    void load(const String& filename, MSRun& experiment) const;
 
     /**
       @brief Remove commas from the string (used as thousands separators) and

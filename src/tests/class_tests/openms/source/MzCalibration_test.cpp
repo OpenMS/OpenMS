@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 ///////////////////////////
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/QC/MzCalibration.h>
 ///////////////////////////
@@ -66,7 +66,7 @@ spectra.push_back(spec);
 
 exp.setSpectra(spectra);
 
-MSExperiment exp_no_calibration = exp;
+MSRun exp_no_calibration = exp;
 
 // adding processing info
 DataProcessing p;
@@ -121,7 +121,7 @@ unassignedIDs.push_back(peptide_ID);
 fmap_ref.setUnassignedPeptideIdentifications(unassignedIDs);
 MzCalibration cal;
 // tests compute function
-START_SECTION(void compute(FeatureMap& features, const MSExperiment& exp, const QCBase::SpectraMap map_to_spectrum))
+START_SECTION(void compute(FeatureMap& features, const MSRun& exp, const QCBase::SpectraMap map_to_spectrum))
 {
   FeatureMap fmap = fmap_ref;
   cal.compute(fmap, exp, spectra_map);
@@ -166,8 +166,8 @@ START_SECTION(void compute(FeatureMap& features, const MSExperiment& exp, const 
   TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("uncalibrated_mz_error_ppm"), (5 - ref) / ref * 1000000);
   TEST_REAL_SIMILAR(fmap[0].getPeptideIdentifications()[0].getHits()[0].getMetaValue("calibrated_mz_error_ppm"), (5.5 - ref) / ref * 1000000);
 
-  // test empty MSExperiment
-  MSExperiment exp_empty {};
+  // test empty MSRun
+  MSRun exp_empty {};
   QCBase::SpectraMap spectra_map_empty(exp_empty);
   fmap = fmap_ref; // reset FeatureMap
   cal.compute(fmap, exp_empty, spectra_map_empty);

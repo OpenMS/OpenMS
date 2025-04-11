@@ -3,7 +3,7 @@ from libcpp.vector cimport vector as libcpp_vector
 from libcpp.map cimport map as libcpp_map
 from ConsensusMap cimport *
 from FeatureMap cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 
 cdef extern from "<OpenMS/KERNEL/ConversionHelper.h>" namespace "OpenMS":
 
@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/KERNEL/ConversionHelper.h>" namespace "OpenMS":
                    Size n) except + nogil 
     
       void convert(UInt64 input_map_index,
-                   MSExperiment & input_map,
+                   MSRun & input_map,
                    ConsensusMap & output_map,
                    Size n) except + nogil 
     

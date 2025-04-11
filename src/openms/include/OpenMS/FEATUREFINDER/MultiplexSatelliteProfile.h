@@ -13,7 +13,7 @@ namespace OpenMS
   /**
    * @brief data structure storing a single satellite data point
    *
-   * The satellite data point is a spline-interpolated point of profile MSExperiment.
+   * The satellite data point is a spline-interpolated point of profile MSRun.
    * The triplet of RT, m/z and intensity is therefore stored explicitly.
    * 
    * @see MultiplexFilteredPeak, MultiplexSatelliteCentroided

@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
         FIAMSDataProcessor() except + nogil  # wrap-doc:Data processing for FIA-MS data
         FIAMSDataProcessor(FIAMSDataProcessor &) except + nogil 
 
-        bool run(MSExperiment & experiment, float & n_seconds, MzTab & output, bool load_cached_spectrum) except + nogil 
+        bool run(MSRun & experiment, float & n_seconds, MzTab & output, bool load_cached_spectrum) except + nogil 
             # wrap-doc:
                 #  Run the full analysis for the experiment for the given time interval\n
                 #  
@@ -36,13 +36,13 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>" namespace "OpenMS":
                 #  of the resulting spectrum is saved.
                 #  
                 #  
-                #  :param experiment: Input MSExperiment
+                #  :param experiment: Input MSRun
                 #  :param n_seconds: Input number of seconds
                 #  :param load_cached_spectrum: Load the cached picked spectrum if exists
                 #  :param output: Output of the accurate mass search results
                 #  :return: A boolean indicating if the picked spectrum was loaded from the cached file
 
-        # void cutForTime(MSExperiment & experiment, float & n_seconds, libcpp_vector[ MSSpectrum ] & output) except + nogil 
+        # void cutForTime(MSRun & experiment, float & n_seconds, libcpp_vector[ MSSpectrum ] & output) except + nogil 
         # NAMESPACE # MSSpectrum mergeAlongTime(libcpp_vector[ OpenMS::MSSpectrum ] & input_) except + nogil 
         MSSpectrum extractPeaks(MSSpectrum & input_) except + nogil 
             # wrap-doc:

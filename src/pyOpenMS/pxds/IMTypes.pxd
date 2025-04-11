@@ -1,5 +1,5 @@
 from Types cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from MSSpectrum cimport *
 
 cdef extern from "<OpenMS/IONMOBILITY/IMTypes.h>" namespace "OpenMS":
@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/IONMOBILITY/IMTypes.h>" namespace "OpenMS":
 
       IMTypes() except + nogil 
       IMTypes(IMTypes &) except + nogil  # compiler
-      IMFormat determineIMFormat(const MSExperiment& exp) except + nogil 
+      IMFormat determineIMFormat(const MSRun& exp) except + nogil 
       IMFormat determineIMFormat(const MSSpectrum& spec) except + nogil 
 
 cdef extern from "<OpenMS/IONMOBILITY/IMTypes.h>" namespace "OpenMS":

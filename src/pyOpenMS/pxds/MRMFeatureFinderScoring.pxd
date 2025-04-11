@@ -1,5 +1,5 @@
 from Types cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
 from FeatureMap cimport *
@@ -33,11 +33,11 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespa
         # copy constructor of 'MRMFeatureFinderScoring' is implicitly deleted because field 'diascoring_' has an inaccessible copy constructor
         MRMFeatureFinderScoring(MRMFeatureFinderScoring &) except + nogil  # wrap-ignore
 
-        void pickExperiment(MSExperiment & chromatograms,
+        void pickExperiment(MSRun & chromatograms,
                             FeatureMap & output,
                             TargetedExperiment & transition_exp_,
                             TransformationDescription trafo,
-                            MSExperiment & swath_map) except + nogil 
+                            MSRun & swath_map) except + nogil 
             # wrap-doc:
                 #  Pick features in one experiment containing chromatogram
                 #  

@@ -288,7 +288,7 @@ START_SECTION((virtual void createPseudoSpectra()))
   ConsensusMap masstraces;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("Masstraces_Testdata.consensusXML"), masstraces);
 
-  MSExperiment pseudo_spectra;
+  MSRun pseudo_spectra;
   masstraces.sortByIntensity(true);
   OpenMS::MasstraceCorrelator mtcorr;
   mtcorr.createPseudoSpectra(masstraces, pseudo_spectra, 0, 0.7, 1, 3);

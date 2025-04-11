@@ -16,7 +16,7 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 START_TEST(FileHandler, "$Id$")
 
@@ -162,7 +162,7 @@ END_SECTION
 
 
 
-START_SECTION((template < class PeakType > bool loadExperiment(const String &filename, MSExperiment< PeakType > &exp, FileTypes::Type force_type=FileTypes::UNKNOWN, ProgressLogger::LogType log=ProgressLogger::NONE, const bool compute_hash=true)))
+START_SECTION((template < class PeakType > bool loadExperiment(const String &filename, MSRun< PeakType > &exp, FileTypes::Type force_type=FileTypes::UNKNOWN, ProgressLogger::LogType log=ProgressLogger::NONE, const bool compute_hash=true)))
 FileHandler tmp;
 PeakMap exp;
 TEST_EXCEPTION(Exception::FileNotFound, tmp.loadExperiment("test.bla", exp))
@@ -261,7 +261,7 @@ tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"
 TEST_EQUAL(map.size(), 7);
 END_SECTION
 
-START_SECTION((void storeExperiment(const String &filename, const MSExperiment<>&exp, ProgressLogger::LogType log = ProgressLogger::NONE)))
+START_SECTION((void storeExperiment(const String &filename, const MSRun<>&exp, ProgressLogger::LogType log = ProgressLogger::NONE)))
 FileHandler fh;
 PeakMap exp;
 fh.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);

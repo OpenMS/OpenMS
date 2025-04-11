@@ -1,7 +1,7 @@
 from Peak1D cimport *
 from Feature cimport *
 from FeatureMap cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
 from DefaultParamHandler cimport *
@@ -30,7 +30,7 @@ cdef extern from "<OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>" na
         #
         #  .. code-block:: python
         #  
-        #      exp = MSExperiment()
+        #      exp = MSRun()
         #      MzMLFile().load(path_to_file, exp)
         #      ff = FeatureFinderAlgorithmMetaboIdent()
         #      ff.setMSData(exp)
@@ -49,14 +49,14 @@ cdef extern from "<OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>" na
 
         FeatureFinderAlgorithmMetaboIdent() except + nogil 
 
-        void setMSData(MSExperiment & input) except + nogil  #wrap-doc:Sets spectra
-        const MSExperiment& getMSData() except + nogil  #wrap-doc:Returns spectra
+        void setMSData(MSRun & input) except + nogil  #wrap-doc:Sets spectra
+        const MSRun& getMSData() except + nogil  #wrap-doc:Returns spectra
 
         void run(const libcpp_vector[ FeatureFinderMetaboIdentCompound ] metaboIdentTable, FeatureMap& features, String spectra_path) except + nogil 
         # wrap-doc:
         #   Run feature extraction. spectra_path get's annotated as primaryMSRunPath in the resulting feature map.
 
-        MSExperiment& getChromatograms() except + nogil  #wrap-doc:Retrieves chromatograms (empty if run was not executed)
+        MSRun& getChromatograms() except + nogil  #wrap-doc:Retrieves chromatograms (empty if run was not executed)
 
         const TargetedExperiment& getLibrary () except + nogil  #wrap-doc:Retrieves the assay library (e.g., to store as TraML, empty if run was not executed)
         

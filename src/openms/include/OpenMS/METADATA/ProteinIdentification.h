@@ -21,7 +21,7 @@
 
 namespace OpenMS
 {
-  class MSExperiment;
+  class MSRun;
   class PeptideIdentification;
   class PeptideEvidence;
   class ConsensusMap;
@@ -435,8 +435,8 @@ public:
     */
     void setPrimaryMSRunPath(const StringList& s, bool raw = false);
 
-    /// set the file path to the primary MS run but try to use the mzML annotated in the MSExperiment.
-    void setPrimaryMSRunPath(const StringList& s, MSExperiment& e);
+    /// set the file path to the primary MS run but try to use the mzML annotated in the MSRun.
+    void setPrimaryMSRunPath(const StringList& s, MSRun& e);
     void addPrimaryMSRunPath(const String& s, bool raw = false);
     void addPrimaryMSRunPath(const StringList& s, bool raw = false);
 

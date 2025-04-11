@@ -1,6 +1,6 @@
 from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
-from MSExperiment cimport *
+from MSRun cimport *
 from FeatureMap cimport *
 from ProteinIdentification cimport *
 from PeptideIdentification cimport *
@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/FORMAT/MzQCFile.h>" namespace "OpenMS":
 
         void store(String input_file,
                    String output_file,
-                   MSExperiment & exp,
+                   MSRun & exp,
                    String contact_name,
                    String contact_address,
                    String description,
@@ -33,7 +33,7 @@ cdef extern from "<OpenMS/FORMAT/MzQCFile.h>" namespace "OpenMS":
                    #  
                    #  :param input_file: MzML input file name
                    #  :param output_file: MzQC output file name
-                   #  :param exp: MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
+                   #  :param exp: MSRun to extract QC data from, prior sortSpectra() and updateRanges() required
                    #  :param contact_name: Name of the person creating the mzQC file
                    #  :param contact_address: Contact address (mail/e-mail or phone) of the person creating the mzQC file
                    #  :param description: Description and comments about the mzQC file contents

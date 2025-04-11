@@ -11,7 +11,7 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/FORMAT/HANDLERS/MzDataHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -49,7 +49,7 @@ public:
     /**
         @brief Loads a map from a MzData file.
 
-        @p map has to be a MSExperiment or have the same interface.
+        @p map has to be a MSRun or have the same interface.
 
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -59,7 +59,7 @@ public:
     /**
         @brief Stores a map in a MzData file.
 
-        @p map has to be a MSExperiment or have the same interface.
+        @p map has to be a MSRun or have the same interface.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */

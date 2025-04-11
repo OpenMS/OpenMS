@@ -143,17 +143,17 @@ START_SECTION((void getSpectrumMetaData(const String&, SpectrumMetaData&, MetaDa
 END_SECTION
 
 
-START_SECTION((bool addMissingRTsToPeptideIDs(vector<PeptideIdentification>& peptides, const MSExperiment& exp)))
+START_SECTION((bool addMissingRTsToPeptideIDs(vector<PeptideIdentification>& peptides, const MSRun& exp)))
 {
-    // Test 1: No spectra in MSExperiment
+    // Test 1: No spectra in MSRun
     vector<PeptideIdentification> peptides(1);
     peptides[0].setRT(1.0); // RT already set
-    MSExperiment exp_empty; // Empty experiment
+    MSRun exp_empty; // Empty experiment
     TEST_EQUAL(SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptides, exp_empty), false);
     TEST_EQUAL(peptides[0].getRT(), 1.0); // RT should remain unchanged
 
-    // Test 2: Valid MSExperiment with missing RTs
-    MSExperiment exp_valid;
+    // Test 2: Valid MSRun with missing RTs
+    MSRun exp_valid;
     MSSpectrum spectrum1, spectrum2;
     spectrum1.setNativeID("index=0");
     spectrum1.setRT(2.5);
@@ -191,23 +191,23 @@ START_SECTION((bool addMissingRTsToPeptideIDs(vector<PeptideIdentification>& pep
 END_SECTION
 
 
-START_SECTION((bool addMissingIMToPeptideIDs(vector<PeptideIdentification>& peptides, const MSExperiment& exp)))
+START_SECTION((bool addMissingIMToPeptideIDs(vector<PeptideIdentification>& peptides, const MSRun& exp)))
 {
-  // Test 1: Empty MSExperiment
+  // Test 1: Empty MSRun
   vector<PeptideIdentification> peptides(1);
   peptides[0].setSpectrumReference("index=0");
-  MSExperiment exp_empty;
+  MSRun exp_empty;
   TEST_EQUAL(SpectrumMetaDataLookup::addMissingIMToPeptideIDs(peptides, exp_empty), false);
 
-  // Test 2: MSExperiment with no IM format (not MULTIPLE_SPECTRA)
-  MSExperiment exp_no_im;
+  // Test 2: MSRun with no IM format (not MULTIPLE_SPECTRA)
+  MSRun exp_no_im;
   MSSpectrum spectrum_no_im;
   spectrum_no_im.setNativeID("index=0");
   exp_no_im.addSpectrum(spectrum_no_im);
   TEST_EQUAL(SpectrumMetaDataLookup::addMissingIMToPeptideIDs(peptides, exp_no_im), false);
 
-  // Test 3: MSExperiment with valid IM values
-  MSExperiment exp_valid;
+  // Test 3: MSRun with valid IM values
+  MSRun exp_valid;
   MSSpectrum spectrum1, spectrum2;
   spectrum1.setNativeID("index=0");
   spectrum1.setDriftTime(2.5);

@@ -11,7 +11,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/QC/MzCalibration.h>
@@ -25,7 +25,7 @@ namespace OpenMS
   }
 
   // find original m/z Value, set meta value "mz_raw" and set meta value "mz_ref"
-  void MzCalibration::compute(FeatureMap& features, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum)
+  void MzCalibration::compute(FeatureMap& features, const MSRun& exp, const QCBase::SpectraMap& map_to_spectrum)
   {
     if (exp.empty())
     {

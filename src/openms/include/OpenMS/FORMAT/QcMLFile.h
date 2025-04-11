@@ -11,7 +11,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <vector>
 
 namespace OpenMS
@@ -150,7 +150,7 @@ public:
       @param consensus_map ConsensusMap from consensus file (consensusXML)
       @param inputfile_raw mzML input file name
       @param remove_duplicate_features removes duplicates in a set of merged features
-      @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
+      @param exp MSRun to extract QC data from, prior sortSpectra() and updateRanges() required
     */
     void collectQCData(std::vector<ProteinIdentification>& prot_ids,
                        std::vector<PeptideIdentification>& pep_ids,
@@ -158,7 +158,7 @@ public:
                        const ConsensusMap& consensus_map,
                        const String& inputfile_raw,
                        const bool remove_duplicate_features,
-                       const MSExperiment& exp);
+                       const MSRun& exp);
     ///Store the QCFile
     /**
       @brief Store the qcML file

@@ -1,6 +1,6 @@
 # part of the SpectraFilters
 from MSSpectrum cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
 from DefaultParamHandler cimport *
@@ -21,4 +21,4 @@ cdef extern from "<OpenMS/PROCESSING/SCALING/Normalizer.h>" namespace "OpenMS":
 
         void filterPeakSpectrum(MSSpectrum & spec) except + nogil  # wrap-doc:Normalizes the peak spectrum
 
-        void filterPeakMap(MSExperiment & exp) except + nogil  # wrap-doc:Normalizes the peak map
+        void filterPeakMap(MSRun & exp) except + nogil  # wrap-doc:Normalizes the peak map

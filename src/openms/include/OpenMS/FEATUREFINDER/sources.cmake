@@ -35,7 +35,7 @@ ModelDescription.h
 MultiplexClustering.h
 MultiplexDeltaMasses.h
 MultiplexDeltaMassesGenerator.h
-MultiplexFilteredMSExperiment.h
+MultiplexFilteredMSRun.h
 MultiplexFilteredPeak.h
 MultiplexFiltering.h
 MultiplexFilteringCentroided.h

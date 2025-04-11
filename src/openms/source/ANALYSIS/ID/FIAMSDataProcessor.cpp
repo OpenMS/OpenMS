@@ -76,7 +76,7 @@ namespace OpenMS {
     sgfilter_.setParameters(p);
   }
 
-  void FIAMSDataProcessor::cutForTime(const MSExperiment& experiment, const float n_seconds, std::vector<MSSpectrum>& output)
+  void FIAMSDataProcessor::cutForTime(const MSRun& experiment, const float n_seconds, std::vector<MSSpectrum>& output)
   {
       for (const auto & s : experiment.getSpectra()) {
           if (s.getRT() < n_seconds) output.push_back(s);
@@ -170,7 +170,7 @@ namespace OpenMS {
     return output;
   }
 
-  bool FIAMSDataProcessor::run(const MSExperiment& experiment, const float n_seconds, OpenMS::MzTab& output, const bool load_cached_spectrum)
+  bool FIAMSDataProcessor::run(const MSRun& experiment, const float n_seconds, OpenMS::MzTab& output, const bool load_cached_spectrum)
   {
     String postfix = String(static_cast<int>(n_seconds));
     std::string dir_output_ = param_.getValue("dir_output");
@@ -180,7 +180,7 @@ namespace OpenMS {
     bool is_cached;
     if (load_cached_spectrum && File::exists(filepath_picked)) {
       OPENMS_LOG_INFO << "Started loading cached picked spectrum " << filepath_picked << std::endl;
-      MSExperiment exp;
+      MSRun exp;
       FileHandler().loadExperiment(filepath_picked, exp, {FileTypes::MZML});
       picked_spectrum = exp.getSpectra()[0];
       OPENMS_LOG_INFO << "Finished loading cached picked spectrum " << filepath_picked << std::endl;
@@ -209,7 +209,7 @@ namespace OpenMS {
 
   void FIAMSDataProcessor::storeSpectrum_(const MSSpectrum& input, const String& filename)
   {
-      MSExperiment exp;
+      MSRun exp;
       exp.addSpectrum(input);
       FileHandler().storeExperiment(filename, exp,{FileTypes::MZML});
   }

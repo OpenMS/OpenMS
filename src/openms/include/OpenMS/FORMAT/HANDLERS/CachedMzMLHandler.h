@@ -73,10 +73,10 @@ public:
     /// Write complete spectra as a dump to the disk
     void writeMemdump(const MapType& exp, const String& out) const;
 
-    /// Write only the meta data of an MSExperiment
+    /// Write only the meta data of an MSRun
     void writeMetadata(MapType exp, const String& out_meta, bool addCacheMetaValue=false);
 
-    /// Write only the meta data of an MSExperiment
+    /// Write only the meta data of an MSRun
     void writeMetadata_x(const MapType& exp, const String& out_meta, bool addCacheMetaValue=false);
 
     /// Read all spectra from a dump from the disk

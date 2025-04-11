@@ -9,7 +9,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -269,7 +269,7 @@ protected:
     //-------------------------------------------------------------
 
     // Build mapping to get correct spectrum reference later
-    MSExperiment exp;
+    MSRun exp;
     MzMLFile m;
     PeakFileOptions op;
     op.setFillData(false); // no actual peak data

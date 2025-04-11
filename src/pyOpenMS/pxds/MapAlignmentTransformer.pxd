@@ -8,7 +8,7 @@ from ConsensusMap cimport *
 from TransformationDescription cimport *
 from PeptideIdentification cimport *
 
-from MSExperiment cimport *
+from MSRun cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
 
@@ -21,7 +21,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>" names
         MapAlignmentTransformer() except + nogil  
         MapAlignmentTransformer(MapAlignmentTransformer &) except + nogil 
 
-        void transformRetentionTimes(MSExperiment&, TransformationDescription&, bool) except + nogil  # wrap-doc:Applies the given transformation to a peak map
+        void transformRetentionTimes(MSRun&, TransformationDescription&, bool) except + nogil  # wrap-doc:Applies the given transformation to a peak map
 
         void transformRetentionTimes(FeatureMap&, TransformationDescription&, bool) except + nogil  # wrap-doc:Applies the given transformation to a feature map
 

@@ -1,7 +1,7 @@
 from Types cimport *
 from String cimport *
 from ProgressLogger cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 
 cdef extern from "<OpenMS/FORMAT/MS2File.h>" namespace "OpenMS":
     
@@ -10,5 +10,5 @@ cdef extern from "<OpenMS/FORMAT/MS2File.h>" namespace "OpenMS":
         #  ProgressLogger
         MS2File() except + nogil 
         MS2File(MS2File &) except + nogil  # compiler
-        void load(const String & filename, MSExperiment & exp) except + nogil 
+        void load(const String & filename, MSRun & exp) except + nogil 
 

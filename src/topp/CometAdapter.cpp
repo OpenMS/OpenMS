@@ -679,7 +679,7 @@ protected:
     }
 
     // check for mzML index (comet requires one)
-    MSExperiment exp;
+    MSRun exp;
     MzMLFile mzml_file{};
     String input_file_with_index = inputfile_name;
     if (!mzml_file.hasIndex(inputfile_name))

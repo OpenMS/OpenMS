@@ -14,7 +14,7 @@
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <QFile>
 
@@ -24,7 +24,7 @@ using namespace std;
 ///////////////////////////
 
 
-void cmpDataIntensity(const MSExperiment& exp1, const MSExperiment& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
+void cmpDataIntensity(const MSRun& exp1, const MSRun& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
 {
   // Logic of comparison: if the absolute difference criterion is fulfilled,
   // the relative one does not matter. If the absolute difference is larger
@@ -63,7 +63,7 @@ void cmpDataIntensity(const MSExperiment& exp1, const MSExperiment& exp2, double
   }
 }
 
-void cmpDataMZ(const MSExperiment& exp1, const MSExperiment& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
+void cmpDataMZ(const MSRun& exp1, const MSRun& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
 {
   // Logic of comparison: if the absolute difference criterion is fulfilled,
   // the relative one does not matter. If the absolute difference is larger
@@ -90,7 +90,7 @@ void cmpDataMZ(const MSExperiment& exp1, const MSExperiment& exp2, double abs_to
   }
 }
 
-void cmpDataRT(const MSExperiment& exp1, const MSExperiment& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
+void cmpDataRT(const MSRun& exp1, const MSRun& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
 {
   // Logic of comparison: if the absolute difference criterion is fulfilled,
   // the relative one does not matter. If the absolute difference is larger
@@ -139,10 +139,10 @@ TOLERANCE_RELATIVE(1.0005)
 
 START_SECTION(void load(const String& filename, MapType& map))
 {
-  MSExperiment exp;
+  MSRun exp;
   SqMassFile().load(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), exp);
 
-  MSExperiment exp2;
+  MSRun exp2;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"),exp2);
 
   TEST_EQUAL(exp.getNrSpectra(), exp2.getSpectra().size())
@@ -178,7 +178,7 @@ TOLERANCE_RELATIVE(1+1e-5)
 
 START_SECTION(void store(const String& filename, MapType& map))
 {
-  MSExperiment exp_orig;
+  MSRun exp_orig;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp_orig);
 
   SqMassFile::SqMassConfig config;
@@ -193,7 +193,7 @@ START_SECTION(void store(const String& filename, MapType& map))
   std::cout << "Storing in file " << tmp_filename << std::endl;
   file.store(tmp_filename, exp_orig);
 
-  MSExperiment exp;
+  MSRun exp;
   file.load(tmp_filename, exp);
 
   TEST_EQUAL(exp.getNrSpectra(), exp_orig.getSpectra().size())
@@ -202,7 +202,7 @@ START_SECTION(void store(const String& filename, MapType& map))
   TEST_EQUAL(exp.getNrChromatograms(), 1)
   TEST_EQUAL(exp.getSpectrum(0) == exp_orig.getSpectra()[0], false) // no exact duplicate
 
-  MSExperiment exp2 = exp_orig;
+  MSRun exp2 = exp_orig;
 
   // Logic of comparison: if the absolute difference criterion is fulfilled,
   // the relative one does not matter. If the absolute difference is larger
@@ -233,7 +233,7 @@ END_SECTION
 
 START_SECTION([EXTRA_LOSSY] void store(const String& filename, MapType& map))
 {
-  MSExperiment exp_orig;
+  MSRun exp_orig;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp_orig);
 
   SqMassFile::SqMassConfig config;
@@ -278,7 +278,7 @@ START_SECTION([EXTRA_LOSSY] void store(const String& filename, MapType& map))
   std::cout << "Storing in file " << tmp_filename << std::endl;
   file.store(tmp_filename, exp_orig);
 
-  MSExperiment exp;
+  MSRun exp;
   file.load(tmp_filename, exp);
 
   TEST_EQUAL(exp.getNrSpectra(), exp_orig.getSpectra().size())
@@ -325,7 +325,7 @@ START_SECTION([EXTRA_LOSSY] void store(const String& filename, MapType& map))
     TEST_EQUAL(exp.getChromatogram(0).getPrecursor().getMetaValue("peptide_sequence"), "PEPTIDEK")
   }
 
-  MSExperiment exp2 = exp_orig;
+  MSRun exp2 = exp_orig;
 
   // should not give 1:1 mapping of experimental settings ...
   TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, false)
@@ -348,7 +348,7 @@ END_SECTION
 
 START_SECTION([EXTRA_FULL_META] void store(const String& filename, MapType& map))
 {
-  MSExperiment exp_orig;
+  MSRun exp_orig;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp_orig);
 
   SqMassFile::SqMassConfig config;
@@ -393,7 +393,7 @@ START_SECTION([EXTRA_FULL_META] void store(const String& filename, MapType& map)
   std::cout << "Storing in file " << tmp_filename << std::endl;
   file.store(tmp_filename, exp_orig);
 
-  MSExperiment exp;
+  MSRun exp;
   file.load(tmp_filename, exp);
 
   TEST_EQUAL(exp.getNrSpectra(), exp_orig.getSpectra().size())
@@ -440,7 +440,7 @@ START_SECTION([EXTRA_FULL_META] void store(const String& filename, MapType& map)
     TEST_EQUAL(exp.getChromatogram(0).getPrecursor().getMetaValue("peptide_sequence"), "PEPTIDEK")
   }
 
-  MSExperiment exp2 = exp_orig;
+  MSRun exp2 = exp_orig;
 
   // using full meta should give 1:1 mapping of experimental settings ...
   TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, true)

@@ -212,7 +212,7 @@ namespace OpenMS::Internal
       unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
     }
 
-    //~ TODO create MzIdentML instances from MSExperiment which contains much of the information yet needed
+    //~ TODO create MzIdentML instances from MSRun which contains much of the information yet needed
     //~ MzIdentMLHandler(const PeakMap& mx, const String& filename, const String& version, const ProgressLogger& logger)
     //~ : XMLHandler(filename, version),
     //~ logger_(logger),

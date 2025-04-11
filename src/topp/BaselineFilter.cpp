@@ -8,7 +8,7 @@
 
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>

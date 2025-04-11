@@ -45,7 +45,7 @@ namespace OpenMS
       const OpenMS::TargetedExperiment& targeted_exp,
       OpenMS::PeakMap& output) const
   {
-    // copy all meta data from old MSExperiment
+    // copy all meta data from old MSRun
     output = (ExperimentalSettings)chromatogram_map;
     output.clear(false);
     std::vector<MSChromatogram > empty_chromats;

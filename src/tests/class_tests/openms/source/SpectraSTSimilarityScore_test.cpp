@@ -15,7 +15,7 @@
 
 #include <OpenMS/COMPARISON/SpectraSTSimilarityScore.h>
 #include <OpenMS/FORMAT/MSPFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/DATASTRUCTURES/String.h>

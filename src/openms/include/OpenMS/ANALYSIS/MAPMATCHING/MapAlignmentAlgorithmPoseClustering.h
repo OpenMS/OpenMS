@@ -60,7 +60,7 @@ public:
     template <typename MapType>
     void setReference(const MapType& map)
     {
-      MapType map2 = map; // todo: avoid copy (MSExperiment version of convert() demands non-const version)
+      MapType map2 = map; // todo: avoid copy (MSRun version of convert() demands non-const version)
       MapConversion::convert(0, map2, reference_, max_num_peaks_considered_);
     }
 

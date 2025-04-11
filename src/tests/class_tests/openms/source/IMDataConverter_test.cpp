@@ -13,7 +13,7 @@
 ///////////////////////////
 
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 using namespace OpenMS;
@@ -117,7 +117,7 @@ spec.push_back({333.0, -3.0f});
 spec.setRT(2); // just a spectrum with RT = 2
 
 
-START_SECTION(static MSExperiment reshapeIMFrameToMany(MSSpectrum im_frame))
+START_SECTION(static MSRun reshapeIMFrameToMany(MSSpectrum im_frame))
 {
   // not am IM frame:
   TEST_EXCEPTION(Exception::MissingInformation, IMDataConverter::reshapeIMFrameToMany(spec))
@@ -144,9 +144,9 @@ START_SECTION(static MSExperiment reshapeIMFrameToMany(MSSpectrum im_frame))
 }
 END_SECTION
 
-START_SECTION((static std::tuple<std::vector<MSExperiment>, Math::BinContainer> splitExperimentByIonMobility(MSExperiment&& in, UInt number_of_IM_bins, double bin_extension_abs, double mz_binning_width, MZ_UNITS mz_binning_width_unit)))
+START_SECTION((static std::tuple<std::vector<MSRun>, Math::BinContainer> splitExperimentByIonMobility(MSRun&& in, UInt number_of_IM_bins, double bin_extension_abs, double mz_binning_width, MZ_UNITS mz_binning_width_unit)))
 {
-	MSExperiment e_in;
+	MSRun e_in;
 	e_in.addSpectrum(frame);
   auto frame2 = frame; // a second frame so we can test if two RT's show up in the result
   frame2.setRT(3);
@@ -183,7 +183,7 @@ START_SECTION((static std::tuple<std::vector<MSExperiment>, Math::BinContainer> 
 }
 END_SECTION
 
-START_SECTION(static MSExperiment reshapeIMFrameToSingle(const MSExperiment& in))
+START_SECTION(static MSRun reshapeIMFrameToSingle(const MSRun& in))
 	NOT_TESTABLE // tested_above
 END_SECTION
 

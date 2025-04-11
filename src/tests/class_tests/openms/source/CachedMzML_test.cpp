@@ -14,7 +14,7 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 #pragma clang diagnostic push
@@ -162,13 +162,13 @@ START_SECTION(( size_t getNrChromatograms() const ))
     TEST_EQUAL(cache_example.getNrChromatograms(), 2)
 END_SECTION
 
-START_SECTION(( const MSExperiment& getMetaData() const ))
+START_SECTION(( const MSRun& getMetaData() const ))
     TEST_EQUAL(cache_example.getMetaData().size(), 4)
     TEST_EQUAL(cache_example.getMetaData().getNrSpectra(), 4)
     TEST_EQUAL(cache_example.getMetaData().getNrChromatograms(), 2)
 END_SECTION
 
-START_SECTION(( const MSExperiment& getMetaData() const ))
+START_SECTION(( const MSRun& getMetaData() const ))
 {
   TEST_EQUAL(cache_example.getNrSpectra(), cache_example.getMetaData().getNrSpectra())
   for (int i = 0; i < 4; i++)

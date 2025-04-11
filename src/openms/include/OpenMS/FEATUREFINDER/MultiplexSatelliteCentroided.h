@@ -20,7 +20,7 @@ namespace OpenMS
   /**
    * @brief data structure storing a single satellite peak
    *
-   * The satellite peak is part of a centroided MSExperiment.
+   * The satellite peak is part of a centroided MSRun.
    * Hence indices rt_idx_ and mz_idx_ are sufficient to specify RT, m/z and intensity.
    * 
    * @see MultiplexFilteredPeak, MultiplexSatelliteProfile

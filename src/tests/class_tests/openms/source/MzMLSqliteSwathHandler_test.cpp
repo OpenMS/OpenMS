@@ -16,7 +16,7 @@
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <QFile>
 
@@ -39,7 +39,7 @@ MzMLSqliteSwathHandler* nullPointer = nullptr;
 
 std::string tmp_filename;
 NEW_TMP_FILE(tmp_filename);
-MSExperiment exp_orig;
+MSRun exp_orig;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SwathFile.mzML"), exp_orig);
 SqMassFile file;
 file.store(tmp_filename, exp_orig);

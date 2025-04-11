@@ -116,7 +116,7 @@ namespace OpenMS
     ExperimentSharedPtrType chromatogram_map_ = ExperimentSharedPtrType(new ExperimentType());
 
     /// on disc chrom data
-    ODExperimentSharedPtrType on_disc_peaks_ = ODExperimentSharedPtrType(new OnDiscMSExperiment());
+    ODExperimentSharedPtrType on_disc_peaks_ = ODExperimentSharedPtrType(new OnDiscMSRun());
 
     /// Chromatogram annotation data
     OSWDataSharedPtrType chrom_annotation_;

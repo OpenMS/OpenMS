@@ -13,7 +13,7 @@
 
 #include <OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>
 
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 
 #include <fstream>
@@ -626,7 +626,7 @@ START_SECTION((template <typename PeakType> void filter(MSSpectrum& spectrum)))
 }
 END_SECTION
 
-START_SECTION((template <typename PeakType > void filterExperiment(MSExperiment< PeakType > &exp)))
+START_SECTION((template <typename PeakType > void filterExperiment(MSRun< PeakType > &exp)))
 {
   MSSpectrum raw;
   raw.setComment("Let's see if this comment is copied by the filter.");

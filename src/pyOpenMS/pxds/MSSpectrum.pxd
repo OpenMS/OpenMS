@@ -62,8 +62,8 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #    spectrum.setFloatDataArrays( [fda] )
         #    spectrum.setStringDataArrays( [sda] )
         #    
-        #    # Add spectrum to MSExperiment
-        #    exp = MSExperiment()
+        #    # Add spectrum to MSRun
+        #    exp = MSRun()
         #    exp.addSpectrum(spectrum)
         #    
         #    # Add second spectrum and store as mzML file

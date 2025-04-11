@@ -14,7 +14,7 @@
 
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 using namespace OpenMS;
@@ -87,39 +87,39 @@ const MSSpectrum IMwithDrift = [&]() {
 
 // convert to IM-Frame with float meta-data array
 const MSSpectrum IMwithFDA = [&]() {
-  MSExperiment exp;
+  MSRun exp;
   exp.addSpectrum(IMwithDrift);
   auto single = IMDataConverter::reshapeIMFrameToSingle(exp);
   return single[0];
 }();
 
-START_SECTION(static IMFormat determineIMFormat(const MSExperiment& exp))
+START_SECTION(static IMFormat determineIMFormat(const MSRun& exp))
 
-  TEST_EQUAL(IMTypes::determineIMFormat(MSExperiment()) == IMFormat::NONE, true)
+  TEST_EQUAL(IMTypes::determineIMFormat(MSRun()) == IMFormat::NONE, true)
 
   {
-    MSExperiment exp;
+    MSRun exp;
     exp.addSpectrum(MSSpectrum());
     exp.addSpectrum(MSSpectrum());
     TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::NONE, true)
   }
   
   {
-    MSExperiment exp;
+    MSRun exp;
     exp.addSpectrum(MSSpectrum());
     exp.addSpectrum(IMwithDrift);
     TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::MULTIPLE_SPECTRA, true)
   }
 
   {
-    MSExperiment exp;
+    MSRun exp;
     exp.addSpectrum(MSSpectrum());
     exp.addSpectrum(IMwithFDA);
     TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::CONCATENATED, true)
   }
 
   {
-    MSExperiment exp;
+    MSRun exp;
     exp.addSpectrum(IMwithDrift);
     exp.addSpectrum(IMwithFDA);
     TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::MIXED, true)
@@ -129,7 +129,7 @@ START_SECTION(static IMFormat determineIMFormat(const MSExperiment& exp))
     // set both ... invalid!
     auto IMwithFDA2 = IMwithFDA;
     IMwithFDA2.setDriftTime(123.4);
-    MSExperiment exp;
+    MSRun exp;
     exp.addSpectrum(IMwithDrift);
     exp.addSpectrum(IMwithFDA);
     exp.addSpectrum(IMwithFDA2);

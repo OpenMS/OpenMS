@@ -25,7 +25,7 @@ Tutorial_MapAlignment
 Tutorial_MetaInfo
 Tutorial_MorphologicalFilter
 Tutorial_MSChromatogram
-Tutorial_MSExperiment
+Tutorial_MSRun
 Tutorial_MSSpectrum
 Tutorial_Param
 Tutorial_Precursor

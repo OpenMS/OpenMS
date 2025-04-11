@@ -1,5 +1,5 @@
 from DefaultParamHandler cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from Param cimport *
 from String cimport *
 
@@ -10,11 +10,11 @@ cdef extern from "<OpenMS/FORMAT/MSPGenericFile.h>" namespace "OpenMS":
 
         MSPGenericFile() except + nogil 
         MSPGenericFile(MSPGenericFile &) except + nogil  # compiler
-        MSPGenericFile(const String& filename, MSExperiment& library) except + nogil 
+        MSPGenericFile(const String& filename, MSRun& library) except + nogil 
 
-        void load(const String& filename, MSExperiment& library) except + nogil 
+        void load(const String& filename, MSRun& library) except + nogil 
             # wrap-doc:
-                #  Load the file's data and metadata, and save it into an `MSExperiment`
+                #  Load the file's data and metadata, and save it into an `MSRun`
                 #  
                 #  
                 #  :param filename: Path to the MSP input file
@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/FORMAT/MSPGenericFile.h>" namespace "OpenMS":
                 #  :raises:
                 #    Exception: FileNotFound If the file could not be found
 
-        void store(const String& filename, const MSExperiment& library) except + nogil 
+        void store(const String& filename, const MSRun& library) except + nogil 
             # wrap-doc:
                 #  Save data and metadata into a file
                 #  

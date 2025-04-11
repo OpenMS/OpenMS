@@ -1,6 +1,6 @@
 from ProgressLogger cimport *
 from DefaultParamHandler cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from MSSpectrum cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *

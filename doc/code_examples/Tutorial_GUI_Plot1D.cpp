@@ -3,7 +3,7 @@
 //
 
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/KERNEL/OnDiscMSRun.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/VISUAL/LayerDataBase.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
@@ -27,7 +27,7 @@ Int main(int argc, const char** argv)
   FileHandler().loadSpectrum(tutorial_data_path, spec, {FileTypes::DTA});
   exp.addSpectrum(spec);
   LayerDataBase::ExperimentSharedPtrType exp_sptr(new PeakMap(exp));
-  LayerDataBase::ODExperimentSharedPtrType on_disc_exp_sptr(new OnDiscMSExperiment());
+  LayerDataBase::ODExperimentSharedPtrType on_disc_exp_sptr(new OnDiscMSRun());
   Plot1DWidget widget(Param(), DIM::Y, nullptr);
   widget.canvas()->addPeakLayer(exp_sptr, on_disc_exp_sptr);
   widget.show();

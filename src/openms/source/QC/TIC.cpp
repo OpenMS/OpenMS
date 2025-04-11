@@ -16,7 +16,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  TIC::Result TIC::compute(const MSExperiment& exp, float bin_size, UInt ms_level)
+  TIC::Result TIC::compute(const MSRun& exp, float bin_size, UInt ms_level)
   {
     TIC::Result result;
     MSChromatogram tic = exp.calculateTIC(bin_size, ms_level);

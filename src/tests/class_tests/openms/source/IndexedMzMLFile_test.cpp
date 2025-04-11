@@ -16,7 +16,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 
 // for comparison
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 using namespace OpenMS;

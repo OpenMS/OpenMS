@@ -18,7 +18,7 @@
 
 namespace OpenMS
 {
-  class MSExperiment;
+  class MSRun;
 
   /**
     @brief This class represents the abstract base class of a signal to noise estimator.
@@ -148,7 +148,7 @@ protected:
 
   /// Picks @p n_scans from the given @p ms_level randomly and returns either average intensity at a certain @p percentile.
   /// If no scans with the required level are present, 0.0 is returned
-  OPENMS_DLLAPI float estimateNoiseFromRandomScans(const MSExperiment& exp, const UInt ms_level, const UInt n_scans = 10, const double percentile = 80);
+  OPENMS_DLLAPI float estimateNoiseFromRandomScans(const MSRun& exp, const UInt ms_level, const UInt n_scans = 10, const double percentile = 80);
 
 } // namespace OpenMS
 

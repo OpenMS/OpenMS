@@ -236,9 +236,9 @@ protected:
     // reading input
     //-------------------------------------------------------------
 
-    MSExperiment exp;
+    MSRun exp;
     assert(exp.empty());
-    const MSExperiment empty_exp; ///< to determine if 'exp' was modified (loading and storing an MSExp with metadata but empty spectra/chroms should be valid), i.e. checking exp.empty() is not sufficient
+    const MSRun empty_exp; ///< to determine if 'exp' was modified (loading and storing an MSExp with metadata but empty spectra/chroms should be valid), i.e. checking exp.empty() is not sufficient
 
     FeatureMap fm;
     ConsensusMap cm;
@@ -491,7 +491,7 @@ protected:
       //annotate output with data processing info
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
                                                  CONVERSION_MZDATA));
-      ChromatogramTools().convertChromatogramsToSpectra<MSExperiment>(exp);
+      ChromatogramTools().convertChromatogramsToSpectra<MSRun>(exp);
       FileHandler().storeExperiment(out, exp, {FileTypes::MZDATA});
     }
     else if (out_type == FileTypes::MZXML)
@@ -522,7 +522,7 @@ protected:
                                                  FORMAT_CONVERSION));
       DTA2DFile f;
       f.setLogType(log_type_);
-      ChromatogramTools().convertChromatogramsToSpectra<MSExperiment>(exp);
+      ChromatogramTools().convertChromatogramsToSpectra<MSRun>(exp);
       if (TIC_DTA2D)
       {
         // store the total ion chromatogram (TIC)

@@ -16,7 +16,7 @@ def run_peak_picker(input_map, params, out_path):
 
     pp = pms.PeakPickerHiRes()
     pp.setParameters(params)
-    out_map = pms.MSExperiment()
+    out_map = pms.MSRun()
     pp.pickExperiment(input_map, out_map)
 
     out_map = addDataProcessing(out_map, params, pms.DataProcessing.ProcessingAction.PEAK_PICKING)
@@ -84,7 +84,7 @@ def main():
 
         fh = pms.MzMLFile()
         fh.setLogType(pms.LogType.CMD)
-        input_map = pms.MSExperiment()
+        input_map = pms.MSRun()
         fh.load(args.in_, input_map)
 
         run_peak_picker(input_map, defaults, args.out)

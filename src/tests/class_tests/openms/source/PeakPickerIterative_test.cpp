@@ -53,7 +53,7 @@ START_SECTION((template < typename PeakType > void pick(const MSSpectrum &input,
 }
 END_SECTION
 
-START_SECTION((template < typename PeakType > void pickExperiment(const MSExperiment< PeakType > &input, MSExperiment< PeakType > &output)))
+START_SECTION((template < typename PeakType > void pickExperiment(const MSRun< PeakType > &input, MSRun< PeakType > &output)))
 {
   // TODO
 }

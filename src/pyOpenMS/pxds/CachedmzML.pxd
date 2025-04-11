@@ -1,4 +1,4 @@
-from MSExperiment  cimport *
+from MSRun  cimport *
 from MSSpectrum  cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
@@ -23,10 +23,10 @@ cdef extern from "<OpenMS/FORMAT/CachedMzML.h>" namespace "OpenMS":
 
         # COMMENT: only retrieves experiment meta data (no actual data in spectra/chromatograms)
         # COMMENT: useful for filtering by attributes to then retrieve data
-        MSExperiment getMetaData() except + nogil 
+        MSRun getMetaData() except + nogil 
 
 # COMMENT: wrap static methods
 cdef extern from "<OpenMS/FORMAT/CachedMzML.h>" namespace "OpenMS::CachedmzML":
     
-    void store(const String& filename, MSExperiment exp) except + nogil  # wrap-attach:CachedmzML
+    void store(const String& filename, MSRun exp) except + nogil  # wrap-attach:CachedmzML
     void load(const String& filename, CachedmzML& exp) except + nogil  # wrap-attach:CachedmzML

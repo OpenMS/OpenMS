@@ -13,7 +13,7 @@
 
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 using namespace OpenMS;

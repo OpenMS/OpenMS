@@ -42,7 +42,7 @@ from __future__ import print_function
 
 from pyopenms import *
 
-exp = MSExperiment()
+exp = MSRun()
 # print(dir(exp))
 
 NR_RT_SAMPLES = 50

@@ -2,7 +2,7 @@ from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
 from OpenSwathDataStructures cimport *
 from ISpectrumAccess cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from MzMLSqliteHandler cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h>" namespace "OpenMS":

@@ -1,7 +1,7 @@
 from Types cimport *
 from String cimport *
 from FeatureMap cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from FeatureMapping cimport * 
 from KDTreeFeatureMaps cimport *
 from libcpp.vector cimport vector as libcpp_vector
@@ -27,7 +27,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>" namespace "OpenM
         int getIsotopePatternIterations() except + nogil 
 
         void preprocessing(const String& featureXML_path,
-                                 MSExperiment& spectra,
+                                 MSRun& spectra,
                                  FeatureMapping_FeatureMappingInfo& feature_mapping_info,
                                  FeatureMapping_FeatureToMs2Indices& feature_ms2_indices) except + nogil 
         # wrap-doc:
@@ -36,13 +36,13 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>" namespace "OpenM
                 #  Filter number of masstraces and perform feature mapping
                 #  
                 #  :param featureXML_path: Path to featureXML
-                #  :param spectra: Input of MSExperiment with spectra information
+                #  :param spectra: Input of MSRun with spectra information
                 #  :param feature_mapping_info: Emtpy - stores FeatureMaps and KDTreeMaps internally 
                 #  :param feature_ms2_indices: Empty FeatureToMs2Indices
 
         void logFeatureSpectraNumber(const String& featureXML_path,
                                      FeatureMapping_FeatureToMs2Indices& feature_ms2_indices,
-                                     MSExperiment& spectra) except + nogil 
+                                     MSRun& spectra) except + nogil 
         # wrap-doc:
                 #  Logs number of features and spectra used
                 #  
@@ -50,7 +50,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h>" namespace "OpenM
                 #  
                 #  :param featureXML_path: Path to featureXML
                 #  :param feature_ms2_indices: FeatureToMs2Indices with feature mapping
-                #  :param spectra: Input of MSExperiment with spectra information
+                #  :param spectra: Input of MSRun with spectra information
 
         void run(const StringList& mzML_files,
                  const StringList& featureXML_files,

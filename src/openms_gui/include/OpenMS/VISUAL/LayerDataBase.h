@@ -15,8 +15,8 @@
 #include <OpenMS/PROCESSING/MISC/DataFilters.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/OnDiscMSRun.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -122,13 +122,13 @@ namespace OpenMS
     /// Main data type (experiment)
     typedef PeakMap ExperimentType;
 
-    /// SharedPtr on MSExperiment
+    /// SharedPtr on MSRun
     typedef boost::shared_ptr<ExperimentType> ExperimentSharedPtrType;
 
     typedef boost::shared_ptr<const ExperimentType> ConstExperimentSharedPtrType;
 
-    /// SharedPtr on On-Disc MSExperiment
-    typedef boost::shared_ptr<OnDiscMSExperiment> ODExperimentSharedPtrType;
+    /// SharedPtr on On-Disc MSRun
+    typedef boost::shared_ptr<OnDiscMSRun> ODExperimentSharedPtrType;
 
     /// SharedPtr on OSWData
     typedef boost::shared_ptr<OSWData> OSWDataSharedPtrType;
@@ -145,8 +145,8 @@ namespace OpenMS
   For 1D data, the current spectrum must be accessed through
   getCurrentSpectrum().
 
-  Peak data is stored using a shared pointer to an MSExperiment data structure
-  as well as a shared pointer to a OnDiscMSExperiment data structure. Note that
+  Peak data is stored using a shared pointer to an MSRun data structure
+  as well as a shared pointer to a OnDiscMSRun data structure. Note that
   the actual data may not be in memory as this is not efficient for large files
   and therefore may have to be retrieved from disk on-demand. 
 
@@ -223,7 +223,7 @@ namespace OpenMS
     /**
      * \brief Find the closest datapoint within the given range and return a proxy to that datapoint
      * \param area Range to search in. Only dimensions used in the canvas are populated.
-     * \return A proxy (e.g. scan + peak index in an MSExperiment) which points to the data
+     * \return A proxy (e.g. scan + peak index in an MSRun) which points to the data
      */
     virtual PeakIndex findClosestDataPoint(const RangeAllType& area) const
     {
@@ -234,7 +234,7 @@ namespace OpenMS
     /**
      * \brief Find the datapoint with the highest intensity within the given range and return a proxy to that datapoint
      * \param area Range to search in. Only dimensions used in the canvas are populated.
-     * \return A proxy (e.g. scan + peak index in an MSExperiment) which points to the data
+     * \return A proxy (e.g. scan + peak index in an MSRun) which points to the data
      */
     virtual PeakIndex findHighestDataPoint(const RangeAllType& area) const
     {

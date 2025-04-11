@@ -1,5 +1,5 @@
 from MSSpectrum cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
 from Param cimport *
@@ -21,4 +21,4 @@ cdef extern from "<OpenMS/PROCESSING/RESAMPLING/LinearResampler.h>" namespace "O
         LinearResampler() except + nogil 
         LinearResampler(LinearResampler &) except + nogil  # compiler
         void raster(MSSpectrum & input) except + nogil  # wrap-doc:Applies the resampling algorithm to an MSSpectrum
-        void rasterExperiment(MSExperiment & input) except + nogil  # wrap-doc:Resamples the data in an MSExperiment
+        void rasterExperiment(MSRun & input) except + nogil  # wrap-doc:Resamples the data in an MSRun

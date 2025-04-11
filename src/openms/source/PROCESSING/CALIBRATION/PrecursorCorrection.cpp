@@ -25,7 +25,7 @@ namespace OpenMS
    const std::string PrecursorCorrection::csv_header = "RT,uncorrectedMZ,correctedMZ,deltaMZ";
 
 
-   void PrecursorCorrection::getPrecursors(const MSExperiment & exp,
+   void PrecursorCorrection::getPrecursors(const MSRun & exp,
                                            vector<Precursor> & precursors,
                                            vector<double> & precursors_rt,
                                            vector<Size> & precursor_scan_index)
@@ -65,7 +65,7 @@ namespace OpenMS
       csv_file.close();
     }
 
-     set<Size> PrecursorCorrection::correctToNearestMS1Peak(MSExperiment & exp,
+     set<Size> PrecursorCorrection::correctToNearestMS1Peak(MSRun & exp,
                                                             double mz_tolerance,
                                                             bool ppm,
                                                             vector<double> & delta_mzs,
@@ -90,7 +90,7 @@ namespace OpenMS
         //cout << rt << " " << mz << endl;
 
         // get precursor spectrum
-        MSExperiment::ConstIterator rt_it = exp.RTBegin(rt - 1e-8);
+        MSRun::ConstIterator rt_it = exp.RTBegin(rt - 1e-8);
 
         // store index of MS2 spectrum
         UInt precursor_spectrum_idx = rt_it - exp.begin();
@@ -141,7 +141,7 @@ namespace OpenMS
     }
 
     //Selection of the peak with the highest intensity as corrected precursor mass in a given mass range (e.g. precursor mass +/- 0.2 Da)
-    set<Size> PrecursorCorrection::correctToHighestIntensityMS1Peak(MSExperiment & exp,
+    set<Size> PrecursorCorrection::correctToHighestIntensityMS1Peak(MSRun & exp,
                                                                     double mz_tolerance,
                                                                     bool ppm,
                                                                     vector<double> & delta_mzs,
@@ -162,7 +162,7 @@ namespace OpenMS
         double mz = precursors[i].getMZ(); // get precursor MZ
 
         // retrieves iterator of the MS2 fragment spectrum
-        MSExperiment::ConstIterator rt_it = exp.RTBegin(rt - 1e-8);
+        MSRun::ConstIterator rt_it = exp.RTBegin(rt - 1e-8);
 
         // store index of MS2 spectrum
         UInt precursor_spectrum_idx = rt_it - exp.begin();
@@ -217,7 +217,7 @@ namespace OpenMS
     }
 
     set<Size> PrecursorCorrection::correctToNearestFeature(const FeatureMap& features,
-                                                           MSExperiment & exp,
+                                                           MSRun & exp,
                                                            double rt_tolerance_s,
                                                            double mz_tolerance,
                                                            bool ppm,

@@ -13,7 +13,7 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 
 using namespace OpenMS;

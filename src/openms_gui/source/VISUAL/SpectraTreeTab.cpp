@@ -158,7 +158,7 @@ namespace OpenMS
     }
   }
 
-  bool SpectraTreeTab::getSelectedScan(MSExperiment& exp, LayerDataBase::DataType& current_type) const
+  bool SpectraTreeTab::getSelectedScan(MSRun& exp, LayerDataBase::DataType& current_type) const
   {
     exp.clear(true);
     QTreeWidgetItem* item = spectra_treewidget_->currentItem();

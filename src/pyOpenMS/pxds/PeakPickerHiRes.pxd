@@ -1,5 +1,5 @@
 from MSSpectrum cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
 from Param cimport *
@@ -23,12 +23,12 @@ cdef extern from "<OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>" namespace "
                   MSChromatogram & output
                  ) except + nogil 
 
-        void pickExperiment(MSExperiment & input,
-                            MSExperiment & output,
+        void pickExperiment(MSRun & input,
+                            MSRun & output,
                             bool check_spectrum_type
                            ) except + nogil 
             # wrap-doc:
-                #  Applies the peak-picking algorithm to a map (MSExperiment). This method picks peaks for each scan in the map consecutively. The resulting
+                #  Applies the peak-picking algorithm to a map (MSRun). This method picks peaks for each scan in the map consecutively. The resulting
                 #  picked peaks are written to the output map
                 #  
                 #  
@@ -36,8 +36,8 @@ cdef extern from "<OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>" namespace "
                 #  :param output: Output map with picked peaks
                 #  :param check_spectrum_type: If set, checks spectrum type and throws an exception if a centroided spectrum is passed 
 
-        void pickExperiment(MSExperiment & input,
-                            MSExperiment & output,
+        void pickExperiment(MSRun & input,
+                            MSRun & output,
                             libcpp_vector[libcpp_vector[PeakBoundary] ]& boundaries_spec,
                             libcpp_vector[libcpp_vector[PeakBoundary] ]& boundaries_chrom,
                             bool check_spectrum_type

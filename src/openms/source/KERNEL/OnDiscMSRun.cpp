@@ -6,13 +6,13 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/KERNEL/OnDiscMSRun.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
 
 namespace OpenMS
 {
-  bool OnDiscMSExperiment::openFile(const String& filename, bool skipMetaData)
+  bool OnDiscMSRun::openFile(const String& filename, bool skipMetaData)
   {
     filename_ = filename;
     indexed_mzml_file_.openFile(filename);
@@ -23,17 +23,17 @@ namespace OpenMS
     return indexed_mzml_file_.getParsingSuccess();
   }
 
-  void OnDiscMSExperiment::setSkipXMLChecks(bool skip)
+  void OnDiscMSRun::setSkipXMLChecks(bool skip)
   {
     indexed_mzml_file_.setSkipXMLChecks(skip);
   }
 
-  OpenMS::Interfaces::ChromatogramPtr OnDiscMSExperiment::getChromatogramById(Size id)
+  OpenMS::Interfaces::ChromatogramPtr OnDiscMSRun::getChromatogramById(Size id)
   {
     return indexed_mzml_file_.getChromatogramById(id);
   }
 
-  void OnDiscMSExperiment::loadMetaData_(const String& filename)
+  void OnDiscMSRun::loadMetaData_(const String& filename)
   {
     meta_ms_experiment_ = boost::shared_ptr< PeakMap >(new PeakMap);
 
@@ -44,7 +44,7 @@ namespace OpenMS
     f.loadExperiment(filename, *meta_ms_experiment_.get(), {FileTypes::MZML});
   }
 
-  MSChromatogram OnDiscMSExperiment::getMetaChromatogramById_(const std::string& id)
+  MSChromatogram OnDiscMSRun::getMetaChromatogramById_(const std::string& id)
   {
     if (chromatograms_native_ids_.empty())
     {
@@ -62,7 +62,7 @@ namespace OpenMS
     return meta_ms_experiment_->getChromatogram(chromatograms_native_ids_[id]);
   }
 
-  MSChromatogram OnDiscMSExperiment::getChromatogramByNativeId(const std::string& id)
+  MSChromatogram OnDiscMSRun::getChromatogramByNativeId(const std::string& id)
   {
     if (!meta_ms_experiment_)
     {
@@ -76,7 +76,7 @@ namespace OpenMS
     return chromatogram;
   }
 
-  MSSpectrum OnDiscMSExperiment::getMetaSpectrumById_(const std::string& id)
+  MSSpectrum OnDiscMSRun::getMetaSpectrumById_(const std::string& id)
   {
     if (spectra_native_ids_.empty())
     {
@@ -94,7 +94,7 @@ namespace OpenMS
     return meta_ms_experiment_->getSpectrum(spectra_native_ids_[id]);
   }
 
-  MSSpectrum OnDiscMSExperiment::getSpectrumByNativeId(const std::string& id)
+  MSSpectrum OnDiscMSRun::getSpectrumByNativeId(const std::string& id)
   {
     if (!meta_ms_experiment_)
     {

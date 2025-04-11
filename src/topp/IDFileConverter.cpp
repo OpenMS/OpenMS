@@ -26,9 +26,9 @@
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -436,7 +436,7 @@ protected:
         if (!mz_file.empty())
         {
 		  // Add RTs if missing
-		  MSExperiment exp;    
+		  MSRun exp;    
 		  MzMLFile mzml_file{};
           mzml_file.getOptions().setMetadataOnly(true);
 		  mzml_file.load(mz_file, exp); 
@@ -588,7 +588,7 @@ protected:
           return ILLEGAL_PARAMETERS;
         }
 
-        MSExperiment exp;
+        MSRun exp;
         TheoreticalSpectrumGenerator tsg;
 
         // extract parameters and remove non tsg params

@@ -1,7 +1,7 @@
 from libcpp.vector cimport vector as libcpp_vector
 from FeatureMap cimport *
 from MZTrafoModel cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
 from PeptideIdentification cimport *
@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>" namespa
         InternalCalibration(InternalCalibration &) except + nogil  # compiler
 
 
-        Size fillCalibrants(MSExperiment,
+        Size fillCalibrants(MSRun,
                             libcpp_vector[InternalCalibration_LockMass],
                             double tol_ppm,
                             bool lock_require_mono,
@@ -100,7 +100,7 @@ cdef extern from "<OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>" namespa
                 #  
                 #  :return: Container of calibration points
 
-        bool calibrate(MSExperiment,
+        bool calibrate(MSRun,
                        libcpp_vector[int],
                        MZTrafoModel_MODELTYPE,
                        double rt_chunk,
@@ -118,10 +118,10 @@ cdef extern from "<OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>" namespa
                 #  For each spectrum, a calibration model will be computed and applied.
                 #  Make sure to call fillCalibrants() before, so a model can be created.\n
                 #  
-                #  The MSExperiment will be sorted by RT and m/z if unsorted.
+                #  The MSRun will be sorted by RT and m/z if unsorted.
                 #  
                 #  
-                #  :param exp: MSExperiment holding the Raw data to calibrate
+                #  :param exp: MSRun holding the Raw data to calibrate
                 #  :param target_mslvl: MS-levels where calibration should be applied to
                 #  :param model_type: Linear or quadratic model; select based on your instrument
                 #  :param rt_chunk: RT-window size (one-sided) of calibration points to collect around each spectrum. Set to negative values, to build one global model instead.
@@ -143,7 +143,7 @@ cdef extern from "<OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>" namespa
                              MZTrafoModel& trafo) except + nogil  # wrap-attach:InternalCalibration
     void applyTransformation(MSSpectrum & spec, IntList& target_mslvl,
                              MZTrafoModel & trafo) except + nogil  # wrap-attach:InternalCalibration
-    void applyTransformation(MSExperiment & exp,
+    void applyTransformation(MSRun & exp,
                              IntList& target_mslvl, MZTrafoModel& trafo) except + nogil  # wrap-attach:InternalCalibration
 
 cdef extern from "<OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>" namespace "OpenMS::InternalCalibration":

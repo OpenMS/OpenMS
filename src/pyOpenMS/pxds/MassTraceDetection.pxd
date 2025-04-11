@@ -1,5 +1,5 @@
 from Types cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
 
@@ -20,6 +20,6 @@ cdef extern from "<OpenMS/FEATUREFINDER/MassTraceDetection.h>" namespace "OpenMS
         MassTraceDetection() except + nogil 
         MassTraceDetection(MassTraceDetection &) except + nogil  # compiler
 
-        void run(MSExperiment & input_map,
+        void run(MSRun & input_map,
                 libcpp_vector[Kernel_MassTrace] & traces,
                 Size max_traces) except + nogil 

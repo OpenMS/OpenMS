@@ -2,7 +2,7 @@ from Types cimport *
 from OpenSwathDataStructures cimport *
 from MSSpectrum cimport *
 from MSChromatogram cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from ISpectrumAccess cimport *
 
 from SpectrumAccessOpenMS cimport *

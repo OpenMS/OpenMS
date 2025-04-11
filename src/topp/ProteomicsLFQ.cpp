@@ -37,7 +37,7 @@
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/TriqlerFile.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
@@ -353,7 +353,7 @@ protected:
     return idfile2mzfile;
   }
 
-  ExitCodes centroidAndCorrectPrecursors_(const String & mz_file, MSExperiment & ms_centroided)
+  ExitCodes centroidAndCorrectPrecursors_(const String & mz_file, MSRun & ms_centroided)
   { 
     Param pp_param = getParam_().copy("Centroiding:", true);
     writeDebug_("Parameters passed to PeakPickerHiRes algorithm", pp_param, 3);
@@ -429,7 +429,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  void recalibrateMasses_(MSExperiment & ms_centroided, vector<PeptideIdentification>& peptide_ids, const String & id_file_abs_path)
+  void recalibrateMasses_(MSRun & ms_centroided, vector<PeptideIdentification>& peptide_ids, const String & id_file_abs_path)
   {
     InternalCalibration ic;
     ic.setLogType(log_type_);
@@ -474,7 +474,7 @@ protected:
     }
   }
 
-  double estimateMedianChromatographicFWHM_(MSExperiment & ms_centroided)
+  double estimateMedianChromatographicFWHM_(MSRun & ms_centroided)
   {
     MassTraceDetection mt_ext;
     Param mtd_param = mt_ext.getParameters();
@@ -500,10 +500,10 @@ protected:
     return median_fwhm;
   }
 
-  void calculateSeeds_(const MSExperiment & ms_centroided, FeatureMap & seeds, double median_fwhm)
+  void calculateSeeds_(const MSRun & ms_centroided, FeatureMap & seeds, double median_fwhm)
   {
     //TODO: Actually FFM provides a parameter for minimum intensity. Also it copies the full experiment again once or twice.
-    MSExperiment e;
+    MSRun e;
     for (const auto& s : ms_centroided)
     { 
       if (s.getMSLevel() == 1) 
@@ -1037,7 +1037,7 @@ protected:
     {
       writeDebug_("Processing file: " + mz_file,  1);
       // centroid spectra (if in profile mode) and correct precursor masses
-      MSExperiment ms_centroided;    
+      MSRun ms_centroided;    
 
       {
         ExitCodes e = centroidAndCorrectPrecursors_(mz_file, ms_centroided);

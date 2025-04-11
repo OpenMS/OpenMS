@@ -15,7 +15,7 @@
 
 namespace OpenMS
 {
-  class MSExperiment;
+  class MSRun;
   class MSSpectrum;
 
   /// Drift time unit for ion mobility
@@ -45,7 +45,7 @@ namespace OpenMS
     NONE,            ///< no ion mobility
     CONCATENATED,    ///< ion mobility frame is stacked in a single spectrum (i.e. has an IM float data array)
     MULTIPLE_SPECTRA,///< ion mobility is recorded as multiple spectra per frame (i.e. has one IM annotation per spectrum)
-    MIXED,           ///< an MSExperiment contains both CONCATENATED and MULTIPLE_SPECTRA
+    MIXED,           ///< an MSRun contains both CONCATENATED and MULTIPLE_SPECTRA
     SIZE_OF_IMFORMAT
   };
   /// Names of IMFormat
@@ -68,7 +68,7 @@ namespace OpenMS
     /// and returns the common type (or IMFormat::MIXED if both CONCATENATED and MULTIPLE_SPECTRA are present)
     /// If @p exp is empty or contains no IM spectra at all, IMFormat::NONE is returned
     /// @throws Exception::InvalidValue if IM values are annotated as single drift time and float array for any single spectrum
-    static IMFormat determineIMFormat(const MSExperiment& exp);
+    static IMFormat determineIMFormat(const MSRun& exp);
 
     /** 
         @brief Checks for existence of a single driftTime (using spec.getDriftTime()) or an ion-mobility float data array (using spec.hasIMData()) 

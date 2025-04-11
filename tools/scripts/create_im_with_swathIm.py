@@ -16,7 +16,7 @@ from __future__ import print_function
 from pyopenms import *
 import pyopenms
 
-exp = MSExperiment()
+exp = MSRun()
 
 
 ##################################### PARAMETERS ##########################################

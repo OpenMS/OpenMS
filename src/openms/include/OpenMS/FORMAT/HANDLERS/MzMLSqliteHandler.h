@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
@@ -70,12 +70,12 @@ public:
       //@{
 
       /**
-          @brief Read an experiment into an MSExperiment structure
+          @brief Read an experiment into an MSRun structure
 
           @param exp The result data structure
           @param meta_only Only read the meta data
       */
-      void readExperiment(MSExperiment & exp, bool meta_only = false) const;
+      void readExperiment(MSRun & exp, bool meta_only = false) const;
 
       /// extract the RUN::ID from the sqMass file
       /// @throws Exception::SqlOperationFailed more than on run exists
@@ -169,7 +169,7 @@ public:
 
           @param exp The data to write
       */
-      void writeExperiment(const MSExperiment & exp);
+      void writeExperiment(const MSRun & exp);
 
       /**
           @brief Create data tables for a new file
@@ -204,7 +204,7 @@ public:
           @param exp The result data structure
           @param write_full_meta Add full meta information into sql tables
       */
-      void writeRunLevelInformation(const MSExperiment& exp, bool write_full_meta);
+      void writeRunLevelInformation(const MSRun& exp, bool write_full_meta);
 
 protected:
 

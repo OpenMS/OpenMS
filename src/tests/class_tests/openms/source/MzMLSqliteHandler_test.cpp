@@ -14,7 +14,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <QFile>
 
@@ -22,7 +22,7 @@ using namespace OpenMS;
 using namespace OpenMS::Internal;
 using namespace std;
 
-void cmpDataIntensity(const MSExperiment& exp1, const MSExperiment& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
+void cmpDataIntensity(const MSRun& exp1, const MSRun& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
 {
   // Logic of comparison: if the absolute difference criterion is fulfilled,
   // the relative one does not matter. If the absolute difference is larger
@@ -61,7 +61,7 @@ void cmpDataIntensity(const MSExperiment& exp1, const MSExperiment& exp2, double
   }
 }
 
-void cmpDataMZ(const MSExperiment& exp1, const MSExperiment& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
+void cmpDataMZ(const MSRun& exp1, const MSRun& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
 {
   // Logic of comparison: if the absolute difference criterion is fulfilled,
   // the relative one does not matter. If the absolute difference is larger
@@ -88,7 +88,7 @@ void cmpDataMZ(const MSExperiment& exp1, const MSExperiment& exp2, double abs_to
   }
 }
 
-void cmpDataRT(const MSExperiment& exp1, const MSExperiment& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
+void cmpDataRT(const MSRun& exp1, const MSRun& exp2, double abs_tol = 1e-5, double rel_tol = 1+1e-5)
 {
   // Logic of comparison: if the absolute difference criterion is fulfilled,
   // the relative one does not matter. If the absolute difference is larger
@@ -141,16 +141,16 @@ START_SECTION(UInt64 getRunID() const)
   TEST_EQUAL(handler.getRunID(), 12345)
 END_SECTION
 
-START_SECTION(void readExperiment(MSExperiment & exp, bool meta_only = false) const)
+START_SECTION(void readExperiment(MSRun & exp, bool meta_only = false) const)
 {
   MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
-  MSExperiment exp_orig;
+  MSRun exp_orig;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp_orig);
 
   // read in meta data only
   {
-    MSExperiment exp;
+    MSRun exp;
     handler.readExperiment(exp, true);
     TEST_EQUAL(exp.getNrSpectra(), exp_orig.getSpectra().size())
     TEST_EQUAL(exp.getNrChromatograms(), exp_orig.getChromatograms().size())
@@ -172,7 +172,7 @@ START_SECTION(void readExperiment(MSExperiment & exp, bool meta_only = false) co
   } 
   // read in all data
   {
-    MSExperiment exp;
+    MSRun exp;
     handler.readExperiment(exp, false);
 
     TEST_EQUAL(exp.getNrSpectra(), exp_orig.getSpectra().size())
@@ -212,7 +212,7 @@ START_SECTION( void readSpectra(std::vector<MSSpectrum> & exp, const std::vector
 {
   MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
-  MSExperiment exp2;
+  MSRun exp2;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp2);
 
   // read in meta data only
@@ -283,7 +283,7 @@ START_SECTION(void readChromatograms(std::vector<MSChromatogram> & exp, const st
 {
   MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
-  MSExperiment exp2;
+  MSRun exp2;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp2);
 
   // read in meta data only
@@ -310,7 +310,7 @@ START_SECTION(void readChromatograms(std::vector<MSChromatogram> & exp, const st
 
   {
 
-    MSExperiment exp_orig;
+    MSRun exp_orig;
     MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp_orig);
 
     std::string tmp_filename;
@@ -430,10 +430,10 @@ START_SECTION(std::vector<size_t> getSpectraIndicesbyRT(double RT, double deltaR
 }
 END_SECTION
 
-START_SECTION(void writeExperiment(const MSExperiment & exp))
+START_SECTION(void writeExperiment(const MSRun & exp))
 {
-  const MSExperiment exp_orig = [](){
-    MSExperiment tmp;
+  const MSRun exp_orig = [](){
+    MSRun tmp;
     MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), tmp);
     return tmp;
   }();
@@ -466,7 +466,7 @@ START_SECTION(void writeExperiment(const MSExperiment & exp))
   MzMLSqliteHandler handler(tmp_filename, 12345);
   // read in meta data only
   {
-    MSExperiment exp;
+    MSRun exp;
     handler.readExperiment(exp, true);
     TEST_EQUAL(exp.getNrSpectra(), exp_orig.getSpectra().size())
     TEST_EQUAL(exp.getNrChromatograms(), exp_orig.getChromatograms().size())
@@ -486,7 +486,7 @@ START_SECTION(void writeExperiment(const MSExperiment & exp))
     TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp_orig, true)
   }
 
-  MSExperiment exp;
+  MSRun exp;
   handler.readExperiment(exp, false);
   // tmp:
   //MzMLFile().store(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp);
@@ -508,7 +508,7 @@ END_SECTION
 
 START_SECTION(void writeSpectra(const std::vector<MSSpectrum>& spectra))
 {
-  MSExperiment exp_orig;
+  MSRun exp_orig;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp_orig);
 
   std::string tmp_filename;
@@ -533,7 +533,7 @@ START_SECTION(void writeSpectra(const std::vector<MSSpectrum>& spectra))
     handler.writeSpectra(exp_orig.getSpectra());
     TEST_EQUAL(handler.getNrSpectra(), 6)
     handler.writeRunLevelInformation(exp_orig, false);
-    MSExperiment tmp;
+    MSRun tmp;
     handler.readExperiment(tmp, false);
     TEST_EQUAL(tmp.getNrSpectra(), 6)
     TEST_EQUAL(tmp[0].size(), 19914)
@@ -557,7 +557,7 @@ END_SECTION
 
 START_SECTION(void writeChromatograms(const std::vector<MSChromatogram>& chroms))
 {
-  MSExperiment exp_orig;
+  MSRun exp_orig;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLSqliteHandler_1.mzML"), exp_orig);
 
   std::string tmp_filename;
@@ -584,7 +584,7 @@ START_SECTION(void writeChromatograms(const std::vector<MSChromatogram>& chroms)
     TEST_EQUAL(handler.getNrChromatograms(), 3)
     handler.writeRunLevelInformation(exp_orig, false);
 
-    MSExperiment tmp;
+    MSRun tmp;
     handler.readExperiment(tmp, false);
     TEST_EQUAL(tmp.getNrChromatograms(), 3)
     TEST_EQUAL(tmp.getChromatograms()[0].size(), 48)
@@ -621,7 +621,7 @@ START_SECTION(void writeChromatograms(const std::vector<MSChromatogram>& chroms)
     TEST_EQUAL(handler.getNrChromatograms(), 3)
     handler.writeRunLevelInformation(exp_orig, false);
 
-    MSExperiment tmp;
+    MSRun tmp;
     handler.readExperiment(tmp, false);
     TEST_EQUAL(tmp.getNrChromatograms(), 3)
     TEST_EQUAL(tmp.getChromatograms()[0].size(), 48)

@@ -1,5 +1,5 @@
 from MSSpectrum cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
 from Param cimport *
@@ -29,8 +29,8 @@ cdef extern from "<OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h>" namespa
                 #  
                 #  The output are the remaining peaks
 
-        void pickExperiment(MSExperiment & input,
-                            MSExperiment & output
+        void pickExperiment(MSRun & input,
+                            MSRun & output
                            ) except + nogil 
 
 

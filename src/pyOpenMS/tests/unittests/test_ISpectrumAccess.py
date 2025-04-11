@@ -10,7 +10,7 @@ class TestSpectrumAccessOpenMS(unittest.TestCase):
         self.filename = os.path.join(dirname, "test2.mzML").encode()
 
     def test_readfile_content(self):
-        exp = pyopenms.MSExperiment()
+        exp = pyopenms.MSRun()
         pyopenms.MzMLFile().load(self.filename, exp)
         saccess = pyopenms.SpectrumAccessOpenMS(exp)
         spectrum = saccess.getSpectrumById(0)
@@ -29,7 +29,7 @@ class TestSpectrumAccessOpenMSInMemory(unittest.TestCase):
         self.filename = os.path.join(dirname, "test2.mzML").encode()
 
     def test_readfile_content(self):
-        exp = pyopenms.MSExperiment()
+        exp = pyopenms.MSRun()
         pyopenms.MzMLFile().load(self.filename, exp)
 
         # Create in memory access
@@ -52,7 +52,7 @@ class TestSpectrumAccessSwathMap(unittest.TestCase):
         self.filename = os.path.join(dirname, "test2.mzML").encode()
 
     def test_swathmap_openms(self):
-        exp = pyopenms.MSExperiment()
+        exp = pyopenms.MSRun()
         pyopenms.MzMLFile().load(self.filename, exp)
         saccess = pyopenms.SpectrumAccessOpenMS(exp)
 
@@ -85,7 +85,7 @@ class TestSpectrumAccessSwathMap(unittest.TestCase):
         self.assertAlmostEqual(intensity[10], 9210.931640625)
 
     def test_readfile_contentInMemory(self):
-        exp = pyopenms.MSExperiment()
+        exp = pyopenms.MSRun()
         pyopenms.MzMLFile().load(self.filename, exp)
 
         # Create in memory access

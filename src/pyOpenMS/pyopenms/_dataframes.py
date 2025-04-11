@@ -6,7 +6,7 @@ from . import ConsensusFeature as _ConsensusFeature
 from . import FeatureMap as _FeatureMap
 from . import Feature as _Feature
 from . import MRMFeature as _MRMFeature
-from . import MSExperiment as _MSExperiment
+from . import MSRun as _MSRun
 from . import PeakMap as _PeakMap
 from . import PeptideIdentification as _PeptideIdentification
 from . import ControlledVocabulary as _ControlledVocabulary
@@ -314,12 +314,12 @@ FeatureMap.__module__ = _FeatureMap.__module__
 FeatureMap.__name__ = 'FeatureMap'
 
 
-class _MSExperimentDF(_MSExperiment):
+class _MSRunDF(_MSRun):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def get_df(self, ms_levels: List[int] = [], long : bool = False):
-        """Generates a pandas DataFrame with all peaks in the MSExperiment
+        """Generates a pandas DataFrame with all peaks in the MSRun
 
         Parameters:
         ms_levels (List[int]): Get only spectra with the given MS levels. Default is an empty list, which means all MS levels will be included.
@@ -347,7 +347,7 @@ class _MSExperimentDF(_MSExperiment):
         return _pd.DataFrame(data=((spec.getRT(), spec.getMSLevel(), *spec.get_peaks()) for spec in self if spec.getMSLevel() in ms_levels), columns=cols)
 
     def get_ion_df(self):
-        """Generates a pandas DataFrame with all peaks and the ionic mobility in the MSExperiment
+        """Generates a pandas DataFrame with all peaks and the ionic mobility in the MSRun
         
         Returns:
         pandas.DataFrame: feature information stored in a DataFrame
@@ -359,7 +359,7 @@ class _MSExperimentDF(_MSExperiment):
         return _pd.DataFrame(dict(zip(cols, spectraarrs2d)))
 
     def get_massql_df(self, ion_mobility=False):
-        """Exports data from MSExperiment to pandas DataFrames to be used with MassQL.
+        """Exports data from MSRun to pandas DataFrames to be used with MassQL.
 
         The Python module massql allows queries in mass spectrometry data (MS1 and MS2
         data frames) in a SQL like fashion (https://github.com/mwang87/MassQueryLanguage).
@@ -502,13 +502,13 @@ class _MSExperimentDF(_MSExperiment):
 
         return ms1_df, ms2_df
     
-PeakMap = _MSExperimentDF
+PeakMap = _MSRunDF
 PeakMap.__module__ = _PeakMap.__module__
 PeakMap.__name__ = 'PeakMap'
 
-MSExperiment = _MSExperimentDF
-MSExperiment.__module__ = _MSExperiment.__module__
-MSExperiment.__name__ = 'MSExperiment'
+MSRun = _MSRunDF
+MSRun.__module__ = _MSRun.__module__
+MSRun.__name__ = 'MSRun'
 
 
 # TODO think about the best way for such top-level function. IMHO in python, encapsulation in a stateless class in unnecessary.

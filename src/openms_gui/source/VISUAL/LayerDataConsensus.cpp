@@ -46,7 +46,7 @@ namespace OpenMS
 
   PeakIndex LayerDataConsensus::findHighestDataPoint(const RangeAllType& area) const
   {
-    using IntType = MSExperiment::ConstAreaIterator::PeakType::IntensityType;
+    using IntType = MSRun::ConstAreaIterator::PeakType::IntensityType;
     auto max_int = numeric_limits<IntType>::lowest();
     PeakIndex max_pi;
     for (ConsensusMapType::ConstIterator i = getConsensusMap()->begin(); i != getConsensusMap()->end(); ++i)

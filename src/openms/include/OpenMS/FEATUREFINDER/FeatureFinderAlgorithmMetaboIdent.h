@@ -13,7 +13,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 
@@ -92,7 +92,7 @@ public:
 
   /// @brief perform targeted feature extraction of compounds from @p metaboIdentTable and stores them in @p features.
   /// If @p spectra_file is provided it will be used as a fall-back to setPrimaryMSRunPath
-  /// in the feature map in case a proper primaryMSRunPath is not annotated in the MSExperiment.
+  /// in the feature map in case a proper primaryMSRunPath is not annotated in the MSRun.
   /// If there are no MS1 scans in the MSData return @p features unchanged
   void run(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable, FeatureMap& features, const String& spectra_file = "");
 

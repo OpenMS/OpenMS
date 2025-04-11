@@ -16,7 +16,7 @@
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/KERNEL/MobilityPeak2D.h>
 #include <OpenMS/KERNEL/Mobilogram.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/Peak2D.h>
@@ -69,7 +69,7 @@ namespace OpenMS
     virtual ValueType map(const Peak1D& p) const = 0;
     virtual ValueType map(const Peak2D& p) const = 0;
     virtual ValueType map(const ChromatogramPeak& p) const = 0;
-    virtual ValueType map(const MSExperiment::ConstAreaIterator& it) const = 0;
+    virtual ValueType map(const MSRun::ConstAreaIterator& it) const = 0;
     virtual ValueType map(const MobilityPeak1D& p) const = 0;
     virtual ValueType map(const MobilityPeak2D& p) const = 0;
 
@@ -200,7 +200,7 @@ namespace OpenMS
       return res;
     }
 
-    ValueType map(const MSExperiment::ConstAreaIterator& it) const override
+    ValueType map(const MSRun::ConstAreaIterator& it) const override
     {
       return it.getRT();
     }
@@ -282,7 +282,7 @@ namespace OpenMS
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    ValueType map(const MSExperiment::ConstAreaIterator& it) const override
+    ValueType map(const MSRun::ConstAreaIterator& it) const override
     {
       return it->getMZ();
     }
@@ -393,7 +393,7 @@ namespace OpenMS
     {
       return p.getIntensity();
     }
-    ValueType map(const MSExperiment::ConstAreaIterator& it) const override
+    ValueType map(const MSRun::ConstAreaIterator& it) const override
     {
       return it->getIntensity();
     }
@@ -519,7 +519,7 @@ namespace OpenMS
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
-    ValueType map(const MSExperiment::ConstAreaIterator& it) const override
+    ValueType map(const MSRun::ConstAreaIterator& it) const override
     {
       return it.getDriftTime();
     }

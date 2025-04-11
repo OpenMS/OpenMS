@@ -22,7 +22,7 @@ namespace OpenMS
       @brief A helper class, holding all calibration points.
 
       Calibration points can be filled from Peptide IDs (using FeatureMaps or vector<PeptideIds>)
-      or from lock masses in Raw data (MSExperiment).
+      or from lock masses in Raw data (MSRun).
 
       The m/z error can be queried using getError(). The unit of error is either ppm or Th, depending on
       usePPM().

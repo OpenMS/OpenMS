@@ -1,17 +1,17 @@
 from Types cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from ExperimentalSettings cimport *
 from MSSpectrum cimport *
 from MSChromatogram cimport *
 from InterfaceDataStructures cimport *
 
-cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/KERNEL/OnDiscMSRun.h>" namespace "OpenMS":
 
-    cdef cppclass OnDiscMSExperiment(ExperimentalSettings):
+    cdef cppclass OnDiscMSRun(ExperimentalSettings):
         # wrap-doc:
         #  Representation of a mass spectrometry experiment on disk.
-        OnDiscMSExperiment() except + nogil 
-        OnDiscMSExperiment(OnDiscMSExperiment &) except + nogil 
+        OnDiscMSRun() except + nogil 
+        OnDiscMSRun(OnDiscMSRun &) except + nogil 
 
         bool openFile(String filename) except + nogil 
         bool openFile(String filename, bool skipLoadingMetaData) except + nogil 
@@ -28,7 +28,7 @@ cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
         # COMMENT: only retrieves experiment meta data (no actual data in spectra/chromatograms)
         # COMMENT: useful for filtering by attributes to then retrieve data
         shared_ptr[const ExperimentalSettings] getExperimentalSettings() except + nogil  # wrap-doc:Returns the meta information of this experiment (const access)
-        shared_ptr[MSExperiment] getMetaData() except + nogil  # wrap-doc:Returns the meta information of this experiment
+        shared_ptr[MSRun] getMetaData() except + nogil  # wrap-doc:Returns the meta information of this experiment
 
         MSSpectrum getSpectrum(Size id) except + nogil 
             # wrap-doc:

@@ -15,7 +15,7 @@ class TestChromatogramExtractor(unittest.TestCase):
         tramlfile = pyopenms.TraMLFile()
         tramlfile.load(self.filename, targeted)
 
-        exp = pyopenms.MSExperiment()
+        exp = pyopenms.MSRun()
         pyopenms.MzMLFile().load(self.filename_mzml, exp)
 
         trafo = pyopenms.TransformationDescription()

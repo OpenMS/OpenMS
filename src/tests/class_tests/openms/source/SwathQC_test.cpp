@@ -17,7 +17,7 @@
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/SYSTEM/File.h>
 
 
@@ -55,7 +55,7 @@ START_SECTION(~SwathQC())
 END_SECTION
 
 // Create a mock spectrum fitting to the transition group
-boost::shared_ptr<MSExperiment> exp(new MSExperiment);
+boost::shared_ptr<MSRun> exp(new MSRun);
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap_sn1_out.mzML"), *exp);
 OpenSwath::SpectrumAccessPtr sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
 

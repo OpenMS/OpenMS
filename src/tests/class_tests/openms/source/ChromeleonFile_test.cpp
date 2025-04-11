@@ -39,10 +39,10 @@ START_SECTION(~ChromeleonFile())
 }
 END_SECTION
 
-START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
+START_SECTION(void load(const String& filename, MSRun& experiment) const)
 {
   String input_filepath = OPENMS_GET_TEST_DATA_PATH("20171013_HMP_C61_ISO_P1_GA1_UV_VIS_2.txt");
-  MSExperiment experiment;
+  MSRun experiment;
   ChromeleonFile cf;
   cf.load(input_filepath, experiment);
   TEST_EQUAL(experiment.getMetaValue("acq_method_name"), "UV_VIS_2")
@@ -75,7 +75,7 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   MzMLFile mzml;
   const String output_filepath = File::getTemporaryFile();
   mzml.store(output_filepath, experiment);
-  MSExperiment read_exp;
+  MSRun read_exp;
   mzml.load(output_filepath, read_exp);
   TEST_EQUAL(read_exp.getChromatograms().size(), 1);
   const MSChromatogram& c1 = experiment.getChromatograms()[0];
@@ -99,7 +99,7 @@ END_SECTION
 START_SECTION(load_with_new_raw_data_header)
 {
   String input_filepath = OPENMS_GET_TEST_DATA_PATH("ChromeleonFile_new_header.txt");
-  MSExperiment experiment;
+  MSRun experiment;
   ChromeleonFile cf;
   cf.load(input_filepath, experiment);
   TEST_EQUAL(experiment.getMetaValue("acq_method_name"), "RID_Signal")
@@ -130,7 +130,7 @@ START_SECTION(load_with_new_raw_data_header)
   MzMLFile mzml;
   const String output_filepath = File::getTemporaryFile();
   mzml.store(output_filepath, experiment);
-  MSExperiment read_exp;
+  MSRun read_exp;
   mzml.load(output_filepath, read_exp);
   TEST_EQUAL(read_exp.getChromatograms().size(), 1);
   const MSChromatogram& c1 = experiment.getChromatograms()[0];
@@ -152,7 +152,7 @@ END_SECTION
 START_SECTION(load_file_with_comma_thousands_separator)
 {
   String input_filepath = OPENMS_GET_TEST_DATA_PATH("ChromeleonFile_commas.txt");
-  MSExperiment experiment;
+  MSRun experiment;
   ChromeleonFile cf;
   cf.load(input_filepath, experiment);
   TEST_EQUAL(experiment.getMetaValue("acq_method_name"), "RID_Signal")

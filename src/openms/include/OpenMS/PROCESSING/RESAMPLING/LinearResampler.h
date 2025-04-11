@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
@@ -115,7 +115,7 @@ public:
     }
 
     /**
-        @brief Resamples the data in an MSExperiment, without alignment between spectra.
+        @brief Resamples the data in an MSRun, without alignment between spectra.
     */
     void rasterExperiment(PeakMap& exp)
     {

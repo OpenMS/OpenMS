@@ -676,9 +676,9 @@ class DoxygenCppFunction(object):
 
         cpp_def = cpp_def.replace("FeatureMap[]", "FeatureMap[Feature]")
         cpp_def = cpp_def.replace("MSSpectrum[]", "MSSpectrum")
-        cpp_def = cpp_def.replace("MSExperiment[]", "MSExperiment")
+        cpp_def = cpp_def.replace("MSRun[]", "MSRun")
         cpp_def = cpp_def.replace("PeakSpectrum", "MSSpectrum")
-        cpp_def = cpp_def.replace("PeakMap", "MSExperiment")
+        cpp_def = cpp_def.replace("PeakMap", "MSRun")
 
         # Handle const
         cpp_def = cpp_def.replace("const String", "constXXXString")

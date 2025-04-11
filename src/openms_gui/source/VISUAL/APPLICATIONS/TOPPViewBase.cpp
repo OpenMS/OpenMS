@@ -17,9 +17,9 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/KERNEL/OnDiscMSRun.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
@@ -538,7 +538,7 @@ namespace OpenMS
 
     LayerDataBase::DataType data_type(LayerDataBase::DT_UNKNOWN);
 
-    ODExperimentSharedPtrType on_disc_peaks(new OnDiscMSExperiment);
+    ODExperimentSharedPtrType on_disc_peaks(new OnDiscMSRun);
 
     // lock the GUI - no interaction possible when loading...
     GUIHelpers::GUILock glock(this);
@@ -1932,7 +1932,7 @@ namespace OpenMS
       ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
       FeatureMapSharedPtrType f_dummy(new FeatureMapType());
       ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
-      ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
+      ODExperimentSharedPtrType od_dummy(new OnDiscMSRun());
       vector<PeptideIdentification> p_dummy;
       addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerDataBase::DT_PEAK, false, true, true, "", spec_gen_dialog_.getSequence() + " (theoretical)");
 
@@ -2006,7 +2006,7 @@ namespace OpenMS
   {
     const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
     
-    ExperimentSharedPtrType exp(new MSExperiment(IMDataConverter::reshapeIMFrameToMany(spec)));
+    ExperimentSharedPtrType exp(new MSRun(IMDataConverter::reshapeIMFrameToMany(spec)));
     // hack, but currently not avoidable, because 2D widget does not support IM natively yet...
     // for (auto& spec : exp->getSpectra()) spec.setRT(spec.getDriftTime());
 
@@ -2016,7 +2016,7 @@ namespace OpenMS
     w->setMapper(DimMapper<2>({IMTypes::fromIMUnit(exp->getSpectra()[0].getDriftTimeUnit()), DIM_UNIT::MZ}));
 
     // add data
-    if (!w->canvas()->addPeakLayer(exp, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename + " (IM Frame)"))
+    if (!w->canvas()->addPeakLayer(exp, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSRun()), layer.filename + " (IM Frame)"))
     {
       return;
     }
@@ -2025,7 +2025,7 @@ namespace OpenMS
     updateMenu();
   }
 
-  void TOPPViewBase::showCurrentPeaksAsDIA(const Precursor& pc, const MSExperiment& exp)
+  void TOPPViewBase::showCurrentPeaksAsDIA(const Precursor& pc, const MSRun& exp)
   {
     const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
     auto* lp = dynamic_cast<const LayerDataPeak*>(&layer);
@@ -2035,8 +2035,8 @@ namespace OpenMS
       return;
     }
 
-    // Add spectra into a MSExperiment, sort and prepare it for display
-    ExperimentSharedPtrType tmpe(new OpenMS::MSExperiment() );
+    // Add spectra into a MSRun, sort and prepare it for display
+    ExperimentSharedPtrType tmpe(new OpenMS::MSRun() );
 
     // Collect all MS2 spectra with the same precursor as the current spectrum
     // (they are in the same SWATH window)
@@ -2053,7 +2053,7 @@ namespace OpenMS
         if (fabs(spec.getPrecursors()[0].getMZ() - pc.getMZ()) < 1e-4)
         {
           // Get the spectrum in question (from memory or disk) and add to
-          // the newly created MSExperiment
+          // the newly created MSRun
           if (spec.size() > 0)
           {
             // Get data from memory - copy data and tell TOPPView that this
@@ -2085,7 +2085,7 @@ namespace OpenMS
     Plot2DWidget* w = new Plot2DWidget(getCanvasParameters(2), &ws_);
 
     // add data
-    if (!w->canvas()->addPeakLayer(tmpe, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
+    if (!w->canvas()->addPeakLayer(tmpe, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSRun()), layer.filename))
     {
       return;
     }
@@ -2154,7 +2154,7 @@ namespace OpenMS
       w->canvas()->openglwidget()->setYLabel(label.c_str());
     }
 
-    if (!w->canvas()->addPeakLayer(exp_sptr, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
+    if (!w->canvas()->addPeakLayer(exp_sptr, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSRun()), layer.filename))
     {
       return;
     }
@@ -2377,7 +2377,7 @@ namespace OpenMS
         // only the selected row can be dragged => the source layer is the selected layer
         LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
 
-        // attach feature, consensus and peak data          (new OnDiscMSExperiment());
+        // attach feature, consensus and peak data          (new OnDiscMSRun());
         FeatureMapSharedPtrType features(new FeatureMapType());
         if (auto* lp = dynamic_cast<LayerDataFeature*>(&layer)) features = lp->getFeatureMap();
 
@@ -2385,7 +2385,7 @@ namespace OpenMS
         if (auto* lp = dynamic_cast<LayerDataConsensus*>(&layer)) consensus = lp->getConsensusMap();
 
         ExperimentSharedPtrType peaks(new ExperimentType());
-        ODExperimentSharedPtrType on_disc_peaks(new OnDiscMSExperiment());
+        ODExperimentSharedPtrType on_disc_peaks(new OnDiscMSRun());
         if (auto* lp = dynamic_cast<LayerDataPeak*>(&layer))
         {
           peaks = lp->getPeakDataMuteable();
@@ -2411,7 +2411,7 @@ namespace OpenMS
         ExperimentSharedPtrType new_exp_sptr(new ExperimentType());
         if (LayerDataBase::DataType current_type; spec_view->getSelectedScan(*new_exp_sptr, current_type))
         {
-          ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
+          ODExperimentSharedPtrType od_dummy(new OnDiscMSRun());
           FeatureMapSharedPtrType f_dummy(new FeatureMapType());
           ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
           vector<PeptideIdentification> p_dummy;

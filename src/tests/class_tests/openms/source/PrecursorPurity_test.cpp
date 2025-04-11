@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 

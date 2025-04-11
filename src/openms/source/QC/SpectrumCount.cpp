@@ -7,14 +7,14 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/QC/SpectrumCount.h>
 using namespace std;
 
 namespace OpenMS
 {
 
-  map<Size, UInt> SpectrumCount::compute(const MSExperiment& exp)
+  map<Size, UInt> SpectrumCount::compute(const MSRun& exp)
   {
     map<Size, UInt> counts;
     for (const auto& spectrum : exp)

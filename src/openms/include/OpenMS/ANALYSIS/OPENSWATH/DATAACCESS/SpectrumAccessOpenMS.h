@@ -11,7 +11,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
@@ -27,12 +27,12 @@ namespace OpenMS
     public OpenSwath::ISpectrumAccess
   {
 public:
-    typedef OpenMS::PeakMap MSExperimentType;
+    typedef OpenMS::PeakMap MSRunType;
     typedef OpenMS::MSSpectrum MSSpectrumType;
     typedef OpenMS::MSChromatogram MSChromatogramType;
 
     /// Constructor
-    explicit SpectrumAccessOpenMS(boost::shared_ptr<MSExperimentType> ms_experiment);
+    explicit SpectrumAccessOpenMS(boost::shared_ptr<MSRunType> ms_experiment);
 
     /// Destructor
     ~SpectrumAccessOpenMS() override;
@@ -42,8 +42,8 @@ public:
 
       Performs a light copy operation when another SpectrumAccessOpenMS
       instance is given: only a copy of the pointer to the underlying
-      MSExperiment is stored, so after this, both instances (rhs and *this)
-      will point to the same MSExperiment.
+      MSRun is stored, so after this, both instances (rhs and *this)
+      will point to the same MSRun.
 
     */
     SpectrumAccessOpenMS(const SpectrumAccessOpenMS & rhs);
@@ -52,7 +52,7 @@ public:
       @brief Light clone operator (actual data will not get copied)
 
       Creates a light clone of the current instance, with the clone pointing to
-      the same underlying MSExperiment.
+      the same underlying MSRun.
 
     */
     boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const override;
@@ -79,7 +79,7 @@ public:
     std::string getChromatogramNativeID(int id) const override;
 
 private:
-    boost::shared_ptr<MSExperimentType> ms_experiment_;
+    boost::shared_ptr<MSRunType> ms_experiment_;
 
   };
 } //end namespace OpenMS

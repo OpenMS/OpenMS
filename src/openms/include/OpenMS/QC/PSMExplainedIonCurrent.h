@@ -15,7 +15,7 @@
 namespace OpenMS
 {
   class FeatureMap;
-  class MSExperiment;
+  class MSRun;
   class PeptideIdentification;
   class WindowMower;
 
@@ -46,7 +46,7 @@ namespace OpenMS
      * Each PSMExplainedIonCurrent is also stored in the first PeptideHit of the corresponding PeptideIdentification as metavalue "PSM_correctness".
      *
      * @param fmap Input FeatureMap for annotation and data for theoretical spectra
-     * @param exp Input MSExperiment for MS2 spectra; spectra should be sorted (ascending RT)
+     * @param exp Input MSRun for MS2 spectra; spectra should be sorted (ascending RT)
      * @param map_to_spectrum Map to find index of spectrum given by meta value at PepID
      * @param tolerance Search window for matching peaks; distance has to be lower than tolerance value
      * @param tolerance_unit Tolerance in ppm or Dalton (if auto was chosen, the unit and value will taken from FeatureMap metadata)
@@ -57,7 +57,7 @@ namespace OpenMS
      * has no hits)
      * @throws Exception::InvalidParameter If the fragmentation method is not ECD, ETD, CID or HCD
      */
-    void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20);
+    void compute(FeatureMap& fmap, const MSRun& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20);
 
     /**
      * @brief computes PSMExplainedIonCurrent (only of the first PeptideHit of each PepID)
@@ -66,7 +66,7 @@ namespace OpenMS
      *
      * @param pep_ids Input peptide identifications for annotation and data for theoretical spectra
      * @param search_params Input search parameters from ID-search that generated the peptide identifications from @p pep_ids
-     * @param exp Input MSExperiment for MS2 spectra; spectra should be sorted (ascending RT)
+     * @param exp Input MSRun for MS2 spectra; spectra should be sorted (ascending RT)
      * @param map_to_spectrum Map to find index of spectrum given by meta value at PepID
      * @param tolerance Search window for matching peaks; distance has to be lower than tolerance value
      * @param tolerance_unit Tolerance in ppm or Dalton (if auto was chosen, the unit and value will taken from FeatureMap metadata)
@@ -77,7 +77,7 @@ namespace OpenMS
      * has no hits)
      * @throws Exception::InvalidParameter If the fragmentation method is not ECD, ETD, CID or HCD
      */
-    void compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum,
+    void compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSRun& exp, const QCBase::SpectraMap& map_to_spectrum,
                  ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20);
 
     /// returns the name of the metric
@@ -97,7 +97,7 @@ namespace OpenMS
     /// container that stores results
     std::vector<Statistics> results_ {};
 
-    static double annotatePSMExplainedIonCurrent_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, WindowMower& filter,
+    static double annotatePSMExplainedIonCurrent_(PeptideIdentification& pep_id, const MSRun& exp, const QCBase::SpectraMap& map_to_spectrum, WindowMower& filter,
                                                   PSMExplainedIonCurrent::ToleranceUnit tolerance_unit, double tolerance);
   };
 

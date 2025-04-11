@@ -11,12 +11,12 @@
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 namespace OpenMS
 {
   /**
-    @brief Load MSP text file and save it into an `MSExperiment`
+    @brief Load MSP text file and save it into an `MSRun`
 
     This class is specialized for metabolites data.
     The required fields are: Name, Num Peaks, and the peaks data
@@ -46,7 +46,7 @@ public:
     MSPGenericFile();
 
     /// Constructor with filename and output library
-    MSPGenericFile(const String& filename, MSExperiment& library);
+    MSPGenericFile(const String& filename, MSRun& library);
 
     /// Destructor
     ~MSPGenericFile() override = default;
@@ -58,14 +58,14 @@ public:
     friend class MSPGenericFile_friend;
 
     /**
-      @brief Load the file's data and metadata, and save it into an `MSExperiment`.
+      @brief Load the file's data and metadata, and save it into an `MSRun`.
 
       @param[in] filename Path to the MSP input file
       @param[out] library The variable into which the extracted information will be saved
 
       @throw FileNotFound If the file could not be found
     */
-    void load(const String& filename, MSExperiment& library);
+    void load(const String& filename, MSRun& library);
 
     /**
       @brief Save data and metadata into a file.
@@ -75,7 +75,7 @@ public:
 
       @throw FileNotWritable If the file is not writable
     */
-    void store(const String& filename, const MSExperiment& library) const;
+    void store(const String& filename, const MSRun& library) const;
   
   private:
     /// Overrides `DefaultParamHandler`'s method
@@ -93,11 +93,11 @@ public:
       @throw ParseError If Num Peaks' value doesn't match with the number of raw peaks parsed
 
       @param[in,out] spectrum The spectrum to be added
-      @param[out] library The spectrum is added into this `MSExperiment` library
+      @param[out] library The spectrum is added into this `MSRun` library
     */
     void addSpectrumToLibrary(
       MSSpectrum& spectrum,
-      MSExperiment& library
+      MSRun& library
     );
 
     /// To keep track of which spectra have already been loaded and avoid duplicates
@@ -123,7 +123,7 @@ public:
 
     void addSpectrumToLibrary(
       MSSpectrum& spectrum,
-      MSExperiment& library
+      MSRun& library
     )
     {
       return msp_.addSpectrumToLibrary(spectrum, library);

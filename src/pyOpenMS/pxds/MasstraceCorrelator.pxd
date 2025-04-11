@@ -4,7 +4,7 @@ from libcpp.vector cimport vector as libcpp_vector
 from DefaultParamHandler cimport *
 from ProgressLogger cimport *
 from ConsensusMap cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 
 # typedef std::vector<std::pair<double, double> > MasstracePointsType;
 
@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h>" namespace "
         MasstraceCorrelator(MasstraceCorrelator &) except + nogil  # compiler
 
         void createPseudoSpectra(const ConsensusMap & map_,
-                                 MSExperiment & pseudo_spectra,
+                                 MSRun & pseudo_spectra,
                                  Size min_peak_nr,
                                  double min_correlation,
                                  int max_lag,

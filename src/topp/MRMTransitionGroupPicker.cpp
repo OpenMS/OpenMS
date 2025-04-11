@@ -11,7 +11,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 

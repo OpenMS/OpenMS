@@ -2,7 +2,7 @@ from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
 from TargetedExperiment cimport *
 from DefaultParamHandler cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from ProgressLogger cimport *
 from PeptideIdentification cimport *
 from ProteinIdentification cimport *
@@ -41,7 +41,7 @@ cdef extern from "<OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>"
         #    mzml_options.addMSLevel(1) # only MS1
         #    mzml.setOptions(mzml_options)
         #    
-        #    exp = MSExperiment()
+        #    exp = MSRun()
         #    mzml.load("FeatureFinderIdentification_1_input.mzML", exp)
         #    ffid_algo.setMSData(exp)
         #    # annotate mzML file
@@ -117,15 +117,15 @@ cdef extern from "<OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>"
                  #  :param proteins_ext: Vector of external identified proteins, can be used to transfer ids from other runs
                  #  :param features: Feature detection results will be added here
                  #  :param seeds: Optional seeds for feature detection from e.g. untargeted FeatureFinders                 
-                 #  :param spectra_file: Path will be stored in features in case the MSExperiment has no proper primaryMSRunPath
+                 #  :param spectra_file: Path will be stored in features in case the MSRun has no proper primaryMSRunPath
 
         void runOnCandidates(FeatureMap & features) except + nogil  # wrap-doc:Run feature detection on identified features (e.g. loaded from an IdXML file)
 
-        void setMSData(const MSExperiment&) except + nogil  # wrap-doc:Sets ms data
+        void setMSData(const MSRun&) except + nogil  # wrap-doc:Sets ms data
 
-        MSExperiment getMSData() except + nogil  # wrap-doc:Returns ms data as MSExperiment
+        MSRun getMSData() except + nogil  # wrap-doc:Returns ms data as MSRun
 
-        MSExperiment getChromatograms() except + nogil  # wrap-doc:Returns chromatogram data as MSExperiment 
+        MSRun getChromatograms() except + nogil  # wrap-doc:Returns chromatogram data as MSRun 
 
         ProgressLogger getProgressLogger() except + nogil  # wrap-ignore
 

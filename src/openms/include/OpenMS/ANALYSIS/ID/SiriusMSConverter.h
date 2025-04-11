@@ -80,7 +80,7 @@ public:
     @param file_index: file index (to differentiate entries derived from different mzML files and resolve ambiguities)
     */
 
-    static void store(const MSExperiment& spectra,
+    static void store(const MSRun& spectra,
                       std::ofstream& os,
                       const FeatureMapping::FeatureToMs2Indices& feature_mapping,
                       const bool& feature_only,
@@ -124,7 +124,7 @@ public:
     */
 
     static void writeMsFile_(std::ofstream& os,
-                             const MSExperiment& spectra,
+                             const MSRun& spectra,
                              const std::vector<size_t>& ms2_spectra_index,
                              const SiriusMSFile::AccessionInfo& ainfo,
                              const StringList& adducts,

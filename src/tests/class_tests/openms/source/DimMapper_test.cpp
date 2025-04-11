@@ -64,13 +64,13 @@ START_SECTION(ValueTypes map(const MSSpectrum& spec) const override)
 }
 END_SECTION
 
-START_SECTION(ValueType map(MSExperiment::ConstAreaIterator it) const override)
+START_SECTION(ValueType map(MSRun::ConstAreaIterator it) const override)
 {
   DimRT rt;
   MSSpectrum spec;
   spec.push_back({1, 2});
   spec.setRT(5);
-  MSExperiment exp;
+  MSRun exp;
   exp.addSpectrum(spec);
   TEST_EQUAL(rt.map(exp.areaBeginConst(4, 6, 0, 2)), 5)
 }

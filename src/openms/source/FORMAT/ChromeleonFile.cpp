@@ -13,7 +13,7 @@
 
 namespace OpenMS
 {
-  void ChromeleonFile::load(const String& filename, MSExperiment& experiment) const
+  void ChromeleonFile::load(const String& filename, MSRun& experiment) const
   {
     experiment.clear(true);
     std::ifstream ifs(filename, std::ifstream::in);

@@ -11,7 +11,7 @@
 #include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MassTrace.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -26,7 +26,7 @@ using namespace std;
 /**
 @page TOPP_MassTraceExtractor MassTraceExtractor
 
-@brief MassTraceExtractor extracts mass traces from a MSExperiment map and stores them into a FeatureXMLFile.
+@brief MassTraceExtractor extracts mass traces from a MSRun map and stores them into a FeatureXMLFile.
 
 <CENTER>
 <table>

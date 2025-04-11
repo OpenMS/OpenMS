@@ -95,7 +95,7 @@ AASequence::fromString("").empty();
 
 // Generate test data
 
-// MSExperiment
+// MSRun
 Param p;
 
 // create b- and y-ion spectrum of peptide sequence HIMALAYA with charge 1
@@ -114,29 +114,29 @@ addRandomPeaks(ms_spec_2_alabama, 5.0); // add 5 to 10 -> correctness should be 
 
 MSSpectrum empty_spec;
 
-MSExperiment exp;
+MSRun exp;
 exp.setSpectra({empty_spec, ms_spec_2_alabama, ms_spec_2_himalaya});
 
-// MSExperiment with no given fragmentation method (falls back to CID)
-MSExperiment exp_no_pc(exp);
+// MSRun with no given fragmentation method (falls back to CID)
+MSRun exp_no_pc(exp);
 exp_no_pc[0].setPrecursors({});
 
-// MSExperiment with MS1 Spectrum
-MSExperiment exp_ms1(exp);
+// MSRun with MS1 Spectrum
+MSRun exp_ms1(exp);
 exp_ms1.setSpectra({createMSSpectrum(1, 5, "XTandem::3")});
 
-// MSExperiment with Sori activation
-MSExperiment exp_sori(exp);
+// MSRun with Sori activation
+MSRun exp_sori(exp);
 exp_sori.setSpectra({createMSSpectrum(2, 7, "XTandem::5", Precursor::ActivationMethod::SORI)});
 
-// MSExperiment with himalaya, spectrum with peaks with intensity 0 & empty spectrum
-MSExperiment failing_exp(exp);
+// MSRun with himalaya, spectrum with peaks with intensity 0 & empty spectrum
+MSRun failing_exp(exp);
 PeakSpectrum zero_peaks(createMSSpectrum(2, 4, "XTandem::6"));
 zero_peaks.emplace_back(10, 0);
 zero_peaks.emplace_back(20, 0);
 failing_exp.setSpectra({ms_spec_2_himalaya, zero_peaks, empty_spec});
 
-// map the MSExperiment
+// map the MSRun
 QCBase::SpectraMap spectra_map;
 
 // PeptideIdentifications
@@ -182,7 +182,7 @@ END_SECTION
 
 PSMExplainedIonCurrent psm_corr;
 
-START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20))
+START_SECTION(void compute(FeatureMap& fmap, const MSRun& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20))
 {
   spectra_map.calculateMap(exp);
   //--------------------------------------------------------------------
@@ -275,7 +275,7 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBa
 }
 END_SECTION
 
-START_SECTION(compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum,
+START_SECTION(compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSRun& exp, const QCBase::SpectraMap& map_to_spectrum,
                       ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20))
 {
   spectra_map.calculateMap(exp);

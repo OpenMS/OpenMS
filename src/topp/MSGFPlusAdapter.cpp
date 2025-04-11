@@ -837,7 +837,7 @@ protected:
         }
 
 		// add missing RTs to peptide IDs
-		MSExperiment exp;
+		MSRun exp;
 		MzMLFile mzml_file{};
         mzml_file.getOptions().setMetadataOnly(true);
 		mzml_file.load(in, exp); 

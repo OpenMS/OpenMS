@@ -63,10 +63,10 @@ namespace OpenMS
 
         @throws Exception::MissingInformation if @p im_frame does not have IM data in floatDataArrays
       */
-      static MSExperiment reshapeIMFrameToMany(MSSpectrum im_frame);
+      static MSRun reshapeIMFrameToMany(MSSpectrum im_frame);
 
       /**
-         @brief Bins the ion mobility range into discrete bins and creates a new MSExperiment for each IM bin.
+         @brief Bins the ion mobility range into discrete bins and creates a new MSRun for each IM bin.
          
          The IM range (of the whole @p in) is divided into equally spaced IM-bins and the bin center is the new drift time (see `spec.getDriftTime()`).
          Usually multiple spectra from an IM frame (with close IM values) fall into the same bin. These spectra are merged using SpectraMerger's block-method.
@@ -74,20 +74,20 @@ namespace OpenMS
 
          To avoid artifacts at the bin borders, each bin can be extended by `bin_extension_abs` on both sides. The actual overlap between adjacent bins is thus `2*bin_extension_abs`.
 
-         @note All MS levels are binned. If you want to bin only a specific MS level, you need to filter the input MSExperiment before calling this function.
+         @note All MS levels are binned. If you want to bin only a specific MS level, you need to filter the input MSRun before calling this function.
 
          @param in The PeakMap containing many 'wide' IM-frame spectra (where one spectrum contains multiple IM values).
          @param number_of_IM_bins Into how many bins should the ion mobility range be sliced?
          @param bin_extension_abs How much should each bin be extended at its borders? (in absolute IM units). The actual overlap between adjacent bins is thus `2*bin_extension_abs`.
          @param mz_binning_width The width of the m/z binning window, when merging spectra of the same IM-bin (in Da or ppm, see @p mz_binning_width_unit)
          @param mz_binning_width_unit The unit of the m/z binning window (Da or ppm)
-         @return One MSExperiment per IM-bin and the corresponding binning borders
+         @return One MSRun per IM-bin and the corresponding binning borders
 
          @throws Exception::InvalidValue if any spectrum in @p in is missing an IM-float data array (see IMTypes::determineIMFormat(), or MSSpectrum::containsIMData())
          @throws Exception::InvalidValue if number_of_IM_bins == 0
          @throws Exception::InvalidValue if bin_extension_abs < 0
       */
-      static std::tuple < std::vector<MSExperiment>, Math::BinContainer> splitExperimentByIonMobility(MSExperiment&& in,
+      static std::tuple < std::vector<MSRun>, Math::BinContainer> splitExperimentByIonMobility(MSRun&& in,
                                                                                                       UInt number_of_IM_bins,
                                                                                                       double bin_extension_abs,
                                                                                                       double mz_binning_width,
@@ -112,7 +112,7 @@ namespace OpenMS
 
         @throws Exception::InvalidValue if any spectrum has both a single drift time AND a IM-float data array (see IMTypes::determineIMFormat(), or MSSpectrum::containsIMData())
       */
-      static MSExperiment reshapeIMFrameToSingle(const MSExperiment& in);
+      static MSRun reshapeIMFrameToSingle(const MSRun& in);
 
       /**
         @brief Convert from a Unit to a CV term and annotate is as the FDA's name. This is not very accurate (since we cannot decide if its 'raw' or 'binned' IM data),

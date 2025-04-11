@@ -1,6 +1,6 @@
 from Types cimport *
 from MSSpectrum cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 
 cdef extern from "<OpenMS/METADATA/SpectrumLookup.h>" namespace "OpenMS":
 
@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/METADATA/SpectrumLookup.h>" namespace "OpenMS":
 
         bool empty() except + nogil  # wrap-doc:Check if any spectra were set
 
-        void readSpectra(MSExperiment spectra, String scan_regexp) except + nogil 
+        void readSpectra(MSRun spectra, String scan_regexp) except + nogil 
         # wrap-doc:
                 #  Read and index spectra for later look-up
                 #  

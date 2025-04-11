@@ -281,7 +281,7 @@ def testDatastructuresTutorial():
     spectrum.set_peaks( ([401.5], [900]) )
 
     # Store as mzML
-    exp = MSExperiment()
+    exp = MSRun()
     exp.addSpectrum(spectrum)
     spectrum = MSSpectrum()
     spectrum.set_peaks( ([1, 2], [1, 2]) )
@@ -293,8 +293,8 @@ def testDatastructuresTutorial():
     # *********
     ###################################
 
-    # The following examples creates a MSExperiment containing four MSSpectrum instances.
-    exp = MSExperiment()
+    # The following examples creates a MSRun containing four MSSpectrum instances.
+    exp = MSRun()
     for i in range(6):
         spectrum = MSSpectrum()
         spectrum.setRT(i)
@@ -353,7 +353,7 @@ def testDatastructuresTutorial():
     chromatogram.setProduct(p)
 
     # Store as mzML
-    exp = MSExperiment()
+    exp = MSRun()
     exp.addChromatogram(chromatogram)
     MzMLFile().store("testfile3.mzML", exp)
 

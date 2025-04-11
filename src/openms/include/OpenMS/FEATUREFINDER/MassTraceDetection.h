@@ -11,7 +11,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MassTrace.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
@@ -20,7 +20,7 @@ namespace OpenMS
     /**
       @brief A mass trace extraction method that gathers peaks similar in m/z and moving along retention time.
 
-      Peaks of a @ref MSExperiment are sorted by their intensity and stored in a
+      Peaks of a @ref MSRun are sorted by their intensity and stored in a
       list of potential chromatographic apex positions. Only peaks that are above
       the noise threshold (user-defined) are analyzed and only peaks that are n
       times above this minimal threshold are considered as apices. This saves
@@ -63,10 +63,10 @@ namespace OpenMS
         /** @name Main computation methods
         */
 
-        /// Main method of MassTraceDetection. Extracts mass traces of a @ref MSExperiment and gathers them into a vector container.
+        /// Main method of MassTraceDetection. Extracts mass traces of a @ref MSRun and gathers them into a vector container.
         void run(const PeakMap &, std::vector<MassTrace> &, const Size max_traces = 0);
 
-        /// Invokes the run method (see above) on merely a subregion of a @ref MSExperiment map.
+        /// Invokes the run method (see above) on merely a subregion of a @ref MSRun map.
         void run(PeakMap::ConstAreaIterator & begin, PeakMap::ConstAreaIterator & end, std::vector<MassTrace> & found_masstraces);
 
         /** @name Private methods and members

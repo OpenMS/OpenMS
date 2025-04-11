@@ -14,7 +14,7 @@
 #include <OpenMS/DATASTRUCTURES/CVMappings.h>
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h>
@@ -66,7 +66,7 @@ namespace OpenMS
      * supports reading data directly into memory or parsing on-the-fly using a
      * consumer (see @ref consumer_a "Setting a consumer").  In read-mode, this
      * class will parse an MzML XML file and append the input spectra to the
-     * provided MSExperiment object or to the provided
+     * provided MSRun object or to the provided
      * Interfaces::IMSDataConsumer (needs to be provided separately through
      * setMSDataConsumer()).
      *

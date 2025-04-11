@@ -12,7 +12,7 @@ from Types cimport *
 from ProteinIdentification cimport *
 from PeptideIdentification cimport *
 
-from MSExperiment cimport *
+from MSRun cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
 

@@ -10,7 +10,7 @@
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/KERNEL/OnDiscMSRun.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/Mobilogram.h>
 #include <OpenMS/MATH/MISC/SplineBisection.h>
@@ -536,7 +536,7 @@ namespace OpenMS
     return;
   }
 
-  void PeakPickerHiRes::pickExperiment(/* const */ OnDiscMSExperiment& input, PeakMap& output, const bool check_spectrum_type) const
+  void PeakPickerHiRes::pickExperiment(/* const */ OnDiscMSRun& input, PeakMap& output, const bool check_spectrum_type) const
   {
     // make sure that output is clear
     output.clear(true);

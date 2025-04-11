@@ -1,4 +1,4 @@
-from MSExperiment  cimport *
+from MSRun  cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
 from String cimport *
@@ -15,19 +15,19 @@ cdef extern from "<OpenMS/FORMAT/MzXMLFile.h>" namespace "OpenMS":
         MzXMLFile() except + nogil 
         MzXMLFile(MzXMLFile &) except + nogil  #compiler
 
-        void load(String filename, MSExperiment & exp) except + nogil  
+        void load(String filename, MSRun & exp) except + nogil  
             # wrap-doc:
-                #  Loads a MSExperiment from a MzXML file
+                #  Loads a MSRun from a MzXML file
                 #  
                 #  
-                #  :param exp: MSExperiment
+                #  :param exp: MSRun
 
-        void store(String filename, MSExperiment & exp) except + nogil 
+        void store(String filename, MSRun & exp) except + nogil 
             # wrap-doc:
-                #  Stores a MSExperiment in a MzXML file
+                #  Stores a MSRun in a MzXML file
                 #  
                 #  
-                #  :param exp: MSExperiment
+                #  :param exp: MSRun
 
         void transform(String, IMSDataConsumer[Peak1D, ChromatogramPeak] *) except + nogil  # wrap-ignore
 

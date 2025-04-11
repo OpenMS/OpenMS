@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/METADATA/DocumentIdentifier.h>" namespace "OpenMS":
         String getIdentifier() except + nogil  # wrap-doc:Retrieve document identifier (e.g. an LSID)
 
         # exchange content with @p from -> gets overwritten later
-        # this does not work since some derived classes overwrite this (e.g. MSExperiment)
+        # this does not work since some derived classes overwrite this (e.g. MSRun)
         ## void swap(DocumentIdentifier from_) except + nogil 
 
         void setLoadedFileType(String file_name) except + nogil  # wrap-doc:Sets the file_type according to the type of the file loaded from, preferably done whilst loading

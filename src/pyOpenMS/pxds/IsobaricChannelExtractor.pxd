@@ -5,7 +5,7 @@ from ItraqEightPlexQuantitationMethod cimport *
 from TMTSixPlexQuantitationMethod cimport *
 from TMTTenPlexQuantitationMethod cimport *
 from DefaultParamHandler cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from ConsensusMap cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>" namespace "OpenMS":
@@ -22,5 +22,5 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>" nam
         IsobaricChannelExtractor(TMTSixPlexQuantitationMethod *quant_method) except + nogil 
         IsobaricChannelExtractor(TMTTenPlexQuantitationMethod *quant_method) except + nogil 
 
-        void extractChannels(MSExperiment & ms_exp_data, ConsensusMap & consensus_map) except + nogil 
+        void extractChannels(MSRun & ms_exp_data, ConsensusMap & consensus_map) except + nogil 
 

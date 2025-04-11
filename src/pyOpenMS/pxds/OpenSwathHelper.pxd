@@ -1,4 +1,4 @@
-from MSExperiment cimport *
+from MSRun cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
 from ProgressLogger cimport *
@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>" namespace "Open
         OpenSwathHelper(OpenSwathHelper &) except + nogil  # compiler
 
         bool checkSwathMapAndSelectTransitions(
-                                MSExperiment & exp, 
+                                MSRun & exp, 
                                 TargetedExperiment & targeted_exp,
                                 TargetedExperiment & transition_exp_used,
                                 double min_upper_edge_dist

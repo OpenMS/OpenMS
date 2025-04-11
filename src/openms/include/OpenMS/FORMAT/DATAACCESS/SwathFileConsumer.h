@@ -56,7 +56,7 @@ namespace OpenMS
    * Base classes are expected to implement functions consuming a spectrum coming
    * from a specific SWATH or an MS1 spectrum and a final function
    * ensureMapsAreFilled_ after which the swath_maps_ vector needs to contain
-   * valid pointers to MSExperiment.
+   * valid pointers to MSRun.
    *
    * In addition it is possible to provide the swath boundaries and the read in
    * spectra will be matched by their precursor m/z to the "center" attribute
@@ -305,7 +305,7 @@ protected:
     boost::shared_ptr<PeakMap > ms1_map_;
 
     /// The Experimental settings
-    // (MSExperiment has no constructor using ExperimentalSettings)
+    // (MSRun has no constructor using ExperimentalSettings)
     PeakMap settings_;
 
     /// Whether further spectra can still be consumed
@@ -322,7 +322,7 @@ protected:
   /**
    * @brief In-memory implementation of FullSwathFileConsumer
    *
-   * Keeps all the spectra in memory by just appending them to an MSExperiment.
+   * Keeps all the spectra in memory by just appending them to an MSRun.
    *
    */
   class OPENMS_DLLAPI RegularSwathFileConsumer :

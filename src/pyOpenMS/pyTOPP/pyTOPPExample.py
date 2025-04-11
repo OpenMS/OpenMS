@@ -53,13 +53,13 @@ def main():
     # data processing
     fh = pms.MzMLFile()
     fh.setLogType(pms.LogType.CMD)
-    input_map = pms.MSExperiment()
+    input_map = pms.MSRun()
 
     fh.load(arg_dict["input"], input_map)
 
     pp = pms.PeakPickerHiRes()
     pp.setParameters(openms_params)
-    out_map = pms.MSExperiment()
+    out_map = pms.MSRun()
     pp.pickExperiment(input_map, out_map)
 
     out_map = addDataProcessing(out_map, openms_params, pms.DataProcessing.ProcessingAction.PEAK_PICKING)

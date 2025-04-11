@@ -37,12 +37,12 @@ namespace OpenMS
       Filter number of masstraces and perform feature mapping.
 
       @param featureinfo Path to featureXML
-      @param spectra Input of MSExperiment with spectra information
+      @param spectra Input of MSRun with spectra information
       @param feature_mapping_info Emtpy - stores FeatureMaps and KDTreeMaps internally 
       @param feature_ms2_indices Empty FeatureToMs2Indices
       */
       void preprocessing(const String& featureinfo,
-                               const MSExperiment& spectra,
+                               const MSRun& spectra,
                                FeatureMapping::FeatureMappingInfo& feature_mapping_info,
                                FeatureMapping::FeatureToMs2Indices& feature_ms2_indices) const;
 
@@ -53,11 +53,11 @@ namespace OpenMS
 
       @param featureinfo Path to featureXML
       @param feature_ms2_indices FeatureToMs2Indices with feature mapping
-      @param spectra Input of MSExperiment with spectra information
+      @param spectra Input of MSRun with spectra information
       */
       void logFeatureSpectraNumber(const String& featureinfo,
                                    const FeatureMapping::FeatureToMs2Indices& feature_ms2_indices,
-                                   const MSExperiment& spectra) const;
+                                   const MSRun& spectra) const;
 
       /**
       @brief exports SIRIUS .ms file

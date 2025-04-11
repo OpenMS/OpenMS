@@ -509,7 +509,7 @@ namespace OpenMS
     }
   }
 
-  void ConsensusMap::setPrimaryMSRunPath(const StringList& s, MSExperiment & e)
+  void ConsensusMap::setPrimaryMSRunPath(const StringList& s, MSRun & e)
   {
     StringList ms_path;
     e.getPrimaryMSRunPath(ms_path);

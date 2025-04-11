@@ -4,7 +4,7 @@ from PeptideIdentification cimport *
 from AASequence cimport *
 from XMLFile cimport *
 from SpectrumMetaDataLookup cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 
 cdef extern from "<OpenMS/FORMAT/MascotXMLFile.h>" namespace "OpenMS":
     
@@ -38,7 +38,7 @@ cdef extern from "<OpenMS/FORMAT/MascotXMLFile.h>" namespace "OpenMS":
         #          libcpp_map[ String, libcpp_vector[ AASequence ] ] & peptides,
         #          SpectrumMetaDataLookup & rt_mapping) except + nogil 
 
-        void initializeLookup(SpectrumMetaDataLookup & lookup, MSExperiment& experiment, const String & scan_regex) except + nogil 
+        void initializeLookup(SpectrumMetaDataLookup & lookup, MSRun& experiment, const String & scan_regex) except + nogil 
             # wrap-doc:
                 #  Initializes a helper object for looking up spectrum meta data (RT, m/z)
                 #  

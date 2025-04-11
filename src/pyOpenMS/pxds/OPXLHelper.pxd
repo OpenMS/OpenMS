@@ -16,7 +16,7 @@ from CrossLinkSpectrumMatch cimport *
 from PeptideHit cimport *
 from PeptideIdentification cimport *
 from MSSpectrum cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from EnzymaticDigestion cimport *
 from DataArrays cimport *
 from ModifiedPeptideGenerator cimport *
@@ -70,7 +70,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
                              libcpp_vector[ CrossLinkSpectrumMatch ] top_csms_spectrum,
                              libcpp_vector[ libcpp_vector[ CrossLinkSpectrumMatch ] ]& all_top_csms,
                              Size all_top_csms_current_index,
-                             MSExperiment spectra,
+                             MSRun spectra,
                              Size scan_index,
                              Size scan_index_heavy) except + nogil 
 

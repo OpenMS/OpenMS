@@ -8,7 +8,7 @@ from DataProcessing cimport *
 from MetaInfoInterface cimport *
 from DocumentIdentifier cimport *
 from RangeManager cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 
 # this class has addons, see the ./addons folder
 
@@ -74,7 +74,7 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         void setDataProcessing(libcpp_vector[DataProcessing])   except + nogil  # wrap-doc:Sets the description of the applied data processing
 
         void setPrimaryMSRunPath(StringList& s) except + nogil  # wrap-doc:Sets the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
-        void setPrimaryMSRunPath(StringList& s, MSExperiment& e) except + nogil  # wrap-doc:Sets the file path to the primary MS run using the mzML annotated in the MSExperiment argument `e`
+        void setPrimaryMSRunPath(StringList& s, MSRun& e) except + nogil  # wrap-doc:Sets the file path to the primary MS run using the mzML annotated in the MSRun argument `e`
         void getPrimaryMSRunPath(StringList& toFill) except + nogil  # wrap-doc:Returns the file path to the first MS run
 
         libcpp_vector[Feature].iterator begin() except + nogil     # wrap-iter-begin:__iter__(Feature)

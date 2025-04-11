@@ -1,7 +1,7 @@
 from Types cimport *
 from libcpp.pair cimport pair as libcpp_pair
 from String cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from ProgressLogger cimport *
 from DefaultParamHandler cimport *
 
@@ -13,9 +13,9 @@ cdef extern from "<OpenMS/FORMAT/MascotGenericFile.h>" namespace "OpenMS":
         #  DefaultParamHandler
         MascotGenericFile() except + nogil 
         MascotGenericFile(MascotGenericFile &) except + nogil 
-        void store(const String & filename, MSExperiment & experiment) except + nogil 
-        # NAMESPACE # void store(std::ostream & os, const String & filename, MSExperiment & experiment) except + nogil 
-        void load(const String & filename, MSExperiment & exp) except + nogil 
+        void store(const String & filename, MSRun & experiment) except + nogil 
+        # NAMESPACE # void store(std::ostream & os, const String & filename, MSRun & experiment) except + nogil 
+        void load(const String & filename, MSRun & exp) except + nogil 
             # wrap-doc:
                 #  Loads a Mascot Generic File into a PeakMap
                 #  

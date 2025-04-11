@@ -1,9 +1,9 @@
 
 
-    def get2DPeakData(MSExperiment self, float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level):
+    def get2DPeakData(MSRun self, float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level):
         """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty] get2DPeakData(float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level)"""        
 
-        cdef _MSExperiment * exp_ = self.inst.get()
+        cdef _MSRun * exp_ = self.inst.get()
         cdef libcpp_vector[float] rt
         cdef libcpp_vector[libcpp_vector[float]] mz
         cdef libcpp_vector[libcpp_vector[float]] inty
@@ -30,9 +30,9 @@
 
 
 
-    def get2DPeakDataLong(MSExperiment self, float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level):
+    def get2DPeakDataLong(MSRun self, float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level):
         """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty] get2DPeakDataLong(float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level)"""
-        cdef _MSExperiment * exp_ = self.inst.get()
+        cdef _MSRun * exp_ = self.inst.get()
         cdef libcpp_vector[float] rt
         cdef libcpp_vector[float] mz
         cdef libcpp_vector[float] inty
@@ -47,9 +47,9 @@
 
         return (np.asarray(rt_wrap), np.asarray(mz_wrap), np.asarray(inty_wrap))
     
-    def get2DPeakDataIM(MSExperiment self, float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level):
+    def get2DPeakDataIM(MSRun self, float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level):
         """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty, np.array[float] ion_mobility] get2DPeakDataIM(float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level)"""
-        cdef _MSExperiment * exp_ = self.inst.get()
+        cdef _MSRun * exp_ = self.inst.get()
         cdef libcpp_vector[float] rt
         cdef libcpp_vector[libcpp_vector[float]] mz
         cdef libcpp_vector[libcpp_vector[float]] inty
@@ -80,9 +80,9 @@
 
         return (np.frombuffer(rt_wrap), all_mz, all_inty, all_ion)
 
-    def get2DPeakDataIMLong(MSExperiment self, float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level):
+    def get2DPeakDataIMLong(MSRun self, float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level):
         """Cython signature: tuple[np.array[float] rt, np.array[float] mz, np.array[float] inty, np.array[float] ion_mobility] get2DPeakDataIMLong(float min_rt, float max_rt, float min_mz, float max_mz, unsigned int ms_level)"""
-        cdef _MSExperiment * exp_ = self.inst.get()
+        cdef _MSRun * exp_ = self.inst.get()
         cdef libcpp_vector[float] rt
         cdef libcpp_vector[float] mz
         cdef libcpp_vector[float] inty

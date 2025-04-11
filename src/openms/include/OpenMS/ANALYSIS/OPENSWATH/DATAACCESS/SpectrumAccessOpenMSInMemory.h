@@ -11,7 +11,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
@@ -48,7 +48,7 @@ namespace OpenMS
     public OpenSwath::ISpectrumAccess
   {
 public:
-    typedef OpenMS::PeakMap MSExperimentType;
+    typedef OpenMS::PeakMap MSRunType;
     typedef OpenMS::MSSpectrum MSSpectrumType;
     typedef OpenMS::MSChromatogram MSChromatogramType;
 

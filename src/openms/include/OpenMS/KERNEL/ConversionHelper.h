@@ -10,7 +10,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenMS
@@ -62,7 +62,7 @@ public:
       algorithms.
 
       Only the first (!) @p n elements are copied. (This parameter exists
-      mainly for compatibility with @p convert for MSExperiments. To use it in
+      mainly for compatibility with @p convert for MSRuns. To use it in
       a meaningful way, apply one of the sorting methods to @p input_map
       beforehand.)
 

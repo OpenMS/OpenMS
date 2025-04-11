@@ -49,7 +49,7 @@ class TestIsobaricChannelExtractor(unittest.TestCase):
         for method in [self.eightplex, self.fourplex, self.tmt]:
             inst = pyopenms.IsobaricChannelExtractor(method)
             map1 = pyopenms.ConsensusMap()
-            exp = pyopenms.MSExperiment()
+            exp = pyopenms.MSRun()
             assert inst.extractChannels is not None
             # Will not work with empty map
             # inst.extractChannels(exp, map1)

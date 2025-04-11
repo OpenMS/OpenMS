@@ -1,6 +1,6 @@
 from Types cimport *
 from MSSpectrum cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from Peak1D cimport *
 from PeptideIdentification cimport *
 from ProteinIdentification cimport *
@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS"
         # private
         SpectrumMetaDataLookup(SpectrumMetaDataLookup) except + nogil  # wrap-ignore
 
-        void readSpectra(MSExperiment spectra, String scan_regexp, bool get_precursor_rt) except + nogil 
+        void readSpectra(MSRun spectra, String scan_regexp, bool get_precursor_rt) except + nogil 
         # wrap-doc:
                 #  Read spectra and store their meta data
                 #  
@@ -63,10 +63,10 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS:
                              SpectrumMetaData& meta) except + nogil  # wrap-attach:SpectrumMetaDataLookup
 
     bool addMissingRTsToPeptideIDs(libcpp_vector[PeptideIdentification], 
-								  MSExperiment exp) except + nogil  # wrap-attach:SpectrumMetaDataLookup
+								  MSRun exp) except + nogil  # wrap-attach:SpectrumMetaDataLookup
 
     bool addMissingIMToPeptideIDs(libcpp_vector[PeptideIdentification], 
-								  MSExperiment exp) except + nogil  # wrap-attach:SpectrumMetaDataLookup
+								  MSRun exp) except + nogil  # wrap-attach:SpectrumMetaDataLookup
 
     bool addMissingSpectrumReferences(libcpp_vector[PeptideIdentification], 
                                    String filename, bool stop_on_error, 

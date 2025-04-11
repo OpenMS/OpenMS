@@ -632,7 +632,7 @@ namespace OpenMS
   }
 
   void TargetedSpectraExtractor::extractSpectra(
-    const MSExperiment& experiment,
+    const MSRun& experiment,
     const TargetedExperiment& targeted_exp,
     std::vector<MSSpectrum>& extracted_spectra,
     FeatureMap& extracted_features,
@@ -674,7 +674,7 @@ namespace OpenMS
   }
 
   void TargetedSpectraExtractor::extractSpectra(
-    const MSExperiment& experiment,
+    const MSRun& experiment,
     const TargetedExperiment& targeted_exp,
     std::vector<MSSpectrum>& extracted_spectra
   ) const
@@ -685,7 +685,7 @@ namespace OpenMS
   }
 
   void TargetedSpectraExtractor::extractSpectra(
-    const MSExperiment& experiment,
+    const MSRun& experiment,
     const FeatureMap& ms1_features,
     std::vector<MSSpectrum>& extracted_spectra
   ) const
@@ -695,7 +695,7 @@ namespace OpenMS
   }
 
   void TargetedSpectraExtractor::extractSpectra(
-    const MSExperiment& experiment,
+    const MSRun& experiment,
     const FeatureMap& ms1_features,
     std::vector<MSSpectrum>& extracted_spectra,
     FeatureMap& extracted_features
@@ -705,7 +705,7 @@ namespace OpenMS
   }
 
   void TargetedSpectraExtractor::extractSpectra(
-    const MSExperiment& experiment,
+    const MSRun& experiment,
     const FeatureMap& ms1_features,
     std::vector<MSSpectrum>& extracted_spectra,
     FeatureMap& extracted_features,
@@ -1014,7 +1014,7 @@ namespace OpenMS
     }
   }
 
-  void TargetedSpectraExtractor::storeSpectraMSP(const String& filename, MSExperiment& experiment) const
+  void TargetedSpectraExtractor::storeSpectraMSP(const String& filename, MSRun& experiment) const
   {
     if (deisotoping_use_deisotoper_)
     {
@@ -1027,7 +1027,7 @@ namespace OpenMS
     FileHandler().storeExperiment(filename, experiment, {FileTypes::MSP});
   }
   
-  void TargetedSpectraExtractor::deisotopeMS2Spectra_(MSExperiment& experiment) const
+  void TargetedSpectraExtractor::deisotopeMS2Spectra_(MSRun& experiment) const
   {
     for (auto& peakmap_it : experiment.getSpectra())
     {
@@ -1051,7 +1051,7 @@ namespace OpenMS
     }  
   }
 
-  void TargetedSpectraExtractor::removeMS2SpectraPeaks_(MSExperiment& experiment) const
+  void TargetedSpectraExtractor::removeMS2SpectraPeaks_(MSRun& experiment) const
   {
     // remove peaks form MS2 which are at a higher mz than the precursor + 10 ppm
     for (auto& peakmap_it : experiment.getSpectra())

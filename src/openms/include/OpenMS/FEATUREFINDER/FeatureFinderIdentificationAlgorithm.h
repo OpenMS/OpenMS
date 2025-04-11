@@ -14,7 +14,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 
 #include <vector>
@@ -41,7 +41,7 @@ public:
   /// @p seeds.
   /// Results will be written to @p features. 
   /// Note: The primaryMSRunPath of features will be updated to the primaryMSRunPath 
-  /// stored in the MSExperiment.
+  /// stored in the MSRun.
   /// If that path is not a valid and readable mzML @p spectra_file 
   /// will be annotated as a fall-back.
   /// Caution: peptide IDs will be shrunk to best hit, FFid metavalues added

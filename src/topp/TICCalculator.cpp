@@ -19,7 +19,7 @@
 #include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/KERNEL/OnDiscMSRun.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <numeric>

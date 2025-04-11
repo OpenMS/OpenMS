@@ -4,8 +4,8 @@ import pyopenms as pms
 import pprint
 
 def addDataProcessing(obj, params, action):
-    if isinstance(obj, pms.MSExperiment):
-        result = pms.MSExperiment()
+    if isinstance(obj, pms.MSRun):
+        result = pms.MSRun()
         for spec in obj:
             spec = _addDataProcessing(spec, params, action)
             result.addSpectrum(spec)

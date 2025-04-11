@@ -12,7 +12,7 @@
 
 #include <OpenMS/PROCESSING/RESAMPLING/LinearResampler.h>
 
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 ///////////////////////////
@@ -103,7 +103,7 @@ START_SECTION((template<typename PeakType> void raster(MSSpectrum& spectrum)))
 }
 END_SECTION
 
-START_SECTION(( template <typename PeakType > void rasterExperiment(MSExperiment<PeakType>& exp)))
+START_SECTION(( template <typename PeakType > void rasterExperiment(MSRun<PeakType>& exp)))
 {
   MSSpectrum spec;
   spec.resize(5);

@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
-//! [doxygen_snippet_MSExperiment]
+//! [doxygen_snippet_MSRun]
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <iostream>
 
@@ -17,9 +17,9 @@ int main()
 {
 
   // create a peak map containing 4 dummy spectra and peaks
-  MSExperiment exp;
+  MSRun exp;
 
-  // The following examples creates a MSExperiment containing four MSSpectrum instances.
+  // The following examples creates a MSRun containing four MSSpectrum instances.
   for (Size i = 0; i < 4; ++i)
   {
     MSSpectrum spectrum;
@@ -75,4 +75,4 @@ int main()
   return 0;
 } // end of main
 
-//! [doxygen_snippet_MSExperiment]
+//! [doxygen_snippet_MSRun]

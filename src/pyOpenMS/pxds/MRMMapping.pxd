@@ -1,6 +1,6 @@
 from Types cimport *
 from DefaultParamHandler cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from TargetedExperiment cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/MRMMapping.h>" namespace "OpenMS":
@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MRMMapping.h>" namespace "OpenMS":
         # protected
         MRMMapping(MRMMapping) except + nogil  #wrap-ignore
 
-        void mapExperiment(MSExperiment input_chromatograms, TargetedExperiment targeted_exp, MSExperiment& output) except + nogil 
+        void mapExperiment(MSRun input_chromatograms, TargetedExperiment targeted_exp, MSRun& output) except + nogil 
             # wrap-doc:
                 #  Maps input chromatograms to assays in a targeted experiment
                 #  

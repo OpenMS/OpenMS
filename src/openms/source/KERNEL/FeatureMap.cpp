@@ -375,7 +375,7 @@ namespace OpenMS
   }
 
 
-  void FeatureMap::setPrimaryMSRunPath(const StringList& s, MSExperiment& e)
+  void FeatureMap::setPrimaryMSRunPath(const StringList& s, MSRun& e)
   {
     StringList ms_path;
     e.getPrimaryMSRunPath(ms_path);

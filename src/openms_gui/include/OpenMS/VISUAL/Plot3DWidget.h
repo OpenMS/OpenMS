@@ -44,7 +44,7 @@ public:
 
     // Docu in base class
     void setMapper(const DimMapper<2>& /*mapper*/) override
-    { // 3D widget currently only handles MSExperiment. That's it.
+    { // 3D widget currently only handles MSRun. That's it.
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 

@@ -24,9 +24,9 @@ Mobilogram.h
 MRMFeature.h
 MRMTransitionGroup.h
 MSChromatogram.h
-MSExperiment.h
+MSRun.h
 MSSpectrum.h
-OnDiscMSExperiment.h
+OnDiscMSRun.h
 Peak1D.h
 Peak2D.h
 PeakIndex.h

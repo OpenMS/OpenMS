@@ -12,7 +12,7 @@
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -249,11 +249,11 @@ public:
     /// set the file paths to the primary MS run (stored in ColumnHeaders)
     void setPrimaryMSRunPath(const StringList& s);
 
-    /// set the file path to the primary MS run using the mzML annotated in the MSExperiment @p e.
+    /// set the file path to the primary MS run using the mzML annotated in the MSRun @p e.
     /// If it doesn't exist, fallback to @p s.
     /// @param s Fallback if @p e does not have a primary MS runpath
     /// @param e Use primary MS runpath from this mzML file
-    void setPrimaryMSRunPath(const StringList& s, MSExperiment & e);
+    void setPrimaryMSRunPath(const StringList& s, MSRun & e);
 
     /// returns the MS run path (stored in ColumnHeaders)
     void getPrimaryMSRunPath(StringList& toFill) const;

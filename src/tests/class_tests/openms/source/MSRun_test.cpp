@@ -13,7 +13,7 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Peak2D.h>
@@ -25,9 +25,9 @@ using namespace OpenMS;
 using namespace std;
 
 
-MSExperiment createPeakMapWithRTs(std::vector<double> RTs)
+MSRun createPeakMapWithRTs(std::vector<double> RTs)
 {
-  MSExperiment map;
+  MSRun map;
   MSSpectrum s;
   for (auto rt : RTs)
   {
@@ -37,7 +37,7 @@ MSExperiment createPeakMapWithRTs(std::vector<double> RTs)
   return map;
 }
 
-MSExperiment setMSLevel(MSExperiment exp, std::vector<int> ms_levels)
+MSRun setMSLevel(MSRun exp, std::vector<int> ms_levels)
 {
   for (size_t i = 0; i < ms_levels.size(); ++i)
   {
@@ -46,7 +46,7 @@ MSExperiment setMSLevel(MSExperiment exp, std::vector<int> ms_levels)
   return exp;
 }
 
-START_TEST(MSExperiment, "$Id$");
+START_TEST(MSRun, "$Id$");
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -55,14 +55,14 @@ START_TEST(MSExperiment, "$Id$");
 
 PeakMap* ptr = nullptr;
 PeakMap* nullPointer = nullptr;
-START_SECTION((MSExperiment()))
+START_SECTION((MSRun()))
 {
   ptr = new PeakMap;
   TEST_NOT_EQUAL(ptr, nullPointer);
 }
 END_SECTION
 
-START_SECTION(([EXTRA]~MSExperiment()))
+START_SECTION(([EXTRA]~MSRun()))
 {
   delete ptr;
 }
@@ -71,7 +71,7 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 // Copy constructor, move constructor, assignment operator, move assignment operator, equality
 
-START_SECTION((MSExperiment(const MSExperiment& source)))
+START_SECTION((MSRun(const MSRun& source)))
 {
   PeakMap tmp;
   tmp.getContacts().resize(1);
@@ -85,13 +85,13 @@ START_SECTION((MSExperiment(const MSExperiment& source)))
 }
 END_SECTION
 
-START_SECTION((MSExperiment(const MSExperiment&& source)))
+START_SECTION((MSRun(const MSRun&& source)))
 {
-  // Ensure that MSExperiment has a no-except move constructor (otherwise
+  // Ensure that MSRun has a no-except move constructor (otherwise
   // std::vector is inefficient and will copy instead of move).
   // TODO: wont work for MSVS (yet)
 #ifndef OPENMS_COMPILER_MSVC
-  TEST_EQUAL(noexcept(MSExperiment(std::declval<MSExperiment&&>())), true)
+  TEST_EQUAL(noexcept(MSRun(std::declval<MSRun&&>())), true)
 #endif
   PeakMap tmp;
   tmp.getContacts().resize(1);
@@ -111,7 +111,7 @@ START_SECTION((MSExperiment(const MSExperiment&& source)))
 }
 END_SECTION
 
-START_SECTION((MSExperiment& operator= (const MSExperiment& source)))
+START_SECTION((MSRun& operator= (const MSRun& source)))
 {
   PeakMap tmp;
   tmp.getContacts().resize(1);
@@ -138,7 +138,7 @@ START_SECTION((MSExperiment& operator= (const MSExperiment& source)))
 }
 END_SECTION
 
-START_SECTION((MSExperiment& operator= (const MSExperiment&& source)))
+START_SECTION((MSRun& operator= (const MSRun&& source)))
 {
   PeakMap tmp;
   tmp.getContacts().resize(1);
@@ -172,7 +172,7 @@ START_SECTION((MSExperiment& operator= (const MSExperiment&& source)))
 }
 END_SECTION
 
-START_SECTION((bool operator== (const MSExperiment& rhs) const))
+START_SECTION((bool operator== (const MSRun& rhs) const))
 {
   PeakMap edit,empty;
 
@@ -187,7 +187,7 @@ START_SECTION((bool operator== (const MSExperiment& rhs) const))
 }
 END_SECTION
 
-START_SECTION((bool operator!= (const MSExperiment& rhs) const))
+START_SECTION((bool operator!= (const MSRun& rhs) const))
 {
   PeakMap edit,empty;
 
@@ -446,7 +446,7 @@ START_SECTION((UInt64 getSize() const ))
 }
 END_SECTION
 
-START_SECTION((const MSExperiment::RangeManagerType& MSExperiment::getRange() const))
+START_SECTION((const MSRun::RangeManagerType& MSRun::getRange() const))
 {
   PeakMap tmp;
   TEST_EQUAL(tmp.getRange().hasRange() == HasRangeType::NONE, true)
@@ -670,9 +670,9 @@ START_SECTION((ConstAreaIterator areaBeginConst(CoordinateType min_rt, Coordinat
 }
 END_SECTION
 
-START_SECTION(MSExperiment::ConstAreaIterator MSExperiment::areaBeginConst(const RangeManagerType& range) const)
+START_SECTION(MSRun::ConstAreaIterator MSRun::areaBeginConst(const RangeManagerType& range) const)
 {
-  MSExperiment::RangeManagerType rm;
+  MSRun::RangeManagerType rm;
   (RangeRT&)rm = RangeBase(0, 2);
   (RangeMZ&)rm = RangeBase(3, 11);
 
@@ -726,9 +726,9 @@ START_SECTION((AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_
 }
 END_SECTION
 
-START_SECTION(MSExperiment::AreaIterator MSExperiment::areaBegin(const RangeManagerType& range))
+START_SECTION(MSRun::AreaIterator MSRun::areaBegin(const RangeManagerType& range))
 {
-  MSExperiment::RangeManagerType rm;
+  MSRun::RangeManagerType rm;
   (RangeRT&)rm = RangeBase(0, 2);
   (RangeMZ&)rm = RangeBase(3, 11);
 
@@ -1145,7 +1145,7 @@ START_SECTION((ExperimentalSettings& getExperimentalSettings()))
 }
 END_SECTION
 
-START_SECTION((MSExperiment& operator=(const ExperimentalSettings &source)))
+START_SECTION((MSRun& operator=(const ExperimentalSettings &source)))
 {
   PeakMap exp,exp2;
   exp.getExperimentalSettings().setComment("test");
@@ -1361,7 +1361,7 @@ START_SECTION((bool clearMetaDataArrays()))
 }
 END_SECTION
 
-START_SECTION((void swap(MSExperiment &from)))
+START_SECTION((void swap(MSRun &from)))
 {
   PeakMap exp1, exp2;
   exp1.setComment("stupid comment");
@@ -1401,15 +1401,15 @@ START_SECTION(void clear(bool clear_meta_data))
 
   edit.clear(false);
   TEST_EQUAL(edit.size(),0)
-  TEST_EQUAL(edit == MSExperiment(),false)
+  TEST_EQUAL(edit == MSRun(),false)
 
   edit.clear(true);
   TEST_EQUAL(edit.empty(),true)
-  TEST_EQUAL(edit == MSExperiment(),true)
+  TEST_EQUAL(edit == MSRun(),true)
 }
 END_SECTION
 
-START_SECTION(bool MSExperiment::isIMFrame() const)
+START_SECTION(bool MSRun::isIMFrame() const)
 {
   PeakMap tmp;
   MSSpectrum s;
@@ -1608,8 +1608,8 @@ START_SECTION((const MSChromatogram calculateTIC(float rt_bin_size=0) const))
 
 	exp.updateRanges();
 
-	// empty MSExperiment
-	MSExperiment exp2;
+	// empty MSRun
+	MSRun exp2;
 	chrom = exp2.calculateTIC();
 	TEST_EQUAL(chrom.empty(),true);
 
@@ -1646,7 +1646,7 @@ START_SECTION((const MSChromatogram calculateTIC(float rt_bin_size=0) const))
 }
 END_SECTION
 
-START_SECTION( std::ostream& operator<<(std::ostream& os, const MSExperiment& chrom)) 
+START_SECTION( std::ostream& operator<<(std::ostream& os, const MSRun& chrom)) 
 {
   PeakMap tmp;
   tmp.getContacts().resize(1);
@@ -1675,7 +1675,7 @@ START_SECTION( std::ostream& operator<<(std::ostream& os, const MSExperiment& ch
 }
 END_SECTION
 
-START_SECTION((template<class MzReductionFunctionType> std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(const std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges, unsigned int ms_level, MzReductionFunctionType func_mz_reduction) const))
+START_SECTION((template<class MzReductionFunctionType> std::vector<std::vector<MSRun::CoordinateType>> aggregate(const std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges, unsigned int ms_level, MzReductionFunctionType func_mz_reduction) const))
 {
     // Create test experiment with known data
     PeakMap exp;
@@ -1803,7 +1803,7 @@ END_SECTION
 
 START_SECTION((void get2DPeakDataPerSpectrum(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, Size ms_level, std::vector<float>& rt, std::vector<std::vector<float>>& mz, std::vector<std::vector<float>>& intensity) const))
 {
-  MSExperiment exp;
+  MSRun exp;
   
   // Create test spectra using initializer lists
   MSSpectrum s1{
@@ -1913,7 +1913,7 @@ END_SECTION
 
 START_SECTION((void get2DPeakDataIMPerSpectrum(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, Size ms_level, std::vector<float>& rt, std::vector<std::vector<float>>& mz, std::vector<std::vector<float>>& intensity, std::vector<std::vector<float>>& ion_mobility) const))
 {
-  MSExperiment exp;
+  MSRun exp;
   
   // Create test spectra with ion mobility data
   MSSpectrum s1{
@@ -2052,7 +2052,7 @@ START_SECTION((void get2DPeakDataIMPerSpectrum(CoordinateType min_rt, Coordinate
 
   // Test 6: Spectrum without ion mobility data
   {
-    MSExperiment exp_no_im;
+    MSRun exp_no_im;
     MSSpectrum s_no_im{
       {100.0, 1000.0},
       {200.0, 2000.0}
@@ -2078,7 +2078,7 @@ END_SECTION
 
 START_SECTION((void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, std::vector<float>& rt, std::vector<float>& mz, std::vector<float>& intensity) const))
 {
-  MSExperiment exp;
+  MSRun exp;
   
   // Create test spectra
   MSSpectrum s1{
@@ -2165,10 +2165,10 @@ START_SECTION((void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, 
 }
 END_SECTION
 
-START_SECTION((std::vector<std::vector<MSExperiment::CoordinateType>> aggregateFromMatrix(const Matrix<double>& ranges, unsigned int ms_level, const std::string& mz_agg) const))
+START_SECTION((std::vector<std::vector<MSRun::CoordinateType>> aggregateFromMatrix(const Matrix<double>& ranges, unsigned int ms_level, const std::string& mz_agg) const))
 {
     // Create test experiment with known data
-    MSExperiment exp;
+    MSRun exp;
     exp.resize(4);
 
     // First spectrum (MS1) at RT=1.0
@@ -2324,7 +2324,7 @@ END_SECTION
 START_SECTION((std::vector<MSChromatogram> extractXICsFromMatrix(const Matrix<double>& ranges, unsigned int ms_level, const std::string& mz_agg) const))
 {
     // Create test experiment with known data
-    MSExperiment exp;
+    MSRun exp;
     exp.resize(4);
 
      // First spectrum (MS1) at RT=1.0
@@ -2399,7 +2399,7 @@ END_SECTION
 
 START_SECTION((void get2DPeakDataIM(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, Size ms_level, std::vector<float>& rt, std::vector<float>& mz, std::vector<float>& intensity, std::vector<float>& ion_mobility) const))
 {
-  MSExperiment exp;
+  MSRun exp;
   
   // Create test spectra with ion mobility data
   MSSpectrum s1{
@@ -2481,7 +2481,7 @@ START_SECTION((void get2DPeakDataIM(CoordinateType min_rt, CoordinateType max_rt
   
   // Test 3: Spectrum without ion mobility data
   {
-    MSExperiment exp_no_im;
+    MSRun exp_no_im;
     MSSpectrum s_no_im{
       {100.0, 1000.0},
       {200.0, 2000.0}

@@ -271,7 +271,7 @@ protected:
     ProteinIdentification all_prot_id;
     vector<PeptideIdentification> all_pep_ids;
 
-    MSExperiment current_batch;
+    MSRun current_batch;
     for (size_t k = 0; k < chunks; ++k)
     {
       // get range for next set of n elements

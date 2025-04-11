@@ -21,7 +21,7 @@ class TestMRMFeatureFinderScoring(unittest.TestCase):
     def test_run_mrmfeaturefinder(self):
 
         # load chromatograms
-        chromatograms = pyopenms.MSExperiment()
+        chromatograms = pyopenms.MSRun()
         fh = pyopenms.FileHandler()
         fh.loadExperiment(self.chromatograms, chromatograms)
 
@@ -31,7 +31,7 @@ class TestMRMFeatureFinderScoring(unittest.TestCase):
         tramlfile.load(self.tramlfile, targeted);
 
         # Create empty files as input and finally as output
-        empty_swath = pyopenms.MSExperiment()
+        empty_swath = pyopenms.MSRun()
         trafo = pyopenms.TransformationDescription()
         output = pyopenms.FeatureMap();
 

@@ -68,7 +68,7 @@ START_SECTION((template < typename PeakType > void filter(MSSpectrum &spectrum))
 END_SECTION 
 
 
-START_SECTION((template <typename PeakType> void filterExperiment(MSExperiment<PeakType>& map)))
+START_SECTION((template <typename PeakType> void filterExperiment(MSRun<PeakType>& map)))
 	TOLERANCE_ABSOLUTE(0.01)
 
 	param.setValue("frame_length",4);

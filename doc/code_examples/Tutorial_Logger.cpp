@@ -31,7 +31,7 @@ int main(int argc, const char** argv)
   // set start progress (0) and end (ms_run.size() = the number of spectra)
   progresslogger.startProgress(0, progress_steps, "Doing some calculation...");
 
-  for (int i = 0; i < progress_steps; ++i) // in real code, iterate over some datastructure, e.g. an MSExperiments' spectra
+  for (int i = 0; i < progress_steps; ++i) // in real code, iterate over some datastructure, e.g. an MSRuns' spectra
   {
     // update progress
     progresslogger.setProgress(i);

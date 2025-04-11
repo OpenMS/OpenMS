@@ -230,7 +230,7 @@ namespace OpenMS
       OSWFile oswf(filename);// this can throw if file does not exist
       OSWData data;
       oswf.readMinimal(data);
-      // allow data to map from transition.id (=native.id) to a chromatogram index in MSExperiment
+      // allow data to map from transition.id (=native.id) to a chromatogram index in MSRun
       data.buildNativeIDResolver(*lp->getChromatogramData().get());
       lp->setChromatogramAnnotation(std::move(data));
       return true;

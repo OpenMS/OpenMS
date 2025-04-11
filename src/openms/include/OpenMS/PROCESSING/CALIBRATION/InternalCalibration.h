@@ -14,7 +14,7 @@
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <vector>
 
@@ -140,9 +140,9 @@ namespace OpenMS
       For each spectrum, a calibration model will be computed and applied.
       Make sure to call fillCalibrants() before, so a model can be created.
 
-      The MSExperiment will be sorted by RT and m/z if unsorted.
+      The MSRun will be sorted by RT and m/z if unsorted.
 
-      @param exp MSExperiment holding the Raw data to calibrate
+      @param exp MSRun holding the Raw data to calibrate
       @param target_mslvl MS-levels where calibration should be applied to
       @param model_type Linear or quadratic model; select based on your instrument
       @param rt_chunk RT-window size (one-sided) of calibration points to collect around each spectrum. 
@@ -184,7 +184,7 @@ namespace OpenMS
     /**
       @brief Transform a spectrum (data+precursor)
 
-      See applyTransformation(MSExperiment, ...) for details.
+      See applyTransformation(MSRun, ...) for details.
 
       @param spec Uncalibrated MSSpectrum
       @param target_mslvl List (can be unsorted) of MS levels to calibrate

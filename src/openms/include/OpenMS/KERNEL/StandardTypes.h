@@ -15,7 +15,7 @@ namespace OpenMS
   class MSSpectrum;
   class MSChromatogram;
   class Mobilogram;
-  class MSExperiment;
+  class MSRun;
 
   //@{
   /**
@@ -32,7 +32,7 @@ namespace OpenMS
 
       @ingroup Kernel
   */
-  typedef MSExperiment PeakMap;
+  typedef MSRun PeakMap;
 
   /**
       @brief Chromatogram consisting of raw data points or peaks

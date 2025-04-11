@@ -53,7 +53,7 @@ print(paste0("RT: ", fmap[1]$getRT()))
 f="/OpenMS/OpenMS/share/OpenMS/examples/BSA/BSA1.mzML"
 
 mzML= ropenms$MzMLFile()
-msexp = ropenms$MSExperiment()
+msexp = ropenms$MSRun()
 
 mzML$load(f,msexp)
 spectra = py_to_r(msexp$getSpectra())

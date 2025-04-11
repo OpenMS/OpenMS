@@ -14,7 +14,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/MATH/StatisticFunctions.h> // for "median"
 
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
@@ -967,7 +967,7 @@ protected:
     }
 
     // load MS2 map
-    MSExperiment spectra;
+    MSRun spectra;
     FileHandler f;
     PeakFileOptions options;
     options.clearMSLevels();
@@ -1180,7 +1180,7 @@ protected:
     spectrum_generator.setParameters(param);
 
     vector<HitsByScore> annotated_hits(spectra.size());
-    MSExperiment exp_ms2_spectra, theo_ms2_spectra; // debug output
+    MSRun exp_ms2_spectra, theo_ms2_spectra; // debug output
 
     String msg = "scoring oligonucleotide models against spectra...";
     progresslogger.startProgress(0, id_data.getIdentifiedOligos().size(), msg);

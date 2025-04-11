@@ -10,7 +10,7 @@ class TestChromatogramExtractorAlgorithm(unittest.TestCase):
         self.filename = os.path.join(dirname, "test2.mzML").encode()
 
     def test_readfile_content(self):
-        exp = pyopenms.MSExperiment()
+        exp = pyopenms.MSRun()
         pyopenms.MzMLFile().load(self.filename, exp)
         exp_size = exp.size()
         saccess = pyopenms.SpectrumAccessOpenMS(exp)

@@ -11,7 +11,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -189,7 +189,7 @@ public:
    * @param filename    name of mzML file
    * @param blacklist    blacklist for output
    */
-  void writeBlacklist_(const String& filename, const MSExperiment& blacklist) const
+  void writeBlacklist_(const String& filename, const MSRun& blacklist) const
   {
     FileHandler().storeExperiment(filename, blacklist, {FileTypes::MZML});
   }
@@ -233,7 +233,7 @@ public:
      * load input
      */
     FileHandler file;
-    MSExperiment exp;
+    MSRun exp;
 
     // only read MS1 spectra
     std::vector<int> levels;

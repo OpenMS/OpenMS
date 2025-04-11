@@ -100,7 +100,7 @@ TargetedSpectraExtractor* null_ptr = nullptr;
 const String experiment_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_13C1_spectra0to100.mzML");
 const String target_list_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_13CFlux_TraML.csv");
 MzMLFile mzml;
-MSExperiment experiment;
+MSRun experiment;
 TransitionTSVFile tsv_reader;
 TargetedExperiment targeted_exp;
 mzml.load(experiment_path, experiment);
@@ -675,7 +675,7 @@ START_SECTION(void selectSpectra(
 END_SECTION
 
 START_SECTION(void extractSpectra(
-  const MSExperiment& experiment,
+  const MSRun& experiment,
   const TargetedExperiment& targeted_exp,
   std::vector<MSSpectrum>& extracted_spectra,
   FeatureMap& extracted_features,
@@ -709,7 +709,7 @@ START_SECTION(void extractSpectra(
 END_SECTION
 
 START_SECTION(void extractSpectra(
-  const MSExperiment& experiment,
+  const MSRun& experiment,
   const TargetedExperiment& targeted_exp,
   std::vector<MSSpectrum>& extracted_spectra
 ) const)
@@ -739,7 +739,7 @@ START_SECTION(void extractSpectra(
 END_SECTION
 
 START_SECTION(void extractSpectra(
-  const MSExperiment& experiment,
+  const MSRun& experiment,
   const FeatureMap& ms1_features,
   std::vector<MSSpectrum>& extracted_spectra,
   FeatureMap& extracted_features,
@@ -755,7 +755,7 @@ START_SECTION(void extractSpectra(
   tse.setParameters(params);
 
   const String msp_path = OPENMS_GET_TEST_DATA_PATH("Germicidin_A_standard.msp");
-  MSExperiment spectrum;
+  MSRun spectrum;
   MSPGenericFile mse(msp_path, spectrum);
   for (OpenMS::MSSpectrum& spec : spectrum)
   {
@@ -783,7 +783,7 @@ END_SECTION
 
 START_SECTION(void matchSpectrum(
   const MSSpectrum& input_spectrum,
-  const MSExperiment& library,
+  const MSRun& library,
   Comparator& cmp,
   std::vector<Match>& matches
 ))
@@ -798,7 +798,7 @@ START_SECTION(void matchSpectrum(
   const String gcms_fullscan_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_GCMS.mzML");
   const String target_list_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_traML.csv");
   MzMLFile mzml;
-  MSExperiment gcms_experiment;
+  MSRun gcms_experiment;
   TransitionTSVFile tsv_reader;
   TargetedExperiment targeted_exp;
   mzml.load(gcms_fullscan_path, gcms_experiment);
@@ -824,7 +824,7 @@ START_SECTION(void matchSpectrum(
 
   TEST_EQUAL(extracted_spectra.size(), 18)
 
-  MSExperiment library;
+  MSRun library;
   MSPGenericFile mse(msp_path, library);
 
   TEST_EQUAL(library.getSpectra().size(), 21)
@@ -881,7 +881,7 @@ START_SECTION(void targetedMatching(
   const String gcms_fullscan_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_GCMS.mzML");
   const String target_list_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_traML.csv");
   MzMLFile mzml;
-  MSExperiment gcms_experiment;
+  MSRun gcms_experiment;
   TransitionTSVFile tsv_reader;
   TargetedExperiment targeted_exp;
   mzml.load(gcms_fullscan_path, gcms_experiment);
@@ -907,7 +907,7 @@ START_SECTION(void targetedMatching(
 
   TEST_EQUAL(extracted_spectra.size(), 18)
 
-  MSExperiment library;
+  MSRun library;
   MSPGenericFile mse(msp_path, library);
 
   TEST_EQUAL(library.getSpectra().size(), 21)
@@ -954,7 +954,7 @@ START_SECTION(void untargetedMatching(
   const String msp_path = OPENMS_GET_TEST_DATA_PATH("MoNA-export-GC-MS_Spectra_reduced_TSE_matchSpectrum.msp");
   const String gcms_fullscan_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_GCMS.mzML");
   MzMLFile mzml;
-  MSExperiment gcms_experiment;
+  MSRun gcms_experiment;
   TargetedExperiment targeted_exp;
   mzml.load(gcms_fullscan_path, gcms_experiment);
   TargetedSpectraExtractor tse;
@@ -965,7 +965,7 @@ START_SECTION(void untargetedMatching(
 
   TEST_EQUAL(gcms_experiment.getSpectra().size(), 11)
 
-  MSExperiment library;
+  MSRun library;
   MSPGenericFile mse(msp_path, library);
 
   TEST_EQUAL(library.getSpectra().size(), 21)
@@ -1179,9 +1179,9 @@ START_SECTION(constructTransitionsList(const String& filename, const OpenMS::Fea
 }
 END_SECTION
 
-START_SECTION(void TargetedSpectraExtractor::storeSpectraMSP(const String& filename, MSExperiment& experiment) const)
+START_SECTION(void TargetedSpectraExtractor::storeSpectraMSP(const String& filename, MSRun& experiment) const)
 {
-  MSExperiment experiment;
+  MSRun experiment;
   
   std::vector<MSSpectrum> spectra;
   MSSpectrum spectr1;
@@ -1221,7 +1221,7 @@ START_SECTION(void TargetedSpectraExtractor::storeSpectraMSP(const String& filen
 }
 END_SECTION
 
-START_SECTION(void TargetedSpectraExtractor::storeSpectraMSP(const String& filename, MSExperiment& experiment) const)
+START_SECTION(void TargetedSpectraExtractor::storeSpectraMSP(const String& filename, MSRun& experiment) const)
 {
   FeatureMap input_fm;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), input_fm);

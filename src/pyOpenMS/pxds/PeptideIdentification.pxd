@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
         #  the unique `identifier` that links the two.
         #  When loading PeptideHit instances from a File, the retention time and mass-to-charge ratio
         #  of the precursor spectrum can be accessed using getRT() and getMZ().
-        #  This information can be used to map the peptide hits to an MSExperiment, a FeatureMap
+        #  This information can be used to map the peptide hits to an MSRun, a FeatureMap
         #  or a ConsensusMap using the IDMapper class
 
         PeptideIdentification() except + nogil 

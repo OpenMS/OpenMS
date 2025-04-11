@@ -9,7 +9,7 @@ class TestAcquisitionInfo(unittest.TestCase):
 		self.filename_mzml = os.path.join(dirname, "test.mzML").encode()
 
 	def test_acquisitioninfomemberaccess(self):
-		exp = pyopenms.MSExperiment()
+		exp = pyopenms.MSRun()
 		pyopenms.MzMLFile().load(self.filename_mzml, exp)
 
 		# Basically test that the output is non-zero (e.g. the data is

@@ -3,7 +3,7 @@
 //
 
 #include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/KERNEL/OnDiscMSRun.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
 

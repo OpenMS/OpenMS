@@ -16,7 +16,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/KERNEL/OnDiscMSRun.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DCaret.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
@@ -949,7 +949,7 @@ namespace OpenMS
     PeakMap new_exp;
     new_exp.addSpectrum(theo_spectrum);
     ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
-    LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
+    LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSRun());
     String layer_caption = aa_sequence.toString() + " (identification view)";
     current_canvas->addPeakLayer(new_exp_sptr, od_dummy, layer_caption);
 

@@ -5,7 +5,7 @@
 #include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
 #include <iostream>

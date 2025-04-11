@@ -1,6 +1,6 @@
 # part of the SpectraFilters
 from MSSpectrum cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
 from DefaultParamHandler cimport *
@@ -16,4 +16,4 @@ cdef extern from "<OpenMS/PROCESSING/SCALING/RankScaler.h>" namespace "OpenMS":
 
         void filterSpectrum(MSSpectrum & spec) except + nogil 
         void filterPeakSpectrum(MSSpectrum & spec) except + nogil 
-        void filterPeakMap(MSExperiment & exp) except + nogil 
+        void filterPeakMap(MSRun & exp) except + nogil 

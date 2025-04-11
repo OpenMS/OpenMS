@@ -14,7 +14,7 @@
 #include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/KERNEL/OnDiscMSRun.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <iostream>
@@ -88,13 +88,13 @@ namespace OpenMS
   }
 
   /**
-   * @brief Flatten spectra from MSExperiment into a single vector of Peak1D peaks
-   * @param exp MSExperiment containing at least 1 spectrum
+   * @brief Flatten spectra from MSRun into a single vector of Peak1D peaks
+   * @param exp MSRun containing at least 1 spectrum
    * @param bin_width Size of binned scan (m/z)
    * @param merged_peaks Result vector of peaks passed in by reference
    */
   void flattenAndBinSpectra_(
-    MSExperiment &exp,
+    MSRun &exp,
     const double bin_width,
     vector<Peak1D> &merged_peaks
   )
@@ -253,7 +253,7 @@ namespace OpenMS
     //-------------------------------------------------------------
     // open on-disc data (=spectra are only loaded on demand to safe memory)
     //-------------------------------------------------------------
-    vector<OnDiscMSExperiment> specs_list(mzml_file_paths.size(), OnDiscMSExperiment());
+    vector<OnDiscMSRun> specs_list(mzml_file_paths.size(), OnDiscMSRun());
 
     map<size_t, size_t> map_index2file_index; // <K, V> = <map_index, file_index>
     Size num_msmaps_cached = 0;
@@ -326,10 +326,10 @@ namespace OpenMS
 
       // OPENMS_LOG_DEBUG << "Best spectrum (index/RT): " << best_speci << "\t" << best_spec.getRT() << std::endl;
 
-      // store outputted spectra in MSExperiment
-      MSExperiment exp;
+      // store outputted spectra in MSRun
+      MSRun exp;
 
-      // add most intense spectrum to MSExperiment
+      // add most intense spectrum to MSRun
       exp.addSpectrum(best_spec);
 
       if (output_type == "merged_spectra")

@@ -12,7 +12,7 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/QC/Ms2IdentificationRate.h>
@@ -92,20 +92,20 @@ std::vector<MSSpectrum> ms_spectra = {ms2, ms2, ms2, ms2, ms2, ms2, ms1};
 std::vector<MSSpectrum> ms1_spectra = {ms1};
 std::vector<MSSpectrum> ms2_2_spectra = {ms2};
 
-// construct MSExperiment
-MSExperiment ms_exp;
+// construct MSRun
+MSRun ms_exp;
 ms_exp.setSpectra(ms_spectra);
 
-// construct MSExperiment without MS2 spectra
-MSExperiment ms1_exp;
+// construct MSRun without MS2 spectra
+MSRun ms1_exp;
 ms1_exp.setSpectra(ms1_spectra);
 
-// construct MSExperiment with two MS2 spectra
-MSExperiment ms2_2_exp;
+// construct MSRun with two MS2 spectra
+MSRun ms2_2_exp;
 ms2_2_exp.setSpectra(ms2_2_spectra);
 
-// construct empty MSExperiment
-MSExperiment ms_empty_exp;
+// construct empty MSRun
+MSRun ms_empty_exp;
 
 
 //////////////////////////////////////////////////////////////////
@@ -137,7 +137,7 @@ Ms2IdentificationRate ms2ir_empty_msexp;
 Ms2IdentificationRate ms2ir_empty_fmap;
 
 // tests compute function with FeatureMap
-START_SECTION(void compute(FeatureMap const& feature_map, MSExperiment const& exp, bool force_index = false))
+START_SECTION(void compute(FeatureMap const& feature_map, MSRun const& exp, bool force_index = false))
 {
   // test with valid input
   ms2ir.compute(fmap, ms_exp);
@@ -155,7 +155,7 @@ START_SECTION(void compute(FeatureMap const& feature_map, MSExperiment const& ex
   TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, ms2ir_ms2_2.compute(fmap, ms2_2_exp), "There are more Identifications than MS2 spectra. Please check your data.")
 
   // empty ms experiment
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, ms2ir_empty_msexp.compute(fmap, ms_empty_exp), "MSExperiment is empty")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, ms2ir_empty_msexp.compute(fmap, ms_empty_exp), "MSRun is empty")
 
   // empty feature map
   ms2ir_empty_fmap.compute(fmap_empty, ms_exp);
@@ -198,7 +198,7 @@ Ms2IdentificationRate id_rate_force_no_index;
 Ms2IdentificationRate id_rate_ms1;
 
 // tests compute function with PeptideIdentifications
-START_SECTION(void compute(const std::vector<PeptideIdentification>& pep_ids, const MSExperiment& exp, bool force_index = false))
+START_SECTION(void compute(const std::vector<PeptideIdentification>& pep_ids, const MSRun& exp, bool force_index = false))
 {
   // test with valid input
   id_rate.compute(pep_ids, ms_exp);
@@ -216,7 +216,7 @@ START_SECTION(void compute(const std::vector<PeptideIdentification>& pep_ids, co
   TEST_EXCEPTION_WITH_MESSAGE(Exception::Precondition, id_rate_one_ms2.compute(two_target_ids, ms2_2_exp), "There are more Identifications than MS2 spectra. Please check your data.")
 
   // empty ms experiment
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, id_rate_empty_exp.compute(pep_ids, ms_empty_exp), "MSExperiment is empty")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, id_rate_empty_exp.compute(pep_ids, ms_empty_exp), "MSRun is empty")
 
   // empty feature map
   id_rate_no_ids.compute(pep_ids_empty, ms_exp);

@@ -13,7 +13,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <fstream>
 
@@ -111,7 +111,7 @@ MQExporterHelper::MQCommonOutputs::MQCommonOutputs(
   const OpenMS::Size c_feature_number,
   const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
   const OpenMS::ProteinIdentification::Mapping& mp_f,
-  const OpenMS::MSExperiment& exp,
+  const OpenMS::MSRun& exp,
   const std::map<OpenMS::String,OpenMS::String>& prot_mapper)
 {
   const OpenMS::PeptideHit* ptr_best_hit; // the best hit referring to score

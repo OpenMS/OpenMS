@@ -1,4 +1,4 @@
-from MSExperiment  cimport *
+from MSRun  cimport *
 from MSSpectrum  cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
@@ -18,10 +18,10 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>" namespace "OpenM
         CachedMzMLHandler(CachedMzMLHandler &) except + nogil  # compiler
 
 
-        void writeMemdump(MSExperiment exp, String out) except + nogil  # wrap-doc:Write complete spectra as a dump to the disk
-        void writeMetadata(MSExperiment exp, String out_meta) except + nogil  # wrap-doc:Write only the meta data of an MSExperiment
+        void writeMemdump(MSRun exp, String out) except + nogil  # wrap-doc:Write complete spectra as a dump to the disk
+        void writeMetadata(MSRun exp, String out_meta) except + nogil  # wrap-doc:Write only the meta data of an MSRun
 
-        void readMemdump(MSExperiment exp, String filename) except + nogil  # wrap-doc:Read all spectra from a dump from the disk
+        void readMemdump(MSRun exp, String filename) except + nogil  # wrap-doc:Read all spectra from a dump from the disk
 
         # void readSingleSpectrum(MSSpectrum & spectrum, String & filename, Size & idx) except + nogil 
         libcpp_vector[ streampos ]  getSpectraIndex() except + nogil 

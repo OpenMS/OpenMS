@@ -4,7 +4,7 @@ from libcpp.vector cimport vector as libcpp_vector
 from Feature cimport *
 from DefaultParamHandler cimport *
 from TransformationModelLowess cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from ConsensusMap cimport *
 from FeatureMap cimport *
 from BaseFeature cimport *

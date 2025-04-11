@@ -9,7 +9,7 @@ from String cimport *
 from ConsensusMap cimport *
 from Feature cimport *
 from FeatureMap cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
 

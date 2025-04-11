@@ -32,7 +32,7 @@ def simple_find_best_feature(output, pairs, targeted):
 
 def algorithm(chromatograms, targeted):
     # Create empty files as input and finally as output
-    empty_swath = pyopenms.MSExperiment()
+    empty_swath = pyopenms.MSRun()
     trafo = pyopenms.TransformationDescription()
     output = pyopenms.FeatureMap();
 
@@ -62,7 +62,7 @@ def algorithm(chromatograms, targeted):
 def main(options):
 
     # load chromatograms
-    chromatograms = pyopenms.MSExperiment()
+    chromatograms = pyopenms.MSRun()
     fh = pyopenms.FileHandler()
     fh.loadExperiment(options.infile, chromatograms)
 

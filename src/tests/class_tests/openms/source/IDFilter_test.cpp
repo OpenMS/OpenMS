@@ -895,7 +895,7 @@ START_SECTION((static void removeDuplicatePeptideHits(vector<PeptideIdentificati
 }
 END_SECTION
 
-START_SECTION((template <class PeakT> static void filterHitsByScore(MSExperiment<PeakT>& experiment, double peptide_threshold_score, double protein_threshold_score)))
+START_SECTION((template <class PeakT> static void filterHitsByScore(MSRun<PeakT>& experiment, double peptide_threshold_score, double protein_threshold_score)))
 {
   PeakMap experiment;
   vector<PeptideIdentification> ids(1, global_peptides[0]);
@@ -938,7 +938,7 @@ START_SECTION((template <class PeakT> static void filterHitsByScore(MSExperiment
 }
 END_SECTION
 
-START_SECTION((template <class PeakT> static void keepNBestHits(MSExperiment<PeakT>& experiment, Size n)))
+START_SECTION((template <class PeakT> static void keepNBestHits(MSRun<PeakT>& experiment, Size n)))
 {
   PeakMap experiment;
   vector<PeptideIdentification> ids(1, global_peptides[0]);
@@ -1000,7 +1000,7 @@ START_SECTION((static void keepNBestSpectra(std::vector<PeptideIdentification>& 
 }
 END_SECTION
 
-START_SECTION((template<class PeakT> static void keepHitsMatchingProteins(MSExperiment<PeakT>& experiment, const vector<FASTAFile::FASTAEntry>& proteins)))
+START_SECTION((template<class PeakT> static void keepHitsMatchingProteins(MSRun<PeakT>& experiment, const vector<FASTAFile::FASTAEntry>& proteins)))
 {
   PeakMap experiment;
   vector<FASTAFile::FASTAEntry> proteins;

@@ -1,7 +1,7 @@
 from Peak1D cimport *
 from Feature cimport *
 from FeatureMap cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
 from ConsensusMap cimport *
@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>" name
 
         FeatureFinderMultiplexAlgorithm(FeatureFinderMultiplexAlgorithm &) except + nogil  # compiler
 
-        void run(MSExperiment& exp, bool progress) except + nogil  # wrap-doc:Main method for feature detection
+        void run(MSRun& exp, bool progress) except + nogil  # wrap-doc:Main method for feature detection
 
         FeatureMap getFeatureMap() except + nogil  # TODO
 

@@ -157,7 +157,7 @@ namespace OpenMS
     // projection for m/z
     auto ptr_mz = make_unique<LayerData1DPeak>();
     {
-      MSExperiment exp_mz;
+      MSRun exp_mz;
       exp_mz.addSpectrum(std::move(projection_mz));
       ptr_mz->setPeakData(ExperimentSharedPtrType(new ExperimentType(std::move(exp_mz))));
     }
@@ -171,7 +171,7 @@ namespace OpenMS
     // projection for RT
     auto ptr_rt = make_unique<LayerData1DChrom>();
     {
-      MSExperiment exp_rt;
+      MSRun exp_rt;
       exp_rt.addChromatogram(std::move(projection_rt));
       ptr_rt->setChromData(ExperimentSharedPtrType(new ExperimentType(std::move(exp_rt))));
     }
@@ -205,7 +205,7 @@ namespace OpenMS
 
   PeakIndex LayerDataPeak::findHighestDataPoint(const RangeAllType& area) const
   {
-    using IntType = MSExperiment::ConstAreaIterator::PeakType::IntensityType;
+    using IntType = MSRun::ConstAreaIterator::PeakType::IntensityType;
     auto max_int = numeric_limits<IntType>::lowest();
     PeakIndex max_pi;
     

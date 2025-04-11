@@ -1,4 +1,4 @@
-from MSExperiment  cimport *
+from MSRun  cimport *
 from MSSpectrum  cimport *
 from Peak1D  cimport *
 from ChromatogramPeak  cimport *
@@ -18,9 +18,9 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>" namespace "OpenM
         MzMLSqliteHandler(String filename, UInt64 run_id) except + nogil 
         MzMLSqliteHandler(MzMLSqliteHandler &) except + nogil  # compiler
 
-        void readExperiment(MSExperiment & exp, bool meta_only )  except + nogil 
+        void readExperiment(MSRun & exp, bool meta_only )  except + nogil 
             # wrap-doc:
-                #  Read an experiment into an MSExperiment structure
+                #  Read an experiment into an MSRun structure
                 #  
                 #  
                 #  :param exp: The result data structure
@@ -66,7 +66,7 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>" namespace "OpenM
                 #  :param indices: Spectra to consider (if empty, all spectra are considered)
                 #  :return: The indices of the spectra within RT +/- deltaRT
   
-        void writeExperiment(MSExperiment exp) except + nogil  # wrap-doc:Write an MSExperiment to disk
+        void writeExperiment(MSRun exp) except + nogil  # wrap-doc:Write an MSRun to disk
   
         void createTables() except + nogil  # wrap-doc:Create data tables for a new file
   
@@ -74,7 +74,7 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>" namespace "OpenM
   
         void writeChromatograms(libcpp_vector[MSChromatogram] chroms) except + nogil  # wrap-doc:Writes a set of chromatograms to disk
   
-        void writeRunLevelInformation(MSExperiment exp, bool write_full_meta) except + nogil 
+        void writeRunLevelInformation(MSRun exp, bool write_full_meta) except + nogil 
             # wrap-doc:
                 #  Write the run-level information for an experiment into tables
                 #  

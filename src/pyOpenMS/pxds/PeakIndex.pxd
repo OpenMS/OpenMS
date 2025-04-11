@@ -1,6 +1,6 @@
 from Types cimport *
 from FeatureMap cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 
 cdef extern from "<OpenMS/KERNEL/PeakIndex.h>" namespace "OpenMS":
     
@@ -30,11 +30,11 @@ cdef extern from "<OpenMS/KERNEL/PeakIndex.h>" namespace "OpenMS":
                 #  :raises:
                 #    Exception: Precondition is thrown if this index is invalid for the `map` (only in debug mode)
 
-        Peak1D getPeak(MSExperiment & map_) except + nogil 
+        Peak1D getPeak(MSRun & map_) except + nogil 
             # wrap-doc:
                 #  Returns a peak corresponding to this index
                 #  
-                #  This method is intended for arrays of DSpectra e.g. MSExperiment
+                #  This method is intended for arrays of DSpectra e.g. MSRun
                 #  
                 #  The main advantage of using this method instead accessing the data directly is that range
                 #  check performed in debug mode
@@ -42,11 +42,11 @@ cdef extern from "<OpenMS/KERNEL/PeakIndex.h>" namespace "OpenMS":
                 #  :raises:
                 #    Exception: Precondition is thrown if this index is invalid for the `map` (only in debug mode)
 
-        MSSpectrum getSpectrum(MSExperiment & map_) except + nogil 
+        MSSpectrum getSpectrum(MSRun & map_) except + nogil 
             # wrap-doc:
                 #  Returns a spectrum corresponding to this index
                 #  
-                #  This method is intended for arrays of DSpectra e.g. MSExperiment
+                #  This method is intended for arrays of DSpectra e.g. MSRun
                 #  
                 #  The main advantage of using this method instead accessing the data directly is that range
                 #  check performed in debug mode

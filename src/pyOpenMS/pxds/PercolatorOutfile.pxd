@@ -1,5 +1,5 @@
 from Types cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from PeptideIdentification cimport *
 from ProteinIdentification cimport *
 from SpectrumMetaDataLookup cimport *

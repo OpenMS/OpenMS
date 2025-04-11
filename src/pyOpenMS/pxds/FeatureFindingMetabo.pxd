@@ -1,4 +1,4 @@
-from MSExperiment cimport *
+from MSRun cimport *
 from MSChromatogram cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *

@@ -1,6 +1,6 @@
 from Types cimport *
 from libcpp.set cimport set as libcpp_set
-from MSExperiment cimport *
+from MSRun cimport *
 from PeakPickerHiRes cimport *
 from ProgressLogger cimport *
 
@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/FEATUREFINDER/PeakWidthEstimator.h>" namespace "OpenMS
         # private
         # PeakWidthEstimator() except + nogil 
         PeakWidthEstimator(PeakWidthEstimator &) except + nogil  # compiler
-        PeakWidthEstimator(MSExperiment exp_picked,
+        PeakWidthEstimator(MSRun exp_picked,
                            libcpp_vector[libcpp_vector[PeakBoundary] ] & boundaries) except + nogil 
 
         double getPeakWidth(double mz) except + nogil  # wrap-doc:Returns the estimated peak width at m/z

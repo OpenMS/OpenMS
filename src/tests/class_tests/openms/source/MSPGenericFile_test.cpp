@@ -39,10 +39,10 @@ START_SECTION(~MSPGenericFile())
 }
 END_SECTION
 
-START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
+START_SECTION(void load(const String& filename, MSRun& experiment) const)
 {
   MSPGenericFile msp;
-  MSExperiment experiment;
+  MSRun experiment;
   msp.load(input_filepath, experiment);
   const vector<MSSpectrum>& spectra = experiment.getSpectra();
   TEST_EQUAL(spectra.size(), 3)
@@ -161,11 +161,11 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
 }
 END_SECTION
 
-START_SECTION(void store(const String& filename, const MSExperiment& library) const)
+START_SECTION(void store(const String& filename, const MSRun& library) const)
 {
   MSPGenericFile msp;
 
-  MSExperiment exp;
+  MSRun exp;
   PeakMap::SpectrumType spec;
   PeakMap::PeakType peak;
 
@@ -237,7 +237,7 @@ START_SECTION(void store(const String& filename, const MSExperiment& library) co
   msp.store(output_filepath, exp);
 
   // read back created file
-  MSExperiment exp_test;
+  MSRun exp_test;
   msp.load(output_filepath, exp_test);
 
   const vector<MSSpectrum>& spectra = exp_test.getSpectra();
@@ -297,7 +297,7 @@ START_SECTION(void store(const String& filename, const MSExperiment& library) co
   TEST_REAL_SIMILAR(s3[2].getIntensity(), 103.5)
 
   // test invalid spectrum (no name).
-  MSExperiment invalid_exp;
+  MSRun invalid_exp;
   PeakMap::SpectrumType invalid_spec;
   PeakMap::PeakType invalid_peak;
   invalid_spec.setMetaValue("Synon", "first1|first2|first3");
@@ -323,11 +323,11 @@ END_SECTION
 
 START_SECTION(void addSpectrumToLibrary(
   MSSpectrum& spectrum,
-  MSExperiment& library
+  MSRun& library
 ))
 {
   MSPGenericFile_friend msp_f;
-  MSExperiment lib;
+  MSRun lib;
 
   MSSpectrum spec;
   spec.setName(""); // empty name

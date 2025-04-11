@@ -1,5 +1,5 @@
 from Types cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::OPXLDataStructs":
 
@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::O
         OPXL_PreprocessedPairSpectra(Size size) except + nogil 
         OPXL_PreprocessedPairSpectra(OPXL_PreprocessedPairSpectra &) except + nogil 
 
-        MSExperiment spectra_linear_peaks
-        MSExperiment spectra_xlink_peaks
-        MSExperiment spectra_all_peaks
+        MSRun spectra_linear_peaks
+        MSRun spectra_xlink_peaks
+        MSRun spectra_all_peaks
 

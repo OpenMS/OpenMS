@@ -8,7 +8,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>
 
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 namespace OpenMS::Internal
@@ -242,7 +242,7 @@ namespace OpenMS::Internal
     // delete the actual data for all spectra and chromatograms, leave only metadata
     // TODO : remove copy
     const ExperimentalSettings& qq = exp;
-    MSExperiment out_exp;
+    MSRun out_exp;
     out_exp = qq;
     // std::vector<MSChromatogram > chromatograms = exp.getChromatograms(); // copy
     for (const auto& s: exp)

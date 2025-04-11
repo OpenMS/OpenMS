@@ -2,7 +2,7 @@ from TransitionTSVFile cimport *
 from TargetedExperiment cimport *
 from DataValue cimport *
 from DefaultParamHandler cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from FeatureMap cimport *
 from String cimport *
 from Types cimport *
@@ -32,13 +32,13 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namesp
         void selectSpectra(libcpp_vector[ MSSpectrum ]&, FeatureMap&, libcpp_vector[ MSSpectrum ]&, FeatureMap&) except + nogil 
         void selectSpectra(libcpp_vector[ MSSpectrum ]&, libcpp_vector[ MSSpectrum ]&) except + nogil 
 
-        void extractSpectra(MSExperiment&, TargetedExperiment&, libcpp_vector[ MSSpectrum ]&, FeatureMap&, bool) except + nogil 
-        void extractSpectra(MSExperiment&, TargetedExperiment&, libcpp_vector[ MSSpectrum ]&) except + nogil 
-        void extractSpectra(MSExperiment&, FeatureMap&, libcpp_vector[ MSSpectrum ]&) except + nogil 
+        void extractSpectra(MSRun&, TargetedExperiment&, libcpp_vector[ MSSpectrum ]&, FeatureMap&, bool) except + nogil 
+        void extractSpectra(MSRun&, TargetedExperiment&, libcpp_vector[ MSSpectrum ]&) except + nogil 
+        void extractSpectra(MSRun&, FeatureMap&, libcpp_vector[ MSSpectrum ]&) except + nogil 
 
         void constructTransitionsList(FeatureMap&, FeatureMap&, TargetedExperiment&) except + nogil 
 
-        void storeSpectraMSP(const String&, MSExperiment&) except + nogil 
+        void storeSpectraMSP(const String&, MSRun&) except + nogil 
 
         void mergeFeatures(FeatureMap&, FeatureMap&) except + nogil 
 

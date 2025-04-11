@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import argparse
 
-from pyopenms import Param, ParamXMLFile, MSExperiment, MzMLFile
+from pyopenms import Param, ParamXMLFile, MSRun, MzMLFile
 
 '''
 The tool needs basic parameter parsing. The following parameters are required to be supported:
@@ -46,7 +46,7 @@ def main():
 
     # this is an example for loading and saving an experiment from a mzML file
     MzML = MzMLFile()
-    exp = MSExperiment()
+    exp = MSRun()
 
     input_file = args["in"]
     output_file = args["out"]

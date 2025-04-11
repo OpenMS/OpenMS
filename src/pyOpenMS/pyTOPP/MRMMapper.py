@@ -73,7 +73,7 @@ def main(options):
     # traml_in = "../source/TEST/TOPP/MRMMapping_input.TraML"
 
     ff = pyopenms.MRMFeatureFinderScoring()
-    chromatogram_map = pyopenms.MSExperiment()
+    chromatogram_map = pyopenms.MSRun()
     fh = pyopenms.FileHandler()
     fh.loadExperiment(chromat_in, chromatogram_map)
     targeted = pyopenms.TargetedExperiment();

@@ -191,7 +191,7 @@ namespace OpenMS
     ExperimentSharedPtrType peak_map_ = ExperimentSharedPtrType(new ExperimentType());
 
     /// on disc peak data
-    ODExperimentSharedPtrType on_disc_peaks_ = ODExperimentSharedPtrType(new OnDiscMSExperiment());
+    ODExperimentSharedPtrType on_disc_peaks_ = ODExperimentSharedPtrType(new OnDiscMSRun());
   };
 
 }// namespace OpenMS

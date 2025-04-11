@@ -130,7 +130,7 @@ class TOPPCorrelateMasstraces
     }
 #endif
 
-    MSExperiment pseudo_spectra_ms1centric;
+    MSRun pseudo_spectra_ms1centric;
     MS1CentricClustering(MS1_feature_map, MS2_feature_map, 
         swath_lower, swath_upper, pseudo_spectra_ms1centric);
     FileHandler().storeExperiment(out,pseudo_spectra_ms1centric, {FileTypes::MZML}, log_type_);
@@ -155,7 +155,7 @@ class TOPPCorrelateMasstraces
   */
   void MS1CentricClustering(ConsensusMap& MS1_feature_map, ConsensusMap& MS2_feature_map, 
       double swath_lower, double swath_upper, 
-      MSExperiment& pseudo_spectra_precursors1)
+      MSRun& pseudo_spectra_precursors1)
   {
     // -----------------------------------
     // Parameters 

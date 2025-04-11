@@ -17,13 +17,13 @@ def main(options):
     pyopenms.TraMLFile().load(options.traml_in, targeted);
 
     # Create empty files as input and finally as output
-    empty_swath = pyopenms.MSExperiment()
+    empty_swath = pyopenms.MSRun()
     trafo = pyopenms.TransformationDescription()
-    output = pyopenms.MSExperiment();
+    output = pyopenms.MSRun();
 
     # load input
     for infile in options.infiles:
-        exp = pyopenms.MSExperiment()
+        exp = pyopenms.MSRun()
         pyopenms.FileHandler().loadExperiment(infile, exp)
 
         transition_exp_used = pyopenms.TargetedExperiment();
@@ -36,7 +36,7 @@ def main(options):
 
         if do_continue:
             # set up extractor and run
-            tmp_out = pyopenms.MSExperiment();
+            tmp_out = pyopenms.MSRun();
             extractor = pyopenms.ChromatogramExtractor()
             extractor.extractChromatograms(exp, tmp_out, targeted, options.extraction_window, options.ppm, trafo, options.rt_extraction_window, options.extraction_function)
             # add all chromatograms to the output

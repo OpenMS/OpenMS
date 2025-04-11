@@ -1957,7 +1957,7 @@ def testFileHandler():
      FileHandler.loadExperiment
      FileHandler.storeExperiment
     """
-    mse = pyopenms.MSExperiment()
+    mse = pyopenms.MSRun()
 
     fh = pyopenms.FileHandler()
     fh.storeExperiment("test1.mzML", mse)
@@ -1972,7 +1972,7 @@ def testFileHandler():
 def testCachedMzML():
     """
     """
-    mse = pyopenms.MSExperiment()
+    mse = pyopenms.MSRun()
     s = pyopenms.MSSpectrum()
     mse.addSpectrum(s)
 
@@ -1991,7 +1991,7 @@ def testCachedMzML():
 def testIndexedMzMLFile():
     """
     """
-    mse = pyopenms.MSExperiment()
+    mse = pyopenms.MSRun()
     s = pyopenms.MSSpectrum()
     mse.addSpectrum(s)
 
@@ -2631,7 +2631,7 @@ import time
 import random
 from typing import Tuple, List
 
-def generate_random_ranges(exp: pyopenms.MSExperiment, 
+def generate_random_ranges(exp: pyopenms.MSRun, 
                          n_ranges: int,
                          rt_width: float,
                          mz_width: float) -> np.ndarray:
@@ -2639,7 +2639,7 @@ def generate_random_ranges(exp: pyopenms.MSExperiment,
     Generate random ranges within the experiment bounds.
     
     Args:
-        exp: MSExperiment object
+        exp: MSRun object
         n_ranges: Number of ranges to generate
         rt_width: Width of RT window
         mz_width: Width of m/z window
@@ -2670,12 +2670,12 @@ def generate_random_ranges(exp: pyopenms.MSExperiment,
     
     return ranges
 
-def extraction_performance_test(exp: pyopenms.MSExperiment, ms_level: int) -> Tuple[float, float]:
+def extraction_performance_test(exp: pyopenms.MSRun, ms_level: int) -> Tuple[float, float]:
     """
     Run performance test for both aggregateFromMatrix and extractXICsFromMatrix
     
     Args:
-        exp: MSExperiment object
+        exp: MSRun object
         
     Returns:
         Tuple of (aggregate_time, xic_time)
@@ -2705,47 +2705,47 @@ def extraction_performance_test(exp: pyopenms.MSExperiment, ms_level: int) -> Tu
     return aggregate_time, xic_time
 
 @report
-def testMSExperiment():
+def testMSRun():
     """
-    @tests: MSExperiment
-     MSExperiment.__init__
-     MSExperiment.getLoadedFilePath
-     MSExperiment.getMaxMZ
-     MSExperiment.getMaxRT
-     MSExperiment.getMetaValue
-     MSExperiment.getMinMZ
-     MSExperiment.getMinRT
-     MSExperiment.push_back
-     MSExperiment.setLoadedFilePath
-     MSExperiment.setMetaValue
-     MSExperiment.size
-     MSExperiment.sortSpectra
-     MSExperiment.updateRanges
-     MSExperiment.__eq__
-     MSExperiment.__ge__
-     MSExperiment.__getitem__
-     MSExperiment.__gt__
-     MSExperiment.__iter__
-     MSExperiment.__le__
-     MSExperiment.__lt__
-     MSExperiment.__ne__
-     MSExperiment.clearMetaInfo
-     MSExperiment.getKeys
-     MSExperiment.isMetaEmpty
-     MSExperiment.metaValueExists
-     MSExperiment.removeMetaValue
-     MSExperiment.getSize
-     MSExperiment.isSorted
-     MSExperiment.get2DPeakDataLong
-     MSExperiment.get_df
-     MSExperiment.get_massql_df
+    @tests: MSRun
+     MSRun.__init__
+     MSRun.getLoadedFilePath
+     MSRun.getMaxMZ
+     MSRun.getMaxRT
+     MSRun.getMetaValue
+     MSRun.getMinMZ
+     MSRun.getMinRT
+     MSRun.push_back
+     MSRun.setLoadedFilePath
+     MSRun.setMetaValue
+     MSRun.size
+     MSRun.sortSpectra
+     MSRun.updateRanges
+     MSRun.__eq__
+     MSRun.__ge__
+     MSRun.__getitem__
+     MSRun.__gt__
+     MSRun.__iter__
+     MSRun.__le__
+     MSRun.__lt__
+     MSRun.__ne__
+     MSRun.clearMetaInfo
+     MSRun.getKeys
+     MSRun.isMetaEmpty
+     MSRun.metaValueExists
+     MSRun.removeMetaValue
+     MSRun.getSize
+     MSRun.isSorted
+     MSRun.get2DPeakDataLong
+     MSRun.get_df
+     MSRun.get_massql_df
     """
-    mse = pyopenms.MSExperiment()
+    mse = pyopenms.MSRun()
     mse_ = copy.copy(mse)
     assert mse_ == mse
     mse_ = copy.deepcopy(mse)
     assert mse_ == mse
-    mse_ = pyopenms.MSExperiment(mse)
+    mse_ = pyopenms.MSRun(mse)
     assert mse_ == mse
 
     _testMetaInfoInterface(mse)
@@ -2795,7 +2795,7 @@ def testMSExperiment():
     assert mse.getSize() == mse2.getSize()
     assert mse2 == mse
 
-    exp = pyopenms.MSExperiment()
+    exp = pyopenms.MSRun()
 
     for i in range(5):
         s = pyopenms.MSSpectrum()
@@ -3967,7 +3967,7 @@ def testMxxxFile():
      MzXMLFile.store
 
     """
-    mse = pyopenms.MSExperiment()
+    mse = pyopenms.MSRun()
     s = pyopenms.MSSpectrum()
     mse.addSpectrum(s)
 
@@ -3987,7 +3987,7 @@ def testMxxxFile():
     myStr = pyopenms.String()
     fh.storeBuffer(myStr, mse)
     assert len(myStr.toString()) == 5269
-    mse2 = pyopenms.MSExperiment()
+    mse2 = pyopenms.MSRun()
     fh.loadBuffer(bytes(myStr), mse2)
     assert mse2 == mse
     assert mse2.size() == 1
@@ -4187,12 +4187,12 @@ def testMRMMapping():
 
     p = pyopenms.MRMMapping()
     assert p.mapExperiment is not None
-    e = pyopenms.MSExperiment()
+    e = pyopenms.MSRun()
     c = pyopenms.MSChromatogram()
     e.addChromatogram(c)
     assert e.getNrChromatograms() == 1
 
-    o = pyopenms.MSExperiment()
+    o = pyopenms.MSRun()
     t = pyopenms.TargetedExperiment()
     p.mapExperiment(e, t, o)
     assert o.getNrChromatograms() == 0 # not so easy to test
@@ -5190,7 +5190,7 @@ def test_MapConversion():
     assert(fmap.size() == 1)
     assert(fmap[0].getRT() == 99.0)
 
-    exp = pyopenms.MSExperiment()
+    exp = pyopenms.MSRun()
     sp = pyopenms.MSSpectrum()
     peak = pyopenms.Peak1D()
     peak.setIntensity(10)

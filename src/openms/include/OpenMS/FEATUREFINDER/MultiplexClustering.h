@@ -12,7 +12,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
-#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSRun.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/ML/CLUSTERING/GridBasedCluster.h>
 
@@ -53,7 +53,7 @@ namespace OpenMS
          * 
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
-        MultiplexClustering(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical);
+        MultiplexClustering(const MSRun& exp_profile, const MSRun& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical);
         
         /**
          * @brief constructor
@@ -65,7 +65,7 @@ namespace OpenMS
          * 
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
-        MultiplexClustering(const MSExperiment& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical);
+        MultiplexClustering(const MSRun& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical);
         
         /**
          * @brief cluster filter results
@@ -75,7 +75,7 @@ namespace OpenMS
          * 
          * @return cluster results (cluster ID, details about cluster including list of filter result IDs belonging to the cluster)
          */
-        std::vector<std::map<int,GridBasedCluster> > cluster(const std::vector<MultiplexFilteredMSExperiment>& filter_results);
+        std::vector<std::map<int,GridBasedCluster> > cluster(const std::vector<MultiplexFilteredMSRun>& filter_results);
         
         /**
          * @brief scaled Euclidean distance for clustering

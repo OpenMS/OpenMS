@@ -5,7 +5,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/openms_data_path.h> // exotic header for path to tutorial data
 
@@ -18,7 +18,7 @@ int main(int argc, const char** argv)
 {
   auto file_mzML = OPENMS_DOC_PATH + String("/code_examples/data/Tutorial_GaussFilter.mzML");
   
-  MSExperiment spectra;
+  MSRun spectra;
 
   // load mzML from code examples folder
   FileHandler().loadExperiment(file_mzML, spectra);

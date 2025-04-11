@@ -13,7 +13,7 @@
 
 #include <OpenMS/FORMAT/MS2File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 using namespace OpenMS;
 using namespace std;

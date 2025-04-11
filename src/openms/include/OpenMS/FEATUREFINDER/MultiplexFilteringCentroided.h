@@ -15,7 +15,7 @@
 #include <OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteredPeak.h>
-#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSRun.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 #include <vector>
@@ -56,7 +56,7 @@ public:
      * @param averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p).
      * @param averagine_type    The averagine model to use, current options are RNA DNA or peptide.
      */
-    MultiplexFilteringCentroided(const MSExperiment& exp_centroided, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
+    MultiplexFilteringCentroided(const MSRun& exp_centroided, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
 
     /**
      * @brief filter for patterns
@@ -64,7 +64,7 @@ public:
      *
      * @see MultiplexIsotopicPeakPattern, MultiplexFilterResult
      */
-    std::vector<MultiplexFilteredMSExperiment> filter();
+    std::vector<MultiplexFilteredMSRun> filter();
 
   };
 

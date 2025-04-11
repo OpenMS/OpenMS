@@ -1,4 +1,4 @@
-from MSExperiment  cimport *
+from MSRun  cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
 from String cimport *
@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAcces
 
         SimpleOpenMSSpectraFactory() except + nogil 
 
-        # shared_ptr[ISpectrumAccess] getSpectrumAccessOpenMSPtr(MSExperiment exp) # wrap-ignore
+        # shared_ptr[ISpectrumAccess] getSpectrumAccessOpenMSPtr(MSRun exp) # wrap-ignore
         # OPENSWATHALGO_DLLAPI typedef boost::shared_ptr<ISpectrumAccess> SpectrumAccessPtr;
 
 

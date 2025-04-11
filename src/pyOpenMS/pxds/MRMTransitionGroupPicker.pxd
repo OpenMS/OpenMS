@@ -2,7 +2,7 @@ from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
 from MRMTransitionGroup cimport *
 from MRMFeature cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from MSSpectrum cimport *
 from MSChromatogram cimport *
 from ChromatogramPeak cimport *

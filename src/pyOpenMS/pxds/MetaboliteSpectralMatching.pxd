@@ -2,7 +2,7 @@ from ProgressLogger cimport *
 from DefaultParamHandler cimport *
 from MSSpectrum cimport *
 from Peak1D cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from MzTab cimport *
 from PeptideHit cimport *
 from libcpp cimport bool
@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>" namespace "
         MetaboliteSpectralMatching() except + nogil 
         MetaboliteSpectralMatching(MetaboliteSpectralMatching &) except + nogil  # compiler
 
-        void run(MSExperiment & exp, MSExperiment & speclib, MzTab & mz_tab, String & out_spectra) except + nogil 
+        void run(MSRun & exp, MSRun & speclib, MzTab & mz_tab, String & out_spectra) except + nogil 
         
     cdef cppclass SpectralMatch:
 

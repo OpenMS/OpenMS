@@ -6,7 +6,7 @@ from ProgressLogger cimport *
 from FASTAFile cimport *
 from PreprocessedPairSpectra cimport *
 from CrossLinkSpectrumMatch cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OpenPepXLLFAlgorithm.h>" namespace "OpenMS":
 
@@ -18,12 +18,12 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OpenPepXLLFAlgorithm.h>" namespace "Open
         OpenPepXLLFAlgorithm() except + nogil 
         OpenPepXLLFAlgorithm(OpenPepXLLFAlgorithm &) except + nogil  # compiler
 
-        OpenPepXLLFAlgorithm_ExitCodes run(MSExperiment& unprocessed_spectra,
+        OpenPepXLLFAlgorithm_ExitCodes run(MSRun& unprocessed_spectra,
                                            libcpp_vector[ FASTAEntry ]& fasta_db,
                                            libcpp_vector[ ProteinIdentification ]& protein_ids,
                                            libcpp_vector[ PeptideIdentification ]& peptide_ids,
                                            libcpp_vector[ libcpp_vector[ CrossLinkSpectrumMatch ] ]& all_top_csms,
-                                           MSExperiment& spectra) except + nogil 
+                                           MSRun& spectra) except + nogil 
             # wrap-doc:
                 #  Performs the main function of this class, the search for cross-linked peptides
                 #  

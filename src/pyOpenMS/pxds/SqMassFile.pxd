@@ -2,7 +2,7 @@ from Types cimport *
 from libcpp cimport bool
 from MzMLSqliteHandler cimport *
 from Types cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from IMSDataConsumer cimport *
 
 cdef extern from "<OpenMS/FORMAT/SqMassFile.h>" namespace "OpenMS":
@@ -18,8 +18,8 @@ cdef extern from "<OpenMS/FORMAT/SqMassFile.h>" namespace "OpenMS":
 
         SqMassFile() except + nogil 
         SqMassFile(SqMassFile &) except + nogil  # compiler
-        void load(const String & filename, MSExperiment & map_) except + nogil  # wrap-doc:Read / Write a complete mass spectrometric experiment
-        void store(const String & filename, MSExperiment & map_) except + nogil  # wrap-doc:Store an MSExperiment in sqMass format
+        void load(const String & filename, MSRun & map_) except + nogil  # wrap-doc:Read / Write a complete mass spectrometric experiment
+        void store(const String & filename, MSRun & map_) except + nogil  # wrap-doc:Store an MSRun in sqMass format
         # NAMESPACE # # POINTER # void transform(const String & filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count, bool skip_first_pass) except + nogil 
         void setConfig(SqMassConfig config) except + nogil 
 

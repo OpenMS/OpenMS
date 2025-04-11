@@ -1,7 +1,7 @@
 from libcpp.vector cimport vector as libcpp_vector
 from String cimport *
 from Peak1D cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 
 cdef extern from "<OpenMS/FORMAT/MSPFile.h>" namespace "OpenMS":
 
@@ -10,8 +10,8 @@ cdef extern from "<OpenMS/FORMAT/MSPFile.h>" namespace "OpenMS":
         MSPFile() except + nogil  # wrap-doc:File adapter for MSP files (NIST spectra library)
         MSPFile(MSPFile &) except + nogil 
 
-        void store(String filename, MSExperiment & exp) except + nogil  # wrap-doc:Stores a map in a MSPFile file
-        void load(String filename, libcpp_vector[PeptideIdentification] & ids, MSExperiment & exp) except + nogil 
+        void store(String filename, MSRun & exp) except + nogil  # wrap-doc:Stores a map in a MSPFile file
+        void load(String filename, libcpp_vector[PeptideIdentification] & ids, MSRun & exp) except + nogil 
             # wrap-doc:
                 #  Loads a map from a MSPFile file
                 #  

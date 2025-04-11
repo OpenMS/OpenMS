@@ -12,10 +12,10 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/KERNEL/OnDiscMSRun.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 using namespace OpenMS;
 using namespace std;

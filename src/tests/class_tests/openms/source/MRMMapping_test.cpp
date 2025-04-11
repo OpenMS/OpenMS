@@ -41,7 +41,7 @@ START_SECTION(void mapExperiment(const OpenMS::PeakMap& input_chromatograms, con
 {
   MRMMapping m;
 
-  MSExperiment exp;
+  MSRun exp;
   exp.setComment("comment1");
   MSChromatogram c; 
   exp.addChromatogram(c);
@@ -51,7 +51,7 @@ START_SECTION(void mapExperiment(const OpenMS::PeakMap& input_chromatograms, con
   TargetedExperiment targ;
   ReactionMonitoringTransition t;
   targ.addTransition(t);
-  MSExperiment out;
+  MSRun out;
 
   m.mapExperiment(exp, targ, out);
   TEST_EQUAL(out.getNrChromatograms(), 0)
@@ -126,7 +126,7 @@ START_SECTION(void mapExperiment(const OpenMS::PeakMap& input_chromatograms, con
     p.setValue("product_tolerance", 0.05);
     m.setParameters(p);
 
-    MSExperiment out2;
+    MSRun out2;
     m.mapExperiment(exp, targ, out2);
     TEST_EQUAL(exp.getNrChromatograms(), 1)
     TEST_EQUAL(out2.getNrChromatograms(), 1)
@@ -144,7 +144,7 @@ START_SECTION(void mapExperiment(const OpenMS::PeakMap& input_chromatograms, con
     m.setParameters(p);
 
     // that should still work
-    MSExperiment out2;
+    MSRun out2;
     m.mapExperiment(exp, targ, out2);
 
     // not this

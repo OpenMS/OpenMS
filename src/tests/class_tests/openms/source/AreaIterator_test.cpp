@@ -12,7 +12,7 @@
 ///////////////////////////
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 ///////////////////////////
 
 using namespace OpenMS;

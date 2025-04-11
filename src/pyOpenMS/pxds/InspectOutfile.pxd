@@ -4,7 +4,7 @@ from libcpp.map cimport map as libcpp_map
 from libcpp.pair cimport pair as libcpp_pair
 from libcpp.vector cimport vector as libcpp_vector
 from String cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from PeptideIdentification cimport *
 from FileHandler cimport *
 
@@ -80,7 +80,7 @@ cdef extern from "<OpenMS/FORMAT/InspectOutfile.h>" namespace "OpenMS":
                                              libcpp_map[ size_t, size_t ] & wanted_records,
                                              libcpp_vector[ String ] & sequences) except + nogil  # wrap-doc:Retrieve sequences from a trie database
 
-        void getExperiment(MSExperiment & exp, String & type_, const String & in_filename) except + nogil  # wrap-doc:Get the experiment from a file
+        void getExperiment(MSRun & exp, String & type_, const String & in_filename) except + nogil  # wrap-doc:Get the experiment from a file
 
         bool getSearchEngineAndVersion(const String & cmd_output, ProteinIdentification & protein_identification) except + nogil  # wrap-doc:Get the search engine and its version from the output of the InsPecT executable without parameters. Returns true on success, false otherwise
 

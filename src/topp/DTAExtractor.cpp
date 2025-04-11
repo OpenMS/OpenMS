@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -169,13 +169,13 @@ protected:
         {
           continue;
         }
-        MSExperiment exp;
+        MSRun exp;
         exp.addSpectrum(spec);
         dta.storeExperiment(out + "_RT" + String(spec.getRT()) + "_MZ" + String(mz_value) + ".dta", exp);
       }
       else
       {
-        MSExperiment exp;
+        MSRun exp;
         exp.addSpectrum(spec);
         dta.storeExperiment(out + "_RT" + String(spec.getRT()) + ".dta", exp);
       }

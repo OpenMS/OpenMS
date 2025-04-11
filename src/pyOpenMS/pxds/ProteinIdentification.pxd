@@ -8,7 +8,7 @@ from ProteinHit cimport *
 from DigestionEnzymeProtein cimport *
 from PeptideIdentification cimport *
 from DateTime cimport *
-# from MSExperiment cimport *
+# from MSRun cimport *
 
 cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
 
@@ -97,9 +97,9 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
         void getPrimaryMSRunPath(StringList& output, bool raw) except + nogil 
 
         # This causes as problem with circular dependencies when trying to use
-        # ExperimentalSettings in MSExperiment
+        # ExperimentalSettings in MSRun
         # TODO: use addons if we really need this
-        # void setPrimaryMSRunPath(StringList& s, MSExperiment& e) except + nogil 
+        # void setPrimaryMSRunPath(StringList& s, MSRun& e) except + nogil 
 
 cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::ProteinIdentification":
 

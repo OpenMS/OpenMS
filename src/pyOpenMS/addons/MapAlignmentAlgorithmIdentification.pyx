@@ -1,6 +1,6 @@
 
 
-    # C++ signature: void align(libcpp_vector[MSExperiment] &, libcpp_vector[TransformationDescription] &, int)
+    # C++ signature: void align(libcpp_vector[MSRun] &, libcpp_vector[TransformationDescription] &, int)
     # C++ signature: void align(libcpp_vector[FeatureMap] &, libcpp_vector[TransformationDescription] &, int)
     # C++ signature: void align(libcpp_vector[ConsensusMap] &, libcpp_vector[TransformationDescription] &, int)
     # 

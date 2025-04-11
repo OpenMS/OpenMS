@@ -59,7 +59,7 @@ def main(options):
     pp_params.setValue("PeakPickerChromatogram:method", options.method, '')
     pp.setParameters(pp_params);
 
-    chromatograms = pyopenms.MSExperiment()
+    chromatograms = pyopenms.MSRun()
     fh = pyopenms.FileHandler()
     fh.loadExperiment(chromat_in, chromatograms)
     targeted = pyopenms.TargetedExperiment();

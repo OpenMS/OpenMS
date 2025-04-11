@@ -14,7 +14,7 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/Peak2D.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 
@@ -100,7 +100,7 @@ START_SECTION((template <typename PeakType> void filter(MSChromatogram<PeakType>
   
 END_SECTION 
 
-START_SECTION((template <typename PeakType> void filterExperiment(MSExperiment<PeakType>& map)))
+START_SECTION((template <typename PeakType> void filterExperiment(MSRun<PeakType>& map)))
   PeakMap exp;
   exp.resize(4);
   

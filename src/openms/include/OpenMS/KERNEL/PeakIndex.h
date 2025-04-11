@@ -75,7 +75,7 @@ namespace OpenMS
     /**
       @brief Access to a peak corresponding to this index.
 
-      This method is intended for arrays of DSpectra e.g. MSExperiment
+      This method is intended for arrays of DSpectra e.g. MSRun
 
       The main advantage of using this method instead accessing the data directly is that range
       check performed in debug mode.
@@ -94,7 +94,7 @@ namespace OpenMS
     /**
       @brief Access to a spectrum corresponding to this index
 
-      This method is intended for arrays of DSpectra e.g. MSExperiment.
+      This method is intended for arrays of DSpectra e.g. MSRun.
 
       The main advantage of using this method instead accessing the data directly is that range
       check performed in debug mode.

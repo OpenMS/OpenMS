@@ -11,7 +11,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/QC/MQEvidenceExporter.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <map>
 
@@ -44,7 +44,7 @@ END_SECTION
 START_SECTION((void exportFeatureMap(
                     const OpenMS::FeatureMap& feature_map,  
                     const OpenMS::ConsensusMap& cmap,
-                    const OpenMS::MSExperiment& exp,
+                    const OpenMS::MSRun& exp,
                     const std::map<String, String>& fasta_map)))
 
 {

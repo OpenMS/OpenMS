@@ -105,7 +105,7 @@ class TOPPClusterMassTraces
     ConsensusMap masstrace_map;
     FileHandler().loadConsensusFeatures(infile, masstrace_map, {FileTypes::CONSENSUSXML}, log_type_);
 
-    MSExperiment pseudo_spectra;
+    MSRun pseudo_spectra;
 
     if (masstrace_map.empty())
     {

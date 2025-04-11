@@ -2,7 +2,7 @@ from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
 from OpenSwathDataStructures cimport *
 from ISpectrumAccess cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>" namespace "OpenMS":
 
@@ -15,4 +15,4 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>"
         SpectrumAccessOpenMS() # wrap-pass-constructor
 
         SpectrumAccessOpenMS(SpectrumAccessOpenMS &) except + nogil  
-        SpectrumAccessOpenMS(shared_ptr[ MSExperiment ] & ms_experiment) except + nogil 
+        SpectrumAccessOpenMS(shared_ptr[ MSRun ] & ms_experiment) except + nogil 

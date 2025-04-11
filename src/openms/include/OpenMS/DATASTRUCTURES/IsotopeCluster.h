@@ -17,9 +17,9 @@ namespace OpenMS
   ///Stores information about an isotopic cluster (i.e. potential peptide charge variants)
   struct OPENMS_DLLAPI IsotopeCluster
   {
-    /// An index e.g. in an MSExperiment
+    /// An index e.g. in an MSRun
     typedef std::pair<Size, Size> IndexPair;
-    /// A set of index pairs, usually referring to an MSExperiment.
+    /// A set of index pairs, usually referring to an MSRun.
     typedef std::set<IndexPair> IndexSet;
 
     ///index set with associated charge estimate

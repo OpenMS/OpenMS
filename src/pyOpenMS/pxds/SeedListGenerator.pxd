@@ -3,7 +3,7 @@ from libcpp cimport bool
 from libcpp.map cimport map as libcpp_map
 from MSSpectrum cimport *
 from ConsensusMap cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
 from PeptideIdentification cimport *
@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/FEATUREFINDER/SeedListGenerator.h>" namespace "OpenMS"
         SeedListGenerator() except + nogil 
         SeedListGenerator(SeedListGenerator &) except + nogil  # compiler
 
-        void generateSeedList(MSExperiment exp, libcpp_vector[DPosition2] & seeds) except + nogil  # wrap-doc:Generate a seed list based on an MS experiment
+        void generateSeedList(MSRun exp, libcpp_vector[DPosition2] & seeds) except + nogil  # wrap-doc:Generate a seed list based on an MS experiment
         void generateSeedList(libcpp_vector[PeptideIdentification] & peptides, libcpp_vector[DPosition2] & seeds, bool use_peptide_mass) except + nogil  # wrap-doc:Generates a seed list based on a list of peptide identifications
         # TODO map with UInt64
         void generateSeedList(ConsensusMap & consensus, libcpp_map[UInt64, libcpp_vector[DPosition2] ] & seeds) except + nogil   # wrap-ignore

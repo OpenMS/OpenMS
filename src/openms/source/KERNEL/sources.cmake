@@ -23,9 +23,9 @@ Mobilogram.cpp
 MRMFeature.cpp
 MRMTransitionGroup.cpp
 MSChromatogram.cpp
-MSExperiment.cpp
+MSRun.cpp
 MSSpectrum.cpp
-OnDiscMSExperiment.cpp
+OnDiscMSRun.cpp
 Peak1D.cpp
 Peak2D.cpp
 PeakIndex.cpp

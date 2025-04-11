@@ -1,6 +1,6 @@
 # part of the SpectraFilters
 from MSSpectrum cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
 from String cimport *
@@ -15,9 +15,9 @@ cdef extern from "<OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>" namespace 
         SpectraMerger() except + nogil  # wrap-doc:Merges blocks of MS or MS2 spectra
         SpectraMerger(SpectraMerger &) except + nogil 
 
-        void mergeSpectraBlockWise(MSExperiment & exp) except + nogil 
-        void mergeSpectraPrecursors(MSExperiment & exp) except + nogil  # wrap-doc:Merges spectra with similar precursors (must have MS2 level)
-        void average(MSExperiment & exp, String average_type) except + nogil 
+        void mergeSpectraBlockWise(MSRun & exp) except + nogil 
+        void mergeSpectraPrecursors(MSRun & exp) except + nogil  # wrap-doc:Merges spectra with similar precursors (must have MS2 level)
+        void average(MSRun & exp, String average_type) except + nogil 
         # wrap-doc:
                 #  Average over neighbouring spectra
                 #  

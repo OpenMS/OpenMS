@@ -10,7 +10,7 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
@@ -39,7 +39,7 @@ END_SECTION
 START_SECTION((virtual void run()))
 {
   MzMLFile mzml_file;
-  MSExperiment exp;
+  MSRun exp;
   ConsensusMap result;
   
   mzml_file.getOptions().addMSLevel(1);

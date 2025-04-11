@@ -10,7 +10,7 @@ from PeptideIdentification cimport *
 
 from PeptideHit cimport *
 
-from MSExperiment cimport *
+from MSRun cimport *
 from MSSpectrum cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *

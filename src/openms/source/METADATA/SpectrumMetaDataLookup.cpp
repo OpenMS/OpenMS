@@ -152,7 +152,7 @@ namespace OpenMS
 
 
 bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(vector<PeptideIdentification>& peptides,
-                                                        const MSExperiment& exp)
+                                                        const MSRun& exp)
 {
     // Check if the experiment has spectra
     if (exp.getSpectra().empty())
@@ -191,7 +191,7 @@ bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(vector<PeptideIdentificat
 }
 
   bool SpectrumMetaDataLookup::addMissingIMToPeptideIDs(vector<PeptideIdentification>& peptides,
-                                const MSExperiment& exp)
+                                const MSRun& exp)
   { 
     // Check if the experiment has spectra
     if (exp.getSpectra().empty())
@@ -202,7 +202,7 @@ bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(vector<PeptideIdentificat
     SpectrumLookup lookup;
     bool all_ids_have_im = true;
     lookup.readSpectra(exp.getSpectra());
-    // Iterate over peptide_ids and annotate IM values stored in MSExperiment
+    // Iterate over peptide_ids and annotate IM values stored in MSRun
     for (auto& pep : peptides)
     {
       String native_id = pep.getSpectrumReference();

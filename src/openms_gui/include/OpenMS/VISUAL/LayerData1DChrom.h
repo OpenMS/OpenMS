@@ -44,7 +44,7 @@ namespace OpenMS
         return r;
       }
       const auto& chrom = getCurrentChrom();
-      auto chrom_filtered = MSExperiment::ChromatogramType();
+      auto chrom_filtered = MSRun::ChromatogramType();
       chrom_filtered.insert(chrom_filtered.begin(), chrom.RTBegin(partial_range.getMinRT()), chrom.RTEnd(partial_range.getMaxRT()));
       chrom_filtered.updateRanges();
       return RangeAllType().assign(chrom_filtered.getRange());

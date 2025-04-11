@@ -13,7 +13,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 
 #include <cstddef>
@@ -61,9 +61,9 @@ namespace OpenMS
     return split_peakmap;
   }
 
-  MSExperiment IMDataConverter::reshapeIMFrameToMany(MSSpectrum im_frame)
+  MSRun IMDataConverter::reshapeIMFrameToMany(MSSpectrum im_frame)
   {
-    MSExperiment out;
+    MSRun out;
 
     if (im_frame.empty())
     {// nothing to split (we do not even check for IM data, for robustness)
@@ -117,7 +117,7 @@ namespace OpenMS
     return out;
   }
 
-  std::tuple<std::vector<MSExperiment>, Math::BinContainer> IMDataConverter::splitExperimentByIonMobility(MSExperiment&& in,
+  std::tuple<std::vector<MSRun>, Math::BinContainer> IMDataConverter::splitExperimentByIonMobility(MSRun&& in,
                                                                                                           UInt number_of_bins,
                                                                                                           double bin_extension_abs,
                                                                                                           double mz_binning_width,
@@ -131,7 +131,7 @@ namespace OpenMS
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Overlap must not be negative.", String(bin_extension_abs));
     }
-    std::vector<MSExperiment> results(number_of_bins);
+    std::vector<MSRun> results(number_of_bins);
     in.updateRanges();
     // find the IM range
     const auto range_IM = RangeMobility(in);
@@ -144,7 +144,7 @@ namespace OpenMS
     const auto bins = Math::createBins(range_IM.getMin(), range_IM.getMax(), number_of_bins, bin_extension_abs);
 
     // results for each IM-frame: all spectra per bin, to get merged
-    MSExperiment binned_spectra;
+    MSRun binned_spectra;
 
 
     SpectraMerger merger;
@@ -166,7 +166,7 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Spectrum does not contain 'wide' IM data.", frame.getNativeID());
       }
       
-      MSExperiment frame_melt = IMDataConverter::reshapeIMFrameToMany(std::move(frame));
+      MSRun frame_melt = IMDataConverter::reshapeIMFrameToMany(std::move(frame));
       for (size_t i = 0; i < bins.size(); ++i)
 
       {
@@ -218,7 +218,7 @@ namespace OpenMS
 
   
   /// private: Process a stack of drift time spectra
-  void processDriftTimeStack(std::vector<const MSSpectrum*>& stack, MSExperiment& result)
+  void processDriftTimeStack(std::vector<const MSSpectrum*>& stack, MSRun& result)
   {
     if (stack.empty()) return;
 
@@ -245,9 +245,9 @@ namespace OpenMS
 
 
 
-  MSExperiment IMDataConverter::reshapeIMFrameToSingle(const MSExperiment& exp)
+  MSRun IMDataConverter::reshapeIMFrameToSingle(const MSRun& exp)
   {
-    MSExperiment result;
+    MSRun result;
 
     if (exp.empty())
     {

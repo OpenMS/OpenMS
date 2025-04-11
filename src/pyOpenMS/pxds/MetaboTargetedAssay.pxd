@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>" namespace "O
        MetaboTargetedAssay() except + nogil  # wrap-doc:This class provides methods for the extraction of targeted assays for metabolomics
        MetaboTargetedAssay(MetaboTargetedAssay &) except + nogil  # compiler
 
-       libcpp_vector[ MetaboTargetedAssay ] extractMetaboTargetedAssay(MSExperiment& spectra,
+       libcpp_vector[ MetaboTargetedAssay ] extractMetaboTargetedAssay(MSRun& spectra,
                                                                        FeatureMapping_FeatureToMs2Indices& feature_ms2_index,
                                                                        double& precursor_rt_tol,
                                                                        double& precursor_mz_distance,
@@ -27,7 +27,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>" namespace "O
                 #  Extract a vector of MetaboTargetedAssays without using fragment annotation
                 #  
                 #  
-                #  :param spectra: Input of MSExperiment with spectra information
+                #  :param spectra: Input of MSRun with spectra information
                 #  :param feature_ms2_spectra_map: FeatureMapping class with associated MS2 spectra
                 #  :param precursor_rt_tol: Retention time tolerance of the precursor
                 #  :param precursor_mz_distance: Max m/z distance of the precursor entries of two spectra to be merged

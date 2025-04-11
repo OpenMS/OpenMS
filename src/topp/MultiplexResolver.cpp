@@ -11,7 +11,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -97,7 +97,7 @@ private:
   map<String, double> label_mass_shift_;
   
   // blacklist
-  MSExperiment exp_blacklist_;
+  MSRun exp_blacklist_;
   
   void registerOptionsAndFlags_() override
   {
@@ -360,11 +360,11 @@ private:
   {
     double mz_tolerance = mz_tolerance_ * mz / 1000000;    // m/z tolerance in Da
     
-    MSExperiment::ConstIterator it_rt_begin = exp_blacklist_.RTBegin(rt - rt_tolerance_);
-    MSExperiment::ConstIterator it_rt_end = exp_blacklist_.RTEnd(rt + rt_tolerance_);
+    MSRun::ConstIterator it_rt_begin = exp_blacklist_.RTBegin(rt - rt_tolerance_);
+    MSRun::ConstIterator it_rt_end = exp_blacklist_.RTEnd(rt + rt_tolerance_);
     
     // loop over range of relevant spectra
-    for (MSExperiment::ConstIterator it_rt = it_rt_begin; it_rt < it_rt_end; ++it_rt)
+    for (MSRun::ConstIterator it_rt = it_rt_begin; it_rt < it_rt_end; ++it_rt)
     {
       // Loop over first three isotopes in dummy feature (and check if one of them is blacklisted).
       for (size_t isotope = 0; isotope < 3; ++isotope)

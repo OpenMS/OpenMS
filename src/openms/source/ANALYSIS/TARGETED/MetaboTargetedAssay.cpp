@@ -115,7 +115,7 @@ namespace OpenMS
   }
 
   // method to extract potential transitions based on the ms/ms of the highest intensity precursor or a consensus spectrum
-  std::vector <MetaboTargetedAssay> MetaboTargetedAssay::extractMetaboTargetedAssay(const MSExperiment& spectra,
+  std::vector <MetaboTargetedAssay> MetaboTargetedAssay::extractMetaboTargetedAssay(const MSRun& spectra,
                                                                                     const FeatureMapping::FeatureToMs2Indices& feature_ms2_index,
                                                                                     const double& precursor_rt_tol,
                                                                                     const double& precursor_mz_distance,
@@ -253,7 +253,7 @@ namespace OpenMS
         // transform to binned spectra
         vector <BinnedSpectrum> binned;
         vector <MSSpectrum> similar_spectra;
-        MSExperiment exp;
+        MSRun exp;
         const BinnedSpectrum binned_highest_int(highest_precursor_int_spectrum,
                                                 BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES,
                                                 false,

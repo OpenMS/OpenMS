@@ -133,13 +133,13 @@ namespace OpenMS
 
     // projection for m/z
     auto ptr_mz = make_unique<LayerData1DPeak>();
-    MSExperiment exp_mz;
+    MSRun exp_mz;
     exp_mz.addSpectrum(std::move(projection_mz));
     ptr_mz->setPeakData(ExperimentSharedPtrType(new ExperimentType(exp_mz)));
 
     // projection for RT
     auto ptr_rt = make_unique<LayerData1DChrom>();
-    MSExperiment exp_rt;
+    MSRun exp_rt;
     exp_mz.addChromatogram(std::move(projection_rt));
     ptr_rt->setChromData(ExperimentSharedPtrType(new ExperimentType(exp_rt)));
 

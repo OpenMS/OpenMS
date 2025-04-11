@@ -517,7 +517,7 @@ PyOpenMSChecker:
         - Peak # constructor
 
     # Legacy functions only
-    OpenMS::OnDiscMSExperiment:
+    OpenMS::OnDiscMSRun:
         - isSortedByRT
         - size
         - empty
@@ -624,7 +624,7 @@ PyOpenMSChecker:
     # Others
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     ## KERNEL classes
-    OpenMS::MSExperiment:
+    OpenMS::MSRun:
         - get2DData
         - set2DData
         # iterators

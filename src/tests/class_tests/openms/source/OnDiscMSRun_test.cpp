@@ -10,10 +10,10 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/KERNEL/OnDiscMSRun.h>
 ///////////////////////////
 
-START_TEST(OnDiscMSExperiment, "$Id$");
+START_TEST(OnDiscMSRun, "$Id$");
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -23,20 +23,20 @@ using namespace std;
 
 OnDiscPeakMap* ptr = nullptr;
 OnDiscPeakMap* nullPointer = nullptr;
-START_SECTION((OnDiscMSExperiment()))
+START_SECTION((OnDiscMSRun()))
 {
   ptr = new OnDiscPeakMap();
   TEST_NOT_EQUAL(ptr, nullPointer);
 }
 END_SECTION
 
-START_SECTION((~OnDiscMSExperiment()))
+START_SECTION((~OnDiscMSRun()))
 {
   delete ptr;
 }
 END_SECTION
 
-START_SECTION((OnDiscMSExperiment(const OnDiscMSExperiment& filename)))
+START_SECTION((OnDiscMSRun(const OnDiscMSRun& filename)))
 {
   OnDiscPeakMap tmp; 
   tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
@@ -49,14 +49,14 @@ START_SECTION((OnDiscMSExperiment(const OnDiscMSExperiment& filename)))
 }
 END_SECTION
 
-// START_SECTION((OnDiscMSExperiment(const String& filename)))
+// START_SECTION((OnDiscMSRun(const String& filename)))
 // {
 //   OnDiscPeakMap tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
 //   TEST_EQUAL(tmp.size(), 2);
 // }
 // END_SECTION
 
-START_SECTION((bool operator== (const OnDiscMSExperiment& rhs) const))
+START_SECTION((bool operator== (const OnDiscMSRun& rhs) const))
 {
   OnDiscPeakMap tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   OnDiscPeakMap tmp2; tmp2.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), true);
@@ -71,7 +71,7 @@ START_SECTION((bool operator== (const OnDiscMSExperiment& rhs) const))
 }
 END_SECTION
 
-START_SECTION((bool operator!= (const OnDiscMSExperiment& rhs) const))
+START_SECTION((bool operator!= (const OnDiscMSRun& rhs) const))
 {
   OnDiscPeakMap tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   OnDiscPeakMap tmp2; tmp2.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), true);

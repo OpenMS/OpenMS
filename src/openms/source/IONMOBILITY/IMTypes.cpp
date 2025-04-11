@@ -10,7 +10,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 namespace OpenMS
 {
@@ -61,7 +61,7 @@ namespace OpenMS
     return NamesOfIMFormat[(size_t)value];
   }
 
-  IMFormat IMTypes::determineIMFormat(const MSExperiment& exp)
+  IMFormat IMTypes::determineIMFormat(const MSRun& exp)
   {
     std::set<IMFormat> occs;
     for (const auto& spec : exp.getSpectra())

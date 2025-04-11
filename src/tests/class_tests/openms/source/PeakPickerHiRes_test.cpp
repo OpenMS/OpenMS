@@ -181,17 +181,17 @@ START_SECTION((template <typename PeakType> void pick(const MSSpectrum& input, M
 }
 END_SECTION
 
-START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)))
+START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSRun<PeakType>& input, MSRun<PeakType>& output)))
   // does the same as pick method for spectra
   NOT_TESTABLE
 END_SECTION
 
-START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output, std::vector<std::vector<PeakBoundary> >& boundaries_spec, std::vector<std::vector<PeakBoundary> >& boundaries_chrom)))
+START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSRun<PeakType>& input, MSRun<PeakType>& output, std::vector<std::vector<PeakBoundary> >& boundaries_spec, std::vector<std::vector<PeakBoundary> >& boundaries_chrom)))
   // does the same as pick method for spectra
   NOT_TESTABLE
 END_SECTION
 
-START_SECTION((template <typename PeakType, typename ChromatogramPeakT> void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output) const))
+START_SECTION((template <typename PeakType, typename ChromatogramPeakT> void pickExperiment(const MSRun<PeakType, ChromatogramPeakT>& input, MSRun<PeakType, ChromatogramPeakT>& output) const))
 {
   PeakMap tmp_exp;
   pp_hires.pickExperiment(input,tmp_exp);
@@ -248,7 +248,7 @@ START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum& i
 }
 END_SECTION
 
-START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)))
+START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSRun<PeakType>& input, MSRun<PeakType>& output)))
 {
   PeakMap tmp_exp;
   pp_hires.pickExperiment(input,tmp_exp);
@@ -356,7 +356,7 @@ START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum& i
 }
 END_SECTION
 
-START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)))
+START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSRun<PeakType>& input, MSRun<PeakType>& output)))
 {
   PeakMap tmp_exp;
   pp_hires.pickExperiment(input,tmp_exp);

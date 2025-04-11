@@ -30,8 +30,8 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>" namesp
                 #  'light-weighted' equivalents, such as 'Weights'
                 #  
                 #  
-                #  :param map: MSExperiment to receive the identifications
-                #  :param fmap: FeatureMap with PeptideIdentifications for the MSExperiment
+                #  :param map: MSRun to receive the identifications
+                #  :param fmap: FeatureMap with PeptideIdentifications for the MSRun
                 #  :param clear_ids: Reset peptide and protein identifications of each scan before annotating
                 #  :param map_ms1: Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z) 
                 

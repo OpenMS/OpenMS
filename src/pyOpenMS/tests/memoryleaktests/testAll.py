@@ -58,10 +58,10 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
         def testAll(self):
 
             with MemTester("specs from experiment"):
-                self.run_extractSpetraFromMSExperiment()
+                self.run_extractSpetraFromMSRun()
 
             with MemTester("copy experiment"):
-                self.run_MSExperiment_copy()
+                self.run_MSRun_copy()
 
             with MemTester("string_conversions1"):
                 self.run_string_conversions1()
@@ -174,9 +174,9 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
                 del spec
             del data
 
-        def run_extractSpetraFromMSExperiment(self):
+        def run_extractSpetraFromMSRun(self):
             p = pyopenms.FileHandler()
-            e = pyopenms.MSExperiment()
+            e = pyopenms.MSRun()
             p.loadExperiment(self.testfile, e)
             show_mem("data loaded")
 
@@ -195,9 +195,9 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
             del p
             del e
 
-        def run_MSExperiment_copy(self):
+        def run_MSRun_copy(self):
             p = pyopenms.FileHandler()
-            e1 = pyopenms.MSExperiment()
+            e1 = pyopenms.MSRun()
             p.loadExperiment(self.testfile, e1)
             show_mem("data loaded")
 
@@ -228,7 +228,7 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
 
         def run_fileformats_io(self):
             p = pyopenms.FileHandler()
-            e = pyopenms.MSExperiment()
+            e = pyopenms.MSRun()
 
             p.loadExperiment(self.testfile, e)
             show_mem("after load mzXML")

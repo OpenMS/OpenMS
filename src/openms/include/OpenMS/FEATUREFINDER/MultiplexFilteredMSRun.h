@@ -23,13 +23,13 @@ namespace OpenMS
      * 
      * @see MultiplexPeakPattern
      */
-    class OPENMS_DLLAPI MultiplexFilteredMSExperiment
+    class OPENMS_DLLAPI MultiplexFilteredMSRun
     {
         public:
         /**
          * @brief constructor
          */
-        MultiplexFilteredMSExperiment();
+        MultiplexFilteredMSRun();
         
         /**
          * @brief adds a single peak to the results
@@ -72,7 +72,7 @@ namespace OpenMS
          * @param exp_picked   original (i.e. not white) centroided experimental data
          * @param debug_out    file name of the debug output
          */
-        void writeDebugOutput(const MSExperiment& exp_picked, const String& debug_out) const;
+        void writeDebugOutput(const MSRun& exp_picked, const String& debug_out) const;
         
         private:
         /**

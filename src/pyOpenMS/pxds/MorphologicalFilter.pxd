@@ -1,6 +1,6 @@
 from ProgressLogger cimport *
 from DefaultParamHandler cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from MSSpectrum cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
@@ -30,9 +30,9 @@ cdef extern from "<OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h>" namespace 
                 #          from struc_size and the average spacing, and rounded up to an odd
                 #          number
                 
-        void filterExperiment(MSExperiment & exp)      except + nogil 
+        void filterExperiment(MSRun & exp)      except + nogil 
             # wrap-doc:
-                #  Applies the morphological filtering operation to an MSExperiment
+                #  Applies the morphological filtering operation to an MSRun
                 #  
                 #  The size of the structuring element is computed for each spectrum individually, if it is given in 'Thomson'
                 #  See the filtering method for MSSpectrum for details

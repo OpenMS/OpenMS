@@ -11,7 +11,7 @@
 
 ///////////////////////////
 #include <OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
@@ -27,7 +27,7 @@ START_TEST(PrecursorCorrection, "$Id$")
 /////////////////////////////////////////////////////////////
 
 // Prepare dummy data
-MSExperiment exp;
+MSRun exp;
 vector<Precursor> v_precursor_1, v_precursor_2, v_precursor_3;
 Precursor precursor_1, precursor_2, precursor_3;
 MSSpectrum ms1_spectrum_1, ms1_spectrum_2, ms1_spectrum_3, ms2_spectrum_1, ms2_spectrum_2, ms2_spectrum_3;
@@ -130,7 +130,7 @@ v_spectra.push_back(ms2_spectrum_2);
 v_spectra.push_back(ms1_spectrum_3);
 v_spectra.push_back(ms2_spectrum_3);
 
-// MSExperiment
+// MSRun
 exp.setSpectra(v_spectra);
 exp.sortSpectra();
 
@@ -152,9 +152,9 @@ START_SECTION(~PrecursorCorrection())
 }
 END_SECTION
 
-START_SECTION((static void getPrecursors(const MSExperiment &exp, std::vector< Precursor > &precursors, std::vector< double > &precursors_rt, std::vector< Size > &precursor_scan_index)))
+START_SECTION((static void getPrecursors(const MSRun &exp, std::vector< Precursor > &precursors, std::vector< double > &precursors_rt, std::vector< Size > &precursor_scan_index)))
 {
-  MSExperiment getP_exp = exp;
+  MSRun getP_exp = exp;
   vector<Precursor> precursor;
   vector<double> rt;
   vector<Size> index;
@@ -174,7 +174,7 @@ fsc.setAcceptableAbsolute(1e-8);
 
 START_SECTION((static void writeHist(const String &out_csv, const std::vector< double > &deltaMZs, const std::vector< double > &mzs, const std::vector< double > &rts)))
 {
-  MSExperiment write_exp = exp;
+  MSRun write_exp = exp;
 
   String csv_tmp;
   NEW_TMP_FILE(csv_tmp);
@@ -189,10 +189,10 @@ START_SECTION((static void writeHist(const String &out_csv, const std::vector< d
 }
 END_SECTION
 
-START_SECTION((static std::set<Size> correctToNearestMS1Peak(MSExperiment &exp, double mz_tolerance, bool ppm, std::vector< double > &deltaMZs, std::vector< double > &mzs, std::vector< double > &rts)))
+START_SECTION((static std::set<Size> correctToNearestMS1Peak(MSRun &exp, double mz_tolerance, bool ppm, std::vector< double > &deltaMZs, std::vector< double > &mzs, std::vector< double > &rts)))
 {
   // test with 1 ppm (1)
-  MSExperiment nearest_exp_1 = exp;
+  MSRun nearest_exp_1 = exp;
   vector<double> dmz_1;
   vector<double> mz_1;
   vector<double> rt_1;
@@ -206,7 +206,7 @@ START_SECTION((static std::set<Size> correctToNearestMS1Peak(MSExperiment &exp, 
   TEST_REAL_SIMILAR(dmz_1[1], -0.0001);
 
   // test with 5 ppm (2)
-  MSExperiment nearest_exp_2 = exp;
+  MSRun nearest_exp_2 = exp;
   vector<double> dmz_2;
   vector<double> mz_2;
   vector<double> rt_2;
@@ -222,10 +222,10 @@ START_SECTION((static std::set<Size> correctToNearestMS1Peak(MSExperiment &exp, 
 }
 END_SECTION
 
-START_SECTION((static std::set<Size> correctToHighestIntensityMS1Peak(MSExperiment &exp, double mz_tolerance, bool ppm, std::vector< double > &deltaMZs, std::vector< double > &mzs, std::vector< double > &rts)))
+START_SECTION((static std::set<Size> correctToHighestIntensityMS1Peak(MSRun &exp, double mz_tolerance, bool ppm, std::vector< double > &deltaMZs, std::vector< double > &mzs, std::vector< double > &rts)))
 {
   // test with 0.0001 Da (1)
-  MSExperiment highest_exp_1 = exp;
+  MSRun highest_exp_1 = exp;
   vector<double> dmz_1;
   vector<double> mz_1;
   vector<double> rt_1;
@@ -239,7 +239,7 @@ START_SECTION((static std::set<Size> correctToHighestIntensityMS1Peak(MSExperime
   TEST_REAL_SIMILAR(dmz_1[1], -0.0001);
 
   // test with 0.0005 Da (2)
-  MSExperiment highest_exp_2 = exp;
+  MSRun highest_exp_2 = exp;
   vector<double> dmz_2;
   vector<double> mz_2;
   vector<double> rt_2;
@@ -256,10 +256,10 @@ START_SECTION((static std::set<Size> correctToHighestIntensityMS1Peak(MSExperime
 END_SECTION
 
 // check ppm
-START_SECTION((static std::set<Size> correctToHighestIntensityMS1Peak(MSExperiment &exp, double mz_tolerance, bool ppm, std::vector< double > &deltaMZs, std::vector< double > &mzs, std::vector< double > &rts)))
+START_SECTION((static std::set<Size> correctToHighestIntensityMS1Peak(MSRun &exp, double mz_tolerance, bool ppm, std::vector< double > &deltaMZs, std::vector< double > &mzs, std::vector< double > &rts)))
 {
 // test with 1 ppm (1)
-MSExperiment highest_exp_1 = exp;
+MSRun highest_exp_1 = exp;
 vector<double> dmz_1;
 vector<double> mz_1;
 vector<double> rt_1;
@@ -277,7 +277,7 @@ TEST_REAL_SIMILAR(dmz_1[0], 0.0001);
 TEST_REAL_SIMILAR(dmz_1[1], -0.0003);
 
 // test with 5 ppm Da
-MSExperiment highest_exp_2 = exp;
+MSRun highest_exp_2 = exp;
 vector<double> dmz_2;
 vector<double> mz_2;
 vector<double> rt_2;
@@ -318,9 +318,9 @@ feature.setCharge(1);
 feature.setConvexHulls(hulls);
 fmap.push_back(feature);
 
-START_SECTION((static std::set<Size> correctToNearestFeature(const FeatureMap &features, MSExperiment &exp, double rt_tolerance_s=0.0, double mz_tolerance=0.0, bool ppm=true, bool believe_charge=false, bool keep_original=false, bool all_matching_features=false, int max_trace=2, int debug_level=0)))
+START_SECTION((static std::set<Size> correctToNearestFeature(const FeatureMap &features, MSRun &exp, double rt_tolerance_s=0.0, double mz_tolerance=0.0, bool ppm=true, bool believe_charge=false, bool keep_original=false, bool all_matching_features=false, int max_trace=2, int debug_level=0)))
 {
-  MSExperiment f_exp = exp;
+  MSRun f_exp = exp;
   double rt_tolerance = 5;
   double mz_tolerance = 5;
   bool ppm = true;

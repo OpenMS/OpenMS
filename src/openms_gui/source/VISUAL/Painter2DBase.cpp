@@ -138,7 +138,7 @@ namespace OpenMS
     // do we currently show an IM frame (with IM + m/z) as units?
     const bool is_IM_frame = peak_map.isIMFrame();
 
-    auto is_visible_scan = [&](MSExperiment::ConstIterator it_scan) {
+    auto is_visible_scan = [&](MSRun::ConstIterator it_scan) {
       if (it_scan->size() <= 1) return false;
       // an IM scan? (where we do not care about MS level)
       if (is_IM_frame) { return true; }
@@ -280,10 +280,10 @@ namespace OpenMS
   /// abstract away the RT or IM dimension (so we can iterate over both using the same code in paintMaximumIntensities_())
   struct DimInfo
   {
-    DimInfo(const MSExperiment& map, const RangeBase& dim, const DimMapper<2>& mapper) : exp_(map), dim_(dim), mapper_(mapper)
+    DimInfo(const MSRun& map, const RangeBase& dim, const DimMapper<2>& mapper) : exp_(map), dim_(dim), mapper_(mapper)
     {
     }
-    const MSExperiment& exp_;
+    const MSRun& exp_;
     const RangeBase& dim_;
     const DimMapper<2>& mapper_;
     /// Maximum RT or IM value for the whole layer
@@ -291,7 +291,7 @@ namespace OpenMS
     /// get the RT or IM from a spectrum
     virtual double getValue(const MSSpectrum& spec) const = 0;
     /// Iterator to first scan with this RT/IM value
-    virtual MSExperiment::ConstIterator getFirstScan(double value) const = 0;
+    virtual MSRun::ConstIterator getFirstScan(double value) const = 0;
     /// Map a pair of RT/mz (or IM/mz) to the XY-plane
     virtual DimMapper<2>::Point mapToPoint(double value, double mz) const = 0;
   };
@@ -306,7 +306,7 @@ namespace OpenMS
     {
       return spec.getRT();
     }
-    MSExperiment::ConstIterator getFirstScan(double value) const override
+    MSRun::ConstIterator getFirstScan(double value) const override
     {
       return exp_.RTBegin(value);
     }
@@ -325,7 +325,7 @@ namespace OpenMS
     {
       return spec.getDriftTime();
     }
-    MSExperiment::ConstIterator getFirstScan(double value) const override
+    MSRun::ConstIterator getFirstScan(double value) const override
     {
       return exp_.IMBegin(value);
     }

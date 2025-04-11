@@ -9,14 +9,14 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
-#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSRun.h>
 #include <OpenMS/PROCESSING/MISC/SplinePackage.h>
 #include <OpenMS/ML/CLUSTERING/GridBasedCluster.h>
 
@@ -64,18 +64,18 @@ public:
   FeatureFinderMultiplexAlgorithm();
 
   /// main method for feature detection
-  void run(MSExperiment& exp, bool progress);
+  void run(MSRun& exp, bool progress);
 
   /// get methods
   FeatureMap& getFeatureMap();
   ConsensusMap& getConsensusMap();
-  MSExperiment& getBlacklist();
+  MSRun& getBlacklist();
 
 protected:
 
   // experimental data
-  MSExperiment exp_profile_;
-  MSExperiment exp_centroid_;
+  MSRun exp_profile_;
+  MSRun exp_centroid_;
 
   bool centroided_;
 
@@ -98,7 +98,7 @@ protected:
   ConsensusMap consensus_map_;
 
   // blacklist
-  MSExperiment exp_blacklist_;
+  MSRun exp_blacklist_;
 
   /**
    * @brief generate list of m/z shifts
@@ -149,7 +149,7 @@ protected:
    * @param filter_results    filter results for each of the patterns
    * @param cluster_results    clusters of filter results
    */
-  void generateMapsCentroided_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, std::vector<std::map<int, GridBasedCluster> >& cluster_results);
+  void generateMapsCentroided_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSRun>& filter_results, std::vector<std::map<int, GridBasedCluster> >& cluster_results);
 
   /**
    * @brief generates consensus and feature maps containing all peptide multiplets
@@ -158,7 +158,7 @@ protected:
    * @param filter_results    filter results for each of the patterns
    * @param cluster_results    clusters of filter results
    */
-  void generateMapsProfile_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, const std::vector<std::map<int, GridBasedCluster> >& cluster_results);
+  void generateMapsProfile_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSRun>& filter_results, const std::vector<std::map<int, GridBasedCluster> >& cluster_results);
 
 };
 

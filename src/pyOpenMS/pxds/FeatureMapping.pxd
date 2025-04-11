@@ -1,6 +1,6 @@
 from Types cimport *
 from BaseFeature cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from KDTreeFeatureMaps cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>" namespace "OpenMS":
@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>" namespace "Ope
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>" namespace "OpenMS::FeatureMapping":
 
        # wrap static method:
-       FeatureMapping_FeatureToMs2Indices assignMS2IndexToFeature(MSExperiment& spectra,
+       FeatureMapping_FeatureToMs2Indices assignMS2IndexToFeature(MSRun& spectra,
                                                                   FeatureMapping_FeatureMappingInfo& fm_info,
                                                                   double precursor_mz_tolerance,
                                                                   double precursor_rt_tolerance,

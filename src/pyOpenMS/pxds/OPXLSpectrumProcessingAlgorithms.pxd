@@ -3,7 +3,7 @@ from libcpp.vector cimport vector as libcpp_vector
 from libcpp.pair cimport pair as libcpp_pair
 from libcpp cimport bool
 from MSSpectrum cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from DataArrays cimport *
 from SimpleTSGXLMS cimport SimplePeak
 
@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>" nam
         MSSpectrum mergeAnnotatedSpectra(MSSpectrum& first_spectrum,
                                          MSSpectrum& second_spectrum) except + nogil 
 
-        MSExperiment preprocessSpectra(MSExperiment& exp,
+        MSRun preprocessSpectra(MSRun& exp,
                                         double fragment_mass_tolerance,
                                         bool fragment_mass_tolerance_unit_ppm,
                                         Size peptide_min_size,

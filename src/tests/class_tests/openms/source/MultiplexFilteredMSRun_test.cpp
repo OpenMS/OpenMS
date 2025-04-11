@@ -10,24 +10,24 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/FEATUREFINDER/MultiplexFilteredPeak.h>
-#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSRun.h>
 
 using namespace OpenMS;
 
-START_TEST(MultiplexFilteredMSExperiment, "$Id$")
+START_TEST(MultiplexFilteredMSRun, "$Id$")
 
-MultiplexFilteredMSExperiment* nullPointer = nullptr;
-MultiplexFilteredMSExperiment* ptr;
+MultiplexFilteredMSRun* nullPointer = nullptr;
+MultiplexFilteredMSRun* ptr;
 
-START_SECTION(MultiplexFilteredMSExperiment())
-    MultiplexFilteredMSExperiment exp;
+START_SECTION(MultiplexFilteredMSRun())
+    MultiplexFilteredMSRun exp;
     TEST_EQUAL(exp.size(), 0);
-    ptr = new MultiplexFilteredMSExperiment();
+    ptr = new MultiplexFilteredMSRun();
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-MultiplexFilteredMSExperiment exp;
+MultiplexFilteredMSRun exp;
 MultiplexFilteredPeak peak(654.32, 2345.67, 24, 110);
 exp.addPeak(peak);
 size_t n;

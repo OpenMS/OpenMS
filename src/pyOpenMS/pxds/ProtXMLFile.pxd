@@ -3,7 +3,7 @@ from String cimport *
 
 from ProteinIdentification cimport *
 from PeptideIdentification cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
 

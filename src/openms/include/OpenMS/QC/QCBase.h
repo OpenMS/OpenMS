@@ -16,7 +16,7 @@
 
 namespace OpenMS
 {
-  class MSExperiment;
+  class MSRun;
   class ConsensusMap;
 
   /**
@@ -65,14 +65,14 @@ namespace OpenMS
       /// Constructor
       SpectraMap() = default;
 
-      /// CTor which allows immediate indexing of an MSExperiment
-      explicit SpectraMap(const MSExperiment& exp);
+      /// CTor which allows immediate indexing of an MSRun
+      explicit SpectraMap(const MSRun& exp);
 
       /// Destructor
       ~SpectraMap() = default;
 
       /// calculate a new map, delete the old one
-      void calculateMap(const MSExperiment& exp);
+      void calculateMap(const MSRun& exp);
 
       /// get index from identifier
       /// @throws Exception::ElementNotFound if @p identifier is unknown

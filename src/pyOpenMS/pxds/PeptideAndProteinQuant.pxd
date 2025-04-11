@@ -2,7 +2,7 @@ from MSSpectrum cimport *
 from ExperimentalDesign cimport *
 from FeatureMap cimport *
 from ConsensusMap cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
 from Param cimport *

@@ -13,7 +13,7 @@
 #include <OpenMS/COMPARISON/PeakAlignment.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <vector>
 ///////////////////////////
 

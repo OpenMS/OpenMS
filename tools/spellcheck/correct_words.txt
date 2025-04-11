@@ -671,7 +671,7 @@ MRMScoring
 MSChromatograms
 MSDGroups
 MSDataConsumer
-MSExperiments
+MSRuns
 MSSpectra
 MapAligner
 MapAlignerBase

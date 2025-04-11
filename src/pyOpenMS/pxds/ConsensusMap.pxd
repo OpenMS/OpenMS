@@ -4,7 +4,7 @@ from libcpp.map cimport map as libcpp_map
 from UniqueIdInterface cimport *
 from ConsensusFeature cimport *
 from FeatureMap cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from Feature cimport *
 from ProteinIdentification cimport *
 from PeptideIdentification cimport *
@@ -98,7 +98,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         void setDataProcessing(libcpp_vector[DataProcessing])   except + nogil  # wrap-doc:Sets the description of the applied data processing
 
         void setPrimaryMSRunPath(StringList& s) except + nogil  # wrap-doc:Sets the file paths to the primary MS run (stored in ColumnHeaders)
-        void setPrimaryMSRunPath(StringList& s, MSExperiment& e) except + nogil 
+        void setPrimaryMSRunPath(StringList& s, MSRun& e) except + nogil 
         void getPrimaryMSRunPath(StringList& toFill) except + nogil  # wrap-doc:Returns the MS run path (stored in ColumnHeaders)
 
         libcpp_vector[ConsensusFeature].iterator begin(

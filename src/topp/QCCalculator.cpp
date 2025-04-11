@@ -8,7 +8,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -131,7 +131,7 @@ protected:
 
     // prepare input
     cout << "Reading mzML file..." << endl;
-    MSExperiment exp;
+    MSRun exp;
     FileHandler().loadExperiment(inputfile_name, exp, {FileTypes::MZML});
     exp.sortSpectra();
     exp.updateRanges();

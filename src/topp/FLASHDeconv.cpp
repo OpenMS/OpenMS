@@ -216,7 +216,7 @@ protected:
     registerFullParam_(combined);
   }
 
-  static void filterLowPeaks(MSExperiment& map, Size count)
+  static void filterLowPeaks(MSRun& map, Size count)
   {
     for (auto& it : map)
     {
@@ -362,7 +362,7 @@ protected:
     // reading input
     //-------------------------------------------------------------
 
-    MSExperiment map;
+    MSRun map;
     FileHandler mzml;
 
     double expected_identification_count = .0;
@@ -473,7 +473,7 @@ protected:
     }
 
     auto last_deconvolved_spectra = std::unordered_map<UInt, std::vector<DeconvolvedSpectrum>>();
-    MSExperiment exp(map), exp_annotated(map);
+    MSRun exp(map), exp_annotated(map);
     exp.clear(false);
     exp_annotated.clear(false);
 

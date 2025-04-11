@@ -11,7 +11,7 @@
 
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteringProfile.h>
-#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSRun.h>
 #include <OpenMS/FEATUREFINDER/MultiplexClustering.h>
 
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -21,7 +21,7 @@ using namespace OpenMS;
 START_TEST(MultiplexFilteringProfile, "$Id$")
 
 // read data
-MSExperiment exp;
+MSRun exp;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MultiplexClustering.mzML"), exp);
 exp.updateRanges();
 
@@ -33,7 +33,7 @@ param.setValue("signal_to_noise", 0.0);
 picker.setParameters(param);
 std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s;
 std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c;
-MSExperiment exp_picked;
+MSRun exp_picked;
 picker.pickExperiment(exp, exp_picked, boundaries_exp_s, boundaries_exp_c);
 
 // set parameters
@@ -71,12 +71,12 @@ for (int c = charge_max; c >= charge_min; --c)
 }
 
 MultiplexFilteringProfile filtering(exp, exp_picked, boundaries_exp_s, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type);
-std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
+std::vector<MultiplexFilteredMSRun> filter_results = filtering.filter();
 
 MultiplexClustering* nullPointer = nullptr;
 MultiplexClustering* ptr;
 
-START_SECTION(MultiplexClustering(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical))
+START_SECTION(MultiplexClustering(const MSRun& exp_profile, const MSRun& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical))
     MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical);
     std::vector<std::map<int,GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
     ptr = new MultiplexClustering(exp, exp_picked, boundaries_exp_s, rt_typical);
@@ -86,7 +86,7 @@ END_SECTION
 
 MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical);
 
-START_SECTION(cluster(const std::vector<MultiplexFilteredMSExperiment>& filter_results))
+START_SECTION(cluster(const std::vector<MultiplexFilteredMSRun>& filter_results))
     std::vector<std::map<int,GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
     TEST_EQUAL(cluster_results[0].size(), 0);
     TEST_EQUAL(cluster_results[1].size(), 0);

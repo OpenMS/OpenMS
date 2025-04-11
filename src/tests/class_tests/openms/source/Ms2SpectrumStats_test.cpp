@@ -13,7 +13,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/QC/Ms2SpectrumStats.h>
 
@@ -52,7 +52,7 @@ START_SECTION(const String& getName() const override) {TEST_EQUAL(top.getName(),
 }
 END_SECTION
 
-START_SECTION(compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum))
+START_SECTION(compute(const MSRun& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum))
 {
   // Valid FeatureMap
   FeatureMap fmap;
@@ -80,7 +80,7 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features, const QCBas
   unassignedIDs.push_back(peptide_ID);
   fmap.setUnassignedPeptideIdentifications(unassignedIDs);
 
-  // MSExperiment
+  // MSRun
   PeakMap exp;
   MSSpectrum spec;
   Peak1D p;
@@ -196,7 +196,7 @@ START_SECTION(compute(const MSExperiment& exp, FeatureMap& features, const QCBas
   fmap_empty.setUnassignedPeptideIdentifications({});
   new_unassigned_pep_ids = top.compute(exp, fmap_empty, map_to_spectrum);
   TEST_EQUAL(new_unassigned_pep_ids.size(), 5);
-  // empty MSExperiment
+  // empty MSRun
   PeakMap exp_empty {};
   TEST_EXCEPTION(Exception::MissingInformation, top.compute(exp_empty, fmap, map_to_spectrum));
 

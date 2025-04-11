@@ -24,7 +24,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 ///////////////////////////

@@ -1175,7 +1175,7 @@ protected:
     {
       // TODO stream mzml?
       MzMLFile m;
-      MSExperiment exp;
+      MSRun exp;
       auto opts = m.getOptions();
       opts.setMSLevels({2,3});
       opts.setFillData(false);

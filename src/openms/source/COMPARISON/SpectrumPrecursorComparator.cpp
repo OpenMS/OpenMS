@@ -9,7 +9,7 @@
 
 #include <OpenMS/COMPARISON/SpectrumPrecursorComparator.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 using namespace std;
 

@@ -26,7 +26,7 @@ using namespace std;
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -163,7 +163,7 @@ pep_id.setHits({ decoy1 });
 FDR_id.push_back(pep_id);
 
 vector<FASTAFile::FASTAEntry> empty_fasta;
-MSExperiment empty_exp;
+MSRun empty_exp;
 ProteinIdentification::SearchParameters empty_params;
 
 /////////////////////////////////////////////////////////////
@@ -185,7 +185,7 @@ START_SECTION(~DBSuitability())
 }
 END_SECTION
 
-START_SECTION(void compute(std::vector<PeptideIdentification>&& pep_ids, const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params))
+START_SECTION(void compute(std::vector<PeptideIdentification>&& pep_ids, const MSRun& exp, const std::vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params))
 {
   // Test normal suitability (without correction)
   DBSuitability s;

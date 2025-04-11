@@ -80,7 +80,7 @@ def main(options):
     scoring_params.setValue("rt_normalization_factor", rt_normalization_factor, '')
     scorer.setParameters(scoring_params);
 
-    chromatograms = pyopenms.MSExperiment()
+    chromatograms = pyopenms.MSRun()
     fh = pyopenms.FileHandler()
     fh.loadExperiment(chromat_in, chromatograms)
     targeted = pyopenms.TargetedExperiment();

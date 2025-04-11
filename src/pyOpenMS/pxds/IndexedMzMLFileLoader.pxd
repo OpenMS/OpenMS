@@ -2,7 +2,7 @@ from Types cimport *
 
 from PeakFileOptions cimport *
 from MzMLFile cimport *
-from OnDiscMSExperiment cimport *
+from OnDiscMSRun cimport *
 
 cdef extern from "<OpenMS/FORMAT/IndexedMzMLFileLoader.h>" namespace "OpenMS":
 
@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/FORMAT/IndexedMzMLFileLoader.h>" namespace "OpenMS":
 
         IndexedMzMLFileLoader() except + nogil  # wrap-doc:A class to load an indexedmzML file
  
-        bool load(String, OnDiscMSExperiment &) except + nogil 
+        bool load(String, OnDiscMSRun &) except + nogil 
             # wrap-doc:
                 #  Load a file\n
                 #  
@@ -21,7 +21,7 @@ cdef extern from "<OpenMS/FORMAT/IndexedMzMLFileLoader.h>" namespace "OpenMS":
                 #  :param exp: Object which will contain the data after the call
                 #  :return: Indicates whether parsing was successful (if it is false, the file most likely was not an mzML or not indexed)
 
-        void store(String, OnDiscMSExperiment &) except + nogil 
+        void store(String, OnDiscMSRun &) except + nogil 
             # wrap-doc:
                 #  Store a file from an on-disc data-structure
                 #  
@@ -29,7 +29,7 @@ cdef extern from "<OpenMS/FORMAT/IndexedMzMLFileLoader.h>" namespace "OpenMS":
                 #  :param filename: Filename determines where the file will be stored 
                 #  :param exp: MS data to be stored
 
-        void store(String, MSExperiment &) except + nogil 
+        void store(String, MSRun &) except + nogil 
             # wrap-doc:
                 #  Store a file from an in-memory data-structure
                 #  

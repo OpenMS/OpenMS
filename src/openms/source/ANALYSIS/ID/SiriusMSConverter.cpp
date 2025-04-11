@@ -91,7 +91,7 @@ namespace OpenMS
   }
 
   void SiriusMSFile::writeMsFile_(ofstream& os,
-                                  const MSExperiment& spectra,
+                                  const MSRun& spectra,
                                   const std::vector<size_t>& ms2_spectra_index,
                                   const SiriusMSFile::AccessionInfo& ainfo,
                                   const StringList& adducts,
@@ -408,7 +408,7 @@ namespace OpenMS
     }
   }
 
-  void SiriusMSFile::store(const MSExperiment& spectra,
+  void SiriusMSFile::store(const MSRun& spectra,
                            std::ofstream& os,
                            const FeatureMapping::FeatureToMs2Indices& feature_mapping,
                            const bool& feature_only,

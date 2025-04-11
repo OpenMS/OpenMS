@@ -1,6 +1,6 @@
 from Types cimport *
 from MSSpectrum cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/PScore.h>" namespace "OpenMS":
     
@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PScore.h>" namespace "OpenMS":
                 #  :param intensities: The intensities of the peaks
                 #  :param mz_window: The window in Thomson centered at each peak 
 
-        libcpp_vector[ libcpp_vector[ size_t ] ] calculateRankMap(MSExperiment & peak_map, double mz_window) except + nogil 
+        libcpp_vector[ libcpp_vector[ size_t ] ] calculateRankMap(MSRun & peak_map, double mz_window) except + nogil 
             # wrap-doc:
                 #  Precalculated, windowed peak ranks for a whole experiment
                 #  

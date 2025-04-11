@@ -12,9 +12,9 @@
 
 namespace OpenMS
 {
-  SpectrumAccessOpenMS::SpectrumAccessOpenMS(boost::shared_ptr<MSExperimentType> ms_experiment)
+  SpectrumAccessOpenMS::SpectrumAccessOpenMS(boost::shared_ptr<MSRunType> ms_experiment)
   {
-    // store shared pointer to the actual MSExperiment
+    // store shared pointer to the actual MSRun
     ms_experiment_ = std::move(ms_experiment);
   }
 

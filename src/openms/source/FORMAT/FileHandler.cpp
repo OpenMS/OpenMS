@@ -1392,7 +1392,7 @@ namespace OpenMS
 
   void FileHandler::storeQC(const String& input_file,
                const String& filename,
-               const MSExperiment& exp,
+               const MSRun& exp,
                const FeatureMap& feature_map,
                std::vector<ProteinIdentification>& prot_ids,
                std::vector<PeptideIdentification>& pep_ids,

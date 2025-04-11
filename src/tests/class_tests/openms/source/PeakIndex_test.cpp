@@ -14,7 +14,7 @@
 #include <OpenMS/KERNEL/PeakIndex.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 ///////////////////////////
 
 using namespace OpenMS;

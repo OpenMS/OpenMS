@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -20,7 +20,7 @@ namespace OpenMS
 {
   class MSChromatogram;
   class Mobilogram;
-  class OnDiscMSExperiment;
+  class OnDiscMSRun;
 
   /**
     @brief This class implements a fast peak-picking algorithm best suited for
@@ -130,7 +130,7 @@ public:
     void pick(const Mobilogram& input, Mobilogram& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = false) const;
 
     /**
-      @brief Applies the peak-picking algorithm to a map (MSExperiment). This
+      @brief Applies the peak-picking algorithm to a map (MSRun). This
       method picks peaks for each scan in the map consecutively. The resulting
       picked peaks are written to the output map.
      
@@ -141,7 +141,7 @@ public:
     void pickExperiment(const PeakMap& input, PeakMap& output, const bool check_spectrum_type = true) const;
 
     /**
-      @brief Applies the peak-picking algorithm to a map (MSExperiment). This
+      @brief Applies the peak-picking algorithm to a map (MSRun). This
       method picks peaks for each scan in the map consecutively. The resulting
       picked peaks are written to the output map.
      
@@ -158,13 +158,13 @@ public:
                         const bool check_spectrum_type = true) const;
 
     /**
-      @brief Applies the peak-picking algorithm to a map (MSExperiment). This
+      @brief Applies the peak-picking algorithm to a map (MSRun). This
       method picks peaks for each scan in the map consecutively. The resulting
       picked peaks are written to the output map.
 
       Currently we have to give up const-correctness but we know that everything on disc is constant
     */
-    void pickExperiment(/* const */ OnDiscMSExperiment& input, PeakMap& output, const bool check_spectrum_type = true) const;
+    void pickExperiment(/* const */ OnDiscMSRun& input, PeakMap& output, const bool check_spectrum_type = true) const;
 
 protected:
 

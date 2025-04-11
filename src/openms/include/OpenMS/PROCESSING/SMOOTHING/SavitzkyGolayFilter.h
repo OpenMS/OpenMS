@@ -12,7 +12,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/Mobilogram.h> 
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 namespace OpenMS
 {
@@ -197,7 +197,7 @@ public:
     }
 
     /**
-      @brief Removed the noise from an MSExperiment containing profile data.
+      @brief Removed the noise from an MSRun containing profile data.
     */
     void filterExperiment(PeakMap & map)
     {

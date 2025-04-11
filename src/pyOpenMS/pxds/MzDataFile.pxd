@@ -1,5 +1,5 @@
 
-from MSExperiment  cimport *
+from MSRun  cimport *
 from ChromatogramPeak cimport *
 from Peak1D cimport *
 from String cimport *
@@ -16,25 +16,25 @@ cdef extern from "<OpenMS/FORMAT/MzDataFile.h>" namespace "OpenMS":
         MzDataFile() except + nogil  # wrap-doc:File adapter for MzData files
         MzDataFile(MzDataFile &) except + nogil 
 
-        void load(const String& filename, MSExperiment & map) except + nogil 
+        void load(const String& filename, MSRun & map) except + nogil 
             # wrap-doc:
             #  Loads a map from a MzData file
             #  
             #  
             #  :param filename: Directory of the file with the file name
-            #  :param map: It has to be a MSExperiment or have the same interface
+            #  :param map: It has to be a MSRun or have the same interface
             #  :raises:
             #    Exception: FileNotFound is thrown if the file could not be opened
             #  :raises:
             #    Exception: ParseError is thrown if an error occurs during parsing
 
-        void store(const String& filename, MSExperiment & map) except + nogil 
+        void store(const String& filename, MSRun & map) except + nogil 
             # wrap-doc:
             #  Stores a map in a MzData file
             #  
             #  
             #  :param filename: Directory of the file with the file name
-            #  :param map: It has to be a MSExperiment or have the same interface
+            #  :param map: It has to be a MSRun or have the same interface
             #  :raises:
             #    Exception: UnableToCreateFile is thrown if the file could not be created
 

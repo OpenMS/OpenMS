@@ -18,7 +18,7 @@ namespace OpenMS
   /**
     @brief Helper class for looking up spectra based on different attributes
 
-    This class provides functions for looking up spectra that are stored in a vector (e.g. MSExperiment::getSpectra()) by index, retention time, native ID, scan number (extracted from the native ID), or by a reference string containing any of the previous information ("spectrum reference").
+    This class provides functions for looking up spectra that are stored in a vector (e.g. MSRun::getSpectra()) by index, retention time, native ID, scan number (extracted from the native ID), or by a reference string containing any of the previous information ("spectrum reference").
 
     @par Spectrum reference formats
     Formats for spectrum references are defined by regular expressions, that must contain certain fields (named groups, i.e. "(?<GROUP>...)") referring to usable information.

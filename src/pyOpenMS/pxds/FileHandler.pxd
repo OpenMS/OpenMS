@@ -1,4 +1,4 @@
-from MSExperiment  cimport *
+from MSRun  cimport *
 from FeatureMap cimport *
 from Feature cimport *
 from String cimport *
@@ -12,14 +12,14 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
         #  Facilitates file handling by file type recognition
         #  This class provides file type recognition from the file name and
         #  for some types from the file content
-        #  It offers a common interface to load MSExperiment data
+        #  It offers a common interface to load MSRun data
         #  and allows querying for supported file types
         #  
         #  Usage:
         #
         #  .. code-block:: python
         #  
-        #    MSExperiment exp;
+        #    MSRun exp;
         #    FileHandler().loadExperiment("test.mzXML", exp)
         #    FileHandler().loadExperiment("test.mzML", exp)
         #  
@@ -28,9 +28,9 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
         FileHandler() except + nogil 
         FileHandler(FileHandler) except + nogil  # wrap-ignore
 
-        void loadExperiment(String, MSExperiment &) except + nogil
+        void loadExperiment(String, MSRun &) except + nogil
             # wrap-doc:
-            #  Loads a file into an MSExperiment
+            #  Loads a file into an MSRun
             #  
             #  
             #  :param filename: The file name of the file to load
@@ -45,9 +45,9 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
             #  :raises:
             #    Exception: ParseError is thrown if an error occurs during parsing
 
-        void storeExperiment(String, MSExperiment) except + nogil
+        void storeExperiment(String, MSRun) except + nogil
             # wrap-doc:
-            #  Stores an MSExperiment to a file\n
+            #  Stores an MSRun to a file\n
             #  
             #  The file type to store the data in is determined by the file name. Supported formats for storing are mzML, mzXML, mzData and DTA2D. If the file format cannot be determined from the file name, the mzML format is used
             #  

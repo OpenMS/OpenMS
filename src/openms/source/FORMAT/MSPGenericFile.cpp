@@ -25,7 +25,7 @@ namespace OpenMS
     defaultsToParam_(); // write defaults into Param object param_
   }
 
-  MSPGenericFile::MSPGenericFile(const String& filename, MSExperiment& library) :
+  MSPGenericFile::MSPGenericFile(const String& filename, MSRun& library) :
     DefaultParamHandler("MSPGenericFile")
   {
     getDefaultParameters(defaults_);
@@ -44,7 +44,7 @@ namespace OpenMS
     synonyms_separator_ = param_.getValue("synonyms_separator").toString();
   }
 
-  void MSPGenericFile::load(const String& filename, MSExperiment& library)
+  void MSPGenericFile::load(const String& filename, MSRun& library)
   {
     loaded_spectra_names_.clear();
     synonyms_.clear();
@@ -165,7 +165,7 @@ namespace OpenMS
     OPENMS_LOG_INFO << "Loading spectra from .msp file completed." << std::endl;
   }
 
-  void MSPGenericFile::store(const String& filename, const MSExperiment& library) const
+  void MSPGenericFile::store(const String& filename, const MSRun& library) const
   {
     std::ofstream output_file(filename.c_str());
 
@@ -237,7 +237,7 @@ namespace OpenMS
 
   void MSPGenericFile::addSpectrumToLibrary(
     MSSpectrum& spectrum,
-    MSExperiment& library
+    MSRun& library
   )
   {
     if (static_cast<int>(spectrum.getMetaValue("is_valid")) == 0)

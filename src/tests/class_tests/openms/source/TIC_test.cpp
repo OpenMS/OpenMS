@@ -11,7 +11,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/QC/TIC.h>
 
 ///////////////////////////
@@ -43,9 +43,9 @@ START_SECTION(Status requirements() const override)
 TEST_EQUAL((tic.requirements() == QCBase::Status(QCBase::Requires::RAWMZML)), true);
 END_SECTION
 
-START_SECTION(void compute(const MSExperiment& exp, float bin_size))
+START_SECTION(void compute(const MSRun& exp, float bin_size))
 // very simple test ATM, check if compute returns an empty Result struct
-MSExperiment exp;
+MSRun exp;
 TEST_EQUAL(tic.compute(exp, 0) == TIC::Result(), true)
 END_SECTION
 

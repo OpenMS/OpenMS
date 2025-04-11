@@ -56,13 +56,13 @@ class TestIndexedMzMLFileLoader(unittest.TestCase):
         self.filename = os.path.join(dirname, "test.indexed.mzML").encode()
 
     def test_readfile(self):
-        e = pyopenms.OnDiscMSExperiment();
+        e = pyopenms.OnDiscMSRun();
         success = pyopenms.IndexedMzMLFileLoader().load(self.filename, e)
 
         self.assertTrue(success)
 
     def test_readfile_content(self):
-        e = pyopenms.OnDiscMSExperiment();
+        e = pyopenms.OnDiscMSRun();
         pyopenms.IndexedMzMLFileLoader().load(self.filename, e)
 
         self.assertEqual( e.getNrSpectra() ,  2)

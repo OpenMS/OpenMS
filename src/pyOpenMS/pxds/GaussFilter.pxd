@@ -1,6 +1,6 @@
 from ProgressLogger cimport *
 from DefaultParamHandler cimport *
-from MSExperiment cimport *
+from MSRun cimport *
 from MSSpectrum cimport *
 from MSChromatogram cimport *
 from Peak1D cimport *
@@ -18,5 +18,5 @@ cdef extern from "<OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>" namespace "OpenMS
 
         void filter(MSSpectrum & spectrum) except + nogil  # wrap-doc:Smoothes an MSSpectrum containing profile data
         void filter(MSChromatogram & chromatogram) except + nogil 
-        void filterExperiment(MSExperiment & exp) except + nogil  # wrap-doc:Smoothes an MSExperiment containing profile data
+        void filterExperiment(MSRun & exp) except + nogil  # wrap-doc:Smoothes an MSRun containing profile data
 
