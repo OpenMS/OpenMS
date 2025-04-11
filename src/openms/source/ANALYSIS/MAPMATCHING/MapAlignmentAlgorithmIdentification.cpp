@@ -10,7 +10,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
-#include <OpenMS/KERNEL/AnnotatedMSRun.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 
 using namespace std;
 

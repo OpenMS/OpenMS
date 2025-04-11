@@ -17,7 +17,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/KERNEL/AnnotatedMSRun.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 
 ///////////////////////////
 

@@ -14,7 +14,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/AnnotatedMSRun.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <OpenMS/PROCESSING/MISC/DataFilters.h>

@@ -10,7 +10,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/AnnotatedMSRun.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>

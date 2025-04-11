@@ -5,8 +5,8 @@
 // $Maintainer: Timo Sachsenberg$
 // $Authors: David Voigt $
 // --------------------------------------------------------------------------
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 
-#include <OpenMS/KERNEL/AnnotatedMSRun.h>
 
 namespace OpenMS
 {
