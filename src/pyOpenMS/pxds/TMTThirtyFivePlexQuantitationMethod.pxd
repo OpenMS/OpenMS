@@ -5,5 +5,5 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/TMTThirtyFivePlexQuantitationMet
 
     cdef cppclass TMTThirtyFivePlexQuantitationMethod(IsobaricQuantitationMethod) :
         # IsobaricQuantitationMethod
-        TMTThirtyFIvePlexQuantitationMethod() except + nogil
-        TMTThirtyFIvePlexQuantitationMethod(TMTThirtyFivePlexQuantitationMethod &) except + nogil
+        TMTThirtyFivePlexQuantitationMethod() except + nogil
+        TMTThirtyFivePlexQuantitationMethod(TMTThirtyFivePlexQuantitationMethod &) except + nogil
