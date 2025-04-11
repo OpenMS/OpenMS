@@ -174,7 +174,7 @@ END_SECTION
 
 START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const)){
 
-  double test_matrix[35][35] ={
+  double test_matrix[32][32] ={
      {0.9026, 0.0078, 0.0093,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,},   
      {0, 0.8948,0,0, 0.0082,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,},
      {0,0, 0.8981,0, 0.0065, 0.0147,0,0,0, 0.0013,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,},
@@ -211,7 +211,7 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const)){
 
      
   Matrix<double> test_Matrix;
-  test_Matrix.setMatrix<double,35,35>(test_matrix);
+  test_Matrix.setMatrix<double,32,32>(test_matrix);
 
   TMTThirtyTwoPlexQuantitationMethod quant_meth;
 
@@ -219,11 +219,11 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const)){
   // for tmt32plex
   Matrix<double> m = quant_meth.getIsotopeCorrectionMatrix();
 
-  TEST_EQUAL(m.rows(), 35)
-  TEST_EQUAL(m.cols(), 35)
+  TEST_EQUAL(m.rows(), 32)
+  TEST_EQUAL(m.cols(), 32)
 
-  ABORT_IF(m.rows() != 35)
-  ABORT_IF(m.cols() != 35)
+  ABORT_IF(m.rows() != 32)
+  ABORT_IF(m.cols() != 32)
 
   for(size_t i = 0; i < m.rows(); ++i)
   {

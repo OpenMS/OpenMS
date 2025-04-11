@@ -1,9 +1,9 @@
 from Types cimport *
 from IsobaricQuantitationMethod cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/TMTThirtyFivePlexQuantitationMethod.h>" namespace "OpenMS":
 
-    cdef cppclass TMTThirtyTwoPlexQuantitationMethod(IsobaricQuantitationMethod) :
+    cdef cppclass TMTThirtyFivePlexQuantitationMethod(IsobaricQuantitationMethod) :
         # IsobaricQuantitationMethod
-        TMTThirtyTwoPlexQuantitationMethod() except + nogil
-        TMTThirtyTwoPlexQuantitationMethod(TMTThirtyTwoPlexQuantitationMethod &) except + nogil
+        TMTThirtyFIvePlexQuantitationMethod() except + nogil
+        TMTThirtyFIvePlexQuantitationMethod(TMTThirtyFivePlexQuantitationMethod &) except + nogil
