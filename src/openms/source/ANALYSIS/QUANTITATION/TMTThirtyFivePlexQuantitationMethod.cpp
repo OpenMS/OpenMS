@@ -119,7 +119,7 @@ namespace OpenMS{
         defaults_.setValue("channel_135ND_description", "", "Description for the content of the 135ND channel.");
         defaults_.setValue("channel_135CD_description", "", "Description for the content of the 135CD channel.");
 
-        defaults_.setValue("reference_channel", "126","The reference channel (126, 127N, 127C, 127D, 128N, 128C, 128ND, 128CD, 129N, 129C, 129ND, 129CD, 130N, 130C, 130ND, 130CD, 131N, 131C, 131ND, 131CD, 132N, 132C, 132ND, 132CD, 133N, 133C, 133ND, 133CD, 134N, 134ND, 134CD, 135ND).");
+        defaults_.setValue("reference_channel", "126","The reference channel (126, 127N, 127C, 127D, 128N, 128C, 128ND, 128CD, 129N, 129C, 129ND, 129CD, 130N, 130C, 130ND, 130CD, 131N, 131C, 131ND, 131CD, 132N, 132C, 132ND, 132CD, 133N, 133C, 133ND, 133CD, 134N, 134C, 134ND, 134CD, 135N, 135ND, 135CD).");
         defaults_.setValidStrings("reference_channel", TMTThirtyFivePlexQuantitationMethod::channel_names_);
 
         // TODO :verify these below values
@@ -161,7 +161,7 @@ namespace OpenMS{
                                             "0.07/0.07/NA/NA        /1.90/6.75/NA      /0.31/NA/0.22      /NA/0.00/NA/NA",//135CD
                                             },
                                     "Correction matrix for isotope distributions in percent from the Thermo data sheet (see documentation);"
-                                    "Please provide 32 entries (rows), separated by comma, where each entry contains 14 values in the following format: <-C13-H2>/<-2C13>/<-N15-H2>/<-C13-N15>/<-H2>/<-C13>/<-N15>/<+N15>/<+C13>/<+H2>/<+N15+C13>/<+N15+H2>/<+2C13>/<+C13+H2> e.g. one row may look like this: 'NA/NA/NA/NA   /0.82/NA/NA/  /0.30/8.71/0.33  /0.00/0.00/0.26/0.00'. You may use whitespaces at your leisure to ease reading.");
+                                    "Please provide 35 entries (rows), separated by comma, where each entry contains 14 values in the following format: <-C13-H2>/<-2C13>/<-N15-H2>/<-C13-N15>/<-H2>/<-C13>/<-N15>/<+N15>/<+C13>/<+H2>/<+N15+C13>/<+N15+H2>/<+2C13>/<+C13+H2> e.g. one row may look like this: 'NA/NA/NA/NA   /0.82/NA/NA/  /0.30/8.71/0.33  /0.00/0.00/0.26/0.00'. You may use whitespaces at your leisure to ease reading.");
         defaultsToParam_();
     }
 
