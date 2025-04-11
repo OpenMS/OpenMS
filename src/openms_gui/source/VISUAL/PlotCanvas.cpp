@@ -745,8 +745,6 @@ namespace OpenMS
         // Exception for Plot1DCanvas, here we add the meta data of the one spectrum
         if (auto lp1 = dynamic_cast<LayerData1DPeak*>(&layer))
         {
-<<<<<<< HEAD
-          dlg.add((*layer.getPeakDataMuteable())[layer.getCurrentSpectrumIndex()].first);
           dlg.add((*lp1->getPeakDataMuteable())[lp1->getCurrentIndex()]);
         }
       }
