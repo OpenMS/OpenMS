@@ -255,7 +255,6 @@ jobs:
 
         # export OpenMP_ROOT="$(brew --prefix libomp)"
         export CMAKE_PREFIX_PATH="$(brew --prefix libomp);$(echo $Qt6_DIR)/lib/cmake;${Qt6_DIR}"
-        export CMAKE_INSTALL_RPATH="$(brew --prefix libomp)/lib"
 
         #ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
 
@@ -300,6 +299,9 @@ jobs:
 
           # copy to directory
           cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
+
+          # Remove OpenMP dylib
+          rm OpenMS/bld/pyOpenMS/pyopenms/libomp.dylib
 
           # clean up
           # conda deactivate
