@@ -86,7 +86,7 @@ namespace OpenMS
 
     if (clear_ids)
     { // start with empty IDs
-      map.clearAllPeptideIdentifications();
+      map.getPeptideIdentifications().clear();
       map.getProteinIdentifications().clear();
     }
 

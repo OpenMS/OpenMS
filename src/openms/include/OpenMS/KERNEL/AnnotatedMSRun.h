@@ -89,13 +89,10 @@ namespace OpenMS
     void setPeptideIdentifications(std::vector<PeptideIdentification>&& ids);
 
     /**
-     * @brief Clear all peptide identifications
+     * @brief Set all peptide identifications for all spectra
+     * @param ids Vector of peptide identifications
      */
-    void clearAllPeptideIdentifications()
-    {
-      std::vector<PeptideIdentification> empty_ids;
-      peptide_ids.swap(empty_ids);
-    }
+    void setPeptideIdentifications(const std::vector<PeptideIdentification>& ids);
 
     /**
      * @brief Get the MSExperiment
@@ -108,6 +105,18 @@ namespace OpenMS
      * @return A const reference to the MSExperiment
      */
     const MSExperiment& getMSExperiment() const;
+
+    /**
+     * @brief Set the MSExperiment
+     * @param experiment The MSExperiment to set
+     */
+    void setMSExperiment(MSExperiment&& experiment);
+
+    /**
+     * @brief Set the MSExperiment
+     * @param experiment The MSExperiment to set
+     */
+    void setMSExperiment(const MSExperiment& experiment);
 
     /**
      * @brief Get a const iterator to the beginning of the data

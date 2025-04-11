@@ -20,6 +20,11 @@ namespace OpenMS
     return peptide_ids;
   }
 
+  void AnnotatedMSRun::setPeptideIdentifications(const std::vector<PeptideIdentification>& ids)
+  {
+    peptide_ids = ids;
+  }
+
   void AnnotatedMSRun::setPeptideIdentifications(std::vector<PeptideIdentification>&& ids)
   {
     peptide_ids = std::move(ids);
@@ -34,4 +39,15 @@ namespace OpenMS
   {
     return data;
   }
+
+  void AnnotatedMSRun::setMSExperiment(MSExperiment&& experiment)
+  {
+    data = std::move(experiment);
+  }
+
+  void AnnotatedMSRun::setMSExperiment(const MSExperiment& experiment)
+  {
+    data = experiment;
+  }
+
 }

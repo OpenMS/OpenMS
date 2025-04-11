@@ -227,7 +227,7 @@ START_SECTION((void clearAllPeptideIdentifications()))
   annotated_data.getPeptideIdentifications()[1].insertHit(hit2);
   
   // Clear all peptide identifications
-  annotated_data.clearAllPeptideIdentifications();
+  annotated_data.getPeptideIdentifications().clear();
   
   TEST_EQUAL(annotated_data.getPeptideIdentifications().size(), 0)
 END_SECTION
