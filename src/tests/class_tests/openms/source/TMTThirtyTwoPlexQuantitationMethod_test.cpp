@@ -173,7 +173,6 @@ END_SECTION
 
 
 START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const)){
-
   double test_matrix[32][32] ={
      {0.9026, 0.0078, 0.0093,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,},   
      {0, 0.8948,0,0, 0.0082,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,},
