@@ -14,8 +14,8 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 - Libary:
   ID information got factored out of MSSpectrum
 
-- removed tools:
-  SpecLibCreator and SpecLibSearch
+- removed outdated tools:
+  SpecLibCreator, SpecLibSearch, IDMassAccuracy
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.4.0     (under development)              ----
