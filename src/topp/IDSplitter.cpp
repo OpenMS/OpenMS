@@ -78,9 +78,9 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (data annotated with identifications)");
-    setValidFormats_("in", ListUtils::create<String>("mzML,featureXML,consensusXML"));
+    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "Output file (data without identifications). Either 'out' or 'id_out' are required. They can be used together.", false);
-    setValidFormats_("out", ListUtils::create<String>("mzML,featureXML,consensusXML"));
+    setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
     registerOutputFile_("id_out", "<file>", "", "Output file (identifications). Either 'out' or 'id_out' are required. They can be used together.", false);
     setValidFormats_("id_out", ListUtils::create<String>("idXML"));
   }
@@ -148,8 +148,8 @@ protected:
     if (!id_out.empty())
     {
       // IDMapper can match a peptide ID to several overlapping features,
-      // resulting in duplicates; this shouldn't be the case for peak data
-      if (in_type != FileTypes::MZML) removeDuplicates_(peptides);
+      // resulting in duplicates
+      removeDuplicates_(peptides);
       FileHandler().storeIdentifications(id_out, proteins, peptides, {FileTypes::IDXML});
     }
 
