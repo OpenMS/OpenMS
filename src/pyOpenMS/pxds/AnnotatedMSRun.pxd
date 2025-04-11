@@ -50,11 +50,3 @@ cdef extern from "<OpenMS/METADATA/AnnotatedMSRun.h>" namespace "OpenMS":
         # Access methods
         libcpp_pair[MSSpectrum&, PeptideIdentification&] operator[](size_t idx) nogil except + # wrap-ignore
         
-cdef extern from "<OpenMS/METADATA/AnnotatedMSRun.h>" namespace "OpenMS::AnnotatedMSRun":
-    
-    cdef cppclass Mapping:
-        # wrap-attach:
-        #   AnnotatedMSRun
-        Mapping() nogil except +
-        MSSpectrum& first "first" nogil except + # wrap-doc:Access to the spectrum
-        PeptideIdentification& second "second" nogil except + # wrap-doc:Access to the peptide identification
