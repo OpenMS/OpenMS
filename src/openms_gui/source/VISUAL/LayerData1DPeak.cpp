@@ -103,13 +103,13 @@ namespace OpenMS
   void LayerData1DPeak::synchronizePeakAnnotations()
   {
     // Return if no valid peak layer attached
-    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerDataBase::DT_PEAK)
+    if (getPeakData() == nullptr || getPeakData()->getMSExperiment().empty() || type != LayerDataBase::DT_PEAK)
     {
       return;
     }
 
     // get mutable access to the spectrum
-    MSSpectrum& spectrum = getPeakDataMuteable()->getSpectrum(current_idx_);
+    MSSpectrum& spectrum = getPeakDataMuteable()->getMSExperiment().getSpectrum(current_idx_);
 
     int ms_level = spectrum.getMSLevel();
 
@@ -117,7 +117,7 @@ namespace OpenMS
       return;
 
     // store user fragment annotations
-    vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
+    vector<PeptideIdentification>& pep_ids = getPeakDataMuteable()->getPeptideIdentifications();
 
     // no ID selected
     if (peptide_id_index == -1 || peptide_hit_index == -1)
@@ -193,7 +193,7 @@ namespace OpenMS
   void LayerData1DPeak::removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations)
   {
     // Return if no valid peak layer attached
-    if (getPeakData() == nullptr || getPeakData()->empty() || type != LayerDataBase::DT_PEAK)
+    if (getPeakData() == nullptr || getPeakData()->getMSExperiment().empty() || type != LayerDataBase::DT_PEAK)
     {
       return;
     }
@@ -205,7 +205,7 @@ namespace OpenMS
     }
 
     // get mutable access to the spectrum
-    MSSpectrum& spectrum = getPeakDataMuteable()->getSpectrum(current_idx_);
+    MSSpectrum& spectrum = getPeakDataMuteable()->getMSExperiment().getSpectrum(current_idx_);
     int ms_level = spectrum.getMSLevel();
 
     // wrong MS level
@@ -218,17 +218,9 @@ namespace OpenMS
     // that this function returns prematurely is unlikely,
     // since we are deleting existing annotations,
     // that have to be somewhere, but better make sure
-    vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
-    if (pep_ids.empty())
-    {
-      return;
-    }
-    vector<PeptideHit>& hits = pep_ids[peptide_id_index].getHits();
-    if (hits.empty())
-    {
-      return;
-    }
-    PeptideHit& hit = hits[peptide_hit_index];
+    PeptideIdentification& pep_ids = getPeakDataMuteable()->getPeptideIdentifications()[peptide_id_index];
+
+    PeptideHit& hit = pep_ids.getHits()[peptide_hit_index];
     vector<PeptideHit::PeakAnnotation> fas = hit.getPeakAnnotations();
     if (fas.empty())
     {

@@ -337,13 +337,14 @@ namespace OpenMS
           auto local_max  = -numeric_limits<Peak1D::IntensityType>::max();
           if (auto* lp = dynamic_cast<LayerDataPeak*>(&getLayer(i)))
           {
-            for (ExperimentType::ConstAreaIterator it = lp->getPeakData()->areaBeginConst(visible_area_.getAreaUnit().getMinRT(), visible_area_.getAreaUnit().getMaxRT(),
+            const MSExperiment& peak_data = lp->getPeakData()->getMSExperiment();
+            for (auto it = peak_data.areaBeginConst(visible_area_.getAreaUnit().getMinRT(), visible_area_.getAreaUnit().getMaxRT(),
                                                                                           visible_area_.getAreaUnit().getMinMZ(), visible_area_.getAreaUnit().getMaxMZ());
-                 it != lp->getPeakData()->areaEndConst();
+                 it != peak_data.areaEndConst();
                  ++it)
             {
               PeakIndex pi = it.getPeakIndex();
-              if (it->getIntensity() > local_max && getLayer(i).filters.passes((*lp->getPeakData())[pi.spectrum], pi.peak))
+              if (it->getIntensity() > local_max && getLayer(i).filters.passes(peak_data[pi.spectrum], pi.peak))
               {
                 local_max = it->getIntensity();
               }
@@ -720,7 +721,7 @@ namespace OpenMS
         else if (auto* lp = dynamic_cast<LayerDataPeak*>(&getCurrentLayer()))
         {
           //meta info
-          const ExperimentType::SpectrumType & s = selected_peak_.getSpectrum(*lp->getPeakData());
+          const ExperimentType::SpectrumType & s = selected_peak_.getSpectrum(lp->getPeakData()->getMSExperiment());
           for (Size m = 0; m < s.getFloatDataArrays().size(); ++m)
           {
             if (selected_peak_.peak < s.getFloatDataArrays()[m].size())
@@ -886,8 +887,9 @@ namespace OpenMS
 
       //add surrounding survey scans
       //find nearest survey scan
-      SignedSize size = lp->getPeakData()->size();
-      Int current = lp->getPeakData()->RTBegin(e_units.getMinRT()) - lp->getPeakData()->begin();
+      const MSExperiment& peak_data = lp->getPeakData()->getMSExperiment();
+      SignedSize size = peak_data.size();
+      Int current = peak_data.RTBegin(e_units.getMinRT()) - peak_data.begin();
       if (current == size)  // if the user clicked right of the last MS1 scan
       {
         current = std::max(SignedSize{0}, size - 1); // we want the rightmost valid scan index
@@ -896,12 +898,12 @@ namespace OpenMS
       SignedSize i = 0;
       while (current + i < size || current - i >= 0)
       {
-        if (current + i < size && (*lp->getPeakData())[current + i].getMSLevel() == 1)
+        if (current + i < size && peak_data[current + i].getMSLevel() == 1)
         {
           current += i;
           break;
         }
-        if (current - i >= 0 && (*lp->getPeakData())[current - i].getMSLevel() == 1)
+        if (current - i >= 0 && peak_data[current - i].getMSLevel() == 1)
         {
           current -= i;
           break;
@@ -914,7 +916,7 @@ namespace OpenMS
       i = 1;
       while (current - i >= 0 && indices.size() < 5)
       {
-        if ((*lp->getPeakData())[current - i].getMSLevel() == 1)
+        if (peak_data[current - i].getMSLevel() == 1)
         {
           indices.push_back(current - i);
         }
@@ -923,7 +925,7 @@ namespace OpenMS
       i = 1;
       while (current + i < size && indices.size() < 9)
       {
-        if ((*lp->getPeakData())[current + i].getMSLevel() == 1)
+        if (peak_data[current + i].getMSLevel() == 1)
         {
           indices.push_back(current + i);
         }
@@ -939,7 +941,7 @@ namespace OpenMS
         {
           ms1_scans->addSeparator();
         }
-        a = ms1_scans->addAction(QString("RT: ") + QString::number((*lp->getPeakData())[indices[i]].getRT()));
+        a = ms1_scans->addAction(QString("RT: ") + QString::number(peak_data[indices[i]].getRT()));
         a->setData(indices[i]);
         if (indices[i] == current)
         {
@@ -950,7 +952,7 @@ namespace OpenMS
         {
           ms1_meta->addSeparator();
         }
-        a = ms1_meta->addAction(QString("RT: ") + QString::number((*lp->getPeakData())[indices[i]].getRT()));
+        a = ms1_meta->addAction(QString("RT: ") + QString::number(peak_data[indices[i]].getRT()));
         a->setData(indices[i]);
         if (indices[i] == current)
         {
@@ -972,7 +974,8 @@ namespace OpenMS
         // NOTE: that if we go for the visible area, we run the
         // risk of iterating through *all* the scans.
         check_area.RangeMZ::extend((RangeMZ)visible_area_.getAreaUnit());
-        const auto& specs = lp->getPeakData()->getSpectra();
+        const MSExperiment& peak_data = lp->getPeakData()->getMSExperiment();
+        const auto& specs = peak_data.getSpectra();
         check_area.RangeRT::operator=(RangeRT(specs[indices.back()].getRT(), specs[indices.front()].getRT()));
         item_added = collectFragmentScansInArea_(check_area, a, msn_scans, msn_meta);
 
@@ -988,7 +991,7 @@ namespace OpenMS
         context_menu->addSeparator();
       }
       
-      auto it_closest_MS = lp->getPeakData()->getClosestSpectrumInRT(e_units.getMinRT());
+      auto it_closest_MS = peak_data.getClosestSpectrumInRT(e_units.getMinRT());
       if (it_closest_MS->containsIMData())
       {
         context_menu->addAction(("Switch to ion mobility view (MSLevel: " + String(it_closest_MS->getMSLevel()) + ";RT: " + String(it_closest_MS->getRT(), false) + ")").c_str(),
@@ -1097,7 +1100,7 @@ namespace OpenMS
       settings_menu->addAction("Show/hide projections");
       settings_menu->addAction("Show/hide MS/MS precursors");
 
-      const PeakMap& exp = *lc->getChromatogramData();
+      const PeakMap& exp = lc->getChromatogramData()->getMSExperiment();
 
       constexpr int CHROMATOGRAM_SHOW_MZ_RANGE = 10;
       auto search_area = e_units;
@@ -1552,8 +1555,10 @@ namespace OpenMS
     {
       auto& layer = dynamic_cast<LayerDataPeak&>(getCurrentLayer());
       bool item_added = false;
-      const auto last_RT = layer.getPeakData()->RTEnd(range.getMaxRT());
-      for (ExperimentType::ConstIterator it = layer.getPeakData()->RTBegin(range.getMinRT());
+      const MSExperiment& peak_data = layer.getPeakData()->getMSExperiment();
+      const auto last_RT = peak_data.RTEnd(range.getMaxRT());
+
+      for (auto it = peak_data.RTBegin(range.getMinRT());
                                          it != last_RT; ++it)
       {
         if (it->getPrecursors().empty()) continue;
@@ -1562,9 +1567,9 @@ namespace OpenMS
         if (it->getMSLevel() > 1 && range.containsMZ(mz))
         {
           a = msn_scans->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz));
-          a->setData((int)(it - layer.getPeakData()->begin()));
+          a->setData((int)(it - peak_data.begin()));
           a = msn_meta->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz));
-          a->setData((int)(it - layer.getPeakData()->begin()));
+          a->setData((int)(it - peak_data.begin()));
           item_added = true;
         }
       }

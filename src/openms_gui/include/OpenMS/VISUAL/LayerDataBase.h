@@ -12,11 +12,6 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/AnnotatedMSRun.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-
 #include <OpenMS/PROCESSING/MISC/DataFilters.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -25,6 +20,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/MISC/CommonDefs.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
@@ -42,8 +38,6 @@ namespace OpenMS
   class LayerData1DBase;
   class LayerStoreData;
   class LayerStatistics;
-  class OnDiscMSExperiment;
-
   class OSWData;
   class Painter1DBase;
   class Painter2DBase;
@@ -279,128 +273,6 @@ namespace OpenMS
                           const std::vector<ProteinIdentification>& protein_identifications);
 
 
-    /// Returns a const reference to the annotations of the current spectrum (1D view)
-    const Annotations1DContainer& getCurrentAnnotations() const
-    {
-      return annotations_1d[current_spectrum_idx_];
-    }
-
-    /// Returns a mutable reference to the annotations of the current spectrum (1D view)
-    Annotations1DContainer& getCurrentAnnotations()
-    {
-      return annotations_1d[current_spectrum_idx_];
-    }
-
-    /// Returns a const reference to the annotations of the current spectrum (1D view)
-    const Annotations1DContainer& getAnnotations(Size spectrum_index) const
-    {
-      return annotations_1d[spectrum_index];
-    }
-
-    /// Returns a mutable reference to the annotations of the current spectrum (1D view)
-    Annotations1DContainer& getAnnotations(Size spectrum_index)
-    {
-      return annotations_1d[spectrum_index];
-    }
-
-    /**
-    @brief Returns a const reference to the current spectrum (1D view)
-
-    @note Only use this function to access the current spectrum for the 1D view
-    */
-    const ExperimentType::SpectrumType& getCurrentSpectrum() const;
-
-    void sortCurrentSpectrumByPosition()
-    {
-      cached_spectrum_.sortByPosition();
-    }
-
-    /// Returns a const-copy of the required spectrum which is guaranteed to be populated with raw data
-    const ExperimentType::SpectrumType getSpectrum(Size spectrum_idx) const;
-
-    /// Get the index of the current spectrum (1D view)
-    Size getCurrentSpectrumIndex() const
-    {
-      return current_spectrum_idx_;
-    }
-
-    /// Set the index of the current spectrum (1D view)
-    void setCurrentSpectrumIndex(Size index)
-    {
-      current_spectrum_idx_ = index;
-      updateCache_();
-    }
-
-
-    /// get the full chromExperiment
-    /// Could be backed up in layer.getChromatogramData() (if layer.getPeakDataMuteable() shows converted chroms already)
-    /// ... or layer.getChromatogramData() is empty and thus layer.getPeakDataMuteable() is the original chrom data
-    ExperimentSharedPtrType getFullChromData()
-    {
-      ExperimentSharedPtrType exp_sptr(getChromatogramData().get() == nullptr ||
-                                               getChromatogramData().get()->getNrChromatograms() == 0 ?
-                                           getPeakDataMuteable() :
-                                           getChromatogramData());
-      return exp_sptr;
-    }
-
-    /// Check whether the current layer should be represented as ion mobility
-    bool isIonMobilityData() const
-    {
-      return this->getPeakData()->getMSExperiment().size() > 0 &&
-             this->getPeakData()->getMSExperiment().metaValueExists("is_ion_mobility") &&
-             this->getPeakData()->getMSExperiment().getMetaValue("is_ion_mobility").toBool();
-    }
-
-    void labelAsIonMobilityData() const
-    {
-      peak_map_->getMSExperiment().setMetaValue("is_ion_mobility", "true");
-    }
-
-    /// Check whether the current layer contains DIA (SWATH-MS) data
-    bool isDIAData() const
-    {
-      return this->getPeakData()->getMSExperiment().size() > 0 &&
-             this->getPeakData()->getMSExperiment().metaValueExists("is_dia_data") &&
-             this->getPeakData()->getMSExperiment().getMetaValue("is_dia_data").toBool();
-    }
-
-    /// Label the current layer as DIA (SWATH-MS) data
-    void labelAsDIAData()
-    {
-      peak_map_->getMSExperiment().setMetaValue("is_dia_data", "true");
-    }
-
-    /**
-    @brief Check whether the current layer is a chromatogram
-     
-    This is needed because type will *not* distinguish properly between
-    chromatogram and spectra data. This is due to the fact that we store
-    chromatograms for display in 1D in a data layer using MSSpectrum and
-    so the layer looks like PEAK data to tools.
-    */
-    bool chromatogram_flag_set() const
-    {
-      return this->getPeakData()->getMSExperiment().size() > 0 &&
-             this->getPeakData()->getMSExperiment().metaValueExists("is_chromatogram") &&
-             this->getPeakData()->getMSExperiment().getMetaValue("is_chromatogram").toBool();
-    }
-
-    /// set the chromatogram flag
-    void set_chromatogram_flag()
-    {
-      peak_map_->getMSExperiment().setMetaValue("is_chromatogram", "true");
-    }
-
-    /// remove the chromatogram flag
-    void remove_chromatogram_flag()
-    {
-      if (this->chromatogram_flag_set())
-      {
-        peak_map_->getMSExperiment().removeMetaValue("is_chromatogram");
-      }
-    }
-
     /**
       @brief Update ranges of the underlying data
     */
@@ -421,13 +293,6 @@ namespace OpenMS
 
     /// Compute layer statistics (via visitor)
     virtual std::unique_ptr<LayerStatistics> getStats() const = 0;
-
-    /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
-    /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated
-    void synchronizePeakAnnotations();
-
-    /// remove peak annotations in the given list from the currently active PeptideHit
-    void removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem *>& selected_annotations);
 
     /// The name of the layer, usually the basename of the file
     const String& getName() const

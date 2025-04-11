@@ -35,6 +35,9 @@ namespace OpenMS
   public:
     typedef std::pair<MSSpectrum&, PeptideIdentification&> Mapping;
     typedef std::pair<const MSSpectrum&, const PeptideIdentification&> ConstMapping;
+    using SpectrumType = MSExperiment::SpectrumType;
+    using ChromatogramType = MSExperiment::ChromatogramType;
+
 
     /// Default constructor
     AnnotatedMSRun() = default;

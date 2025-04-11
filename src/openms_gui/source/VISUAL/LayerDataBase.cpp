@@ -53,6 +53,7 @@ namespace OpenMS
     return n;
   }
 
+  /*
   void LayerDataBase::updateCache_()
   {
     if (peak_map_->getMSExperiment().getNrSpectra() > current_spectrum_idx_ && !(*peak_map_)[current_spectrum_idx_].first.empty())
@@ -86,7 +87,7 @@ namespace OpenMS
   {
     chrom_annotation_ = OSWDataSharedPtrType(new OSWData(std::move(data)));
   }
-
+*/
   bool LayerDataBase::annotate(const vector<PeptideIdentification>& identifications,
                            const vector<ProteinIdentification>& protein_identifications)
   {
@@ -115,13 +116,15 @@ namespace OpenMS
 
     return false;
   }
-
+    /*
   const LayerDataBase::ExperimentType::SpectrumType& LayerDataBase::getCurrentSpectrum() const
   {
     return cached_spectrum_;
   }
 
+
   /// Returns a const-copy of the required spectrum which is guaranteed to be populated with raw data
+
 
   const LayerDataBase::ExperimentType::SpectrumType LayerDataBase::getSpectrum(Size spectrum_idx) const
   {
@@ -139,7 +142,7 @@ namespace OpenMS
     }
     return (*peak_map_)[spectrum_idx].first;
   }
-
+*/
   float LayerDataBase::getMinIntensity() const
   {
     return getRange().getMinIntensity();
@@ -150,6 +153,7 @@ namespace OpenMS
     return getRange().getMaxIntensity();
   }
 
+  /*
   void LayerDataBase::synchronizePeakAnnotations()
   {
     // Return if no valid peak layer attached
@@ -340,7 +344,8 @@ namespace OpenMS
       hit.setPeakAnnotations(fas);
     }
   }
-
+*/
+  /*
   void LayerDataBase::removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations)
   {
     // Return if no valid peak layer attached
@@ -421,7 +426,7 @@ namespace OpenMS
       hit.setPeakAnnotations(fas);
     }
   }
-
+*/
   LayerAnnotatorBase::LayerAnnotatorBase(const FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock) :
       supported_types_(supported_types),
       file_dialog_text_(file_dialog_text),
@@ -560,7 +565,7 @@ namespace OpenMS
       OSWData data;
       oswf.readMinimal(data);
       // allow data to map from transition.id (=native.id) to a chromatogram index in MSExperiment
-      data.buildNativeIDResolver(*lp->getChromatogramData().get());
+      data.buildNativeIDResolver(lp->getChromatogramData().get()->getMSExperiment());
       lp->setChromatogramAnnotation(std::move(data));
       return true;
     }

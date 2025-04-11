@@ -261,9 +261,6 @@ namespace OpenMS
     //check for Sample
     visualize_(meta.getSample(), item);
 
-    //check for ProteinIdentification
-    visualizeAll_(meta.getProteinIdentifications(), item);
-
     //check for Instrument
     visualize_(meta.getInstrument(), item);
 

@@ -30,6 +30,8 @@
 
 
 #include <boost/range/adaptor/reversed.hpp>
+#include <boost/make_shared.hpp>
+
 #include <QtWidgets/QMessageBox>
 #include <QtCore/QString>
 
@@ -97,44 +99,40 @@ namespace OpenMS
 
       // get peptide identification
       auto layer_1d_peak = dynamic_cast<const LayerData1DPeak*>(&w->canvas()->getCurrentLayer());
-      const vector<PeptideIdentification>& pis = layer_1d_peak->getCurrentSpectrum().getPeptideIdentifications();
+      const PeptideIdentification& pi = layer_1d_peak->getPeakData()->getPeptideIdentifications()[peptide_id_index];
 
-      if (!pis.empty())
+      switch (layer_1d_peak->getCurrentSpectrum().getMSLevel())
       {
-        switch (layer_1d_peak->getCurrentSpectrum().getMSLevel())
-        {
-          // mass fingerprint annotation of name etc.
-          case 1:
-          { 
-            addPeakAnnotations_(pis); 
-            break;
-          }
-
-          // annotation with stored fragments or synthesized theoretical spectrum
-          case 2:
-          {
-            // check if index in bounds and hits are present
-            if (peptide_id_index < static_cast<int>(pis.size())
-              && peptide_hit_index < static_cast<int>(pis[peptide_id_index].getHits().size()))
-            {
-              // get hit
-              PeptideHit ph = pis[peptide_id_index].getHits()[peptide_hit_index];
-              if (ph.getPeakAnnotations().empty())
-              {
-                // if no fragment annotations are stored, create a theoretical spectrum
-                addTheoreticalSpectrumLayer_(ph);
-              }
-              else
-              {
-                // otherwise, use stored fragment annotations
-                addPeakAnnotationsFromID_(ph);
-              }
-            }
-            break;
-          }
-          default:
-            OPENMS_LOG_WARN << "Annotation of MS level > 2 not supported.!" << endl;
+        // mass fingerprint annotation of name etc.
+        case 1:
+        { 
+          addPeakAnnotations_(std::vector<PeptideIdentification>(1, pi)); 
+          break;
         }
+
+        // annotation with stored fragments or synthesized theoretical spectrum
+        case 2:
+        {
+          // check if index in bounds and hits are present
+          if (peptide_hit_index < static_cast<int>(pi.getHits().size()))
+          {
+            // get hit
+            PeptideHit ph = pi.getHits()[peptide_hit_index];
+            if (ph.getPeakAnnotations().empty())
+            {
+              // if no fragment annotations are stored, create a theoretical spectrum
+              addTheoreticalSpectrumLayer_(ph);
+            }
+            else
+            {
+              // otherwise, use stored fragment annotations
+              addPeakAnnotationsFromID_(ph);
+            }
+          }
+          break;
+        }
+        default:
+          OPENMS_LOG_WARN << "Annotation of MS level > 2 not supported.!" << endl;
       }
 
       // TODO Why would this need to trigger an update in e.g. the Tab Views??
@@ -297,35 +295,35 @@ namespace OpenMS
     auto current_layer = [&]() -> LayerData1DPeak& { return dynamic_cast<LayerData1DPeak&>(tv_->getActive1DWidget()->canvas()->getCurrentLayer()); };
 
     widget_1D->canvas()->activateSpectrum(spectrum_index);
-    current_layer().peptide_id_index = peptide_id_index;
+    current_layer().peptide_id_index = peptide_id_index; // should always ne 0
     current_layer().peptide_hit_index = peptide_hit_index;
 
     if (current_layer().type == LayerDataBase::DT_PEAK)
     {
       UInt ms_level = current_layer().getCurrentSpectrum().getMSLevel();
 
-      const vector<PeptideIdentification>& pis = current_layer().getCurrentSpectrum().getPeptideIdentifications();
+      const PeptideIdentification& pid = current_layer().getPeakData()->getPeptideIdentifications()[spectrum_index];
       switch (ms_level)
       {
         case 1: // mass fingerprint annotation of name etc and precursor labels
         {
-          addPeakAnnotations_(pis);
+          addPeakAnnotations_(std::vector<PeptideIdentification>(1, pid));
           vector<Precursor> precursors;
 
           // collect all MS2 spectra precursor till next MS1 spectrum is encountered
-          for (Size i = spectrum_index + 1; i < current_layer().getPeakData()->size(); ++i)
+          for (Size i = spectrum_index + 1; i < current_layer().getPeakData()->getMSExperiment().size(); ++i)
           {
-            if ((*current_layer().getPeakData())[i].getMSLevel() == 1)
+            if (current_layer().getPeakData()->getMSExperiment()[i].getMSLevel() == 1)
             {
               break;
             }
             // skip MS2 without precursor
-            if ((*current_layer().getPeakData())[i].getPrecursors().empty())
+            if (current_layer().getPeakData()->getMSExperiment()[i].getPrecursors().empty())
             {
               continue;
             }
             // there should be only one precursor per MS2 spectrum.
-            vector<Precursor> pcs = (*current_layer().getPeakData())[i].getPrecursors();
+            vector<Precursor> pcs = current_layer().getPeakData()->getMSExperiment()[i].getPrecursors();
             copy(pcs.begin(), pcs.end(), back_inserter(precursors));
           }
           addPrecursorLabels1D_(precursors);
@@ -334,10 +332,10 @@ namespace OpenMS
         case 2: // annotation with stored fragments or synthesized theoretical spectrum
         {
           // check if index in bounds and hits are present
-          if (peptide_id_index < static_cast<int>(pis.size()) && peptide_hit_index < static_cast<int>(pis[peptide_id_index].getHits().size()))
+          if (peptide_id_index < 1)
           {
             // get selected hit
-            PeptideHit ph = pis[peptide_id_index].getHits()[peptide_hit_index];
+            PeptideHit ph = pid.getHits()[peptide_hit_index];
 
             if (ph.getPeakAnnotations().empty())
             {
@@ -357,8 +355,8 @@ namespace OpenMS
               }
               // update current PeptideHit with the synchronized one
               widget_1D->canvas()->activateSpectrum(spectrum_index);
-              const vector<PeptideIdentification>& pis2 = current_layer().getCurrentSpectrum().getPeptideIdentifications();
-              ph = pis2[peptide_id_index].getHits()[peptide_hit_index];
+              const PeptideIdentification & pi2 = current_layer().getPeakData()->getPeptideIdentifications()[spectrum_index];
+              ph = pi2.getHits()[peptide_hit_index];
 
             }
             // use stored fragment annotations
@@ -946,9 +944,8 @@ namespace OpenMS
     spec_id_view_->ignore_update = true;
     RAIICleanup cleanup([&]() { spec_id_view_->ignore_update = false; });
 
-    PeakMap new_exp;
-    new_exp.addSpectrum(theo_spectrum);
-    ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
+    ExperimentSharedPtrType new_exp_sptr = boost::make_shared<AnnotatedMSRun>();
+    new_exp_sptr->getMSExperiment().addSpectrum(theo_spectrum);
     LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
     String layer_caption = aa_sequence.toString() + " (identification view)";
     current_canvas->addPeakLayer(new_exp_sptr, od_dummy, layer_caption);
@@ -1096,11 +1093,11 @@ namespace OpenMS
 
     // Return if no valid peak layer attached
     auto* current_layer_ptr = dynamic_cast<LayerData1DPeak*>(&current_layer);
-    if (!current_layer_ptr || current_layer_ptr->getPeakData()->empty())
+    if (!current_layer_ptr || current_layer_ptr->getPeakData()->getMSExperiment().empty())
     { 
       return;
     }
-    MSSpectrum& spectrum = (*current_layer_ptr->getPeakDataMuteable())[spectrum_index];
+    MSSpectrum& spectrum = (*current_layer_ptr->getPeakDataMuteable()).getMSExperiment()[spectrum_index];
     int ms_level = spectrum.getMSLevel();
     if (ms_level == 2)
     {
@@ -1283,13 +1280,12 @@ namespace OpenMS
     // find first MS2 spectrum with peptide identification and set current spectrum to it
     if (current_spectrum.getMSLevel() == 1)  // no fragment spectrum
     {
-      for (Size i = 0; i < current_layer.getPeakData()->size(); ++i)
+      for (Size i = 0; i < current_layer.getPeakData()->getMSExperiment().size(); ++i)
       {
-        UInt ms_level = (*current_layer.getPeakData())[i].getMSLevel();
-        const vector<PeptideIdentification> peptide_ids = (*current_layer.getPeakData())[i].getPeptideIdentifications();
-        Size peptide_ids_count = peptide_ids.size();
+        UInt ms_level = current_layer.getPeakData()->getMSExperiment()[i].getMSLevel();
+        const PeptideIdentification& peptide_id = current_layer.getPeakData()->getPeptideIdentifications()[i];
 
-        if (ms_level != 2 || peptide_ids_count == 0)  // skip non ms2 spectra and spectra with no identification
+        if (ms_level != 2 || peptide_id.getHits().empty())  // skip non ms2 spectra and spectra with no identification
         {
           continue;
         }
