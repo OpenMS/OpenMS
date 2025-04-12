@@ -175,15 +175,15 @@ if iswin:
 elif sys.platform.startswith("linux"):
     extra_link_args = ["-Wl,-s"]
     if OMP:
-        libraries.append("gomp")
+        libraries.append("libomp")
         libraries.append("pthread")
 elif sys.platform == "darwin":
     library_dirs.insert(0,j(OPEN_MS_BUILD_DIR,"pyOpenMS","pyopenms"))
     if OMP:
         libraries.append("omp")
     # we need to manually link to the Qt Frameworks
-    extra_compile_args = ["-Qunused-arguments"]
-    extra_link_args = ["-Wl,-rpath","-Wl,@loader_path/"]
+    extra_compile_args = ["-Qunused-arguments", "-fopenmp"]
+    extra_link_args = ["-Wl,-rpath,@loader_path", "-lomp"]
 if IS_DEBUG:
     extra_compile_args.append("-g2")
 if OMP and OPENMP_CXX_FLAGS:
