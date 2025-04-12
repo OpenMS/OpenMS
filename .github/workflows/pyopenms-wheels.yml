@@ -300,6 +300,10 @@ jobs:
           # copy to directory
           cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
 
+          # Remove source libraries
+          rm -rf OpenMS/bld/pyOpenMS/pyopenms
+
+
           # Install wheel
           pip install "$(ls OpenMS/bld/pyOpenMS/dist/*.whl | head -n 1)"
 
@@ -479,6 +483,9 @@ jobs:
 
           # copy to directory
           cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
+
+          # Remove source libraries
+          rm -rf OpenMS/bld/pyOpenMS/pyopenms
 
           # Install wheel
           pip install "$(ls OpenMS/bld/pyOpenMS/dist/*.whl | head -n 1)"
