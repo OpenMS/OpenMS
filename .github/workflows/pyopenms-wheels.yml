@@ -341,31 +341,60 @@ jobs:
           CMAKE_MACOSX_RPATH: "ON"
           CMAKE_INSTALL_RPATH: "@loader_path"
           CMAKE_INSTALL_RPATH_USE_LINK_PATH: true
-
-    - name: Run Unit Tests
-      shell: bash
-      run: |
-            ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
-      env:
-          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
-          CI_PROVIDER: "GitHub-Actions"
-          BUILD_NAME: "${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
-          # The rest of the vars should be saved in the CMakeCache
-
-    - uses: actions/upload-artifact@v4
-      name: Upload artifacts
-      if: always()
-      with:
-        name: ${{ runner.os }}-buildfiles
-        path: |
-          CMakeCache.txt
-          pyOpenMS/env.py
         
     - uses: actions/upload-artifact@v4
       name: Upload wheels
       with:
         name: ${{ runner.os }}-${{ runner.arch }}-wheels
         path: pyopenms_whls
+
+  test-macos-arm:
+    needs: build-macos-arm
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        python_version: ["3.9", "3.10", "3.11", "3.12"]
+    steps:
+    - name: Download built wheels
+      uses: actions/download-artifact@v4
+      with:
+        name: macOS-ARM64-wheels
+        path: pyopenms_whls
+
+    - name: Checkout OpenMS
+      uses: actions/checkout@v4
+      with:
+        path: OpenMS
+
+    - name: Install Miniconda
+      shell: bash
+      run: |
+        MINICONDA_FILENAME=Miniconda3-latest-MacOSX-arm64.sh
+        curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
+        bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
+
+    - name: Setup conda path
+      shell: bash
+      run: |
+        echo "$HOME/miniconda3/bin" >> $GITHUB_PATH
+        echo "$HOME/miniconda3/Scripts" >> $GITHUB_PATH
+
+    - name: Create conda environment and test wheel
+      shell: bash
+      run: |
+        py=${{ matrix.python_version }}
+        pynodot=$(echo "$py" | tr -d ".")
+
+        conda create -y -n pyoms-test-${pynodot} python=$py pytest
+        source activate pyoms-test-${pynodot}
+
+        WHL_FILE=$(find pyopenms_whls -name "*cp${pynodot}-cp${pynodot}*.whl" | head -n 1)
+
+        echo "Installing wheel: $WHL_FILE"
+        pip install "$WHL_FILE"
+
+        echo "Running tests..."
+        pytest OpenMS/src/pyOpenMS/tests
         
   build-macos:
     runs-on: macos-13
