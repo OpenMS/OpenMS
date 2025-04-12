@@ -299,10 +299,7 @@ jobs:
 
           # copy to directory
           cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
-
-          # Remove source libraries
-          rm -rf OpenMS/bld/pyOpenMS/pyopenms
-
+          
           # clean up
           # conda deactivate
           # conda remove --name pyoms-bld-"${pynodot}" --all
@@ -479,9 +476,6 @@ jobs:
 
           # copy to directory
           cp OpenMS/bld/pyOpenMS/dist/*.whl pyopenms_whls/
-
-          # Remove source libraries
-          rm -rf OpenMS/bld/pyOpenMS/pyopenms
 
           # clean up
           #conda deactivate
