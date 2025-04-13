@@ -1,8 +1,9 @@
 import unittest
 import os
 import pyopenms
-from pyopenms import Precursor, PeptideIdentification, PeptideHit, AASequence
+from pyopenms import Precursor, PeptideIdentification, PeptideHit, AASequence , DriftTimeUnit
 import numpy as np
+
 class TestMSSpectrumAndRichSpectrum(unittest.TestCase):
 
     def setUp(self):
@@ -13,15 +14,15 @@ class TestMSSpectrumAndRichSpectrum(unittest.TestCase):
         spec.set_peaks(([100.0], [10.0]))
         
         # Add ion mobility array
-        fda = spec.getFloatDataArrays().create()
+        fda = pyopenms.FloatDataArray()
         fda.setName("Ion Mobility")
         fda.push_back(0.5)
         spec.setFloatDataArrays([fda])
-        spec.setDriftTimeUnit(pyopenms.MSSpectrum().DriftTimeUnit.MS_VENDOR)
+        spec.setDriftTimeUnit(DriftTimeUnit.VSSC)
 
         data = spec.get_data_dict()
         self.assertTrue(np.array_equal(data["ion_mobility"], [0.5]))
-        self.assertEqual(data["ion_mobility_unit"][0], "ms")
+        self.assertEqual(data["ion_mobility_unit"][0], "VSSC")
 
     def test_precursors(self):
         spec = pyopenms.MSSpectrum()
@@ -34,23 +35,12 @@ class TestMSSpectrumAndRichSpectrum(unittest.TestCase):
         self.assertEqual(data["precursor_mz"][0], 300.0)
         self.assertEqual(data["precursor_charge"][0], 2)
 
-    def test_peptide_identifications(self):
-        spec = pyopenms.MSSpectrum()
-        pep_id = PeptideIdentification()
-        hit = PeptideHit()
-        hit.setSequence(AASequence.fromString("PEPTIDE"))
-        pep_id.setHits([hit])
-        spec.setPeptideIdentifications([pep_id])
-        
-        data = spec.get_data_dict()
-        self.assertEqual(data["sequence"][0], "PEPTIDE")
-
     def test_metadata_handling(self):
         spec = pyopenms.MSSpectrum()
-        spec.setMetaValue(b"int_val", 5)
-        spec.setMetaValue(b"float_val", 3.14)
-        spec.setMetaValue(b"str_val", "test")
-        spec.setMetaValue(b"bool_val", True)
+        spec.setMetaValue("int_val", 5) 
+        spec.setMetaValue("float_val", 3.14)
+        spec.setMetaValue("str_val", "test")
+        spec.setMetaValue("bool_val", True)
         
         data = spec.get_data_dict()
         self.assertEqual(data["int_val"][0], 5)

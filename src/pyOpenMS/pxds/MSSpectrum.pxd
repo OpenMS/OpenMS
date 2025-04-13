@@ -135,17 +135,5 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         void setIntegerDataArrays(libcpp_vector[IntegerDataArray] ida) except + nogil  # wrap-doc:Sets the additional int data arrays to store e.g. meta data
         void setStringDataArrays(libcpp_vector[StringDataArray] sda) except + nogil  # wrap-doc:Sets the additional string data arrays to store e.g. meta data
 
-        
-
-# Unique identifier for the spectrum (e.g., from the mzML file)
-        String getNativeID() except + nogil  # wrap-doc:Returns the spectrum's native ID (e.g., "controllerType=0 controllerNumber=1 scan=100")
-
-# Precursor information (for MS2+ spectra)
-        libcpp_vector[Precursor] getPrecursors() except + nogil  # wrap-doc:Returns list of precursors (empty for MS1 spectra)
-
-# Peptide identifications (e.g., PSMs from database search)
-        libcpp_vector[PeptideIdentification] getPeptideIdentifications() except + nogil  # wrap-doc:Returns peptide identifications associated with this spectrum
-
-# Metadata access
-        void getKeys(libcpp_vector[String] &) except + nogil  # wrap-doc:Populates a vector with all metadata keys available in this spectrum
-        DataValue getMetaValue(String) except + nogil  # wrap-doc:Returns the metadata value for the specified key (throws exception if key doesn't exist)
+        DataFrame get_df() except +  
+        void get_data_dict() except + 

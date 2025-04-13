@@ -17,20 +17,21 @@ cdef class MSSpectrum:
             'ms_level': _np.full(cnt, self.getMSLevel(), dtype=_np.uint16),
             'native_id': _np.full(cnt, self.getNativeID().decode(), dtype='U100')
         }
-
-        # Ion Mobility
+        
+    #  ion mobility 
         if self.containsIMData():
+            im_index, drift_time_unit = self.getIMData()
             im_arrays = self.getFloatDataArrays()
-            im_index = -1
-            for i in range(im_arrays.size()):
-                name = im_arrays[i].getName().decode().lower()
-                if name in ['ion_mobility', 'drift_time', 'mobility']:
-                    im_index = i
-                    break
-            
-            if im_index >= 0 and im_arrays[im_index].size() == cnt:
-                data_dict['ion_mobility'] = _np.array([im_arrays[im_index][i] for i in range(cnt)])
-                data_dict['ion_mobility_unit'] = _np.full(cnt, self.getDriftTimeUnitAsString().decode(), dtype='U50')
+        
+            if im_index >= 0 and im_index < im_arrays.size():
+                 data_dict['ion_mobility'] = _np.array(
+                [im_arrays[im_index][i] for i in range(cnt)]
+            )
+            data_dict['ion_mobility_unit'] = _np.full(
+                cnt, 
+                self.getDriftTimeUnitAsString().decode(),
+                dtype='U50'
+            )
         else:
             data_dict['ion_mobility'] = _np.full(cnt, _np.nan, dtype=_np.float64)
             data_dict['ion_mobility_unit'] = _np.full(cnt, '', dtype='U1')
@@ -44,15 +45,6 @@ cdef class MSSpectrum:
         else:
             data_dict['precursor_mz'] = _np.full(cnt, _np.nan, dtype=_np.float64)
             data_dict['precursor_charge'] = _np.full(cnt, 0, dtype=_np.uint16)
-
-        # Peptide Sequence
-        seq = ''
-        pep_ids = self.getPeptideIdentifications()
-        if pep_ids.size() > 0:
-            hits = pep_ids[0].getHits()
-            if hits.size() > 0:
-                seq = hits[0].getSequence().toString().decode()
-        data_dict['sequence'] = _np.full(cnt, seq, dtype=f"U{len(seq)}" if seq else 'U1')
 
         # Metadata Handling
         if export_meta_values:
