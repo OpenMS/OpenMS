@@ -69,7 +69,7 @@ using namespace std;
 
   The input MSn spectra have to be in centroid mode for the tool to work properly. Use e.g. @ref TOPP_PeakPickerHiRes to perform centroiding of profile data, if necessary.
 
-  This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 11-plex, 16-plex, and 18-plex as labeling methods.
+  This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, 11-plex, 16-plex, and 18-plex and higher labeling methods.
   It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), then performs isotope correction and stores the resulting quantitation in a consensus map,
   in which each consensus feature represents one relevant MSn scan (e.g. HCD; see parameters @p select_activation and @p min_precursor_intensity).
   The MS level for quantification is chosen automatically, i.e. if MS3 is present, MS2 will be ignored.
@@ -121,16 +121,6 @@ using namespace std;
   0.0/0.2/4.6/0.0,
   ...
   </pre>
-
-  After the quantitation, you may want to annotate the consensus features with corresponding peptide identifications,
-  obtained from an identification pipeline. Use @ref TOPP_IDMapper to perform the annotation, but make sure to set
-  suitably small RT and m/z tolerances for the mapping. Since the positions of the consensus features reported here
-  are taken from the precursor of the MS2 (also if quant was done in MS3), it should be possible to achieve a
-  perfect one-to-one matching of every identification (from MS2) to a single consensus feature.
-
-  Note that quantification will be solely on peptide level after this stage. In order to obtain protein quantities,
-  you can use @ref TOPP_TextExporter to obtain a simple text format which you can feed to other software tools (e.g., R),
-  or you can apply @ref TOPP_ProteinQuantifier.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_IsobaricWorkflow.cli
