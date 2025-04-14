@@ -752,7 +752,7 @@ START_SECTION(([EXTRA] TMT 32Pplex support)){
 
   TEST_EQUAL(cm_it->size(), 32)
   ABORT_IF(cm_it->size() != 32)
-  TEST_EQUAL(cm_it->getMetaValue("scan_id"), " controllerType=0 controllerNumber=1 scan=23")
+  TEST_EQUAL(cm_it->getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=23")
 
   cf_it = cm_it->begin();
 
