@@ -15,6 +15,7 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTThirtyTwoPlexQuantitationMethod.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -720,6 +721,104 @@ START_SECTION(([EXTRA] TMT 10plex support))
   TEST_REAL_SIMILAR(cf_it->getIntensity(), 24060.4)
   ++cf_it;
   TEST_REAL_SIMILAR(cf_it->getIntensity(), 30866.5)
+  ++cf_it;
+  ABORT_IF(cf_it != cm_it->end())
+}
+END_SECTION
+
+// 32plex channel extraction test
+
+START_SECTION(([EXTRA] TMT 32Pplex support)){
+  PeakMap tmt32plex_exp;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_9.mzML"), tmt32plex_exp);
+
+  TMTThirtyTwoPlexQuantitationMethod tmt32plex;
+  IsobaricChannelExtractor ice(&tmt32plex);
+
+  // active filter disabled
+  Param p = ice.getParameters();
+  p.setValue("reporter_mass_shift", 0.003);
+  ice.setParameters(p);
+
+  // channel extraction
+  ConsensusMap cm_out;
+  ice.extractChannels(tmt32plex_exp, cm_out);
+
+  TEST_EQUAL(cm_out.size(), 1)
+  ABORT_IF(cm_out.size() != 1)
+
+  ConsensusMap::iterator cm_it = cm_out.begin();
+  ConsensusFeature::iterator cf_it;
+
+  TEST_EQUAL(cm_it->size(), 32)
+  ABORT_IF(cm_it->size() != 32)
+  TEST_EQUAL(cm_it->getMetaValue("scan_id"), " controllerType=0 controllerNumber=1 scan=23")
+
+  cf_it = cm_it->begin();
+
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),174978)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),33578.6)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),14640.9)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),42917.2)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),41741.8)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),73027.1)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),47086.7)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),58482.9)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),73380.2)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),49026.1)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),82125.5)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),43730.7)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),87259.7)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),66156.6)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),152732)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),66648.5)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),150535)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),43049.1)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),537317)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),68942.6)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),81902.3)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),51899.4)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),40830.6)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),35191.4)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),53362.3)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),52659.6)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),30941)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),39247.7)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),54863.8)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),48456.3)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),2677.06)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(),2649.51)
   ++cf_it;
   ABORT_IF(cf_it != cm_it->end())
 }
