@@ -92,17 +92,17 @@ namespace OpenMS
 
   // lists of peptide hits in "peptides" will be sorted
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-      vector<PeptideIdentification>& peptides, SeqToList& rt_data)
+      const vector<PeptideIdentification>& peptides, SeqToList& rt_data)
   {
-    for (auto & peptide : peptides)
+    for (auto pep_it = peptides.cbegin(); pep_it != peptides.cend(); ++pep_it)
     {
-      if (!peptide.getHits().empty())
+      if (!pep_it->getHits().empty())
       {
-        peptide.sort();
-        if (better_(peptide.getHits()[0].getScore(), min_score_))
+        const PeptideHit* best_hit = getBestScoringHit(pep_it->getHits(), pep_it->isHigherScoreBetter());
+        if (better_(best_hit->getScore(), min_score_))
         {
-          const String& seq = peptide.getHits()[0].getSequence().toString();
-          rt_data[seq].push_back(peptide.getRT());
+          const String& seq = best_hit->getSequence().toString();
+          rt_data[seq].push_back(pep_it->getRT());
         }
       }
     }
@@ -140,7 +140,7 @@ namespace OpenMS
 
 
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-    IdentificationData& id_data, SeqToList& rt_data)
+    const IdentificationData& id_data, SeqToList& rt_data)
   {
     // @TODO: should this get handled as an error?
     if (id_data.getObservationMatches().empty()) return true;
@@ -178,7 +178,7 @@ namespace OpenMS
 
   // lists of peptide hits in "maps" will be sorted
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-      AnnotatedMSRun& experiment, SeqToList& rt_data)
+      const AnnotatedMSRun& experiment, SeqToList& rt_data)
   {
     getRetentionTimes_(experiment.getPeptideIdentifications(), rt_data);
     return false;
@@ -346,10 +346,23 @@ namespace OpenMS
   }
 
   // explicit template instantiation for Windows DLL:
-  template bool OPENMS_DLLAPI MapAlignmentAlgorithmIdentification::getRetentionTimes_<>(ConsensusMap& features, SeqToList& rt_data);
+  template bool OPENMS_DLLAPI MapAlignmentAlgorithmIdentification::getRetentionTimes_<>(const ConsensusMap& features, SeqToList& rt_data);
 
   // explicit template instantiation for Windows DLL:
-  template bool OPENMS_DLLAPI MapAlignmentAlgorithmIdentification::getRetentionTimes_<>(FeatureMap& features, SeqToList& rt_data);
+  template bool OPENMS_DLLAPI MapAlignmentAlgorithmIdentification::getRetentionTimes_<>(const FeatureMap& features, SeqToList& rt_data);
 
+  const PeptideHit* MapAlignmentAlgorithmIdentification::getBestScoringHit(const std::vector<PeptideHit>& hits, const bool is_higher_score_better)
+  {
+    auto scoreComparator = PeptideIdentification::getScoreComparator(is_higher_score_better);
+    const PeptideHit* best_hit = nullptr;
+    for (const auto& hit : hits)
+    {
+      if (!best_hit || scoreComparator(hit, *best_hit))
+      {
+        best_hit = &hit;
+      }
+    }
+    return best_hit;
+  }
 
 } //namespace
