@@ -289,7 +289,8 @@ jobs:
         done
 
         # Clean up
-        rm -rf OpenMS/bld/
+        rm -rf OpenMS/bld/lib
+        rm -rf OpenMS/bld/pyOpenMS/pyopenms
 
       env:
           CC: "clang"
@@ -450,8 +451,9 @@ jobs:
           pip install "$(ls OpenMS/bld/pyOpenMS/dist/*.whl | head -n 1)"
         done
 
-        # Clean up
-        rm -rf OpenMS/bld
+        # Clean up libs
+        rm -rf OpenMS/bld/lib
+        rm -rf OpenMS/bld/pyOpenMS/pyopenms
 
       env:
         CC: "clang"
