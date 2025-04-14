@@ -209,16 +209,22 @@ namespace OpenMS
     }
   }
 
-  void PeptideIdentification::sort()
+  std::function<bool(const PeptideHit&, const PeptideHit&)>
+  PeptideIdentification::getScoreComparator(bool higher_score_better)
   {
-    if (higher_score_better_)
+    if (higher_score_better)
     {
-      std::stable_sort(hits_.begin(), hits_.end(), PeptideHit::ScoreMore());
+      return PeptideHit::ScoreMore();
     }
     else
     {
-      std::stable_sort(hits_.begin(), hits_.end(), PeptideHit::ScoreLess());
+      return PeptideHit::ScoreLess();
     }
+  }
+
+  void PeptideIdentification::sort()
+  {
+    std::stable_sort(hits_.begin(), hits_.end(), getScoreComparator(higher_score_better_));
   }
 
   void PeptideIdentification::sortByRank()

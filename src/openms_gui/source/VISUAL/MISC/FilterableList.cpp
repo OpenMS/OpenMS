@@ -107,8 +107,7 @@ namespace OpenMS
 
     void FilterableList::updateVisibleList_()
     {
-      QRegularExpression regex(QRegularExpression::wildcardToRegularExpression(ui_->filter_text->text()),
-                               QRegularExpression::CaseInsensitiveOption);
+      QRegularExpression regex(ui_->filter_text->text(), QRegularExpression::CaseInsensitiveOption);
       ui_->list_items->clear();
       ui_->list_items->addItems(items_wo_bl_.filter(regex));
     }

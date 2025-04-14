@@ -126,15 +126,6 @@
 				<UserParam type="int" name="end" value="28"/>
 				<UserParam type="string" name="isotope_error" value="0"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="int" name="NumMatchedMainIons" value="0"/>
-				<UserParam type="float" name="MeanErrorAll" value="0.0"/>
-				<UserParam type="float" name="StdevErrorAll" value="0.0"/>
-				<UserParam type="float" name="MeanErrorTop7" value="0.0"/>
-				<UserParam type="float" name="StdevErrorTop7" value="0.0"/>
-				<UserParam type="float" name="MeanRelErrorAll" value="0.0"/>
-				<UserParam type="float" name="StdevRelErrorAll" value="0.0"/>
-				<UserParam type="float" name="MeanRelErrorTop7" value="0.0"/>
-				<UserParam type="float" name="StdevRelErrorTop7" value="0.0"/>
 				<UserParam type="float" name="SpecEValue" value="2.3492372e-26"/>
 				<UserParam type="float" name="nextscore" value="8.0"/>
 				<UserParam type="float" name="delta" value="1.7e-03"/>

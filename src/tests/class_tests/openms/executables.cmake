@@ -196,7 +196,6 @@ set(format_executables_list
   MSPFile_test
   MSPGenericFile_test
   MascotGenericFile_test
-  MascotInfile_test
   MascotRemoteQuery_test
   MascotXMLFile_test
   #MSDataWritingConsumer_test
@@ -598,6 +597,7 @@ if(NOT DISABLE_OPENSWATH)
     OpenSwathScores_test
     PeakIntegrator_test
     PeakPickerChromatogram_test
+    PeakPickerMobilogram_test
     MRMTransitionGroupPicker_test
     DIAHelper_test
     DIAScoring_test
@@ -637,6 +637,7 @@ set(Boost_dependent_tests
   OpenSwathMRMFeatureAccessOpenMS_test
   OpenSwathSpectrumAccessOpenMS_test
   PeakPickerChromatogram_test
+  PeakPickerMobilogram_test
   SpectrumLookup_test
   SpectrumMetaDataLookup_test
   StatisticFunctions_test

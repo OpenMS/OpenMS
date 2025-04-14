@@ -93,7 +93,7 @@ namespace OpenMS
     */
     void setMaxIsotope(const Size& max_isotope);
 
-    /// sets the round_masses_ flag to round masses to integer values (true) or return accurate masses (false)
+    /// round masses to integer values (true) or return accurate masses (false)
     void setRoundMasses(const bool round_masses);
 
     /// returns the currently set maximum isotope

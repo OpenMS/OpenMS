@@ -19,6 +19,7 @@
 namespace OpenMS
 {
   class MSChromatogram;
+  class Mobilogram;
   class OnDiscMSExperiment;
 
   /**
@@ -90,6 +91,11 @@ public:
     void pick(const MSChromatogram& input, MSChromatogram& output) const;
 
     /**
+      @brief Applies the peak-picking algorithm to a map (Mobilogram). The resulting picked peaks are written to the output mobilogram.
+    */
+    void pick(const Mobilogram& input, Mobilogram& output) const;
+
+    /**
       @brief Applies the peak-picking algorithm to a single spectrum
       (MSSpectrum). The resulting picked peaks are written to the output
       spectrum. Peak boundaries are written to a separate structure.
@@ -111,6 +117,17 @@ public:
       @param check_spacings  check spacing constraints? (yes for spectra, no for chromatograms)
      */
     void pick(const MSChromatogram& input, MSChromatogram& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = false) const;
+
+    /**
+      @brief Applies the peak-picking algorithm to a single mobilogram
+      (Mobilogram). The resulting picked peaks are written to the output mobilogram.
+     
+      @param input  input mobilogram in profile mode
+      @param output  output mobilogram with picked peaks
+      @param boundaries  boundaries of the picked peaks
+      @param check_spacings  check spacing constraints? (yes for spectra, no for chromatogram and mobilogram)
+     */
+    void pick(const Mobilogram& input, Mobilogram& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = false) const;
 
     /**
       @brief Applies the peak-picking algorithm to a map (MSExperiment). This

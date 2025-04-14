@@ -23,7 +23,14 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
         Precursor(Precursor &) except + nogil 
 
         libcpp_set[ActivationMethod] getActivationMethods() except + nogil  # wrap-doc:Returns the activation methods
+        libcpp_vector[String] getActivationMethodsAsString() except + nogil  # wrap-doc:Returns the full names (e.g., "Collision-induced dissociation") of the activation methods set on this instance
+        libcpp_vector[String] getActivationMethodsAsShortString() except + nogil  # wrap-doc:Returns the abbreviations (e.g., "CID") of the activation methods set on this instance
         void setActivationMethods(libcpp_set[ActivationMethod] activation_methods) except + nogil  # wrap-doc:Sets the activation methods
+
+        @staticmethod
+        libcpp_vector[String] getAllNamesOfActivationMethods() except + nogil  # wrap-doc:Returns the full names (e.g., "Collision-induced dissociation") of ALL possible activation methods, not just those set on this instance
+        @staticmethod
+        libcpp_vector[String] getAllShortNamesOfActivationMethods() except + nogil  # wrap-doc:Returns the abbreviations (e.g., "CID") of ALL possible activation methods, not just those set on this instance
 
         double getActivationEnergy() except + nogil  # wrap-doc:Returns the activation energy (in electronvolt)
         void setActivationEnergy(double activation_energy) except + nogil  # wrap-doc:Sets the activation energy (in electronvolt)
@@ -55,22 +62,47 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
 
 cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS::Precursor":
     cdef enum ActivationMethod:
-      CID,                      #< Collision-induced dissociation
-      PSD,                      #< Post-source decay
-      PD,                       #< Plasma desorption
-      SID,                      #< Surface-induced dissociation
-      BIRD,                     #< Blackbody infrared radiative dissociation
-      ECD,                      #< Electron capture dissociation
-      IMD,                      #< Infrared multiphoton dissociation
-      SORI,                     #< Sustained off-resonance irradiation
-      HCID,                     #< High-energy collision-induced dissociation
-      LCID,                     #< Low-energy collision-induced dissociation
-      PHD,                      #< Photodissociation
-      ETD,                      #< Electron transfer dissociation
-      PQD,                      #< Pulsed q dissociation
-      TRAP,                     #< trap-type collision-induced dissociation (MS:1002472)
-      HCD,                      #< beam-type collision-induced dissociation (MS:1000422) / HCD
-      INSOURCE,                 #< in-source collision-induced dissociation (MS:1001880)
-      LIFT,                     #< Bruker proprietary method (MS:1002000)
+      # wrap-attach:
+      #  Precursor
+      # wrap-doc:
+      #  Enum for activation/fragmentation methods of mass spectra
+      #  
+      #  - CID: Collision-induced dissociation (MS:1000133) (also CAD; parent term, but unless otherwise stated often used as synonym for trap-type CID)
+      #  - PSD: Post-source decay
+      #  - PD: Plasma desorption
+      #  - SID: Surface-induced dissociation
+      #  - BIRD: Blackbody infrared radiative dissociation
+      #  - ECD: Electron capture dissociation (MS:1000250)
+      #  - IMD: Infrared multiphoton dissociation
+      #  - SORI: Sustained off-resonance irradiation
+      #  - HCID: High-energy collision-induced dissociation
+      #  - LCID: Low-energy collision-induced dissociation
+      #  - PHD: Photodissociation
+      #  - ETD: Electron transfer dissociation
+      #  - ETciD: Electron transfer and collision-induced dissociation (MS:1003182)
+      #  - EThcD: Electron transfer and higher-energy collision dissociation (MS:1002631)
+      #  - PQD: Pulsed q dissociation (MS:1000599)
+      #  - TRAP: trap-type collision-induced dissociation (MS:1002472)
+      #  - HCD: beam-type collision-induced dissociation (MS:1000422)
+      #  - INSOURCE: in-source collision-induced dissociation (MS:1001880)
+      #  - LIFT: Bruker proprietary method (MS:1002000)
+      CID,
+      PSD,
+      PD,
+      SID,
+      BIRD,
+      ECD,
+      IMD,
+      SORI,
+      HCID,
+      LCID,
+      PHD,
+      ETD,
+      ETciD,
+      EThcD,
+      PQD,
+      TRAP,
+      HCD,
+      INSOURCE,
+      LIFT,
       SIZE_OF_ACTIVATIONMETHOD
-
