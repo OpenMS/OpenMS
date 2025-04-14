@@ -302,6 +302,7 @@ jobs:
 
           # Remove source libraries
           rm -rf OpenMS/bld/pyOpenMS/pyopenms
+          rm -rf OpenMS/bld/lib
 
 
           # Install wheel
@@ -483,6 +484,7 @@ jobs:
 
           # Remove source libraries
           rm -rf OpenMS/bld/pyOpenMS/pyopenms
+          rm -rf OpenMS/bld/lib
 
           # Install wheel
           pip install "$(ls OpenMS/bld/pyOpenMS/dist/*.whl | head -n 1)"
