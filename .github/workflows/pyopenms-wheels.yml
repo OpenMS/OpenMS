@@ -264,7 +264,7 @@ jobs:
         mkdir pyopenms_whls
 
         for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
-
+          export CMAKE_ARGS="-DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH=@loader_path/${PYVER}/site-packages/pyopenms"
           # clean previous pyopenms libs
           # do at the top of the python version loop so that we leave the final libraries for testing
           find . -name "_pyopenms*.so" -exec rm -rf {} \;
@@ -340,11 +340,6 @@ jobs:
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "OFF"
           ENABLE_CLASS_TESTING: "OFF"
-          # Add loaderpath to rpath, other openms libraries are linked to
-          # brew libomp which may not be available on host
-          CMAKE_MACOSX_RPATH: "ON"
-          CMAKE_INSTALL_RPATH: "@loader_path"
-          CMAKE_INSTALL_RPATH_USE_LINK_PATH: true
 
     - name: Run Unit Tests
       shell: bash
@@ -450,6 +445,7 @@ jobs:
         mkdir pyopenms_whls
 
         for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
+          export CMAKE_ARGS="-DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH=@loader_path/${PYVER}/site-packages/pyopenms"
 
           # clean previous pyopenms libs
           # do at the top of the python version loop so that we leave the final libraries for testing
@@ -527,11 +523,6 @@ jobs:
         ENABLE_PIPELINE_TESTING: "OFF"
         ENABLE_TOPP_TESTING: "OFF"
         ENABLE_CLASS_TESTING: "OFF"
-        # Add loaderpath to rpath, other openms libraries are linked to
-        # brew libomp which may not be available on host
-        CMAKE_MACOSX_RPATH: "ON"
-        CMAKE_INSTALL_RPATH: "@loader_path"
-        CMAKE_INSTALL_RPATH_USE_LINK_PATH: true
 
     - name: Test
       shell: bash
