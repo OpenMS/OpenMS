@@ -33,6 +33,8 @@
 #include <vector>
 #include <string>
 
+#define DEBUG_SPECTRA_ID_VIEW 1
+
 using namespace std;
 
 ///@improvement write the visibility-status of the columns in toppview.ini and read at start
@@ -169,7 +171,7 @@ namespace OpenMS
 
           for (const auto & evidence : evidences)
           {
-            const String& id_accession = evidence.getProteinAccession();
+            const String& id_accession = evidence.getProteinAccession();            
             protein_to_peptide_id_map[id_accession].push_back(&pepid);
           }
         }        
@@ -179,7 +181,7 @@ namespace OpenMS
     }
   }
 
-  //extract required part of accession and open browser
+  // extract required part of accession and open browser
   QString SpectraIDViewTab::extractNumFromAccession_(const QString& full_accession)
   {
     // anchored (^...$) regex for matching accession
@@ -656,6 +658,9 @@ namespace OpenMS
 
   void SpectraIDViewTab::updateEntries_()
   {
+    #ifdef DEBUG_SPECTRA_ID_VIEW
+      cout << "Updating entries in SpectraIDViewTab" << endl;
+    #endif
 
     // no valid peak layer attached
     if (!hasData(layer_))
@@ -738,6 +743,7 @@ namespace OpenMS
       const UInt ms_level = spectrum.getMSLevel();
       const vector<Precursor> & precursors = spectrum.getPrecursors();
       const Size id_count = peptide_id.getHits().size();
+
       // allow only MS2 OR MS1 with peptideIDs (from Mass Fingerprinting)
       if (ms_level != 2)
       { 
@@ -745,10 +751,11 @@ namespace OpenMS
       }
 
       // skip
-      if (hide_no_identification_->isChecked()) 
+      if (hide_no_identification_->isChecked() && id_count == 0)
       { 
         continue;
       }
+
       // set row background color
       QColor bg_color = (id_count == 0 ? Qt::white : QColor::fromRgb(127,255,148));
 
@@ -763,8 +770,16 @@ namespace OpenMS
       else
       {
         // get peptide identifications of current spectrum
+        #ifdef DEBUG_SPECTRA_ID_VIEW
+          cout << "Peptide hits: " << peptide_id.getHits().size() << endl;
+        #endif
+
         for (Size ph_idx = 0; ph_idx != peptide_id.getHits().size(); ++ph_idx)
         {
+          #ifdef DEBUG_SPECTRA_ID_VIEW
+            cout << "Peptide hit index: " << ph_idx << endl;
+            cout << "Peptide hit: " << peptide_id.getHits()[ph_idx].getSequence().toString() << endl;
+          #endif
           const PeptideHit& ph = peptide_id.getHits()[ph_idx];
 
           // add new row at the end of the table
@@ -994,7 +1009,22 @@ namespace OpenMS
 
   void SpectraIDViewTab::fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor& background_color)
   {
+    // fill spectrum information in columns
     const vector<Precursor>& precursors = spectrum.getPrecursors();
+
+    #ifdef DEBUG_SPECTRA_ID_VIEW
+      cout << "Filling row in SpectraIDViewTab" << endl;
+      cout << spectrum.getMSLevel() << endl
+            << "RT: " << spectrum.getRT() << endl
+            << "Scan mode: " << spectrum.getInstrumentSettings().getScanMode() << endl
+            << "Zoom scan: " << spectrum.getInstrumentSettings().getZoomScan() << endl
+            << "Spectrum index: " << spec_index << endl
+            << "Precursor MZ: " << (precursors.empty() ? 0 : precursors.front().getMZ()) << endl
+            << "Precursor charge: " << (precursors.empty() ? 0 : precursors.front().getCharge()) << endl
+            << "Precursor intensity: " << (precursors.empty() ? 0 : precursors.front().getIntensity()) << endl            
+            << endl;
+    #endif
+
 
     table_widget_->setAtBottomRow(QString::number(spectrum.getMSLevel()), Clmn::MS_LEVEL, background_color);
     table_widget_->setAtBottomRow(spec_index, Clmn::SPEC_INDEX, background_color);

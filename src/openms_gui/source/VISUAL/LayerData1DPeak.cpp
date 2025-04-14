@@ -102,8 +102,20 @@ namespace OpenMS
 
   void LayerData1DPeak::synchronizePeakAnnotations()
   {
+    #ifdef DEBUG_IDENTIFICATION_VIEW    
+    std::cout << "synchronizePeakAnnotations." << std::endl;
+    #endif
+
     // Return if no valid peak layer attached
-    if (getPeakData() == nullptr || getPeakData()->getMSExperiment().empty() || type != LayerDataBase::DT_PEAK)
+    if (getPeakData() == nullptr 
+      || getPeakData()->getMSExperiment().empty() 
+      || type != LayerDataBase::DT_PEAK)
+    {
+      return;
+    }
+
+    // no ID selected
+    if (peptide_id_index == -1 || peptide_hit_index == -1)
     {
       return;
     }
@@ -118,15 +130,13 @@ namespace OpenMS
 
     // store user fragment annotations
     vector<PeptideIdentification>& pep_ids = getPeakDataMuteable()->getPeptideIdentifications();
-
-    // no ID selected
-    if (peptide_id_index == -1 || peptide_hit_index == -1)
-    {
-      return;
-    }
-
+    vector<ProteinIdentification>& prot_ids = getPeakDataMuteable()->getProteinIdentifications();
+        
     if (!pep_ids.empty())
     {
+      #ifdef DEBUG_IDENTIFICATION_VIEW    
+      std::cout << "PeptideIdentifications found in the current spectrum." << std::endl;
+      #endif
       vector<PeptideHit>& hits = pep_ids[peptide_id_index].getHits();
 
       if (!hits.empty())
@@ -141,8 +151,9 @@ namespace OpenMS
         hits.push_back(hit);
       }
     }
-    else // PeptideIdentifications are empty, create new PepIDs and PeptideHits to store the PeakAnnotations
-    {
+    else 
+    {      
+      std::cout << "No PeptideIdentifications found in the current spectrum." << std::endl;
       // copy user annotations to fragment annotation vector
       const Annotations1DContainer& las = getAnnotations(current_idx_);
 
@@ -166,7 +177,6 @@ namespace OpenMS
       pep_id.setIdentifier("Unknown");
 
       // create a dummy ProteinIdentification for all ID-less PeakAnnotations
-      vector<ProteinIdentification>& prot_ids = getPeakDataMuteable()->getProteinIdentifications();
       if (prot_ids.empty() || prot_ids.back().getIdentifier() != String("Unknown"))
       {
         ProteinIdentification prot_id;

@@ -28,7 +28,6 @@
 #include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <OpenMS/VISUAL/SpectraIDViewTab.h>
 
-
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/make_shared.hpp>
 
@@ -38,7 +37,7 @@
 using namespace OpenMS;
 using namespace std;
 
-//#define DEBUG_IDENTIFICATION_VIEW
+#define DEBUG_IDENTIFICATION_VIEW
 
 namespace OpenMS
 {
@@ -99,7 +98,13 @@ namespace OpenMS
 
       // get peptide identification
       auto layer_1d_peak = dynamic_cast<const LayerData1DPeak*>(&w->canvas()->getCurrentLayer());
-      const PeptideIdentification& pi = layer_1d_peak->getPeakData()->getPeptideIdentifications()[peptide_id_index];
+      const auto& pids = layer_1d_peak->getPeakData()->getPeptideIdentifications();
+      if (peptide_id_index >= static_cast<int>(pids.size()))
+      {
+        OPENMS_LOG_FATAL_ERROR << "PeptideIdentification index out of bounds! Aborting!" << endl;
+        return;
+      }
+      const PeptideIdentification& pi = pids[peptide_id_index];
 
       switch (layer_1d_peak->getCurrentSpectrum().getMSLevel())
       {
@@ -904,6 +909,9 @@ namespace OpenMS
 
   void TVIdentificationViewController::addTheoreticalSpectrumLayer_(const PeptideHit& ph)
   {
+    #ifdef DEBUG_IDENTIFICATION_VIEW
+      cout << "Adding theoretical spectrum layer" << endl;
+    #endif
     PlotCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
     auto& current_layer = dynamic_cast<LayerData1DPeak&>(current_canvas->getCurrentLayer());
     const SpectrumType& current_spectrum = current_layer.getCurrentSpectrum();
@@ -1058,12 +1066,13 @@ namespace OpenMS
 
   void TVIdentificationViewController::removeGraphicalPeakAnnotations_(int spectrum_index)
   {
+    #ifdef DEBUG_IDENTIFICATION_VIEW
+      cout << "Removing graphical peak annotations." << endl;
+    #endif
+
     auto* widget_1D = tv_->getActive1DWidget();
     auto& current_layer = widget_1D->canvas()->getCurrentLayer();
 
-    #ifdef DEBUG_IDENTIFICATION_VIEW
-          cout << "Removing peak annotations." << endl;
-    #endif
     // remove all graphical peak annotations as these will be recreated from the stored peak annotations
     Annotations1DContainer& las = current_layer.getAnnotations(spectrum_index);
     auto new_end = remove_if(las.begin(), las.end(),
@@ -1081,6 +1090,10 @@ namespace OpenMS
 
   void TVIdentificationViewController::deactivate1DSpectrum(int spectrum_index)
   {
+    #ifdef DEBUG_IDENTIFICATION_VIEW
+      cout << "Deactivating 1D spectrum with index: " << spectrum_index << endl;
+    #endif
+
     // Retrieve active 1D widget
     Plot1DWidget* widget_1D = tv_->getActive1DWidget();
 
@@ -1118,6 +1131,10 @@ namespace OpenMS
 
   void TVIdentificationViewController::addPeakAnnotationsFromID_(const PeptideHit& hit)
   {
+    #ifdef DEBUG_IDENTIFICATION_VIEW
+      cout << "Adding peak annotations from ID" << endl;  
+    #endif
+
     // get annotations and sequence
     const vector<PeptideHit::PeakAnnotation>& annotations =
       hit.getPeakAnnotations();
@@ -1242,6 +1259,10 @@ namespace OpenMS
 
   void TVIdentificationViewController::removeTheoreticalSpectrumLayer_()
   {
+    #ifdef DEBUG_IDENTIFICATION_VIEW
+      cout << "Removing theoretical spectrum layer" << endl;
+    #endif
+
     auto* spectrum_widget_1D = tv_->getActive1DWidget();
     if (spectrum_widget_1D)
     {
@@ -1267,6 +1288,10 @@ namespace OpenMS
   // override
   void TVIdentificationViewController::activateBehavior() 
   {
+    #ifdef DEBUG_IDENTIFICATION_VIEW
+      cout << "Activating identification view" << endl;
+    #endif
+
     Plot1DWidget* w = tv_->getActive1DWidget();
     if (w == nullptr)
     {
@@ -1283,12 +1308,21 @@ namespace OpenMS
       for (Size i = 0; i < current_layer.getPeakData()->getMSExperiment().size(); ++i)
       {
         UInt ms_level = current_layer.getPeakData()->getMSExperiment()[i].getMSLevel();
-        const PeptideIdentification& peptide_id = current_layer.getPeakData()->getPeptideIdentifications()[i];
 
-        if (ms_level != 2 || peptide_id.getHits().empty())  // skip non ms2 spectra and spectra with no identification
+        if (ms_level != 2) continue;
+
+        const vector<PeptideIdentification>& peptide_ids = current_layer.getPeakData()->getPeptideIdentifications();
+        if (i >= peptide_ids.size())
+        {
+          OPENMS_LOG_FATAL_ERROR << "Peptide identification index out of bounds!" << endl;
+        }
+        const PeptideIdentification& peptide_id = peptide_ids[i];
+
+        if (peptide_id.getHits().empty())  // skip spectra with no identification
         {
           continue;
         }
+        OPENMS_LOG_DEBUG << "During activation, found first MS2 spectrum with peptide identification: " << i << endl;
         current_layer.setCurrentIndex(i);
         break;
       }
@@ -1298,6 +1332,10 @@ namespace OpenMS
   // override
   void TVIdentificationViewController::deactivateBehavior()
   {
+    #ifdef DEBUG_IDENTIFICATION_VIEW
+      cout << "Deactivating identification view" << endl;
+    #endif
+    
     Plot1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present

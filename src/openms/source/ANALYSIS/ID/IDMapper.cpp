@@ -95,6 +95,7 @@ namespace OpenMS
     // append protein identifications
     map.getProteinIdentifications().insert(map.getProteinIdentifications().end(), protein_ids.begin(), protein_ids.end());
 
+    // AnnotatedMSRun will have one PeptideIdentification per spectrum (including ones without hits)
     map.getPeptideIdentifications().resize(map.getMSExperiment().getSpectra().size());
     
     // set up the lookup table for the spectra
