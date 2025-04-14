@@ -349,6 +349,7 @@ jobs:
     - name: Run Unit Tests
       shell: bash
       run: |
+            brew uninstall libomp
             ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
@@ -535,6 +536,7 @@ jobs:
     - name: Test
       shell: bash
       run: |
+            brew uninstall libomp
             ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
