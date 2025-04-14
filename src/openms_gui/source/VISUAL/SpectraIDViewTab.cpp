@@ -33,7 +33,7 @@
 #include <vector>
 #include <string>
 
-#define DEBUG_SPECTRA_ID_VIEW 1
+//#define DEBUG_SPECTRA_ID_VIEW 1
 
 using namespace std;
 
@@ -584,9 +584,9 @@ namespace OpenMS
     {
       int row = selected_spec_row_idx;
       int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
-      //int num_id = table_widget_->item(row, Clmn::ID_NR)->data(Qt::DisplayRole).toInt();
+      int num_id = table_widget_->item(row, Clmn::ID_NR)->data(Qt::DisplayRole).toInt();
       int num_ph = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();      
-      const PeptideIdentification& pep_id = layer_->getPeakData()->getPeptideIdentifications()[spectrum_index];
+      const PeptideIdentification& pep_id = layer_->getPeakData()->getPeptideIdentifications()[num_id];
       const vector<PeptideHit>& hits = pep_id.getHits();
       if (!hits.empty()) accs = hits[num_ph].extractProteinAccessionsSet();
     }
@@ -803,7 +803,7 @@ namespace OpenMS
           set<String> protein_accessions = ph.extractProteinAccessionsSet();
           String accessions = ListUtils::concatenate(vector<String>(protein_accessions.begin(), protein_accessions.end()), ", ");
           table_widget_->setAtBottomRow(accessions.toQString(), Clmn::ACCESSIONS, bg_color);
-          table_widget_->setAtBottomRow( 1, Clmn::ID_NR, bg_color);
+          table_widget_->setAtBottomRow((int) i, Clmn::ID_NR, bg_color); // spectrum index
           table_widget_->setAtBottomRow((int)(ph_idx), Clmn::PEPHIT_NR, bg_color);
 
           bool selected(false);
@@ -982,13 +982,13 @@ namespace OpenMS
     int row = item->row();
     String selected = item->checkState() == Qt::Checked ? "true" : "false";
     int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
-    //int num_id = table_widget_->item(row, Clmn::ID_NR)->data(Qt::DisplayRole).toInt();
+    int num_id = table_widget_->item(row, Clmn::ID_NR)->data(Qt::DisplayRole).toInt();
     int num_ph = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
 
     // maintain sortability of our checkbox column
     TableView::updateCheckBoxItem(item);
 
-    PeptideIdentification& pep_id = (*layer_->getPeakDataMuteable())[spectrum_index].second;
+    PeptideIdentification& pep_id = (*layer_->getPeakDataMuteable())[num_id].second;
 
     // update "selected" value in the correct PeptideHits
     vector<PeptideHit>& hits = pep_id.getHits();

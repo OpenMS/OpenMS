@@ -37,7 +37,7 @@
 using namespace OpenMS;
 using namespace std;
 
-#define DEBUG_IDENTIFICATION_VIEW
+//#define DEBUG_IDENTIFICATION_VIEW
 
 namespace OpenMS
 {
@@ -55,6 +55,9 @@ namespace OpenMS
 
   void TVIdentificationViewController::showSpectrumAsNew1D(int spectrum_index, int peptide_id_index, int peptide_hit_index)
   {
+    #ifdef DEBUG_IDENTIFICATION_VIEW
+      cout << "TVIdentificationViewController::showSpectrumAsNew1D() called" << endl;
+    #endif
     // basic behavior 1
     auto& layer = tv_->getActiveCanvas()->getCurrentLayer();
 
@@ -121,6 +124,11 @@ namespace OpenMS
           // check if index in bounds and hits are present
           if (peptide_hit_index < static_cast<int>(pi.getHits().size()))
           {
+            #ifdef DEBUG_IDENTIFICATION_VIEW
+              cout << "Creating annotations for PeptideIdentification index: " << peptide_id_index << endl;
+              cout << "PeptideHit index: " << peptide_hit_index << endl;
+              cout << "PeptideHit: " << pi.getHits()[peptide_hit_index].getSequence().toString() << endl;
+            #endif
             // get hit
             PeptideHit ph = pi.getHits()[peptide_hit_index];
             if (ph.getPeakAnnotations().empty())
@@ -151,6 +159,10 @@ namespace OpenMS
 
   void TVIdentificationViewController::addPeakAnnotations_(const vector<PeptideIdentification>& ph)
   {
+    #ifdef DEBUG_IDENTIFICATION_VIEW
+      cout << "TVIdentificationViewController::addPeakAnnotations() called" << endl;
+    #endif
+
     // called anew for every click on a spectrum
     auto getCurrentLayer = [&]() -> LayerData1DPeak& { return dynamic_cast<LayerData1DPeak&>(tv_->getActive1DWidget()->canvas()->getCurrentLayer()); };
 
@@ -285,6 +297,10 @@ namespace OpenMS
     int peptide_id_index,
     int peptide_hit_index)
   {
+    #ifdef DEBUG_IDENTIFICATION_VIEW
+      cout << "TVIdentificationViewController::activate1DSpectrum() called" << endl;
+    #endif
+    
     Plot1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // if no active 1D widget is present
@@ -308,6 +324,14 @@ namespace OpenMS
       UInt ms_level = current_layer().getCurrentSpectrum().getMSLevel();
 
       const PeptideIdentification& pid = current_layer().getPeakData()->getPeptideIdentifications()[spectrum_index];
+      #ifdef DEBUG_IDENTIFICATION_VIEW
+        cout << "PeptideIdentification index: " << peptide_id_index << endl;
+        cout << "PeptideHit index: " << peptide_hit_index << endl;
+        cout << "PeptideHit: " << pid.getHits()[peptide_hit_index].getSequence().toString() << endl;
+        cout << "MS level: " << ms_level << endl;
+        cout << "Spectrum index: " << spectrum_index << endl;
+      #endif
+
       switch (ms_level)
       {
         case 1: // mass fingerprint annotation of name etc and precursor labels
@@ -336,134 +360,136 @@ namespace OpenMS
         }
         case 2: // annotation with stored fragments or synthesized theoretical spectrum
         {
-          // check if index in bounds and hits are present
-          if (peptide_id_index < 1)
+          // get selected hit
+          PeptideHit ph = pid.getHits()[peptide_hit_index];
+
+          if (ph.getPeakAnnotations().empty())
           {
-            // get selected hit
-            PeptideHit ph = pid.getHits()[peptide_hit_index];
+            // if no fragment annotations are stored, create a theoretical spectrum
+            addTheoreticalSpectrumLayer_(ph);
 
-            if (ph.getPeakAnnotations().empty())
+            // synchronize PeptideHits with the annotations in the spectrum
+            current_layer().synchronizePeakAnnotations();
+            // remove labels and theoretical spectrum (will be recreated using PH annotations)
+            removeGraphicalPeakAnnotations_(spectrum_index);
+            removeTheoreticalSpectrumLayer_();
+
+            // return if no active 1D widget is present
+            if (widget_1D == nullptr)
+            { 
+              return;
+            }
+            // update current PeptideHit with the synchronized one
+            widget_1D->canvas()->activateSpectrum(spectrum_index);
+            const PeptideIdentification & pi2 = current_layer().getPeakData()->getPeptideIdentifications()[spectrum_index];
+            ph = pi2.getHits()[peptide_hit_index];
+
+          }
+          // use stored fragment annotations
+          #ifdef DEBUG_IDENTIFICATION_VIEW
+            cout << "Creating annotations for PeptideIdentification index: " << peptide_id_index << endl;
+            cout << "PeptideHit index: " << peptide_hit_index << endl;
+            cout << "PeptideHit: " << ph.getSequence().toString() << endl;
+          #endif
+          addPeakAnnotationsFromID_(ph);
+
+          if (ph.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TYPE)) // if this meta value exists, this should be an XL-MS annotation
+          {
+            String box_text;
+            String vert_bar = "&#124;";
+
+            if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "loop-link")
             {
-              // if no fragment annotations are stored, create a theoretical spectrum
-              addTheoreticalSpectrumLayer_(ph);
+              String hor_bar = "_";
+              String seq_alpha = ph.getSequence().toUnmodifiedString();
+              int xl_pos_alpha = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt();
+              int xl_pos_beta = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)).toInt() - xl_pos_alpha - 1;
 
-              // synchronize PeptideHits with the annotations in the spectrum
-              current_layer().synchronizePeakAnnotations();
-              // remove labels and theoretical spectrum (will be recreated using PH annotations)
-              removeGraphicalPeakAnnotations_(spectrum_index);
-              removeTheoreticalSpectrumLayer_();
+              String alpha_cov;
+              String beta_cov;
+              extractCoverageStrings(ph.getPeakAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), 0);
 
-              // return if no active 1D widget is present
-              if (widget_1D == nullptr)
-              { 
-                return;
-              }
-              // update current PeptideHit with the synchronized one
-              widget_1D->canvas()->activateSpectrum(spectrum_index);
-              const PeptideIdentification & pi2 = current_layer().getPeakData()->getPeptideIdentifications()[spectrum_index];
-              ph = pi2.getHits()[peptide_hit_index];
+              // String formatting
+              box_text += alpha_cov + "<br>" +  seq_alpha +  "<br>" + String(xl_pos_alpha, ' ') +  vert_bar + n_times(xl_pos_beta, hor_bar) + vert_bar;
+              // cut out line: "<br>" + String(xl_pos_alpha, ' ') + vert_bar + String(xl_pos_beta, ' ') + vert_bar +
+            }
+            else if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "cross-link")
+            {
+              String seq_alpha = ph.getSequence().toUnmodifiedString();
+              String seq_beta = AASequence::fromString(ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE)).toUnmodifiedString();
+              int xl_pos_alpha = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt();
+              int xl_pos_beta = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)).toInt();
+
+              // String formatting
+              Size prefix_length = max(xl_pos_alpha, xl_pos_beta);
+              //Size suffix_length = max(seq_alpha.size() - xl_pos_alpha, seq_beta.size() - xl_pos_beta);
+              Size alpha_space = prefix_length - xl_pos_alpha;
+              Size beta_space = prefix_length - xl_pos_beta;
+
+              String alpha_cov;
+              String beta_cov;
+              extractCoverageStrings(ph.getPeakAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), seq_beta.size());
+
+              box_text += String(alpha_space, ' ') + alpha_cov + "<br>" + String(alpha_space, ' ') + seq_alpha + "<br>" + String(prefix_length, ' ') + vert_bar + "<br>" + String(beta_space, ' ') + seq_beta + "<br>" + String(beta_space, ' ') + beta_cov;
+              // color: <font color=\"green\">&boxur;</font>
+            }
+            else // if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "mono-link")
+            {
+              String seq_alpha = ph.getSequence().toUnmodifiedString();
+              int xl_pos_alpha = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt();
+              Size prefix_length = xl_pos_alpha;
+
+              String alpha_cov;
+              String beta_cov;
+              extractCoverageStrings(ph.getPeakAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), 0);
+
+              box_text += alpha_cov + "<br>" + seq_alpha + "<br>" + String(prefix_length, ' ') + vert_bar;
 
             }
-            // use stored fragment annotations
-            addPeakAnnotationsFromID_(ph);
-
-            if (ph.metaValueExists(Constants::UserParam::OPENPEPXL_XL_TYPE)) // if this meta value exists, this should be an XL-MS annotation
+            box_text = R"(<font size="5" style="background-color:white;"><pre>)" + box_text + "</pre></font> ";
+            widget_1D->canvas()->setTextBox(box_text.toQString());
+          }
+          else if (ph.getPeakAnnotations().empty()) // only write the sequence
+          {
+            String seq = ph.getSequence().toString();
+            if (seq.empty())
             {
-              String box_text;
-              String vert_bar = "&#124;";
-
-              if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "loop-link")
-              {
-                String hor_bar = "_";
-                String seq_alpha = ph.getSequence().toUnmodifiedString();
-                int xl_pos_alpha = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt();
-                int xl_pos_beta = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)).toInt() - xl_pos_alpha - 1;
-
-                String alpha_cov;
-                String beta_cov;
-                extractCoverageStrings(ph.getPeakAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), 0);
-
-                // String formatting
-                box_text += alpha_cov + "<br>" +  seq_alpha +  "<br>" + String(xl_pos_alpha, ' ') +  vert_bar + n_times(xl_pos_beta, hor_bar) + vert_bar;
-                // cut out line: "<br>" + String(xl_pos_alpha, ' ') + vert_bar + String(xl_pos_beta, ' ') + vert_bar +
-              }
-              else if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "cross-link")
-              {
-                String seq_alpha = ph.getSequence().toUnmodifiedString();
-                String seq_beta = AASequence::fromString(ph.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_SEQUENCE)).toUnmodifiedString();
-                int xl_pos_alpha = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt();
-                int xl_pos_beta = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)).toInt();
-
-                // String formatting
-                Size prefix_length = max(xl_pos_alpha, xl_pos_beta);
-                //Size suffix_length = max(seq_alpha.size() - xl_pos_alpha, seq_beta.size() - xl_pos_beta);
-                Size alpha_space = prefix_length - xl_pos_alpha;
-                Size beta_space = prefix_length - xl_pos_beta;
-
-                String alpha_cov;
-                String beta_cov;
-                extractCoverageStrings(ph.getPeakAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), seq_beta.size());
-
-                box_text += String(alpha_space, ' ') + alpha_cov + "<br>" + String(alpha_space, ' ') + seq_alpha + "<br>" + String(prefix_length, ' ') + vert_bar + "<br>" + String(beta_space, ' ') + seq_beta + "<br>" + String(beta_space, ' ') + beta_cov;
-                // color: <font color=\"green\">&boxur;</font>
-              }
-              else // if (ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "mono-link")
-              {
-                String seq_alpha = ph.getSequence().toUnmodifiedString();
-                int xl_pos_alpha = String(ph.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt();
-                Size prefix_length = xl_pos_alpha;
-
-                String alpha_cov;
-                String beta_cov;
-                extractCoverageStrings(ph.getPeakAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), 0);
-
-                box_text += alpha_cov + "<br>" + seq_alpha + "<br>" + String(prefix_length, ' ') + vert_bar;
-
-              }
-              box_text = R"(<font size="5" style="background-color:white;"><pre>)" + box_text + "</pre></font> ";
-              widget_1D->canvas()->setTextBox(box_text.toQString());
+              seq = ph.getMetaValue("label"); // e.g. for RNA sequences
             }
-            else if (ph.getPeakAnnotations().empty()) // only write the sequence
+            widget_1D->canvas()->setTextBox(seq.toQString());
+          }
+          else if (widget_1D->canvas()->isIonLadderVisible())
+          {
+            if (!ph.getSequence().empty()) // generate sequence diagram for a peptide
             {
-              String seq = ph.getSequence().toString();
-              if (seq.empty())
-              {
-                seq = ph.getMetaValue("label"); // e.g. for RNA sequences
-              }
-              widget_1D->canvas()->setTextBox(seq.toQString());
+              // @TODO: read ion list from the input file (meta value)
+              static vector<String> top_ions = ListUtils::create<String>("a,b,c");
+              static vector<String> bottom_ions = ListUtils::create<String>("x,y,z");
+              String diagram = generateSequenceDiagram_(
+                ph.getSequence(),
+                ph.getPeakAnnotations(),
+                top_ions,
+                bottom_ions);
+              widget_1D->canvas()->setTextBox(diagram.toQString());
             }
-            else if (widget_1D->canvas()->isIonLadderVisible())
+            else if (ph.metaValueExists("label")) // generate sequence diagram for RNA
             {
-              if (!ph.getSequence().empty()) // generate sequence diagram for a peptide
+              try
               {
                 // @TODO: read ion list from the input file (meta value)
-                static vector<String> top_ions = ListUtils::create<String>("a,b,c");
-                static vector<String> bottom_ions = ListUtils::create<String>("x,y,z");
-                String diagram = generateSequenceDiagram_(
-                  ph.getSequence(),
-                  ph.getPeakAnnotations(),
-                  top_ions,
-                  bottom_ions);
+                NASequence na_seq = NASequence::fromString(ph.getMetaValue("label"));
+                static vector<String> top_ions = ListUtils::create<String>("a-B,a,b,c,d");
+                static vector<String> bottom_ions = ListUtils::create<String>("w,x,y,z");
+                String diagram = generateSequenceDiagram_(na_seq, ph.getPeakAnnotations(),
+                                                          top_ions, bottom_ions);
                 widget_1D->canvas()->setTextBox(diagram.toQString());
               }
-              else if (ph.metaValueExists("label")) // generate sequence diagram for RNA
+              catch (Exception::ParseError&) // label doesn't contain have a valid seq.
               {
-                try
-                {
-                  // @TODO: read ion list from the input file (meta value)
-                  NASequence na_seq = NASequence::fromString(ph.getMetaValue("label"));
-                  static vector<String> top_ions = ListUtils::create<String>("a-B,a,b,c,d");
-                  static vector<String> bottom_ions = ListUtils::create<String>("w,x,y,z");
-                  String diagram = generateSequenceDiagram_(na_seq, ph.getPeakAnnotations(),
-                                                            top_ions, bottom_ions);
-                  widget_1D->canvas()->setTextBox(diagram.toQString());
-                }
-                catch (Exception::ParseError&) // label doesn't contain have a valid seq.
-                {
-                }
               }
             }
           }
+          
           break;
         }
         default:
@@ -1335,7 +1361,7 @@ namespace OpenMS
     #ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "Deactivating identification view" << endl;
     #endif
-    
+
     Plot1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
