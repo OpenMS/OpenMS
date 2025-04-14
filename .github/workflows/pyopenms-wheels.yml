@@ -287,8 +287,9 @@ jobs:
           # Install wheel
           pip install "$(ls OpenMS/bld/pyOpenMS/dist/*.whl | head -n 1)"
         done
+
         # Clean up
-        rm -rf build
+        rm -rf OpenMS/bld/
 
       env:
           CC: "clang"
@@ -448,8 +449,9 @@ jobs:
           # Install wheel
           pip install "$(ls OpenMS/bld/pyOpenMS/dist/*.whl | head -n 1)"
         done
+
         # Clean up
-        rm -rf build
+        rm -rf OpenMS/bld
 
       env:
         CC: "clang"
