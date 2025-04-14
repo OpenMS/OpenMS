@@ -728,7 +728,7 @@ END_SECTION
 
 // 32plex channel extraction test
 
-START_SECTION(([EXTRA] TMT 32Pplex support)){
+START_SECTION(([EXTRA] TMT 32plex support)){
   PeakMap tmt32plex_exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_9.mzML"), tmt32plex_exp);
 
