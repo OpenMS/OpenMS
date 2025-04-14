@@ -442,9 +442,9 @@ namespace OpenMS::Internal
       std::div_t quotient_and_remainder = std::div(length, 8);
       size_t quotient = quotient_and_remainder.quot;  // Ganzzahliger Quotient
       size_t remainder = quotient_and_remainder.rem;
-      std::cout << "Remainer: " << remainder << std::endl;
-      std::cout << "Quotient: " << quotient << std::endl;
-      std::cout << "length: " << length << endl; 
+      // std::cout << "Remainer: " << remainder << std::endl;
+      // std::cout << "Quotient: " << quotient << std::endl;
+      // std::cout << "length: " << length << endl; 
     
       const XMLCh* it = chars;
       const XMLCh* end = it + (quotient * 8);
@@ -471,7 +471,7 @@ namespace OpenMS::Internal
         bitmask = !(*it & 0xFF00);
         it++;
       }
-        std::cout << "bitmask: " << bitmask << std::endl;
+        // std::cout << "bitmask: " << bitmask << std::endl;
         return bitmask;
     }
 
