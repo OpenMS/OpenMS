@@ -226,8 +226,6 @@ ext = []
 ##WARNING debug
 libraries.extend("boost_regex-mt-x64")
 
-print(libraries)
-
 for module in mnames:
 
     ext.append(Extension(
