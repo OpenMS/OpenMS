@@ -12,6 +12,7 @@
 
 #include <boost/dynamic_bitset.hpp>
 
+#include <OpenMS/KERNEL/SpectrumHelper.h>
 namespace OpenMS
 {
     MassTraceDetection::MassTraceDetection() :
@@ -50,37 +51,21 @@ namespace OpenMS
       peak_idx(peak_idx)
     {}
 
-    void MassTraceDetection::updateIterativeWeightedMeanMZ(const double& added_mz,
-                                                           const double& added_int, double& centroid_mz, double& prev_counter,
-                                                           double& prev_denom)
+    void MassTraceDetection::updateIterativeWeightedMean(const double& added_value,
+                                                         const double& added_intensity,
+                                                         double& centroid_value,
+                                                         double& prev_counter,
+                                                         double& prev_denom)
     {
-      double new_weight(added_int);
-      double new_mz(added_mz);
+      double new_weight = added_intensity;
+      double new_val = added_value;
 
-      double counter_tmp(1 + (new_weight * new_mz) / prev_counter);
-      double denom_tmp(1 + (new_weight) / prev_denom);
-      centroid_mz *= (counter_tmp / denom_tmp);
+      double counter_tmp = 1.0 + (new_weight * new_val) / prev_counter;
+      double denom_tmp = 1.0 + (new_weight) / prev_denom;
+
+      centroid_value *= (counter_tmp / denom_tmp);
       prev_counter *= counter_tmp;
       prev_denom *= denom_tmp;
-
-      return;
-    }
-    // copy UpdateIterativeWeightedMeanMZ structure -- apply it to ion mobility
-    // Maybe remove this and just reuse function above for ion mobility as well?
-    void MassTraceDetection::updateIterativeWeightedMeanIM(const double& added_im,
-                                                           const double& added_int, double& centroid_im, double& prev_counter,
-                                                           double& prev_denom)
-    {
-      double new_weight(added_int);
-      double new_mz(added_im);
-
-      double counter_tmp(1 + (new_weight * new_mz) / prev_counter);
-      double denom_tmp(1 + (new_weight) / prev_denom);
-
-      centroid_im *= (counter_tmp / denom_tmp);
-      prev_counter *= counter_tmp;
-      prev_denom *= denom_tmp;
-      return;
     }
 
     void MassTraceDetection::run(PeakMap::ConstAreaIterator& begin,
@@ -269,110 +254,61 @@ namespace OpenMS
       boost::dynamic_bitset<> peak_visited(total_peak_count);
       Size trace_number(1);
 
-      // check presence of FWHM meta data
-      // we also need to check for presence of ion mobility and its corresponding IM peak FWHM
+      // check presence of m/z peak FWHM, ion mobility or IM peak FWHM meta array
       int fwhm_meta_idx(-1);
       int Ion_Mobility_idx(-1);
       int IM_fwhm_idx(-1);
 
-      // figure out which FloatDataArray index is m/z FWHM_ppm, Ion Mobility, or IM Peak FWHM
-      // will use map structure to store this info
-      std::map<std::string, int> nameToIndexMap;
-      // temporary float array index locator
-      int fwhm_meta_idx_tmp(-1);
-      int Ion_Mobility_idx_tmp(-1);
-      int IM_fwhm_idx_tmp(-1);
-
-      // find the first spectrum with FloatDataArrays annotation. Construct a map of meta float data array name and its index.
-      // we assume the first spectrum ordering of meta float data arrays is consistent with the rest
-      for (Size i = 0; i < work_exp.size(); ++i)
+      // Identify float meta array indices from first spectrum that contains metadata
+      for (const auto& spec : work_exp)
       {
-        if (!work_exp[i].getFloatDataArrays().empty())
+        const auto& fda = spec.getFloatDataArrays();
+        if (!fda.empty())
         {
-          // Get the spectrum's FloatDataArrays and store the associations in the map
-          const std::vector<DataArrays::FloatDataArray>& floatDataArrays = work_exp[i].getFloatDataArrays();
-          for (size_t float_idx = 0; float_idx < floatDataArrays.size(); float_idx++)
-          {
-            const DataArrays::FloatDataArray& array = floatDataArrays[float_idx];
-            const std::string& name = array.getName();
-            nameToIndexMap[name] = float_idx;
-          }
-          // update tempoerary meta variable index locators with the appriopiate number
-          if (nameToIndexMap.count("FWHM_ppm") > 0)
-          {
-            fwhm_meta_idx_tmp = nameToIndexMap["FWHM_ppm"];
-          }
-          if (nameToIndexMap.count("Ion Mobility") > 0)
-          {
-            Ion_Mobility_idx_tmp = nameToIndexMap["Ion Mobility"];
-          }
-          if (nameToIndexMap.count("IM Peak FWHM") > 0)
-          {
-            IM_fwhm_idx_tmp = nameToIndexMap["IM Peak FWHM"];
-          }
-        }
-        // break the loop after the first encountered spectrum with meta data
-        break;
-      }
+          auto it_fwhm = getDataArrayByName(spec.getFloatDataArrays(), "FWHM_ppm");
+          auto it_im   = getDataArrayByName(spec.getFloatDataArrays(), "Ion Mobility");
+          auto it_imf  = getDataArrayByName(spec.getFloatDataArrays(), "IM Peak FWHM");
 
-      // ------ Assign Meta Array Index ------
-      // Here, we ensure the float arrays are the same size as spectrum. Otherwise throw error
-      // check for m/z FWHM meta array
-      Size fwhm_meta_count(0);
-      for (Size i = 0; i < work_exp.size(); ++i) {
-        // First, check if FWHM_ppm index has been found
-        if (!work_exp[i].getFloatDataArrays().empty() && fwhm_meta_idx_tmp != -1) {
-          // safely check the name to confirm it's 'FWHM_ppm'
-          if (work_exp[i].getFloatDataArrays()[fwhm_meta_idx_tmp].getName() == "FWHM_ppm") {
-            if (work_exp[i].getFloatDataArrays()[fwhm_meta_idx_tmp].size() != work_exp[i].size()) {
-              throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, work_exp[i].size());
-            }
-            fwhm_meta_idx = fwhm_meta_idx_tmp;
-            ++fwhm_meta_count;
-          }
-        }
-      }
-      if (fwhm_meta_count > 0 && fwhm_meta_count != work_exp.size()) {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      String("m/z FWHM meta arrays are expected to be missing or present for all MS spectra [") + fwhm_meta_count + "/" + work_exp.size() + "].");
-      }
+          if (it_fwhm != fda.end()) fwhm_meta_idx = std::distance(fda.begin(), it_fwhm);
+          if (it_im   != fda.end()) Ion_Mobility_idx = std::distance(fda.begin(), it_im);
+          if (it_imf  != fda.end()) IM_fwhm_idx = std::distance(fda.begin(), it_imf);
 
-      // Repeat loop checking for the other meta float arrays.
-      // reset fwhm meta count to zero
-      fwhm_meta_count = 0;
-      for (Size i = 0; i < work_exp.size(); ++i) {
-        if (!work_exp[i].getFloatDataArrays().empty() && Ion_Mobility_idx_tmp != -1) {
-          if (work_exp[i].getFloatDataArrays()[Ion_Mobility_idx_tmp].getName() == "Ion Mobility") {
-            if (work_exp[i].getFloatDataArrays()[Ion_Mobility_idx_tmp].size() != work_exp[i].size()) {
-              throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, work_exp[i].size());
-            }
-            Ion_Mobility_idx = Ion_Mobility_idx_tmp;
-            ++fwhm_meta_count;
-          }
+          break;
         }
       }
-      if (fwhm_meta_count > 0 && fwhm_meta_count != work_exp.size()) {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      String("Ion Mobility meta arrays are expected to be missing or present for all MS spectra [") + fwhm_meta_count + "/" + work_exp.size() + "].");
-      }
+      // Here, we ensure the float arrays are the same size as the spectrum.
+      auto validate_meta_array = [&](const String& name, int idx)
+      {
+        if (idx == -1) return; // Not present → skip
 
-      // ion mobility FWHM
-      fwhm_meta_count = 0;
-      for (Size i = 0; i < work_exp.size(); ++i) {
-        if (!work_exp[i].getFloatDataArrays().empty() && IM_fwhm_idx_tmp != -1) {
-          if (work_exp[i].getFloatDataArrays()[IM_fwhm_idx_tmp].getName() == "IM Peak FWHM") {
-            if (work_exp[i].getFloatDataArrays()[IM_fwhm_idx_tmp].size() != work_exp[i].size()) {
-              throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, work_exp[i].size());
+        Size valid_count = 0;
+        for (const auto& spec : work_exp)
+        {
+          const auto& fda = spec.getFloatDataArrays();
+          if (!fda.empty() &&
+              idx < (int)fda.size() &&
+              fda[idx].getName() == name)
+          {
+            if (fda[idx].size() != spec.size())
+            {
+              throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, spec.size());
             }
-            IM_fwhm_idx = IM_fwhm_idx_tmp;
-            ++fwhm_meta_count;
+            ++valid_count;
           }
         }
-      }
-      if (fwhm_meta_count > 0 && fwhm_meta_count != work_exp.size()) {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      String("IM Peak FWHM meta arrays are expected to be missing or present for all MS spectra [") + fwhm_meta_count + "/" + work_exp.size() + "].");
-      }
+
+        if (valid_count > 0 && valid_count != work_exp.size())
+        {
+          throw OpenMS::Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                name + " meta arrays must be consistently present or absent across all MS spectra [" +
+                                                  String(valid_count) + "/" + String(work_exp.size()) + "].");
+        }
+      };
+
+      // validate meta arrays
+      validate_meta_array("FWHM_ppm", fwhm_meta_idx);
+      validate_meta_array("Ion Mobility", Ion_Mobility_idx);
+      validate_meta_array("IM Peak FWHM", IM_fwhm_idx);
 
 
       this->startProgress(0, total_peak_count, "mass trace detection");
@@ -406,7 +342,7 @@ namespace OpenMS
         double prev_counter(apex_peak.getIntensity() * apex_peak.getMZ());
         double prev_denom(apex_peak.getIntensity());
 
-        updateIterativeWeightedMeanMZ(apex_peak.getMZ(), apex_peak.getIntensity(), centroid_mz, prev_counter, prev_denom);
+        MassTraceDetection::updateIterativeWeightedMean(apex_peak.getMZ(), apex_peak.getIntensity(), centroid_mz, prev_counter, prev_denom);
 
         // Initialization for the iterative version of weighted ion mobility mean calculation
         double centroid_im(-1);
@@ -417,7 +353,7 @@ namespace OpenMS
           centroid_im = work_exp[apex_scan_idx].getFloatDataArrays()[Ion_Mobility_idx][apex_peak_idx];
           prev_counter_im = apex_peak.getIntensity() * centroid_im;
           prev_denom_im = apex_peak.getIntensity();
-          updateIterativeWeightedMeanIM(work_exp[apex_scan_idx].getFloatDataArrays()[Ion_Mobility_idx][apex_peak_idx], apex_peak.getIntensity(), centroid_im, prev_counter_im, prev_denom_im);
+          MassTraceDetection::updateIterativeWeightedMean(work_exp[apex_scan_idx].getFloatDataArrays()[Ion_Mobility_idx][apex_peak_idx], apex_peak.getIntensity(), centroid_im, prev_counter_im, prev_denom_im);
         }
 
         std::vector<std::pair<Size, Size> > gathered_idx;
@@ -487,7 +423,7 @@ namespace OpenMS
                   fwhms_mz.push_back(spec_trace_down.getFloatDataArrays()[fwhm_meta_idx][next_down_peak_idx]);
                 }
                 // Update the m/z mean of the current trace as we added a new peak
-                updateIterativeWeightedMeanMZ(next_down_peak_mz, next_down_peak_int, centroid_mz, prev_counter, prev_denom);
+                MassTraceDetection::updateIterativeWeightedMean(next_down_peak_mz, next_down_peak_int, centroid_mz, prev_counter, prev_denom);
                 gathered_idx.emplace_back(trace_down_idx - 1, next_down_peak_idx);
 
                 // Update the m/z variance dynamically
@@ -586,10 +522,10 @@ namespace OpenMS
                 // if ion mobility is present, update the weighted im centroid
                 if (Ion_Mobility_idx != -1)
                 {
-                  updateIterativeWeightedMeanIM(next_down_peak_im, next_down_peak_int, centroid_im, prev_counter_im, prev_denom_im);
+                  MassTraceDetection::updateIterativeWeightedMean(next_down_peak_im, next_down_peak_int, centroid_im, prev_counter_im, prev_denom_im);
                 }
                 // Update the m/z mean of the current trace as we added a new peak
-                updateIterativeWeightedMeanMZ(next_down_peak_mz, next_down_peak_int, centroid_mz, prev_counter, prev_denom);
+                MassTraceDetection::updateIterativeWeightedMean(next_down_peak_mz, next_down_peak_int, centroid_mz, prev_counter, prev_denom);
                 gathered_idx.emplace_back(trace_down_idx - 1, next_down_peak_idx);
 
                 // Update the m/z variance dynamically
@@ -629,7 +565,6 @@ namespace OpenMS
                                     (double)(down_scan_counter + up_scan_counter + 1);
               if (down_scan_counter > min_scans_to_consider && current_sample_rate < min_sample_rate_)
               {
-                // std::cout << "stopping down..." << std::endl;
                 toggle_down = false;
               }
             }
@@ -666,7 +601,7 @@ namespace OpenMS
                   fwhms_mz.push_back(spec_trace_up.getFloatDataArrays()[fwhm_meta_idx][next_up_peak_idx]);
                 }
                 // Update the m/z mean of the current trace as we added a new peak
-                updateIterativeWeightedMeanMZ(next_up_peak_mz, next_up_peak_int, centroid_mz, prev_counter, prev_denom);
+                MassTraceDetection::updateIterativeWeightedMean(next_up_peak_mz, next_up_peak_int, centroid_mz, prev_counter, prev_denom);
                 gathered_idx.emplace_back(trace_up_idx + 1, next_up_peak_idx);
 
                 // Update the m/z variance dynamically
@@ -736,7 +671,7 @@ namespace OpenMS
                   (next_up_peak_mz >= left_bound) &&
                   (next_up_peak_im <= right_bound_im) &&
                   (next_up_peak_im >= left_bound_im) &&
-                  !peak_visited[spec_offsets[trace_up_idx - 1] + next_up_peak_idx]
+                  !peak_visited[spec_offsets[trace_up_idx + 1] + next_up_peak_idx]
               )
               {
                 Peak2D next_peak;
@@ -757,11 +692,11 @@ namespace OpenMS
                 }
                 if (Ion_Mobility_idx != -1)
                 {
-                  updateIterativeWeightedMeanIM(next_up_peak_im, next_up_peak_int, centroid_im, prev_counter_im, prev_denom_im);
+                  MassTraceDetection::updateIterativeWeightedMean(next_up_peak_im, next_up_peak_int, centroid_im, prev_counter_im, prev_denom_im);
                 }
                 // Update the m/z mean of the current trace as we added a new peak
-                updateIterativeWeightedMeanMZ(next_up_peak_mz, next_up_peak_int, centroid_mz, prev_counter, prev_denom);
-                gathered_idx.emplace_back(trace_up_idx - 1, next_up_peak_idx);
+                MassTraceDetection::updateIterativeWeightedMean(next_up_peak_mz, next_up_peak_int, centroid_mz, prev_counter, prev_denom);
+                gathered_idx.emplace_back(trace_up_idx + 1, next_up_peak_idx);
 
                 // Update the m/z variance dynamically
                 if (reestimate_mt_sd_)           //  && (up_hitting_peak+1 > min_flank_scans))
@@ -797,7 +732,6 @@ namespace OpenMS
 
               if (up_scan_counter > min_scans_to_consider && current_sample_rate < min_sample_rate_)
               {
-                // std::cout << "stopping up" << std::endl;
                 toggle_up = false;
               }
             }

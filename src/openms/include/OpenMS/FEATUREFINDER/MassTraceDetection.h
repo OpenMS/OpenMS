@@ -57,12 +57,6 @@ namespace OpenMS
         /** @name Helper methods
         */
 
-        /// Allows the iterative computation of the intensity-weighted mean of a mass trace's centroid m/z.
-        void updateIterativeWeightedMeanMZ(const double &, const double &, double &, double &, double &);
-
-        /// compute intensity weighted ion mobility
-        void updateIterativeWeightedMeanIM(const double &, const double &, double &, double &, double &);
-
         /** @name Main computation methods
         */
 
@@ -76,6 +70,12 @@ namespace OpenMS
         */
     protected:
         void updateMembers_() override;
+        /// allows for the iterative computation of intensity weighted of a mass trace's centroid m/z or ion mobility
+        static void updateIterativeWeightedMean(const double& added_value,
+                                                const double& added_intensity,
+                                                double& centroid_value,
+                                                double& prev_counter,
+                                                double& prev_denom);
 
     private:
 
