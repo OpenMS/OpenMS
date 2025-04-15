@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
-// $Authors: David Voigt $
+// $Authors: David Voigt, Timo Sachsenberg $
 // -------------------------------------------------------------------------------------------------------------------------------------
 
 #pragma once
@@ -33,8 +33,8 @@ namespace OpenMS
   class OPENMS_DLLAPI AnnotatedMSRun
   {
   public:
-    typedef std::pair<MSSpectrum&, PeptideIdentification&> Mapping;
-    typedef std::pair<const MSSpectrum&, const PeptideIdentification&> ConstMapping;
+    using SpectrumIdRef = std::pair<MSSpectrum&, PeptideIdentification&>;
+    using ConstSpectrumIdRef = std::pair<const MSSpectrum&, const PeptideIdentification&>;
     using SpectrumType = MSExperiment::SpectrumType;
     using ChromatogramType = MSExperiment::ChromatogramType;
 
@@ -51,6 +51,11 @@ namespace OpenMS
 
     /// Move constructor
     AnnotatedMSRun(AnnotatedMSRun&&) = default;
+
+    /// Copy constructor
+    AnnotatedMSRun(const AnnotatedMSRun&) = default;
+    AnnotatedMSRun& operator=(const AnnotatedMSRun&) = default;
+    AnnotatedMSRun& operator=(AnnotatedMSRun&&) = default;
 
     /// Destructor
     ~AnnotatedMSRun() = default;
@@ -127,13 +132,7 @@ namespace OpenMS
      */
     inline auto cbegin() const
     {
-      if (data.getSpectra().size() != peptide_ids_.size())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__,
-          OPENMS_PRETTY_FUNCTION,
-          "Number of spectra and peptide identifications do not match.", 
-          String(data.getSpectra().size()) + " " + String(peptide_ids_.size()));
-      }
+      checkPeptideIdSize_(OPENMS_PRETTY_FUNCTION);
       return PairIterator(data.getSpectra().cbegin(), peptide_ids_.cbegin());
     }
 
@@ -143,13 +142,7 @@ namespace OpenMS
      */
     inline auto begin()
     {
-      if (data.getSpectra().size() != peptide_ids_.size())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__,
-          OPENMS_PRETTY_FUNCTION,
-          "Number of spectra and peptide identifications do not match.", 
-          String(data.getSpectra().size()) + " " + String(peptide_ids_.size()));
-      }
+      checkPeptideIdSize_(OPENMS_PRETTY_FUNCTION);
       return PairIterator(data.getSpectra().begin(), peptide_ids_.begin());
     }
 
@@ -159,13 +152,7 @@ namespace OpenMS
      */
     inline auto begin() const
     {
-      if (data.getSpectra().size() != peptide_ids_.size())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__,
-          OPENMS_PRETTY_FUNCTION,
-          "Number of spectra and peptide identifications do not match.", 
-          String(data.getSpectra().size()) + " " + String(peptide_ids_.size()));
-      }      
+      checkPeptideIdSize_(OPENMS_PRETTY_FUNCTION);
       return PairIterator(data.getSpectra().cbegin(), peptide_ids_.cbegin());
     }
 
@@ -201,7 +188,7 @@ namespace OpenMS
      * @param idx The index of the spectrum
      * @return A pair of references to the spectrum and its peptide identification
      */
-    inline Mapping operator[](size_t idx)
+    inline SpectrumIdRef operator[](size_t idx)
     {
       if (idx >= peptide_ids_.size())
       {
@@ -223,7 +210,7 @@ namespace OpenMS
      * @param idx The index of the spectrum
      * @return A pair of const references to the spectrum and its peptide identification
      */
-    inline ConstMapping operator[](size_t idx) const
+    inline ConstSpectrumIdRef operator[](size_t idx) const
     {
       if (idx >= peptide_ids_.size())
       {
@@ -322,6 +309,19 @@ namespace OpenMS
     typedef AnnotatedMSRun::PairIterator<std::vector<MSSpectrum>::const_iterator, std::vector<PeptideIdentification>::const_iterator> ConstIterator;
 
   private:
+
+    // Helper to enforce invariant
+    void checkPeptideIdSize_(const char* function_name) const
+    {
+      if (data.getSpectra().size() != peptide_ids_.size())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__,
+          function_name, // Use the provided function name
+          "Internal inconsistency: Number of spectra and peptide identifications do not match.",
+          String(data.getSpectra().size()) + " vs " + String(peptide_ids_.size()));
+      }
+    }
+
     std::vector<PeptideIdentification> peptide_ids_;
     std::vector<ProteinIdentification> protein_ids_;
     MSExperiment data;

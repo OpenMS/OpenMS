@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
-// $Authors: David Voigt $
+// $Authors: David Voigt, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
 
