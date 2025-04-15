@@ -49,6 +49,7 @@ namespace OpenMS
   {
     data = experiment;
   }
+  
   void AnnotatedMSRun::checkPeptideIdSize_(const char* function_name) const
   {
     if (data.getSpectra().size() != peptide_ids_.size())
@@ -60,4 +61,4 @@ namespace OpenMS
     }
   }
 }
-}
+
