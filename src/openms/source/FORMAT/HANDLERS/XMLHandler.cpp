@@ -422,14 +422,6 @@ namespace OpenMS::Internal
       }
     }
 
-    //*******************************************************************************************************************
-    
-    StringManager::StringManager()
-    = default;
-
-    StringManager::~StringManager()
-    = default;
-
     void StringManager::compress64 (const XMLCh* input_it, char* output_it) {
       alignas(16) simde__m128i bits = simde_mm_loadu_si128((simde__m128i*)input_it);
       simde__m128i compressed = simde_mm_packus_epi16(bits, simde_mm_setzero_si128());
@@ -471,7 +463,6 @@ namespace OpenMS::Internal
         bitmask = !(*it & 0xFF00);
         it++;
       }
-        // std::cout << "bitmask: " << bitmask << std::endl;
         return bitmask;
     }
 
@@ -529,7 +520,17 @@ namespace OpenMS::Internal
         it ++;
         // i++;
       }
-
     }
+
+    //*******************************************************************************************************************
+    
+    StringManager::StringManager()
+    = default;
+
+    StringManager::~StringManager()
+    = default;
+
+    
+
 
 } // namespace OpenMS   // namespace Internal
