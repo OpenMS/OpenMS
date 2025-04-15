@@ -10,7 +10,6 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <string>
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -20,6 +19,8 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 ///////////////////////////
@@ -560,5 +561,38 @@ END_SECTION
 */
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+START_SECTION((const String& getBaseName() const))
+  PeptideIdentification id;
+  TEST_EQUAL(id.getBaseName(), "")
+  
+  id.setBaseName("test_base_name");
+  TEST_EQUAL(id.getBaseName(), "test_base_name")
+  
+  // Test that it's stored as a MetaValue
+  TEST_EQUAL(id.metaValueExists(Constants::UserParam::BASE_NAME), true)
+  TEST_EQUAL(id.getMetaValue(Constants::UserParam::BASE_NAME), "test_base_name")
+END_SECTION
+
+START_SECTION((void setBaseName(const String& base_name)))
+  PeptideIdentification id;
+  
+  // Test setting a non-empty base name
+  id.setBaseName("test_base_name");
+  TEST_EQUAL(id.getBaseName(), "test_base_name")
+  TEST_EQUAL(id.metaValueExists(Constants::UserParam::BASE_NAME), true)
+  
+  // Test setting an empty base name (should remove the meta value)
+  id.setBaseName("");
+  TEST_EQUAL(id.getBaseName(), "")
+  TEST_EQUAL(id.metaValueExists(Constants::UserParam::BASE_NAME), false)
+  
+  // Test that empty() method works correctly with base name as meta value
+  TEST_EQUAL(id.empty(), true)
+  id.setBaseName("test_base_name");
+  TEST_EQUAL(id.empty(), false)
+  id.setBaseName("");
+  TEST_EQUAL(id.empty(), true)
+END_SECTION
 
 END_TEST

@@ -110,7 +110,7 @@ public:
     void setIdentifier(const String& id);
 
     /// returns the base name which links to underlying peak map
-    const String& getBaseName() const;
+    String getBaseName() const;
     /// sets the base name which links to underlying peak map
     void setBaseName(const String& base_name);
 
@@ -193,7 +193,6 @@ protected:
     String score_type_; ///< The score type (Mascot, Sequest, e-value, p-value)
     bool higher_score_better_; ///< The score orientation
     // hint: here is an alignment gap of 7 bytes <-- here --> use it when introducing new members with sizeof(m)<=4
-    String base_name_;
     double mz_;
     double rt_;
 

@@ -5,9 +5,10 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
-
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/CONCEPT/Constants.h>
+
 
 
 using namespace std;
@@ -22,7 +23,6 @@ namespace OpenMS
     significance_threshold_(0.0),
     score_type_(),
     higher_score_better_(true),
-    base_name_(),
     mz_(std::numeric_limits<double>::quiet_NaN()),
     rt_(std::numeric_limits<double>::quiet_NaN())
   {
@@ -40,7 +40,7 @@ namespace OpenMS
            && score_type_ == rhs.score_type_
            && higher_score_better_ == rhs.higher_score_better_
            && getExperimentLabel() == rhs.getExperimentLabel()
-           && base_name_ == rhs.base_name_
+           && getBaseName() == rhs.getBaseName()
            && (mz_ == rhs.mz_ || (!this->hasMZ() && !rhs.hasMZ())) // might be NaN, so comparing == will always be false
            && (rt_ == rhs.rt_ || (!this->hasRT() && !rhs.hasRT()));// might be NaN, so comparing == will always be false
   }
@@ -161,14 +161,22 @@ namespace OpenMS
     this->setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, id);
   }
 
-  const String& PeptideIdentification::getBaseName() const
+  String PeptideIdentification::getBaseName() const
   {
-    return base_name_;
+    return this->getMetaValue(Constants::UserParam::BASE_NAME, "");
   }
 
   void PeptideIdentification::setBaseName(const String& base_name)
   {
-    base_name_ = base_name;
+    // do not store empty base_name (default value)
+    if (!base_name.empty())
+    {
+      setMetaValue(Constants::UserParam::BASE_NAME, base_name);
+    }
+    else
+    {
+      removeMetaValue(Constants::UserParam::BASE_NAME);
+    }
   }
 
   const String PeptideIdentification::getExperimentLabel() const
@@ -239,7 +247,7 @@ namespace OpenMS
            && significance_threshold_ == 0.0
            && score_type_.empty()
            && higher_score_better_ == true
-           && base_name_.empty();
+           && !metaValueExists(Constants::UserParam::BASE_NAME);
   }
 
   std::vector<PeptideHit> PeptideIdentification::getReferencingHits(const std::vector<PeptideHit>& hits, const std::set<String>& accession)
