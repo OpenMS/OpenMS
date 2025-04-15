@@ -311,16 +311,7 @@ namespace OpenMS
   private:
 
     // Helper to enforce invariant
-    void checkPeptideIdSize_(const char* function_name) const
-    {
-      if (data.getSpectra().size() != peptide_ids_.size())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__,
-          function_name, // Use the provided function name
-          "Internal inconsistency: Number of spectra and peptide identifications do not match.",
-          String(data.getSpectra().size()) + " vs " + String(peptide_ids_.size()));
-      }
-    }
+    void checkPeptideIdSize_(const char* function_name) const;
 
     std::vector<PeptideIdentification> peptide_ids_;
     std::vector<ProteinIdentification> protein_ids_;
