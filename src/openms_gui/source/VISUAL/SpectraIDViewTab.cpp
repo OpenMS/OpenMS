@@ -161,7 +161,14 @@ namespace OpenMS
 
     if (is_first_time_loading_ && layer_)
     {
-      for (const auto& [spec, pepid] : *layer_->getPeakData())
+      auto& annotated_peak_data = *layer_->getPeakData();
+
+      if (annotated_peak_data.getPeptideIdentifications().empty())
+      {
+        return;
+      }
+      
+      for (const auto& [spec, pepid] : annotated_peak_data)
       {
         const vector<PeptideHit>& pep_hits = pepid.getHits();
         //add id_accession as the key of the map and push the peptideID to the vector value-

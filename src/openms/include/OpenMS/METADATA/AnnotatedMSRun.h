@@ -127,7 +127,14 @@ namespace OpenMS
      */
     inline auto cbegin() const
     {
-      return PairIterator(data.getSpectra().cbegin(), peptide_ids.cbegin());
+      if (data.getSpectra().size() != peptide_ids_.size())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "Number of spectra and peptide identifications do not match.", 
+          String(data.getSpectra().size()) + " " + String(peptide_ids_.size()));
+      }
+      return PairIterator(data.getSpectra().cbegin(), peptide_ids_.cbegin());
     }
 
     /**
@@ -136,7 +143,14 @@ namespace OpenMS
      */
     inline auto begin()
     {
-      return PairIterator(data.getSpectra().begin(), peptide_ids.begin());
+      if (data.getSpectra().size() != peptide_ids_.size())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "Number of spectra and peptide identifications do not match.", 
+          String(data.getSpectra().size()) + " " + String(peptide_ids_.size()));
+      }
+      return PairIterator(data.getSpectra().begin(), peptide_ids_.begin());
     }
 
     /**
@@ -145,7 +159,14 @@ namespace OpenMS
      */
     inline auto begin() const
     {
-      return PairIterator(data.getSpectra().cbegin(), peptide_ids.cbegin());
+      if (data.getSpectra().size() != peptide_ids_.size())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "Number of spectra and peptide identifications do not match.", 
+          String(data.getSpectra().size()) + " " + String(peptide_ids_.size()));
+      }      
+      return PairIterator(data.getSpectra().cbegin(), peptide_ids_.cbegin());
     }
 
     /**
@@ -154,7 +175,7 @@ namespace OpenMS
      */
     inline auto end()
     {
-      return PairIterator(data.getSpectra().end(), peptide_ids.end());
+      return PairIterator(data.getSpectra().end(), peptide_ids_.end());
     }
 
     /**
@@ -163,7 +184,7 @@ namespace OpenMS
      */
     inline auto end() const
     {
-      return PairIterator(data.getSpectra().end(), peptide_ids.end());
+      return PairIterator(data.getSpectra().end(), peptide_ids_.end());
     }
 
     /**
@@ -172,7 +193,7 @@ namespace OpenMS
      */
     inline auto cend() const
     {
-      return PairIterator(data.getSpectra().cend(), peptide_ids.cend());
+      return PairIterator(data.getSpectra().cend(), peptide_ids_.cend());
     }
 
     /**
@@ -182,7 +203,19 @@ namespace OpenMS
      */
     inline Mapping operator[](size_t idx)
     {
-      return {data.getSpectra()[idx], peptide_ids[idx]};
+      if (idx >= peptide_ids_.size())
+      {
+        throw Exception::IndexOverflow(__FILE__, __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          idx, peptide_ids_.size());
+      }
+      if (idx >= data.getSpectra().size())
+      {
+        throw Exception::IndexOverflow(__FILE__, __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          idx, data.getSpectra().size());
+      }      
+      return {data.getSpectra()[idx], peptide_ids_[idx]};
     }
 
     /**
@@ -192,7 +225,19 @@ namespace OpenMS
      */
     inline ConstMapping operator[](size_t idx) const
     {
-      return {data.getSpectra()[idx], peptide_ids[idx]};
+      if (idx >= peptide_ids_.size())
+      {
+        throw Exception::IndexOverflow(__FILE__, __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          idx, peptide_ids_.size());
+      }
+      if (idx >= data.getSpectra().size())
+      {
+        throw Exception::IndexOverflow(__FILE__, __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          idx, data.getSpectra().size());
+      }
+      return {data.getSpectra()[idx], peptide_ids_[idx]};
     }
 
     /**
@@ -277,7 +322,7 @@ namespace OpenMS
     typedef AnnotatedMSRun::PairIterator<std::vector<MSSpectrum>::const_iterator, std::vector<PeptideIdentification>::const_iterator> ConstIterator;
 
   private:
-    std::vector<PeptideIdentification> peptide_ids;
+    std::vector<PeptideIdentification> peptide_ids_;
     std::vector<ProteinIdentification> protein_ids_;
     MSExperiment data;
   };
