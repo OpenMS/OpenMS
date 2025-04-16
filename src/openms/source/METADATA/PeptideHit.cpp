@@ -218,7 +218,7 @@ namespace OpenMS
       const auto& ar = aresult[i];
       setMetaValue("OpenMS:AnalysisResult:" + String(i) + ":ScoreType", ar.score_type);
       setMetaValue("OpenMS:AnalysisResult:" + String(i) + ":Score", ar.main_score);
-      setMetaValue("OpenMS:AnalysisResult:" + String(i) + ":HigherIsBetter", ar.higher_is_better);
+      setMetaValue("OpenMS:AnalysisResult:" + String(i) + ":HigherIsBetter", ar.higher_is_better == true ? "true" : "false");
       
       for (const auto& subscore : ar.sub_scores)
       {
@@ -233,7 +233,7 @@ namespace OpenMS
     
     setMetaValue("OpenMS:AnalysisResult:" + String(index) + ":ScoreType", aresult.score_type);
     setMetaValue("OpenMS:AnalysisResult:" + String(index) + ":Score", aresult.main_score);
-    setMetaValue("OpenMS:AnalysisResult:" + String(index) + ":HigherIsBetter", aresult.higher_is_better);
+    setMetaValue("OpenMS:AnalysisResult:" + String(index) + ":HigherIsBetter", aresult.higher_is_better == true ? "true" : "false");
     
     for (const auto& subscore : aresult.sub_scores)
     {
