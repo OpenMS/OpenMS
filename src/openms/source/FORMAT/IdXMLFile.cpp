@@ -366,8 +366,8 @@ namespace OpenMS
           // write out the (optional) peptide prophet / interprophet results as UserParams
           {
             int k = 0;
-            for (std::vector<PeptideHit::PepXMLAnalysisResult>::const_iterator ar_it = p_hit.getAnalysisResults().begin();
-                ar_it != p_hit.getAnalysisResults().end(); ++ar_it, ++k)
+            auto analysis_results = p_hit.getAnalysisResults();
+            for (auto ar_it = analysis_results.begin(); ar_it != analysis_results.end(); ++ar_it, ++k)
             {
               os << "\t\t\t\t<UserParam type=\"string\" name=\"_ar_" << String(k) << "_score_type\" value=\"" << ar_it->score_type << "\"/>" << "\n";
               os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << String(k) << "_score\" value=\"" << String(ar_it->main_score) << "\"/>" << "\n";
