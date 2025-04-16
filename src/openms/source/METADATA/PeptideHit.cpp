@@ -275,12 +275,13 @@ namespace OpenMS
     
     // First, find all indices that have analysis results
     std::set<size_t> indices;
+    
     for (const auto& key : keys)
     {
       if (key.hasPrefix("OpenMS:AnalysisResult:") &&
           key.hasSuffix(":ScoreType"))
       {
-        String index_str = key.substr(19, key.size() - 29); // Extract index from "OpenMS:AnalysisResult:<index>:ScoreType"
+        String index_str = key.substr(22, key.size() - 32); // Extract index from "OpenMS:AnalysisResult:<index>:ScoreType"
         indices.insert(index_str.toInt());
       }
     }
