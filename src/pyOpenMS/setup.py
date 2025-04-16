@@ -185,7 +185,7 @@ elif sys.platform == "darwin":
     python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
     pyopenms_path = f"@loader_path/../lib/python{python_version}/site-packages/pyopenms"
     extra_compile_args = ["-Qunused-arguments", "-fopenmp"]
-    extra_link_args = ["-Wl,-rpath,@loader_path/../lib", f"-Wl,-rpath,{pyopenms_path}", "-lomp"]
+    extra_link_args = ["-Wl,-rpath,@loader_path/", "-lomp"]
 if IS_DEBUG:
     extra_compile_args.append("-g2")
 if OMP and OPENMP_CXX_FLAGS:
