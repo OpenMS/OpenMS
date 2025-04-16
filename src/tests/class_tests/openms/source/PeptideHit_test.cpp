@@ -312,26 +312,26 @@ START_SECTION((void setAnalysisResults(std::vector<PepXMLAnalysisResult> aresult
   TEST_EQUAL(hit.metaValueExists("_ar_0_score_type"), true);
   TEST_EQUAL(hit.metaValueExists("_ar_0_score"), true);
   TEST_EQUAL(hit.metaValueExists("_ar_0_higher_is_better"), true);
-  TEST_EQUAL(hit.metaValueExists("_ar_0_subscore:fval"), true);
-  TEST_EQUAL(hit.metaValueExists("_ar_0_subscore:ntt"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_0_subscore_fval"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_0_subscore_ntt"), true);
   
   TEST_EQUAL(hit.metaValueExists("_ar_1_score_type"), true);
   TEST_EQUAL(hit.metaValueExists("_ar_1_score"), true);
   TEST_EQUAL(hit.metaValueExists("_ar_1_higher_is_better"), true);
-  TEST_EQUAL(hit.metaValueExists("_ar_1_subscore:nss"), true);
-  TEST_EQUAL(hit.metaValueExists("_ar_1_subscore:nrs"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_1_subscore_nss"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_1_subscore_nrs"), true);
   
   TEST_EQUAL(hit.getMetaValue("_ar_0_score_type").toString(), "peptideprophet");
   TEST_REAL_SIMILAR(hit.getMetaValue("_ar_0_score"), 0.95);
   TEST_EQUAL(hit.getMetaValue("_ar_0_higher_is_better").toBool(), true);
-  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_0_subscore:fval"), 0.7114);
-  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_0_subscore:ntt"), 2.0);
+  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_0_subscore_fval"), 0.7114);
+  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_0_subscore_ntt"), 2.0);
   
   TEST_EQUAL(hit.getMetaValue("_ar_1_score_type").toString(), "interprophet");
   TEST_REAL_SIMILAR(hit.getMetaValue("_ar_1_score"), 0.98);
   TEST_EQUAL(hit.getMetaValue("_ar_1_higher_is_better").toBool(), true);
-  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_1_subscore:nss"), 0.0);
-  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_1_subscore:nrs"), 10.2137);
+  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_1_subscore_nss"), 0.0);
+  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_1_subscore_nrs"), 10.2137);
   
   // Test overwriting existing analysis results
   PeptideHit::PepXMLAnalysisResult ar3;
