@@ -756,70 +756,17 @@ START_SECTION(([EXTRA] TMT 32plex support)){
 
   cf_it = cm_it->begin();
 
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),174978)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),33578.6)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),14640.9)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),42917.2)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),41741.8)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),73027.1)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),47086.7)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),58482.9)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),73380.2)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),49026.1)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),82125.5)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),43730.7)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),87259.7)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),66156.6)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),152732)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),66648.5)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),150535)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),43049.1)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),537317)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),68942.6)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),81902.3)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),51899.4)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),40830.6)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),35191.4)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),53362.3)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),52659.6)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),30941)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),39247.7)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),54863.8)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),48456.3)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),2677.06)
-  ++cf_it;
-  TEST_REAL_SIMILAR(cf_it->getIntensity(),2649.51)
-  ++cf_it;
+  double intensities[32] = {174978, 33578.6, 14640.9, 42917.2, 41741.8, 73027.1,
+                            47086.7, 58482.9, 73380.2, 49026.1, 82125.5, 43730.7,
+                            87259.7, 66156.6, 152732, 66648.5, 150535, 43049.1,
+                            537317, 68942.6, 81902.3, 51899.4, 40830.6, 35191.4,
+                            53362.3, 52659.6, 30941,   39247.7, 54863.8, 48456.3,
+                            2677.06, 2649.51};
+  for (int i = 0; i < 32; ++i)
+  {
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), intensities[i])
+    ++cf_it;
+  }
   ABORT_IF(cf_it != cm_it->end())
 }
 END_SECTION

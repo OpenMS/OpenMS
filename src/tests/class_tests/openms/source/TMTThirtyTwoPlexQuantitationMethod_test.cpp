@@ -53,109 +53,30 @@ START_SECTION((const IsobaricChannelList& getChannelInformation() const ))
   TEST_EQUAL(channel_list.size(), 32)
   ABORT_IF(channel_list.size() != 32)
 
+  String channel_names[32] = {
+    "126", "127N", "127C", "127D", "128N", "128C", "128ND", "128CD",
+    "129N", "129C", "129ND", "129CD", "130N", "130C", "130ND", "130CD",
+    "131N", "131C", "131ND", "131CD", "132N", "132C", "132ND", "132CD",
+    "133N", "133C", "133ND", "133CD", "134N", "134ND", "134CD", "135ND"
+  };
+
+  double channel_centers[32] = {
+    126.127726, 127.124761, 127.131081, 127.134003, 128.128116, 128.134436,
+    128.131038, 128.137358, 129.131471, 129.137790, 129.134393, 129.140713,
+    130.134825, 130.141145, 130.137748, 130.144068, 131.138180, 131.144500,
+    131.141103, 131.147423, 132.141535, 132.147855, 132.144458, 132.150778,
+    133.144890, 133.151210, 133.147813, 133.154133, 134.148245, 134.151171,
+    134.157491, 135.154526
+  };
+
   // descriptions are empty by default
   for(int i = 0; i < 32; ++i)
   {
     TEST_STRING_EQUAL(channel_list[i].description, "")
+    TEST_EQUAL(channel_list[i].name, channel_names[i])
+    TEST_EQUAL(channel_list[i].center, channel_centers[i])
     TEST_EQUAL(channel_list[i].id, i)
   }
- 
-  // check masses&co
-  TEST_EQUAL(channel_list[0].name, "126")
-  TEST_EQUAL(channel_list[0].center, 126.127726)
-
-  TEST_EQUAL(channel_list[1].name, "127N")
-  TEST_EQUAL(channel_list[1].center, 127.124761)
-
-  TEST_EQUAL(channel_list[2].name, "127C")
-  TEST_EQUAL(channel_list[2].center, 127.131081)
-
-  TEST_EQUAL(channel_list[3].name, "127D")
-  TEST_EQUAL(channel_list[3].center, 127.134003)
-
-  TEST_EQUAL(channel_list[4].name, "128N")
-  TEST_EQUAL(channel_list[4].center, 128.128116)
-
-  TEST_EQUAL(channel_list[5].name, "128C")
-  TEST_EQUAL(channel_list[5].center, 128.134436)
-  
-  TEST_EQUAL(channel_list[6].name, "128ND")
-  TEST_EQUAL(channel_list[6].center, 128.131038)
-
-  TEST_EQUAL(channel_list[7].name, "128CD")
-  TEST_EQUAL(channel_list[7].center, 128.137358)
-
-  TEST_EQUAL(channel_list[8].name, "129N")
-  TEST_EQUAL(channel_list[8].center, 129.131471)
-
-  TEST_EQUAL(channel_list[9].name, "129C")
-  TEST_EQUAL(channel_list[9].center, 129.137790)
-
-  TEST_EQUAL(channel_list[10].name, "129ND")
-  TEST_EQUAL(channel_list[10].center, 129.134393)
-
-  TEST_EQUAL(channel_list[11].name, "129CD")
-  TEST_EQUAL(channel_list[11].center, 129.140713)
-
-  TEST_EQUAL(channel_list[12].name, "130N")
-  TEST_EQUAL(channel_list[12].center, 130.134825)
-
-  TEST_EQUAL(channel_list[13].name, "130C")
-  TEST_EQUAL(channel_list[13].center, 130.141145)
-  
-  TEST_EQUAL(channel_list[14].name, "130ND")
-  TEST_EQUAL(channel_list[14].center, 130.137748)
-
-  TEST_EQUAL(channel_list[15].name, "130CD")
-  TEST_EQUAL(channel_list[15].center, 130.144068)
-
-  TEST_EQUAL(channel_list[16].name, "131N")
-  TEST_EQUAL(channel_list[16].center, 131.138180)
-
-  TEST_EQUAL(channel_list[17].name, "131C")
-  TEST_EQUAL(channel_list[17].center, 131.144500)
-
-  TEST_EQUAL(channel_list[18].name, "131ND")
-  TEST_EQUAL(channel_list[18].center, 131.141103)
-
-  TEST_EQUAL(channel_list[19].name, "131CD")
-  TEST_EQUAL(channel_list[19].center, 131.147423)
-
-  TEST_EQUAL(channel_list[20].name, "132N")
-  TEST_EQUAL(channel_list[20].center, 132.141535)
-
-  TEST_EQUAL(channel_list[21].name, "132C")
-  TEST_EQUAL(channel_list[21].center, 132.147855)
-  
-  TEST_EQUAL(channel_list[22].name, "132ND")
-  TEST_EQUAL(channel_list[22].center, 132.144458)
-
-  TEST_EQUAL(channel_list[23].name, "132CD")
-  TEST_EQUAL(channel_list[23].center, 132.150778)
-
-  TEST_EQUAL(channel_list[24].name, "133N")
-  TEST_EQUAL(channel_list[24].center, 133.144890)
-
-  TEST_EQUAL(channel_list[25].name, "133C")
-  TEST_EQUAL(channel_list[25].center, 133.151210)
-
-  TEST_EQUAL(channel_list[26].name, "133ND")
-  TEST_EQUAL(channel_list[26].center, 133.147813)
-
-  TEST_EQUAL(channel_list[27].name, "133CD")
-  TEST_EQUAL(channel_list[27].center, 133.154133)
-
-  TEST_EQUAL(channel_list[28].name, "134N")
-  TEST_EQUAL(channel_list[28].center, 134.148245)
-
-  TEST_EQUAL(channel_list[29].name, "134ND")
-  TEST_EQUAL(channel_list[29].center, 134.151171)
-  
-  TEST_EQUAL(channel_list[30].name, "134CD")
-  TEST_EQUAL(channel_list[30].center, 134.157491)
-
-  TEST_EQUAL(channel_list[31].name, "135ND")
-  TEST_EQUAL(channel_list[31].center, 135.154526)
 
   for(const auto& channel : channel_list)
   {
