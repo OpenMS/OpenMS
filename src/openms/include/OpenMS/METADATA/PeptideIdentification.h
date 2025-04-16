@@ -19,20 +19,41 @@
 namespace OpenMS
 {
     class ConsensusMap;
-  /**
-    @brief Represents the peptide hits for a spectrum
+    class PeptideIdentification;
 
-      This class is closely related to ProteinIdentification, which stores the protein hits
-      and the general information about the identification run. More than one PeptideIdentification
-      can belong to one ProteinIdentification. The general information about a
-      PeptideIdentification has to be looked up in the corresponding ProteinIdentification, using
-      the unique <i>identifier</i> that links the two.
-      When loading PeptideHit instances from a File, the retention time and mass-to-charge ratio
-      of the precursor spectrum can be accessed using getRT() and getMZ().
-      This information can be used to map the peptide hits to an MSExperiment, a FeatureMap
-      or a ConsensusMap using the IDMapper class.
+    using SpectrumIdentification = PeptideIdentification; // better name that might become the default in future version
 
-        @ingroup Metadata
+    /**
+    @brief Represents the set of candidates (SpectrumMatches) identified for a single precursor spectrum.
+
+    Typically encapsulates the results of searching one specific MS/MS spectrum
+    against a sequence database or spectral library. It primarily holds a list of PeptideHit objects,
+    each representing a potential match to the spectrum.
+
+    Crucially, a PeptideIdentification is typically associated with a parent ProteinIdentification
+    object. This parent object contains global information about the entire identification run,
+    such as the search parameters, database used, and the overall set of identified proteins. The
+    link between a PeptideIdentification and its parent ProteinIdentification is established
+    via a shared identifier string (see getIdentifier() and setIdentifier()). Multiple
+    PeptideIdentification instances (one per spectrum analyzed) can belong to the same
+    ProteinIdentification run.
+
+    Each PeptideIdentification stores the precursor ion's retention time (RT) and mass-to-charge
+    ratio (m/z) corresponding to the spectrum that was identified. This information (retrieved via
+    getRT() and getMZ()) is essential for mapping these identifications back to experimental data,
+    such as peaks in an MSExperiment, features in a FeatureMap, or consensus features in a
+    ConsensusMap. The IDMapper class is often used for this purpose.
+
+    The class also stores information about the scoring system used (getScoreType(),
+    isHigherScoreBetter()) and an optional significance threshold (getSignificanceThreshold())
+    for the peptide hits.
+
+    PeptideIdentification inherits from MetaInfoInterface, allowing arbitrary metadata (key-value pairs)
+    to be attached.
+
+    @see PeptideHit, ProteinIdentification, IDMapper, MetaInfoInterface
+
+    @ingroup Metadata          
   */
   class OPENMS_DLLAPI PeptideIdentification :
     public MetaInfoInterface
@@ -186,16 +207,13 @@ public:
                                     const std::map<String, StringList>& identifier_to_msrunpath);
 
 protected:
-
     String id_; ///< Identifier by which ProteinIdentification and PeptideIdentification are matched
     std::vector<PeptideHit> hits_; ///< A list containing the peptide hits
     double significance_threshold_; ///< the peptide significance threshold
     String score_type_; ///< The score type (Mascot, Sequest, e-value, p-value)
     bool higher_score_better_; ///< The score orientation
-    // hint: here is an alignment gap of 7 bytes <-- here --> use it when introducing new members with sizeof(m)<=4
     double mz_;
     double rt_;
-
   };
 
 } //namespace OpenMS
