@@ -46,7 +46,8 @@ namespace OpenMS
 
     The class also stores information about the scoring system used (getScoreType(),
     isHigherScoreBetter()) and an optional significance threshold (getSignificanceThreshold())
-    for the peptide hits.
+    for the peptide hits. The significance threshold is stored as a meta value with the key
+    Constants::UserParam::SIGNIFICANCE_THRESHOLD.
 
     PeptideIdentification inherits from MetaInfoInterface, allowing arbitrary metadata (key-value pairs)
     to be attached.
@@ -110,9 +111,9 @@ public:
     void setHits(const std::vector<PeptideHit>& hits);
     void setHits(std::vector<PeptideHit>&& hits);
 
-    /// returns the peptide significance threshold value
+    /// returns the peptide significance threshold value (stored as a meta value)
     double getSignificanceThreshold() const;
-    /// setting of the peptide significance threshold value
+    /// setting of the peptide significance threshold value (stored as a meta value)
     void setSignificanceThreshold(double value);
 
     /// returns the peptide score type
@@ -209,7 +210,6 @@ public:
 protected:
     String id_; ///< Identifier by which ProteinIdentification and PeptideIdentification are matched
     std::vector<PeptideHit> hits_; ///< A list containing the peptide hits
-    double significance_threshold_; ///< the peptide significance threshold
     String score_type_; ///< The score type (Mascot, Sequest, e-value, p-value)
     bool higher_score_better_; ///< The score orientation
     double mz_;

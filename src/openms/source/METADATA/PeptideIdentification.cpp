@@ -20,12 +20,13 @@ namespace OpenMS
     MetaInfoInterface(),
     id_(),
     hits_(),
-    significance_threshold_(0.0),
     score_type_(),
     higher_score_better_(true),
     mz_(std::numeric_limits<double>::quiet_NaN()),
     rt_(std::numeric_limits<double>::quiet_NaN())
   {
+    // Set the default value as a meta value
+    setMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD, 0.0);
   }
 
   PeptideIdentification::~PeptideIdentification() noexcept = default;
@@ -36,7 +37,7 @@ namespace OpenMS
     return MetaInfoInterface::operator==(rhs)
            && id_ == rhs.id_
            && hits_ == rhs.hits_
-           && significance_threshold_ == rhs.getSignificanceThreshold()
+           && getSignificanceThreshold() == rhs.getSignificanceThreshold()
            && score_type_ == rhs.score_type_
            && higher_score_better_ == rhs.higher_score_better_
            && getExperimentLabel() == rhs.getExperimentLabel()
@@ -113,12 +114,18 @@ namespace OpenMS
 
   double PeptideIdentification::getSignificanceThreshold() const
   {
-    return significance_threshold_;
+    // If the meta value exists, return it
+    if (metaValueExists(Constants::UserParam::SIGNIFICANCE_THRESHOLD))
+    {
+      return getMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
+    }
+    // For backward compatibility with serialized objects, return 0.0 as default
+    return 0.0;
   }
 
   void PeptideIdentification::setSignificanceThreshold(double value)
   {
-    significance_threshold_ = value;
+    setMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD, value);
   }
 
   const String& PeptideIdentification::getScoreType() const
@@ -244,7 +251,7 @@ namespace OpenMS
   {
     return id_.empty()
            && hits_.empty()
-           && significance_threshold_ == 0.0
+           && getSignificanceThreshold() == 0.0
            && score_type_.empty()
            && higher_score_better_ == true
            && !metaValueExists(Constants::UserParam::BASE_NAME);

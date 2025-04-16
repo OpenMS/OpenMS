@@ -563,6 +563,11 @@ namespace OpenMS
               String
       */
       inline const std::string   BASE_NAME = "base_name";
+
+      /** User parameter name for the significance threshold in PeptideIdentification
+              Double
+      */
+      inline const std::string   SIGNIFICANCE_THRESHOLD = "significance_threshold";
     }
 
     //@}
