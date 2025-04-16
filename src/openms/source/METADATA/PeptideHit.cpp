@@ -19,7 +19,6 @@ namespace OpenMS
     MetaInfoInterface(),
     sequence_(),
     score_(0),
-    analysis_results_(nullptr),
     rank_(0),
     charge_(0),
     peptide_evidences_(),
@@ -32,7 +31,6 @@ namespace OpenMS
       MetaInfoInterface(),
       sequence_(sequence),
       score_(score),
-      analysis_results_(nullptr),
       rank_(rank),
       charge_(charge),
       peptide_evidences_(),
@@ -45,7 +43,6 @@ namespace OpenMS
     MetaInfoInterface(),
     sequence_(sequence),
     score_(score),
-    analysis_results_(nullptr),
     rank_(rank),
     charge_(charge),
     peptide_evidences_(),
@@ -58,16 +55,11 @@ namespace OpenMS
     MetaInfoInterface(source),
     sequence_(source.sequence_),
     score_(source.score_),
-    analysis_results_(nullptr),
     rank_(source.rank_),
     charge_(source.charge_),
     peptide_evidences_(source.peptide_evidences_),
     fragment_annotations_(source.fragment_annotations_)
   {
-    if (source.analysis_results_ != nullptr)
-    {
-      analysis_results_ = new std::vector<PepXMLAnalysisResult>(*source.analysis_results_);
-    }
   }
 
   /// Move constructor
@@ -75,20 +67,16 @@ namespace OpenMS
     MetaInfoInterface(std::move(source)), // NOTE: rhs itself is an lvalue
     sequence_(std::move(source.sequence_)),
     score_(source.score_),
-    analysis_results_(std::move(source.analysis_results_)),
     rank_(source.rank_),
     charge_(source.charge_),
     peptide_evidences_(std::move(source.peptide_evidences_)),
     fragment_annotations_(std::move(source.fragment_annotations_))
   {
-    // see http://thbecker.net/articles/rvalue_references/section_05.html
-    source.analysis_results_ = nullptr;
   }
 
   // destructor
   PeptideHit::~PeptideHit()
   {
-    delete analysis_results_;
   }
 
   PeptideHit& PeptideHit::operator=(const PeptideHit& source)
@@ -101,11 +89,6 @@ namespace OpenMS
     MetaInfoInterface::operator=(source);
     sequence_ = source.sequence_;
     score_ = source.score_;
-    delete analysis_results_;
-    if (source.analysis_results_ != nullptr)
-    {
-      analysis_results_ = new std::vector<PepXMLAnalysisResult>(*source.analysis_results_);
-    }
     rank_ = source.rank_;
     charge_ = source.charge_;
     peptide_evidences_ = source.peptide_evidences_;
@@ -124,12 +107,6 @@ namespace OpenMS
     //clang-tidy overly strict, should be fine to move the rest here
     sequence_ = source.sequence_;
     score_ = source.score_;
-
-    // free memory and assign rhs memory
-    delete analysis_results_;
-    analysis_results_ = source.analysis_results_;
-    source.analysis_results_ = nullptr;
-
     rank_ = source.rank_;
     charge_ = source.charge_;
     peptide_evidences_ = source.peptide_evidences_;
@@ -140,23 +117,9 @@ namespace OpenMS
 
   bool PeptideHit::operator==(const PeptideHit& rhs) const
   {
-    bool ar_equal = false;
-    if (analysis_results_ == nullptr && rhs.analysis_results_ == nullptr)
-    {
-      ar_equal = true;
-    }
-    else if (analysis_results_ != nullptr && rhs.analysis_results_ != nullptr)
-    {
-      ar_equal = (*analysis_results_ == *rhs.analysis_results_);
-    }
-    else
-    {
-      return false; // one is null the other isn't
-    }
     return MetaInfoInterface::operator==(rhs)
            && sequence_ == rhs.sequence_
            && score_ == rhs.score_
-           && ar_equal
            && rank_ == rhs.rank_
            && charge_ == rhs.charge_
            && peptide_evidences_ == rhs.peptide_evidences_
@@ -238,28 +201,129 @@ namespace OpenMS
 
   void PeptideHit::setAnalysisResults(std::vector<PeptideHit::PepXMLAnalysisResult> aresult)
   {
-    // delete old results first
-    if (analysis_results_ != nullptr) delete analysis_results_;
-    analysis_results_ = new std::vector< PeptideHit::PepXMLAnalysisResult> (std::move(aresult));
+    // Remove all existing analysis result meta values
+    std::vector<String> keys;
+    getKeys(keys);
+    for (const auto& key : keys)
+    {
+      if (key.hasPrefix("OpenMS:AnalysisResult:"))
+      {
+        removeMetaValue(key);
+      }
+    }
+    
+    // Add new analysis results as meta values
+    for (size_t i = 0; i < aresult.size(); ++i)
+    {
+      const auto& ar = aresult[i];
+      setMetaValue("OpenMS:AnalysisResult:" + String(i) + ":ScoreType", ar.score_type);
+      setMetaValue("OpenMS:AnalysisResult:" + String(i) + ":Score", ar.main_score);
+      setMetaValue("OpenMS:AnalysisResult:" + String(i) + ":HigherIsBetter", ar.higher_is_better);
+      
+      for (const auto& subscore : ar.sub_scores)
+      {
+        setMetaValue("OpenMS:AnalysisResult:" + String(i) + ":SubScore:" + subscore.first, subscore.second);
+      }
+    }
   }
 
   void PeptideHit::addAnalysisResults(const PeptideHit::PepXMLAnalysisResult& aresult)
   {
-    if (analysis_results_ == nullptr)
+    size_t index = getNumberOfAnalysisResultsFromMetaValues_();
+    
+    setMetaValue("OpenMS:AnalysisResult:" + String(index) + ":ScoreType", aresult.score_type);
+    setMetaValue("OpenMS:AnalysisResult:" + String(index) + ":Score", aresult.main_score);
+    setMetaValue("OpenMS:AnalysisResult:" + String(index) + ":HigherIsBetter", aresult.higher_is_better);
+    
+    for (const auto& subscore : aresult.sub_scores)
     {
-      analysis_results_ = new std::vector< PeptideHit::PepXMLAnalysisResult>();
+      setMetaValue("OpenMS:AnalysisResult:" + String(index) + ":SubScore:" + subscore.first, subscore.second);
     }
-    analysis_results_->push_back(aresult);
   }
   
   const std::vector<PeptideHit::PepXMLAnalysisResult>& PeptideHit::getAnalysisResults() const
   {
-    static std::vector<PeptideHit::PepXMLAnalysisResult> empty;
-    if (analysis_results_ == nullptr)
+    // Use a thread_local static variable to avoid allocations on each call
+    static thread_local std::vector<PeptideHit::PepXMLAnalysisResult> result;
+    result = extractAnalysisResultsFromMetaValues_();
+    return result;
+  }
+
+  size_t PeptideHit::getNumberOfAnalysisResultsFromMetaValues_() const
+  {
+    size_t count = 0;
+    std::vector<String> keys;
+    getKeys(keys);
+    
+    for (const auto& key : keys)
     {
-      return empty;
+      if (key.hasPrefix("OpenMS:AnalysisResult:") &&
+          key.hasSuffix(":ScoreType"))
+      {
+        ++count;
+      }
     }
-    return (*analysis_results_);
+    
+    return count;
+  }
+
+  std::vector<PeptideHit::PepXMLAnalysisResult> PeptideHit::extractAnalysisResultsFromMetaValues_() const
+  {
+    std::vector<PeptideHit::PepXMLAnalysisResult> results;
+    std::vector<String> keys;
+    getKeys(keys);
+    
+    // First, find all indices that have analysis results
+    std::set<size_t> indices;
+    for (const auto& key : keys)
+    {
+      if (key.hasPrefix("OpenMS:AnalysisResult:") &&
+          key.hasSuffix(":ScoreType"))
+      {
+        String index_str = key.substr(19, key.size() - 29); // Extract index from "OpenMS:AnalysisResult:<index>:ScoreType"
+        indices.insert(index_str.toInt());
+      }
+    }
+    
+    // For each index, extract the analysis result
+    for (size_t index : indices)
+    {
+      PeptideHit::PepXMLAnalysisResult ar;
+      String prefix = "OpenMS:AnalysisResult:" + String(index) + ":";
+      
+      // Get score type
+      if (metaValueExists(prefix + "ScoreType"))
+      {
+        ar.score_type = getMetaValue(prefix + "ScoreType").toString();
+      }
+      
+      // Get main score
+      if (metaValueExists(prefix + "Score"))
+      {
+        ar.main_score = getMetaValue(prefix + "Score");
+      }
+      
+      // Get higher_is_better flag
+      if (metaValueExists(prefix + "HigherIsBetter"))
+      {
+        ar.higher_is_better = getMetaValue(prefix + "HigherIsBetter").toBool();
+      }
+      
+      // Get sub-scores
+      String subscore_prefix = prefix + "SubScore:";
+      for (const auto& key : keys)
+      {
+        if (key.hasPrefix(subscore_prefix))
+        {
+          String subscore_name = key.substr(subscore_prefix.size());
+          ar.sub_scores[subscore_name] = getMetaValue(key);
+        }
+      }
+      
+      results.push_back(ar);
+    }
+    
+    return results;
   }
 
   // sets the rank

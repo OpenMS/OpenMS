@@ -285,9 +285,6 @@ protected:
     /// the score of the peptide hit
     double score_{};
 
-    /// additional scores attached to the original, aggregated score
-    std::vector<PepXMLAnalysisResult>* analysis_results_;
-
     /// the position(rank) where the hit appeared in the hit list
     UInt rank_{};
 
@@ -299,6 +296,13 @@ protected:
 
     /// annotations of fragments in the corresponding spectrum
     std::vector<PeptideHit::PeakAnnotation> fragment_annotations_;
+
+private:
+    /// Get the number of analysis results stored as meta values
+    size_t getNumberOfAnalysisResultsFromMetaValues_() const;
+
+    /// Extract analysis results from meta values
+    std::vector<PepXMLAnalysisResult> extractAnalysisResultsFromMetaValues_() const;
   };
 
   /// Stream operator
