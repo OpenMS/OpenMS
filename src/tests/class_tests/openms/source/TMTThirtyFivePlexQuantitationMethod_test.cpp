@@ -143,8 +143,7 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const)){
 
   TMTThirtyFivePlexQuantitationMethod quant_meth;
 
-  // we only check the default matrix here which is an identity matrix
-  // for tmt32plex
+  // for tmt35plex
   Matrix<double> m = quant_meth.getIsotopeCorrectionMatrix();
 
   TEST_EQUAL(m.rows(), 35)

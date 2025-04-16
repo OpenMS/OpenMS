@@ -80,6 +80,7 @@ START_SECTION((const IsobaricChannelList& getChannelInformation() const ))
 
   for(const auto& channel : channel_list)
   {
+    // Each TMT 32-plex channel is affected by 14 other channels due to isotope overlap
     TEST_EQUAL(channel.affected_channels.size(), 14)
   }
 }
@@ -135,8 +136,9 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const)){
 
   TMTThirtyTwoPlexQuantitationMethod quant_meth;
 
-  // we only check the default matrix here which is an identity matrix
-  // for tmt32plex
+   // we check that the isotope correction matrix matches the expected values
+   // from Thermo Fisher documentation for tmt32plex
+
   Matrix<double> m = quant_meth.getIsotopeCorrectionMatrix();
 
   TEST_EQUAL(m.rows(), 32)
