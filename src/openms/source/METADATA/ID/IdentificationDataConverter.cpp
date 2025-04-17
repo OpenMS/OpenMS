@@ -256,6 +256,7 @@ namespace OpenMS
       {
         obs.removeMetaValue("spectrum_reference");
       }
+      obs.removeMetaValue("significance_threshold");
 
       ID::ObservationRef obs_ref = id_data.registerObservation(obs);
 

@@ -218,7 +218,9 @@ namespace OpenMS
       {
         os << "higher_score_better=\"false\" ";
       }
-      os << "significance_threshold=\"" << protein_ids[i].getSignificanceThreshold() << "\" >\n";
+      
+      double significance_threshold = protein_ids[i].getSignificanceThreshold();
+      os << "significance_threshold=\"" << String(significance_threshold) << "\" >\n";
 
       // write protein hits
       size_t hit_count { protein_ids[i].getHits().size() };
@@ -282,7 +284,9 @@ namespace OpenMS
         {
           os << "higher_score_better=\"false\" ";
         }
-        os << "significance_threshold=\"" << String(peptide_ids[l].getSignificanceThreshold()) << "\" ";
+        double significance_threshold = peptide_ids[l].getSignificanceThreshold();
+        os << "significance_threshold=\"" << String(significance_threshold) << "\" ";        
+
         // mz
         if (peptide_ids[l].hasMZ())
         {
@@ -366,8 +370,9 @@ namespace OpenMS
           os << "\t\t\t</PeptideHit>\n";
         }
 
-        // do not write "spectrum_reference" since it is written as attribute already
+        // do not write "spectrum_reference" or "significance_threshold" since it is written as attribute already
         pep_id.removeMetaValue("spectrum_reference");
+        pep_id.removeMetaValue("significance_threshold");
         writeUserParam_("UserParam", os, pep_id, 3);
         os << "\t\t</PeptideIdentification>\n";
       }
