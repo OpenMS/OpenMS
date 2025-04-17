@@ -296,18 +296,17 @@ END_SECTION
 START_SECTION((bool empty() const))
   PeptideIdentification hits;
   TEST_TRUE(hits.empty())
-hits.setSignificanceThreshold(1);
-TEST_FALSE(hits.empty())
+  hits.setSignificanceThreshold(1);
+  TEST_FALSE(hits.empty())
 
-hits.setSignificanceThreshold(0);
-TEST_TRUE(hits.empty())
+  hits.setSignificanceThreshold(0);
+  TEST_TRUE(hits.empty())
 
-hits.setBaseName("basename");
-TEST_FALSE(hits.empty())
+  hits.setBaseName("basename");
+  TEST_FALSE(hits.empty())
 
-hits.setBaseName("");
-TEST_TRUE(hits.empty())
-
+  hits.setBaseName("");
+  TEST_TRUE(hits.empty())
 
   hits.insertHit(peptide_hit);
   TEST_FALSE(hits.empty())

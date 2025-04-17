@@ -370,9 +370,9 @@ namespace OpenMS
           os << "\t\t\t</PeptideHit>\n";
         }
 
-        // do not write "spectrum_reference" or "significance_threshold" since it is written as attribute already
+        // do not write "spectrum_reference" or Constants::UserParam::SIGNIFICANCE_THRESHOLD since it is written as attribute already
         pep_id.removeMetaValue("spectrum_reference");
-        pep_id.removeMetaValue("significance_threshold");
+        pep_id.removeMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
         writeUserParam_("UserParam", os, pep_id, 3);
         os << "\t\t</PeptideIdentification>\n";
       }

@@ -1023,10 +1023,10 @@ namespace OpenMS::Internal
       os << indent << "\t</PeptideHit>\n";
     }
 
-    //do not write "spectrum_reference" and "significance_threshold" since it is written as attribute already
+    //do not write "spectrum_reference" and Constants::UserParam::SIGNIFICANCE_THRESHOLD since it is written as attribute already
     MetaInfoInterface tmp = id;
     tmp.removeMetaValue("spectrum_reference");
-    tmp.removeMetaValue("significance_threshold");
+    tmp.removeMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
     writeUserParam_("UserParam", os, tmp, indentation_level + 1);
     os << indent << "</" << tag_name << ">\n";
   }

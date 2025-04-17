@@ -300,10 +300,10 @@ protected:
     std::vector<PeptideHit::PeakAnnotation> fragment_annotations_;
 
 private:
-    /// Get the number of analysis results stored as meta values
+    /// Get the number of analysis results stored as meta values (only for pepXML results)
     size_t getNumberOfAnalysisResultsFromMetaValues_() const;
 
-    /// Extract analysis results from meta values
+    /// Extract analysis results from meta values (only for pepXML results)
     std::vector<PepXMLAnalysisResult> extractAnalysisResultsFromMetaValues_() const;
   };
 

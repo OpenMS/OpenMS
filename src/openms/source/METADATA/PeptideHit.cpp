@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/PeptideHit.h>
-#include <iostream>
 #include <ostream>
 #include <utility>
 
@@ -282,7 +281,6 @@ namespace OpenMS
           key.hasSuffix(suffix))
       {
         String index_str = key.substr(prefix.size(), key.size() - prefix.size() - suffix.size()); // Extract index from _ar_<index>_score_type"
-        std::cout << "Index: " << index_str << std::endl;
         indices.insert(index_str.toInt());
       }
     }

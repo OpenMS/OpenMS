@@ -125,7 +125,15 @@ namespace OpenMS
 
   void PeptideIdentification::setSignificanceThreshold(double value)
   {
-    setMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD, value);
+    if (value != 0.0) 
+    {
+      setMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD, value);
+    }
+    else
+    {
+      // Remove the meta value if the value is 0.0
+      removeMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
+    }
   }
 
   const String& PeptideIdentification::getScoreType() const
