@@ -41,7 +41,7 @@ XMLSize_t u_length = xercesc::XMLString::stringLen(upperBoundary);
 
 bool isAscii = false;
 
-START_SECTION(if input is ascii)
+START_SECTION(isASCII(const XMLCh * chars, const XMLSize_t length))
   isAscii = StringManager::isASCII(ascii,a_length);
   std::cout << "1 \n";
   TEST_TRUE(isAscii)
@@ -76,7 +76,7 @@ const XMLCh eight_block_kadabra[] = {
     0x0021  // !
 };
 
-START_SECTION(if Utf16 to Ascii Compression works right)
+START_SECTION(compress64 (const XMLCh* input_it, char* output_it))
     char* output1 = new char [9];
     output1[8] = '\0';
     StringManager::compress64(eight_block,output1);
@@ -133,7 +133,7 @@ OpenMS::String o7_str;
 std::string res7_str = "";
 
 
-START_SECTION(if appendASCII works)
+START_SECTION(appendASCII(const XMLCh * chars, const XMLSize_t length, String & result))
 
     StringManager::appendASCII(ascii,a_length,o5_str);
     TEST_STRING_EQUAL(o5_str, res5_str);
