@@ -40,6 +40,7 @@ target_link_libraries(${PROJECT_NAME} OpenMS) # Link the executable with OpenMS
   else()
     add_executable(${i} ${i}.cpp)
     target_link_libraries(${i} OpenMS)
+    openms_add_executable_compiler_flags(${i})
   endif()  
   
   # we also want to install each topp tool
@@ -54,6 +55,7 @@ if(WITH_GUI)
   foreach(i ${TOPP_executables_with_GUIlib})
     add_executable(${i} ${i}.cpp)
     # we also want to install each topp tool
+    openms_add_executable_compiler_flags(${i})
     install_tool(${i})
     target_link_libraries(${i} OpenMS OpenMS_GUI)
   endforeach(i)

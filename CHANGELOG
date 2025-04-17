@@ -46,6 +46,7 @@ Library:
 
 - removed tools:
   - XTandemAdapter
+  - MascotAdapter (note: MascotAdapterOnline still exists)
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.3.0                                      ----
