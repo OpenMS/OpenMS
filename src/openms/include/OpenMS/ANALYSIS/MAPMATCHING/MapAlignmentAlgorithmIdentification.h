@@ -55,7 +55,7 @@ public:
     ~MapAlignmentAlgorithmIdentification() override;
 
     // Set a reference for the alignment
-    template <typename DataType> void setReference(DataType& data)
+    template <typename DataType> void setReference(const DataType& data)
     {
       reference_.clear();
       if (data.empty()) return; // empty input resets the reference
@@ -83,7 +83,7 @@ public:
       @throw Exception::MissingInformation Not enough suitable RT data to perform alignment
     */
     template <typename DataType>
-    void align(std::vector<DataType>& data,
+    void align(const std::vector<DataType>& data,
                std::vector<TransformationDescription>& transformations,
                Int reference_index = -1)
     {
@@ -179,7 +179,7 @@ protected:
 
       @return Are the RTs already sorted? (Here: false)
     */
-    bool getRetentionTimes_(std::vector<PeptideIdentification>& peptides,
+    bool getRetentionTimes_(const std::vector<PeptideIdentification>& peptides,
                             SeqToList& rt_data);
 
     /**
@@ -191,7 +191,7 @@ protected:
       @return Are the RTs already sorted? (Here: false)
     */
     // "id_data" can't be "const" here or template resolution will fail
-    bool getRetentionTimes_(IdentificationData& id_data, SeqToList& rt_data);
+    bool getRetentionTimes_(const IdentificationData& id_data, SeqToList& rt_data);
 
     /**
       @brief Collect retention time data from peptide IDs annotated to spectra
@@ -201,7 +201,7 @@ protected:
 
       @return Are the RTs already sorted? (Here: false)
     */
-    bool getRetentionTimes_(PeakMap& experiment, SeqToList& rt_data);
+    bool getRetentionTimes_(const PeakMap& experiment, SeqToList& rt_data);
 
     /**
       @brief Collect retention time data from peptide IDs contained in feature maps or consensus maps
@@ -218,7 +218,7 @@ protected:
       @return Are the RTs already sorted? (Here: true)
     */
     template <typename MapType>
-    bool getRetentionTimes_(MapType& features, SeqToList& rt_data)
+    bool getRetentionTimes_(const MapType& features, SeqToList& rt_data)
     {
       if (!score_cutoff_)
       {
@@ -236,7 +236,7 @@ protected:
         { return a <= b; };
       }
 
-      for (typename MapType::Iterator feat_it = features.begin();
+      for (typename MapType::ConstIterator feat_it = features.begin();
            feat_it != features.end(); ++feat_it)
       {
         if (use_feature_rt_)
@@ -245,7 +245,7 @@ protected:
           String sequence;
           double rt_distance = std::numeric_limits<double>::max();
           bool any_hit = false;
-          for (std::vector<PeptideIdentification>::iterator pep_it =
+          for (std::vector<PeptideIdentification>::const_iterator pep_it =
                  feat_it->getPeptideIdentifications().begin(); pep_it !=
                  feat_it->getPeptideIdentifications().end(); ++pep_it)
           {
@@ -256,10 +256,10 @@ protected:
                                              feat_it->getRT());
               if (current_distance < rt_distance)
               {
-                pep_it->sort();
-                if (better_(pep_it->getHits()[0].getScore(), min_score_))
+                const PeptideHit* best_hit = getBestScoringHit(pep_it->getHits(), pep_it->isHigherScoreBetter());
+                if (best_hit && better_(best_hit->getScore(), min_score_))
                 {
-                  sequence = pep_it->getHits()[0].getSequence().toString();
+                  sequence = best_hit->getSequence().toString();
                   rt_distance = current_distance;
                 }
               }
@@ -327,6 +327,16 @@ protected:
       @return Reference to the score type denoted by algorithm parameter "score_type"
      */
     IdentificationData::ScoreTypeRef handleIdDataScoreType_(const IdentificationData& id_data);
+
+    /**
+      @brief Get the best-scoring PeptideHit from a list of hits
+
+      @param hits List of peptide hits
+      @param is_higher_score_better Decides if higher score is better in deciding best scoring hit
+
+      @return Pointer to the best-scoring hit, or nullptr if the list is empty
+    */
+    const PeptideHit* getBestScoringHit(const std::vector<PeptideHit>& hits, const bool is_higher_score_better);
 
 private:
 

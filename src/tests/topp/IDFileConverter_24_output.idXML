@@ -89,6 +89,7 @@
 				<UserParam type="float" name="COMET:sprank" value="84.0"/>
 				<UserParam type="float" name="MS:1002257" value="27.899999999999999"/>
 			</PeptideHit>
+			<UserParam type="string" name="base_name" value="/home/rostlab/annieha/ConvertedRaw_Nina/LakeTroutChromiumsearched/ctl/rep1/1"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="669.061888531899967" RT="78.0" spectrum_reference="scan=9" >
 			<PeptideHit score="0.0" sequence="LPVLYSSPAALLALRVC(Carbamidomethyl)QGVVKVSAGVSRRGC(Carbamidomethyl)AGAVPVM" charge="6" aa_before="D" aa_after="-" protein_refs="PH_11" >
@@ -116,6 +117,7 @@
 				<UserParam type="float" name="_ar_0_subscore_nmc" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_ntt" value="1.0"/>
 			</PeptideHit>
+			<UserParam type="string" name="base_name" value="/home/rostlab/annieha/ConvertedRaw_Nina/LakeTroutChromiumsearched/ctl/rep1/1"/>
 		</PeptideIdentification>
 	</IdentificationRun>
 </IdXML>

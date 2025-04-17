@@ -10,7 +10,6 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <string>
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -20,6 +19,8 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 ///////////////////////////
@@ -69,12 +70,12 @@ START_SECTION((PeptideIdentification(const PeptideIdentification& source)))
   PeptideIdentification hits2(hits);
 
   TEST_EQUAL(hits.getSignificanceThreshold(), hits2.getSignificanceThreshold())
-  TEST_EQUAL(hits.getHits().size() == 1, true)
-  TEST_EQUAL(*(hits.getHits().begin()) == peptide_hit, true)
+  TEST_TRUE(hits.getHits().size() == 1)
+  TEST_TRUE(*(hits.getHits().begin()) == peptide_hit)
   TEST_EQUAL((UInt)hits.getMetaValue("label"),17)
   TEST_EQUAL(hits.getIdentifier(),"id")
   TEST_EQUAL(hits.getScoreType(),"score_type")
-  TEST_EQUAL(hits.isHigherScoreBetter(),false)
+  TEST_FALSE(hits.isHigherScoreBetter())
 }
 END_SECTION
 
@@ -83,7 +84,7 @@ START_SECTION((PeptideIdentification(PeptideIdentification&& source) noexcept))
 {
   // Ensure that PeptideIdentification has a no-except move constructor (otherwise
   // std::vector is inefficient and will copy instead of move).
-  TEST_EQUAL(noexcept(PeptideIdentification(std::declval<PeptideIdentification&&>())), true)
+  TEST_TRUE(noexcept(PeptideIdentification(std::declval<PeptideIdentification&&>())))
 
   PeptideIdentification hits;
   hits.setSignificanceThreshold(peptide_significance_threshold);
@@ -98,18 +99,18 @@ START_SECTION((PeptideIdentification(PeptideIdentification&& source) noexcept))
   PeptideIdentification hits2(std::move(example));
 
   TEST_EQUAL(hits.getSignificanceThreshold(), hits2.getSignificanceThreshold())
-  TEST_EQUAL(hits.getHits().size() == 1, true)
-  TEST_EQUAL(*(hits.getHits().begin()) == peptide_hit, true)
+  TEST_TRUE(hits.getHits().size() == 1)
+  TEST_TRUE(*(hits.getHits().begin()) == peptide_hit)
   TEST_EQUAL((UInt)hits.getMetaValue("label"),17)
   TEST_EQUAL(hits.getIdentifier(),"id")
   TEST_EQUAL(hits.getScoreType(),"score_type")
-  TEST_EQUAL(hits.isHigherScoreBetter(),false)
+  TEST_FALSE(hits.isHigherScoreBetter())
 
   // the move source should be empty
-  TEST_EQUAL(example.getHits().empty(), true)
-  TEST_EQUAL(example.isMetaEmpty(), true)
-  TEST_EQUAL(example.getIdentifier().empty(), true)
-  TEST_EQUAL(example.getScoreType().empty(), true)
+  TEST_TRUE(example.getHits().empty())
+  TEST_TRUE(example.isMetaEmpty())
+  TEST_TRUE(example.getIdentifier().empty())
+  TEST_TRUE(example.getScoreType().empty())
 }
 END_SECTION
 
@@ -126,12 +127,12 @@ START_SECTION((PeptideIdentification& operator=(const PeptideIdentification& sou
   hits2 = hits;
 
   TEST_EQUAL(hits.getSignificanceThreshold(), hits2.getSignificanceThreshold())
-  TEST_EQUAL(hits.getHits().size() == 1, true)
-  TEST_EQUAL(*(hits.getHits().begin()) == peptide_hit, true)
+  TEST_TRUE(hits.getHits().size() == 1)
+  TEST_TRUE(*(hits.getHits().begin()) == peptide_hit)
   TEST_EQUAL((UInt)hits.getMetaValue("label"),17)
   TEST_EQUAL(hits.getIdentifier(),"id")
   TEST_EQUAL(hits.getScoreType(),"score_type")
-  TEST_EQUAL(hits.isHigherScoreBetter(),false)
+  TEST_FALSE(hits.isHigherScoreBetter())
 END_SECTION
 
 START_SECTION((bool operator == (const PeptideIdentification& rhs) const))
@@ -139,30 +140,30 @@ START_SECTION((bool operator == (const PeptideIdentification& rhs) const))
   TEST_TRUE(search1 == search2)
 
   search1.setSignificanceThreshold(peptide_significance_threshold);
-  TEST_EQUAL(search1 == search2, false)
+  TEST_FALSE(search1 == search2)
   search1 = search2;
 
   search2.setMetaValue("label",17);
-  TEST_EQUAL(search1 == search2, false)
+  TEST_FALSE(search1 == search2)
   search1 = search2;
 
   search2.setIdentifier("id");
-  TEST_EQUAL(search1 == search2, false)
+  TEST_FALSE(search1 == search2)
   search1 = search2;
 
   search2.setScoreType("score_type");
-  TEST_EQUAL(search1 == search2, false)
+  TEST_FALSE(search1 == search2)
   search1 = search2;
 
   search2.setHigherScoreBetter(false);
-  TEST_EQUAL(search1 == search2, false)
+  TEST_FALSE(search1 == search2)
   search1 = search2;
 END_SECTION
 
 
 START_SECTION((bool operator != (const PeptideIdentification& rhs) const))
   PeptideIdentification search1, search2;
-  TEST_EQUAL(search1 != search2, false)
+  TEST_FALSE(search1 != search2)
 
   search1.setSignificanceThreshold(peptide_significance_threshold);
   TEST_FALSE(search1 == search2)
@@ -174,7 +175,7 @@ END_SECTION
 
 START_SECTION((double getRT() const))
 	PeptideIdentification pi;
-	TEST_EQUAL(pi.hasRT(), false);
+	TEST_FALSE(pi.hasRT());
 	pi.setRT(1024.0);
 	TEST_EQUAL(pi.getRT(), 1024.0);
 END_SECTION
@@ -189,7 +190,7 @@ END_SECTION
 
 START_SECTION((double getMZ() const))
 	PeptideIdentification pi;
-	TEST_EQUAL(pi.hasMZ(), false);
+	TEST_FALSE(pi.hasMZ());
 	pi.setMZ(1024.0);
 	TEST_EQUAL(pi.getMZ(), 1024.0);
 END_SECTION
@@ -209,21 +210,21 @@ END_SECTION
 START_SECTION((const std::vector<PeptideHit>& getHits() const))
   PeptideIdentification hits;
   hits.insertHit(peptide_hit);
-  TEST_EQUAL(hits.getHits().size() == 1, true)
-  TEST_EQUAL(hits.getHits()[0] == peptide_hit, true)
+  TEST_TRUE(hits.getHits().size() == 1)
+  TEST_TRUE(hits.getHits()[0] == peptide_hit)
 END_SECTION
 
 START_SECTION((void insertHit(const PeptideHit &hit)))
   PeptideIdentification hits;
   hits.insertHit(peptide_hit);
-  TEST_EQUAL(hits.getHits().size() == 1, true)
-  TEST_EQUAL(*(hits.getHits().begin()) == peptide_hit, true)
+  TEST_TRUE(hits.getHits().size() == 1)
+  TEST_TRUE(*(hits.getHits().begin()) == peptide_hit)
 END_SECTION
 
 START_SECTION((void setHits(const std::vector< PeptideHit > &hits)))
   PeptideIdentification hits;
   hits.setHits(peptide_hits);
-  TEST_EQUAL(hits.getHits() == peptide_hits, true)
+  TEST_TRUE(hits.getHits() == peptide_hits)
 END_SECTION
 
 START_SECTION((void setSignificanceThreshold(double value)))
@@ -245,13 +246,13 @@ END_SECTION
 
 START_SECTION((bool isHigherScoreBetter() const))
 	PeptideIdentification hits;
-	TEST_EQUAL(hits.isHigherScoreBetter(), true)
+	TEST_TRUE(hits.isHigherScoreBetter())
 END_SECTION
 
 START_SECTION((void setHigherScoreBetter(bool value)))
   PeptideIdentification hits;
   hits.setHigherScoreBetter(false);
-  TEST_EQUAL(hits.isHigherScoreBetter(),false)
+  TEST_FALSE(hits.isHigherScoreBetter())
 END_SECTION
 
 START_SECTION((const String& getIdentifier() const))
@@ -267,22 +268,22 @@ END_SECTION
 
 START_SECTION((bool empty() const))
   PeptideIdentification hits;
-  TEST_EQUAL(hits.empty(), true)
+  TEST_TRUE(hits.empty())
+hits.setSignificanceThreshold(1);
+TEST_FALSE(hits.empty())
 
-  hits.setSignificanceThreshold(1);
-  TEST_EQUAL(hits.empty(), false)
+hits.setSignificanceThreshold(0);
+TEST_TRUE(hits.empty())
 
-  hits.setSignificanceThreshold(0);
-  TEST_EQUAL(hits.empty(), true)
+hits.setBaseName("basename");
+TEST_FALSE(hits.empty())
 
-  hits.setBaseName("basename");
-  TEST_EQUAL(hits.empty(), false)
+hits.setBaseName("");
+TEST_TRUE(hits.empty())
 
-  hits.setBaseName("");
-  TEST_EQUAL(hits.empty(), true)
 
   hits.insertHit(peptide_hit);
-  TEST_EQUAL(hits.empty(), false)
+  TEST_FALSE(hits.empty())
 END_SECTION
 
 START_SECTION((void sort()))
@@ -560,5 +561,38 @@ END_SECTION
 */
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+START_SECTION((const String& getBaseName() const))
+  PeptideIdentification id;
+  TEST_EQUAL(id.getBaseName(), "")
+  
+  id.setBaseName("test_base_name");
+  TEST_EQUAL(id.getBaseName(), "test_base_name")
+  
+  // Test that it's stored as a MetaValue
+  TEST_TRUE(id.metaValueExists(Constants::UserParam::BASE_NAME))
+  TEST_EQUAL(id.getMetaValue(Constants::UserParam::BASE_NAME), "test_base_name")
+END_SECTION
+
+START_SECTION((void setBaseName(const String& base_name)))
+  PeptideIdentification id;
+  
+  // Test setting a non-empty base name
+  id.setBaseName("test_base_name");
+  TEST_EQUAL(id.getBaseName(), "test_base_name")
+  TEST_TRUE(id.metaValueExists(Constants::UserParam::BASE_NAME))
+  
+  // Test setting an empty base name (should remove the meta value)
+  id.setBaseName("");
+  TEST_EQUAL(id.getBaseName(), "")
+  TEST_FALSE(id.metaValueExists(Constants::UserParam::BASE_NAME))
+  
+  // Test that empty() method works correctly with base name as meta value
+  TEST_TRUE(id.empty())
+  id.setBaseName("test_base_name");
+  TEST_FALSE(id.empty())
+  id.setBaseName("");
+  TEST_TRUE(id.empty())
+END_SECTION
 
 END_TEST

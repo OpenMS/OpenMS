@@ -19,10 +19,28 @@
 
 namespace OpenMS
 {
-  /**
-    @brief Representation of a peptide hit
+  class PeptideHit;
+  using SpectrumMatch = PeptideHit; // better name that might become the default in future version
 
-    It contains the fields score, score_type, rank, and sequence.
+  /**
+    @brief Represents a single spectrum match (candidate) for a specific tandem mass spectrum (MS/MS).
+
+    Stores the primary information about a potential match, including:
+    - The sequence (potentially with modifications) using AASequence.
+    - The primary score assigned by the identification algorithm (e.g., search engine).
+    - The rank of this hit compared to other hits for the same spectrum.
+    - The precursor charge state assumed for this match.
+    - Evidence linking the peptide sequence to specific protein sequences (PeptideEvidence).
+    - Optional annotations mapping fragment ions in the MS/MS spectrum to interpretations (PeakAnnotation).
+    - Optional secondary scores from post-processing tools (PepXMLAnalysisResult).
+
+    Objects are typically contained within a PeptideIdentification object, which represents
+    all hits found for a single spectrum. Inherits from MetaInfoInterface, allowing
+    arbitrary metadata (key-value pairs) to be attached.
+
+    @deprecated Use SpectrumMatch instead. PeptideHit may be removed in a future OpenMS version.
+
+    @see PeptideIdentification, AASequence, PeptideEvidence, PeakAnnotation, PepXMLAnalysisResult, MetaInfoInterface
 
     @ingroup Metadata
   */
