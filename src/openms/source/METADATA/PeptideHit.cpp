@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/PeptideHit.h>
+#include <iostream>
 #include <ostream>
 #include <utility>
 
@@ -199,14 +200,14 @@ namespace OpenMS
     score_ = score;
   }
 
-  void PeptideHit::setAnalysisResults(std::vector<PeptideHit::PepXMLAnalysisResult> aresult)
+  void PeptideHit::setAnalysisResults(const std::vector<PeptideHit::PepXMLAnalysisResult>& aresult)
   {
     // Remove all existing analysis result meta values
     std::vector<String> keys;
     getKeys(keys);
     for (const auto& key : keys)
     {
-      if (key.hasPrefix("OpenMS:AnalysisResult:"))
+      if (key.hasPrefix("_ar_"))
       {
         removeMetaValue(key);
       }
@@ -216,13 +217,13 @@ namespace OpenMS
     for (size_t i = 0; i < aresult.size(); ++i)
     {
       const auto& ar = aresult[i];
-      setMetaValue("OpenMS:AnalysisResult:" + String(i) + ":ScoreType", ar.score_type);
-      setMetaValue("OpenMS:AnalysisResult:" + String(i) + ":Score", ar.main_score);
-      setMetaValue("OpenMS:AnalysisResult:" + String(i) + ":HigherIsBetter", ar.higher_is_better);
+      setMetaValue("_ar_" + String(i) + "_score_type", ar.score_type);
+      setMetaValue("_ar_" + String(i) + "_score", ar.main_score);
+      setMetaValue("_ar_" + String(i) + "_higher_is_better", ar.higher_is_better == true ? "true" : "false");
       
       for (const auto& subscore : ar.sub_scores)
       {
-        setMetaValue("OpenMS:AnalysisResult:" + String(i) + ":SubScore:" + subscore.first, subscore.second);
+        setMetaValue("_ar_" + String(i) + "_subscore_" + subscore.first, subscore.second);
       }
     }
   }
@@ -231,22 +232,19 @@ namespace OpenMS
   {
     size_t index = getNumberOfAnalysisResultsFromMetaValues_();
     
-    setMetaValue("OpenMS:AnalysisResult:" + String(index) + ":ScoreType", aresult.score_type);
-    setMetaValue("OpenMS:AnalysisResult:" + String(index) + ":Score", aresult.main_score);
-    setMetaValue("OpenMS:AnalysisResult:" + String(index) + ":HigherIsBetter", aresult.higher_is_better);
+    setMetaValue("_ar_" + String(index) + "_score_type", aresult.score_type);
+    setMetaValue("_ar_" + String(index) + "_score", aresult.main_score);
+    setMetaValue("_ar_" + String(index) + "_higher_is_better", aresult.higher_is_better == true ? "true" : "false");
     
     for (const auto& subscore : aresult.sub_scores)
     {
-      setMetaValue("OpenMS:AnalysisResult:" + String(index) + ":SubScore:" + subscore.first, subscore.second);
+      setMetaValue("_ar_" + String(index) + "_subscore_" + subscore.first, subscore.second);
     }
   }
   
-  const std::vector<PeptideHit::PepXMLAnalysisResult>& PeptideHit::getAnalysisResults() const
+  std::vector<PeptideHit::PepXMLAnalysisResult> PeptideHit::getAnalysisResults() const
   {
-    // Use a thread_local static variable to avoid allocations on each call
-    static thread_local std::vector<PeptideHit::PepXMLAnalysisResult> result;
-    result = extractAnalysisResultsFromMetaValues_();
-    return result;
+    return extractAnalysisResultsFromMetaValues_();
   }
 
   size_t PeptideHit::getNumberOfAnalysisResultsFromMetaValues_() const
@@ -257,8 +255,8 @@ namespace OpenMS
     
     for (const auto& key : keys)
     {
-      if (key.hasPrefix("OpenMS:AnalysisResult:") &&
-          key.hasSuffix(":ScoreType"))
+      if (key.hasPrefix("_ar_") &&
+          key.hasSuffix("_score_type"))
       {
         ++count;
       }
@@ -275,12 +273,16 @@ namespace OpenMS
     
     // First, find all indices that have analysis results
     std::set<size_t> indices;
+    
     for (const auto& key : keys)
     {
-      if (key.hasPrefix("OpenMS:AnalysisResult:") &&
-          key.hasSuffix(":ScoreType"))
+      const String prefix = "_ar_";
+      const String suffix = "_score_type";
+      if (key.hasPrefix(prefix) &&
+          key.hasSuffix(suffix))
       {
-        String index_str = key.substr(19, key.size() - 29); // Extract index from "OpenMS:AnalysisResult:<index>:ScoreType"
+        String index_str = key.substr(prefix.size(), key.size() - prefix.size() - suffix.size()); // Extract index from _ar_<index>_score_type"
+        std::cout << "Index: " << index_str << std::endl;
         indices.insert(index_str.toInt());
       }
     }
@@ -289,28 +291,28 @@ namespace OpenMS
     for (size_t index : indices)
     {
       PeptideHit::PepXMLAnalysisResult ar;
-      String prefix = "OpenMS:AnalysisResult:" + String(index) + ":";
+      String prefix = "_ar_" + String(index) + "_";
       
       // Get score type
-      if (metaValueExists(prefix + "ScoreType"))
+      if (metaValueExists(prefix + "score_type"))
       {
-        ar.score_type = getMetaValue(prefix + "ScoreType").toString();
+        ar.score_type = getMetaValue(prefix + "score_type").toString();
       }
       
       // Get main score
-      if (metaValueExists(prefix + "Score"))
+      if (metaValueExists(prefix + "score"))
       {
-        ar.main_score = getMetaValue(prefix + "Score");
+        ar.main_score = getMetaValue(prefix + "score");
       }
       
       // Get higher_is_better flag
-      if (metaValueExists(prefix + "HigherIsBetter"))
+      if (metaValueExists(prefix + "higher_is_better"))
       {
-        ar.higher_is_better = getMetaValue(prefix + "HigherIsBetter").toBool();
+        ar.higher_is_better = getMetaValue(prefix + "higher_is_better").toBool();
       }
       
       // Get sub-scores
-      String subscore_prefix = prefix + "SubScore:";
+      String subscore_prefix = prefix + "subscore_";
       for (const auto& key : keys)
       {
         if (key.hasPrefix(subscore_prefix))

@@ -32,6 +32,7 @@
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="0.9208"/>
+				<UserParam type="string" name="_ar_0_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="-1.434"/>
 				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_massd" value="-5.0e-03"/>
@@ -39,6 +40,7 @@
 				<UserParam type="float" name="_ar_0_subscore_ntt" value="2.0"/>
 				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
 				<UserParam type="float" name="_ar_1_score" value="0.806668"/>
+				<UserParam type="string" name="_ar_1_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_1_subscore_nrs" value="8.728"/>
 				<UserParam type="float" name="_ar_1_subscore_nsi" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsm" value="0.0"/>
@@ -52,6 +54,7 @@
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="0.0"/>
+				<UserParam type="string" name="_ar_0_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="-3.5466"/>
 				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_massd" value="0.023"/>
@@ -59,6 +62,7 @@
 				<UserParam type="float" name="_ar_0_subscore_ntt" value="1.0"/>
 				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
 				<UserParam type="float" name="_ar_1_score" value="0.0"/>
+				<UserParam type="string" name="_ar_1_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_1_subscore_nrs" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsi" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsm" value="0.0"/>
@@ -72,6 +76,7 @@
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="0.217"/>
+				<UserParam type="string" name="_ar_0_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="0.801"/>
 				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_massd" value="6.0e-03"/>
@@ -79,6 +84,7 @@
 				<UserParam type="float" name="_ar_0_subscore_ntt" value="1.0"/>
 				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
 				<UserParam type="float" name="_ar_1_score" value="0.0223989"/>
+				<UserParam type="string" name="_ar_1_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_1_subscore_nrs" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsi" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsm" value="0.0"/>
@@ -92,6 +98,7 @@
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="0.07"/>
+				<UserParam type="string" name="_ar_0_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="-1.3114"/>
 				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_massd" value="-0.02"/>
@@ -99,6 +106,7 @@
 				<UserParam type="float" name="_ar_0_subscore_ntt" value="1.0"/>
 				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
 				<UserParam type="float" name="_ar_1_score" value="0.0505509"/>
+				<UserParam type="string" name="_ar_1_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_1_subscore_nrs" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsi" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsm" value="0.0"/>
@@ -112,6 +120,7 @@
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="1.0"/>
+				<UserParam type="string" name="_ar_0_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="4.795"/>
 				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_massd" value="-6.0e-03"/>
@@ -119,6 +128,7 @@
 				<UserParam type="float" name="_ar_0_subscore_ntt" value="2.0"/>
 				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
 				<UserParam type="float" name="_ar_1_score" value="0.999999"/>
+				<UserParam type="string" name="_ar_1_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_1_subscore_nrs" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsi" value="0.999999"/>
 				<UserParam type="float" name="_ar_1_subscore_nsm" value="0.0"/>
@@ -132,6 +142,7 @@
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="7.0e-04"/>
+				<UserParam type="string" name="_ar_0_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="-1.3658"/>
 				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_massd" value="-0.063"/>
@@ -139,6 +150,7 @@
 				<UserParam type="float" name="_ar_0_subscore_ntt" value="1.0"/>
 				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
 				<UserParam type="float" name="_ar_1_score" value="2.01282e-05"/>
+				<UserParam type="string" name="_ar_1_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_1_subscore_nrs" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsi" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsm" value="0.0"/>

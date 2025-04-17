@@ -309,29 +309,29 @@ START_SECTION((void setAnalysisResults(std::vector<PepXMLAnalysisResult> aresult
   TEST_REAL_SIMILAR(hit.getAnalysisResults()[1].sub_scores.at("nrs"), 10.2137);
   
   // Check that the analysis results are stored as meta values
-  TEST_EQUAL(hit.metaValueExists("OpenMS:AnalysisResult:0:ScoreType"), true);
-  TEST_EQUAL(hit.metaValueExists("OpenMS:AnalysisResult:0:Score"), true);
-  TEST_EQUAL(hit.metaValueExists("OpenMS:AnalysisResult:0:HigherIsBetter"), true);
-  TEST_EQUAL(hit.metaValueExists("OpenMS:AnalysisResult:0:SubScore:fval"), true);
-  TEST_EQUAL(hit.metaValueExists("OpenMS:AnalysisResult:0:SubScore:ntt"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_0_score_type"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_0_score"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_0_higher_is_better"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_0_subscore_fval"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_0_subscore_ntt"), true);
   
-  TEST_EQUAL(hit.metaValueExists("OpenMS:AnalysisResult:1:ScoreType"), true);
-  TEST_EQUAL(hit.metaValueExists("OpenMS:AnalysisResult:1:Score"), true);
-  TEST_EQUAL(hit.metaValueExists("OpenMS:AnalysisResult:1:HigherIsBetter"), true);
-  TEST_EQUAL(hit.metaValueExists("OpenMS:AnalysisResult:1:SubScore:nss"), true);
-  TEST_EQUAL(hit.metaValueExists("OpenMS:AnalysisResult:1:SubScore:nrs"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_1_score_type"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_1_score"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_1_higher_is_better"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_1_subscore_nss"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_1_subscore_nrs"), true);
   
-  TEST_EQUAL(hit.getMetaValue("OpenMS:AnalysisResult:0:ScoreType").toString(), "peptideprophet");
-  TEST_REAL_SIMILAR(hit.getMetaValue("OpenMS:AnalysisResult:0:Score"), 0.95);
-  TEST_EQUAL(hit.getMetaValue("OpenMS:AnalysisResult:0:HigherIsBetter").toBool(), true);
-  TEST_REAL_SIMILAR(hit.getMetaValue("OpenMS:AnalysisResult:0:SubScore:fval"), 0.7114);
-  TEST_REAL_SIMILAR(hit.getMetaValue("OpenMS:AnalysisResult:0:SubScore:ntt"), 2.0);
+  TEST_EQUAL(hit.getMetaValue("_ar_0_score_type").toString(), "peptideprophet");
+  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_0_score"), 0.95);
+  TEST_EQUAL(hit.getMetaValue("_ar_0_higher_is_better").toBool(), true);
+  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_0_subscore_fval"), 0.7114);
+  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_0_subscore_ntt"), 2.0);
   
-  TEST_EQUAL(hit.getMetaValue("OpenMS:AnalysisResult:1:ScoreType").toString(), "interprophet");
-  TEST_REAL_SIMILAR(hit.getMetaValue("OpenMS:AnalysisResult:1:Score"), 0.98);
-  TEST_EQUAL(hit.getMetaValue("OpenMS:AnalysisResult:1:HigherIsBetter").toBool(), true);
-  TEST_REAL_SIMILAR(hit.getMetaValue("OpenMS:AnalysisResult:1:SubScore:nss"), 0.0);
-  TEST_REAL_SIMILAR(hit.getMetaValue("OpenMS:AnalysisResult:1:SubScore:nrs"), 10.2137);
+  TEST_EQUAL(hit.getMetaValue("_ar_1_score_type").toString(), "interprophet");
+  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_1_score"), 0.98);
+  TEST_EQUAL(hit.getMetaValue("_ar_1_higher_is_better").toBool(), true);
+  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_1_subscore_nss"), 0.0);
+  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_1_subscore_nrs"), 10.2137);
   
   // Test overwriting existing analysis results
   PeptideHit::PepXMLAnalysisResult ar3;
@@ -350,12 +350,12 @@ START_SECTION((void setAnalysisResults(std::vector<PepXMLAnalysisResult> aresult
   TEST_REAL_SIMILAR(hit.getAnalysisResults()[0].main_score, 100.0);
   
   // Check that the old meta values are gone
-  TEST_EQUAL(hit.metaValueExists("OpenMS:AnalysisResult:0:ScoreType"), true);
-  TEST_EQUAL(hit.metaValueExists("OpenMS:AnalysisResult:1:ScoreType"), false);
+  TEST_EQUAL(hit.metaValueExists("_ar_0_score_type"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_1_score_type"), false);
   
-  TEST_EQUAL(hit.getMetaValue("OpenMS:AnalysisResult:0:ScoreType").toString(), "mascot");
-  TEST_REAL_SIMILAR(hit.getMetaValue("OpenMS:AnalysisResult:0:Score"), 100.0);
-  TEST_EQUAL(hit.getMetaValue("OpenMS:AnalysisResult:0:HigherIsBetter").toBool(), true);
+  TEST_EQUAL(hit.getMetaValue("_ar_0_score_type").toString(), "mascot");
+  TEST_REAL_SIMILAR(hit.getMetaValue("_ar_0_score"), 100.0);
+  TEST_EQUAL(hit.getMetaValue("_ar_0_higher_is_better").toBool(), true);
 }
 END_SECTION
 
@@ -390,11 +390,11 @@ START_SECTION((void addAnalysisResults(const PepXMLAnalysisResult& aresult)))
   TEST_REAL_SIMILAR(hit.getAnalysisResults()[1].main_score, 0.98);
   
   // Check meta values
-  TEST_EQUAL(hit.metaValueExists("OpenMS:AnalysisResult:0:ScoreType"), true);
-  TEST_EQUAL(hit.metaValueExists("OpenMS:AnalysisResult:1:ScoreType"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_0_score_type"), true);
+  TEST_EQUAL(hit.metaValueExists("_ar_1_score_type"), true);
   
-  TEST_EQUAL(hit.getMetaValue("OpenMS:AnalysisResult:0:ScoreType").toString(), "peptideprophet");
-  TEST_EQUAL(hit.getMetaValue("OpenMS:AnalysisResult:1:ScoreType").toString(), "interprophet");
+  TEST_EQUAL(hit.getMetaValue("_ar_0_score_type").toString(), "peptideprophet");
+  TEST_EQUAL(hit.getMetaValue("_ar_1_score_type").toString(), "interprophet");
 }
 END_SECTION
 
@@ -442,8 +442,8 @@ START_SECTION((PeptideHit(const PeptideHit& source) - with analysis results))
   TEST_REAL_SIMILAR(hit.getAnalysisResults()[0].sub_scores.at("fval"), 0.7114);
   
   // Check meta values
-  TEST_EQUAL(hit.metaValueExists("OpenMS:AnalysisResult:0:ScoreType"), true);
-  TEST_EQUAL(hit.getMetaValue("OpenMS:AnalysisResult:0:ScoreType").toString(), "peptideprophet");
+  TEST_EQUAL(hit.metaValueExists("_ar_0_score_type"), true);
+  TEST_EQUAL(hit.getMetaValue("_ar_0_score_type").toString(), "peptideprophet");
 }
 END_SECTION
 
@@ -471,8 +471,8 @@ START_SECTION((PeptideHit& operator=(const PeptideHit& source) - with analysis r
   TEST_REAL_SIMILAR(hit.getAnalysisResults()[0].sub_scores.at("fval"), 0.7114);
   
   // Check meta values
-  TEST_EQUAL(hit.metaValueExists("OpenMS:AnalysisResult:0:ScoreType"), true);
-  TEST_EQUAL(hit.getMetaValue("OpenMS:AnalysisResult:0:ScoreType").toString(), "peptideprophet");
+  TEST_EQUAL(hit.metaValueExists("_ar_0_score_type"), true);
+  TEST_EQUAL(hit.getMetaValue("_ar_0_score_type").toString(), "peptideprophet");
 }
 END_SECTION
 
@@ -536,11 +536,11 @@ START_SECTION((PeptideHit(PeptideHit&& source) noexcept - with analysis results)
   TEST_REAL_SIMILAR(hit.getAnalysisResults()[0].sub_scores.at("fval"), 0.7114);
   
   // Check meta values
-  TEST_EQUAL(hit.metaValueExists("OpenMS:AnalysisResult:0:ScoreType"), true);
-  TEST_EQUAL(hit.getMetaValue("OpenMS:AnalysisResult:0:ScoreType").toString(), "peptideprophet");
+  TEST_EQUAL(hit.metaValueExists("_ar_0_score_type"), true);
+  TEST_EQUAL(hit.getMetaValue("_ar_0_score_type").toString(), "peptideprophet");
   
   // Source should have no meta values after move
-  TEST_EQUAL(source.metaValueExists("OpenMS:AnalysisResult:0:ScoreType"), false);
+  TEST_EQUAL(source.metaValueExists("_ar_0_score_type"), false);
   TEST_EQUAL(source.getAnalysisResults().size(), 0);
 }
 END_SECTION
@@ -569,11 +569,11 @@ START_SECTION((PeptideHit& operator=(PeptideHit&& source) noexcept - with analys
   TEST_REAL_SIMILAR(hit.getAnalysisResults()[0].sub_scores.at("fval"), 0.7114);
   
   // Check meta values
-  TEST_EQUAL(hit.metaValueExists("OpenMS:AnalysisResult:0:ScoreType"), true);
-  TEST_EQUAL(hit.getMetaValue("OpenMS:AnalysisResult:0:ScoreType").toString(), "peptideprophet");
+  TEST_EQUAL(hit.metaValueExists("_ar_0_score_type"), true);
+  TEST_EQUAL(hit.getMetaValue("_ar_0_score_type").toString(), "peptideprophet");
   
   // Source should have no meta values after move
-  TEST_EQUAL(source.metaValueExists("OpenMS:AnalysisResult:0:ScoreType"), false);
+  TEST_EQUAL(source.metaValueExists("_ar_0_score_type"), false);
   TEST_EQUAL(source.getAnalysisResults().size(), 0);
 }
 END_SECTION

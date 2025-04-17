@@ -363,25 +363,6 @@ namespace OpenMS
           writeFragmentAnnotations_("UserParam", os, p_hit.getPeakAnnotations(), 4);
           writeUserParam_("UserParam", os, p_hit, 4);
 
-          // write out the (optional) peptide prophet / interprophet results as UserParams
-          {
-            int k = 0;
-            for (std::vector<PeptideHit::PepXMLAnalysisResult>::const_iterator ar_it = p_hit.getAnalysisResults().begin();
-                ar_it != p_hit.getAnalysisResults().end(); ++ar_it, ++k)
-            {
-              os << "\t\t\t\t<UserParam type=\"string\" name=\"_ar_" << String(k) << "_score_type\" value=\"" << ar_it->score_type << "\"/>" << "\n";
-              os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << String(k) << "_score\" value=\"" << String(ar_it->main_score) << "\"/>" << "\n";
-              if (!ar_it->sub_scores.empty())
-              {
-                for (std::map<String, double>::const_iterator subscore_it = ar_it->sub_scores.begin();
-                    subscore_it != ar_it->sub_scores.end(); ++subscore_it)
-                {
-                  os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << String(k) << "_subscore_" << subscore_it->first <<"\" value=\"" << String(subscore_it->second) << "\"/>" << "\n";
-                }
-              }
-            }
-
-          }
           os << "\t\t\t</PeptideHit>\n";
         }
 

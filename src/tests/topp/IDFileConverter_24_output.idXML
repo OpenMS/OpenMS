@@ -65,6 +65,7 @@
 				<UserParam type="float" name="MS:1002257" value="27.899999999999999"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="0.0"/>
+				<UserParam type="string" name="_ar_0_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="-2.3431"/>
 				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_massd" value="-0.087"/>
@@ -111,6 +112,7 @@
 				<UserParam type="float" name="MS:1002257" value="3.44"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="0.0"/>
+				<UserParam type="string" name="_ar_0_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="-1.3443"/>
 				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_massd" value="0.129"/>
