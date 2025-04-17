@@ -38,6 +38,8 @@ namespace OpenMS
     all hits found for a single spectrum. Inherits from MetaInfoInterface, allowing
     arbitrary metadata (key-value pairs) to be attached.
 
+    @deprecated Use SpectrumMatch instead. PeptideHit may be removed in a future OpenMS version.
+
     @see PeptideIdentification, AASequence, PeptideEvidence, PeakAnnotation, PepXMLAnalysisResult, MetaInfoInterface
 
     @ingroup Metadata

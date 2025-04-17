@@ -52,6 +52,8 @@ namespace OpenMS
     PeptideIdentification inherits from MetaInfoInterface, allowing arbitrary metadata (key-value pairs)
     to be attached.
 
+    @deprecated Use SpectrumIdentification instead. PeptideIdentification may be removed in a future OpenMS version.
+
     @see PeptideHit, ProteinIdentification, IDMapper, MetaInfoInterface
 
     @ingroup Metadata          
