@@ -71,7 +71,7 @@ namespace OpenMS
     protected:
         void updateMembers_() override;
         /// allows for the iterative computation of intensity weighted of a mass trace's centroid m/z or ion mobility
-        static void updateIterativeWeightedMean(const double& added_value,
+        static void updateIterativeWeightedMean_(const double& added_value,
                                                 const double& added_intensity,
                                                 double& centroid_value,
                                                 double& prev_counter,
