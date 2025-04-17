@@ -72,7 +72,7 @@
 				<UserParam type="string" name="extra_features" value="isotope_error,COMET:deltaCn,COMET:deltaLCn,COMET:lnExpect,MS:1002252,MS:1002255,COMET:lnNumSP,COMET:lnRankSP,COMET:IonFrac"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2025-04-17T08:17:58" search_engine="Comet" search_engine_version="# comet_version 2023.01 rev. 2" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2025-04-17T08:17:58" search_engine="Comet" search_engine_version="# comet_version 2023.01 rev. 2" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="prot1" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
