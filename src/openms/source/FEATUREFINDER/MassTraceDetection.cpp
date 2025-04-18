@@ -420,7 +420,7 @@ namespace OpenMS
 
                 // we will only do brute force ion mobility neighbor search if right and left
                 // bound indices are not matching (suggesting presence of multiple close neighbors)
-                if (next_down_peak_idx_right != next_down_peak_idx_left && centroid_im != -1)
+                if (next_down_peak_idx_right != next_down_peak_idx_left)
                 {
                   // generate a map of ion mobility value -- peak index pairs from mz peak neighbors
                   std::map<int, double> ionMobilityMap;
@@ -544,7 +544,7 @@ namespace OpenMS
                 next_up_peak_int = spec_trace_up[next_up_peak_idx_left].getIntensity();
                 next_up_peak_im = spec_trace_up.getFloatDataArrays()[Ion_Mobility_idx][next_up_peak_idx_left];
 
-                if (next_up_peak_idx_right != next_up_peak_idx_left && centroid_im != -1)
+                if (next_up_peak_idx_right != next_up_peak_idx_left)
                 {
                   std::map<int, double> ionMobilityMap;
                   for (Size im_i = next_up_peak_idx_left; im_i <= next_up_peak_idx_right; ++im_i)
@@ -647,7 +647,7 @@ namespace OpenMS
 
           if (! fwhms_im.empty()) { new_trace.fwhm_im_avg = Math::median(fwhms_im.begin(), fwhms_im.end()); }
 
-          if (centroid_im != -1) { new_trace.setCentroidIM(centroid_im); }
+          if (Ion_Mobility_idx != -1) { new_trace.setCentroidIM(centroid_im); }
 
           new_trace.setQuantMethod(quant_method_);
           // new_trace.setCentroidSD(ftl_sd);
