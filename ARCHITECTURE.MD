@@ -80,6 +80,36 @@ The Python bindings for OpenMS are generated through a specialized process:
   - Special annotations like `wrap-ignore`, `wrap-as`, `wrap-iter-begin`, etc. can be used to customize the wrapping process
   - Allows for fine-grained control over how C++ classes and methods are exposed to Python
 
+#### Manual Extensions with PYX Files
+
+While autowrap handles most standard C++ to Python wrapping automatically, manual PYX files (in the `addons/` directory) enable advanced functionality that goes beyond simple wrapping:
+
+- **Complex C++ Features**: Handling C++ features that autowrap cannot automatically process, such as:
+  - Operator overloading (e.g., implementing Python's `__add__`, `__getitem__`)
+  - Complex template instantiations
+  - Multiple inheritance scenarios
+  - Static methods and variables
+
+- **Python-Specific Enhancements**:
+  - Adding Pythonic interfaces to C++ classes
+  - Custom exception handling and translation between C++ and Python exceptions
+  - Implementing Python protocols (e.g., iteration, context managers)
+
+- **Performance Optimizations**:
+  - Custom memory management
+  - Efficient data conversion between NumPy arrays and OpenMS data structures
+  - Specialized handling for large datasets
+
+- **Integration with Python Ecosystem**:
+  - Converters to/from pandas DataFrames
+  - Matplotlib visualization helpers
+  - Integration with scientific Python libraries
+
+- **Extension Methods**: Adding methods that exist only in Python and not in the C++ API, such as:
+  - Convenience functions for common operations
+  - Python-specific utility methods
+  - Simplified interfaces for complex C++ functionality
+
 ## Data Flow and Processing Workflow
 
 ### Data Processing Pipeline
