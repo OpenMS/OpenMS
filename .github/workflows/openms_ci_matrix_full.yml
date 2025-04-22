@@ -70,7 +70,15 @@ jobs:
           # We are not installing anything.
           - os: ubuntu-22.04
             compiler: g++
+
             compiler_ver: 11
+          # Make sure the compilers are available in that version on the GH runners
+          # We are not installing anything.
+          
+          #- os: ubuntu-22.04-arm
+          #  compiler: g++
+          #  compiler_ver: 11
+
 
           - os: ubuntu-22.04
             compiler: clang++
@@ -320,7 +328,15 @@ jobs:
           # add third-party binaries to PATH
           # use flat THIRDPARTY structure
           mkdir -p _thirdparty
-          cp -R OpenMS/THIRDPARTY/${{ steps.set-vars.outputs.tp_folder }}/64bit/* _thirdparty/
+          # Copy the correct architecture
+          cp -R OpenMS/THIRDPARTY/${{ steps.set-vars.outputs.tp_folder }}/`uname -m`/* _thirdparty/
+          # For MacOS 14 we also want to copy over any tools that we only have in x86_64 flavor. cp -n avoids overwriting the arm specific executables that we've already copied above
+          if [[ "${{ matrix.os }}" == macos-14 ]]; then
+            echo "Copying x86_64 tools for MacOS 14"
+            cp -R OpenMS/THIRDPARTY/MacOS/x86_64/MaRaCluster/* _thirdparty/
+            cp -R OpenMS/THIRDPARTY/MacOS/x86_64/SpectraST/* _thirdparty/
+            cp -R OpenMS/THIRDPARTY/MacOS/x86_64/XTandem/* _thirdparty/
+          fi
           cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
           # add third-party binaries to PATH
           for thirdpartytool in '${{ github.workspace }}/_thirdparty'/*
