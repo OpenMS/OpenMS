@@ -210,28 +210,6 @@ namespace OpenMS
     }
   }
 
-  void PeptideIdentification::assignRanks()
-  {
-    if (hits_.empty())
-    {
-      return;
-    }
-    UInt rank = 1;
-    sort();
-    vector<PeptideHit>::iterator lit = hits_.begin();
-    double last_score = lit->getScore();
-    while (lit != hits_.end())
-    {
-      if ((double)lit->getScore() != last_score)
-      {
-        ++rank;
-        last_score = lit->getScore();
-      }
-      lit->setRank(rank);
-      ++lit;
-    }
-  }
-
   std::function<bool(const PeptideHit&, const PeptideHit&)>
   PeptideIdentification::getScoreComparator(bool higher_score_better)
   {

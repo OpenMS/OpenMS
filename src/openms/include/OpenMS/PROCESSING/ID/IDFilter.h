@@ -94,36 +94,6 @@ namespace OpenMS
     };
 
     /**
-       @brief Is the rank of this hit below or at the given cut-off?
-
-       Ranks are counted from one (best), so zero is not a valid cut-off.
-    */
-    template<class HitType>
-    struct HasMaxRank {
-      typedef HitType argument_type; // for use as a predicate
-
-      Size rank;
-
-      HasMaxRank(Size rank_) : rank(rank_)
-      {
-        if (rank_ == 0)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The cut-off value for rank filtering must not be zero!");
-        }
-      }
-
-      bool operator()(const HitType& hit) const
-      {
-        Size hit_rank = hit.getRank();
-        if (hit_rank == 0)
-        {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No rank assigned to peptide or protein hit");
-        }
-        return hit_rank <= rank;
-      }
-    };
-
-    /**
        @brief Is a meta value with given key and value set on this hit?
 
        If the value is empty (DataValue::EMPTY), only the existence of a meta value with the given key is checked.
@@ -746,17 +716,6 @@ namespace OpenMS
 
     /// @name Clean-up functions
     ///@{
-
-    /// Updates the hit ranks on all peptide or protein IDs
-    template<class IdentificationType>
-    static void updateHitRanks(std::vector<IdentificationType>& ids)
-    {
-      for (typename std::vector<IdentificationType>::iterator it = ids.begin(); it != ids.end(); ++it)
-      {
-        it->assignRanks();
-      }
-    }
-
     /// Removes protein hits from the protein IDs in a @p cmap that are not referenced by a peptide in the features
     /// or if requested in the unassigned peptide list
     static void removeUnreferencedProteins(ConsensusMap& cmap, bool include_unassigned);
@@ -940,25 +899,85 @@ namespace OpenMS
     template<class IdentificationType>
     static void filterHitsByRank(std::vector<IdentificationType>& ids, Size min_rank, Size max_rank)
     {
-      updateHitRanks(ids);
-      if (min_rank > 1)
+      // calculate ranks and store them in a vector of ints      
+      for (auto id_it = ids.begin(); id_it != ids.end(); ++id_it)
       {
-        struct HasMaxRank<typename IdentificationType::HitType> rank_filter(min_rank - 1);
-        for (typename std::vector<IdentificationType>::iterator id_it = ids.begin(); id_it != ids.end(); ++id_it)
+        auto& hits = id_it->getHits();
+
+        if (hits.empty()) continue;
+
+        UInt rank = 1;
+        auto lit = hits.begin();
+        double last_score = lit->getScore();
+        std::vector<UInt> ranks(hits.size(), 0);
+        Size index = 0;
+        while (lit != hits.end())
         {
-          removeMatchingItems(id_it->getHits(), rank_filter);
+          if ((double)lit->getScore() != last_score)
+          {
+            ++rank;
+            last_score = lit->getScore();
+          }
+          ranks[index] = rank;
+          ++index;
+          ++lit;
         }
-      }
-      if (max_rank >= min_rank)
-      {
-        struct HasMaxRank<typename IdentificationType::HitType> rank_filter(max_rank);
-        for (typename std::vector<IdentificationType>::iterator id_it = ids.begin(); id_it != ids.end(); ++id_it)
+
+        // Apply min_rank filter (remove items with rank < min_rank)
+        if (min_rank > 1)
         {
-          keepMatchingItems(id_it->getHits(), rank_filter);
+          // Create a vector of iterators to elements to be removed
+          std::vector<typename std::vector<typename IdentificationType::HitType>::iterator> to_remove;
+          
+          for (Size i = 0; i < hits.size(); ++i)
+          {
+            if (ranks[i] < min_rank)
+            {
+              to_remove.push_back(hits.begin() + i);
+            }
+          }
+          
+          // Remove elements in reverse order to maintain valid indices
+          for (auto it = to_remove.rbegin(); it != to_remove.rend(); ++it)
+          {
+            hits.erase(*it);
+          }
+          
+          // Update ranks vector to match the remaining hits
+          std::vector<UInt> new_ranks;
+          for (Size i = 0; i < ranks.size(); ++i)
+          {
+            if (ranks[i] >= min_rank)
+            {
+              new_ranks.push_back(ranks[i]);
+            }
+          }
+          ranks = new_ranks;
+        }
+
+        // Apply max_rank filter (keep only items with rank <= max_rank)
+        if (max_rank >= min_rank)
+        {
+          // Create a vector of iterators to elements to be kept
+          std::vector<typename IdentificationType::HitType> kept_hits;
+          std::vector<UInt> kept_ranks;
+          
+          for (Size i = 0; i < hits.size(); ++i)
+          {
+            if (ranks[i] <= max_rank)
+            {
+              kept_hits.push_back(hits[i]);
+              kept_ranks.push_back(ranks[i]);
+            }
+          }
+          
+          // Replace the original hits with the kept hits
+          hits = kept_hits;
+          ranks = kept_ranks;
         }
       }
     }
-
+    
     /**
        @brief Removes hits annotated as decoys from peptide or protein identifications.
 
@@ -1342,7 +1361,6 @@ namespace OpenMS
 
       // filter protein hits:
       keepHitsMatchingProteins(experiment.getProteinIdentifications(), accessions);
-      updateHitRanks(experiment.getProteinIdentifications());
 
       // filter peptide hits:
       for (PeakMap::Iterator exp_it = experiment.begin(); exp_it != experiment.end(); ++exp_it)
@@ -1351,7 +1369,6 @@ namespace OpenMS
         {
           keepHitsMatchingProteins(exp_it->getPeptideIdentifications(), accessions);
           removeEmptyIdentifications(exp_it->getPeptideIdentifications());
-          updateHitRanks(exp_it->getPeptideIdentifications());
         }
       }
     }

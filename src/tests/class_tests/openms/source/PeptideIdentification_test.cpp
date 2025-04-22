@@ -348,28 +348,6 @@ START_SECTION((void sort()))
 
 END_SECTION
 
-START_SECTION((void assignRanks()))
-  PeptideIdentification id;
-  PeptideHit hit;
-  hit.setScore(23);
-  hit.setSequence(AASequence::fromString("SECONDPROTEIN"));
-  id.insertHit(hit);
-  hit.setScore(45);
-  hit.setSequence(AASequence::fromString("FIRSTPROTEIN"));
-  id.insertHit(hit);
-  hit.setScore(7);
-  hit.setSequence(AASequence::fromString("THIRDPROTEIN"));
-  id.insertHit(hit);
-
-  id.assignRanks();
-
-  TEST_EQUAL(id.getHits()[0].getSequence(), AASequence::fromString("FIRSTPROTEIN"))
-  TEST_EQUAL(id.getHits()[1].getSequence(), AASequence::fromString("SECONDPROTEIN"))
-  TEST_EQUAL(id.getHits()[2].getSequence(), AASequence::fromString("THIRDPROTEIN"))
-  TEST_EQUAL(id.getHits()[0].getRank(), 1)
-  TEST_EQUAL(id.getHits()[1].getRank(), 2)
-  TEST_EQUAL(id.getHits()[2].getRank(), 3)
-END_SECTION
 
 START_SECTION(static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit> & , const std::set<String> & accession))
 {

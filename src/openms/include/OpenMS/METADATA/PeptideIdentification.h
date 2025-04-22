@@ -152,9 +152,6 @@ public:
     ///  almost always be the full native vendor ID.
     void setSpectrumReference(const String& ref);
 
-    /// Sorts the hits by score and assigns ranks according to the scores
-    void assignRanks();
-
     // Returns a higher or lower comparator based on @p higher_score_better_
     static std::function<bool(const PeptideHit&, const PeptideHit&)> getScoreComparator(bool higher_score_better);
 
