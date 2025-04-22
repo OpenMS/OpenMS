@@ -424,7 +424,10 @@ namespace OpenMS::Internal
 
     void StringManager::compress64 (const XMLCh* input_it, char* output_it) {
       alignas(16) simde__m128i bits = simde_mm_loadu_si128((simde__m128i*)input_it);
-      simde__m128i compressed = simde_mm_packus_epi16(bits, simde_mm_setzero_si128());
+      // simde__m128i compressed = simde_mm_packus_epi16(bits, simde_mm_setzero_si128());
+      const simde__m128i shuffleMask = simde_mm_setr_epi8(0, 2, 4, 6, 8, 10, 12, 14,
+                                                        -1, -1, -1, -1, -1, -1, -1, -1);
+      simde__m128i compressed = simde_mm_shuffle_epi8(bits,shuffleMask);
       simde_mm_storel_epi64((simde__m128i*)output_it, compressed);
     }
 
