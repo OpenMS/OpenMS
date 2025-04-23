@@ -12,7 +12,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/Mobilogram.h> 
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {

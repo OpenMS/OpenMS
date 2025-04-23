@@ -12,7 +12,7 @@
 #include <OpenMS/COMPARISON/PeakSpectrumCompareFunctor.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <map>
 

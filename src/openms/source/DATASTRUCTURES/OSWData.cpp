@@ -9,7 +9,7 @@
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {

@@ -13,7 +13,7 @@
 #include <OpenMS/COMPARISON/BinnedSpectralContrastAngle.h>
 #include <OpenMS/KERNEL/BinnedSpectrum.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenMS

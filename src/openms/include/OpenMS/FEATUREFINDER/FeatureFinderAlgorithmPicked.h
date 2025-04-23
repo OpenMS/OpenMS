@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/FEATUREFINDER/TraceFitter.h>
 #include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSRun.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 
 namespace OpenMS{
     /// @brief MultiplexFilteredMSExperiment is deprecated, use MultiplexFilteredMSRun instead

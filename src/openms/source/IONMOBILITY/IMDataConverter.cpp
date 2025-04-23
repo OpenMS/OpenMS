@@ -13,7 +13,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 
 #include <cstddef>

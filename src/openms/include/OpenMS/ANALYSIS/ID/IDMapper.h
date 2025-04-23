@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 

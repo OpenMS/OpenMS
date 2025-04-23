@@ -12,7 +12,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/FORMAT/CsvFile.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <regex>
 #include <functional>

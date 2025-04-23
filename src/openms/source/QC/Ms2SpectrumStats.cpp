@@ -8,7 +8,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/QC/Ms2SpectrumStats.h>
 #include <OpenMS/QC/QCBase.h>
 

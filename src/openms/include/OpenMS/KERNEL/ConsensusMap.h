@@ -12,7 +12,7 @@
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>

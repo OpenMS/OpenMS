@@ -10,11 +10,11 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FEATUREFINDER/MultiplexSatelliteCentroided.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteredPeak.h>
-#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSRun.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 
 #include <vector>
 #include <algorithm>

@@ -9,7 +9,7 @@
 #include <OpenMS/FORMAT/MSPFile.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>

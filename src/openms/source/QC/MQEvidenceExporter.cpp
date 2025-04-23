@@ -13,7 +13,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <QtCore/QDir>
 #include <cmath> // isnan

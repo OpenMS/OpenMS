@@ -14,7 +14,7 @@
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <vector>
 

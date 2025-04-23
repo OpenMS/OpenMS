@@ -8,7 +8,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>
 
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 namespace OpenMS::Internal

@@ -13,7 +13,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>

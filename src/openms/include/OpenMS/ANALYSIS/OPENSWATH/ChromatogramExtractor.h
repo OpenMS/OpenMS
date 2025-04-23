@@ -10,7 +10,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
 
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 

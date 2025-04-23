@@ -11,7 +11,7 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/FORMAT/HANDLERS/MzDataHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>

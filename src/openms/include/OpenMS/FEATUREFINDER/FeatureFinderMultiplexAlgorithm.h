@@ -9,14 +9,14 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
-#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSRun.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/PROCESSING/MISC/SplinePackage.h>
 #include <OpenMS/ML/CLUSTERING/GridBasedCluster.h>
 

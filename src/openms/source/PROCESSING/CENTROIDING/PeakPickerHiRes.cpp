@@ -10,7 +10,7 @@
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-#include <OpenMS/KERNEL/OnDiscMSRun.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/Mobilogram.h>
 #include <OpenMS/MATH/MISC/SplineBisection.h>

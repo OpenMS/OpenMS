@@ -11,7 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {

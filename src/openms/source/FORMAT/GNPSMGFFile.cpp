@@ -14,7 +14,7 @@
 #include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/KERNEL/OnDiscMSRun.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <iostream>

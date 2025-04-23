@@ -6,7 +6,7 @@
 // $Authors: Marc Sturm, Tom Waschischeck $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>

@@ -14,7 +14,7 @@
 #include <OpenMS/DATASTRUCTURES/CVMappings.h>
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h>

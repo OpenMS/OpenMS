@@ -10,7 +10,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
 
 #include <vector>

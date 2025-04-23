@@ -10,7 +10,7 @@
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
-#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSRun.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteringCentroided.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/FEATUREFINDER/MultiplexClustering.h>

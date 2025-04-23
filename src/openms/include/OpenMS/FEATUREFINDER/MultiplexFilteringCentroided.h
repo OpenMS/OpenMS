@@ -15,7 +15,7 @@
 #include <OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteredPeak.h>
-#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSRun.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 #include <vector>

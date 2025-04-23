@@ -10,7 +10,7 @@
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {

@@ -11,7 +11,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/METADATA/SourceFile.h>

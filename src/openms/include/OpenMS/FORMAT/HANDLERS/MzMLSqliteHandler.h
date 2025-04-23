@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>

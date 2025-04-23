@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <fstream>
 

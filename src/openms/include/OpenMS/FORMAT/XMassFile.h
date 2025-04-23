@@ -12,7 +12,7 @@
 #include <OpenMS/FORMAT/HANDLERS/AcqusHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/FidHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {

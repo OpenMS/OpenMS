@@ -9,7 +9,7 @@
 #include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
 
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/KERNEL/OnDiscMSRun.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 
 namespace OpenMS

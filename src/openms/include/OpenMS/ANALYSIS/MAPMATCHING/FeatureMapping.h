@@ -11,7 +11,7 @@
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {

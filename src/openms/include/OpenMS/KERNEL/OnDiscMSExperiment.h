@@ -11,7 +11,7 @@
     @note just to resolve issue 
           for the files where OnDiscMSExperiment is used
 */
-#include <OpenMS/KERNEL/OnDiscMSRun.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 
 namespace OpenMS{
     /// @brief OnDiscMSExperiment is deprecated, use OnDiscMSRun instead

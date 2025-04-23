@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/QC/SpectrumCount.h>
 using namespace std;
 

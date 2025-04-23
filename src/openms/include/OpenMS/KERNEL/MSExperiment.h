@@ -11,7 +11,7 @@
     @note just to resolve issue 
           for the files where msexperiment is used
 */
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS{
     /// @brief MSExperiment is deprecated, use MSRun instead

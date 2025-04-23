@@ -16,7 +16,7 @@
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/KERNEL/MobilityPeak2D.h>
 #include <OpenMS/KERNEL/Mobilogram.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/Peak2D.h>

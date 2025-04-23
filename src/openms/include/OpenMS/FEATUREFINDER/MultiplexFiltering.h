@@ -10,7 +10,7 @@
 
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>

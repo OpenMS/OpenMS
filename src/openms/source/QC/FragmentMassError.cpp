@@ -14,7 +14,7 @@
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 #include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSRun.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
