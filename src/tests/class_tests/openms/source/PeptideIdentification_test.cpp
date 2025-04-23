@@ -239,8 +239,7 @@ START_SECTION((void testSignificanceThresholdMetaValue()))
   
   // Test default value
   TEST_EQUAL(id.getSignificanceThreshold(), 0.0);
-  TEST_EQUAL(id.metaValueExists(Constants::UserParam::SIGNIFICANCE_THRESHOLD), true);
-  TEST_EQUAL(id.getMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD), 0.0);
+  TEST_EQUAL(id.metaValueExists(Constants::UserParam::SIGNIFICANCE_THRESHOLD), false);
   
   // Test setting a new value
   id.setSignificanceThreshold(42.0);
