@@ -206,7 +206,7 @@ private:
     /// Get RT and m/z for peptide ID from precursor scan (should only matter for RT)?
     bool use_precursor_data_{};
 
-    /// Mapping between scan number in the pepXML file and index in the corresponding MSExperiment
+    /// Mapping between scan number in the pepXML file and index in the corresponding MSRun
     std::map<Size, Size> scan_map_;
 
     /// Hydrogen data (for mass types)

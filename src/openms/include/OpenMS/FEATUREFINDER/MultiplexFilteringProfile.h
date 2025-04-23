@@ -15,7 +15,7 @@
 #include <OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteredPeak.h>
-#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSRun.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/PROCESSING/MISC/SplineInterpolatedPeaks.h>
 
@@ -63,7 +63,7 @@ public:
      * @throw Exception::IllegalArgument if profile and centroided data do not contain same number of spectra
      * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
      */
-    MultiplexFilteringProfile(MSExperiment& exp_profile, const MSExperiment& exp_centroided, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries,
+    MultiplexFilteringProfile(MSRun& exp_profile, const MSRun& exp_centroided, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries,
                               const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band,
                               double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
 
@@ -74,9 +74,9 @@ public:
      * @throw Exception::IllegalArgument if number of peaks and number of peak boundaries differ
      *
      * @see MultiplexIsotopicPeakPattern
-     * @see MultiplexFilteredMSExperiment
+     * @see MultiplexFilteredMSRun
      */
-    std::vector<MultiplexFilteredMSExperiment> filter();
+    std::vector<MultiplexFilteredMSRun> filter();
 
     /**
      * @brief returns the intensity-filtered peak boundaries

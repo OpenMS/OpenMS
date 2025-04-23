@@ -127,8 +127,8 @@ protected:
      /// writes the full header
     void writeHeader_(std::ostream& os);
 
-    /// writes the MSExperiment
-    void writeMSExperiment_(std::ostream& os, const String& filename, const PeakMap& experiment);
+    /// writes the MSRun
+    void writeMSRun_(std::ostream& os, const String& filename, const PeakMap& experiment);
 
     /// reads a spectrum block, the section between 'BEGIN IONS' and 'END IONS' of a MGF file
     template <typename SpectrumType>

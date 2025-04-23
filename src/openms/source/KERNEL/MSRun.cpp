@@ -6,7 +6,7 @@
 // $Authors: Marc Sturm, Tom Waschischeck $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -22,16 +22,16 @@
 namespace OpenMS
 {
   /// Constructor
-  MSExperiment::MSExperiment() :
+  MSRun::MSRun() :
     RangeManagerContainerType(),
     ExperimentalSettings()
   {}
 
   /// Copy constructor
-  MSExperiment::MSExperiment(const MSExperiment & source) = default;
+  MSRun::MSRun(const MSRun & source) = default;
 
   /// Assignment operator
-  MSExperiment & MSExperiment::operator=(const MSExperiment & source)
+  MSRun & MSRun::operator=(const MSRun & source)
   {
     if (&source == this)
     {
@@ -50,16 +50,16 @@ namespace OpenMS
   }
 
   /// Assignment operator
-  MSExperiment& MSExperiment::operator=(const ExperimentalSettings & source)
+  MSRun& MSRun::operator=(const ExperimentalSettings & source)
   {
     ExperimentalSettings::operator=(source);
     return *this;
   }
 
-  MSExperiment::~MSExperiment() = default;
+  MSRun::~MSRun() = default;
 
   /// Equality operator
-  bool MSExperiment::operator==(const MSExperiment & rhs) const
+  bool MSRun::operator==(const MSRun & rhs) const
   {
     return ExperimentalSettings::operator==(rhs) &&
       chromatograms_ == rhs.chromatograms_ &&
@@ -67,17 +67,17 @@ namespace OpenMS
   }
 
   /// Equality operator
-  bool MSExperiment::operator!=(const MSExperiment & rhs) const
+  bool MSRun::operator!=(const MSRun & rhs) const
   {
     return !(operator==(rhs));
   }
 
-  void MSExperiment::reserveSpaceSpectra(Size s)
+  void MSRun::reserveSpaceSpectra(Size s)
   {
     spectra_.reserve(s);
   }
 
-  void MSExperiment::reserveSpaceChromatograms(Size s)
+  void MSRun::reserveSpaceChromatograms(Size s)
   {
     chromatograms_.reserve(s);
   }
@@ -85,7 +85,7 @@ namespace OpenMS
   ///@name Iterating ranges and areas
   //@{
   /// Returns an area iterator for @p area
-  MSExperiment::AreaIterator MSExperiment::areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt ms_level)
+  MSRun::AreaIterator MSRun::areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt ms_level)
   {
     OPENMS_PRECONDITION(min_rt <= max_rt, "Swapped RT range boundaries!")
     OPENMS_PRECONDITION(min_mz <= max_mz, "Swapped MZ range boundaries!")
@@ -96,7 +96,7 @@ namespace OpenMS
     return AreaIterator(area);
   }
 
-  MSExperiment::AreaIterator MSExperiment::areaBegin(const RangeManagerType& range, UInt ms_level)
+  MSRun::AreaIterator MSRun::areaBegin(const RangeManagerType& range, UInt ms_level)
   {
     OPENMS_PRECONDITION(this->isSorted(true), "Experiment is not sorted by RT and m/z! Using ConstAreaIterator will give invalid results!")
     auto [min_rt, max_rt] = range.RangeRT::getNonEmptyRange();
@@ -108,13 +108,13 @@ namespace OpenMS
   }
 
   /// Returns an invalid area iterator marking the end of an area
-  MSExperiment::AreaIterator MSExperiment::areaEnd()
+  MSRun::AreaIterator MSRun::areaEnd()
   {
     return AreaIterator();
   }
 
   /// Returns a non-mutable area iterator for @p area
-  MSExperiment::ConstAreaIterator MSExperiment::areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt ms_level) const
+  MSRun::ConstAreaIterator MSRun::areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt ms_level) const
   {
     OPENMS_PRECONDITION(min_rt <= max_rt, "Swapped RT range boundaries!")
     OPENMS_PRECONDITION(min_mz <= max_mz, "Swapped MZ range boundaries!")
@@ -125,7 +125,7 @@ namespace OpenMS
     return ConstAreaIterator(area);
   }
 
-  MSExperiment::ConstAreaIterator MSExperiment::areaBeginConst(const RangeManagerType& range, UInt ms_level) const
+  MSRun::ConstAreaIterator MSRun::areaBeginConst(const RangeManagerType& range, UInt ms_level) const
   {
     OPENMS_PRECONDITION(this->isSorted(true), "Experiment is not sorted by RT and m/z! Using ConstAreaIterator will give invalid results!")
     auto [min_rt, max_rt] = range.RangeRT::getNonEmptyRange();
@@ -137,7 +137,7 @@ namespace OpenMS
   }
 
   /// Returns an non-mutable invalid area iterator marking the end of an area
-  MSExperiment::ConstAreaIterator MSExperiment::areaEndConst() const
+  MSRun::ConstAreaIterator MSRun::areaEndConst() const
   {
     return ConstAreaIterator();
   }
@@ -149,7 +149,7 @@ namespace OpenMS
 
   @note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
   */
-  MSExperiment::ConstIterator MSExperiment::RTBegin(CoordinateType rt) const
+  MSRun::ConstIterator MSRun::RTBegin(CoordinateType rt) const
   {
     SpectrumType s;
     s.setRT(rt);
@@ -163,7 +163,7 @@ namespace OpenMS
 
   @note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
   */
-  MSExperiment::ConstIterator MSExperiment::RTEnd(CoordinateType rt) const
+  MSRun::ConstIterator MSRun::RTEnd(CoordinateType rt) const
   {
     SpectrumType s;
     s.setRT(rt);
@@ -175,7 +175,7 @@ namespace OpenMS
 
   @note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
   */
-  MSExperiment::Iterator MSExperiment::RTBegin(CoordinateType rt)
+  MSRun::Iterator MSRun::RTBegin(CoordinateType rt)
   {
     SpectrumType s;
     s.setRT(rt);
@@ -187,21 +187,21 @@ namespace OpenMS
 
   @note Make sure the spectra are sorted with respect to retention time! Otherwise the result is undefined.
   */
-  MSExperiment::Iterator MSExperiment::RTEnd(CoordinateType rt)
+  MSRun::Iterator MSRun::RTEnd(CoordinateType rt)
   {
     SpectrumType s;
     s.setRT(rt);
     return upper_bound(spectra_.begin(), spectra_.end(), s, SpectrumType::RTLess());
   }
 
-  MSExperiment::ConstIterator MSExperiment::IMBegin(CoordinateType im) const
+  MSRun::ConstIterator MSRun::IMBegin(CoordinateType im) const
   {
     SpectrumType s;
     s.setDriftTime(im);
     return lower_bound(spectra_.begin(), spectra_.end(), s, SpectrumType::IMLess());
   }
 
-  MSExperiment::ConstIterator MSExperiment::IMEnd(CoordinateType im) const
+  MSRun::ConstIterator MSRun::IMEnd(CoordinateType im) const
   {
     SpectrumType s;
     s.setDriftTime(im);
@@ -217,7 +217,7 @@ namespace OpenMS
   */
   ///@{
   // Docu in base class
-  void MSExperiment::updateRanges()
+  void MSRun::updateRanges()
   {
     updateRanges(-1);
   }
@@ -227,7 +227,7 @@ namespace OpenMS
 
   @param ms_level MS level to consider for m/z range, RT range, intensity range and ion mobility (if negative, all MS levels are used)
   */
-  void MSExperiment::updateRanges(Int ms_level)
+  void MSRun::updateRanges(Int ms_level)
   {
     // reset mz/rt/int range
     this->clearRanges();
@@ -285,7 +285,7 @@ namespace OpenMS
   }
 
   /// returns the total number of peaks
-  UInt64 MSExperiment::getSize() const
+  UInt64 MSRun::getSize() const
   {    
     Size total_size{};
     for (const auto& spec : spectra_) total_size += spec.size(); // sum up all peaks in all spectra
@@ -294,7 +294,7 @@ namespace OpenMS
   }
 
   /// returns an array of MS levels (calculated on demand)
-  std::vector<UInt> MSExperiment::getMSLevels() const
+  std::vector<UInt> MSRun::getMSLevels() const
   {
     std::unordered_set<UInt> level_set;
     for (const auto& spec : spectra_)
@@ -309,7 +309,7 @@ namespace OpenMS
 
   const String sqMassRunID = "sqMassRunID";
 
-  UInt64 MSExperiment::getSqlRunID() const
+  UInt64 MSRun::getSqlRunID() const
   {
     if (metaValueExists(sqMassRunID))
     {
@@ -318,7 +318,7 @@ namespace OpenMS
     return 0;
   }
 
-  void MSExperiment::setSqlRunID(UInt64 id)
+  void MSRun::setSqlRunID(UInt64 id)
   {
     setMetaValue(sqMassRunID, id);
   }
@@ -332,7 +332,7 @@ namespace OpenMS
 
   @param sort_mz if @em true, spectra are sorted by m/z position as well
   */
-  void MSExperiment::sortSpectra(bool sort_mz)
+  void MSRun::sortSpectra(bool sort_mz)
   {
     std::sort(spectra_.begin(), spectra_.end(), SpectrumType::RTLess());
 
@@ -351,7 +351,7 @@ namespace OpenMS
 
   @param sort_rt if @em true, chromatograms are sorted by rt position as well
   */
-  void MSExperiment::sortChromatograms(bool sort_rt)
+  void MSRun::sortChromatograms(bool sort_rt)
   {
     // sort the chromatograms according to their product m/z
     std::sort(chromatograms_.begin(), chromatograms_.end(), ChromatogramType::MZLess());
@@ -370,7 +370,7 @@ namespace OpenMS
 
   @param check_mz if @em true, checks if all peaks are sorted with respect to ascending m/z
   */
-  bool MSExperiment::isSorted(bool check_mz) const
+  bool MSRun::isSorted(bool check_mz) const
   {
     // check RT positions
     for (Size i = 1; i < spectra_.size(); ++i)
@@ -398,7 +398,7 @@ namespace OpenMS
   //@}
 
   /// Resets all internal values
-  void MSExperiment::reset()
+  void MSRun::reset()
   {
     spectra_.clear();           //remove data
     RangeManagerType::clearRanges();           //reset range manager
@@ -410,7 +410,7 @@ namespace OpenMS
 
   @return @em true if meta data arrays were present and removed. @em false otherwise.
   */
-  bool MSExperiment::clearMetaDataArrays()
+  bool MSRun::clearMetaDataArrays()
   {
     bool meta_present = false;
     for (Size i = 0; i < spectra_.size(); ++i)
@@ -432,19 +432,19 @@ namespace OpenMS
   }
 
   /// returns the meta information of this experiment (const access)
-  const ExperimentalSettings& MSExperiment::getExperimentalSettings() const
+  const ExperimentalSettings& MSRun::getExperimentalSettings() const
   {
     return *this;
   }
 
   /// returns the meta information of this experiment (mutable access)
-  ExperimentalSettings& MSExperiment::getExperimentalSettings()
+  ExperimentalSettings& MSRun::getExperimentalSettings()
   {
     return *this;
   }
 
   /// get the file path to the first MS run
-  void MSExperiment::getPrimaryMSRunPath(StringList& toFill) const
+  void MSRun::getPrimaryMSRunPath(StringList& toFill) const
   {
     std::vector<SourceFile> sfs(this->getSourceFiles());
     for (const SourceFile& ss : sfs)
@@ -478,7 +478,7 @@ namespace OpenMS
   but not necessarily the first one from the last MS level (we double-check with
   the annotated precursorList.
   */
-  MSExperiment::ConstIterator MSExperiment::getPrecursorSpectrum(ConstIterator iterator) const
+  MSRun::ConstIterator MSRun::getPrecursorSpectrum(ConstIterator iterator) const
   {
     // if we are after the end or at the beginning where we can't go "up"
     if (iterator == spectra_.end() || iterator == spectra_.begin())
@@ -528,7 +528,7 @@ namespace OpenMS
   }
 
   // same as above but easier to wrap in python
-  int MSExperiment::getPrecursorSpectrum(int zero_based_index) const
+  int MSRun::getPrecursorSpectrum(int zero_based_index) const
   {
     auto spec = spectra_.cbegin();
     spec += zero_based_index;
@@ -537,7 +537,7 @@ namespace OpenMS
     return pc_spec - spectra_.cbegin(); 
   }
 
-  MSExperiment::ConstIterator MSExperiment::getFirstProductSpectrum(ConstIterator parent_iterator) const
+  MSRun::ConstIterator MSRun::getFirstProductSpectrum(ConstIterator parent_iterator) const
   {
     // if we are already at or after the end -> there can be no product after it
     if (parent_iterator == spectra_.end() 
@@ -589,7 +589,7 @@ namespace OpenMS
   }
 
   // same as above but easier to wrap in python
-  int MSExperiment::getFirstProductSpectrum(int zero_based_index) const
+  int MSRun::getFirstProductSpectrum(int zero_based_index) const
   {
     if (zero_based_index < 0 
       || zero_based_index >= static_cast<int>(spectra_.size()))
@@ -604,9 +604,9 @@ namespace OpenMS
   }
 
   /// Swaps the content of this map with the content of @p from
-  void MSExperiment::swap(MSExperiment & from)
+  void MSRun::swap(MSRun & from)
   {
-    MSExperiment tmp;
+    MSRun tmp;
 
     //swap range information
     tmp.RangeManagerType::operator=(*this);
@@ -627,41 +627,41 @@ namespace OpenMS
   }
 
   /// sets the spectrum list
-  void MSExperiment::setSpectra(const std::vector<MSSpectrum> & spectra)
+  void MSRun::setSpectra(const std::vector<MSSpectrum> & spectra)
   {
     spectra_ = spectra;
   }
 
-  void MSExperiment::setSpectra(std::vector<MSSpectrum> && spectra)
+  void MSRun::setSpectra(std::vector<MSSpectrum> && spectra)
   {
     spectra_ = std::move(spectra);
   }
 
   /// adds a spectrum to the list
-  void MSExperiment::addSpectrum(const MSSpectrum & spectrum)
+  void MSRun::addSpectrum(const MSSpectrum & spectrum)
   {
     spectra_.push_back(spectrum);
   }
 
-  void MSExperiment::addSpectrum(MSSpectrum && spectrum)
+  void MSRun::addSpectrum(MSSpectrum && spectrum)
   {
     spectra_.push_back(std::move(spectrum));
   }
 
   /// returns the spectrum list
-  const std::vector<MSSpectrum>& MSExperiment::getSpectra() const
+  const std::vector<MSSpectrum>& MSRun::getSpectra() const
   {
     return spectra_;
   }
 
   /// returns the spectrum list (mutable)
-  std::vector<MSSpectrum>& MSExperiment::getSpectra()
+  std::vector<MSSpectrum>& MSRun::getSpectra()
   {
     return spectra_;
   }
 
   /// Returns the closest(=nearest) spectrum in retention time to the given RT
-  MSExperiment::ConstIterator MSExperiment::getClosestSpectrumInRT(const double RT) const
+  MSRun::ConstIterator MSRun::getClosestSpectrumInRT(const double RT) const
   {
     auto above = RTBegin(RT);           // the spec above or equal to our RT
     if (above == begin()) return above; // we hit the first element, or no spectra (begin==end)
@@ -672,13 +672,13 @@ namespace OpenMS
     if (diff_left < diff_right) --above;
     return above;
   }
-  MSExperiment::Iterator MSExperiment::getClosestSpectrumInRT(const double RT)
+  MSRun::Iterator MSRun::getClosestSpectrumInRT(const double RT)
   {
-    return begin() + std::distance(cbegin(), const_cast<const MSExperiment*>(this)->getClosestSpectrumInRT(RT));
+    return begin() + std::distance(cbegin(), const_cast<const MSRun*>(this)->getClosestSpectrumInRT(RT));
   }
 
   /// Returns the closest(=nearest) spectrum in retention time to the given RT of a certain MS level
-  MSExperiment::ConstIterator MSExperiment::getClosestSpectrumInRT(const double RT, UInt ms_level) const
+  MSRun::ConstIterator MSRun::getClosestSpectrumInRT(const double RT, UInt ms_level) const
   {
     auto above = RTBegin(RT); // the spec above or equal to our RT
     auto below = above; // for later
@@ -704,42 +704,42 @@ namespace OpenMS
     return (diff_left < diff_right ? below : above);
   }
 
-  MSExperiment::Iterator MSExperiment::getClosestSpectrumInRT(const double RT, UInt ms_level)
+  MSRun::Iterator MSRun::getClosestSpectrumInRT(const double RT, UInt ms_level)
   {
-    return begin() + std::distance(cbegin(), const_cast<const MSExperiment*>(this)->getClosestSpectrumInRT(RT, ms_level));
+    return begin() + std::distance(cbegin(), const_cast<const MSRun*>(this)->getClosestSpectrumInRT(RT, ms_level));
   }
 
   /// sets the chromatogram list
-  void MSExperiment::setChromatograms(const std::vector<MSChromatogram > & chromatograms)
+  void MSRun::setChromatograms(const std::vector<MSChromatogram > & chromatograms)
   {
     chromatograms_ = chromatograms;
   }
 
   /// sets the chromatogram list
-  void MSExperiment::setChromatograms(std::vector<MSChromatogram> && chromatograms)
+  void MSRun::setChromatograms(std::vector<MSChromatogram> && chromatograms)
   {
     chromatograms_ = std::move(chromatograms);
   }
 
   /// adds a chromatogram to the list
-  void MSExperiment::addChromatogram(const MSChromatogram & chromatogram)
+  void MSRun::addChromatogram(const MSChromatogram & chromatogram)
   {
     chromatograms_.push_back(chromatogram);
   }
 
-  void MSExperiment::addChromatogram(MSChromatogram&& chrom)
+  void MSRun::addChromatogram(MSChromatogram&& chrom)
   {
     chromatograms_.push_back(std::move(chrom));
   }  
 
   /// returns the chromatogram list
-  const std::vector<MSChromatogram >& MSExperiment::getChromatograms() const
+  const std::vector<MSChromatogram >& MSRun::getChromatograms() const
   {
     return chromatograms_;
   }
 
   /// returns the chromatogram list (mutable)
-  std::vector<MSChromatogram >& MSExperiment::getChromatograms()
+  std::vector<MSChromatogram >& MSRun::getChromatograms()
   {
     return chromatograms_;
   }
@@ -747,35 +747,35 @@ namespace OpenMS
   /// @name Easy Access interface
   //@{
   /// returns a single chromatogram 
-  MSChromatogram & MSExperiment::getChromatogram(Size id)
+  MSChromatogram & MSRun::getChromatogram(Size id)
   {
     return chromatograms_[id];
   }
 
   /// returns a single spectrum 
-  MSSpectrum & MSExperiment::getSpectrum(Size id)
+  MSSpectrum & MSRun::getSpectrum(Size id)
   {
     return spectra_[id];
   }
 
   /// get the total number of spectra available
-  Size MSExperiment::getNrSpectra() const
+  Size MSRun::getNrSpectra() const
   {
     return spectra_.size();
   }
 
   /// get the total number of chromatograms available
-  Size MSExperiment::getNrChromatograms() const
+  Size MSRun::getNrChromatograms() const
   {
     return chromatograms_.size();
   }
   //@}
 
   /// returns the total ion chromatogram (TIC)
-  const MSChromatogram MSExperiment::calculateTIC(float rt_bin_size, UInt ms_level) const
+  const MSChromatogram MSRun::calculateTIC(float rt_bin_size, UInt ms_level) const
   {
     // The TIC is (re)calculated from the MS spectra with set ms_level (default 1).
-    // Even if MSExperiment does not contain a TIC chromatogram explicitly, it can be reported.
+    // Even if MSRun does not contain a TIC chromatogram explicitly, it can be reported.
     MSChromatogram TIC;
     for (const auto& spec: spectra_)
     {
@@ -804,7 +804,7 @@ namespace OpenMS
 
   @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
   */
-  void MSExperiment::clear(bool clear_meta_data)
+  void MSRun::clear(bool clear_meta_data)
   {
     spectra_.clear();
 
@@ -817,7 +817,7 @@ namespace OpenMS
   }
 
   // static
-  bool MSExperiment::containsScanOfLevel(size_t ms_level) const
+  bool MSRun::containsScanOfLevel(size_t ms_level) const
   {
     //test if no scans with MS-level 1 exist
     for (const auto& spec : getSpectra())
@@ -830,7 +830,7 @@ namespace OpenMS
     return false;
   }
 
-  bool MSExperiment::hasZeroIntensities(size_t ms_level) const
+  bool MSRun::hasZeroIntensities(size_t ms_level) const
   {
     for (const auto& spec : getSpectra())
     {
@@ -849,7 +849,7 @@ namespace OpenMS
     return false;
   }
 
-  bool MSExperiment::hasPeptideIdentifications() const
+  bool MSRun::hasPeptideIdentifications() const
   {
     for (const auto& spec : getSpectra())
     {
@@ -861,7 +861,7 @@ namespace OpenMS
     return false;
   }
 
-  bool MSExperiment::isIMFrame() const
+  bool MSRun::isIMFrame() const
   {
     if (spectra_.empty()) return false;
     auto rt_start = spectra_[0].getRT();
@@ -874,7 +874,7 @@ namespace OpenMS
     return true; // RT stable, IM changing
   }
 
-  MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt)
+  MSRun::SpectrumType* MSRun::createSpec_(PeakType::CoordinateType rt)
   {
     spectra_.emplace_back(SpectrumType());
     SpectrumType* spectrum = &(spectra_.back());
@@ -884,13 +884,13 @@ namespace OpenMS
   }
 
   /*
-  @brief Append a spectrum including float data arrays to current MSExperiment
+  @brief Append a spectrum including float data arrays to current MSRun
 
   @param rt RT of new spectrum
   @param metadata_names Names of float data arrays attached to this spectrum
   @return Pointer to newly created spectrum
   */
-  MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt, const StringList& metadata_names)
+  MSRun::SpectrumType* MSRun::createSpec_(PeakType::CoordinateType rt, const StringList& metadata_names)
   {
     SpectrumType* spectrum = createSpec_(rt);
     // create metadata arrays
@@ -904,7 +904,7 @@ namespace OpenMS
   }
 
   /// Print the contents to a stream.
-  std::ostream& operator<<(std::ostream & os, const MSExperiment & exp)
+  std::ostream& operator<<(std::ostream & os, const MSRun & exp)
   {
     os << "-- MSEXPERIMENT BEGIN --" << std::endl;
 

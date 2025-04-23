@@ -23,7 +23,7 @@ namespace OpenMS
   class ParamXMLFile;
   class PeptideIdentification;
   class PeptideHit;
-  class MSExperiment;
+  class MSRun;
 
   /**
   * @brief This class holds the functionality of calculating the database suitability.
@@ -188,7 +188,7 @@ namespace OpenMS
     *                           identification search without FDR
     *                           (Comet is recommended - to use other search engines either disable reranking or set the '-force' flag)
     *                           vector is modified internally, and is thus copied
-    * @param exp                MSExperiment that was searched to produce the identifications
+    * @param exp                MSRun that was searched to produce the identifications
     *                           given in @p pep_ids
     * @param original_fasta     FASTAEntries of the database used for the ID search (without decoys)
     * @param novo_fasta         FASTAEntry derived from deNovo peptides
@@ -200,7 +200,7 @@ namespace OpenMS
     *                           this happens when another adapter than CometAdapter was used
     * @throws                   Precondition if a q-value is found in @p pep_ids
     */
-    void compute(std::vector<PeptideIdentification>&& pep_ids, const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params);
+    void compute(std::vector<PeptideIdentification>&& pep_ids, const MSRun& exp, const std::vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params);
 
     /**
     * @brief Returns results calculated by this metric
@@ -307,9 +307,9 @@ namespace OpenMS
     * Indexing and FDR are always done the same way.
     *
     * The inputs are stored in temporary files to execute the Adapter.
-    * (MSExperiment -> .mzML, vector<FASTAEntry> -> .fasta, Param -> .INI)
+    * (MSRun -> .mzML, vector<FASTAEntry> -> .fasta, Param -> .INI)
     *
-    * @param exp            MSExperiment that will be searched
+    * @param exp            MSRun that will be searched
     * @param fasta_data     represents the database that should be used to search
     * @param adapter_name   name of the adapter to search with
     * @param parameters     parameters for the adapter
@@ -320,7 +320,7 @@ namespace OpenMS
     * @throws               InternalToolError if any error occures while running PeptideIndexer functionalities
     * @throws               InvalidParameter if the needed FDR parameters are not found
     */
-    std::vector<PeptideIdentification> runIdentificationSearch_(const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, const String& adapter_name, Param& parameters) const;
+    std::vector<PeptideIdentification> runIdentificationSearch_(const MSRun& exp, const std::vector<FASTAFile::FASTAEntry>& fasta_data, const String& adapter_name, Param& parameters) const;
 
     /**
     * @brief Creates a subsampled fasta with the given subsampling rate

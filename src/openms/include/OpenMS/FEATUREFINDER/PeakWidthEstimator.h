@@ -10,7 +10,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/MISC/BSpline2d.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 
 namespace OpenMS

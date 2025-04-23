@@ -11,7 +11,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <algorithm>
@@ -296,7 +296,7 @@ namespace OpenMS
     }
 
     /**
-        @brief Applies the morphological filtering operation to an MSExperiment.
+        @brief Applies the morphological filtering operation to an MSRun.
 
         The size of the structuring element is computed for each spectrum individually, if it is given in 'Thomson'.
         See the filtering method for MSSpectrum for details.

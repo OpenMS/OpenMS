@@ -10,7 +10,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/QC/Ms2IdentificationRate.h>
 #include <algorithm>
@@ -20,7 +20,7 @@ namespace OpenMS
 {
   // computes number of peptide identifications, number of ms2 spectra and ratio
   // data is stored in vector of structs
-  void Ms2IdentificationRate::compute(const FeatureMap& feature_map, const MSExperiment& exp, bool assume_all_target)
+  void Ms2IdentificationRate::compute(const FeatureMap& feature_map, const MSRun& exp, bool assume_all_target)
   {
     // count ms2 spectra
     Size ms2_level_counter = getMS2Count_(exp);
@@ -36,7 +36,7 @@ namespace OpenMS
     writeResults_(peptide_identification_counter, ms2_level_counter);
   }
 
-  void Ms2IdentificationRate::compute(const std::vector<PeptideIdentification>& pep_ids, const MSExperiment& exp, bool assume_all_target)
+  void Ms2IdentificationRate::compute(const std::vector<PeptideIdentification>& pep_ids, const MSRun& exp, bool assume_all_target)
   {
     // count ms2 spectra
     Size ms2_level_counter = getMS2Count_(exp);
@@ -84,11 +84,11 @@ namespace OpenMS
       meta.custom[meta.custom.size()] = ms2_ir;
     }
   }
-  Size Ms2IdentificationRate::getMS2Count_(const MSExperiment& exp)
+  Size Ms2IdentificationRate::getMS2Count_(const MSRun& exp)
   {
     if (exp.empty())
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MSExperiment is empty");
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MSRun is empty");
     }
 
     Size ms2_counter {};

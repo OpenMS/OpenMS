@@ -62,7 +62,7 @@ public:
       @brief Loads a map from a DTA2D file.
 
       @param filename The file from which the map should be loaded.
-      @param map has to be a MSExperiment or have the same interface.
+      @param map has to be a MSRun or have the same interface.
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -237,7 +237,7 @@ public:
       @brief Stores a map in a DTA2D file.
 
       @param filename The name of the file where the map should be stored.
-      @param map has to be a MSExperiment or have the same interface.
+      @param map has to be a MSRun or have the same interface.
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
@@ -276,7 +276,7 @@ public:
       @brief Stores the TIC of a map in a DTA2D file.
 
       @param filename The name of the file where the map should be stored.
-      @param map has to be a MSExperiment or have the same interface.
+      @param map has to be a MSRun or have the same interface.
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */

@@ -13,7 +13,7 @@
 #include <OpenMS/COMPARISON/BinnedSpectralContrastAngle.h>
 #include <OpenMS/KERNEL/BinnedSpectrum.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenMS
@@ -304,7 +304,7 @@ public:
       @param[in] compute_features If false, `extracted_features` will be ignored
     */
     void extractSpectra(
-      const MSExperiment& experiment,
+      const MSRun& experiment,
       const TargetedExperiment& targeted_exp,
       std::vector<MSSpectrum>& extracted_spectra,
       FeatureMap& extracted_features,
@@ -325,7 +325,7 @@ public:
       @param[out] extracted_spectra The spectra related to the transitions
     */
     void extractSpectra(
-      const MSExperiment& experiment,
+      const MSRun& experiment,
       const TargetedExperiment& targeted_exp,
       std::vector<MSSpectrum>& extracted_spectra
     ) const;
@@ -345,7 +345,7 @@ public:
       @param[out] extracted_spectra The spectra related to the transitions
     */
     void extractSpectra(
-      const MSExperiment& experiment,
+      const MSRun& experiment,
       const FeatureMap& ms1_features,
       std::vector<MSSpectrum>& extracted_spectra
     ) const;
@@ -366,7 +366,7 @@ public:
       @param[out] extracted_features The features related to the output spectra
     */
     void extractSpectra(
-      const MSExperiment& experiment,
+      const MSRun& experiment,
       const FeatureMap& ms1_features,
       std::vector<MSSpectrum>& extracted_spectra,
       FeatureMap& extracted_features
@@ -456,7 +456,7 @@ public:
       @param[in] filename the filename of the file to write
       @param[in] experiment the experiment to store
     */
-    void storeSpectraMSP(const String& filename, MSExperiment& experiment) const;
+    void storeSpectraMSP(const String& filename, MSRun& experiment) const;
     
     /**
       @brief organize into a map by combining features and subordinates with the same `identifier`
@@ -471,10 +471,10 @@ protected:
     void updateMembers_() override;
 
     /// Deisotope MS2 spectra
-    void deisotopeMS2Spectra_(MSExperiment& experiment) const;
+    void deisotopeMS2Spectra_(MSRun& experiment) const;
 
     /// Remove peaks form MS2 which are at a higher mz than the precursor + 10 ppm
-    void removeMS2SpectraPeaks_(MSExperiment& experiment) const;
+    void removeMS2SpectraPeaks_(MSRun& experiment) const;
 
     /// organize into a map by combining features and subordinates with the same `identifier`
     void organizeMapWithSameIdentifier(const OpenMS::FeatureMap& fmap_input, std::map<OpenMS::String, std::vector<OpenMS::Feature>>& fmapmap) const;
@@ -497,7 +497,7 @@ protected:
       @param[in] compute_features If false, `extracted_features` will be ignored
     */
     void extractSpectra(
-      const MSExperiment& experiment,
+      const MSRun& experiment,
       const FeatureMap& ms1_features,
       std::vector<MSSpectrum>& extracted_spectra,
       FeatureMap& extracted_features,

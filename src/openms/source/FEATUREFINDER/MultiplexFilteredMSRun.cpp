@@ -10,11 +10,11 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FEATUREFINDER/MultiplexSatelliteCentroided.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteredPeak.h>
-#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
+#include <OpenMS/FEATUREFINDER/MultiplexFilteredMSRun.h>
 
 #include <vector>
 #include <algorithm>
@@ -25,24 +25,24 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiplexFilteredMSExperiment::MultiplexFilteredMSExperiment() = default;
+  MultiplexFilteredMSRun::MultiplexFilteredMSRun() = default;
 
-  void MultiplexFilteredMSExperiment::addPeak(const MultiplexFilteredPeak& peak)
+  void MultiplexFilteredMSRun::addPeak(const MultiplexFilteredPeak& peak)
   {
     result_.push_back(peak);
   }
 
-  MultiplexFilteredPeak MultiplexFilteredMSExperiment::getPeak(size_t i) const
+  MultiplexFilteredPeak MultiplexFilteredMSRun::getPeak(size_t i) const
   {
     return result_[i];
   }
 
-  double MultiplexFilteredMSExperiment::getMZ(size_t i) const
+  double MultiplexFilteredMSRun::getMZ(size_t i) const
   {
     return result_[i].getMZ();
   }
 
-  vector<double> MultiplexFilteredMSExperiment::getMZ() const
+  vector<double> MultiplexFilteredMSRun::getMZ() const
   {
     vector<double> mz;
     mz.resize(result_.size());
@@ -53,12 +53,12 @@ namespace OpenMS
     return mz;
   }
 
-  double MultiplexFilteredMSExperiment::getRT(size_t i) const
+  double MultiplexFilteredMSRun::getRT(size_t i) const
   {
     return result_[i].getRT();
   }
 
-  vector<double> MultiplexFilteredMSExperiment::getRT() const
+  vector<double> MultiplexFilteredMSRun::getRT() const
   {
     vector<double> rt;
     rt.resize(result_.size());
@@ -69,12 +69,12 @@ namespace OpenMS
     return rt;
   }
 
-  size_t MultiplexFilteredMSExperiment::size() const
+  size_t MultiplexFilteredMSRun::size() const
   {
     return result_.size();
   }
   
-  void MultiplexFilteredMSExperiment::writeDebugOutput(const MSExperiment& exp_picked, const String& debug_out) const
+  void MultiplexFilteredMSRun::writeDebugOutput(const MSRun& exp_picked, const String& debug_out) const
   {
     ConsensusMap map;
     
@@ -100,7 +100,7 @@ namespace OpenMS
         size_t mz_idx = (it_satellite.second).getMZidx();
         
         // find peak itself
-        MSExperiment::ConstIterator it_rt = exp_picked.begin();
+        MSRun::ConstIterator it_rt = exp_picked.begin();
         std::advance(it_rt, rt_idx);
         MSSpectrum::ConstIterator it_mz = it_rt->begin();
         std::advance(it_mz, mz_idx);

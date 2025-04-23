@@ -9,7 +9,7 @@
 #include <OpenMS/COMPARISON/ZhangSimilarityScore.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <boost/math/special_functions/erf.hpp>
 

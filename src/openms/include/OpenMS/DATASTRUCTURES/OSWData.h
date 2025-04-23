@@ -15,7 +15,7 @@
 
 namespace OpenMS
 {
-    class MSExperiment;
+    class MSRun;
 
     /// hierarchy levels of the OSWData tree
     struct OPENMS_DLLAPI OSWHierarchy
@@ -373,7 +373,7 @@ namespace OpenMS
           @throws Exception::MissingInformation if any nativeID is not known internally
           @throws Exception::Precondition if the run_ids do not match
         */
-        void buildNativeIDResolver(const MSExperiment& chrom_traces);
+        void buildNativeIDResolver(const MSRun& chrom_traces);
 
         /// resolve a transition.id (=nativeID) to a simple chromatogram index (.getChromatograms[index]) of the corresponding sqMass file
         /// Requires prior call to buildNativeIDResolver(), throws Exception::InvalidValue otherwise (or when nativeID is not known)

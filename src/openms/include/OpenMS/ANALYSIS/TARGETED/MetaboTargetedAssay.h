@@ -94,7 +94,7 @@ namespace OpenMS
 
     @return Vector of MetaboTargetedAssay
 
-    @param spectra Input of MSExperiment with spectra information
+    @param spectra Input of MSRun with spectra information
     @param feature_ms2_index FeatureMapping class to associated MS2 spectra
     @param precursor_rt_tol Retention time tolerance of the precursor
     @param precursor_mz_distance Max m/z distance of the precursor entries of two spectra to be merged
@@ -106,7 +106,7 @@ namespace OpenMS
     @param exclude_ms2_precursor Boolean to exclude MS2 precursor from MetaboTargetedAssay
     @param file_counter Count if multiple files are used.
     */
-    static std::vector<MetaboTargetedAssay> extractMetaboTargetedAssay(const MSExperiment& spectra,
+    static std::vector<MetaboTargetedAssay> extractMetaboTargetedAssay(const MSRun& spectra,
                                                                        const FeatureMapping::FeatureToMs2Indices& feature_ms2_index,
                                                                        const double& precursor_rt_tol,
                                                                        const double& precursor_mz_distance,

@@ -16,7 +16,7 @@
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -52,7 +52,7 @@ namespace OpenMS
     defaultsToParam_();
   }
   
-  void DBSuitability::compute(vector<PeptideIdentification>&& pep_ids, const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params)
+  void DBSuitability::compute(vector<PeptideIdentification>&& pep_ids, const MSRun& exp, const vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params)
   {
     for (const auto& id : pep_ids)
     {
@@ -300,7 +300,7 @@ namespace OpenMS
     param_file.store(filename, parameters);
   }
 
-  vector<PeptideIdentification> DBSuitability::runIdentificationSearch_(const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& fasta_data, const String& adapter_name, Param& parameters) const
+  vector<PeptideIdentification> DBSuitability::runIdentificationSearch_(const MSRun& exp, const vector<FASTAFile::FASTAEntry>& fasta_data, const String& adapter_name, Param& parameters) const
   {
     if (adapter_name.empty())
     {

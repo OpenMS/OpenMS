@@ -11,7 +11,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/METADATA/SourceFile.h>
@@ -137,7 +137,7 @@ namespace OpenMS
     if (param_.getValue("internal:content") != "peaklist_only")
       writeHeader_(os);
     if (param_.getValue("internal:content") != "header_only")
-      writeMSExperiment_(os, filename, experiment);
+      writeMSRun_(os, filename, experiment);
 
     // reset formatting:
     os.flags(old_flags);
@@ -412,7 +412,7 @@ namespace OpenMS
     return r;
   }
 
-  void MascotGenericFile::writeMSExperiment_(ostream& os, const String& filename, const PeakMap& experiment)
+  void MascotGenericFile::writeMSRun_(ostream& os, const String& filename, const PeakMap& experiment)
   {
 
     std::pair<String, String> enc = getHTTPPeakListEnclosure(filename);

@@ -130,7 +130,7 @@ namespace OpenMS
     seeds_ = seeds;
   }
 
-  void FeatureFinderAlgorithmPicked::setData(const MSExperiment& map, FeatureMap& features)
+  void FeatureFinderAlgorithmPicked::setData(const MSRun& map, FeatureMap& features)
   {
     map_ = map;
     features_ = &features;

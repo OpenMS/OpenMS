@@ -9,7 +9,7 @@
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 namespace OpenMS
 {
@@ -33,13 +33,13 @@ namespace OpenMS
     proteins_.clear();
   }
 
-  void OSWData::buildNativeIDResolver(const MSExperiment& chrom_traces)
+  void OSWData::buildNativeIDResolver(const MSRun& chrom_traces)
   {
-    // first check if the MSExperiment originates from the same run by checking for matching run-ids
+    // first check if the MSRun originates from the same run by checking for matching run-ids
     if (chrom_traces.getSqlRunID() != getRunID())
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                    "The RUN.ID of the sqMass/MSExperiment ('" + String(chrom_traces.getSqlRunID()) + 
+                                    "The RUN.ID of the sqMass/MSRun ('" + String(chrom_traces.getSqlRunID()) + 
                                     "') and the OSW file ('" + String(getRunID()) + "') does not match. "
                                     "Please use a recent version of OpenSwathWorkflow to create matching data.");
     }

@@ -13,7 +13,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <sstream>
 
@@ -24,7 +24,7 @@ namespace OpenMS
     /**
         @brief XML handler for MzDataFile
 
-        MapType has to be a MSExperiment or have the same interface.
+        MapType has to be a MSRun or have the same interface.
         Do not use this class. It is only needed in MzDataFile.
 
         @improvement Add implementation and tests of 'supDataArray' to store IntegerDataArray and StringDataArray of MSSpectrum (Hiwi)

@@ -13,7 +13,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/QC/MQExporterHelper.h>
 
 #include <map>
@@ -66,7 +66,7 @@ private:
     const OpenMS::String& raw_file,
     const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
     const OpenMS::ProteinIdentification::Mapping& mp_f,
-    const OpenMS::MSExperiment& exp= {},
+    const OpenMS::MSRun& exp= {},
     const std::map<OpenMS::String,OpenMS::String>& prot_map = {});
 
 public:
@@ -105,6 +105,6 @@ public:
   void exportFeatureMap(
     const OpenMS::FeatureMap& feature_map,
     const OpenMS::ConsensusMap& cmap,
-    const OpenMS::MSExperiment& exp= {},
+    const OpenMS::MSRun& exp= {},
     const std::map<OpenMS::String,OpenMS::String>& prot_map = {});
 };

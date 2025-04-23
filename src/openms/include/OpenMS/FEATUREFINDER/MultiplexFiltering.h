@@ -10,7 +10,7 @@
 
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
@@ -40,7 +40,7 @@ namespace OpenMS
    * specific functions and the primary filter() method.
    *
    * @see MultiplexIsotopicPeakPattern
-   * @see MultiplexFilteredMSExperiment
+   * @see MultiplexFilteredMSRun
    * @see MultiplexFilteringCentroided
    * @see MultiplexFilteringProfile
    */
@@ -51,7 +51,7 @@ public:
     /**
      * @brief index mapping from a 'white' experiment to its original experiment
      * 
-     * An MSExperiment contains a set of spectra each containing a number of peaks.
+     * An MSRun contains a set of spectra each containing a number of peaks.
      * In the course of the filtering, some peaks are blacklisted since they are
      * identified to belong to a certain pattern i.e. peptide. An experiment in
      * which blacklisted peaks are removed is called 'white'. White spectra
@@ -77,18 +77,18 @@ public:
      * @param averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p).
      * @param averagine_type Averagine model to use: 'peptide', 'RNA', 'DNA'
      */
-    MultiplexFiltering(const MSExperiment& exp_centroided, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min,
+    MultiplexFiltering(const MSRun& exp_centroided, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min,
                        int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit,
                        double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
     /**
      * @brief returns the intensity-filtered, centroided spectral data
      */
-    MSExperiment& getCentroidedExperiment();
+    MSRun& getCentroidedExperiment();
     
     /**
      * @brief returns the blacklisted, centroided peaks
      */
-    MSExperiment getBlacklist();
+    MSRun getBlacklist();
 
 protected:
     /**
@@ -98,7 +98,7 @@ protected:
      * In addition, construct an index mapping of 'white' peak positions
      * to their position in the corresponding, original spectrum.
      */
-    void updateWhiteMSExperiment_();
+    void updateWhiteMSRun_();
 
     /**
      * @brief check for significant peak
@@ -110,7 +110,7 @@ protected:
      *
      * @return -1 (if there is no significant peak), or peak index mz_idx (if there is a significant peak)
      */
-    int checkForSignificantPeak_(double mz, double mz_tolerance, MSExperiment::ConstIterator& it_rt, double intensity_first_peak) const;
+    int checkForSignificantPeak_(double mz, double mz_tolerance, MSRun::ConstIterator& it_rt, double intensity_first_peak) const;
 
     /**
      * @brief check if there are enough peaks in the RT band to form the pattern
@@ -127,7 +127,7 @@ protected:
      *
      * @return boolean if this filter was passed i.e. there are @em isotopes_per_peptide_min_ or more mass traces which form the pattern.
      */
-    bool filterPeakPositions_(double mz, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const;
+    bool filterPeakPositions_(double mz, const MSRun::ConstIterator& it_rt_begin, const MSRun::ConstIterator& it_rt_band_begin, const MSRun::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const;
 
     /**
      * @brief blacklist this peak
@@ -180,7 +180,7 @@ protected:
     /**
      * @brief centroided experimental data
      */
-    MSExperiment exp_centroided_;
+    MSRun exp_centroided_;
 
     /**
      * @brief auxiliary structs for blacklisting
@@ -192,7 +192,7 @@ protected:
      *
      * subset of all peaks of @em exp_centroided_ which are not blacklisted in @em blacklist_
      */
-    MSExperiment exp_centroided_white_;
+    MSRun exp_centroided_white_;
     
     /**
      * @brief mapping of peak indices from a 'white' experiment @em exp_centroided_white_ to its original experiment @em exp_centroided_

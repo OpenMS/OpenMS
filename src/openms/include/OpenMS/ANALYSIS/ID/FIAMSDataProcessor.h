@@ -60,22 +60,22 @@ public:
       Also, the results of the accurate mass search and the signal-to-noise information 
       of the resulting spectrum is saved.
 
-      @param experiment  Input MSExperiment
+      @param experiment  Input MSRun
       @param n_seconds Input number of seconds
       @param load_cached_spectrum Load the cached picked spectrum if exists
       @param[out] output Output of the accurate mass search results
       @return a boolean indicating if the picked spectrum was loaded from the cached file
     */
-    bool run(const MSExperiment& experiment, const float n_seconds, OpenMS::MzTab& output, const bool load_cached_spectrum = true);
+    bool run(const MSRun& experiment, const float n_seconds, OpenMS::MzTab& output, const bool load_cached_spectrum = true);
 
     /**
       @brief Cut the time axis of the experiment from 0 to @p n_seconds
 
-      @param experiment  Input MSExperiment
+      @param experiment  Input MSRun
       @param n_seconds Input number of seconds
       @param output   [out] Spectra with retention time less than @p n_seconds
     */
-    void cutForTime(const MSExperiment& experiment, const float n_seconds, std::vector<MSSpectrum>& output);
+    void cutForTime(const MSRun& experiment, const float n_seconds, std::vector<MSSpectrum>& output);
 
     /**
       @brief Sum the spectra with different retention times into one.

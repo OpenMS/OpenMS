@@ -11,7 +11,7 @@
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 namespace OpenMS
 {
@@ -41,14 +41,14 @@ namespace OpenMS
 
       @return FeatureToMs2Indices
 
-      @param spectra: Input of PeakMap/MSExperiment with spectra information
+      @param spectra: Input of PeakMap/MSRun with spectra information
       @param fm_info: KDTree used for query and match spectra with features
       @param precursor_mz_tolerance: mz_tolerance used for query
       @param precursor_rt_tolerance: rt tolerance used for query
       @param ppm: mz tolerance window calculation in ppm or Da
 
     */
-    static FeatureToMs2Indices assignMS2IndexToFeature(const MSExperiment& spectra,
+    static FeatureToMs2Indices assignMS2IndexToFeature(const MSRun& spectra,
                                                        const FeatureMappingInfo& fm_info,
                                                        const double& precursor_mz_tolerance,
                                                        const double& precursor_rt_tolerance,

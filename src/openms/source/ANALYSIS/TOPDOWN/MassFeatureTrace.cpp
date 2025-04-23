@@ -35,7 +35,7 @@ namespace OpenMS
 
   std::vector<FLASHDeconvHelperStructs::MassFeature> MassFeatureTrace::findFeatures(const PrecalculatedAveragine& averagine)
   {
-    MSExperiment map;
+    MSRun map;
     std::map<int, MSSpectrum> index_spec_map;
     int min_abs_charge = INT_MAX;
     int max_abs_charge = INT_MIN;

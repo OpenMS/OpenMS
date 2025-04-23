@@ -5,7 +5,7 @@ from MSSpectrum cimport *
 from MSChromatogram cimport *
 from InterfaceDataStructures cimport *
 
-cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/KERNEL/OnDiscMSRun.h>" namespace "OpenMS":
 
     cdef cppclass OnDiscMSExperiment(ExperimentalSettings):
         # wrap-doc:

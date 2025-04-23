@@ -125,7 +125,7 @@ namespace OpenMS
 
       if (sidx_.empty())
       {
-        MSExperiment exp;
+        MSRun exp;
         {
           handler_.readExperiment(exp, false);
         }

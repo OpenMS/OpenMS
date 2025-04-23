@@ -34,7 +34,7 @@ ModelDescription.cpp
 MultiplexClustering.cpp
 MultiplexDeltaMasses.cpp
 MultiplexDeltaMassesGenerator.cpp
-MultiplexFilteredMSExperiment.cpp
+MultiplexFilteredMSRun.cpp
 MultiplexFilteredPeak.cpp
 MultiplexFiltering.cpp
 MultiplexFilteringCentroided.cpp

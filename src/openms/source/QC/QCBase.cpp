@@ -8,7 +8,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/QC/QCBase.h>
 
 namespace OpenMS
@@ -17,12 +17,12 @@ namespace OpenMS
 
   const std::string QCBase::names_of_toleranceUnit[] = {"auto", "ppm", "da"};
 
-  QCBase::SpectraMap::SpectraMap(const MSExperiment& exp)
+  QCBase::SpectraMap::SpectraMap(const MSRun& exp)
   {
     calculateMap(exp);
   }
 
-  void QCBase::SpectraMap::calculateMap(const MSExperiment& exp)
+  void QCBase::SpectraMap::calculateMap(const MSRun& exp)
   {
     nativeid_to_index_.clear();
     for (Size i = 0; i < exp.size(); ++i)
@@ -36,7 +36,7 @@ namespace OpenMS
     const auto& it = nativeid_to_index_.find(identifier);
     if (it == nativeid_to_index_.end())
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No spectrum with identifier '") + identifier + "' in MSExperiment!");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No spectrum with identifier '") + identifier + "' in MSRun!");
     }
     return it->second;
   }

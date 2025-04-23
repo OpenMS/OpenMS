@@ -26,11 +26,11 @@ namespace OpenMS
     acquisition settings, description of the meta values used in the peaks and precursor info
     (SpectrumSettings).
 
-    Several MSSpectrum instances are contained in a peak map (MSExperiment), which is essentially
+    Several MSSpectrum instances are contained in a peak map (MSRun), which is essentially
     a vector of spectra with additional information about the experiment.
 
     Precursor info from SpectrumSettings should only be used if this spectrum is a tandem-MS
-    spectrum. The precursor spectrum is the first spectrum in MSExperiment, that has a lower
+    spectrum. The precursor spectrum is the first spectrum in MSRun, that has a lower
     MS-level than the current spectrum.
 
     @note For range operations, see \ref RangeUtils "RangeUtils module"!

@@ -23,7 +23,7 @@ namespace OpenMS
 {
   class PeakFileOptions;
   class MSSpectrum;
-  class MSExperiment;
+  class MSRun;
   class FeatureMap;
   class ConsensusMap;
   class TargetedExperiment;
@@ -34,7 +34,7 @@ namespace OpenMS
     This class provides file type recognition from the file name and
     from the file content.
 
-    It also offer a common interface to load MSExperiment data
+    It also offer a common interface to load MSRun data
     and allows querying for supported file types.
 
     @see FileTypes
@@ -155,7 +155,7 @@ public:
     void setFeatOptions(const FeatureFileOptions&);
 
     /**
-      @brief Loads a file into an MSExperiment
+      @brief Loads a file into an MSRun
 
       @param filename The file name of the file to load.
       @param exp The experiment to load the data into.
@@ -172,7 +172,7 @@ public:
                         const bool compute_hash = false);
 
     /**
-      @brief Stores an MSExperiment to a file
+      @brief Stores an MSRun to a file
 
       The file type to store the data in is determined by the file name. Supported formats for storing are mzML, mzXML, mzData and DTA2D. If the file format cannot be determined from the file name, the mzML format is used.
 
@@ -341,7 +341,7 @@ public:
       @brief Stores QC data in mzQC file with JSON format
       @param input_file mzML input file name
       @param filename mzQC output file name
-      @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
+      @param exp MSRun to extract QC data from, prior sortSpectra() and updateRanges() required
       @param feature_map FeatureMap from feature file (featureXML)
       @param prot_ids protein identifications from ID file (idXML)
       @param pep_ids protein identifications from ID file (idXML)
@@ -357,7 +357,7 @@ public:
     */
     void storeQC(const String& input_file,
                const String& filename,
-               const MSExperiment& exp,
+               const MSRun& exp,
                const FeatureMap& feature_map,
                std::vector<ProteinIdentification>& prot_ids,
                std::vector<PeptideIdentification>& pep_ids,

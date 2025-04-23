@@ -27,7 +27,7 @@ namespace OpenMS
 { 
   void MzQCFile::store(const String& input_file,
                        const String& output_file,
-                       const MSExperiment& exp,
+                       const MSRun& exp,
                        const String& contact_name,
                        const String& contact_address,
                        const String& description,

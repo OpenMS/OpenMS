@@ -1040,7 +1040,7 @@ namespace OpenMS
                                const ConsensusMap& consensus_map,
                                const String& inputfile_raw, 
                                const bool remove_duplicate_features,
-                               const MSExperiment& exp)
+                               const MSRun& exp)
   {
       // fetch vocabularies
       ControlledVocabulary cv;

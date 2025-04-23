@@ -10,7 +10,7 @@
 
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/RangeManager.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -205,9 +205,9 @@ namespace OpenMS
     /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
     void setPrimaryMSRunPath(const StringList& s);
 
-    /// set the file path to the primary MS run using the mzML annotated in the MSExperiment @p e.
+    /// set the file path to the primary MS run using the mzML annotated in the MSRun @p e.
     /// If it doesn't exist, fallback to @p s.
-    void setPrimaryMSRunPath(const StringList& s, MSExperiment& e);
+    void setPrimaryMSRunPath(const StringList& s, MSRun& e);
 
     /// get the file path to the first MS run
     void getPrimaryMSRunPath(StringList& toFill) const;

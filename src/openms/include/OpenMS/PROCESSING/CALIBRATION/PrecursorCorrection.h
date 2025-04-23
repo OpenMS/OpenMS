@@ -10,7 +10,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
@@ -47,7 +47,7 @@ class OPENMS_DLLAPI PrecursorCorrection
      @param[out] precursors_rt: vector double of precursors retention time (same length as @p precursors)
      @param[out] precursor_scan_index: Indices into @p exp, which have a precursor
      */
-     static void getPrecursors(const MSExperiment & exp,
+     static void getPrecursors(const MSRun & exp,
                               std::vector<Precursor> & precursors,
                               std::vector<double> & precursors_rt,
                               std::vector<Size> & precursor_scan_index);
@@ -79,7 +79,7 @@ class OPENMS_DLLAPI PrecursorCorrection
      For each MS2 spectrum the corresponding MS1 spectrum is determined by using the rt information of the precursor.
      In the MS1, the peak closest to the uncorrected precursor m/z is selected and used as corrected precursor m/z.
 
-     @param exp: MSExperiment.
+     @param exp: MSRun.
      @param mz_tolerance: double tolerance used for precursor correction in mass range.
      @param ppm: bool enables usage of ppm.
      @param delta_mzs: vector double delta mass to charge.
@@ -87,7 +87,7 @@ class OPENMS_DLLAPI PrecursorCorrection
      @param rts: vector double retention time.
      @return set of Size with corrected precursor information.
      */
-     static std::set<Size> correctToNearestMS1Peak(MSExperiment & exp,
+     static std::set<Size> correctToNearestMS1Peak(MSRun & exp,
                                                    double mz_tolerance,
                                                    bool ppm,
                                                    std::vector<double> & delta_mzs,
@@ -100,7 +100,7 @@ class OPENMS_DLLAPI PrecursorCorrection
      For each MS2 spectrum the corresponding MS1 spectrum is determined by using the rt information of the precursor.
      In the MS1, the peak with the highest intensity in a given mass range to the uncorrected precursor m/z is selected and used as corrected precursor m/z.
 
-     @param exp: MSExperiment.
+     @param exp: MSRun.
      @param mz_tolerance: double tolerance used for precursor correction in mass range.
      @param ppm: bool enables usage of ppm.
      @param delta_mzs: vector double delta mass to charge.
@@ -108,7 +108,7 @@ class OPENMS_DLLAPI PrecursorCorrection
      @param rts: vector double retention time.
      @return set of Size with corrected precursor information.
      */
-     static std::set<Size> correctToHighestIntensityMS1Peak(MSExperiment & exp,
+     static std::set<Size> correctToHighestIntensityMS1Peak(MSRun & exp,
                                                             double mz_tolerance,
                                                             bool ppm,
                                                             std::vector<double> & delta_mzs,
@@ -126,7 +126,7 @@ class OPENMS_DLLAPI PrecursorCorrection
      all_matching_features does this not for only the closest feature but all features in a question.
 
      @param features: constant FeatureMap.
-     @param exp: MSExperiment.
+     @param exp: MSRun.
      @param rt_tolerance_s: double retention time tolerance in seconds.
      @param mz_tolerance: double tolerance used for precursor correction in mass range.
      @param ppm: bool enables usage of ppm.
@@ -140,7 +140,7 @@ class OPENMS_DLLAPI PrecursorCorrection
 
      */
      static std::set<Size> correctToNearestFeature(const FeatureMap& features,
-                                                   MSExperiment & exp,
+                                                   MSRun & exp,
                                                    double rt_tolerance_s = 0.0,
                                                    double mz_tolerance = 0.0,
                                                    bool ppm = true,

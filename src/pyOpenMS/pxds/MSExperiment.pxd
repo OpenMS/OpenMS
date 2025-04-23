@@ -13,7 +13,7 @@ from Matrix cimport *
 
 # this class has addons, see the ./addons folder
 
-cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/KERNEL/MSRun.h>" namespace "OpenMS":
 
     cdef cppclass MSExperiment(ExperimentalSettings, RangeManagerRtMzInt):
         # wrap-inherits:

@@ -13,7 +13,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <limits> // for "quiet_NaN"
 
@@ -187,7 +187,7 @@ namespace OpenMS
                      const String& scan_regexp = default_scan_regexp,
                      bool get_precursor_rt = false)
     {
-      // If class SpectrumContainer is e.g. OnDiscMSExperiment, reading each
+      // If class SpectrumContainer is e.g. OnDiscMSRun, reading each
       // spectrum is expensive. Thus, to avoid iterating over all spectra twice,
       // we do not call "SpectrumLookup::readSpectra" here:
       n_spectra_ = spectra.size();
@@ -259,26 +259,26 @@ namespace OpenMS
 	   @brief Add missing retention time (RT) values to peptide identifications based on raw data
 
 	   @param peptides Peptide IDs with or without RT values
-	   @param exp The MSExperiment object representing the raw data file (e.g., mzML) used to look up RT values.
+	   @param exp The MSRun object representing the raw data file (e.g., mzML) used to look up RT values.
 
 	   @return True if all peptide IDs could be annotated successfully (including if all already had RT values), false otherwise.
 
 	*/
-	static bool addMissingRTsToPeptideIDs(std::vector<PeptideIdentification>& peptides, const MSExperiment& exp);
+	static bool addMissingRTsToPeptideIDs(std::vector<PeptideIdentification>& peptides, const MSRun& exp);
 
     /**
      * @brief Adds missing ion mobility information to peptide identifications.
      * 
      * This function adds missing ion mobility (IM) information to the peptide identifications.
-     * The missing IM information is retrieved from the MSExperiment.
+     * The missing IM information is retrieved from the MSRun.
      * 
      * @param peptides The vector of peptide identifications to update.
-     * @param exp The MSExperiment object representing the raw data file (e.g., mzML) used to look up IM values.
+     * @param exp The MSRun object representing the raw data file (e.g., mzML) used to look up IM values.
      * 
      * @return True if all missing IM information was successfully added to the peptide identifications, false otherwise.
     */
     static bool addMissingIMToPeptideIDs(std::vector<PeptideIdentification>& peptides,
-    									const MSExperiment& exp);
+    									const MSRun& exp);
 
     /**
      * @brief Add missing "spectrum_reference"s to peptide identifications based on raw data

@@ -41,7 +41,7 @@ namespace OpenMS
     Each PeptideIdentification stores the precursor ion's retention time (RT) and mass-to-charge
     ratio (m/z) corresponding to the spectrum that was identified. This information (retrieved via
     getRT() and getMZ()) is essential for mapping these identifications back to experimental data,
-    such as peaks in an MSExperiment, features in a FeatureMap, or consensus features in a
+    such as peaks in an MSRun, features in a FeatureMap, or consensus features in a
     ConsensusMap. The IDMapper class is often used for this purpose.
 
     The class also stores information about the scoring system used (getScoreType(),

@@ -8,7 +8,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/QC/Ms2SpectrumStats.h>
 #include <OpenMS/QC/QCBase.h>
 
@@ -16,13 +16,13 @@ using namespace std;
 
 namespace OpenMS
 {
-  // check which MS2-Spectra of a mzml-file (MSExperiment) are identified (and therefor have a entry in the featureMap)
+  // check which MS2-Spectra of a mzml-file (MSRun) are identified (and therefor have a entry in the featureMap)
   // MS2 spectra without mate are returned as vector of unassigned PeptideIdentifications (with empty sequence but some metavalue)
-  std::vector<PeptideIdentification> Ms2SpectrumStats::compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum)
+  std::vector<PeptideIdentification> Ms2SpectrumStats::compute(const MSRun& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum)
   {
     if (exp.empty())
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The mzml file / MSExperiment must not be empty.\n");
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The mzml file / MSRun must not be empty.\n");
     }
 
     setScanEventNumber_(exp);
@@ -35,7 +35,7 @@ namespace OpenMS
   }
 
 
-  void Ms2SpectrumStats::setScanEventNumber_(const MSExperiment& exp)
+  void Ms2SpectrumStats::setScanEventNumber_(const MSRun& exp)
   {
     ms2_included_.clear();
     ms2_included_.reserve(exp.size());
@@ -68,7 +68,7 @@ namespace OpenMS
   }
 
   // marks all seen (unassigned-)PeptideIdentifications in vector ms2_included
-  void Ms2SpectrumStats::setPresenceAndScanEventNumber_(PeptideIdentification& peptide_ID, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum)
+  void Ms2SpectrumStats::setPresenceAndScanEventNumber_(PeptideIdentification& peptide_ID, const MSRun& exp, const QCBase::SpectraMap& map_to_spectrum)
   {
     if (!peptide_ID.metaValueExists("spectrum_reference"))
     {
@@ -89,7 +89,7 @@ namespace OpenMS
     }
   }
 
-  std::vector<PeptideIdentification> Ms2SpectrumStats::getUnassignedPeptideIdentifications_(const MSExperiment& exp)
+  std::vector<PeptideIdentification> Ms2SpectrumStats::getUnassignedPeptideIdentifications_(const MSRun& exp)
   {
     std::vector<PeptideIdentification> result;
     for (auto it = ms2_included_.begin(); it != ms2_included_.end(); ++it)

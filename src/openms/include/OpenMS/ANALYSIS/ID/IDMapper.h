@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
@@ -23,7 +23,7 @@
 namespace OpenMS
 {
   /**
-    @brief Annotates an MSExperiment, FeatureMap or ConsensusMap with peptide identifications
+    @brief Annotates an MSRun, FeatureMap or ConsensusMap with peptide identifications
 
     ProteinIdentifications are assigned to the whole map.
 
@@ -57,9 +57,9 @@ public:
       corresponding spectrum.
       Note that a PeptideIdentication is added to ALL spectra which are within the allowed RT and MZ boundaries.
 
-      @param map MSExperiment to receive the identifications
-      @param peptide_ids PeptideIdentification for the MSExperiment
-      @param protein_ids ProteinIdentification for the MSExperiment
+      @param map MSRun to receive the identifications
+      @param peptide_ids PeptideIdentification for the MSRun
+      @param protein_ids ProteinIdentification for the MSRun
       @param clear_ids Reset peptide and protein identifications of each scan before annotating
       @param map_ms1 Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
 
@@ -77,8 +77,8 @@ public:
       and calls the respective annotate() function.
       RT and m/z are taken from the peptides, or (if missing) from the feature itself.
 
-      @param map MSExperiment to receive the identifications
-      @param fmap FeatureMap with PeptideIdentifications for the MSExperiment
+      @param map MSRun to receive the identifications
+      @param fmap FeatureMap with PeptideIdentifications for the MSRun
       @param clear_ids Reset peptide and protein identifications of each scan before annotating
       @param map_ms1 attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
     */

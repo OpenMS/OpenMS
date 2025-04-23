@@ -22,7 +22,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiplexClustering::MultiplexClustering(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical) :
+  MultiplexClustering::MultiplexClustering(const MSRun& exp_profile, const MSRun& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical) :
     rt_typical_(rt_typical)
   {
     if (exp_picked.size() != boundaries.size())
@@ -77,7 +77,7 @@ namespace OpenMS
 
   }
 
-  MultiplexClustering::MultiplexClustering(const MSExperiment& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical) :
+  MultiplexClustering::MultiplexClustering(const MSRun& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical) :
     rt_typical_(rt_typical)
   {
     // ranges of the experiment
@@ -148,7 +148,7 @@ namespace OpenMS
 
   }
 
-  std::vector<std::map<int, GridBasedCluster> > MultiplexClustering::cluster(const std::vector<MultiplexFilteredMSExperiment>& filter_results)
+  std::vector<std::map<int, GridBasedCluster> > MultiplexClustering::cluster(const std::vector<MultiplexFilteredMSRun>& filter_results)
   {
     // progress logger
     unsigned progress = 0;

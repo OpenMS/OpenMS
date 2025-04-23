@@ -43,7 +43,7 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI MSExperiment final : public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity, RangeMobility>,
+  class OPENMS_DLLAPI MSRun final : public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity, RangeMobility>,
     public ExperimentalSettings
   {
 
@@ -93,31 +93,31 @@ public:
     typedef Base::const_iterator const_iterator;
 
     /// Constructor
-    MSExperiment();
+    MSRun();
 
     /// Copy constructor
-    MSExperiment(const MSExperiment & source);
+    MSRun(const MSRun & source);
 
     /// Move constructor
-    MSExperiment(MSExperiment&&) = default;
+    MSRun(MSRun&&) = default;
 
     /// Assignment operator
-    MSExperiment & operator=(const MSExperiment & source);
+    MSRun & operator=(const MSRun & source);
 
     /// Move assignment operator
-    MSExperiment& operator=(MSExperiment&&) & = default;
+    MSRun& operator=(MSRun&&) & = default;
 
     /// Assignment operator
-    MSExperiment & operator=(const ExperimentalSettings & source);
+    MSRun & operator=(const ExperimentalSettings & source);
 
     /// D'tor
-    ~MSExperiment() override;
+    ~MSRun() override;
 
     /// Equality operator
-    bool operator==(const MSExperiment & rhs) const;
+    bool operator==(const MSRun & rhs) const;
 
     /// Equality operator
-    bool operator!=(const MSExperiment & rhs) const;
+    bool operator!=(const MSRun & rhs) const;
     
     /// The number of spectra
     inline Size size() const noexcept
@@ -219,9 +219,9 @@ public:
     }
 
     /**
-      @brief Assignment of a data container with RT and MZ to an MSExperiment
+      @brief Assignment of a data container with RT and MZ to an MSRun
 
-      Fill MSExperiment with data.
+      Fill MSRun with data.
       Note that all data present (including meta-data) will be deleted prior to adding new data!
 
       @param container An iterable type whose elements support getRT(), getMZ() and getIntensity()
@@ -236,9 +236,9 @@ public:
     }
 
     /**
-      @brief Assignment of a data container with RT and MZ to an MSExperiment
+      @brief Assignment of a data container with RT and MZ to an MSRun
 
-      Fill MSExperiment with data.
+      Fill MSRun with data.
       Note that all data present (including meta-data) will be deleted prior to adding new data!
 
       @param container An iterable type whose elements support getRT(), getMZ() and getIntensity()
@@ -276,9 +276,9 @@ public:
     }
 
      /**
-      @brief Assignment of a data container with RT and MZ to an MSExperiment
+      @brief Assignment of a data container with RT and MZ to an MSRun
 
-      Fill MSExperiment with data.
+      Fill MSRun with data.
       Note that all data present (including meta-data) will be deleted prior to adding new data!
 
       @tparam Container An iterable type whose elements support getRT(), getMZ() and getIntensity()
@@ -577,7 +577,7 @@ struct SumIntensityReduction {
  *   It should process these peaks and return a single `CoordinateType` value representing the aggregated result.
  *
  * @return
- *   A vector of vectors of `MSExperiment::CoordinateType`. Each sub-vector corresponds to an m/z and RT range in
+ *   A vector of vectors of `MSRun::CoordinateType`. Each sub-vector corresponds to an m/z and RT range in
  *   `mz_rt_ranges`, and contains the aggregated results for each spectrum that falls within that RT range.
  *   The size of each sub-vector equals the number of spectra that overlap with the RT range.
  *
@@ -595,7 +595,7 @@ struct SumIntensityReduction {
  * @exception None
  */
 template<class MzReductionFunctionType>
-std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
+std::vector<std::vector<MSRun::CoordinateType>> aggregate(
     const std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
     unsigned int ms_level,
     MzReductionFunctionType func_mz_reduction) const
@@ -656,7 +656,7 @@ std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
     const std::vector<std::pair<size_t, size_t>> rt_ranges_idcs = getCoveredSpectra(spectra_view, mz_rt_ranges);
 
     // Initialize result vector
-    std::vector<std::vector<MSExperiment::CoordinateType>> result(mz_rt_ranges.size());
+    std::vector<std::vector<MSRun::CoordinateType>> result(mz_rt_ranges.size());
 
     // Initialize counts per spectrum index and total mappings
     std::vector<std::vector<size_t>> spec_idx_to_range_idx(spectra_view.size());
@@ -706,7 +706,7 @@ std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
   }
 
 // Overload without func_mz_reduction parameter (default to SumIntensityReduction). Needed because of template deduction issues
-std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
+std::vector<std::vector<MSRun::CoordinateType>> aggregate(
     const std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges,
     unsigned int ms_level) const
 {
@@ -714,10 +714,10 @@ std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(
 }
 
 /**
- * @brief Extracts extracted ion chromatograms (XICs) from the MSExperiment.
+ * @brief Extracts extracted ion chromatograms (XICs) from the MSRun.
  *
  * This function takes a vector of mz_rt_ranges, an ms_level, and a MzReductionFunctionType
- * and extracts the XICs from the MSExperiment based on the given parameters.
+ * and extracts the XICs from the MSRun based on the given parameters.
  *
  * @param mz_rt_ranges A vector of pairs of RangeMZ and RangeRT representing the m/z and retention time ranges.
  * @param ms_level The MS level of the spectra to consider.
@@ -852,7 +852,7 @@ std::vector<MSChromatogram> extractXICs(
    * @param mz_agg Aggregation function for m/z values ("sum", "max", "min", "mean")
    * @return Vector of vectors containing aggregated intensity values for each range
    */
-  std::vector<std::vector<MSExperiment::CoordinateType>> aggregateFromMatrix(
+  std::vector<std::vector<MSRun::CoordinateType>> aggregateFromMatrix(
       const Matrix<double>& ranges,
       unsigned int ms_level,
       const std::string& mz_agg) const
@@ -1087,7 +1087,7 @@ std::vector<MSChromatogram> extractXICs(
     ///@}
 
     /// If the file is loaded from an sqMass file, this run-ID allows to connect to the corresponding OSW identification file
-    /// If the run-ID was not stored (older version) or this MSExperiment was not loaded from sqMass, then 0 is returned.
+    /// If the run-ID was not stored (older version) or this MSRun was not loaded from sqMass, then 0 is returned.
     UInt64 getSqlRunID() const;
 
     /// sets the run-ID which is used when storing an sqMass file
@@ -1197,7 +1197,7 @@ std::vector<MSChromatogram> extractXICs(
     int getFirstProductSpectrum(int zero_based_index) const;
 
     /// Swaps the content of this map with the content of @p from
-    void swap(MSExperiment& from);
+    void swap(MSRun& from);
 
     /// sets the spectrum list
     void setSpectra(const std::vector<MSSpectrum>& spectra);
@@ -1349,7 +1349,7 @@ private:
     };
 
     /*
-      @brief Append a spectrum to current MSExperiment
+      @brief Append a spectrum to current MSRun
 
       @param rt RT of new spectrum
       @return Pointer to newly created spectrum
@@ -1357,7 +1357,7 @@ private:
     SpectrumType* createSpec_(PeakType::CoordinateType rt);
 
     /*
-      @brief Append a spectrum including floatdata arrays to current MSExperiment
+      @brief Append a spectrum including floatdata arrays to current MSRun
 
       @param rt RT of new spectrum
       @param metadata_names Names of floatdata arrays attached to this spectrum
@@ -1368,7 +1368,10 @@ private:
   };
 
   /// Print the contents to a stream.
-  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const MSExperiment& exp);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const MSRun& exp);
+
+  using MSExperiment = MSRun;
+  typedef OpenMS::MSRun MSExperiment; // for backwards compatibility
 
 } // namespace OpenMS
 

@@ -235,7 +235,7 @@ namespace OpenMS::Internal
     {
     }
 
-    void MzMLSqliteHandler::readExperiment(MSExperiment& exp, bool meta_only) const
+    void MzMLSqliteHandler::readExperiment(MSRun& exp, bool meta_only) const
     {
       SqliteConnector conn(filename_);
       sqlite3* db = conn.getDB();
@@ -795,7 +795,7 @@ namespace OpenMS::Internal
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::writeExperiment(const MSExperiment& exp)
+    void MzMLSqliteHandler::writeExperiment(const MSRun& exp)
     {
       // write run level information
       writeRunLevelInformation(exp, write_full_meta_);
@@ -805,7 +805,7 @@ namespace OpenMS::Internal
       writeSpectra(exp.getSpectra());
     }
 
-    void MzMLSqliteHandler::writeRunLevelInformation(const MSExperiment& exp, bool write_full_meta)
+    void MzMLSqliteHandler::writeRunLevelInformation(const MSRun& exp, bool write_full_meta)
     {
       SqliteConnector conn(filename_);
 
@@ -820,7 +820,7 @@ namespace OpenMS::Internal
 
       if (write_full_meta)
       {
-        MSExperiment meta;
+        MSRun meta;
 
         // copy experimental settings
         meta.reserveSpaceSpectra(exp.getNrSpectra());

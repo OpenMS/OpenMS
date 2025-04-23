@@ -14,7 +14,7 @@
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 #include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
@@ -44,7 +44,7 @@ namespace OpenMS
     }
   }
 
-  void FragmentMassError::calculateFME_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, bool& print_warning, double tolerance,
+  void FragmentMassError::calculateFME_(PeptideIdentification& pep_id, const MSRun& exp, const QCBase::SpectraMap& map_to_spectrum, bool& print_warning, double tolerance,
                                         FragmentMassError::ToleranceUnit tolerance_unit, double& accumulator_ppm, UInt32& counter_ppm, WindowMower& window_mower_filter)
   {
     if (pep_id.getHits().empty())
@@ -167,7 +167,7 @@ namespace OpenMS
     }
   }
 
-  void FragmentMassError::compute(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
+  void FragmentMassError::compute(FeatureMap& fmap, const MSRun& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
   {
     Statistics result;
 
@@ -185,7 +185,7 @@ namespace OpenMS
     UInt32 counter_ppm {};
 
     //---------------------------------------------------------------------
-    // Prepare MSExperiment
+    // Prepare MSRun
     //---------------------------------------------------------------------
 
     // filter settings
@@ -243,7 +243,7 @@ namespace OpenMS
     results_.push_back(result);
   }
 
-  void FragmentMassError::compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp,
+  void FragmentMassError::compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSRun& exp,
                                   const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
   {
     Statistics result;
@@ -260,7 +260,7 @@ namespace OpenMS
     UInt32 counter_ppm {};
 
     //---------------------------------------------------------------------
-    // Prepare MSExperiment
+    // Prepare MSRun
     //---------------------------------------------------------------------
 
     // filter settings

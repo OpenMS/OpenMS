@@ -11,7 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 namespace OpenMS
 {
@@ -51,7 +51,7 @@ namespace OpenMS
      * This assumes that the consensus map is sorted by intensity
      *
     */
-    void createPseudoSpectra(const ConsensusMap& map, MSExperiment& pseudo_spectra,
+    void createPseudoSpectra(const ConsensusMap& map, MSRun& pseudo_spectra,
         Size min_peak_nr, double min_correlation, int max_lag,
         double max_rt_apex_difference);
 

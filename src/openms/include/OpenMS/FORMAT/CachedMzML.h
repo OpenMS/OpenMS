@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <fstream>
 
@@ -52,7 +52,7 @@ public:
 
     size_t getNrChromatograms() const;
 
-    const MSExperiment& getMetaData() const
+    const MSRun& getMetaData() const
     {
       return meta_ms_experiment_;
     }
@@ -61,7 +61,7 @@ public:
       @brief Stores a map in a cached MzML file.
 
       @p filename The data location (ends in .mzML)
-      @p map has to be an MSExperiment or have the same interface.
+      @p map has to be an MSRun or have the same interface.
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
@@ -83,7 +83,7 @@ protected:
     void load_(const String& filename);
 
     /// Meta data
-    MSExperiment meta_ms_experiment_;
+    MSRun meta_ms_experiment_;
 
     /// Internal filestream 
     std::ifstream ifs_;

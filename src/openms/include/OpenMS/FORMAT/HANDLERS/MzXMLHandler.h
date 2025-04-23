@@ -13,7 +13,7 @@
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 namespace OpenMS
 {
@@ -30,7 +30,7 @@ namespace OpenMS
     /**
       @brief XML handlers for MzXMLFile
 
-          MapType has to be a MSExperiment or have the same interface.
+          MapType has to be a MSRun or have the same interface.
           Do not use this class. It is only needed in MzXMLFile.
     */
 

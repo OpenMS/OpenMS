@@ -13,16 +13,16 @@
 
 namespace OpenMS
 {
-  class OnDiscMSExperiment;
-  typedef OpenMS::OnDiscMSExperiment OnDiscPeakMap;
+  class OnDiscMSRun;
+  typedef OpenMS::OnDiscMSRun OnDiscPeakMap;
 
   /**
     @brief A class to load an indexedmzML file.
 
     Providing the same interface as the other classes such as MzMLFile,
     MzXMLFile etc. to load and store a file. Reading a file from disk will load
-    the file into a OnDiscMSExperiment while the class can write to disk both,
-    a MSExperiment and a OnDiscMSExperiment.
+    the file into a OnDiscMSRun while the class can write to disk both,
+    a MSRun and a OnDiscMSRun.
 
   */
   class OPENMS_DLLAPI IndexedMzMLFileLoader

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
@@ -43,7 +43,7 @@ public:
       double linear_fp_mass_acc{-1}; ///< desired mass accuracy for numpress linear encoding (-1 no effect, use 0.0001 for 0.2 ppm accuracy @ 500 m/z)
     };
 
-    typedef MSExperiment MapType;
+    typedef MSRun MapType;
 
     /** @name Constructors and Destructor
     */
@@ -62,10 +62,10 @@ public:
     void load(const String& filename, MapType& map) const;
 
     /**
-     @brief Store an MSExperiment in sqMass format
+     @brief Store an MSRun in sqMass format
 
      If you want a specific RUN::ID in the sqMass file,
-     make sure to populate MSExperiment::setSqlRunID(UInt64 id) before.
+     make sure to populate MSRun::setSqlRunID(UInt64 id) before.
     */
     void store(const String& filename, const MapType& map) const;
 

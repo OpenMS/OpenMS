@@ -180,7 +180,7 @@ namespace OpenMS
   }
 
   void MasstraceCorrelator::createPseudoSpectra(const ConsensusMap& map, 
-      MSExperiment& pseudo_spectra,
+      MSRun& pseudo_spectra,
       Size min_peak_nr, double min_correlation, 
       int max_lag, double max_rt_apex_difference)
   {

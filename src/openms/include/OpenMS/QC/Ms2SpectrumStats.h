@@ -16,7 +16,7 @@
 namespace OpenMS
 {
   class FeatureMap;
-  class MSExperiment;
+  class MSRun;
   class PeptideIdentification;
   class TransformationDescription;
 
@@ -57,18 +57,18 @@ namespace OpenMS
     /**
       @brief Calculate the ScanEventNumber, find all unidentified MS2-Spectra and add them to unassigned PeptideIdentifications,
              write meta values "ScanEventNumber" and "identified" in PeptideIdentification.
-      @param exp Imported calibrated MzML file as MSExperiment
+      @param exp Imported calibrated MzML file as MSRun
       @param features Imported featureXML file after FDR as FeatureMap
       @param map_to_spectrum Map to find index of spectrum given by meta value at PepID
       @return unassigned peptide identifications newly generated from unidentified MS2-Spectra
       @throws MissingInformation If exp is empty
       @throws InvalidParameter PeptideID is missing meta value 'spectrum_reference'
     **/
-    std::vector<PeptideIdentification> compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum);
+    std::vector<PeptideIdentification> compute(const MSRun& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum);
 
     /// returns the name of the metric
     const String& getName() const override;
-    /// define the required input file: featureXML after FDR (=POSTFDRFEAT), MzML-file (MSExperiment) with all MS2-Spectra (=RAWMZML)
+    /// define the required input file: featureXML after FDR (=POSTFDRFEAT), MzML-file (MSRun) with all MS2-Spectra (=RAWMZML)
     Status requirements() const override;
 
   private:
@@ -79,13 +79,13 @@ namespace OpenMS
     std::vector<ScanEvent> ms2_included_ {};
 
     /// compute "ScanEventNumber" for every spectrum: MS1=0, MS2=1-n, write into ms2_included_
-    void setScanEventNumber_(const MSExperiment& exp);
+    void setScanEventNumber_(const MSRun& exp);
 
     /// set ms2_included_ bool to true, if PeptideID exist and set "ScanEventNumber" for every PeptideID
-    void setPresenceAndScanEventNumber_(PeptideIdentification& peptide_ID, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum);
+    void setPresenceAndScanEventNumber_(PeptideIdentification& peptide_ID, const MSRun& exp, const QCBase::SpectraMap& map_to_spectrum);
 
     /// return all unidentified MS2-Scans as unassignedPeptideIDs, these contain only Information about RT and "ScanEventNumber"
-    std::vector<PeptideIdentification> getUnassignedPeptideIdentifications_(const MSExperiment& exp);
+    std::vector<PeptideIdentification> getUnassignedPeptideIdentifications_(const MSRun& exp);
 
     /// calculate highest intensity (base peak intensity)
     static MSSpectrum::PeakType::IntensityType getBPI_(const MSSpectrum& spec);

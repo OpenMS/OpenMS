@@ -10,7 +10,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
@@ -277,9 +277,9 @@ namespace OpenMS
       struct PreprocessedPairSpectra
       {
 
-        MSExperiment spectra_linear_peaks; ///< merge spectrum of linear peaks (present in both spectra)
-        MSExperiment spectra_xlink_peaks; ///< Xlink peaks in the light spectrum (linear peaks between spectra_light_different and spectra heavy_to_light)
-        MSExperiment spectra_all_peaks;
+        MSRun spectra_linear_peaks; ///< merge spectrum of linear peaks (present in both spectra)
+        MSRun spectra_xlink_peaks; ///< Xlink peaks in the light spectrum (linear peaks between spectra_light_different and spectra heavy_to_light)
+        MSRun spectra_all_peaks;
 
         // pre-initialize so we can simply std::swap the spectra (no synchronization in multi-threading context needed as we get no reallocation of the PeakMaps).
         PreprocessedPairSpectra(Size size)

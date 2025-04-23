@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <vector>
 
 namespace OpenMS
@@ -32,7 +32,7 @@ namespace OpenMS
       @brief Stores QC data in mzQC file with JSON format
       @param input_file mzML input file name
       @param output_file mzQC output file name
-      @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
+      @param exp MSRun to extract QC data from, prior sortSpectra() and updateRanges() required
       @param contact_name name of the person creating the mzQC file
       @param contact_address contact address (mail/e-mail or phone) of the person creating the mzQC file
       @param description description and comments about the mzQC file contents
@@ -43,7 +43,7 @@ namespace OpenMS
     */
     void store(const String& input_file,
                const String& output_file,
-               const MSExperiment& exp,
+               const MSRun& exp,
                const String& contact_name,
                const String& contact_address,
                const String& description,

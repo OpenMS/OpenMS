@@ -8,7 +8,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
@@ -24,7 +24,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiplexFiltering::MultiplexFiltering(const MSExperiment& exp_centroided, const std::vector<MultiplexIsotopicPeakPattern>& patterns,
+  MultiplexFiltering::MultiplexFiltering(const MSRun& exp_centroided, const std::vector<MultiplexIsotopicPeakPattern>& patterns,
                                          int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band,
                                          double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity,
                                          double averagine_similarity_scaling, String averagine_type) :
@@ -65,12 +65,12 @@ namespace OpenMS
     
   }
   
-  MSExperiment& MultiplexFiltering::getCentroidedExperiment()
+  MSRun& MultiplexFiltering::getCentroidedExperiment()
   {
     return exp_centroided_;
   }
 
-  void MultiplexFiltering::updateWhiteMSExperiment_()
+  void MultiplexFiltering::updateWhiteMSRun_()
   {
     // reset both the white MS experiment and the corresponding mapping to the complete i.e. original MS experiment
     exp_centroided_white_.clear(true);
@@ -101,7 +101,7 @@ namespace OpenMS
     exp_centroided_white_.updateRanges();
   }
   
-  int MultiplexFiltering::checkForSignificantPeak_(double mz, double mz_tolerance, MSExperiment::ConstIterator& it_rt, double intensity_first_peak) const
+  int MultiplexFiltering::checkForSignificantPeak_(double mz, double mz_tolerance, MSRun::ConstIterator& it_rt, double intensity_first_peak) const
   {
     // Check that there is a peak.
     int mz_idx = it_rt->findNearest(mz, mz_tolerance);
@@ -125,7 +125,7 @@ namespace OpenMS
     return -1;
   }
   
-  bool MultiplexFiltering::filterPeakPositions_(double mz, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const
+  bool MultiplexFiltering::filterPeakPositions_(double mz, const MSRun::ConstIterator& it_rt_begin, const MSRun::ConstIterator& it_rt_band_begin, const MSRun::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const
   {    
     // check if peak position is blacklisted
     // i.e. -1 = white or 0 = mono-isotopic peak of the lightest (or only) peptide are ok.
@@ -169,7 +169,7 @@ namespace OpenMS
 
         bool found = false;
         // loop over spectra in RT band
-        for (MSExperiment::ConstIterator it_rt = it_rt_band_begin; it_rt < it_rt_band_end; ++it_rt)
+        for (MSRun::ConstIterator it_rt = it_rt_band_begin; it_rt < it_rt_band_end; ++it_rt)
         {
           int i = it_rt->findNearest(mz + mz_shift, mz_tolerance);
          
@@ -219,7 +219,7 @@ namespace OpenMS
     // loop over peptides
     for (size_t peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
-      MSExperiment::ConstIterator it_rt = it_rt_begin;
+      MSRun::ConstIterator it_rt = it_rt_begin;
       std::advance(it_rt, peak.getRTidx());
 
       // Check that there is a first i.e. mono-isotopic peak for this peptide.
@@ -346,11 +346,11 @@ namespace OpenMS
       double mz = peak.getMZ() + patterns_[pattern_idx].getMZShiftAt(it.first);
       
       // Extend the RT boundary by rt_band_ earlier
-      MSExperiment::ConstIterator it_rt_begin = exp_centroided_.begin() + (it.second).first;
+      MSRun::ConstIterator it_rt_begin = exp_centroided_.begin() + (it.second).first;
       it_rt_begin = exp_centroided_.RTBegin(it_rt_begin->getRT() - 2 * rt_band_);
       
       // Extend the RT boundary by rt_band_ later
-      MSExperiment::ConstIterator it_rt_end = exp_centroided_.begin() + (it.second).second;
+      MSRun::ConstIterator it_rt_end = exp_centroided_.begin() + (it.second).second;
       it_rt_end = exp_centroided_.RTBegin(it_rt_end->getRT() + 2 * rt_band_);
       
       // prepare for loop
@@ -360,7 +360,7 @@ namespace OpenMS
       }
       
       // loop over RT along the mass trace
-      for (MSExperiment::ConstIterator it_rt = it_rt_begin; it_rt < it_rt_end; ++it_rt)
+      for (MSRun::ConstIterator it_rt = it_rt_begin; it_rt < it_rt_end; ++it_rt)
       {
         int idx_mz = it_rt->findNearest(mz, mz_tolerance);
         
@@ -375,9 +375,9 @@ namespace OpenMS
     
   }
   
-  MSExperiment MultiplexFiltering::getBlacklist()
+  MSRun MultiplexFiltering::getBlacklist()
   {
-    MSExperiment exp_blacklist;
+    MSRun exp_blacklist;
     
     // loop over spectra
     for (const auto &it_rt : exp_centroided_)
@@ -449,7 +449,7 @@ namespace OpenMS
           size_t mz_idx = (satellite_it->second).getMZidx();
           
           // find peak itself
-          MSExperiment::ConstIterator it_rt = exp_centroided_.begin();
+          MSRun::ConstIterator it_rt = exp_centroided_.begin();
           std::advance(it_rt, rt_idx);
           MSSpectrum::ConstIterator it_mz = it_rt->begin();
           std::advance(it_mz, mz_idx);
@@ -545,8 +545,8 @@ namespace OpenMS
                 size_t mz_idx_2 = (satellite_it_2->second).getMZidx();
                 
                 // find peak itself
-                MSExperiment::ConstIterator it_rt_1 = exp_centroided_.begin();
-                MSExperiment::ConstIterator it_rt_2 = exp_centroided_.begin();
+                MSRun::ConstIterator it_rt_1 = exp_centroided_.begin();
+                MSRun::ConstIterator it_rt_2 = exp_centroided_.begin();
                 std::advance(it_rt_1, rt_idx_1);
                 std::advance(it_rt_2, rt_idx_2);
                 MSSpectrum::ConstIterator it_mz_1 = it_rt_1->begin();

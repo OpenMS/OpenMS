@@ -13,7 +13,7 @@
 /**
  * @brief Total Ion Count (TIC) as a QC metric
  *
- * Simple class to calculate the TIC of an MSExperiment.
+ * Simple class to calculate the TIC of an MSRun.
  * Allows for multiple usage, because each calculated TIC is
  * stored internally. Those results can then be returned using
  * getResults().
@@ -23,7 +23,7 @@
 namespace OpenMS
 {
   class MzTabMetaData;
-  class MSExperiment;
+  class MSRun;
   class MSChromatogram;
 
   class OPENMS_DLLAPI TIC : public QCBase
@@ -59,7 +59,7 @@ namespace OpenMS
     @return result struct with with computed QC metrics: intensities, RTs (in seconds), area under TIC, 10x MS1 signal fall, 10x MS1 signal jump
 
     **/
-    Result compute(const MSExperiment& exp, float bin_size = 0, UInt ms_level = 1);
+    Result compute(const MSRun& exp, float bin_size = 0, UInt ms_level = 1);
 
     const String& getName() const override;
 

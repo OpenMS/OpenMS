@@ -537,7 +537,7 @@ enum class HasRangeType
   `RangeManager<RangeRT, RangeMZ> range_spec` for a spectrum and use the strongly typed features, such as
   `range_spec.getMaxRT()/setMaxRT(500.0)` or `range_spec.extend(RangeMZ{100, 1500})`.
 
-  Use RangeManagerContainer as a base class for all peak and feature containers like MSSpectrum, MSExperiment and FeatureMap.
+  Use RangeManagerContainer as a base class for all peak and feature containers like MSSpectrum, MSRun and FeatureMap.
 
   The implementation uses non-virtual multiple inheritance using variadic templates. Each dimension, e.g. RangeRT, is inherited from, thus
   all members of the base class become accessible in the RangeManager, e.g. getMaxRT().

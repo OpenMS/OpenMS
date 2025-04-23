@@ -66,7 +66,7 @@ public:
     void filter(Mobilogram & mobilogram);
 
     /**
-      @brief Smoothes an MSExperiment containing profile data.
+      @brief Smoothes an MSRun containing profile data.
 
       @exception Exception::IllegalArgument is thrown, if the @em gaussian_width parameter is too small.
     */

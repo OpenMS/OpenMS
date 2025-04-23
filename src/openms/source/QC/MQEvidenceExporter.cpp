@@ -13,7 +13,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 #include <QtCore/QDir>
 #include <cmath> // isnan
@@ -136,7 +136,7 @@ void MQEvidence::exportRowFromFeature_(
   const String& raw_file,
   const std::multimap<String, std::pair<Size, Size>>& UIDs,
   const ProteinIdentification::Mapping& mp_f,
-  const MSExperiment& exp,
+  const MSRun& exp,
   const std::map<String,String>& prot_mapper)
 {
 
@@ -291,7 +291,7 @@ void MQEvidence::exportRowFromFeature_(
 
 }
 
-void MQEvidence::exportFeatureMap(const FeatureMap& feature_map, const ConsensusMap& cmap, const MSExperiment& exp, const std::map<String,String>& prot_mapper)
+void MQEvidence::exportFeatureMap(const FeatureMap& feature_map, const ConsensusMap& cmap, const MSRun& exp, const std::map<String,String>& prot_mapper)
 {
 if (!MQExporterHelper::isValid(filename_))
   {

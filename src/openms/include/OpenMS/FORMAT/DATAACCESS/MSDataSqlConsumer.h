@@ -10,7 +10,7 @@
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 namespace OpenMS
 {
@@ -34,7 +34,7 @@ namespace OpenMS
     class OPENMS_DLLAPI MSDataSqlConsumer :
       public Interfaces::IMSDataConsumer
     {
-      typedef MSExperiment MapType;
+      typedef MSRun MapType;
       typedef MapType::SpectrumType SpectrumType;
       typedef MapType::ChromatogramType ChromatogramType;
 
@@ -93,7 +93,7 @@ namespace OpenMS
       std::vector<SpectrumType> spectra_;
       std::vector<ChromatogramType> chromatograms_;
 
-      MSExperiment peak_meta_;
+      MSRun peak_meta_;
     };
 
 } //end namespace OpenMS

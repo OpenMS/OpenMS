@@ -51,7 +51,7 @@ public:
       @brief Loads a map from a MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions).
 
       @param filename The filename with the data
-      @param map Is an MSExperiment
+      @param map Is an MSRun
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -62,7 +62,7 @@ public:
       @brief Loads a map from a MzML file stored in a buffer (in memory).
 
       @param[in] buffer The buffer with the data (i.e. string with content of an mzML file)
-      @param[out] map Is an MSExperiment
+      @param[out] map Is an MSRun
 
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
@@ -83,7 +83,7 @@ public:
     /**
       @brief Stores a map in an MzML file.
 
-      @p map has to be an MSExperiment or have the same interface.
+      @p map has to be an MSRun or have the same interface.
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
@@ -93,7 +93,7 @@ public:
       @brief Stores a map in an output string.
 
       @p output An empty string to store the result
-      @p map has to be an MSExperiment
+      @p map has to be an MSRun
     */
     void storeBuffer(std::string & output, const PeakMap& map) const;
 

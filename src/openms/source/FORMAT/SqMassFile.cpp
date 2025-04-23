@@ -40,7 +40,7 @@ namespace OpenMS
     // First pass through the file -> get the meta-data and hand it to the consumer
     // if (!skip_first_pass) transformFirstPass_(filename_in, consumer, skip_full_count);
     consumer->setExpectedSize(sql_mass.getNrSpectra(), sql_mass.getNrChromatograms());
-    MSExperiment experimental_settings;
+    MSRun experimental_settings;
     sql_mass.readExperiment(experimental_settings, true);
     consumer->setExperimentalSettings(experimental_settings);
 

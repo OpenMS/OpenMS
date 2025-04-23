@@ -12,7 +12,7 @@
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <boost/shared_ptr.hpp>
 
 namespace OpenMS
@@ -24,7 +24,7 @@ namespace OpenMS
   {
   public:
 
-    /// Simple Factory method to get a SpectrumAccess Ptr from an MSExperiment
+    /// Simple Factory method to get a SpectrumAccess Ptr from an MSRun
     static OpenSwath::SpectrumAccessPtr getSpectrumAccessOpenMSPtr(const boost::shared_ptr<OpenMS::PeakMap>& exp);
 
   private:

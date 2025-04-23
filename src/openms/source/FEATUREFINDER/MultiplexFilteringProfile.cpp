@@ -24,7 +24,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiplexFilteringProfile::MultiplexFilteringProfile(MSExperiment& exp_profile, const MSExperiment& exp_centroided, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
+  MultiplexFilteringProfile::MultiplexFilteringProfile(MSRun& exp_profile, const MSRun& exp_centroided, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
     MultiplexFiltering(exp_centroided, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, std::move(averagine_type))
   {
     // initialise peak boundaries
@@ -83,7 +83,7 @@ namespace OpenMS
     }
     
     // spline interpolate the profile data
-    for (MSExperiment::Iterator it = exp_profile.begin(); it < exp_profile.end(); ++it)
+    for (MSRun::Iterator it = exp_profile.begin(); it < exp_profile.end(); ++it)
     {
       exp_spline_profile_.emplace_back(*it);
     }
@@ -92,14 +92,14 @@ namespace OpenMS
 
   }
   
-  vector<MultiplexFilteredMSExperiment> MultiplexFilteringProfile::filter()
+  vector<MultiplexFilteredMSRun> MultiplexFilteringProfile::filter()
   {
     // progress logger
     unsigned progress = 0;
     startProgress(0, patterns_.size() * exp_spline_profile_.size(), "filtering LC-MS data");
 
     // list of filter results for each peak pattern
-    std::vector<MultiplexFilteredMSExperiment> filter_results;
+    std::vector<MultiplexFilteredMSRun> filter_results;
     
 #ifdef DEBUG_FFMULTIPLEX
     // clock for monitoring run time performance
@@ -121,10 +121,10 @@ namespace OpenMS
       MultiplexIsotopicPeakPattern pattern = patterns_[pattern_idx];
       
       // data structure storing peaks which pass all filters
-      MultiplexFilteredMSExperiment result;
+      MultiplexFilteredMSRun result;
 
       // update white experiment
-      updateWhiteMSExperiment_();
+      updateWhiteMSRun_();
       
       // loop over spectra
       // loop simultaneously over RT in the spline interpolated profile and (white) centroided experiment (including peak boundaries)
@@ -143,8 +143,8 @@ namespace OpenMS
         
         setProgress(++progress);
         
-        MSExperiment::ConstIterator it_rt_picked_band_begin = exp_centroided_white_.RTBegin(rt - rt_band_/2);
-        MSExperiment::ConstIterator it_rt_picked_band_end = exp_centroided_white_.RTEnd(rt + rt_band_/2);
+        MSRun::ConstIterator it_rt_picked_band_begin = exp_centroided_white_.RTBegin(rt - rt_band_/2);
+        MSRun::ConstIterator it_rt_picked_band_end = exp_centroided_white_.RTEnd(rt + rt_band_/2);
         
         // loop over mz
         #pragma omp parallel for
@@ -183,7 +183,7 @@ namespace OpenMS
               size_t mz_idx = (satellite_it.second).getMZidx();
               
               // find peak itself
-              MSExperiment::ConstIterator it_rt = exp_centroided_.begin();
+              MSRun::ConstIterator it_rt = exp_centroided_.begin();
               std::advance(it_rt, rt_idx);
               MSSpectrum::ConstIterator it_mz = it_rt->begin();
               std::advance(it_mz, mz_idx);

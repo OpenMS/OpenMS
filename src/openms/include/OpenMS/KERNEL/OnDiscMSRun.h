@@ -10,7 +10,7 @@
 
 #include <OpenMS/INTERFACES/DataStructures.h>
 
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
@@ -37,7 +37,7 @@ namespace OpenMS
     @endcode
 
   */
-  class OPENMS_DLLAPI OnDiscMSExperiment
+  class OPENMS_DLLAPI OnDiscMSRun
   {
 
   typedef ChromatogramPeak ChromatogramPeakT;
@@ -50,7 +50,7 @@ public:
 
       This initializes the object, use openFile to open a file.
     */
-    OnDiscMSExperiment() = default;
+    OnDiscMSRun() = default;
 
     /**
       @brief Open a specific file on disk.
@@ -64,7 +64,7 @@ public:
     bool openFile(const String& filename, bool skipMetaData = false);
 
     /// Copy constructor
-    OnDiscMSExperiment(const OnDiscMSExperiment& source) :
+    OnDiscMSRun(const OnDiscMSRun& source) :
       filename_(source.filename_),
       indexed_mzml_file_(source.indexed_mzml_file_),
       meta_ms_experiment_(source.meta_ms_experiment_)
@@ -78,7 +78,7 @@ public:
       meta-information is the same. Note that the file reader (e.g. the
       std::ifstream of the file) might be in a different state.
     */
-    bool operator==(const OnDiscMSExperiment& rhs) const
+    bool operator==(const OnDiscMSRun& rhs) const
     {
       if (meta_ms_experiment_ == nullptr || rhs.meta_ms_experiment_ == nullptr) 
       {
@@ -93,7 +93,7 @@ public:
     }
 
     /// Inequality operator
-    bool operator!=(const OnDiscMSExperiment& rhs) const
+    bool operator!=(const OnDiscMSRun& rhs) const
     {
       return !(operator==(rhs));
     }
@@ -213,7 +213,7 @@ public:
 private:
 
     /// Private Assignment operator -> we cannot copy file streams in IndexedMzMLHandler
-    OnDiscMSExperiment& operator=(const OnDiscMSExperiment& /* source */);
+    OnDiscMSRun& operator=(const OnDiscMSRun& /* source */);
 
     void loadMetaData_(const String& filename);
 
@@ -235,7 +235,10 @@ protected:
     std::unordered_map< std::string, Size > spectra_native_ids_;
   };
 
-typedef OpenMS::OnDiscMSExperiment OnDiscPeakMap;
+typedef OpenMS::OnDiscMSRun OnDiscPeakMap;
+
+using OnDiscMSExperiment = OnDiscMSRun;
+typedef OpenMS::OnDiscMSRun OnDiscMSExperiment;
 
 } // namespace OpenMS
 

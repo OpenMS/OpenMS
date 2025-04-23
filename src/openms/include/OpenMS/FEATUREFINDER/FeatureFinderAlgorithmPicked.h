@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/FEATUREFINDER/TraceFitter.h>
 #include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
@@ -91,7 +91,7 @@ protected:
 public:
     /// @name Type definitions
     //@{
-    typedef MSExperiment MapType;
+    typedef MSRun MapType;
     typedef MapType::SpectrumType SpectrumType;
     typedef SpectrumType::FloatDataArrays FloatDataArrays;
     //@}
@@ -110,7 +110,7 @@ public:
 
     void setSeeds(const FeatureMap& seeds);
 
-    void setData(const MSExperiment& map, FeatureMap& features);
+    void setData(const MSRun& map, FeatureMap& features);
 
     /**
       @brief Main method of the FeatureFinderAlgorithmPicked.

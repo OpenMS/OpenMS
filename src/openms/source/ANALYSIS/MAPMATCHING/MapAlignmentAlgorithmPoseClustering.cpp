@@ -51,7 +51,7 @@ namespace OpenMS
   {
     ConsensusMap map_scene;
     PeakMap map2(map);
-    MapConversion::convert(1, map2, map_scene, max_num_peaks_considered_); // copy MSExperiment here, since it is sorted internally by intensity
+    MapConversion::convert(1, map2, map_scene, max_num_peaks_considered_); // copy MSRun here, since it is sorted internally by intensity
     align(map_scene, trafo);
   }
 

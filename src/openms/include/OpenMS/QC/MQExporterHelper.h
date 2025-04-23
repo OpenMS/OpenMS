@@ -13,7 +13,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
 class OPENMS_DLLAPI MQExporterHelper
@@ -77,7 +77,7 @@ public:
       const OpenMS::Size c_feature_number,
       const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
       const OpenMS::ProteinIdentification::Mapping& mp_f,
-      const OpenMS::MSExperiment& exp,
+      const OpenMS::MSRun& exp,
       const std::map<OpenMS::String,OpenMS::String>& prot_mapper);
   };
 

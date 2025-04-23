@@ -11,7 +11,7 @@
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
 #include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/QC/PSMExplainedIonCurrent.h>
 #include <cfloat>
@@ -31,7 +31,7 @@ namespace OpenMS
     return sum;
   }
 
-  double PSMExplainedIonCurrent::annotatePSMExplainedIonCurrent_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, WindowMower& filter,
+  double PSMExplainedIonCurrent::annotatePSMExplainedIonCurrent_(PeptideIdentification& pep_id, const MSRun& exp, const QCBase::SpectraMap& map_to_spectrum, WindowMower& filter,
                                                                  PSMExplainedIonCurrent::ToleranceUnit tolerance_unit, double tolerance)
   {
     if (pep_id.getHits().empty())
@@ -127,7 +127,7 @@ namespace OpenMS
     return correctness;
   }
 
-  void PSMExplainedIonCurrent::compute(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
+  void PSMExplainedIonCurrent::compute(FeatureMap& fmap, const MSRun& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
   {
     Statistics result;
 
@@ -192,7 +192,7 @@ namespace OpenMS
     results_.push_back(result);
   }
 
-  void PSMExplainedIonCurrent::compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp,
+  void PSMExplainedIonCurrent::compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSRun& exp,
                                        const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
   {
     Statistics result;

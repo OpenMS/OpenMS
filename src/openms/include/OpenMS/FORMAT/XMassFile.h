@@ -12,7 +12,7 @@
 #include <OpenMS/FORMAT/HANDLERS/AcqusHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/FidHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSRun.h>
 
 namespace OpenMS
 {
@@ -147,7 +147,7 @@ public:
         @brief Import settings from a XMass file.
 
         @param filename File from which the experimental settings should be loaded.
-        @param exp MSExperiment where the experimental settings will be stored.
+        @param exp MSRun where the experimental settings will be stored.
 
         @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
