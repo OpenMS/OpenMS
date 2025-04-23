@@ -189,7 +189,7 @@ namespace OpenMS
     }
   }
 
-  void TransitionTSVFile::readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list)
+  bool TransitionTSVFile::readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list, int batchSize, int offset)
   {
     std::ifstream data(filename);
     std::string   line;
@@ -227,8 +227,25 @@ namespace OpenMS
     }
 
     bool spectrast_legacy = false; // we will check below if SpectraST was run in legacy (<5.0) mode or if the RT normalization was forgotten.
-    int cnt = 0;
-    while (TextFile::getLine(data, line)) // make sure line endings are handled correctly
+    size_t cnt = 0;
+    size_t endline;
+
+    if (batchSize <= 0)
+    {
+      endline = std::numeric_limits<int>::max();
+    }
+    else
+    {
+      endline = offset + batchSize;
+      // stream the offsets to null
+      for (int i = 0; i < offset; ++i)
+      {
+        std::getline(data, line);
+        cnt++;
+      }
+    }
+
+    while ((cnt < endline) && (TextFile::getLine(data, line))) // make sure line endings are handled correctly
     {
       line.push_back(delimiter); // avoid losing last column if it is empty
       std::stringstream lineStream(line);
@@ -463,6 +480,7 @@ namespace OpenMS
       std::cout << "Warning: SpectraST was not run in RT normalization mode but the converted list was interpreted to have iRT units. Check whether you need to adapt the parameter -algorithm:retentionTimeInterpretation. You can ignore this warning if you used a legacy SpectraST 4.0 file." << std::endl;
 
     }
+    return (bool) TextFile::getLine(data, line);
   }
 
   void TransitionTSVFile::spectrastRTExtract(const String& str_inp, double & value, bool & spectrast_legacy)
@@ -1470,11 +1488,20 @@ namespace OpenMS
     writeTSVOutput_(filename, targeted_exp);
   }
 
-  void TransitionTSVFile::convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenMS::TargetedExperiment& targeted_exp)
+  void TransitionTSVFile::convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenMS::TargetedExperiment& targeted_exp, int batch_size)
   {
-    std::vector<TSVTransition> transition_list;
-    readUnstructuredTSVInput_(filename, filetype, transition_list);
-    TSVToTargetedExperiment_(transition_list, targeted_exp);
+      int offset = 0; // only used if reading in batches 
+      bool moreLines = true; // do not have to check for more lines if reading everything into memory
+      
+      while (moreLines)
+      {
+        std::vector<TSVTransition> transition_list;
+        OpenMS::TargetedExperiment tmp_targeted_exp;
+        moreLines = readUnstructuredTSVInput_(filename, filetype, transition_list, batch_size, offset);
+        TSVToTargetedExperiment_(transition_list, tmp_targeted_exp);
+        targeted_exp += tmp_targeted_exp; // this line is very memory intensive because actually storing the entire library in memory
+        offset += batch_size;
+      }
   }
 
   void TransitionTSVFile::convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenSwath::LightTargetedExperiment& targeted_exp)

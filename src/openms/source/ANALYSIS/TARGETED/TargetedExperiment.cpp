@@ -12,6 +12,7 @@
 
 #include <ostream> // for ostream& operator<<(ostream& os, const TargetedExperiment::SummaryStatistics& s);
 #include <map>
+#include <unordered_set>
 
 
 // from https://stackoverflow.com/questions/17010005/how-to-use-c11-move-semantics-to-append-vector-contents-to-another-vector
@@ -156,16 +157,65 @@ namespace OpenMS
     peptide_reference_map_dirty_ = true;
     compound_reference_map_dirty_ = true;
 
+    // Check for duplicate entries in peptides, proteins, compounds, and transitions and only add non-duplicates
+    // Create lookup sets for existing IDs to avoid duplicates
+    std::unordered_set<String> protein_ids;
+    std::unordered_set<String> peptide_ids;
+    std::unordered_set<String> compound_ids;
+    std::unordered_set<String> transition_ids;
+
+    // Populate sets with existing IDs
+    for (const auto& protein : proteins_)
+      protein_ids.insert(protein.id);
+      
+    for (const auto& peptide : peptides_)
+      peptide_ids.insert(peptide.id);
+      
+    for (const auto& compound : compounds_)
+      compound_ids.insert(compound.id);
+      
+    for (const auto& transition : transitions_)
+      transition_ids.insert(transition.getNativeID());
+      
+    // Add non-duplicate proteins
+    for (const auto& protein : rhs.getProteins()) {
+      if (protein_ids.find(protein.id) == protein_ids.end()) {
+        proteins_.push_back(protein);
+        protein_ids.insert(protein.id);
+      }
+    }
+
+    // Add non-duplicate peptides
+    for (const auto& peptide : rhs.getPeptides()) {
+      if (peptide_ids.find(peptide.id) == peptide_ids.end()) {
+        peptides_.push_back(peptide);
+        peptide_ids.insert(peptide.id);
+      }
+    }
+
+    // Add non-duplicate compounds
+    for (const auto& compound : rhs.getCompounds()) {
+      if (compound_ids.find(compound.id) == compound_ids.end()) {
+        compounds_.push_back(compound);
+        compound_ids.insert(compound.id);
+      }
+    }
+
+    // Add non-duplicate transitions
+    for (const auto& transition : rhs.getTransitions()) {
+    if (transition_ids.find(transition.getNativeID()) == transition_ids.end()) {
+      transitions_.push_back(transition);
+      transition_ids.insert(transition.getNativeID());
+      }
+    }
+    
+
     // merge these:
     cvs_.insert(cvs_.end(), rhs.cvs_.begin(), rhs.cvs_.end());
     contacts_.insert(contacts_.end(), rhs.contacts_.begin(), rhs.contacts_.end());
     publications_.insert(publications_.end(), rhs.publications_.begin(), rhs.publications_.end());
     instruments_.insert(instruments_.end(), rhs.instruments_.begin(), rhs.instruments_.end());
     software_.insert(software_.end(), rhs.software_.begin(), rhs.software_.end());
-    proteins_.insert(proteins_.end(), rhs.proteins_.begin(), rhs.proteins_.end());
-    compounds_.insert(compounds_.end(), rhs.compounds_.begin(), rhs.compounds_.end());
-    peptides_.insert(peptides_.end(), rhs.peptides_.begin(), rhs.peptides_.end());
-    transitions_.insert(transitions_.end(), rhs.transitions_.begin(), rhs.transitions_.end());
     include_targets_.insert(include_targets_.end(), rhs.include_targets_.begin(), rhs.include_targets_.end());
     exclude_targets_.insert(exclude_targets_.end(), rhs.exclude_targets_.begin(), rhs.exclude_targets_.end());
     source_files_.insert(source_files_.end(), rhs.source_files_.begin(), rhs.source_files_.end());
@@ -177,9 +227,6 @@ namespace OpenMS
         targets_.addCVTerm(*term_it);
       }
     }
-
-    // todo: check for double entries
-    // transitions, peptides, proteins
 
     return *this;
   }

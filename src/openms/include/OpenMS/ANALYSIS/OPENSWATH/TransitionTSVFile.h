@@ -237,9 +237,13 @@ private:
      * @param filename The input file
      * @param filetype The type of file ("mrm" or "tsv")
      * @param transition_list The output list of transitions
+     * @param batchSize The number of lines to read at once, if < 1, read all lines
+     * @param offset The number of lines to skip at the beginning (does not skip header line), ignored if batchSize < 1
+     * 
+     * @returns True if reached end of file, false if there are more lines to read
      *
     */
-    void readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list);
+    bool readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list, int batchSize = 0, int offset = 0);
 
     /// Extract retention time from a SpectraST comment string
     void spectrastRTExtract(const String& str_inp, double & value, bool & spectrast_legacy);
@@ -327,9 +331,10 @@ public:
      * @param filename The input file
      * @param filetype The type of file ("mrm" or "tsv")
      * @param targeted_exp The output targeted experiment
+     * @param batch_size The number of lines to read at once
      *
     */
-    void convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenMS::TargetedExperiment& targeted_exp);
+    void convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenMS::TargetedExperiment& targeted_exp, int batch_size = -1);
 
     /** @brief Read in a tsv file and construct a targeted experiment (Light transition structure)
      *
