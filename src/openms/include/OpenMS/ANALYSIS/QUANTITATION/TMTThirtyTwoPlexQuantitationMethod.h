@@ -13,47 +13,48 @@
 
 namespace OpenMS{
     /**
-        @brief TMT 32plex quantitation to be used with the IsobaricQuantitation.
+        @brief TMT 32plex quantitation to be used for the IsobaricQuantitation.
         @htmlinclude OpenMS_TMTThirtyTwoPlexQuantitationMethod.parameters
         */
     class OPENMS_DLLAPI TMTThirtyTwoPlexQuantitationMethod : public IsobaricQuantitationMethod
     {
         public:
-            // Default Constructor
+            /// Default Constructor
             TMTThirtyTwoPlexQuantitationMethod();
-            // Destructor
+            /// Destructor
             ~TMTThirtyTwoPlexQuantitationMethod() override = default;
-            // Copy Constructor
+            /// Copy Constructor
             TMTThirtyTwoPlexQuantitationMethod(const TMTThirtyTwoPlexQuantitationMethod& other);
 
-            // Assignment operator
+            /// Assignment operator
             TMTThirtyTwoPlexQuantitationMethod& operator=(const TMTThirtyTwoPlexQuantitationMethod& rhs);
 
-            // Methods to implement from IsobaricQuantitationMethod
-            // @{
+            /// @brief Methods to implement from IsobaricQuantitationMethod
+            /// @{
             const String& getMethodName() const override;
             const IsobaricChannelList& getChannelInformation() const override;
             Size getNumberOfChannels() const override;
             Matrix<double> getIsotopeCorrectionMatrix() const override;
             Size getReferenceChannel() const override;
-            // @}
+            /// @}
         private:
-            // The actual information on the different TMT 32plex channels.
+            /// The actual information on the different TMT 32plex channels.
             IsobaricChannelList channels_;
 
-            // The name of the quantitation method.
+            /// The name of the quantitation method.
             static const String name_;
 
-            // The reference channel for this experiment.
+            /// The reference channel for this experiment.
             Size reference_channel_;
             
-            // List of available channel names as they are presented to the user
+            /// List of available channel names as they are presented to the user
             static const std::vector<std::string> channel_names_;
         
         protected:
-            // implemented for DefaultParamHandler
+            /// implemented for DefaultParamHandler
             void setDefaultParams_();
 
+            /// implemented for DefaultParamHandler
             void updateMembers_() override;
     };
 } // namespace OpenMS

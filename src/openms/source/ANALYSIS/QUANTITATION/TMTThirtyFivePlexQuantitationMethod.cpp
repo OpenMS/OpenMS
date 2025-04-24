@@ -28,7 +28,6 @@ namespace OpenMS{
                                                                                         "133N","133C","133ND","133CD",
                                                                                         "134C","134N","134ND","134CD",
                                                                                         "135N","135ND","135CD"};
-                                                                                        // 134c 135n 135cd
 
     TMTThirtyFivePlexQuantitationMethod::TMTThirtyFivePlexQuantitationMethod(){
         setName("TMTThirtyFivePlexQuantitationMethod");
