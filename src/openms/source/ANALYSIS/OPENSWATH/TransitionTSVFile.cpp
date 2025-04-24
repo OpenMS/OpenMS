@@ -1499,7 +1499,7 @@ namespace OpenMS
         OpenMS::TargetedExperiment tmp_targeted_exp;
         moreLines = readUnstructuredTSVInput_(filename, filetype, transition_list, batch_size, offset);
         TSVToTargetedExperiment_(transition_list, tmp_targeted_exp);
-        targeted_exp += tmp_targeted_exp; // this line is very memory intensive because actually storing the entire library in memory
+        targeted_exp.append(tmp_targeted_exp); // this line is very memory intensive because actually storing the entire library in memory
         offset += batch_size;
       }
   }

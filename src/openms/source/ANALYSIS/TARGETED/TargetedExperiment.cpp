@@ -209,7 +209,6 @@ namespace OpenMS
       }
     }
     
-
     // merge these:
     cvs_.insert(cvs_.end(), rhs.cvs_.begin(), rhs.cvs_.end());
     contacts_.insert(contacts_.end(), rhs.contacts_.begin(), rhs.contacts_.end());
@@ -332,6 +331,88 @@ namespace OpenMS
     }
   }
 
+  TargetedExperiment & TargetedExperiment::append(const TargetedExperiment & rhs)
+  {
+    protein_reference_map_dirty_ = true;
+    peptide_reference_map_dirty_ = true;
+    compound_reference_map_dirty_ = true;
+
+    // merge these properties without checking for duplicates
+    cvs_.insert(cvs_.end(), rhs.cvs_.begin(), rhs.cvs_.end());
+    contacts_.insert(contacts_.end(), rhs.contacts_.begin(), rhs.contacts_.end());
+    publications_.insert(publications_.end(), rhs.publications_.begin(), rhs.publications_.end());
+    instruments_.insert(instruments_.end(), rhs.instruments_.begin(), rhs.instruments_.end());
+    software_.insert(software_.end(), rhs.software_.begin(), rhs.software_.end());
+    include_targets_.insert(include_targets_.end(), rhs.include_targets_.begin(), rhs.include_targets_.end());
+    exclude_targets_.insert(exclude_targets_.end(), rhs.exclude_targets_.begin(), rhs.exclude_targets_.end());
+    source_files_.insert(source_files_.end(), rhs.source_files_.begin(), rhs.source_files_.end());
+    
+    // also merge transitions without checking for duplicates
+    transitions_.insert(transitions_.end(), rhs.transitions_.begin(), rhs.transitions_.end());
+
+    // Check for duplicate entries in proteins and only add non-duplicates
+    // Create lookup sets for existing IDs to avoid duplicates
+    
+
+    std::unordered_set<String> protein_ids;
+
+    // Populate sets with existing IDs
+    for (const auto& protein : proteins_)
+      protein_ids.insert(protein.id);
+
+    // Add non-duplicate proteins
+    for (const auto& protein : rhs.getProteins()) {
+      if (protein_ids.find(protein.id) == protein_ids.end()) {
+        proteins_.push_back(protein);
+        protein_ids.insert(protein.id);
+      }
+    }
+
+
+     // For peptides and compounds, we can just check if the first entry of rhs is the same as the last entry of this
+     // Assumes that both are sorted by peptide group
+
+     // Compounds
+     if (! rhs.compounds_.empty())
+     {
+       if (! compounds_.empty())
+       {
+          // if there are duplicates it will occur at the end of this and at the front of rhs. This is because processing in batches and library is sorted
+          if (compounds_.back().id == rhs.compounds_.front().id)
+          {
+            // pop the last entry of this 
+            compounds_.pop_back();
+          }
+        }
+        // merge these:
+        compounds_.insert(compounds_.end(), rhs.compounds_.begin(), rhs.compounds_.end());
+     }
+
+     // Peptides, this makes the assumption that sorted by peptide group
+     if (! rhs.peptides_.empty())
+     {
+       if (! peptides_.empty())
+       {
+          // if there are duplicates it will occur at the end of this and at the front of rhs. This is because processing in batches and library is sorted
+          if (peptides_.back().id == rhs.peptides_.front().id)
+          {
+            // pop the last entry of this
+            peptides_.pop_back();
+          }
+        }
+        peptides_.insert(peptides_.end(), rhs.peptides_.begin(), rhs.peptides_.end());
+     }
+
+    for (std::map<String, std::vector<CVTerm> >::const_iterator targ_it = rhs.targets_.getCVTerms().begin(); targ_it != rhs.targets_.getCVTerms().end(); ++targ_it)
+    {
+      for (std::vector<CVTerm>::const_iterator term_it = targ_it->second.begin(); term_it != targ_it->second.end(); ++term_it)
+      {
+        targets_.addCVTerm(*term_it);
+      }
+    }
+
+    return *this;
+  }
   void TargetedExperiment::setCVs(const std::vector<CV> & cvs)
   {
     cvs_ = cvs;

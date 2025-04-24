@@ -73,6 +73,8 @@ protected:
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: not all conversion paths work or make sense.", false);
     setValidStrings_("out_type", formats);
 
+    registerIntOption_("batchSize", "<int>", 0, "Batch size for reading a .tsv file, only relevant if converting a tsv file, if < 1 means read the whole file", false);
+
     registerSubsection_("algorithm", "Algorithm parameters section");
     registerFlag_("legacy_traml_id", "PQP to TraML: Should legacy TraML IDs be used?", true);
 
@@ -119,6 +121,7 @@ protected:
     }
 
     bool legacy_traml_id = getFlag_("legacy_traml_id");
+    int batch_size = getIntOption_("batchSize");
 
     //--------------------------------------------------------------------------- 
     // Start Conversion
@@ -130,7 +133,7 @@ protected:
       TransitionTSVFile tsv_reader;
       tsv_reader.setLogType(log_type_);
       tsv_reader.setParameters(reader_parameters);
-      tsv_reader.convertTSVToTargetedExperiment(in.c_str(), in_type, targeted_exp);
+      tsv_reader.convertTSVToTargetedExperiment(in.c_str(), in_type, targeted_exp, batch_size);
       tsv_reader.validateTargetedExperiment(targeted_exp);
     }
     else if (in_type == FileTypes::PQP)
