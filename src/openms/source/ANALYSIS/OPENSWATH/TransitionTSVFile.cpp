@@ -1414,66 +1414,65 @@ namespace OpenMS
 
   void TransitionTSVFile::writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
   {
-    std::vector<TSVTransition> mytransitions;
-
-    Size progress = 0;
-    startProgress(0, targeted_exp.getTransitions().size(), "writing OpenSWATH Transition List TSV file");
-    for (const auto& tr : targeted_exp.getTransitions())
-    {
-      mytransitions.push_back(convertTransition_(&tr, targeted_exp));
-      setProgress(progress++);
-    }
-    endProgress();
-
     // start writing
     std::ofstream os(filename);
     os.precision(writtenDigits(double()));
+    
+    // Write header
     for (Size i = 0; i < header_names_.size(); i++)
     {
       os << header_names_[i];
-      if (i != header_names_.size() - 1)
+      if (i != header_names_.size() - 1) 
       {
         os << "\t";
       }
     }
     os << std::endl;
 
-    for (const auto& it : mytransitions)
+    Size progress = 0;
+    startProgress(0, targeted_exp.getTransitions().size(), "writing OpenSWATH Transition List TSV file");
+    
+    for (const auto& t : targeted_exp.getTransitions()) 
     {
-      String line;
-      line +=
-        (String)it.precursor                + "\t"
-        + (String)it.product                  + "\t"
-        + (String)it.precursor_charge         + "\t"
-        + (String)it.fragment_charge          + "\t"
-        + (String)it.library_intensity        + "\t"
-        + (String)it.rt_calibrated            + "\t"
-        + (String)it.PeptideSequence          + "\t"
-        + (String)it.FullPeptideName          + "\t"
-        + (String)it.peptide_group_label      + "\t"
-        + (String)it.label_type               + "\t"
-        + (String)it.CompoundName             + "\t"
-        + (String)it.SumFormula               + "\t"
-        + (String)it.SMILES                   + "\t"
-        + (String)it.Adducts                  + "\t"
-        + ListUtils::concatenate(it.ProteinName, ";")              + "\t"
-        + ListUtils::concatenate(it.uniprot_id, ";")               + "\t"
-        + (String)it.GeneName                 + "\t"
-        + (String)it.fragment_type            + "\t"
-        + (String)it.fragment_nr              + "\t"
-        + (String)it.Annotation               + "\t"
-        + (String)it.CE                       + "\t"
-        + (String)it.drift_time               + "\t"
-        + (String)it.group_id                 + "\t"
-        + (String)it.transition_name          + "\t"
-        + (String)it.decoy                    + "\t"
-        + (String)it.detecting_transition     + "\t"
-        + (String)it.identifying_transition   + "\t"
-        + (String)it.quantifying_transition   + "\t"
-        + ListUtils::concatenate(it.peptidoforms, "|");
-
-      os << line << std::endl;
+      // Convert transition to TSV
+      TSVTransition mytransition = convertTransition_(&t, targeted_exp);
+      
+      // Write directly to file
+      os << mytransition.precursor << "\t"
+        << mytransition.product << "\t"
+        << mytransition.precursor_charge << "\t"
+        << mytransition.fragment_charge << "\t"
+        << mytransition.library_intensity << "\t"
+        << mytransition.rt_calibrated << "\t"
+        << mytransition.PeptideSequence << "\t"
+        << mytransition.FullPeptideName << "\t"
+        << mytransition.peptide_group_label << "\t"
+        << mytransition.label_type << "\t"
+        << mytransition.CompoundName << "\t"
+        << mytransition.SumFormula << "\t"
+        << mytransition.SMILES << "\t"
+        << mytransition.Adducts << "\t"
+        << ListUtils::concatenate(mytransition.ProteinName, ";") << "\t"
+        << ListUtils::concatenate(mytransition.uniprot_id, ";") << "\t"
+        << mytransition.GeneName << "\t"
+        << mytransition.fragment_type << "\t"
+        << mytransition.fragment_nr << "\t"
+        << mytransition.Annotation << "\t"
+        << mytransition.CE << "\t"
+        << mytransition.drift_time << "\t"
+        << mytransition.group_id << "\t"
+        << mytransition.transition_name << "\t"
+        << mytransition.decoy << "\t"
+        << mytransition.detecting_transition << "\t"
+        << mytransition.identifying_transition << "\t"
+        << mytransition.quantifying_transition << "\t"
+        << ListUtils::concatenate(mytransition.peptidoforms, "|")
+        << std::endl;
+      
+      setProgress(progress++);
     }
+
+    endProgress();
     os.close();
   }
 
