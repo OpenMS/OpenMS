@@ -1482,7 +1482,7 @@ namespace OpenMS::Internal
         }
 
         String cmz(hit.getSequence().getMZ(hit.getCharge())); //calculatedMassToCharge
-        String r(hit.getRank()); //rank
+        String r(hit.getRank() + 1); //rank
         String sc(hit.getScore());
 
         if (sc.empty())
