@@ -263,13 +263,13 @@ public:
     bool containsInvalidReferences() const;
 
     /**
-     * @brief Appends the contents of the given TargetedExperiment to this one.
+     * @brief appends using std::move() the contents of the given TargetedExperiment to this one.
      * @param rhs The TargetedExperiment to add to this one.
      * Protein duplicates will be checked throughly and only unique proteins will be added
      * Transition duplicates will not be checked
      * Peptides and compound will only check if the first entry of rhs is a duplicate
      */
-    TargetedExperiment& append(const TargetedExperiment & rhs);
+    TargetedExperiment & append(TargetedExperiment && rhs);
 
 protected:
 

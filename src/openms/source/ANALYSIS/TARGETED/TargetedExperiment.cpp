@@ -331,29 +331,29 @@ namespace OpenMS
     }
   }
 
-  TargetedExperiment & TargetedExperiment::append(const TargetedExperiment & rhs)
+  TargetedExperiment & TargetedExperiment::append(TargetedExperiment && rhs)
   {
     protein_reference_map_dirty_ = true;
     peptide_reference_map_dirty_ = true;
     compound_reference_map_dirty_ = true;
 
-    // merge these properties without checking for duplicates
-    cvs_.insert(cvs_.end(), rhs.cvs_.begin(), rhs.cvs_.end());
-    contacts_.insert(contacts_.end(), rhs.contacts_.begin(), rhs.contacts_.end());
-    publications_.insert(publications_.end(), rhs.publications_.begin(), rhs.publications_.end());
-    instruments_.insert(instruments_.end(), rhs.instruments_.begin(), rhs.instruments_.end());
-    software_.insert(software_.end(), rhs.software_.begin(), rhs.software_.end());
-    include_targets_.insert(include_targets_.end(), rhs.include_targets_.begin(), rhs.include_targets_.end());
-    exclude_targets_.insert(exclude_targets_.end(), rhs.exclude_targets_.begin(), rhs.exclude_targets_.end());
-    source_files_.insert(source_files_.end(), rhs.source_files_.begin(), rhs.source_files_.end());
-    
-    // also merge transitions without checking for duplicates
-    transitions_.insert(transitions_.end(), rhs.transitions_.begin(), rhs.transitions_.end());
+    // merge these without checking for duplicates
+    appendRVector(std::move(rhs.cvs_), cvs_);
+    appendRVector(std::move(rhs.contacts_), contacts_);
+    appendRVector(std::move(rhs.publications_), publications_);
+    appendRVector(std::move(rhs.instruments_), instruments_);
+    appendRVector(std::move(rhs.software_), software_);
+
+    appendRVector(std::move(rhs.include_targets_), include_targets_);
+    appendRVector(std::move(rhs.exclude_targets_), exclude_targets_);
+    appendRVector(std::move(rhs.source_files_), source_files_);
+
+    // move transitions without checking for duplicates
+    appendRVector(std::move(rhs.transitions_), transitions_);
 
     // Check for duplicate entries in proteins and only add non-duplicates
     // Create lookup sets for existing IDs to avoid duplicates
     
-
     std::unordered_set<String> protein_ids;
 
     // Populate sets with existing IDs
@@ -385,7 +385,7 @@ namespace OpenMS
           }
         }
         // merge these:
-        compounds_.insert(compounds_.end(), rhs.compounds_.begin(), rhs.compounds_.end());
+        appendRVector(std::move(rhs.compounds_), compounds_);
      }
 
      // Peptides, this makes the assumption that sorted by peptide group
@@ -400,7 +400,7 @@ namespace OpenMS
             peptides_.pop_back();
           }
         }
-        peptides_.insert(peptides_.end(), rhs.peptides_.begin(), rhs.peptides_.end());
+        appendRVector(std::move(rhs.peptides_), peptides_);
      }
 
     for (std::map<String, std::vector<CVTerm> >::const_iterator targ_it = rhs.targets_.getCVTerms().begin(); targ_it != rhs.targets_.getCVTerms().end(); ++targ_it)
