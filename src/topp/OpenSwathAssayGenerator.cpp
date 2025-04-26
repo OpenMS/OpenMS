@@ -93,6 +93,8 @@ protected:
     setValidFormats_("in", ListUtils::create<String>(formats));
     setValidStrings_("in_type", ListUtils::create<String>(formats));
 
+    registerIntOption_("batchSize", "<int>", 0, "Batch size for reading a .tsv file, only relevant if converting a tsv file, if < 1 means read the whole file", false);
+
     formats = "tsv,pqp,TraML";
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>(formats));
@@ -163,6 +165,7 @@ protected:
       return PARSE_ERROR;
     }
 
+    int batch_size = getIntOption_("batchSize");
     Int min_transitions = getIntOption_("min_transitions");
     Int max_transitions = getIntOption_("max_transitions");
     String allowed_fragment_types_string = getStringOption_("allowed_fragment_types");
@@ -255,7 +258,7 @@ protected:
       TransitionTSVFile tsv_reader = TransitionTSVFile();
       tsv_reader.setLogType(log_type_);
       tsv_reader.setParameters(reader_parameters);
-      tsv_reader.convertTSVToTargetedExperiment(tr_file, in_type, targeted_exp);
+      tsv_reader.convertTSVToTargetedExperiment(tr_file, in_type, targeted_exp, batch_size);
       tsv_reader.validateTargetedExperiment(targeted_exp);
     }
     else if (in_type == FileTypes::PQP)
