@@ -66,17 +66,40 @@ set(OPENMS_LOGOSMALL ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGOSMALL_NAME}
 #list(TRANSFORM CMAKE_PREFIX_PATH APPEND "/lib" OUTPUT_VARIABLE DEP_LIB_DIRS)
 # But since we copy them in the build stage to our runtime directory (bin), we can add this one.
 
+
+## Info on excluding dependencies:
+# PRE_EXCLUDE_REGEXES: Excludes dependencies at the beginning of the dependency analysis. 
+#                      This means that any dependency matching these patterns will be excluded before 
+#                      CMake traverses its own dependencies. This can prevent CMake from spending 
+#                      time analyzing entire dependency chains that you know you want to exclude.
+# POST_EXCLUDE_REGEXES: Excludes dependencies after the complete dependency analysis is done. 
+#                       This is applied to the final list of all found dependencies.
+
 # On Windows we need to tell CMake where to look for.
 # We also do not need API sets. So exclude them.
+
+
 if(WIN32)
   # exclude dll's which are system dll's and should not be shipped (bloats installer and leads to incompatibilities)
-  set(EXCLUDE "api-ms" "ext-ms" "hvsi" "pdmutilities" "wpaxholder" "dxgi" "uxtheme" "d3d11" "winmm" "wldp" "DWrite" "userenv" "D3D12")
-  set(POST_EXCLUDE ".*WINDOWS.system32.*")
+  set(PRE_EXCLUDE 
+                  ## these two are direct systems deps of TOPPView etc. Exclude to save time
+                  "api-ms" "ext-ms" 
+                  ## "HvsiFileTrust" "PdmUtilities" are detected as a dependency by CMake which cannot be resolved (and would lead to errors), so ignore it
+                  "hvsi" "pdmutilities"  ## make all lower case, since this is what CMake extracts from the targets and the regex is case sensitive
+                  )
+  ## exclude every Dll from c:\Windows\System32
+  ## Note: CMake extracts Dll names and will have a list like
+  ##-- Resolved runtime dependencies:
+  ##--   C:/WINDOWS/system32/aclui.dll
+  ##--   C:/WINDOWS/system32/activeds.dll
+  ## ,i.e. folder names have weird cases (and the CMake regex engine is case sensitive)
+  set(POST_EXCLUDE ".*[\\/][Ss][Yy][Ss][Tt][Ee][Mm]32[\\/].*")  # skip system32 DLLs completely (no matter how CMake names the path, could be 'System32', 'system32', 'SYSTEM32' etc)
+                   
 elseif(APPLE)
-  set(EXCLUDE "/usr/lib" "/System/")
+  set(PRE_EXCLUDE "/usr/lib" "/System/")
   set(POST_EXCLUDE "")
 else()
-  set(EXCLUDE "")
+  set(PRE_EXCLUDE "")
   set(POST_EXCLUDE ".*/ld-linux-.*" ".*/linux-vdso.*" ".*/libm\\..*" ".*/libc\\..*" ".*/libpthread\\..*" ".*/libdl\\..*" ".*/libQt6.*")
 endif()
 
@@ -88,7 +111,7 @@ install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
           GROUP_READ GROUP_WRITE GROUP_EXECUTE
           WORLD_READ WORLD_WRITE WORLD_EXECUTE
         COMPONENT Dependencies
-        PRE_EXCLUDE_REGEXES ${EXCLUDE}
+        PRE_EXCLUDE_REGEXES ${PRE_EXCLUDE}
         POST_EXCLUDE_REGEXES ${POST_EXCLUDE}
         DIRECTORIES $<TARGET_FILE_DIR:OpenMS>)
 
