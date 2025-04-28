@@ -327,16 +327,21 @@ jobs:
           cd ..
           # add third-party binaries to PATH
           # use flat THIRDPARTY structure
+          $THIRDPARTY_DIR = "OpenMS/THIRDPARTY"
           mkdir -p _thirdparty
           # Copy the correct architecture
-          cp -R OpenMS/THIRDPARTY/${{ steps.set-vars.outputs.tp_folder }}/`uname -m`/* _thirdparty/
-          # For MacOS 14 we also want to copy over any tools that we only have in x86_64 flavor. cp -n avoids overwriting the arm specific executables that we've already copied above
+          cp -R $THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/`uname -m`/* _thirdparty/
+          
+          # For MacOS 14 we also want to copy over any tools that we only have in x86_64 flavor.
           if [[ "${{ matrix.os }}" == macos-14 ]]; then
             echo "Copying x86_64 tools for MacOS 14"
-            cp -R OpenMS/THIRDPARTY/MacOS/x86_64/MaRaCluster/* _thirdparty/
-            cp -R OpenMS/THIRDPARTY/MacOS/x86_64/SpectraST/* _thirdparty/
-            cp -R OpenMS/THIRDPARTY/MacOS/x86_64/XTandem/* _thirdparty/
-          fi
+            for tool in $THIRDPARTY_DIR/MacOS/x86_64/*; do
+              toolname=$(basename "$tool")
+              if [[ ! -e "_thirdparty/$toolname" ]]; then
+                echo "Copying missing tool from x86_64: $toolname"
+                cp -R "$tool" "_thirdparty/"
+              fi
+            done
           cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
           # add third-party binaries to PATH
           for thirdpartytool in '${{ github.workspace }}/_thirdparty'/*
