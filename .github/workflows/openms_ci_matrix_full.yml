@@ -342,6 +342,7 @@ jobs:
                 cp -R "$tool" "_thirdparty/"
               fi
             done
+          fi
           cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
           # add third-party binaries to PATH
           for thirdpartytool in '${{ github.workspace }}/_thirdparty'/*
