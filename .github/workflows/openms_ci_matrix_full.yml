@@ -327,7 +327,7 @@ jobs:
           cd ..
           # add third-party binaries to PATH
           # use flat THIRDPARTY structure
-          $THIRDPARTY_DIR = "OpenMS/THIRDPARTY"
+          THIRDPARTY_DIR="OpenMS/THIRDPARTY"
           mkdir -p _thirdparty
           # Copy the correct architecture
           cp -R $THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/`uname -m`/* _thirdparty/
