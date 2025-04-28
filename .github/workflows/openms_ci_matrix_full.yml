@@ -330,8 +330,7 @@ jobs:
           THIRDPARTY_DIR="OpenMS/THIRDPARTY"
           mkdir -p _thirdparty
           # Copy the correct architecture
-          cp -R $THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/`uname -m`/* _thirdparty/
-          
+          cp -R "$THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/$(uname -m)"/* _thirdparty/          
           # For MacOS 14 we also want to copy over any tools that we only have in x86_64 flavor.
           if [[ "${{ matrix.os }}" == macos-14 ]]; then
             echo "Copying x86_64 tools for MacOS 14"
