@@ -153,7 +153,5 @@ namespace OpenMS
 
     /// filter low intensity peaks
     static void filterLowPeaks_(MSExperiment& map);
-
-
   };
 } // namespace OpenMS

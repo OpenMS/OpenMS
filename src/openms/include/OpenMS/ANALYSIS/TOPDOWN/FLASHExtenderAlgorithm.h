@@ -23,7 +23,8 @@
 namespace OpenMS
 {
 /**
-@brief
+@brief Extend between tags found by FLASHTaggerAlgorithm. In practice, the proteoform characterization is
+ performed here. Only blind modification is implemented, and variable modification search is under develolpment.
 @ingroup Topdown
 */
 
@@ -45,10 +46,19 @@ public:
   /// assignment operator
   FLASHExtenderAlgorithm& operator=(const FLASHExtenderAlgorithm& other);
 
+  /**
+   * The main run function to perform extension algorithm. Take the candidate protein hits and perform extension for each protein with the tags.
+   * @param hits the candidate protein hits
+   * @param tags the sequence tags from FLASHTaggerAlgorithm
+   * @param dspec the deconvolved spectrum
+   * @param ppm mass ppm tolerance
+   * @param multiple_hits_per_spec should multiple proteins be considered per spectrum or only the best protein should be considered?
+   */
   void run(std::vector<ProteinHit>& hits, const std::vector<FLASHHelperClasses::Tag>& tags,
            const DeconvolvedSpectrum& dspec, double ppm, bool multiple_hits_per_spec);
 
-  void getProteoforms(std::vector<ProteinHit>& hits) const
+  /// fill the characterized proteoforms in @p hits
+  void fillProteoforms(std::vector<ProteinHit>& hits) const
   {
     for (const auto& hit : proteoform_hits_)
     {
@@ -56,17 +66,11 @@ public:
     }
   }
 
-  bool hasProteoforms() const
-  {
-    return ! proteoform_hits_.empty();
-  }
-
+  /// set modification map to be considered. Note that they are not for variable modification search. The mass shifts found by blind modifications matching to the masses of these modifications are annotated.
   void setModificationMap(const std::map<double, std::vector<ResidueModification>>& mod_map)
   {
     mod_map_ = mod_map;
   }
-
-  const static int multi_ion_score = 1;
 
 protected:
   void updateMembers_() override;
@@ -74,29 +78,42 @@ protected:
   void setDefaultParams_();
 
 private:
+  /// Protein hit information that should be retained throughout the run
   struct OPENMS_DLLAPI HitInformation
   {
   public:
+    /// if a vertex is already considered (visited) when building a DAG.
     boost::dynamic_bitset<> visited_;
+    /// The DAG consisting of paths representing proteoforms
     FLASHHelperClasses::DAG dag_;
-    std::map<int, MSSpectrum> node_spec_map_, tol_spec_map_;
-    std::map<int, std::vector<double>> pro_mass_map_;
+    /// We perform three times of extensions - for suffix, for prefix, and for both termini
     int mode_;
+    /// For each mode, information on each mass should be kept. These retain the information of each mass
+    std::map<int, MSSpectrum> node_spec_map_, tol_spec_map_;
+    /// For each mode, protein suffix or prefix masses are stored here.
+    std::map<int, std::vector<double>> pro_mass_map_;
+    /// protein start and end position for protein truncation, calculated after extension (after proteoform characterization).
     int protein_start_position_ = -1, protein_end_position_ = -1;
+    /// calculated precursor mass from fragment mass pairing (representing complementary ion pairs)
     double calculated_precursor_mass_ = -1;
-    std::vector<int> start_pro_indices_;
   };
 
-  std::map<double, std::vector<ResidueModification>> mod_map_; // modification mass to modification index. To use find nearest function
+  /// modification mass to modification index. To use find nearest function
+  std::map<double, std::vector<ResidueModification>> mod_map_;
 
+  /// get protein prefix or suffix masses (depending on the mode)
   static void getProMasses_(const ProteinHit& hit, std::vector<double>& pro_masses, int mode);
 
+  /// calculate precursor mass with fragment mass pairs
   void calculatePrecursorMass_(const ProteinHit& hit,
                                const std::map<int, std::vector<Size>>& best_path_map,
                                HitInformation& hi);
 
+  /// define nodes for DAG
   void defineNodes_(const DeconvolvedSpectrum& dspec, HitInformation& hi,
                    double max_mass);
+
+  /// main run function per protein hit. The results are stored in @p all_paths_per_mode.
   void run_(const ProteinHit& hit, HitInformation& hi,
             const std::vector<FLASHHelperClasses::Tag>& matched_tags,
             std::map<int, std::vector<Size>>& all_paths_per_mode, int max_mod_cntr_for_last_mode); // per hit
