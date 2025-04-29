@@ -183,10 +183,15 @@ namespace OpenMS::Internal
           if (consumer_ != nullptr)
           {
             consumer_->consumeSpectrum(spectrum_data_[i].spectrum);
+            if (options_.getAlwaysAppendData())
+            {
+              (*exp_)[exp_original_size + i] = std::move(spectrum_data_[i].spectrum);
+            }
           }
-            
-          // Replace the placeholder with (processed) spectrum
-          (*exp_)[exp_original_size + i] = std::move(spectrum_data_[i].spectrum);
+          else
+          {
+            (*exp_)[exp_original_size + i] = std::move(spectrum_data_[i].spectrum);
+          }                      
         }
       }
 
