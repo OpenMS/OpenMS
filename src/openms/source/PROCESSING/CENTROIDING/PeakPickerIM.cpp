@@ -19,6 +19,7 @@
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
+#include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
 #include <iostream>
 #include <deque>
 
