@@ -763,7 +763,7 @@ jobs:
         shell: bash
         run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_ENV
 
-      - name: Download macOS installer artifacts
+      - name: Download KNIME artifacts
         uses: actions/download-artifact@v4
         with:
           pattern: knime-*
