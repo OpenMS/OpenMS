@@ -75,12 +75,18 @@ public:
 
   void consumeSpectrum(SpectrumType & s) override
   {
+    double t = 0.0; 
     for (Size i = 0; i < s.size(); i++) 
     { 
-      TIC += s[i].getIntensity(); 
+      t += s[i].getIntensity(); 
     }
-    nr_peaks += s.size();
-    nr_spectra++;
+    
+    #pragma omp critical
+    {
+      TIC += t;
+      nr_peaks += s.size();
+      nr_spectra++;
+    }
   }
 
   void consumeChromatogram(ChromatogramType& /* c */) override {}
