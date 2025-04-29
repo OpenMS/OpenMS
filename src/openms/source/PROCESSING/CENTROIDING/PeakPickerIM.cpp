@@ -22,7 +22,14 @@
 #include <iostream>
 #include <deque>
 
+
 using namespace std;
+
+// #define DEBUG_PICKER
+#ifdef DEBUG_PICKER
+#include <OpenMS/FORMAT/MzMLFile.h>
+#endif 
+
 namespace OpenMS
 {
     double PeakPickerIM::computeOptimalSamplingRate(const vector<MSSpectrum>& spectra)
@@ -469,6 +476,7 @@ namespace OpenMS
             mz_fwhm_array.push_back(0.0);
 
 #ifdef DEBUG_PICKER
+            const Peak1D& single_peak = raw_mz_peaks[0];
             std::cout << "[INFO] sumFrame_ reduced peaks to a single entry. Added directly to centroided_frame. m/z: " << single_peak.getMZ()
                       << " intensity: " << single_peak.getIntensity() << std::endl;
 #endif
@@ -1330,30 +1338,54 @@ void PeakPickerIM::pickIMCluster(OpenMS::MSSpectrum& spectrum, double ppm_tolera
       s.setMSLevel(1);
     }
 
+    #ifdef DEBUG_IM_PICKER
+      // write out IM frame as RT/MZ for debugging purposes to test algorithm that yet don't support the IM dimension
+      MzMLFile().store("debug" + String(input.getRT()) + ".mzML", frame_as_spectra);
+    #endif
+
     if (frame_as_spectra.size() <= 3 ) return;
 
     // detect mass traces in IM frame
     MassTraceDetection mte;
     Param param = mte.getParameters();
-    param.setValue("min_trace_length", 0.0001);
-    param.setValue("reestimate_mt_sd", "true");
+    // disable most filter criteria
+    param.setValue("min_trace_length", -1.0);
+    param.setValue("max_trace_length", -1.0);
+    param.setValue("noise_threshold_int", 0.1); // only ignore 0 peaks
+    param.setValue("chrom_peak_snr", 0.0);
+    param.setValue("reestimate_mt_sd", "false");
     param.setValue("mass_error_ppm", ppm_tolerance);
-    param.setValue("trace_termination_criterion", "sample_rate");
+    param.setValue("trace_termination_criterion", "outlier");
+    param.setValue("trace_termination_outlier", 1);
+    
     mte.setLogType(ProgressLogger::NONE);
     mte.setParameters(param);
     vector<MassTrace> output_mt;
     mte.run(frame_as_spectra, output_mt);
     
+    ElutionPeakDetection epd;
+    param = epd.getParameters();
+    param.setValue("chrom_peak_fwhm", 0.01);
+    param.setValue("chrom_peak_snr", 0.0); 
+    param.setValue("width_filtering", "false");
+    param.setValue("min_fwhm", -1.0);
+    param.setValue("max_fwhm", 1.0e6);
+    param.setValue("masstrace_snr_filtering", "false");
+ 
+    std::vector<MassTrace> split_mtraces;
+    epd.detectPeaks(output_mt, split_mtraces);
+    output_mt.clear();
+
     // copy mass traces centroids back to peaks
-    input.resize(output_mt.size());
+    input.resize(split_mtraces.size());
     input.shrink_to_fit();        
       
-    im_data.resize(output_mt.size());
+    im_data.resize(split_mtraces.size());
     im_data.shrink_to_fit();
 
-    for (Size i = 0; i < output_mt.size(); ++i)
+    for (Size i = 0; i < split_mtraces.size(); ++i)
     {      
-      const MassTrace& mt = output_mt[i];
+      const MassTrace& mt = split_mtraces[i];
       input[i].setMZ(mt.getCentroidMZ());
       input[i].setIntensity(mt.computeIntensitySum()); //TODO: somewhat related: why is getIntensity() zero?
       im_data[i] = mt.getCentroidRT(); // IM
