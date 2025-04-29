@@ -650,6 +650,7 @@ namespace OpenMS
       if (trace_peaks_.size() == 1)
       {
         centroid_mz_ = (*(trace_peaks_.begin())).getMZ();
+        centroid_sd_ = 0.0; // For a single peak, standard deviation is 0
         return;
       }
 
