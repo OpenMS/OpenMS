@@ -1366,13 +1366,14 @@ void PeakPickerIM::pickIMCluster(OpenMS::MSSpectrum& spectrum, double ppm_tolera
     
     ElutionPeakDetection epd;
     param = epd.getParameters();
-    param.setValue("chrom_peak_fwhm", 0.01);
+    param.setValue("chrom_fwhm", 0.01);
     param.setValue("chrom_peak_snr", 0.0); 
-    param.setValue("width_filtering", "false");
+    param.setValue("width_filtering", "off");
     param.setValue("min_fwhm", -1.0);
-    param.setValue("max_fwhm", 1.0e6);
+    param.setValue("max_fwhm", 1e6);
     param.setValue("masstrace_snr_filtering", "false");
- 
+    epd.setParameters(param);
+
     std::vector<MassTrace> split_mtraces;
     epd.detectPeaks(output_mt, split_mtraces);
     output_mt.clear();

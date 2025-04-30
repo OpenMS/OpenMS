@@ -2057,10 +2057,11 @@
 				<pt x="2148.368599999999788" y="1497.758268140356677" />
 				<pt x="2153.70010000000002" y="1497.774575596085697" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T38.1"/>
+			<UserParam type="string" name="label" value="T38"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="8.153727864510072e-03"/>
 			<UserParam type="float" name="SD_ppm" value="5.443924864024937"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_12156709473159629610">
 			<position dim="0">2498.393099999999777</position>
@@ -2571,10 +2572,11 @@
 				<pt x="2457.136899999999969" y="1627.491154917893027" />
 				<pt x="2462.251800000000003" y="1627.533117419480732" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T52.1"/>
+			<UserParam type="string" name="label" value="T52"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.020981250793879"/>
 			<UserParam type="float" name="SD_ppm" value="12.89160942496588"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_17569764383250687096">
 			<position dim="0">2236.449500000000171</position>
@@ -3428,10 +3430,11 @@
 				<pt x="2489.747600000000148" y="1503.952186802724555" />
 				<pt x="2494.933700000000044" y="1503.90841853207985" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T74.1"/>
+			<UserParam type="string" name="label" value="T74"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.021884135322352"/>
 			<UserParam type="float" name="SD_ppm" value="14.551296216013663"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_6878260161865568505">
 			<position dim="0">2239.899699999999939</position>
@@ -3731,10 +3734,11 @@
 				<pt x="2316.188599999999951" y="1616.464775806496391" />
 				<pt x="2321.427099999999882" y="1616.456515849836705" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T83.1"/>
+			<UserParam type="string" name="label" value="T83"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="4.129978329901103e-03"/>
 			<UserParam type="float" name="SD_ppm" value="2.55495136275661"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_11586291247413769442">
 			<position dim="0">2401.490600000000086</position>
@@ -4101,10 +4105,11 @@
 				<pt x="2457.136899999999969" y="1264.414169252800093" />
 				<pt x="2462.251800000000003" y="1264.447246888398695" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T93.1"/>
+			<UserParam type="string" name="label" value="T93"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.016538817799301"/>
 			<UserParam type="float" name="SD_ppm" value="13.080050724596479"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_17078574238716611972">
 			<position dim="0">2264.094399999999951</position>
@@ -4179,10 +4184,11 @@
 				<pt x="2229.519600000000082" y="1855.431439351112658" />
 				<pt x="2234.723199999999906" y="1855.398105299744202" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T97.1"/>
+			<UserParam type="string" name="label" value="T97"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.016667025684228"/>
 			<UserParam type="float" name="SD_ppm" value="8.982910954912224"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_2608380305220684729">
 			<position dim="0">2257.177700000000186</position>
@@ -4315,10 +4321,11 @@
 				<pt x="2389.288000000000011" y="1420.203691672325249" />
 				<pt x="2394.530499999999847" y="1420.129802879969247" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T101.1"/>
+			<UserParam type="string" name="label" value="T101"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.036944396178043"/>
 			<UserParam type="float" name="SD_ppm" value="26.014125629192023"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_2130311522918743509">
 			<position dim="0">2258.91359999999986</position>
@@ -4725,10 +4732,11 @@
 				<pt x="2486.284500000000207" y="1580.309929711608675" />
 				<pt x="2491.470400000000154" y="1580.344412572378587" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T113.1"/>
+			<UserParam type="string" name="label" value="T113"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.017241430384956"/>
 			<UserParam type="float" name="SD_ppm" value="10.910038566569234"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_15246437841577070383">
 			<position dim="0">2477.658600000000206</position>
@@ -5243,10 +5251,11 @@
 				<pt x="2255.449300000000221" y="1483.253433986323444" />
 				<pt x="2260.634700000000066" y="1483.233014797479882" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T131.1"/>
+			<UserParam type="string" name="label" value="T131"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.010209594421762"/>
 			<UserParam type="float" name="SD_ppm" value="6.883290787286562"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_15595829921891090644">
 			<position dim="0">2239.899699999999939</position>
@@ -5414,10 +5423,11 @@
 				<pt x="2477.658600000000206" y="1851.477516535661835" />
 				<pt x="2482.830800000000181" y="1851.422786254399625" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T138.1"/>
+			<UserParam type="string" name="label" value="T138"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.027365140631073"/>
 			<UserParam type="float" name="SD_ppm" value="14.780382075344441"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_9239964739177281349">
 			<position dim="0">2475.940700000000106</position>
@@ -5431,10 +5441,11 @@
 				<pt x="2470.794800000000123" y="1772.911140801818874" />
 				<pt x="2475.940700000000106" y="1773.016869156343091" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T139.1"/>
+			<UserParam type="string" name="label" value="T139"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.052864177262109"/>
 			<UserParam type="float" name="SD_ppm" value="29.816836164551642"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_1913989207508168661">
 			<position dim="0">2453.727699999999913</position>
@@ -5562,10 +5573,11 @@
 				<pt x="2323.173699999999826" y="2430.365077957325866" />
 				<pt x="2328.485200000000077" y="2430.444382358984512" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T144.1"/>
+			<UserParam type="string" name="label" value="T144"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.03965220082925"/>
 			<UserParam type="float" name="SD_ppm" value="16.315060753963099"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_15974525296577096328">
 			<position dim="0">2337.361899999999878</position>
@@ -5579,10 +5591,11 @@
 				<pt x="2332.035199999999804" y="2413.98418811667716" />
 				<pt x="2337.361899999999878" y="2414.029291363101038" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T145.1"/>
+			<UserParam type="string" name="label" value="T145"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.022551623212011"/>
 			<UserParam type="float" name="SD_ppm" value="9.341988504324123"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_3850221777823943420">
 			<position dim="0">2298.8449999999998</position>
@@ -5596,10 +5609,11 @@
 				<pt x="2293.684699999999793" y="2365.655774681821185" />
 				<pt x="2298.8449999999998" y="2365.695341241701954" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T146.1"/>
+			<UserParam type="string" name="label" value="T146"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.019783279940384"/>
 			<UserParam type="float" name="SD_ppm" value="8.362634459236304"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_14745721201431314415">
 			<position dim="0">2300.573800000000119</position>
@@ -5787,10 +5801,11 @@
 				<pt x="2440.008200000000215" y="1484.138089971689169" />
 				<pt x="2445.188799999999901" y="1484.082360948654241" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T154.1"/>
+			<UserParam type="string" name="label" value="T154"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.027864511517464"/>
 			<UserParam type="float" name="SD_ppm" value="18.775230464316916"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_6432949088199598535">
 			<position dim="0">2232.995100000000093</position>
@@ -5829,10 +5844,11 @@
 				<pt x="2482.830800000000181" y="1592.853160555906015" />
 				<pt x="2488.013800000000174" y="1592.94122696232148" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T156.1"/>
+			<UserParam type="string" name="label" value="T156"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.044033203207716"/>
 			<UserParam type="float" name="SD_ppm" value="27.643468379651775"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_17623301629315165502">
 			<position dim="0">2408.42450000000008</position>
@@ -5908,10 +5924,11 @@
 				<pt x="2411.914999999999964" y="1532.958788763497068" />
 				<pt x="2417.183500000000095" y="1532.986429573987152" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T159.1"/>
+			<UserParam type="string" name="label" value="T159"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.013820405245042"/>
 			<UserParam type="float" name="SD_ppm" value="9.015428692190437"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_12175240310315893095">
 			<position dim="0">2253.720200000000205</position>
@@ -6100,10 +6117,11 @@
 				<pt x="2489.747600000000148" y="2314.996384303414743" />
 				<pt x="2494.933700000000044" y="2314.952078384342713" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T167.1"/>
+			<UserParam type="string" name="label" value="T167"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.022152959536015"/>
 			<UserParam type="float" name="SD_ppm" value="9.569419493345773"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_276808963686810837">
 			<position dim="0">2150.143599999999879</position>
@@ -6192,10 +6210,11 @@
 				<pt x="2470.794800000000123" y="1581.369183179708216" />
 				<pt x="2475.940700000000106" y="1581.361163931680494" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T171.1"/>
+			<UserParam type="string" name="label" value="T171"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="4.009624013860956e-03"/>
 			<UserParam type="float" name="SD_ppm" value="2.535545920013737"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_15490049804574065229">
 			<position dim="0">2264.094399999999951</position>
@@ -6299,10 +6318,11 @@
 				<pt x="2404.953599999999824" y="1510.304980534400329" />
 				<pt x="2410.166400000000067" y="1510.375629450858014" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T175.1"/>
+			<UserParam type="string" name="label" value="T175"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.035324458228843"/>
 			<UserParam type="float" name="SD_ppm" value="23.38840995772469"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_11470839092866542957">
 			<position dim="0">2441.740600000000086</position>
@@ -6316,10 +6336,11 @@
 				<pt x="2436.537800000000061" y="1406.613525944013418" />
 				<pt x="2441.740600000000086" y="1406.531869381235993" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T176.1"/>
+			<UserParam type="string" name="label" value="T176"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.040828281388713"/>
 			<UserParam type="float" name="SD_ppm" value="29.02678365402593"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_13663761038749696507">
 			<position dim="0">2384.029300000000148</position>
@@ -6333,10 +6354,11 @@
 				<pt x="2378.744999999999891" y="1569.404310553486084" />
 				<pt x="2384.029300000000148" y="1569.420625624717104" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T177.1"/>
+			<UserParam type="string" name="label" value="T177"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="8.157535615509913e-03"/>
 			<UserParam type="float" name="SD_ppm" value="5.197827710291121"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_3109052061041085863">
 			<position dim="0">2420.703899999999976</position>
@@ -6369,10 +6391,11 @@
 				<pt x="2293.684699999999793" y="1529.321931110302103" />
 				<pt x="2298.8449999999998" y="1529.32858272828048" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T179.1"/>
+			<UserParam type="string" name="label" value="T179"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="3.325808989168303e-03"/>
 			<UserParam type="float" name="SD_ppm" value="2.174690422538296"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_15137961832517596447">
 			<position dim="0">2234.723199999999906</position>
@@ -6446,10 +6469,11 @@
 				<pt x="2493.204699999999775" y="2696.882653776061488" />
 				<pt x="2498.393099999999777" y="2696.938362506228259" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T182.1"/>
+			<UserParam type="string" name="label" value="T182"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.027854365083385"/>
 			<UserParam type="float" name="SD_ppm" value="10.328249676547136"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_4870109536405501088">
 			<position dim="0">2467.373399999999947</position>
@@ -6463,10 +6487,11 @@
 				<pt x="2467.373399999999947" y="2517.857766459330378" />
 				<pt x="2472.509500000000116" y="2517.913281559271127" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T183.1"/>
+			<UserParam type="string" name="label" value="T183"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.027757549970374"/>
 			<UserParam type="float" name="SD_ppm" value="11.024150901894554"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_11504199178185045470">
 			<position dim="0">2304.021200000000135</position>
@@ -6538,10 +6563,11 @@
 				<pt x="2137.533399999999801" y="1485.022906194168172" />
 				<pt x="2143.000300000000152" y="1485.002868773751061" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T186.1"/>
+			<UserParam type="string" name="label" value="T186"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.010018710208608"/>
 			<UserParam type="float" name="SD_ppm" value="6.746547651571614"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_7207371083159283456">
 			<position dim="0">2375.188700000000154</position>
@@ -6555,10 +6581,11 @@
 				<pt x="2369.804399999999987" y="1504.974683592881092" />
 				<pt x="2375.188700000000154" y="1505.047096290489208" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T187.1"/>
+			<UserParam type="string" name="label" value="T187"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.03620634880411"/>
 			<UserParam type="float" name="SD_ppm" value="24.057200546577167"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_298401133637741504">
 			<position dim="0">2258.91359999999986</position>
@@ -6612,10 +6639,11 @@
 				<pt x="2285.020500000000084" y="1630.324725572887473" />
 				<pt x="2290.243399999999838" y="1630.417042774585752" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T190.1"/>
+			<UserParam type="string" name="label" value="T190"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.046158600849139"/>
 			<UserParam type="float" name="SD_ppm" value="28.311718086484611"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_1736129847460668689">
 			<position dim="0">2153.70010000000002</position>
@@ -6672,10 +6700,11 @@
 				<pt x="2446.901499999999942" y="1991.022423294997452" />
 				<pt x="2452.024600000000191" y="1990.94590473699418" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T192.1"/>
+			<UserParam type="string" name="label" value="T192"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.038259279001607"/>
 			<UserParam type="float" name="SD_ppm" value="19.216264846845444"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_11330022419841184299">
 			<position dim="0">2245.080699999999979</position>
@@ -6689,10 +6718,11 @@
 				<pt x="2239.899699999999939" y="1707.880402516859022" />
 				<pt x="2245.080699999999979" y="1707.979743030668033" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T193.1"/>
+			<UserParam type="string" name="label" value="T193"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.049670256904504"/>
 			<UserParam type="float" name="SD_ppm" value="29.082137317154192"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_7681485519006928191">
 			<position dim="0">2403.220400000000154</position>
@@ -6706,10 +6736,11 @@
 				<pt x="2403.220400000000154" y="1543.632363249021182" />
 				<pt x="2408.42450000000008" y="1543.720842423580507" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T194.1"/>
+			<UserParam type="string" name="label" value="T194"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.044239587279662"/>
 			<UserParam type="float" name="SD_ppm" value="28.658585093780655"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_3895238410403729308">
 			<position dim="0">2403.220400000000154</position>
@@ -6857,10 +6888,11 @@
 				<pt x="2436.537800000000061" y="2374.496193419696283" />
 				<pt x="2441.740600000000086" y="2374.414834357530253" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T201.1"/>
+			<UserParam type="string" name="label" value="T201"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.040679531082977"/>
 			<UserParam type="float" name="SD_ppm" value="17.132151284804145"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_4349546871070693707">
 			<position dim="0">2460.544499999999971</position>
@@ -6874,10 +6906,11 @@
 				<pt x="2455.435500000000047" y="1260.450824811448456" />
 				<pt x="2460.544499999999971" y="1260.408399725301933" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T202.1"/>
+			<UserParam type="string" name="label" value="T202"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.021212543073261"/>
 			<UserParam type="float" name="SD_ppm" value="16.829613384824707"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_3103608995878612024">
 			<position dim="0">2387.537400000000162</position>
@@ -6935,10 +6968,11 @@
 				<pt x="2472.509500000000116" y="1387.073830904668739" />
 				<pt x="2477.658600000000206" y="1387.019651810679989" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T205.1"/>
+			<UserParam type="string" name="label" value="T205"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.027089546994375"/>
 			<UserParam type="float" name="SD_ppm" value="19.530377878873335"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_1479160453569602855">
 			<position dim="0">2408.42450000000008</position>
@@ -6979,10 +7013,11 @@
 				<pt x="2218.869599999999991" y="2421.843198272865266" />
 				<pt x="2224.237799999999879" y="2421.718275624079979" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T207.1"/>
+			<UserParam type="string" name="label" value="T207"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.062461324392643"/>
 			<UserParam type="float" name="SD_ppm" value="25.79148617366026"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_2477368416748083016">
 			<position dim="0">2257.177700000000186</position>
@@ -7034,10 +7069,11 @@
 				<pt x="2425.991700000000037" y="1787.06606248412163" />
 				<pt x="2431.278499999999895" y="1786.967903156910325" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T210.1"/>
+			<UserParam type="string" name="label" value="T210"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.049079663605653"/>
 			<UserParam type="float" name="SD_ppm" value="27.464575925959412"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_14976954448023685397">
 			<position dim="0">2489.747600000000148</position>
@@ -7051,10 +7087,11 @@
 				<pt x="2484.555499999999938" y="2696.406165855270956" />
 				<pt x="2489.747600000000148" y="2696.356116544810902" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T211.1"/>
+			<UserParam type="string" name="label" value="T211"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.025024655230027"/>
 			<UserParam type="float" name="SD_ppm" value="9.280830090248095"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_2935923263525422257">
 			<position dim="0">2267.559699999999793</position>
@@ -7068,10 +7105,11 @@
 				<pt x="2267.559699999999793" y="2395.045393102947401" />
 				<pt x="2272.770899999999983" y="2395.178858523087001" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T212.1"/>
+			<UserParam type="string" name="label" value="T212"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.066732710069745"/>
 			<UserParam type="float" name="SD_ppm" value="27.862040090124115"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_6330378408783783417">
 			<position dim="0">2159.018000000000029</position>
@@ -7386,10 +7424,11 @@
 				<pt x="2274.508600000000115" y="1705.462549702638398" />
 				<pt x="2279.761399999999867" y="1705.437387182725161" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T224.1"/>
+			<UserParam type="string" name="label" value="T224"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.01258125995663"/>
 			<UserParam type="float" name="SD_ppm" value="7.377091201402236"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_5790065978798102656">
 			<position dim="0">2410.166400000000067</position>
@@ -7556,10 +7595,11 @@
 				<pt x="2332.035199999999804" y="1664.462963091073107" />
 				<pt x="2337.361899999999878" y="1664.376690162189334" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T232.1"/>
+			<UserParam type="string" name="label" value="T232"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.043136464441886"/>
 			<UserParam type="float" name="SD_ppm" value="25.916817230730377"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_1897639188110923731">
 			<position dim="0">2364.38590000000022</position>
@@ -7573,10 +7613,11 @@
 				<pt x="2358.920999999999822" y="1741.349260423961823" />
 				<pt x="2364.38590000000022" y="1741.417673409755025" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T233.1"/>
+			<UserParam type="string" name="label" value="T233"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.034206492896601"/>
 			<UserParam type="float" name="SD_ppm" value="19.643285667093235"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_17480794184187398956">
 			<position dim="0">2496.664499999999862</position>
@@ -7590,10 +7631,11 @@
 				<pt x="2491.470400000000154" y="1494.528001583272044" />
 				<pt x="2496.664499999999862" y="1494.495103226007814" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T234.1"/>
+			<UserParam type="string" name="label" value="T234"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.016449178632123"/>
 			<UserParam type="float" name="SD_ppm" value="11.006391088550728"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_2196373945720374912">
 			<position dim="0">2316.188599999999951</position>
@@ -7676,10 +7718,11 @@
 				<pt x="2260.634700000000066" y="1896.287897862156115" />
 				<pt x="2265.826399999999921" y="1896.232588235236108" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T238.1"/>
+			<UserParam type="string" name="label" value="T238"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.027654813460003"/>
 			<UserParam type="float" name="SD_ppm" value="14.583870310723613"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_5068111435437013712">
 			<position dim="0">2234.723199999999906</position>
@@ -7730,10 +7773,11 @@
 				<pt x="2153.70010000000002" y="1541.732720672589721" />
 				<pt x="2159.018000000000029" y="1541.656604433796929" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T240.1"/>
+			<UserParam type="string" name="label" value="T240"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.038058119396413"/>
 			<UserParam type="float" name="SD_ppm" value="24.685899433150418"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_14880201573811942647">
 			<position dim="0">2460.544499999999971</position>
@@ -7774,10 +7818,11 @@
 				<pt x="2392.784000000000106" y="1568.651552688314041" />
 				<pt x="2398.01740000000018" y="1568.573536730716569" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T242.1"/>
+			<UserParam type="string" name="label" value="T242"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.039007978798736"/>
 			<UserParam type="float" name="SD_ppm" value="24.867822796839732"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_5322749189241434745">
 			<position dim="0">2411.914999999999964</position>
@@ -7791,10 +7836,11 @@
 				<pt x="2411.914999999999964" y="1861.090891549004709" />
 				<pt x="2417.183500000000095" y="1861.125926981723296" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T243.1"/>
+			<UserParam type="string" name="label" value="T243"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.017517716359307"/>
 			<UserParam type="float" name="SD_ppm" value="9.41251797697347"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_17523294400186120337">
 			<position dim="0">2479.38610000000017</position>
@@ -7829,10 +7875,11 @@
 				<pt x="2425.991700000000037" y="2158.451020146310839" />
 				<pt x="2431.278499999999895" y="2158.412762834853766" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T245.1"/>
+			<UserParam type="string" name="label" value="T245"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.019128655728464"/>
 			<UserParam type="float" name="SD_ppm" value="8.862292946966406"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_8416276272241661922">
 			<position dim="0">2130.114000000000033</position>
@@ -7846,10 +7893,11 @@
 				<pt x="2130.114000000000033" y="1579.943093420009973" />
 				<pt x="2135.693000000000211" y="1579.963888760734335" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T246.1"/>
+			<UserParam type="string" name="label" value="T246"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.010397670362181"/>
 			<UserParam type="float" name="SD_ppm" value="6.580997745069921"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_13874157993235401229">
 			<position dim="0">2316.188599999999951</position>
@@ -7934,10 +7982,11 @@
 				<pt x="2433.037100000000009" y="2027.881221033316251" />
 				<pt x="2438.281399999999849" y="2027.979250002757226" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T250.1"/>
+			<UserParam type="string" name="label" value="T250"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.049014484720454"/>
 			<UserParam type="float" name="SD_ppm" value="24.169709520570901"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_6675346238472377214">
 			<position dim="0">2253.720200000000205</position>
@@ -7951,10 +8000,11 @@
 				<pt x="2248.542199999999866" y="1545.984919659865227" />
 				<pt x="2253.720200000000205" y="1545.978175898361542" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T251.1"/>
+			<UserParam type="string" name="label" value="T251"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="3.371880751842886e-03"/>
 			<UserParam type="float" name="SD_ppm" value="2.181061447134848"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_4177776976011375854">
 			<position dim="0">2436.537800000000061</position>
@@ -7968,10 +8018,11 @@
 				<pt x="2431.278499999999895" y="1544.80304752258985" />
 				<pt x="2436.537800000000061" y="1544.888576914049736" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T252.1"/>
+			<UserParam type="string" name="label" value="T252"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.042764695729963"/>
 			<UserParam type="float" name="SD_ppm" value="27.682177335584445"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_3404719972762258001">
 			<position dim="0">2368.008200000000215</position>
@@ -7985,10 +8036,11 @@
 				<pt x="2362.562399999999798" y="1612.977935600209094" />
 				<pt x="2368.008200000000215" y="1612.950038581741865" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T253.1"/>
+			<UserParam type="string" name="label" value="T253"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.013948509233614"/>
 			<UserParam type="float" name="SD_ppm" value="8.647749946836056"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_1510041322410100755">
 			<position dim="0">2293.684699999999793</position>
@@ -8027,10 +8079,11 @@
 				<pt x="2493.204699999999775" y="1436.743674286708028" />
 				<pt x="2498.393099999999777" y="1436.786817881797333" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T255.1"/>
+			<UserParam type="string" name="label" value="T255"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.021571797544649"/>
 			<UserParam type="float" name="SD_ppm" value="15.014142083016647"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_10159193354140608506">
 			<position dim="0">2304.021200000000135</position>
@@ -8044,10 +8097,11 @@
 				<pt x="2304.021200000000135" y="2513.112932110656402" />
 				<pt x="2309.211800000000039" y="2513.015149930324696" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T256.1"/>
+			<UserParam type="string" name="label" value="T256"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.048891090165853"/>
 			<UserParam type="float" name="SD_ppm" value="19.454772885930673"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_15293352267620635047">
 			<position dim="0">2319.671299999999974</position>
@@ -8084,10 +8138,11 @@
 				<pt x="2319.671299999999974" y="1729.12969094608934" />
 				<pt x="2324.932499999999891" y="1729.109776936875505" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T258.1"/>
+			<UserParam type="string" name="label" value="T258"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="9.957004606907244e-03"/>
 			<UserParam type="float" name="SD_ppm" value="5.758424018567248"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_925368203741219696">
 			<position dim="0">2131.976400000000012</position>
@@ -8101,10 +8156,11 @@
 				<pt x="2126.352100000000064" y="1942.516814351441553" />
 				<pt x="2131.976400000000012" y="1942.4141167563198" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T259.1"/>
+			<UserParam type="string" name="label" value="T259"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.051348797560877"/>
 			<UserParam type="float" name="SD_ppm" value="26.434857386890581"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_17198820827940555384">
 			<position dim="0">2455.435500000000047</position>
@@ -8137,10 +8193,11 @@
 				<pt x="2066.577400000000125" y="1902.498603625609803" />
 				<pt x="2072.032700000000204" y="1902.414466326462389" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T261.1"/>
+			<UserParam type="string" name="label" value="T261"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.042068649573752"/>
 			<UserParam type="float" name="SD_ppm" value="22.112804576784608"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_12750316911469522381">
 			<position dim="0">2440.008200000000215</position>
@@ -8154,10 +8211,11 @@
 				<pt x="2434.790199999999913" y="2243.83576712804188" />
 				<pt x="2440.008200000000215" y="2243.878651969712792" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T262.1"/>
+			<UserParam type="string" name="label" value="T262"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.021442420835501"/>
 			<UserParam type="float" name="SD_ppm" value="9.556054076993666"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_16929718536696058955">
 			<position dim="0">2316.188599999999951</position>
@@ -8171,10 +8229,11 @@
 				<pt x="2310.957300000000032" y="1618.084821753458527" />
 				<pt x="2316.188599999999951" y="1618.006546296018541" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T263.1"/>
+			<UserParam type="string" name="label" value="T263"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.039137728719992"/>
 			<UserParam type="float" name="SD_ppm" value="24.188271756728586"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_9429020594666658834">
 			<position dim="0">2477.658600000000206</position>
@@ -8188,10 +8247,11 @@
 				<pt x="2477.658600000000206" y="2318.058167567166493" />
 				<pt x="2482.830800000000181" y="2317.971135617282471" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T264.1"/>
+			<UserParam type="string" name="label" value="T264"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.043515974942066"/>
 			<UserParam type="float" name="SD_ppm" value="18.772950771547208"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_4917717027748334870">
 			<position dim="0">2401.490600000000086</position>
@@ -8205,10 +8265,11 @@
 				<pt x="2396.280799999999999" y="1653.727508866987591" />
 				<pt x="2401.490600000000086" y="1653.629907322067993" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T265.1"/>
+			<UserParam type="string" name="label" value="T265"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.048800772459799"/>
 			<UserParam type="float" name="SD_ppm" value="29.510431633984389"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_12383683518728261590">
 			<position dim="0">2124.465799999999945</position>
@@ -8222,10 +8283,11 @@
 				<pt x="2118.887700000000223" y="1522.448428290901575" />
 				<pt x="2124.465799999999945" y="1522.365266525093375" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T266.1"/>
+			<UserParam type="string" name="label" value="T266"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.0415808829041"/>
 			<UserParam type="float" name="SD_ppm" value="27.312595824758724"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_1583119142016402466">
 			<position dim="0">2146.596000000000004</position>
@@ -8314,10 +8376,11 @@
 				<pt x="2429.510699999999815" y="1905.749138171280492" />
 				<pt x="2434.790199999999913" y="1905.814248448460603" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T270.1"/>
+			<UserParam type="string" name="label" value="T270"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.032555138590074"/>
 			<UserParam type="float" name="SD_ppm" value="17.082302083369342"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_2027900418508605084">
 			<position dim="0">2346.297999999999774</position>
@@ -8331,10 +8394,11 @@
 				<pt x="2340.935300000000098" y="1412.175202071534841" />
 				<pt x="2346.297999999999774" y="1412.209122009212933" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T271.1"/>
+			<UserParam type="string" name="label" value="T271"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.016959968839046"/>
 			<UserParam type="float" name="SD_ppm" value="12.009674954251295"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_1306039369812879929">
 			<position dim="0">2475.940700000000106</position>
@@ -8348,10 +8412,11 @@
 				<pt x="2470.794800000000123" y="1311.703538862939467" />
 				<pt x="2475.940700000000106" y="1311.670198936189536" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T272.1"/>
+			<UserParam type="string" name="label" value="T272"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.016669963374984"/>
 			<UserParam type="float" name="SD_ppm" value="12.708797938161505"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_14356764654261201422">
 			<position dim="0">2054.11239999999998</position>
@@ -8563,10 +8628,11 @@
 				<pt x="2274.508600000000115" y="1432.730769896746324" />
 				<pt x="2279.761399999999867" y="1432.713460945861698" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T281.1"/>
+			<UserParam type="string" name="label" value="T281"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="8.654475442316661e-03"/>
 			<UserParam type="float" name="SD_ppm" value="6.040582014588181"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_10311526739941384046">
 			<position dim="0">2218.869599999999991</position>
@@ -8580,10 +8646,11 @@
 				<pt x="2213.441400000000158" y="1545.544438588196499" />
 				<pt x="2218.869599999999991" y="1545.531420649562278" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T282.1"/>
+			<UserParam type="string" name="label" value="T282"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="6.508969317110311e-03"/>
 			<UserParam type="float" name="SD_ppm" value="4.21145880173603"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_3485442719273951885">
 			<position dim="0">2271.0304000000001</position>
@@ -8597,10 +8664,11 @@
 				<pt x="2265.826399999999921" y="1308.728650423029194" />
 				<pt x="2271.0304000000001" y="1308.722176744648095" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T283.1"/>
+			<UserParam type="string" name="label" value="T283"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="3.236839190549289e-03"/>
 			<UserParam type="float" name="SD_ppm" value="2.473276026393854"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_7933270947021762650">
 			<position dim="0">2066.577400000000125</position>
@@ -8614,10 +8682,11 @@
 				<pt x="2066.577400000000125" y="1609.922103237415968" />
 				<pt x="2072.032700000000204" y="1610.01693115886178" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T284.1"/>
+			<UserParam type="string" name="label" value="T284"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.047413960722906"/>
 			<UserParam type="float" name="SD_ppm" value="29.450222638638344"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_13343514148591584918">
 			<position dim="0">2458.847000000000207</position>
@@ -8631,10 +8700,11 @@
 				<pt x="2458.847000000000207" y="2256.813725484644238" />
 				<pt x="2463.956400000000031" y="2256.804576105138949" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T285.1"/>
+			<UserParam type="string" name="label" value="T285"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="4.57468975264419e-03"/>
 			<UserParam type="float" name="SD_ppm" value="2.027060972804411"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_17518854626305524736">
 			<position dim="0">2458.847000000000207</position>
@@ -8731,10 +8801,11 @@
 				<pt x="2418.93769999999995" y="1194.746134376655846" />
 				<pt x="2424.226500000000215" y="1194.780426493815412" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T290.1"/>
+			<UserParam type="string" name="label" value="T290"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.017146058579783"/>
 			<UserParam type="float" name="SD_ppm" value="14.351008991117523"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_6546482100771912741">
 			<position dim="0">2193.318900000000212</position>
@@ -8748,10 +8819,11 @@
 				<pt x="2193.318900000000212" y="1576.594018782220701" />
 				<pt x="2198.81939999999986" y="1576.522847785595786" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T291.1"/>
+			<UserParam type="string" name="label" value="T291"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.035585498312457"/>
 			<UserParam type="float" name="SD_ppm" value="22.571632970389874"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_611493635450527389">
 			<position dim="0">2217.072200000000066</position>
@@ -8765,10 +8837,11 @@
 				<pt x="2211.623500000000149" y="1882.909733613214257" />
 				<pt x="2217.072200000000066" y="1882.844788436201498" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T292.1"/>
+			<UserParam type="string" name="label" value="T292"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.03247258850638"/>
 			<UserParam type="float" name="SD_ppm" value="17.246258786251168"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_1276068484780993272">
 			<position dim="0">2489.747600000000148</position>
@@ -8839,10 +8912,11 @@
 				<pt x="2470.794800000000123" y="1187.285129846807877" />
 				<pt x="2475.940700000000106" y="1187.213905884939322" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T296.1"/>
+			<UserParam type="string" name="label" value="T296"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.035611980934267"/>
 			<UserParam type="float" name="SD_ppm" value="29.99536356795581"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_16026504753601459146">
 			<position dim="0">2196.987799999999879</position>
@@ -8876,10 +8950,11 @@
 				<pt x="2404.953599999999824" y="1826.577791461489142" />
 				<pt x="2410.166400000000067" y="1826.611456298296616" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T298.1"/>
+			<UserParam type="string" name="label" value="T298"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.016832418403737"/>
 			<UserParam type="float" name="SD_ppm" value="9.215191035646122"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_16290421735094563442">
 			<position dim="0">2176.892899999999827</position>
@@ -8893,10 +8968,11 @@
 				<pt x="2171.462799999999788" y="2387.633129510465096" />
 				<pt x="2176.892899999999827" y="2387.515897833849522" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T299.1"/>
+			<UserParam type="string" name="label" value="T299"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.058615838307706"/>
 			<UserParam type="float" name="SD_ppm" value="24.550370248990859"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_12626510412820167899">
 			<position dim="0">2323.173699999999826</position>
@@ -8929,10 +9005,11 @@
 				<pt x="2211.623500000000149" y="1507.24751201630761" />
 				<pt x="2217.072200000000066" y="1507.221286986441555" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T301.1"/>
+			<UserParam type="string" name="label" value="T301"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.013112514933027"/>
 			<UserParam type="float" name="SD_ppm" value="8.699718462745569"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_15733511310427031803">
 			<position dim="0">2115.178199999999833</position>
@@ -8969,10 +9046,11 @@
 				<pt x="2034.405500000000075" y="1565.57629029257123" />
 				<pt x="2039.875" y="1565.611130576911819" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T303.1"/>
+			<UserParam type="string" name="label" value="T303"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.017420142170295"/>
 			<UserParam type="float" name="SD_ppm" value="11.126860087766531"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_4169697051499708787">
 			<position dim="0">2391.035699999999906</position>
@@ -9007,10 +9085,11 @@
 				<pt x="2215.247800000000098" y="1576.664628677843211" />
 				<pt x="2220.666900000000169" y="1576.648565759698613" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T305.1"/>
+			<UserParam type="string" name="label" value="T305"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="8.031459072299185e-03"/>
 			<UserParam type="float" name="SD_ppm" value="5.093981204573471"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_9206404168793008851">
 			<position dim="0">2206.14449999999988</position>
@@ -9043,10 +9122,11 @@
 				<pt x="2403.220400000000154" y="1366.448212488954141" />
 				<pt x="2408.42450000000008" y="1366.391605717083621" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T307.1"/>
+			<UserParam type="string" name="label" value="T307"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.02830338593526"/>
 			<UserParam type="float" name="SD_ppm" value="20.713534504806503"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_7662798661582682098">
 			<position dim="0">2055.886300000000119</position>
@@ -9097,10 +9177,11 @@
 				<pt x="2278.000700000000052" y="2228.524266441249893" />
 				<pt x="2283.26740000000018" y="2228.464611160566165" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T309.1"/>
+			<UserParam type="string" name="label" value="T309"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.029827640341864"/>
 			<UserParam type="float" name="SD_ppm" value="13.384659985022653"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_3429226038186940441">
 			<position dim="0">2113.317300000000159</position>
@@ -9135,10 +9216,11 @@
 				<pt x="2135.693000000000211" y="1558.415396994077582" />
 				<pt x="2141.191800000000057" y="1558.446653866095858" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T311.1"/>
+			<UserParam type="string" name="label" value="T311"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.015628436009138"/>
 			<UserParam type="float" name="SD_ppm" value="10.028314217387074"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_12796575050967004386">
 			<position dim="0">2496.664499999999862</position>
@@ -9173,10 +9255,11 @@
 				<pt x="2368.008200000000215" y="1758.331713764238884" />
 				<pt x="2373.39240000000018" y="1758.324586362638911" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T313.1"/>
+			<UserParam type="string" name="label" value="T313"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="3.563700799986692e-03"/>
 			<UserParam type="float" name="SD_ppm" value="2.026755244666996"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_10666771715999960526">
 			<position dim="0">2420.703899999999976</position>
@@ -9190,10 +9273,11 @@
 				<pt x="2415.418599999999969" y="2377.302001084133735" />
 				<pt x="2420.703899999999976" y="2377.192820011619915" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T314.1"/>
+			<UserParam type="string" name="label" value="T314"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.05459053625691"/>
 			<UserParam type="float" name="SD_ppm" value="22.963758847602996"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_9280572821339638149">
 			<position dim="0">2366.192199999999957</position>
@@ -9258,10 +9342,11 @@
 				<pt x="2107.714800000000196" y="1641.628336167961152" />
 				<pt x="2113.317300000000159" y="1641.595726253547127" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T317.1"/>
+			<UserParam type="string" name="label" value="T317"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.016304957207012"/>
 			<UserParam type="float" name="SD_ppm" value="9.932284179829406"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_14629045591043354911">
 			<position dim="0">2355.29340000000002</position>
@@ -9275,10 +9360,11 @@
 				<pt x="2349.877399999999852" y="1652.520224266891546" />
 				<pt x="2355.29340000000002" y="1652.457773172336601" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T318.1"/>
+			<UserParam type="string" name="label" value="T318"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.031225547277472"/>
 			<UserParam type="float" name="SD_ppm" value="18.896069687402786"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_18251849631538333325">
 			<position dim="0">2061.20510000000013</position>
@@ -9334,10 +9420,11 @@
 				<pt x="2202.48050000000012" y="1708.08637129419003" />
 				<pt x="2207.970299999999952" y="1707.988840487712196" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T321.1"/>
+			<UserParam type="string" name="label" value="T321"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.048765403238899"/>
 			<UserParam type="float" name="SD_ppm" value="28.550544244874615"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_1710461392160758637">
 			<position dim="0">2050.569599999999809</position>
@@ -9371,10 +9458,11 @@
 				<pt x="2491.470400000000154" y="2394.872853885333825" />
 				<pt x="2496.664499999999862" y="2394.993805666384105" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T323.1"/>
+			<UserParam type="string" name="label" value="T323"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.06047589052514"/>
 			<UserParam type="float" name="SD_ppm" value="25.251596682568216"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_626016427783280945">
 			<position dim="0">2378.744999999999891</position>
@@ -9388,10 +9476,11 @@
 				<pt x="2373.39240000000018" y="1543.076014290170178" />
 				<pt x="2378.744999999999891" y="1543.040826288718563" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T324.1"/>
+			<UserParam type="string" name="label" value="T324"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.017594000725797"/>
 			<UserParam type="float" name="SD_ppm" value="11.402031507333765"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_9569484589158075318">
 			<position dim="0">2113.317300000000159</position>
@@ -9466,10 +9555,11 @@
 				<pt x="2286.76949999999988" y="1059.332452804050263" />
 				<pt x="2291.961299999999937" y="1059.349739568865743" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T328.1"/>
+			<UserParam type="string" name="label" value="T328"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="8.643382407751266e-03"/>
 			<UserParam type="float" name="SD_ppm" value="8.159206169633881"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_4426839943702196831">
 			<position dim="0">2245.080699999999979</position>
@@ -9483,10 +9573,11 @@
 				<pt x="2245.080699999999979" y="1999.695302690655126" />
 				<pt x="2250.264799999999923" y="1999.698823699823151" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T329.1"/>
+			<UserParam type="string" name="label" value="T329"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="1.760504583998503e-03"/>
 			<UserParam type="float" name="SD_ppm" value="0.880385642606016"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_8571969588491709856">
 			<position dim="0">2137.533399999999801</position>
@@ -9500,10 +9591,11 @@
 				<pt x="2131.976400000000012" y="1686.449789099743157" />
 				<pt x="2137.533399999999801" y="1686.46321084106512" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T330.1"/>
+			<UserParam type="string" name="label" value="T330"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="6.710870660981528e-03"/>
 			<UserParam type="float" name="SD_ppm" value="3.979272908076371"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_15364592766247890342">
 			<position dim="0">2229.519600000000082</position>
@@ -9517,10 +9609,11 @@
 				<pt x="2229.519600000000082" y="1145.343101133350501" />
 				<pt x="2234.723199999999906" y="1145.411084904208565" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T331.1"/>
+			<UserParam type="string" name="label" value="T331"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.033991885429032"/>
 			<UserParam type="float" name="SD_ppm" value="29.677462240354426"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_8734334354285411525">
 			<position dim="0">2111.473399999999856</position>
@@ -9688,10 +9781,11 @@
 				<pt x="2258.91359999999986" y="2006.1540239168271" />
 				<pt x="2264.094399999999951" y="2006.131075842224391" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T338.1"/>
+			<UserParam type="string" name="label" value="T338"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.011474037301356"/>
 			<UserParam type="float" name="SD_ppm" value="5.719452639118075"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_9252459895939169728">
 			<position dim="0">2425.991700000000037</position>
@@ -9805,10 +9899,11 @@
 				<pt x="2070.204200000000128" y="1666.722823266995647" />
 				<pt x="2075.709100000000035" y="1666.785874511421525" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T344.1"/>
+			<UserParam type="string" name="label" value="T344"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.031525622212939"/>
 			<UserParam type="float" name="SD_ppm" value="18.914378254929481"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_17504183779440084427">
 			<position dim="0">2295.404100000000199</position>
@@ -9822,10 +9917,11 @@
 				<pt x="2295.404100000000199" y="2567.734439772812948" />
 				<pt x="2300.573800000000119" y="2567.702504909967956" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T345.1"/>
+			<UserParam type="string" name="label" value="T345"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.015967431422526"/>
 			<UserParam type="float" name="SD_ppm" value="6.218528859188372"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_4985139383950586126">
 			<position dim="0">2019.160100000000057</position>
@@ -9839,10 +9935,11 @@
 				<pt x="2019.160100000000057" y="1525.243149199723575" />
 				<pt x="2024.928100000000086" y="1525.275553580630913" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T346.1"/>
+			<UserParam type="string" name="label" value="T346"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.016202190453669"/>
 			<UserParam type="float" name="SD_ppm" value="10.622580637779009"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_1399684737377279016">
 			<position dim="0">2028.732899999999972</position>
@@ -9856,10 +9953,11 @@
 				<pt x="2028.732899999999972" y="2319.752207994035416" />
 				<pt x="2034.405500000000075" y="2319.741263261942095" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T347.1"/>
+			<UserParam type="string" name="label" value="T347"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="5.472366046712713e-03"/>
 			<UserParam type="float" name="SD_ppm" value="2.359035994173418"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_9783921873539307765">
 			<position dim="0">2344.505599999999959</position>
@@ -9977,10 +10075,11 @@
 				<pt x="2339.143799999999828" y="1091.183614672662316" />
 				<pt x="2344.505599999999959" y="1091.170859138141168" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T353.1"/>
+			<UserParam type="string" name="label" value="T353"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="6.377767260573817e-03"/>
 			<UserParam type="float" name="SD_ppm" value="5.844849988496168"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_3493140189087918189">
 			<position dim="0">2319.671299999999974</position>
@@ -10013,10 +10112,11 @@
 				<pt x="2312.697400000000016" y="960.94245685040255" />
 				<pt x="2317.935599999999795" y="960.926558953674658" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T355.1"/>
+			<UserParam type="string" name="label" value="T355"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="7.948948363946329e-03"/>
 			<UserParam type="float" name="SD_ppm" value="8.272102103296175"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_16613868263531932304">
 			<position dim="0">2385.791000000000167</position>
@@ -10030,10 +10130,11 @@
 				<pt x="2380.509599999999864" y="1463.56783004685758" />
 				<pt x="2385.791000000000167" y="1463.645294884663599" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T356.1"/>
+			<UserParam type="string" name="label" value="T356"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.03873241890301"/>
 			<UserParam type="float" name="SD_ppm" value="26.463682178191728"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_698165093650093409">
 			<position dim="0">2312.697400000000016</position>
@@ -10047,10 +10148,11 @@
 				<pt x="2307.478900000000067" y="1190.875270041508429" />
 				<pt x="2312.697400000000016" y="1190.903932070634483" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T357.1"/>
+			<UserParam type="string" name="label" value="T357"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.014331014563025"/>
 			<UserParam type="float" name="SD_ppm" value="12.033873291290819"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_13785334729500830177">
 			<position dim="0">2204.306999999999789</position>
@@ -10064,10 +10166,11 @@
 				<pt x="2198.81939999999986" y="1305.522795852086347" />
 				<pt x="2204.306999999999789" y="1305.461262882690789" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T358.1"/>
+			<UserParam type="string" name="label" value="T358"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.030766484697779"/>
 			<UserParam type="float" name="SD_ppm" value="23.566964796167611"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_4552078778429781211">
 			<position dim="0">2349.877399999999852</position>
@@ -10081,10 +10184,11 @@
 				<pt x="2349.877399999999852" y="1710.544449487638985" />
 				<pt x="2355.29340000000002" y="1710.582538527045472" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T359.1"/>
+			<UserParam type="string" name="label" value="T359"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.019044519703248"/>
 			<UserParam type="float" name="SD_ppm" value="11.1334772254682"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_12443978693414558718">
 			<position dim="0">2285.020500000000084</position>
@@ -10098,10 +10202,11 @@
 				<pt x="2279.761399999999867" y="1356.206839695480085" />
 				<pt x="2285.020500000000084" y="1356.223323924413762" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T360.1"/>
+			<UserParam type="string" name="label" value="T360"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="8.24211446683876e-03"/>
 			<UserParam type="float" name="SD_ppm" value="6.077291557500736"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_13685576450990063320">
 			<position dim="0">2373.39240000000018</position>
@@ -10115,10 +10220,11 @@
 				<pt x="2368.008200000000215" y="1192.374593165824308" />
 				<pt x="2373.39240000000018" y="1192.323345483681351" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T361.1"/>
+			<UserParam type="string" name="label" value="T361"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.025623841071486"/>
 			<UserParam type="float" name="SD_ppm" value="21.490219500082546"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_2167960984773533086">
 			<position dim="0">2312.697400000000016</position>
@@ -10153,10 +10259,11 @@
 				<pt x="2438.281399999999849" y="1001.854788363140983" />
 				<pt x="2443.465299999999843" y="1001.905573626745536" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T363.1"/>
+			<UserParam type="string" name="label" value="T363"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.025392631802267"/>
 			<UserParam type="float" name="SD_ppm" value="25.344978655082787"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_14330533564863596576">
 			<position dim="0">2368.008200000000215</position>
@@ -10170,10 +10277,11 @@
 				<pt x="2362.562399999999798" y="1789.248085869514853" />
 				<pt x="2368.008200000000215" y="1789.308461102031288" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T364.1"/>
+			<UserParam type="string" name="label" value="T364"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.030187616258218"/>
 			<UserParam type="float" name="SD_ppm" value="16.871392619890077"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_7749446350751358817">
 			<position dim="0">2157.24350000000004</position>
@@ -10187,10 +10295,11 @@
 				<pt x="2157.24350000000004" y="2021.44688805529313" />
 				<pt x="2162.577000000000226" y="2021.380974112070135" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T365.1"/>
+			<UserParam type="string" name="label" value="T365"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.032956971611487"/>
 			<UserParam type="float" name="SD_ppm" value="16.303920292969629"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_11674798365780822705">
 			<position dim="0">2355.29340000000002</position>
@@ -10204,10 +10313,11 @@
 				<pt x="2355.29340000000002" y="1773.183954247285556" />
 				<pt x="2360.748799999999847" y="1773.08205718148929" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T366.1"/>
+			<UserParam type="string" name="label" value="T366"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.050948532898151"/>
 			<UserParam type="float" name="SD_ppm" value="28.733621636930479"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_13459927643760717721">
 			<position dim="0">2222.456000000000131</position>
@@ -10221,10 +10331,11 @@
 				<pt x="2217.072200000000066" y="1667.080849772010424" />
 				<pt x="2222.456000000000131" y="1667.111128983408435" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T367.1"/>
+			<UserParam type="string" name="label" value="T367"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.015139605699005"/>
 			<UserParam type="float" name="SD_ppm" value="9.081424102433644"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_4979826240700198304">
 			<position dim="0">2073.875900000000002</position>
@@ -10257,10 +10368,11 @@
 				<pt x="2073.875900000000002" y="1609.380433480429247" />
 				<pt x="2079.423499999999876" y="1609.40237846932223" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T369.1"/>
+			<UserParam type="string" name="label" value="T369"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.010972494446482"/>
 			<UserParam type="float" name="SD_ppm" value="6.81779112635175"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_11951074431693044320">
 			<position dim="0">2036.259600000000091</position>
@@ -10274,10 +10386,11 @@
 				<pt x="2030.654399999999896" y="1576.539437102624106" />
 				<pt x="2036.259600000000091" y="1576.477461441433661" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T370.1"/>
+			<UserParam type="string" name="label" value="T370"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.030987830595222"/>
 			<UserParam type="float" name="SD_ppm" value="19.655987641253343"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_4042725457641046628">
 			<position dim="0">2052.341800000000148</position>
@@ -10291,10 +10404,11 @@
 				<pt x="2052.341800000000148" y="2038.492198789265785" />
 				<pt x="2057.654100000000199" y="2038.526457645652727" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T371.1"/>
+			<UserParam type="string" name="label" value="T371"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.017129428193486"/>
 			<UserParam type="float" name="SD_ppm" value="8.40291871927036"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_535894999922013045">
 			<position dim="0">2109.600800000000163</position>
@@ -10308,10 +10422,11 @@
 				<pt x="2103.947200000000066" y="2336.729551271235323" />
 				<pt x="2109.600800000000163" y="2336.64779042596092" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T372.1"/>
+			<UserParam type="string" name="label" value="T372"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.040880422637201"/>
 			<UserParam type="float" name="SD_ppm" value="17.49502325543224"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_10708745507622811418">
 			<position dim="0">2351.68769999999995</position>
@@ -10325,10 +10440,11 @@
 				<pt x="2346.297999999999774" y="2763.706244584745491" />
 				<pt x="2351.68769999999995" y="2763.63019363554713" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T373.1"/>
+			<UserParam type="string" name="label" value="T373"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.038025474599181"/>
 			<UserParam type="float" name="SD_ppm" value="13.759059186715307"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_9750677956154114661">
 			<position dim="0">2191.491899999999987</position>
@@ -10342,10 +10458,11 @@
 				<pt x="2191.491899999999987" y="1759.441343649738883" />
 				<pt x="2196.987799999999879" y="1759.54047657287083" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T374.1"/>
+			<UserParam type="string" name="label" value="T374"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.049566461565973"/>
 			<UserParam type="float" name="SD_ppm" value="28.170910847637114"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_4740036451083265196">
 			<position dim="0">2052.341800000000148</position>
@@ -10359,10 +10476,11 @@
 				<pt x="2047.017800000000079" y="2476.411174332941755" />
 				<pt x="2052.341800000000148" y="2476.343014421096086" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T375.1"/>
+			<UserParam type="string" name="label" value="T375"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.03407995592279"/>
 			<UserParam type="float" name="SD_ppm" value="13.762021947373674"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_15968856894897204047">
 			<position dim="0">2021.09089999999992</position>
@@ -10376,10 +10494,11 @@
 				<pt x="2015.269900000000007" y="1541.039931304092988" />
 				<pt x="2021.09089999999992" y="1540.998161709692795" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T376.1"/>
+			<UserParam type="string" name="label" value="T376"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.020884797200097"/>
 			<UserParam type="float" name="SD_ppm" value="13.552588624674938"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_9252057529577872104">
 			<position dim="0">2184.213400000000092</position>
@@ -10393,10 +10512,11 @@
 				<pt x="2184.213400000000092" y="1760.826643094943393" />
 				<pt x="2189.673200000000179" y="1760.829253419423822" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T377.1"/>
+			<UserParam type="string" name="label" value="T377"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="1.305162240214485e-03"/>
 			<UserParam type="float" name="SD_ppm" value="0.741220765780267"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_17623414133510866146">
 			<position dim="0">2167.89409999999998</position>
@@ -10410,10 +10530,11 @@
 				<pt x="2162.577000000000226" y="1280.217848630326671" />
 				<pt x="2167.89409999999998" y="1280.22653672020374" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T378.1"/>
+			<UserParam type="string" name="label" value="T378"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="4.344044938534355e-03"/>
 			<UserParam type="float" name="SD_ppm" value="3.393196090013606"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_3552445793072071659">
 			<position dim="0">2150.143599999999879</position>
@@ -10447,10 +10568,11 @@
 				<pt x="2339.143799999999828" y="1226.418355241130257" />
 				<pt x="2344.505599999999959" y="1226.457594549167879" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T380.1"/>
+			<UserParam type="string" name="label" value="T380"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.019619654018818"/>
 			<UserParam type="float" name="SD_ppm" value="15.997265593879636"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_10911976627736443251">
 			<position dim="0">2048.792699999999968</position>
@@ -10504,10 +10626,11 @@
 				<pt x="2362.562399999999798" y="1979.834767596302754" />
 				<pt x="2368.008200000000215" y="1979.756742915692939" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T383.1"/>
+			<UserParam type="string" name="label" value="T383"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.039012340304907"/>
 			<UserParam type="float" name="SD_ppm" value="19.705234846239431"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_18148742099053868226">
 			<position dim="0">2048.792699999999968</position>
@@ -10546,10 +10669,11 @@
 				<pt x="2118.887700000000223" y="1390.312621390412005" />
 				<pt x="2124.465799999999945" y="1390.380401323301157" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T385.1"/>
+			<UserParam type="string" name="label" value="T385"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.033889966444576"/>
 			<UserParam type="float" name="SD_ppm" value="24.375194361801619"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_12509508179789851166">
 			<position dim="0">2217.072200000000066</position>
@@ -10563,10 +10687,11 @@
 				<pt x="2211.623500000000149" y="1597.568638122459561" />
 				<pt x="2217.072200000000066" y="1597.627975574874654" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T386.1"/>
+			<UserParam type="string" name="label" value="T386"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.029668726207547"/>
 			<UserParam type="float" name="SD_ppm" value="18.570829776396945"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_10262439972721943923">
 			<position dim="0">2176.892899999999827</position>
@@ -10599,10 +10724,11 @@
 				<pt x="2424.226500000000215" y="1115.110999659793379" />
 				<pt x="2429.510699999999815" y="1115.156898186126" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T388.1"/>
+			<UserParam type="string" name="label" value="T388"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.022949263166311"/>
 			<UserParam type="float" name="SD_ppm" value="20.579826475981594"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_13158719758619989294">
 			<position dim="0">2039.875</position>
@@ -10635,10 +10761,11 @@
 				<pt x="2007.494400000000042" y="1781.556674775879401" />
 				<pt x="2013.308199999999943" y="1781.643184063836088" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T390.1"/>
+			<UserParam type="string" name="label" value="T390"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.043254643978344"/>
 			<UserParam type="float" name="SD_ppm" value="24.278539342123054"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_18381283504158219286">
 			<position dim="0">2081.286000000000058</position>
@@ -10652,10 +10779,11 @@
 				<pt x="2075.709100000000035" y="1498.5026706827407" />
 				<pt x="2081.286000000000058" y="1498.558701578836008" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T391.1"/>
+			<UserParam type="string" name="label" value="T391"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.028015448047654"/>
 			<UserParam type="float" name="SD_ppm" value="18.695278186121083"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_16910160256995002990">
 			<position dim="0">2090.683799999999792</position>
@@ -10669,10 +10797,11 @@
 				<pt x="2090.683799999999792" y="1663.899993336155148" />
 				<pt x="2096.398099999999886" y="1663.924866692594605" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T392.1"/>
+			<UserParam type="string" name="label" value="T392"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.012436678219728"/>
 			<UserParam type="float" name="SD_ppm" value="7.474358623320726"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_14345703244982708966">
 			<position dim="0">2059.429500000000189</position>
@@ -10686,10 +10815,11 @@
 				<pt x="2059.429500000000189" y="1760.563896605006448" />
 				<pt x="2064.781100000000151" y="1760.47829630421802" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T393.1"/>
+			<UserParam type="string" name="label" value="T393"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.042800150394214"/>
 			<UserParam type="float" name="SD_ppm" value="24.311069308062429"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_11595921421070804873">
 			<position dim="0">2041.685500000000047</position>
@@ -10703,10 +10833,11 @@
 				<pt x="2036.259600000000091" y="972.837518749881269" />
 				<pt x="2041.685500000000047" y="972.826478745117015" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T394.1"/>
+			<UserParam type="string" name="label" value="T394"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="5.520002382127129e-03"/>
 			<UserParam type="float" name="SD_ppm" value="5.67415791137012"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_3173344317656295289">
 			<position dim="0">2333.803600000000188</position>
@@ -10720,10 +10851,11 @@
 				<pt x="2328.485200000000077" y="954.839517057474723" />
 				<pt x="2333.803600000000188" y="954.89326243251071" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T395.1"/>
+			<UserParam type="string" name="label" value="T395"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.026872687517994"/>
 			<UserParam type="float" name="SD_ppm" value="28.142877167527381"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_12554011686428582825">
 			<position dim="0">2344.505599999999959</position>
@@ -10756,10 +10888,11 @@
 				<pt x="2015.269900000000007" y="2651.795705966083006" />
 				<pt x="2021.09089999999992" y="2651.741934835335542" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T397.1"/>
+			<UserParam type="string" name="label" value="T397"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.026885565373647"/>
 			<UserParam type="float" name="SD_ppm" value="10.138728974716859"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_6937595060035157365">
 			<position dim="0">2075.709100000000035</position>
@@ -10773,10 +10906,11 @@
 				<pt x="2070.204200000000128" y="1267.844506576424237" />
 				<pt x="2075.709100000000035" y="1267.836094129788535" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T398.1"/>
+			<UserParam type="string" name="label" value="T398"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="4.206223317851253e-03"/>
 			<UserParam type="float" name="SD_ppm" value="3.317628660865077"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_9980591491151092836">
 			<position dim="0">2146.596000000000004</position>
@@ -10809,10 +10943,11 @@
 				<pt x="2180.544100000000071" y="1850.281997069480667" />
 				<pt x="2186.023099999999886" y="1850.355847004107091" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T400.1"/>
+			<UserParam type="string" name="label" value="T400"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.036924967313225"/>
 			<UserParam type="float" name="SD_ppm" value="19.956001570031226"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_7844608080029943075">
 			<position dim="0">2057.654100000000199</position>
@@ -10826,10 +10961,11 @@
 				<pt x="2057.654100000000199" y="1159.329506237497753" />
 				<pt x="2062.998500000000149" y="1159.337818879282168" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T401.1"/>
+			<UserParam type="string" name="label" value="T401"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="4.156320892207079e-03"/>
 			<UserParam type="float" name="SD_ppm" value="3.585094633614804"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_9868554043403427496">
 			<position dim="0">2050.569599999999809</position>
@@ -10843,10 +10979,11 @@
 				<pt x="2050.569599999999809" y="1019.284076043525829" />
 				<pt x="2055.886300000000119" y="1019.249553929446847" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T402.1"/>
+			<UserParam type="string" name="label" value="T402"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.017261057039491"/>
 			<UserParam type="float" name="SD_ppm" value="16.934777808615042"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_11247118806392514785">
 			<position dim="0">2111.473399999999856</position>
@@ -10860,10 +10997,11 @@
 				<pt x="2105.833000000000084" y="1861.7929858929906" />
 				<pt x="2111.473399999999856" y="1861.684853046742774" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T403.1"/>
+			<UserParam type="string" name="label" value="T403"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.054066423123913"/>
 			<UserParam type="float" name="SD_ppm" value="29.040819074303339"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_15388517483644187191">
 			<position dim="0">2382.276899999999841</position>
@@ -10877,10 +11015,11 @@
 				<pt x="2376.965999999999895" y="956.375178121306135" />
 				<pt x="2382.276899999999841" y="956.413294465995591" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T404.1"/>
+			<UserParam type="string" name="label" value="T404"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.019058172344704"/>
 			<UserParam type="float" name="SD_ppm" value="19.927109157998519"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_11359784331840780723">
 			<position dim="0">2316.188599999999951</position>
@@ -10961,10 +11100,11 @@
 				<pt x="2041.685500000000047" y="1152.319045810032094" />
 				<pt x="2047.017800000000079" y="1152.317709906952132" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T408.1"/>
+			<UserParam type="string" name="label" value="T408"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="6.679515399810045e-04"/>
 			<UserParam type="float" name="SD_ppm" value="0.579658844999373"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_5930089466193586468">
 			<position dim="0">2182.374899999999798</position>
@@ -10978,10 +11118,11 @@
 				<pt x="2176.892899999999827" y="2484.829219669741178" />
 				<pt x="2182.374899999999798" y="2484.798930981183275" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T409.1"/>
+			<UserParam type="string" name="label" value="T409"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.01514434427893"/>
 			<UserParam type="float" name="SD_ppm" value="6.094759535256771"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_17627416364357335857">
 			<position dim="0">2039.875</position>
@@ -10995,10 +11136,11 @@
 				<pt x="2034.405500000000075" y="931.819179988239625" />
 				<pt x="2039.875" y="931.77192983980126" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T410.1"/>
+			<UserParam type="string" name="label" value="T410"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.023625074219162"/>
 			<UserParam type="float" name="SD_ppm" value="25.354353854308616"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_1811301243321716172">
 			<position dim="0">2059.429500000000189</position>
@@ -11012,10 +11154,11 @@
 				<pt x="2059.429500000000189" y="1128.806098604746467" />
 				<pt x="2064.781100000000151" y="1128.789398197277251" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T411.1"/>
+			<UserParam type="string" name="label" value="T411"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="8.350203734607927e-03"/>
 			<UserParam type="float" name="SD_ppm" value="7.397431246152228"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_3485378768692219473">
 			<position dim="0">2122.593600000000151</position>
@@ -11029,10 +11172,11 @@
 				<pt x="2122.593600000000151" y="1617.45127153086105" />
 				<pt x="2128.238100000000031" y="1617.443591282542457" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T412.1"/>
+			<UserParam type="string" name="label" value="T412"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="3.840124159296466e-03"/>
 			<UserParam type="float" name="SD_ppm" value="2.374187923966525"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_9022759305526014355">
 			<position dim="0">2438.281399999999849</position>
@@ -11046,10 +11190,11 @@
 				<pt x="2438.281399999999849" y="1001.872196801080008" />
 				<pt x="2443.465299999999843" y="1001.914661661540436" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T413.1"/>
+			<UserParam type="string" name="label" value="T413"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.021232430230205"/>
 			<UserParam type="float" name="SD_ppm" value="21.19230410213876"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_6084223105613261000">
 			<position dim="0">2319.671299999999974</position>
@@ -11063,10 +11208,11 @@
 				<pt x="2319.671299999999974" y="985.998108772883143" />
 				<pt x="2324.932499999999891" y="985.952388282290372" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T414.1"/>
+			<UserParam type="string" name="label" value="T414"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.022860245296395"/>
 			<UserParam type="float" name="SD_ppm" value="23.185414979264031"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_5766433565644960323">
 			<position dim="0">2026.832400000000007</position>
@@ -11080,10 +11226,11 @@
 				<pt x="2021.09089999999992" y="1574.054721387676182" />
 				<pt x="2026.832400000000007" y="1574.132803864292327" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T415.1"/>
+			<UserParam type="string" name="label" value="T415"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.039041238308073"/>
 			<UserParam type="float" name="SD_ppm" value="24.802358814345546"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_17484030831826855015">
 			<position dim="0">2103.947200000000066</position>
@@ -11116,10 +11263,11 @@
 				<pt x="2151.917199999999866" y="891.165094423210803" />
 				<pt x="2157.24350000000004" y="891.215138414491321" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T417.1"/>
+			<UserParam type="string" name="label" value="T417"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.025021995640259"/>
 			<UserParam type="float" name="SD_ppm" value="28.077056936859876"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_8469646142350269142">
 			<position dim="0">2166.123199999999997</position>
@@ -11133,10 +11281,11 @@
 				<pt x="2160.792899999999918" y="1062.585086801482248" />
 				<pt x="2166.123199999999997" y="1062.559966038184484" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T418.1"/>
+			<UserParam type="string" name="label" value="T418"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.012560381648882"/>
 			<UserParam type="float" name="SD_ppm" value="11.820728784699654"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_16461727883993709656">
 			<position dim="0">2189.673200000000179</position>
@@ -11150,10 +11299,11 @@
 				<pt x="2184.213400000000092" y="1101.374836838849433" />
 				<pt x="2189.673200000000179" y="1101.38853705779502" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T419.1"/>
+			<UserParam type="string" name="label" value="T419"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="6.850109472794639e-03"/>
 			<UserParam type="float" name="SD_ppm" value="6.219559989030445"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_10723273230193029788">
 			<position dim="0">2317.935599999999795</position>
@@ -11186,10 +11336,11 @@
 				<pt x="2023.009000000000015" y="1220.787290147300382" />
 				<pt x="2028.732899999999972" y="1220.777540721340301" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T421.1"/>
+			<UserParam type="string" name="label" value="T421"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="4.874712980037573e-03"/>
 			<UserParam type="float" name="SD_ppm" value="3.9931055021818"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_17448698604148637995">
 			<position dim="0">2321.427099999999882</position>
@@ -11203,10 +11354,11 @@
 				<pt x="2316.188599999999951" y="878.992649434491113" />
 				<pt x="2321.427099999999882" y="878.985515598290476" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T422.1"/>
+			<UserParam type="string" name="label" value="T422"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="3.566918100318618e-03"/>
 			<UserParam type="float" name="SD_ppm" value="4.057977705601486"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_6462658601309690663">
 			<position dim="0">2083.146999999999935</position>
@@ -11220,10 +11372,11 @@
 				<pt x="2077.572200000000066" y="1210.818829485018341" />
 				<pt x="2083.146999999999935" y="1210.792388332052724" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T423.1"/>
+			<UserParam type="string" name="label" value="T423"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.013220576482809"/>
 			<UserParam type="float" name="SD_ppm" value="10.918826594077416"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_430934307908448384">
 			<position dim="0">2128.238100000000031</position>
@@ -11237,10 +11390,11 @@
 				<pt x="2128.238100000000031" y="1407.052434302722986" />
 				<pt x="2133.841800000000148" y="1407.070813280059156" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T424.1"/>
+			<UserParam type="string" name="label" value="T424"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="9.189488668084152e-03"/>
 			<UserParam type="float" name="SD_ppm" value="6.530978112616462"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_8937159074073549608">
 			<position dim="0">2314.447200000000066</position>
@@ -11273,10 +11427,11 @@
 				<pt x="2333.803600000000188" y="859.833522899544278" />
 				<pt x="2339.143799999999828" y="859.844586068219314" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T426.1"/>
+			<UserParam type="string" name="label" value="T426"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="5.531584337518326e-03"/>
 			<UserParam type="float" name="SD_ppm" value="6.433278773128836"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_16857747820578715200">
 			<position dim="0">2011.356899999999996</position>
@@ -11290,10 +11445,11 @@
 				<pt x="2011.356899999999996" y="1405.739933603421378" />
 				<pt x="2017.22810000000004" y="1405.66251911888503" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T427.1"/>
+			<UserParam type="string" name="label" value="T427"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.038707242268174"/>
 			<UserParam type="float" name="SD_ppm" value="27.535895638629356"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_10714867338982130820">
 			<position dim="0">2410.166400000000067</position>
@@ -11307,10 +11463,11 @@
 				<pt x="2404.953599999999824" y="875.365259694546353" />
 				<pt x="2410.166400000000067" y="875.329017671046586" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T428.1"/>
+			<UserParam type="string" name="label" value="T428"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.018121011749883"/>
 			<UserParam type="float" name="SD_ppm" value="20.701514803773584"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_14897638103752113319">
 			<position dim="0">2162.577000000000226</position>
@@ -11324,10 +11481,11 @@
 				<pt x="2162.577000000000226" y="826.507228069604366" />
 				<pt x="2167.89409999999998" y="826.51123569552135" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T429.1"/>
+			<UserParam type="string" name="label" value="T429"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="2.003812958491836e-03"/>
 			<UserParam type="float" name="SD_ppm" value="2.424429009616378"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_1216511045582904264">
 			<position dim="0">2139.367499999999836</position>
@@ -11341,10 +11499,11 @@
 				<pt x="2133.841800000000148" y="1055.645477170176946" />
 				<pt x="2139.367499999999836" y="1055.696885494920934" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T430.1"/>
+			<UserParam type="string" name="label" value="T430"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.025704162371994"/>
 			<UserParam type="float" name="SD_ppm" value="24.348644565203042"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
 		</feature>
 		<feature id="f_5210021208417746191">
 			<position dim="0">2385.791000000000167</position>
@@ -11358,10 +11517,11 @@
 				<pt x="2385.791000000000167" y="943.231345890794955" />
 				<pt x="2391.035699999999906" y="943.25625408930523" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T431.1"/>
+			<UserParam type="string" name="label" value="T431"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.012454099255137"/>
 			<UserParam type="float" name="SD_ppm" value="13.203478523016832"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_6244178397615412071">
 			<position dim="0">2164.341300000000047</position>
@@ -11432,10 +11592,11 @@
 				<pt x="2433.037100000000009" y="960.572582643927149" />
 				<pt x="2438.281399999999849" y="960.611040138600174" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T435.1"/>
+			<UserParam type="string" name="label" value="T435"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.019228747336505"/>
 			<UserParam type="float" name="SD_ppm" value="20.017604885320981"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_13916592869622500300">
 			<position dim="0">2392.784000000000106</position>
@@ -11449,10 +11610,11 @@
 				<pt x="2392.784000000000106" y="869.886393280120501" />
 				<pt x="2398.01740000000018" y="869.87414891543699" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T436.1"/>
+			<UserParam type="string" name="label" value="T436"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="6.122182341755432e-03"/>
 			<UserParam type="float" name="SD_ppm" value="7.037959757415016"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="0.5"/>
 		</feature>
 		<feature id="f_10147015604772775807">
 			<position dim="0">2231.26260000000002</position>
@@ -11466,10 +11628,11 @@
 				<pt x="2226.005799999999908" y="826.50686533551027" />
 				<pt x="2231.26260000000002" y="826.487375573253757" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T437.1"/>
+			<UserParam type="string" name="label" value="T437"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="9.744881128239086e-03"/>
 			<UserParam type="float" name="SD_ppm" value="11.790580858747166"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_8002577509882545576">
 			<position dim="0">2036.259600000000091</position>
@@ -11502,10 +11665,11 @@
 				<pt x="2005.559999999999945" y="2531.696907335437572" />
 				<pt x="2011.356899999999996" y="2531.569290469105454" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T439.1"/>
+			<UserParam type="string" name="label" value="T439"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.063808433166049"/>
 			<UserParam type="float" name="SD_ppm" value="25.204455256062555"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_6439916495748663103">
 			<position dim="0">2489.747600000000148</position>
@@ -11519,10 +11683,11 @@
 				<pt x="2484.555499999999938" y="850.297198946634921" />
 				<pt x="2489.747600000000148" y="850.323903239229821" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T440.1"/>
+			<UserParam type="string" name="label" value="T440"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.01335214629745"/>
 			<UserParam type="float" name="SD_ppm" value="15.702670371769427"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_6577895467092461988">
 			<position dim="0">2448.619299999999839</position>
@@ -11536,10 +11701,11 @@
 				<pt x="2443.465299999999843" y="830.9841162131479" />
 				<pt x="2448.619299999999839" y="830.985185650684116" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T441.1"/>
+			<UserParam type="string" name="label" value="T441"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="5.347187681081778e-04"/>
 			<UserParam type="float" name="SD_ppm" value="0.643476106939535"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_8629766171681189474">
 			<position dim="0">2036.259600000000091</position>
@@ -11572,10 +11738,11 @@
 				<pt x="2068.384500000000116" y="925.104565676947573" />
 				<pt x="2073.875900000000002" y="925.077996985449772" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T443.1"/>
+			<UserParam type="string" name="label" value="T443"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.013284345748905"/>
 			<UserParam type="float" name="SD_ppm" value="14.360037778962933"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_7459857709672936328">
 			<position dim="0">2103.947200000000066</position>
@@ -11589,10 +11756,11 @@
 				<pt x="2098.285400000000209" y="930.674944852535191" />
 				<pt x="2103.947200000000066" y="930.708574303734849" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T444.1"/>
+			<UserParam type="string" name="label" value="T444"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.016814725599829"/>
 			<UserParam type="float" name="SD_ppm" value="18.06691144171193"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_1747517360768976839">
 			<position dim="0">2086.912200000000212</position>
@@ -11606,10 +11774,11 @@
 				<pt x="2086.912200000000212" y="897.490577960963719" />
 				<pt x="2092.584699999999884" y="897.467491354770118" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T445.1"/>
+			<UserParam type="string" name="label" value="T445"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.011543303096801"/>
 			<UserParam type="float" name="SD_ppm" value="12.861919500104104"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_10959714027095477006">
 			<position dim="0">2086.912200000000212</position>
@@ -11623,10 +11792,11 @@
 				<pt x="2086.912200000000212" y="897.481488540951318" />
 				<pt x="2092.584699999999884" y="897.451312784448419" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T446.1"/>
+			<UserParam type="string" name="label" value="T446"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.015087878251446"/>
 			<UserParam type="float" name="SD_ppm" value="16.811635778570317"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 		<feature id="f_8527957607781633288">
 			<position dim="0">2455.435500000000047</position>
@@ -11640,10 +11810,11 @@
 				<pt x="2450.31919999999991" y="807.356600668083502" />
 				<pt x="2455.435500000000047" y="807.402134477023196" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T447.1"/>
+			<UserParam type="string" name="label" value="T447"/>
 			<UserParam type="float" name="FWHM" value="0.0"/>
 			<UserParam type="float" name="SD" value="0.022766904469855"/>
 			<UserParam type="float" name="SD_ppm" value="28.19852151821193"/>
+			<UserParam type="float" name="FWHM_mz_avg" value="1.5"/>
 		</feature>
 	</featureList>
 </featureMap>
