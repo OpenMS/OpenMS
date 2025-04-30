@@ -244,21 +244,7 @@ protected:
     PeptideMap& peptide_map,
     bool external = false);
 
-  void checkNumObservations_(Size n_pos, Size n_neg, const String& note = "") const;
-
-  void getUnbiasedSample_(const std::multimap<double, std::pair<Size, bool> >& valid_obs,
-                          std::map<Size, double>& training_labels);
-
-  void getRandomSample_(std::map<Size, double>& training_labels) const;
-
-  void classifyFeatures_(FeatureMap& features);
-
-  void filterFeaturesFinalizeAssay_(Feature& best_feature, double best_quality,
-                                    const double quality_cutoff);
-
   void filterFeatures_(FeatureMap& features, bool classified);
-
-  void calculateFDR_(FeatureMap& features);
 
   // seeds for untargeted extraction
   Size addSeeds_(std::vector<PeptideIdentification>& peptides, const FeatureMap& seeds);

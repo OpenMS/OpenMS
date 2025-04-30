@@ -46,12 +46,9 @@ namespace OpenMS
     /// Default constructor
     FFIDAlgoExternalIDHandler();
 
-    /// Initialize SVM parameters
-    void initSVMParameters(const Param& param);
-
     /// Reset the handler's state
     void reset();
-    
+
     /// Add an external peptide to the handler's map
     void addExternalPeptide(PeptideIdentification& peptide);
     
@@ -72,7 +69,20 @@ namespace OpenMS
     
     /// Get the RT transformation
     const TransformationDescription& getRTTransformation() const;
+        
+    /// Classify features using SVM
+    void classifyFeaturesWithSVM(FeatureMap& features, const Param& param);
+
+    /// Filter classified features
+    void filterClassifiedFeatures(FeatureMap& features, double quality_cutoff);
+
+    /// Calculate FDR for classified features
+    void calculateFDR(FeatureMap& features);
     
+    /// Get SVM probabilities for internal features
+    const std::map<double, std::pair<Size, Size> >& getSVMProbsInternal() const;
+     
+  private:
     /// Add external peptide to charge map (merged version for compatibility)
     void addExternalPeptideToMap(PeptideIdentification& peptide,
                                std::map<AASequence,
@@ -85,7 +95,23 @@ namespace OpenMS
     
     /// Check and set feature class based on external data
     void annotateFeatureWithExternalIDs(Feature& feature);
-    
+  
+    /// Initialize SVM parameters
+    void initSVMParameters(const Param& param);
+
+    /// Finalize assay features
+    void finalizeAssayFeatures(Feature& best_feature, double best_quality, double quality_cutoff);
+
+    /// Get random sample for SVM training
+    void getRandomSample(std::map<Size, double>& training_labels);
+
+    /// Check observation counts for SVM
+    void checkNumObservations(Size n_pos, Size n_neg, const String& note = "") const;
+
+    /// Get unbiased sample for SVM training
+    void getUnbiasedSample(const std::multimap<double, std::pair<Size, bool> >& valid_obs,
+                          std::map<Size, double>& training_labels);
+
     /// Add dummy peptide identification from external data
     void addDummyPeptideID(Feature& feature, const PeptideIdentification* ext_id);
     
@@ -97,56 +123,6 @@ namespace OpenMS
                                     std::vector<double>& fdr_qvalues,
                                     Size n_internal_features);
 
-    /// Check observation counts for SVM
-    void checkNumObservations(Size n_pos, Size n_neg, const String& note = "") const;
-
-    /// Get unbiased sample for SVM training
-    void getUnbiasedSample(const std::multimap<double, std::pair<Size, bool> >& valid_obs,
-                          std::map<Size, double>& training_labels);
-
-    /// Get random sample for SVM training
-    void getRandomSample(std::map<Size, double>& training_labels);
-
-    /// Classify features using SVM
-    void classifyFeaturesWithSVM(FeatureMap& features, const Param& param);
-
-    /// Finalize assay features
-    void finalizeAssayFeatures(Feature& best_feature, double best_quality, double quality_cutoff);
-
-    /// Filter classified features
-    void filterClassifiedFeatures(FeatureMap& features, double quality_cutoff);
-
-    /// Calculate FDR for classified features
-    void calculateFDR(FeatureMap& features);
-    
-    /// Get the number of external peptides
-    Size getNumberOfExternalPeptides() const;
-    
-    /// Get the number of external features
-    Size getNumberOfExternalFeatures() const;
-
-    /// Get the number of internal features
-    Size getNumberOfInternalFeatures() const;
-
-    /// Get SVM probabilities for internal features
-    const std::map<double, std::pair<Size, Size> >& getSVMProbsInternal() const;
-    
-    /// Get SVM probabilities for external features
-    const std::multiset<double>& getSVMProbsExternal() const;
-    
-    /// Get mutable access to SVM probabilities for external features
-    std::multiset<double>& getSVMProbsExternalMutable();
-    
-    /// Set the RT transformation
-    void setRTTransformation(const TransformationDescription& trafo);
-    
-    /// Increment internal feature counter
-    void incrementInternalFeatureCount();
-    
-    /// Reset feature counters
-    void resetFeatureCounts();
-
-  private:
     /// External peptide storage
     ExternalPeptideMap external_peptide_map_;
     

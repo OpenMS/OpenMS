@@ -665,50 +665,10 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample(const std::multimap<double, st
     }
   }
   
-  Size FFIDAlgoExternalIDHandler::getNumberOfExternalPeptides() const
-  {
-    return n_external_peptides_;
-  }
-  
-  Size FFIDAlgoExternalIDHandler::getNumberOfExternalFeatures() const
-  {
-    return n_external_features_;
-  }
-
-  Size FFIDAlgoExternalIDHandler::getNumberOfInternalFeatures() const
-  {
-    return n_internal_features_;
-  }
-
   const std::map<double, std::pair<Size, Size> >& FFIDAlgoExternalIDHandler::getSVMProbsInternal() const
   {
     return svm_probs_internal_;
   }
   
-  const std::multiset<double>& FFIDAlgoExternalIDHandler::getSVMProbsExternal() const
-  {
-    return svm_probs_external_;
-  }
-  
-  std::multiset<double>& FFIDAlgoExternalIDHandler::getSVMProbsExternalMutable()
-  {
-    return svm_probs_external_;
-  }
-  
-  void FFIDAlgoExternalIDHandler::setRTTransformation(const TransformationDescription& trafo)
-  {
-    rt_transformation_ = trafo;
-  }
-  
-  void FFIDAlgoExternalIDHandler::incrementInternalFeatureCount()
-  {
-    ++n_internal_features_;
-  }
-  
-  void FFIDAlgoExternalIDHandler::resetFeatureCounts()
-  {
-    n_internal_features_ = 0;
-    n_external_features_ = 0;
-  }
 
 } // namespace OpenMS

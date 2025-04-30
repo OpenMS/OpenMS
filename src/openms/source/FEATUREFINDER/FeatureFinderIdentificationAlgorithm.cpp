@@ -1104,18 +1104,6 @@ namespace OpenMS
     }
   }
 
-  void OpenMS::FeatureFinderIdentificationAlgorithm::checkNumObservations_(OpenMS::Size n_pos, OpenMS::Size n_neg, const OpenMS::String& note) const
-  {
-    // This method is now deprecated as the functionality has been moved to ExternalIDHandler::checkNumObservations
-    // It remains here for backward compatibility but should not be called directly
-    
-    // Create ExternalIDHandler and initialize parameters
-    OpenMS::FFIDAlgoExternalIDHandler ext_handler;
-    
-    // Check observations using the ExternalIDHandler
-    ext_handler.checkNumObservations(n_pos, n_neg, note);
-  }
-
   void FeatureFinderIdentificationAlgorithm::annotateFeaturesFinalizeAssay_(
     FeatureMap& features, map<Size, vector<PeptideIdentification*> >& feat_ids,
     RTMap& rt_internal)
@@ -1475,63 +1463,8 @@ namespace OpenMS
     add_mass_offset_peptides_ = double(param_.getValue("add_mass_offset_peptides"));
   }
 
-  void FeatureFinderIdentificationAlgorithm::getUnbiasedSample_(const multimap<double, pair<Size, bool> >& valid_obs,
-                          map<Size, double>& training_labels)
-  {
-    // This method is now deprecated as the functionality has been moved to ExternalIDHandler::getUnbiasedSample
-    // It remains here for backward compatibility but should not be called directly
-    
-    // Create ExternalIDHandler and initialize parameters
-    FFIDAlgoExternalIDHandler ext_handler;
-    ext_handler.initSVMParameters(param_);
-    
-    // Get unbiased sample using the ExternalIDHandler
-    ext_handler.getUnbiasedSample(valid_obs, training_labels);
-  }
-
-  void OpenMS::FeatureFinderIdentificationAlgorithm::getRandomSample_(std::map<OpenMS::Size, double>& training_labels) const
-  {
-    // This method is now deprecated as the functionality has been moved to ExternalIDHandler::getRandomSample
-    // It remains here for backward compatibility but should not be called directly
-    
-    // Create ExternalIDHandler and initialize parameters
-    OpenMS::FFIDAlgoExternalIDHandler ext_handler;
-    ext_handler.initSVMParameters(param_);
-    
-    // Get random sample using the ExternalIDHandler
-    ext_handler.getRandomSample(training_labels);
-  }
   
-
-  void OpenMS::FeatureFinderIdentificationAlgorithm::classifyFeatures_(OpenMS::FeatureMap& features)
-  {
-    // This method is now deprecated as the functionality has been moved to ExternalIDHandler::classifyFeaturesWithSVM
-    // It remains here for backward compatibility but should not be called directly
-    
-    // Create ExternalIDHandler and initialize parameters
-    OpenMS::FFIDAlgoExternalIDHandler ext_handler;
-    ext_handler.initSVMParameters(param_);
-    
-    // Classify features using the ExternalIDHandler
-    ext_handler.classifyFeaturesWithSVM(features, param_);
-  }
-
-
-  void OpenMS::FeatureFinderIdentificationAlgorithm::filterFeaturesFinalizeAssay_(OpenMS::Feature& best_feature, double best_quality,
-                                   const double quality_cutoff)
-  {
-    // This method is now deprecated as the functionality has been moved to ExternalIDHandler::finalizeAssayFeatures
-    // It remains here for backward compatibility but should not be called directly
-    
-    // Create ExternalIDHandler and initialize parameters
-    OpenMS::FFIDAlgoExternalIDHandler ext_handler;
-    ext_handler.initSVMParameters(param_);
-    
-    // Finalize assay features using the ExternalIDHandler
-    ext_handler.finalizeAssayFeatures(best_feature, best_quality, quality_cutoff);
-  }
-
-  void OpenMS::FeatureFinderIdentificationAlgorithm::filterFeatures_(OpenMS::FeatureMap& features, bool classified)
+  void FeatureFinderIdentificationAlgorithm::filterFeatures_(OpenMS::FeatureMap& features, bool classified)
   {
     if (features.empty())
     {
@@ -1549,17 +1482,4 @@ namespace OpenMS
     // in the postProcess_ method
   }
 
-
-  void OpenMS::FeatureFinderIdentificationAlgorithm::calculateFDR_(OpenMS::FeatureMap& features)
-  {
-    // This method is now deprecated as the functionality has been moved to ExternalIDHandler::calculateFDR
-    // It remains here for backward compatibility but should not be called directly
-    
-    // Create ExternalIDHandler and initialize parameters
-    OpenMS::FFIDAlgoExternalIDHandler ext_handler;
-    ext_handler.initSVMParameters(param_);
-    
-    // Calculate FDR using the ExternalIDHandler
-    ext_handler.calculateFDR(features);
-  }
 }
