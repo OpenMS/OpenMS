@@ -25,6 +25,8 @@
 
 namespace OpenMS
 {
+namespace Internal
+{
   /**
    * @brief Class for handling external peptide identifications in feature finding
    *
@@ -166,4 +168,5 @@ namespace OpenMS
     Size n_internal_features_;
   };
 
+} // namespace Internal
 } // namespace OpenMS

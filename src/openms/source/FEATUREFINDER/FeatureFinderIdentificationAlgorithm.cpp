@@ -9,6 +9,7 @@
 #include <OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 #include <OpenMS/FEATUREFINDER/FFIDAlgoExternalIDHandler.h>
 #include <OpenMS/FEATUREFINDER/EGHTraceFitter.h>
+
 #include <OpenMS/FEATUREFINDER/ElutionModelFitter.h>
 #include <OpenMS/FEATUREFINDER/GaussTraceFitter.h>
 #include <OpenMS/FEATUREFINDER/TraceFitter.h>
@@ -37,6 +38,7 @@
 #endif
 
 using namespace std;
+using namespace OpenMS::Internal;
 
 namespace OpenMS
 {

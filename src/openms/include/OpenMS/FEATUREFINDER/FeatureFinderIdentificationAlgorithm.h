@@ -204,7 +204,7 @@ protected:
   /// TransformationDescription trafo_; // RT transformation (to range 0-1)
   std::map<String, double> isotope_probs_; ///< isotope probabilities of transitions
   MRMFeatureFinderScoring feat_finder_; ///< OpenSWATH feature finder
-  FFIDAlgoExternalIDHandler external_id_handler_; ///< Handler for external peptide IDs
+  Internal::FFIDAlgoExternalIDHandler external_id_handler_; ///< Handler for external peptide IDs
 
   ProgressLogger prog_log_;
 
