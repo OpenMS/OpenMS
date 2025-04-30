@@ -109,9 +109,7 @@ namespace OpenMS
         @param avg precalculated averagine
         @param iso_int_shift isotope shift in per_isotope_intensities.
         @param window_width isotope offset value range. If -1, set automatically.
-        @param allowed_isotope_error allowed isotope error to calculate the second best cos. If target_decoy_type is not PeakGroup::TargetDecoyType::target, the second best cosine and
-       its corresponding offset will be output
-        @param target_decoy_type TODO: documentation
+        @param excluded_masses masses not considered in the calculation.
         @return calculated cosine similarity score
      */
     static float getIsotopeCosineAndIsoOffset(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset,
