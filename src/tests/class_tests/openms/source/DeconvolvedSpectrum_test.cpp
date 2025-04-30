@@ -42,6 +42,9 @@ DeconvolvedSpectrum prec_deconv_spec_2 = fd_algo.getDeconvolvedSpectrum();
     fd_algo.performSpectrumDeconvolution(input[5], 6, PeakGroup());
 DeconvolvedSpectrum ms2_deconv_spec = fd_algo.getDeconvolvedSpectrum();
 
+DeconvolvedSpectrum test_deconv_spec = DeconvolvedSpectrum(1);
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
@@ -110,7 +113,6 @@ END_SECTION
 
 
 ////////
-DeconvolvedSpectrum test_deconv_spec = DeconvolvedSpectrum(1);
 START_SECTION((int getScanNumber() const))
 {
   test_deconv_spec.setOriginalSpectrum(test_spec);
