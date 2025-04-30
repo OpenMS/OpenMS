@@ -20,6 +20,8 @@ using namespace std;
 
 START_TEST(DeconvolvedSpectrum, "$Id$")
 
+MSSpectrum test_spec = input[0];
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
@@ -79,7 +81,6 @@ PeakMap input;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FLASHDeconv_sample_input1.mzML"), input);
 
 /// detailed constructor
-MSSpectrum test_spec = input[0];
 START_SECTION((DeconvolvedSpectrum(const MSSpectrum &spectrum, const int scan_number)))
 {
   DeconvolvedSpectrum tmp_spec = DeconvolvedSpectrum(1);
