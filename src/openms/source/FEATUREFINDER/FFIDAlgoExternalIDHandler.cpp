@@ -31,7 +31,7 @@ namespace OpenMS
   {
   }
 
-  void FFIDAlgoExternalIDHandler::initSVMParameters(const Param& param)
+  void FFIDAlgoExternalIDHandler::initSVMParameters_(const Param& param)
   {
     svm_min_prob_ = param.getValue("svm:min_prob");
     svm_n_parts_ = param.getValue("svm:xval");
@@ -141,7 +141,7 @@ namespace OpenMS
     return rt_transformation_;
   }
   
-  void FFIDAlgoExternalIDHandler::addExternalPeptideToMap(PeptideIdentification& peptide,
+  void FFIDAlgoExternalIDHandler::addExternalPeptideToMap_(PeptideIdentification& peptide,
                              std::map<AASequence,
                              std::map<Int, std::pair<std::multimap<double, PeptideIdentification*>,
                                                     std::multimap<double, PeptideIdentification*>>>>& peptide_map)
@@ -159,8 +159,8 @@ namespace OpenMS
     peptide_map[hit.getSequence()][charge].second.emplace(rt, &peptide);
   }
   
-  bool FFIDAlgoExternalIDHandler::fillExternalRTMap(const AASequence& sequence, Int charge,
-                        std::multimap<double, PeptideIdentification*>& rt_map)
+  bool FFIDAlgoExternalIDHandler::fillExternalRTMap_(const AASequence& sequence, Int charge,
+                         std::multimap<double, PeptideIdentification*>& rt_map)
   {
     auto seq_it = external_peptide_map_.find(sequence);
     if (seq_it == external_peptide_map_.end()) return false;
@@ -172,14 +172,14 @@ namespace OpenMS
     return true;
   }
   
-  void FFIDAlgoExternalIDHandler::annotateFeatureWithExternalIDs(Feature& feature)
+  void FFIDAlgoExternalIDHandler::annotateFeatureWithExternalIDs_(Feature& feature)
   {
     feature.setMetaValue("n_total_ids", 0);
     feature.setMetaValue("n_matching_ids", -1);
     feature.setMetaValue("feature_class", "unknown");
   }
   
-  void FFIDAlgoExternalIDHandler::addDummyPeptideID(Feature& feature, const PeptideIdentification* ext_id)
+  void FFIDAlgoExternalIDHandler::addDummyPeptideID_(Feature& feature, const PeptideIdentification* ext_id)
   {
     if (!ext_id) return;
     
@@ -195,7 +195,7 @@ namespace OpenMS
     feature.getPeptideIdentifications().push_back(id);
   }
   
-  void FFIDAlgoExternalIDHandler::handleExternalFeature(Feature& feature, double prob_positive, double quality_cutoff)
+  void FFIDAlgoExternalIDHandler::handleExternalFeature_(Feature& feature, double prob_positive, double quality_cutoff)
   {
     svm_probs_external_.insert(prob_positive);
     
@@ -206,7 +206,7 @@ namespace OpenMS
     }
   }
   
-  void FFIDAlgoExternalIDHandler::adjustFDRForExternalFeatures(std::vector<double>& fdr_probs,
+  void FFIDAlgoExternalIDHandler::adjustFDRForExternalFeatures_(std::vector<double>& fdr_probs,
                                    std::vector<double>& fdr_qvalues,
                                    Size n_internal_features)
   {
@@ -226,7 +226,7 @@ namespace OpenMS
     }
   }
 
-  void FFIDAlgoExternalIDHandler::checkNumObservations(Size n_pos, Size n_neg, const String& note) const
+  void FFIDAlgoExternalIDHandler::checkNumObservations_(Size n_pos, Size n_neg, const String& note) const
   {
     if (n_pos < svm_n_parts_)
     {
@@ -243,8 +243,8 @@ namespace OpenMS
                                            OPENMS_PRETTY_FUNCTION, msg);
     }
   }
-void FFIDAlgoExternalIDHandler::getUnbiasedSample(const std::multimap<double, std::pair<Size, bool> >& valid_obs,
-                         std::map<Size, double>& training_labels)
+void FFIDAlgoExternalIDHandler::getUnbiasedSample_(const std::multimap<double, std::pair<Size, bool> >& valid_obs,
+                          std::map<Size, double>& training_labels)
   {
     // Create an unbiased training sample:
     // - same number of pos./neg. observations (approx.),
@@ -312,10 +312,10 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample(const std::multimap<double, st
         }
       }
     }
-    checkNumObservations(n_obs[1], n_obs[0], " after bias filtering");
+    checkNumObservations_(n_obs[1], n_obs[0], " after bias filtering");
   }
 
-  void FFIDAlgoExternalIDHandler::getRandomSample(std::map<Size, double>& training_labels)
+  void FFIDAlgoExternalIDHandler::getRandomSample_(std::map<Size, double>& training_labels)
   {
     // Pick a random subset of size "svm_n_samples_" for training: Shuffle the whole
     // sequence, then select the first "svm_n_samples_" elements.
@@ -363,7 +363,7 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample(const std::multimap<double, st
   void FFIDAlgoExternalIDHandler::classifyFeaturesWithSVM(FeatureMap& features, const Param& param)
   {
     // Initialize SVM parameters in the external ID handler
-    initSVMParameters(param);
+    initSVMParameters_(param);
 
     if (features.empty())
     {
@@ -428,11 +428,11 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample(const std::multimap<double, st
         }
       }
     }
-    checkNumObservations(n_obs[1], n_obs[0]);
+    checkNumObservations_(n_obs[1], n_obs[0]);
 
     if (!no_selection)
     {
-      getUnbiasedSample(valid_obs, training_labels);
+      getUnbiasedSample_(valid_obs, training_labels);
     }
     if (svm_n_samples_ > 0) // limited number of samples for training
     {
@@ -443,7 +443,7 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample(const std::multimap<double, st
       }
       else if (training_labels.size() > svm_n_samples_)
       {
-        getRandomSample(training_labels);
+        getRandomSample_(training_labels);
       }
     }
 
@@ -484,7 +484,7 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample(const std::multimap<double, st
     }
   }
 
-  void FFIDAlgoExternalIDHandler::finalizeAssayFeatures(Feature& best_feature, double best_quality, double quality_cutoff)
+  void FFIDAlgoExternalIDHandler::finalizeAssayFeatures_(Feature& best_feature, double best_quality, double quality_cutoff)
   {
     const String& feature_class = best_feature.getMetaValue("feature_class");
     if (feature_class == "positive") // true positive prediction
@@ -538,7 +538,7 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample(const std::multimap<double, st
       {
         if (!previous_ref.empty())
         {
-          finalizeAssayFeatures(*best_it, best_quality, quality_cutoff);
+          finalizeAssayFeatures_(*best_it, best_quality, quality_cutoff);
           best_quality = 0.0;
         }
         previous_ref = peptide_ref;
@@ -563,7 +563,7 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample(const std::multimap<double, st
       }
     }
     // set of features from the last assay:
-    finalizeAssayFeatures(*best_it, best_quality, quality_cutoff);
+    finalizeAssayFeatures_(*best_it, best_quality, quality_cutoff);
 
     features.erase(std::remove_if(features.begin(), features.end(),
                              [](const Feature& f) {
@@ -638,7 +638,7 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample(const std::multimap<double, st
     // FDRs are estimated from "internal" features, but apply only to "external"
     // ones. "Internal" features are considered "correct" by definition.
     // We need to adjust the q-values to take this into account:
-    adjustFDRForExternalFeatures(fdr_probs, fdr_qvalues, n_internal_features_);
+    adjustFDRForExternalFeatures_(fdr_probs, fdr_qvalues, n_internal_features_);
     features.setMetaValue("FDR_qvalues_corrected", fdr_qvalues);
 
     // @TODO: should we use "1 - qvalue" as overall quality for features?
@@ -670,5 +670,4 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample(const std::multimap<double, st
     return svm_probs_internal_;
   }
   
-
 } // namespace OpenMS

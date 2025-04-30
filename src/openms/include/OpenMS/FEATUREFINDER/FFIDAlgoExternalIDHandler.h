@@ -84,42 +84,42 @@ namespace OpenMS
      
   private:
     /// Add external peptide to charge map (merged version for compatibility)
-    void addExternalPeptideToMap(PeptideIdentification& peptide,
+    void addExternalPeptideToMap_(PeptideIdentification& peptide,
                                std::map<AASequence,
                                std::map<Int, std::pair<std::multimap<double, PeptideIdentification*>,
                                                       std::multimap<double, PeptideIdentification*>>>>& peptide_map);
     
     /// Fill an external RTMap from our data for a specific peptide and charge
-    bool fillExternalRTMap(const AASequence& sequence, Int charge,
+    bool fillExternalRTMap_(const AASequence& sequence, Int charge,
                          std::multimap<double, PeptideIdentification*>& rt_map);
     
     /// Check and set feature class based on external data
-    void annotateFeatureWithExternalIDs(Feature& feature);
+    void annotateFeatureWithExternalIDs_(Feature& feature);
   
     /// Initialize SVM parameters
-    void initSVMParameters(const Param& param);
+    void initSVMParameters_(const Param& param);
 
     /// Finalize assay features
-    void finalizeAssayFeatures(Feature& best_feature, double best_quality, double quality_cutoff);
+    void finalizeAssayFeatures_(Feature& best_feature, double best_quality, double quality_cutoff);
 
     /// Get random sample for SVM training
-    void getRandomSample(std::map<Size, double>& training_labels);
+    void getRandomSample_(std::map<Size, double>& training_labels);
 
     /// Check observation counts for SVM
-    void checkNumObservations(Size n_pos, Size n_neg, const String& note = "") const;
+    void checkNumObservations_(Size n_pos, Size n_neg, const String& note = "") const;
 
     /// Get unbiased sample for SVM training
-    void getUnbiasedSample(const std::multimap<double, std::pair<Size, bool> >& valid_obs,
+    void getUnbiasedSample_(const std::multimap<double, std::pair<Size, bool> >& valid_obs,
                           std::map<Size, double>& training_labels);
 
     /// Add dummy peptide identification from external data
-    void addDummyPeptideID(Feature& feature, const PeptideIdentification* ext_id);
+    void addDummyPeptideID_(Feature& feature, const PeptideIdentification* ext_id);
     
     /// Handle external feature probability
-    void handleExternalFeature(Feature& feature, double prob_positive, double quality_cutoff);
+    void handleExternalFeature_(Feature& feature, double prob_positive, double quality_cutoff);
     
     /// Adjust FDR calculation for external features
-    void adjustFDRForExternalFeatures(std::vector<double>& fdr_probs,
+    void adjustFDRForExternalFeatures_(std::vector<double>& fdr_probs,
                                     std::vector<double>& fdr_qvalues,
                                     Size n_internal_features);
 
