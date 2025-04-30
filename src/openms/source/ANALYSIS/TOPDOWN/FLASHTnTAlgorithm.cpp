@@ -287,7 +287,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
 
    // hit_by_tag |= !hits.empty();
     extender.run(hits, tags, dspec,tol, multiple_hits_per_spec_);
-    extender.getProteoforms(proteoform_hits_);
+    extender.fillProteoforms(proteoform_hits_);
 
     decoy_factor_ = tagger.getDecoyFactor();
   }

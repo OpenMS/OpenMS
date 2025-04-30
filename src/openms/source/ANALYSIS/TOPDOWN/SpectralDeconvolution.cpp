@@ -1180,7 +1180,6 @@ void SpectralDeconvolution::scoreAndFilterPeakGroups_()
       {
         if (std::abs(pg.getMonoMass() - pg2.getMonoMass()) < (3 + allowed_iso_error_) * iso_da_distance_ + .1) // if they are close enough
         {
-          //if (pg.getQscore() < pg2.getQscore()) pg.setQscore(pg2.getQscore());
           if (std::abs(pg2.getIsotopeCosine() - pg.getIsotopeCosine()) > .005 * (allowed_iso_error_ + 1))
           {
             pass = false;

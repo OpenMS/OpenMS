@@ -13,6 +13,7 @@
 
 namespace OpenMS
 {
+inline const int multi_ion_score = 1;
 inline const bool debug = false;
 inline const double i2f_mass = Residue::getInternalToFull().getMonoWeight();
 FLASHExtenderAlgorithm::FLASHExtenderAlgorithm(): DefaultParamHandler("FLASHExtenderAlgorithm"), ProgressLogger()
@@ -572,7 +573,6 @@ void FLASHExtenderAlgorithm::run(std::vector<ProteinHit>& hits,
 
     for (hi.mode_ = 0; hi.mode_ <= 2; hi.mode_++)
     {
-      hi.start_pro_indices_.clear();
       int max_mod_cntr_for_last_mode = -1;
       if (hi.mode_ == 2 && hi.calculated_precursor_mass_ <= 0)
       {//const ProteinHit& hit,
@@ -1134,7 +1134,6 @@ void FLASHExtenderAlgorithm::connectBetweenTags_(std::set<Size>& visited_tag_edg
     {
       if (! use_tags)
       {
-        hi.start_pro_indices_.clear();
         std::map<int, int> diff_count;
         for (const auto& p : hi.node_spec_map_.at(hi.mode_))
         {
@@ -1161,13 +1160,6 @@ void FLASHExtenderAlgorithm::connectBetweenTags_(std::set<Size>& visited_tag_edg
           top_diffs.push_back(maxHeap.top().second); // Get the difference
           maxHeap.pop();
         }
-
-        for (const auto& diff : top_diffs)
-        {
-          const auto low = std::lower_bound(pro_masses.begin(), pro_masses.end(), diff);
-          hi.start_pro_indices_.push_back(low - pro_masses.begin());
-        }
-        std::sort(hi.start_pro_indices_.begin(), hi.start_pro_indices_.end());
       }
 
       if (hi.mode_ != 2)
@@ -1232,39 +1224,6 @@ void FLASHExtenderAlgorithm::extendBetweenTags_(std::map<Size, std::set<std::pai
   // make the range of truncation well...  make use of the positional information
   if (start_vertex == src)
   {
-    /*
-    if (false && ! hi.start_pro_indices_.empty()) // TODO
-    {
-      int pro_i_start = start_pro_index + 1;
-      int pro_i_end = std::min(end_pro_index + 50, ((int)pro_mass_size - 1));
-
-      for (const auto& si : hi.start_pro_indices_)
-      {
-        double m = pro_masses[si];
-        for (pro_i_end = si + 1; pro_i_end < pro_mass_size; pro_i_end++)
-        {
-          if (pro_masses[pro_i_end] > m + max_mod_mass_ * max_mod_cntr) break;
-        }
-        for (pro_i_start = si - 1; pro_i_start > 0; pro_i_start--)
-        {
-          if (pro_masses[pro_i_start] < m - max_mod_mass_ * max_mod_cntr) break;
-        }
-        pro_i_start = std::max(pro_i_start, 1);
-        pro_i_end = std::min(pro_i_end, (int)pro_mass_size - 1);
-        end_pro_index = std::min(pro_i_end + 50, (int)pro_mass_size - 1);
-
-        for (int pro_i = pro_i_start; pro_i <= pro_i_end; pro_i++) // change later
-        {
-          Size vertex2 = getVertex_(0, pro_i, 0, 0, pro_mass_size); //
-          bool connected = hi.dag_.addEdge(vertex2, start_vertex, hi.visited_);
-
-          if (vertex2 >= hi.dag_.size() || ! connected) continue;
-          extendBetweenTags_(sinks, hi, vertex2, end_node_index, end_pro_index, diagonal_counter, pro_masses[pro_i], cumulative_mod_mass,
-                             node_max_score_map, max_mod_cntr_for_last_mode);
-        }
-      }
-    }
-    else*/
     {
       for (int pro_i = start_pro_index + 1; pro_i <= end_pro_index; pro_i++) // change later
       {
