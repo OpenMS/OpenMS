@@ -362,6 +362,9 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample(const std::multimap<double, st
 
   void FFIDAlgoExternalIDHandler::classifyFeaturesWithSVM(FeatureMap& features, const Param& param)
   {
+    // Initialize SVM parameters in the external ID handler
+    initSVMParameters(param);
+
     if (features.empty())
     {
       return;
@@ -571,6 +574,8 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample(const std::multimap<double, st
 
   void FFIDAlgoExternalIDHandler::calculateFDR(FeatureMap& features)
   {
+    if (getSVMProbsInternal().empty()) return;
+
     // cumulate the true/false positive counts, in decreasing probability order:
     Size n_false = 0, n_true = 0;
     for (std::map<double, std::pair<Size, Size> >::reverse_iterator prob_it =

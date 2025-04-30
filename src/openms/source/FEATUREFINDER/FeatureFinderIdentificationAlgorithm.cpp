@@ -670,9 +670,6 @@ namespace OpenMS
     // don't do SVM stuff unless we have external data to apply the model to:
     if (with_external_ids)
     {
-      // Initialize SVM parameters in the external ID handler
-      external_id_handler_.initSVMParameters(param_);
-
       external_id_handler_.classifyFeaturesWithSVM(features, param_);
     }
     // make sure proper unique ids get assigned to all features
@@ -699,10 +696,11 @@ namespace OpenMS
     if (features.empty()) return; // elution model fit throws on empty features
 
     // Calculate FDR if we have external IDs
-    if (with_external_ids && !external_id_handler_.getSVMProbsInternal().empty())
+    if (with_external_ids) 
     {
       external_id_handler_.calculateFDR(features);
-    }
+    }     
+    
     //TODO MRMFeatureFinderScoring already does an ElutionModel scoring. It uses EMG fitting.
     // Would be nice if we could only do the fitting once, since it is one of the bottlenecks.
     // What is the intention of this post-processing here anyway? Does it filter anything?
@@ -1113,7 +1111,6 @@ namespace OpenMS
     
     // Create ExternalIDHandler and initialize parameters
     OpenMS::FFIDAlgoExternalIDHandler ext_handler;
-    ext_handler.initSVMParameters(param_);
     
     // Check observations using the ExternalIDHandler
     ext_handler.checkNumObservations(n_pos, n_neg, note);
@@ -1462,9 +1459,6 @@ namespace OpenMS
     svm_quality_cutoff = param_.getValue("svm:min_prob");
     svm_n_parts_ = param_.getValue("svm:xval");
     svm_n_samples_ = param_.getValue("svm:samples");
-
-    // Initialize SVM parameters in the external ID handler
-    external_id_handler_.initSVMParameters(param_);
 
     // debug
     debug_level_ = param_.getValue("debug");
