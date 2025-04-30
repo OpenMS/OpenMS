@@ -39,6 +39,250 @@ using namespace std;
 
 namespace OpenMS
 {
+  /**
+   * @brief Class for handling external peptide identifications in feature finding
+   *
+   * This class encapsulates all functionality related to external peptide IDs in the
+   * feature finding process, including storage, RT transformation, and feature annotation.
+   */
+  class ExternalIDHandler
+  {
+  public:
+    /// RTMap for external data structure storage
+    typedef std::multimap<double, PeptideIdentification*> ExternalRTMap;
+    
+    /// Charge to External RTMap mapping
+    typedef std::map<Int, ExternalRTMap> ExternalChargeMap;
+    
+    /// Sequence to External Charge Map mapping
+    typedef std::map<AASequence, ExternalChargeMap> ExternalPeptideMap;
+
+    /// Default constructor
+    ExternalIDHandler() :
+      n_external_peptides_(0),
+      n_external_features_(0)
+    {
+    }
+
+    /// Reset the handler's state
+    void reset()
+    {
+      external_peptide_map_.clear();
+      rt_transformation_ = TransformationDescription();
+      n_external_peptides_ = 0;
+      n_external_features_ = 0;
+      svm_probs_external_.clear();
+    }
+    
+    /// Add an external peptide to the handler's map
+    void addExternalPeptide(PeptideIdentification& peptide)
+    {
+      if (peptide.getHits().empty())
+      {
+        return;
+      }
+      
+      peptide.sort();
+      PeptideHit& hit = peptide.getHits()[0];
+      peptide.getHits().resize(1);
+      
+      Int charge = hit.getCharge();
+      double rt = peptide.getRT();
+      double mz = peptide.getMZ();
+      
+      external_peptide_map_[hit.getSequence()][charge].emplace(rt, &peptide);
+      
+      OPENMS_LOG_DEBUG_NOFILE << "Adding peptide (external) " << hit.getSequence()
+                           << "; CHG: " << charge << "; RT: " << rt
+                           << "; MZ: " << mz << std::endl;
+    }
+    
+    /// Process external peptide IDs
+    void processExternalPeptides(std::vector<PeptideIdentification>& peptides_ext)
+    {
+      for (PeptideIdentification& pep : peptides_ext)
+      {
+        addExternalPeptide(pep);
+        pep.setMetaValue("FFId_category", "external");
+      }
+      
+      n_external_peptides_ = external_peptide_map_.size();
+    }
+    
+    /// Align internal and external IDs to estimate RT shifts
+    TransformationDescription alignInternalAndExternalIDs(
+        const std::vector<PeptideIdentification>& peptides_internal,
+        const std::vector<PeptideIdentification>& peptides_external,
+        double /* rt_quantile */)
+    {
+      // Align internal and external IDs to estimate RT shifts:
+      MapAlignmentAlgorithmIdentification aligner;
+      aligner.setReference(peptides_external); // go from internal to external scale
+      vector<vector<PeptideIdentification>> aligner_peptides(1, peptides_internal);
+      vector<TransformationDescription> aligner_trafos;
+
+      OPENMS_LOG_INFO << "Realigning internal and external IDs...";
+      aligner.align(aligner_peptides, aligner_trafos);
+      rt_transformation_ = aligner_trafos[0];
+      
+      vector<double> aligned_diffs;
+      rt_transformation_.getDeviations(aligned_diffs);
+      // We don't need the index variable anymore since we're not using rt_uncertainty
+      // Return the transformation description
+      
+      try
+      {
+        aligner_trafos[0].fitModel("lowess");
+        rt_transformation_ = aligner_trafos[0];
+      }
+      catch (Exception::BaseException& e)
+      {
+        OPENMS_LOG_ERROR << "Error: Failed to align RTs of internal/external peptides. "
+                       << "RT information will not be considered in the SVM classification. "
+                       << "The original error message was:\n" << e.what() << endl;
+      }
+      
+      return rt_transformation_;
+    }
+    
+    /// Transform RT from internal to external scale
+    double transformRT(double rt) const
+    {
+      return rt_transformation_.apply(rt);
+    }
+    
+    /// Check if we have RT transformation data
+    bool hasRTTransformation() const
+    {
+      return !rt_transformation_.getDataPoints().empty();
+    }
+    
+    /// Get the RT transformation
+    const TransformationDescription& getRTTransformation() const
+    {
+      return rt_transformation_;
+    }
+    
+    /// Add external peptide to charge map (merged version for compatibility)
+    void addExternalPeptideToMap(PeptideIdentification& peptide,
+                               std::map<AASequence,
+                               std::map<Int, std::pair<std::multimap<double, PeptideIdentification*>,
+                                                      std::multimap<double, PeptideIdentification*>>>>& peptide_map)
+    {
+      if (peptide.getHits().empty()) return;
+      
+      peptide.sort();
+      PeptideHit& hit = peptide.getHits()[0];
+      peptide.getHits().resize(1);
+      
+      Int charge = hit.getCharge();
+      double rt = peptide.getRT();
+      
+      // Add to the external map (second in the pair)
+      peptide_map[hit.getSequence()][charge].second.emplace(rt, &peptide);
+    }
+    
+    /// Fill an external RTMap from our data for a specific peptide and charge
+    bool fillExternalRTMap(const AASequence& sequence, Int charge,
+                         std::multimap<double, PeptideIdentification*>& rt_map)
+    {
+      auto seq_it = external_peptide_map_.find(sequence);
+      if (seq_it == external_peptide_map_.end()) return false;
+      
+      auto charge_it = seq_it->second.find(charge);
+      if (charge_it == seq_it->second.end()) return false;
+      
+      rt_map.insert(charge_it->second.begin(), charge_it->second.end());
+      return true;
+    }
+    
+    /// Check and set feature class based on external data
+    void annotateFeatureWithExternalIDs(Feature& feature)
+    {
+      feature.setMetaValue("n_total_ids", 0);
+      feature.setMetaValue("n_matching_ids", -1);
+      feature.setMetaValue("feature_class", "unknown");
+    }
+    
+    /// Add dummy peptide identification from external data
+    void addDummyPeptideID(Feature& feature, const PeptideIdentification* ext_id)
+    {
+      if (!ext_id) return;
+      
+      PeptideIdentification id = *ext_id;
+      id.clearMetaInfo();
+      id.setMetaValue("FFId_category", "implied");
+      id.setRT(feature.getRT());
+      id.setMZ(feature.getMZ());
+      // Only one peptide hit per ID - see function "addPeptideToMap_":
+      PeptideHit& hit = id.getHits()[0];
+      hit.clearMetaInfo();
+      hit.setScore(0.0);
+      feature.getPeptideIdentifications().push_back(id);
+    }
+    
+    /// Handle external feature probability
+    void handleExternalFeature(Feature& feature, double prob_positive, double quality_cutoff)
+    {
+      svm_probs_external_.insert(prob_positive);
+      
+      if (prob_positive >= quality_cutoff)
+      {
+        feature.setOverallQuality(prob_positive);
+        ++n_external_features_;
+      }
+    }
+    
+    /// Adjust FDR calculation for external features
+    void adjustFDRForExternalFeatures(std::vector<double>& fdr_probs,
+                                    std::vector<double>& fdr_qvalues,
+                                    Size n_internal_features)
+    {
+      std::multiset<double>::reverse_iterator ext_it = svm_probs_external_.rbegin();
+      Size external_count = 0;
+      
+      for (Int i = fdr_probs.size() - 1; i >= 0; --i)
+      {
+        double cutoff = fdr_probs[i];
+        while ((ext_it != svm_probs_external_.rend()) && (*ext_it >= cutoff))
+        {
+          ++external_count;
+          ++ext_it;
+        }
+        fdr_qvalues[i] = (fdr_qvalues[i] * external_count) /
+          (external_count + n_internal_features);
+      }
+    }
+    
+    /// Get the number of external peptides
+    Size getNumberOfExternalPeptides() const
+    {
+      return n_external_peptides_;
+    }
+    
+    /// Get the number of external features
+    Size getNumberOfExternalFeatures() const
+    {
+      return n_external_features_;
+    }
+
+  private:
+    /// External peptide storage
+    ExternalPeptideMap external_peptide_map_;
+    
+    /// RT transformation description
+    TransformationDescription rt_transformation_;
+    
+    /// Number of external peptides
+    Size n_external_peptides_;
+    
+    /// Number of external features
+    Size n_external_features_;
+    
+    /// SVM probabilities for external features
+    std::multiset<double> svm_probs_external_;
+  };
+
   FeatureFinderIdentificationAlgorithm::FeatureFinderIdentificationAlgorithm() :
     DefaultParamHandler("FeatureFinderIdentificationAlgorithm")
   {
@@ -440,10 +684,13 @@ namespace OpenMS
 
     if (with_external_ids)
     {
-      // align internal and external IDs to estimate RT shifts:
+      // Use a local instance of ExternalIDHandler
+      ExternalIDHandler handler;
+      
+      // Align internal and external IDs to estimate RT shifts
       MapAlignmentAlgorithmIdentification aligner;
       aligner.setReference(peptides_ext); // go from internal to external scale
-      vector<vector<PeptideIdentification> > aligner_peptides(1, peptides);
+      vector<vector<PeptideIdentification>> aligner_peptides(1, peptides);
       vector<TransformationDescription> aligner_trafos;
 
       OPENMS_LOG_INFO << "Realigning internal and external IDs...";
@@ -453,6 +700,7 @@ namespace OpenMS
       trafo_external_.getDeviations(aligned_diffs);
       Size index = std::max(Size(0), Size(rt_quantile_ * static_cast<double>(aligned_diffs.size())) - 1);
       rt_uncertainty = aligned_diffs[index];
+      
       try
       {
         aligner_trafos[0].fitModel("lowess");
@@ -511,12 +759,17 @@ namespace OpenMS
     }
 
     n_internal_peps_ = peptide_map_.size();
-    for (PeptideIdentification& pep : peptides_ext)
+    
+    if (with_external_ids)
     {
-      addPeptideToMap_(pep, peptide_map_, true);
-      pep.setMetaValue("FFId_category", "external");
+      // Process and add external peptides
+      for (PeptideIdentification& pep : peptides_ext)
+      {
+        addPeptideToMap_(pep, peptide_map_, true);
+        pep.setMetaValue("FFId_category", "external");
+      }
+      n_external_peps_ = peptide_map_.size() - n_internal_peps_;
     }
-    n_external_peps_ = peptide_map_.size() - n_internal_peps_;
 
     boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
     OpenSwath::SpectrumAccessPtr spec_temp =
@@ -1269,20 +1522,25 @@ namespace OpenMS
       }
       else // only external IDs -> no validation possible
       {
+        // Set feature class to unknown
         feat.setMetaValue("n_total_ids", 0);
         feat.setMetaValue("n_matching_ids", -1);
         feat.setMetaValue("feature_class", "unknown");
-        // add "dummy" peptide identification:
-        PeptideIdentification id = *(rt_external.begin()->second);
-        id.clearMetaInfo();
-        id.setMetaValue("FFId_category", "implied");
-        id.setRT(feat.getRT());
-        id.setMZ(feat.getMZ());
-        // only one peptide hit per ID - see function "addPeptideToMap_":
-        PeptideHit& hit = id.getHits()[0];
-        hit.clearMetaInfo();
-        hit.setScore(0.0);
-        feat.getPeptideIdentifications().push_back(id);
+        
+        // Add a dummy peptide identification from external data
+        if (!rt_external.empty())
+        {
+          PeptideIdentification id = *(rt_external.begin()->second);
+          id.clearMetaInfo();
+          id.setMetaValue("FFId_category", "implied");
+          id.setRT(feat.getRT());
+          id.setMZ(feat.getMZ());
+          // only one peptide hit per ID - see function "addPeptideToMap_":
+          PeptideHit& hit = id.getHits()[0];
+          hit.clearMetaInfo();
+          hit.setScore(0.0);
+          feat.getPeptideIdentifications().push_back(id);
+        }
       }
 
       // distance from feature to closest peptide ID:
@@ -1291,7 +1549,7 @@ namespace OpenMS
         // use external IDs if available, otherwise RT-transformed internal IDs
         // (but only compute the transform if necessary, once per assay!):
         if (rt_external.empty() && (transformed_internal.empty() ||
-                                    (peptide_ref != previous_ref)))
+                                     (peptide_ref != previous_ref)))
         {
           transformed_internal.clear();
           for (RTMap::const_iterator it = rt_internal.begin();
@@ -1303,7 +1561,7 @@ namespace OpenMS
           }
         }
         const RTMap& rt_ref = (rt_external.empty() ? transformed_internal :
-                               rt_external);
+                                rt_external);
 
         double rt_min = feat.getMetaValue("leftWidth");
         double rt_max = feat.getMetaValue("rightWidth");
@@ -1398,7 +1656,7 @@ namespace OpenMS
     if (!quantify_decoys_)
     {
       if (hit.metaValueExists("target_decoy") && hit.getMetaValue("target_decoy") == "decoy")
-      { 
+      {
         unassignedIDs_.push_back(peptide);
         return;
       }
@@ -1417,7 +1675,13 @@ namespace OpenMS
     Int charge = hit.getCharge();
     double rt = peptide.getRT();
     double mz = peptide.getMZ();
-    if (!external)
+    
+    if (external)
+    {
+      OPENMS_LOG_DEBUG_NOFILE << "Adding peptide (external) " << hit.getSequence() << "; CHG: " << charge << "; RT: " << rt << "; MZ: " << mz << endl;
+      peptide_map[hit.getSequence()][charge].second.emplace(rt, &peptide);
+    }
+    else
     {
       if (peptide.metaValueExists("SeedFeatureID"))
       {
@@ -1428,11 +1692,6 @@ namespace OpenMS
         OPENMS_LOG_DEBUG_NOFILE << "Adding peptide (internal) " << hit.getSequence() << "; CHG: " << charge << "; RT: " << rt << "; MZ: " << mz << endl;
       }
       peptide_map[hit.getSequence()][charge].first.emplace(rt, &peptide);
-    }
-    else
-    {
-      OPENMS_LOG_DEBUG_NOFILE << "Adding peptide (external) " << hit.getSequence() << "; CHG: " << charge << "; RT: " << rt << "; MZ: " << mz << endl;
-      peptide_map[hit.getSequence()][charge].second.emplace(rt, &peptide);
     }
   }
 
@@ -1720,7 +1979,7 @@ namespace OpenMS
 
 
   void FeatureFinderIdentificationAlgorithm::filterFeaturesFinalizeAssay_(Feature& best_feature, double best_quality,
-                                    const double quality_cutoff)
+                                   const double quality_cutoff)
   {
     const String& feature_class = best_feature.getMetaValue("feature_class");
     if (feature_class == "positive") // true positive prediction
@@ -1735,7 +1994,7 @@ namespace OpenMS
     else if (feature_class == "unknown")
     {
       svm_probs_external_.insert(best_quality);
-      if (best_quality >= quality_cutoff) 
+      if (best_quality >= quality_cutoff)
       {
         best_feature.setOverallQuality(best_quality);
         ++n_external_features_;
@@ -1838,8 +2097,8 @@ namespace OpenMS
                                                    prob_it->second.second);
       OPENMS_LOG_INFO << "Estimated FDR of features detected based on 'external' IDs: "
                << fdr * 100.0 << "%" << endl;
-      fdr = (fdr * n_external_features_) / (n_external_features_ + 
-                                            n_internal_features_);
+      fdr = (fdr * n_external_features_) / (n_external_features_ +
+                                           n_internal_features_);
       OPENMS_LOG_INFO << "Estimated FDR of all detected features: " << fdr * 100.0
                << "%" << endl;
     }
