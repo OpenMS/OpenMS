@@ -23,6 +23,8 @@ namespace OpenMS
   class Peak1D;
   class ChromatogramPeak;
 
+  using MSRun = MSExperiment;
+  
   /**
     @brief In-Memory representation of a mass spectrometry run.
 
