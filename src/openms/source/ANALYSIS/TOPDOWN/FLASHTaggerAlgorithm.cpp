@@ -12,11 +12,10 @@
 
 namespace OpenMS
 {
-// define static variables
-std::vector<boost::dynamic_bitset<>> FLASHTaggerAlgorithm::vectorized_fasta_entry_;
-std::vector<boost::dynamic_bitset<>> FLASHTaggerAlgorithm::rev_vectorized_fasta_entry_;
-std::vector<std::map<int, double>> FLASHTaggerAlgorithm::mass_map_;
-std::vector<std::map<int, double>> FLASHTaggerAlgorithm::rev_mass_map_;
+ static std::vector<boost::dynamic_bitset<>> vectorized_fasta_entry_;
+ static std::vector<boost::dynamic_bitset<>> rev_vectorized_fasta_entry_;
+ static std::vector<std::map<int, double>> mass_map_;
+ static std::vector<std::map<int, double>> rev_mass_map_;
 
 std::vector<Residue> FLASHTaggerAlgorithm::getAA_(double l, double r, double tol, int consider_ion_diff, int mode) const
 {
@@ -765,8 +764,8 @@ void FLASHTaggerAlgorithm::runMatching(const std::vector<FASTAFile::FASTAEntry>&
   }
 
 #pragma omp parallel for default(none)                                                                                                     \
-  shared(spec_vec, spec_scores, deconvolved_spectrum, pairs, fasta_entry, \
-           scan, max_mod_mass, std::cout)
+  shared(spec_vec, spec_scores, deconvolved_spectrum, pairs, fasta_entry, vectorized_fasta_entry_, \
+           rev_vectorized_fasta_entry_, mass_map_, rev_mass_map_, scan, max_mod_mass, std::cout)
   for (int i = 0; i < fasta_entry.size(); i++)
   {
     const auto& fe = fasta_entry[i];
