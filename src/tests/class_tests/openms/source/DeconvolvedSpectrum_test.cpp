@@ -20,7 +20,27 @@ using namespace std;
 
 START_TEST(DeconvolvedSpectrum, "$Id$")
 
+// load test data
+PeakMap input;
+MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FLASHDeconv_sample_input1.mzML"), input);
 MSSpectrum test_spec = input[0];
+
+
+SpectralDeconvolution fd_algo = SpectralDeconvolution();
+Param fd_param;
+fd_param.setValue("min_charge", 5);
+fd_param.setValue("max_charge", 20);
+fd_algo.setParameters(fd_param);
+fd_algo.calculateAveragine(false);
+
+    fd_algo.performSpectrumDeconvolution(input[1], 2, PeakGroup());
+DeconvolvedSpectrum prec_deconv_spec_1 = fd_algo.getDeconvolvedSpectrum();
+
+    fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
+DeconvolvedSpectrum prec_deconv_spec_2 = fd_algo.getDeconvolvedSpectrum();
+
+    fd_algo.performSpectrumDeconvolution(input[5], 6, PeakGroup());
+DeconvolvedSpectrum ms2_deconv_spec = fd_algo.getDeconvolvedSpectrum();
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -76,9 +96,7 @@ START_SECTION((const MSSpectrum& getOriginalSpectrum() const))
 }
 END_SECTION
 
-// load test data
-PeakMap input;
-MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FLASHDeconv_sample_input1.mzML"), input);
+
 
 /// detailed constructor
 START_SECTION((DeconvolvedSpectrum(const MSSpectrum &spectrum, const int scan_number)))
@@ -104,21 +122,7 @@ END_SECTION
 
 
 
-SpectralDeconvolution fd_algo = SpectralDeconvolution();
-Param fd_param;
-fd_param.setValue("min_charge", 5);
-fd_param.setValue("max_charge", 20);
-fd_algo.setParameters(fd_param);
-fd_algo.calculateAveragine(false);
 
-    fd_algo.performSpectrumDeconvolution(input[1], 2, PeakGroup());
-DeconvolvedSpectrum prec_deconv_spec_1 = fd_algo.getDeconvolvedSpectrum();
-
-    fd_algo.performSpectrumDeconvolution(input[3], 4, PeakGroup());
-DeconvolvedSpectrum prec_deconv_spec_2 = fd_algo.getDeconvolvedSpectrum();
-
-    fd_algo.performSpectrumDeconvolution(input[5], 6, PeakGroup());
-DeconvolvedSpectrum ms2_deconv_spec = fd_algo.getDeconvolvedSpectrum();
 
 START_SECTION((double getCurrentMaxMass(const double max_mass) const))
 {
