@@ -58,8 +58,8 @@ namespace OpenMS
     /// Process external peptide IDs
     void processExternalPeptides(std::vector<PeptideIdentification>& peptides_ext);
     
-    /// Align internal and external IDs to estimate RT shifts
-    TransformationDescription alignInternalAndExternalIDs(
+    /// Align internal and external IDs to estimate RT shifts and return RT uncertainty
+    double alignInternalAndExternalIDs(
         const std::vector<PeptideIdentification>& peptides_internal,
         const std::vector<PeptideIdentification>& peptides_external,
         double rt_quantile);

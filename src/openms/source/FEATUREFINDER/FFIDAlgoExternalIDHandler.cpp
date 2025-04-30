@@ -86,11 +86,14 @@ namespace OpenMS
     n_external_peptides_ = external_peptide_map_.size();
   }
   
-  TransformationDescription FFIDAlgoExternalIDHandler::alignInternalAndExternalIDs(
+  double FFIDAlgoExternalIDHandler::alignInternalAndExternalIDs(
       const std::vector<PeptideIdentification>& peptides_internal,
       const std::vector<PeptideIdentification>& peptides_external,
-      double /* rt_quantile */)
+      double rt_quantile)
   {
+    // Reset the handler state
+    reset();
+    
     // Align internal and external IDs to estimate RT shifts:
     MapAlignmentAlgorithmIdentification aligner;
     aligner.setReference(peptides_external); // go from internal to external scale
@@ -103,8 +106,10 @@ namespace OpenMS
     
     std::vector<double> aligned_diffs;
     rt_transformation_.getDeviations(aligned_diffs);
-    // We don't need the index variable anymore since we're not using rt_uncertainty
-    // Return the transformation description
+    
+    // Calculate RT uncertainty based on quantile
+    Size index = std::max(Size(0), Size(rt_quantile * static_cast<double>(aligned_diffs.size())) - 1);
+    double rt_uncertainty = aligned_diffs[index];
     
     try
     {
@@ -118,7 +123,7 @@ namespace OpenMS
                      << "The original error message was:\n" << e.what() << std::endl;
     }
     
-    return rt_transformation_;
+    return rt_uncertainty;
   }
   
   double FFIDAlgoExternalIDHandler::transformRT(double rt) const

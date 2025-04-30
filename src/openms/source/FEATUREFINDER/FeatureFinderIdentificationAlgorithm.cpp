@@ -428,7 +428,6 @@ namespace OpenMS
     // to use MS1 Swath scores:
     feat_finder_.setMS1Map(SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(boost::make_shared<MSExperiment>(ms_data_)));
 
-    double rt_uncertainty(0);
     bool with_external_ids = !peptides_ext.empty();
 
     if (with_external_ids && !seeds.empty())
@@ -440,37 +439,11 @@ namespace OpenMS
         "Using seeds and external ids is currently not supported.");
     }
 
+    double rt_uncertainty(0);
     if (with_external_ids)
     {
-      // Reset the external ID handler
-      external_id_handler_.reset();
-      
-      // Align internal and external IDs to estimate RT shifts
-      MapAlignmentAlgorithmIdentification aligner;
-      aligner.setReference(peptides_ext); // go from internal to external scale
-      vector<vector<PeptideIdentification>> aligner_peptides(1, peptides);
-      vector<TransformationDescription> aligner_trafos;
-
-      OPENMS_LOG_INFO << "Realigning internal and external IDs...";
-      aligner.align(aligner_peptides, aligner_trafos);
-      TransformationDescription trafo = aligner_trafos[0];
-      vector<double> aligned_diffs;
-      trafo.getDeviations(aligned_diffs);
-      Size index = std::max(Size(0), Size(rt_quantile_ * static_cast<double>(aligned_diffs.size())) - 1);
-      rt_uncertainty = aligned_diffs[index];
-      
-      try
-      {
-        aligner_trafos[0].fitModel("lowess");
-        trafo = aligner_trafos[0];
-      }
-      catch (Exception::BaseException& e)
-      {
-        OPENMS_LOG_ERROR << "Error: Failed to align RTs of internal/external peptides. RT information will not be considered in the SVM classification. The original error message was:\n" << e.what() << endl;
-      }
-      
-      // Store the transformation in the handler
-      external_id_handler_.setRTTransformation(trafo);
+      // Use the external ID handler to align internal and external IDs
+      rt_uncertainty = external_id_handler_.alignInternalAndExternalIDs(peptides, peptides_ext, rt_quantile_);
     }
 
     if (rt_window_ == 0.0)
