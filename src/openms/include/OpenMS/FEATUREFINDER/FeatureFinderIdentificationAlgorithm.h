@@ -6,8 +6,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERIDENTIFICATIONALGORITHM_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERIDENTIFICATIONALGORITHM_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
@@ -16,23 +15,19 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
+#include <OpenMS/FEATUREFINDER/FFIDAlgoExternalIDHandler.h>
 
 #include <vector>
 #include <fstream>
 #include <map>
 
-namespace OpenMS
-{
-  class IsotopeDistribution;
-
-
-
+namespace OpenMS {
 class OPENMS_DLLAPI FeatureFinderIdentificationAlgorithm :
   public DefaultParamHandler
 {
 public:
   /// default constructor
-  FeatureFinderIdentificationAlgorithm(); 
+  FeatureFinderIdentificationAlgorithm();
 
   /// Main method for actual FeatureFinder
   /// External IDs (@p peptides_ext, @p proteins_ext) may be empty, 
@@ -207,9 +202,9 @@ protected:
   Size n_internal_features_; ///< internal feature counter (for FDR calculation)
   Size n_external_features_; ///< external feature counter (for FDR calculation)
   /// TransformationDescription trafo_; // RT transformation (to range 0-1)
-  TransformationDescription trafo_external_; ///< transform. to external RT scale
   std::map<String, double> isotope_probs_; ///< isotope probabilities of transitions
   MRMFeatureFinderScoring feat_finder_; ///< OpenSWATH feature finder
+  FFIDAlgoExternalIDHandler external_id_handler_; ///< Handler for external peptide IDs
 
   ProgressLogger prog_log_;
 
@@ -313,9 +308,6 @@ protected:
 
     return chunks;
   }
-};
-
+}; // namespace OpenMS
 } // namespace OpenMS
-
-#endif
  
