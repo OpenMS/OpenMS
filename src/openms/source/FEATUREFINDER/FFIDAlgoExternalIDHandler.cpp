@@ -21,6 +21,8 @@
 
 namespace OpenMS
 {
+namespace Internal
+{
   FFIDAlgoExternalIDHandler::FFIDAlgoExternalIDHandler() :
     n_external_peptides_(0),
     n_external_features_(0),
@@ -670,4 +672,5 @@ void FFIDAlgoExternalIDHandler::getUnbiasedSample_(const std::multimap<double, s
     return svm_probs_internal_;
   }
   
+} // namespace Internal
 } // namespace OpenMS
