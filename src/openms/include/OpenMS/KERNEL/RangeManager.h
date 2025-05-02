@@ -319,13 +319,13 @@ struct OPENMS_DLLAPI RangeRT : public RangeBase
   /// only useful if isEmpty() returns false
   double getMinRT() const
   {
-    return min_;
+    return getMin();
   }
 
   /// only useful if isEmpty() returns false
   double getMaxRT() const
   {
-    return max_;
+    return getMax();
   }
   ///@}
 
@@ -380,13 +380,13 @@ struct OPENMS_DLLAPI RangeMZ : public RangeBase
   /// only useful if isEmpty() returns false
   double getMinMZ() const
   {
-    return min_;
+    return getMin();
   }
 
   /// only useful if isEmpty() returns false
   double getMaxMZ() const
   {
-    return max_;
+    return getMax();
   }
   ///@}
 
