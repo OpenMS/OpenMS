@@ -593,11 +593,6 @@ START_SECTION((void clearRanges()))
   TEST_EQUAL(rm.RangeMobility::isEmpty(), true)
 
   rm.clearRanges();
-  TEST_FALSE(rm.RangeRT::isInitialized())
-  TEST_FALSE(rm.RangeMZ::isInitialized())
-  TEST_FALSE(rm.RangeIntensity::isInitialized())
-  TEST_FALSE(rm.RangeMobility::isInitialized())
-
   TEST_TRUE(rm.RangeRT::isEmpty())
   TEST_TRUE(rm.RangeMZ::isEmpty())
   TEST_TRUE(rm.RangeIntensity::isEmpty())
