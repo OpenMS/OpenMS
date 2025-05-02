@@ -53,13 +53,31 @@ namespace OpenMS
   {
     // empty output destination:
     result_map.clear(false);
-
+    
     // sanity checks:
     if (input_maps.size() != 2)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "exactly two input maps required");
     }
+
+    if (input_maps[0].empty() || input_maps[1].empty())
+    {
+      // at least one map is empty? write out unmatched consensus features
+      for (UInt input = 0; input <= 1; ++input)
+      {
+        for (UInt index = 0; index < input_maps[input].size(); ++index)
+        {
+          result_map.push_back(input_maps[input][index]);
+          if (result_map.back().size() <= 1) // singleton consensus feature
+          {
+            result_map.back().setQuality(0.0);
+          }
+        }
+      }
+      return;
+    }
+
     checkIds_(input_maps);
 
     // set up the distance functor:
