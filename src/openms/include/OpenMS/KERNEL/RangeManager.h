@@ -126,12 +126,20 @@ public:
   /// only useful if isEmpty() returns false
   double getMin() const
   {
+    if (!isInitialized())
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Range is not initialized. Did you forget to call updateRanges()?");
+    }
     return min_;
   }
 
   /// only useful if isEmpty() returns false
   double getMax() const
   {
+    if (!isInitialized())
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Range is not initialized. Did you forget to call updateRanges()?");
+    }
     return max_;
   }
   ///@}
@@ -261,6 +269,13 @@ public:
     return min_ == rhs.min_ && max_ == rhs.max_;
   }
 
+  /// @brief   Check if the range is initialized
+  /// @note    A range is initialized if min_ and max_ are not set to their default values (=uninitialized).
+  /// @return  True if the range is initialized, false otherwise
+  bool isInitialized() const
+  {
+    return min_ != std::numeric_limits<double>::max() && max_ != std::numeric_limits<double>::lowest();
+  }
   /**
    * \brief Return the current range, or (if empty) a full range (-1e308, 1e308).
    * \return A range where always: min <= max
@@ -432,13 +447,13 @@ struct OPENMS_DLLAPI RangeIntensity : public RangeBase
   /// only useful if isEmpty() returns false
   double getMinIntensity() const
   {
-    return min_;
+    return getMin();
   }
 
   /// only useful if isEmpty() returns false
   double getMaxIntensity() const
   {
-    return max_;
+    return getMax();
   }
   ///@}
 
@@ -491,13 +506,13 @@ struct OPENMS_DLLAPI RangeMobility : public RangeBase
   /// only useful if isEmpty() returns false
   double getMinMobility() const
   {
-    return min_;
+    return getMin();
   }
 
   /// only useful if isEmpty() returns false
   double getMaxMobility() const
   {
-    return max_;
+    return getMax();
   }
   ///@}
 

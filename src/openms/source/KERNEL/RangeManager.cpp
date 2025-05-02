@@ -14,7 +14,15 @@ namespace OpenMS
 {
   std::ostream& operator<<(std::ostream& out, const RangeBase& b)
   {
-    out << "[" << b.getMin() << ", " << b.getMax() << "]";
+    if (b.isInitialized())
+    {
+      out << "[" << b.getMin() << ", " << b.getMax() << "]";
+    }
+    else // uninitalized or empty 
+    {
+      out << "[, ]";
+    }
+    
     return out;
   }
   
