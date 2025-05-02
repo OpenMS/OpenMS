@@ -593,10 +593,11 @@ START_SECTION((void clearRanges()))
   TEST_EQUAL(rm.RangeMobility::isEmpty(), true)
 
   rm.clearRanges();
-  TEST_EQUAL(rm.getMinRT(), std::numeric_limits<double>::max())
-  TEST_EQUAL(rm.getMaxRT(), -std::numeric_limits<double>::max())
-  TEST_REAL_SIMILAR(rm.getMinIntensity(), numeric_limits<double>::max())
-  TEST_REAL_SIMILAR(rm.getMaxIntensity(), -numeric_limits<double>::max())
+  TEST_EQUAL(rm.RangeRT::isInitialized(), false)
+  TEST_EQUAL(rm.RangeMZ::isInitialized(), false)
+  TEST_EQUAL(rm.RangeIntensity::isInitialized(), false)
+  TEST_EQUAL(rm.RangeMobility::isInitialized(), false)
+
   TEST_EQUAL(rm.RangeRT::isEmpty(), true)
   TEST_EQUAL(rm.RangeMZ::isEmpty(), true)
   TEST_EQUAL(rm.RangeIntensity::isEmpty(), true)
