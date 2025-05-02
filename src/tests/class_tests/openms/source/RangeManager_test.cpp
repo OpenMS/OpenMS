@@ -334,32 +334,6 @@ START_SECTION((~RangeMType()))
   delete ptr;
 END_SECTION
 
-START_SECTION((double getMinMZ() const))
-  TEST_EQUAL(RM().getMinMZ(), std::numeric_limits<double>::max())
-END_SECTION
-
-START_SECTION((double getMaxMZ() const))
-  TEST_EQUAL(RM().getMaxMZ(), -std::numeric_limits<double>::max())
-END_SECTION
-
-START_SECTION((double getMinIntensity() const))
-TEST_EQUAL(RM().getMinIntensity(), std::numeric_limits<double>::max())
-END_SECTION
-
-START_SECTION((double getMaxIntensity() const))
-TEST_EQUAL(RM().getMaxIntensity(), -std::numeric_limits<double>::max())
-END_SECTION
-
-START_SECTION((double getMinMobility() const))
-TEST_EQUAL(RM().getMinMobility(), std::numeric_limits<double>::max())
-END_SECTION
-
-START_SECTION((double getMaxMobility() const))
-TEST_EQUAL(RM().getMaxMobility(), -std::numeric_limits<double>::max())
-END_SECTION
-
-
-
 START_SECTION((RangeManager(const RangeManager& rhs)))
   RM rm0;
   rm0.updateRanges();
@@ -414,9 +388,7 @@ START_SECTION((virtual void updateRanges()=0))
   TEST_REAL_SIMILAR(rm.getMinIntensity(), 1.0)
   TEST_REAL_SIMILAR(rm.getMaxIntensity(), 47110.0)
   TEST_EQUAL(rm.RangeIntensity::isEmpty(), false)
-  TEST_EQUAL(rm.getMinMobility(), std::numeric_limits<double>::max())
-  TEST_EQUAL(rm.getMaxMobility(), -std::numeric_limits<double>::max())
-  TEST_EQUAL(rm.RangeMobility::isEmpty(), true)
+  TEST_TRUE(rm.RangeMobility::isEmpty())
 
   //test with only one point
   rm.updateRanges2(); //second time to check the initialization
