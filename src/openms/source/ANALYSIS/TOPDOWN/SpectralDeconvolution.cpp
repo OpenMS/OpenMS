@@ -53,7 +53,7 @@ SpectralDeconvolution::SpectralDeconvolution(): DefaultParamHandler("SpectralDec
   defaults_.setMinFloat("precursor_mz", 0.0);
   defaults_.addTag("precursor_mz", "advanced");
 
-  defaults_.setValue("min_cos", DoubleList {.75, .85},
+  defaults_.setValue("min_cos", DoubleList {.85, .85},
                      "Cosine similarity thresholds between avg. and observed isotope pattern for MS1, 2, ...: e.g., -min_cos 0.3 0.6 to specify 0.3 "
                      "and 0.6 for MS1 and MS2, respectively.");
   defaults_.addTag("min_cos", "advanced");

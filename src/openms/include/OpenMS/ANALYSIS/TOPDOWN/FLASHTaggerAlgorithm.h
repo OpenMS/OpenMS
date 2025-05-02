@@ -158,8 +158,8 @@ private:
                      int scan,
                      double ppm, int mode);
 
-  static std::vector<boost::dynamic_bitset<>> vectorized_fasta_entry_, rev_vectorized_fasta_entry_;
-  static std::vector<std::map<int, double>> mass_map_, rev_mass_map_;
+  //static std::vector<boost::dynamic_bitset<>> vectorized_fasta_entry_, rev_vectorized_fasta_entry_;
+  //static std::vector<std::map<int, double>> mass_map_, rev_mass_map_;
 
   static void vectorizeFasta_(const std::vector<FASTAFile::FASTAEntry>& fasta_entry, bool reverse);
 
