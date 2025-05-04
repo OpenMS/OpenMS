@@ -936,7 +936,7 @@ START_SECTION((bool operator==(const MSChromatogram &rhs) const ))
   edit.push_back(p2);
   edit.updateRanges();
   edit.clear(false);
-  TEST_EQUAL(empty==edit, false);
+  TEST_TRUE(empty == edit);
 
 }
 END_SECTION
@@ -986,7 +986,7 @@ START_SECTION((bool operator!=(const MSChromatogram &rhs) const ))
   edit.push_back(p2);
   edit.updateRanges();
   edit.clear(false);
-  TEST_EQUAL(edit!=empty,true);
+  TEST_TRUE(empty == edit);
 }
 END_SECTION
 

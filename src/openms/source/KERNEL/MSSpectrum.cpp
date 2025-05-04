@@ -475,7 +475,6 @@ namespace OpenMS
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfloat-equal"
     return std::operator==(*this, rhs) &&
-           RangeManagerType::operator==(rhs) &&
            SpectrumSettings::operator==(rhs) &&
            retention_time_ == rhs.retention_time_ &&
            drift_time_ == rhs.drift_time_ &&
@@ -495,7 +494,6 @@ namespace OpenMS
       return *this;
     }
     ContainerType::operator=(source);
-    RangeManagerType::operator=(source);
     SpectrumSettings::operator=(source);
 
     retention_time_ = source.retention_time_;
