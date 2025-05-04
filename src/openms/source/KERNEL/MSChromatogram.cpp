@@ -40,6 +40,7 @@ MSChromatogram &MSChromatogram::operator=(const MSChromatogram &source)
     return *this;
   }
 
+  RangeManagerType::operator=(source);
   ContainerType::operator=(source);
   ChromatogramSettings::operator=(source);
 
@@ -53,9 +54,9 @@ MSChromatogram &MSChromatogram::operator=(const MSChromatogram &source)
 
 bool MSChromatogram::operator==(const MSChromatogram &rhs) const
 {
-  //name_ can differ => it is not checked
+  //name_ can differ => it is not checked; also ranges are not checked
   return std::operator==(*this, rhs) &&
-         ChromatogramSettings::operator==(rhs)  &&
+         ChromatogramSettings::operator==(rhs) &&
          float_data_arrays_ == rhs.float_data_arrays_ &&
          string_data_arrays_ == rhs.string_data_arrays_ &&
          integer_data_arrays_ == rhs.integer_data_arrays_;

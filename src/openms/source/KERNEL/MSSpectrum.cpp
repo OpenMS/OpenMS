@@ -471,7 +471,7 @@ namespace OpenMS
 
   bool MSSpectrum::operator==(const MSSpectrum &rhs) const
   {
-    //name_ can differ => it is not checked
+    //name_ can differ => it is not checked, range is not checked
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfloat-equal"
     return std::operator==(*this, rhs) &&
@@ -495,6 +495,7 @@ namespace OpenMS
     }
     ContainerType::operator=(source);
     SpectrumSettings::operator=(source);
+    RangeManagerType::operator=(source);
 
     retention_time_ = source.retention_time_;
     drift_time_ = source.drift_time_;

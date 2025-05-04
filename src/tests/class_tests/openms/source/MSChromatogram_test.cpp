@@ -979,7 +979,7 @@ START_SECTION((bool operator!=(const MSChromatogram &rhs) const ))
   //name is not checked => no change
   edit = empty;
   edit.setName("bla");
-  TEST_EQUAL(edit!=empty,false);
+  TEST_EQUAL(edit == empty, true);
 
   edit = empty;
   edit.push_back(p1);
