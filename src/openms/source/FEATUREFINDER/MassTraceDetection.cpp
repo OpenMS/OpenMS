@@ -13,6 +13,9 @@
 #include <boost/dynamic_bitset.hpp>
 
 #include <OpenMS/KERNEL/SpectrumHelper.h>
+
+#include <OpenMS/CONCEPT/Constants.h>
+
 namespace OpenMS
 {
     MassTraceDetection::MassTraceDetection() :
@@ -265,9 +268,9 @@ namespace OpenMS
         const auto& fda = spec.getFloatDataArrays();
         if (! fda.empty())
         {
-          auto it_fwhm = getDataArrayByName(spec.getFloatDataArrays(), "FWHM_ppm");
-          auto it_im = getDataArrayByName(spec.getFloatDataArrays(), "Ion Mobility");
-          auto it_imf = getDataArrayByName(spec.getFloatDataArrays(), "IM Peak FWHM");
+          auto it_fwhm = getDataArrayByName(spec.getFloatDataArrays(), Constants::FWHM_MZ_ppm);
+          auto it_im = getDataArrayByName(spec.getFloatDataArrays(), Constants::ION_MOBILITY);
+          auto it_imf = getDataArrayByName(spec.getFloatDataArrays(), Constants::FWHM_IM);
 
           if (it_fwhm != fda.end()) fwhm_meta_idx = std::distance(fda.begin(), it_fwhm);
           if (it_im != fda.end()) Ion_Mobility_idx = std::distance(fda.begin(), it_im);
@@ -300,9 +303,9 @@ namespace OpenMS
       };
 
       // validate meta arrays
-      validate_meta_array("FWHM_ppm", fwhm_meta_idx);
-      validate_meta_array("Ion Mobility", Ion_Mobility_idx);
-      validate_meta_array("IM Peak FWHM", IM_fwhm_idx);
+      validate_meta_array(Constants::FWHM_MZ_ppm, fwhm_meta_idx);
+      validate_meta_array(Constants::ION_MOBILITY, Ion_Mobility_idx);
+      validate_meta_array(Constants::FWHM_IM, IM_fwhm_idx);
 
 
       this->startProgress(0, total_peak_count, "mass trace detection");
