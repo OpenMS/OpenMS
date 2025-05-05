@@ -53,7 +53,7 @@ namespace OpenMS
     out_spec.reserve(size());
     for (auto& pg : *this)
     {
-      if (pg.empty())
+      if (pg.empty() || pg.getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
       {
         continue;
       }
@@ -81,7 +81,7 @@ namespace OpenMS
     val << "cos=";
     for (auto& pg : *this)
     {
-      if (pg.empty())
+      if (pg.empty() || pg.getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
       {
         continue;
       }
@@ -91,7 +91,7 @@ namespace OpenMS
     val << ";snr=";
     for (auto& pg : *this)
     {
-      if (pg.empty())
+      if (pg.empty() || pg.getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
       {
         continue;
       }
@@ -101,7 +101,7 @@ namespace OpenMS
     val << ";qscore=";
     for (auto& pg : *this)
     {
-      if (pg.empty())
+      if (pg.empty() || pg.getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
       {
         continue;
       }
@@ -111,7 +111,7 @@ namespace OpenMS
     val << ";qvalue=";
     for (auto& pg : *this)
     {
-      if (pg.empty())
+      if (pg.empty() || pg.getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
       {
         continue;
       }
