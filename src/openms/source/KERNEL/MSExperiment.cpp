@@ -6,6 +6,8 @@
 // $Authors: Marc Sturm, Tom Waschischeck $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/config.h> // for OPENMS_ASSERTIONS
+
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -229,6 +231,17 @@ namespace OpenMS
   */
   void MSExperiment::updateRanges(Int ms_level)
   {
+    #ifdef OPENMS_ASSERTIONS
+      double rt_min = RangeRT::isEmpty() ? 0 : getMinRT();
+      double rt_max = RangeRT::isEmpty() ? 0 : getMaxRT();
+      double mz_min = RangeMZ::isEmpty() ? 0 : getMinMZ();
+      double mz_max = RangeMZ::isEmpty() ? 0 : getMaxMZ();
+      double int_min = RangeIntensity::isEmpty() ? 0 : getMinIntensity();
+      double int_max = RangeIntensity::isEmpty() ? 0 : getMaxIntensity();
+      double im_min = RangeMobility::isEmpty() ? 0 : getMinMobility();
+      double im_max = RangeMobility::isEmpty() ? 0 : getMaxMobility();
+    #endif
+
     // reset mz/rt/int range
     this->clearRanges();
 
@@ -282,6 +295,28 @@ namespace OpenMS
       this->extendMZ(cp.getMZ());// MZ
       this->extend(cp);// RT and intensity from chroms's range
     }
+
+    #ifdef OPENMS_ASSERTIONS
+      // check if updateRanges() was necessary and find places where it was not
+      double im_min_new = RangeMobility::isEmpty() ? 0 : getMinMobility();
+      double im_max_new = RangeMobility::isEmpty() ? 0 : getMaxMobility();
+      double int_min_new =  RangeIntensity::isEmpty() ? 0 : getMinIntensity();
+      double int_max_new =  RangeIntensity::isEmpty() ? 0 : getMaxIntensity();
+      double rt_min_new = RangeRT::isEmpty() ? 0 : getMinRT();
+      double rt_max_new = RangeRT::isEmpty() ? 0 : getMaxRT();
+      double mz_min_new = RangeMZ::isEmpty() ? 0 : getMinMZ();
+      double mz_max_new = RangeMZ::isEmpty() ? 0 : getMaxMZ();
+
+      if (im_min_new == im_min && im_max_new == im_max
+        && int_min_new == int_min && int_max_new == int_max
+        && mz_min_new == mz_min && mz_max_new == mz_max
+        && rt_min_new == rt_min && rt_max_new == rt_max
+        && im_min_new == im_min && im_max_new == im_max
+      )
+      {
+        OPENMS_LOG_WARN << "Update ranges was called but ranges were already up-to-date" << std::endl;
+      }
+    #endif
   }
 
   /// returns the total number of peaks

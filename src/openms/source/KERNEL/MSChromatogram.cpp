@@ -6,6 +6,9 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/config.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <OpenMS/KERNEL/MSChromatogram.h>
 
 using namespace OpenMS;
@@ -443,6 +446,36 @@ OpenMS::MSChromatogram::Iterator setSumSimilarUnion(OpenMS::MSChromatogram::Iter
   }
 }
 
+void MSChromatogram::updateRanges()
+{
+  #ifdef OPENMS_ASSERTIONS
+    double rt_min = RangeRT::isEmpty() ? 0 : getMinRT();
+    double rt_max = RangeRT::isEmpty() ? 0 : getMaxRT();
+    double int_min = RangeIntensity::isEmpty() ? 0 : getMinIntensity();
+    double int_max = RangeIntensity::isEmpty() ? 0 : getMaxIntensity();
+  #endif
+
+  clearRanges();
+  for (const auto& peak : (ContainerType&) *this)
+  {
+    extendRT(peak.getRT());
+    extendIntensity(peak.getIntensity());
+  }
+
+  #ifdef OPENMS_ASSERTIONS
+    double rt_min_new = RangeRT::isEmpty() ? 0 : getMinRT();
+    double rt_max_new = RangeRT::isEmpty() ? 0 : getMaxRT();
+    double int_min_new = RangeIntensity::isEmpty() ? 0 : getMinIntensity();
+    double int_max_new = RangeIntensity::isEmpty() ? 0 : getMaxIntensity();
+
+    // check if all are equal and no update range was necessary
+    if (rt_min_new == rt_min && rt_max_new == rt_max
+      && int_min_new == int_min && int_max_new == int_max)
+    {
+      OPENMS_LOG_WARN << "Update ranges was called but ranges were already up-to-date" << std::endl;
+    }
+  #endif
+}
 
 void MSChromatogram::mergePeaks(MSChromatogram& other, bool add_meta)
 {

@@ -126,7 +126,6 @@ namespace OpenMS
       expr += e.getFunction();
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, expr, String("- due to that error of type ") + e.getName());
     }
-
   }
 
   void MzMLFile::loadBuffer(const std::string& buffer, PeakMap& map)
