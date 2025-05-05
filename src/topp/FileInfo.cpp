@@ -11,8 +11,6 @@
 
 #include <OpenMS/config.h>
 
-
-
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h> // for operator<< on StringList
@@ -170,27 +168,74 @@ protected:
   template <class Map>
   void writeRangesHumanReadable_(const Map& map, ostream &os)
   {
-    os << "Ranges:" << '\n'
-       << "  retention time: " << String::number(map.getMinRT(), 2) << " .. " << String::number(map.getMaxRT(), 2) << " sec ("
-       << String::number((map.getMaxRT() - map.getMinRT()) / 60, 1) << " min)\n"
-       << "  mass-to-charge: " << String::number(map.getMinMZ(), 2) << " .. " << String::number(map.getMaxMZ(), 2) << '\n';
+    if (map.RangeRT::isEmpty())
+    {
+      os << "Ranges:'\n'  retention time: <none> .. <none> sec (<none> min)\n";
+    }
+    else
+    {
+      os << "Ranges:" << '\n'
+        << "  retention time: " << String::number(map.getMinRT(), 2) << " .. " << String::number(map.getMaxRT(), 2) << " sec ("
+        << String::number((map.getMaxRT() - map.getMinRT()) / 60, 1) << " min)\n";
+    }
+
+    if (map.RangeMZ::isEmpty())
+    {
+      os << "  mass-to-charge: <none> .. <none>\n";
+    }
+    else
+    {
+      os << "  mass-to-charge: " << String::number(map.getMinMZ(), 2) << " .. " << String::number(map.getMaxMZ(), 2) << '\n';
+    }
+    
+
     if constexpr (std::is_base_of < RangeMobility, Map>())
     {
-      os << "    ion mobility: ";
-      if (map.RangeMobility::isEmpty()) os << "<none>\n";
-      else os << String::number(map.getMinMobility(), 2) << " .. " << String::number(map.getMaxMobility(), 2) << '\n';
+      if (map.RangeMobility::isEmpty())
+      {
+        os << "  ion mobility: <none> .. <none>\n";
+      }
+      else
+      {
+        os << "  ion mobility: " << String::number(map.getMinMobility(), 2) << " .. " << String::number(map.getMaxMobility(), 2) << '\n';
+      }
     }
-    os << "       intensity: " << String::number(map.getMinIntensity(), 2) << " .. " << String::number(map.getMaxIntensity(), 2) << '\n'
-       << '\n';
+
+    if (map.RangeIntensity::isEmpty())
+    {
+      os << "  intensity: <none> .. <none>\n";
+    }
+    else
+    {
+      os << "  intensity: " << String::number(map.getMinIntensity(), 2) << " .. " << String::number(map.getMaxIntensity(), 2) << '\n';
+    }    
   }
 
   template <class Map>
   void writeRangesMachineReadable_(const Map& map, ostream &os)
   {
-    os << "general: ranges: retention time: min" << '\t' << String::number(map.getMinRT(), 2) << '\n'
-       << "general: ranges: retention time: max" << '\t' << String::number(map.getMaxRT(), 2) << '\n'
-       << "general: ranges: mass-to-charge: min" << '\t' << String::number(map.getMinMZ(), 2) << '\n'
-       << "general: ranges: mass-to-charge: max" << '\t' << String::number(map.getMaxMZ(), 2) << '\n';
+    if (!map.RangeRT::isEmpty())
+    {
+      os << "general: ranges: retention time: min" << '\t' << String::number(map.getMinRT(), 2) << '\n'
+         << "general: ranges: retention time: max" << '\t' << String::number(map.getMaxRT(), 2) << '\n';
+    }
+    else
+    {
+      os << "general: ranges: retention time: min" << '\t' << "<none>" << '\n'
+         << "general: ranges: retention time: max" << '\t' << "<none>" << '\n';
+    }
+    
+    if (!map.RangeMZ::isEmpty())
+    {
+      os << "general: ranges: mass-to-charge: min" << '\t' << String::number(map.getMinMZ(), 2) << '\n'
+         << "general: ranges: mass-to-charge: max" << '\t' << String::number(map.getMaxMZ(), 2) << '\n';
+    }
+    else
+    {
+      os << "general: ranges: mass-to-charge: min" << '\t' << "<none>" << '\n'
+         << "general: ranges: mass-to-charge: max" << '\t' << "<none>" << '\n';
+    }
+
     if constexpr (std::is_base_of < RangeMobility, Map>())
     {
       if (!map.RangeMobility::isEmpty())
@@ -199,10 +244,19 @@ protected:
            << "general: ranges: ion-mobility: max" << '\t' << String::number(map.getMaxMobility(), 2) << '\n';
       }
     }
-    os << "general: ranges: intensity: min"
-       << '\t' << String::number(map.getMinIntensity(), 2) << '\n'
-       << "general: ranges: intensity: max"
-       << '\t' << String::number(map.getMaxIntensity(), 2) << '\n';
+
+    if (!map.RangeIntensity::isEmpty())
+    {
+      os << "general: ranges: intensity: min"
+         << '\t' << String::number(map.getMinIntensity(), 2) << '\n'
+         << "general: ranges: intensity: max"
+         << '\t' << String::number(map.getMaxIntensity(), 2) << '\n';
+    }
+    else
+    {
+      os << "general: ranges: intensity: min" << '\t' << "<none>" << '\n'
+         << "general: ranges: intensity: max" << '\t' << "<none>" << '\n';
+    }
   }
 
   template <class T>

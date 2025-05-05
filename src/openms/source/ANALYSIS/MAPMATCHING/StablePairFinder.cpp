@@ -61,28 +61,21 @@ namespace OpenMS
                                        "exactly two input maps required");
     }
 
-    if (input_maps[0].empty() || input_maps[1].empty())
-    {
-      // at least one map is empty? write out unmatched consensus features
-      for (UInt input = 0; input <= 1; ++input)
-      {
-        for (UInt index = 0; index < input_maps[input].size(); ++index)
-        {
-          result_map.push_back(input_maps[input][index]);
-          if (result_map.back().size() <= 1) // singleton consensus feature
-          {
-            result_map.back().setQuality(0.0);
-          }
-        }
-      }
-      return;
-    }
-
     checkIds_(input_maps);
 
     // set up the distance functor:
-    double max_intensity = max(input_maps[0].getMaxIntensity(),
-                               input_maps[1].getMaxIntensity());
+    double max_intensity = std::numeric_limits<double>::lowest();;
+    
+    if (!input_maps[0].RangeIntensity::isEmpty())
+    {
+      max_intensity = input_maps[0].getMaxIntensity();
+    }
+
+    if (!input_maps[1].RangeIntensity::isEmpty())
+    {
+      max_intensity = max(max_intensity, input_maps[1].getMaxIntensity());
+    }
+
     Param distance_params = param_.copy("");
     distance_params.remove("use_identifications");
     distance_params.remove("second_nearest_gap");
