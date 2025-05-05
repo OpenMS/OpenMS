@@ -311,7 +311,6 @@ namespace OpenMS
         && int_min_new == int_min && int_max_new == int_max
         && mz_min_new == mz_min && mz_max_new == mz_max
         && rt_min_new == rt_min && rt_max_new == rt_max
-        && im_min_new == im_min && im_max_new == im_max
       )
       {
         OPENMS_LOG_WARN << "Update ranges was called but ranges were already up-to-date" << std::endl;

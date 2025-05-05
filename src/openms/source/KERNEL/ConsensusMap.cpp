@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
