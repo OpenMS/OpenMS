@@ -95,6 +95,12 @@ namespace OpenMS
                   std::vector<MassTrace> & found_masstraces,
                   const Size max_traces = 0);
 
+        /// Internal helper to extract and validate metadata float array indices
+        void getIMIndices_(const PeakMap& spectra,
+                           int& fwhm_meta_idx, bool& has_fwhm_meta,
+                           int& im_idx, bool& has_ion_mobility_array,
+                           int& im_fwhm_idx, bool& has_im_fwhm_meta) const;
+
         // parameter stuff
         double mass_error_ppm_;
         double mass_error_da_;

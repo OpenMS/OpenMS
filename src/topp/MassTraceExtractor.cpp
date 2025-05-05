@@ -15,7 +15,7 @@
 #include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/CONCEPTS/Constants.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -257,18 +257,18 @@ protected:
         // attach mz and ion mobility as meta data
         if (m_traces_final[i].fwhm_mz_avg > 0)
         {
-          fcons.setMetaValue(Constants::FWHM_MZ_AVG, m_traces_final[i].fwhm_mz_avg);
+          fcons.setMetaValue(Constants::UserParam::FWHM_MZ_AVG, m_traces_final[i].fwhm_mz_avg);
         }
         // Similarly, check for ion mobility centroid presence. Annotate output with ion mobility
         if (m_traces_final[i].getCentroidIM() > 0)
         {
           //fcons.setMetaValue("Ion Mobility Centroid", m_traces_final[i].getCentroidIM());
-          fcons.setMetaValue(Constants::ION_MOBILITY_CENTROID, m_traces_final[i].getCentroidIM());
+          fcons.setMetaValue(Constants::UserParam::ION_MOBILITY_CENTROID, m_traces_final[i].getCentroidIM());
         }
         // if ion mobility peak FWHM is presnt, add to meta data
         if (m_traces_final[i].fwhm_im_avg > 0)
         {
-          fcons.setMetaValue(Constants::IM_FWHM_AVG, m_traces_final[i].fwhm_im_avg);
+          fcons.setMetaValue(Constants::UserParam::FWHM_IM_AVG, m_traces_final[i].fwhm_im_avg);
         }
 
         consensus_map.push_back(fcons);
@@ -318,20 +318,20 @@ protected:
         f.setOverallQuality(1 - (1.0 / m_traces_final[i].getSize()));
         f.getConvexHulls().push_back(m_traces_final[i].getConvexhull());
         double sd = m_traces_final[i].getCentroidSD();
-        f.setMetaValue(Constants::SD, sd);
-        f.setMetaValue(Constants::SD_ppm, sd / f.getMZ() * 1e6);
+        f.setMetaValue(Constants::UserParam::SD, sd);
+        f.setMetaValue(Constants::UserParam::SD_ppm, sd / f.getMZ() * 1e6);
         if (m_traces_final[i].fwhm_mz_avg > 0)
         {
-          f.setMetaValue(Constants::FWHM_MZ_AVG, m_traces_final[i].fwhm_mz_avg);
+          f.setMetaValue(Constants::UserParam::FWHM_MZ_AVG, m_traces_final[i].fwhm_mz_avg);
         }
         // Similarly, check for ion mobility centroid presence. Annotate output with ion mobility
         if (m_traces_final[i].getCentroidIM() > 0)
         {
-          f.setMetaValue(Constants::ION_MOBILITY_CENTROID, m_traces_final[i].getCentroidIM());
+          f.setMetaValue(Constants::UserParam::ION_MOBILITY_CENTROID, m_traces_final[i].getCentroidIM());
         }
         if (m_traces_final[i].fwhm_im_avg > 0)
         {
-          f.setMetaValue(Constants::FWHM_IM_AVG, m_traces_final[i].fwhm_im_avg);
+          f.setMetaValue(Constants::UserParam::FWHM_IM_AVG, m_traces_final[i].fwhm_im_avg);
         }
         stats_sd.push_back(m_traces_final[i].getCentroidSD());
         ms_feat_map.push_back(f);

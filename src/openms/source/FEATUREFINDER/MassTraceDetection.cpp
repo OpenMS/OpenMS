@@ -71,6 +71,73 @@ namespace OpenMS
       prev_denom *= denom_tmp;
     }
 
+    // detect presence of ion mobility data and locate all relevant meta array indices.
+    void MassTraceDetection::getIMIndices_(
+      const PeakMap& spectra,
+      int& fwhm_meta_idx, bool& has_fwhm_meta,
+      int& im_idx, bool& has_ion_mobility_array,
+      int& im_fwhm_idx, bool& has_im_fwhm_meta
+    ) const
+    {
+      for (const auto& spec : spectra)
+      {
+        const auto& fda = spec.getFloatDataArrays();
+        if (!fda.empty())
+        {
+          auto it_fwhm = getDataArrayByName(fda, Constants::UserParam::FWHM_MZ_ppm);
+          auto it_im   = getDataArrayByName(fda, Constants::UserParam::ION_MOBILITY);
+          auto it_imf  = getDataArrayByName(fda, Constants::UserParam::FWHM_IM);
+
+          if (it_fwhm != fda.end())
+          {
+            fwhm_meta_idx = std::distance(fda.begin(), it_fwhm);
+            has_fwhm_meta = true;
+          }
+          if (it_im != fda.end())
+          {
+            im_idx = std::distance(fda.begin(), it_im);
+            has_ion_mobility_array = true;
+          }
+          if (it_imf != fda.end())
+          {
+            im_fwhm_idx = std::distance(fda.begin(), it_imf);
+            has_im_fwhm_meta = true;
+          }
+
+          break;
+        }
+      }
+
+      auto validate_meta_array = [&](const String& name, int idx) {
+        if (idx == -1) return;
+
+        Size valid_count = 0;
+        for (const auto& spec : spectra)
+        {
+          const auto& fda = spec.getFloatDataArrays();
+          if (!fda.empty() && idx < (int)fda.size() && fda[idx].getName() == name)
+          {
+            if (fda[idx].size() != spec.size())
+            {
+              throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, spec.size());
+            }
+            ++valid_count;
+          }
+        }
+
+        if (valid_count > 0 && valid_count != spectra.size())
+        {
+          throw OpenMS::Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                name + " meta arrays must be consistently present or absent across all MS spectra ["
+                                                  + String(valid_count) + "/" + String(spectra.size()) + "].");
+        }
+      };
+
+      validate_meta_array(Constants::UserParam::FWHM_MZ_ppm, fwhm_meta_idx);
+      validate_meta_array(Constants::UserParam::ION_MOBILITY, im_idx);
+      validate_meta_array(Constants::UserParam::FWHM_IM, im_fwhm_idx);
+    }
+
     void MassTraceDetection::run(PeakMap::ConstAreaIterator& begin,
                                  PeakMap::ConstAreaIterator& end,
                                  std::vector<MassTrace>& found_masstraces)
@@ -266,65 +333,11 @@ namespace OpenMS
       int IM_fwhm_idx(-1);
       bool has_im_fwhm_meta = false;
 
-      // Identify float meta array indices from first spectrum that contains metadata
-      for (const auto& spec : work_exp)
-      {
-        const auto& fda = spec.getFloatDataArrays();
-        if (! fda.empty())
-        {
-          auto it_fwhm = getDataArrayByName(spec.getFloatDataArrays(), Constants::FWHM_MZ_ppm);
-          auto it_im = getDataArrayByName(spec.getFloatDataArrays(), Constants::ION_MOBILITY);
-          auto it_imf = getDataArrayByName(spec.getFloatDataArrays(), Constants::FWHM_IM);
-
-          if (it_fwhm != fda.end())
-          {
-            fwhm_meta_idx = std::distance(fda.begin(), it_fwhm);
-            has_fwhm_meta = true;
-          }
-
-          if (it_imf != fda.end())
-          {
-            IM_fwhm_idx = std::distance(fda.begin(), it_imf);
-            has_im_fwhm_meta = true;
-          }
-
-          if (it_im != fda.end())
-          {
-            Ion_Mobility_idx = std::distance(fda.begin(), it_im);
-            has_ion_mobility_array = true;
-          }
-
-          break;
-        }
-      }
-      // Here, we ensure the float arrays are the same size as the spectrum.
-      auto validate_meta_array = [&](const String& name, int idx) {
-        if (idx == -1) return; // Not present → skip
-
-        Size valid_count = 0;
-        for (const auto& spec : work_exp)
-        {
-          const auto& fda = spec.getFloatDataArrays();
-          if (! fda.empty() && idx < (int)fda.size() && fda[idx].getName() == name)
-          {
-            if (fda[idx].size() != spec.size()) { throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, spec.size()); }
-            ++valid_count;
-          }
-        }
-
-        if (valid_count > 0 && valid_count != work_exp.size())
-        {
-          throw OpenMS::Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                                name + " meta arrays must be consistently present or absent across all MS spectra ["
-                                                  + String(valid_count) + "/" + String(work_exp.size()) + "].");
-        }
-      };
-
-      // validate meta arrays
-      validate_meta_array(Constants::FWHM_MZ_ppm, fwhm_meta_idx);
-      validate_meta_array(Constants::ION_MOBILITY, Ion_Mobility_idx);
-      validate_meta_array(Constants::FWHM_IM, IM_fwhm_idx);
-
+      // locate Ion mobility data float array index & its associated information if present.
+      getIMIndices_(work_exp,
+                    fwhm_meta_idx, has_fwhm_meta,
+                    Ion_Mobility_idx, has_ion_mobility_array,
+                    IM_fwhm_idx, has_im_fwhm_meta);
 
       this->startProgress(0, total_peak_count, "mass trace detection");
       Size peaks_detected(0);

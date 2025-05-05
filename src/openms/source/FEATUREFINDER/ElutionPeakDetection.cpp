@@ -369,8 +369,6 @@ namespace OpenMS
     // mt is a MassTrace input. Try to save its centroid IM, and im/mz peak FWHM in a variable
     // assign them to split traces
     double centroid_im(mt.getCentroidIM());
-    double mz_fwhm(mt.fwhm_mz_avg);
-    double im_fwhm(mt.fwhm_im_avg);
 
     // *********************************************************************
     // Step 1: Smooth data
