@@ -203,11 +203,11 @@ protected:
 
     if (map.RangeIntensity::isEmpty())
     {
-      os << "  intensity: <none> .. <none>\n";
+      os << "  intensity: <none> .. <none>\n\n";
     }
     else
     {
-      os << "  intensity: " << String::number(map.getMinIntensity(), 2) << " .. " << String::number(map.getMaxIntensity(), 2) << '\n';
+      os << "  intensity: " << String::number(map.getMinIntensity(), 2) << " .. " << String::number(map.getMaxIntensity(), 2) << "\n\n";
     }    
   }
 
