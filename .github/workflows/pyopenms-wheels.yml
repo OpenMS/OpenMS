@@ -133,6 +133,7 @@ jobs:
         python -m pip install --upgrade cibuildwheel
 
     - name: Build wheels
+      shell: bash
       run: |
         # Since we run in a docker container on linux we need to pass the env vars to the docker container
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
@@ -155,6 +156,7 @@ jobs:
           PY_NUM_THREADS: ${{ steps.cpu-cores.outputs.count }}
           SETUPTOOLS_SCM_PRETEND_VERSION: "3.4.0" #FIXME figure out how to get this without having to run cmake configure first
           CIBW_BUILD_VERBOSITY: 3 #FIXME remove
+          CIBW_SKIP: "pp* cp38-* cp37-* cp36-*"  # Skip PyPy and old Python versions
 
 
     - uses: actions/upload-artifact@v4

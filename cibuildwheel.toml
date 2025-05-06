@@ -1,5 +1,4 @@
 [tool.cibuildwheel]
-skip = "pp* cp38-* cp37-* cp36-*"  # Skip PyPy and old Python versions
 before-build = """
 pip install -r OpenMS/src/pyOpenMS/requirements_bld.txt
 ctest --output-on-failure -VV -S OpenMS/tools/ci/cibuild.cmake --config Release
@@ -8,7 +7,7 @@ build-frontend = "pip"
 test-command = "ctest --output-on-failure -V -S OpenMS/tools/ci/citest.cmake -C Release"
 
 [tool.cibuildwheel.linux]
-before-build = """
+before-all = """
 yum install -y jq ninja-build ccache
 """
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
