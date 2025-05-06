@@ -337,7 +337,9 @@ namespace OpenMS
 
       for (const auto& name : found_extra_scores)
       {
-        ph.setMetaValue(name, row[to_idx.at(name)]);
+        String value = row[to_idx.at(name)];
+        if (name == "ln(-posson)" && value == "inf") value = "3.5"; // workaround for Sage
+        ph.setMetaValue(name, value);
       }
       ph.setRank(rank);
 

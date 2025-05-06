@@ -1920,7 +1920,7 @@ def testFeatureXMLFile():
                 on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (2,24)
 
     fm = pyopenms.FeatureMap()
-    pyopenms.FeatureXMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_idmapped.featureXML'), fm)
+    pyopenms.FeatureXMLFile().load(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'BSA1_F1_idmapped.featureXML'), fm)
 
     assert pd.merge(fm.get_df(), pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications()),
                     on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (15,26)
@@ -2818,23 +2818,23 @@ def testMSExperiment():
     assert exp.get_df(long = True, ms_levels=[1]).shape == (6, 4)
     assert exp.get_df(long=True, ms_levels=[2]).shape == (4, 4)
 
-    pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1.mzML'), exp)
+    pyopenms.MzMLFile().load(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'BSA1_F1.mzML'), exp)
 
     ms1_df, ms2_df = exp.get_massql_df()
     assert ms1_df.shape == (140055, 7)
-    assert np.allclose(ms2_df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS2_MassQL.tsv'), sep='\t'))
+    assert np.allclose(ms2_df.head(), pd.read_csv(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'BSA1_F1_MS2_MassQL.tsv'), sep='\t'))
 
-    pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_ION.mzML'), exp)
+    pyopenms.MzMLFile().load(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'BSA1_F1_ION.mzML'), exp)
     df = exp.get_ion_df()
-    assert np.allclose(df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS1_ION.tsv'), sep='\t'))
+    assert np.allclose(df.head(), pd.read_csv(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'BSA1_F1_MS1_ION.tsv'), sep='\t'))
 
     ms1_df, ms2_df = exp.get_massql_df(ion_mobility=True)
     assert ms1_df.shape == (332620, 8)
-    assert np.allclose(ms1_df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS1_MassQL_ION.tsv'), sep='\t'))
+    assert np.allclose(ms1_df.head(), pd.read_csv(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'BSA1_F1_MS1_MassQL_ION.tsv'), sep='\t'))
 
     #####################################################################################
     # test fast aggregation and XIC extraction using ranges
-    pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1.mzML'), exp)    
+    pyopenms.MzMLFile().load(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'BSA1_F1.mzML'), exp)    
     exp.updateRanges()
 
     ############################################################################

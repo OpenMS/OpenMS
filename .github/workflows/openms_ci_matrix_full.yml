@@ -48,7 +48,9 @@ jobs:
             # clang.exe is also installed but untested (might crash with our VS specific compiler definitions)
             # clang-cl.exe might be used instead.
             compiler: cl.exe
-            compiler_ver: default
+            # VS 2022: 14.30-14.39 (corresponds to MSVC v143)
+            # VS 2019: 14.20-14.29 (corresponds to MSVC v142)
+            compiler_ver: 14.36    # Specific toolset version for VS 2022 -- must (roughly) match Qt6 compiler (see below)
 
           - os: macos-13
             # Since the appleclang version is dependent on the XCode versions that are installed
@@ -70,7 +72,15 @@ jobs:
           # We are not installing anything.
           - os: ubuntu-22.04
             compiler: g++
+
             compiler_ver: 11
+          # Make sure the compilers are available in that version on the GH runners
+          # We are not installing anything.
+          
+          #- os: ubuntu-22.04-arm
+          #  compiler: g++
+          #  compiler_ver: 11
+
 
           - os: ubuntu-22.04
             compiler: clang++
@@ -218,7 +228,8 @@ jobs:
       if: startsWith(matrix.os, 'windows')
       uses: jurplel/install-qt-action@v4
       with:
-        version: '6.7.2'
+        version: '6.8.3'    ## Note this version is build with win64_msvc2022_64 and should always match what we use
+        arch: 'win64_msvc2022_64'
         cache: 'false'
         archives: 'qtsvg qtimageformats qtbase'
 
@@ -319,8 +330,21 @@ jobs:
           cd ..
           # add third-party binaries to PATH
           # use flat THIRDPARTY structure
+          THIRDPARTY_DIR="OpenMS/THIRDPARTY"
           mkdir -p _thirdparty
-          cp -R OpenMS/THIRDPARTY/${{ steps.set-vars.outputs.tp_folder }}/64bit/* _thirdparty/
+          # Copy the correct architecture
+          cp -R "$THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/$(uname -m)"/* _thirdparty/          
+          # For MacOS 14 we also want to copy over any tools that we only have in x86_64 flavor.
+          if [[ "${{ matrix.os }}" == macos-14 ]]; then
+            echo "Copying x86_64 tools for MacOS 14"
+            for tool in $THIRDPARTY_DIR/MacOS/x86_64/*; do
+              toolname=$(basename "$tool")
+              if [[ ! -e "_thirdparty/$toolname" ]]; then
+                echo "Copying missing tool from x86_64: $toolname"
+                cp -R "$tool" "_thirdparty/"
+              fi
+            done
+          fi
           cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
           # add third-party binaries to PATH
           for thirdpartytool in '${{ github.workspace }}/_thirdparty'/*
@@ -545,28 +569,11 @@ jobs:
       - name: Extract branch/PR infos
         shell: bash
         run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_ENV
-      
-      # WOW, you cannot download with wildcard. INCREDIBLY ANNOYING https://github.com/actions/download-artifact/issues/6
-      # Maybe in the next 3 years......
-      - name: Download macOS installer artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: installer-MacOS
 
-      - name: Download macOS Silicon installer artifacts
+      - name: Download installer artifacts
         uses: actions/download-artifact@v4
         with:
-          name: installer-MacOS-arm64
-
-      - name: Download win installer artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: installer-Windows
-          
-      - name: Download lnx installer artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: installer-Linux
+          pattern: installer-*
 
       - name: Download source archive as artifact
         uses: actions/download-artifact@v4
@@ -756,30 +763,12 @@ jobs:
         shell: bash
         run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_ENV
 
-      # WOW, you cannot download with wildcard. INCREDIBLY ANNOYING https://github.com/actions/download-artifact/issues/6
-      # Maybe in the next 3 years......
-      - name: Download macOS installer artifacts
+      - name: Download KNIME artifacts
         uses: actions/download-artifact@v4
         with:
-          name: knime-MacOS
+          pattern: knime-*
           path: ${{ env.PLUGIN_SOURCE }}
-      - name: Download macOS Silicon installer artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: knime-MacOS-arm64
-          path: ${{ env.PLUGIN_SOURCE }}
-      - name: Download win installer artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: knime-Windows
-          path: ${{ env.PLUGIN_SOURCE }}
-
-      - name: Download lnx installer artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: knime-Linux
-          path: ${{ env.PLUGIN_SOURCE }}
-
+     
       # Should be the default. 
       - name: Set up JDK
         uses: actions/setup-java@v4
