@@ -150,12 +150,12 @@ jobs:
           SETUPTOOLS_SCM_PRETEND_VERSION: "3.4.0" #FIXME figure out how to get this without having to run cmake configure first
           CIBW_BUILD_VERBOSITY: 3 #FIXME remove
           CIBW_ENVIRONMENT: |
-            CMAKE_GENERATOR=${{ steps.set-vars.outputs.cmake_generator }}
-            CMAKE_GENERATOR_PLATFORM=${{ steps.set-vars.outputs.cmake_generator_platform }}
-            OPENMS_CONTRIB_LIBS=${{ steps.set-vars.outputs.openms_contrib_libs }}
-            BUILD_FLAGS=${{ steps.set-vars.outputs.build_flags }}
-            BUILD_NAME=${{ steps.set-vars.outputs.build_name }}
-            BOOST_USE_STATIC=${{ steps.set-vars.outputs.boost_use_static }}
+            CMAKE_GENERATOR=${{ steps.set-vars.outputs.cmake_generator }},
+            CMAKE_GENERATOR_PLATFORM=${{ steps.set-vars.outputs.cmake_generator_platform }},
+            OPENMS_CONTRIB_LIBS=${{ steps.set-vars.outputs.openms_contrib_libs }},
+            BUILD_FLAGS=${{ steps.set-vars.outputs.build_flags }},
+            BUILD_NAME=${{ steps.set-vars.outputs.build_name }},
+            BOOST_USE_STATIC=${{ steps.set-vars.outputs.boost_use_static }},
             PY_NUM_THREADS=${{ steps.cpu-cores.outputs.count }}
 
 
