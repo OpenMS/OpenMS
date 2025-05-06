@@ -24,7 +24,7 @@ name = "pyopenms"
 dynamic = ["version"]
 description = "Python bindings for OpenMS"
 authors = [{name = "OpenMS Team", email = "openms-support@lists.sourceforge.net"}]
-license = "BSD-3-Clause"
+license = {text = "BSD-3-Clause"}
 maintainers = [
     {name = "OpenMS Team", email = "openms-support@lists.sourceforge.net"}
 ]
