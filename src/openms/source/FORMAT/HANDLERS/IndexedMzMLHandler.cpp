@@ -247,7 +247,6 @@ namespace OpenMS::Internal
   {
     OpenMS::MSSpectrum s;
     getMSSpectrumById(id, s);
-    s.updateRanges();
     return s;
   }
 
