@@ -2091,7 +2091,7 @@ protected:
       else //peaks
       {
         //copy intensities of  MS-level 1 peaks
-        exp.updateRanges(1);
+        exp.updateRanges();
         Size size = exp.getSize();
         vector<double> intensities;
         intensities.reserve(size);
