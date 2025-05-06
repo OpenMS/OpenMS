@@ -4,7 +4,9 @@
 
 # define build name&co for easier identification on CDash
 set(CTEST_BUILD_NAME "$ENV{BUILD_NAME}")
-
+if(NOT DEFINED CTEST_BUILD_NAME OR CTEST_BUILD_NAME STREQUAL "")
+    set(CTEST_BUILD_NAME "default-build")
+endif()
 set(CTEST_SITE "$ENV{CI_PROVIDER}")
 set(CTEST_SOURCE_DIRECTORY "$ENV{SOURCE_DIRECTORY}")
 set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/bld")
@@ -179,10 +181,10 @@ endif()
 if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
   if("$ENV{PYOPENMS}" STREQUAL "ON")
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "pyopenms" NUMBER_ERRORS _build_errors)
-    # Generate and valdiate the CWL files if "ENABLE_CWL" is set
   else()
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
   endif()
+  # Generate and valdiate the CWL files if "ENABLE_CWL" is set
   if("$ENV{ENABLE_CWL}" STREQUAL "ON")
   ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "generate_cwl_files" NUMBER_ERRORS _build_errors)
   endif()

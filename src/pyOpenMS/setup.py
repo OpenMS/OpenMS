@@ -1,238 +1,324 @@
-# input-encoding: latin-1
-from __future__ import print_function
 
-# windows ?
-import sys
-iswin = sys.platform == "win32"
+#!/usr/bin/env python
 
-# osx ?
-isosx = sys.platform == "darwin"
-if isosx:
-    import platform
-    osx_ver = platform.mac_ver()[0] #e.g. ('10.15.1', ('', '', ''), 'x86_64')
-
-import sys
-no_optimization = False
-
-if "--no-optimization" in sys.argv:
-    no_optimization = True
-    sys.argv.remove("--no-optimization")
-
-# import config
-from env import  (OPEN_MS_COMPILER, PYOPENMS_SRC_DIR, OPEN_MS_GIT_BRANCH, OPEN_MS_BUILD_DIR,
-                  OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, PYOPENMS_INCLUDE_DIRS,
-                  PY_NUM_MODULES, OPENMS_GIT_LC_DATE_FORMAT, OPENMP_FOUND, OPENMP_CXX_FLAGS)
-
-IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
-OMP = (OPENMP_FOUND.upper() == "ON" or OPENMP_FOUND.upper() == "TRUE" or OPENMP_FOUND == "1")
-
-if iswin and IS_DEBUG:
-    raise Exception("building pyopenms on windows in debug mode not tested yet.")
-
-# use autowrap to generate Cython and .cpp file for wrapping OpenMS:
-import pickle
-import os
-import glob
-import re
-import shutil
-
-if OPEN_MS_GIT_BRANCH == "nightly":
-    package_name = "pyopenms"
-    package_version = OPEN_MS_VERSION + ".dev" + OPENMS_GIT_LC_DATE_FORMAT
-else:
-    package_name = "pyopenms"
-    package_version = OPEN_MS_VERSION
-
-os.environ["CC"] = OPEN_MS_COMPILER
-# AFAIK distutils does not care about CXX (set it to be safe)
-os.environ["CXX"] = OPEN_MS_COMPILER
-
-j = os.path.join
-
-src_pyopenms = PYOPENMS_SRC_DIR
-extra_includes = glob.glob(src_pyopenms + "/extra_includes/*.h*")
-
-for include in extra_includes:
-    shutil.copy(include, "extra_includes/")
+# THIS IS ADAPTED FROM PYARROW
+# https://github.com/apache/arrow/blob/main/python/setup.py
 
 
-persisted_data_path = "include_dir.bin"
-autowrap_include_dirs = pickle.load(open(persisted_data_path, "rb"))
+# All the package metadata and build+run dependencies goes to
+# pyproject.toml. This setup.py is only for building/registering
+# the C++ extensions.
 
-from setuptools import setup, Extension
+# Idea is:
+#  - if run outside of the general OpenMS CMake script,
+#  the setup.py just calls cmake --build pyopenms, collects the
+#  extension modules and declares them as output
+#  - if run inside the general OpenMS CMake script, the setup.py
+#  reads the generated env.py and uses that to add the
+#  modules to be expected from the build to ext_modules
 
-with open("pyopenms/version.py", "w") as fp:
-    print("version=%r" % package_version, file=fp)
 
 
-# Package data expected to be installed. On Linux the debian package
-# contains share/ data and must be installed to get access to the OpenMS shared
-# library.
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
 #
-if iswin:
-    if IS_DEBUG:
-        libraries = ["OpenMSd", "OpenSwathAlgod", "Qt5Cored", "Qt5Networkd"]
-    else:
-        libraries = ["OpenMS", "OpenSwathAlgo", "Qt5Core", "Qt5Network"]
-elif sys.platform.startswith("linux"):
-    libraries = ["OpenMS", "OpenSwathAlgo", "Qt5Core", "Qt5Network"]
-elif sys.platform == "darwin":
-    libraries = ["OpenMS", "OpenSwathAlgo"]
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+import contextlib
+import os
+import os.path
+from os.path import join as pjoin
+import re
+import shlex
+import sys
+import warnings
+try:
+    import env
+except ImportError:
+    print("Info: env.py not found. Which means running outside of a CMake process.")
+
+if sys.version_info >= (3, 10):
+    import sysconfig
 else:
-    print("\n")
-    print("platform", sys.platform, "not supported yet")
-    print("\n")
-    exit()
+    # Get correct EXT_SUFFIX on Windows (https://bugs.python.org/issue39825)
+    from distutils import sysconfig
 
-if (iswin):
-    library_dirs = [OPEN_MS_BUILD_DIR,
-                    j(OPEN_MS_BUILD_DIR, "lib", "Release"),
-                    j(OPEN_MS_BUILD_DIR, "bin", "Release"),
-                    j(OPEN_MS_BUILD_DIR, "Release"),
-                    ]
-else:
-    library_dirs = [OPEN_MS_BUILD_DIR,
-                j(OPEN_MS_BUILD_DIR, "lib"),
-                j(OPEN_MS_BUILD_DIR, "bin"),
-                ]
+from setuptools import setup, Extension, Distribution
 
-include_dirs = [
-    "extra_includes",
-]
+from Cython.Distutils import build_ext as _build_ext
+import Cython
 
-# append all include and library dirs exported by CMake
-include_dirs.extend(PYOPENMS_INCLUDE_DIRS.split(";"))
+# Check if we're running 64-bit Python
+is_64_bit = sys.maxsize > 2**32
 
 
-# libraries of any type to be parsed and added
-objects = []
+if Cython.__version__ < '3':
+    raise Exception(
+        'Please update your Cython version. Supported Cython >= 3')
+
+setup_dir = os.path.abspath(os.path.dirname(__file__))
+
+ext_suffix = sysconfig.get_config_var('EXT_SUFFIX')
 
 
-extra_link_args = []
-extra_compile_args = []
+@contextlib.contextmanager
+def changed_dir(dirname):
+    oldcwd = os.getcwd()
+    os.chdir(dirname)
+    try:
+        yield
+    finally:
+        os.chdir(oldcwd)
 
-if iswin:
-    # /EHs is important. It sets _CPPUNWIND which causes boost to
-    # set BOOST_NO_EXCEPTION in <boost/config/compiler/visualc.hpp>
-    # such that  boost::throw_excption() is declared but not implemented.
-    # The linker does not like that very much ...
-    extra_compile_args = ["/EHs", "/bigobj"]
-    extra_compile_args.append("/std:c++17")
-    extra_link_args.append("/std:c++17")
 
-elif sys.platform.startswith("linux"):
-    extra_link_args = ["-Wl,-s"]
-    if OMP:
-        libraries.append("gomp")
-        libraries.append("pthread")
-elif sys.platform == "darwin":
-    library_dirs.insert(0,j(OPEN_MS_BUILD_DIR,"pyOpenMS","pyopenms"))
-    if OMP:
-        libraries.append("omp")
-    # we need to manually link to the Qt Frameworks
-    extra_compile_args = ["-Qunused-arguments"]
-    extra_link_args = ["-Wl,-rpath","-Wl,@loader_path/"]
-if IS_DEBUG:
-    extra_compile_args.append("-g2")
-if OMP and OPENMP_CXX_FLAGS:
-    extra_compile_args.extend(OPENMP_CXX_FLAGS.split(";"))
+def strtobool(val):
+    """Convert a string representation of truth to true (1) or false (0).
 
-if not iswin:
-    extra_link_args.append("-std=c++17")
-    extra_compile_args.append("-std=c++17")
-    if isosx: # MacOS
-        extra_compile_args.append("-stdlib=libc++")
-        extra_link_args.append("-stdlib=libc++") # MacOS libstdc++ does not include c++11+ lib support.
-        extra_link_args.append("-mmacosx-version-min=10.9") # due to libc++
-        extra_compile_args.append("-Wno-deprecated")
-        extra_compile_args.append("-Wno-nullability-completeness")
+    True values are 'y', 'yes', 't', 'true', 'on', and '1'; false values
+    are 'n', 'no', 'f', 'false', 'off', and '0'.  Raises ValueError if
+    'val' is anything else.
+    """
+    # Copied from distutils
+    val = val.lower()
+    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+        return 1
+    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+        return 0
     else:
-        extra_compile_args.append("-Wno-deprecated-copy")
-    extra_compile_args.append("-Wno-redeclared-class-member")
-    extra_compile_args.append("-Wno-unused-local-typedefs")
-    extra_compile_args.append("-Wdeprecated-declarations")
-    extra_compile_args.append("-Wno-sign-compare")
-    extra_compile_args.append("-Wno-unknown-pragmas")
-    extra_compile_args.append("-Wno-header-guard")
-    extra_compile_args.append("-Wno-unused-function")
-    extra_compile_args.append("-Wno-deprecated-declarations")
-    extra_compile_args.append("-Wno-missing-declarations")
-    extra_compile_args.append("-Wno-int-in-bool-context")
-    
-    if no_optimization:
-        extra_compile_args.append("-O0")
-        extra_link_args.append("-O0")
+        raise ValueError("invalid truth value %r" % (val,))
 
-mnames = ["_pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
-ext = []
 
-##WARNING debug
-libraries.extend("boost_regex-mt-x64")
+class build_ext(_build_ext):
+    _found_names = ()
 
-for module in mnames:
+    CYTHON_MODULE_NAMES = [ 
+        '_all_modules',
+        '_pyopenms_1',
+        '_pyopenms_2',
+        '_pyopenms_3',
+        '_pyopenms_4',
+        '_pyopenms_5',
+        '_pyopenms_6',
+        '_pyopenms_7',
+        '_pyopenms_8',
+        '_version'
+    ]
 
-    ext.append(Extension(
-        module,
-        sources=["pyopenms/%s.cpp" % module],
-        language="c++",
-        library_dirs=library_dirs,
-        libraries=libraries,
-        include_dirs=include_dirs + autowrap_include_dirs,
-        extra_compile_args=extra_compile_args,
-        extra_objects=objects,
-        extra_link_args=extra_link_args,
-		define_macros=[('BOOST_ALL_NO_LIB', None), ("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")] ## Deactivates boost autolink (esp. on win). Shuts up the damn "deprecated NumPy API" warning spam (https://docs.cython.org/en/latest/src/userguide/numpy_tutorial.html#numpy-compilation)
-		## Alternative is to specify the boost naming scheme (--layout param; easy if built from contrib)
-		## TODO just take over compile definitions from OpenMS (CMake)
-    ))
+    def build_extensions(self):
+        import numpy
+        numpy_incl = numpy.get_include()
 
-# enforce 64bit-only build as OpenMS is not available in 32bit on osx
-if sys.platform == "darwin":
-    os.environ['ARCHFLAGS'] = "-arch x86_64"
+        self.extensions = [ext for ext in self.extensions
+                           if ext.name != '__dummy__']
+
+        for ext in self.extensions:
+            if (hasattr(ext, 'include_dirs') and
+                    numpy_incl not in ext.include_dirs):
+                ext.include_dirs.append(numpy_incl)
+        _build_ext.build_extensions(self)
+
+    def run(self):
+        self._run_cmake()
+        _build_ext.run(self)
+
+    # adapted from cmake_build_ext in dynd-python
+    # github.com/libdynd/dynd-python
+
+    description = "Build the Cpp-extensions for OpenMS"
+    user_options = ([('cmake-generator=', None, 'CMake generator'),
+                     ('extra-cmake-args=', None, 'extra arguments for CMake'),
+                     ('num_modules=', None, 'number of modules to split cython cpps into'),
+                     ('num_threads=', None, 'number of threads to use for building, i.e. how many modules to build in parallel'),
+                     ('build-type=', None, 'build type (debug or release), default release'),] +
+                    _build_ext.user_options)
+
+    def initialize_options(self):
+        _build_ext.initialize_options(self)
+        self.cmake_generator = os.environ.get('OPENMS_CMAKE_GENERATOR')
+        if not self.cmake_generator and sys.platform == 'win32':
+            self.cmake_generator = 'Visual Studio 15 2017 Win64'
+        self.extra_cmake_args = os.environ.get('OPENMS_CMAKE_OPTIONS', '')
+        self.build_type = os.environ.get('OPENMS_BUILD_TYPE',
+                                         'release').lower()
+
+        self.cmake_cxxflags = os.environ.get('OPENMS_CXXFLAGS', '')
+
+        if sys.platform == 'win32':
+            # Cannot do debug builds in Windows unless Python itself is a debug
+            # build
+            if not hasattr(sys, 'gettotalrefcount'):
+                self.build_type = 'release'
+
+
+    def _run_cmake(self):
+        # check if build_type is correctly passed / set
+        if self.build_type.lower() not in ('release', 'debug',
+                                           'relwithdebinfo'):
+            raise ValueError("--build-type (or OPENMS_BUILD_TYPE) needs to "
+                             "be 'release', 'debug' or 'relwithdebinfo'")
+
+        # The directory containing this setup.py
+        source = os.path.dirname(os.path.abspath(__file__)) + "/../../"
+
+        # The staging directory for the module being built
+        build_cmd = self.get_finalized_command('build')
+        saved_cwd = os.getcwd()
+        build_temp = pjoin(saved_cwd, build_cmd.build_temp)
+        build_lib = pjoin(saved_cwd, build_cmd.build_lib)
+
+        if not os.path.isdir(build_temp):
+            self.mkpath(build_temp)
+
+        if self.inplace:
+            # a bit hacky
+            build_lib = saved_cwd
+
+        install_prefix = pjoin(build_lib, "OPENMS")
+
+        # Change to the build directory
+        with changed_dir(build_temp):
+            # Detect if we built elsewhere
+            if os.path.isfile('CMakeCache.txt'):
+                cachefile = open('CMakeCache.txt', 'r')
+                cachedir = re.search('CMAKE_CACHEFILE_DIR:INTERNAL=(.*)',
+                                     cachefile.read()).group(1)
+                cachefile.close()
+                if (cachedir != build_temp):
+                    build_base = pjoin(saved_cwd, build_cmd.build_base)
+                    print(f"-- Skipping build. Temp build {build_temp} does "
+                          f"not match cached dir {cachedir}")
+                    print("---- For a clean build you might want to delete "
+                          f"{build_base}.")
+                    return
+
+            cmake_options = [
+                f'-DCMAKE_INSTALL_PREFIX={install_prefix}',
+                f'-DPYTHON_EXECUTABLE={sys.executable}',
+                f'-DPython3_EXECUTABLE={sys.executable}',
+                f'-DOPENMS_CXXFLAGS={self.cmake_cxxflags}',
+            ]
+
+            def append_cmake_bool(value, varname):
+                cmake_options.append('-D{0}={1}'.format(
+                    varname, 'on' if value else 'off'))
+
+            def append_cmake_component(flag, varname):
+                # only pass this to cmake if the user pass the --with-component
+                # flag to setup.py build_ext
+                if flag is not None:
+                    flag_name = (
+                        "--with-"
+                        + varname.removeprefix("OPENMS_").lower().replace("_", "-"))
+                    warnings.warn(
+                        MSG_DEPR_SETUP_BUILD_FLAGS.format(flag_name),
+                        UserWarning, stacklevel=2
+                    )
+                    append_cmake_bool(flag, varname)
+
+            if self.cmake_generator:
+                cmake_options += ['-G', self.cmake_generator]
+
+            #append_cmake_bool(self.bundle_cython_cpp,
+            #                  'OPENMS_BUNDLE_CYTHON_CPP')
+            #append_cmake_bool(self.generate_coverage,
+            #                  'OPENMS_GENERATE_COVERAGE')
+
+            cmake_options.append(
+                f'-DCMAKE_BUILD_TYPE={self.build_type.lower()}')
+
+            extra_cmake_args = shlex.split(self.extra_cmake_args)
+
+            build_tool_args = []
+            if sys.platform == 'win32':
+                if not is_64_bit:
+                    raise RuntimeError('Not supported on 32-bit Windows')
+            else:
+                build_tool_args.append('--')
+                if os.environ.get('OPENMS_BUILD_VERBOSE', '0') == '1':
+                    cmake_options.append('-DCMAKE_VERBOSE_MAKEFILE=ON')
+                parallel = os.environ.get('OPENMS_PARALLEL')
+                if parallel:
+                    build_tool_args.append(f'-j{parallel}')
+
+            # Generate the build files
+            print("-- Running cmake for OPENMS")
+            self.spawn(['cmake'] + extra_cmake_args + cmake_options + [source])
+
+            print("-- Finished cmake for OPENMS")
+
+            print("-- Running cmake --build for OPENMS")
+            print(f"Current working directory: {os.getcwd()}")
+            self.spawn(['cmake', '--build', source, '--config', self.build_type] +
+                       build_tool_args)
+            print("-- Finished cmake --build for OPENMS")
+
+            print("-- Running cmake --build --target install for OPENMS")
+            self.spawn(['cmake', '--build', source, '--config', self.build_type] +
+                       ['--target', 'install'] + build_tool_args)
+            print("-- Finished cmake --build --target install for OPENMS")
+
+            self._found_names = []
+            for name in self.CYTHON_MODULE_NAMES:
+                built_path = pjoin(install_prefix, name + ext_suffix)
+                if os.path.exists(built_path):
+                    self._found_names.append(name)
+
+    def _get_build_dir(self):
+        # Get the package directory from build_py
+        build_py = self.get_finalized_command('build_py')
+        return build_py.get_package_dir('OPENMS')
+
+    def _get_cmake_ext_path(self, name):
+        # This is the name of the arrow C-extension
+        filename = name + ext_suffix
+        return pjoin(self._get_build_dir(), filename)
+
+    def get_ext_generated_cpp_source(self, name):
+        if sys.platform == 'win32':
+            head, tail = os.path.split(name)
+            return pjoin(head, tail + ".cpp")
+        else:
+            return pjoin(name + ".cpp")
+
+    def get_ext_built_api_header(self, name):
+        if sys.platform == 'win32':
+            head, tail = os.path.split(name)
+            return pjoin(head, tail + "_api.h")
+        else:
+            return pjoin(name + "_api.h")
+
+    def get_names(self):
+        return self._found_names
+
+    def get_outputs(self):
+        # Just the C extensions
+        # regular_exts = _build_ext.get_outputs(self)
+        return [self._get_cmake_ext_path(name)
+                for name in self.get_names()]
+
+
+class BinaryDistribution(Distribution):
+    def has_ext_modules(foo):
+        return True
+
 
 setup(
-
-    name=package_name,
-    packages=["pyopenms"],
-    ext_package="pyopenms",
-    package_data= {
-        'pyopenms': ['py.typed', '*.pyi']
+    distclass=BinaryDistribution,
+    # Dummy extension to trigger build_ext
+    ext_modules=[Extension('__dummy__', sources=[])],
+    cmdclass={
+        'build_ext': build_ext
     },
-	install_requires=[
-          'numpy>=1.25.0',
-          'pandas',
-          'matplotlib>=3.5'
-    ],
-
-    version=package_version,
-
-    maintainer="The OpenMS team",
-    maintainer_email="open-ms-general@lists.sourceforge.net",
-    license="http://opensource.org/licenses/BSD-3-Clause",
-    platforms=["any"],
-    description="Python wrapper for C++ LC-MS library OpenMS",
-    classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: BSD License",
-        "Topic :: Scientific/Engineering :: Bio-Informatics",
-        "Topic :: Scientific/Engineering :: Chemistry",
-    ],
-    long_description=open("README.rst").read(),
-    long_description_content_type="text/x-rst",
-    zip_safe=False,
-
-    url="https://openms.de",
-    project_urls={
-        "Documentation": "https://pyopenms.readthedocs.io",
-        "Source Code": "https://github.com/OpenMS/OpenMS/tree/develop/src/pyOpenMS",
-        "Tracker": "https://github.com/OpenMS/OpenMS/issues",
-        "Documentation Source": "https://github.com/OpenMS/pyopenms-docs",
-    },
-
-    author="OpenMS team",
-    author_email="webmaster@openms.de",
-
-    ext_modules=ext,
-    include_package_data=True  # see MANIFEST.in
 )

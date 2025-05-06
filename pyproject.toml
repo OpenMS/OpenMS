@@ -1,90 +1,72 @@
 [build-system]
 requires = [
-    "setuptools",
+    "pip",
+    "autowrap >= 0.22.11",
+    "cython >= 3.0.11",
+    # Starting with NumPy 1.25, NumPy is (by default) as far back compatible
+    # as oldest-support-numpy was (customizable with a NPY_TARGET_VERSION
+    # define).  For older Python versions (where NumPy 1.25 is not yet available)
+    # continue using oldest-support-numpy.
+    "oldest-supported-numpy>=0.14; python_version<'3.9'",
+    "numpy>=1.25; python_version>='3.9'",
+    # configuring setuptools_scm in pyproject.toml requires
+    # versions released after 2022
+    "setuptools_scm[toml]>=8",
+    "setuptools>=64",
     "wheel",
-    "numpy>=1.25.0",
-    "pandas",
-    "matplotlib>=3.5",
-    "Cython",
-    "setuptools_scm",
-    ]
+    "pytest",
+    "pandas"
+]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyopenms"
-description = "Python wrapper for C++ LC-MS library OpenMS"
-readme = "README.rst"
-authors = [
-    { name = "OpenMS team", email = "webmaster@openms.de" }
-]
-maintainers = [
-    { name = "The OpenMS team", email = "open-ms-general@lists.sourceforge.net" }
-]
-license = { text = "BSD-3-Clause" }
 dynamic = ["version"]
-requires-python = ">=3.9"
-dependencies = [
-    "numpy>=1.25.0",
-    "pandas",
-    "matplotlib>=3.5"
+description = "Python bindings for OpenMS"
+authors = [{name = "OpenMS Team", email = "openms-support@lists.sourceforge.net"}]
+license = "BSD-3-Clause"
+maintainers = [
+    {name = "OpenMS Team", email = "openms-support@lists.sourceforge.net"}
 ]
-keywords = ["bioinformatics", "mass spectrometry", "chemistry"]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
-    "Topic :: Scientific/Engineering :: Bio-Informatics",
-    "Topic :: Scientific/Engineering :: Chemistry"
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 
 [project.urls]
-Homepage = "https://openms.de"
-Documentation = "https://pyopenms.readthedocs.io"
-Source = "https://github.com/OpenMS/OpenMS/tree/develop/src/pyOpenMS"
-Tracker = "https://github.com/OpenMS/OpenMS/issues"
-"Documentation Source" = "https://github.com/OpenMS/pyopenms-docs"
+Homepage = "https://www.openms.de/"
+Documentation = "https://pyopenms.readthedocs.io/"
+Repository = "https://github.com/OpenMS/OpenMS"
+Issues = "https://github.com/OpenMS/OpenMS/issues"
 
 [tool.setuptools]
+#packages = ["pyopenms"]
+zip-safe = false
 include-package-data = true
 
 [tool.setuptools.package-data]
-pyopenms = ["py.typed", "*.pyi"]
+pyopenms = ["*.pxd", "*.pyx", "*.h", "*.cpp"]
+# add py.typed? Or maybe it's included by default by now.
 
+[tool.setuptools.packages.find]
+include = ["pyopenms"]
+namespaces = false
 
-[tool.setuptools_scm]
-fallback_version = "3.x.x-dev"
+#[project.optional-dependencies]
+#test = [
+#    'pytest',
+#    'hypothesis',
+#    'cffi',
+#    'pytz',
+#    'pandas'
+#]
 
-
-[tool.cibuildwheel]
-skip = "pp* win32"
-before-build = """
-pip install -r OpenMS/src/pyOpenMS/requirements_bld.txt
-ctest --output-on-failure -VV -S OpenMS/tools/ci/cibuild.cmake -C Release
-"""
-build-frontend = "pip"
-test-command = "ctest --output-on-failure -V -S OpenMS/tools/ci/citest.cmake -C Release"
-
-[tool.cibuildwheel.linux]
-before-build = """
-yum install -y jq ninja-build ccache
-pip install -r OpenMS/src/pyOpenMS/requirements_bld.txt
-ctest --output-on-failure -VV -S OpenMS/tools/ci/cibuild.cmake -C Release
-"""
-repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
-test-command = "ctest --output-on-failure -V -S OpenMS/tools/ci/citest.cmake -C Release"
-
-
-[tool.cibuildwheel.environment]
-BUILD_TYPE = "Release"
-PYOPENMS = "ON"
-ENABLE_TUTORIALS = "OFF"
-ENABLE_DOCS = "OFF"
-ENABLE_PIPELINE_TESTING = "OFF"
-ENABLE_STYLE_TESTING = "OFF"
-ENABLE_TOPP_TESTING = "OFF"
-ENABLE_CLASS_TESTING = "OFF"
-CCACHE_COMPRESS = true
-CCACHE_COMPRESSLEVEL = 12
-CCACHE_MAXSIZE = "400M"
-CI_PROVIDER = "GitHub-Actions"
-CMAKE_CCACHE_EXE = "ccache"
+#[tool.setuptools_scm]
+#root = '..'
+#version_file = 'pyarrow/_generated_version.py'
+#version_scheme = 'guess-next-dev'
+#git_describe_command = 'git describe --dirty --tags --long --match "apache-arrow-[0-9]*.*"'
+#fallback_version = '20.0.0a0'
