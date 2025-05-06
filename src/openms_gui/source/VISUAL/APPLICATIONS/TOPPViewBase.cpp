@@ -713,7 +713,7 @@ namespace OpenMS
 
     // sort for m/z and update ranges of newly loaded data
     peak_map_sptr->sortSpectra(true);
-    peak_map_sptr->updateRanges(1);
+    peak_map_sptr->updateRanges();
 
     // try to add the data
     if (caption == "")
@@ -2548,7 +2548,7 @@ namespace OpenMS
         lp->getPeakDataMuteable()->clear(true);
       }
       lp->getPeakDataMuteable()->sortSpectra(true);
-      lp->getPeakDataMuteable()->updateRanges(1);
+      lp->getPeakDataMuteable()->updateRanges();
     }
     else if (auto* lp = dynamic_cast<LayerDataFeature*>(&layer)) // feature data
     {
@@ -2589,7 +2589,7 @@ namespace OpenMS
         lp->getChromatogramData()->clear(true);
       }
       lp->getChromatogramData()->sortChromatograms(true);
-      lp->getChromatogramData()->updateRanges(1);
+      lp->getChromatogramData()->updateRanges();
     }
 
     // update all layers that need an update
