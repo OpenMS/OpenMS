@@ -1166,8 +1166,10 @@ namespace OpenMS
     // meta data on peptide identifications
     vector<String> pid_keys;
     pid.getKeys(pid_keys);
-
     set<String> pid_key_set(pid_keys.begin(), pid_keys.end());
+    // remove key that only exists for backwards compatibility (will likely be deprecated in the future)
+    pid_key_set.erase(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
+    
     addMetaInfoToOptionalColumns(pid_key_set, row.opt_, String("global"), pid);
 
     // link to spectrum in MS run
@@ -2454,6 +2456,7 @@ state0:
     }
     // we don't want spectrum reference to show up as meta value (already in dedicated column)
     peptide_hit_user_value_keys.erase("spectrum_reference");
+    peptide_identification_user_value_keys.erase(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
   }
 
   // local helper to extract meta values with space substituted with '_'
@@ -2530,6 +2533,7 @@ state0:
 
     // we don't want spectrum reference to show up as meta value (already in dedicated column)
     peptide_identification_user_value_keys.erase("spectrum_reference");
+    peptide_identification_user_value_keys.erase(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
   }
 
   void MzTab::getIdentificationMetaValues_(
@@ -2552,6 +2556,7 @@ state0:
     }
 
     extractMetaValuesFromIDPointers(peptide_ids_, peptide_id_user_value_keys, peptide_hit_user_value_keys);
+    peptide_id_user_value_keys.erase(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
   }
 
   void MzTab::getSearchModifications_(const vector<const ProteinIdentification*>& prot_ids, StringList& var_mods, StringList& fixed_mods)

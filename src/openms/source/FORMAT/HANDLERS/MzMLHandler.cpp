@@ -281,7 +281,13 @@ void MzMLHandler::populateChromatogramsWithData_(std::vector<MzMLHandlerHelper::
     {
       options_ = opt;
       spectrum_data_.reserve(options_.getMaxDataPoolSize());
-      chromatogram_data_.reserve(options_.getMaxDataPoolSize());
+
+      // Reserve memory for chromatogram data based on the maximum data pool size if chromatograms are to be skipped.
+      skip_chromatogram_ = options_.getSkipChromatograms();
+      if (!skip_chromatogram_)
+      {
+        chromatogram_data_.reserve(options_.getMaxDataPoolSize());
+      }
     }
 
     /// Get the peak file options
@@ -979,7 +985,7 @@ void MzMLHandler::populateChromatogramsWithData_(std::vector<MzMLHandlerHelper::
           skip_chromatogram_ = true; // skip the remaining chrom, until endElement(chromatogram)
           ++chromatogram_count_;
         }
-
+    
         chromatogram_ = ChromatogramType();
         default_array_length_ = attributeAsInt_(attributes, s_default_array_length);
         String source_file_ref;
@@ -1027,9 +1033,15 @@ void MzMLHandler::populateChromatogramsWithData_(std::vector<MzMLHandlerHelper::
       }
       else if (tag == "chromatogramList")
       {
+        // return if skip_chromatogram_ true
+        if (skip_chromatogram_)
+        {
+          return;
+        }
+    
         // default data processing
         default_processing_ = attributeAsString_(attributes, s_default_data_processing_ref);
-
+    
         //Abort if we need meta data only
         if (options_.getMetadataOnly())
         {
@@ -1506,7 +1518,10 @@ void MzMLHandler::populateChromatogramsWithData_(std::vector<MzMLHandlerHelper::
         {
           case XMLHandler::LD_ALLDATA:
           case XMLHandler::LD_COUNTS_WITHOPTIONS:
-            skip_chromatogram_ = false; // don't skip the next chrom
+            if (!options_.getSkipChromatograms())
+            {
+              skip_chromatogram_ = false;  // don't skip the next chrom
+            }
             break;
           case XMLHandler::LD_RAWCOUNTS:
             skip_chromatogram_ = true; // we always skip chroms; we only need the outer <spectrumList/chromatogramList count=...>
