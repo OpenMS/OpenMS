@@ -25,8 +25,10 @@ namespace OpenMS
 {
   /// Constructor
   MSExperiment::MSExperiment() :
-    RangeManagerContainerType(),
-    ExperimentalSettings()
+    ExperimentalSettings(),
+    spectrum_ranges_(),
+    chromatogram_ranges_(),
+    combined_ranges_()
   {}
 
   /// Copy constructor
@@ -39,14 +41,15 @@ namespace OpenMS
     {
       return *this;
     }
-    RangeManagerContainerType::operator=(source);
     ExperimentalSettings::operator=(source);
 
     chromatograms_ = source.chromatograms_;
     spectra_ = source.spectra_;
-
-    //no need to copy the alloc?!
-    //alloc_
+    
+    // Copy the range managers
+    spectrum_ranges_ = source.spectrum_ranges_;
+    chromatogram_ranges_ = source.chromatogram_ranges_;
+    combined_ranges_ = source.combined_ranges_;
 
     return *this;
   }
@@ -65,7 +68,10 @@ namespace OpenMS
   {
     return ExperimentalSettings::operator==(rhs) &&
       chromatograms_ == rhs.chromatograms_ &&
-      spectra_ == rhs.spectra_;
+      spectra_ == rhs.spectra_ &&
+      spectrum_ranges_ == rhs.spectrum_ranges_ &&
+      chromatogram_ranges_ == rhs.chromatogram_ranges_ &&
+      combined_ranges_ == rhs.combined_ranges_;
   }
 
   /// Equality operator
@@ -232,73 +238,87 @@ namespace OpenMS
   void MSExperiment::updateRanges(Int ms_level)
   {
     #ifdef OPENMS_ASSERTIONS
-      double rt_min = RangeRT::isEmpty() ? 0 : getMinRT();
-      double rt_max = RangeRT::isEmpty() ? 0 : getMaxRT();
-      double mz_min = RangeMZ::isEmpty() ? 0 : getMinMZ();
-      double mz_max = RangeMZ::isEmpty() ? 0 : getMaxMZ();
-      double int_min = RangeIntensity::isEmpty() ? 0 : getMinIntensity();
-      double int_max = RangeIntensity::isEmpty() ? 0 : getMaxIntensity();
-      double im_min = RangeMobility::isEmpty() ? 0 : getMinMobility();
-      double im_max = RangeMobility::isEmpty() ? 0 : getMaxMobility();
+      double rt_min = combined_ranges_.RangeRT::isEmpty() ? 0 : combined_ranges_.getMinRT();
+      double rt_max = combined_ranges_.RangeRT::isEmpty() ? 0 : combined_ranges_.getMaxRT();
+      double mz_min = combined_ranges_.RangeMZ::isEmpty() ? 0 : combined_ranges_.getMinMZ();
+      double mz_max = combined_ranges_.RangeMZ::isEmpty() ? 0 : combined_ranges_.getMaxMZ();
+      double int_min = combined_ranges_.RangeIntensity::isEmpty() ? 0 : combined_ranges_.getMinIntensity();
+      double int_max = combined_ranges_.RangeIntensity::isEmpty() ? 0 : combined_ranges_.getMaxIntensity();
+      double im_min = combined_ranges_.RangeMobility::isEmpty() ? 0 : combined_ranges_.getMinMobility();
+      double im_max = combined_ranges_.RangeMobility::isEmpty() ? 0 : combined_ranges_.getMaxMobility();
     #endif
 
-    // reset mz/rt/int range
-    this->clearRanges();
+    // Reset all range managers
+    spectrum_ranges_.clear();
+    chromatogram_ranges_.clear();
+    combined_ranges_.clearRanges();
 
-    // empty
+    // Empty experiment
     if (spectra_.empty() && chromatograms_.empty())
     {
       return;
     }
 
-    // update
+    // Update spectrum ranges
     for (Base::iterator it = spectra_.begin(); it != spectra_.end(); ++it)
     {
-      if (ms_level < Int(0) || Int(it->getMSLevel()) == ms_level)
+      // Update spectrum RT range
+      spectrum_ranges_.extendRT(it->getRT());
+      
+      // Update ranges for the spectrum itself
+      it->updateRanges();
+      
+      // Update spectrum range manager with this spectrum's ranges
+      if (ms_level < Int(0))
       {
-        // ranges
-        this->extendRT(it->getRT()); // RT
-        // m/z, intensity and ion mobility from spectrum's range
-        it->updateRanges();
-        this->extend(*it);
+        // Add to general ranges
+        spectrum_ranges_.extend(it->getRange());
       }
-      // for MS level = 1 we extend the range for all the MS2 precursors
-      if (ms_level == 1 && it->getMSLevel() == 2)
+      else if (Int(it->getMSLevel()) == ms_level)
       {
-        if (!it->getPrecursors().empty())
-        {
-          this->extendRT(it->getRT());
-          this->extendMZ(it->getPrecursors()[0].getMZ());
-        }
+        // Add to both general ranges and MS level-specific ranges
+        spectrum_ranges_.extend(it->getRange());
+        spectrum_ranges_.extend(it->getRange(), it->getMSLevel());
+      }
+      
+      // For MS1 level, also include MS2 precursor m/z values
+      if (ms_level == 1 && it->getMSLevel() == 2 && !it->getPrecursors().empty())
+      {
+        // Extend both the general ranges and the MS1-specific ranges
+        spectrum_ranges_.extendMZ(it->getPrecursors()[0].getMZ());
       }
     }
 
-    if (this->chromatograms_.empty())
+    // Update chromatogram ranges
+    if (!chromatograms_.empty())
     {
-      return;
+      for (ChromatogramType& cp : chromatograms_)
+      {
+        // Update range of EACH chromatogram
+        cp.updateRanges();
+        
+        // Add chromatogram m/z to the chromatogram manager
+        chromatogram_ranges_.extendMZ(cp.getMZ());
+        
+        // Add RT and intensity ranges to the chromatogram manager
+        chromatogram_ranges_.extend(cp.getRange());
+      }
     }
 
-    // update intensity, m/z and RT according to chromatograms as well:
-    for (ChromatogramType& cp : chromatograms_)
-    {
-      // update range of EACH chrom, if we need them individually later
-      cp.updateRanges();
-
-      // ranges
-      this->extendMZ(cp.getMZ());// MZ
-      this->extend(cp);// RT and intensity from chroms's range
-    }
+    // Update the combined range manager with both spectrum and chromatogram ranges
+    combined_ranges_.extendUnsafe(spectrum_ranges_);
+    combined_ranges_.extendUnsafe(chromatogram_ranges_);
 
     #ifdef OPENMS_ASSERTIONS
       // check if updateRanges() was necessary and find places where it was not
-      double im_min_new = RangeMobility::isEmpty() ? 0 : getMinMobility();
-      double im_max_new = RangeMobility::isEmpty() ? 0 : getMaxMobility();
-      double int_min_new =  RangeIntensity::isEmpty() ? 0 : getMinIntensity();
-      double int_max_new =  RangeIntensity::isEmpty() ? 0 : getMaxIntensity();
-      double rt_min_new = RangeRT::isEmpty() ? 0 : getMinRT();
-      double rt_max_new = RangeRT::isEmpty() ? 0 : getMaxRT();
-      double mz_min_new = RangeMZ::isEmpty() ? 0 : getMinMZ();
-      double mz_max_new = RangeMZ::isEmpty() ? 0 : getMaxMZ();
+      double im_min_new = combined_ranges_.RangeMobility::isEmpty() ? 0 : combined_ranges_.getMinMobility();
+      double im_max_new = combined_ranges_.RangeMobility::isEmpty() ? 0 : combined_ranges_.getMaxMobility();
+      double int_min_new = combined_ranges_.RangeIntensity::isEmpty() ? 0 : combined_ranges_.getMinIntensity();
+      double int_max_new = combined_ranges_.RangeIntensity::isEmpty() ? 0 : combined_ranges_.getMaxIntensity();
+      double rt_min_new = combined_ranges_.RangeRT::isEmpty() ? 0 : combined_ranges_.getMinRT();
+      double rt_max_new = combined_ranges_.RangeRT::isEmpty() ? 0 : combined_ranges_.getMaxRT();
+      double mz_min_new = combined_ranges_.RangeMZ::isEmpty() ? 0 : combined_ranges_.getMinMZ();
+      double mz_max_new = combined_ranges_.RangeMZ::isEmpty() ? 0 : combined_ranges_.getMaxMZ();
 
       if (im_min_new == im_min && im_max_new == im_max
         && int_min_new == int_min && int_max_new == int_max
@@ -428,7 +448,9 @@ namespace OpenMS
   void MSExperiment::reset()
   {
     spectra_.clear();           //remove data
-    RangeManagerType::clearRanges();           //reset range manager
+    spectrum_ranges_.clear();   //reset spectrum range manager
+    chromatogram_ranges_.clear(); //reset chromatogram range manager
+    combined_ranges_.clearRanges(); //reset combined range manager
     ExperimentalSettings::operator=(ExperimentalSettings());           //reset meta info
   }
 
@@ -633,24 +655,22 @@ namespace OpenMS
   /// Swaps the content of this map with the content of @p from
   void MSExperiment::swap(MSExperiment & from)
   {
-    MSExperiment tmp;
+    // Swap range managers
+    std::swap(spectrum_ranges_, from.spectrum_ranges_);
+    std::swap(chromatogram_ranges_, from.chromatogram_ranges_);
+    std::swap(combined_ranges_, from.combined_ranges_);
 
-    //swap range information
-    tmp.RangeManagerType::operator=(*this);
-    this->RangeManagerType::operator=(from);
-    from.RangeManagerType::operator=(tmp);
-
-    //swap experimental settings
+    // Swap experimental settings
+    ExperimentalSettings tmp;
     tmp.ExperimentalSettings::operator=(*this);
     this->ExperimentalSettings::operator=(from);
     from.ExperimentalSettings::operator=(tmp);
 
-    // swap chromatograms
+    // Swap chromatograms
     std::swap(chromatograms_, from.chromatograms_);
 
-    //swap peaks
+    // Swap spectra
     spectra_.swap(from.getSpectra());
-
   }
 
   /// sets the spectrum list
@@ -837,7 +857,9 @@ namespace OpenMS
 
     if (clear_meta_data)
     {
-      clearRanges();
+      spectrum_ranges_.clear();
+      chromatogram_ranges_.clear();
+      combined_ranges_.clearRanges();
       this->ExperimentalSettings::operator=(ExperimentalSettings());             // no "clear" method
       chromatograms_.clear();
     }

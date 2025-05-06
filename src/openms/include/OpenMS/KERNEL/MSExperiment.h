@@ -10,8 +10,10 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
+#include <OpenMS/KERNEL/ChromatogramRangeManager.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/SpectrumRangeManager.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 
@@ -43,8 +45,7 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI MSExperiment final : public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity, RangeMobility>,
-    public ExperimentalSettings
+  class OPENMS_DLLAPI MSExperiment final : public ExperimentalSettings
   {
 
 public:
@@ -61,10 +62,12 @@ public:
     typedef PeakType::CoordinateType CoordinateType;
     /// Intensity type of peaks
     typedef PeakType::IntensityType IntensityType;
-    /// RangeManager type
+    /// Combined RangeManager type (for backward compatibility)
     typedef RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility> RangeManagerType;
-    /// RangeManager type
-    typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity, RangeMobility> RangeManagerContainerType;
+    /// Spectrum range manager type
+    typedef SpectrumRangeManager SpectrumRangeManagerType;
+    /// Chromatogram range manager type
+    typedef ChromatogramRangeManager ChromatogramRangeManagerType;
     /// Spectrum Type
     typedef MSSpectrum SpectrumType;
     /// Chromatogram type
@@ -1067,7 +1070,53 @@ std::vector<MSChromatogram> extractXICs(
       @note The range values (min, max, etc.) are not updated automatically. Call updateRanges() to update the values!
     */
     ///@{
-    // Docu in base class
+    /// Delegate methods for backward compatibility
+    
+    /// Clear all ranges
+    void clearRanges() { combined_ranges_.clearRanges(); }
+    
+    /// Get the minimum RT value of the range
+    double getMinRT() const { return combined_ranges_.getMinRT(); }
+    
+    /// Get the maximum RT value of the range
+    double getMaxRT() const { return combined_ranges_.getMaxRT(); }
+    
+    /// Get the minimum m/z value of the range
+    double getMinMZ() const { return combined_ranges_.getMinMZ(); }
+    
+    /// Get the maximum m/z value of the range
+    double getMaxMZ() const { return combined_ranges_.getMaxMZ(); }
+    
+    /// Get the minimum intensity value of the range
+    double getMinIntensity() const { return combined_ranges_.getMinIntensity(); }
+    
+    /// Get the maximum intensity value of the range
+    double getMaxIntensity() const { return combined_ranges_.getMaxIntensity(); }
+    
+    /// Get the minimum mobility value of the range
+    double getMinMobility() const { return combined_ranges_.getMinMobility(); }
+    
+    /// Get the maximum mobility value of the range
+    double getMaxMobility() const { return combined_ranges_.getMaxMobility(); }
+    
+    /// Extend the range to include the given RT value
+    void extendRT(double rt) { combined_ranges_.extendRT(rt); }
+    
+    /// Extend the range to include the given MZ value
+    void extendMZ(double mz) { combined_ranges_.extendMZ(mz); }
+    
+    /// Extend the range to include the given intensity value
+    void extendIntensity(double intensity) { combined_ranges_.extendIntensity(intensity); }
+    
+    /// Extend the range to include the given mobility value
+    void extendMobility(double mobility) { combined_ranges_.extendMobility(mobility); }
+    
+    /// Extend the range to include the given range
+    template<typename... RangeBasesOther>
+    void extend(const RangeManager<RangeBasesOther...>& rhs)
+    {
+      combined_ranges_.extendUnsafe(rhs);
+    }
     void updateRanges() override;
 
     /**
@@ -1286,8 +1335,33 @@ std::vector<MSChromatogram> extractXICs(
     std::vector<MSChromatogram > chromatograms_;
     /// spectra
     std::vector<SpectrumType> spectra_;
+    /// Spectrum range manager (for m/z, intensity, and ion mobility ranges)
+    SpectrumRangeManagerType spectrum_ranges_;
+    /// Chromatogram range manager (for RT and intensity ranges)
+    ChromatogramRangeManagerType chromatogram_ranges_;
+    /// Combined range manager (for backward compatibility - contains ranges for all dimensions)
+    RangeManagerType combined_ranges_;
 
-private:
+  public:
+    /// Returns a reference to the spectrum range manager
+    SpectrumRangeManagerType& spectrumRanges() { return spectrum_ranges_; }
+    
+    /// Returns a const reference to the spectrum range manager
+    const SpectrumRangeManagerType& spectrumRanges() const { return spectrum_ranges_; }
+    
+    /// Returns a reference to the chromatogram range manager
+    ChromatogramRangeManagerType& chromatogramRanges() { return chromatogram_ranges_; }
+    
+    /// Returns a const reference to the chromatogram range manager
+    const ChromatogramRangeManagerType& chromatogramRanges() const { return chromatogram_ranges_; }
+    
+    /// Returns a reference to the combined range manager (for backward compatibility)
+    RangeManagerType& combinedRanges() { return combined_ranges_; }
+    
+    /// Returns a const reference to the combined range manager (for backward compatibility)
+    const RangeManagerType& combinedRanges() const { return combined_ranges_; }
+
+  private:
 
     /// Helper class to add either general data points in set2DData or use mass traces from meta values
     template<typename ContainerValueType, bool addMassTraces>

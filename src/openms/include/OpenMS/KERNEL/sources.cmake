@@ -33,6 +33,8 @@ PeakIndex.h
 RangeManager.h
 RangeUtils.h
 RichPeak2D.h
+SpectrumRangeManager.h
+ChromatogramRangeManager.h
 StandardTypes.h
 SpectrumHelper.h
 )
