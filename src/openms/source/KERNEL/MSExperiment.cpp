@@ -284,6 +284,7 @@ namespace OpenMS
         
         // Add RT and intensity ranges to the chromatogram manager
         chromatogram_ranges_.extend(cp.getRange());
+        chromatogram_ranges_.extendMZ(cp.getMZ()); // MZ is not part of the range of an individual chromatogram
       }
     }
 
