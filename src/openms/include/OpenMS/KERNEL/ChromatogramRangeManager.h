@@ -15,16 +15,16 @@ namespace OpenMS
   /**
     @brief Range manager for chromatograms
     
-    This class manages retention time and intensity ranges for chromatograms.
+    This class manages retention time, mz, and intensity ranges for multiple chromatograms.
     
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI ChromatogramRangeManager : public RangeManager<RangeRT, RangeIntensity>
+  class OPENMS_DLLAPI ChromatogramRangeManager : public RangeManager<RangeRT, RangeIntensity, RangeMZ>
   {
   public:
     /// Base type
-    using BaseType = RangeManager<RangeRT, RangeIntensity>;
-    
+    using BaseType = RangeManager<RangeRT, RangeIntensity, RangeMZ>;
+
     /// Default constructor
     ChromatogramRangeManager() = default;
     

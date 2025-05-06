@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/RangeManager.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <map>
 #include <set>
 
@@ -18,7 +19,7 @@ namespace OpenMS
   /**
     @brief Range manager for MS spectra with MS level-specific range management
     
-    This class manages m/z, intensity, and ion mobility ranges for MS spectra,
+    This class manages m/z, intensity, retention time, and ion mobility ranges for multiple MS spectra,
     with the ability to filter ranges by MS level.
     
     @ingroup Kernel
@@ -166,7 +167,7 @@ namespace OpenMS
     {
       if (ms_level == 0)
       {
-        BaseType::extendUnsafe(spectrum);
+        BaseType::extendUnsafe(spectrum.getRange());
       }
       else
       {
@@ -174,7 +175,7 @@ namespace OpenMS
         {
           ms_level_ranges_[ms_level] = BaseType();
         }
-        ms_level_ranges_[ms_level].extendUnsafe(spectrum);
+        ms_level_ranges_[ms_level].extendUnsafe(spectrum.getRange());
       }
     }
 

@@ -220,7 +220,7 @@ namespace OpenMS
 
   /**
   @name Range methods
-  *
+  */
 
   /**
   @brief Updates the m/z, intensity, retention time, ion mobility and MS level ranges of all spectra with a certain ms level

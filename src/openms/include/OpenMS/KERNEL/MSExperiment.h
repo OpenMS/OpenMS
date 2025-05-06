@@ -1117,15 +1117,12 @@ std::vector<MSChromatogram> extractXICs(
     {
       combined_ranges_.extendUnsafe(rhs);
     }
-    void updateRanges();
 
     /**
-      @brief Updates the m/z, intensity, and retention time ranges of all spectra with a certain ms level
+      @brief Updates the m/z, intensity, mobility, and retention time ranges of all spectra and chromatograms
       
-
-      @param ms_level MS level to consider for m/z range, RT range and intensity range (All MS levels if negative)
     */
-    void updateRanges(Int ms_level);
+    void updateRanges();
 
     /// returns the total number of peaks (spectra and chromatograms included)
     UInt64 getSize() const;
