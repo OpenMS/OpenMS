@@ -134,7 +134,7 @@ namespace OpenMS
     std::vector<MSExperiment> results(number_of_bins);
     in.updateRanges();
     // find the IM range
-    const auto range_IM = RangeMobility(in);
+    const auto range_IM = RangeMobility(in.spectrumRanges());
     if (range_IM.getSpan() / number_of_bins < bin_extension_abs * 2)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Bin size (") + String(range_IM.getSpan() / number_of_bins) + ") is smaller than the overlap.", String(bin_extension_abs*2));
@@ -145,7 +145,6 @@ namespace OpenMS
 
     // results for each IM-frame: all spectra per bin, to get merged
     MSExperiment binned_spectra;
-
 
     SpectraMerger merger;
     auto p = merger.getParameters();
@@ -168,7 +167,6 @@ namespace OpenMS
       
       MSExperiment frame_melt = IMDataConverter::reshapeIMFrameToMany(std::move(frame));
       for (size_t i = 0; i < bins.size(); ++i)
-
       {
         binned_spectra.clear(false);
         // check if spectrum goes into this bin

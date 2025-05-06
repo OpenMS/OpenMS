@@ -1117,7 +1117,7 @@ std::vector<MSChromatogram> extractXICs(
     {
       combined_ranges_.extendUnsafe(rhs);
     }
-    void updateRanges() override;
+    void updateRanges();
 
     /**
       @brief Updates the m/z, intensity, and retention time ranges of all spectra with a certain ms level

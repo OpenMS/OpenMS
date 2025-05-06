@@ -220,22 +220,14 @@ namespace OpenMS
 
   /**
   @name Range methods
-
-  @note The range values (min, max, etc.) are not updated automatically. Call updateRanges() to update the values!
-  */
-  ///@{
-  // Docu in base class
-  void MSExperiment::updateRanges()
-  {
-    updateRanges(-1);
-  }
+  *
 
   /**
   @brief Updates the m/z, intensity, retention time, ion mobility and MS level ranges of all spectra with a certain ms level
 
   @param ms_level MS level to consider for m/z range, RT range, intensity range and ion mobility (if negative, all MS levels are used)
   */
-  void MSExperiment::updateRanges(Int ms_level)
+  void MSExperiment::updateRanges()
   {
     #ifdef OPENMS_ASSERTIONS
       double rt_min = combined_ranges_.RangeRT::isEmpty() ? 0 : combined_ranges_.getMinRT();
@@ -250,7 +242,7 @@ namespace OpenMS
 
     // Reset all range managers
     spectrum_ranges_.clear();
-    chromatogram_ranges_.clear();
+    chromatogram_ranges_.clearRanges();
     combined_ranges_.clearRanges();
 
     // Empty experiment
@@ -261,31 +253,24 @@ namespace OpenMS
 
     // Update spectrum ranges
     for (Base::iterator it = spectra_.begin(); it != spectra_.end(); ++it)
-    {
-      // Update spectrum RT range
-      spectrum_ranges_.extendRT(it->getRT());
-      
+    {      
       // Update ranges for the spectrum itself
       it->updateRanges();
       
       // Update spectrum range manager with this spectrum's ranges
-      if (ms_level < Int(0))
-      {
-        // Add to general ranges
-        spectrum_ranges_.extend(it->getRange());
-      }
-      else if (Int(it->getMSLevel()) == ms_level)
-      {
-        // Add to both general ranges and MS level-specific ranges
-        spectrum_ranges_.extend(it->getRange());
-        spectrum_ranges_.extend(it->getRange(), it->getMSLevel());
-      }
+      // Add to both general ranges and MS level-specific ranges
+      spectrum_ranges_.extendUnsafe(*it, 0);
+      spectrum_ranges_.extendRT(it->getRT(), 0); // RT is not part of the range of an individual spectrum
+      
+      spectrum_ranges_.extendUnsafe(*it, it->getMSLevel());
+      spectrum_ranges_.extendRT(it->getRT(), it->getMSLevel()); // RT is not part of the range of an individual spectrum
       
       // For MS1 level, also include MS2 precursor m/z values
-      if (ms_level == 1 && it->getMSLevel() == 2 && !it->getPrecursors().empty())
+      if (it->getMSLevel() == 2 && !it->getPrecursors().empty())
       {
         // Extend both the general ranges and the MS1-specific ranges
-        spectrum_ranges_.extendMZ(it->getPrecursors()[0].getMZ());
+        spectrum_ranges_.extendMZ(it->getPrecursors()[0].getMZ(), 1);
+        spectrum_ranges_.extendMZ(it->getPrecursors()[0].getMZ(), 0);
       }
     }
 
@@ -296,9 +281,6 @@ namespace OpenMS
       {
         // Update range of EACH chromatogram
         cp.updateRanges();
-        
-        // Add chromatogram m/z to the chromatogram manager
-        chromatogram_ranges_.extendMZ(cp.getMZ());
         
         // Add RT and intensity ranges to the chromatogram manager
         chromatogram_ranges_.extend(cp.getRange());
@@ -449,7 +431,7 @@ namespace OpenMS
   {
     spectra_.clear();           //remove data
     spectrum_ranges_.clear();   //reset spectrum range manager
-    chromatogram_ranges_.clear(); //reset chromatogram range manager
+    chromatogram_ranges_.clearRanges(); //reset chromatogram range manager
     combined_ranges_.clearRanges(); //reset combined range manager
     ExperimentalSettings::operator=(ExperimentalSettings());           //reset meta info
   }
@@ -858,7 +840,7 @@ namespace OpenMS
     if (clear_meta_data)
     {
       spectrum_ranges_.clear();
-      chromatogram_ranges_.clear();
+      chromatogram_ranges_.clearRanges();
       combined_ranges_.clearRanges();
       this->ExperimentalSettings::operator=(ExperimentalSettings());             // no "clear" method
       chromatograms_.clear();

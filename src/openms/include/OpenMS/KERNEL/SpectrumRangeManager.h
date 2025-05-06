@@ -10,9 +10,11 @@
 
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <map>
+#include <set>
 
 namespace OpenMS
 {
+  class MSSpectrum;  // Forward declaration for MSSpectrum
   /**
     @brief Range manager for MS spectra with MS level-specific range management
     
@@ -21,11 +23,11 @@ namespace OpenMS
     
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI SpectrumRangeManager : public RangeManager<RangeMZ, RangeIntensity, RangeMobility>
+  class OPENMS_DLLAPI SpectrumRangeManager : public RangeManager<RangeMZ, RangeIntensity, RangeMobility, RangeRT>
   {
   public:
     /// Base type
-    using BaseType = RangeManager<RangeMZ, RangeIntensity, RangeMobility>;
+    using BaseType = RangeManager<RangeMZ, RangeIntensity, RangeMobility, RangeRT>;
     
     /// Default constructor
     SpectrumRangeManager() = default;
@@ -107,6 +109,73 @@ namespace OpenMS
         ms_levels.insert(level);
       }
       return ms_levels;
+    }
+
+    /**
+      @brief Extends the RT range with an MS level parameter
+      
+      @param rt The RT value to extend with
+      @param ms_level The MS level for which to extend the RT range (0 for global range)
+    */
+    void extendRT(double rt, UInt ms_level)
+    {
+      if (ms_level == 0)
+      {
+        BaseType::extendRT(rt);
+      }
+      else
+      {
+        if (ms_level_ranges_.find(ms_level) == ms_level_ranges_.end())
+        {
+          ms_level_ranges_[ms_level] = BaseType();
+        }
+        ms_level_ranges_[ms_level].extendRT(rt);
+      }
+    }
+
+    /**
+      @brief Extends the RT range with an MS level parameter
+      
+      @param rt The RT value to extend with
+      @param ms_level The MS level for which to extend the RT range (0 for global range)
+    */
+    void extendMZ(double rt, UInt ms_level)
+    {
+      if (ms_level == 0)
+      {
+        BaseType::extendMZ(rt);
+      }
+      else
+      {
+        if (ms_level_ranges_.find(ms_level) == ms_level_ranges_.end())
+        {
+          ms_level_ranges_[ms_level] = BaseType();
+        }
+        ms_level_ranges_[ms_level].extendMZ(rt);
+      }
+    }
+
+
+    /**
+      @brief Extends the ranges with the ranges of a spectrum using an MS level parameter
+      
+      @param spectrum The spectrum whose ranges to extend from
+      @param ms_level The MS level for which to extend the ranges (0 for global ranges)
+    */
+    void extendUnsafe(const MSSpectrum& spectrum, UInt ms_level)
+    {
+      if (ms_level == 0)
+      {
+        BaseType::extendUnsafe(spectrum);
+      }
+      else
+      {
+        if (ms_level_ranges_.find(ms_level) == ms_level_ranges_.end())
+        {
+          ms_level_ranges_[ms_level] = BaseType();
+        }
+        ms_level_ranges_[ms_level].extendUnsafe(spectrum);
+      }
     }
 
   protected:
