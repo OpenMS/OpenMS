@@ -10,11 +10,8 @@ test-command = "ctest --output-on-failure -V -S OpenMS/tools/ci/citest.cmake -C 
 [tool.cibuildwheel.linux]
 before-build = """
 yum install -y jq ninja-build ccache
-pip install -r OpenMS/src/pyOpenMS/requirements_bld.txt
-ctest --output-on-failure -VV -S OpenMS/tools/ci/cibuild.cmake --config Release
 """
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
-test-command = "ctest --output-on-failure -V -S OpenMS/tools/ci/citest.cmake -C Release"
 
 
 [tool.cibuildwheel.environment]
