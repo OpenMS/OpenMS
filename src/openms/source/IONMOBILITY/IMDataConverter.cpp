@@ -206,7 +206,7 @@ namespace OpenMS
         term = &cv.getTerm("MS:1002816");
         break;
       case DriftTimeUnit::VSSC:
-        term = &cv.getTerm("MS:1003008");
+         term = &cv.getTerm("MS:1003008");
         break;
       default:
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unit cannot be converted into CV term.", toString(unit));
