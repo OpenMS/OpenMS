@@ -145,6 +145,7 @@ jobs:
         if [[ "${{ matrix.os }}" == linux-* ]]; then
           # We need to pass the correct source directory for inside the docker container
           export SOURCE_DIRECTORY=/project/OpenMS
+          export CIBW_ENVIRONMENT_PASS_LINUX = "CMAKE_GENERATOR CMAKE_GENERATOR_PLATFORM OPENMS_CONTRIB_LIBS BUILD_FLAGS BUILD_NAME BOOST_USE_STATIC CCACHE_BASEDIR CCACHE_DIR PY_NUM_THREADS SETUPTOOLS_SCM_PRETEND_VERSION SOURCE_DIRECTORY"
         fi
         python -m cibuildwheel OpenMS --config-file $SOURCE_DIRECTORY/cibuildwheel.toml --output-dir pyopenms_whls/
       env: 
@@ -164,7 +165,6 @@ jobs:
           CIBW_BUILD_VERBOSITY: 1 #FIXME remove
           CIBW_SKIP: "pp* cp38-* cp37-* cp36-* cp*-win32"  # Skip PyPy and old Python versions
           CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest
-          CIBW_ENVIRONMENT_PASS_LINUX: "CMAKE_GENERATOR CMAKE_GENERATOR_PLATFORM OPENMS_CONTRIB_LIBS BUILD_FLAGS BUILD_NAME BOOST_USE_STATIC CCACHE_BASEDIR CCACHE_DIR PY_NUM_THREADS SETUPTOOLS_SCM_PRETEND_VERSION SOURCE_DIRECTORY"
 
     - uses: actions/upload-artifact@v4
       name: Upload buildfiles
