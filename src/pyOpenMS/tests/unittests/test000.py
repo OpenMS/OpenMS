@@ -767,6 +767,14 @@ def testConsensusMap():
     m.sortByQuality()
     m.sortByRT()
     m.sortBySize()
+    # We need to add a feature to the map before calling updateRanges otherwise the getMin and getMax throw an error.
+    f = pyopenms.ConsensusFeature()
+    f.setCharge(1)
+    f.setQuality(2.0)
+    f.setWidth(4.0)
+    m.push_back(f)
+    m.push_back(f)
+
     m.updateRanges()
 
     assert isinstance(m.getMinRT(), float)
@@ -780,12 +788,7 @@ def testConsensusMap():
     m.getLoadedFileType()
     m.getLoadedFilePath()
     
-    f = pyopenms.ConsensusFeature()
-    f.setCharge(1)
-    f.setQuality(2.0)
-    f.setWidth(4.0)
-    m.push_back(f)
-    m.push_back(f)
+ 
     intydf = m.get_intensity_df()
     metadf = m.get_metadata_df()
     assert intydf.shape[0] == 2
@@ -2749,15 +2752,6 @@ def testMSExperiment():
     assert mse_ == mse
 
     _testMetaInfoInterface(mse)
-    mse.updateRanges()
-    mse.sortSpectra(True)
-    assert isinstance(mse.getMaxRT(), float)
-    assert isinstance(mse.getMinRT(), float)
-    assert isinstance(mse.getMaxMZ(), float)
-    assert isinstance(mse.getMinMZ(), float)
-    _testStrOutput(mse.getLoadedFilePath())
-    assert isinstance(mse.getMinIntensity(), float)
-    assert isinstance(mse.getMaxIntensity(), float)
 
     mse.setLoadedFilePath("")
     assert mse.size() == 0
@@ -2766,6 +2760,7 @@ def testMSExperiment():
     mse.getLoadedFileType()
     mse.getLoadedFilePath()
 
+    # We need to add a feature to the map before updateRanges otherwise the getMin and getMax throw an error.
     spec = pyopenms.MSSpectrum()
     data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
     data_i = np.array( [50.0, 80.0] ).astype(np.float32)
@@ -2773,6 +2768,17 @@ def testMSExperiment():
 
     mse.addSpectrum(spec)
     assert mse.size() == 1
+
+    mse.updateRanges()
+    mse.sortSpectra(True)
+
+    assert isinstance(mse.getMaxRT(), float)
+    assert isinstance(mse.getMinRT(), float)
+    assert isinstance(mse.getMaxMZ(), float)
+    assert isinstance(mse.getMinMZ(), float)
+    _testStrOutput(mse.getLoadedFilePath())
+    assert isinstance(mse.getMinIntensity(), float)
+    assert isinstance(mse.getMaxIntensity(), float)
 
     assert mse[0] is not None
 
