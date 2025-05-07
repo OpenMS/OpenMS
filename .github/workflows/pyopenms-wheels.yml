@@ -145,7 +145,7 @@ jobs:
         # Since we run in a docker container on linux we need to pass the env vars to the docker container
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
           # Set the deployment target for macOS
-          export CIBW_ENVIRONMENT="CMAKE_GENERATOR=$CMAKE_GENERATOR CMAKE_GENERATOR_PLATFORM=$CMAKE_GENERATOR_PLATFORM OPENMS_CONTRIB_LIBS=/project/OpenMS/contrib BUILD_FLAGS=$BUILD_FLAGS BUILD_NAME=$BUILD_NAME BOOST_USE_STATIC=$BOOST_USE_STATIC MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET CCACHE_BASEDIR=$CCACHE_BASEDIR CCACHE_DIR=$CCACHE_DIR PY_NUM_THREADS=$PY_NUM_THREADS SETUPTOOLS_SCM_PRETEND_VERSION=$SETUPTOOLS_SCM_PRETEND_VERSION SOURCE_DIRECTORY=/project/OpenMS"
+          export CIBW_ENVIRONMENT="CMAKE_GENERATOR=$CMAKE_GENERATOR CMAKE_GENERATOR_PLATFORM=$CMAKE_GENERATOR_PLATFORM OPENMS_CONTRIB_LIBS=$OPENMS_CONTRIB_LIBS BUILD_FLAGS=$BUILD_FLAGS BUILD_NAME=$BUILD_NAME BOOST_USE_STATIC=$BOOST_USE_STATIC MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET CCACHE_BASEDIR=$CCACHE_BASEDIR CCACHE_DIR=$CCACHE_DIR PY_NUM_THREADS=$PY_NUM_THREADS SETUPTOOLS_SCM_PRETEND_VERSION=$SETUPTOOLS_SCM_PRETEND_VERSION SOURCE_DIRECTORY=/project/OpenMS"
         fi
         python -m cibuildwheel OpenMS --config-file $SOURCE_DIRECTORY/cibuildwheel.toml --output-dir pyopenms_whls/
       env: 
@@ -164,7 +164,7 @@ jobs:
           SETUPTOOLS_SCM_PRETEND_VERSION: "3.4.0" #FIXME figure out how to get this without having to run cmake configure first
           CIBW_BUILD_VERBOSITY: 1 #FIXME remove
           CIBW_SKIP: "pp* cp38-* cp37-* cp36-* cp*-win32"  # Skip PyPy and old Python versions
-
+          CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/openms/contrib_manylinux_2_34:latest
 
     - uses: actions/upload-artifact@v4
       name: Upload buildfiles
