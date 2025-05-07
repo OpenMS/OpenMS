@@ -767,6 +767,10 @@ def testConsensusMap():
     m.sortByQuality()
     m.sortByRT()
     m.sortBySize()
+    # We need to add a feature to the map otherwise the getMin and getMax throw an error.
+    f = pyopenms.ConsensusFeature()
+    m.push_back(f)
+
     m.updateRanges()
 
     assert isinstance(m.getMinRT(), float)
@@ -2749,6 +2753,10 @@ def testMSExperiment():
     assert mse_ == mse
 
     _testMetaInfoInterface(mse)
+    # We need to add a feature to the map otherwise the getMin and getMax throw an error.
+    s = pyopenms.MSSpectrum()
+    mse.add_spectrum(s)
+
     mse.updateRanges()
     mse.sortSpectra(True)
     assert isinstance(mse.getMaxRT(), float)
