@@ -1,7 +1,7 @@
 [tool.cibuildwheel]
 before-build = "pip install -r OpenMS/src/pyOpenMS/requirements_bld.txt && ctest --output-on-failure -VV -S OpenMS/tools/ci/cibuild.cmake -C Release"
 build-frontend = "pip"
-test-command = "ctest --output-on-failure -V -S OpenMS/tools/ci/citest.cmake -C Release DPython3_EXECUTABLE=$(python -c 'import sys; print(sys.executable')"
+test-command = "ctest --output-on-failure -V -S OpenMS/tools/ci/citest.cmake -C Release DPython_EXECUTABLE=$(python -c 'import sys; print(sys.executable')"
 
 [tool.cibuildwheel.linux]
 before-all = """
