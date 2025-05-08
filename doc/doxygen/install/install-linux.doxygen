@@ -304,15 +304,16 @@
   environment for easy %OpenMS usage:
 
   @subsubsection update_ld_library_path Updating LD_LIBRARY_PATH
-  Make sure to add <tt>/PATH/TO/OpenMS/lib/</tt> (e.g.
-  <i>/home/smith/OpenMS/lib/</i>) to the environment variable
-  <b>LD_LIBRARY_PATH</b>.  The best way is to edit <tt>$HOME/.bashrc</tt> and add the
-  following
+  Make sure to add <tt>/PATH/TO/OpenMS-build/lib/</tt> (e.g.
+  <i>/home/smith/OpenMS-build/lib/</i>) to the environment variable
+  <b>LD_LIBRARY_PATH</b>. If you have run make install with a custom install prefix, use that path instead.
+  The best way is to edit <tt>$HOME/.bashrc</tt> and add the following
+ 
   \code
-  export LD_LIBRARY_PATH="/PATH/TO/OpenMS/lib:$LD_LIBRARY_PATH"
+  export LD_LIBRARY_PATH="/PATH/TO/OpenMS-build/lib:$LD_LIBRARY_PATH"
   \endcode
 
-  The TOPP tools will be built in the <b>/PATH/TO/OpenMS/bin/</b> folder. Add
+  The TOPP tools will be built in the <b>/PATH/TO/OpenMS-build/bin/</b> folder. Add
   this path to the environment variable <b>PATH</b> to use the commands
   anywhere on your system.
 
@@ -322,7 +323,7 @@
   (Do not use the tilde character @em ~ to abbreviate your home folder)
 
   \code
-  export PATH=$PATH:/PATH/TO/OpenMS/bin
+  export PATH=$PATH:/PATH/TO/OpenMS-build/bin
   \endcode
 
   Apply both changes by executing
