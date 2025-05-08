@@ -10,7 +10,6 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <string>
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -20,6 +19,8 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 ///////////////////////////
@@ -69,12 +70,12 @@ START_SECTION((PeptideIdentification(const PeptideIdentification& source)))
   PeptideIdentification hits2(hits);
 
   TEST_EQUAL(hits.getSignificanceThreshold(), hits2.getSignificanceThreshold())
-  TEST_EQUAL(hits.getHits().size() == 1, true)
-  TEST_EQUAL(*(hits.getHits().begin()) == peptide_hit, true)
+  TEST_TRUE(hits.getHits().size() == 1)
+  TEST_TRUE(*(hits.getHits().begin()) == peptide_hit)
   TEST_EQUAL((UInt)hits.getMetaValue("label"),17)
   TEST_EQUAL(hits.getIdentifier(),"id")
   TEST_EQUAL(hits.getScoreType(),"score_type")
-  TEST_EQUAL(hits.isHigherScoreBetter(),false)
+  TEST_FALSE(hits.isHigherScoreBetter())
 }
 END_SECTION
 
@@ -83,7 +84,7 @@ START_SECTION((PeptideIdentification(PeptideIdentification&& source) noexcept))
 {
   // Ensure that PeptideIdentification has a no-except move constructor (otherwise
   // std::vector is inefficient and will copy instead of move).
-  TEST_EQUAL(noexcept(PeptideIdentification(std::declval<PeptideIdentification&&>())), true)
+  TEST_TRUE(noexcept(PeptideIdentification(std::declval<PeptideIdentification&&>())))
 
   PeptideIdentification hits;
   hits.setSignificanceThreshold(peptide_significance_threshold);
@@ -98,18 +99,18 @@ START_SECTION((PeptideIdentification(PeptideIdentification&& source) noexcept))
   PeptideIdentification hits2(std::move(example));
 
   TEST_EQUAL(hits.getSignificanceThreshold(), hits2.getSignificanceThreshold())
-  TEST_EQUAL(hits.getHits().size() == 1, true)
-  TEST_EQUAL(*(hits.getHits().begin()) == peptide_hit, true)
+  TEST_TRUE(hits.getHits().size() == 1)
+  TEST_TRUE(*(hits.getHits().begin()) == peptide_hit)
   TEST_EQUAL((UInt)hits.getMetaValue("label"),17)
   TEST_EQUAL(hits.getIdentifier(),"id")
   TEST_EQUAL(hits.getScoreType(),"score_type")
-  TEST_EQUAL(hits.isHigherScoreBetter(),false)
+  TEST_FALSE(hits.isHigherScoreBetter())
 
   // the move source should be empty
-  TEST_EQUAL(example.getHits().empty(), true)
-  TEST_EQUAL(example.isMetaEmpty(), true)
-  TEST_EQUAL(example.getIdentifier().empty(), true)
-  TEST_EQUAL(example.getScoreType().empty(), true)
+  TEST_TRUE(example.getHits().empty())
+  TEST_TRUE(example.isMetaEmpty())
+  TEST_TRUE(example.getIdentifier().empty())
+  TEST_TRUE(example.getScoreType().empty())
 }
 END_SECTION
 
@@ -126,12 +127,12 @@ START_SECTION((PeptideIdentification& operator=(const PeptideIdentification& sou
   hits2 = hits;
 
   TEST_EQUAL(hits.getSignificanceThreshold(), hits2.getSignificanceThreshold())
-  TEST_EQUAL(hits.getHits().size() == 1, true)
-  TEST_EQUAL(*(hits.getHits().begin()) == peptide_hit, true)
+  TEST_TRUE(hits.getHits().size() == 1)
+  TEST_TRUE(*(hits.getHits().begin()) == peptide_hit)
   TEST_EQUAL((UInt)hits.getMetaValue("label"),17)
   TEST_EQUAL(hits.getIdentifier(),"id")
   TEST_EQUAL(hits.getScoreType(),"score_type")
-  TEST_EQUAL(hits.isHigherScoreBetter(),false)
+  TEST_FALSE(hits.isHigherScoreBetter())
 END_SECTION
 
 START_SECTION((bool operator == (const PeptideIdentification& rhs) const))
@@ -139,30 +140,30 @@ START_SECTION((bool operator == (const PeptideIdentification& rhs) const))
   TEST_TRUE(search1 == search2)
 
   search1.setSignificanceThreshold(peptide_significance_threshold);
-  TEST_EQUAL(search1 == search2, false)
+  TEST_FALSE(search1 == search2)
   search1 = search2;
 
   search2.setMetaValue("label",17);
-  TEST_EQUAL(search1 == search2, false)
+  TEST_FALSE(search1 == search2)
   search1 = search2;
 
   search2.setIdentifier("id");
-  TEST_EQUAL(search1 == search2, false)
+  TEST_FALSE(search1 == search2)
   search1 = search2;
 
   search2.setScoreType("score_type");
-  TEST_EQUAL(search1 == search2, false)
+  TEST_FALSE(search1 == search2)
   search1 = search2;
 
   search2.setHigherScoreBetter(false);
-  TEST_EQUAL(search1 == search2, false)
+  TEST_FALSE(search1 == search2)
   search1 = search2;
 END_SECTION
 
 
 START_SECTION((bool operator != (const PeptideIdentification& rhs) const))
   PeptideIdentification search1, search2;
-  TEST_EQUAL(search1 != search2, false)
+  TEST_FALSE(search1 != search2)
 
   search1.setSignificanceThreshold(peptide_significance_threshold);
   TEST_FALSE(search1 == search2)
@@ -174,7 +175,7 @@ END_SECTION
 
 START_SECTION((double getRT() const))
 	PeptideIdentification pi;
-	TEST_EQUAL(pi.hasRT(), false);
+	TEST_FALSE(pi.hasRT());
 	pi.setRT(1024.0);
 	TEST_EQUAL(pi.getRT(), 1024.0);
 END_SECTION
@@ -189,7 +190,7 @@ END_SECTION
 
 START_SECTION((double getMZ() const))
 	PeptideIdentification pi;
-	TEST_EQUAL(pi.hasMZ(), false);
+	TEST_FALSE(pi.hasMZ());
 	pi.setMZ(1024.0);
 	TEST_EQUAL(pi.getMZ(), 1024.0);
 END_SECTION
@@ -209,27 +210,54 @@ END_SECTION
 START_SECTION((const std::vector<PeptideHit>& getHits() const))
   PeptideIdentification hits;
   hits.insertHit(peptide_hit);
-  TEST_EQUAL(hits.getHits().size() == 1, true)
-  TEST_EQUAL(hits.getHits()[0] == peptide_hit, true)
+  TEST_TRUE(hits.getHits().size() == 1)
+  TEST_TRUE(hits.getHits()[0] == peptide_hit)
 END_SECTION
 
 START_SECTION((void insertHit(const PeptideHit &hit)))
   PeptideIdentification hits;
   hits.insertHit(peptide_hit);
-  TEST_EQUAL(hits.getHits().size() == 1, true)
-  TEST_EQUAL(*(hits.getHits().begin()) == peptide_hit, true)
+  TEST_TRUE(hits.getHits().size() == 1)
+  TEST_TRUE(*(hits.getHits().begin()) == peptide_hit)
 END_SECTION
 
 START_SECTION((void setHits(const std::vector< PeptideHit > &hits)))
   PeptideIdentification hits;
   hits.setHits(peptide_hits);
-  TEST_EQUAL(hits.getHits() == peptide_hits, true)
+  TEST_TRUE(hits.getHits() == peptide_hits)
 END_SECTION
 
 START_SECTION((void setSignificanceThreshold(double value)))
   PeptideIdentification hits;
   hits.setSignificanceThreshold(peptide_significance_threshold);
   TEST_EQUAL(hits.getSignificanceThreshold(), peptide_significance_threshold)
+END_SECTION
+
+START_SECTION((void testSignificanceThresholdMetaValue()))
+{
+  PeptideIdentification id;
+  
+  // Test default value
+  TEST_EQUAL(id.getSignificanceThreshold(), 0.0);
+  TEST_EQUAL(id.metaValueExists(Constants::UserParam::SIGNIFICANCE_THRESHOLD), true);
+  TEST_EQUAL(id.getMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD), 0.0);
+  
+  // Test setting a new value
+  id.setSignificanceThreshold(42.0);
+  TEST_EQUAL(id.getSignificanceThreshold(), 42.0);
+  TEST_EQUAL(id.getMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD), 42.0);
+  
+  // Test that the meta value is copied
+  PeptideIdentification id2(id);
+  TEST_EQUAL(id2.getSignificanceThreshold(), 42.0);
+  TEST_EQUAL(id2.getMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD), 42.0);
+  
+  // Test assignment operator
+  PeptideIdentification id3;
+  id3 = id;
+  TEST_EQUAL(id3.getSignificanceThreshold(), 42.0);
+  TEST_EQUAL(id3.getMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD), 42.0);
+}
 END_SECTION
 
 START_SECTION((String& getScoreType() const))
@@ -245,13 +273,13 @@ END_SECTION
 
 START_SECTION((bool isHigherScoreBetter() const))
 	PeptideIdentification hits;
-	TEST_EQUAL(hits.isHigherScoreBetter(), true)
+	TEST_TRUE(hits.isHigherScoreBetter())
 END_SECTION
 
 START_SECTION((void setHigherScoreBetter(bool value)))
   PeptideIdentification hits;
   hits.setHigherScoreBetter(false);
-  TEST_EQUAL(hits.isHigherScoreBetter(),false)
+  TEST_FALSE(hits.isHigherScoreBetter())
 END_SECTION
 
 START_SECTION((const String& getIdentifier() const))
@@ -267,22 +295,21 @@ END_SECTION
 
 START_SECTION((bool empty() const))
   PeptideIdentification hits;
-  TEST_EQUAL(hits.empty(), true)
-
+  TEST_TRUE(hits.empty())
   hits.setSignificanceThreshold(1);
-  TEST_EQUAL(hits.empty(), false)
+  TEST_FALSE(hits.empty())
 
   hits.setSignificanceThreshold(0);
-  TEST_EQUAL(hits.empty(), true)
+  TEST_TRUE(hits.empty())
 
   hits.setBaseName("basename");
-  TEST_EQUAL(hits.empty(), false)
+  TEST_FALSE(hits.empty())
 
   hits.setBaseName("");
-  TEST_EQUAL(hits.empty(), true)
+  TEST_TRUE(hits.empty())
 
   hits.insertHit(peptide_hit);
-  TEST_EQUAL(hits.empty(), false)
+  TEST_FALSE(hits.empty())
 END_SECTION
 
 START_SECTION((void sort()))
@@ -464,101 +491,40 @@ START_SECTION((static String buildUIDFromPepID(const PeptideIdentification& pep_
 }
 END_SECTION
 
-
-/*
-START_SECTION(void getNonReferencingHits(const String &protein_accession, std::vector< PeptideHit > &peptide_hits) const)
+START_SECTION((const String& getBaseName() const))
   PeptideIdentification id;
-  PeptideHit hit;
-  vector< PeptideHit > peptide_hits;
-
-  hit.setScore(23);
-  hit.setSequence(AASequence::fromString("FIRSTPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN1");
-  id.insertHit(hit);
-
-  hit = PeptideHit();
-  hit.setScore(10);
-  hit.setSequence(AASequence::fromString("SECONDPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN2");
-  id.insertHit(hit);
-
-  hit = PeptideHit();
-  hit.setScore(11);
-  hit.setSequence(AASequence::fromString("THIRDPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN2");
-  id.insertHit(hit);
-
-  id.getNonReferencingHits("TEST_PROTEIN2", peptide_hits);
-  TEST_EQUAL(peptide_hits.size(), 1)
-  TEST_EQUAL(peptide_hits[0].getSequence(), AASequence::fromString("FIRSTPROTEIN"))
+  TEST_EQUAL(id.getBaseName(), "")
+  
+  id.setBaseName("test_base_name");
+  TEST_EQUAL(id.getBaseName(), "test_base_name")
+  
+  // Test that it's stored as a MetaValue
+  TEST_TRUE(id.metaValueExists(Constants::UserParam::BASE_NAME))
+  TEST_EQUAL(id.getMetaValue(Constants::UserParam::BASE_NAME), "test_base_name")
 END_SECTION
 
-START_SECTION(void getNonReferencingHits(const std::vector< String > &accessions, std::vector< PeptideHit > &peptide_hits) const)
+START_SECTION((void setBaseName(const String& base_name)))
   PeptideIdentification id;
-  PeptideHit hit;
-  vector< PeptideHit > peptide_hits;
-  vector<String> accessions;
-
-  accessions.push_back("TEST_PROTEIN2");
-  accessions.push_back("TEST_PROTEIN3");
-
-  hit.setScore(23);
-  hit.setSequence(AASequence::fromString("FIRSTPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN1");
-  id.insertHit(hit);
-
-  hit = PeptideHit();
-  hit.setScore(10);
-  hit.setSequence(AASequence::fromString("SECONDPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN2");
-  id.insertHit(hit);
-
-  hit = PeptideHit();
-  hit.setScore(11);
-  hit.setSequence(AASequence::fromString("THIRDPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN3");
-  id.insertHit(hit);
-
-  id.getNonReferencingHits(accessions, peptide_hits);
-  TEST_EQUAL(peptide_hits.size(), 1)
-  TEST_EQUAL(peptide_hits[0].getSequence(), AASequence::fromString("FIRSTPROTEIN"))
+  
+  // Test setting a non-empty base name
+  id.setBaseName("test_base_name");
+  TEST_EQUAL(id.getBaseName(), "test_base_name")
+  TEST_TRUE(id.metaValueExists(Constants::UserParam::BASE_NAME))
+  
+  // Test setting an empty base name (should remove the meta value)
+  id.setBaseName("");
+  TEST_EQUAL(id.getBaseName(), "")
+  TEST_FALSE(id.metaValueExists(Constants::UserParam::BASE_NAME))
+  
+  // Test that empty() method works correctly with base name as meta value
+  TEST_TRUE(id.empty())
+  id.setBaseName("test_base_name");
+  TEST_FALSE(id.empty())
+  id.setBaseName("");
+  TEST_TRUE(id.empty())
 END_SECTION
-
-START_SECTION(void getNonReferencingHits(const std::vector< ProteinHit > &protein_hits, std::vector< PeptideHit > &peptide_hits) const)
-  PeptideIdentification id;
-  PeptideHit hit;
-  vector< PeptideHit > peptide_hits;
-  vector<ProteinHit> protein_hits;
-  ProteinHit p_hit;
-
-  p_hit.setAccession("TEST_PROTEIN2");
-  protein_hits.push_back(p_hit);
-  p_hit.setAccession("TEST_PROTEIN3");
-  protein_hits.push_back(p_hit);
-
-  hit.setScore(23);
-  hit.setSequence(AASequence::fromString("FIRSTPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN1");
-  id.insertHit(hit);
-
-  hit = PeptideHit();
-  hit.setScore(10);
-  hit.setSequence(AASequence::fromString("SECONDPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN2");
-  id.insertHit(hit);
-
-  hit = PeptideHit();
-  hit.setScore(11);
-  hit.setSequence(AASequence::fromString("THIRDPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN3");
-  id.insertHit(hit);
-
-  id.getNonReferencingHits(protein_hits, peptide_hits);
-  TEST_EQUAL(peptide_hits.size(), 1)
-  TEST_EQUAL(peptide_hits[0].getSequence(), AASequence::fromString("FIRSTPROTEIN"))
-END_SECTION
-*/
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
 
 END_TEST
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////

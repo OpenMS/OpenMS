@@ -32,6 +32,7 @@
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="0.9208"/>
+				<UserParam type="string" name="_ar_0_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="-1.434"/>
 				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_massd" value="-5.0e-03"/>
@@ -39,18 +40,21 @@
 				<UserParam type="float" name="_ar_0_subscore_ntt" value="2.0"/>
 				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
 				<UserParam type="float" name="_ar_1_score" value="0.806668"/>
+				<UserParam type="string" name="_ar_1_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_1_subscore_nrs" value="8.728"/>
 				<UserParam type="float" name="_ar_1_subscore_nsi" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsm" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsp" value="4.1724"/>
 				<UserParam type="float" name="_ar_1_subscore_nss" value="0.0"/>
 			</PeptideHit>
+			<UserParam type="string" name="base_name" value="/data/lamgroup/iPRG2014/study/oms/JD_06232014_sample1-A.pep.xml"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="360.700329914712484" RT="0.0" spectrum_reference="scan=2770" >
 			<PeptideHit score="0.0" sequence="GLVC(Carbamidomethyl)GSK" charge="2" aa_before="A" aa_after="F" protein_refs="PH_2" >
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="0.0"/>
+				<UserParam type="string" name="_ar_0_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="-3.5466"/>
 				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_massd" value="0.023"/>
@@ -58,18 +62,21 @@
 				<UserParam type="float" name="_ar_0_subscore_ntt" value="1.0"/>
 				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
 				<UserParam type="float" name="_ar_1_score" value="0.0"/>
+				<UserParam type="string" name="_ar_1_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_1_subscore_nrs" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsi" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsm" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsp" value="6.9737"/>
 				<UserParam type="float" name="_ar_1_subscore_nss" value="0.0"/>
 			</PeptideHit>
+			<UserParam type="string" name="base_name" value="/data/lamgroup/iPRG2014/study/oms/JD_06232014_sample1-A.pep.xml"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="350.530489419920002" RT="0.0" spectrum_reference="scan=2999" >
 			<PeptideHit score="0.0223989" sequence="LIWTM(Oxidation)IGIS" charge="3" aa_before="R" aa_after="F" protein_refs="PH_3" >
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="0.217"/>
+				<UserParam type="string" name="_ar_0_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="0.801"/>
 				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_massd" value="6.0e-03"/>
@@ -77,18 +84,21 @@
 				<UserParam type="float" name="_ar_0_subscore_ntt" value="1.0"/>
 				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
 				<UserParam type="float" name="_ar_1_score" value="0.0223989"/>
+				<UserParam type="string" name="_ar_1_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_1_subscore_nrs" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsi" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsm" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsp" value="4.0003"/>
 				<UserParam type="float" name="_ar_1_subscore_nss" value="0.0"/>
 			</PeptideHit>
+			<UserParam type="string" name="base_name" value="/data/lamgroup/iPRG2014/study/oms/JD_06232014_sample1-A.pep.xml"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="566.770337238929983" RT="0.0" spectrum_reference="scan=3084" >
 			<PeptideHit score="0.0505509" sequence=".(Glu-&gt;pyro-Glu)EAGIVDELAYA" charge="2" aa_before="K" aa_after="V" protein_refs="PH_4" >
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="0.07"/>
+				<UserParam type="string" name="_ar_0_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="-1.3114"/>
 				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_massd" value="-0.02"/>
@@ -96,18 +106,21 @@
 				<UserParam type="float" name="_ar_0_subscore_ntt" value="1.0"/>
 				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
 				<UserParam type="float" name="_ar_1_score" value="0.0505509"/>
+				<UserParam type="string" name="_ar_1_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_1_subscore_nrs" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsi" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsm" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsp" value="20.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nss" value="0.0"/>
 			</PeptideHit>
+			<UserParam type="string" name="base_name" value="/data/lamgroup/iPRG2014/study/oms/JD_06232014_sample1-A.pep.xml"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="608.957491373046651" RT="0.0" spectrum_reference="scan=3905" >
 			<PeptideHit score="0.999999" sequence=".(Acetyl)SASAQHSQAQQQQQQK" charge="3" aa_before="M" aa_after="S" protein_refs="PH_5" >
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="1.0"/>
+				<UserParam type="string" name="_ar_0_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="4.795"/>
 				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_massd" value="-6.0e-03"/>
@@ -115,18 +128,21 @@
 				<UserParam type="float" name="_ar_0_subscore_ntt" value="2.0"/>
 				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
 				<UserParam type="float" name="_ar_1_score" value="0.999999"/>
+				<UserParam type="string" name="_ar_1_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_1_subscore_nrs" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsi" value="0.999999"/>
 				<UserParam type="float" name="_ar_1_subscore_nsm" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsp" value="9.90429"/>
 				<UserParam type="float" name="_ar_1_subscore_nss" value="0.4998"/>
 			</PeptideHit>
+			<UserParam type="string" name="base_name" value="/data/lamgroup/iPRG2014/study/oms/JD_06232014_sample1-A.pep.xml"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="681.293347492839985" RT="0.0" spectrum_reference="scan=7319" >
 			<PeptideHit score="2.01282e-05" sequence=".(Ammonia-loss)C(Carbamidomethyl)LPGPATASIYQT" charge="2" aa_before="K" aa_after="L" protein_refs="PH_6" >
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="7.0e-04"/>
+				<UserParam type="string" name="_ar_0_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_0_subscore_fval" value="-1.3658"/>
 				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_massd" value="-0.063"/>
@@ -134,12 +150,14 @@
 				<UserParam type="float" name="_ar_0_subscore_ntt" value="1.0"/>
 				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
 				<UserParam type="float" name="_ar_1_score" value="2.01282e-05"/>
+				<UserParam type="string" name="_ar_1_higher_is_better" value="true"/>
 				<UserParam type="float" name="_ar_1_subscore_nrs" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsi" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsm" value="0.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nsp" value="2.0"/>
 				<UserParam type="float" name="_ar_1_subscore_nss" value="0.0"/>
 			</PeptideHit>
+			<UserParam type="string" name="base_name" value="/data/lamgroup/iPRG2014/study/oms/JD_06232014_sample1-A.pep.xml"/>
 		</PeptideIdentification>
 	</IdentificationRun>
 </IdXML>

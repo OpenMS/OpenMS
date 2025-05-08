@@ -352,16 +352,23 @@ namespace OpenMS
                                        "At least two input maps required");
     }
 
-    // set up the distance functor (and set other parameters)
-    // for the current partition
-    double max_intensity = 0.0;
-    double max_mz = 0.0;
-    for (typename vector<MapType>::const_iterator map_it = input_maps.begin(); 
-         map_it != input_maps.end(); ++map_it)
+    // set up the distance functor (and set other parameters) for the current partition
+    double max_intensity = std::numeric_limits<double>::lowest();
+    double max_mz = std::numeric_limits<double>::lowest();
+
+    for (auto it = input_maps.begin(); it != input_maps.end(); ++it)
     {
-      max_intensity = max(max_intensity, map_it->getMaxIntensity());
-      max_mz = max(max_mz, map_it->getMaxMZ());
+      if (!it->RangeIntensity::isEmpty())
+      {
+        max_intensity = max(max_intensity, it->getMaxIntensity());
+      }
+
+      if (!it->RangeMZ::isEmpty())
+      {
+        max_mz = max(max_mz, it->getMaxMZ());
+      }      
     }
+
     setParameters_(max_intensity, max_mz);
 
     // create the hash grid and fill it with features:

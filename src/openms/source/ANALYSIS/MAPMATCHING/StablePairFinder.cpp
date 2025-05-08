@@ -53,18 +53,29 @@ namespace OpenMS
   {
     // empty output destination:
     result_map.clear(false);
-
+    
     // sanity checks:
     if (input_maps.size() != 2)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "exactly two input maps required");
     }
+
     checkIds_(input_maps);
 
     // set up the distance functor:
-    double max_intensity = max(input_maps[0].getMaxIntensity(),
-                               input_maps[1].getMaxIntensity());
+    double max_intensity = std::numeric_limits<double>::lowest();;
+    
+    if (!input_maps[0].RangeIntensity::isEmpty())
+    {
+      max_intensity = input_maps[0].getMaxIntensity();
+    }
+
+    if (!input_maps[1].RangeIntensity::isEmpty())
+    {
+      max_intensity = max(max_intensity, input_maps[1].getMaxIntensity());
+    }
+
     Param distance_params = param_.copy("");
     distance_params.remove("use_identifications");
     distance_params.remove("second_nearest_gap");
