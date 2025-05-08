@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -64,7 +64,13 @@ namespace OpenMS::Internal
     {
       options_ = opt;
       spectrum_data_.reserve(options_.getMaxDataPoolSize());
-      chromatogram_data_.reserve(options_.getMaxDataPoolSize());
+
+      // Reserve memory for chromatogram data based on the maximum data pool size if chromatograms are to be skipped.
+      skip_chromatogram_ = options_.getSkipChromatograms();
+      if (!skip_chromatogram_)
+      {
+        chromatogram_data_.reserve(options_.getMaxDataPoolSize());
+      }
     }
 
     /// Get the peak file options
@@ -692,8 +698,10 @@ namespace OpenMS::Internal
       constexpr XMLCh s_external_spectrum_id[] = { 'e','x','t','e','r','n','a','l','S','p','e','c','t','r','u','m','I','D' , 0};
       // constexpr XMLCh s_default_source_file_ref[] = { 'd','e','f','a','u','l','t','S','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
       constexpr XMLCh s_scan_settings_ref[] = { 's','c','a','n','S','e','t','t','i','n','g','s','R','e','f' , 0};
-      String tag = sm_.convert(qname);
-      open_tags_.push_back(tag);
+      
+      
+      open_tags_.push_back(sm_.convert(qname));
+      const String& tag = open_tags_.back();
 
       // do nothing until a spectrum/chromatogram/spectrumList ends
       if (skip_spectrum_ || skip_chromatogram_)
@@ -701,16 +709,16 @@ namespace OpenMS::Internal
         return;
       }
 
-      //determine parent tag
-      String parent_tag;
+      // determine parent tag
+      const String* parent_tag = &tag; // set to some valid string
       if (open_tags_.size() > 1)
       {
-        parent_tag = *(open_tags_.end() - 2);
+        parent_tag = &(*(open_tags_.end() - 2));
       }
-      String parent_parent_tag;
+      const String* parent_parent_tag = &tag; // set to some valid string
       if (open_tags_.size() > 2)
       {
-        parent_parent_tag = *(open_tags_.end() - 3);
+        parent_parent_tag = &(*(open_tags_.end() - 3));
       }
 
       if (tag == "spectrum")
@@ -760,7 +768,7 @@ namespace OpenMS::Internal
           skip_chromatogram_ = true; // skip the remaining chrom, until endElement(chromatogram)
           ++chromatogram_count_;
         }
-
+    
         chromatogram_ = ChromatogramType();
         default_array_length_ = attributeAsInt_(attributes, s_default_array_length);
         String source_file_ref;
@@ -808,9 +816,15 @@ namespace OpenMS::Internal
       }
       else if (tag == "chromatogramList")
       {
+        // return if skip_chromatogram_ true
+        if (skip_chromatogram_)
+        {
+          return;
+        }
+    
         // default data processing
         default_processing_ = attributeAsString_(attributes, s_default_data_processing_ref);
-
+    
         //Abort if we need meta data only
         if (options_.getMetadataOnly())
         {
@@ -859,21 +873,21 @@ namespace OpenMS::Internal
       }
       else if (tag == "cvParam")
       {
-        String value = "";
+        String value;
         optionalAttributeAsString_(value, attributes, s_value);
-        String unit_accession = "";
+        String unit_accession;
         optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
-        handleCVParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_accession), attributeAsString_(attributes, s_name), value, unit_accession);
+        handleCVParam_(*parent_parent_tag, *parent_tag, attributeAsString_(attributes, s_accession), attributeAsString_(attributes, s_name), value, unit_accession);
       }
       else if (tag == "userParam")
       {
-        String type = "";
+        String type;
         optionalAttributeAsString_(type, attributes, s_type);
-        String value = "";
+        String value;
         optionalAttributeAsString_(value, attributes, s_value);
-        String unit_accession = "";
+        String unit_accession;
         optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
-        handleUserParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_name), type, value, unit_accession);
+        handleUserParam_(*parent_parent_tag, *parent_tag, attributeAsString_(attributes, s_name), type, value, unit_accession);
       }
       else if (tag == "referenceableParamGroup")
       {
@@ -944,7 +958,7 @@ namespace OpenMS::Internal
         String ref = attributeAsString_(attributes, s_ref);
         for (Size i = 0; i < ref_param_[ref].size(); ++i)
         {
-          handleCVParam_(parent_parent_tag, parent_tag, ref_param_[ref][i].accession, ref_param_[ref][i].name, ref_param_[ref][i].value, ref_param_[ref][i].unit_accession);
+          handleCVParam_(*parent_parent_tag, *parent_tag, ref_param_[ref][i].accession, ref_param_[ref][i].name, ref_param_[ref][i].value, ref_param_[ref][i].unit_accession);
         }
       }
       else if (tag == "scan")
@@ -1287,7 +1301,10 @@ namespace OpenMS::Internal
         {
           case XMLHandler::LD_ALLDATA:
           case XMLHandler::LD_COUNTS_WITHOPTIONS:
-            skip_chromatogram_ = false; // don't skip the next chrom
+            if (!options_.getSkipChromatograms())
+            {
+              skip_chromatogram_ = false;  // don't skip the next chrom
+            }
             break;
           case XMLHandler::LD_RAWCOUNTS:
             skip_chromatogram_ = true; // we always skip chroms; we only need the outer <spectrumList/chromatogramList count=...>
@@ -1785,11 +1802,13 @@ namespace OpenMS::Internal
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ETD);
           }
-          else if (accession == "MS:1003182") //electron transfer and collision-induced dissociation
+          else if (accession == "MS:1003182"  //electron transfer and collision-induced dissociation
+            || accession == "MS:1002679")  // workaround: supplemental collision-induced dissociation (see https://github.com/compomics/ThermoRawFileParser/issues/182)
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::ETciD);
           }
-          else if (accession == "MS:1002631") //electron transfer and higher-energy collision dissociation
+          else if (accession == "MS:1002631" //electron transfer and higher-energy collision dissociation
+            || accession == "MS:1002678") // workaround: supplemental beam-type collision-induced dissociation (see https://github.com/compomics/ThermoRawFileParser/issues/182)
           {
             spec_.getPrecursors().back().getActivationMethods().insert(Precursor::EThcD);
           }
@@ -5224,7 +5243,7 @@ namespace OpenMS::Internal
           }
           Base64::encodeIntegers(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
 
-          String data_processing_ref_string = "";
+          String data_processing_ref_string ;
           if (!array.getDataProcessing().empty())
           {
             data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + s + "_bi_" + m + "\"";
@@ -5254,7 +5273,7 @@ namespace OpenMS::Internal
           for (Size p = 0; p < array.size(); ++p)
             data_to_encode[p] = array[p];
           Base64::encodeStrings(data_to_encode, encoded_string, options_.getCompression());
-          String data_processing_ref_string = "";
+          String data_processing_ref_string ;
           if (!array.getDataProcessing().empty())
           {
             data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + s + "_bi_" + m + "\"";
@@ -5294,7 +5313,7 @@ namespace OpenMS::Internal
         {
           for (Size p = 0; p < container.size(); ++p)
           {
-            data_to_encode[p] = container[p].getMZ();
+            data_to_encode[p] = container[p].getPos();
           }
         }
         writeBinaryDataArray_(os, pf_options_, data_to_encode, false, array_type);
@@ -5314,7 +5333,7 @@ namespace OpenMS::Internal
         {
           for (Size p = 0; p < container.size(); ++p)
           {
-            data_to_encode[p] = container[p].getMZ();
+            data_to_encode[p] = container[p].getPos();
           }
         }
         writeBinaryDataArray_(os, pf_options_, data_to_encode, true, array_type);
@@ -5424,7 +5443,7 @@ namespace OpenMS::Internal
         // Try and identify whether we have a CV term for this particular array (otherwise write the array name itself)
         ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513", array.getName()); // name: binary data array
 
-        String unit_cv_term = "";
+        String unit_cv_term ;
         if (array_metadata.metaValueExists("unit_accession"))
         {
           ControlledVocabulary::CVTerm unit = cv_.getTerm(array_metadata.getMetaValue("unit_accession"));
@@ -5447,7 +5466,7 @@ namespace OpenMS::Internal
         np_config = pf_options_.getNumpressConfigurationFloatDataArray();
       }
 
-      String data_processing_ref_string = "";
+      String data_processing_ref_string ;
       if (!array.getDataProcessing().empty())
       {
         data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + spec_chrom_idx + "_bi_" + array_idx + "\"";
@@ -5596,7 +5615,7 @@ namespace OpenMS::Internal
           data64_to_encode[p] = array[p];
         }
         Base64::encodeIntegers(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
-        String data_processing_ref_string = "";
+        String data_processing_ref_string ;
         if (!array.getDataProcessing().empty())
         {
           data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + c + "_bi_" + m + "\"";
@@ -5628,7 +5647,7 @@ namespace OpenMS::Internal
           data_to_encode[p] = array[p];
         }
         Base64::encodeStrings(data_to_encode, encoded_string, options_.getCompression());
-        String data_processing_ref_string = "";
+        String data_processing_ref_string ;
         if (!array.getDataProcessing().empty())
         {
           data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + c + "_bi_" + m + "\"";

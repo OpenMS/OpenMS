@@ -7,7 +7,7 @@ from ChromatogramPeak cimport *
 from ConsensusMap cimport *
 from DefaultParamHandler cimport *
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>" namespace "OpenMS":
 
     cdef cppclass FeatureFinderMultiplexAlgorithm(DefaultParamHandler):
 

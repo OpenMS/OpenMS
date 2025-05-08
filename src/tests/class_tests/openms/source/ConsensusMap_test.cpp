@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -34,9 +34,7 @@ ConsensusMap* nullPointer = nullptr;
 START_SECTION((ConsensusMap()))
 	ptr = new ConsensusMap();
 	TEST_NOT_EQUAL(ptr, nullPointer)
-	TEST_EQUAL(ptr->isMetaEmpty(),true)
-  TEST_REAL_SIMILAR(ptr->getMinIntensity(), numeric_limits<double>::max())
-  TEST_REAL_SIMILAR(ptr->getMaxIntensity(), -numeric_limits<double>::max())
+	TEST_TRUE(ptr->isMetaEmpty())
 END_SECTION
 
 START_SECTION((~ConsensusMap()))

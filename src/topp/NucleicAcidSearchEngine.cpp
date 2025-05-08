@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,7 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h> // for "median"
+#include <OpenMS/MATH/StatisticFunctions.h> // for "median"
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -39,19 +39,19 @@
 #include <OpenMS/CHEMISTRY/NASequence.h>
 
 // preprocessing and filtering of spectra
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
+#include <OpenMS/PROCESSING/FILTERING/NLargest.h>
+#include <OpenMS/PROCESSING/FILTERING/WindowMower.h>
+#include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 
 // spectra comparison
 #include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/COMPARISON/SpectrumAlignment.h>
 #include <OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>
 
 // post-processing of results
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 
 #include <QtCore/QProcess>

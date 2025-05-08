@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,8 +14,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgScoring.h>
+#include <OpenMS/FEATUREFINDER/EmgScoring.h>
 
 // Kernel classes
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -234,6 +233,7 @@ private:
      * reported analogously to the ones for detecting transitions but must be stored separately.
      *
      * @param transition_group_identification Containing all detecting and identifying transitions
+     * @param transition_group_detection Containing all detecting transitions
      * @param scorer An instance of OpenSwathScoring
      * @param feature_idx The index of the current feature
      * @param native_ids_detection The native IDs of the detecting transitions
@@ -242,15 +242,20 @@ private:
      * @param swath_maps Optional SWATH-MS (DIA) map corresponding from which
      *                  the chromatograms were extracted. Use empty map if no
      *                  data is available.
+     * @param drift_target The target drift value
+     * @param im_range Ion mobility subrange to consider (used as filter); can be empty (i.e. no IM filtering). If scoring non-IMS data, this should be empty, otherwise a missing information exception is thrown when integrating spectra for scoring.
      * @return a struct of type OpenSwath_Ind_Scores containing either target or decoy values
     */
     OpenSwath_Ind_Scores scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
+                                              MRMTransitionGroupType& transition_group_detection,
                                               OpenSwathScoring& scorer,
                                               const size_t feature_idx,
                                               const std::vector<std::string> & native_ids_detection,
                                               const double det_intensity_ratio_score,
                                               const double det_mi_ratio_score,
-                                              const std::vector<OpenSwath::SwathMap>& swath_maps) const;
+                                              const std::vector<OpenSwath::SwathMap>& swath_maps,
+                                              const double drift_target,
+                                              RangeMobility& im_range) const;
 
     void prepareFeatureOutput_(OpenMS::MRMFeature& mrmfeature, bool ms1only, int charge) const;
 
@@ -264,13 +269,16 @@ private:
     bool write_convex_hull_;
     bool strict_;
     bool use_ms1_ion_mobility_;
+    bool apply_im_peak_picking_;
     String scoring_model_;
 
     // scoring parameters
     double rt_normalization_factor_;
     int add_up_spectra_;
     String spectrum_addition_method_ ;
+    String spectrum_merge_method_type_;
     double spacing_for_spectra_resampling_;
+    double merge_spectra_by_peak_width_fraction_;
     double uis_threshold_sn_;
     double uis_threshold_peak_area_;
 
@@ -284,7 +292,6 @@ private:
     std::map<OpenMS::String, const PeptideType*> PeptideRefMap_;
     OpenSwath_Scores_Usage su_;
     OpenMS::DIAScoring diascoring_;
-    OpenMS::SONARScoring sonarscoring_;
     OpenMS::EmgScoring emgscoring_;
 
     // data

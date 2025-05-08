@@ -45,7 +45,6 @@ MSNumpressCoder.cpp
 MSPFile.cpp
 MSPGenericFile.cpp
 MSstatsFile.cpp
-MascotInfile.cpp
 MascotGenericFile.cpp
 MascotRemoteQuery.cpp
 MascotXMLFile.cpp
@@ -54,7 +53,6 @@ MzDataFile.cpp
 MzIdentMLFile.cpp
 MzMLFile.cpp
 MzQCFile.cpp
-MzQuantMLFile.cpp
 MzTab.cpp
 MzTabBase.cpp
 MzTabM.cpp

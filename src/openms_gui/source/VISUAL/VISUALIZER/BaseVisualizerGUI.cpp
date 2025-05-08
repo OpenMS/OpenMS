@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -30,7 +30,7 @@ namespace OpenMS
     editable_(editable)
   {
     mainlayout_ = new QGridLayout(this);
-    mainlayout_->setMargin(0);
+    mainlayout_->setContentsMargins(0, 0, 0, 0);
   }
 
   bool BaseVisualizerGUI::isEditable() const

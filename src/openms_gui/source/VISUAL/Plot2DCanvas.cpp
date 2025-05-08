@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -13,7 +13,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/DIALOGS/FeatureEditDialog.h>
@@ -506,17 +506,9 @@ namespace OpenMS
     painter.begin(this);
 
     // copy peak data from buffer
-     /*
-         * Suppressed warning QVector<QRect> QRegion::rects() const is deprecated
-         * Use begin()/end() instead, from Qt 5.8
-         */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    QVector<QRect> rects = e->region().rects();
-#pragma GCC diagnostic pop
-    for (int i = 0; i < (int)rects.size(); ++i)
+    for (const auto& rect : e->region())
     {
-      painter.drawImage(rects[i].topLeft(), buffer_, rects[i]);
+      painter.drawImage(rect.topLeft(), buffer_, rect);
     }
 
     // draw measurement peak
@@ -981,7 +973,7 @@ namespace OpenMS
         // risk of iterating through *all* the scans.
         check_area.RangeMZ::extend((RangeMZ)visible_area_.getAreaUnit());
         const auto& specs = lp->getPeakData()->getSpectra();
-        check_area.RangeRT::operator=({specs[indices.back()].getRT(), specs[indices.front()].getRT()});
+        check_area.RangeRT::operator=(RangeRT(specs[indices.back()].getRT(), specs[indices.front()].getRT()));
         item_added = collectFragmentScansInArea_(check_area, a, msn_scans, msn_meta);
 
         if (!item_added)

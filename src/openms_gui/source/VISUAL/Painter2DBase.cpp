@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,7 +10,7 @@
 #include <OpenMS/VISUAL/Painter2DBase.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/LayerDataConsensus.h>
@@ -42,7 +42,6 @@ namespace OpenMS
     ConvexHull2D::PointArrayType ch_points = hull.getHullPoints();
     points.resize((int)ch_points.size());
     UInt index = 0;
-    QPoint pos;
     // iterate over hull points
     for (ConvexHull2D::PointArrayType::const_iterator it = ch_points.begin(); it != ch_points.end(); ++it, ++index)
     {

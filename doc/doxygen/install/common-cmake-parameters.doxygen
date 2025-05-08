@@ -1,15 +1,16 @@
 You can set more CMake variables adding <code>-DVARIABLE=VALUE</code> options when calling CMake.
-
+<br>
 The most important CMake variables are:
+<br>
 
 <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;">
   <tr>
-    <td valign="top">\c OPENMS_CONTRIB_LIBS</td>
+    <th valign="top">OPENMS_CONTRIB_LIBS</td>
     <td>Separate search path for the contrib libraries from github.com/OpenMS/contrib that is internally considered before
     CMAKE_PREFIX_PATH for searching, linking and adding include directories.</td>
   </tr>
   <tr>
-    <td valign="top">\c CMAKE_PREFIX_PATH</td>
+    <th valign="top">CMAKE_PREFIX_PATH</td>
     <td>Additional search path for the contrib libraries.
 
     [MacOSX only]
@@ -20,89 +21,89 @@ The most important CMake variables are:
     <code>-DCMAKE_PREFIX_PATH=/opt/local</code> for MacPorts
 
     Please keep in mind that both Homebrew and MacPorts do not provide all libraries so
-    you also need to specify the path to your self-build contrib via -DOPENMS_CONTRIB_LIBS
+    you also need to specify the path to your self-build contrib via <code>-DOPENMS_CONTRIB_LIBS</code>
     </td>
   </tr>
   <tr>
-    <td valign="top">\c Qt5_DIR</td>
-    <td>Additional search path for the Qt5 CMake files. Use <tt>/PATH/TO/QT_INSTALLATION/lib/cmake/Qt5</tt> as value.</td>
+    <th valign="top">Qt6_DIR</td>
+    <td>Additional search path for the Qt6 CMake files. Use <code>/PATH/TO/QT_INSTALLATION/lib/cmake/Qt6</code> as value, e.g. <code>C:\\dev\\qt6\\6.7.1\\msvc2019_64\\lib\\cmake\\Qt6</code></td>
   </tr>
   <tr>
-    <td valign="top">\c HAS_XSERVER=On/Off</td>
-    <td>[Linux/MacOS only] Defines if a running X Server is available when building %OpenMS.
+    <th valign="top">HAS_XSERVER=On/Off</td>
+    <td>[Linux/MacOS only] Defines if a running X Server is available when building OpenMS.
     As building parts of the documentation and running certain tests requires
     a running X Server, this flag can be used to disable those parts of the
     documentation and the tests that need an X Server. (Default: On)</td>
   </tr>
   <tr>
-    <td valign="top">\c ADDRESS_SANITIZER=On/Off</td>
+    <th valign="top">ADDRESS_SANITIZER=On/Off</td>
     <td>[g++/clang only] Enables/Disables Address Sanitizer (ASAN) to find access violations and other bugs.</td>
   </tr>
   <tr>
-    <td valign="top">\c WITH_GUI=On/Off</td>
-    <td>Defines if the %OpenMS GUI tools (TOPPView, TOPPAS) should be built or
-    not. If you plan to use %OpenMS without a GUI, set this flag to "Off" (Default: On)</td>
+    <th valign="top">WITH_GUI=On/Off</td>
+    <td>Defines if the OpenMS GUI tools (TOPPView, TOPPAS) should be built or
+    not. If you plan to use OpenMS without a GUI, set this flag to "Off" (Default: On)</td>
   </tr>
   <tr>
-    <td valign="top">\c ENABLE_DOCS=On/Off</td>
-    <td>Enables documentation targets, allowing to build the %OpenMS documentation.
+    <th valign="top">ENABLE_DOCS=On/Off</td>
+    <td>Enables documentation targets, allowing to build the OpenMS documentation.
     (Default: On)</td>
   </tr>
   <tr>
-    <td valign="top">\c GIT_TRACKING=On/Off</td>
+    <th valign="top">GIT_TRACKING=On/Off</td>
     <td>Embed Git checksum into the library.
     (Default: On)</td>
   </tr>
   <tr>
-    <td valign="top">\c ENABLE_UPDATE_CHECK=On/Off</td>
-    <td>Check online for %OpenMS Updates upon invocation of any TOPP tool.
+    <th valign="top">ENABLE_UPDATE_CHECK=On/Off</td>
+    <td>Check online for OpenMS Updates upon invocation of any TOPP tool.
     (Default: On)</td>
   </tr>
   <tr>
-    <td valign="top">\c CMAKE_BUILD_TYPE</td>
+    <th valign="top">CMAKE_BUILD_TYPE</td>
     <td>[makefiles only; does not apply for XCode or VS] Should be either 'Release' (optimization enabled)
         or 'Debug' (debug info and precondition/postcondition checks enabled).
-        @n The default is 'Release'.</td>
+        @n The default is <code>Release</code>.</td>
   </tr>
   <tr>
-    <td valign="top">\c CMAKE_CXX_COMPILER</td>
+    <th valign="top">CMAKE_CXX_COMPILER</td>
     <td>Defines the C++ compiler to use.</td>
   </tr>
   <tr>
-    <td valign="top">\c MY_CXX_FLAGS</td>
+    <th valign="top">MY_CXX_FLAGS</td>
     <td>Additional custom C++ compile options you would like to add (must fit your chosen compiler). 
         This might be useful, for example, for adding debug symbols to a Release build, or for performance 
-        analysis (e.g. for '... -DMY_CXX_FLAGS="-Og;-ggdb;-g3;-fno-omit-frame-pointer" ...')</td>
+        analysis (e.g. for <code>... -DMY_CXX_FLAGS="-Og;-ggdb;-g3;-fno-omit-frame-pointer" ...</code>)</td>
   </tr>
   <tr>
-    <td valign="top">\c CMAKE_C_COMPILER</td>
+    <th valign="top">CMAKE_C_COMPILER</td>
     <td>Defines the C compiler to use. This should match the C++ compiler.
     Mixing compilers (e.g., <i>clang++</i> for C++ and <i>gcc</i> for C) can
-    lead to undefined behaviour as some internal settings (e.g., %OpenMP
+    lead to undefined behaviour as some internal settings (e.g., OpenMP
     support) are determined using the C compiler and are assumed to be the
     same for the C++ compiler.</td>
   </tr>
   <tr>
-    <td valign="top">\c SEARCH_ENGINES_DIRECTORY (optional)</td>
+    <th valign="top">SEARCH_ENGINES_DIRECTORY (optional)</td>
     <td>The location where thirdparty search engines (X!Tandem, MSGF+)
     are located. This directory should have the same structure as the example
     in the search engine repository at https://github.com/OpenMS/THIRDPARTY after flattening for your platform.
     /.
-    This directory is only needed to include thirdparty tools in the installer for %OpenMS.
+    This directory is only needed to include thirdparty tools in the installer for OpenMS.
   </tr>
   <tr>
-    <td valign="top">\c PYOPENMS=Off/On</td>
-    <td>Create Python bindings, see also @ref pyOpenMS (Default: Off)</td>
+    <th valign="top">PYOPENMS=Off/On</td>
+    <td>Create Python bindings, see also <code>pyOpenMS</code> (Default: Off)</td>
   </tr>
   <tr>
-    <td valign="top">\c CMAKE_INSTALL_PREFIX</td>
+    <th valign="top">CMAKE_INSTALL_PREFIX</td>
     <td>the path where the bin/ and lib/ directories should be installed to
         (when <pre>sudo make install</pre> is wished for a system-wide
-        install: e.g. -DCMAKE_INSTALL_PREFIX=/usr/local/)
+        install: e.g. <code>-DCMAKE_INSTALL_PREFIX=/usr/local/</code>)
         <BR>
         <b>Note:</b> Moving these directories after installing is not supported.
 
-        <b>For development, install prefixes are not supported. In this case %OpenMS must
+        <b>For development, install prefixes are not supported. In this case OpenMS must
          be built in place!</b>
    </td>
   </tr>

@@ -10,8 +10,8 @@
 			<overallquality>0.746627</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"/>
-				<param name="RT" value="BiGaussModel"/>
+				<param name="MZ:MZ" value="IsotopeModel"/>
+				<param name="RT:RT" value="BiGaussModel"/>
 				<param name="cutoff" value="2.9"/>
 				<param name="intensity_scaling" value="6.48973"/>
 				<param name="MZ:charge" value="2"/>
@@ -47,8 +47,8 @@
 			<overallquality>0.85423</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"/>
-				<param name="RT" value="BiGaussModel"/>
+				<param name="MZ:MZ" value="IsotopeModel"/>
+				<param name="RT:RT" value="BiGaussModel"/>
 				<param name="cutoff" value="4.05"/>
 				<param name="intensity_scaling" value="8.58742"/>
 				<param name="MZ:charge" value="3"/>
@@ -84,8 +84,8 @@
 			<overallquality>0.825227</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"/>
-				<param name="RT" value="BiGaussModel"/>
+				<param name="MZ:MZ" value="IsotopeModel"/>
+				<param name="RT:RT" value="BiGaussModel"/>
 				<param name="cutoff" value="3.15"/>
 				<param name="intensity_scaling" value="7.42467"/>
 				<param name="MZ:charge" value="3"/>
@@ -147,8 +147,8 @@
 			<overallquality>0.757107</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"/>
-				<param name="RT" value="BiGaussModel"/>
+				<param name="MZ:MZ" value="IsotopeModel"/>
+				<param name="RT:RT" value="BiGaussModel"/>
 				<param name="cutoff" value="2.15"/>
 				<param name="intensity_scaling" value="5.90196"/>
 				<param name="MZ:charge" value="2"/>
@@ -210,8 +210,8 @@
 			<overallquality>0.749841</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"/>
-				<param name="RT" value="BiGaussModel"/>
+				<param name="MZ:MZ" value="IsotopeModel"/>
+				<param name="RT:RT" value="BiGaussModel"/>
 				<param name="cutoff" value="3.25"/>
 				<param name="intensity_scaling" value="7.00884"/>
 				<param name="MZ:charge" value="2"/>
@@ -247,8 +247,8 @@
 			<overallquality>0.797495</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"/>
-				<param name="RT" value="BiGaussModel"/>
+				<param name="MZ:MZ" value="IsotopeModel"/>
+				<param name="RT:RT" value="BiGaussModel"/>
 				<param name="cutoff" value="6.95"/>
 				<param name="intensity_scaling" value="15.3612"/>
 				<param name="MZ:charge" value="3"/>
@@ -284,8 +284,8 @@
 			<overallquality>0.883375</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"/>
-				<param name="RT" value="BiGaussModel"/>
+				<param name="MZ:MZ" value="IsotopeModel"/>
+				<param name="RT:RT" value="BiGaussModel"/>
 				<param name="cutoff" value="6.8"/>
 				<param name="intensity_scaling" value="14.7851"/>
 				<param name="MZ:charge" value="3"/>
@@ -347,8 +347,8 @@
 			<overallquality>0.803365</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"/>
-				<param name="RT" value="BiGaussModel"/>
+				<param name="MZ:MZ" value="IsotopeModel"/>
+				<param name="RT:RT" value="BiGaussModel"/>
 				<param name="cutoff" value="3.2"/>
 				<param name="intensity_scaling" value="6.80636"/>
 				<param name="MZ:charge" value="3"/>
@@ -384,8 +384,8 @@
 			<overallquality>0.802009</overallquality>
 			<charge>3</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"/>
-				<param name="RT" value="BiGaussModel"/>
+				<param name="MZ:MZ" value="IsotopeModel"/>
+				<param name="RT:RT" value="BiGaussModel"/>
 				<param name="cutoff" value="3.1"/>
 				<param name="intensity_scaling" value="6.3476"/>
 				<param name="MZ:charge" value="3"/>
@@ -447,8 +447,8 @@
 			<overallquality>0.766224</overallquality>
 			<charge>2</charge>
 			<model name="ProductModel2D">
-				<param name="MZ" value="IsotopeModel"/>
-				<param name="RT" value="BiGaussModel"/>
+				<param name="MZ:MZ" value="IsotopeModel"/>
+				<param name="RT:RT" value="BiGaussModel"/>
 				<param name="cutoff" value="3.45"/>
 				<param name="intensity_scaling" value="7.8221"/>
 				<param name="MZ:charge" value="2"/>

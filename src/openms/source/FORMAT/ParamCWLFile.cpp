@@ -1,10 +1,11 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Authors: Simon Gene Gottlieb $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/ParamCWLFile.h>
 #include <fstream>
@@ -103,23 +104,28 @@ namespace OpenMS
         }
       }
 
-      // converting trags to tdl compatible tags
+      // converting OpenMS tags to tdl compatible tags
       std::set<std::string> tags;
       for (auto const& t : param_it->tags)
       {
-        if (t == "input file")
+        if (t == TOPPBase::TAG_INPUT_FILE)
         {
           tags.insert("file");
         }
-        else if (t == "output file")
+        else if (t == TOPPBase::TAG_OUTPUT_FILE)
         {
           tags.insert("file");
           tags.insert("output");
         }
-        else if (t == "output prefix")
+        else if (t == TOPPBase::TAG_OUTPUT_PREFIX)
         {
           tags.insert("output");
           tags.insert("prefixed");
+        }
+        else if (t == TOPPBase::TAG_OUTPUT_DIR)
+        {
+          tags.insert("directory");
+          tags.insert("output");
         }
         else
         {
@@ -306,7 +312,7 @@ namespace OpenMS
             - cwl_inputs.json
         )-");
     };
-    os << "# Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin\n"
+    os << "# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin\n"
           "# SPDX-License-Identifier: Apache-2.0\n";
 
     os << convertToCWL(tdl_tool_info) << "\n";

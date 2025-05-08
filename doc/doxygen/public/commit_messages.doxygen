@@ -42,7 +42,7 @@ Fixes #42
  * **TEST**
    * Addition or changes of tests. All code changes that are accompanied with tests must provide the original and the TEST class. Don't consider this as a coercion but as a privilege to use both classes!
  * **FORMAT**
-   * Changes to the supported file formats. All changes related to XML formats should be marked with this tag, e.g., a new format was added to %OpenMS or the version of an existing format is increased. Also changes relating the general support of an existing format should be added here (e.g., support for storing mzq).
+   * Changes to the supported file formats. All changes related to XML formats should be marked with this tag, e.g., a new format was added to %OpenMS or the version of an existing format is increased. Also changes relating the general support of an existing format should be added here (e.g., support for storing mzIdentML).
  * **PARAM**
    * Change to the parameters of a program or algorithm. In general every change to parameters stored in the Param class should be marked with this tag, e.g. changes to the params a program or algorithm accepts, change to the documentation of the parameter 
  * **IO**

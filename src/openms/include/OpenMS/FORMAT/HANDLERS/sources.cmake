@@ -17,7 +17,6 @@ MzMLHandlerHelper.h
 MzMLSpectrumDecoder.h
 MzMLSqliteHandler.h
 MzMLSqliteSwathHandler.h
-MzQuantMLHandler.h
 MzXMLHandler.h
 PTMXMLHandler.h
 ParamXMLHandler.h

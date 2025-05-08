@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,14 +10,14 @@
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
-#include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
+#include <OpenMS/KERNEL/BinnedSpectrum.h>
+#include <OpenMS/COMPARISON/SpectraSTSimilarityScore.h>
+#include <OpenMS/COMPARISON/ZhangSimilarityScore.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 // TODO add ID support to Handler
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <ctime>

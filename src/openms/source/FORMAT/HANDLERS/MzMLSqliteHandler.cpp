@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -181,7 +181,7 @@ namespace OpenMS::Internal
           std::vector< double >::iterator data_it = data.begin();
           for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
-            it->setMZ(*data_it);
+            it->setPos(*data_it);
           }
           cont_data[curr_id] += 1;
         }
@@ -197,7 +197,7 @@ namespace OpenMS::Internal
           std::vector< double >::iterator data_it = data.begin();
           for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
-            it->setMZ(*data_it);
+            it->setPos(*data_it);
           }
           cont_data[curr_id] += 1;
         }

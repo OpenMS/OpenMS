@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -238,6 +238,11 @@ namespace OpenMS
               String
       */
       inline const std::string IM = "IM";
+
+      /** User parameter name for ion names (e.g., annotated by TheoreticalSpectrumGenerator)
+              String
+      */
+      inline const std::string IonNames = "IonNames";
 
       /** User parameter name for identifier of concatenated peptides
               String
@@ -553,6 +558,16 @@ namespace OpenMS
               String
       */
       inline const std::string   MSM_SUM_FORMULA = "Sum_Formula";
+
+      /** User parameter name for the base name which links to underlying peak map
+              String
+      */
+      inline const std::string   BASE_NAME = "base_name";
+
+      /** User parameter name for the significance threshold in PeptideIdentification
+              Double
+      */
+      inline const std::string   SIGNIFICANCE_THRESHOLD = "significance_threshold";
     }
 
     //@}

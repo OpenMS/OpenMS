@@ -13,25 +13,20 @@ ChromatogramSettings.cpp
 ContactPerson.cpp
 DataArrays.cpp
 DataProcessing.cpp
-Digestion.cpp
 DocumentIdentifier.cpp
 ExperimentalDesign.cpp
 ExperimentalSettings.cpp
 Gradient.cpp
 HPLC.cpp
-Identification.cpp
-IdentificationHit.cpp
 Instrument.cpp
 InstrumentSettings.cpp
 IonDetector.cpp
 IonSource.cpp
-MSQuantifications.cpp
 MassAnalyzer.cpp
 MetaInfo.cpp
 MetaInfoDescription.cpp
 MetaInfoInterface.cpp
 MetaInfoRegistry.cpp
-Modification.cpp
 PeptideEvidence.cpp
 PeptideHit.cpp
 PeptideIdentification.cpp
@@ -40,15 +35,12 @@ Product.cpp
 ProteinHit.cpp
 ProteinIdentification.cpp
 Sample.cpp
-SampleTreatment.cpp
 ScanWindow.cpp
 Software.cpp
 SourceFile.cpp
-SpectrumIdentification.cpp
 SpectrumLookup.cpp
 SpectrumMetaDataLookup.cpp
 SpectrumSettings.cpp
-Tagging.cpp
 )
 
 ### add path to the filenames

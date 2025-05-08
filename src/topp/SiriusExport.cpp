@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -52,7 +52,8 @@ class TOPPSiriusExport :
 {
  public:
   TOPPSiriusExport() :
-    TOPPBase("SiriusExport", "Metabolite identification using single and tandem mass spectrometry", false,
+    TOPPBase("SiriusExport", 
+    "Metabolite identification using single and tandem mass spectrometry", true,
       {
         {"Kai Duehrkop and Sebastian Boecker",
          "Fragmentation trees reloaded",

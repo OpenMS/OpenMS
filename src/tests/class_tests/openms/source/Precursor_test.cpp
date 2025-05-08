@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -82,6 +82,36 @@ START_SECTION((void setActivationMethods(const set<ActivationMethod>& activation
 	methods.insert(Precursor::CID);
 	tmp.setActivationMethods(methods);
   TEST_EQUAL(tmp.getActivationMethods().size(),1);
+END_SECTION
+
+START_SECTION((StringList getActivationMethodsAsString() const))
+  Precursor tmp;
+  set<Precursor::ActivationMethod> methods;
+  methods.insert(Precursor::CID);
+  tmp.setActivationMethods(methods);
+  StringList result = tmp.getActivationMethodsAsString();
+  TEST_EQUAL(result.size(), 1);
+  TEST_EQUAL(result[0], "Collision-induced dissociation");
+END_SECTION
+
+START_SECTION((StringList getActivationMethodsAsShortString() const))
+  Precursor tmp;
+  set<Precursor::ActivationMethod> methods;
+  methods.insert(Precursor::CID);
+  tmp.setActivationMethods(methods);
+  StringList result = tmp.getActivationMethodsAsShortString();
+  TEST_EQUAL(result.size(), 1);
+  TEST_EQUAL(result[0], "CID");
+END_SECTION
+
+START_SECTION((static StringList getAllNamesOfActivationMethods()))
+  StringList result = Precursor::getAllNamesOfActivationMethods();
+  TEST_EQUAL(result.size(), Precursor::SIZE_OF_ACTIVATIONMETHOD);
+END_SECTION
+
+START_SECTION((static StringList getAllShortNamesOfActivationMethods()))
+  StringList result = Precursor::getAllShortNamesOfActivationMethods();
+  TEST_EQUAL(result.size(), Precursor::SIZE_OF_ACTIVATIONMETHOD);
 END_SECTION
 
 START_SECTION((double getIsolationWindowUpperOffset() const))

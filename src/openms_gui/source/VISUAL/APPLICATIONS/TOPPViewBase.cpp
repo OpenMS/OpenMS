@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,7 +8,6 @@
 
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/EnumHelpers.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -199,13 +198,7 @@ namespace OpenMS
     intensity_button_group_->addButton(b, PlotCanvas::IM_LOG);
     tool_bar_->addWidget(b);
 
-    /*
-     * Suppressed warning QButtonGroup buttonClicked(int) till Qt 5.15
-     */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    connect(intensity_button_group_, CONNECTCAST(QButtonGroup,buttonClicked,(int)), this, &TOPPViewBase::setIntensityMode);
-#pragma GCC diagnostic pop
+    connect(intensity_button_group_, &QButtonGroup::idClicked, this, &TOPPViewBase::setIntensityMode);
     tool_bar_->addSeparator();
 
     // common buttons
@@ -240,14 +233,7 @@ namespace OpenMS
     draw_group_1d_->addButton(b, Plot1DCanvas::DM_CONNECTEDLINES);
     tool_bar_1d_->addWidget(b);
 
-    /*
-     * Suppressed warning QButtonGroup buttonClicked(int) till Qt 5.15
-     */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    connect(draw_group_1d_, CONNECTCAST(QButtonGroup, buttonClicked, (int)), this, &TOPPViewBase::setDrawMode1D);
-#pragma GCC diagnostic pop
-
+    connect(draw_group_1d_, &QButtonGroup::idClicked, this, &TOPPViewBase::setDrawMode1D);
     tool_bar_->addSeparator();
 
     //--2D peak toolbar--
@@ -530,7 +516,7 @@ namespace OpenMS
     // abort if file type unsupported
     if (!supported_types.contains(file_type))
     {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Open file error", String("The type '") + FileTypes::typeToName(file_type) + "' is not supported!");
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Open file error", String("The type '") + FileTypes::typeToName(file_type) + "' is not supported in TOPPView!");
       return LOAD_RESULT::FILETYPE_UNSUPPORTED;
     }
 
@@ -742,7 +728,7 @@ namespace OpenMS
     glock.unlock();
 
     if (!annotate_path.empty())
-    {
+    { // this opens a new window with raw data + annotation; we want the actual idXML data on top
       auto load_res = addDataFile(annotate_path, false, false);
       if (load_res == LOAD_RESULT::OK)
       {
@@ -759,6 +745,7 @@ namespace OpenMS
             log_->appendNewHeader(LogWindow::LogState::NOTICE, "Error", "Annotation failed.");
           }
         }
+        window_id = getActivePlotWidget()->getWindowId(); // add ids on top of raw data
       }
     }
 
@@ -909,31 +896,30 @@ namespace OpenMS
     {
       if (data_type == LayerDataBase::DT_FEATURE) // features
       {
-        if (!target_window->canvas()->addLayer(feature_map, filename))
+        if (!target_window->canvas()->addLayer(feature_map, filename, caption))
         {
           return;
         }
       }
       else if (data_type == LayerDataBase::DT_CONSENSUS) // consensus features
       {
-        if (!target_window->canvas()->addLayer(consensus_map, filename))
+        if (! target_window->canvas()->addLayer(consensus_map, filename, caption))
           return;
       }
       else if (data_type == LayerDataBase::DT_IDENT)
       {
-        if (!target_window->canvas()->addLayer(peptides, filename))
+        if (! target_window->canvas()->addLayer(peptides, filename, caption))
           return;
       }
       else // peaks or chrom
       {
-        if (data_type == LayerDataBase::DT_PEAK &&
-            !target_window->canvas()->addPeakLayer(peak_map, on_disc_peak_map, filename, use_intensity_cutoff))
+        if (data_type == LayerDataBase::DT_PEAK && ! target_window->canvas()->addPeakLayer(peak_map, on_disc_peak_map, filename, caption, use_intensity_cutoff))
         {
           return;
         }
         
         if (data_type == LayerDataBase::DT_CHROMATOGRAM &&
-            !target_window->canvas()->addChromLayer(peak_map, on_disc_peak_map, filename))
+            !target_window->canvas()->addChromLayer(peak_map, on_disc_peak_map, filename, caption))
         {
           return;
         }
@@ -960,6 +946,8 @@ namespace OpenMS
       {
         canvas->mergeIntoLayer(merge_layer, peptides);
       }
+      // combine layer names
+      canvas->setLayerName(merge_layer, canvas->getLayerName(merge_layer) + " + " + caption);
     }
 
     if (as_new_window)
@@ -1642,6 +1630,8 @@ namespace OpenMS
 
     // create and store unique file name prefix for files
     topp_.file_name = File::getTempDirectory() + "/TOPPView_" + File::getUniqueName();
+    // Figure out the correct extension to give the temp file TODO start using OMS and cachedmzml
+
     if (!File::writable(topp_.file_name + "_ini"))
     {
       log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "'_ini!");
@@ -1664,6 +1654,31 @@ namespace OpenMS
       topp_.in = tools_dialog.getInput();
       topp_.out = tools_dialog.getOutput();
       topp_.visible_area_only = visible_area_only;
+      // Build the input file name
+      String file_extension;
+      switch (layer.type)
+        {
+          case LayerDataBase::DataType::DT_PEAK:
+            file_extension = FileTypes::typeToName(FileTypes::MZML);
+            break;
+          case LayerDataBase::DataType::DT_CHROMATOGRAM:
+            file_extension = FileTypes::typeToName(FileTypes::MZML);
+            break;
+          case LayerDataBase::DataType::DT_FEATURE:
+            file_extension = FileTypes::typeToName(FileTypes::FEATUREXML);
+            break;
+          case LayerDataBase::DataType::DT_CONSENSUS:
+            file_extension = FileTypes::typeToName(FileTypes::CONSENSUSXML);
+            break;
+          case LayerDataBase::DataType::DT_IDENT:
+            file_extension = FileTypes::typeToName(FileTypes::IDXML);
+            break;
+          default:
+            file_extension = FileTypes::typeToName(FileTypes::UNKNOWN);
+        }
+      topp_.file_name_in = topp_.file_name + "_in." + file_extension;
+      // Get the output file extension
+      topp_.file_name_out = topp_.file_name + "_out." + tools_dialog.getExtension();
       // run the tool
       runTOPPTool_();
     }
@@ -1693,18 +1708,18 @@ namespace OpenMS
 
 
     // delete old input and output file
-    File::remove(topp_.file_name + "_in");
-    File::remove(topp_.file_name + "_out");
+    File::remove(topp_.file_name_in);
+    File::remove(topp_.file_name_out);
 
     // test if files are writable
-    if (!File::writable(topp_.file_name + "_in"))
+    if (!File::writable(topp_.file_name_in))
     {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "_in'!");
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name_in + "'!");
       return;
     }
-    if (!File::writable(topp_.file_name + "_out"))
+    if (!File::writable(topp_.file_name_out))
     {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name + "'_out!");
+      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot create temporary file", String("Cannot write to '") + topp_.file_name_out + "'!");
       return;
     }
 
@@ -1720,7 +1735,7 @@ namespace OpenMS
       auto visitor_data = topp_.visible_area_only
                           ? layer.storeVisibleData(getActiveCanvas()->getVisibleArea().getAreaUnit(), layer.filters)
                           : layer.storeFullData();
-      visitor_data->saveToFile(topp_.file_name + "_in", ProgressLogger::GUI);
+      visitor_data->saveToFile(topp_.file_name_in, ProgressLogger::GUI);
     }
 
     // compose argument list
@@ -1728,12 +1743,12 @@ namespace OpenMS
     args << "-ini"
          << (topp_.file_name + "_ini").toQString()
          << QString("-%1").arg(topp_.in.toQString())
-         << (topp_.file_name + "_in").toQString()
+         << topp_.file_name_in.toQString()
          << "-no_progress";
     if (topp_.out != "")
     {
       args << QString("-%1").arg(topp_.out.toQString())
-           << (topp_.file_name + "_out").toQString();
+           << topp_.file_name_out.toQString();
     }
 
     // start log and show it
@@ -1805,13 +1820,13 @@ namespace OpenMS
     {
       log_->appendNewHeader(LogWindow::LogState::NOTICE, QString("'%1' finished successfully").arg(topp_.tool.toQString()),
                       QString("Execution time: %1 ms").arg(topp_.timer.elapsed()));
-      if (!File::readable(topp_.file_name + "_out"))
+      if (!File::readable(topp_.file_name_out))
       {
-        log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot read TOPP output", String("Cannot read '") + topp_.file_name + "_out'!");
+        log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Cannot read TOPP output", String("Cannot read '") + topp_.file_name_out + "'!");
       }
       else
       {
-        addDataFile(topp_.file_name + "_out", true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
+        addDataFile(topp_.file_name_out, true, false, topp_.layer_name + " (" + topp_.tool + ")", topp_.window_id, topp_.spectrum_id);
       }
     }
 
@@ -1824,8 +1839,8 @@ namespace OpenMS
     if (param_.getValue("preferences:topp_cleanup") == "true")
     {
       File::remove(topp_.file_name + "_ini");
-      File::remove(topp_.file_name + "_in");
-      File::remove(topp_.file_name + "_out");
+      File::remove(topp_.file_name_in);
+      File::remove(topp_.file_name_out);
     }
   }
 
@@ -1914,12 +1929,14 @@ namespace OpenMS
 
       PeakMap new_exp;
       new_exp.addSpectrum(spectrum);
+      new_exp.updateRanges();
       ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
       FeatureMapSharedPtrType f_dummy(new FeatureMapType());
       ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
       ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
       vector<PeptideIdentification> p_dummy;
-      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerDataBase::DT_PEAK, false, true, true, "", spec_gen_dialog_.getSequence() + " (theoretical)");
+      // open as 1D (since its a single spectrum); 3D view does not support MS2 (yet)
+      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerDataBase::DT_PEAK, true, false, true, "", spec_gen_dialog_.getSequence() + " (theoretical)");
 
       // ensure spectrum is drawn as sticks
       draw_group_1d_->button(Plot1DCanvas::DM_PEAKS)->setChecked(true);
@@ -1991,7 +2008,7 @@ namespace OpenMS
   {
     const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
     
-    ExperimentSharedPtrType exp(new MSExperiment(IMDataConverter::splitByIonMobility(spec)));
+    ExperimentSharedPtrType exp(new MSExperiment(IMDataConverter::reshapeIMFrameToMany(spec)));
     // hack, but currently not avoidable, because 2D widget does not support IM natively yet...
     // for (auto& spec : exp->getSpectra()) spec.setRT(spec.getDriftTime());
 

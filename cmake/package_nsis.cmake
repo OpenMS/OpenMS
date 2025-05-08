@@ -1,8 +1,8 @@
 # --------------------------------------------------------------------------
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
+# Copyright OpenMS Inc. -- Eberhard Karls University Tuebingen,
+# ETH Zurich, and Freie Universitaet Berlin 2002-present.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -55,13 +55,6 @@ if("${CPACK_GENERATOR}" STREQUAL "NSIS")
   endif()
 endif()
                 
-
-## check if we are packaging at least Qt 5.15 (5.14 may also work but is untested), which is "-relocatable", i.e. can find ./bin/plugins/platforms/qwindows.dll without a qt.conf (which we do not ship anymore)
-message(STATUS "Packaging: Checking Qt version ... found: ${Qt5Core_VERSION}")
-if (Qt5Core_VERSION VERSION_LESS 5.15.0)
-  message(FATAL_ERROR "Minimum supported Qt5 version is 5.15!")
-endif()
-
 
 ## With VS2019 the architecture HAS TO BE specified with the "–A" option or CMAKE_GENERATOR_PLATFORM var.
 ## Therefore the legacy way of adding a suffix to the Generator is not valid anymore.
