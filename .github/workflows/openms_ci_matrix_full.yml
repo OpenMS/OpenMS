@@ -574,6 +574,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: installer-*
+          merge-multiple: true
 
       - name: Download source archive as artifact
         uses: actions/download-artifact@v4
