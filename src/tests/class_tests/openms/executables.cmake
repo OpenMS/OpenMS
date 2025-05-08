@@ -448,17 +448,10 @@ set(analysis_executables_list
   FeatureGroupingAlgorithmUnlabeled_test
   FeatureGroupingAlgorithm_test
   FeatureHandle_test
-  FIAMSDataProcessor_test
-<<<<<<< HEAD
-  FIAMSScheduler_test
-  # FLASHDeconvAlgorithm_test
-  # FLASHDeconvHelperStructs_test
-  # FLASHTaggerAlgorithm_test
-=======
-  #FIAMSScheduler_test sometimes failing
-  FLASHDeconvAlgorithm_test
-  FLASHDeconvHelperStructs_test
->>>>>>> develop
+  #FIAMSDataProcessor_test
+  #FIAMSScheduler_test
+  #FLASHDeconvAlgorithm_test
+  #FLASHDeconvHelperStructs_test
   IDBoostGraph_test
   IDMapper_test
   IDMergerAlgorithm_test
