@@ -767,6 +767,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: knime-*
+          merge-multiple: true
           path: ${{ env.PLUGIN_SOURCE }}
      
       # Should be the default. 
