@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/Precursor.h>
 
@@ -31,10 +31,10 @@ namespace OpenMS
   class OPENMS_DLLAPI Qscore
   {
   public:
-    typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
+    typedef FLASHHelperClasses::LogMzPeak LogMzPeak;
 
     /// get QScore for a peak group of specific abs_charge
-    static double getQscore(const PeakGroup* pg, const MSSpectrum& spectrum);
+    static double getQscore(const PeakGroup* pg);
 
     static void writeAttCsvForQscoreTraining(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f);
 
@@ -45,10 +45,5 @@ namespace OpenMS
     static std::vector<double> toFeatureVector_(const PeakGroup* pg);
 
     static std::vector<double> weight_centroid_;
-    static std::vector<double> weight_profile_;
-    static std::vector<double> weight_CV_0_;
-    static std::vector<double> weight_CV_40_;
-    static std::vector<double> weight_CV_50_;
-    static std::vector<double> weight_CV_60_;
   };
 } // namespace OpenMS

@@ -9,7 +9,8 @@
 
 #pragma once
 
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/config.h>
 #include <iomanip>
@@ -33,19 +34,19 @@ namespace OpenMS
     static void writeTopFDFeatureHeader(std::fstream& fs, uint ms_level);
 
     /// write the features in regular file output
-    static void writeFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features, const String& file_name, std::fstream& fs, bool report_decoy = false);
+    static void writeFeatures(const std::vector<FLASHHelperClasses::MassFeature>& mass_features, const String& file_name, std::fstream& fs, bool report_decoy = false);
 
     /**
      * @brief Find mass features and write features in TopFD format files.
+     * @param deconvolved_spectra deconvolved spectra - feature indices are updated only for TopFD and TopPIC outputs
      * @param mass_features mass features to be written
-     * @param precursor_peak_groups precursor peak groups of MSn spectra that are used only when topfd_feature_out is set
      * @param scan_rt_map scan number to retention time map
      * @param file_name input spectrum file name
      * @param fs file stream
      * @param ms_level ms level
      */
 
-    static void writeTopFDFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features, const std::map<int, PeakGroup>& precursor_peak_groups,
+    static void writeTopFDFeatures(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHHelperClasses::MassFeature>& mass_features,
                                    const std::map<int, double>& scan_rt_map, const String& file_name, std::fstream& fs, uint ms_level);
 
   };

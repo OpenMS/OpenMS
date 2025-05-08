@@ -29,74 +29,31 @@ namespace OpenMS
     return this->scan_number_ == a.scan_number_;
   }
 
-  /*
-  std::vector<PeakGroup> DeconvolvedSpectrum::getNonOverlappingPeakGroups() const
-  {
-    std::map<double, std::set<int>> peak_to_pgs;
-    std::vector<PeakGroup> filtered_pg_vec;
-    filtered_pg_vec.reserve(size());
-    std::vector<PeakGroup> ret;
-    ret.reserve(size());
-
-    int i = 0;
-    for (const auto& pg : *this)
-    {
-      for (const auto& p : pg)
-      {
-        peak_to_pgs[p.mz].insert(i);
-      }
-      i++;
-    }
-
-    std::set<int> max_indices;
-    for (const auto& e : peak_to_pgs)
-    {
-      int max_index = 0;
-      double max_qscore = 0;
-      for (const auto pg_index : e.second)
-      {
-        auto pg = peak_groups_[pg_index];
-        if (max_qscore > pg.getFeatureQscore())
-          continue;
-
-        max_qscore = pg.getQscore2D();
-        max_index = pg_index;
-      }
-      max_indices.insert(max_index);
-    }
-    for (int mi : max_indices) ret.push_back(peak_groups_[mi]);
-
-    std::sort(ret.begin(), ret.end());
-    return ret;
-  }*/
-
-
-  MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge, uint min_ms_level, double tol, bool retain_undeconvolved)
+  MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge, double tol, bool retain_undeconvolved)
   {
     auto out_spec = MSSpectrum(spec_);
     out_spec.clear(false);
-    if ((spec_.getMSLevel() > min_ms_level && precursor_peak_group_.empty()) || empty())
-    {
-      return out_spec;
-    }
-    double charge_mass_offset = (double)abs(to_charge) * FLASHDeconvHelperStructs::getChargeMass(to_charge >= 0);
+
+    double charge_mass_offset = (double)abs(to_charge) * FLASHHelperClasses::getChargeMass(to_charge >= 0);
     std::unordered_set<double> deconvolved_mzs;
     std::stringstream val {};
 
-    val << "tol=" << tol << ";massoffset=" << std::to_string(charge_mass_offset) << ";chargemass=" << std::to_string(FLASHDeconvHelperStructs::getChargeMass(peak_groups_[0].isPositive()));
+    val << "tol=" << std::to_string(tol) << ";massoffset=" << std::to_string(charge_mass_offset) << ";chargemass=" << std::to_string(FLASHHelperClasses::getChargeMass(peak_groups_[0].isPositive()));
     if (!precursor_peak_group_.empty())
     {
-      val << ";precursorscan=" << precursor_scan_number_ << ";precursormass=" << std::to_string(precursor_peak_group_.getMonoMass());
+      val << ";precursorscan=" << precursor_scan_number_ << ";precursormass=" << std::to_string(precursor_peak_group_.getMonoMass())
+          << ";precursorQscore=" << std::to_string(precursor_peak_group_.getQscore2D())  << ";precursorSNR=" << std::to_string(precursor_peak_group_.getChargeSNR(precursor_peak_.getCharge())) ;
     }
     else
     {
-      val << ";precursorscan=0;precursormass=0";
+      val << ";precursorscan=0;precursormass=0;precursorQscore=0;precursorSNR=0";
     }
 
     val << ";peaks=";
+    out_spec.reserve(size());
     for (auto& pg : *this)
     {
-      if (pg.empty())
+      if (pg.empty() || pg.getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
       {
         continue;
       }
@@ -124,7 +81,7 @@ namespace OpenMS
     val << "cos=";
     for (auto& pg : *this)
     {
-      if (pg.empty())
+      if (pg.empty() || pg.getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
       {
         continue;
       }
@@ -134,7 +91,7 @@ namespace OpenMS
     val << ";snr=";
     for (auto& pg : *this)
     {
-      if (pg.empty())
+      if (pg.empty() || pg.getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
       {
         continue;
       }
@@ -144,7 +101,7 @@ namespace OpenMS
     val << ";qscore=";
     for (auto& pg : *this)
     {
-      if (pg.empty())
+      if (pg.empty() || pg.getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
       {
         continue;
       }
@@ -154,7 +111,7 @@ namespace OpenMS
     val << ";qvalue=";
     for (auto& pg : *this)
     {
-      if (pg.empty())
+      if (pg.empty() || pg.getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
       {
         continue;
       }
@@ -170,7 +127,7 @@ namespace OpenMS
         {
           continue;
         }
-        out_spec.emplace_back(p.getMZ() + charge_mass_offset - FLASHDeconvHelperStructs::getChargeMass(to_charge >= 0), p.getIntensity());
+        out_spec.emplace_back(p.getMZ() + charge_mass_offset - FLASHHelperClasses::getChargeMass(to_charge >= 0), p.getIntensity());
       }
     }
     out_spec.sortByPosition();
@@ -254,11 +211,6 @@ namespace OpenMS
     precursor_peak_ = precursor;
   }
 
-  void DeconvolvedSpectrum::setPrecursorIntensity(const float i)
-  {
-    precursor_peak_.setIntensity(i);
-  }
-
   void DeconvolvedSpectrum::setActivationMethod(const Precursor::ActivationMethod& method)
   {
     activation_method_ = method;
@@ -271,7 +223,21 @@ namespace OpenMS
 
   void DeconvolvedSpectrum::setOriginalSpectrum(const MSSpectrum& spec)
   {
+    auto filter_str = spec.getMetaValue("filter string").toString();
+    Size pos = filter_str.find("cv=");
+
+    if (pos != String::npos)
+    {
+      Size end = filter_str.find(" ", pos);
+      if (end == String::npos) end = filter_str.length() - 1;
+      cv_ = std::stod(filter_str.substr(pos + 3, end - pos));
+    }
     spec_ = spec;
+  }
+
+  double DeconvolvedSpectrum::getCV() const
+  {
+    return cv_;
   }
 
   void DeconvolvedSpectrum::setPrecursorScanNumber(const int scan_number)
@@ -314,6 +280,11 @@ namespace OpenMS
     peak_groups_.push_back(pg);
   }
 
+  void DeconvolvedSpectrum::emplace_back(const PeakGroup& pg)
+  {
+    peak_groups_.emplace_back(pg);
+  }
+
   void DeconvolvedSpectrum::pop_back()
   {
     peak_groups_.pop_back();
@@ -348,19 +319,19 @@ namespace OpenMS
   {
     if (empty())
       return false;
-    if (peak_groups_[0].getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
-      return true;
+    //if (peak_groups_[0].getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
+    //  return true;
     if (!precursor_peak_group_.empty() && precursor_peak_group_.getTargetDecoyType() != PeakGroup::TargetDecoyType::target)
       return true;
     return false;
   }
 
-  FLASHDeconvHelperStructs::IsobaricQuantities DeconvolvedSpectrum::getQuantities() const
+  FLASHHelperClasses::IsobaricQuantities DeconvolvedSpectrum::getQuantities() const
   {
     return quantities_;
   }
 
-  void DeconvolvedSpectrum::setQuantities(const FLASHDeconvHelperStructs::IsobaricQuantities& quantities)
+  void DeconvolvedSpectrum::setQuantities(const FLASHHelperClasses::IsobaricQuantities& quantities)
   {
     quantities_ = quantities;
   }

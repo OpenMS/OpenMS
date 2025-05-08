@@ -60,6 +60,11 @@ namespace OpenMS
     return 0;
   }
 
+  double GetRepresentativeMass(FLASHIda *pObject)
+  {
+    return pObject->getRepresentativeMass();
+  }
+
   void GetIsolationWindows(FLASHIda *pObject,
                            double *wstart,
                            double *wend,

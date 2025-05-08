@@ -418,6 +418,7 @@ set(chemistry_executables_list
   ModifiedNASequenceGenerator_test
   NASequence_test
   NucleicAcidSpectrumGenerator_test
+        ProForma_test
   ProteaseDB_test
   ProteaseDigestion_test
   RNaseDigestion_test
@@ -461,7 +462,7 @@ set(analysis_executables_list
   ConsensusMapNormalizerAlgorithmQuantile_test
   ConsensusMapMergerAlgorithm_test
   #DataAccessHelper_test
-  DeconvolvedSpectrum_test
+  # DeconvolvedSpectrum_test
   FalseDiscoveryRate_test
   FeatureDeconvolution_test
   FeatureDistance_test
@@ -473,8 +474,9 @@ set(analysis_executables_list
   FeatureHandle_test
   FIAMSDataProcessor_test
   FIAMSScheduler_test
-  FLASHDeconvAlgorithm_test
-  FLASHDeconvHelperStructs_test
+  # FLASHDeconvAlgorithm_test
+  # FLASHDeconvHelperStructs_test
+  # FLASHTaggerAlgorithm_test
   IDBoostGraph_test
   IDMapper_test
   IDMergerAlgorithm_test

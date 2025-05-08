@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
@@ -24,16 +24,15 @@ namespace OpenMS
   In other words, per spectrum deconvolved masses are converted into deconvolved features
   Currently only works for MS1 spectra. (Top-down DIA is not yet used much).
   Every time an MS1 spectrum is deconvolved, the relevant information is stored in this class.
-  Tracing is performed at the end of FLASHDeconv run.
-  This class also comes with tsv, TopFD, ProMex format output functions.
+  This class also comes with tsv, TopFD feature file formats.
   @ingroup Topdown
   */
 
   class OPENMS_DLLAPI MassFeatureTrace : public DefaultParamHandler
   {
   public:
-    typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
-    typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
+    typedef FLASHHelperClasses::PrecalculatedAveragine PrecalculatedAveragine;
+    typedef FLASHHelperClasses::LogMzPeak LogMzPeak;
 
     /// constructor
     MassFeatureTrace();
@@ -58,7 +57,7 @@ namespace OpenMS
        @param ms_level ms level to process
        @param is_decoy if set, only process decoy spectra. otherwise only target spectra
        */
-    std::vector<FLASHDeconvHelperStructs::MassFeature> findFeaturesAndUpdateQscore2D(const PrecalculatedAveragine& averagine, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, int ms_level = 1,
+    std::vector<FLASHHelperClasses::MassFeature> findFeaturesAndUpdateQscore2D(const PrecalculatedAveragine& averagine, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, int ms_level = 1,
                                                                                      bool is_decoy = false);
 
   protected:

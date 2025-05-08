@@ -9,14 +9,14 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
+typedef FLASHHelperClasses::LogMzPeak LogMzPeak;
 LogMzPeak fillPeak(double mz, float it, int cs, int iso_idx)
 {
   Peak1D p;
@@ -63,7 +63,7 @@ sample_pg.push_back(tmp_peak2);
 
 LogMzPeak tmp_peak3 = fillPeak(1127.0168377586081, 7506.6767578125, 2, 3);
 sample_pg.push_back(tmp_peak3);
-sample_pg.updateMonoMassAndIsotopeIntensities();
+sample_pg.updateMonoMassAndIsotopeIntensities(1e-5);
 
 /// detailed constructor test
 START_SECTION((PeakGroup(const int min_abs_charge, const int max_abs_charge, const bool is_positive)))
@@ -313,7 +313,7 @@ END_SECTION
 PeakGroup sample_pg2(sample_pg);
 LogMzPeak tmp_peak4 = fillPeak(1127.5185151766082, 2504.3433, 2, 4);
 sample_pg2.push_back(tmp_peak4);
-sample_pg2.updateMonoMassAndIsotopeIntensities();
+sample_pg2.updateMonoMassAndIsotopeIntensities(1e-5);
 START_SECTION((void updateMonom assAndIsotopeIntensities()))
 {
   double temp_mass = sample_pg2.getMonoMass();

@@ -7,10 +7,9 @@
 // --------------------------------------------------------------------------
 #pragma once
 
-#include <OpenMS/config.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>
+#include <OpenMS/config.h>
 #include <iomanip>
 
 namespace OpenMS
@@ -41,6 +40,7 @@ namespace OpenMS
           @param fs file stream to the output file
           @param file_name the output file name that the deconvolved masses will be written.
           @param avg averagine information to calculate monoisotopic and average mass difference within this function. In PeakGroup (peaks of DeconvolvedSpectrum) only monoisotopic mass is recorded. To write both monoisotopic and average masses, their mass difference should be calculated using this averagine information.
+          @param decoy_avg averagine for noise decoy
           @param tol mass tolerance
           @param write_detail if this is set, more detailed information on each mass will be written in the output file.
           @param record_decoy if set true, decoy and qvalue information will be written.
@@ -59,7 +59,8 @@ namespace OpenMS
     static void writeDeconvolvedMasses(DeconvolvedSpectrum& dspec,
                                        std::fstream& fs,
                                        const String& file_name,
-                                       const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
+                                       const FLASHHelperClasses::PrecalculatedAveragine& avg,
+                                       const FLASHHelperClasses::PrecalculatedAveragine& decoy_avg,
                                        double tol,
                                        bool write_detail,
                                        bool record_decoy, double noise_decoy_weight);
@@ -89,7 +90,6 @@ namespace OpenMS
       @param dspec deconvolved spectrum to write
       @param fs file stream to the output file
       @param filename mzml file name
-      @param snr_threshold SNR threshold to filter out low SNR precursors. Even if a PeakGroup has a high deconvolution quality, it should be still discarded for identification when its precursor SNR (SNR within the isolation window) is too low.
       @param qval_threshold qvalue threshold to filter out high qvalue precursors.
       @param min_ms_level min ms level of the dataset
       @param randomize_precursor_mass if set, a random number between -100 to 100 is added to precursor mass
@@ -97,7 +97,6 @@ namespace OpenMS
     */
     //      @param avg averagine information to calculate monoisotopic and average mass difference
     static void writeTopFD(DeconvolvedSpectrum& dspec, std::fstream& fs, const String& filename,
-                           const double snr_threshold = 1.0,
                            const double qval_threshold = 1.0,
                            const uint min_ms_level = 1,
                            bool randomize_precursor_mass = false,

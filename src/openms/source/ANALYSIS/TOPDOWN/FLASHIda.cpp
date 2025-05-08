@@ -43,15 +43,15 @@
 
 namespace OpenMS
 {
-  /// optimal window margin
-  inline const double optimal_window_margin_ = .4;
-  //inline const double max_isolation_window_half_ = 2.5;
-  /// constructor
-  FLASHIda::FLASHIda(char* arg)
-  {
-#ifdef _OPENMP
+/// optimal window margin
+inline const double optimal_window_margin_ = .4;
+
+/// constructor
+FLASHIda::FLASHIda(char* arg)
+{
+  #ifdef _OPENMP
     omp_set_num_threads(4);
-#endif
+  #endif
     std::unordered_map<std::string, std::vector<double>> inputs;
     std::vector<String> log_files;
     std::vector<String> out_files; /// add tsv for exclusion list in the future.
@@ -77,15 +77,12 @@ namespace OpenMS
       {
         double num = atof(token_string.c_str());
 
-        if (num == 0 && !isdigit(token_string[token_string.size() - 1]))
+        if (num == 0 && ! isdigit(token_string[token_string.size() - 1]))
         {
           key = token_string;
           inputs[key] = DoubleList();
         }
-        else
-        {
-          inputs[key].push_back(num);
-        }
+        else { inputs[key].push_back(num); }
       }
       token = std::strtok(nullptr, " ");
     }
@@ -93,18 +90,9 @@ namespace OpenMS
     qscore_threshold_ = inputs["score_threshold"][0];
     snr_threshold_ = 1;
     targeting_mode_ = (int)(inputs["target_mode"][0]);
-    if (targeting_mode_ == 1)
-    {
-      std::cout << ss.str() << "file(s) is(are) used for inclusion mode\n";
-    }
-    else if (targeting_mode_ == 2)
-    {
-      std::cout << ss.str() << "file(s) is(are) used for in-depth mode\n";
-    }
-    else if (targeting_mode_ == 3)
-    {
-      std::cout << ss.str() << "file(s) is(are) used for exclusion mode\n";
-    }
+    if (targeting_mode_ == 1) { std::cout << ss.str() << "file(s) is(are) used for inclusion mode\n"; }
+    else if (targeting_mode_ == 2) { std::cout << ss.str() << "file(s) is(are) used for in-depth mode\n"; }
+    else if (targeting_mode_ == 3) { std::cout << ss.str() << "file(s) is(are) used for exclusion mode\n"; }
     Param sd_defaults = SpectralDeconvolution().getDefaults();
 
     sd_defaults.setValue("min_charge", (int)inputs["min_charge"][0]);
@@ -132,17 +120,15 @@ namespace OpenMS
         double qscore;
         while (std::getline(instream, line))
         {
-          if (line.find("0 targets") != line.npos)
-          {
-            continue;
-          }
+          if (line.find("0 targets") != line.npos) { continue; }
           if (line.hasPrefix("MS1"))
           {
             Size st = line.find("RT ") + 3;
             Size ed = line.find('(') - 2;
             String n = line.substr(st, ed - st + 1);
             rt = atof(n.c_str());
-            // precursor_map_for_real_time_acquisition[scan] = std::vector<std::vector<double>>();//// ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
+            // precursor_map_for_real_time_acquisition[scan] = std::vector<std::vector<double>>();//// ms1 scan -> mass, charge ,score, mz range,
+            // precursor int, mass int, color
           }
           if (line.hasPrefix("Mass"))
           {
@@ -158,15 +144,9 @@ namespace OpenMS
 
             if (targeting_mode_ == 1 || targeting_mode_ == 2)
             {
-              if (target_mass_rt_map_.find(mass) == target_mass_rt_map_.end())
-              {
-                target_mass_rt_map_[mass] = std::vector<double>();
-              }
+              if (target_mass_rt_map_.find(mass) == target_mass_rt_map_.end()) { target_mass_rt_map_[mass] = std::vector<double>(); }
               target_mass_rt_map_[mass].push_back(rt * 60.0);
-              if (target_mass_qscore_map_.find(mass) == target_mass_qscore_map_.end())
-              {
-                target_mass_qscore_map_[mass] = std::vector<double>();
-              }
+              if (target_mass_qscore_map_.find(mass) == target_mass_qscore_map_.end()) { target_mass_qscore_map_[mass] = std::vector<double>(); }
               target_mass_qscore_map_[mass].push_back(qscore);
             }
           }
@@ -212,10 +192,7 @@ namespace OpenMS
 
         while (std::getline(instream, line))
         {
-          if (line.hasPrefix("rt"))
-          {
-            continue;
-          }
+          if (line.hasPrefix("rt")) { continue; }
 
           std::stringstream tmp_stream(line);
           String str;
@@ -229,16 +206,10 @@ namespace OpenMS
 
           if (targeting_mode_ == 1 || targeting_mode_ == 2)
           {
-            if (target_mass_rt_map_.find(mass) == target_mass_rt_map_.end())
-            {
-              target_mass_rt_map_[mass] = std::vector<double>();
-            }
+            if (target_mass_rt_map_.find(mass) == target_mass_rt_map_.end()) { target_mass_rt_map_[mass] = std::vector<double>(); }
             rt = atof(results[0].c_str());
             target_mass_rt_map_[mass].push_back(60.0 * rt);
-            if (target_mass_qscore_map_.find(mass) == target_mass_qscore_map_.end())
-            {
-              target_mass_qscore_map_[mass] = std::vector<double>();
-            }
+            if (target_mass_qscore_map_.find(mass) == target_mass_qscore_map_.end()) { target_mass_qscore_map_[mass] = std::vector<double>(); }
             target_mass_qscore_map_[mass].push_back(qscore);
           }
         }
@@ -252,13 +223,17 @@ namespace OpenMS
     std::cout << sd_defaults << std::endl;
   }
 
-  int FLASHIda::getPeakGroups(const double* mzs, const double* ints, const int length, const double rt, const int ms_level, const char* name, const char* cv)
+  int FLASHIda::getPeakGroups(const double* mzs,
+                              const double* ints,
+                              const int length,
+                              const double rt,
+                              const int ms_level,
+                              const char* name,
+                              const char* cv)
   {
     // int ret[2] = {0,0};
     auto spec = makeMSSpectrum_(mzs, ints, length, rt, ms_level, name);
-    if (cv != nullptr) {
-      spec.setMetaValue("filter string", DataValue("cv=" + std::string(cv)));
-    }
+    if (cv != nullptr) { spec.setMetaValue("filter string", DataValue("cv=" + std::string(cv))); }
     // selected_peak_groups_ = DeconvolvedSpectrum(spec, 1);
     if (ms_level == 1)
     {
@@ -296,8 +271,7 @@ namespace OpenMS
     {
       for (const auto& [prt, masses] : exclusion_rt_masses_map_)
       {
-        if (std::abs(rt - prt) >= rt_window_ && prt != 0)
-          continue;
+        if (std::abs(rt - prt) >= rt_window_ && prt != 0) continue;
         for (double mass : masses)
         {
           excluded_masses_.push_back(mass);
@@ -330,8 +304,6 @@ namespace OpenMS
     trigger_ids_.clear();
     trigger_ids_.reserve(mass_count);
 
-
-
     selected_peak_groups_.reserve(mass_count_.size());
     std::set<double> current_selected_mzs;    // current selected mzs
     std::set<double> current_selected_masses; // current selected mzs
@@ -355,14 +327,8 @@ namespace OpenMS
           if (std::abs(rt - prt) < rt_window_)
           {
             auto inter = t_mass_qscore_map_.find(nominal_mass);
-            if (inter == t_mass_qscore_map_.end())
-            {
-              t_mass_qscore_map_[nominal_mass] = 1 - qscore;
-            }
-            else
-            {
-              t_mass_qscore_map_[nominal_mass] *= 1 - qscore;
-            }
+            if (inter == t_mass_qscore_map_.end()) { t_mass_qscore_map_[nominal_mass] = 1 - qscore; }
+            else { t_mass_qscore_map_[nominal_mass] *= 1 - qscore; }
           }
         }
       }
@@ -370,10 +336,7 @@ namespace OpenMS
 
     for (const auto& [m, r] : tqscore_exceeding_mz_rt_map_)
     {
-      if (rt - r > rt_window_)
-      {
-        continue;
-      }
+      if (rt - r > rt_window_) { continue; }
       new_mz_rt_map_[m] = r;
     }
     new_mz_rt_map_.swap(tqscore_exceeding_mz_rt_map_);
@@ -381,10 +344,7 @@ namespace OpenMS
 
     for (const auto& [m, r] : tqscore_exceeding_mass_rt_map_)
     {
-      if (rt - r > rt_window_)
-      {
-        continue;
-      }
+      if (rt - r > rt_window_) { continue; }
       new_mass_rt_map_[m] = r;
     }
     new_mass_rt_map_.swap(tqscore_exceeding_mass_rt_map_);
@@ -392,10 +352,7 @@ namespace OpenMS
 
     for (const auto& item : all_mass_rt_map_)
     {
-      if (rt - item.second > rt_window_)
-      {
-        continue;
-      }
+      if (rt - item.second > rt_window_) { continue; }
       new_all_mass_rt_map_[item.first] = item.second;
 
       // auto inter = new_mass_qscore_map_.find(item.first);
@@ -408,28 +365,66 @@ namespace OpenMS
     new_mass_qscore_map_.swap(mass_qscore_map_);
     std::unordered_map<int, double>().swap(new_mass_qscore_map_);
 
+   /* double min_cv_mass = 0;
+    double max_cv_mass = 1e100;
+
+    auto filter_str = deconvolved_spectrum_.getOriginalSpectrum().getMetaValue("filter string").toString();
+    Size pos = filter_str.find("cv=");
+    double cv;
+
+    if (pos != String::npos) // get the preferred mass ranges accding to CV values.
+    {
+      Size end = filter_str.find(" ", pos);
+      if (end == String::npos) end = filter_str.length() - 1;
+      cv = std::stod(filter_str.substr(pos + 3, end - pos));
+
+      if (cv < cv_to_mass_.begin()->first)
+      {
+        min_cv_mass = cv_to_mass_.begin()->second[0];
+        max_cv_mass = cv_to_mass_.begin()->second[1];
+      }
+      else if (cv > cv_to_mass_.rbegin()->first)
+      {
+        min_cv_mass = cv_to_mass_.rbegin()->second[0];
+        max_cv_mass = cv_to_mass_.rbegin()->second[1];
+      }
+      else
+      {
+        auto loc = cv_to_mass_.lower_bound(cv);
+        if (loc != cv_to_mass_.end())
+        {
+          min_cv_mass = loc->second[0];
+          max_cv_mass = loc->second[1];
+        }
+      }
+    }*/
+
     const int selection_phase_start = 0;
     const int selection_phase_end = 2; // inclusive
-    // When selection_phase == 0, consider only the masses whose tqscore did not exceed total qscore threshold.
+    // When selection_phase == 0, consider only the masses whose tqscore did not exceed total qscore threshold. min_cv_mass to max_cv_mass are preferred
     // when selection_phase == 1, consider all other masses for selection but the same m/z is avoided
     // when selection_phase == 2, consider all.
     // for target inclusive masses, qscore precursor snr threshold is not applied.
     // In all phase, for target exclusive mode, all the exclusive masses are excluded. For target inclusive mode, only the target masses are considered.
 
-    for (int iteration = targeting_mode_ == 2 ? 0 : 1; iteration < 2; iteration++) // for mass exclusion, first collect masses with exclusion list. Then collect without exclusion. This works the best
+    for (int iteration = targeting_mode_ == 2 ? 0 : 1; iteration < 2;
+         iteration++) // for mass exclusion, first collect masses with exclusion list. Then collect without exclusion. This works the best
     {
       for (int selection_phase = selection_phase_start; selection_phase <= selection_phase_end; selection_phase++)
       {
         for (const auto& pg : deconvolved_spectrum_)
         {
-          if (selected_peak_groups_.size() >= mass_count)
-          {
-            break;
-          }
+          if (selected_peak_groups_.size() >= mass_count) { break; }
 
           int charge = pg.getRepAbsCharge();
           double qscore = std::min(.9, pg.getQscore());
           double mass = pg.getMonoMass();
+
+          //if (selection_phase == selection_phase_start)
+          //{
+          //  if (mass < min_cv_mass || mass > max_cv_mass) continue;
+          //}
+
           auto [mz1, mz2] = pg.getRepMzRange();
 
           double center_mz = (mz1 + mz2) / 2.0;
@@ -447,14 +442,8 @@ namespace OpenMS
           if (iteration == 0)
           {
             auto inter = t_mass_qscore_map_.find(nominal_mass);
-            if (inter != t_mass_qscore_map_.end())
-            {
-              tqscore_factor_for_exclusion = t_mass_qscore_map_[nominal_mass];
-            }
-            if (1 - tqscore_factor_for_exclusion > tqscore_threshold)
-            {
-              continue;
-            }
+            if (inter != t_mass_qscore_map_.end()) { tqscore_factor_for_exclusion = t_mass_qscore_map_[nominal_mass]; }
+            if (1 - tqscore_factor_for_exclusion > tqscore_threshold) { continue; }
           }
 
           if (targeting_mode_ == 1 && target_masses_.size() > 0) // inclusive mode
@@ -462,7 +451,7 @@ namespace OpenMS
             double delta = 2 * tol_[0] * mass * 1e-6;
             auto ub = std::upper_bound(target_masses_.begin(), target_masses_.end(), mass + delta);
 
-            while (!target_matched)
+            while (! target_matched)
             {
               if (ub != target_masses_.end())
               {
@@ -470,15 +459,9 @@ namespace OpenMS
                 {
                   target_matched = true;
                 }
-                if (mass - *ub > delta)
-                {
-                  break;
-                }
+                if (mass - *ub > delta) { break; }
               }
-              if (ub == target_masses_.begin())
-              {
-                break;
-              }
+              if (ub == target_masses_.begin()) { break; }
               ub--;
             }
 
@@ -487,10 +470,7 @@ namespace OpenMS
               snr_threshold = 0.0;
               qscore_threshold = 0.0; // stop exclusion for targets. todo tqscore lowest first? charge change.
             }
-            else
-            {
-              continue;
-            }
+            else { continue; }
           }
           else if (targeting_mode_ == 3 && excluded_masses_.size() > 0) // inclusive mode
           {
@@ -498,7 +478,7 @@ namespace OpenMS
             double delta = 2 * tol_[0] * mass * 1e-6;
             auto ub = std::upper_bound(excluded_masses_.begin(), excluded_masses_.end(), mass + delta);
 
-            while (!to_exclude)
+            while (! to_exclude)
             {
               if (ub != excluded_masses_.end())
               {
@@ -506,41 +486,23 @@ namespace OpenMS
                 {
                   to_exclude = true;
                 }
-                if (mass - *ub > delta)
-                {
-                  break;
-                }
+                if (mass - *ub > delta) { break; }
               }
-              if (ub == excluded_masses_.begin())
-              {
-                break;
-              }
+              if (ub == excluded_masses_.begin()) { break; }
               ub--;
             }
 
-            if (to_exclude)
-            {
-              continue;
-            }
+            if (to_exclude) { continue; }
           }
 
-          if (qscore < qscore_threshold)
-          {
-            break;
-          }
+          //if (qscore < qscore_threshold) { break; }
 
-          if (pg.getChargeSNR(charge) < snr_threshold)
-          {
-            continue;
-          }
+          if (pg.getChargeSNR(charge) < snr_threshold) { continue; }
 
           if (current_selected_mzs.find(center_mz) != current_selected_mzs.end()) // mz has been triggered
           {
-            if (selection_phase < selection_phase_end)
-            {
-              continue;
-            }
-            if (!target_matched && current_selected_masses.find(pg.getMonoMass()) == current_selected_masses.end()) // but mass is different
+            if (selection_phase < selection_phase_end) { continue; }
+            if (! target_matched && current_selected_masses.find(pg.getMonoMass()) == current_selected_masses.end()) // but mass is different
             {
               continue;
             }
@@ -548,7 +510,8 @@ namespace OpenMS
 
           if (selection_phase < selection_phase_end - 1)
           { // first, select masses under tqscore threshold
-            if (tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end() || tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end())
+            if (tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end()
+                || tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end())
             {
               continue;
             }
@@ -556,14 +519,8 @@ namespace OpenMS
 
           all_mass_rt_map_[nominal_mass] = rt;
           auto inter = mass_qscore_map_.find(nominal_mass);
-          if (inter == mass_qscore_map_.end())
-          {
-            mass_qscore_map_[nominal_mass] = 1 - qscore;
-          }
-          else
-          {
-            mass_qscore_map_[nominal_mass] *= 1 - qscore;
-          }
+          if (inter == mass_qscore_map_.end()) { mass_qscore_map_[nominal_mass] = 1 - qscore; }
+          else { mass_qscore_map_[nominal_mass] *= 1 - qscore; }
 
           if (1 - mass_qscore_map_[nominal_mass] * tqscore_factor_for_exclusion > tqscore_threshold)
           {
@@ -576,7 +533,7 @@ namespace OpenMS
           id_qscore_map_[window_id_] = qscore;
           trigger_ids_.push_back(window_id_);
           window_id_++;
-          
+
           selected_peak_groups_.push_back(pg);
           trigger_charges.push_back(charge);
 
@@ -589,34 +546,27 @@ namespace OpenMS
     }
   }
 
-  void FLASHIda::removeFromExlusionList(int id)    
+  void FLASHIda::removeFromExlusionList(int id)
   {
-      // Check if id is valid
-      if (id >= window_id_) 
-      {
-        return; 
-      }
+    // Check if id is valid
+    if (id >= window_id_) { return; }
 
-      // Obtain information needed for removal
-      int nominal_mass = id_mass_map_[id];
-      int integer_mz = id_mz_map_[id];
-      double qscore = id_qscore_map_[id];
+    // Obtain information needed for removal
+    int nominal_mass = id_mass_map_[id];
+    int integer_mz = id_mz_map_[id];
+    double qscore = id_qscore_map_[id];
 
-      // Remove from mass exclusion
-      if (tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end()) {
-        tqscore_exceeding_mass_rt_map_.erase(nominal_mass);
-      }
+    // Remove from mass exclusion
+    if (tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end())
+    {
+      tqscore_exceeding_mass_rt_map_.erase(nominal_mass);
+    }
 
-      // Remove from mz exclusion
-      if (tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end())
-      {
-        tqscore_exceeding_mz_rt_map_.erase(integer_mz);
-      }
+    // Remove from mz exclusion
+    if (tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end()) { tqscore_exceeding_mz_rt_map_.erase(integer_mz); }
 
-      // Remove qscore from further calculations
-      if (mass_qscore_map_.find(nominal_mass) != mass_qscore_map_.end()) {
-        mass_qscore_map_[nominal_mass] /= 1 - qscore;
-      }
+    // Remove qscore from further calculations
+    if (mass_qscore_map_.find(nominal_mass) != mass_qscore_map_.end()) { mass_qscore_map_[nominal_mass] /= 1 - qscore; }
   }
 
   void FLASHIda::getAllMonoisotopicMasses(double* masses, int length)
@@ -633,17 +583,70 @@ namespace OpenMS
     return deconvolved_spectrum_.size();
   }
 
-  void FLASHIda::getIsolationWindows(double* wstart, double* wend, double* qscores, int* charges, int* min_charges, int* max_charges, double* mono_masses, double* chare_cos, double* charge_snrs,
-                                     double* iso_cos, double* snrs, double* charge_scores, double* ppm_errors, double* precursor_intensities, double* peakgroup_intensities, int* ids)
+  double FLASHIda::getRepresentativeMass()
+  {/*
+    const int max_count = 10;
+    double threshold = 0;
+    double mass = 0;
+    double intensity_sum = 0;
+
+    if (deconvolved_spectrum_.size() > max_count)
+    {
+      std::vector<float> intensites;
+      intensites.reserve(deconvolved_spectrum_.size());
+      for (const auto& pg : deconvolved_spectrum_)
+      {
+        intensites.push_back(pg.getIntensity());
+      }
+      std::sort(intensites.rbegin(), intensites.rend());
+      threshold = intensites[max_count];
+    }
+
+    for (const auto& pg : deconvolved_spectrum_)
+    {
+      if (pg.getIntensity() < threshold) continue;
+      mass += pg.getMonoMass() * pg.getIntensity();
+      intensity_sum += pg.getIntensity();
+    }
+    if (intensity_sum <= 0) return 0;
+    return mass / intensity_sum;
+    */
+    auto filter_str = deconvolved_spectrum_.getOriginalSpectrum().getMetaValue("filter string").toString();
+    Size pos = filter_str.find("cv=");
+    double cv;
+
+    if (pos != String::npos) // get the preferred mass ranges accding to CV values.
+    {
+      Size end = filter_str.find(" ", pos);
+      if (end == String::npos) end = filter_str.length() - 1;
+      cv = std::stod(filter_str.substr(pos + 3, end - pos));
+      return cv;
+    }
+    return -100;
+  }
+
+  void FLASHIda::getIsolationWindows(double* wstart,
+                                     double* wend,
+                                     double* qscores,
+                                     int* charges,
+                                     int* min_charges,
+                                     int* max_charges,
+                                     double* mono_masses,
+                                     double* chare_cos,
+                                     double* charge_snrs,
+                                     double* iso_cos,
+                                     double* snrs,
+                                     double* charge_scores,
+                                     double* ppm_errors,
+                                     double* precursor_intensities,
+                                     double* peakgroup_intensities,
+                                     int* ids)
   {
     // std::sort(selected_peak_groups_.begin(), selected_peak_groups_.end(), QscoreComparator_);
 
     for (Size i = 0; i < selected_peak_groups_.size(); i++)
     {
-      if (trigger_charges[i] == 0)
-      {
-        continue;
-      }
+      if (trigger_charges[i] == 0) { continue; }
       auto peakgroup = selected_peak_groups_[i];
       charges[i] = trigger_charges[i];
       auto cr = peakgroup.getAbsChargeRange();
@@ -653,7 +656,7 @@ namespace OpenMS
       wstart[i] = trigger_left_isolation_mzs_[i]; // std::get<0>(mz_range) - optimal_window_margin_;
       wend[i] = trigger_right_isolation_mzs_[i];  // std::get<1>(mz_range) + optimal_window_margin_;
 
-      qscores[i] = Qscore::getQscore(&peakgroup, deconvolved_spectrum_.getOriginalSpectrum());
+      qscores[i] = Qscore::getQscore(&peakgroup);
       mono_masses[i] = peakgroup.getMonoMass();
       chare_cos[i] = peakgroup.getChargeIsotopeCosine(charges[i]);
       charge_snrs[i] = peakgroup.getChargeSNR(charges[i]);
@@ -672,10 +675,7 @@ namespace OpenMS
     auto spec = MSSpectrum();
     for (int i = 0; i < length; i++)
     {
-      if (ints[i] <= 0)
-      {
-        continue;
-      }
+      if (ints[i] <= 0) { continue; }
       spec.emplace_back(mzs[i], ints[i]);
     }
     spec.setMSLevel(ms_level);
@@ -687,15 +687,13 @@ namespace OpenMS
 
   std::map<int, std::vector<std::vector<float>>> FLASHIda::parseFLASHIdaLog(const String& in_log_file)
   {
-    std::map<int, std::vector<std::vector<float>>> precursor_map_for_real_time_acquisition; // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
+    std::map<int, std::vector<std::vector<float>>>
+      precursor_map_for_real_time_acquisition; // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
 
-    if (in_log_file.empty())
-    {
-      return precursor_map_for_real_time_acquisition;
-    }
+    if (in_log_file.empty()) { return precursor_map_for_real_time_acquisition; }
 
     std::ifstream f(in_log_file.c_str());
-    if (!f.good())
+    if (! f.good())
     {
       std::cout << "FLASHIda log file " << in_log_file << " is NOT found. FLASHIda support is not active." << std::endl;
       return precursor_map_for_real_time_acquisition;
@@ -712,17 +710,15 @@ namespace OpenMS
       float features[6];
       while (std::getline(instream, line))
       {
-        if (line.find("0 targets") != line.npos)
-        {
-          continue;
-        }
+        if (line.find("0 targets") != line.npos) { continue; }
         if (line.hasPrefix("MS1"))
         {
           Size st = line.find("MS1 Scan# ") + 10;
           Size ed = line.find(' ', st);
           String n = line.substr(st, ed);
           scan = atoi(n.c_str());
-          precursor_map_for_real_time_acquisition[scan] = std::vector<std::vector<float>>(); //// ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
+          precursor_map_for_real_time_acquisition[scan]
+            = std::vector<std::vector<float>>(); //// ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
         }
         if (line.hasPrefix("Mass"))
         {
@@ -822,15 +818,11 @@ namespace OpenMS
       }
       instream.close();
     }
-    else
-    {
-      std::cout << in_log_file << " not found\n";
-    }
+    else { std::cout << in_log_file << " not found\n"; }
     int mass_cntr = 0;
     for (auto& v : precursor_map_for_real_time_acquisition)
     {
-      std::sort(v.second.begin(), v.second.end(),[](const std::vector<float>& left, const std::vector<float>& right) {
-          return left[0] < right[0];});
+      std::sort(v.second.begin(), v.second.end(), [](const std::vector<float>& left, const std::vector<float>& right) { return left[0] < right[0]; });
       mass_cntr += v.second.size();
     }
 

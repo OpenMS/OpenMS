@@ -8,18 +8,19 @@
 
 #pragma once
 
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <iomanip>
 #include <iostream>
 
 namespace OpenMS
 {
   /**
-  @brief
+  @brief Isobaric quantification for Top down proteomics. The report ion ratios from multiple MS2 are
+   merged when their precursor masses belong to the same deconvolved features (MassFeature instances).
   @ingroup Topdown
   */
 
@@ -48,7 +49,7 @@ namespace OpenMS
      * @param deconvolved_spectra deconvolved spectra for which the quantification will be carried out
      * @param mass_features mass features that are used to merge quantification results for the MS2 spectra from the same precursor mass
      */
-    void quantify(const MSExperiment& exp, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features);
+    void quantify(const MSExperiment& exp, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHHelperClasses::MassFeature>& mass_features);
 
   protected:
     void updateMembers_() override;
@@ -58,6 +59,7 @@ namespace OpenMS
   private:
     /// The quantification method used for the dataset to be analyzed.
     std::map<String, std::unique_ptr<IsobaricQuantitationMethod>> quant_methods_;
+    /// retain only fully quantified ratios
     bool only_fully_quantified_ = false;
     void addMethod_(std::unique_ptr<IsobaricQuantitationMethod> ptr)
     {

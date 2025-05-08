@@ -34,22 +34,25 @@
 
 ## Windows installer
 
-find_program(MAKENSIS_EXE makensis)
+# Check if nsis is actually run or if only the configuration is used
+if("${CPACK_GENERATOR}" STREQUAL "NSIS")
+  find_program(MAKENSIS_EXE makensis)
 
-if (NOT MAKENSIS_EXE)
-  MESSAGE(FATAL_ERROR "Could not find 'makensis.exe'. Please make sure it's in $PATH!")
-endif()
+  if (NOT MAKENSIS_EXE)
+    MESSAGE(FATAL_ERROR "Could not find 'makensis.exe'. Please make sure it's in $PATH!")
+  endif()
 
-## check for correct NSIS version
-execute_process(COMMAND ${MAKENSIS_EXE} /HDRINFO
-                OUTPUT_VARIABLE NSIS_INFO 
-                COMMAND_ERROR_IS_FATAL ANY)                
-STRING(FIND ${NSIS_INFO} "Size of each section is 16408 bytes" NSIS_IS_8K) ## the 1k version gives "2072 bytes"
+  ## check for correct NSIS version
+  execute_process(COMMAND ${MAKENSIS_EXE} /HDRINFO
+                  OUTPUT_VARIABLE NSIS_INFO 
+                  COMMAND_ERROR_IS_FATAL ANY)                
+  STRING(FIND ${NSIS_INFO} "Size of each section is 16408 bytes" NSIS_IS_8K) ## the 1k version gives "2072 bytes"
 
-if (NSIS_IS_8K EQUAL -1)
-  MESSAGE(FATAL_ERROR "NSIS (makensis.exe) needs to be the 'special build', which allows for 8k-length strings. This seems to be the 1k version. Please update NSIS. See https://github.com/OpenMS/NSIS")
-else()
-  MESSAGE(STATUS "Found 8k version of NSIS. Great!")
+  if (NSIS_IS_8K EQUAL -1)
+    MESSAGE(FATAL_ERROR "NSIS (makensis.exe) needs to be the 'special build', which allows for 8k-length strings. This seems to be the 1k version. Please update NSIS. See https://github.com/OpenMS/NSIS")
+  else()
+    MESSAGE(STATUS "Found 8k version of NSIS. Great!")
+  endif()
 endif()
                 
 
@@ -85,7 +88,6 @@ install(CODE "
 	configure_file(${PROJECT_BINARY_DIR}/Cfg_Settings.nsh.in.conf ${PROJECT_BINARY_DIR}/Cfg_Settings.nsh)
 	")
 
-set(CPACK_GENERATOR NSIS)
 ## Remove the next three lines if you use the NSIS autogeneration feature at some point!
 ## For now it makes sure everything is merged into the usual folders bin/share/include
 set(CPACK_COMPONENT_ALL_IN_ONE 1)
@@ -93,7 +95,11 @@ set(CPACK_COMPONENTS_ALL_GROUPS_IN_ONE_PACKAGE 1)
 set(CPACK_MONOLITHIC_INSTALL 1)
 ##
 
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-Win${PLATFORM}")
+if((DEFINED ENV{CPACK_PACKAGE_FILE_NAME}) AND (NOT "$ENV{CPACK_PACKAGE_FILE_NAME}" STREQUAL ""))
+  set(CPACK_PACKAGE_FILE_NAME "$ENV{CPACK_PACKAGE_FILE_NAME}")
+else()
+  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-Win${PLATFORM}")
+endif()
 set(CPACK_PACKAGE_ICON "${PROJECT_SOURCE_DIR}/cmake/Windows/OpenMS.ico")
 
 ## Create own target because you cannot "depend" on the internal target 'package'

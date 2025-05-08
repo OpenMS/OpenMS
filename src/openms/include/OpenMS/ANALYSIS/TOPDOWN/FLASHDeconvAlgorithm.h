@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -41,7 +41,7 @@ namespace OpenMS
     FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm&) = default;
 
     /// move constructor
-    FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other) = default;
+    FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other)  noexcept = default;
 
     /// assignment operator
     FLASHDeconvAlgorithm& operator=(const FLASHDeconvAlgorithm& fd) = default;
@@ -50,7 +50,9 @@ namespace OpenMS
     FLASHDeconvAlgorithm& operator=(FLASHDeconvAlgorithm&& fd) = default;
 
     /// destructor
-    ~FLASHDeconvAlgorithm() = default;
+    ~FLASHDeconvAlgorithm() override = default;
+
+    std::vector<double> getTolerances() const;
 
     /**
      * @brief Run FLASHDeconv algorithm for @p map and store @p deconvolved_spectra and @p deconvolved_feature
@@ -58,13 +60,17 @@ namespace OpenMS
      * @param deconvolved_spectra the deconvolved spectra will be stored in here
      * @param deconvolved_feature tje deconvolved features wll be strored in here
      */
-    void run(MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<FLASHDeconvHelperStructs::MassFeature>& deconvolved_feature);
+    void run(MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<FLASHHelperClasses::MassFeature>& deconvolved_feature);
 
     /// get calculated averagine. Call after calculateAveragine is called.
-    const FLASHDeconvHelperStructs::PrecalculatedAveragine& getAveragine();
+    const FLASHHelperClasses::PrecalculatedAveragine& getAveragine();
+
+    /// get calculated decoy averagine. Call after calculateAveragine is called.
+    const FLASHHelperClasses::PrecalculatedAveragine& getDecoyAveragine();
+
 
     /// get noise decoy weight
-    double getNoiseDecoyWeight()
+    double getNoiseDecoyWeight() const
     {
       return noise_decoy_weight_;
     }
@@ -76,7 +82,7 @@ namespace OpenMS
 
   private:
     /// SpectralDeconvolution  instances for spectral deconvolution for target and decoys
-    SpectralDeconvolution sd_, sd_charge_decoy_, sd_noise_decoy_, sd_isotope_decoy_;
+    SpectralDeconvolution sd_, sd_noise_decoy_, sd_signal_decoy_;
 
     /// to merge spectra.
     int merge_spec_ = 0;
@@ -90,11 +96,11 @@ namespace OpenMS
     /// current maximum MS level - i.e., for MS2, this is the precursor charge
     UInt current_max_ms_level_ = 0;
 
-    /// currment minimum MS level.
+    /// current minimum MS level.
     UInt current_min_ms_level_ = 0;
 
     /// the number of preceding full scans from which MS2 precursor mass will be searched.
-    int preceding_MS1_count_ = 0;
+    int precursor_MS1_window_ = 0;
 
     /// FLASHIda log file name
     String ida_log_file_;
@@ -109,7 +115,7 @@ namespace OpenMS
     bool report_decoy_ = false;
 
     /// default precursor isolation window size.
-    double isolation_window_size_;
+    double isolation_window_size_{3.0};
 
     /// noise decoy weight determined with qvalue calcualtion.
     double noise_decoy_weight_ = 1;
@@ -128,7 +134,7 @@ namespace OpenMS
     void runSpectralDeconvolution_(MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra);
 
     /// run feature finding to get deconvolved features
-    void runFeatureFinding_(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<FLASHDeconvHelperStructs::MassFeature>& deconvolved_features);
+    void runFeatureFinding_(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<FLASHHelperClasses::MassFeature>& deconvolved_features);
 
     /// with found deconvolved features, update QScores for masses that are contained in features.
     static void updatePrecursorQScores_(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, int ms_level);
@@ -138,6 +144,12 @@ namespace OpenMS
 
     /// register the precursor peak group (or mass) if possible for MSn (n>1) spectrum.
     void findPrecursorPeakGroupsForMSnSpectra_(const MSExperiment& map, const std::vector<DeconvolvedSpectrum>& deconvolved_spectra, uint ms_level);
+
+    /// determine tolerance
+    void determineTolerance_(const MSExperiment& map, const Param& sd_param, const FLASHHelperClasses::PrecalculatedAveragine& avg, uint ms_level);
+
+    /// get histogram
+    static std::vector<int> getHistogram_(const std::vector<double>& data, double min_range, double max_range, double bin_size);
 
     /// filter low intensity peaks
     static void filterLowPeaks_(MSExperiment& map);

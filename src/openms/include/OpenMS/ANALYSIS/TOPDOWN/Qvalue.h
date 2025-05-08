@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
 namespace OpenMS
@@ -17,14 +17,14 @@ namespace OpenMS
   class PeakGroup;
 
   /**
-@brief   Qvalue : contains functions to calculate Qvalues from deconvolution quality score
+@brief   Qvalue : contains functions to calculate Qvalues from deconvolution quality score Qscore
 @ingroup Topdown
 */
 
   class OPENMS_DLLAPI Qvalue
   {
   public:
-    typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
+    typedef FLASHHelperClasses::LogMzPeak LogMzPeak;
 
     /// Calculate and perform a batch update of peak group qvalues using Qscores of target and dummy peak groups in deconvolved spectra, when FDR report is necessary.
     /// @param deconvolved_spectra target and decoy deconvolved spectra

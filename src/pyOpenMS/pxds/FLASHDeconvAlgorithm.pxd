@@ -5,7 +5,7 @@ from Matrix cimport *
 from DefaultParamHandler cimport *
 from ProgressLogger cimport *
 from DeconvolvedSpectrum cimport *
-from FLASHDeconvHelperStructs cimport *
+from FLASHHelperClasses cimport *
 
 
 

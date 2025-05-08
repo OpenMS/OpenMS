@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-2025, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -41,15 +41,13 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
 
   void TopDownIsobaricQuantification::setDefaultParams_()
   {
-    defaults_.setValue("type", "none", "Isobaric Quantitation method used in the experiment.");
+    defaults_.setValue("type", "none", "Specifies the isobaric quantification method used in the experiment.");
     defaults_.setValidStrings("type", {"none", "itraq4plex", "itraq8plex", "tmt10plex", "tmt11plex", "tmt16plex", "tmt18plex", "tmt6plex"});
     defaults_.setValue("isotope_correction", "true",
-                       "Enable isotope correction (highly recommended). "
-                       "Note that you need to provide a correct isotope correction matrix "
-                       "otherwise the tool will fail or produce invalid results.");
+                       "Enable isotope correction (highly recommended).");
     defaults_.setValidStrings("isotope_correction", {"true", "false"});
-    defaults_.setValue("reporter_mz_tol", 2e-3, "m/z tolerance in Th from the expected position of reporter ion m/zs.");
-    defaults_.setValue("only_fully_quantified", "false", "Use only the fully quantified spectra in which non-zero intensity report ions are found for all channels.");
+    defaults_.setValue("reporter_mz_tol", 2e-3, "Specifies the m/z tolerance (in Th) for reporter ion detection.");
+    defaults_.setValue("only_fully_quantified", "false", "Restricts analysis to spectra that are fully quantified, meaning all channels have non-zero intensity reporter ions.");
     defaults_.setValidStrings("only_fully_quantified", {"true", "false"});
     defaultsToParam_();
   }
@@ -66,7 +64,7 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
     only_fully_quantified_ = param_.getValue("only_fully_quantified").toString() == "true";
   }
 
-  void TopDownIsobaricQuantification::quantify(const MSExperiment& exp, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features)
+  void TopDownIsobaricQuantification::quantify(const MSExperiment& exp, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHHelperClasses::MassFeature>& mass_features)
   {
     // set the parameters for this method
     // Param extract_param(getParam_().copy("extraction:", true));
@@ -174,7 +172,7 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
 
       for (auto& pg : cluster)
       {
-        precursor_cluster_index[pg] = precursor_clusters.size() - 1;
+        precursor_cluster_index[pg] = (int)precursor_clusters.size() - 1;
       }
     }
 
@@ -188,7 +186,7 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
       if (precursor.empty() || precursor_cluster_index.find(precursor) != precursor_cluster_index.end())
         continue;
       precursor_clusters.push_back(std::vector<PeakGroup> {precursor});
-      precursor_cluster_index[precursor] = precursor_clusters.size() - 1;
+      precursor_cluster_index[precursor] = (int)precursor_clusters.size() - 1;
     }
 
     std::map<int, std::vector<double>> ms2_ints; // from ms2 scan to intensities
@@ -248,7 +246,7 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
       if (min_intensity > 0) // at least one channel quantified
       {
         intensity_clusters[cluster_index].push_back(intensities);
-        FLASHDeconvHelperStructs::IsobaricQuantities iq;
+        FLASHHelperClasses::IsobaricQuantities iq;
         iq.scan = scan;
         iq.quantities = intensities;
         iq.merged_quantities = intensities;
@@ -258,7 +256,7 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
 
     for (Size i = 0; i < intensity_clusters.size(); i++)
     {
-      auto intensities = intensity_clusters[i];
+      const auto& intensities = intensity_clusters[i];
       if (intensities.empty())
         continue;
       merged_intensity_clusters[i] = intensities[0];
@@ -285,7 +283,7 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
       double min_intensity = only_fully_quantified_? *std::min_element(intensities.begin(), intensities.end()) : *std::max_element(intensities.begin(), intensities.end());
       if (min_intensity > 0) // all channel quantified
       {
-        FLASHDeconvHelperStructs::IsobaricQuantities iq = dspec.getQuantities();
+        FLASHHelperClasses::IsobaricQuantities iq = dspec.getQuantities();
         iq.merged_quantities = intensities;
         dspec.setQuantities(iq);
       }

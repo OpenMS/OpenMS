@@ -23,7 +23,7 @@ FASTAFile.cpp
 FeatureXMLFile.cpp
 FLASHDeconvFeatureFile.cpp
 FLASHDeconvSpectrumFile.cpp
-FLASHTaggerFile.cpp
+        FLASHTnTFile.cpp
 FileHandler.cpp
 FileTypes.cpp
 GNPSMetaValueFile.cpp

@@ -20,57 +20,10 @@ using namespace std;
 
 START_TEST(DeconvolvedSpectrum, "$Id$")
 
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-DeconvolvedSpectrum* ptr = 0;
-DeconvolvedSpectrum* null_ptr = 0;
-START_SECTION(DeconvolvedSpectrum())
-{
-  ptr = new DeconvolvedSpectrum();
-  TEST_NOT_EQUAL(ptr, null_ptr)
-}
-END_SECTION
-
-START_SECTION(~DeconvolvedSpectrum())
-{
-  delete ptr;
-}
-END_SECTION
-
-
 // load test data
 PeakMap input;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FLASHDeconv_sample_input1.mzML"), input);
-
-/// detailed constructor
 MSSpectrum test_spec = input[0];
-START_SECTION((DeconvolvedSpectrum(const MSSpectrum &spectrum, const int scan_number)))
-{
-  DeconvolvedSpectrum tmp_spec = DeconvolvedSpectrum(1);
-  tmp_spec.setOriginalSpectrum(test_spec);
-  TEST_EQUAL(tmp_spec.getScanNumber(), 1);
-  TEST_EQUAL(tmp_spec.getOriginalSpectrum().size(), test_spec.size());
-}
-END_SECTION
-
-
-////////
-DeconvolvedSpectrum test_deconv_spec = DeconvolvedSpectrum(1);
-START_SECTION((int getScanNumber() const))
-{
-  test_deconv_spec.setOriginalSpectrum(test_spec);
-  int tmp_num = test_deconv_spec.getScanNumber();
-  TEST_EQUAL(tmp_num, 1);
-}
-END_SECTION
-
-START_SECTION((const MSSpectrum& getOriginalSpectrum() const))
-{
-  MSSpectrum tmp_s = test_deconv_spec.getOriginalSpectrum();
-  TEST_EQUAL(tmp_s.size(), test_spec.size());
-}
-END_SECTION
 
 
 SpectralDeconvolution fd_algo = SpectralDeconvolution();
@@ -88,6 +41,90 @@ DeconvolvedSpectrum prec_deconv_spec_2 = fd_algo.getDeconvolvedSpectrum();
 
     fd_algo.performSpectrumDeconvolution(input[5], 6, PeakGroup());
 DeconvolvedSpectrum ms2_deconv_spec = fd_algo.getDeconvolvedSpectrum();
+
+DeconvolvedSpectrum test_deconv_spec = DeconvolvedSpectrum(1);
+
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+DeconvolvedSpectrum* ptr = 0;
+DeconvolvedSpectrum* null_ptr = 0;
+START_SECTION(DeconvolvedSpectrum())
+  ptr = new DeconvolvedSpectrum();
+  TEST_NOT_EQUAL(ptr, null_ptr)
+END_SECTION
+
+START_SECTION(~DeconvolvedSpectrum())
+  delete ptr;
+END_SECTION
+
+START_SECTION(DeconvolvedSpectrum(const DeconvolvedSpectrum&))
+  DeconvolvedSpectrum original_spec(1);
+  original_spec.setOriginalSpectrum(test_spec);
+  DeconvolvedSpectrum copied_spec(original_spec);
+  TEST_EQUAL(copied_spec.getScanNumber(), original_spec.getScanNumber());
+  TEST_EQUAL(copied_spec.getOriginalSpectrum().size(), original_spec.getOriginalSpectrum().size());
+END_SECTION
+
+START_SECTION(DeconvolvedSpectrum&& other)
+  DeconvolvedSpectrum original_spec(1);
+  original_spec.setOriginalSpectrum(test_spec);
+  DeconvolvedSpectrum moved_spec(std::move(original_spec));
+  TEST_EQUAL(moved_spec.getScanNumber(), 1);
+  TEST_EQUAL(moved_spec.getOriginalSpectrum().size(), test_spec.size());
+END_SECTION
+
+START_SECTION(=(const DeconvolvedSpectrum& deconvolved_spectrum))
+  DeconvolvedSpectrum spec1(1);
+  spec1.setOriginalSpectrum(test_spec);
+  DeconvolvedSpectrum spec2;
+  spec2 = spec1;
+  TEST_EQUAL(spec2.getScanNumber(), spec1.getScanNumber());
+  TEST_EQUAL(spec2.getOriginalSpectrum().size(), spec1.getOriginalSpectrum().size());
+END_SECTION
+
+START_SECTION((MSSpectrum toSpectrum(const int mass_charge)))
+{
+  MSSpectrum peakgroup_spec = prec_deconv_spec_1.toSpectrum(9, 1);
+  TEST_EQUAL(peakgroup_spec.size(), 1);
+  TEST_REAL_SIMILAR(peakgroup_spec.getRT(), 251.72280736002);
+}
+END_SECTION
+
+START_SECTION((const MSSpectrum& getOriginalSpectrum() const))
+{
+  MSSpectrum tmp_s = test_deconv_spec.getOriginalSpectrum();
+  TEST_EQUAL(tmp_s.size(), test_spec.size());
+}
+END_SECTION
+
+
+
+/// detailed constructor
+START_SECTION((DeconvolvedSpectrum(const MSSpectrum &spectrum, const int scan_number)))
+{
+  DeconvolvedSpectrum tmp_spec = DeconvolvedSpectrum(1);
+  tmp_spec.setOriginalSpectrum(test_spec);
+  TEST_EQUAL(tmp_spec.getScanNumber(), 1);
+  TEST_EQUAL(tmp_spec.getOriginalSpectrum().size(), test_spec.size());
+}
+END_SECTION
+
+
+////////
+START_SECTION((int getScanNumber() const))
+{
+  test_deconv_spec.setOriginalSpectrum(test_spec);
+  int tmp_num = test_deconv_spec.getScanNumber();
+  TEST_EQUAL(tmp_num, 1);
+}
+END_SECTION
+
+
+
+
+
 
 START_SECTION((double getCurrentMaxMass(const double max_mass) const))
 {
@@ -108,13 +145,7 @@ START_SECTION((double getCurrentMinMass(const double min_mass) const))
 }
 END_SECTION
 
-START_SECTION((MSSpectrum toSpectrum(const int mass_charge)))
-{
-  MSSpectrum peakgroup_spec = prec_deconv_spec_1.toSpectrum(9, 1);
-  TEST_EQUAL(peakgroup_spec.size(), 1);
-  TEST_REAL_SIMILAR(peakgroup_spec.getRT(), 251.72280736002);
-}
-END_SECTION
+
 
 START_SECTION((PeakGroup getPrecursorPeakGroup() const))
 {

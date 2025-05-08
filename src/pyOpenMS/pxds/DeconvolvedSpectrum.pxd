@@ -1,5 +1,5 @@
 from MSSpectrum cimport *
-from FLASHDeconvHelperStructs cimport *
+from FLASHHelperClasses cimport *
 
 
 

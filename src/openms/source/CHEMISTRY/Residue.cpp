@@ -114,6 +114,12 @@ namespace OpenMS
     case Residue::ZIon:
       return "z-ion";
 
+    case Residue::Zp1Ion:
+      return "z-p1-ion";
+
+    case Residue::Zp2Ion:
+      return "z-p2-ion";
+
     case Residue::Precursor:
       return "precursor-ion";
 

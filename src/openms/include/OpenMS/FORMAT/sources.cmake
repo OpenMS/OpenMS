@@ -38,7 +38,7 @@ FeatureXMLFile.h
 FileHandler.h
 FLASHDeconvFeatureFile.h
 FLASHDeconvSpectrumFile.h
-FLASHTaggerFile.h
+        FLASHTnTFile.h
 GNPSMetaValueFile.h
 GNPSMGFFile.h
 GNPSQuantificationFile.h

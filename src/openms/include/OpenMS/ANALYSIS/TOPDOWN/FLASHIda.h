@@ -35,7 +35,7 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 
@@ -51,8 +51,8 @@ namespace OpenMS
   class OPENMS_DLLAPI FLASHIda
   {
   public:
-    typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
-    typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
+    typedef FLASHHelperClasses::PrecalculatedAveragine PrecalculatedAveragine;
+    typedef FLASHHelperClasses::LogMzPeak LogMzPeak;
 
     /// constructor that takes string input argument
     explicit FLASHIda(char *arg);
@@ -129,6 +129,7 @@ namespace OpenMS
       */
     void removeFromExlusionList(int id);
 
+    double getRepresentativeMass();
 
     void getAllMonoisotopicMasses(double *masses, int length);
 
@@ -199,7 +200,6 @@ namespace OpenMS
     std::vector<double> trigger_left_isolation_mzs_;
     std::vector<double> trigger_right_isolation_mzs_;
     std::vector<int> trigger_ids_;
-    
 
     /// SpectralDeconvolution class for deconvolution
     SpectralDeconvolution fd_;
@@ -233,5 +233,19 @@ namespace OpenMS
 
     /// mass tolerance
     DoubleList tol_;
+
+    std::map<double, std::vector<double>> cv_to_mass_ = {
+      {-80.0, {2400.0, 2900.0}},
+      {-70.0, {3500.0, 4000.0}},
+      {-60.0, {4500.0, 5000.0}},
+      {-50.0, {5100.0, 6500.0}},
+      {-40.0, {7500.0, 10000.0}},
+      {-30.0, {11000.0, 14000.0}},
+      {-20.0, {12000.0, 15000.0}},
+      {-10.0, {13000.0, 15500.0}},
+      {-0.0, {14000.0, 16000.0}},
+      {10.0, {15000.0, 16500.0}},
+    };
+
   };
 }

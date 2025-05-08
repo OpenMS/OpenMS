@@ -32,6 +32,7 @@ on:
     branches:
       - nightly
       - release/*
+      - FVdeploy
   pull_request:
     branches:
       - develop
@@ -288,11 +289,15 @@ jobs:
     - name: Download contrib build from archive (Windows)
       if: startsWith(matrix.os, 'windows') && steps.cache-contrib.outputs.cache-hit != 'true'
       shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
           cd OpenMS/contrib
-          curl --no-progress-meter -L -o contribbld.tar.gz https://abibuilder.cs.uni-tuebingen.de/archive/openms/contrib/${{ steps.set-vars.outputs.contrib_os }}/${{ steps.set-vars.outputs.contrib_os_ver }}x64/${{ steps.set-vars.outputs.contrib_compiler }}contrib_build.tar.gz
-          7z x -so contribbld.tar.gz | 7z x -si -ttar
-          rm contribbld.tar.gz
+          # Download the file using the URL fetched from GitHub
+          gh release download -R OpenMS/contrib --pattern 'contrib_build-Windows.tar.gz'
+          # Extract the archive
+          7z x -so contrib_build-Windows.tar.gz | 7z x -si -ttar
+          rm contrib_build-Windows.tar.gz
           ls -la
 
     - name: Setup ccache cache
@@ -549,6 +554,7 @@ jobs:
           PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          PORT: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
         run: |
           echo "Upload"
           if [[ "${{ github.ref_name }}" == "nightly" ]]; then
@@ -563,7 +569,7 @@ jobs:
           mkdir -p ~/.ssh/
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
-          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -p $PORT -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/* "$USER@$HOST:/OpenMSInstaller/${folder}"
         
       - name: Make installer latest
         if: inputs.mark_as_latest
