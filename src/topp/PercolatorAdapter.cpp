@@ -1100,7 +1100,7 @@ protected:
         // it is not a real search engine but we set it so that we know that
         // scores were postprocessed
         prot_id_run.setSearchEngine("Percolator");
-        prot_id_run.setSearchEngineVersion("3.05"); // TODO: read from percolator
+        prot_id_run.setSearchEngineVersion("3.07"); // TODO: read from percolator
         if (protein_level_fdrs)
         {
           //check each ProteinHit for compliance with one of the PercolatorProteinResults (by accession)
@@ -1125,7 +1125,7 @@ protected:
           if (protein_level_fdrs)
           {
             prot_id_run.setInferenceEngine("Percolator");
-            prot_id_run.setInferenceEngineVersion("3.05");
+            prot_id_run.setInferenceEngineVersion("3.07");
           }
           prot_id_run.setScoreType("q-value");
           prot_id_run.setHigherScoreBetter(false);

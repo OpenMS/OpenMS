@@ -62,6 +62,8 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
 
 cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS::Precursor":
     cdef enum ActivationMethod:
+      # wrap-attach:
+      #  Precursor
       # wrap-doc:
       #  Enum for activation/fragmentation methods of mass spectra
       #  

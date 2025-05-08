@@ -196,7 +196,6 @@ set(format_executables_list
   MSPFile_test
   MSPGenericFile_test
   MascotGenericFile_test
-  MascotInfile_test
   MascotRemoteQuery_test
   MascotXMLFile_test
   #MSDataWritingConsumer_test
