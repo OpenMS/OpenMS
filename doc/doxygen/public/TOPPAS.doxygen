@@ -47,9 +47,9 @@
 		@image latex TOPPAS_simple_example.png "" width=14cm
 		
     @note Some example pipelines are shipped with %OpenMS and can be opened in TOPPAS by selecting @p File > `Open example file`. 
-          Also see @page TOPPAS_examples for more information.
+          Also see @ref TOPPAS_examples for more information.
 
-		Next up: @page TOPPAS_interface .
+		Next up: @ref TOPPAS_interface .
     
 	@page TOPPAS_interface User interface
 		
