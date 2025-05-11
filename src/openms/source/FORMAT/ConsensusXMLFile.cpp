@@ -97,6 +97,7 @@ namespace OpenMS
       // throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The ConsensusXML file contains invalid maps or references thereof. Please fix the file!");
 
     }
+    consensus_map.updateRanges();
 
   }
 

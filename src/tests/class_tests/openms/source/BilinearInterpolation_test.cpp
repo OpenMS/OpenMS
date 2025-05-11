@@ -15,9 +15,6 @@
 
 // More headers
 
-#include <iostream>
-#include <iterator>
-#include <vector>
 #include <cstdlib>
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -157,6 +154,7 @@ START_SECTION(template< typename SourceContainer > void setData( SourceContainer
 {
   BIFD bifd;
 	bifd.getData().getEigenMatrix().resize(2,3);
+        bifd.getData().getEigenMatrix().fill(0);
 	bifd.getData()(1,2) = 10012;
 	bifd.getData()(0,0) = 10000;
 	bifd.getData()(1,0) = 10010;
@@ -165,7 +163,6 @@ START_SECTION(template< typename SourceContainer > void setData( SourceContainer
 
 	BIFD bifd2;
 	bifd2.setData(bifd_cr.getData());
-
 	TEST_EQUAL(bifd.getData(),bifd2.getData());
 
 	BIFD bifd3;

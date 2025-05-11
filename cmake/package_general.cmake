@@ -94,7 +94,6 @@ if(WIN32)
   ##--   C:/WINDOWS/system32/activeds.dll
   ## ,i.e. folder names have weird cases (and the CMake regex engine is case sensitive)
   set(POST_EXCLUDE ".*[\\/][Ss][Yy][Ss][Tt][Ee][Mm]32[\\/].*")  # skip system32 DLLs completely (no matter how CMake names the path, could be 'System32', 'system32', 'SYSTEM32' etc)
-                   
 elseif(APPLE)
   set(PRE_EXCLUDE "/usr/lib" "/System/")
   set(POST_EXCLUDE "")
