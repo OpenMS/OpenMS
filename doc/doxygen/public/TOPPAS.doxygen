@@ -46,10 +46,11 @@
 		@image html TOPPAS_simple_example.png
 		@image latex TOPPAS_simple_example.png "" width=14cm
 		
-    @note Some example pipelines are shipped with %OpenMS and can be opened in TOPPAS by selecting @p File > @p Open @p example @p file. 
-          Also see @subpage TOPPAS_examples for more information.
+    @note Some example pipelines are shipped with %OpenMS and can be opened in TOPPAS by selecting @p File > `Open example file`. 
+          Also see @ref TOPPAS_examples for more information.
 
-		
+		Next up: @ref TOPPAS_interface .
+    
 	@page TOPPAS_interface User interface
 		
 		@section TOPPAS_interface_introduction Creating a pipeline from scratch
@@ -61,12 +62,17 @@
 			- in a running TOPPAS program choose: @p File @p > @p New
 			- create an empty file in your file browser (Windows Explorer, MacOS Finder, Nautilus, etc) with the suffix @p \.toppas and double-click it (on Windows systems all @p \.toppas files are associated with TOPPAS automatically during installation of %OpenMS, on Linux and MacOS you might need to manually associate the extension)
 
-    When you start TOPPAS, you will see the main window with a list of TOPP tools on the left side.
+    When you start TOPPAS, you will see the main window with a <b>list of TOPP tools on the left side</b>.
 		
 		The following figure shows the @ref TOPP_TOPPAS main window and a pipeline which is just being created.
+    			
+		@image html TOPPAS_edges.png
+		@image latex TOPPAS_edges.png "" width=14cm
+    
 		The user has added some tools by drag&dropping them from the TOPP tool list on the left
 		onto the central window (double clicking an item in the tool list also works).
     Additionally, the user has added nodes for input and output files.
+    There are also some more advanced features in this pipeline, like the use of `Recycling Mode` in `Input File #2` (see @ref TOPPAS_tut_recycling down below).
     You can arrange the tools/nodes on the canvas freely by left-clicking them with the mouse, such that they become selected (bold) and then 
     dragging (i.e. left-click and keep the mouse button pressed) them to their desired position with the mouse.
 
@@ -93,9 +99,7 @@
     A <span style="color:green">green</span> edge indicates that the edge is ready to be executed.<br>
     A <span style="color:red">red</span> edge indicates that the edge is not ready to be executed, 
     e.g., because the input files are not compatible with the tool's input requirements.
-			
-		@image html TOPPAS_edges.png
-		@image latex TOPPAS_edges.png "" width=14cm
+
 			
 		The input/output mapping of connections can be changed at any time during the editing process by double-clicking
 		an connections or by selecting @p Edit @p I/O @p mapping from the context menu which appears when a connection is right-clicked.
@@ -104,9 +108,8 @@
 		
     @subsection TOPPAS_tut_param Configuring tool parameters
 
-		TOPP tools can be configured by double-clicking  the tool node.
-    By default, the standard parameters are used for each tool. Again, this can also
-		be done by selecting @p Edit @p parameters from the context menu of the tool.
+		<b>TOPP tools can be configured by double-clicking the tool node.</b>
+    By default, the standard parameters are used for each tool. Alternatively, right-click the tool and select `Edit parameters`.
 		
 		@image html TOPPAS_parameters.png
 		@image latex TOPPAS_parameters.png "" width=14cm
@@ -148,7 +151,7 @@
     The input from a recylced node can be used an arbitrary number of times, but the recycling has to be "complete", i.e. the number of rounds of the
 		downstream node (CometAdapter in our example) have to be a multiple of the number of input files. Typically, the number of items to be recycled is 'one' (e.g. one FASTA file), so this usually not a problem.
     
-    Recycling mode can be activated by right-clicking the input node and clicking the "Toggle recycling mode" entry from the context menu.
+    Recycling mode can be activated by right-clicking the input node and clicking the `Toggle recycling mode` entry from the context menu.
 
     See @ref TOPPAS_tut_edges for an example of a recycling input node.
 		
@@ -171,6 +174,13 @@
     all files from a FeatureFinder node (which is invoked many times, once for each raw file) and pass the list of
     resulting featureXML files to a MapAligner tool (which runs only once, on all featureXML files simulaneously).
 
+    Another common example for a collector is upstream to a @ref TOPP_DecoyDatabase node, where you usually want to combine a species-specific database (e.g. human proteome),
+    with a contaminant database (e.g. cRAP). The pipeline below thus combines two FASTA files, given in `input node #1` by invoking @ref TOPP_DecoyDatabase once with a list of two files.
+    @ref TOPP_DecoyDatabase's output is then <b>recycled</b> and fed into @ref TOPP_CometAdapter repeatedly (5 times to be exact, since there are 5 mzML files in `input node #2`).
+        
+    @image html TOPPAS_merger_recycling.png
+		@image latex TOPPAS_merger_recycling.png "" width=14cm
+    
     There is also a @p splitter node, which is the opposite of a collector, but it should be required only in very rare cases.
 
     @subsection TOPPAS_tut_running Running the pipeline
@@ -186,7 +196,7 @@
     Also, you can specify the number of jobs (i.e. TOPP tool invocations) that TOPPAS is allowed to run in parallel (see @ref TOPPAS_tut_parallel below for details).
 
     During pipeline execution, the status lights in the top-right corner of the
-		tools indicate if the tool has finished successfully (<span style="color:green">green</span>), is currently running (<span style="color:yellow">yellow</span>),
+		tools indicate if the tool has finished successfully (<span style="color:green">green</span>), is currently running (<span style="color:goldenrod">yellow</span>),
 		has not done anything so far (<span style="color:gray">gray</span>), 
     is scheduled to run next (<span style="color:blue">blue</span>), or has crashed (<span style="color:red">red</span>).
 		The numbers in the bottom-right corner of every tool show how many files have already been processed and
@@ -223,7 +233,57 @@
 		is set to 8, and you additionally set the number of parallel jobs in @b TOPPAS to 8, then you may end up using 8*8=64 threads in parallel (if you have 8 or more input files), which
 		might not be what you intended to do.
 		
-			
+  
+    @section TOPPAS_update_pipeline Updating a pipeline
+    
+    With newer versions of %OpenMS, some parameters of established TOPP tools may change.
+    To use TOPPAS pipelines which have been created using older versions of %OpenMS you may sometimes need
+    to update the tools parameters.
+    In extreme cases the pipeline will not run through completion and fail, if some tools parameters have been given other names.
+    The more common case is that tools have received new parameters, e.g. to tune an algorithm, which you do not see and cannot edit in TOPPAS unless you update your pipeline.
+    
+    You can update a pipeline by selecting `File` -> `Refresh parameters`, or press `Ctrl + Shift + p`.
+    
+    In rare cases, TOPPAS cannot find a match between renamed parameters, e.g., imagine an input parameter was renamed from `-in` to `-in_spectra`. TOPPAS may not find this renamed parameter.
+    TOPPAS will report a broken pipeline in this case and color <span style="color:red"> broken edges in red</span>. You then need to delete this edge and add a new one.
+    
+    Details of the update process will be shown in the <i>Log Window</i> at the bottom.
+    
+    
+    @section TOPPAS_switching_tools Swapping out nodes
+    
+    Sometimes you want to switch to a new search engine, e.g. from MSGF+ to Comet or vice versa.
+    Or from one type of MapAligner to another.
+    
+    You could simply remove that node and add a new one. Easy, right? 
+    But you would loose all custom parameters settings, which differ from the default parameters, forcing you to edit the parameters of the new tool to match the old parameters.
+    
+    TOPPAS has an easy way to <b>transfer parameter values</b> from one tool to another, given that the <b>parameters share the same name</b>.
+    This usually only makes sense if the tools are from the same category (e.g., both are search engine adapters).
+    
+    To transfer parameters do this:
+     
+     1. Add the new tool to your pipeline by using the TOPP tool list on the left
+     2. Deselect any node you may have selected by left-clicking anywhere on the white canvas background
+     3. <b>Press and hold</b> `Ctrl` on the keyboard, then left-click and drag from the old node to the new node with the mouse — just like creating a connecting edge between nodes while holding `Ctrl`.
+     You will see that the edge color is <span style="color:purple">purple</span>.
+     
+    @image html TOPPAS_transferParams.png
+    @image latex TOPPAS_transferParams.png "" width=14cm   
+     
+    In the <i>Log Window</i> below you can read which values have been transferred to the new tool (and which ones could not be matched).
+    E.g. it may say:
+    
+    @verbatim
+      Transferring parameters between nodes ...
+      Unknown (or deprecated) Parameter 'comet_executable' given in outdated parameter file! Ignoring parameter. 
+      Default-Parameter 'precursor_mass_tolerance' overridden: '10' --> '15'!   
+      ...
+    @endverbatim
+     
+    Now you can delete the old node and reconnect the new node. Done.
+
+    
 		@section TOPPAS_interface_mk Mouse and keyboard
 			
 		Using the mouse, you can
@@ -325,19 +385,23 @@
 		- open the output files' folder in the window manager (explorer)
 		- copy, cut, and remove the node
 			
+
+    
+    Next up: @ref TOPPAS_examples .
+    
 			
 	@page TOPPAS_examples Examples
 	
 		The following sections explain the example pipelines TOPPAS comes with.
     
-    You can @em open all examples pipelines by selecting @p File > @p Open @p example @p file in TOPPAS.
+    You can @em open all examples pipelines by selecting @p File > `Open example file` in TOPPAS.
     
     All input files and parameters are already specified, so you can just hit @p Pipeline > @p Run (or press
 		@p F5) and see what happens.
 		
 		@section TOPPAS_peak_picking_example Profile data processing
 		
-		The file @p peakpicker_tutorial.toppas can be inspect it in TOPPAS via `File -> Open Example File`.
+		The file @p peakpicker_tutorial.toppas can be inspect it in TOPPAS via `File` -> `Open example file`.
     It contains a simple pipeline representing a
 		common use case: starting with profile data, the noise is eliminated and the baseline
 		is subtracted. Then, PeakPickerHiRes is used to find all peaks in the noise-filtered
@@ -350,7 +414,7 @@
 		@section TOPPAS_id_example Identification of E. coli peptides
 		
 		This section describes an example identification pipeline contained in the 
-		example directory, @p Ecoli_Identification.toppas. Inspect it in TOPPAS via `File -> Open Example File`. It is shipped together
+		example directory, @p Ecoli_Identification.toppas. Inspect it in TOPPAS via `File` -> `Open example file`. It is shipped together
 		with a reduced example mzML file containing 139 MS2 spectra from an E. coli
 		run on an Orbitrap instrument as well as an E. coli target-decoy database (which was created using @ref TOPP_DecoyDatabase).
 
@@ -379,7 +443,7 @@
 		@section TOPPAS_quant_example Quantitation of BSA runs
 
 		The simple pipeline described in this section (@p BSA_Quantitation.toppas) can be used to quantify peptides
-		that occur on different runs (you can inspect it in TOPPAS via `File -> Open Example File`).
+		that occur on different runs (you can inspect it in TOPPAS via `File` -> `Open example file`).
     The example dataset contains three different bovine serum albumin (BSA) runs.
 		First, @ref TOPP_FeatureFinderCentroided is called since the dataset is already centroided (i.e. peak picking took place already). The
 		results of the feature finding are then annotated with (existing) identification results.
@@ -429,13 +493,13 @@
     We will use a special FDR search strategy described by <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8489664/">Lin et al.</a>.
     It uses a mode of @ref TOPP_DecoyDatabase which allows to create a special "neighbor" database to control the FDR.
     
-    The example pipeline is named @p FDR_NeighborSearch.toppas. Inspect it in TOPPAS via `File -> Open Example File`. A description is provided within the TOPPAS workflow.
+    The example pipeline is named @p FDR_NeighborSearch.toppas. Inspect it in TOPPAS via `File` -> `Open example file`. A description is provided within the TOPPAS workflow.
 
 		@section TOPPAS_merger_example Merger and Collect nodes
 		
 		The following example is actually not a useful workflow but is supposed
 		to demonstrate how merger and collector nodes can be used in a pipeline. Have a look at
-		@p merger_tutorial.toppas. Inspect it in TOPPAS via `File -> Open Example File`.
+		@p merger_tutorial.toppas. Inspect it in TOPPAS via `File` -> `Open example file`.
 		
 		@image html TOPPAS_example_merger.png
 		@image latex TOPPAS_example_merger.png "" width=14cm

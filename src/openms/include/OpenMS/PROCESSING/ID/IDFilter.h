@@ -906,6 +906,9 @@ namespace OpenMS
 
         if (hits.empty()) continue;
 
+        // Ensure hits are correctly ordered according to score orientation  
+        id_it->sort();
+
         UInt rank = 1;
         auto lit = hits.begin();
         double last_score = lit->getScore();
