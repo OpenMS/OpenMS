@@ -47,7 +47,6 @@
 		</ProteinIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="354.990447531899974" RT="75.0" spectrum_reference="scan=7" >
 			<PeptideHit score="0.0" sequence="QRM(Oxidation)ADVKKVAADM(Oxidation)EEEKD" charge="6" aa_before="D X X X X X" aa_after="R X X X X X" protein_refs="PH_0 PH_1 PH_2 PH_3 PH_4 PH_5" >
-				<UserParam type="int" name="rank" value="1"/>
 				<UserParam type="string" name="MS:1002258" value="20"/>
 				<UserParam type="string" name="MS:1002259" value="170"/>
 				<UserParam type="string" name="num_matched_peptides" value="29030"/>
@@ -74,7 +73,6 @@
 				<UserParam type="float" name="_ar_0_subscore_ntt" value="0.0"/>
 			</PeptideHit>
 			<PeptideHit score="27.899999999999999" sequence="QRM(Oxidation)ADVKQVAADM(Oxidation)EEEKD" charge="6" aa_before="D X X X X" aa_after="R X X X X" protein_refs="PH_6 PH_7 PH_8 PH_9 PH_10" >
-				<UserParam type="int" name="rank" value="1"/>
 				<UserParam type="string" name="MS:1002258" value="20"/>
 				<UserParam type="string" name="MS:1002259" value="170"/>
 				<UserParam type="string" name="num_matched_peptides" value="29030"/>
@@ -96,7 +94,6 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="669.061888531899967" RT="78.0" spectrum_reference="scan=9" >
 			<PeptideHit score="0.0" sequence="LPVLYSSPAALLALRVC(Carbamidomethyl)QGVVKVSAGVSRRGC(Carbamidomethyl)AGAVPVM" charge="6" aa_before="D" aa_after="-" protein_refs="PH_11" >
-				<UserParam type="int" name="rank" value="1"/>
 				<UserParam type="string" name="MS:1002258" value="34"/>
 				<UserParam type="string" name="MS:1002259" value="380"/>
 				<UserParam type="string" name="num_matched_peptides" value="10210"/>

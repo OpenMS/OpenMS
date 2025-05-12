@@ -84,7 +84,6 @@
 		</ProteinIdentification>
 		<PeptideIdentification score_type="SpecEValue" higher_score_better="false" significance_threshold="0.0" MZ="1063.2098388671875" RT="4587.668999999999869" spectrum_reference="spectrum=1" >
 			<PeptideHit score="2.3492372e-26" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="[" aa_after="E" start="0" end="27" protein_refs="PH_1" >
-				<UserParam type="int" name="rank" value="1"/>
 				<UserParam type="int" name="MS:1002049" value="164"/>
 				<UserParam type="int" name="MS:1002050" value="199"/>
 				<UserParam type="float" name="MS:1002052" value="2.3492372e-26"/>
@@ -101,7 +100,6 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="SpecEValue" higher_score_better="false" significance_threshold="0.0" MZ="775.38720703125" RT="4923.777299999999741" spectrum_reference="spectrum=2" >
 			<PeptideHit score="1.6242718e-19" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" aa_before="[" aa_after="A" start="0" end="22" protein_refs="PH_2" >
-				<UserParam type="int" name="rank" value="1"/>
 				<UserParam type="int" name="MS:1002049" value="151"/>
 				<UserParam type="int" name="MS:1002050" value="188"/>
 				<UserParam type="float" name="MS:1002052" value="1.6242718e-19"/>
@@ -118,7 +116,6 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="SpecEValue" higher_score_better="false" significance_threshold="0.0" MZ="520.2628173828125" RT="2655.095699999999852" spectrum_reference="spectrum=0" >
 			<PeptideHit score="4.652130499999999e-19" sequence="DFASSGGYVLHLHR" charge="3" aa_before="[" aa_after="E" start="0" end="13" protein_refs="PH_0" >
-				<UserParam type="int" name="rank" value="1"/>
 				<UserParam type="int" name="MS:1002049" value="123"/>
 				<UserParam type="int" name="MS:1002050" value="125"/>
 				<UserParam type="float" name="MS:1002052" value="4.652130499999999e-19"/>
