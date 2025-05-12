@@ -980,6 +980,7 @@ jobs:
 
 
           # NB we create the tag for the OpenMS repo next in a separate action.
+          # SPW TODO: Move the script here to a file once its stable
       - id: bash_create_tags
         name: create tags for other repos
         shell: bash
