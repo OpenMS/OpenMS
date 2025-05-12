@@ -341,7 +341,6 @@ namespace OpenMS
         if (name == "ln(-posson)" && value == "inf") value = "3.5"; // workaround for Sage
         ph.setMetaValue(name, value);
       }
-      ph.setRank(rank);
 
       // adding own meta values 
       if (SageAnnotation)
