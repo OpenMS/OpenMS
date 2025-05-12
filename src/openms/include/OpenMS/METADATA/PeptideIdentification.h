@@ -56,7 +56,7 @@ namespace OpenMS
 
     @see PeptideHit, ProteinIdentification, IDMapper, MetaInfoInterface
 
-    @ingroup Metadata          
+    @ingroup Metadata
   */
   class OPENMS_DLLAPI PeptideIdentification :
     public MetaInfoInterface
