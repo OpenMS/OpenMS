@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.1"
 	version="1.1.0"
 	id="OpenMS_10306100746905639127"
-	creationDate="2024-11-28T14:53:58">
+	creationDate="2025-04-24T11:01:30">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="http://purl.obolibrary.org/obo/ms/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -16,7 +16,7 @@
 			<cvParam accession="MS:1001456" cvRef="PSI-MS" name="analysis software"/>
 		</SoftwareName>
 	</AnalysisSoftware>
-	<AnalysisSoftware version="OpenMS TOPP v3.4.0-pre-fix-msgf-2024-11-28" name="TOPP software" id="SOF_12524258085768770586">
+	<AnalysisSoftware version="OpenMS TOPP v3.4.0-pre-reduce-assign-ranks-2025-04-23" name="TOPP software" id="SOF_12524258085768770586">
 		<SoftwareName>
 			<cvParam accession="MS:1000752" cvRef="PSI-MS" name="TOPP software"/>
 		</SoftwareName>
@@ -41,7 +41,7 @@
  	<PeptideEvidence id="PEV_2927519776102075938" peptide_ref="PEP_17413765565443951891" dBSequence_ref="PROT_15157403601844400700" post="E" pre="-" start="1" end="28" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
-	<SpectrumIdentification id="SI_TopPerc_2024-11-28" spectrumIdentificationProtocol_ref="SIP_15004869347769368353" spectrumIdentificationList_ref="SIL_7804704400743266335" activityDate="2024-11-28T14:53:58">
+	<SpectrumIdentification id="SI_TopPerc_2025-04-24" spectrumIdentificationProtocol_ref="SIP_15004869347769368353" spectrumIdentificationList_ref="SIL_7804704400743266335" activityDate="2025-04-24T11:01:30">
 		<InputSpectra spectraData_ref="SDAT_13440783915218733453"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_15916652588957785155"/>
 	</SpectrumIdentification>
@@ -213,7 +213,7 @@
 					<cvParam accession="MS:1002049" cvRef="PSI-MS" name="MS-GF:RawScore" value="164"/>
 					<cvParam accession="MS:1002050" cvRef="PSI-MS" name="MS-GF:DeNovoScore" value="199"/>
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="2.3492372e-26"/>
-					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="9.678856999999999e-24"/>
+					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="9.678857000000001e-24"/>
 					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
 					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
 					<userParam name="start" unitName="xsd:integer" value="1"/>

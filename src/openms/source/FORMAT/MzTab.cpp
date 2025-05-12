@@ -834,7 +834,7 @@ namespace OpenMS
     // create new peptide id object to assist in sorting
     PeptideIdentification new_pep_id = pep_ids[0];
     new_pep_id.setHits(all_hits);
-    new_pep_id.assignRanks();
+    new_pep_id.sort();
 
     const PeptideHit& best_ph = new_pep_id.getHits()[0];
     const AASequence& aas = best_ph.getSequence();
@@ -1168,7 +1168,7 @@ namespace OpenMS
     pid.getKeys(pid_keys);
     set<String> pid_key_set(pid_keys.begin(), pid_keys.end());
     // remove key that only exists for backwards compatibility (will likely be deprecated in the future)
-    pid_key_set.erase(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
+    pid_key_set.erase(Constants::UserParam::SIGNIFICANCE_THRESHOLD);    
     
     addMetaInfoToOptionalColumns(pid_key_set, row.opt_, String("global"), pid);
 

@@ -338,7 +338,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           phs.push_back(ph);
         }
         pi.setHits(phs);
-        pi.assignRanks();
+        pi.sort();
 
 #pragma omp critical (peptide_ids_access)
         {

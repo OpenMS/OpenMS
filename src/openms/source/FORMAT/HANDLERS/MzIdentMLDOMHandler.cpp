@@ -1320,11 +1320,9 @@ namespace OpenMS::Internal
 
               } // end of "not-XLMS-results"
 
-              // TODO @mths: setSignificanceThreshold, but from where?
-
               pep_id_->back().setIdentifier(pro_id_->at(si_pro_map_[id]).getIdentifier());
 
-              pep_id_->back().sortByRank();
+              pep_id_->back().sort();
 
               //adopt cv s
               for (map<String, vector<CVTerm> >::const_iterator cvit =  params.first.getCVTerms().begin(); cvit != params.first.getCVTerms().end(); ++cvit)
@@ -1723,7 +1721,7 @@ namespace OpenMS::Internal
       ph_alpha.setSequence((*pep_map_.find(peptides[alpha[0]])).second);
       ph_alpha.setCharge(charge);
       ph_alpha.setScore(score);
-      ph_alpha.setRank(rank);
+      ph_alpha.setRank(rank - 1); // rank is 1-based in mzid, OpenMS uses 0-based
       ph_alpha.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, spectrumIDs[0]);
       ph_alpha.setMetaValue("xl_chain", "MS:1002509"); // donor
 
@@ -1796,7 +1794,7 @@ namespace OpenMS::Internal
         ph_beta.setSequence((*pep_map_.find(peptides[beta[0]])).second);
         ph_beta.setCharge(charge);
         ph_beta.setScore(score);
-        ph_beta.setRank(rank);
+        ph_beta.setRank(rank - 1); // rank is 1-based in mzid, OpenMS uses 0-based
         ph_beta.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, spectrumIDs[0]);
         ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
 
@@ -1948,7 +1946,7 @@ namespace OpenMS::Internal
       }
       current_pep_id.setHits(phs);
       pep_id_->push_back(current_pep_id);
-      pep_id_->back().sortByRank();
+      pep_id_->back().sort();
     }
 
     void MzIdentMLDOMHandler::parseSpectrumIdentificationItemElement_(DOMElement* spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification, String& spectrumIdentificationList_ref)
@@ -2942,7 +2940,7 @@ namespace OpenMS::Internal
           current_si->setAttribute(CONST_XMLCH("chargeState"), StringManager::convertPtr(String(ph->getCharge())).get());
           current_si->setAttribute(CONST_XMLCH("experimentalMassToCharge"), StringManager::convertPtr(String(ph->getSequence().getMonoWeight(Residue::Full, ph->getCharge()))).get()); //TODO @mths : this is not correct!1elf - these interfaces are BS!
           current_si->setAttribute(CONST_XMLCH("peptide_ref"), CONST_XMLCH("TBA"));
-          current_si->setAttribute(CONST_XMLCH("rank"), StringManager::convertPtr(String(ph->getRank())).get());
+          current_si->setAttribute(CONST_XMLCH("rank"), StringManager::convertPtr(String(ph->getRank() + 1)).get());
           current_si->setAttribute(CONST_XMLCH("passThreshold"), CONST_XMLCH("TBA"));
           current_si->setAttribute(CONST_XMLCH("sample_ref"), CONST_XMLCH("TBA"));
           // TODO cvs for score!

@@ -121,13 +121,11 @@ START_SECTION((void load(const std::string &result_filename, std::vector< Peptid
 
     TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), -1.412)
     TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), AASequence::fromString("ADYGVTR"))
-    TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
     TEST_EQUAL(peptide_identifications[0].getHits()[0].getCharge(), 2)
     TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getMetaValue("PnvScr"), 21.144)
 
     TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[1].getScore(), -1.483)
     TEST_EQUAL(peptide_identifications[0].getHits()[1].getSequence(), AASequence::fromString("SDYGVTR"))
-    TEST_EQUAL(peptide_identifications[0].getHits()[1].getRank(), 2)
     TEST_EQUAL(peptide_identifications[0].getHits()[1].getCharge(), 2)
     TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[1].getMetaValue("PnvScr"), 18.239)
 
@@ -142,7 +140,6 @@ START_SECTION((void load(const std::string &result_filename, std::vector< Peptid
     TEST_REAL_SIMILAR(peptide_identifications[3].getSignificanceThreshold(), -4.0)
     TEST_REAL_SIMILAR(peptide_identifications[3].getHits()[11].getScore(),8.045)
     TEST_EQUAL(peptide_identifications[3].getHits()[11].getSequence(),  AASequence::fromString("GK(Acetyl)EAMAPK"))
-    TEST_EQUAL(peptide_identifications[3].getHits()[11].getRank(), 12)
     TEST_EQUAL(peptide_identifications[3].getHits()[0].getCharge(), 2)
 
   }
