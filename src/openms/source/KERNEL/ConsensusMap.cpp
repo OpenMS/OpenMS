@@ -6,6 +6,8 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/config.h>
+
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
@@ -571,6 +573,14 @@ namespace OpenMS
 
   void ConsensusMap::updateRanges()
   {
+    #ifdef OPENMS_ASSERTIONS
+      double rt_min = RangeRT::isEmpty() ? 0 : getMinRT();
+      double rt_max = RangeRT::isEmpty() ? 0 : getMaxRT();
+      double mz_min = RangeMZ::isEmpty() ? 0 : getMinMZ();
+      double mz_max = RangeMZ::isEmpty() ? 0 : getMaxMZ();
+      double int_min = RangeIntensity::isEmpty() ? 0 : getMinIntensity();
+      double int_max = RangeIntensity::isEmpty() ? 0 : getMaxIntensity();
+    #endif
     clearRanges();
     // enlarge the range by the internal points of each feature
     for (const auto& cf : data_)
@@ -585,6 +595,24 @@ namespace OpenMS
         extendIntensity(handle.getIntensity());
       }
     }
+
+    #ifdef OPENMS_ASSERTIONS
+      // check if updateRanges() was necessary and find places where it was not
+      double rt_min_new = RangeRT::isEmpty() ? 0 : getMinRT();
+      double rt_max_new = RangeRT::isEmpty() ? 0 : getMaxRT();
+      double mz_min_new = RangeMZ::isEmpty() ? 0 : getMinMZ();
+      double mz_max_new = RangeMZ::isEmpty() ? 0 : getMaxMZ();
+      double int_min_new = RangeIntensity::isEmpty() ? 0 : getMinIntensity();
+      double int_max_new = RangeIntensity::isEmpty() ? 0 : getMaxIntensity();
+
+      // check if all are equal and no update range was necessary
+      if (rt_min_new == rt_min && rt_max_new == rt_max
+        && int_min_new == int_min && int_max_new == int_max
+        && mz_min_new == mz_min && mz_max_new == mz_max)
+      {
+        OPENMS_LOG_WARN << "Update ranges was called but ranges were already up-to-date" << std::endl;
+      }
+    #endif
   }
 
   bool ConsensusMap::isMapConsistent(Logger::LogStream* stream) const

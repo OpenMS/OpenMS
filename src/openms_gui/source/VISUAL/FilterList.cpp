@@ -51,6 +51,11 @@ namespace OpenMS::Internal
 
     void FilterList::set(const DataFilters& filters)
     {
+      if (filters == filters_)
+      { // avoid unnecessary updates
+        return;
+      }
+
       filters_ = filters;
 
       ui_->filter->clear();

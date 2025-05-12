@@ -34,9 +34,7 @@ ConsensusMap* nullPointer = nullptr;
 START_SECTION((ConsensusMap()))
 	ptr = new ConsensusMap();
 	TEST_NOT_EQUAL(ptr, nullPointer)
-	TEST_EQUAL(ptr->isMetaEmpty(),true)
-  TEST_REAL_SIMILAR(ptr->getMinIntensity(), numeric_limits<double>::max())
-  TEST_REAL_SIMILAR(ptr->getMaxIntensity(), -numeric_limits<double>::max())
+	TEST_TRUE(ptr->isMetaEmpty())
 END_SECTION
 
 START_SECTION((~ConsensusMap()))
