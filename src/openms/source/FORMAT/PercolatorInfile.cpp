@@ -332,7 +332,7 @@ namespace OpenMS
       sPeptide.substitute("]-", "]."); // we can parse [+42].MVLVQDLLHPTAASEAR
       sPeptide.substitute("-[", ".["); // we can parse MVLVQDLLHPTAASEAR.[+111]
       AASequence aa_seq = AASequence::fromString(sPeptide);
-      PeptideHit ph(score, rank, charge, std::move(aa_seq));
+      PeptideHit ph(score, rank - 1, charge, std::move(aa_seq));
       ph.setMetaValue("target_decoy", target_decoy);
 
       for (const auto& name : found_extra_scores)
