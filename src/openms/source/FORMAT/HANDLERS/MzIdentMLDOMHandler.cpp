@@ -1975,7 +1975,7 @@ namespace OpenMS::Internal
           // MzIdentML ranks are typically 1-based. For some special data (PMF) it can be 0. 
           // In that case we treat it as 1-based as well otherwise it will underflow if converted to the 0-based OpenMS ranks.
           rank = 1;
-          OPENMS_INFO_DEBUG << "Found rank 0. Assuming 1-based rank." << endl;
+          OPENMS_LOG_DEBUG< "Found rank 0. Assuming 1-based rank." << endl;
         }
         
       }
