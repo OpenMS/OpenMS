@@ -84,6 +84,12 @@ namespace OpenMS
 #endif
   }
 
+  
+  void PlotCanvas::initFilters(const DataFilters& filters)
+  {
+    layers_.getCurrentLayer().filters = filters;
+  }
+
   void PlotCanvas::setFilters(const DataFilters& filters)
   {
     // set filters
@@ -443,7 +449,7 @@ namespace OpenMS
       auto cutoff = estimateNoiseFromRandomScans(*map, 1, 10, 5); // 5% of low intensity data is considered noise
       DataFilters filters;
       filters.add(DataFilters::DataFilter(DataFilters::INTENSITY, DataFilters::GREATER_EQUAL, cutoff));
-      setFilters(filters);
+      initFilters(filters);
     }
     else // no mower, hide zeros if wanted
     {
@@ -451,7 +457,7 @@ namespace OpenMS
       {
         DataFilters filters;
         filters.add(DataFilters::DataFilter(DataFilters::INTENSITY, DataFilters::GREATER_EQUAL, 0.001));
-        setFilters(filters);
+        initFilters(filters);
       }
     }
 
