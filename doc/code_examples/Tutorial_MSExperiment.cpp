@@ -56,7 +56,7 @@ int main()
   exp.updateRanges();
   std::cout << "Data ranges:\n";
   exp.printRange(std::cout);
-  std::cout << "\nGet maximum intensity on its own: " << exp.getMinMobility() << '\n';
+  std::cout << "\nGet maximum intensity on its own: " << exp.getMaxIntensity() << '\n';
   exp.getMinRT();
 
   // Store the spectra to a mzML file with:
