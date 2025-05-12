@@ -76,8 +76,7 @@ cdef extern from "<OpenMS/PROCESSING/ID/IDFilter.h>" namespace "OpenMS":
                 #  :param peptides:
                 #  :param ignore_mods: Boolean operator default to false in case of any modifications in sequences during extraction
                 #  :return: Sequences
-
-        void updateHitRanks(libcpp_vector[PeptideIdentification]& identifications) except + nogil  # wrap-doc:Updates the hit ranks on all peptide or protein IDs
+        
         void updateHitRanks(libcpp_vector[ProteinIdentification]& identifications) except + nogil  # wrap-doc:Updates the hit ranks on all peptide or protein IDs
 
         void removeUnreferencedProteins(libcpp_vector[ProteinIdentification]& proteins, libcpp_vector[PeptideIdentification]& peptides) except + nogil  # wrap-doc:Removes protein hits from the protein IDs in a 'cmap' that are not referenced by a peptide in the features or if requested in the unassigned peptide list
