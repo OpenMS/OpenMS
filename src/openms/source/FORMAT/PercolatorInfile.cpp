@@ -338,7 +338,7 @@ namespace OpenMS
       for (const auto& name : found_extra_scores)
       {
         String value = row[to_idx.at(name)];
-        if (name == "ln(-posson)" && value == "inf") value = "3.5"; // workaround for Sage
+        if (name == "ln(-poisson)" && value == "inf") value = "3.5"; // workaround for Sage
         ph.setMetaValue(name, value);
       }
 
