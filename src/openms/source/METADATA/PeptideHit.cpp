@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <ostream>
 #include <utility>
 
@@ -14,8 +15,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  // Define constants for meta value keys and default values
-  const String PeptideHit::RANK_META_VALUE_KEY = "rank";
+  // Define constants for default values
   const UInt PeptideHit::DEFAULT_RANK = 0;
   // default constructor
   PeptideHit::PeptideHit() :
@@ -41,7 +41,7 @@ namespace OpenMS
     // Only set rank as meta value if it's not the default value
     if (rank != DEFAULT_RANK)
     {
-      setMetaValue(RANK_META_VALUE_KEY, rank);
+      setMetaValue(Constants::UserParam::RANK, rank);
     }
   }
 
@@ -57,7 +57,7 @@ namespace OpenMS
     // Only set rank as meta value if it's not the default value
     if (rank != DEFAULT_RANK)
     {
-      setMetaValue(RANK_META_VALUE_KEY, rank);
+      setMetaValue(Constants::UserParam::RANK, rank);
     }
   }
 
@@ -149,7 +149,7 @@ namespace OpenMS
   // returns the rank of the peptide hit
   UInt PeptideHit::getRank() const
   {
-    return getMetaValue(RANK_META_VALUE_KEY, DEFAULT_RANK);
+    return getMetaValue(Constants::UserParam::RANK, DEFAULT_RANK);
   }
 
   const AASequence& PeptideHit::getSequence() const
@@ -340,12 +340,12 @@ namespace OpenMS
   {
     if (newrank != DEFAULT_RANK)
     {
-      setMetaValue(RANK_META_VALUE_KEY, newrank);
+      setMetaValue(Constants::UserParam::RANK, newrank);
     }
     else
     {
       // Remove the meta value if the value is the default rank
-      removeMetaValue(RANK_META_VALUE_KEY);
+      removeMetaValue(Constants::UserParam::RANK);
     }
   }
 

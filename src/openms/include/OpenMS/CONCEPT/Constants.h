@@ -568,6 +568,11 @@ namespace OpenMS
               Double
       */
       inline const std::string   SIGNIFICANCE_THRESHOLD = "significance_threshold";
+      
+      /** User parameter name for the rank of a peptide hit
+              String
+      */
+      inline const std::string   RANK = "rank";
     }
 
     //@}

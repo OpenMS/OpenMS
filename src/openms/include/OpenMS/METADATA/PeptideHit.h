@@ -12,6 +12,7 @@
 #include <vector>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -48,8 +49,7 @@ namespace OpenMS
     public MetaInfoInterface
   {
 public:
-    /// Define constants for meta value keys and default values
-    static const String RANK_META_VALUE_KEY;
+    /// Define constants for default values
     static const UInt DEFAULT_RANK;
 
     /**
