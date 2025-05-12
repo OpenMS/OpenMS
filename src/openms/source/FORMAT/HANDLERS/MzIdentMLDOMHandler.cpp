@@ -2040,7 +2040,7 @@ namespace OpenMS::Internal
       if (scoretype) //else (i.e. no q/E/raw score or threshold not passed) no hit will be read TODO @mths: yielding no peptide hits will be error prone!!! what to do? remove and warn peptideidentifications with no hits inside?!
       {
         //build the PeptideHit from a SpectrumIdentificationItem
-        PeptideHit hit(score, rank, chargeState, pep_map_[peptide_ref]);
+        PeptideHit hit(score, rank - 1, chargeState, pep_map_[peptide_ref]); // rank in OpenMS is 0-based, in mzIdentML it is 1-based
         for (const auto& cvs : param_cv.getCVTerms())
         {
           for (const auto& cv : cvs.second) // if the same accession occurred multiple times...
