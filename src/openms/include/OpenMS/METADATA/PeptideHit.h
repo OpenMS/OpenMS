@@ -49,9 +49,6 @@ namespace OpenMS
     public MetaInfoInterface
   {
 public:
-    /// Define constants for default values
-    static const UInt DEFAULT_RANK;
-
     /**
    * @brief Contains annotations of a peak
 

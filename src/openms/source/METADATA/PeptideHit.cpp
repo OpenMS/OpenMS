@@ -15,8 +15,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  // Define constants for default values
-  const UInt PeptideHit::DEFAULT_RANK = 0;
   // default constructor
   PeptideHit::PeptideHit() :
     MetaInfoInterface(),
@@ -39,7 +37,7 @@ namespace OpenMS
       fragment_annotations_()
   {
     // Only set rank as meta value if it's not the default value
-    if (rank != DEFAULT_RANK)
+    if (rank != 0)
     {
       setMetaValue(Constants::UserParam::RANK, rank);
     }
@@ -55,7 +53,7 @@ namespace OpenMS
     fragment_annotations_()
   {
     // Only set rank as meta value if it's not the default value
-    if (rank != DEFAULT_RANK)
+    if (rank != 0)
     {
       setMetaValue(Constants::UserParam::RANK, rank);
     }
@@ -149,7 +147,7 @@ namespace OpenMS
   // returns the rank of the peptide hit
   UInt PeptideHit::getRank() const
   {
-    return getMetaValue(Constants::UserParam::RANK, DEFAULT_RANK);
+    return getMetaValue(Constants::UserParam::RANK, 0);
   }
 
   const AASequence& PeptideHit::getSequence() const
@@ -338,7 +336,7 @@ namespace OpenMS
   // sets the rank
   void PeptideHit::setRank(UInt newrank)
   {
-    if (newrank != DEFAULT_RANK)
+    if (newrank != 0)
     {
       setMetaValue(Constants::UserParam::RANK, newrank);
     }
