@@ -903,8 +903,10 @@ namespace OpenMS
       for (auto id_it = ids.begin(); id_it != ids.end(); ++id_it)
       {
         auto& hits = id_it->getHits();
-
         if (hits.empty()) continue;
+
+        // Ensure hits are correctly ordered according to score orientation  
+        id_it->sort();
 
         UInt rank = 1;
         auto lit = hits.begin();

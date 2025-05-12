@@ -14,6 +14,21 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ----                                OpenMS 3.5.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
+General:
+  
+Dependencies:
+
+OpenSwath:
+
+Misc:
+
+Fixes:
+
+Library:
+- Removed assignRanks and sortByRanks in PeptideIdentifications and sort and filter by score.
+
+- removed tools:
+
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.4.0     (under development)              ----
