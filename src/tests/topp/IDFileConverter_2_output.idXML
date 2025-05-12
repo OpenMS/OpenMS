@@ -97,7 +97,7 @@
 			<UserParam type="string" name="base_name" value="PepXMLFile_test"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="770.055225031900022" RT="3.4018" spectrum_reference="scan=8" >
-			<PeptideHit score="14.0" sequence="RSHTILNSSQSFAKGC(Carbamidomethyl)VQC(Carbamidomethyl)K" charge="3" aa_before="K X X" aa_after="H X X" protein_refs="PH_9 PH_10 PH_11" >			
+			<PeptideHit score="14.0" sequence="RSHTILNSSQSFAKGC(Carbamidomethyl)VQC(Carbamidomethyl)K" charge="3" aa_before="K X X" aa_after="H X X" protein_refs="PH_9 PH_10 PH_11" >
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="hyperscore" value="350.0"/>
 				<UserParam type="float" name="nextscore" value="349.0"/>
