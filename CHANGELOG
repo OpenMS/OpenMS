@@ -25,7 +25,8 @@ Misc:
 Fixes:
 
 Library:
-- Removed assignRanks and sortByRanks in PeptideIdentifications and sort and filter by score.
+- Removed `assignRanks` and `sortByRanks` in PeptideIdentifications and sort and filter by score instead. Also removed `updateHitRanks` in IDFilter (#7991)
+- Remove ranke member in PeptideHit and store ranks as meta value (for backwards compatibility). (#7997)
 
 - removed tools:
 

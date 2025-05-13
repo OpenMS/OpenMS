@@ -899,84 +899,32 @@ namespace OpenMS
     template<class IdentificationType>
     static void filterHitsByRank(std::vector<IdentificationType>& ids, Size min_rank, Size max_rank)
     {
-      // calculate ranks and store them in a vector of ints      
-      for (auto id_it = ids.begin(); id_it != ids.end(); ++id_it)
+      for (auto& id : ids)
       {
-        auto& hits = id_it->getHits();
+        auto& hits = id.getHits();
         if (hits.empty()) continue;
 
-        // Ensure hits are correctly ordered according to score orientation  
-        id_it->sort();
+        id.sort(); // Ensure hits are properly sorted
 
-        UInt rank = 1;
-        auto lit = hits.begin();
-        double last_score = lit->getScore();
-        std::vector<UInt> ranks(hits.size(), 0);
-        Size index = 0;
-        while (lit != hits.end())
-        {
-          if ((double)lit->getScore() != last_score)
-          {
-            ++rank;
-            last_score = lit->getScore();
-          }
-          ranks[index] = rank;
-          ++index;
-          ++lit;
-        }
+        // ignore max_rank?
+        if (max_rank < min_rank) max_rank = hits.size();
 
-        // Apply min_rank filter (remove items with rank < min_rank)
-        if (min_rank > 1)
-        {
-          // Create a vector of iterators to elements to be removed
-          std::vector<typename std::vector<typename IdentificationType::HitType>::iterator> to_remove;
-          
-          for (Size i = 0; i < hits.size(); ++i)
-          {
-            if (ranks[i] < min_rank)
-            {
-              to_remove.push_back(hits.begin() + i);
-            }
-          }
-          
-          // Remove elements in reverse order to maintain valid indices
-          for (auto it = to_remove.rbegin(); it != to_remove.rend(); ++it)
-          {
-            hits.erase(*it);
-          }
-          
-          // Update ranks vector to match the remaining hits
-          std::vector<UInt> new_ranks;
-          for (Size i = 0; i < ranks.size(); ++i)
-          {
-            if (ranks[i] >= min_rank)
-            {
-              new_ranks.push_back(ranks[i]);
-            }
-          }
-          ranks = new_ranks;
-        }
+        Size rank = 1;
+        double last_score = hits.front().getScore();
 
-        // Apply max_rank filter (keep only items with rank <= max_rank)
-        if (max_rank >= min_rank)
-        {
-          // Create a vector of iterators to elements to be kept
-          std::vector<typename IdentificationType::HitType> kept_hits;
-          std::vector<UInt> kept_ranks;
-          
-          for (Size i = 0; i < hits.size(); ++i)
-          {
-            if (ranks[i] <= max_rank)
-            {
-              kept_hits.push_back(hits[i]);
-              kept_ranks.push_back(ranks[i]);
-            }
-          }
-          
-          // Replace the original hits with the kept hits
-          hits = kept_hits;
-          ranks = kept_ranks;
-        }
+        // Remove hits not within [min_rank, max_rank], while computing rank on the fly
+        hits.erase(
+          std::remove_if(hits.begin(), hits.end(),
+            [&](const auto& hit) {
+              if (hit.getScore() != last_score)
+              {
+                ++rank;
+                last_score = hit.getScore();
+              }
+              return rank < min_rank || rank > max_rank;
+            }),
+          hits.end()
+        );
       }
     }
     

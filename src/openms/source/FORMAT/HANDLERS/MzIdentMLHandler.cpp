@@ -336,7 +336,8 @@ namespace OpenMS::Internal
         // required attributes
         current_id_hit_.setId((attributeAsString_(attributes, "id")));
         current_id_hit_.setPassThreshold(asBool_(attributeAsString_(attributes, "passThreshold")));
-        current_id_hit_.setRank(attributeAsInt_(attributes, "rank"));
+        int rank = attributeAsInt_(attributes, "rank");
+        current_id_hit_.setRank(rank - 1); // rank starts at 1 in mzid,OpenMS 0-based
 
         // optional attributes
         double double_value(0);
@@ -2095,7 +2096,7 @@ namespace OpenMS::Internal
         pevid_ids =  pep_evis[pepi];
       }
 
-      String r(hit.getRank()); //rank
+      String r(hit.getRank() + 1); //rank
       String sc(hit.getScore());
       if (hit.metaValueExists(Constants::UserParam::OPENPEPXL_XL_RANK))
       {
