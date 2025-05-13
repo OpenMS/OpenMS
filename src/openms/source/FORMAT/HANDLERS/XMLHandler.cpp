@@ -418,134 +418,133 @@ namespace OpenMS::Internal
       }
     }
 
-    int StringManager::strLength(const XMLCh* input_ptr) {
-      size_t processedChars = 0;
+    int StringManager::strLength(const XMLCh* input_ptr)
+    {
+      size_t processed_chars = 0;
       XMLCh* pos_ptr = const_cast<XMLCh*>(input_ptr);
       size_t align = (size_t)pos_ptr % 16;
-      // Prevents Page boundary crossing
-      for (size_t i = 0; i < align; i++)
+    
+      // Prevent crossing page boundaries
+      for (size_t i = 0; i < align; ++i)
       {
         if (pos_ptr[i] == 0)
         {
-          return processedChars + i;
+          return processed_chars + i;
         }
-        processedChars++;
-        pos_ptr++;
-      };
-    
-      while (true) 
-      {
-          simde__m128i bits = simde_mm_loadu_si128((simde__m128i*)pos_ptr);
-          simde__m128i zero = simde_mm_setzero_si128();
-          simde__m128i cmpZero = simde_mm_cmpeq_epi16(bits, zero);
-          uint16_t zeroMask = simde_mm_movemask_epi8(cmpZero);
-    
-          if (zeroMask != 0x0000) {
-              int bytePosZero = __builtin_ctz(zeroMask);
-              int charPosZero = bytePosZero / 2;
-              pos_ptr += charPosZero;
-              return processedChars + charPosZero;
-          }
-    
-          pos_ptr += 8;
-          processedChars += 8;
+        ++processed_chars;
+        ++pos_ptr;
       }
     
-      // Reached max length without finding null terminator
-      return 0;
-    }
-
-    void StringManager::compress64 (const XMLCh* input_it, char* output_it) 
-    {
-      simde__m128i bits = simde_mm_loadu_si128((simde__m128i*)input_it);
-      // simde__m128i compressed = simde_mm_packus_epi16(bits, simde_mm_setzero_si128());
-      const simde__m128i shuffleMask = simde_mm_setr_epi8(0, 2, 4, 6, 8, 10, 12, 14,
-                                                        -1, -1, -1, -1, -1, -1, -1, -1);
-      simde__m128i compressed = simde_mm_shuffle_epi8(bits,shuffleMask);
-      simde_mm_storel_epi64((simde__m128i*)output_it, compressed);
-    }
-
-    bool StringManager::isASCII(const XMLCh * chars, const XMLSize_t length) {
-
-      
-      size_t quotient = length / 8;  // Ganzzahliger Quotient
-      size_t remainder = length % 8;
-
-      const XMLCh* input_ptr = chars;
-      simde__m128i mask = simde_mm_set1_epi16(0xFF00);
-      bool bitmask = true;
-
-      if (length == 0)
+      while (true)
       {
-        return false;
-      }
-
-      for (size_t i = 0; i < quotient; i++)
-      {
-        
-        simde__m128i bits = simde_mm_loadu_si128((simde__m128i*)input_ptr);
+        simde__m128i bits = simde_mm_loadu_si128(reinterpret_cast<simde__m128i*>(pos_ptr));
         simde__m128i zero = simde_mm_setzero_si128();
-        simde__m128i andOP = simde_mm_and_si128(bits, mask);
-        simde__m128i cmp = simde_mm_cmpeq_epi16(andOP, zero);
-        
-        if (simde_mm_movemask_epi8(cmp) != 0xFFFF)
-        {
-          bitmask = false;
-        }
-        input_ptr+=8;
-      }  
+        simde__m128i cmp_zero = simde_mm_cmpeq_epi16(bits, zero);
+        uint16_t zero_mask = simde_mm_movemask_epi8(cmp_zero);
     
-      for (size_t i = 0; i < remainder && bitmask; i++)
-      {
-        bitmask = !(input_ptr[i] & 0xFF00);
+        if (zero_mask != 0x0000)
+        {
+          int byte_pos_zero = __builtin_ctz(zero_mask);
+          int char_pos_zero = byte_pos_zero / 2;
+          pos_ptr += char_pos_zero;
+          return processed_chars + char_pos_zero;
+        }
+    
+        pos_ptr += 8;
+        processed_chars += 8;
       }
-        return bitmask;
     }
 
-    void StringManager::appendASCII(const XMLCh * chars, const XMLSize_t length, String & result)
+    void StringManager::compress64(const XMLCh* inputIt, char* outputIt)
     {
-        // XMLCh are characters in UTF16 (usually stored as 16bit unsigned
-        // short but this is not guaranteed).
-        // We know that the Base64 string here can only contain plain ASCII
-        // and all bytes except the least significant one will be zero. Thus
-        // we can convert to char directly (only keeping the least
-        // significant byte).
+      simde__m128i bits = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(inputIt));
+    
+      // Select every second byte (little-endian lower byte of each UTF-16 character)
+      const simde__m128i shuffleMask = simde_mm_setr_epi8(
+        0, 2, 4, 6, 8, 10, 12, 14,
+        -1, -1, -1, -1, -1, -1, -1, -1
+      );
+    
+      simde__m128i compressed = simde_mm_shuffle_epi8(bits, shuffleMask);
+    
+      // Store the lower 64 bits (8 ASCII characters)
+      simde_mm_storel_epi64(reinterpret_cast<simde__m128i*>(outputIt), compressed);
+    }
 
-      size_t quotient = length / 8;  
-      size_t remainder = length % 8;
+    bool StringManager::isASCII(const XMLCh* chars, const XMLSize_t length)
+  {
+    if (length == 0)
+    {
+      return false;
+    }
 
-      const XMLCh* input_ptr = chars;
+    Size quotient = length / 8;
+    Size remainder = length % 8;
 
-      
-      std::div_t quotient_and_remainder = std::div(length, 8);
-      size_t quotient = quotient_and_remainder.quot;  // Ganzzahliger Quotient
-      size_t remainder = quotient_and_remainder.rem;
-      // std::cout << "Remainer: " << remainder << std::endl;
-      // std::cout << "Quotient: " << quotient << std::endl; 
-      // cout << "length: " << length << endl;
+    const XMLCh* inputPtr = chars;
+    simde__m128i mask = simde_mm_set1_epi16(0xFF00);
+    bool bitmask = true;
 
+    // Process blocks of 8 UTF-16 characters using SIMD
+    for (Size i = 0; i < quotient; ++i)
+    {
+      simde__m128i bits = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(inputPtr));
+      simde__m128i zero = simde_mm_setzero_si128();
+      simde__m128i andOp = simde_mm_and_si128(bits, mask);
+      simde__m128i cmp = simde_mm_cmpeq_epi16(andOp, zero);
 
-      const XMLCh* it = chars;
-      const XMLCh* end = it + (quotient * 8);
-      // std::cout << "Anzahl der Elemente zwischen it1 und it2: "
-      //         << std::distance(it, end) << std::endl;
-
-      size_t curr_size = result.size();
-      result.resize(curr_size + length);
-      char* output_ptr = &result[curr_size];
-
-    //Copy Block of 8 chars at a time. Then jumps to the next eight Blocks
-      for (size_t i = 0; i < quotient; i++)
-      {  
-        compress64(input_ptr, output_ptr);
-        input_ptr += 8;
-        output_ptr += 8;
+      if (simde_mm_movemask_epi8(cmp) != 0xFFFF)
+      {
+        bitmask = false;
+        break;
       }
 
-  
-      for (size_t i = 0; i < remainder; i++)
-      { 
-        output_ptr[i] = static_cast<char>(input_ptr[i] & 0xFF);
+      inputPtr += 8;
+    }
+
+  // Check remaining characters individually
+    for (Size i = 0; i < remainder && bitmask; ++i)
+    {
+      if (inputPtr[i] & 0xFF00)
+      {
+        bitmask = false;
+        break;
+      }
+    }
+
+    return bitmask;
+  }
+
+    void StringManager::appendASCII(const XMLCh* chars, const XMLSize_t length, String& result)
+    {
+      // XMLCh are characters in UTF16 (usually stored as 16-bit unsigned
+      // short but this is not guaranteed).
+      // We know that the Base64 string here can only contain plain ASCII
+      // and all bytes except the least significant one will be zero. Thus
+      // we can convert to char directly (only keeping the least
+      // significant byte).
+    
+      Size quotient = length / 8;
+      Size remainder = length % 8;
+    
+      const XMLCh* inputPtr = chars;
+    
+      Size currentSize = result.size();
+      result.resize(currentSize + length);
+      char* outputPtr = &result[currentSize];
+    
+      // Copy blocks of 8 characters at a time
+      for (Size i = 0; i < quotient; ++i)
+      {
+        compress64(inputPtr, outputPtr);
+        inputPtr += 8;
+        outputPtr += 8;
+      }
+    
+      // Copy any remaining characters individually
+      for (Size i = 0; i < remainder; ++i)
+      {
+        outputPtr[i] = static_cast<char>(inputPtr[i] & 0xFF);
       }
     }
 
