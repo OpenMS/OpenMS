@@ -133,6 +133,15 @@ START_SECTION(appendASCII(const XMLCh * chars, const XMLSize_t length, String & 
 
 END_SECTION
 
+START_SECTION(appendASCII(const XMLCh * chars, const XMLSize_t length, String & result))
+    int o_length = StringManager::strLength(ascii);
+    TEST_EQUAL(o_length, a_length);
+    o_length = StringManager::strLength(empty);
+    TEST_EQUAL(o_length, e_length);
+    o_length = StringManager::strLength(upperBoundary);
+    TEST_EQUAL(o_length, u_length);
+END_SECTION
+
 END_TEST
 
 

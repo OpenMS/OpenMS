@@ -418,6 +418,31 @@ namespace OpenMS::Internal
       }
     }
 
+    int StringManager::strLength(const XMLCh* input_ptr) {
+      size_t processedChars = 0;
+      XMLCh* pos_ptr = const_cast<XMLCh*>(input_ptr);
+    
+      while (true) {
+          simde__m128i bits = simde_mm_loadu_si128((simde__m128i*)pos_ptr);
+          simde__m128i zero = simde_mm_setzero_si128();
+          simde__m128i cmpZero = simde_mm_cmpeq_epi16(bits, zero);
+          uint16_t zeroMask = simde_mm_movemask_epi8(cmpZero);
+    
+          if (zeroMask != 0x0000) {
+              int bytePosZero = __builtin_ctz(zeroMask);
+              int charPosZero = bytePosZero / 2;
+              pos_ptr += charPosZero;
+              return processedChars + charPosZero;
+          }
+    
+          pos_ptr += 8;
+          processedChars += 8;
+      }
+    
+      // Reached max length without finding null terminator
+      return 0;
+    }
+
     void StringManager::compress64 (const XMLCh* input_it, char* output_it) {
       alignas(16) simde__m128i bits = simde_mm_loadu_si128((simde__m128i*)input_it);
       // simde__m128i compressed = simde_mm_packus_epi16(bits, simde_mm_setzero_si128());

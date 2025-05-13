@@ -226,7 +226,7 @@ namespace OpenMS
       inline static String toNative_(const XMLCh* str)
       { 
         String r;
-        XMLSize_t l = xercesc::XMLString::stringLen(str);
+        XMLSize_t l = strLength(str);
         if(isASCII(str, l))
         {
           appendASCII(str,l,r);
@@ -251,6 +251,8 @@ public:
 
       /// Destructor
       ~StringManager();
+
+      static int strLength(const XMLCh* input_ptr);
 
       /// Transcode the supplied C string to a xerces string
       inline static XercesString convert(const char * str)
