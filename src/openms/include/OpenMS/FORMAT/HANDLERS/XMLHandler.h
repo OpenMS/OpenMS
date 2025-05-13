@@ -253,6 +253,7 @@ public:
       /// Destructor
       ~StringManager();
 
+      /// Calculates the length of a XMLCh* string using SIMDe 
       static int strLength(const XMLCh* input_ptr);
 
       /// Transcode the supplied C string to a xerces string
