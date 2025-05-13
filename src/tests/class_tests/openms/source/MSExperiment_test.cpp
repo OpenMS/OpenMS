@@ -404,34 +404,6 @@ START_SECTION(([EXTRA] PeakMap()))
 }
 END_SECTION
 
-START_SECTION((CoordinateType getMinMZ() const))
-{
-  PeakMap tmp;
-  TEST_REAL_SIMILAR(tmp.getMinMZ(),numeric_limits<DPosition<2>::CoordinateType>::max())
-}
-END_SECTION
-
-START_SECTION((CoordinateType getMaxMZ() const))
-{
-  PeakMap tmp;
-  TEST_REAL_SIMILAR(tmp.getMaxMZ(),-numeric_limits<DPosition<2>::CoordinateType>::max())
-}
-END_SECTION
-
-START_SECTION((CoordinateType getMinRT() const))
-{
-  PeakMap tmp;
-  TEST_REAL_SIMILAR(tmp.getMinRT(),numeric_limits<DPosition<2>::CoordinateType>::max())
-}
-END_SECTION
-
-START_SECTION((CoordinateType getMaxRT() const))
-{
-  PeakMap tmp;
-  TEST_REAL_SIMILAR(tmp.getMaxRT(),-numeric_limits<DPosition<2>::CoordinateType>::max())
-}
-END_SECTION
-
 START_SECTION((const std::vector<UInt>& getMSLevels() const))
 {
   PeakMap tmp;

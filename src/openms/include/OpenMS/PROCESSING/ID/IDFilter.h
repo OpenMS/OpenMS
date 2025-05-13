@@ -103,36 +103,6 @@ namespace OpenMS
     };
 
     /**
-       @brief Is the rank of this hit below or at the given cut-off?
-
-       Ranks are counted from one (best), so zero is not a valid cut-off.
-    */
-    template<class HitType>
-    struct HasMaxRank {
-      typedef HitType argument_type; // for use as a predicate
-
-      Size rank;
-
-      HasMaxRank(Size rank_) : rank(rank_)
-      {
-        if (rank_ == 0)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The cut-off value for rank filtering must not be zero!");
-        }
-      }
-
-      bool operator()(const HitType& hit) const
-      {
-        Size hit_rank = hit.getRank();
-        if (hit_rank == 0)
-        {
-          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No rank assigned to peptide or protein hit");
-        }
-        return hit_rank <= rank;
-      }
-    };
-
-    /**
        @brief Is a meta value with given key and value set on this hit?
 
        If the value is empty (DataValue::EMPTY), only the existence of a meta value with the given key is checked.
@@ -755,21 +725,6 @@ namespace OpenMS
 
     /// @name Clean-up functions
     ///@{
-
-    /// Updates the hit ranks on all peptide or protein IDs
-    template<IsPeptideOrProteinIdentification IdentificationType>
-    static void updateHitRanks(IdentificationType& id)
-    {
-      id.assignRanks();
-    }
-
-    /// Updates the hit ranks on all peptide or protein IDs
-    template<IsPeptideOrProteinIdentification IdentificationType>
-    static void updateHitRanks(std::vector<IdentificationType>& ids)
-    {
-      for (auto& id : ids) id.assignRanks();
-    }
-
     /// Removes protein hits from the protein IDs in a @p cmap that are not referenced by a peptide in the features
     /// or if requested in the unassigned peptide list
     static void removeUnreferencedProteins(ConsensusMap& cmap, bool include_unassigned);
@@ -953,25 +908,35 @@ namespace OpenMS
     template<class IdentificationType>
     static void filterHitsByRank(std::vector<IdentificationType>& ids, Size min_rank, Size max_rank)
     {
-      updateHitRanks(ids);
-      if (min_rank > 1)
+      for (auto& id : ids)
       {
-        struct HasMaxRank<typename IdentificationType::HitType> rank_filter(min_rank - 1);
-        for (typename std::vector<IdentificationType>::iterator id_it = ids.begin(); id_it != ids.end(); ++id_it)
-        {
-          removeMatchingItems(id_it->getHits(), rank_filter);
-        }
-      }
-      if (max_rank >= min_rank)
-      {
-        struct HasMaxRank<typename IdentificationType::HitType> rank_filter(max_rank);
-        for (typename std::vector<IdentificationType>::iterator id_it = ids.begin(); id_it != ids.end(); ++id_it)
-        {
-          keepMatchingItems(id_it->getHits(), rank_filter);
-        }
+        auto& hits = id.getHits();
+        if (hits.empty()) continue;
+
+        id.sort(); // Ensure hits are properly sorted
+
+        // ignore max_rank?
+        if (max_rank < min_rank) max_rank = hits.size();
+
+        Size rank = 1;
+        double last_score = hits.front().getScore();
+
+        // Remove hits not within [min_rank, max_rank], while computing rank on the fly
+        hits.erase(
+          std::remove_if(hits.begin(), hits.end(),
+            [&](const auto& hit) {
+              if (hit.getScore() != last_score)
+              {
+                ++rank;
+                last_score = hit.getScore();
+              }
+              return rank < min_rank || rank > max_rank;
+            }),
+          hits.end()
+        );
       }
     }
-
+    
     /**
        @brief Removes hits annotated as decoys from peptide or protein identifications.
 
@@ -1379,15 +1344,14 @@ namespace OpenMS
 
       // filter protein hits:
       keepHitsMatchingProteins(experiment.getProteinIdentifications(), accessions);
-      updateHitRanks(experiment.getProteinIdentifications());
 
       // filter peptide hits:
       for (auto [spectrum, peptide_id] : experiment)
       {
         if (spectrum.getMSLevel() == 2)
         {
-          keepHitsMatchingProteins(peptide_id, accessions);          
-          updateHitRanks(peptide_id);
+          keepHitsMatchingProteins(peptide_id, accessions);
+          removeEmptyIdentifications(peptide_id);
         }
       }
       removeEmptyIdentifications(experiment.getPeptideIdentifications());

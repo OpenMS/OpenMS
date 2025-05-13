@@ -64,6 +64,9 @@ START_SECTION((virtual void run(const ConsensusMap& map_model, const ConsensusMa
   input[1].push_back(ConsensusFeature(feat3));
   input[1].push_back(ConsensusFeature(feat4));
 
+  input[0].updateRanges();
+  input[1].updateRanges();
+
   TransformationDescription transformation;
   PoseClusteringShiftSuperimposer pcat;
 	Param params;

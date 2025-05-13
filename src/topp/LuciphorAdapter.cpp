@@ -637,7 +637,7 @@ protected:
       new_pep_id.setScoreType("Luciphor_delta_score");
       new_pep_id.setHigherScoreBetter(true);
       new_pep_id.setHits(scored_peptides);
-      new_pep_id.assignRanks();
+      new_pep_id.sort();
       pep_out.push_back(new_pep_id);
     }
 
