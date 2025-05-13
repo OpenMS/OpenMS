@@ -421,8 +421,20 @@ namespace OpenMS::Internal
     int StringManager::strLength(const XMLCh* input_ptr) {
       size_t processedChars = 0;
       XMLCh* pos_ptr = const_cast<XMLCh*>(input_ptr);
+      size_t align = (size_t)pos_ptr % 16;
+      // Prevents Page boundary crossing
+      for (size_t i = 0; i < align; i++)
+      {
+        if (pos_ptr[i] == 0)
+        {
+          return processedChars + i;
+        }
+        processedChars++;
+        pos_ptr++;
+      };
     
-      while (true) {
+      while (true) 
+      {
           simde__m128i bits = simde_mm_loadu_si128((simde__m128i*)pos_ptr);
           simde__m128i zero = simde_mm_setzero_si128();
           simde__m128i cmpZero = simde_mm_cmpeq_epi16(bits, zero);
@@ -443,8 +455,9 @@ namespace OpenMS::Internal
       return 0;
     }
 
-    void StringManager::compress64 (const XMLCh* input_it, char* output_it) {
-      alignas(16) simde__m128i bits = simde_mm_loadu_si128((simde__m128i*)input_it);
+    void StringManager::compress64 (const XMLCh* input_it, char* output_it) 
+    {
+      simde__m128i bits = simde_mm_loadu_si128((simde__m128i*)input_it);
       // simde__m128i compressed = simde_mm_packus_epi16(bits, simde_mm_setzero_si128());
       const simde__m128i shuffleMask = simde_mm_setr_epi8(0, 2, 4, 6, 8, 10, 12, 14,
                                                         -1, -1, -1, -1, -1, -1, -1, -1);
@@ -467,13 +480,18 @@ namespace OpenMS::Internal
         return false;
       }
 
-      for (size_t i = 0; i < quotient && bitmask; i++)
+      for (size_t i = 0; i < quotient; i++)
       {
+        
         simde__m128i bits = simde_mm_loadu_si128((simde__m128i*)input_ptr);
         simde__m128i zero = simde_mm_setzero_si128();
         simde__m128i andOP = simde_mm_and_si128(bits, mask);
         simde__m128i cmp = simde_mm_cmpeq_epi16(andOP, zero);
-        bitmask = simde_mm_movemask_epi8(cmp) == 0xFFFF;
+        
+        if (simde_mm_movemask_epi8(cmp) != 0xFFFF)
+        {
+          bitmask = false;
+        }
         input_ptr+=8;
       }  
     

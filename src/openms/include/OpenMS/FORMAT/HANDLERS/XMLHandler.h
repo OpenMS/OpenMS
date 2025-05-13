@@ -21,6 +21,7 @@
 #include <xercesc/util/XMLString.hpp>
 
 #include <iosfwd>
+#include <iostream>
 #include <string>
 #include <memory>
 
