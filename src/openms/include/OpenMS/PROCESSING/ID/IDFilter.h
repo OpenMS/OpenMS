@@ -1346,12 +1346,12 @@ namespace OpenMS
       keepHitsMatchingProteins(experiment.getProteinIdentifications(), accessions);
 
       // filter peptide hits:
+      // std::pair<OpenMS::MSSpectrum&, OpenMS::PeptideIdentification&>
       for (auto [spectrum, peptide_id] : experiment)
       {
         if (spectrum.getMSLevel() == 2)
         {
           keepHitsMatchingProteins(peptide_id, accessions);
-          removeEmptyIdentifications(peptide_id);
         }
       }
       removeEmptyIdentifications(experiment.getPeptideIdentifications());
