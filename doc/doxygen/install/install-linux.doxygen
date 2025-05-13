@@ -70,10 +70,17 @@
 
   <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;" cellpadding="3px">
   <tr>
+      <td><b>Ubuntu/Debian <br/>(>= 22.04)</b></td>
+      <td>
+      \snippet "../../tools/ci/deps-linux.sh" installation_documentation
+      </td>
+  </tr>
+  <tr>
     <td><B>Fedora/RHEL/CentOS</B>
     <a href="http://koji.fedoraproject.org/koji/packages">packages</a>
   </td>
-    <td><pre>
+    <td>
+    \code
     # In newer distros change yum to dnf
     sudo yum groupinstall 'Development Tools'
     sudo yum install git tar
@@ -86,12 +93,13 @@
     # Get OPTIONAL installable contrib libraries preferably from our Contrib package in the next step.
     ## sudo yum install boost-devel libsvm-devel libzip-devel zlib-devel xerces-c-devel bzip2-devel libhdf5-devel glpk-devel
     # NOTE that you might need to use cmake3 instead of cmake in the commands of the following steps.
-    </pre>
+    \endcode
     </td>
   </tr>
   <tr>
       <td><B>openSUSE >= 13.2<br/></B></td>
-      <td><pre>
+      <td>
+      \code
       # register obs://build.opensuse.org/devel:libraries:c_c++
       # tools
       sudo zypper install cmake gcc-c++ autoconf git patch automake libtool
@@ -100,22 +108,8 @@
       # OPTIONAL dependencies, preferably installed with our Contrib package in the next step
       ## sudo zypper install boost-devel libzip-devel zlib-devel \
       # libxerces-c-devel libbz2-devel libsvm-devel libhdf5-10
-      </pre></td>
-  </tr>
-  <tr>
-      <td><B>Ubuntu/Debian <br/>(>= 22.04)</B></td>
-      <td><pre>
-    # Include the Ubuntu "universe" repository and update:
-    sudo add-apt-repository universe
-    sudo apt update
-    sudo apt-get install build-essential cmake autoconf patch libtool git automake
-    # note: QtSVG might also be available using ' libqt6svg6-dev' in Debian sid
-    sudo apt-get install qt6-base-dev qt6-svg-dev
-    sudo apt-get install libeigen3-dev libboost-random-dev libboost-regex-dev \
-      libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libxerces-c-dev \
-      zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
-    # This should eliminate the need for building contrib libraries. Note: installing libglpk-dev is optional.
-      </pre></td>
+      \endcode
+      </td>
   </tr>
   </table>
   

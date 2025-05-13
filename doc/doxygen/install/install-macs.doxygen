@@ -126,9 +126,7 @@
   For Homebrew the following sequence of commands installs most of the libraries
   required by %OpenMS.
 
-    \code
-      brew install libsvm xerces-c boost glpk eigen hdf5
-    \endcode
+    \snippet "../../tools/ci/deps-macos.sh" installation_documentation
 
   @note Until the CoinMP complete package is migrated to the
   coin-or-tools tap, we suggest using our contrib version. You will
