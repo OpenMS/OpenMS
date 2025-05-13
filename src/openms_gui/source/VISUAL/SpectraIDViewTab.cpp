@@ -455,7 +455,7 @@ namespace OpenMS
       auto item_pepid = table_widget_->item(row, Clmn::ID_NR);
       if (item_pepid)// might be null for MS1 spectra
       {
-        int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
+        // int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
         int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
 
         const PeptideIdentification& peptide_id = annotated_exp.getPeptideIdentifications()[current_spectrum_index];
@@ -590,7 +590,7 @@ namespace OpenMS
       // only when checked, otherwise only highlights
     {
       int row = selected_spec_row_idx;
-      int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
+      //int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
       int num_id = table_widget_->item(row, Clmn::ID_NR)->data(Qt::DisplayRole).toInt();
       int num_ph = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();      
       const PeptideIdentification& pep_id = layer_->getPeakData()->getPeptideIdentifications()[num_id];
@@ -988,7 +988,7 @@ namespace OpenMS
     // extract position of the correct Spectrum, PeptideIdentification and PeptideHit from the table
     int row = item->row();
     String selected = item->checkState() == Qt::Checked ? "true" : "false";
-    int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
+    // int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
     int num_id = table_widget_->item(row, Clmn::ID_NR)->data(Qt::DisplayRole).toInt();
     int num_ph = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
 
