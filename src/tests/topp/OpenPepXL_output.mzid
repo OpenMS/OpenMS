@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
 	version="1.2.0"
 	id="OpenMS_5634796270667792442"
-	creationDate="2023-03-22T14:19:34">
+	creationDate="2025-04-24T12:33:45">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="http://purl.obolibrary.org/obo/ms/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -12,12 +12,12 @@
 	<cv id="XLMOD" fullName="PSI cross-link modifications" uri="https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.obo"></cv>
 </cvList>
 <AnalysisSoftwareList>
-	<AnalysisSoftware version="3.0.0-pre-Feature-GenericFileLoad-2023-03-22" name="OpenPepXL" id="SOF_5233264595117471314">
+	<AnalysisSoftware version="3.4.0-pre-move-rank-to-meta-2025-04-24" name="OpenPepXL" id="SOF_5233264595117471314">
 		<SoftwareName>
 			<cvParam accession="MS:1003023" cvRef="PSI-MS" name="OpenPepXL"/>
 		</SoftwareName>
 	</AnalysisSoftware>
-	<AnalysisSoftware version="OpenMS TOPP v3.0.0-pre-Feature-GenericFileLoad-2023-03-22" name="TOPP software" id="SOF_4877407491526870466">
+	<AnalysisSoftware version="OpenMS TOPP v3.4.0-pre-move-rank-to-meta-2025-04-24" name="TOPP software" id="SOF_4877407491526870466">
 		<SoftwareName>
 			<cvParam accession="MS:1000752" cvRef="PSI-MS" name="TOPP software"/>
 		</SoftwareName>
@@ -381,7 +381,7 @@
 	<PeptideEvidence id="PEV_9949257177078866781" peptide_ref="PEP_17876486934271562208" dBSequence_ref="PROT_13440783915218733453" post="V" pre="R" start="146" end="160" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
-	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2023-03-22T14:19:34">
+	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2025-04-24T12:33:45">
 		<InputSpectra spectraData_ref="SDAT_15004869347769368353"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_3332699010107892018"/>
 	</SpectrumIdentification>
@@ -394,8 +394,8 @@
 		<AdditionalSearchParams>
 
 			<cvParam accession="MS:1002494" cvRef="PSI-MS" name="crosslinking search"/>
-			<userParam name="input_consensusXML" unitName="xsd:string" value="/home/samuel/git/OpenMS/src/tests/topp/OpenPepXL_input.consensusXML"/>
-			<userParam name="input_mzML" unitName="xsd:string" value="/home/samuel/git/OpenMS/src/tests/topp/OpenPepXL_input.mzML"/>
+			<userParam name="input_consensusXML" unitName="xsd:string" value="/home/sachsenb/Development/OpenMS/src/tests/topp/OpenPepXL_input.consensusXML"/>
+			<userParam name="input_mzML" unitName="xsd:string" value="/home/sachsenb/Development/OpenMS/src/tests/topp/OpenPepXL_input.mzML"/>
 			<userParam name="input_decoys" unitName="xsd:string" value=""/>
 			<userParam name="out_xquest_specxml" unitName="xsd:string" value="OpenPepXL_output.tmp.spec.xml"/>
 			<userParam name="decoy_prefix" unitName="xsd:integer" value="1"/>
@@ -446,12 +446,12 @@
 </AnalysisProtocolCollection>
 <DataCollection>
 	<Inputs>
-		<SearchDatabase location="/home/samuel/git/OpenMS/src/tests/topp/OpenPepXL_input.fasta" id="SDB_3332699010107892018">
+		<SearchDatabase location="/home/sachsenb/Development/OpenMS/src/tests/topp/OpenPepXL_input.fasta" id="SDB_3332699010107892018">
 			<FileFormat>
 				<cvParam accession="MS:1001348" cvRef="PSI-MS" name="FASTA format"/>
 			</FileFormat>
 			<DatabaseName>
-				<userParam name="/home/samuel/git/OpenMS/src/tests/topp/OpenPepXL_input.fasta"/>
+				<userParam name="/home/sachsenb/Development/OpenMS/src/tests/topp/OpenPepXL_input.fasta"/>
 			</DatabaseName>
 			<cvParam accession="MS:1001029" cvRef="PSI-MS" name="number of sequences searched" value="1091"/>
 		</SearchDatabase>
@@ -515,6 +515,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.091359180643107"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="17413765565443951891"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="101"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -598,6 +599,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.091359180643107"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="17413765565443951891"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="101"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -690,6 +692,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.213291562461311"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="14811341817612382122"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -780,6 +783,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.213291562461311"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="14811341817612382122"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -833,6 +837,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.213291562461311"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="14811341817612382122"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -886,6 +891,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.213291562461311"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="14811341817612382122"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -978,6 +984,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.215046269843106"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="7276556891837796968"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -1068,6 +1075,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.215046269843106"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="7276556891837796968"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -1121,6 +1129,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.215046269843106"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="7276556891837796968"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -1174,6 +1183,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.215046269843106"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="7276556891837796968"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -1271,6 +1281,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.241031151628137"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="10052793688680741109"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -1368,6 +1379,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.241031151628137"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="10052793688680741109"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -1421,6 +1433,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.241031151628137"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="10052793688680741109"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -1474,6 +1487,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.241031151628137"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="10052793688680741109"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -1571,6 +1585,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.254727022780613"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="1003624456647096845"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
+					<userParam name="rank" unitName="xsd:integer" value="3"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -1668,6 +1683,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.254727022780613"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="1003624456647096845"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
+					<userParam name="rank" unitName="xsd:integer" value="3"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -1721,6 +1737,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.254727022780613"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="1003624456647096845"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
+					<userParam name="rank" unitName="xsd:integer" value="3"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -1774,6 +1791,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.254727022780613"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="1003624456647096845"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
+					<userParam name="rank" unitName="xsd:integer" value="3"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -1857,6 +1875,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.264515688187199"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="14317784148091680644"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
+					<userParam name="rank" unitName="xsd:integer" value="4"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -1940,6 +1959,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.264515688187199"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="14317784148091680644"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
+					<userParam name="rank" unitName="xsd:integer" value="4"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -1993,6 +2013,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.264515688187199"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="14317784148091680644"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
+					<userParam name="rank" unitName="xsd:integer" value="4"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -2046,6 +2067,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.264515688187199"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="14317784148091680644"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
+					<userParam name="rank" unitName="xsd:integer" value="4"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -2131,6 +2153,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160083568623408"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="12758854762884412659"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -2214,6 +2237,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160083568623408"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="12758854762884412659"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -2267,6 +2291,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160083568623408"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="12758854762884412659"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -2320,6 +2345,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160083568623408"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="12758854762884412659"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -2389,6 +2415,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.350081994148672"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="4410447320637600518"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -2458,6 +2485,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.350081994148672"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="4410447320637600518"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -2511,6 +2539,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.350081994148672"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="4410447320637600518"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -2564,6 +2593,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.350081994148672"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="4410447320637600518"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -2649,6 +2679,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160084937451979"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="575144564576995072"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -2732,6 +2763,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160084937451979"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="575144564576995072"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -2785,6 +2817,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160084937451979"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="575144564576995072"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -2838,6 +2871,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160084937451979"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="575144564576995072"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -2909,6 +2943,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.987616283466617"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="12388384985798314387"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="152"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -2978,6 +3013,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.987616283466617"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="12388384985798314387"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="152"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -3047,6 +3083,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-1.031723474313027"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="15721057298497490036"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="152"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -3116,6 +3153,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-1.031723474313027"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="15721057298497490036"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="152"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -3201,6 +3239,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.170796594034904"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="9140546320740515641"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="154"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -3284,6 +3323,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.170796594034904"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="9140546320740515641"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="154"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -3367,6 +3407,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.271937138172787"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="1621338151966755474"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="154"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -3450,6 +3491,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.271937138172787"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="1621338151966755474"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="154"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -3535,6 +3577,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.088343889431906"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="15246437841577070383"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="195"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -3618,6 +3661,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.088343889431906"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="15246437841577070383"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="195"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -3701,6 +3745,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.165753739690541"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="3607574553438867574"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="195"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -3784,6 +3829,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.165753739690541"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="3607574553438867574"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="195"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="mono-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -3883,6 +3929,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.233412652722232"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="17153647282322401195"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -3980,6 +4027,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.233412652722232"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="17153647282322401195"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -4033,6 +4081,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.233412652722232"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="17153647282322401195"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -4086,6 +4135,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.233412652722232"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="17153647282322401195"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -4183,6 +4233,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.289735474862747"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="16459288859473286876"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -4280,6 +4331,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.289735474862747"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="16459288859473286876"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -4333,6 +4385,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.289735474862747"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="16459288859473286876"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -4386,6 +4439,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.289735474862747"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="16459288859473286876"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -4483,6 +4537,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.299502208280578"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="16715553145456715818"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
+					<userParam name="rank" unitName="xsd:integer" value="3"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -4580,6 +4635,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.299502208280578"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="16715553145456715818"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
+					<userParam name="rank" unitName="xsd:integer" value="3"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -4633,6 +4689,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.299502208280578"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="16715553145456715818"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
+					<userParam name="rank" unitName="xsd:integer" value="3"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -4686,6 +4743,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.299502208280578"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="16715553145456715818"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
+					<userParam name="rank" unitName="xsd:integer" value="3"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -4778,6 +4836,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.264684266634885"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="11164532998186420766"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -4868,6 +4927,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.264684266634885"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="11164532998186420766"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -4921,6 +4981,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.264684266634885"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="11164532998186420766"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -4974,6 +5035,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.264684266634885"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="11164532998186420766"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -5059,6 +5121,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.122504015085269"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="3115030544351500350"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -5142,6 +5205,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.122504015085269"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="3115030544351500350"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -5195,6 +5259,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.122504015085269"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="3115030544351500350"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -5248,6 +5313,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.122504015085269"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="3115030544351500350"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -5324,6 +5390,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.226323611167194"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="15490049804574065229"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -5400,6 +5467,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.226323611167194"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="15490049804574065229"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -5453,6 +5521,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.226323611167194"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="15490049804574065229"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -5506,6 +5575,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.226323611167194"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="15490049804574065229"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -5582,6 +5652,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.248002720024005"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="16437269819074619437"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
+					<userParam name="rank" unitName="xsd:integer" value="3"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -5658,6 +5729,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.248002720024005"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="16437269819074619437"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
+					<userParam name="rank" unitName="xsd:integer" value="3"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -5711,6 +5783,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.248002720024005"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="16437269819074619437"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
+					<userParam name="rank" unitName="xsd:integer" value="3"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -5764,6 +5837,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.248002720024005"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="16437269819074619437"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
+					<userParam name="rank" unitName="xsd:integer" value="3"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -5849,6 +5923,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160083568623408"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="1736129847460668689"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -5932,6 +6007,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160083568623408"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="1736129847460668689"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -5985,6 +6061,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160083568623408"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="1736129847460668689"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -6038,6 +6115,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.160083568623408"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="1736129847460668689"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
+					<userParam name="rank" unitName="xsd:integer" value="1"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -6114,6 +6192,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.260382860962843"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="9283548542228005819"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -6190,6 +6269,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.260382860962843"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="9283548542228005819"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -6243,6 +6323,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.260382860962843"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="9283548542228005819"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>
@@ -6296,6 +6377,7 @@
 					<cvParam accession="MS:1003024" cvRef="PSI-MS" name="OpenPepXL:score" value="-0.260382860962843"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="crosslink spectrum identification item" value="9283548542228005819"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
+					<userParam name="rank" unitName="xsd:integer" value="2"/>
 					<userParam name="xl_type" unitName="xsd:string" value="cross-link"/>
 					<userParam name="xl_term_spec_alpha" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="xl_term_spec_beta" unitName="xsd:string" value="ANYWHERE"/>

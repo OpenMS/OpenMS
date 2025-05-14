@@ -22,7 +22,7 @@
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
 	<IdentificationRun date="2015-01-06T13:43:06" search_engine="X! Tandem" search_engine_version="" search_parameters_ref="SP_0" >
-		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
 			<ProteinHit id="PH_0" accession="sp|P23588|IF4B_HUMAN" score="0.0" sequence="" >
 			</ProteinHit>
 			<ProteinHit id="PH_1" accession="sp|P00338|LDHA_HUMAN" score="0.0" sequence="" >
@@ -74,7 +74,7 @@
 		</PeptideIdentification>
 	</IdentificationRun>
 	<IdentificationRun date="2015-01-06T13:43:07" search_engine="X! Tandem" search_engine_version="" search_parameters_ref="SP_1" >
-		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
 			<ProteinHit id="PH_2" accession="sp|O75533|SF3B1_HUMAN" score="0.0" sequence="" >
 			</ProteinHit>
 			<ProteinHit id="PH_3" accession="sp|P19338|NUCL_HUMAN" score="0.0" sequence="" >
