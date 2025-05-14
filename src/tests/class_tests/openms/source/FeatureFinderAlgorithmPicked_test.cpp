@@ -15,7 +15,7 @@
 ///////////////////////////
 
 #include <OpenMS/MATH/MathFunctions.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 START_TEST(FeatureFinderAlgorithmPicked, "$Id$")
@@ -44,9 +44,9 @@ END_SECTION
 START_SECTION((virtual void run()))
   //input and output
   PeakMap input;
-  MzDataFile mzdata_file;
-  mzdata_file.getOptions().addMSLevel(1);
-  mzdata_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.mzData"),input);
+  MzMLFile mzml_file;
+  mzml_file.getOptions().addMSLevel(1);
+  mzml_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.mzML"),input);
   input.updateRanges(1);
   FeatureMap output;
 

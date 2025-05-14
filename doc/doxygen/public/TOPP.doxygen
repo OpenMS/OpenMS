@@ -97,7 +97,6 @@
   <b>Identification of Proteins/Peptides (SearchEngines)</b>
   - @subpage TOPP_CometAdapter - Identifies MS/MS spectra using Comet (external).
   - @subpage TOPP_LuciphorAdapter - Scores potential phosphorylation sites in order to localize the most probable sites.
-  - @subpage TOPP_MascotAdapter - Identifies MS/MS spectra using Mascot (external).
   - @subpage TOPP_MascotAdapterOnline - Identifies MS/MS spectra using Mascot (external).
   - @subpage TOPP_MSFraggerAdapter - Peptide Identification with MSFragger.
   - @subpage TOPP_MSGFPlusAdapter - Identifies MS/MS spectra using MSGFPlus (external).

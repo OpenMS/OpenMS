@@ -52,7 +52,7 @@ namespace OpenMS
       pep.setScoreType("OMSSA");
       pep.setHigherScoreBetter(false);
       pep.setIdentifier(identifier);
-      pep.assignRanks();
+      pep.sort();
 
       if (load_proteins)
       {

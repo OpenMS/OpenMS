@@ -946,7 +946,7 @@ protected:
         bool is_blacklist = getStringOption_("spectra:blackorwhitelist:blacklist") == "true" ? true : false;
 
         PeakMap lib_file;
-        FileHandler().loadExperiment(lib_file_name, lib_file, {FileTypes::MZML});
+        FileHandler().loadExperiment(lib_file_name, lib_file, {FileTypes::MZML}, log_type_);
 
         int ret = filterByBlackOrWhiteList(is_blacklist, exp, lib_file, tol_rt, tol_mz, tol_sim, is_ppm);
         if (ret != EXECUTION_OK)

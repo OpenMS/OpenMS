@@ -60,7 +60,7 @@ namespace OpenMS
 
   void OpenMS::FLASHDeconvWizardBase::on_actionVisit_FLASHDeconv_homepage_triggered()
   {
-    const char* url = "https://openms.de/application/flashdeconv/";
+    const char* url = "https://openms.de/applications/flashdeconv/";
     if (!QDesktopServices::openUrl(QUrl(url)))
     {
       QMessageBox::warning(nullptr, "Cannot open browser. Please check your default browser settings.", QString(url));

@@ -875,6 +875,14 @@ def testConsensusMap():
     m.sortByQuality()
     m.sortByRT()
     m.sortBySize()
+    # We need to add a feature to the map before calling updateRanges otherwise the getMin and getMax throw an error.
+    f = pyopenms.ConsensusFeature()
+    f.setCharge(1)
+    f.setQuality(2.0)
+    f.setWidth(4.0)
+    m.push_back(f)
+    m.push_back(f)
+
     m.updateRanges()
 
     assert isinstance(m.getMinRT(), float)
@@ -888,12 +896,7 @@ def testConsensusMap():
     m.getLoadedFileType()
     m.getLoadedFilePath()
     
-    f = pyopenms.ConsensusFeature()
-    f.setCharge(1)
-    f.setQuality(2.0)
-    f.setWidth(4.0)
-    m.push_back(f)
-    m.push_back(f)
+ 
     intydf = m.get_intensity_df()
     metadf = m.get_metadata_df()
     assert intydf.shape[0] == 2
@@ -2028,7 +2031,7 @@ def testFeatureXMLFile():
                 on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (2,24)
 
     fm = pyopenms.FeatureMap()
-    pyopenms.FeatureXMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_idmapped.featureXML'), fm)
+    pyopenms.FeatureXMLFile().load(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'BSA1_F1_idmapped.featureXML'), fm)
 
     assert pd.merge(fm.get_df(), pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications()),
                     on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (15,26)
@@ -2689,8 +2692,6 @@ def testSample():
      Sample.getConcentration
      Sample.getSubsamples
      Sample.setSubsamples
-     Sample.removeTreatment
-     Sample.countTreatments
      """
     ins = pyopenms.Sample()
 
@@ -2722,7 +2723,6 @@ def testSample():
     except Exception:
         has_exception = True
     assert has_exception
-    assert ins.countTreatments() == 0
 
 @report
 def testLogType():
@@ -2860,15 +2860,6 @@ def testMSExperiment():
     assert mse_ == mse
 
     _testMetaInfoInterface(mse)
-    mse.updateRanges()
-    mse.sortSpectra(True)
-    assert isinstance(mse.getMaxRT(), float)
-    assert isinstance(mse.getMinRT(), float)
-    assert isinstance(mse.getMaxMZ(), float)
-    assert isinstance(mse.getMinMZ(), float)
-    _testStrOutput(mse.getLoadedFilePath())
-    assert isinstance(mse.getMinIntensity(), float)
-    assert isinstance(mse.getMaxIntensity(), float)
 
     mse.setLoadedFilePath("")
     assert mse.size() == 0
@@ -2877,6 +2868,7 @@ def testMSExperiment():
     mse.getLoadedFileType()
     mse.getLoadedFilePath()
 
+    # We need to add a feature to the map before updateRanges otherwise the getMin and getMax throw an error.
     spec = pyopenms.MSSpectrum()
     data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
     data_i = np.array( [50.0, 80.0] ).astype(np.float32)
@@ -2884,6 +2876,17 @@ def testMSExperiment():
 
     mse.addSpectrum(spec)
     assert mse.size() == 1
+
+    mse.updateRanges()
+    mse.sortSpectra(True)
+
+    assert isinstance(mse.getMaxRT(), float)
+    assert isinstance(mse.getMinRT(), float)
+    assert isinstance(mse.getMaxMZ(), float)
+    assert isinstance(mse.getMinMZ(), float)
+    _testStrOutput(mse.getLoadedFilePath())
+    assert isinstance(mse.getMinIntensity(), float)
+    assert isinstance(mse.getMaxIntensity(), float)
 
     assert mse[0] is not None
 
@@ -2929,23 +2932,23 @@ def testMSExperiment():
     assert exp.get_df(long = True, ms_levels=[1]).shape == (6, 4)
     assert exp.get_df(long=True, ms_levels=[2]).shape == (4, 4)
 
-    pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1.mzML'), exp)
+    pyopenms.MzMLFile().load(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'BSA1_F1.mzML'), exp)
 
     ms1_df, ms2_df = exp.get_massql_df()
     assert ms1_df.shape == (140055, 7)
-    assert np.allclose(ms2_df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS2_MassQL.tsv'), sep='\t'))
+    assert np.allclose(ms2_df.head(), pd.read_csv(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'BSA1_F1_MS2_MassQL.tsv'), sep='\t'))
 
-    pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_ION.mzML'), exp)
+    pyopenms.MzMLFile().load(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'BSA1_F1_ION.mzML'), exp)
     df = exp.get_ion_df()
-    assert np.allclose(df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS1_ION.tsv'), sep='\t'))
+    assert np.allclose(df.head(), pd.read_csv(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'BSA1_F1_MS1_ION.tsv'), sep='\t'))
 
     ms1_df, ms2_df = exp.get_massql_df(ion_mobility=True)
     assert ms1_df.shape == (332620, 8)
-    assert np.allclose(ms1_df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS1_MassQL_ION.tsv'), sep='\t'))
+    assert np.allclose(ms1_df.head(), pd.read_csv(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'BSA1_F1_MS1_MassQL_ION.tsv'), sep='\t'))
 
     #####################################################################################
     # test fast aggregation and XIC extraction using ranges
-    pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1.mzML'), exp)    
+    pyopenms.MzMLFile().load(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'BSA1_F1.mzML'), exp)    
     exp.updateRanges()
 
     ############################################################################
@@ -4537,45 +4540,96 @@ def testPrecursor():
     """
     @tests: Precursor
      Precursor.__init__
-     Precursor.getIntensity
-     Precursor.getMZ
-     Precursor.setIntensity
-     Precursor.setMZ
-     Precursor.setActivationMethods
      Precursor.getActivationMethods
-     Precursor.setActivationEnergy
+     Precursor.setActivationMethods
      Precursor.getActivationEnergy
-     Precursor.setIsolationWindowUpperOffset
-     Precursor.getIsolationWindowUpperOffset
-     Precursor.setIsolationWindowLowerOffset
+     Precursor.setActivationEnergy
      Precursor.getIsolationWindowLowerOffset
-     Precursor.setCharge
+     Precursor.setIsolationWindowLowerOffset
+     Precursor.getDriftTime
+     Precursor.setDriftTime
+     Precursor.getIsolationWindowUpperOffset
+     Precursor.setIsolationWindowUpperOffset 
+     Precursor.getDriftTimeWindowLowerOffset
+     Precursor.setDriftTimeWindowLowerOffset
+     Precursor.getDriftTimeWindowUpperOffset
+     Precursor.setDriftTimeWindowUpperOffset
      Precursor.getCharge
-     Precursor.setPossibleChargeStates
+     Precursor.setCharge
      Precursor.getPossibleChargeStates
+     Precursor.setPossibleChargeStates
      Precursor.getUnchargedMass
+     Precursor.__eq__
+     Precursor.__ne__
     """
-    pc = pyopenms.Precursor()
-    pc.setMZ(123.0)
-    pc.setIntensity(12.0)
-    assert pc.getMZ() == 123.0
-    assert pc.getIntensity() == 12.0
 
-    pc.setActivationMethods(pc.getActivationMethods())
-    pc.setActivationEnergy(6.0)
-    pc.getActivationEnergy()
+    # Test constructors
+    prec = pyopenms.Precursor()
+    prec2 = pyopenms.Precursor(prec)
+    assert prec == prec2
+    assert not prec != prec2
 
-    pc.setIsolationWindowUpperOffset(500.0)
-    pc.getIsolationWindowUpperOffset()
-    pc.setIsolationWindowLowerOffset(600.0)
-    pc.getIsolationWindowLowerOffset()
+    # Test activation methods
+    methods = set([pyopenms.Precursor.ActivationMethod.CID, 
+                  pyopenms.Precursor.ActivationMethod.HCD])
+    methods_short = ["CID", "HCD"]
+    methods_long = ["Collision-induced dissociation", "beam-type collision-induced dissociation"]
+    prec.setActivationMethods(methods)
+    assert prec.getActivationMethods() == methods
 
-    pc.setCharge(2)
-    pc.getCharge()
+    # Test activation energy  
+    prec.setActivationEnergy(25.0)
+    assert abs(prec.getActivationEnergy() - 25.0) < 1e-5
 
-    pc.setPossibleChargeStates(pc.getPossibleChargeStates())
+    # Test activation methods as strings
+    short_strings = prec.getActivationMethodsAsShortString()
+    assert sorted([s.decode() for s in short_strings]) == sorted(methods_short)
+    long_strings = prec.getActivationMethodsAsString()
+    assert sorted([s.decode() for s in long_strings]) == sorted(methods_long)
 
-    pc.getUnchargedMass()
+    # Test static methods for all activation methods
+    all_names = pyopenms.Precursor.getAllNamesOfActivationMethods()
+    assert len(all_names) == pyopenms.Precursor.ActivationMethod.SIZE_OF_ACTIVATIONMETHOD
+    assert all_names[pyopenms.Precursor.ActivationMethod.CID].decode() == "Collision-induced dissociation"
+    
+    all_short_names = pyopenms.Precursor.getAllShortNamesOfActivationMethods()
+    assert len(all_short_names) == pyopenms.Precursor.ActivationMethod.SIZE_OF_ACTIVATIONMETHOD
+    assert all_short_names[pyopenms.Precursor.ActivationMethod.CID].decode() == "CID"
+
+    # Test isolation window
+    prec.setIsolationWindowLowerOffset(0.5)
+    assert abs(prec.getIsolationWindowLowerOffset() - 0.5) < 1e-5
+    
+    prec.setIsolationWindowUpperOffset(1.5) 
+    assert abs(prec.getIsolationWindowUpperOffset() - 1.5) < 1e-5
+
+    # Test drift time
+    prec.setDriftTime(5.0)
+    assert abs(prec.getDriftTime() - 5.0) < 1e-5
+
+    # Test drift time window
+    prec.setDriftTimeWindowLowerOffset(0.2)
+    assert abs(prec.getDriftTimeWindowLowerOffset() - 0.2) < 1e-5
+    
+    prec.setDriftTimeWindowUpperOffset(0.8)
+    assert abs(prec.getDriftTimeWindowUpperOffset() - 0.8) < 1e-5
+
+    # Test charge
+    prec.setCharge(2)
+    assert prec.getCharge() == 2
+
+    # Test possible charge states
+    charges = [2,3,4]
+    prec.setPossibleChargeStates(charges)
+    assert list(prec.getPossibleChargeStates()) == charges
+
+    # Test uncharged mass calculation
+    mz = 200.0
+    prec.setMZ(mz)
+    charge = 2
+    prec.setCharge(charge)
+    expected_mass = mz * charge - charge * 1.007276466879  # mass of proton
+    assert abs(prec.getUnchargedMass() - expected_mass) < 1e-5
 
 @report
 def testProcessingAction():

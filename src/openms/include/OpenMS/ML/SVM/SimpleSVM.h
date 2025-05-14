@@ -10,12 +10,14 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-#include <svm.h>
+// Remove libSVM header include
+// #include <svm.h>
 
 #include <map>
 #include <vector>
 #include <utility> // for "pair"
 #include <tuple>
+#include <memory> // for std::unique_ptr
 
 namespace OpenMS
 {
@@ -73,6 +75,10 @@ namespace OpenMS
     /// Destructor
     ~SimpleSVM() override;
 
+    // Prevent copy and assignment
+    SimpleSVM(const SimpleSVM&) = delete;
+    SimpleSVM& operator=(const SimpleSVM&) = delete;
+
     /**
        @brief Load data and train a model.
 
@@ -126,51 +132,10 @@ namespace OpenMS
     const ScaleMap& getScaling() const;
 
   protected:
-    void clear_();
-
-    /// Classification (or regression) performance for different param. combinations (C/gamma/p):
-    typedef std::vector<std::vector<std::vector<double>>> SVMPerformance;
-
-    /// Values of predictors (LIBSVM format)
-    std::vector<std::vector<struct svm_node> > nodes_;
-
-    /// SVM training data (LIBSVM format)
-    struct svm_problem data_;
-
-    /// SVM parameters (LIBSVM format)
-    struct svm_parameter svm_params_;
-
-    /// Pointer to SVM model (LIBSVM format)
-    struct svm_model* model_;
-
-    /// Names of predictors in the model (excluding uninformative ones)
-    std::vector<String> predictor_names_;
-
-    /// Number of partitions for cross-validation
-    Size n_parts_;
-
-    /// Parameter values to try during optimization
-    std::vector<double> log2_C_, log2_gamma_, log2_p_;
-
-    /// Mapping from predictor name to predictor min and max
-    ScaleMap scaling_;
-
-    /// Cross-validation results
-    SVMPerformance performance_;
-
-    /// Dummy function to suppress LIBSVM output
-    static void printNull_(const char*) {}
-
-    /// Scale predictor values to range 0-1
-    void scaleData_(PredictorMap& predictors);
-
-    /// Convert predictors to LIBSVM format
-    void convertData_(const PredictorMap& predictors);
-
-    /// Choose best SVM parameters based on cross-validation results
-    std::tuple<double, double, double> chooseBestParameters_(bool higher_better) const;
-
-    /// Run cross-validation to optimize SVM parameters
-    void optimizeParameters_(bool classification);
+    // Forward declaration of implementation class
+    class Impl;
+    
+    // Pointer to implementation (Pimpl pattern)
+    std::unique_ptr<Impl> pimpl_;
   };
 }

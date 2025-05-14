@@ -395,7 +395,7 @@ namespace OpenMS
         }
       }
       it->setHigherScoreBetter(false);
-      it->assignRanks();
+      it->sort();
     }
 
     return;

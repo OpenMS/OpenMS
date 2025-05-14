@@ -94,14 +94,22 @@ namespace OpenMS
     double im_delta_score = 0;
     double im_ms1_delta_score = 0;
     double im_drift = 0;
+    double im_drift_left = 0;
+    double im_drift_right = 0;
     double im_drift_weighted = 0;
     double im_delta = -1;
+    double im_log_intensity = 0;
     double im_ms1_contrast_coelution = 0;
     double im_ms1_contrast_shape = 0;
     double im_ms1_sum_contrast_coelution = 0;
     double im_ms1_sum_contrast_shape = 0;
     double im_ms1_drift = 0;
     double im_ms1_delta = -1;
+    // additional ion mobility IPF identifying against detecting transition scores
+    double im_ind_contrast_coelution = 0;
+    double im_ind_contrast_shape = 0;
+    double im_ind_sum_contrast_coelution = 0;
+    double im_ind_sum_contrast_shape = 0;
 
     double library_manhattan = 0;
     double library_dotprod = 0;
@@ -161,6 +169,14 @@ namespace OpenMS
 
   };
 
+  /**
+   * @brief A structure to hold the individual scores computed for unique ion signatures (UIS) scores for the Inference of Peptidoforms (IPF) workflow
+   * 
+   * Most of the scores are computed for each individual identifying transition (theoretical transitions) against the peak-group detection transitions.
+   * 
+   * This struct also holds peak shape metrics for each individual transition.
+   * 
+   */
   struct OPENMS_DLLAPI OpenSwath_Ind_Scores
   {
     int ind_num_transitions = 0;
@@ -182,6 +198,18 @@ namespace OpenMS
     std::vector<double> ind_intensity_ratio;
     std::vector<double> ind_mi_ratio;
     std::vector<double> ind_mi_score;
+
+    // ion mobility scores
+    std::vector<double>  ind_im_drift;
+    std::vector<double>  ind_im_drift_left;
+    std::vector<double>  ind_im_drift_right;
+    std::vector<double>  ind_im_delta;
+    std::vector<double>  ind_im_delta_score;
+    std::vector<double>  ind_im_log_intensity;
+    std::vector<double>  ind_im_contrast_coelution;
+    std::vector<double>  ind_im_contrast_shape;
+    std::vector<double>  ind_im_sum_contrast_coelution;
+    std::vector<double>  ind_im_sum_contrast_shape;
     
     // peak shape metrics
     std::vector<double> ind_start_position_at_5;

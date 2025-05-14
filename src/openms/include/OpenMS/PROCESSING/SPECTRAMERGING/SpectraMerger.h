@@ -24,9 +24,19 @@ namespace OpenMS
 {
 
   /**
-  @brief Merges blocks of MS or MS2 spectra
+  @brief Offers spectra merging and averaging algorithms to increase the quality of a spectrum.
 
-  Parameter's are accessible via the DefaultParamHandler.
+  Spectra merging is to merge multiple related spectra into a single one - thus, we often end up with a reduced number of spectra.
+  For instance, MS1 spectra within a pre-defined retention time window or MS2 spectra from the same precursor ion.
+  Merging can be done block wise or by precursor.
+  
+  Spectra averaging incorporates the signal from neighbouring spectra for each spectrum.
+  Thus, the number of spectra remains the same after spectra averaging.
+  The weights of neighbouring spectra (in RT) are either determined by a Gaussian or all identical (TopHat method).
+  
+  Both merging and averaging attempt to increase the quality of a spectrum by increasing its signal to noise ratio.
+
+  Parameters are accessible via the DefaultParamHandler.
 
   @htmlinclude OpenMS_SpectraMerger.parameters
 
@@ -133,11 +143,7 @@ public:
     void mergeSpectraBlockWise(MapType& exp)
     {
       IntList ms_levels = param_.getValue("block_method:ms_levels");
-      // just checking negative values
-      if ((Int)param_.getValue("block_method:rt_block_size") < 1)
-      {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The parameter 'block_method:rt_block_size' must be greater than 0.");
-      }
+
       // now actually using an UNSIGNED int, so we can increase it by 1 even if the value is INT_MAX without overflow
       UInt rt_block_size(param_.getValue("block_method:rt_block_size"));
       double rt_max_length = (param_.getValue("block_method:rt_max_length"));
@@ -336,7 +342,7 @@ public:
      *
      * @param exp experimental data to be averaged
      * @param average_type averaging type to be used ("gaussian" or "tophat")
-     * @param ms_level targe MS level. If it is -1, ms_level will be determined by ms_level parameter.
+     * @param ms_level target MS level. If it is -1, ms_level will be determined by the '&lt;average_type&gt;ms_level' parameter of the DefaultParamHandler
      */
     template <typename MapType>
     void average(MapType& exp, const String& average_type, int ms_level = -1)
@@ -507,7 +513,7 @@ public:
                                           "Input mzML does not have any spectra of MS level specified by ms_level.");
       }
 
-      // normalize weights
+      // normalize weights (such that their sum == 1)
       for (AverageBlocks::iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         double sum(0.0);

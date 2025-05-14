@@ -93,7 +93,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   PeptideHit pep_hit = first.getHits()[0];
   TEST_EQUAL(pep_hit.getSequence().toString(), ".(Glu->pyro-Glu)ELNKEMAAEKAKAAAG");
   TEST_EQUAL(pep_hit.getSequence().toUnmodifiedString(), "ELNKEMAAEKAKAAAG");
-  TEST_EQUAL(pep_hit.getRank(), 1);
+  TEST_EQUAL(pep_hit.getRank(), 0);
 
   // no use checking score, because implementation may still change
   TEST_EQUAL(pep_hit.getCharge(), 3);
@@ -224,7 +224,7 @@ START_SECTION([EXTRA] void load(const String& filename, std::vector<ProteinIdent
   PeptideHit pep_hit = last.getHits()[0];
   TEST_EQUAL(pep_hit.getSequence().toString(), "VVITAPGGNDVK");
   TEST_EQUAL(pep_hit.getSequence().toUnmodifiedString(), "VVITAPGGNDVK");
-  TEST_EQUAL(pep_hit.getRank(), 1);
+  TEST_EQUAL(pep_hit.getRank(), 0);
   TEST_EQUAL(pep_hit.getCharge(), 2);
 
   // check the analysis scores
@@ -367,7 +367,7 @@ START_SECTION([EXTRA] void store(const String& filename, std::vector<ProteinIden
     PeptideHit pep_hit = last.getHits()[0];
     TEST_EQUAL(pep_hit.getSequence().toString(), "VVITAPGGNDVK");
     TEST_EQUAL(pep_hit.getSequence().toUnmodifiedString(), "VVITAPGGNDVK");
-    TEST_EQUAL(pep_hit.getRank(), 1);
+    TEST_EQUAL(pep_hit.getRank(), 0);
     TEST_EQUAL(pep_hit.getCharge(), 2);
 
     // test extra attributes (correctly read and written)

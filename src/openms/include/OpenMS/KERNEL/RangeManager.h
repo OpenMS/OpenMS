@@ -123,15 +123,25 @@ public:
     if (min_ > max) min_ = max;
   }
 
-  /// only useful if isEmpty() returns false
+  /// Get the minimum value of the range
+  /// @throws Exception::InvalidRange if the range is empty
   double getMin() const
   {
+    if (isEmpty())
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Empty or uninitalized range object. Did you forget to call updateRanges()?");
+    }
     return min_;
   }
 
-  /// only useful if isEmpty() returns false
+  /// Get the maximum value of the range
+  /// @throws Exception::InvalidRange if the range is empty
   double getMax() const
   {
+    if (isEmpty())
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Empty or uninitialized range object. Did you forget to call updateRanges()?");
+    }
     return max_;
   }
   ///@}
@@ -308,16 +318,18 @@ struct OPENMS_DLLAPI RangeRT : public RangeBase
     setMax(max);
   }
 
-  /// only useful if isEmpty() returns false
+  /// Get the minimum RT value of the range
+  /// @throws Exception::InvalidRange if the range is empty
   double getMinRT() const
   {
-    return min_;
+    return getMin();
   }
 
-  /// only useful if isEmpty() returns false
+  /// Get the maximum RT value of the range
+  /// @throws Exception::InvalidRange if the range is empty
   double getMaxRT() const
   {
-    return max_;
+    return getMax();
   }
   ///@}
 
@@ -369,16 +381,18 @@ struct OPENMS_DLLAPI RangeMZ : public RangeBase
     setMax(max);
   }
 
-  /// only useful if isEmpty() returns false
+  /// Get the minimum MZ value of the range
+  /// @throws Exception::InvalidRange if the range is empty
   double getMinMZ() const
   {
-    return min_;
+    return getMin();
   }
 
-  /// only useful if isEmpty() returns false
+  /// Get the maximum MZ value of the range
+  /// @throws Exception::InvalidRange if the range is empty
   double getMaxMZ() const
   {
-    return max_;
+    return getMax();
   }
   ///@}
 
@@ -429,16 +443,18 @@ struct OPENMS_DLLAPI RangeIntensity : public RangeBase
     setMax(max);
   }
 
-  /// only useful if isEmpty() returns false
+  /// Get the minimum intensity value of the range
+  /// @throws Exception::InvalidRange if the range is empty
   double getMinIntensity() const
   {
-    return min_;
+    return getMin();
   }
 
-  /// only useful if isEmpty() returns false
+  /// Get the maximum intensity value of the range
+  /// @throws Exception::InvalidRange if the range is empty
   double getMaxIntensity() const
   {
-    return max_;
+    return getMax();
   }
   ///@}
 
@@ -488,16 +504,18 @@ struct OPENMS_DLLAPI RangeMobility : public RangeBase
     setMax(max);
   }
 
-  /// only useful if isEmpty() returns false
+  /// Get the minimum mobility value of the range
+  /// @throws Exception::InvalidRange if the range is empty
   double getMinMobility() const
   {
-    return min_;
+    return getMin();
   }
 
-  /// only useful if isEmpty() returns false
+  /// Get the maximum mobility value of the range
+  /// @throws Exception::InvalidRange if the range is empty
   double getMaxMobility() const
   {
-    return max_;
+    return getMax();
   }
   ///@}
 

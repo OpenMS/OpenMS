@@ -63,6 +63,7 @@ add_dependencies(VISUAL_TEST ${visual_executables_list})
 foreach(_class_test ${visual_executables_list})
   add_executable(${_class_test} source/${_class_test}.cpp)
   target_link_libraries(${_class_test} ${OpenMS_GUI_LIBRARIES})
+  openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
 endforeach(_class_test)
 

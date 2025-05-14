@@ -58,7 +58,7 @@ namespace OpenMS
           auto currVal = Looper<param_index + 1, grid_size, EvalResult, Tuple, TupleTypes...>{}
               (
                   grid,
-                  [&grid, &value, &functor](TupleTypes... rest){ 
+                  [&value, &functor](TupleTypes... rest){ 
                     return std::invoke(functor, value, rest...);
                   },
                   bestValue,

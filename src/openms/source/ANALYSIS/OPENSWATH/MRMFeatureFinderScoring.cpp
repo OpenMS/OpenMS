@@ -72,10 +72,15 @@ namespace OpenMS
     defaults_.setValidStrings("write_convex_hull", {"true","false"});
     defaults_.setValue("spectrum_addition_method", "simple", "For spectrum addition, either use simple concatenation or use peak resampling", {"advanced"});
     defaults_.setValidStrings("spectrum_addition_method", {"simple", "resample"});
-    defaults_.setValue("add_up_spectra", 1, "Add up spectra around the peak apex (needs to be a non-even integer)", {"advanced"});
+    defaults_.setValue("spectrum_merge_method_type", "fixed", "For spectrum addition, either use a fixed number of spectra or dynamically select the number of spectra to add around the peak apex based on the merge_spectra_by_peak_width_fraction.", {"advanced"});
+    defaults_.setValidStrings("spectrum_merge_method_type", {"fixed", "dynamic"});
+    defaults_.setValue("add_up_spectra", 1, "Add up spectra on the left and right around the retention time peak apex.", {"advanced"});
     defaults_.setMinInt("add_up_spectra", 1);
     defaults_.setValue("spacing_for_spectra_resampling", 0.005, "If spectra are to be added, use this spacing to add them up", {"advanced"});
     defaults_.setMinFloat("spacing_for_spectra_resampling", 0.0);
+    defaults_.setValue("merge_spectra_by_peak_width_fraction", 0.15, "If spectra are to be added based on the peak width of peak, construct number of spectra to be added based on N percent of number of points of peak width.", {"advanced"});
+    defaults_.setMinFloat("merge_spectra_by_peak_width_fraction", 0.0001);
+    defaults_.setMaxFloat("merge_spectra_by_peak_width_fraction", 1.0);
     defaults_.setValue("uis_threshold_sn", -1, "S/N threshold to consider identification transition (set to -1 to consider all)");
     defaults_.setValue("uis_threshold_peak_area", 0, "Peak area threshold to consider identification transition (set to -1 to consider all)");
     defaults_.setValue("scoring_model", "default", "Scoring model to use", {"advanced"});
@@ -85,6 +90,8 @@ namespace OpenMS
     defaults_.setValue("strict", "true", "Whether to error (true) or skip (false) if a transition in a transition group does not have a corresponding chromatogram.", {"advanced"});
     defaults_.setValidStrings("strict", {"true","false"});
     defaults_.setValue("use_ms1_ion_mobility", "true", "Performs ion mobility extraction in MS1. Set to false if MS1 spectra do not contain ion mobility", {"advanced"});
+    defaults_.setValue("apply_im_peak_picking", "false", "Perform peak picking on the extracted ion mobilograms. This is useful for reducing intefering signals from co-eluting analytes in the ion mobility dimension. The peak picking will take the highest peak and discard the remaining peaks for ion mobility scoring. ", {"advanced"});
+    defaults_.setValidStrings("apply_im_peak_picking", {"true","false"});
 
     defaults_.insert("TransitionGroupPicker:", MRMTransitionGroupPicker().getDefaults());
 
@@ -296,27 +303,19 @@ namespace OpenMS
   }
 
   OpenSwath_Ind_Scores MRMFeatureFinderScoring::scoreIdentification_(MRMTransitionGroupType& trgr_ident,
+                                                                     MRMTransitionGroupType& trgr_detect,
                                                                      OpenSwathScoring& scorer,
                                                                      const size_t feature_idx,
                                                                      const std::vector<std::string>& native_ids_detection,
                                                                      const double det_intensity_ratio_score,
                                                                      const double det_mi_ratio_score,
-                                                                     const std::vector<OpenSwath::SwathMap>& swath_maps) const
+                                                                     const std::vector<OpenSwath::SwathMap>& swath_maps,
+                                                                     const double drift_target,
+                                                                     RangeMobility& im_range) const
   {
     MRMFeature idmrmfeature = trgr_ident.getFeaturesMuteable()[feature_idx];
     OpenSwath::IMRMFeature* idimrmfeature;
     idimrmfeature = new MRMFeatureOpenMS(idmrmfeature);
-
-    // get drift time upper/lower offset (this assumes that all chromatograms
-    // are derived from the same precursor with the same drift time)
-    RangeMobility im_range;
-
-    if ( (!trgr_ident.getChromatograms().empty()) || (!trgr_ident.getPrecursorChromatograms().empty()) )
-    {
-      auto & prec = trgr_ident.getChromatograms()[0].getPrecursor();
-      im_range.setMin(prec.getDriftTime()); // sets the minimum and maximum
-      im_range.minSpanIfSingular(prec.getDriftTimeWindowLowerOffset());
-    }
 
     std::vector<std::string> native_ids_identification;
     std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators_identification;
@@ -440,22 +439,47 @@ namespace OpenMS
     bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
     if (swath_present && su_.use_dia_scores_ && !native_ids_identification.empty())
     {
-      std::vector<double> ind_isotope_correlation, ind_isotope_overlap, ind_massdev_score;
+      std::vector<double> ind_isotope_correlation, ind_isotope_overlap, ind_massdev_score, ind_im_drift, ind_im_drift_left, ind_im_drift_right, ind_im_delta, ind_im_delta_score, ind_im_log_intensity;
+      std::vector<double> ind_im_contrast_coelution, ind_im_contrast_shape, ind_im_sum_contrast_coelution, ind_im_sum_contrast_shape;
       for (size_t i = 0; i < native_ids_identification.size(); i++)
       {
         OpenSwath_Scores tmp_scores;
 
         scorer.calculateDIAIdScores(idimrmfeature,
                                     trgr_ident.getTransition(native_ids_identification[i]),
-                                    swath_maps, im_range, diascoring_, tmp_scores);
+                                    trgr_detect,
+                                    swath_maps, im_range, diascoring_, tmp_scores, drift_target);
 
         ind_isotope_correlation.push_back(tmp_scores.isotope_correlation);
         ind_isotope_overlap.push_back(tmp_scores.isotope_overlap);
         ind_massdev_score.push_back(tmp_scores.massdev_score);
+
+        // Ion mobility scores
+        ind_im_drift.push_back(tmp_scores.im_drift);
+        ind_im_drift_left.push_back(tmp_scores.im_drift_left);
+        ind_im_drift_right.push_back(tmp_scores.im_drift_right);
+        ind_im_delta.push_back(tmp_scores.im_delta);
+        ind_im_delta_score.push_back(tmp_scores.im_delta_score);
+        ind_im_log_intensity.push_back(tmp_scores.im_log_intensity);
+        ind_im_contrast_coelution.push_back(tmp_scores.im_ind_contrast_coelution);
+        ind_im_contrast_shape.push_back(tmp_scores.im_ind_contrast_shape);
+        ind_im_sum_contrast_coelution.push_back(tmp_scores.im_ind_sum_contrast_coelution);
+        ind_im_sum_contrast_shape.push_back(tmp_scores.im_ind_sum_contrast_shape);
       }
       idscores.ind_isotope_correlation = ind_isotope_correlation;
       idscores.ind_isotope_overlap = ind_isotope_overlap;
       idscores.ind_massdev_score = ind_massdev_score;
+
+      idscores.ind_im_drift = ind_im_drift;
+      idscores.ind_im_drift_left = ind_im_drift_left;
+      idscores.ind_im_drift_right = ind_im_drift_right;
+      idscores.ind_im_delta = ind_im_delta;
+      idscores.ind_im_delta_score = ind_im_delta_score;
+      idscores.ind_im_log_intensity = ind_im_log_intensity;
+      idscores.ind_im_contrast_coelution = ind_im_contrast_coelution;
+      idscores.ind_im_contrast_shape = ind_im_contrast_shape;
+      idscores.ind_im_sum_contrast_coelution = ind_im_sum_contrast_coelution;
+      idscores.ind_im_sum_contrast_shape = ind_im_sum_contrast_shape;
     }
 
     delete idimrmfeature;
@@ -546,10 +570,13 @@ namespace OpenMS
     OpenSwathScoring scorer;
     scorer.initialize(rt_normalization_factor_, add_up_spectra_,
                       spacing_for_spectra_resampling_,
+                      merge_spectra_by_peak_width_fraction_,
                       im_extra_drift_,
                       su_,
                       spectrum_addition_method_,
-                      use_ms1_ion_mobility_);
+                      spectrum_merge_method_type_,
+                      use_ms1_ion_mobility_,
+                      apply_im_peak_picking_);
 
     ProteaseDigestion pd;
     pd.setEnzyme("Trypsin");
@@ -725,16 +752,16 @@ namespace OpenMS
         // Unique Ion Signature (UIS) scores
         if (su_.use_uis_scores && !transition_group_identification.getTransitions().empty())
         {
-          OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification, scorer, feature_idx,
+          OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification, transition_group_detection, scorer, feature_idx,
                                                                native_ids_detection, det_intensity_ratio_score,
-                                                               det_mi_ratio_score, swath_maps);
+                                                               det_mi_ratio_score, swath_maps,drift_target, im_range);
           mrmfeature.IDScoresAsMetaValue(false, idscores);
         }
         if (su_.use_uis_scores && !transition_group_identification_decoy.getTransitions().empty())
         {
-          OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification_decoy, scorer, feature_idx,
+          OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification_decoy, transition_group_detection, scorer, feature_idx,
                                                                native_ids_detection, det_intensity_ratio_score,
-                                                               det_mi_ratio_score, swath_maps);
+                                                               det_mi_ratio_score, swath_maps, drift_target, im_range);
           mrmfeature.IDScoresAsMetaValue(true, idscores);
         }
 
@@ -900,7 +927,10 @@ namespace OpenMS
           mrmfeature.addScore("var_im_delta_score", scores.im_delta_score);
           mrmfeature.addScore("var_im_ms1_delta_score", scores.im_ms1_delta_score);
           mrmfeature.addScore("im_drift", scores.im_drift); // MS2 level
+          mrmfeature.addScore("im_drift_left", scores.im_drift_left); // MS2 level
+          mrmfeature.addScore("im_drift_right", scores.im_drift_right); // MS2 level
           mrmfeature.addScore("im_drift_weighted", scores.im_drift_weighted); // MS2 level
+          mrmfeature.addScore("im_log_intensity", scores.im_log_intensity); // MS2 level
           mrmfeature.addScore("im_ms1_drift", scores.im_ms1_drift); // MS1 level
           mrmfeature.addScore("im_ms1_delta", scores.im_ms1_delta); // MS1 level
           mrmfeature.addScore("im_delta", scores.im_delta); // MS2 level
@@ -1015,7 +1045,9 @@ namespace OpenMS
     write_convex_hull_ = param_.getValue("write_convex_hull").toBool();
     add_up_spectra_ = param_.getValue("add_up_spectra");
     spectrum_addition_method_ = param_.getValue("spectrum_addition_method").toString();
+    spectrum_merge_method_type_ = param_.getValue("spectrum_merge_method_type").toString();
     spacing_for_spectra_resampling_ = param_.getValue("spacing_for_spectra_resampling");
+    merge_spectra_by_peak_width_fraction_ = param_.getValue("merge_spectra_by_peak_width_fraction");
     im_extra_drift_ = (double)param_.getValue("im_extra_drift");
     uis_threshold_sn_ = param_.getValue("uis_threshold_sn");
     uis_threshold_peak_area_ = param_.getValue("uis_threshold_peak_area");
@@ -1030,6 +1062,7 @@ namespace OpenMS
     emgscoring_.setFitterParam(param_.copy("EMGScoring:", true));
     strict_ = (bool)param_.getValue("strict").toBool();
     use_ms1_ion_mobility_ = (bool)param_.getValue("use_ms1_ion_mobility").toBool();
+    apply_im_peak_picking_ = (bool)param_.getValue("apply_im_peak_picking").toBool();
 
     su_.use_coelution_score_     = param_.getValue("Scores:use_coelution_score").toBool();
     su_.use_shape_score_         = param_.getValue("Scores:use_shape_score").toBool();
