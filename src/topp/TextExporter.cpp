@@ -666,7 +666,7 @@ protected:
         //-------------------------------------------------------------
 
         FeatureMap feature_map;
-        FileHandler().loadFeatures(in, feature_map, {FileTypes::FEATUREXML});
+        FileHandler().loadFeatures(in, feature_map, {FileTypes::FEATUREXML}, log_type_);
 
         // extract common id and hit meta values
         StringList peptide_id_meta_keys;
@@ -828,7 +828,7 @@ protected:
 
         ConsensusMap consensus_map;
 
-        FileHandler().loadConsensusFeatures(in, consensus_map, {FileTypes::CONSENSUSXML});
+        FileHandler().loadConsensusFeatures(in, consensus_map, {FileTypes::CONSENSUSXML}, log_type_);
 
         // for optional export of ConsensusFeature meta values, collect all possible meta value keys
         std::set<String> meta_value_keys;
@@ -1335,7 +1335,7 @@ protected:
       {
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
-        FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
+        FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML}, log_type_);
         StringList peptide_id_meta_keys;
         StringList peptide_hit_meta_keys;
         StringList protein_hit_meta_keys;
@@ -1436,7 +1436,7 @@ protected:
       else if (in_type == FileTypes::MZML)
       {
         PeakMap exp;
-        FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, ProgressLogger::NONE, false, false);
+        FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_, false, false);
 
         if (exp.getSpectra().empty() && exp.getChromatograms().empty())
         {

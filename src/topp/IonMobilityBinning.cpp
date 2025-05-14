@@ -75,7 +75,7 @@ protected:
     MZ_UNITS mz_binning_width_unit = getStringOption_("SpectraMerging:mz_binning_width_unit") == "Da" ? MZ_UNITS::DA : MZ_UNITS::PPM;
 
     PeakMap experiment;
-    FileHandler().loadExperiment(input_file, experiment, {FileTypes::MZML});
+    FileHandler().loadExperiment(input_file, experiment, {FileTypes::MZML}, log_type_);
  
     auto [mzML_bins, im_ranges] = IMDataConverter::splitExperimentByIonMobility(std::move(experiment), bins, bin_extension_abs, mz_binning_width, mz_binning_width_unit);
     
