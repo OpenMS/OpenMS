@@ -17,6 +17,7 @@
       "max_trace_length": 12.0,
       "min_sample_rate": 0.4,
       "min_trace_length": 5.5,
+      "algorithm__mtd__ion_mobility_tolerance": 0.01,
       "reestimate_mt_sd": true
     }
   },
