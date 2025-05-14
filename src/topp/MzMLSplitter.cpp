@@ -112,7 +112,7 @@ protected:
     writeLogInfo_("Splitting file into " + String(parts) + " parts...");
 
     PeakMap experiment;
-    FileHandler().loadExperiment(in, experiment, {FileTypes::MZML});
+    FileHandler().loadExperiment(in, experiment, {FileTypes::MZML}, log_type_);
 
     vector<MSSpectrum> spectra;
     vector<MSChromatogram> chromatograms;
@@ -171,7 +171,7 @@ protected:
       chrom_start += n_chrom;
 
       writeLogInfo_("Part " + String(counter) + ": " + String(n_spec) + " spectra, " + String(n_chrom) + " chromatograms");
-      FileHandler().storeExperiment(out_name.str(), part, {FileTypes::MZML});
+      FileHandler().storeExperiment(out_name.str(), part, {FileTypes::MZML}, log_type_);
     }
 
     return EXECUTION_OK;

@@ -5,9 +5,10 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
-
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/CONCEPT/Constants.h>
+
 
 
 using namespace std;
@@ -19,10 +20,8 @@ namespace OpenMS
     MetaInfoInterface(),
     id_(),
     hits_(),
-    significance_threshold_(0.0),
     score_type_(),
     higher_score_better_(true),
-    base_name_(),
     mz_(std::numeric_limits<double>::quiet_NaN()),
     rt_(std::numeric_limits<double>::quiet_NaN())
   {
@@ -36,11 +35,11 @@ namespace OpenMS
     return MetaInfoInterface::operator==(rhs)
            && id_ == rhs.id_
            && hits_ == rhs.hits_
-           && significance_threshold_ == rhs.getSignificanceThreshold()
+           && getSignificanceThreshold() == rhs.getSignificanceThreshold()
            && score_type_ == rhs.score_type_
            && higher_score_better_ == rhs.higher_score_better_
            && getExperimentLabel() == rhs.getExperimentLabel()
-           && base_name_ == rhs.base_name_
+           && getBaseName() == rhs.getBaseName()
            && (mz_ == rhs.mz_ || (!this->hasMZ() && !rhs.hasMZ())) // might be NaN, so comparing == will always be false
            && (rt_ == rhs.rt_ || (!this->hasRT() && !rhs.hasRT()));// might be NaN, so comparing == will always be false
   }
@@ -113,12 +112,20 @@ namespace OpenMS
 
   double PeptideIdentification::getSignificanceThreshold() const
   {
-    return significance_threshold_;
+    return getMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD, 0.0);
   }
 
   void PeptideIdentification::setSignificanceThreshold(double value)
   {
-    significance_threshold_ = value;
+    if (value != 0.0) 
+    {
+      setMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD, value);
+    }
+    else
+    {
+      // Remove the meta value if the value is 0.0
+      removeMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
+    }
   }
 
   const String& PeptideIdentification::getScoreType() const
@@ -153,22 +160,30 @@ namespace OpenMS
 
   String PeptideIdentification::getSpectrumReference() const
   {
-    return this->getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, "");
+    return getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, "");
   }
 
   void PeptideIdentification::setSpectrumReference(const String& id)
   {
-    this->setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, id);
+    setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, id);
   }
 
-  const String& PeptideIdentification::getBaseName() const
+  String PeptideIdentification::getBaseName() const
   {
-    return base_name_;
+    return getMetaValue(Constants::UserParam::BASE_NAME, "");
   }
 
   void PeptideIdentification::setBaseName(const String& base_name)
   {
-    base_name_ = base_name;
+    // do not store empty base_name (default value)
+    if (!base_name.empty())
+    {
+      setMetaValue(Constants::UserParam::BASE_NAME, base_name);
+    }
+    else
+    {
+      removeMetaValue(Constants::UserParam::BASE_NAME);
+    }
   }
 
   const String PeptideIdentification::getExperimentLabel() const
@@ -184,28 +199,6 @@ namespace OpenMS
     if (!label.empty())
     {
       setMetaValue("experiment_label", label);
-    }
-  }
-
-  void PeptideIdentification::assignRanks()
-  {
-    if (hits_.empty())
-    {
-      return;
-    }
-    UInt rank = 1;
-    sort();
-    vector<PeptideHit>::iterator lit = hits_.begin();
-    double last_score = lit->getScore();
-    while (lit != hits_.end())
-    {
-      if ((double)lit->getScore() != last_score)
-      {
-        ++rank;
-        last_score = lit->getScore();
-      }
-      lit->setRank(rank);
-      ++lit;
     }
   }
 
@@ -227,19 +220,14 @@ namespace OpenMS
     std::stable_sort(hits_.begin(), hits_.end(), getScoreComparator(higher_score_better_));
   }
 
-  void PeptideIdentification::sortByRank()
-  {
-    std::sort(hits_.begin(), hits_.end(), PeptideHit::RankLess());
-  }
-
   bool PeptideIdentification::empty() const
   {
     return id_.empty()
            && hits_.empty()
-           && significance_threshold_ == 0.0
+           && getSignificanceThreshold() == 0.0
            && score_type_.empty()
            && higher_score_better_ == true
-           && base_name_.empty();
+           && getBaseName().empty();
   }
 
   std::vector<PeptideHit> PeptideIdentification::getReferencingHits(const std::vector<PeptideHit>& hits, const std::set<String>& accession)
@@ -318,6 +306,4 @@ namespace OpenMS
     }
     return UID;
   }
-
-  
 } // namespace OpenMS

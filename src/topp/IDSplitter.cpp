@@ -104,7 +104,7 @@ protected:
     if (in_type == FileTypes::MZML)
     {
       PeakMap experiment;
-      FileHandler().loadExperiment(in, experiment, {FileTypes::MZML});
+      FileHandler().loadExperiment(in, experiment, {FileTypes::MZML}, log_type_);
       // what about unassigned peptide IDs?
       for (PeakMap::Iterator exp_it = experiment.begin();
            exp_it != experiment.end(); ++exp_it)

@@ -171,7 +171,7 @@ protected:
     }
     else if (in_type == FileTypes::MZDATA || in_type == FileTypes::MZXML)
     {
-      FileHandler().loadExperiment(spec, msexperiment, {FileTypes::MZDATA, FileTypes::MZXML});
+      FileHandler().loadExperiment(spec, msexperiment, {FileTypes::MZDATA, FileTypes::MZXML}, log_type_);
     }
     if (msexperiment.getMinRT() == 0)
     {
@@ -240,7 +240,7 @@ protected:
     // writing output
     //-------------------------------------------------------------
     in_type = fh.getType(out);
-    FileHandler().storeExperiment(out, library, {FileTypes::MZDATA, FileTypes::MZXML, FileTypes::MSP});
+    FileHandler().storeExperiment(out, library, {FileTypes::MZDATA, FileTypes::MZXML, FileTypes::MSP}, log_type_);
     return EXECUTION_OK;
   }
 

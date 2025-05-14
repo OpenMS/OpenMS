@@ -221,26 +221,6 @@ START_SECTION((class PeptideDigestionFilter::operator(PeptideHit& hit)))
 END_SECTION
 
 
-START_SECTION((template <class IdentificationType> static void updateHitRanks(vector<IdentificationType>& ids)))
-{
-  TEST_EQUAL(global_peptides[0].getHits()[0].getRank(), 0);
-  TEST_EQUAL(global_peptides[0].getHits()[1].getRank(), 0);
-  TEST_EQUAL(global_peptides[0].getHits()[2].getRank(), 0);
-  IDFilter::updateHitRanks(global_peptides);
-  TEST_EQUAL(global_peptides[0].getHits()[0].getRank(), 1);
-  TEST_EQUAL(global_peptides[0].getHits()[1].getRank(), 1);
-  TEST_EQUAL(global_peptides[0].getHits()[2].getRank(), 2);
-
-  TEST_EQUAL(global_proteins[0].getHits()[0].getRank(), 0);
-  TEST_EQUAL(global_proteins[0].getHits()[1].getRank(), 0);
-  TEST_EQUAL(global_proteins[0].getHits()[2].getRank(), 0);
-  IDFilter::updateHitRanks(global_proteins);
-  TEST_EQUAL(global_proteins[0].getHits()[0].getRank(), 1);
-  TEST_EQUAL(global_proteins[0].getHits()[1].getRank(), 2);
-  TEST_EQUAL(global_proteins[0].getHits()[2].getRank(), 3);
-}
-END_SECTION
-
 START_SECTION((static void removeUnreferencedProteins(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides)))
 {
   vector<ProteinIdentification> proteins;
@@ -900,7 +880,7 @@ START_SECTION((template <class PeakT> static void filterHitsByScore(MSExperiment
   PeakMap experiment;
   vector<PeptideIdentification> ids(1, global_peptides[0]);
 
-  ids[0].assignRanks();
+  ids[0].sort();
 
   for (Size i = 0; i < 5; ++i)
   {
@@ -918,23 +898,18 @@ START_SECTION((template <class PeakT> static void filterHitsByScore(MSExperiment
   TEST_EQUAL(peptide_hits[0].getSequence().toString(),
                     "FINFGVNVEVLSRFQTK");
   TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 40);
-  TEST_EQUAL(peptide_hits[0].getRank(), 1);
   TEST_EQUAL(peptide_hits[1].getSequence().toString(),
                     "MSLLSNMISIVKVGYNAR");
   TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 40);
-  TEST_EQUAL(peptide_hits[1].getRank(), 1);
   TEST_EQUAL(peptide_hits[2].getSequence().toString(),
                     "THPYGHAIVAGIERYPSK");
   TEST_REAL_SIMILAR(peptide_hits[2].getScore(), 39);
-  TEST_EQUAL(peptide_hits[2].getRank(), 2);
   TEST_EQUAL(peptide_hits[3].getSequence().toString(),
                     "LHASGITVTEIPVTATNFK");
   TEST_REAL_SIMILAR(peptide_hits[3].getScore(), 34.85);
-  TEST_EQUAL(peptide_hits[3].getRank(), 3);
   TEST_EQUAL(peptide_hits[4].getSequence().toString(),
                     "MRSLGYVAVISAVATDTDK");
   TEST_REAL_SIMILAR(peptide_hits[4].getScore(), 33.85);
-  TEST_EQUAL(peptide_hits[4].getRank(), 4);
 }
 END_SECTION
 
@@ -943,7 +918,7 @@ START_SECTION((template <class PeakT> static void keepNBestHits(MSExperiment<Pea
   PeakMap experiment;
   vector<PeptideIdentification> ids(1, global_peptides[0]);
 
-  ids[0].assignRanks();
+  ids[0].sort();
 
   for (Size i = 0; i < 5; ++i)
   {
@@ -961,15 +936,12 @@ START_SECTION((template <class PeakT> static void keepNBestHits(MSExperiment<Pea
   TEST_EQUAL(peptide_hits[0].getSequence().toString(),
                     "FINFGVNVEVLSRFQTK");
   TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 40);
-  TEST_EQUAL(peptide_hits[0].getRank(), 1);
   TEST_EQUAL(peptide_hits[1].getSequence().toString(),
                     "MSLLSNMISIVKVGYNAR");
   TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 40);
-  TEST_EQUAL(peptide_hits[1].getRank(), 1);
   TEST_EQUAL(peptide_hits[2].getSequence().toString(),
                     "THPYGHAIVAGIERYPSK");
   TEST_REAL_SIMILAR(peptide_hits[2].getScore(), 39);
-  TEST_EQUAL(peptide_hits[2].getRank(), 2);
 }
 END_SECTION
 
@@ -1028,11 +1000,9 @@ START_SECTION((template<class PeakT> static void keepHitsMatchingProteins(MSExpe
   TEST_EQUAL(peptide_hits[0].getSequence().toString(), 
                     "LHASGITVTEIPVTATNFK");
   TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 34.85);
-  TEST_EQUAL(peptide_hits[0].getRank(), 1);
   TEST_EQUAL(peptide_hits[1].getSequence().toString(),
                     "MRSLGYVAVISAVATDTDK");
   TEST_REAL_SIMILAR(peptide_hits[1].getScore(), 33.85);
-  TEST_EQUAL(peptide_hits[1].getRank(), 2);
 }
 END_SECTION
 

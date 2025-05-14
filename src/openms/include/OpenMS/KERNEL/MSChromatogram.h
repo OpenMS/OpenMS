@@ -130,15 +130,7 @@ public:
     }
 
     // Docu in base class (RangeManager)
-    void updateRanges() override
-    {
-      clearRanges();
-      for (const auto& peak : (ContainerType&) *this)
-      {
-        extendRT(peak.getRT());
-        extendIntensity(peak.getIntensity());
-      }
-    }
+    void updateRanges() override;
 
     ///@name Accessors for meta information
     ///@{
