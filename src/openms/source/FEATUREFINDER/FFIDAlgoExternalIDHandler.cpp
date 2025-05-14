@@ -108,11 +108,13 @@ namespace Internal
     
     std::vector<double> aligned_diffs;
     rt_transformation_.getDeviations(aligned_diffs);
-    
+
     // Calculate RT uncertainty based on quantile
-    Size index = std::max(Size(0), Size(rt_quantile * static_cast<double>(aligned_diffs.size())) - 1);
+    std::sort(aligned_diffs.begin(), aligned_diffs.end());
+    Size index = std::clamp(Size(rt_quantile * aligned_diffs.size()),
+                            Size(0), aligned_diffs.size() - 1);
     double rt_uncertainty = aligned_diffs[index];
-    
+
     try
     {
       aligner_trafos[0].fitModel("lowess");
