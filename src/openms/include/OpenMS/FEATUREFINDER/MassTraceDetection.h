@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Erhan Kenar, Holger Franken $
+// $Authors: Erhan Kenar, Holger Franken, Mohammed Alhigaylan $
 // --------------------------------------------------------------------------
 
 #pragma once
