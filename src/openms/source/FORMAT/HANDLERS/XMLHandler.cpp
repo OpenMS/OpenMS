@@ -418,42 +418,50 @@ namespace OpenMS::Internal
       }
     }
 
-    int StringManager::strLength(const XMLCh* input_ptr)
-    {
-      size_t processed_chars = 0;
-      XMLCh* pos_ptr = const_cast<XMLCh*>(input_ptr);
-      size_t align = (size_t)pos_ptr % 16;
-    
-      // Prevent crossing page boundaries
-      for (size_t i = 0; i < align; ++i)
-      {
-        if (pos_ptr[i] == 0)
-        {
-          return processed_chars + i;
-        }
-        ++processed_chars;
-        ++pos_ptr;
+    size_t StringManager::strLength(const XMLCh* input_ptr) {
+      if (input_ptr == nullptr) {
+          return 0;
       }
-    
-      while (true)
-      {
-        simde__m128i bits = simde_mm_loadu_si128(reinterpret_cast<simde__m128i*>(pos_ptr));
-        simde__m128i zero = simde_mm_setzero_si128();
-        simde__m128i cmp_zero = simde_mm_cmpeq_epi16(bits, zero);
-        uint16_t zero_mask = simde_mm_movemask_epi8(cmp_zero);
-    
-        if (zero_mask != 0x0000)
-        {
-          int byte_pos_zero = __builtin_ctz(zero_mask);
-          int char_pos_zero = byte_pos_zero / 2;
-          pos_ptr += char_pos_zero;
-          return processed_chars + char_pos_zero;
-        }
-    
-        pos_ptr += 8;
-        processed_chars += 8;
+  
+      XMLSize_t processed_chars = 0;
+      const XMLCh* pos_ptr = input_ptr;
+  
+      // Verarbeite einzelne Zeichen, bis der Pointer 16-Byte-aligned ist
+      uintptr_t ptr_value = reinterpret_cast<uintptr_t>(pos_ptr);
+      size_t misalignment = ptr_value & 0xF; // Berechnet Misalignment als (Adresswert) mod 16
+      size_t chars_to_align = misalignment ? (16 - misalignment) / sizeof(XMLCh) : 0;
+  
+      // Vorverarbeitung einzelner Zeichen bis zum Alignment oder bis zum Ende des Strings
+      for (size_t i = 0; i < chars_to_align; ++i) {
+          if (*pos_ptr == 0) {
+              return processed_chars;
+          }
+          ++pos_ptr;
+          ++processed_chars;
       }
-    }
+  
+      // Hauptschleife mit SIMD-Operationen
+      while (true) {
+          // SIMD-Operation
+          simde__m128i bits = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(pos_ptr));
+          simde__m128i zero = simde_mm_setzero_si128();
+          simde__m128i cmp_zero = simde_mm_cmpeq_epi16(bits, zero);
+          uint16_t zero_mask = simde_mm_movemask_epi8(cmp_zero);
+  
+          if (zero_mask != 0x0000) {
+              int byte_pos_zero = __builtin_ctz(zero_mask);
+              int char_pos_zero = byte_pos_zero / 2;
+              return processed_chars + static_cast<>(char_pos_zero);
+          }
+  
+          // 8 Zeichen (16 Bytes) wurden verarbeitet, keine Null gefunden
+          pos_ptr += 8;
+          processed_chars += 8;
+      }
+  
+      // Diese Zeile wird nie erreicht
+      return processed_chars;
+  }
 
     void StringManager::compress64(const XMLCh* inputIt, char* outputIt)
     {
