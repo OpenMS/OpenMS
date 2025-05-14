@@ -70,7 +70,7 @@ public:
         @throw ParseError is thrown if the given file could not be parsed
         @throw ElementNotFound is thrown if a annotated modification cannot be found in ModificationsDB (PSI-MOD definitions)
     */
-    void load(const String & filename, AnnotatedMSRun & exp);
+    void load(const String & filename, AnnotatedMSRun & annot_exp);
 
     /**
         @brief Stores a map in a MSPFile file.
