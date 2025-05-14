@@ -275,7 +275,7 @@ protected:
       //-------------------------------------------------------------
       if (i < in_raw.size())
       { // we either have 'n' or 1 mzML ... use the correct one in each iteration
-        FileHandler().loadExperiment(in_raw[i], exp, {FileTypes::MZML});
+        FileHandler().loadExperiment(in_raw[i], exp, {FileTypes::MZML}, log_type_);
         spec_map.calculateMap(exp);
       }
 
@@ -283,7 +283,7 @@ protected:
       FeatureMap fmap_local;
       if (!in_postFDR.empty())
       {
-        FileHandler().loadFeatures(in_postFDR[i], fmap_local, {FileTypes::FEATUREXML});
+        FileHandler().loadFeatures(in_postFDR[i], fmap_local, {FileTypes::FEATUREXML}, log_type_);
         fmap = &fmap_local;
       }
       else
@@ -387,7 +387,7 @@ protected:
       StringList out_feat = getStringList_("out_feat");
       if (!out_feat.empty())
       {
-        FileHandler().storeFeatures(out_feat[i], *fmap, {FileTypes::FEATUREXML});
+        FileHandler().storeFeatures(out_feat[i], *fmap, {FileTypes::FEATUREXML}, log_type_);
       }
       //-------------------------------------------------------------
       // Annotate calculated meta values from FeatureMap to given ConsensusMap
@@ -460,7 +460,7 @@ protected:
     String out_cm = getStringOption_("out_cm");
     if (!out_cm.empty())
     {
-      FileHandler().storeConsensusFeatures(out_cm, cmap, {FileTypes::CONSENSUSXML});
+      FileHandler().storeConsensusFeatures(out_cm, cmap, {FileTypes::CONSENSUSXML}, log_type_);
     }
 
     String out = getStringOption_("out");
