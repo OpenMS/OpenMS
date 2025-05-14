@@ -100,6 +100,11 @@ namespace OpenMS
     return item;
   }
 
+  /**
+   * @brief Synchronizes user-created peak annotations with peptide identification data.
+   *
+   * Updates the selected peptide hit's fragment annotations to reflect current user annotations on the 1D peak layer. If no peptide identifications exist but peak annotations are present, creates dummy peptide and protein identifications and assigns the annotations accordingly. Only operates for MS level 2 spectra and when a valid peptide identification and hit are selected.
+   */
   void LayerData1DPeak::synchronizePeakAnnotations()
   {
     #ifdef DEBUG_IDENTIFICATION_VIEW    
@@ -200,6 +205,13 @@ namespace OpenMS
     }
   }
 
+  /**
+   * @brief Removes specified peak annotations from the currently selected peptide hit.
+   *
+   * Deletes peak annotations from the selected peptide hit that correspond to the provided annotation items, matching by m/z position and annotation text prefix. No action is taken if the peak data is invalid, no peptide identification or hit is selected, or the spectrum MS level is less than 2.
+   *
+   * @param selected_annotations List of annotation items to be removed from the peptide hit.
+   */
   void LayerData1DPeak::removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations)
   {
     // Return if no valid peak layer attached

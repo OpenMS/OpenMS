@@ -90,7 +90,15 @@ namespace OpenMS
     }
   }
 
-  // lists of peptide hits in "peptides" will be sorted
+  /**
+   * @brief Extracts retention times for the best-scoring peptide hits above a minimum score threshold.
+   *
+   * For each peptide identification, selects the best-scoring hit and, if its score meets the minimum requirement, adds its retention time to the output map keyed by peptide sequence.
+   *
+   * @param peptides List of peptide identifications to process.
+   * @param rt_data Output map associating peptide sequences with their observed retention times.
+   * @return Always returns false.
+   */
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
       const vector<PeptideIdentification>& peptides, SeqToList& rt_data)
   {
@@ -176,7 +184,15 @@ namespace OpenMS
     return false;
   }
 
-  // lists of peptide hits in "maps" will be sorted
+  /**
+   * @brief Extracts retention times from peptide identifications in an annotated MS run.
+   *
+   * Aggregates retention times by peptide sequence from the peptide identifications contained in the given annotated MS run and stores them in the provided data structure.
+   *
+   * @param experiment Annotated MS run containing peptide identifications.
+   * @param rt_data Output map from peptide sequence to list of retention times.
+   * @return Always returns false.
+   */
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
       const AnnotatedMSRun& experiment, SeqToList& rt_data)
   {

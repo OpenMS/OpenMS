@@ -46,7 +46,16 @@ namespace OpenMS
   using namespace Math;
   using namespace Internal;
 
-  /// returns an MSExp with a single spec (converted from @p exp_sptr's chromatograms at index  @p index (or ondisc_sptr, if that should be empty)
+  /**
+   * @brief Converts a chromatogram at the specified index into a single-spectrum MS experiment.
+   *
+   * Extracts the chromatogram from either the in-memory or on-disk experiment, copies its peaks and associated data arrays into a dummy spectrum, and adds it to a new experiment. Ensures at least one data point exists to prevent downstream errors. Transfers peptide sequence metadata if present.
+   *
+   * @param index Index of the chromatogram to convert.
+   * @param exp_sptr Shared pointer to the in-memory experiment.
+   * @param ondisc_sptr Shared pointer to the on-disk experiment (used if the in-memory chromatogram is empty).
+   * @return Shared pointer to the constructed experiment containing the chromatogram as a single spectrum.
+   */
   Plot1DCanvas::ExperimentSharedPtrType prepareChromatogram(Size index, const Plot1DCanvas::ExperimentSharedPtrType& exp_sptr, const Plot1DCanvas::ODExperimentSharedPtrType& ondisc_sptr)
   {
     // create a managed pointer fill it with a spectrum containing the chromatographic data
@@ -926,6 +935,13 @@ namespace OpenMS
     update_(OPENMS_PRETTY_FUNCTION);
   }
 
+  /**
+   * @brief Handles the context menu event for the 1D plot canvas.
+   *
+   * Displays a context menu at the cursor position, providing options based on the current layer and user selection. The menu supports annotation editing, adding labels or peak annotations, resetting alignment, viewing metadata, saving data or images, toggling grid and legend visibility, switching draw and intensity modes, and accessing layer preferences. Additional options for switching to 2D, 3D, ion mobility, or DIA-MS views are available when applicable. Integrates external context menus if present. Triggers a repaint if required by the selected action.
+   *
+   * @param e The context menu event containing the cursor position.
+   */
   void Plot1DCanvas::contextMenuEvent(QContextMenuEvent* e)
   {
     if (layers_.empty()) { return; }

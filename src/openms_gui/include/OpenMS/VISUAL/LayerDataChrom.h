@@ -10,6 +10,22 @@
 
 #include <OpenMS/VISUAL/LayerDataBase.h>
 
+/**
+ * @brief Updates the data ranges of the underlying chromatogram experiment.
+ *
+ * Invokes the update operation on the associated MSExperiment to recalculate the minimum and maximum values for all relevant dimensions.
+ */
+/**
+ * @brief Retrieves the full data range from the underlying chromatogram experiment.
+ *
+ * @return RangeAllType representing the minimum and maximum values for all dimensions in the chromatogram data.
+ */
+/**
+ * @brief Returns a constant reference to the chromatogram at the specified index.
+ *
+ * @param idx Index of the chromatogram to retrieve.
+ * @return Reference to the chromatogram at the given index.
+ */
 namespace OpenMS
 {
   /// SharedPtr on OSWData

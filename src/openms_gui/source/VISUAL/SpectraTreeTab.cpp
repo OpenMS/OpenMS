@@ -296,6 +296,13 @@ namespace OpenMS
     return is_peak || is_chrom;
   }
 
+  /**
+   * @brief Updates the tree view to display spectra or chromatogram entries from the given data layer.
+   *
+   * Clears and repopulates the tree widget based on the provided layer's type and content. For peak data layers, constructs a hierarchical or flat tree of spectra, selecting the current spectrum if available. For chromatogram data layers, groups chromatograms by precursor, caches precursor-to-chromatogram mappings for efficiency, and restores selection state. If the layer is null or contains no relevant data, the tree is cleared or displays a placeholder header. Also updates the search box and adjusts column widths to fit the new content.
+   *
+   * @param layer The data layer containing spectra or chromatogram information to display.
+   */
   void SpectraTreeTab::updateEntries(LayerDataBase* layer)
   {
     if (layer == nullptr)

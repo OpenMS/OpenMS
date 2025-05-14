@@ -19,6 +19,13 @@
 
 #include <vector>
 
+/**
+ * @brief Represents metadata describing experimental settings for an entire experiment.
+ *
+ * The ExperimentalSettings class encapsulates metadata that applies to the whole experiment, such as sample information, source files, contact persons, instrument and HPLC descriptions, experiment date, comments, and fraction identifiers. It does not include spectrum- or chromatogram-specific settings.
+ *
+ * @ingroup Metadata
+ */
 namespace OpenMS
 {
   /**

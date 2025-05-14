@@ -17,6 +17,14 @@ namespace OpenMS
 
   ExperimentalSettings::~ExperimentalSettings() = default;
 
+  /**
+   * @brief Checks if two ExperimentalSettings instances are equal.
+   *
+   * Compares all metadata fields and base class properties to determine equality.
+   *
+   * @param rhs The ExperimentalSettings instance to compare with.
+   * @return true if all fields and base class data are equal, false otherwise.
+   */
   bool ExperimentalSettings::operator==(const ExperimentalSettings & rhs) const
   {
     return sample_ == rhs.sample_ &&
@@ -121,6 +129,15 @@ namespace OpenMS
     hplc_ = hplc;
   }
 
+  /**
+   * @brief Writes a placeholder representation of ExperimentalSettings to an output stream.
+   *
+   * Outputs fixed begin and end markers for ExperimentalSettings without including internal data.
+   *
+   * @param os Output stream to write to.
+   * @param exp ExperimentalSettings instance (not used).
+   * @return Reference to the output stream.
+   */
   std::ostream & operator<<(std::ostream & os, const ExperimentalSettings & /*exp*/)
   {
     os << "-- EXPERIMENTALSETTINGS BEGIN --\n";
@@ -128,6 +145,11 @@ namespace OpenMS
     return os;
   }
 
+  /**
+   * @brief Returns the comment associated with the experimental settings.
+   *
+   * @return Reference to the comment string.
+   */
   const String & ExperimentalSettings::getComment() const
   {
     return comment_;

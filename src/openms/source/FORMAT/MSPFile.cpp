@@ -21,6 +21,11 @@ using namespace std;
 
 namespace OpenMS
 {
+  /**
+   * @brief Constructs an MSPFile object with default parsing parameters.
+   *
+   * Initializes options for parsing headers, peak annotations, and instrument filtering when reading MSP files.
+   */
   MSPFile::MSPFile() :
     DefaultParamHandler("MSPFile")
   {
@@ -50,6 +55,15 @@ namespace OpenMS
 
   MSPFile::~MSPFile() = default;
 
+  /**
+   * @brief Loads MSP-formatted spectral data from a file into peptide identifications and a peak map.
+   *
+   * Parses an MSP file, extracting peptide identifications, modifications, precursor information, and peak lists. Supports filtering by instrument type and configurable parsing of header and peak annotation information. Throws exceptions if the file is missing, unreadable, or contains malformed data.
+   *
+   * @param filename Path to the MSP file to load.
+   * @param ids Vector to store parsed peptide identifications.
+   * @param exp PeakMap to store the loaded spectra.
+   */
   void MSPFile::load(const String & filename, vector<PeptideIdentification> & ids, PeakMap & exp)
   {
     if (!File::exists(filename))
@@ -323,6 +337,14 @@ namespace OpenMS
     }
   }
 
+  /**
+   * @brief Loads MSP data from a file into an AnnotatedMSRun object.
+   *
+   * Reads an MSP file, parses peptide identifications and spectra, and populates the given AnnotatedMSRun with the extracted data.
+   *
+   * @param filename Path to the MSP file to load.
+   * @param annot_exp AnnotatedMSRun object to populate with peptide identifications and spectra.
+   */
   void MSPFile::load(const String & filename, AnnotatedMSRun & annot_exp)
   {
     // use existing load function
@@ -335,6 +357,15 @@ namespace OpenMS
     annot_exp.getMSExperiment() = std::move(exp);
   }
 
+  /**
+   * @brief Parses a header line containing key-value pairs and stores them as meta values in the given spectrum.
+   *
+   * Splits the header string by spaces, then further splits each segment by '=' to extract key-value pairs.
+   * Each valid key-value pair is added as a meta value to the provided PeakSpectrum object.
+   *
+   * @param header The header line containing key-value pairs separated by spaces.
+   * @param spec The spectrum object to which the parsed meta values will be added.
+   */
   void MSPFile::parseHeader_(const String & header, PeakSpectrum & spec)
   {
     // first header from std_protein of NIST spectra DB
@@ -355,7 +386,17 @@ namespace OpenMS
     }
   }
 
-  //TODO adapt store to write new? format
+  /**
+   * @brief Writes an AnnotatedMSRun to an MSP (Mass Spectral Peak) file.
+   *
+   * Serializes spectra and associated peptide identifications from an AnnotatedMSRun into the MSP file format. For each spectrum with peptide identifications, writes peptide sequence (with modifications), charge, monoisotopic weight, modification details, instrument type, and normalized peak list. Peak intensities are scaled so the maximum is 10,000. Ion annotations are included if available; otherwise, a placeholder is used.
+   *
+   * @param filename Output file path. Must have a valid MSP extension and be writable.
+   * @param exp AnnotatedMSRun containing spectra and peptide identifications to write.
+   *
+   * @throws Exception::UnableToCreateFile if the file extension is invalid.
+   * @throws Exception::FileNotWritable if the file cannot be written.
+   */
   void MSPFile::store(const String & filename, const AnnotatedMSRun & exp) const
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::MSP))

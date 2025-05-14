@@ -324,6 +324,11 @@ namespace OpenMS
     update_(OPENMS_PRETTY_FUNCTION);
   }
 
+  /**
+   * @brief Recalculates snap factors for all layers based on the visible area's local maximum intensity.
+   *
+   * For each visible layer in "snap" intensity mode, determines the maximum intensity within the currently visible area and sets the snap factor as the ratio of the overall maximum intensity to this local maximum. Supports peak, feature, and consensus layers. Chromatogram and identification layers are not yet implemented.
+   */
   void Plot2DCanvas::recalculateSnapFactor_()
   {
     snap_factors_ = vector<double>(getLayerCount(), 1.0);
@@ -664,6 +669,11 @@ namespace OpenMS
     }
   }
 
+  /**
+   * @brief Handles mouse movement events for interactive 2D data visualization.
+   *
+   * Updates the cursor status, highlights the nearest peak, displays peak coordinates and meta data, and manages user interactions such as measuring, zooming, and translating the visible area. In feature editing mode, allows moving features by dragging. Also manages the zoom selection rectangle and emits relevant status messages.
+   */
   void Plot2DCanvas::mouseMoveEvent(QMouseEvent* e)
   {
     grabKeyboard();     // (re-)grab keyboard after it has been released by unhandled key
@@ -836,6 +846,13 @@ namespace OpenMS
     }
   }
 
+  /**
+   * @brief Handles the context menu event for the 2D plot canvas, providing layer-specific and general actions.
+   *
+   * Displays a context menu at the mouse position with options tailored to the current layer type (peaks, features, consensus features, or chromatograms). The menu includes actions for viewing metadata, toggling visualization settings, switching views, and accessing nearby data elements (e.g., survey scans, fragment scans, features, consensus elements, chromatograms). Executes the selected action, such as showing metadata, toggling projections, or opening preferences.
+   *
+   * The menu adapts dynamically based on the data under the cursor and the current layer's properties.
+   */
   void Plot2DCanvas::contextMenuEvent(QContextMenuEvent * e)
   {
     // abort if there are no layers
@@ -1551,6 +1568,17 @@ namespace OpenMS
     resetZoom(true);
   }
 
+    /**
+     * @brief Collects fragment scans within a specified m/z and RT range from the current peak layer.
+     *
+     * Adds actions for each matching fragment scan to the provided scan and metadata menus. Returns true if any fragment scans are found and added.
+     *
+     * @param range The m/z and RT range to search for fragment scans.
+     * @param a Unused action pointer (retained for compatibility).
+     * @param msn_scans Menu to which scan actions are added.
+     * @param msn_meta Menu to which metadata actions are added.
+     * @return true if at least one fragment scan is found and added; false otherwise.
+     */
     bool Plot2DCanvas::collectFragmentScansInArea_(const RangeType& range, QAction* a, QMenu* msn_scans, QMenu* msn_meta)
     {
       auto& layer = dynamic_cast<LayerDataPeak&>(getCurrentLayer());

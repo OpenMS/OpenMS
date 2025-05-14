@@ -418,6 +418,17 @@ namespace OpenMS
     return finishAdding_();
   }
 
+  /**
+   * @brief Adds a peak data layer from the given experiment to the canvas.
+   *
+   * Checks that the experiment contains spectra before adding. Optionally applies a noise cutoff filter or hides zero intensities based on the provided flags and data content.
+   *
+   * @param map Shared pointer to the experiment data to be added as a peak layer.
+   * @param filename Path to the data file.
+   * @param caption Optional caption for the layer.
+   * @param use_noise_cutoff If true, applies a noise cutoff filter to the data.
+   * @return True if the layer was added successfully, false if the experiment contains no spectra.
+   */
   bool PlotCanvas::addPeakLayer(const ExperimentSharedPtrType& map,
                                 ODExperimentSharedPtrType od_map,
                                 const String& filename,
@@ -465,6 +476,17 @@ namespace OpenMS
   }
 
   
+  /**
+   * @brief Adds a chromatogram data layer to the plot canvas.
+   *
+   * Checks if the provided experiment contains chromatograms and, if so, creates and adds a new chromatogram layer using the given data and metadata. Displays an error message and returns false if no chromatograms are present.
+   *
+   * @param map Shared pointer to the experiment containing chromatogram data.
+   * @param od_map Shared pointer to the on-disc experiment data.
+   * @param filename Path to the data file.
+   * @param caption Optional caption for the layer.
+   * @return true if the layer was successfully added, false otherwise.
+   */
   bool PlotCanvas::addChromLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename, const String& caption)
   {
     if (map->getMSExperiment().getChromatograms().empty())
@@ -738,6 +760,14 @@ namespace OpenMS
     unit_mapper_ = mapper;
   }
 
+  /**
+   * @brief Displays a dialog for viewing or editing metadata of the current layer or a specific element.
+   *
+   * Opens a MetaDataBrowser dialog to show metadata for the current data layer. If an index is provided, displays metadata for the corresponding element (spectrum, feature, or consensus element); otherwise, displays metadata for the entire layer. If modifications are allowed and changes are made, marks the layer as modified.
+   *
+   * @param modifiable Whether the metadata can be edited.
+   * @param index Index of the element to display metadata for, or -1 to display metadata for the entire layer.
+   */
   void PlotCanvas::showMetaData(bool modifiable, Int index)
   {
     LayerDataBase& layer = getCurrentLayer();

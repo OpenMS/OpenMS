@@ -79,6 +79,13 @@ namespace OpenMS
     return legend_shown_;
   }
 
+  /**
+   * @brief Finalizes the addition of a new peak data layer to the 3D canvas.
+   *
+   * Validates that the current layer contains peak data and is not empty. If the dataset contains negative intensities, a warning is displayed. Upon successful validation, updates data ranges, resets zoom, recalculates gradients, and triggers a canvas update.
+   *
+   * @return true if the layer was successfully added and initialized; false if validation failed.
+   */
   bool Plot3DCanvas::finishAdding_()
   {
     if (layers_.getCurrentLayer().type != LayerDataBase::DT_PEAK)

@@ -29,7 +29,12 @@
 #include <unordered_set>
 #include <vector>
 
-namespace OpenMS
+/**
+     * @brief Provides predicates and helper functions for filtering peptide and protein hits by various criteria.
+     *
+     * The `IDFilter` class offers a suite of functors and utilities to filter peptide and protein identifications based on score thresholds, meta values, decoy annotations, protein accessions, and other properties. Filtering operations modify the input data in place and are designed to be composable for complex workflows. Clean-up functions are provided separately to maintain data integrity after filtering.
+     */
+    namespace OpenMS
 {
   template<typename T>
   concept IsPeptideOrProteinIdentification = 
@@ -1117,7 +1122,15 @@ namespace OpenMS
     /// @name Filter functions for AnnotatedMSRun
     ///@{
 
-    /// Filters AnnotatedMSRun according to score thresholds
+    /**
+     * @brief Filters protein and peptide hits in an AnnotatedMSRun by score thresholds.
+     *
+     * Applies the specified score thresholds to protein and peptide identifications within the given AnnotatedMSRun. Protein identifications are filtered first, followed by peptide identifications. After filtering, protein references in peptide identifications are updated to maintain data consistency.
+     *
+     * @param annotated_data The AnnotatedMSRun containing protein and peptide identifications to filter.
+     * @param peptide_threshold_score Minimum score required for peptide hits to be retained.
+     * @param protein_threshold_score Minimum score required for protein hits to be retained.
+     */
     static void filterHitsByScore(AnnotatedMSRun& annotated_data,
                                   double peptide_threshold_score,
                                   double protein_threshold_score)
@@ -1136,7 +1149,14 @@ namespace OpenMS
       updateProteinReferences(annotated_data.getPeptideIdentifications(), annotated_data.getProteinIdentifications());
     }
 
-    /// Filters AnnotatedMSRun by keeping the N best peptide hits for every spectrum
+    /**
+     * @brief Keeps only the N best peptide hits for each spectrum in an AnnotatedMSRun.
+     *
+     * For every PeptideIdentification in the AnnotatedMSRun, retains up to N top-scoring peptide hits, updates protein references accordingly, and removes protein hits not referenced by any remaining peptides.
+     *
+     * @param annotated_data The AnnotatedMSRun to filter in place.
+     * @param n The maximum number of peptide hits to retain per spectrum.
+     */
     static void keepNBestHits(AnnotatedMSRun& annotated_data, Size n)
     {
       // don't filter the protein hits by "N best" here - filter the peptides
@@ -1276,7 +1296,17 @@ namespace OpenMS
     /// Annotates PeptideHits from PeptideIdentification if it is the best peptide hit for its peptide sequence
     /// Adds metavalue "bestForItsPeps" which can be used for additional filtering.
     /// Does not check Run information and just goes over all Peptide IDs
-    /// To be used when a SequenceToChargeToPepHitP map is already available
+    /**
+     * @brief Annotates peptide hits as best per peptide sequence (and optionally charge) using a precomputed lookup map.
+     *
+     * Updates the "best_per_peptide" meta value for hits in the given PeptideIdentification, marking the best-scoring hit(s) per unique peptide sequence (optionally ignoring modifications and/or charge). Uses the provided SequenceToChargeToPepHitP map to track and update the best hit for each sequence/charge combination, considering only the top nr_best_spectrum hits if specified.
+     *
+     * @param best_pep Map from peptide sequence (and charge) to the current best PeptideHit pointer, used for annotation and lookup.
+     * @param pep PeptideIdentification whose hits will be annotated.
+     * @param ignore_mods If true, modifications are ignored when comparing sequences.
+     * @param ignore_charges If true, charge states are ignored when comparing hits.
+     * @param nr_best_spectrum Maximum number of top hits per identification to consider (0 means all).
+     */
     static void annotateBestPerPeptideWithData(SequenceToChargeToPepHitP& best_pep, PeptideIdentification& pep, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
     {
       bool higher_score_better = pep.isHigherScoreBetter();
@@ -1331,7 +1361,14 @@ namespace OpenMS
       }
     }
 
-    /// Filters AnnotatedMSRun according to the given proteins.
+    /**
+     * @brief Filters protein and peptide identifications in an AnnotatedMSRun to retain only those matching the provided protein accessions.
+     *
+     * Retains only protein and peptide hits associated with the given set of proteins, as specified by their FASTA entries. Peptide identifications are filtered for MS level 2 spectra. Removes empty peptide identifications after filtering.
+     *
+     * @param experiment AnnotatedMSRun containing protein and peptide identifications to be filtered.
+     * @param proteins List of FASTA entries specifying the protein accessions to retain.
+     */
     static void keepHitsMatchingProteins(
       AnnotatedMSRun& experiment,
       const std::vector<FASTAFile::FASTAEntry>& proteins)

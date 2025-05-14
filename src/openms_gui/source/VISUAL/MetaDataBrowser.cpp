@@ -237,7 +237,14 @@ namespace OpenMS
     connectVisualizer_(visualizer);
   }
 
-  //Visualizing ExperimentalSettings object
+  /**
+   * @brief Visualizes an ExperimentalSettings object and its associated metadata in the tree and stacked widget.
+   *
+   * Creates a visualizer for the given ExperimentalSettings, adds it to the stacked widget, and inserts a corresponding tree item. Recursively visualizes related metadata such as document identifier, sample, instrument, source files, contacts, HPLC, and meta info as child items.
+   *
+   * @param meta The ExperimentalSettings object to visualize.
+   * @param parent Optional parent tree item under which the visualization will be added; if nullptr, adds as a top-level item.
+   */
   void MetaDataBrowser::visualize_(ExperimentalSettings & meta, QTreeWidgetItem * parent)
   {
     ExperimentalSettingsVisualizer * visualizer = new ExperimentalSettingsVisualizer(isEditable(), this);
@@ -802,7 +809,14 @@ namespace OpenMS
     connectVisualizer_(visualizer);
   }
 
-  //Visualizing SpectrumSettings object
+  /**
+   * @brief Visualizes a SpectrumSettings object and its nested metadata in the tree view.
+   *
+   * Creates a visualizer for the given SpectrumSettings, adds it to the stacked widget, and inserts a corresponding tree item. Recursively visualizes associated instrument settings, data processing steps, precursors, products, and acquisition information as child items.
+   *
+   * @param meta The SpectrumSettings object to visualize.
+   * @param parent Optional parent tree item to which the visualization will be added; if nullptr, adds as a top-level item.
+   */
   void MetaDataBrowser::visualize_(SpectrumSettings & meta, QTreeWidgetItem * parent)
   {
     SpectrumSettingsVisualizer * visualizer = new SpectrumSettingsVisualizer(isEditable(), this);

@@ -67,6 +67,11 @@ namespace OpenMS
     return *this;
   }
 
+  /**
+   * @brief Updates internal tolerance and matching parameters from the current configuration.
+   *
+   * Synchronizes the retention time tolerance, m/z tolerance, m/z measurement unit, and charge state handling with the latest parameter values.
+   */
   void IDMapper::updateMembers_()
   {
     rt_tolerance_ = param_.getValue("rt_tolerance");
@@ -75,6 +80,17 @@ namespace OpenMS
     ignore_charge_ = param_.getValue("ignore_charge") == "true";
   }
 
+  /**
+   * @brief Maps peptide and protein identifications onto spectra in an AnnotatedMSRun.
+   *
+   * Assigns peptide identifications to spectra in the given AnnotatedMSRun using either spectrum native IDs or retention time (RT) within a specified tolerance. Protein identifications are appended to the run. If requested, existing identifications are cleared before mapping. Peptide hits are merged for spectra with multiple matching identifications. Optionally, mapping can be restricted to MS1 spectra.
+   *
+   * @param map AnnotatedMSRun to annotate with identifications.
+   * @param peptide_ids Peptide identifications to map onto spectra.
+   * @param protein_ids Protein identifications to append.
+   * @param clear_ids If true, clears existing identifications before mapping.
+   * @param map_ms1 If true, allows mapping to MS1 spectra without precursor m/z matching.
+   */
   void IDMapper::annotate(AnnotatedMSRun& map,
     const vector<PeptideIdentification>& peptide_ids,
     const vector<ProteinIdentification>& protein_ids,
@@ -216,6 +232,16 @@ namespace OpenMS
              << "       Unmapped (empty) peptides: " << peptide_ids.size() - identifications_precursors.size() << endl;
   }
 
+  /**
+   * @brief Maps peptide and protein identifications from a FeatureMap onto an AnnotatedMSRun.
+   *
+   * Extracts peptide and protein identifications from the given FeatureMap, assigns missing m/z or RT values from their parent features, and delegates the mapping to the AnnotatedMSRun using the main annotate method.
+   *
+   * @param map AnnotatedMSRun to be annotated with identifications.
+   * @param fmap FeatureMap containing peptide and protein identifications.
+   * @param clear_ids If true, existing identifications in the AnnotatedMSRun are cleared before mapping.
+   * @param map_ms1 If true, mapping is performed for MS1 spectra as well.
+   */
   void IDMapper::annotate(AnnotatedMSRun& map, const FeatureMap& fmap, const bool clear_ids, const bool map_ms1)
   {
     const vector<ProteinIdentification>& protein_ids = fmap.getProteinIdentifications();
@@ -1067,6 +1093,14 @@ namespace OpenMS
     box.setMax(box.maxPosition() + add_max);
   }
 
+  /**
+   * @brief Determines whether average peptide masses should be used for feature mapping based on data processing metadata.
+   *
+   * Inspects the provided data processing steps to check if features report average or maximum m/z values, which require using average peptide masses for matching. Issues warnings if inconsistent m/z types are detected or if maximum m/z values are used.
+   *
+   * @param processing List of data processing steps associated with the features.
+   * @return true if average peptide masses should be used for mapping; false otherwise.
+   */
   bool IDMapper::checkMassType_(const vector<DataProcessing>& processing) const
   {
     bool use_avg_mass = false;

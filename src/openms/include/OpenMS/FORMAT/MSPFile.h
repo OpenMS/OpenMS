@@ -15,6 +15,14 @@
 
 #include <vector>
 
+/**
+ * @brief Stores spectral data and annotations from an AnnotatedMSRun object into an MSP file.
+ *
+ * @param filename Name of the output MSP file.
+ * @param exp AnnotatedMSRun object containing spectra and associated annotations to be stored.
+ *
+ * @throw UnableToCreateFile if the file cannot be created or opened for writing.
+ */
 namespace OpenMS
 {
   class AnnotatedMSRun;

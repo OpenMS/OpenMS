@@ -505,6 +505,13 @@ namespace OpenMS
     return list;
   }
 
+  /**
+   * @brief Creates an OpenGL display list rendering data points as a top-down 3D view.
+   *
+   * Iterates over all visible layers and draws peaks within the current visible area as colored points, applying intensity scaling and color gradients according to the selected intensity mode. Limits the number of displayed points for performance by subsampling if necessary. Only peaks passing the layer's filters are rendered.
+   *
+   * @return GLuint The OpenGL display list identifier for the rendered data points.
+   */
   GLuint Plot3DOpenGLCanvas::makeDataAsTopView_()
   {
     GLuint list = glGenLists(1);
@@ -593,6 +600,13 @@ namespace OpenMS
     return list;
   }
 
+  /**
+   * @brief Creates an OpenGL display list rendering 3D stick representations of mass spectrometry peaks.
+   *
+   * Iterates over all visible layers and draws vertical lines ("sticks") for each peak within the visible area, with color and height determined by the current intensity mode and layer gradient. Applies peak filtering and limits the number of displayed peaks for performance. The resulting display list can be used for efficient rendering of stick plots in the 3D canvas.
+   *
+   * @return GLuint The OpenGL display list identifier for the rendered stick data.
+   */
   GLuint Plot3DOpenGLCanvas::makeDataAsStick_()
   {
     GLuint list = glGenLists(1);
@@ -1082,6 +1096,11 @@ namespace OpenMS
     canvas_3d_.changeVisibleArea_(canvas_3d_.visible_area_.cloneWith(new_area_), true, true);
   }
 
+  /**
+   * @brief Updates the minimum and maximum intensity values within the visible area across all layers.
+   *
+   * Iterates over all visible layers and their peaks within the current visible area to determine the global minimum and maximum intensity values. These values are stored in the intensity scale range for use in rendering and scaling.
+   */
   void Plot3DOpenGLCanvas::updateIntensityScale()
   {
     int_scale_.min_[0] = canvas_3d_.overall_data_range_.getMaxIntensity();

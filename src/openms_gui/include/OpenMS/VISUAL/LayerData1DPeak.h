@@ -11,6 +11,14 @@
 #include <OpenMS/VISUAL/LayerData1DBase.h>
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 
+/**
+ * @brief Checks if the given index is valid for the underlying MS experiment.
+ *
+ * Returns true if the specified index is less than the number of spectra in the associated MS experiment; otherwise, returns false.
+ *
+ * @param index The spectrum index to validate.
+ * @return true if the index is within the valid range; false otherwise.
+ */
 namespace OpenMS
 {
   

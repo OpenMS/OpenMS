@@ -494,6 +494,19 @@ namespace OpenMS
     }
   }
 
+  /**
+   * @brief Loads a data file into TOPPView and adds it as a new data layer.
+   *
+   * Attempts to load the specified file, automatically detecting its type (e.g., mzML, featureXML, consensusXML, IDXML, MzIdentML). Handles special cases such as identification files with associated spectra, indexed mzML files with on-disk caching, and files containing both spectra and chromatograms. After loading, the data is sorted, ranges are updated, and the data is added to the GUI as a new layer or window. Optionally, the file is added to the recent files list and registered for file change monitoring. Displays error or warning messages in the log window if issues occur during loading.
+   *
+   * @param filename Path to the file to be loaded.
+   * @param show_options If true, displays options dialog before adding the data.
+   * @param add_to_recent If true, adds the file to the recent files list.
+   * @param caption Optional caption for the data layer; if empty, uses the file name.
+   * @param window_id Optional ID of the window to add the data to.
+   * @param spectrum_id Optional spectrum index to focus on after loading.
+   * @return LOAD_RESULT Status code indicating the result of the load operation (e.g., OK, FILE_NOT_FOUND, FILETYPE_UNKNOWN, FILETYPE_UNSUPPORTED, LOAD_ERROR).
+   */
   TOPPViewBase::LOAD_RESULT TOPPViewBase::addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption, UInt window_id, Size spectrum_id)
   {
     String abs_filename = File::absolutePath(filename);
@@ -781,6 +794,25 @@ namespace OpenMS
     return LOAD_RESULT::OK;
   }
 
+  /**
+   * @brief Adds loaded data to the application, displaying it in a new or existing window and handling merging, visualization mode, and user options.
+   *
+   * Depending on the data type and user preferences, this function adds feature maps, consensus maps, peptide identifications, or peak/chromatogram data as a new layer in a plot window or merges it into an existing layer. It determines the appropriate visualization mode (1D, 2D, or 3D), optionally prompts the user for display and merging options, and manages DIA data annotation. If required, it creates a new plot window and displays the data.
+   *
+   * @param feature_map Shared pointer to the feature map to add, if applicable.
+   * @param consensus_map Shared pointer to the consensus map to add, if applicable.
+   * @param peptides Vector of peptide identifications to add, if applicable.
+   * @param peak_map Shared pointer to the experiment data (peaks or chromatograms).
+   * @param on_disc_peak_map Shared pointer to on-disk experiment data, if applicable.
+   * @param data_type The type of data being added (feature, consensus, identification, peak, or chromatogram).
+   * @param show_as_1d If true, forces display in 1D mode.
+   * @param show_options If true, shows a dialog for user display and merging options.
+   * @param as_new_window If true, opens the data in a new window.
+   * @param filename The filename associated with the data.
+   * @param caption The caption to use for the data layer.
+   * @param window_id The ID of the target window for adding or merging the data.
+   * @param spectrum_id The spectrum index to activate in 1D view, if applicable.
+   */
   void TOPPViewBase::addData(const FeatureMapSharedPtrType& feature_map,
                              const ConsensusMapSharedPtrType& consensus_map,
                              vector<PeptideIdentification>& peptides,
@@ -1925,6 +1957,11 @@ namespace OpenMS
     selection_view_->currentTabChanged(DataSelectionTabs::DIAOSW_IDX);
   }
 
+  /**
+   * @brief Opens a dialog to generate a theoretical spectrum and displays it in a new 1D view.
+   *
+   * If the user completes the spectrum generation dialog, the generated spectrum is added to a new experiment and displayed as a 1D plot in the application. The spectrum is shown in stick (peak) mode by default.
+   */
   void TOPPViewBase::showSpectrumGenerationDialog()
   {
     // TheoreticalSpectrumGenerationDialog spec_gen_dialog;
@@ -2010,6 +2047,13 @@ namespace OpenMS
   }
 
 
+  /**
+   * @brief Displays the current spectrum as an ion mobility (IM) frame in a new 2D view.
+   *
+   * Converts the provided spectrum into a set of spectra representing ion mobility frames, creates a new 2D plot with ion mobility and m/z axes, and adds the data as a new layer for visualization.
+   *
+   * @param spec The spectrum to be reshaped and displayed as ion mobility data.
+   */
   void TOPPViewBase::showCurrentPeaksAsIonMobility(const MSSpectrum& spec)
   {
     const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
@@ -2034,6 +2078,14 @@ namespace OpenMS
     updateMenu();
   }
 
+  /**
+   * @brief Displays all DIA/SWATH-MS MS2 spectra matching a given precursor as a new 2D plot.
+   *
+   * Collects all MS2 spectra from the provided experiment that have a precursor matching the specified precursor's m/z and isolation window. These spectra are converted to MS1 for visualization purposes and displayed in a new 2D plot window, labeled with the corresponding DIA window range.
+   *
+   * @param pc The precursor whose DIA window is used to select matching MS2 spectra.
+   * @param exp The experiment containing spectra to search for matching precursors.
+   */
   void TOPPViewBase::showCurrentPeaksAsDIA(const Precursor& pc, const MSExperiment& exp)
   {
     const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
@@ -2106,6 +2158,11 @@ namespace OpenMS
     updateMenu();
   }
 
+  /**
+   * @brief Displays the current or nearest compatible peak layer in a new 3D view.
+   *
+   * Searches for the closest peak data layer that supports 3D visualization, prioritizing the currently active layer. If found, opens a new 3D plot window for that layer, setting axis labels appropriately for ion mobility data. The visible area is preserved when switching from a 2D view. Updates the intensity mode and menu after displaying the 3D view.
+   */
   void TOPPViewBase::showCurrentPeaksAs3D()
   {
     // we first pick the layer with 3D support which is closest (or ideally identical) to the currently active layer
@@ -2333,6 +2390,11 @@ namespace OpenMS
     getActiveCanvas()->showCurrentLayerPreferences();
   }
 
+  /**
+   * @brief Opens a dialog to select raw data files and displays their metadata in a browser.
+   *
+   * Only raw data files (e.g., mzML, DTA) are supported. If an unsupported file is selected or an error occurs during reading, an error message is shown.
+   */
   void TOPPViewBase::metadataFileDialog()
   {
     QStringList files = chooseFilesDialog_();
@@ -2362,6 +2424,15 @@ namespace OpenMS
     getActiveCanvas()->showMetaData(true, spectrum_index);
   }
 
+  /**
+   * @brief Copies a data layer or selected spectra into a new or existing window based on the drag-and-drop source.
+   *
+   * Handles drag-and-drop or copy operations from the layers view, spectra tree, or external sources. Copies the selected layer, selected spectra, or loads files from external sources into the application as new layers or in specified windows.
+   *
+   * @param data The MIME data containing information about the dragged or copied item.
+   * @param source The widget from which the drag or copy originated. Can be the layers view, spectra tree, or nullptr for external sources.
+   * @param id The target window/tab ID. If -1, a new window/tab is used.
+   */
   void TOPPViewBase::copyLayer(const QMimeData* data, QWidget* source, int id)
   {
     SpectraTreeTab* spec_view = (source ? qobject_cast<SpectraTreeTab*>(source->parentWidget()) : nullptr);
@@ -2475,6 +2546,13 @@ namespace OpenMS
     updateViewBar();
   }
 
+  /**
+   * @brief Handles updates when a watched data file changes on disk.
+   *
+   * Checks if the changed file is still present and identifies all layers in open plot windows that reference the file. Depending on user preferences, either automatically reloads the data or prompts the user for confirmation. Reloads the affected data layer(s) from disk, updates their ranges, and refreshes the corresponding views. Handles errors during reloading by notifying the user and clearing the affected data. Updates the file watcher registration to ensure continued monitoring.
+   *
+   * @param filename The path of the file that has changed.
+   */
   void TOPPViewBase::fileChanged_(const String& filename)
   {
     // check if file has been deleted

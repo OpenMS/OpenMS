@@ -20,6 +20,13 @@
 #include <map>
 #include <vector>
 
+/**
+ * @brief Encapsulates metadata and settings for a 1D mass spectrometry spectrum.
+ *
+ * The SpectrumSettings class manages spectrum-specific metadata, including instrument and acquisition settings, spectrum type, native identifiers, comments, precursor and product information, source file details, and data processing history. It supports merging settings from another instance and provides accessors for all relevant metadata fields. Precursor information is relevant for tandem-MS spectra, where it describes the parent ion(s) of the current spectrum.
+ *
+ * @ingroup Metadata
+ */
 namespace OpenMS
 {
   /**

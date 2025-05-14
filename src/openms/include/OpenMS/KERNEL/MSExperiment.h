@@ -1067,7 +1067,14 @@ std::vector<MSChromatogram> extractXICs(
       @note The range values (min, max, etc.) are not updated automatically. Call updateRanges() to update the values!
     */
     ///@{
-    // Docu in base class
+    /**
+     * @brief Updates the m/z, intensity, and retention time ranges for all spectra at the specified MS level.
+     *
+     * If a negative MS level is provided, updates ranges for all spectra regardless of MS level.
+     *
+     * @param ms_level The MS level to consider for updating ranges, or negative to update all levels.
+     */
+    void updateRanges(Int ms_level);
     void updateRanges() override;
 
     /**

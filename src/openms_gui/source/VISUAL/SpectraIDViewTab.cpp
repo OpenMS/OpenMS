@@ -153,7 +153,11 @@ namespace OpenMS
     layer_ = nullptr;
   }
 
-  // Create the protein accession to peptide identification map using C++ STL unordered_map
+  /**
+   * @brief Builds a map from protein accession strings to peptide identification pointers for the current data layer.
+   *
+   * Populates the internal map associating each protein accession with all peptide identifications that reference it, based on peptide evidences in the current peak data layer. The map is rebuilt only on the first data load.
+   */
   void SpectraIDViewTab::createProteinToPeptideIDMap_()
   {
     //clear the map each time entries are updated with updateEntries()
@@ -188,7 +192,15 @@ namespace OpenMS
     }
   }
 
-  // extract required part of accession and open browser
+  /**
+   * @brief Extracts the UniProt accession number from a full protein accession string.
+   *
+   * Parses a protein accession string (e.g., "tr|A9GID7|A9GID7_SORC5") and returns the UniProt accession component.
+   * Skips known prefixes such as "tr" or "sp". Throws an Exception::InvalidValue if no valid accession is found.
+   *
+   * @param full_accession The full protein accession string, possibly containing prefixes and additional information.
+   * @return QString The extracted UniProt accession number.
+   */
   QString SpectraIDViewTab::extractNumFromAccession_(const QString& full_accession)
   {
     // anchored (^...$) regex for matching accession
@@ -385,6 +397,16 @@ namespace OpenMS
     // because currentCellChanged_ will not trigger. We would need to do it here.
   }
 
+  /**
+   * @brief Handles changes in the currently selected cell of the spectra/peptide identification table.
+   *
+   * Updates the selection state, emits signals to display the appropriate spectrum or precursor region, and, if applicable, opens a window showing peak fragment annotations for the selected peptide hit. Also updates the protein table to reflect the current selection.
+   *
+   * @param row The row index of the newly selected cell.
+   * @param column The column index of the newly selected cell.
+   *
+   * @throws Exception::InvalidValue If the selected cell indices are out of range.
+   */
   void SpectraIDViewTab::currentCellChanged_(int row, int column, int /*old_row*/, int /*old_column*/)
   {
     // TODO you actually only have to do repainting if the row changes..
@@ -518,6 +540,14 @@ namespace OpenMS
     updateProteinEntries_(row);
   }
 
+  /**
+   * @brief Determines if the given layer contains non-empty MS experiment data.
+   *
+   * Checks whether the provided layer is a peak data layer and that its associated MS experiment is not empty.
+   *
+   * @param layer Pointer to the layer to check.
+   * @return true if the layer is a peak data layer with non-empty MS experiment data; false otherwise.
+   */
   bool SpectraIDViewTab::hasData(const LayerDataBase* layer)
   {
     // this is a very easy check.
@@ -560,7 +590,13 @@ namespace OpenMS
         object.get().getKeys(keys);
       };
     };
-  }// namespace Detail
+  }/**
+   * @brief Updates the protein table to display protein hits associated with the selected spectrum row.
+   *
+   * If a spectrum row is selected, filters and highlights proteins linked to the peptide hit in that row; otherwise, displays all proteins. Populates the table with protein metadata, including accession, sequence, description, score, coverage, and the number of associated peptide-spectrum matches (PSMs). Adjusts column visibility and enables sorting and resizing.
+   *
+   * @param selected_spec_row_idx Index of the selected spectrum row, or -1 to show all proteins.
+   */
 
   void SpectraIDViewTab::updateProteinEntries_(int selected_spec_row_idx)
   {
@@ -663,6 +699,14 @@ namespace OpenMS
     protein_table_widget_->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
   }
 
+  /**
+   * @brief Updates the spectra/peptide identification table with current layer data.
+   *
+   * Populates the main table with MS2 spectra and associated peptide identifications from the current peak data layer.
+   * Includes standard columns, and optionally, columns for common meta values and peak annotations if enabled.
+   * Applies filtering based on user settings, sets background colors to indicate identification presence, and fills each row with detailed spectrum and peptide hit information.
+   * Restores previous selection, enables sorting, and triggers updates to the protein table based on the selected spectrum.
+   */
   void SpectraIDViewTab::updateEntries_()
   {
     #ifdef DEBUG_SPECTRA_ID_VIEW
@@ -936,6 +980,11 @@ namespace OpenMS
 
   }
  
+  /**
+   * @brief Saves the current protein and peptide identifications to a file.
+   *
+   * Opens a file dialog for the user to select a destination and format (IDXML or MZIDENTML), then exports all protein and peptide identifications currently displayed in the table, ensuring no duplicate spectra are included.
+   */
   void SpectraIDViewTab::saveIDs_()
   {
     // no valid peak layer attached
@@ -982,7 +1031,14 @@ namespace OpenMS
   }
 
   // Upon changes in the table data (only possible by checking or unchecking a checkbox right now),
-  // update the corresponding PeptideIdentification / PeptideHits by adding a metavalue: 'selected'
+  /**
+   * @brief Updates the 'selected' metavalue for the corresponding PeptideHit(s) when a checkbox in the table is toggled.
+   *
+   * Sets the 'selected' metavalue to "true" or "false" for the appropriate PeptideHit(s) based on the checkbox state.
+   * In cross-linking cases where both PeptideHits belong to the same cross-link, updates both hits; otherwise, updates only the selected PeptideHit.
+   *
+   * @param item The table widget item whose checkbox state was changed.
+   */
   void SpectraIDViewTab::updatedSingleCell_(QTableWidgetItem* item)
   {
     // extract position of the correct Spectrum, PeptideIdentification and PeptideHit from the table
@@ -1014,6 +1070,15 @@ namespace OpenMS
     }
   }
 
+  /**
+   * @brief Populates a table row with spectrum-level information and precursor details.
+   *
+   * Fills the spectra table with metadata from the given spectrum, including MS level, index, retention time, scan mode, zoom scan status, and, if available, precursor m/z, activation method, and intensity. Precursor-related columns are displayed in blue.
+   *
+   * @param spectrum The spectrum whose information is to be displayed.
+   * @param spec_index The index of the spectrum in the experiment.
+   * @param background_color The background color to use for the row.
+   */
   void SpectraIDViewTab::fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor& background_color)
   {
     // fill spectrum information in columns

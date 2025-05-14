@@ -14,7 +14,12 @@
 
 #include <vector>
 
-namespace OpenMS
+/**
+       * @brief Stores MS experiment data with associated peptide and protein identifications.
+       *
+       * AnnotatedMSRun manages an MSExperiment containing spectra, along with vectors of peptide and protein identifications. Each spectrum is linked to a single peptide identification, enabling synchronized access and modification. The class provides methods for retrieving and setting identifications, as well as iterators for parallel traversal of spectra and their corresponding peptide identifications.
+       */
+      namespace OpenMS
 {
   class PeptideIdentification;
 
@@ -239,8 +244,11 @@ namespace OpenMS
       }
 
       /**
-       * @brief Dereference operator
-       * @return A pair of references to the current spectrum and peptide identification
+       * @brief Returns a pair of references to the current spectrum and peptide identification.
+       *
+       * Dereferences the iterator to access the current elements from both the spectra and peptide identification containers.
+       *
+       * @return A pair of references to the current MSSpectrum and PeptideIdentification.
        */
       auto operator*()
       {

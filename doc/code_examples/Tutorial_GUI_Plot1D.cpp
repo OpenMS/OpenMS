@@ -16,6 +16,16 @@
 using namespace OpenMS;
 using namespace std;
 
+/**
+ * @brief Loads a single mass spectrum from a file and displays it in a 1D plot using OpenMS and Qt.
+ *
+ * Initializes a Qt application, loads a spectrum from a DTA file, adds it to an annotated experiment,
+ * and visualizes the spectrum in a 1D plot widget. The application window is displayed and the Qt event loop is started.
+ *
+ * @param argc Number of command-line arguments.
+ * @param argv Array of command-line argument strings.
+ * @return The exit code from the Qt application event loop.
+ */
 Int main(int argc, const char** argv)
 {
   String tutorial_data_path(OPENMS_DOC_PATH + String("/code_examples/data/Tutorial_Spectrum1D.dta"));

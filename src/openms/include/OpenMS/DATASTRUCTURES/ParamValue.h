@@ -14,6 +14,13 @@
 #include <vector>
 
 
+/**
+ * @brief Represents a value that can be a string, integer, double, vector of strings, vector of integers, vector of doubles, or empty.
+ *
+ * The ParamValue class provides a flexible container for storing and converting between supported types. It supports automatic type conversion with exception handling for invalid casts and manages memory for dynamically allocated types. An empty ParamValue can be created using the default constructor.
+ *
+ * @ingroup Datastructures
+ */
 namespace OpenMS
 {
   /**

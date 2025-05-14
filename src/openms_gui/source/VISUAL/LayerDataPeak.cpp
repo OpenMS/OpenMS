@@ -44,6 +44,13 @@ namespace OpenMS
     return make_unique<LayerData1DPeak>(*this);
   }
 
+  /**
+   * @brief Stores the visible portion of the peak map experiment based on the specified range and filters.
+   *
+   * @param visible_range The range defining the visible area to be stored.
+   * @param layer_filters Filters to apply to the data before storing.
+   * @return std::unique_ptr<LayerStoreData> Pointer to the stored visible data.
+   */
   std::unique_ptr<LayerStoreData> LayerDataPeak::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
     auto ret = make_unique<LayerStoreDataPeakMapVisible>();
@@ -51,6 +58,11 @@ namespace OpenMS
     return ret;
   }
 
+  /**
+   * @brief Stores and returns the complete peak map experiment data.
+   *
+   * @return A unique pointer to a LayerStoreDataPeakMapAll object containing all peak map data.
+   */
   std::unique_ptr<LayerStoreData> LayerDataPeak::storeFullData() const
   {
     auto ret = make_unique<LayerStoreDataPeakMapAll>();
@@ -58,6 +70,16 @@ namespace OpenMS
     return ret;
   }
 
+  /**
+   * @brief Computes projections of peak data onto specified dimensions within a given area.
+   *
+   * Generates 1D projections of the peak map data onto two selected axes (m/z, retention time, or ion mobility) over a specified area. The method bins intensities, calculates summary statistics (number of data points, maximum intensity, total intensity), and constructs corresponding 1D layer objects for each projection. The projections are assigned to the X and Y axes according to the requested dimension units. Throws an exception if an unsupported dimension unit is specified.
+   *
+   * @param unit_x The dimension unit for the X-axis projection (e.g., m/z, RT, or ion mobility).
+   * @param unit_y The dimension unit for the Y-axis projection.
+   * @param area The data range over which to compute the projections.
+   * @return ProjectionData Structure containing the projected 1D layers and summary statistics.
+   */
   LayerDataPeak::ProjectionData LayerDataPeak::getProjection(const DIM_UNIT unit_x, const DIM_UNIT unit_y, const RangeAllType& area) const
   {
     ProjectionData result;
@@ -204,6 +226,14 @@ namespace OpenMS
     return result;
   }
 
+  /**
+   * @brief Finds the data point with the highest intensity within a specified area.
+   *
+   * Searches the peak map for the data point with the maximum intensity in the given area, considering only peaks that pass the current filters. For ion mobility data, uses the MS level of the first spectrum; otherwise, uses MS level 1.
+   *
+   * @param area The region of interest in which to search for the highest intensity data point.
+   * @return PeakIndex Index of the data point with the highest intensity in the specified area. If no valid data point is found, returns a default-constructed PeakIndex.
+   */
   PeakIndex LayerDataPeak::findHighestDataPoint(const RangeAllType& area) const
   {
     using IntType = MSExperiment::ConstAreaIterator::PeakType::IntensityType;
@@ -260,11 +290,27 @@ namespace OpenMS
     return status;
   }
 
+  /**
+   * @brief Returns statistical information about the peak map layer.
+   *
+   * Constructs and returns a unique pointer to a LayerStatisticsPeakMap object containing statistics for the current peak map experiment.
+   *
+   * @return std::unique_ptr<LayerStatistics> Pointer to the statistics object for the peak map.
+   */
   std::unique_ptr<LayerStatistics> LayerDataPeak::getStats() const
   {
     return make_unique<LayerStatisticsPeakMap>(peak_map_->getMSExperiment());
   }
 
+  /**
+   * @brief Annotates the peak data with provided peptide and protein identifications.
+   *
+   * Applies identification mapping to the underlying peak map using specified retention time and m/z tolerances.
+   *
+   * @param identifications List of peptide identifications to map onto the peak data.
+   * @param protein_identifications List of protein identifications to map onto the peak data.
+   * @return true Always returns true after annotation is complete.
+   */
   bool LayerDataPeak::annotate(const vector<PeptideIdentification>& identifications, const vector<ProteinIdentification>& protein_identifications)
   {
     IDMapper mapper;

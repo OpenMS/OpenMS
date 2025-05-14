@@ -11,7 +11,13 @@
 #include <OpenMS/VISUAL/LayerData1DBase.h>
 #include <OpenMS/VISUAL/LayerDataChrom.h>
 
-namespace OpenMS
+/**
+     * @brief Checks whether the specified index refers to a valid chromatogram in the current experiment.
+     *
+     * @param index The chromatogram index to check.
+     * @return true if the index is within the range of available chromatograms; false otherwise.
+     */
+    namespace OpenMS
 {
   class OPENMS_GUI_DLLAPI LayerData1DChrom : public LayerDataChrom, public LayerData1DBase
   {

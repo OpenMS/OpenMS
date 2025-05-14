@@ -20,7 +20,12 @@
 #include <algorithm>
 #include <limits>
 
-namespace OpenMS
+/**
+     * @brief Annotates mass spectrometry data structures with peptide and protein identifications.
+     *
+     * The IDMapper class provides methods to map peptide and protein identifications onto MSExperiment (AnnotatedMSRun), FeatureMap, and ConsensusMap objects. Annotation is performed based on retention time (RT) and mass-to-charge ratio (m/z) tolerances, with support for different matching strategies and tolerance units (ppm or Da). Protein identifications are assigned to the entire map. The class also includes utilities for precursor-to-identification mapping and tolerance calculations.
+     */
+    namespace OpenMS
 {
   class AnnotatedMSRun;
   /**

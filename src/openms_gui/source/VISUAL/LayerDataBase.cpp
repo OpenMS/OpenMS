@@ -42,7 +42,13 @@ namespace OpenMS
   }
 
 
-  /// get name plus name_extra plus optionally augmented with attributes, e.g. '*' if modified
+  /**
+   * @brief Returns the layer's name with any suffix and an asterisk if modified.
+   *
+   * The returned string consists of the layer's base name, an optional suffix, and appends '*' if the layer has been modified.
+   *
+   * @return The decorated name of the layer.
+   */
   String LayerDataBase::getDecoratedName() const
   {
     String n = name_ + name_suffix_;
@@ -53,41 +59,17 @@ namespace OpenMS
     return n;
   }
 
-  /*
-  void LayerDataBase::updateCache_()
-  {
-    if (peak_map_->getMSExperiment().getNrSpectra() > current_spectrum_idx_ && !(*peak_map_)[current_spectrum_idx_].first.empty())
-    {
-      cached_spectrum_ = (*peak_map_)[current_spectrum_idx_].first;
-    }
-    else if (on_disc_peaks->getNrSpectra() > current_spectrum_idx_)
-    {
-      cached_spectrum_ = on_disc_peaks->getSpectrum(current_spectrum_idx_);
-    }
-  }
-
-
-  /// add annotation from an OSW sqlite file.
-
-
-  /// get annotation (e.g. to build a hierachical ID View)
-  /// Not const, because we might have incomplete data, which needs to be loaded from sql source
-
-  LayerDataBase::OSWDataSharedPtrType& LayerDataBase::getChromatogramAnnotation()
-  {
-    return chrom_annotation_;
-  }
-
-  const LayerDataBase::OSWDataSharedPtrType& LayerDataBase::getChromatogramAnnotation() const
-  {
-    return chrom_annotation_;
-  }
-
-  void LayerDataBase::setChromatogramAnnotation(OSWData&& data)
-  {
-    chrom_annotation_ = OSWDataSharedPtrType(new OSWData(std::move(data)));
-  }
-*/
+  /**
+   * @brief Annotates the layer with peptide and protein identifications.
+   *
+   * Applies peptide and protein identification data to the layer's underlying data structure using ID mapping.
+   * The annotation method and parameters depend on the specific layer type (peak, feature, or consensus).
+   * Returns false if the layer type is unsupported or after annotation.
+   *
+   * @param identifications Peptide identifications to be mapped to the layer.
+   * @param protein_identifications Protein identifications to be mapped to the layer.
+   * @return false Always returns false, regardless of annotation outcome.
+   */
   bool LayerDataBase::annotate(const vector<PeptideIdentification>& identifications,
                            const vector<ProteinIdentification>& protein_identifications)
   {
@@ -117,6 +99,11 @@ namespace OpenMS
     return false;
   }
 
+  /**
+   * @brief Returns the minimum intensity value from the layer's data range.
+   *
+   * @return The minimum intensity as a float.
+   */
   float LayerDataBase::getMinIntensity() const
   {
     return getRange().getMinIntensity();
@@ -248,6 +235,14 @@ namespace OpenMS
     return false;
   }
 
+  /**
+   * @brief Annotates a chromatogram layer with OSW data from a file.
+   *
+   * Loads OSW data from the specified file, builds a native ID resolver using the layer's chromatogram data, and sets the annotation on the layer. Returns false if the layer is not a chromatogram layer, if the file cannot be read, or if an exception occurs during processing.
+   *
+   * @param filename Path to the OSW file to load.
+   * @return true if annotation was successful, false otherwise.
+   */
   bool LayerAnnotatorOSW::annotateWorker_(LayerDataBase& layer,
                                           const String& filename,
                                           LogWindow& log) const

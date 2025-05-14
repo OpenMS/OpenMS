@@ -16,6 +16,11 @@
 
 #include <vector>
 
+/**
+ * @brief Updates the data ranges for the in-memory peak map.
+ *
+ * This method recalculates and updates the minimum and maximum values for all relevant dimensions (e.g., m/z, retention time, intensity) in the in-memory peak data. Note that ranges for on-disk data cannot be updated due to access limitations.
+ */
 namespace OpenMS
 {
   class Annotation1DItem;

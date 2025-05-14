@@ -40,6 +40,15 @@ namespace OpenMS
     return make_unique<LayerData1DChrom>(*this);
   }
 
+  /**
+   * @brief Stores the visible chromatogram data within the specified range and filters.
+   *
+   * Creates a LayerStoreDataPeakMapVisible object containing only the chromatogram data that is currently visible, as determined by the provided range and data filters.
+   *
+   * @param visible_range The range specifying the visible area to extract data from.
+   * @param layer_filters The filters to apply to the chromatogram data.
+   * @return std::unique_ptr<LayerStoreData> A pointer to the stored visible data.
+   */
   std::unique_ptr<LayerStoreData> LayerDataChrom::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
     auto ret = make_unique<LayerStoreDataPeakMapVisible>();
@@ -47,6 +56,11 @@ namespace OpenMS
     return ret;
   }
 
+  /**
+   * @brief Stores the complete chromatogram experiment data for this layer.
+   *
+   * @return A unique pointer to a LayerStoreData object containing all chromatogram data from the underlying experiment.
+   */
   std::unique_ptr<LayerStoreData> LayerDataChrom::storeFullData() const
   {
     auto ret = make_unique<LayerStoreDataPeakMapAll>();
@@ -54,6 +68,15 @@ namespace OpenMS
     return ret;
   }
 
+  /**
+   * @brief Generates projection layers of chromatogram data onto specified axes.
+   *
+   * Creates 1D projection layers for chromatogram data along the given X and Y axes (m/z or RT). The projections are currently placeholders with empty spectra and chromatograms, as the actual projection calculation is not implemented for chromatograms.
+   *
+   * @param unit_x The dimension unit for the X-axis projection (e.g., m/z or RT).
+   * @param unit_y The dimension unit for the Y-axis projection (e.g., m/z or RT).
+   * @return ProjectionData Structure containing the projected 1D layers for the specified axes.
+   */
   LayerDataChrom::ProjectionData LayerDataChrom::getProjection(const DIM_UNIT unit_x, const DIM_UNIT unit_y, const RangeAllType& /*area*/) const
   {
     ProjectionData result;
@@ -167,6 +190,14 @@ namespace OpenMS
     return result;
   }
 
+  /**
+   * @brief Finds the first chromatogram within the specified area whose precursor m/z and RT range contain the area's center.
+   *
+   * Searches all chromatograms in the experiment and returns the index of the first chromatogram whose precursor m/z is within the given area and whose RT range contains the center of the area's RT range. Returns an empty PeakIndex if no such chromatogram is found.
+   *
+   * @param area The m/z and RT area to search within.
+   * @return PeakIndex Index of the matching chromatogram, or empty if none found.
+   */
   PeakIndex LayerDataChrom::findHighestDataPoint(const RangeAllType& area) const
   {
     const PeakMap& exp = getChromatogramData().get()->getMSExperiment();
@@ -233,6 +264,13 @@ namespace OpenMS
     chrom_annotation_ = OSWDataSharedPtrType(new OSWData(std::move(data)));
   }
 
+  /**
+   * @brief Returns statistical information about the chromatogram layer.
+   *
+   * Constructs and returns a LayerStatisticsPeakMap object containing statistics computed from the underlying chromatogram experiment data.
+   *
+   * @return Unique pointer to a LayerStatistics object with computed statistics for the chromatogram data.
+   */
   std::unique_ptr<LayerStatistics> LayerDataChrom::getStats() const
   {
     return make_unique<LayerStatisticsPeakMap>(chromatogram_map_->getMSExperiment());

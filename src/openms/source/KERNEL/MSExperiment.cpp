@@ -857,6 +857,14 @@ namespace OpenMS
     return false;
   }
 
+  /**
+   * @brief Checks if any peak in spectra of the specified MS level has zero intensity.
+   *
+   * Iterates through all spectra with the given MS level and returns true if at least one peak has an intensity of zero.
+   *
+   * @param ms_level The MS level to filter spectra.
+   * @return true if any peak in the specified MS level spectra has zero intensity, false otherwise.
+   */
   bool MSExperiment::hasZeroIntensities(size_t ms_level) const
   {
     for (const auto& spec : getSpectra())
@@ -876,18 +884,12 @@ namespace OpenMS
     return false;
   }
 
-  /*
-  bool MSExperiment::hasPeptideIdentifications() const
-  {
-    for (const auto& spec : getSpectra())
-    {
-      if (!spec.getPeptideIdentifications().empty())
-      {
-        return true;
-      }
-    }
-    return false;
-  }
+  /**
+   * @brief Checks if the experiment represents an ion mobility (IM) frame.
+   *
+   * Returns true if all spectra have the same retention time (RT) and strictly increasing ion mobility (IM) values.
+   *
+   * @return true if the experiment is an IM frame; false otherwise.
    */
 
   bool MSExperiment::isIMFrame() const

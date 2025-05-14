@@ -53,6 +53,18 @@ namespace OpenMS
     showSpectrumAsNew1D(index, -1, -1);
   }
 
+  /**
+   * @brief Opens a new 1D spectrum view for the specified spectrum and adds peptide identification annotations if provided.
+   *
+   * Displays the spectrum at the given index from the current active peak layer in a new 1D plot widget. If valid peptide identification and hit indices are specified, adds relevant annotations:
+   * - For MS level 1 spectra, adds peak annotations based on the peptide identification.
+   * - For MS level 2 spectra, adds fragment annotations from the peptide hit if available, or generates a theoretical spectrum layer if not.
+   * Updates UI elements to reflect the new view and annotations.
+   *
+   * @param spectrum_index Index of the spectrum to display.
+   * @param peptide_id_index Index of the peptide identification to annotate, or -1 for none.
+   * @param peptide_hit_index Index of the peptide hit to annotate, or -1 for none.
+   */
   void TVIdentificationViewController::showSpectrumAsNew1D(int spectrum_index, int peptide_id_index, int peptide_hit_index)
   {
     #ifdef DEBUG_IDENTIFICATION_VIEW
@@ -157,6 +169,11 @@ namespace OpenMS
     // else if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
   }
 
+  /**
+   * @brief Adds caret annotations for peptide identifications to the current spectrum.
+   *
+   * For each peptide identification, matches the m/z value to a peak in the current spectrum within 0.5 ppm tolerance. Groups peptide hits by chemical formula, and for each group, creates isotope pattern caret annotations at the matched peak position, color-coded by group. Each annotation includes a rich text label listing compound names. Only the first few groups and names are shown; additional entries are summarized.
+   */
   void TVIdentificationViewController::addPeakAnnotations_(const vector<PeptideIdentification>& ph)
   {
     #ifdef DEBUG_IDENTIFICATION_VIEW
@@ -292,6 +309,15 @@ namespace OpenMS
     activate1DSpectrum(index, -1, -1);
   }
 
+  /**
+   * @brief Activates and annotates a spectrum in the 1D view, updating peptide identification and hit context.
+   *
+   * Displays the specified spectrum in the active 1D widget, sets the current peptide identification and hit indices, and adds relevant annotations based on the MS level. For MS1 spectra, adds peak annotations and precursor labels for associated MS2 spectra. For MS2 spectra, adds fragment annotations from the selected peptide hit or generates a theoretical spectrum if no annotations exist, synchronizes annotations, and updates the sequence or cross-linking information in the text box. Handles special visualization for cross-linked peptides and ion ladders. If no 1D widget is active, creates one and displays the spectrum.
+   *
+   * @param spectrum_index Index of the spectrum to activate.
+   * @param peptide_id_index Index of the peptide identification within the spectrum.
+   * @param peptide_hit_index Index of the peptide hit within the peptide identification.
+   */
   void TVIdentificationViewController::activate1DSpectrum(
     int spectrum_index,
     int peptide_id_index,
@@ -933,6 +959,13 @@ namespace OpenMS
     temporary_annotations_.clear();
   }
 
+  /**
+   * @brief Adds a theoretical spectrum layer for a given peptide hit and annotates aligned peaks.
+   *
+   * Generates a theoretical spectrum for the provided peptide sequence and overlays it as a new (hidden) layer in the active 1D spectrum view. Ion annotations (b/y) are added to the theoretical spectrum, and aligned peaks in the real spectrum are annotated with ion labels and corresponding sequence fragments. The theoretical layer is styled as dashed sticks and hidden by default, while the real data layer remains active and zoomed to its range. All temporary annotations are tracked for later removal.
+   *
+   * @param ph The peptide hit for which the theoretical spectrum is generated and annotated.
+   */
   void TVIdentificationViewController::addTheoreticalSpectrumLayer_(const PeptideHit& ph)
   {
     #ifdef DEBUG_IDENTIFICATION_VIEW
@@ -1090,6 +1123,13 @@ namespace OpenMS
     }
   }
 
+  /**
+   * @brief Removes all graphical peak annotations from the specified spectrum in the active 1D widget.
+   *
+   * Deletes all Annotation1DPeakItem objects from the annotation list of the given spectrum index, ensuring that only non-graphical or non-peak annotations remain.
+   *
+   * @param spectrum_index Index of the spectrum from which to remove graphical peak annotations.
+   */
   void TVIdentificationViewController::removeGraphicalPeakAnnotations_(int spectrum_index)
   {
     #ifdef DEBUG_IDENTIFICATION_VIEW
@@ -1114,6 +1154,13 @@ namespace OpenMS
     return;
   }
 
+  /**
+   * @brief Deactivates a 1D spectrum view and clears associated identification annotations.
+   *
+   * Removes graphical and temporary annotations, resets peptide identification indices, and clears the text box for the specified spectrum in the active 1D widget. For MS level 2 spectra, also removes theoretical spectrum layers and synchronizes peak annotations.
+   *
+   * @param spectrum_index Index of the spectrum to deactivate within the current layer.
+   */
   void TVIdentificationViewController::deactivate1DSpectrum(int spectrum_index)
   {
     #ifdef DEBUG_IDENTIFICATION_VIEW
@@ -1155,6 +1202,13 @@ namespace OpenMS
     widget_1D->canvas()->setTextBox(QString());
   }
 
+  /**
+   * @brief Adds graphical peak annotations to the current spectrum based on fragment annotations from a peptide hit.
+   *
+   * For each fragment annotation in the given peptide hit, finds the corresponding peak in the current spectrum and adds a labeled annotation item. Colors are assigned based on ion type and cross-linking status. Peak colors are updated accordingly, and the visible area is adjusted to fit the annotated data.
+   *
+   * @param hit Peptide hit containing fragment annotations to visualize.
+   */
   void TVIdentificationViewController::addPeakAnnotationsFromID_(const PeptideHit& hit)
   {
     #ifdef DEBUG_IDENTIFICATION_VIEW
@@ -1283,6 +1337,11 @@ namespace OpenMS
     tv_->updateLayerBar();
   }
 
+  /**
+   * @brief Removes the automatically generated theoretical spectrum layer from the active 1D spectrum view.
+   *
+   * Searches for and deletes the layer labeled as "(identification view)" in the active 1D widget, resets spectrum alignment, and updates the layer bar.
+   */
   void TVIdentificationViewController::removeTheoreticalSpectrumLayer_()
   {
     #ifdef DEBUG_IDENTIFICATION_VIEW
@@ -1311,7 +1370,11 @@ namespace OpenMS
     }
   }
 
-  // override
+  /**
+   * @brief Activates the identification view and selects the first MS2 spectrum with a peptide identification if the current spectrum is MS1.
+   *
+   * If the currently active spectrum is MS level 1, this method searches for the first MS level 2 spectrum in the current layer that contains a peptide identification and sets it as the current spectrum.
+   */
   void TVIdentificationViewController::activateBehavior() 
   {
     #ifdef DEBUG_IDENTIFICATION_VIEW
@@ -1355,7 +1418,11 @@ namespace OpenMS
     }
   }
 
-  // override
+  /**
+   * @brief Deactivates the identification view and resets related UI elements.
+   *
+   * Clears the text box, removes temporary annotations and theoretical spectrum layers, resets peptide identification indices, and repaints the active 1D spectrum widget if present.
+   */
   void TVIdentificationViewController::deactivateBehavior()
   {
     #ifdef DEBUG_IDENTIFICATION_VIEW

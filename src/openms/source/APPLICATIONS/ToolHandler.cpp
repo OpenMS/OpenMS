@@ -16,6 +16,16 @@
 
 namespace OpenMS
 {
+  /**
+   * @brief Returns a map of available TOPP tools and their descriptions, optionally including external tools.
+   *
+   * Constructs and returns a map of tool names to their descriptions, categorized by function. The list includes hardcoded internal tools, tools loaded from internal configuration files, and, if specified, external tools under the "GenericWrapper" entry. Duplicate tool names between hardcoded and internal tools result in an exception. GUI-dependent tools are excluded if GUI support is disabled.
+   *
+   * @param includeGenericWrapper If true, includes external tools as "GenericWrapper" in the returned map.
+   * @return ToolListType Map of tool names to their descriptions.
+   *
+   * @throws Exception::InvalidValue If a duplicate tool name is encountered when adding internal tools.
+   */
   ToolListType ToolHandler::getTOPPToolList(const bool includeGenericWrapper)
   {
     ToolListType tools_map;

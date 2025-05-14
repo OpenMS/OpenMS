@@ -61,6 +61,20 @@ namespace OpenMS
     tv_->updateMenu();
   }
 
+  /**
+   * @brief Adds chromatogram layers to a 1D plot widget for the specified indices.
+   *
+   * For each index, constructs a caption using the peptide sequence metadata if available, appending the index, and adds the corresponding chromatogram layer to the target widget's canvas.
+   *
+   * @param indices Indices of chromatograms to add as layers.
+   * @param target Target 1D plot widget to which layers are added.
+   * @param chrom_exp_sptr Shared pointer to the chromatogram experiment data.
+   * @param ondisc_sptr Shared pointer to the on-disc experiment data.
+   * @param chrom_annotation Shared pointer to chromatogram annotations.
+   * @param layer_basename Base name for the layer.
+   * @param filename Source filename for the chromatogram data.
+   * @return true if all chromatogram layers are added successfully; false if any addition fails.
+   */
   bool add1DChromLayers(const std::vector<int>& indices,
                         Plot1DWidget* target, 
                         const LayerDataDefs::ExperimentSharedPtrType& chrom_exp_sptr,

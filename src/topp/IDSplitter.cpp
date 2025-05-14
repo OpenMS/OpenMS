@@ -75,6 +75,11 @@ protected:
     peptides.swap(unique);
   }
 
+  /**
+   * @brief Registers command-line options and output flags for the IDSplitter tool.
+   *
+   * Defines required and optional input/output file parameters, including input data files annotated with identifications and output files for separated data and identifications.
+   */
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (data annotated with identifications)");
@@ -85,6 +90,17 @@ protected:
     setValidFormats_("id_out", ListUtils::create<String>("idXML"));
   }
 
+  /**
+   * @brief Splits protein and peptide identifications from annotated input files and writes them to separate outputs.
+   *
+   * Processes an input file (featureXML or consensusXML) containing annotated identifications. Extracts and removes peptide and protein identifications from the data, optionally writing the cleaned data to an output file and/or the identifications to a separate idXML file. Duplicate peptide identifications are removed before exporting. At least one output (cleaned data or identifications) must be specified.
+   *
+   * @param argc Number of command-line arguments (unused).
+   * @param argv Array of command-line arguments (unused).
+   * @return ExitCodes Returns EXECUTION_OK on successful completion.
+   *
+   * @throws Exception::RequiredParameterNotGiven if neither output file is specified.
+   */
   ExitCodes main_(int, const char **) override
   {
     String in = getStringOption_("in"), out = getStringOption_("out"),

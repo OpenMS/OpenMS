@@ -18,6 +18,11 @@ namespace OpenMS
 
   const std::string SpectrumSettings::NamesOfSpectrumType[] = {"Unknown", "Centroid", "Profile"};
 
+  /**
+   * @brief Constructs a SpectrumSettings object with default-initialized metadata and settings.
+   *
+   * Initializes all members to their default values, representing an empty or unknown spectrum configuration.
+   */
   SpectrumSettings::SpectrumSettings() :
     MetaInfoInterface(),
     type_(UNKNOWN),
@@ -34,6 +39,14 @@ namespace OpenMS
 
   SpectrumSettings::~SpectrumSettings() = default;
 
+  /**
+   * @brief Checks whether two SpectrumSettings objects are equal.
+   *
+   * Compares all metadata fields, instrument settings, acquisition info, source file, precursor and product ions, and data processing steps for equality.
+   *
+   * @param rhs The SpectrumSettings object to compare with.
+   * @return true if all corresponding members are equal; false otherwise.
+   */
   bool SpectrumSettings::operator==(const SpectrumSettings & rhs) const
   {
     return MetaInfoInterface::operator==(rhs) &&
@@ -57,6 +70,13 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
+  /**
+   * @brief Merges metadata and settings from another SpectrumSettings object into this one.
+   *
+   * Overwrites existing meta values with those from the input object, sets the spectrum type to UNKNOWN if types differ, appends the input's comment, and concatenates precursor, product, and data processing information. Other fields remain unchanged.
+   *
+   * @param rhs The SpectrumSettings object whose data will be merged into this one.
+   */
   void SpectrumSettings::unify(const SpectrumSettings & rhs)
   {
     // append metavalues (overwrite when already present)
@@ -176,6 +196,15 @@ namespace OpenMS
     products_ = products;
   }
 
+  /**
+   * @brief Outputs a placeholder representation of a SpectrumSettings object to a stream.
+   *
+   * Writes markers indicating the beginning and end of SpectrumSettings content to the provided output stream.
+   *
+   * @param os Output stream to write to.
+   * @param spec SpectrumSettings object (unused).
+   * @return Reference to the output stream.
+   */
   std::ostream & operator<<(std::ostream & os, const SpectrumSettings & /*spec*/)
   {
     os << "-- SPECTRUMSETTINGS BEGIN --" << std::endl;
@@ -183,6 +212,13 @@ namespace OpenMS
     return os;
   }
 
+  /**
+   * @brief Returns the native identifier of the spectrum.
+   *
+   * The native ID typically corresponds to the unique identifier assigned to the spectrum in the original data file.
+   *
+   * @return Reference to the native ID string.
+   */
   const String & SpectrumSettings::getNativeID() const
   {
     return native_id_;
@@ -203,6 +239,11 @@ namespace OpenMS
     return data_processing_;
   }
 
+  /**
+   * @brief Returns the data processing steps associated with the spectrum as a vector of constant shared pointers.
+   *
+   * @return A vector of boost::shared_ptr to constant DataProcessing objects describing the processing history of the spectrum.
+   */
   const std::vector< boost::shared_ptr<const DataProcessing > > SpectrumSettings::getDataProcessing() const
   {
     return OpenMS::Helpers::constifyPointerVector(data_processing_);

@@ -210,19 +210,14 @@ protected:
     bool getRetentionTimes_(const AnnotatedMSRun& experiment, SeqToList& rt_data);
 
     /**
-      @brief Collect retention time data from peptide IDs contained in feature maps or consensus maps
-
-      The following global flags (mutually exclusive) influence the processing:\n
-      Depending on @p use_unassigned_peptides, unassigned peptide IDs are used in addition to IDs annotated to features.\n
-      Depending on @p use_feature_rt, feature retention times are used instead of peptide retention times.
-      Depending on @p score_cutoff and min_score, only peptide IDs with minimum score X are used. Higher score better is
-      determined from the first PeptideID encountered. Make sure they are the same. This param is useless with use_feature_rt yet.
-
-      @param features Input features for RT data
-      @param rt_data Lists of RT values for diff. peptide sequences (output)
-
-      @return Are the RTs already sorted? (Here: true)
-    */
+     * @brief Extracts and groups retention times by peptide sequence from feature or consensus maps.
+     *
+     * Collects retention time (RT) values for each unique peptide sequence from the provided feature or consensus map. Depending on configuration, RTs can be taken from feature centroids or peptide identifications, and unassigned peptides may be included. Duplicate RTs per sequence are removed.
+     *
+     * @param features FeatureMap or ConsensusMap containing peptide identifications.
+     * @param rt_data Output map from peptide sequence to list of RT values.
+     * @return true Always returns true, indicating RTs are sorted after duplicate removal.
+     */
 
     bool getRetentionTimes_(const IsFCMap auto& features, SeqToList& rt_data)
     {

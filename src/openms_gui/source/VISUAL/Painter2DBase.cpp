@@ -120,6 +120,15 @@ namespace OpenMS
   {
   }
 
+  /**
+   * @brief Paints MS peak data onto a 2D canvas, adapting rendering strategy based on data density and zoom level.
+   *
+   * Depending on the density of visible peaks and the current zoom, this method either paints all intensity points with scaled pen width or only the maximum intensity per pixel to optimize performance and clarity. It also optionally draws precursor peaks if enabled in the layer settings.
+   *
+   * @param painter The QPainter used for drawing.
+   * @param canvas The Plot2DCanvas on which to paint.
+   * @param layer_index Index of the data layer being painted.
+   */
   void Painter2DPeak::paint(QPainter* painter, Plot2DCanvas* canvas, int layer_index)
   {
     // renaming some values for readability
@@ -236,6 +245,13 @@ namespace OpenMS
     }
   }
 
+  /**
+   * @brief Paints all intensity points for a peak layer, grouping them by color to preserve intensity visibility.
+   *
+   * Iterates over all visible peaks in the specified area, assigns each to a color group based on its intensity, and draws all points for each color group in order of increasing intensity. This ensures that high-intensity points are not obscured by low-intensity ones. The pen width is scaled according to the provided value.
+   *
+   * @param pen_width The width of the pen used to draw the points.
+   */
   void Painter2DPeak::paintAllIntensities_(QPainter& painter, Plot2DCanvas* canvas, Size layer_index, double pen_width)
   {
     QVector<QPolygon> coloredPoints((int)layer_->gradient.precalculatedSize());
@@ -338,6 +354,14 @@ namespace OpenMS
 
 
 
+  /**
+   * @brief Paints the maximum intensity peak per pixel in RT (or ion mobility) and m/z dimensions.
+   *
+   * For each pixel in the visible area, finds the highest intensity peak within the corresponding RT/IM and m/z interval and colors the pixel according to the peak's intensity. This approach ensures that only the most prominent signal is visualized per pixel, improving clarity in dense regions.
+   *
+   * @param rt_pixel_count Number of pixels along the RT or ion mobility axis.
+   * @param mz_pixel_count Number of pixels along the m/z axis.
+   */
   void Painter2DPeak::paintMaximumIntensities_(QPainter& painter, Plot2DCanvas* canvas, Size layer_index, Size rt_pixel_count, Size mz_pixel_count)
   {
     // set painter to black (we operate directly on the pixels for all colored data)
@@ -448,6 +472,11 @@ namespace OpenMS
     }
   }
 
+  /**
+   * @brief Paints precursor peaks and their connections to MS/MS spectra on the canvas.
+   *
+   * Draws diamond markers at precursor positions in MS1 spectra and connects them with lines to their corresponding MS2 precursor positions. If no preceding MS1 spectrum is found, draws a cross at the MS2 precursor position. Only applies to 2D RT vs. m/z views.
+   */
   void Painter2DPeak::paintPrecursorPeaks_(QPainter& painter, Plot2DCanvas* canvas)
   {
     const auto& peak_map = layer_->getPeakData()->getMSExperiment();
@@ -507,6 +536,11 @@ namespace OpenMS
   {
   }
 
+  /**
+   * @brief Paints chromatogram start and end positions as lines at the precursor m/z value.
+   *
+   * For each chromatogram in the current layer, draws a horizontal line at the precursor m/z from the first to the last retention time.
+   */
   void Painter2DChrom::paint(QPainter* painter, Plot2DCanvas* canvas, int /*layer_index*/)
   {
     const PeakMap& exp = layer_->getChromatogramData()->getMSExperiment();

@@ -14,6 +14,11 @@
 
 #include <vector>
 
+/**
+ * @brief Stores an MSExperiment with associated peptide and protein identifications.
+ *
+ * AnnotatedMSRun manages mass spectrometry run data by encapsulating an MSExperiment and maintaining parallel vectors of peptide and protein identifications. Each spectrum in the experiment is paired with a corresponding peptide identification, ensuring a one-to-one association. The class provides accessors, mutators, and iterators for traversing or modifying spectra and their identifications together, enforcing consistency between spectra and peptide identification counts.
+ */
 namespace OpenMS
 {
   class PeptideIdentification;

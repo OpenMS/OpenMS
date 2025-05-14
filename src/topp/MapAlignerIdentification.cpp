@@ -197,6 +197,16 @@ private:
     progresslogger.endProgress();
   }
 
+  /**
+   * @brief Loads and sets the reference map for alignment based on user-specified parameters.
+   *
+   * Determines the reference map for retention time alignment using either a file or an index, and sets it in the alignment algorithm. Supports reference files in FEATUREXML, CONSENSUSXML, IDXML, and OMS formats. Throws an exception if the reference file type is unsupported.
+   *
+   * @param algorithm The alignment algorithm instance to set the reference in.
+   * @return The zero-based index of the reference map.
+   *
+   * @throws Exception::WrongParameterType If the reference file type is not supported.
+   */
   Int getReference_(MapAlignmentAlgorithmIdentification& algorithm)
   {
     // consistency of reference parameters has already been checked via
