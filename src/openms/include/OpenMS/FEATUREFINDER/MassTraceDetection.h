@@ -66,6 +66,11 @@ namespace OpenMS
         /// Invokes the run method (see above) on merely a subregion of a @ref MSExperiment map.
         void run(PeakMap::ConstAreaIterator & begin, PeakMap::ConstAreaIterator & end, std::vector<MassTrace> & found_masstraces);
 
+        /// determine if meta array is available
+        bool hasFwhmMz() const { return has_fwhm_mz_; }
+        bool hasFwhmIm() const { return has_fwhm_im_; }
+        bool hasCentroidIm() const { return has_centroid_im_; }
+
         /** @name Private methods and members
         */
     protected:
@@ -97,9 +102,14 @@ namespace OpenMS
 
         /// Internal helper to extract and validate metadata float array indices
         void getIMIndices_(const PeakMap& spectra,
-                           int& fwhm_meta_idx, bool& has_fwhm_meta,
-                           int& im_idx, bool& has_ion_mobility_array,
-                           int& im_fwhm_idx, bool& has_im_fwhm_meta) const;
+                           int& fwhm_meta_idx, bool& has_fwhm_mz,
+                           int& im_idx, bool& has_centroid_im,
+                           int& im_fwhm_idx, bool& has_fwhm_im) const;
+
+        // Metadata availability flags – set by getIMIndices_ and valid after run_()
+        bool has_fwhm_mz_ = false;
+        bool has_fwhm_im_ = false;
+        bool has_centroid_im_ = false;
 
         // parameter stuff
         double mass_error_ppm_;

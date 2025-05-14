@@ -254,19 +254,19 @@ protected:
         fcons.setMZ(m_traces_final[i].getCentroidMZ());
         fcons.setIntensity(m_traces_final[i].getIntensity(false));
 
-        // attach mz and ion mobility as meta data
-        if (m_traces_final[i].fwhm_mz_avg > 0)
+        // attach mz peak FWHM as meta array is available
+        if (mt_ext.hasFwhmMz())
         {
           fcons.setMetaValue(Constants::UserParam::FWHM_MZ_AVG, m_traces_final[i].fwhm_mz_avg);
         }
         // Similarly, check for ion mobility centroid presence. Annotate output with ion mobility
-        if (m_traces_final[i].getCentroidIM() > 0)
+        if (mt_ext.hasCentroidIm())
         {
           //fcons.setMetaValue("Ion Mobility Centroid", m_traces_final[i].getCentroidIM());
           fcons.setMetaValue(Constants::UserParam::ION_MOBILITY_CENTROID, m_traces_final[i].getCentroidIM());
         }
         // if ion mobility peak FWHM is presnt, add to meta data
-        if (m_traces_final[i].fwhm_im_avg > 0)
+        if (mt_ext.hasFwhmIm())
         {
           fcons.setMetaValue(Constants::UserParam::FWHM_IM_AVG, m_traces_final[i].fwhm_im_avg);
         }
@@ -320,16 +320,16 @@ protected:
         double sd = m_traces_final[i].getCentroidSD();
         f.setMetaValue(Constants::UserParam::SD, sd);
         f.setMetaValue(Constants::UserParam::SD_ppm, sd / f.getMZ() * 1e6);
-        if (m_traces_final[i].fwhm_mz_avg > 0)
+        if (mt_ext.hasFwhmMz())
         {
           f.setMetaValue(Constants::UserParam::FWHM_MZ_AVG, m_traces_final[i].fwhm_mz_avg);
         }
         // Similarly, check for ion mobility centroid presence. Annotate output with ion mobility
-        if (m_traces_final[i].getCentroidIM() > 0)
+        if (mt_ext.hasCentroidIm())
         {
           f.setMetaValue(Constants::UserParam::ION_MOBILITY_CENTROID, m_traces_final[i].getCentroidIM());
         }
-        if (m_traces_final[i].fwhm_im_avg > 0)
+        if (mt_ext.hasFwhmIm())
         {
           f.setMetaValue(Constants::UserParam::FWHM_IM_AVG, m_traces_final[i].fwhm_im_avg);
         }
