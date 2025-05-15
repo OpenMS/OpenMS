@@ -161,7 +161,7 @@ protected:
         {
           PeakMap exp;
           FileHandler().loadExperiment(in_files[i], exp, {FileTypes::MZML});
-          exp.updateRanges(1);
+          exp.updateRanges();
           s = exp.getSize();
         }
         if (s > max_count)

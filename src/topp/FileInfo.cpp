@@ -216,9 +216,7 @@ protected:
     }
   }
 
-  // Specialized template for MSExperiment
-  template <>
-  void writeRangesHumanReadable_<MSExperiment>(const MSExperiment& exp, ostream &os)
+  void writeRangesHumanReadable_(const MSExperiment& exp, ostream &os)
   {
     // 1. Display Combined Ranges (same format as before for backward compatibility)
     os << "Combined Ranges:" << '\n';
@@ -270,7 +268,7 @@ protected:
     // 2. Display Spectrum Ranges (overall)
     os << "Spectrum Ranges:" << '\n';
     // Use the spectrumRanges() accessor with MS level 0 for overall ranges
-    const auto& spec_ranges = exp.spectrumRanges()(0);
+    const auto& spec_ranges = exp.spectrumRanges();
     
     if (spec_ranges.RangeRT::isEmpty())
     {
@@ -321,8 +319,8 @@ protected:
     for (UInt ms_level : ms_levels)
     {
       os << "MS Level " << ms_level << " Ranges:" << '\n';
-      const auto& level_ranges = exp.spectrumRanges()(ms_level);
-      
+      const auto& level_ranges = exp.spectrumRanges().byMSLevel(ms_level);
+
       // Output RT range for this MS level
       if (level_ranges.RangeRT::isEmpty())
       {
@@ -407,10 +405,6 @@ protected:
     }
   }
 
-  // Forward declare the specialized version for MSExperiment to avoid compiler errors
-  template <>
-  void writeRangesMachineReadable_<MSExperiment>(const MSExperiment& map, ostream &os);
-  
   template <class Map>
   void writeRangesMachineReadable_(const Map& map, ostream &os)
   {
@@ -459,9 +453,8 @@ protected:
     }
   }
   
-  // Specialized template for MSExperiment
-  template <>
-  void writeRangesMachineReadable_<MSExperiment>(const MSExperiment& exp, ostream &os)
+
+  void writeRangesMachineReadable_(const MSExperiment& exp, ostream &os)
   {
     // 1. Combined Ranges
     if (!exp.combinedRanges().RangeRT::isEmpty())
@@ -504,7 +497,7 @@ protected:
     }
     
     // 2. Spectrum Ranges (overall)
-    const auto& spec_ranges = exp.spectrumRanges()(0);
+    const auto& spec_ranges = exp.spectrumRanges();
     if (!spec_ranges.RangeRT::isEmpty())
     {
       os << "general: spectrum ranges: retention time: min" << '\t' << String::number(spec_ranges.getMinRT(), 2) << '\n'
@@ -549,7 +542,7 @@ protected:
     std::set<UInt> ms_levels = exp.spectrumRanges().getMSLevels();
     for (UInt ms_level : ms_levels)
     {
-      const auto& level_ranges = exp.spectrumRanges()(ms_level);
+      const auto& level_ranges = exp.spectrumRanges().byMSLevel(ms_level);
       if (!level_ranges.RangeRT::isEmpty())
       {
         os << "general: MS" << ms_level << " ranges: retention time: min" << '\t' << String::number(level_ranges.getMinRT(), 2) << '\n'

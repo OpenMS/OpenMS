@@ -1345,7 +1345,7 @@ std::vector<MSChromatogram> extractXICs(
     
     /// Returns a const reference to the spectrum range manager
     const SpectrumRangeManagerType& spectrumRanges() const { return spectrum_ranges_; }
-    
+
     /// Returns a reference to the chromatogram range manager
     ChromatogramRangeManagerType& chromatogramRanges() { return chromatogram_ranges_; }
     

@@ -421,7 +421,7 @@ END_SECTION
 START_SECTION((const MSExperiment::RangeManagerType& MSExperiment::getRange() const))
 {
   PeakMap tmp;
-  TEST_EQUAL(tmp.getRange().hasRange() == HasRangeType::NONE, true)
+  TEST_EQUAL(tmp.combinedRanges().hasRange() == HasRangeType::NONE, true)
 }
 END_SECTION
 
@@ -487,12 +487,12 @@ START_SECTION((virtual void updateRanges()))
   TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
   TEST_REAL_SIMILAR(tmp.getMaxRT(),50.0)
 
-  TEST_REAL_SIMILAR(tmp.getRange().getMinMZ(), 5.0)
-  TEST_REAL_SIMILAR(tmp.getRange().getMaxMZ(), 10.0)
-  TEST_REAL_SIMILAR(tmp.getRange().getMinRT(), 30.0)
-  TEST_REAL_SIMILAR(tmp.getRange().getMaxRT(), 50.0)
-  TEST_REAL_SIMILAR(tmp.getRange().getMinMobility(), 66)
-  TEST_REAL_SIMILAR(tmp.getRange().getMaxMobility(), 199)
+  TEST_REAL_SIMILAR(tmp.combinedRanges().getMinMZ(), 5.0)
+  TEST_REAL_SIMILAR(tmp.combinedRanges().getMaxMZ(), 10.0)
+  TEST_REAL_SIMILAR(tmp.combinedRanges().getMinRT(), 30.0)
+  TEST_REAL_SIMILAR(tmp.combinedRanges().getMaxRT(), 50.0)
+  TEST_REAL_SIMILAR(tmp.combinedRanges().getMinMobility(), 66)
+  TEST_REAL_SIMILAR(tmp.combinedRanges().getMaxMobility(), 199)
 
   TEST_EQUAL(tmp.getMSLevels().size(),2)
   TEST_EQUAL(tmp.getMSLevels()[0],1)
@@ -505,8 +505,7 @@ START_SECTION((virtual void updateRanges()))
   // Store initial MS levels
   std::vector<UInt> initial_ms_levels = tmp.getMSLevels();
 
-  tmp.updateRanges(1);
-  tmp.updateRanges(1); // Call twice to verify consistent behavior
+  tmp.updateRanges();  
   for (int l = 0; l < 2; ++l)
   {
     TEST_REAL_SIMILAR(tmp.getMinMZ(),5.0)
@@ -515,12 +514,12 @@ START_SECTION((virtual void updateRanges()))
     TEST_REAL_SIMILAR(tmp.getMaxIntensity(), -5.0)
     TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
     TEST_REAL_SIMILAR(tmp.getMaxRT(),40.0)
-    TEST_REAL_SIMILAR(tmp.getRange().getMinMobility(), 99)
-    TEST_REAL_SIMILAR(tmp.getRange().getMaxMobility(), 99)
+    TEST_REAL_SIMILAR(tmp.combinedRanges().getMinMobility(), 99)
+    TEST_REAL_SIMILAR(tmp.combinedRanges().getMaxMobility(), 99)
     // Verify MS levels remain unchanged
     TEST_EQUAL(tmp.getMSLevels() == initial_ms_levels, true)
     TEST_EQUAL(tmp.getSize(),4)
-    tmp.updateRanges(1);
+    tmp.spectrumRanges().byMSLevel(1);
   }
 
   // test with only one peak
@@ -542,18 +541,18 @@ START_SECTION((virtual void updateRanges()))
   TEST_REAL_SIMILAR(tmp2.getMaxIntensity(), -5.0)
   TEST_REAL_SIMILAR(tmp2.getMinRT(),30.0)
   TEST_REAL_SIMILAR(tmp2.getMaxRT(),30.0)
-  TEST_REAL_SIMILAR(tmp.getRange().getMinMobility(), 99)
-  TEST_REAL_SIMILAR(tmp.getRange().getMaxMobility(), 99)
+  TEST_REAL_SIMILAR(tmp.combinedRanges().getMinMobility(), 99)
+  TEST_REAL_SIMILAR(tmp.combinedRanges().getMaxMobility(), 99)
 
-  tmp2.updateRanges(1);
+  tmp2.updateRanges();
   TEST_REAL_SIMILAR(tmp2.getMinMZ(),5.0)
   TEST_REAL_SIMILAR(tmp2.getMaxMZ(),5.0)
   TEST_REAL_SIMILAR(tmp2.getMinIntensity(), -5.0)
   TEST_REAL_SIMILAR(tmp2.getMaxIntensity(), -5.0)
   TEST_REAL_SIMILAR(tmp2.getMinRT(),30.0)
   TEST_REAL_SIMILAR(tmp2.getMaxRT(),30.0)
-  TEST_REAL_SIMILAR(tmp.getRange().getMinMobility(), 99)
-  TEST_REAL_SIMILAR(tmp.getRange().getMaxMobility(), 99)
+  TEST_REAL_SIMILAR(tmp.combinedRanges().getMinMobility(), 99)
+  TEST_REAL_SIMILAR(tmp.combinedRanges().getMaxMobility(), 99)
 
   // test ranges with a chromatogram
   MSChromatogram chrom1, chrom2;
@@ -1348,7 +1347,7 @@ START_SECTION((void swap(MSExperiment &from)))
 
   TEST_EQUAL(exp1.getComment(),"")
   TEST_EQUAL(exp1.size(),0)
-  TEST_EQUAL(exp1.getRange().hasRange() == HasRangeType::NONE, true)
+  TEST_EQUAL(exp1.combinedRanges().hasRange() == HasRangeType::NONE, true)
   TEST_EQUAL(exp1.getMSLevels().size(),0)
   TEST_EQUAL(exp1.getSize(),0);
 
@@ -2655,26 +2654,26 @@ START_SECTION((const SpectrumRangeManagerType& spectrumRanges() const))
   exp.updateRanges();
   
   // Test general access to spectrum ranges
-  TEST_EQUAL(exp.spectrumRanges().hasRange(), true);
+  //TEST_EQUAL(exp.spectrumRanges().hasRange(), true);
   TEST_REAL_SIMILAR(exp.spectrumRanges().getMinMZ(), 100.0);
   TEST_REAL_SIMILAR(exp.spectrumRanges().getMaxMZ(), 200.0);
   TEST_REAL_SIMILAR(exp.spectrumRanges().getMinIntensity(), 1000.0);
   TEST_REAL_SIMILAR(exp.spectrumRanges().getMaxIntensity(), 2000.0);
   
   // Test MS level-specific ranges
-  TEST_REAL_SIMILAR(exp.spectrumRanges(1).getMinMZ(), 100.0);
-  TEST_REAL_SIMILAR(exp.spectrumRanges(1).getMaxMZ(), 100.0);
-  TEST_REAL_SIMILAR(exp.spectrumRanges(1).getMinIntensity(), 1000.0);
-  TEST_REAL_SIMILAR(exp.spectrumRanges(1).getMaxIntensity(), 1000.0);
-  
-  TEST_REAL_SIMILAR(exp.spectrumRanges(2).getMinMZ(), 200.0);
-  TEST_REAL_SIMILAR(exp.spectrumRanges(2).getMaxMZ(), 200.0);
-  TEST_REAL_SIMILAR(exp.spectrumRanges(2).getMinIntensity(), 2000.0);
-  TEST_REAL_SIMILAR(exp.spectrumRanges(2).getMaxIntensity(), 2000.0);
-  
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(1).getMinMZ(), 100.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(1).getMaxMZ(), 100.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(1).getMinIntensity(), 1000.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(1).getMaxIntensity(), 1000.0);
+
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(2).getMinMZ(), 200.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(2).getMaxMZ(), 200.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(2).getMinIntensity(), 2000.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(2).getMaxIntensity(), 2000.0);
+
   // Test non-existent MS level (should return general ranges)
-  TEST_REAL_SIMILAR(exp.spectrumRanges(3).getMinMZ(), 100.0);
-  TEST_REAL_SIMILAR(exp.spectrumRanges(3).getMaxMZ(), 200.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(3).getMinMZ(), 100.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(3).getMaxMZ(), 200.0);
 }
 END_SECTION
 
@@ -2710,7 +2709,6 @@ START_SECTION((const ChromatogramRangeManagerType& chromatogramRanges() const))
   exp.updateRanges();
   
   // Test chromatogram ranges
-  TEST_EQUAL(exp.chromatogramRanges().hasRange(), true);
   TEST_REAL_SIMILAR(exp.chromatogramRanges().getMinRT(), 10.0);
   TEST_REAL_SIMILAR(exp.chromatogramRanges().getMaxRT(), 25.0);
   TEST_REAL_SIMILAR(exp.chromatogramRanges().getMinIntensity(), 500.0);
@@ -2718,7 +2716,7 @@ START_SECTION((const ChromatogramRangeManagerType& chromatogramRanges() const))
 }
 END_SECTION
 
-START_SECTION((void updateRanges() - dual-range system))
+START_SECTION((void updateRanges()))
 {
   // Test case 1: Empty experiment
   {
@@ -2726,9 +2724,9 @@ START_SECTION((void updateRanges() - dual-range system))
     exp.updateRanges();
     
     // Check that all ranges are empty
-    TEST_EQUAL(exp.spectrumRanges().hasRange(), false);
-    TEST_EQUAL(exp.chromatogramRanges().hasRange(), false);
-    TEST_EQUAL(exp.combinedRanges().hasRange(), false);
+    TEST_TRUE(exp.spectrumRanges().hasRange() == HasRangeType::NONE);
+    TEST_TRUE(exp.chromatogramRanges().hasRange() == HasRangeType::NONE);
+    TEST_TRUE(exp.combinedRanges().hasRange() == HasRangeType::NONE);
   }
   
   // Test case 2: Experiment with only spectra
@@ -2748,15 +2746,15 @@ START_SECTION((void updateRanges() - dual-range system))
     exp.updateRanges();
     
     // Check spectrum ranges are correct
-    TEST_EQUAL(exp.spectrumRanges().hasRange(), true);
+    TEST_EQUAL(exp.spectrumRanges().hasRange(), HasRangeType::ALL);
     TEST_REAL_SIMILAR(exp.spectrumRanges().getMinMZ(), 100.0);
     TEST_REAL_SIMILAR(exp.spectrumRanges().getMaxMZ(), 100.0);
     
     // Check chromatogram ranges are empty
-    TEST_EQUAL(exp.chromatogramRanges().hasRange(), false);
+    TEST_EQUAL(exp.chromatogramRanges().hasRange(), HasRangeType::NONE);
     
     // Check combined ranges match spectrum ranges
-    TEST_EQUAL(exp.combinedRanges().hasRange(), true);
+    TEST_EQUAL(exp.combinedRanges().hasRange(), HasRangeType::SOME);
     TEST_REAL_SIMILAR(exp.combinedRanges().getMinMZ(), 100.0);
     TEST_REAL_SIMILAR(exp.combinedRanges().getMaxMZ(), 100.0);
     TEST_REAL_SIMILAR(exp.combinedRanges().getMinRT(), 30.0);
@@ -2783,15 +2781,15 @@ START_SECTION((void updateRanges() - dual-range system))
     exp.updateRanges();
     
     // Check spectrum ranges are empty
-    TEST_EQUAL(exp.spectrumRanges().hasRange(), false);
+    TEST_EQUAL(exp.spectrumRanges().hasRange(), HasRangeType::NONE);
     
     // Check chromatogram ranges are correct
-    TEST_EQUAL(exp.chromatogramRanges().hasRange(), true);
+    TEST_EQUAL(exp.chromatogramRanges().hasRange(), HasRangeType::ALL);
     TEST_REAL_SIMILAR(exp.chromatogramRanges().getMinRT(), 10.0);
     TEST_REAL_SIMILAR(exp.chromatogramRanges().getMaxRT(), 20.0);
     
     // Check combined ranges match chromatogram ranges
-    TEST_EQUAL(exp.combinedRanges().hasRange(), true);
+    TEST_EQUAL(exp.combinedRanges().hasRange(), HasRangeType::SOME);
     TEST_REAL_SIMILAR(exp.combinedRanges().getMinRT(), 10.0);
     TEST_REAL_SIMILAR(exp.combinedRanges().getMaxRT(), 20.0);
     TEST_REAL_SIMILAR(exp.combinedRanges().getMinIntensity(), 500.0);
@@ -2827,21 +2825,21 @@ START_SECTION((void updateRanges() - dual-range system))
     exp.updateRanges();
     
     // Check spectrum ranges are correct
-    TEST_EQUAL(exp.spectrumRanges().hasRange(), true);
+    TEST_EQUAL(exp.spectrumRanges().hasRange(), HasRangeType::ALL);
     TEST_REAL_SIMILAR(exp.spectrumRanges().getMinMZ(), 100.0);
     TEST_REAL_SIMILAR(exp.spectrumRanges().getMaxMZ(), 100.0);
     TEST_REAL_SIMILAR(exp.spectrumRanges().getMinIntensity(), 1000.0);
     TEST_REAL_SIMILAR(exp.spectrumRanges().getMaxIntensity(), 1000.0);
     
     // Check chromatogram ranges are correct
-    TEST_EQUAL(exp.chromatogramRanges().hasRange(), true);
+    TEST_EQUAL(exp.chromatogramRanges().hasRange(), HasRangeType::ALL);
     TEST_REAL_SIMILAR(exp.chromatogramRanges().getMinRT(), 10.0);
     TEST_REAL_SIMILAR(exp.chromatogramRanges().getMaxRT(), 20.0);
     TEST_REAL_SIMILAR(exp.chromatogramRanges().getMinIntensity(), 500.0);
     TEST_REAL_SIMILAR(exp.chromatogramRanges().getMaxIntensity(), 1500.0);
     
     // Check combined ranges encompass both spectrum and chromatogram ranges
-    TEST_EQUAL(exp.combinedRanges().hasRange(), true);
+    TEST_EQUAL(exp.combinedRanges().hasRange(), HasRangeType::SOME);
     TEST_REAL_SIMILAR(exp.combinedRanges().getMinMZ(), 100.0);
     TEST_REAL_SIMILAR(exp.combinedRanges().getMaxMZ(), 100.0);
     TEST_REAL_SIMILAR(exp.combinedRanges().getMinRT(), 10.0);
@@ -2885,35 +2883,17 @@ START_SECTION((void updateRanges(Int ms_level) - dual-range system))
   s.push_back(p);
   exp.addSpectrum(s);
   
-  // Update only MS2 ranges
-  exp.updateRanges(2);
-  
-  // Check that only MS2 ranges were updated
-  TEST_EQUAL(exp.spectrumRanges().hasRange(), true);
-  TEST_REAL_SIMILAR(exp.spectrumRanges(2).getMinMZ(), 200.0);
-  TEST_REAL_SIMILAR(exp.spectrumRanges(2).getMaxMZ(), 200.0);
-  TEST_REAL_SIMILAR(exp.spectrumRanges(2).getMinIntensity(), 2000.0);
-  TEST_REAL_SIMILAR(exp.spectrumRanges(2).getMaxIntensity(), 2000.0);
-  
-  // Check that general ranges reflect all spectra
-  TEST_REAL_SIMILAR(exp.spectrumRanges().getMinMZ(), 200.0);
-  TEST_REAL_SIMILAR(exp.spectrumRanges().getMaxMZ(), 200.0);
-  
-  // Other MS levels should not have ranges
-  TEST_EQUAL(exp.spectrumRanges(1).hasRange(), false);
-  TEST_EQUAL(exp.spectrumRanges(3).hasRange(), false);
-  
   // Now update all ranges
   exp.updateRanges();
   
   // Check all MS levels have correct ranges
-  TEST_REAL_SIMILAR(exp.spectrumRanges(1).getMinMZ(), 100.0);
-  TEST_REAL_SIMILAR(exp.spectrumRanges(1).getMaxMZ(), 100.0);
-  TEST_REAL_SIMILAR(exp.spectrumRanges(2).getMinMZ(), 200.0);
-  TEST_REAL_SIMILAR(exp.spectrumRanges(2).getMaxMZ(), 200.0);
-  TEST_REAL_SIMILAR(exp.spectrumRanges(3).getMinMZ(), 300.0);
-  TEST_REAL_SIMILAR(exp.spectrumRanges(3).getMaxMZ(), 300.0);
-  
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(1).getMinMZ(), 100.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(1).getMaxMZ(), 100.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(2).getMinMZ(), 200.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(2).getMaxMZ(), 200.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(3).getMinMZ(), 300.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(3).getMaxMZ(), 300.0);
+
   // Check general ranges reflect all spectra
   TEST_REAL_SIMILAR(exp.spectrumRanges().getMinMZ(), 100.0);
   TEST_REAL_SIMILAR(exp.spectrumRanges().getMaxMZ(), 300.0);

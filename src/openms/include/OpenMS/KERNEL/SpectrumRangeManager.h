@@ -85,14 +85,14 @@ namespace OpenMS
     /**
       @brief Gets the ranges for a specific MS level
       
-      @param ms_level The MS level for which to retrieve the ranges (0 for global ranges)
+      @param ms_level The MS level for which to retrieve the ranges
       @return The ranges for the specified MS level (returns the global ranges if no specific ranges exist for the requested MS level)
     */
-    const BaseType& operator()(UInt ms_level = 0) const
+    const BaseType& byMSLevel(UInt ms_level = 0) const
     {
-      if (ms_level == 0 || ms_level_ranges_.find(ms_level) == ms_level_ranges_.end())
+      if (ms_level_ranges_.find(ms_level) == ms_level_ranges_.end())
       {
-        return *this;
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No ranges for this MS level", String(ms_level));
       }
       return ms_level_ranges_.at(ms_level);
     }
@@ -178,7 +178,7 @@ namespace OpenMS
         ms_level_ranges_[ms_level].extendUnsafe(spectrum.getRange());
       }
     }
-
+    
   protected:
     /// MS level-specific ranges
     std::map<UInt, BaseType> ms_level_ranges_;
