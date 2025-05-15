@@ -583,29 +583,6 @@ namespace OpenMS
     }
   }
 
-  void ProteinIdentification::assignRanks()
-  {
-    if (protein_hits_.empty())
-    {
-      return;
-    }
-    UInt rank = 1;
-    sort();
-    vector<ProteinHit>::iterator lit = protein_hits_.begin();
-    double tmpscore = lit->getScore();
-    while (lit != protein_hits_.end())
-    {
-      lit->setRank(rank);
-      ++lit;
-      if (lit != protein_hits_.end() && lit->getScore() != tmpscore)
-      {
-        ++rank;
-        tmpscore = lit->getScore();
-      }
-    }
-  }
-
-
   void ProteinIdentification::fillEvidenceMapping_(unordered_map<String, set<PeptideEvidence> >& map_acc_2_evidence,
                                                    const std::vector<PeptideIdentification>& pep_ids) const
   {

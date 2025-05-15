@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/workspaces/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="0:0" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.50025" peak_mass_tolerance_ppm="false" >
-				<UserParam type="string" name="CometAdapter:1:in" value="/workspaces/OpenMS/src/tests/topp/THIRDPARTY/spectra_comet.mzML"/>
+	<SearchParameters id="SP_0" db="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="0:0" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.50025" peak_mass_tolerance_ppm="false" >
+				<UserParam type="string" name="CometAdapter:1:in" value="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/spectra_comet.mzML"/>
 				<UserParam type="string" name="CometAdapter:1:out" value="CometAdapter_1_out1.tmp.idXML"/>
-				<UserParam type="string" name="CometAdapter:1:database" value="/workspaces/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta"/>
-				<UserParam type="string" name="CometAdapter:1:comet_executable" value="/workspaces/_thirdparty/Comet/comet.exe"/>
+				<UserParam type="string" name="CometAdapter:1:database" value="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta"/>
+				<UserParam type="string" name="CometAdapter:1:comet_executable" value="/home/sachsenb/Development/OpenMS/THIRDPARTY/Linux/x86_64/Comet/comet.exe"/>
 				<UserParam type="string" name="CometAdapter:1:pin_out" value="CometAdapter_1_out2.tmp.tsv"/>
 				<UserParam type="string" name="CometAdapter:1:default_params_file" value=""/>
 				<UserParam type="float" name="CometAdapter:1:precursor_mass_tolerance" value="3.0"/>
@@ -72,15 +72,15 @@
 				<UserParam type="string" name="extra_features" value="isotope_error,COMET:deltaCn,COMET:deltaLCn,COMET:lnExpect,MS:1002252,MS:1002255,COMET:lnNumSP,COMET:lnRankSP,COMET:IonFrac"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2025-03-11T14:56:16" search_engine="Comet" search_engine_version="# comet_version 2025.01 rev. 0 (c40b044)" search_parameters_ref="SP_0" >
-		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+	<IdentificationRun date="2025-05-12T14:38:18" search_engine="Comet" search_engine_version="# comet_version 2025.01 rev. 1 (4181df6)" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
 			<ProteinHit id="PH_0" accession="test2_rev" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
 			<ProteinHit id="PH_1" accession="BSA3" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[/workspaces/OpenMS/src/tests/topp/THIRDPARTY/spectra_comet.mzML]"/>
+			<UserParam type="stringList" name="spectra_data" value="[/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/spectra_comet.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="520.263366031899977" RT="2655.099999999999909" spectrum_reference="spectrum=0" >
 			<PeptideHit score="0.0104" sequence="DFASSGGYVLHLHR" charge="3" aa_before="[" aa_after="E" start="0" end="13" protein_refs="PH_0" >

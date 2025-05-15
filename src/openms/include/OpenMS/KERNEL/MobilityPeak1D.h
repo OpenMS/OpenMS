@@ -131,13 +131,7 @@ namespace OpenMS
     ///@}
 
     /// Equality operator
-    bool operator==(const MobilityPeak1D& rhs) const
-    {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
-      return intensity_ == rhs.intensity_ && position_ == rhs.position_;
-#pragma clang diagnostic pop
-    }
+    bool operator==(const MobilityPeak1D& rhs) const = default;
 
     /// Equality operator
     bool operator!=(const MobilityPeak1D& rhs) const

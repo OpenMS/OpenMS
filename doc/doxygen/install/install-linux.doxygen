@@ -48,13 +48,13 @@
 
   <ul>
     <li>
-      Essential are \b gcc/g++ (>= 7.0) or similar ANSI C++ compiler with full C++17 support,
+      Essential are \b gcc/g++ (>= 11.0) or similar ANSI C++ compiler with full C++20 support,
       \b CMake (>= 3.24), \b Qt 6 (>= 6.2), \b patch, \b autoconf (> 2.60), \b automake (> 1.9), \b libtool (libtoolize/glibtoolize).
     </li>
     <li>
       For the complete feature set to be enabled, %OpenMS needs recent versions of
-      \b Boost (>= 1.74), \b Eigen3 (>= 3.4.0), \b libHDF5, \b libSVM (2.91 or higher but not 3.15),
-      \b glpk (>= 4.45) or \b CoinMP (>= 1.3.3), \b zlib, \b libbz2, and \b Xerces-C (>= 3.1.1).
+      \b Boost (>= 1.78), \b Eigen3 (>= 3.4.0), \b libHDF5, \b libSVM (3.12 or higher but not 3.15),
+      \b CoinMP (>= 1.8.3), \b zlib, \b libbz2, and \b Xerces-C (>= 3.2.0).
       These should be built by our contrib build script in case they are not already installed via your package manager.
     </li>
     <li>
@@ -118,6 +118,7 @@
       </pre></td>
   </tr>
   </table>
+  
 
   @section build_linux_contrib Building remaining dependencies
 
@@ -131,6 +132,7 @@
   The tar.gz of the Release contains the scripts for building all dependencies in the contrib/ folder.
   For the development (Git) version, this so called submodule folder will be empty and has to be checked out separately.
 
+  @subsection updating_contrib Updating Contrib Submodule
   \code
   # Assuming you are in ~/Development/OpenMS
   git submodule update --init contrib
@@ -149,6 +151,7 @@
   As an alternative CMake offers the possibility to perform so called out-of-source builds.
   Here all build files, binaries, libraries, etc. are generated in a separate directory.
 
+  @subsection list_build_types Listing Available Build Types
   From the <tt>./contrib-build/</tt> folder, execute the following command to show the
   available build types
      \code
@@ -159,6 +162,7 @@
           cmake -DBUILD_TYPE=EIGEN ../OpenMS/contrib
       \endcode
 
+  @subsection build_all_dependencies Building All Dependencies
   To avoid problems while building the libraries contained in the contrib package,
   the path to your contrib-build directory should not have any spaces in it. In case your distribution
   does not provide some of the packages (or in different versions than expected), it is sometimes easier
@@ -166,6 +170,7 @@
       \code
           cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../OpenMS/contrib
       \endcode
+
   @section build_linux_noroot Building without root privileges
 
   If you are on a system without root access (e.g. a shared cluster), there are
@@ -175,15 +180,15 @@
   installation procedure is to use the contrib package to compile <b>all</b>
   dependencies from source:
 
+  @subsection build_dependencies Building Dependencies Without Root
   \code
   cmake -DBUILD_TYPE=LIST ../OpenMS/contrib
   cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../OpenMS/contrib
   \endcode
 
-  Alternatively, you can build one package after the other by providing
-  <tt>-DBUILD_TYPE=...</tt> with the appropriate argument. 
+  Alternatively, you can build one dependency at a time by specifying `-DBUILD_TYPE=<dependency>`: 
   
-  
+  @subsection compiling_qt Compiling Qt Without Root Privileges
   In addition, you may have to compile Qt yourself which you can get from <a
   href="http://download.qt.io/official_releases/qt">http://download.qt.io/official_releases/qt</a>
   (use version >6.2), if it is not provided on your server or the version on
@@ -216,6 +221,7 @@
   The next step is to create a build directory beside the %OpenMS root
   directory e.g., <tt>OpenMS-build</tt> (see above note on out-of-source builds).
 
+  @subsection create_build_directory Creating a Build Directory
   \code
   # Assuming you are in ~/Development and OpenMS is also located in
   # ~/Development
@@ -223,6 +229,7 @@
   cd OpenMS-build
   \endcode
 
+  @subsection configure_openms Configuring OpenMS
   In the %OpenMS build directory we execute %CMake to <i>configure</i> %OpenMS. You
   should substitute <tt>/PATH/TO/contrib-build/</tt> with the above path to the built
   contrib. Make sure you use the <i>absolute</i> (and not relative) path for the
@@ -244,7 +251,7 @@
   -D Qt6_DIR=/PATH/TO/qt/lib/cmake/Qt6/
   \endcode
   to the CMake options, where <tt>/PATH/TO/qt/lib/cmake/Qt6/</tt> depends on your system settings and Qt version.
-
+  
   A full configure step might look like this:
   \code
   cmake -DCMAKE_BUILD_TYPE=Release -DOPENMS_CONTRIB_LIBS="/PATH/TO/contrib-build" -DBOOST_USE_STATIC=ON -DQt6_DIR="/PATH/TO/qt/lib/cmake/Qt6" ../openms
@@ -267,6 +274,7 @@
   In order to <i>build</i> the %OpenMS library, the TOPP tools, tests, and this
   documentation, execute the following command (for Makefile generator, which is the default in CMake):
 
+  - **Using make (default):**
   \code
   make
   \endcode
@@ -278,21 +286,34 @@
   \endcode
 
   @note If you use another generator, such as Ninja (`cmake -G Ninja ...`), then swap `make` for the new command, such as `ninja`.
+  - **Using Ninja (faster alternative):**
+  First ensure Ninja is installed:
+  \code
+  sudo apt install ninja-build
+  \endcode
+
+  Then configure again explicitly with Ninja and build:
+  \code
+  cmake -G Ninja -DBOOST_USE_STATIC=OFF ../OpenMS
+  ninja -j4
+  \endcode
 
   @subsection linux_openms_environment Getting your environment ready to use OpenMS
 
   The previous step takes the most time, in the meanwhile you can prepare your
   environment for easy %OpenMS usage:
 
-  Make sure to add <tt>/PATH/TO/OpenMS/lib/</tt> (e.g.
-  <i>/home/smith/OpenMS/lib/</i>) to the environment variable
-  <b>LD_LIBRARY_PATH</b>.  The best way is to edit <tt>$HOME/.bashrc</tt> and add the
-  following
+  @subsubsection update_ld_library_path Updating LD_LIBRARY_PATH
+  Make sure to add <tt>/PATH/TO/OpenMS-build/lib/</tt> (e.g.
+  <i>/home/smith/OpenMS-build/lib/</i>) to the environment variable
+  <b>LD_LIBRARY_PATH</b>. If you have run make install with a custom install prefix, use that path instead.
+  The best way is to edit <tt>$HOME/.bashrc</tt> and add the following
+ 
   \code
-  export LD_LIBRARY_PATH="/PATH/TO/OpenMS/lib:$LD_LIBRARY_PATH"
+  export LD_LIBRARY_PATH="/PATH/TO/OpenMS-build/lib:$LD_LIBRARY_PATH"
   \endcode
 
-  The TOPP tools will be built in the <b>/PATH/TO/OpenMS/bin/</b> folder. Add
+  The TOPP tools will be built in the <b>/PATH/TO/OpenMS-build/bin/</b> folder. Add
   this path to the environment variable <b>PATH</b> to use the commands
   anywhere on your system.
 
@@ -302,7 +323,7 @@
   (Do not use the tilde character @em ~ to abbreviate your home folder)
 
   \code
-  export PATH=$PATH:/PATH/TO/OpenMS/bin
+  export PATH=$PATH:/PATH/TO/OpenMS-build/bin
   \endcode
 
   Apply both changes by executing
@@ -311,9 +332,9 @@
   source ~/.bashrc
   \endcode
 
-    @note When you intend to use thirdparty search engines like X!Tandem, their binaries also
-    need to be in the <b><tt>PATH</tt></b>. Build them or check out prebuilt executables of the versions supported
-    at the time of the release with
+  @subsubsection thirdparty_tools Thirdparty Tools (Optional)
+    If you intend to use thirdparty search engines like X!Tandem or Comet,
+    their binaries also need to be added to your `PATH`. For example:
     \code
     git submodule update --init THIRDPARTY
     \endcode
@@ -324,6 +345,8 @@
     If you want to enable the corresponding tests in CMake, this has to happen <b>before</b> you configure and build the
     project.
 
+  
+  @subsubsection fixing_qt_issues Fixing Qt Issues (Optional)
   When running OpenMS executables or building the documentation, it may happen that Qt will cause problems and bail out with
   error messages such as:
   ```
@@ -370,6 +393,7 @@ Available platform plugins are: linuxfb, wayland, minimalegl, vnc, minimal, wayl
     ctest
     \endcode
 
+  @subsection advanced_ctest_options Advanced ctest Options
   Using ctest you can also execute only a subset of tests by using the -R [REGEX] option and
   run tests in parallel using the -j parameter. For more information, consult ctest
   <a href="http://manpages.ubuntu.com/manpages/hardy/man1/ctest.1.html" target="_new">man page</a>.

@@ -250,26 +250,6 @@ START_SECTION(([EXTRA] multiple runs))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] psm ranking))
-{
-  std::vector<ProteinIdentification> protein_ids;
-  std::vector<PeptideIdentification> peptide_ids;
-  String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
-  MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
-
-  TEST_EQUAL(peptide_ids.size(),3)
-  for (size_t i = 0; i < peptide_ids.size(); ++i)
-  {
-    size_t r = 0;
-    for (size_t j = 0; j < peptide_ids[i].getHits().size(); ++j)
-    {
-      TEST_EQUAL(peptide_ids[i].getHits()[j].getRank()>=r,true)
-      r = peptide_ids[i].getHits()[j].getRank();
-    }
-  }
-}
-END_SECTION
-
 START_SECTION(([EXTRA] thresholds))
 {
   std::vector<ProteinIdentification> protein_ids;

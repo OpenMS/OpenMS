@@ -213,11 +213,11 @@ protected:
     {
       // load mzML
       PeakMap spectra;
-      FileHandler().loadExperiment(in[file_counter], spectra, {FileTypes::MZML});
+      FileHandler().loadExperiment(in[file_counter], spectra, {FileTypes::MZML}, log_type_);
 
       // load featurexml
       FeatureMap feature_map;
-      FileHandler().loadFeatures(id[file_counter], feature_map, {FileTypes::FEATUREXML});
+      FileHandler().loadFeatures(id[file_counter], feature_map, {FileTypes::FEATUREXML}, log_type_);
 
       // check if featureXML corresponds to mzML
       StringList featurexml_primary_path;
@@ -435,7 +435,7 @@ protected:
       // validate
       OpenMS::TransitionTSVFile::validateTargetedExperiment(t_exp);
       // write traML
-      FileHandler().storeTransitions(out, t_exp, {FileTypes::TRAML});
+      FileHandler().storeTransitions(out, t_exp, {FileTypes::TRAML}, log_type_);
     }
     else if (extension == "pqp")
     {
