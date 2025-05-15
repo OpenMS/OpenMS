@@ -348,7 +348,7 @@ namespace OpenMS
     }
 
     //check for proteins and peptides hits
-    meta.assignRanks();
+    meta.sort();
 
     //list all peptides hits in the tree
     for (Size i = 0; i < meta.getHits().size(); ++i)
@@ -383,7 +383,7 @@ namespace OpenMS
     }
 
     //check for proteinhits objects
-    meta.assignRanks();
+    meta.sort();
 
     for (Size i = 0; i < meta.getHits().size(); ++i)
     {

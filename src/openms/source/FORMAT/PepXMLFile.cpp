@@ -640,7 +640,7 @@ namespace OpenMS
           pe = pes[0];
         }
 
-        f << "\t\t<search_hit hit_rank=\"1\" peptide=\""
+        f << "\t\t<search_hit hit_rank=\"" << String(h.getRank() + 1) << "\" peptide=\"" // rank in pepXML is 1-based, 0-based in OpenMS
           << seq.toUnmodifiedString() << "\" peptide_prev_aa=\""
           << pe.getAABefore() << "\" peptide_next_aa=\"" << pe.getAAAfter()
           << "\" protein=\"";
@@ -1304,7 +1304,8 @@ namespace OpenMS
       current_modifications_.clear();
       PeptideEvidence pe;
       peptide_hit_ = PeptideHit();
-      peptide_hit_.setRank(attributeAsInt_(attributes, "hit_rank"));
+      int rank = attributeAsInt_(attributes, "hit_rank");
+      peptide_hit_.setRank(rank - 1); // rank is 1-based in pepXML and 0-based in OpenMS
       peptide_hit_.setCharge(charge_); // from parent "spectrum_query" tag
       String prev_aa, next_aa;
       if (optionalAttributeAsString_(prev_aa, attributes, "peptide_prev_aa"))

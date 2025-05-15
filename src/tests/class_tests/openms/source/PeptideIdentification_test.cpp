@@ -233,6 +233,32 @@ START_SECTION((void setSignificanceThreshold(double value)))
   TEST_EQUAL(hits.getSignificanceThreshold(), peptide_significance_threshold)
 END_SECTION
 
+START_SECTION((void testSignificanceThresholdMetaValue()))
+{
+  PeptideIdentification id;
+  
+  // Test default value
+  TEST_EQUAL(id.getSignificanceThreshold(), 0.0);
+  TEST_EQUAL(id.metaValueExists(Constants::UserParam::SIGNIFICANCE_THRESHOLD), false);
+  
+  // Test setting a new value
+  id.setSignificanceThreshold(42.0);
+  TEST_EQUAL(id.getSignificanceThreshold(), 42.0);
+  TEST_EQUAL(id.getMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD), 42.0);
+  
+  // Test that the meta value is copied
+  PeptideIdentification id2(id);
+  TEST_EQUAL(id2.getSignificanceThreshold(), 42.0);
+  TEST_EQUAL(id2.getMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD), 42.0);
+  
+  // Test assignment operator
+  PeptideIdentification id3;
+  id3 = id;
+  TEST_EQUAL(id3.getSignificanceThreshold(), 42.0);
+  TEST_EQUAL(id3.getMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD), 42.0);
+}
+END_SECTION
+
 START_SECTION((String& getScoreType() const))
 	PeptideIdentification hits;
 	TEST_EQUAL(hits.getScoreType(), "")
@@ -269,18 +295,17 @@ END_SECTION
 START_SECTION((bool empty() const))
   PeptideIdentification hits;
   TEST_TRUE(hits.empty())
-hits.setSignificanceThreshold(1);
-TEST_FALSE(hits.empty())
+  hits.setSignificanceThreshold(1);
+  TEST_FALSE(hits.empty())
 
-hits.setSignificanceThreshold(0);
-TEST_TRUE(hits.empty())
+  hits.setSignificanceThreshold(0);
+  TEST_TRUE(hits.empty())
 
-hits.setBaseName("basename");
-TEST_FALSE(hits.empty())
+  hits.setBaseName("basename");
+  TEST_FALSE(hits.empty())
 
-hits.setBaseName("");
-TEST_TRUE(hits.empty())
-
+  hits.setBaseName("");
+  TEST_TRUE(hits.empty())
 
   hits.insertHit(peptide_hit);
   TEST_FALSE(hits.empty())
@@ -322,28 +347,6 @@ START_SECTION((void sort()))
 
 END_SECTION
 
-START_SECTION((void assignRanks()))
-  PeptideIdentification id;
-  PeptideHit hit;
-  hit.setScore(23);
-  hit.setSequence(AASequence::fromString("SECONDPROTEIN"));
-  id.insertHit(hit);
-  hit.setScore(45);
-  hit.setSequence(AASequence::fromString("FIRSTPROTEIN"));
-  id.insertHit(hit);
-  hit.setScore(7);
-  hit.setSequence(AASequence::fromString("THIRDPROTEIN"));
-  id.insertHit(hit);
-
-  id.assignRanks();
-
-  TEST_EQUAL(id.getHits()[0].getSequence(), AASequence::fromString("FIRSTPROTEIN"))
-  TEST_EQUAL(id.getHits()[1].getSequence(), AASequence::fromString("SECONDPROTEIN"))
-  TEST_EQUAL(id.getHits()[2].getSequence(), AASequence::fromString("THIRDPROTEIN"))
-  TEST_EQUAL(id.getHits()[0].getRank(), 1)
-  TEST_EQUAL(id.getHits()[1].getRank(), 2)
-  TEST_EQUAL(id.getHits()[2].getRank(), 3)
-END_SECTION
 
 START_SECTION(static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit> & , const std::set<String> & accession))
 {
@@ -465,103 +468,6 @@ START_SECTION((static String buildUIDFromPepID(const PeptideIdentification& pep_
 }
 END_SECTION
 
-
-/*
-START_SECTION(void getNonReferencingHits(const String &protein_accession, std::vector< PeptideHit > &peptide_hits) const)
-  PeptideIdentification id;
-  PeptideHit hit;
-  vector< PeptideHit > peptide_hits;
-
-  hit.setScore(23);
-  hit.setSequence(AASequence::fromString("FIRSTPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN1");
-  id.insertHit(hit);
-
-  hit = PeptideHit();
-  hit.setScore(10);
-  hit.setSequence(AASequence::fromString("SECONDPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN2");
-  id.insertHit(hit);
-
-  hit = PeptideHit();
-  hit.setScore(11);
-  hit.setSequence(AASequence::fromString("THIRDPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN2");
-  id.insertHit(hit);
-
-  id.getNonReferencingHits("TEST_PROTEIN2", peptide_hits);
-  TEST_EQUAL(peptide_hits.size(), 1)
-  TEST_EQUAL(peptide_hits[0].getSequence(), AASequence::fromString("FIRSTPROTEIN"))
-END_SECTION
-
-START_SECTION(void getNonReferencingHits(const std::vector< String > &accessions, std::vector< PeptideHit > &peptide_hits) const)
-  PeptideIdentification id;
-  PeptideHit hit;
-  vector< PeptideHit > peptide_hits;
-  vector<String> accessions;
-
-  accessions.push_back("TEST_PROTEIN2");
-  accessions.push_back("TEST_PROTEIN3");
-
-  hit.setScore(23);
-  hit.setSequence(AASequence::fromString("FIRSTPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN1");
-  id.insertHit(hit);
-
-  hit = PeptideHit();
-  hit.setScore(10);
-  hit.setSequence(AASequence::fromString("SECONDPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN2");
-  id.insertHit(hit);
-
-  hit = PeptideHit();
-  hit.setScore(11);
-  hit.setSequence(AASequence::fromString("THIRDPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN3");
-  id.insertHit(hit);
-
-  id.getNonReferencingHits(accessions, peptide_hits);
-  TEST_EQUAL(peptide_hits.size(), 1)
-  TEST_EQUAL(peptide_hits[0].getSequence(), AASequence::fromString("FIRSTPROTEIN"))
-END_SECTION
-
-START_SECTION(void getNonReferencingHits(const std::vector< ProteinHit > &protein_hits, std::vector< PeptideHit > &peptide_hits) const)
-  PeptideIdentification id;
-  PeptideHit hit;
-  vector< PeptideHit > peptide_hits;
-  vector<ProteinHit> protein_hits;
-  ProteinHit p_hit;
-
-  p_hit.setAccession("TEST_PROTEIN2");
-  protein_hits.push_back(p_hit);
-  p_hit.setAccession("TEST_PROTEIN3");
-  protein_hits.push_back(p_hit);
-
-  hit.setScore(23);
-  hit.setSequence(AASequence::fromString("FIRSTPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN1");
-  id.insertHit(hit);
-
-  hit = PeptideHit();
-  hit.setScore(10);
-  hit.setSequence(AASequence::fromString("SECONDPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN2");
-  id.insertHit(hit);
-
-  hit = PeptideHit();
-  hit.setScore(11);
-  hit.setSequence(AASequence::fromString("THIRDPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN3");
-  id.insertHit(hit);
-
-  id.getNonReferencingHits(protein_hits, peptide_hits);
-  TEST_EQUAL(peptide_hits.size(), 1)
-  TEST_EQUAL(peptide_hits[0].getSequence(), AASequence::fromString("FIRSTPROTEIN"))
-END_SECTION
-*/
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
 START_SECTION((const String& getBaseName() const))
   PeptideIdentification id;
   TEST_EQUAL(id.getBaseName(), "")
@@ -596,3 +502,6 @@ START_SECTION((void setBaseName(const String& base_name)))
 END_SECTION
 
 END_TEST
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////

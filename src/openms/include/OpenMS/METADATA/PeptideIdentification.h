@@ -46,7 +46,8 @@ namespace OpenMS
 
     The class also stores information about the scoring system used (getScoreType(),
     isHigherScoreBetter()) and an optional significance threshold (getSignificanceThreshold())
-    for the peptide hits.
+    for the peptide hits. The significance threshold is stored as a meta value with the key
+    Constants::UserParam::SIGNIFICANCE_THRESHOLD.
 
     PeptideIdentification inherits from MetaInfoInterface, allowing arbitrary metadata (key-value pairs)
     to be attached.
@@ -55,7 +56,7 @@ namespace OpenMS
 
     @see PeptideHit, ProteinIdentification, IDMapper, MetaInfoInterface
 
-    @ingroup Metadata          
+    @ingroup Metadata
   */
   class OPENMS_DLLAPI PeptideIdentification :
     public MetaInfoInterface
@@ -112,9 +113,9 @@ public:
     void setHits(const std::vector<PeptideHit>& hits);
     void setHits(std::vector<PeptideHit>&& hits);
 
-    /// returns the peptide significance threshold value
+    /// returns the peptide significance threshold value (stored as a meta value)
     double getSignificanceThreshold() const;
-    /// setting of the peptide significance threshold value
+    /// setting of the peptide significance threshold value (stored as a meta value)
     void setSignificanceThreshold(double value);
 
     /// returns the peptide score type
@@ -151,9 +152,6 @@ public:
     ///  almost always be the full native vendor ID.
     void setSpectrumReference(const String& ref);
 
-    /// Sorts the hits by score and assigns ranks according to the scores
-    void assignRanks();
-
     // Returns a higher or lower comparator based on @p higher_score_better_
     static std::function<bool(const PeptideHit&, const PeptideHit&)> getScoreComparator(bool higher_score_better);
 
@@ -163,13 +161,6 @@ public:
          Sorting takes the score orientation (@p higher_score_better_) into account, i.e. after sorting, the best-scoring hit is the first.
     */
     void sort();
-
-    /**
-         @brief Sorts the hits by rank
-
-         Sorting hits by rank attribute, i.e. after sorting, the hits will be in ascending order of rank.
-    */
-    void sortByRank();
 
     /// Returns if this PeptideIdentification result is empty
     bool empty() const;
@@ -211,7 +202,6 @@ public:
 protected:
     String id_; ///< Identifier by which ProteinIdentification and PeptideIdentification are matched
     std::vector<PeptideHit> hits_; ///< A list containing the peptide hits
-    double significance_threshold_; ///< the peptide significance threshold
     String score_type_; ///< The score type (Mascot, Sequest, e-value, p-value)
     bool higher_score_better_; ///< The score orientation
     double mz_;

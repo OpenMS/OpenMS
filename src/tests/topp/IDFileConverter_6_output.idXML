@@ -9,7 +9,7 @@
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
 	<IdentificationRun date="2013-06-24T09:49:04" search_engine="MASCOT" search_engine_version="" search_parameters_ref="SP_0" >
-		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
 			<ProteinHit id="PH_0" accession="P00489" score="0.0" sequence="" >
 			</ProteinHit>
 			<ProteinHit id="PH_1" accession="sp|P23524|GLXK1_ECOLI" score="0.0" sequence="" >
@@ -43,6 +43,7 @@
 			</PeptideHit>
 			<PeptideHit score="0.89" sequence="VPIGVANVAK" charge="2" aa_before="K X X" aa_after="K X X" protein_refs="PH_1 PH_2 PH_3" >
 				<UserParam type="int" name="isotope_error" value="0"/>
+				<UserParam type="int" name="rank" value="1"/>
 			</PeptideHit>
 			<UserParam type="string" name="base_name" value="../cgi/master_results.pl?file=../data/20130606/F025589.dat"/>
 		</PeptideIdentification>
@@ -58,6 +59,7 @@
 			</PeptideHit>
 			<PeptideHit score="1.4" sequence="GKGVVTISVAEC(Carbamidomethyl)GNR" charge="3" aa_before="K X X" aa_after="V X X" protein_refs="PH_10 PH_11 PH_12" >
 				<UserParam type="int" name="isotope_error" value="0"/>
+				<UserParam type="int" name="rank" value="1"/>
 			</PeptideHit>
 			<UserParam type="string" name="base_name" value="../cgi/master_results.pl?file=../data/20130606/F025589.dat"/>
 		</PeptideIdentification>
