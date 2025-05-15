@@ -119,7 +119,7 @@ protected:
     mz_file.getOptions().setMSLevels(ms_level);
 
     PeakMap ms_peakmap;
-    mz_file.loadExperiment(in, ms_peakmap, {FileTypes::MZML});
+    mz_file.loadExperiment(in, ms_peakmap, {FileTypes::MZML}, log_type_);
 
     if (ms_peakmap.empty())
     {
@@ -141,7 +141,7 @@ protected:
     // load database
     //-------------------------------------------------------------
     PeakMap spec_db;
-    FileHandler().loadExperiment(spec_db_filename, spec_db, {FileTypes::MSP, FileTypes::MZML, FileTypes::MGF});
+    FileHandler().loadExperiment(spec_db_filename, spec_db, {FileTypes::MSP, FileTypes::MZML, FileTypes::MGF}, log_type_);
 
     if (spec_db.empty())
     {

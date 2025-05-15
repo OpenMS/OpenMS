@@ -160,7 +160,7 @@ private:
       bool ret = true;
       PeakMap expmap;
       SpectrumLookup lookup;
-      FileHandler().loadExperiment(filename, expmap);
+      FileHandler().loadExperiment(filename, expmap, {}, log_type_);
       lookup.readSpectra(expmap.getSpectra());
 
 #pragma omp parallel for
