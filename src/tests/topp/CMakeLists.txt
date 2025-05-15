@@ -1348,6 +1348,14 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_ConvertTSVToTraML_test_7" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_7_input_Skyline.tsv -out ConvertTSVToTraML_7_output.tmp.TraML -out_type TraML)
   add_test("TOPP_ConvertTSVToTraML_test_7_out1" ${DIFF} -in1 ConvertTSVToTraML_7_output.tmp.TraML -in2 ${DATA_DIR_TOPP}/ConvertTSVToTraML_7_output.TraML)
   set_tests_properties("TOPP_ConvertTSVToTraML_test_7_out1" PROPERTIES DEPENDS "TOPP_ConvertTSVToTraML_test_7")
+  # Batch Processing - import and export TSV and ensure file is the same
+  add_test("TOPP_ConvertTSVBatchReading_test_1_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_1_input.tsv -out ConvertTSVToTraML_output.tmp.tsv -out_type tsv)
+  add_test("TOPP_ConvertTSVBatchReading_test_1" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ConvertTSVToTraML_output.tmp.tsv -out ConvertTSVToTraML_output_batches.tmp.tsv -out_type tsv -batchSize 1)
+  add_test("TOPP_ConvertTSVBatchReading_test_1_out1" ${DIFF} -in1 ConvertTSVToTraML_output.tmp.tsv -in2 ConvertTSVToTraML_output_batches.tmp.tsv)
+  set_tests_properties("TOPP_ConvertTSVBatchReading_test_1" PROPERTIES DEPENDS "TOPP_ConvertTSVBatchReading_test_1_prepare")
+  set_tests_properties("TOPP_ConvertTSVBatchReading_test_1_out1" PROPERTIES DEPENDS "TOPP_ConvertTSVBatchReading_test_1")
+
+
 
   # Proteomics PQP - TraML Conversion
   add_test("TOPP_TargetedFileConverter_test_1_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_1_input.TraML -out TargetedFileConverter_1_output.tmp.pqp -out_type pqp)
