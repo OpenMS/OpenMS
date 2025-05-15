@@ -55,10 +55,14 @@ int main()
   // update the data ranges for all dimensions (RT, m/z, int, IM) and print them:
   exp.updateRanges();
   std::cout << "Data ranges:\n";
-  exp.printRange(std::cout);
-  std::cout << "\nGet maximum intensity on its own: " << exp.getMaxIntensity() << '\n';
-  exp.getMinRT();
-
+  exp.spectrumRanges().printRange(std::cout);
+  std::cout << "\nGet maximum intensity on its own: " << exp.spectrumRanges().getMaxIntensity() << '\n';
+  std::cout << "Get minimum RT on its own: " << exp.spectrumRanges().getMinRT() << '\n';
+  std::cout << "Get maximum RT on its own: " << exp.spectrumRanges().getMaxRT() << '\n';
+  std::cout << "Get minimum m/z on its own: " << exp.spectrumRanges().getMinMZ() << '\n';
+  std::cout << "Get maximum m/z on its own: " << exp.spectrumRanges().getMaxMZ() << '\n';
+  std::cout << "Get minimum IM on its own: " << exp.spectrumRanges().getMinMobility() << '\n';
+  std::cout << "Get maximum IM on its own: " << exp.spectrumRanges().getMaxMobility() << '\n';
   // Store the spectra to a mzML file with:
   FileHandler fh;
   auto tmp_filename = File::getTemporaryFile();

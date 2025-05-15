@@ -17,11 +17,20 @@ namespace OpenMS
 {
   class MSSpectrum;  // Forward declaration for MSSpectrum
   /**
-    @brief Range manager for MS spectra with MS level-specific range management
+    @brief Advanced range manager for MS spectra with separate ranges for each MS level
     
-    This class manages m/z, intensity, retention time, and ion mobility ranges for multiple MS spectra,
-    with the ability to filter ranges by MS level.
+    This class extends the basic RangeManager to provide separate range tracking for different MS levels
+    (MS1, MS2, etc.). It manages four types of ranges:
+    - m/z (mass-to-charge ratio)
+    - intensity
+    - retention time (RT)
+    - ion mobility
     
+    A global ranges is tracked for all MS levels, and additional ranges are maintained for each specific MS level.
+    
+
+    @see RangeManager
+    @see MSSpectrum
     @ingroup Kernel
   */
   class OPENMS_DLLAPI SpectrumRangeManager : public RangeManager<RangeMZ, RangeIntensity, RangeMobility, RangeRT>
@@ -51,7 +60,7 @@ namespace OpenMS
     /**
       @brief Clears all ranges (global and MS level-specific)
     */
-    void clear()
+    void clearRanges()
     {
       BaseType::clearRanges();
       ms_level_ranges_.clear();

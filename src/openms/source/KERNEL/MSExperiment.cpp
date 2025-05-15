@@ -241,9 +241,7 @@ namespace OpenMS
     #endif
 
     // Reset all range managers
-    spectrum_ranges_.clear();
-    chromatogram_ranges_.clearRanges();
-    combined_ranges_.clearRanges();
+    clearRanges();
 
     // Empty experiment
     if (spectra_.empty() && chromatograms_.empty())
@@ -431,9 +429,7 @@ namespace OpenMS
   void MSExperiment::reset()
   {
     spectra_.clear();           //remove data
-    spectrum_ranges_.clear();   //reset spectrum range manager
-    chromatogram_ranges_.clearRanges(); //reset chromatogram range manager
-    combined_ranges_.clearRanges(); //reset combined range manager
+    clearRanges(); // reset all ranges
     ExperimentalSettings::operator=(ExperimentalSettings());           //reset meta info
   }
 
@@ -840,45 +836,31 @@ namespace OpenMS
 
     if (clear_meta_data)
     {
-      spectrum_ranges_.clear();
-      chromatogram_ranges_.clearRanges();
-      combined_ranges_.clearRanges();
+      clearRanges(); // reset all ranges
       this->ExperimentalSettings::operator=(ExperimentalSettings());             // no "clear" method
-      chromatograms_.clear();
+      chromatograms_.clear(); // TODO: should this be cleared even if clear_meta_data is false?
     }
   }
 
   // static
   bool MSExperiment::containsScanOfLevel(size_t ms_level) const
   {
-    //test if no scans with MS-level 1 exist
-    for (const auto& spec : getSpectra())
-    {
-      if (spec.getMSLevel() == ms_level)
-      {
-        return true;
-      }
-    }
-    return false;
+    // Check if any spectrum with the specified MS level exists
+    return std::any_of(getSpectra().begin(), getSpectra().end(),
+                      [ms_level](const auto& spec) { return spec.getMSLevel() == ms_level; });
   }
 
   bool MSExperiment::hasZeroIntensities(size_t ms_level) const
   {
-    for (const auto& spec : getSpectra())
-    {
-      if (spec.getMSLevel() != ms_level)
-      {
-        continue;
-      }
-      for (const auto& p : spec)
-      {
-        if (p.getIntensity() == 0.0)
-        {
-          return true;
-        }
-      }
-    }
-    return false;
+    // Check if any spectrum of the specified MS level contains peaks with zero intensity
+    return std::any_of(getSpectra().begin(), getSpectra().end(),
+                      [ms_level](const auto& spec) {                        
+                        if (spec.getMSLevel() != ms_level) return false; // Skip spectra that don't match the requested MS level
+                        
+                        // Check if this spectrum has any zero intensity peaks
+                        return std::any_of(spec.begin(), spec.end(),
+                                          [](const auto& peak) { return peak.getIntensity() == 0.0; });
+                      });
   }
 
   bool MSExperiment::hasPeptideIdentifications() const

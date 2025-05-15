@@ -62,7 +62,7 @@ public:
     typedef PeakType::CoordinateType CoordinateType;
     /// Intensity type of peaks
     typedef PeakType::IntensityType IntensityType;
-    /// Combined RangeManager type (for backward compatibility)
+    /// Combined RangeManager type to store the overall range of all spectra and chromatograms
     typedef RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility> RangeManagerType;
     /// Spectrum range manager type
     typedef SpectrumRangeManager SpectrumRangeManagerType;
@@ -1073,30 +1073,35 @@ std::vector<MSChromatogram> extractXICs(
     /// Delegate methods for backward compatibility
     
     /// Clear all ranges
-    void clearRanges() { combined_ranges_.clearRanges(); }
-    
-    /// Get the minimum RT value of the range
+    void clearRanges() 
+    { 
+      combined_ranges_.clearRanges(); 
+      spectrum_ranges_.clearRanges();
+      chromatogram_ranges_.clearRanges();
+    }
+   
+    /// Get the minimum RT value of chromatogram and spectra ranges
     double getMinRT() const { return combined_ranges_.getMinRT(); }
     
-    /// Get the maximum RT value of the range
+    /// Get the maximum RT value of chromatogram and spectra ranges
     double getMaxRT() const { return combined_ranges_.getMaxRT(); }
     
-    /// Get the minimum m/z value of the range
+    /// Get the minimum m/z value of chromatogram and spectra ranges
     double getMinMZ() const { return combined_ranges_.getMinMZ(); }
     
-    /// Get the maximum m/z value of the range
+    /// Get the maximum m/z value of chromatogram and spectra ranges
     double getMaxMZ() const { return combined_ranges_.getMaxMZ(); }
     
-    /// Get the minimum intensity value of the range
+    /// Get the minimum intensity value of chromatogram and spectra ranges
     double getMinIntensity() const { return combined_ranges_.getMinIntensity(); }
     
-    /// Get the maximum intensity value of the range
+    /// Get the maximum intensity value of chromatogram and spectra ranges
     double getMaxIntensity() const { return combined_ranges_.getMaxIntensity(); }
     
-    /// Get the minimum mobility value of the range
+    /// Get the minimum mobility value of chromatogram and spectra ranges
     double getMinMobility() const { return combined_ranges_.getMinMobility(); }
     
-    /// Get the maximum mobility value of the range
+    /// Get the maximum mobility value of chromatogram and spectra ranges
     double getMaxMobility() const { return combined_ranges_.getMaxMobility(); }
     
     /// Extend the range to include the given RT value
