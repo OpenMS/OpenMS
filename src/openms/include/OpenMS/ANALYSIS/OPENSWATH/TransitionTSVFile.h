@@ -237,13 +237,22 @@ private:
      * @param filename The input file
      * @param filetype The type of file ("mrm" or "tsv")
      * @param transition_list The output list of transitions
-     * @param batchSize The number of lines to read at once, if < 1, read all lines
-     * @param offset The number of lines to skip at the beginning (does not skip header line), ignored if batchSize < 1
      * 
-     * @returns True if reached end of file, false if there are more lines to read
+    */
+    void readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list);
+
+    /** @brief Read tab or comma separated input with columns defined by their column headers only in batches
+     *
+     * Batch reading is slower than above however it is more memory efficient
+     * @param filename The input file
+     * @param filetype The type of file ("mrm" or "tsv")
+     * @param transition_list The output list of transitions
+     * @param batchSize The number of lines to read at once, if < 1, read all lines
+     * @param lineOffset[in,out] The number of lines to skip before reading, this is for computing the transition id. Only used if batchSize not < 1. Updates to new offset at end of function
+     * @param byteOffset[in,out] The number byte offset, only applicable, ignored if batchSize < 1, updated to new offset at end of function. Updates to new offset at end of function.
      *
     */
-    bool readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list, int batchSize = 0, int offset = 0);
+    void readUnstructuredTSVInputBatches_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list, int batchSize, int& lineOffset, std::streampos& byteOffset);
 
     /// Extract retention time from a SpectraST comment string
     void spectrastRTExtract(const String& str_inp, double & value, bool & spectrast_legacy);

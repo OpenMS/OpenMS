@@ -189,11 +189,19 @@ namespace OpenMS
     }
   }
 
-  bool TransitionTSVFile::readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list, int batchSize, int offset)
+  void TransitionTSVFile::readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list)
+  {
+    int lineOffset = 0;
+    std::streampos byteOffset = std::streampos(0);
+    readUnstructuredTSVInputBatches_(filename, filetype, transition_list, -1, lineOffset, byteOffset);
+  }
+
+  void TransitionTSVFile::readUnstructuredTSVInputBatches_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list, int batchSize, int& lineOffset, std::streampos& byteOffset)
   {
     std::ifstream data(filename);
     std::string   line;
     std::string   tmp;
+    std::streampos headerOffset;
 
     // read header
     std::vector<std::string>   tmp_line;
@@ -224,11 +232,12 @@ namespace OpenMS
     {
       TextFile::getLine(data, line);
       getTSVHeader_(line, delimiter, header_dict);
+      headerOffset = data.tellg();
     }
 
     bool spectrast_legacy = false; // we will check below if SpectraST was run in legacy (<5.0) mode or if the RT normalization was forgotten.
-    size_t cnt = 0;
-    size_t endline;
+    int endline;
+    int currentLine = lineOffset;
 
     if (batchSize <= 0)
     {
@@ -236,16 +245,19 @@ namespace OpenMS
     }
     else
     {
-      endline = offset + batchSize;
-      // stream the offsets to null
-      for (int i = 0; i < offset; ++i)
+      endline = currentLine + batchSize;
+      if ((byteOffset == std::streampos(0)) & (filetype != FileTypes::MRM) ) // at beginning of file or there is no header
       {
-        std::getline(data, line);
-        cnt++;
+        // skip header line
+        data.seekg(headerOffset);
+      }
+      else
+      {
+        data.seekg(byteOffset);
       }
     }
 
-    while ((cnt < endline) && (TextFile::getLine(data, line))) // make sure line endings are handled correctly
+    while ((currentLine < endline) && (TextFile::getLine(data, line))) // make sure line endings are handled correctly
     {
       line.push_back(delimiter); // avoid losing last column if it is empty
       std::stringstream lineStream(line);
@@ -254,7 +266,7 @@ namespace OpenMS
       {
         tmp_line.push_back(tmp);
       }
-      cnt++;
+      currentLine++;
 
 #ifdef TRANSITIONTSVREADER_TESTING
       for (Size i = 0; i < tmp_line.size(); i++)
@@ -271,7 +283,7 @@ namespace OpenMS
       if (tmp_line.size() != header_dict.size())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Error reading the file on line " + String(cnt) + ": length of the header and length of the line" +
+                                         "Error reading the file on line " + String(currentLine) + ": length of the header and length of the line" +
                                          " do not match: " + String(tmp_line.size()) + " != " + String(header_dict.size()));
       }
 
@@ -418,7 +430,7 @@ namespace OpenMS
         mytransition.PeptideSequence = peptide.toUnmodifiedString();
         mytransition.precursor_charge = substrings[1];
 
-        mytransition.transition_name = String(cnt);
+        mytransition.transition_name = String(currentLine);
 
         mytransition.group_id = mytransition.FullPeptideName + String("_") + String(mytransition.precursor_charge);
       }
@@ -430,7 +442,7 @@ namespace OpenMS
             !extractName(mytransition.transition_name, "TransitionName", tmp_line, header_dict) &&
             !extractName(mytransition.transition_name, "TransitionId", tmp_line, header_dict))
         {
-          mytransition.transition_name = String(cnt);
+          mytransition.transition_name = String(currentLine);
         }
 
         // Use TransitionGroupId if available, else generate from attributes
@@ -480,7 +492,8 @@ namespace OpenMS
       std::cout << "Warning: SpectraST was not run in RT normalization mode but the converted list was interpreted to have iRT units. Check whether you need to adapt the parameter -algorithm:retentionTimeInterpretation. You can ignore this warning if you used a legacy SpectraST 4.0 file." << std::endl;
 
     }
-    return (bool) TextFile::getLine(data, line);
+    byteOffset = data.tellg(); // return current offset position
+    lineOffset = currentLine; // return current line number
   }
 
   void TransitionTSVFile::spectrastRTExtract(const String& str_inp, double & value, bool & spectrast_legacy)
@@ -1489,17 +1502,16 @@ namespace OpenMS
 
   void TransitionTSVFile::convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenMS::TargetedExperiment& targeted_exp, int batch_size)
   {
-      int offset = 0; // only used if reading in batches 
-      bool moreLines = true; // do not have to check for more lines if reading everything into memory
+      std::streampos offset = std::streampos(0); // only used if reading in batches, stores byte offset 
+      int lineOffset = 0;
       
-      while (moreLines)
+      while (offset >= std::streampos(0))
       {
         std::vector<TSVTransition> transition_list;
         OpenMS::TargetedExperiment tmp_targeted_exp;
-        moreLines = readUnstructuredTSVInput_(filename, filetype, transition_list, batch_size, offset);
+        readUnstructuredTSVInputBatches_(filename, filetype, transition_list, batch_size, lineOffset, offset);
         TSVToTargetedExperiment_(transition_list, tmp_targeted_exp);
         targeted_exp.append(std::move(tmp_targeted_exp)); // this line is very memory intensive because actually storing the entire library in memory
-        offset += batch_size;
       }
   }
 
