@@ -2,7 +2,7 @@ from InterpolationModel cimport *
 from IsotopeDistribution cimport *
 from EmpiricalFormula cimport *
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/IsotopeModel.h>" namespace "OpenMS":
     
     cdef cppclass IsotopeModel "OpenMS::IsotopeModel":
         # wrap-doc:
@@ -45,7 +45,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>" namespa
 
         # BaseModel * create() except + nogil 
         
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>" namespace "OpenMS::IsotopeModel":
+cdef extern from "<OpenMS/FEATUREFINDER/IsotopeModel.h>" namespace "OpenMS::IsotopeModel":
     cdef enum Averagines "OpenMS::IsotopeModel::Averagines":
         #wrap-attach:
         #   IsotopeModel

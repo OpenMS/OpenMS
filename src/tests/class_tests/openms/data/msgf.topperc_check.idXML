@@ -32,7 +32,7 @@
 				<UserParam type="string" name="MS-GF+:precursor_mass_tolerance_unit" value="ppm"/>
 				<UserParam type="string" name="MS-GF+:digestion_enzyme" value="unspecific cleavage"/>
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
-				<UserParam type="string" name="extra_features" value="MS:1002049,MS:1002050,MSGF:ScoreRatio,MSGF:Energy,MSGF:lnEValue,isotope_error,MSGF:lnExplainedIonCurrentRatio,MSGF:lnNTermIonCurrentRatio,MSGF:lnCTermIonCurrentRatio,MSGF:lnMS2IonCurrent,MSGF:MeanErrorTop7,MSGF:sqMeanErrorTop7,MSGF:StdevErrorTop7"/>
+				<UserParam type="string" name="extra_features" value="MS:1002049,MS:1002050,MS:1002052,MS:1002053,isotope_error"/>
 	</SearchParameters>
 	<IdentificationRun date="2017-03-25T18:20:49" search_engine="MS-GF+" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
@@ -108,16 +108,6 @@
 				<UserParam type="int" name="start" value="734"/>
 				<UserParam type="int" name="end" value="753"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="MSGF:ScoreRatio" value="-2.5"/>
-				<UserParam type="float" name="MSGF:Energy" value="63"/>
-				<UserParam type="float" name="MSGF:lnEValue" value="-6.82484203860228"/>
-				<UserParam type="float" name="MSGF:lnExplainedIonCurrentRatio" value="-0.988626102936965"/>
-				<UserParam type="float" name="MSGF:lnNTermIonCurrentRatio" value="-1.8431503683788"/>
-				<UserParam type="float" name="MSGF:lnCTermIonCurrentRatio" value="-1.54238846817909"/>
-				<UserParam type="float" name="MSGF:lnMS2IonCurrent" value="4.30228838064963"/>
-				<UserParam type="float" name="MSGF:MeanErrorTop7" value="1291.56131555556"/>
-				<UserParam type="float" name="MSGF:sqMeanErrorTop7" value="11862262.2708594"/>
-				<UserParam type="float" name="MSGF:StdevErrorTop7" value="1140.17351111111"/>
 			</PeptideHit>
 			<PeptideHit score="-50" sequence="DSQDFDDSEQDM(Oxidation)EEEEEDEE" charge="2" aa_before="D" aa_after="D" start="578" end="597" protein_refs="PH_9" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
@@ -147,16 +137,6 @@
 				<UserParam type="int" name="start" value="579"/>
 				<UserParam type="int" name="end" value="598"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="MSGF:ScoreRatio" value="-2.77777777777778"/>
-				<UserParam type="float" name="MSGF:Energy" value="68"/>
-				<UserParam type="float" name="MSGF:lnEValue" value="-8.46156599290281"/>
-				<UserParam type="float" name="MSGF:lnExplainedIonCurrentRatio" value="-1.37375411965572"/>
-				<UserParam type="float" name="MSGF:lnNTermIonCurrentRatio" value="-2.04624849693593"/>
-				<UserParam type="float" name="MSGF:lnCTermIonCurrentRatio" value="-2.08718302982321"/>
-				<UserParam type="float" name="MSGF:lnMS2IonCurrent" value="4.30228838064963"/>
-				<UserParam type="float" name="MSGF:MeanErrorTop7" value="1158.81776"/>
-				<UserParam type="float" name="MSGF:sqMeanErrorTop7" value="5371434.40356567"/>
-				<UserParam type="float" name="MSGF:StdevErrorTop7" value="161.133864"/>
 			</PeptideHit>
 			<PeptideHit score="-52" sequence="FDEDNDESECFDSDDESDEGPA" charge="2" aa_before="S" aa_after="F" start="130" end="151" protein_refs="PH_10" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
@@ -186,16 +166,6 @@
 				<UserParam type="int" name="start" value="131"/>
 				<UserParam type="int" name="end" value="152"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="MSGF:ScoreRatio" value="-2.88888888888889"/>
-				<UserParam type="float" name="MSGF:Energy" value="70"/>
-				<UserParam type="float" name="MSGF:lnEValue" value="-9.07197158371102"/>
-				<UserParam type="float" name="MSGF:lnExplainedIonCurrentRatio" value="-1.59050703755269"/>
-				<UserParam type="float" name="MSGF:lnNTermIonCurrentRatio" value="-9.21034037197618"/>
-				<UserParam type="float" name="MSGF:lnCTermIonCurrentRatio" value="-1.59050703755269"/>
-				<UserParam type="float" name="MSGF:lnMS2IonCurrent" value="4.30228838064963"/>
-				<UserParam type="float" name="MSGF:MeanErrorTop7" value="1113.72192"/>
-				<UserParam type="float" name="MSGF:sqMeanErrorTop7" value="4961506.06035395"/>
-				<UserParam type="float" name="MSGF:StdevErrorTop7" value="895.18916"/>
 			</PeptideHit>
 			<PeptideHit score="-52" sequence="YDDDGMPEESEGYDM(Oxidation)EEEYF" charge="2" aa_before="D" aa_after="D" start="1000" end="1019" protein_refs="PH_13" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
@@ -225,16 +195,6 @@
 				<UserParam type="int" name="start" value="1001"/>
 				<UserParam type="int" name="end" value="1020"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="MSGF:ScoreRatio" value="-2.88888888888889"/>
-				<UserParam type="float" name="MSGF:Energy" value="70"/>
-				<UserParam type="float" name="MSGF:lnEValue" value="-9.06956566693"/>
-				<UserParam type="float" name="MSGF:lnExplainedIonCurrentRatio" value="-1.54238846817909"/>
-				<UserParam type="float" name="MSGF:lnNTermIonCurrentRatio" value="-9.21034037197618"/>
-				<UserParam type="float" name="MSGF:lnCTermIonCurrentRatio" value="-1.54238846817909"/>
-				<UserParam type="float" name="MSGF:lnMS2IonCurrent" value="4.30228838064963"/>
-				<UserParam type="float" name="MSGF:MeanErrorTop7" value="642.118768"/>
-				<UserParam type="float" name="MSGF:sqMeanErrorTop7" value="6597064.19548541"/>
-				<UserParam type="float" name="MSGF:StdevErrorTop7" value="642.118768"/>
 			</PeptideHit>
 			<UserParam type="string" name="MS:1001115" value="334"/>
 		</PeptideIdentification>
@@ -267,16 +227,6 @@
 				<UserParam type="int" name="start" value="3199"/>
 				<UserParam type="int" name="end" value="3208"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="MSGF:ScoreRatio" value="0.268292682926829"/>
-				<UserParam type="float" name="MSGF:Energy" value="30"/>
-				<UserParam type="float" name="MSGF:lnEValue" value="-2.74981274516704"/>
-				<UserParam type="float" name="MSGF:lnExplainedIonCurrentRatio" value="-1.04133441863"/>
-				<UserParam type="float" name="MSGF:lnNTermIonCurrentRatio" value="-2.22456668514126"/>
-				<UserParam type="float" name="MSGF:lnCTermIonCurrentRatio" value="-1.40662319884049"/>
-				<UserParam type="float" name="MSGF:lnMS2IonCurrent" value="7.56600765613448"/>
-				<UserParam type="float" name="MSGF:MeanErrorTop7" value="492.8528"/>
-				<UserParam type="float" name="MSGF:sqMeanErrorTop7" value="242903.88246784"/>
-				<UserParam type="float" name="MSGF:StdevErrorTop7" value="304.18787"/>
 			</PeptideHit>
 			<PeptideHit score="9" sequence="YLFIVGGYRIT" charge="3" aa_before="N" aa_after="S" start="253" end="263" protein_refs="PH_12" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -306,16 +256,6 @@
 				<UserParam type="int" name="start" value="254"/>
 				<UserParam type="int" name="end" value="264"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="MSGF:ScoreRatio" value="0.219512195121951"/>
-				<UserParam type="float" name="MSGF:Energy" value="32"/>
-				<UserParam type="float" name="MSGF:lnEValue" value="-3.43143307450266"/>
-				<UserParam type="float" name="MSGF:lnExplainedIonCurrentRatio" value="-1.02674363620596"/>
-				<UserParam type="float" name="MSGF:lnNTermIonCurrentRatio" value="-2.22445257164223"/>
-				<UserParam type="float" name="MSGF:lnCTermIonCurrentRatio" value="-1.38571532879147"/>
-				<UserParam type="float" name="MSGF:lnMS2IonCurrent" value="7.56600765613448"/>
-				<UserParam type="float" name="MSGF:MeanErrorTop7" value="847.7878"/>
-				<UserParam type="float" name="MSGF:sqMeanErrorTop7" value="718744.15382884"/>
-				<UserParam type="float" name="MSGF:StdevErrorTop7" value="273.4863"/>
 			</PeptideHit>
 			<PeptideHit score="7" sequence="LYVKRLHDKM" charge="3" aa_before="S" aa_after="K" start="1999" end="2008" protein_refs="PH_4" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -345,16 +285,6 @@
 				<UserParam type="int" name="start" value="2000"/>
 				<UserParam type="int" name="end" value="2009"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="MSGF:ScoreRatio" value="0.170731707317073"/>
-				<UserParam type="float" name="MSGF:Energy" value="34"/>
-				<UserParam type="float" name="MSGF:lnEValue" value="-4.07118979778686"/>
-				<UserParam type="float" name="MSGF:lnExplainedIonCurrentRatio" value="-0.991313622438112"/>
-				<UserParam type="float" name="MSGF:lnNTermIonCurrentRatio" value="-1.94047059031647"/>
-				<UserParam type="float" name="MSGF:lnCTermIonCurrentRatio" value="-1.48037403430811"/>
-				<UserParam type="float" name="MSGF:lnMS2IonCurrent" value="7.56600765613448"/>
-				<UserParam type="float" name="MSGF:MeanErrorTop7" value="374.86557"/>
-				<UserParam type="float" name="MSGF:sqMeanErrorTop7" value="140524.195571425"/>
-				<UserParam type="float" name="MSGF:StdevErrorTop7" value="357.06348"/>
 			</PeptideHit>
 			<PeptideHit score="6" sequence="FEVFKRTLVY" charge="3" aa_before="I" aa_after="Y" start="139" end="148" protein_refs="PH_7" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
@@ -384,16 +314,6 @@
 				<UserParam type="int" name="start" value="140"/>
 				<UserParam type="int" name="end" value="149"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="MSGF:ScoreRatio" value="0.146341463414634"/>
-				<UserParam type="float" name="MSGF:Energy" value="35"/>
-				<UserParam type="float" name="MSGF:lnEValue" value="-4.38288439169512"/>
-				<UserParam type="float" name="MSGF:lnExplainedIonCurrentRatio" value="-1.31861044193735"/>
-				<UserParam type="float" name="MSGF:lnNTermIonCurrentRatio" value="-2.80058835901177"/>
-				<UserParam type="float" name="MSGF:lnCTermIonCurrentRatio" value="-1.5758462337641"/>
-				<UserParam type="float" name="MSGF:lnMS2IonCurrent" value="7.56600765613448"/>
-				<UserParam type="float" name="MSGF:MeanErrorTop7" value="474.00967"/>
-				<UserParam type="float" name="MSGF:sqMeanErrorTop7" value="224685.167253509"/>
-				<UserParam type="float" name="MSGF:StdevErrorTop7" value="445.1557"/>
 			</PeptideHit>
 			<PeptideHit score="3" sequence="LFKFLDNHLR" charge="3" aa_before="G" aa_after="D" start="497" end="506" protein_refs="PH_11" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
@@ -423,16 +343,6 @@
 				<UserParam type="int" name="start" value="498"/>
 				<UserParam type="int" name="end" value="507"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="MSGF:ScoreRatio" value="0.0731707317073171"/>
-				<UserParam type="float" name="MSGF:Energy" value="38"/>
-				<UserParam type="float" name="MSGF:lnEValue" value="-5.27827663590751"/>
-				<UserParam type="float" name="MSGF:lnExplainedIonCurrentRatio" value="-1.33418726595803"/>
-				<UserParam type="float" name="MSGF:lnNTermIonCurrentRatio" value="-2.48236388535533"/>
-				<UserParam type="float" name="MSGF:lnCTermIonCurrentRatio" value="-1.71520601114261"/>
-				<UserParam type="float" name="MSGF:lnMS2IonCurrent" value="7.56600765613448"/>
-				<UserParam type="float" name="MSGF:MeanErrorTop7" value="461.97772"/>
-				<UserParam type="float" name="MSGF:sqMeanErrorTop7" value="213423.413776398"/>
-				<UserParam type="float" name="MSGF:StdevErrorTop7" value="366.39435"/>
 			</PeptideHit>
 			<UserParam type="string" name="MS:1001115" value="344"/>
 		</PeptideIdentification>
@@ -465,16 +375,6 @@
 				<UserParam type="int" name="start" value="225"/>
 				<UserParam type="int" name="end" value="243"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="MSGF:ScoreRatio" value="0.101449275362319"/>
-				<UserParam type="float" name="MSGF:Energy" value="62"/>
-				<UserParam type="float" name="MSGF:lnEValue" value="-3.27423306423354"/>
-				<UserParam type="float" name="MSGF:lnExplainedIonCurrentRatio" value="-1.15375312272106"/>
-				<UserParam type="float" name="MSGF:lnNTermIonCurrentRatio" value="-1.92396470159194"/>
-				<UserParam type="float" name="MSGF:lnCTermIonCurrentRatio" value="-1.77476218499436"/>
-				<UserParam type="float" name="MSGF:lnMS2IonCurrent" value="6.85410489304616"/>
-				<UserParam type="float" name="MSGF:MeanErrorTop7" value="472.38248"/>
-				<UserParam type="float" name="MSGF:sqMeanErrorTop7" value="223145.20741095"/>
-				<UserParam type="float" name="MSGF:StdevErrorTop7" value="263.4915"/>
 			</PeptideHit>
 			<PeptideHit score="7" sequence="M(Oxidation)VNSEGLM(Oxidation)LTSTYMMDIL" charge="3" aa_before="D" aa_after="A" start="580" end="597" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
@@ -504,16 +404,6 @@
 				<UserParam type="int" name="start" value="581"/>
 				<UserParam type="int" name="end" value="598"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="MSGF:ScoreRatio" value="0.101449275362319"/>
-				<UserParam type="float" name="MSGF:Energy" value="62"/>
-				<UserParam type="float" name="MSGF:lnEValue" value="-3.27269317913484"/>
-				<UserParam type="float" name="MSGF:lnExplainedIonCurrentRatio" value="-0.971741736520063"/>
-				<UserParam type="float" name="MSGF:lnNTermIonCurrentRatio" value="-1.95802238694634"/>
-				<UserParam type="float" name="MSGF:lnCTermIonCurrentRatio" value="-1.43806739161504"/>
-				<UserParam type="float" name="MSGF:lnMS2IonCurrent" value="6.85410489304616"/>
-				<UserParam type="float" name="MSGF:MeanErrorTop7" value="370.8566"/>
-				<UserParam type="float" name="MSGF:sqMeanErrorTop7" value="137534.61776356"/>
-				<UserParam type="float" name="MSGF:StdevErrorTop7" value="214.14467"/>
 			</PeptideHit>
 			<PeptideHit score="6" sequence="ECFFDLLTKFQSSRMDD" charge="3" aa_before="E" aa_after="Q" start="495" end="511" protein_refs="PH_8" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -543,16 +433,6 @@
 				<UserParam type="int" name="start" value="496"/>
 				<UserParam type="int" name="end" value="512"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="MSGF:ScoreRatio" value="0.0869565217391304"/>
-				<UserParam type="float" name="MSGF:Energy" value="63"/>
-				<UserParam type="float" name="MSGF:lnEValue" value="-3.6239475756215"/>
-				<UserParam type="float" name="MSGF:lnExplainedIonCurrentRatio" value="-1.12751012809371"/>
-				<UserParam type="float" name="MSGF:lnNTermIonCurrentRatio" value="-1.86083106524227"/>
-				<UserParam type="float" name="MSGF:lnCTermIonCurrentRatio" value="-1.78144138422256"/>
-				<UserParam type="float" name="MSGF:lnMS2IonCurrent" value="6.85410489304616"/>
-				<UserParam type="float" name="MSGF:MeanErrorTop7" value="515.526"/>
-				<UserParam type="float" name="MSGF:sqMeanErrorTop7" value="265767.056676"/>
-				<UserParam type="float" name="MSGF:StdevErrorTop7" value="236.33325"/>
 			</PeptideHit>
 			<PeptideHit score="6" sequence="DLYYLM(Oxidation)DLSLSM(Oxidation)KDDLD" charge="3" aa_before="V" aa_after="N" start="138" end="154" protein_refs="PH_2" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -582,16 +462,6 @@
 				<UserParam type="int" name="start" value="139"/>
 				<UserParam type="int" name="end" value="155"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="MSGF:ScoreRatio" value="0.0869565217391304"/>
-				<UserParam type="float" name="MSGF:Energy" value="63"/>
-				<UserParam type="float" name="MSGF:lnEValue" value="-3.6239475756215"/>
-				<UserParam type="float" name="MSGF:lnExplainedIonCurrentRatio" value="-1.18032128633205"/>
-				<UserParam type="float" name="MSGF:lnNTermIonCurrentRatio" value="-1.65372946056723"/>
-				<UserParam type="float" name="MSGF:lnCTermIonCurrentRatio" value="-2.15463925199795"/>
-				<UserParam type="float" name="MSGF:lnMS2IonCurrent" value="6.85410489304616"/>
-				<UserParam type="float" name="MSGF:MeanErrorTop7" value="280.25882"/>
-				<UserParam type="float" name="MSGF:sqMeanErrorTop7" value="78545.0061877924"/>
-				<UserParam type="float" name="MSGF:StdevErrorTop7" value="84.211136"/>
 			</PeptideHit>
 			<PeptideHit score="6" sequence="LIILNCM(Oxidation)DYSHCQGNRW" charge="3" aa_before="A" aa_after="R" start="9" end="25" protein_refs="PH_6" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -621,16 +491,6 @@
 				<UserParam type="int" name="start" value="10"/>
 				<UserParam type="int" name="end" value="26"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
-				<UserParam type="float" name="MSGF:ScoreRatio" value="0.0869565217391304"/>
-				<UserParam type="float" name="MSGF:Energy" value="63"/>
-				<UserParam type="float" name="MSGF:lnEValue" value="-3.6239475756215"/>
-				<UserParam type="float" name="MSGF:lnExplainedIonCurrentRatio" value="-1.25110721501203"/>
-				<UserParam type="float" name="MSGF:lnNTermIonCurrentRatio" value="-1.70965578528744"/>
-				<UserParam type="float" name="MSGF:lnCTermIonCurrentRatio" value="-2.25037512587935"/>
-				<UserParam type="float" name="MSGF:lnMS2IonCurrent" value="6.85410489304616"/>
-				<UserParam type="float" name="MSGF:MeanErrorTop7" value="319.84372"/>
-				<UserParam type="float" name="MSGF:sqMeanErrorTop7" value="102300.005223438"/>
-				<UserParam type="float" name="MSGF:StdevErrorTop7" value="190.17526"/>
 			</PeptideHit>
 			<UserParam type="string" name="MS:1001115" value="350"/>
 		</PeptideIdentification>

@@ -11,8 +11,8 @@
 			<charge>4</charge>
 			<model name="ProductModel2D">
 				<param name="cutoff" value="1503.35"/>
-				<param name="RT" value="EmgModel"/>
-				<param name="MZ" value="IsotopeModel"/>
+				<param name="RT:RT" value="EmgModel"/>
+				<param name="MZ:MZ" value="IsotopeModel"/>
 				<param name="intensity_scaling" value="0.147649"/>
 				<param name="RT:cutoff" value="0"/>
 				<param name="RT:interpolation_step" value="0.1"/>
@@ -102,8 +102,8 @@
 			<charge>3</charge>
 			<model name="ProductModel2D">
 				<param name="cutoff" value="402.6"/>
-				<param name="RT" value="EmgModel"/>
-				<param name="MZ" value="IsotopeModel"/>
+				<param name="RT:RT" value="EmgModel"/>
+				<param name="MZ:MZ" value="IsotopeModel"/>
 				<param name="intensity_scaling" value="0.134626"/>
 				<param name="RT:cutoff" value="0"/>
 				<param name="RT:interpolation_step" value="0.1"/>
@@ -189,8 +189,8 @@
 			<charge>2</charge>
 			<model name="ProductModel2D">
 				<param name="cutoff" value="299.4"/>
-				<param name="RT" value="EmgModel"/>
-				<param name="MZ" value="IsotopeModel"/>
+				<param name="RT:RT" value="EmgModel"/>
+				<param name="MZ:MZ" value="IsotopeModel"/>
 				<param name="intensity_scaling" value="0.210919"/>
 				<param name="RT:cutoff" value="0"/>
 				<param name="RT:interpolation_step" value="0.1"/>
@@ -272,8 +272,8 @@
 			<charge>3</charge>
 			<model name="ProductModel2D">
 				<param name="cutoff" value="257.25"/>
-				<param name="RT" value="EmgModel"/>
-				<param name="MZ" value="IsotopeModel"/>
+				<param name="RT:RT" value="EmgModel"/>
+				<param name="MZ:MZ" value="IsotopeModel"/>
 				<param name="intensity_scaling" value="0.133431"/>
 				<param name="RT:cutoff" value="0"/>
 				<param name="RT:interpolation_step" value="0.1"/>

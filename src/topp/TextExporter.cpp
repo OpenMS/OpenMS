@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,7 +9,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -691,6 +691,7 @@ protected:
                         peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT_first_dim"), peptide_id_meta_keys.end());
                         peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "first_dim_rt"), peptide_id_meta_keys.end());
                         peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_PT"), peptide_id_meta_keys.end());
+                        peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), Constants::UserParam::SIGNIFICANCE_THRESHOLD), peptide_id_meta_keys.end());
                 }
                 if (add_hit_metavalues >= 0)
                 {
@@ -861,12 +862,13 @@ protected:
           }
           if (add_id_metavalues >= 0)
           {
-            peptide_id_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideIdentification>, StringList>(pids.begin(), pids.end(), add_id_metavalues);
+              peptide_id_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideIdentification>, StringList>(pids.begin(), pids.end(), add_id_metavalues);
               // currently there is some hardcoded logic to create extra columns for these meta values so remove them to prevent duplication
               peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT"), peptide_id_meta_keys.end());
               peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT_first_dim"), peptide_id_meta_keys.end());
               peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "first_dim_rt"), peptide_id_meta_keys.end());
               peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_PT"), peptide_id_meta_keys.end());
+              peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), Constants::UserParam::SIGNIFICANCE_THRESHOLD), peptide_id_meta_keys.end());
           }
           if (add_hit_metavalues >= 0)
           {
@@ -1346,6 +1348,7 @@ protected:
           peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT_first_dim"), peptide_id_meta_keys.end());
           peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "first_dim_rt"), peptide_id_meta_keys.end());
           peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_PT"), peptide_id_meta_keys.end());
+          peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), Constants::UserParam::SIGNIFICANCE_THRESHOLD), peptide_id_meta_keys.end());
         }
 
         if (add_hit_metavalues >= 0)

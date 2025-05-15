@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -1215,6 +1215,24 @@ START_SECTION(void transform(const String& filename_in, Interfaces::IMSDataConsu
   TEST_REAL_SIMILAR(consumer.TIC, 350)
 
   TEST_EQUAL(map.getNrSpectra(), 4)
+}
+END_SECTION
+
+START_SECTION((void testSkipChromatograms()))
+{
+  MzMLFile file;
+  PeakFileOptions opts;
+  opts.setSkipChromatograms(true);
+  file.setOptions(opts);
+
+  PeakMap pm;
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), pm);
+  TEST_EQUAL(pm.getChromatograms().size(), 0)
+
+  opts.setSkipChromatograms(false);
+  file.setOptions(opts);
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), pm);
+  TEST_NOT_EQUAL(pm.getChromatograms().size(), 0)
 }
 END_SECTION
 

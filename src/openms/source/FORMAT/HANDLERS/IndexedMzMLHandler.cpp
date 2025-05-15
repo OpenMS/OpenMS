@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -264,6 +264,7 @@ namespace OpenMS::Internal
   {
     std::string text = IndexedMzMLHandler::getSpectrumById_helper_(id);
     MzMLSpectrumDecoder(skip_xml_checks_).domParseSpectrum(text, s);
+    s.updateRanges();
   }
 
   OpenMS::Interfaces::ChromatogramPtr IndexedMzMLHandler::getChromatogramById(int id)
@@ -278,6 +279,7 @@ namespace OpenMS::Internal
   {
     OpenMS::MSChromatogram c;
     getMSChromatogramById(id, c);
+    c.updateRanges();
     return c;
   }
 
@@ -296,6 +298,7 @@ namespace OpenMS::Internal
   {
     std::string text = IndexedMzMLHandler::getChromatogramById_helper_(id);
     MzMLSpectrumDecoder(skip_xml_checks_).domParseChromatogram(text, c);
+    c.updateRanges();
   }
 
 } //namespace OpenMS  //namespace Internal

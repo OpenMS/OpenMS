@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -107,18 +107,6 @@ public:
     inline void setPos(CoordinateType pos)
     {
       position_[0] = pos;
-    }
-
-    /// Alias for getRT()
-    inline CoordinateType getMZ() const
-    {
-      return position_[0];
-    }
-
-    /// Alias for setRT()
-    inline void setMZ(CoordinateType rt)
-    {
-      position_[0] = rt;
     }
 
     /// Non-mutable access to the position

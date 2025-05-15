@@ -5,7 +5,7 @@ from ChromatogramPeak cimport *
 from Peak1D cimport *
 from DefaultParamHandler cimport *
 
-cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/SCALING/Normalizer.h>" namespace "OpenMS":
 
     cdef cppclass Normalizer(DefaultParamHandler):
         # wrap-inherits:

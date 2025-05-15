@@ -49,7 +49,9 @@ jobs:
             # clang.exe is also installed but untested (might crash with our VS specific compiler definitions)
             # clang-cl.exe might be used instead.
             compiler: cl.exe
-            compiler_ver: default
+            # VS 2022: 14.30-14.39 (corresponds to MSVC v143)
+            # VS 2019: 14.20-14.29 (corresponds to MSVC v142)
+            compiler_ver: 14.36    # Specific toolset version for VS 2022 -- must (roughly) match Qt6 compiler (see below)
 
           - os: macos-13
             # Since the appleclang version is dependent on the XCode versions that are installed
@@ -71,7 +73,15 @@ jobs:
           # We are not installing anything.
           - os: ubuntu-22.04
             compiler: g++
+
             compiler_ver: 11
+          # Make sure the compilers are available in that version on the GH runners
+          # We are not installing anything.
+          
+          #- os: ubuntu-22.04-arm
+          #  compiler: g++
+          #  compiler_ver: 11
+
 
           - os: ubuntu-22.04
             compiler: clang++
@@ -175,8 +185,8 @@ jobs:
           fi
           echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
           grep -ne "----[[:space:]]*OpenMS" ${{ github.workspace }}/OpenMS/CHANGELOG > index_changelog.txt 
-          START=$(cat index_changelog.txt | grep -A 1 -e " $VERSION_NUMBER " | cut -f1 -d: | head -1)
-          END=$(cat index_changelog.txt | grep -A 1 -e " $VERSION_NUMBER " | cut -f1 -d: | tail -1)
+          START=$(cat index_changelog.txt | grep -A 1 -E " $VERSION_NUMBER(\.0)? " | cut -f1 -d: | head -1)
+          END=$(cat index_changelog.txt | grep -A 1 -E " $VERSION_NUMBER(\.0)? " | cut -f1 -d: | tail -1)
           echo "Extracting between lines:"
           echo $START
           echo $END
@@ -217,11 +227,11 @@ jobs:
 
     - name: Install Qt (Windows)
       if: startsWith(matrix.os, 'windows')
-      uses: jurplel/install-qt-action@v3
+      uses: jurplel/install-qt-action@v4
       with:
-        version: '5.15.2' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715, > 5.15.2 is not available on official archives (https://github.com/miurahr/aqtinstall/issues/636)
+        version: '6.8.3'    ## Note this version is build with win64_msvc2022_64 and should always match what we use
+        arch: 'win64_msvc2022_64'
         cache: 'false'
-        aqtversion: '==3.1.*'
         archives: 'qtsvg qtimageformats qtbase'
 
     - name: Setup build tools (and system contrib on Linux and Mac)
@@ -235,10 +245,9 @@ jobs:
           sudo add-apt-repository universe
           sudo apt update   
           sudo apt-get -qq install -y build-essential cmake autoconf patch libtool git automake ninja-build xvfb ccache
-          sudo apt-get -qq install -y qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
+          sudo apt-get -qq install -y qt6-base-dev libqt6svg6-dev libqt6opengl6-dev libqt6openglwidgets6 libgl-dev
           sudo apt-get -qq install -y libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev \
            libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
-
           echo "cmake_prefix=" >> $GITHUB_OUTPUT
           ## always run doxygen on Ubuntu to detect Doxygen errors
           sudo apt-get -qq install -y doxygen ghostscript graphviz
@@ -247,18 +256,19 @@ jobs:
         fi
         
         if [[ "${{ matrix.os }}" == windows-* ]]; then
-          # Qt5_DIR set by Install Qt5 step
-          echo "cmake_prefix=$Qt5_DIR/lib/cmake;$Qt5_DIR" >> $GITHUB_OUTPUT
-          choco install ccache ninja cmake -y --no-progress
+          # QT_ROOT_DIR set by Install Qt step
+          echo "cmake_prefix=$QT_ROOT_DIR/lib/cmake;$QT_ROOT_DIR" >> $GITHUB_OUTPUT
+          choco install ccache ninja -y --no-progress
+          choco install cmake -y --no-progress
           ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
           # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
           echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
           # Install eigen from choco
           choco install eigen -y --no-progress
           echo "eigen_choco=C:\ProgramData\chocolatey\lib\eigen\share\cmake" >> $GITHUB_OUTPUT
-
+          choco install doxygen.portable ghostscript graphviz -y --no-progress
+          
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            choco install doxygen.portable ghostscript graphviz -y --no-progress
             # uses a custom NSIS, which provides 8-k string support and has UltraModernUI integrated already
             curl --no-progress-meter -L -o NSIS.tar.gz https://github.com/OpenMS/NSIS/raw/main/NSIS.tar.gz
             ## overwrite existing NSIS (which has only 1k-string support)
@@ -267,15 +277,16 @@ jobs:
         fi
 
         if [[ "${{ matrix.os }}" == macos-* ]];      then
+          ## Update the package lists for Brew
+          brew update
           ## Needed for Qt. Install before to overwrite the default softlinks on the GH runners
-          brew install python3 --force --overwrite
-          brew install --quiet ccache autoconf automake libtool ninja && brew link --overwrite ccache
-          brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt@5
-          echo "cmake_prefix=$(brew --prefix qt@5)/lib/cmake;$(brew --prefix qt@5)" >> $GITHUB_OUTPUT
-          echo "Qt5_DIR=$(brew --prefix qt@5)/lib/cmake/Qt5" >> $GITHUB_ENV
-          if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
-            brew install --quiet doxygen ghostscript graphviz
-          fi
+          brew install python@3.13 --force --overwrite
+          brew install --quiet ccache autoconf automake libtool ninja libomp && brew link --overwrite ccache
+          # attempt to fix https://github.com/Homebrew/homebrew-core/issues/113176
+          brew link --force libomp
+          brew install libsvm xerces-c boost eigen sqlite coinutils cbc cgl clp qt
+          echo "cmake_prefix=$(brew --prefix qt)/lib/cmake;$(brew --prefix qt);$(brew --prefix libomp)" >> $GITHUB_OUTPUT
+          brew install --quiet doxygen ghostscript graphviz
         fi
 
     - name: Cache contrib (Windows)
@@ -308,7 +319,7 @@ jobs:
         # Restoring: From current branch/PR, otherwise from nightly, otherwise from any branch.
         restore-keys: |
           ${{ runner.os }}-${{ runner.arch }}-ccache-${{ steps.extract_branch.outputs.RUN_NAME }}
-          ${{ runner.os }}-${{ runner.arch }}-ccache-nightly
+          ${{ runner.os }}-${{ runner.arch }}-ccache-develop
           ${{ runner.os }}-${{ runner.arch }}-ccache-
 
     - name: Add THIRDPARTY
@@ -320,8 +331,21 @@ jobs:
           cd ..
           # add third-party binaries to PATH
           # use flat THIRDPARTY structure
+          THIRDPARTY_DIR="OpenMS/THIRDPARTY"
           mkdir -p _thirdparty
-          cp -R OpenMS/THIRDPARTY/${{ steps.set-vars.outputs.tp_folder }}/64bit/* _thirdparty/
+          # Copy the correct architecture
+          cp -R "$THIRDPARTY_DIR/${{ steps.set-vars.outputs.tp_folder }}/$(uname -m)"/* _thirdparty/          
+          # For MacOS 14 we also want to copy over any tools that we only have in x86_64 flavor.
+          if [[ "${{ matrix.os }}" == macos-14 ]]; then
+            echo "Copying x86_64 tools for MacOS 14"
+            for tool in $THIRDPARTY_DIR/MacOS/x86_64/*; do
+              toolname=$(basename "$tool")
+              if [[ ! -e "_thirdparty/$toolname" ]]; then
+                echo "Copying missing tool from x86_64: $toolname"
+                cp -R "$tool" "_thirdparty/"
+              fi
+            done
+          fi
           cp -R OpenMS/THIRDPARTY/All/* _thirdparty/
           # add third-party binaries to PATH
           for thirdpartytool in '${{ github.workspace }}/_thirdparty'/*
@@ -348,6 +372,15 @@ jobs:
       run: |
           # do not fail immediately
           set +e
+
+          # Generate the CWL descriptors if we are going to build a package
+          if [ ${{steps.set-vars.outputs.pkg_type }} != "none" ]; then
+            python -m venv openms-cwl
+            source openms-cwl/bin/activate
+            pip install -q cwltool
+            export ENABLE_CWL=ON
+          fi
+
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
           retVal=$?
@@ -376,9 +409,9 @@ jobs:
           ENABLE_GCC_WERROR: "OFF" # TODO think about that
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
+          SIGNING_IDENTITY: "-"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
-          PACKAGE_TYPE: ${{ steps.set-vars.outputs.pkg_type }}
           OPENMP: "ON"
           BOOST_USE_STATIC: ${{ steps.set-vars.outputs.static_boost }}
           #  BUILD_FLAGS: "-p:CL_MPCount=2" # For VS Generator and MSBuild
@@ -405,6 +438,27 @@ jobs:
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-class-topp-${{ github.run_number }}"
           # The rest of the vars should be saved in the CMakeCache
 
+    # Load the code signing certificate and the package signing certificate TODO: Change which cert to use for non-nightly
+    - name: Import Apple Developer Certificates
+      if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'macos')
+      env:
+        APPLE_CERTIFICATE: ${{ secrets.APPLE_DEVELOPER_CERT_64 }}
+        APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPMENT_PW }}
+        INSTALLER_CERTIFICATE: ${{ secrets.APPLE_INSTALLER_CERT_64 }}
+        INSTALLER_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_INSTALLER_PW }}
+        KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      run: |
+        echo $APPLE_CERTIFICATE | base64 --decode > certificate.p12
+        echo $INSTALLER_CERTIFICATE | base64 --decode > installer_certificate.p12
+        security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+        security set-keychain-settings -t 3600 -u build.keychain
+        security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+        security import installer_certificate.p12 -k build.keychain -P "$INSTALLER_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+        security find-identity -v -p codesigning build.keychain
+
     - name: Package
       if: steps.set-vars.outputs.pkg_type != 'none'
       shell: bash
@@ -429,6 +483,9 @@ jobs:
           SEARCH_ENGINES_DIRECTORY: "${{ github.workspace }}/_thirdparty"
           CI_PROVIDER: "GitHub-Actions"
           BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ steps.set-vars.outputs.tp_folder }}-${{ runner.arch }}-${{ matrix.compiler }}-${{ matrix.compiler_ver }}-class-topp-${{ github.run_number }}"
+          SIGNING_IDENTITY: "Apple Development: Samuel Wein (B26WBF742H)"
+          SIGNING_EMAIL: "apple@openms.de"
+          CPACK_PRODUCTBUILD_IDENTITY_NAME: "Developer ID Installer: OpenMS Inc. (C64UCGJ5PL)"
 
     # WARNING: Here you have to make sure that only one matrix configuration per OS produces packages. See set-vars steps.
     - name: Upload packages as artifacts
@@ -451,27 +508,26 @@ jobs:
         exclusions: '/CMakeFiles/* /doxygen/* /code_examples/*'
         filename: 'documentation.zip'
     
-    #Zip the source
-    - name: Zip source
+   # Compress the source
+    - name: Create tarball
       if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
-      uses: thedoctor0/zip-release@0.7.6
-      with:
-        type: 'tar'
-        directory: ${{ github.workspace }}
-        path: OpenMS
-        exclusions: 'bld/* ./source.tar.gz THIRDPARTY/* .git/*'
-        filename: 'source.tar.gz'
-
+      run: |
+        tar --exclude='bld/*' \
+            --exclude='OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz' \
+            --exclude='OpenMS/THIRDPARTY/**' \
+            --exclude='.git/**' \
+            --exclude='.github/**' \
+            --exclude='vcpkg*/**' \
+            -czf OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz -C ${{ github.workspace }} OpenMS
         
-
    # Upload the source tar
     - name: Upload source tar as artifact
       if: steps.set-vars.outputs.pkg_type != 'none' && startsWith(matrix.os, 'ubuntu')
       uses: actions/upload-artifact@v4
       with:
-        name: source.tar.gz
+        name: OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
         path: |
-          ${{ github.workspace }}/source.tar.gz
+          ${{ github.workspace }}/OpenMS-${{ steps.create_changelog.outputs.version_number }}.tar.gz
 
 
     # Only upload docs when we are building the package, use the ubuntu build simply 'cause its fast
@@ -514,33 +570,16 @@ jobs:
       - name: Extract branch/PR infos
         shell: bash
         run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_ENV
-      
-      # WOW, you cannot download with wildcard. INCREDIBLY ANNOYING https://github.com/actions/download-artifact/issues/6
-      # Maybe in the next 3 years......
-      - name: Download macOS installer artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: installer-MacOS
 
-      - name: Download macOS Silicon installer artifacts
+      - name: Download installer artifacts
         uses: actions/download-artifact@v4
         with:
-          name: installer-MacOS-arm64
-
-      - name: Download win installer artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: installer-Windows
-          
-      - name: Download lnx installer artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: installer-Linux
+          pattern: installer-*
 
       - name: Download source archive as artifact
         uses: actions/download-artifact@v4
         with:
-          name: source.tar.gz
+          name: OpenMS-${{ needs.build-and-test.outputs.version_number }}.tar.gz
 
       - name: Download changelog as artifact
         if: inputs.do_release
@@ -578,6 +617,7 @@ jobs:
           PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          PORT: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
         run: |
           if [[ "${{ github.ref_name }}" == release/* ]]; then
             folder=${{ github.ref_name }}
@@ -589,8 +629,8 @@ jobs:
           mkdir -p ~/.ssh/
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
-          ln -s ./$folder latest  #create link to the release folder
-          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/OpenMSInstaller/release"
+          ln -s ../$folder latest  #create link to the release folder
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -p $PORT -o StrictHostKeyChecking=no" latest "$USER@$HOST:/OpenMSInstaller/release"
 
       - name: create RELEASE_TEXT
         id: mk_release_txt
@@ -662,6 +702,7 @@ jobs:
           PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          PORT: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
         run: |
           unzip $GITHUB_WORKSPACE/docs/documentation.zip -d $GITHUB_WORKSPACE/docs
           rm $GITHUB_WORKSPACE/docs/documentation.zip
@@ -669,7 +710,7 @@ jobs:
           if [[ "${{ github.ref_name }}" == "nightly" ]]; then
             folder=nightly
           elif [[ "${{ github.ref_name }}" == release/* ]]; then
-            folder=release/${{ github.ref_name }}
+            folder=${{ github.ref_name }}
           else
             folder=experimental/${{ github.ref_name }}
           fi
@@ -679,7 +720,7 @@ jobs:
           sudo chmod 600 ~/.ssh/private.key
 
           # Upload documentation
-          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/docs/ "$USER@$HOST:/Documentation/${folder}"
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -p $PORT -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/docs/ "$USER@$HOST:/Documentation/${folder}"
 
       - name: Make documentation latest
         if: inputs.mark_as_latest
@@ -688,9 +729,12 @@ jobs:
           PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          PORT: ${{ secrets.ARCHIVE_RRSYNC_PORT }}          
+          GITHUB_REF_NAME: ${{ github.ref_name }}
         run: |
-          if [[ "${{ github.ref_name }}" == release/* ]]; then
-            folder=${{ github.ref_name }}
+          if [[ "${GITHUB_REF_NAME}" == release/* ]]; then
+            # Remove 'release/' prefix using parameter expansion
+            folder=${GITHUB_REF_NAME#release/}
           else
             echo refusing to mark non-release branch as latest
             exit 1
@@ -700,7 +744,7 @@ jobs:
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
           ln -s ./$folder latest  #we can use the same link from above.
-          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/Documentation/release
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -p $PORT -o StrictHostKeyChecking=no" latest "$USER@$HOST:/Documentation/release"
       
         # TODO create softlinks to latest nightly
         # TODO create and upload file hashes, at least for release candidate
@@ -708,7 +752,7 @@ jobs:
         
   build-deploy-knime-updatesite:
     env:
-      KNIME: 5.1
+      KNIME: 5.3
       JAVA_VER: 17
       PLUGIN_BUILD: ${{ github.workspace }}/plugin-build
       PLUGIN_SOURCE: ${{ github.workspace }}/plugin-source
@@ -720,30 +764,12 @@ jobs:
         shell: bash
         run: echo "RUN_NAME=${{ github.event.pull_request && github.event.number || github.ref_name }}" >> $GITHUB_ENV
 
-      # WOW, you cannot download with wildcard. INCREDIBLY ANNOYING https://github.com/actions/download-artifact/issues/6
-      # Maybe in the next 3 years......
-      - name: Download macOS installer artifacts
+      - name: Download KNIME artifacts
         uses: actions/download-artifact@v4
         with:
-          name: knime-MacOS
+          pattern: knime-*
           path: ${{ env.PLUGIN_SOURCE }}
-      - name: Download macOS Silicon installer artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: knime-MacOS-arm64
-          path: ${{ env.PLUGIN_SOURCE }}
-      - name: Download win installer artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: knime-Windows
-          path: ${{ env.PLUGIN_SOURCE }}
-
-      - name: Download lnx installer artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: knime-Linux
-          path: ${{ env.PLUGIN_SOURCE }}
-
+     
       # Should be the default. 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -870,12 +896,14 @@ jobs:
           PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          PORT: ${{ secrets.ARCHIVE_RRSYNC_PORT }}
+          
         run: |
           echo "Upload"
           if [[ "${{ github.ref_name }}" == "nightly" ]]; then
             folder=nightly
           elif [[ "${{ github.ref_name }}" == release/* ]]; then
-            folder=release/${{ github.ref_name }}
+            folder=${{ github.ref_name }}
           else
             folder=experimental/${{ github.ref_name }}
           fi
@@ -890,7 +918,7 @@ jobs:
           mkdir -p ~/.ssh/
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
-          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/"
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -p $PORT -o StrictHostKeyChecking=no" $GITHUB_WORKSPACE/de.openms.update/target/repository/* "$USER@$HOST:/knime-plugin/updateSite/$folder/"
 
       - name: Make KNIME installer latest
         if: inputs.mark_as_latest
@@ -899,6 +927,7 @@ jobs:
           PASS: ${{ secrets.ARCHIVE_RRSYNC_SSH }}
           USER: ${{ secrets.ARCHIVE_RRSYNC_USER }}
           HOST: ${{ secrets.ARCHIVE_RRSYNC_HOST }}
+          PORT: ${{ secrets.ARCHIVE_RRSYNC_PORT }}          
         run: |
           echo "Upload"
           if [[ "${{ github.ref_name }}" == release/* ]]; then
@@ -912,7 +941,7 @@ jobs:
           echo "$PASS" > ~/.ssh/private.key
           sudo chmod 600 ~/.ssh/private.key
           ln -s ./$folder latest  #create link to the release folder
-          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -o StrictHostKeyChecking=no" latest "$USER@$HOST:/knime-plugin/updateSite/release
+          rsync --progress -avz -e "ssh -i ~/.ssh/private.key -p $PORT -o StrictHostKeyChecking=no" latest "$USER@$HOST:/knime-plugin/updateSite/release"
 
   do-release:
     if: inputs.do_release

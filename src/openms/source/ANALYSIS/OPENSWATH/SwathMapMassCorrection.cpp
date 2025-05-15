@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,8 +9,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
-#include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
+#include <OpenMS/ML/REGRESSION/LinearRegression.h>
+#include <OpenMS/ML/REGRESSION/QuadraticRegression.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
@@ -40,7 +40,7 @@ namespace OpenMS
   std::vector<OpenSwath::SwathMap> findSwathMaps(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group,
                                                  const std::vector< OpenSwath::SwathMap > & swath_maps)
   {
-    // Get the corresponding SWATH map(s), for SONAR there will be more than one map
+    // Get the corresponding SWATH map
     std::vector<OpenSwath::SwathMap> used_maps;
     for (const auto& m : swath_maps)
     {

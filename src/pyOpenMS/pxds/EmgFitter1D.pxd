@@ -2,7 +2,7 @@ from LevMarqFitter1D cimport *
 from InterpolationModel cimport *
 from Peak1D cimport *
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FEATUREFINDER/EmgFitter1D.h>" namespace "OpenMS":
     
     cdef cppclass EmgFitter1D(LevMarqFitter1D):
         # wrap-inherits:

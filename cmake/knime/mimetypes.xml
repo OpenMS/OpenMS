@@ -33,7 +33,6 @@
  <mimetype name="EDTA" binary="false" description="enhanced comma separated files (RT, m/z, Intensity, [meta])" ext="EDTA"/>
  <mimetype name="PSQ" binary="false" description="PSQ file" ext="psq"/>
  <mimetype name="EXE" binary="true" description="Executable files" ext="exe"/>
- <mimetype name="MZQUANTML" binary="false" description="mzQuantML" ext="mzq"/>
  <mimetype name="QCML" binary="false" description="qcML (will undergo standardisation maybe) (.qcml)" ext="qcml"/>
  <mimetype name="PARAMXML" binary="false" description="paramXML (subset of the general %OpenMS ini parameter files)" ext="paramXML"/>
  <mimetype name="PERCOLATORTAB" binary="false" description="Percolator tab seperated in/output" ext="tab"/>

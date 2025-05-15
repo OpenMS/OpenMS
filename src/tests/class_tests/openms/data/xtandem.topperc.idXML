@@ -40,6 +40,7 @@
 				<UserParam type="int" name="y_ions" value="6"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
+				<UserParam type="float" name="XTANDEM:deltascore" value="0.9"/>
 			</PeptideHit>
 			<UserParam type="int" name="spectrum_id" value="18"/>
 		</PeptideIdentification>
@@ -55,6 +56,7 @@
 				<UserParam type="int" name="y_ions" value="7"/>
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTANDEM:deltascore" value="37.0"/>
 			</PeptideHit>
 			<UserParam type="int" name="spectrum_id" value="19"/>
 		</PeptideIdentification>
@@ -70,6 +72,7 @@
 				<UserParam type="int" name="y_ions" value="5"/>
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="XTANDEM:deltascore" value="27.7"/>				
 			</PeptideHit>
 			<UserParam type="int" name="spectrum_id" value="20"/>
 		</PeptideIdentification>

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -83,7 +83,7 @@ protected:
 
     OPENMS_LOG_INFO << "Number of Protein IDs: " << id_accessions.size() << endl;
 
-    for (const auto entry : db)
+    for (const auto& entry : db)
     {
       const String& fasta_accession = entry.identifier;
       const bool found = id_accessions.find(fasta_accession) != id_accessions.end();

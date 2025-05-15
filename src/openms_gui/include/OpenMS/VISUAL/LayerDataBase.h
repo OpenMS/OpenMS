@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,7 +12,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
+#include <OpenMS/PROCESSING/MISC/DataFilters.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -8,11 +8,11 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResampler.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/MATH/MISC/BilinearInterpolation.h>
+#include <OpenMS/ML/INTERPOLATION/BilinearInterpolation.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 
 

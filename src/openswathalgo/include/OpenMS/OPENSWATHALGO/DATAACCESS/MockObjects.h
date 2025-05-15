@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -69,12 +69,15 @@ public:
 
     double getRT() const override;
 
+    double getMetaValue(std::string name) const override;
+
     size_t size() const override;
 
     std::map<std::string, boost::shared_ptr<MockFeature> > m_features;
     std::map<std::string, boost::shared_ptr<MockFeature> > m_precursor_features;
     float m_intensity;
     double m_rt;
+    double m_metavalue;
   };
 
   /**

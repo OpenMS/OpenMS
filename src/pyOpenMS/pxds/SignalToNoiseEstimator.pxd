@@ -4,7 +4,7 @@ from Peak1D cimport *
 from DefaultParamHandler cimport *
 from ProgressLogger cimport *
 
-cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimator.h>" namespace "OpenMS":
     
     cdef cppclass SignalToNoiseEstimator[Container](DefaultParamHandler,ProgressLogger):
         # wrap-ignore

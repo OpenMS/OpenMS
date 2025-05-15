@@ -29,7 +29,6 @@ FeatureFinderCentroided
 FeatureFinderIdentification
 FeatureFinderMetabo
 FeatureFinderMetaboIdent
-FeatureFinderMRM
 FeatureFinderMultiplex
 FeatureLinkerLabeled
 FeatureLinkerUnlabeled
@@ -59,6 +58,7 @@ IDRTCalibration
 IDScoreSwitcher
 IDSplitter
 InternalCalibration
+IonMobilityBinning
 IsobaricAnalyzer
 JSONExporter
 LuciphorAdapter
@@ -69,7 +69,6 @@ MapNormalizer
 MapRTTransformer
 MapStatistics
 MaRaClusterAdapter
-MascotAdapter
 MascotAdapterOnline
 MassCalculator
 MassTraceExtractor
@@ -106,7 +105,6 @@ PercolatorAdapter
 PhosphoScoring
 ProteinInference
 ProteinQuantifier
-ProteinResolver
 ProteomicsLFQ
 PSMFeatureExtractor
 QCCalculator
@@ -128,12 +126,8 @@ SimpleSearchEngine
 SiriusExport
 SpecLibCreator
 SpecLibSearcher
-SpectraFilterBernNorm
 SpectraFilterNLargest
 SpectraFilterNormalizer
-SpectraFilterParentPeakMower
-SpectraFilterScaler
-SpectraFilterSqrtMower
 SpectraFilterThresholdMower
 SpectraFilterWindowMower
 SpectraMerger
@@ -143,7 +137,6 @@ TICCalculator
 TextExporter
 TriqlerConverter
 XFDR
-XTandemAdapter
 XMLValidator
 )
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,20 +9,17 @@
 ///////////////////////////
 
 // This one is going to be tested.
-#include <OpenMS/MATH/MISC/BilinearInterpolation.h>
+#include <OpenMS/ML/INTERPOLATION/BilinearInterpolation.h>
 
 ///////////////////////////
 
 // More headers
 
-#include <iostream>
-#include <iterator>
-#include <vector>
 #include <cstdlib>
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 ///////////////////////////
 
@@ -157,6 +154,7 @@ START_SECTION(template< typename SourceContainer > void setData( SourceContainer
 {
   BIFD bifd;
 	bifd.getData().getEigenMatrix().resize(2,3);
+        bifd.getData().getEigenMatrix().fill(0);
 	bifd.getData()(1,2) = 10012;
 	bifd.getData()(0,0) = 10000;
 	bifd.getData()(1,0) = 10010;
@@ -165,7 +163,6 @@ START_SECTION(template< typename SourceContainer > void setData( SourceContainer
 
 	BIFD bifd2;
 	bifd2.setData(bifd_cr.getData());
-
 	TEST_EQUAL(bifd.getData(),bifd2.getData());
 
 	BIFD bifd3;

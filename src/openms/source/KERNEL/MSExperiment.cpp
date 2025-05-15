@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -6,26 +6,27 @@
 // $Authors: Marc Sturm, Tom Waschischeck $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/config.h> // for OPENMS_ASSERTIONS
+
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
 #include <limits>
+#include <unordered_set>
 
 namespace OpenMS
 {
   /// Constructor
   MSExperiment::MSExperiment() :
     RangeManagerContainerType(),
-    ExperimentalSettings(),
-    ms_levels_(),
-    total_size_(0)
+    ExperimentalSettings()
   {}
 
   /// Copy constructor
@@ -41,8 +42,6 @@ namespace OpenMS
     RangeManagerContainerType::operator=(source);
     ExperimentalSettings::operator=(source);
 
-    ms_levels_ = source.ms_levels_;
-    total_size_ = source.total_size_;
     chromatograms_ = source.chromatograms_;
     spectra_ = source.spectra_;
 
@@ -226,19 +225,25 @@ namespace OpenMS
   }
 
   /**
-  @brief Updates the m/z, intensity, retention time and MS level ranges of all spectra with a certain ms level
+  @brief Updates the m/z, intensity, retention time, ion mobility and MS level ranges of all spectra with a certain ms level
 
-  @param ms_level MS level to consider for m/z range, RT range and intensity range (all MS levels if negative)
+  @param ms_level MS level to consider for m/z range, RT range, intensity range and ion mobility (if negative, all MS levels are used)
   */
   void MSExperiment::updateRanges(Int ms_level)
   {
-    // clear MS levels
-    ms_levels_.clear();
+    #ifdef OPENMS_ASSERTIONS
+      double rt_min = RangeRT::isEmpty() ? 0 : getMinRT();
+      double rt_max = RangeRT::isEmpty() ? 0 : getMaxRT();
+      double mz_min = RangeMZ::isEmpty() ? 0 : getMinMZ();
+      double mz_max = RangeMZ::isEmpty() ? 0 : getMaxMZ();
+      double int_min = RangeIntensity::isEmpty() ? 0 : getMinIntensity();
+      double int_max = RangeIntensity::isEmpty() ? 0 : getMaxIntensity();
+      double im_min = RangeMobility::isEmpty() ? 0 : getMinMobility();
+      double im_max = RangeMobility::isEmpty() ? 0 : getMaxMobility();
+    #endif
 
     // reset mz/rt/int range
     this->clearRanges();
-    // reset point count
-    total_size_ = 0;
 
     // empty
     if (spectra_.empty() && chromatograms_.empty())
@@ -251,20 +256,11 @@ namespace OpenMS
     {
       if (ms_level < Int(0) || Int(it->getMSLevel()) == ms_level)
       {
-        //ms levels
-        if (std::find(ms_levels_.begin(), ms_levels_.end(), it->getMSLevel()) == ms_levels_.end())
-        {
-          ms_levels_.push_back(it->getMSLevel());
-        }
-
-        // calculate size
-        total_size_ += it->size();
-
         // ranges
         this->extendRT(it->getRT()); // RT
-        this->extendMobility(it->getDriftTime()); // IM
+        // m/z, intensity and ion mobility from spectrum's range
         it->updateRanges();
-        this->extend(*it);           // m/z and intensity from spectrum's range
+        this->extend(*it);
       }
       // for MS level = 1 we extend the range for all the MS2 precursors
       if (ms_level == 1 && it->getMSLevel() == 2)
@@ -275,9 +271,7 @@ namespace OpenMS
           this->extendMZ(it->getPrecursors()[0].getMZ());
         }
       }
-
     }
-    std::sort(ms_levels_.begin(), ms_levels_.end());
 
     if (this->chromatograms_.empty())
     {
@@ -290,31 +284,54 @@ namespace OpenMS
       // update range of EACH chrom, if we need them individually later
       cp.updateRanges();
 
-      // ignore TICs and ECs for the whole experiments range (as these are usually positioned at 0 and therefor lead to a large white margin in plots if included)
-      if (cp.getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM ||
-        cp.getChromatogramType() == ChromatogramSettings::EMISSION_CHROMATOGRAM)
-      {
-        continue;
-      }
-
-      total_size_ += cp.size();
-
       // ranges
       this->extendMZ(cp.getMZ());// MZ
       this->extend(cp);// RT and intensity from chroms's range
     }
+
+    #ifdef OPENMS_ASSERTIONS
+      // check if updateRanges() was necessary and find places where it was not
+      double im_min_new = RangeMobility::isEmpty() ? 0 : getMinMobility();
+      double im_max_new = RangeMobility::isEmpty() ? 0 : getMaxMobility();
+      double int_min_new =  RangeIntensity::isEmpty() ? 0 : getMinIntensity();
+      double int_max_new =  RangeIntensity::isEmpty() ? 0 : getMaxIntensity();
+      double rt_min_new = RangeRT::isEmpty() ? 0 : getMinRT();
+      double rt_max_new = RangeRT::isEmpty() ? 0 : getMaxRT();
+      double mz_min_new = RangeMZ::isEmpty() ? 0 : getMinMZ();
+      double mz_max_new = RangeMZ::isEmpty() ? 0 : getMaxMZ();
+
+      if (im_min_new == im_min && im_max_new == im_max
+        && int_min_new == int_min && int_max_new == int_max
+        && mz_min_new == mz_min && mz_max_new == mz_max
+        && rt_min_new == rt_min && rt_max_new == rt_max
+      )
+      {
+        OPENMS_LOG_WARN << "Update ranges was called but ranges were already up-to-date" << std::endl;
+      }
+    #endif
   }
 
   /// returns the total number of peaks
   UInt64 MSExperiment::getSize() const
-  {
-    return total_size_;
+  {    
+    Size total_size{};
+    for (const auto& spec : spectra_) total_size += spec.size(); // sum up all peaks in all spectra
+    for (const auto& chrom : chromatograms_) total_size += chrom.size(); // sum up all peaks in all chromatograms
+    return total_size;
   }
 
-  /// returns an array of MS levels
-  const std::vector<UInt>& MSExperiment::getMSLevels() const
+  /// returns an array of MS levels (calculated on demand)
+  std::vector<UInt> MSExperiment::getMSLevels() const
   {
-    return ms_levels_;
+    std::unordered_set<UInt> level_set;
+    for (const auto& spec : spectra_)
+    {
+      level_set.insert(spec.getMSLevel());
+    }
+    
+    std::vector<UInt> ms_levels(level_set.begin(), level_set.end());
+    std::sort(ms_levels.begin(), ms_levels.end());
+    return ms_levels;
   }
 
   const String sqMassRunID = "sqMassRunID";
@@ -547,6 +564,72 @@ namespace OpenMS
     return pc_spec - spectra_.cbegin(); 
   }
 
+  MSExperiment::ConstIterator MSExperiment::getFirstProductSpectrum(ConstIterator parent_iterator) const
+  {
+    // if we are already at or after the end -> there can be no product after it
+    if (parent_iterator == spectra_.end() 
+      || parent_iterator == spectra_.end() - 1)
+    {
+      return spectra_.end();
+    }
+
+    UInt parent_ms_level = parent_iterator->getMSLevel();
+    const auto& parent_native_id = parent_iterator->getNativeID();
+
+    auto it = parent_iterator; // such that we can reiterate later
+    it++; // start at the next spectrum
+
+    while (it != spectra_.end())
+    { 
+      if (it->getMSLevel() < parent_ms_level) return spectra_.end();
+
+      if ((it->getMSLevel() - parent_ms_level) == 1) 
+      { // it is a potential product spectrum (one level higher than parent)
+
+        // does it have precursors referencing the parents?
+        if (it->getPrecursors().empty()) 
+        {
+          ++it; // no precursors, so we can't check if it is a product of the parent
+          continue;
+        }      
+
+        // warn if there are multiple precursors (should not happen)
+        if (it->getPrecursors().size() > 1)
+        {
+            OPENMS_LOG_WARN << "Spectrum at index " << std::distance(spectra_.begin(), it)
+                      << " has multiple precursors. Only the first precursor will be considered."
+                      << std::endl;
+        }
+
+        // check if it has the parent a precursor
+        const auto precursor = it->getPrecursors()[0];
+        String ref = precursor.getMetaValue("spectrum_ref", "");  
+        if (!ref.empty() && ref == parent_native_id)
+        {
+          return it;
+        }     
+      }
+      ++it; 
+    } 
+
+    return spectra_.end();
+  }
+
+  // same as above but easier to wrap in python
+  int MSExperiment::getFirstProductSpectrum(int zero_based_index) const
+  {
+    if (zero_based_index < 0 
+      || zero_based_index >= static_cast<int>(spectra_.size()))
+    {
+      return -1;
+    }
+    auto spec = spectra_.cbegin();
+    spec += zero_based_index;
+    auto pc_spec = getFirstProductSpectrum(spec);
+    if (pc_spec == spectra_.cend()) return -1;
+    return pc_spec - spectra_.cbegin();
+  }
+
   /// Swaps the content of this map with the content of @p from
   void MSExperiment::swap(MSExperiment & from)
   {
@@ -568,9 +651,6 @@ namespace OpenMS
     //swap peaks
     spectra_.swap(from.getSpectra());
 
-    //swap remaining members
-    ms_levels_.swap(from.ms_levels_);
-    std::swap(total_size_, from.total_size_);
   }
 
   /// sets the spectrum list
@@ -760,8 +840,6 @@ namespace OpenMS
       clearRanges();
       this->ExperimentalSettings::operator=(ExperimentalSettings());             // no "clear" method
       chromatograms_.clear();
-      ms_levels_.clear();
-      total_size_ = 0;
     }
   }
 

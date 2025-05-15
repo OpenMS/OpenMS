@@ -6,7 +6,6 @@ set(sources_list
 MetaboTargetedAssay.cpp
 MetaboTargetedTargetDecoy.cpp
 MRMMapping.cpp
-PSProteinInference.cpp
 IncludeExcludeTarget.cpp
 TargetedExperiment.cpp
 TargetedExperimentHelper.cpp

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -13,8 +13,8 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/Qvalue.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/TopDownIsobaricQuantification.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+#include <OpenMS/PROCESSING/SPECTRAMERGING/SpectraMerger.h>
+#include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 

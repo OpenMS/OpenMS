@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,8 +11,8 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
+#include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 
 #include <QtGui/QImage>
 

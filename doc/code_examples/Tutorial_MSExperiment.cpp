@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 
@@ -56,7 +56,7 @@ int main()
   exp.updateRanges();
   std::cout << "Data ranges:\n";
   exp.printRange(std::cout);
-  std::cout << "\nGet maximum intensity on its own: " << exp.getMinMobility() << '\n';
+  std::cout << "\nGet maximum intensity on its own: " << exp.getMaxIntensity() << '\n';
   exp.getMinRT();
 
   // Store the spectra to a mzML file with:
