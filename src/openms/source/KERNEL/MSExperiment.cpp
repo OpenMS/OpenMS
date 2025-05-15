@@ -68,10 +68,7 @@ namespace OpenMS
   {
     return ExperimentalSettings::operator==(rhs) &&
       chromatograms_ == rhs.chromatograms_ &&
-      spectra_ == rhs.spectra_ &&
-      spectrum_ranges_ == rhs.spectrum_ranges_ &&
-      chromatogram_ranges_ == rhs.chromatogram_ranges_ &&
-      combined_ranges_ == rhs.combined_ranges_;
+      spectra_ == rhs.spectra_;
   }
 
   /// Equality operator

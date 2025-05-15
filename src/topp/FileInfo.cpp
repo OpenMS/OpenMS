@@ -219,7 +219,7 @@ protected:
   void writeRangesHumanReadable_(const MSExperiment& exp, ostream &os)
   {
     // 1. Display Combined Ranges (same format as before for backward compatibility)
-    os << "Combined Ranges:" << '\n';
+    os << "Combined Ranges (spectra + chromatograms):" << '\n';
     // Use the combinedRanges() accessor
     if (exp.combinedRanges().RangeRT::isEmpty())
     {

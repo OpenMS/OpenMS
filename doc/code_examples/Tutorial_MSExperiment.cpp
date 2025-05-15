@@ -52,7 +52,8 @@ int main()
     }
   }
 
-  // update the data ranges for all dimensions (RT, m/z, int, IM) and print them:
+  // updateRanges provides a fast way to update the ranges of all spectra and chromatograms in the experiment.
+  // Once updated, the data ranges for all dimensions (RT, m/z, int, IM) can be printed.
   exp.updateRanges();
   std::cout << "Data ranges:\n";
   exp.spectrumRanges().printRange(std::cout);
