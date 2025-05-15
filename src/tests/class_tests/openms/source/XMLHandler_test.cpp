@@ -132,7 +132,7 @@ START_SECTION(appendASCII(const XMLCh * chars, const XMLSize_t length, String & 
     std::cout << o7_str.size() << std::endl;
 
 END_SECTION
-
+XMLCh* nullPointer = nullptr;
 START_SECTION(appendASCII(const XMLCh * chars, const XMLSize_t length, String & result))
     int o_length = StringManager::strLength(ascii);
     TEST_EQUAL(o_length, a_length);
@@ -140,6 +140,7 @@ START_SECTION(appendASCII(const XMLCh * chars, const XMLSize_t length, String & 
     TEST_EQUAL(o_length, e_length);
     o_length = StringManager::strLength(upperBoundary);
     TEST_EQUAL(o_length, u_length);
+    o_length = StringManager::strLength(nullPointer);
 END_SECTION
 
 END_TEST

@@ -449,9 +449,9 @@ namespace OpenMS::Internal
           uint16_t zero_mask = simde_mm_movemask_epi8(cmp_zero);
   
           if (zero_mask != 0x0000) {
-              int byte_pos_zero = __builtin_ctz(zero_mask);
-              int char_pos_zero = byte_pos_zero / 2;
-              return processed_chars + static_cast<>(char_pos_zero);
+              size_t byte_pos_zero = __builtin_ctz(zero_mask);
+              size_t char_pos_zero = byte_pos_zero / 2;
+              return processed_chars + char_pos_zero;
           }
   
           // 8 Zeichen (16 Bytes) wurden verarbeitet, keine Null gefunden
