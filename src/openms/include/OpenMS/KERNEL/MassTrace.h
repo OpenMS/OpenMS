@@ -304,12 +304,12 @@ public:
     ///@}
 
     /// Average FWHM of m/z peaks
-    /// 0.0 denotes no fwhm meta data computed
-    double fwhm_mz_avg = 0.0;
+    /// 0 denotes no fwhm meta data computed
+    double fwhm_mz_avg = 0;
 
     /// Average FWHM of ion mobility peaks
-    /// 0.0 denotes no fwhm meta data computed
-    double fwhm_im_avg = 0.0;
+    /// 0 denotes no fwhm meta data computed
+    double fwhm_im_avg = 0;
 
 private:
 
@@ -328,7 +328,7 @@ private:
     double centroid_mz_ = 0.0;
 
     /// centroid ion mobility peak
-    /// 0 denotes no im data in the data
+    /// 0.0 denotes no im data in the data
     double centroid_im_ = 0.0;
 
     /// intensity-weighted STD
