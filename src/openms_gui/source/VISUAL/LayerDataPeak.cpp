@@ -104,25 +104,42 @@ namespace OpenMS
       }
     }
 
-    // write to spectra/chrom
     projection_mz.resize(mzint.size() + 2);
+    // write to spectra/chrom
+    try
+    { // may throw if m/z is not in area
     projection_mz[0].setMZ(area.getMinMZ());
     projection_mz[0].setIntensity(0.0);
     projection_mz.back().setMZ(area.getMaxMZ());
     projection_mz.back().setIntensity(0.0);
+    }
+    catch (...) { }
+
 
     projection_im.resize(mobility.size() + 2);
+    try
+    { // may throw if IM is not in area
     projection_im[0].setMobility(area.getMinMobility());
     projection_im[0].setIntensity(0.0);
     projection_im.back().setMobility(area.getMaxMobility());
     projection_im.back().setIntensity(0.0);
-    
+    }
+    catch (...)
+    {
+    }
 
     projection_rt.resize(rt.size() + 2);
+    try
+    { // may throw if RT is not in area
     projection_rt[0].setRT(area.getMinRT());
     projection_rt[0].setIntensity(0.0);
     projection_rt.back().setRT(area.getMaxRT());
     projection_rt.back().setIntensity(0.0);
+    }
+    catch (...)
+    {
+    }
+
 
     Size i = 1;
     auto intit = mzint.begin();
