@@ -150,6 +150,16 @@ namespace OpenMS
 
 
 
+  /**
+    @brief Dimension implementation for retention time values.
+    
+    This class implements the DimBase interface for the retention time dimension.
+    It provides methods to access RT values from various data structures and
+    convert between RT values and generic dimension values.
+
+    @see DimBase
+    @ingroup Kernel
+  */
   class OPENMS_DLLAPI DimRT final : public DimBase
   {
   public:
@@ -260,6 +270,16 @@ namespace OpenMS
     }
   };
 
+  /**
+    @brief Dimension implementation for m/z values.
+    
+    This class implements the DimBase interface for the mass-to-charge ratio dimension.
+    It provides methods to access m/z values from various data structures and
+    convert between m/z values and generic dimension values.
+    
+    @see DimBase
+    @ingroup Kernel
+  */
   class OPENMS_DLLAPI DimMZ final : public DimBase
   {
   public:
@@ -371,6 +391,16 @@ namespace OpenMS
     }
   };
 
+  /**
+    @brief Dimension implementation for intensity values.
+    
+    This class implements the DimBase interface for the intensity dimension.
+    It provides methods to access intensity values from various data structures and
+    convert between intensity values and generic dimension values.
+    
+    @see DimBase
+    @ingroup Kernel
+  */
   class OPENMS_DLLAPI DimINT final : public DimBase
   {
   public:
@@ -488,6 +518,19 @@ namespace OpenMS
     }
   };
 
+  /**
+    @brief Dimension implementation for ion mobility values.
+    
+    This class implements the DimBase interface for the ion mobility dimension.
+    It provides methods to access ion mobility values from various data structures and
+    convert between ion mobility values and generic dimension values.
+    
+    Ion mobility dimensions support different units such as FAIMS compensation voltage,
+    linear ion mobility spectrometry, and trapped ion mobility spectrometry.
+    
+    @see DimBase
+    @ingroup Kernel
+  */
   class OPENMS_DLLAPI DimIM final : public DimBase
   {
   public:

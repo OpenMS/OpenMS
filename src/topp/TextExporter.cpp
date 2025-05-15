@@ -666,7 +666,7 @@ protected:
         //-------------------------------------------------------------
 
         FeatureMap feature_map;
-        FileHandler().loadFeatures(in, feature_map, {FileTypes::FEATUREXML});
+        FileHandler().loadFeatures(in, feature_map, {FileTypes::FEATUREXML}, log_type_);
 
         // extract common id and hit meta values
         StringList peptide_id_meta_keys;
@@ -691,6 +691,7 @@ protected:
                         peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT_first_dim"), peptide_id_meta_keys.end());
                         peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "first_dim_rt"), peptide_id_meta_keys.end());
                         peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_PT"), peptide_id_meta_keys.end());
+                        peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), Constants::UserParam::SIGNIFICANCE_THRESHOLD), peptide_id_meta_keys.end());
                 }
                 if (add_hit_metavalues >= 0)
                 {
@@ -827,7 +828,7 @@ protected:
 
         ConsensusMap consensus_map;
 
-        FileHandler().loadConsensusFeatures(in, consensus_map, {FileTypes::CONSENSUSXML});
+        FileHandler().loadConsensusFeatures(in, consensus_map, {FileTypes::CONSENSUSXML}, log_type_);
 
         // for optional export of ConsensusFeature meta values, collect all possible meta value keys
         std::set<String> meta_value_keys;
@@ -861,12 +862,13 @@ protected:
           }
           if (add_id_metavalues >= 0)
           {
-            peptide_id_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideIdentification>, StringList>(pids.begin(), pids.end(), add_id_metavalues);
+              peptide_id_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideIdentification>, StringList>(pids.begin(), pids.end(), add_id_metavalues);
               // currently there is some hardcoded logic to create extra columns for these meta values so remove them to prevent duplication
               peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT"), peptide_id_meta_keys.end());
               peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT_first_dim"), peptide_id_meta_keys.end());
               peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "first_dim_rt"), peptide_id_meta_keys.end());
               peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_PT"), peptide_id_meta_keys.end());
+              peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), Constants::UserParam::SIGNIFICANCE_THRESHOLD), peptide_id_meta_keys.end());
           }
           if (add_hit_metavalues >= 0)
           {
@@ -1333,7 +1335,7 @@ protected:
       {
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
-        FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
+        FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML}, log_type_);
         StringList peptide_id_meta_keys;
         StringList peptide_hit_meta_keys;
         StringList protein_hit_meta_keys;
@@ -1346,6 +1348,7 @@ protected:
           peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT_first_dim"), peptide_id_meta_keys.end());
           peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "first_dim_rt"), peptide_id_meta_keys.end());
           peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_PT"), peptide_id_meta_keys.end());
+          peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), Constants::UserParam::SIGNIFICANCE_THRESHOLD), peptide_id_meta_keys.end());
         }
 
         if (add_hit_metavalues >= 0)
@@ -1433,7 +1436,7 @@ protected:
       else if (in_type == FileTypes::MZML)
       {
         PeakMap exp;
-        FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, ProgressLogger::NONE, false, false);
+        FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_, false, false);
 
         if (exp.getSpectra().empty() && exp.getChromatograms().empty())
         {

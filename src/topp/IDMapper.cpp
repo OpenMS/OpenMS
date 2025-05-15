@@ -193,7 +193,7 @@ protected:
       PeakMap exp;
       if (!spectra.empty())
       {
-        FileHandler().loadExperiment(spectra, exp, {FileTypes::MZML});
+        FileHandler().loadExperiment(spectra, exp, {FileTypes::MZML}, log_type_);
       }
 
       bool measure_from_subelements = getFlag_("consensus:use_subelements");
@@ -224,7 +224,7 @@ protected:
 
       if (!spectra.empty())
       {
-        FileHandler().loadExperiment(spectra, exp, {FileTypes::MZML});
+        FileHandler().loadExperiment(spectra, exp, {FileTypes::MZML}, log_type_);
       }
 
       mapper.annotate(map, peptide_ids, protein_ids, (getStringOption_("feature:use_centroid_rt") == "true"), (getStringOption_("feature:use_centroid_mz") == "true"), exp);

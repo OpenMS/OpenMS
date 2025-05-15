@@ -760,11 +760,18 @@ protected:
     // if "reindex" parameter is set to true will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
-	// Parse ion mobility information if present
-	bool all_ids_have_im = SpectrumMetaDataLookup::addMissingIMToPeptideIDs(peptide_identifications, exp);
-	if (all_ids_have_im) {
-		protein_identifications[0].setMetaValue(Constants::UserParam::IM, exp.getSpectrum(0).getDriftTimeUnitAsString());
-	}
+    // Parse ion mobility information if present
+    bool all_ids_have_im = SpectrumMetaDataLookup::addMissingIMToPeptideIDs(peptide_identifications, exp);
+    if (all_ids_have_im) 
+    {
+      protein_identifications[0].setMetaValue(Constants::UserParam::IM, exp.getSpectrum(0).getDriftTimeUnitAsString());
+    }
+
+    // remove base_name meta value from peptide identifications
+    for (auto& peptide_identification : peptide_identifications)
+    {      
+      peptide_identification.removeMetaValue("base_name");
+    }
 
     // add percolator features
     StringList feature_set;
