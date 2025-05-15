@@ -62,11 +62,13 @@ public:
     typedef PeakType::CoordinateType CoordinateType;
     /// Intensity type of peaks
     typedef PeakType::IntensityType IntensityType;
-    /// Combined RangeManager type to store the overall range of all spectra and chromatograms
+    /// Combined RangeManager type to store the overall range of all spectra and chromatograms (for backward compatibility)
     typedef RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility> RangeManagerType;
-    /// Spectrum range manager type
+    
+    /// Spectrum range manager type for tracking ranges with MS level separation
     typedef SpectrumRangeManager SpectrumRangeManagerType;
-    /// Chromatogram range manager type
+    
+    /// Chromatogram range manager type for tracking chromatogram-specific ranges
     typedef ChromatogramRangeManager ChromatogramRangeManagerType;
     /// Spectrum Type
     typedef MSSpectrum SpectrumType;
@@ -1072,51 +1074,91 @@ std::vector<MSChromatogram> extractXICs(
     ///@{
     /// Delegate methods for backward compatibility
     
-    /// Clear all ranges
-    void clearRanges() 
-    { 
-      combined_ranges_.clearRanges(); 
+    /**
+     * @brief Clear all ranges in all range managers
+     *
+     * This clears the ranges in the combined range manager, the spectrum range manager,
+     * and the chromatogram range manager.
+     */
+    void clearRanges()
+    {
+      combined_ranges_.clearRanges();
       spectrum_ranges_.clearRanges();
       chromatogram_ranges_.clearRanges();
     }
    
-    /// Get the minimum RT value of chromatogram and spectra ranges
+    /// Get the minimum RT value from the combined ranges (includes both chromatogram and spectra ranges)
     double getMinRT() const { return combined_ranges_.getMinRT(); }
     
-    /// Get the maximum RT value of chromatogram and spectra ranges
+    /// Get the maximum RT value from the combined ranges (includes both chromatogram and spectra ranges)
     double getMaxRT() const { return combined_ranges_.getMaxRT(); }
     
-    /// Get the minimum m/z value of chromatogram and spectra ranges
+    /// Get the minimum m/z value from the combined ranges (includes both chromatogram and spectra ranges)
     double getMinMZ() const { return combined_ranges_.getMinMZ(); }
     
-    /// Get the maximum m/z value of chromatogram and spectra ranges
+    /// Get the maximum m/z value from the combined ranges (includes both chromatogram and spectra ranges)
     double getMaxMZ() const { return combined_ranges_.getMaxMZ(); }
     
-    /// Get the minimum intensity value of chromatogram and spectra ranges
+    /// Get the minimum intensity value from the combined ranges (includes both chromatogram and spectra ranges)
     double getMinIntensity() const { return combined_ranges_.getMinIntensity(); }
     
-    /// Get the maximum intensity value of chromatogram and spectra ranges
+    /// Get the maximum intensity value from the combined ranges (includes both chromatogram and spectra ranges)
     double getMaxIntensity() const { return combined_ranges_.getMaxIntensity(); }
     
-    /// Get the minimum mobility value of chromatogram and spectra ranges
+    /// Get the minimum mobility value from the combined ranges (includes both chromatogram and spectra ranges)
     double getMinMobility() const { return combined_ranges_.getMinMobility(); }
     
-    /// Get the maximum mobility value of chromatogram and spectra ranges
+    /// Get the maximum mobility value from the combined ranges (includes both chromatogram and spectra ranges)
     double getMaxMobility() const { return combined_ranges_.getMaxMobility(); }
     
-    /// Extend the range to include the given RT value
+    /**
+     * @brief Extend the combined range to include the given RT value
+     *
+     * This method only affects the combined range manager, not the spectrum or chromatogram range managers.
+     *
+     * @param rt The RT value to extend with
+     */
     void extendRT(double rt) { combined_ranges_.extendRT(rt); }
     
-    /// Extend the range to include the given MZ value
+    /**
+     * @brief Extend the combined range to include the given MZ value
+     *
+     * This method only affects the combined range manager, not the spectrum or chromatogram range managers.
+     *
+     * @param mz The m/z value to extend with
+     */
     void extendMZ(double mz) { combined_ranges_.extendMZ(mz); }
     
-    /// Extend the range to include the given intensity value
+    /**
+     * @brief Extend the combined range to include the given intensity value
+     *
+     * This method only affects the combined range manager, not the spectrum or chromatogram range managers.
+     *
+     * @param intensity The intensity value to extend with
+     */
     void extendIntensity(double intensity) { combined_ranges_.extendIntensity(intensity); }
     
-    /// Extend the range to include the given mobility value
+    /**
+     * @brief Extend the combined range to include the given mobility value
+     *
+     * This method only affects the combined range manager, not the spectrum or chromatogram range managers.
+     *
+     * @param mobility The mobility value to extend with
+     */
     void extendMobility(double mobility) { combined_ranges_.extendMobility(mobility); }
     
-    /// Extend the range to include the given range
+    /**
+     * @brief Extend the combined ranges to include the given range
+     *
+     * This method extends only the combined range manager with the given range.
+     * It does not affect the spectrum or chromatogram range managers.
+     *
+     * @tparam RangeBasesOther Template parameter pack for the other range manager
+     * @param rhs The range manager to extend from
+     *
+     * @note If you need to extend spectrum or chromatogram ranges specifically,
+     * use the spectrumRanges() or chromatogramRanges() accessors directly.
+     */
     template<typename... RangeBasesOther>
     void extend(const RangeManager<RangeBasesOther...>& rhs)
     {
@@ -1126,6 +1168,12 @@ std::vector<MSChromatogram> extractXICs(
     /**
       @brief Updates the m/z, intensity, mobility, and retention time ranges of all spectra and chromatograms
       
+      This method updates all three range managers:
+      - The spectrum range manager (for spectra ranges with MS level separation)
+      - The chromatogram range manager (for chromatogram ranges)
+      - The combined range manager (for overall ranges across both spectra and chromatograms)
+      
+      Call this method after modifying spectra or chromatograms to ensure that all range information is up-to-date.
     */
     void updateRanges();
 
@@ -1337,30 +1385,78 @@ std::vector<MSChromatogram> extractXICs(
     std::vector<MSChromatogram > chromatograms_;
     /// spectra
     std::vector<SpectrumType> spectra_;
-    /// Spectrum range manager (for m/z, intensity, and ion mobility ranges)
+    /// Spectrum range manager for tracking m/z, intensity, RT, and ion mobility ranges of spectra with MS level separation
     SpectrumRangeManagerType spectrum_ranges_;
-    /// Chromatogram range manager (for RT and intensity ranges)
+    
+    /// Chromatogram range manager for tracking RT, intensity, and m/z ranges of chromatograms
     ChromatogramRangeManagerType chromatogram_ranges_;
-    /// Combined range manager (for backward compatibility - contains ranges for all dimensions)
+    
+    /// Combined range manager that provides overall ranges across both spectra and chromatograms (maintained for backward compatibility)
     RangeManagerType combined_ranges_;
 
   public:
-    /// Returns a reference to the spectrum range manager
+    /**
+     * @brief Returns a reference to the spectrum range manager
+     *
+     * The spectrum range manager provides access to m/z, intensity, retention time, and ion mobility
+     * ranges for spectra, with separate tracking for different MS levels.
+     *
+     * @return Reference to the spectrum range manager
+     * @see SpectrumRangeManager
+     */
     SpectrumRangeManagerType& spectrumRanges() { return spectrum_ranges_; }
     
-    /// Returns a const reference to the spectrum range manager
+    /**
+     * @brief Returns a const reference to the spectrum range manager
+     *
+     * The spectrum range manager provides access to m/z, intensity, retention time, and ion mobility
+     * ranges for spectra, with separate tracking for different MS levels.
+     *
+     * @return Const reference to the spectrum range manager
+     * @see SpectrumRangeManager
+     */
     const SpectrumRangeManagerType& spectrumRanges() const { return spectrum_ranges_; }
 
-    /// Returns a reference to the chromatogram range manager
+    /**
+     * @brief Returns a reference to the chromatogram range manager
+     *
+     * The chromatogram range manager provides access to retention time, m/z, and intensity
+     * ranges for chromatograms.
+     *
+     * @return Reference to the chromatogram range manager
+     * @see ChromatogramRangeManager
+     */
     ChromatogramRangeManagerType& chromatogramRanges() { return chromatogram_ranges_; }
     
-    /// Returns a const reference to the chromatogram range manager
+    /**
+     * @brief Returns a const reference to the chromatogram range manager
+     *
+     * The chromatogram range manager provides access to retention time, m/z, and intensity
+     * ranges for chromatograms.
+     *
+     * @return Const reference to the chromatogram range manager
+     * @see ChromatogramRangeManager
+     */
     const ChromatogramRangeManagerType& chromatogramRanges() const { return chromatogram_ranges_; }
     
-    /// Returns a reference to the combined range manager (for backward compatibility)
+    /**
+     * @brief Returns a reference to the combined range manager
+     *
+     * The combined range manager provides access to the overall ranges across both spectra and chromatograms.
+     * This is maintained for backward compatibility with code that expects a single range manager.
+     *
+     * @return Reference to the combined range manager
+     */
     RangeManagerType& combinedRanges() { return combined_ranges_; }
     
-    /// Returns a const reference to the combined range manager (for backward compatibility)
+    /**
+     * @brief Returns a const reference to the combined range manager
+     *
+     * The combined range manager provides access to the overall ranges across both spectra and chromatograms.
+     * This is maintained for backward compatibility with code that expects a single range manager.
+     *
+     * @return Const reference to the combined range manager
+     */
     const RangeManagerType& combinedRanges() const { return combined_ranges_; }
 
   private:

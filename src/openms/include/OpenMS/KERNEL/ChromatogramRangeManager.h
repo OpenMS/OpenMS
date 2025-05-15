@@ -15,8 +15,16 @@ namespace OpenMS
   /**
     @brief Range manager for chromatograms
     
-    This class manages retention time, mz, and intensity ranges for multiple chromatograms.
+    This class manages retention time, m/z, and intensity ranges for multiple chromatograms.
+    It extends the basic RangeManager to provide specialized functionality for chromatogram data.
     
+    The ChromatogramRangeManager is used in conjunction with the SpectrumRangeManager in MSExperiment
+    to provide separate range tracking for chromatograms and spectra. This separation allows for
+    more efficient and targeted range operations on specific data types.
+    
+    @see RangeManager
+    @see SpectrumRangeManager
+    @see MSExperiment
     @ingroup Kernel
   */
   class OPENMS_DLLAPI ChromatogramRangeManager : public RangeManager<RangeRT, RangeIntensity, RangeMZ>

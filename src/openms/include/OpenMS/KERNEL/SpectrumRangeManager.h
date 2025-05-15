@@ -26,11 +26,18 @@ namespace OpenMS
     - retention time (RT)
     - ion mobility
     
-    A global ranges is tracked for all MS levels, and additional ranges are maintained for each specific MS level.
+    A global range is tracked for all MS levels, and additional ranges are maintained for each specific MS level.
+    This allows for efficient querying of ranges for specific MS levels, which is useful for visualization,
+    filtering, and processing operations that need to work with specific MS levels.
     
+    The class inherits from RangeManager and adds MS level-specific functionality. The base RangeManager
+    functionality is used for the global ranges, while a map of MS levels to RangeManagers is used for
+    the MS level-specific ranges.
 
     @see RangeManager
     @see MSSpectrum
+    @see ChromatogramRangeManager
+    @see MSExperiment
     @ingroup Kernel
   */
   class OPENMS_DLLAPI SpectrumRangeManager : public RangeManager<RangeMZ, RangeIntensity, RangeMobility, RangeRT>
@@ -95,7 +102,8 @@ namespace OpenMS
       @brief Gets the ranges for a specific MS level
       
       @param ms_level The MS level for which to retrieve the ranges
-      @return The ranges for the specified MS level (returns the global ranges if no specific ranges exist for the requested MS level)
+      @return The ranges for the specified MS level
+      @throw Exception::InvalidValue if no ranges exist for the specified MS level
     */
     const BaseType& byMSLevel(UInt ms_level = 0) const
     {
@@ -144,16 +152,16 @@ namespace OpenMS
     }
 
     /**
-      @brief Extends the RT range with an MS level parameter
+      @brief Extends the m/z range with an MS level parameter
       
-      @param rt The RT value to extend with
-      @param ms_level The MS level for which to extend the RT range (0 for global range)
+      @param mz The m/z value to extend with
+      @param ms_level The MS level for which to extend the m/z range (0 for global range)
     */
-    void extendMZ(double rt, UInt ms_level)
+    void extendMZ(double mz, UInt ms_level)
     {
       if (ms_level == 0)
       {
-        BaseType::extendMZ(rt);
+        BaseType::extendMZ(mz);
       }
       else
       {
@@ -161,7 +169,7 @@ namespace OpenMS
         {
           ms_level_ranges_[ms_level] = BaseType();
         }
-        ms_level_ranges_[ms_level].extendMZ(rt);
+        ms_level_ranges_[ms_level].extendMZ(mz);
       }
     }
 
