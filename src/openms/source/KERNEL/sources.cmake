@@ -32,6 +32,8 @@ PeakIndex.cpp
 RangeManager.cpp
 RichPeak2D.cpp
 SpectrumHelper.cpp
+SpectrumRangeManager.cpp
+ChromatogramRangeManager.cpp
 )
 
 ### add path to the filenames

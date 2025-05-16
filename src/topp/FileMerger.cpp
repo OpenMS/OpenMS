@@ -121,7 +121,7 @@ protected:
     TransformationDescription trafo;
     if (first_file) // no transformation necessary
     {
-      rt_offset_ = map.getMaxRT() + rt_gap_;
+      rt_offset_ = map.getMaxRT() + rt_gap_; // overall range for all spectra
       trafo.fitModel("identity");
     }
     else // subsequent file -> apply transformation

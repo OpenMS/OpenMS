@@ -1028,10 +1028,12 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
     empty[0].getAcquisitionInfo().resize(1);
 
     std::string tmp_filename;
-    NEW_TMP_FILE(tmp_filename);
+    NEW_TMP_FILE(tmp_filename);    
+
     file.store(tmp_filename,empty);
     file.load(tmp_filename,exp);
-    TEST_EQUAL(exp==empty,true)
+
+    TEST_EQUAL(exp == empty,true)
 
     //NOTE: If it does not work, use this code to find out where the difference is
     //    TEST_EQUAL(exp.size()==empty.size(),true)
