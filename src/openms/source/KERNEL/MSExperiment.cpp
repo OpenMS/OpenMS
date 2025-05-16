@@ -828,12 +828,12 @@ namespace OpenMS
   void MSExperiment::clear(bool clear_meta_data)
   {
     spectra_.clear();
+    chromatograms_.clear();
 
     if (clear_meta_data)
     {
       clearRanges(); // reset all ranges
       this->ExperimentalSettings::operator=(ExperimentalSettings());             // no "clear" method
-      chromatograms_.clear(); // TODO: should this be cleared even if clear_meta_data is false?
     }
   }
 
