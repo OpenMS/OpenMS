@@ -1466,60 +1466,6 @@ std::vector<MSChromatogram> extractXICs(
       }
     };
 
-    /**
-     * @brief Extend the combined range to include the given RT value
-     *
-     * This method only affects the combined range manager, not the spectrum or chromatogram range managers.
-     *
-     * @param rt The RT value to extend with
-     */
-    void extendRT(double rt) { combined_ranges_.extendRT(rt); }
-    
-    /**
-     * @brief Extend the combined range to include the given MZ value
-     *
-     * This method only affects the combined range manager, not the spectrum or chromatogram range managers.
-     *
-     * @param mz The m/z value to extend with
-     */
-    void extendMZ(double mz) { combined_ranges_.extendMZ(mz); }
-    
-    /**
-     * @brief Extend the combined range to include the given intensity value
-     *
-     * This method only affects the combined range manager, not the spectrum or chromatogram range managers.
-     *
-     * @param intensity The intensity value to extend with
-     */
-    void extendIntensity(double intensity) { combined_ranges_.extendIntensity(intensity); }
-    
-    /**
-     * @brief Extend the combined range to include the given mobility value
-     *
-     * This method only affects the combined range manager, not the spectrum or chromatogram range managers.
-     *
-     * @param mobility The mobility value to extend with
-     */
-    void extendMobility(double mobility) { combined_ranges_.extendMobility(mobility); }
-    
-    /**
-     * @brief Extend the combined ranges to include the given range
-     *
-     * This method extends only the combined range manager with the given range.
-     * It does not affect the spectrum or chromatogram range managers.
-     *
-     * @tparam RangeBasesOther Template parameter pack for the other range manager
-     * @param rhs The range manager to extend from
-     *
-     * @note If you need to extend spectrum or chromatogram ranges specifically,
-     * use the spectrumRanges() or chromatogramRanges() accessors directly.
-     */
-    template<typename... RangeBasesOther>
-    void extend(const RangeManager<RangeBasesOther...>& rhs)
-    {
-      combined_ranges_.extendUnsafe(rhs);
-    }
-
 
     /*
       @brief Append a spectrum to current MSExperiment
