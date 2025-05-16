@@ -97,6 +97,10 @@ namespace OpenMS
     test_mode_(false),
     debug_level_(-1)
   {
+    
+    SysInfo::fatalCPUCapabilityCheck();
+
+
     version_ = VersionInfo::getVersion();
     verboseVersion_ = version_ + " " + VersionInfo::getTime();
 

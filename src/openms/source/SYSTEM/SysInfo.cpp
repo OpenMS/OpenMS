@@ -8,6 +8,7 @@
 
 #include <OpenMS/SYSTEM/SysInfo.h>
 
+#include <OpenMS/SYSTEM/BuildInfo.h>
 #include <array>
 #include <cstdlib>
 #include <iomanip>
@@ -29,8 +30,53 @@
   #endif
 #endif
 
+
+#ifdef OPENMS_ARCH_X64
+  #include <vectorclass/instrset.h>
+  #include <vectorclass/instrset_detect.cpp> // yes, we include the cpp file (avoid compiling it separately)
+#endif
 namespace OpenMS
 {
+
+  String SysInfo::maxSIMDCapabilityAsString()
+  {
+    #ifdef OPENMS_ARCH_X64
+        return X64_SIMDLevelNames[static_cast<int>(getHighestRuntimeCPUFeature())];
+    #else
+        // TODO for ARM and AARCH_ARM64
+        return "?";
+    #endif
+  }
+
+  #ifdef OPENMS_ARCH_X64
+  SysInfo::X64_SIMDLevel SysInfo::getHighestRuntimeCPUFeature()
+    {
+      int instr_set = instrset_detect();
+      return static_cast<X64_SIMDLevel>(instr_set);
+    }
+  #endif
+
+  void SysInfo::fatalCPUCapabilityCheck()
+  {
+    // check if CPU supports the required instruction set (used during compilation)
+#ifdef OPENMS_ARCH_X64
+    const auto max_simd_CPU = SysInfo::getHighestRuntimeCPUFeature();
+#ifdef OPENMS_WINDOWSPLATFORM
+    const auto min_simd_required = SysInfo::X64_SIMDLevel::AVX;   // this should match the compilation flags in OpenMS/cmake/compiler_flags.cmake
+#else // Linux/MacOS
+    const auto min_simd_required = SysInfo::X64_SIMDLevel::SSE3;  // this should match the compilation flags in OpenMS/cmake/compiler_flags.cmake
+#endif
+    if ((int)max_simd_CPU < (int)min_simd_required)
+    {
+      std::cerr << "Your CPU does not support the required SIMD instruction set for OpenMS (required: "
+                << SysInfo::X64_SIMDLevelNames[(int)min_simd_required] << ").\n";
+      std::cerr << "Your CPU supports at most: " << SysInfo::X64_SIMDLevelNames[(int)max_simd_CPU] << std::endl;
+      exit(1);
+    }
+#else // ARM and others
+    // TODO: check for ARM and AARCH
+#endif
+  }
 
   std::string bytesToHumanReadable(UInt64 bytes)
   {

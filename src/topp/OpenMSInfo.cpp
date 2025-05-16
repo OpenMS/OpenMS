@@ -13,6 +13,8 @@
 #include <OpenMS/FORMAT/IndentedStream.h>
 #include <OpenMS/SYSTEM/BuildInfo.h>
 #include <OpenMS/SYSTEM/File.h>
+
+#include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/config.h>
 #include <OpenMS/openms_data_path.h>
 
@@ -145,7 +147,7 @@ protected:
        << "disabled"
        << '\n';
 #endif
-    is << "SIMD extensions : " << Internal::OpenMSOSInfo::getActiveSIMDExtensions() << '\n'
+    is << "SIMD extensions : " << Internal::OpenMSOSInfo::getActiveSIMDExtensions() << " (during compile)\n"
        << "Extra CXX flags : " << OPENMS_MORECXX_FLAGS << '\n'
        << '\n';
 
@@ -155,6 +157,10 @@ protected:
        << "Name: " << info.getOSAsString() << '\n'
        << "Version: " << info.getOSVersionAsString() << '\n'
        << "Architecture: " << info.getArchAsString() << '\n'
+       << '\n';
+
+    is << green("<< CPU Information >>\n")
+       << "Max. SIMD capability: " << SysInfo::maxSIMDCapabilityAsString() << '\n'
        << '\n';
 
     return EXECUTION_OK;

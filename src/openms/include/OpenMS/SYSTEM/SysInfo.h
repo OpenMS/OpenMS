@@ -11,6 +11,12 @@
 #include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <array>
+
+#if defined(_M_X64) || defined(__x86_64__) || defined(__amd64__)
+    #define OPENMS_ARCH_X64 1
+#endif
+
 namespace OpenMS
 {
 
@@ -20,12 +26,55 @@ namespace OpenMS
 	/**
 	@brief Some functions to get system information
 
-	Supports current memory and peak memory consumption.
+	Supports current memory and peak memory consumption and CPU capabilities (for x64)
 
 	*/
 	class OPENMS_DLLAPI SysInfo
 	{
 		public:
+    
+      /// A hierachical list of instruction sets supported by x86_64 CPUs.
+      /// If an instruction is supported, all lower instructions are supported too.
+      enum class X64_SIMDLevel : int
+      {
+          SSE2           = 2,  // 2:  SSE2
+          SSE3           = 3,  // 3:  SSE3
+          SSSE3          = 4,  // 4:  SSSE3
+          SSE41          = 5,  // 5:  SSE4.1
+          SSE42          = 6,  // 6:  SSE4.2
+          AVX            = 7,  // 7:  AVX
+          AVX2           = 8,  // 8:  AVX2
+          AVX512F        = 9,  // 9:  AVX512F
+          AVX512_BW_DQ_VL= 10  // 10: AVX512BW/DQ/VL
+      };
+
+
+      static inline const std::array<std::string, 11> X64_SIMDLevelNames = {
+        "NA",
+        "NA",
+        "SSE2",          
+        "SSE3",          
+        "SSSE3",         
+        "SSE4.1",        
+        "SSE4.2",        
+        "AVX",           
+        "AVX2",          
+        "AVX512F",       
+        "AVX512BW/DQ/VL" 
+      };
+    
+      /// @brief Get the maximum CPU capabilities of the current CPU this code runs on (only valid on X64 currently; reports '?' for ARM and AARCH until implemented)
+      static String maxSIMDCapabilityAsString();
+
+      // only valid on X64 ; to not use on ARM
+      #ifdef OPENMS_ARCH_X64
+        /// report the maximum CPU capabilities of the current CPU this code runs on
+        static X64_SIMDLevel getHighestRuntimeCPUFeature();
+      #endif
+
+      /// @brief Check if the CPU supports the given instruction set and abort the program if not (to avoid runtime errors)
+      static void fatalCPUCapabilityCheck();
+    
 			/// Get memory consumption in KiloBytes (KB)
       /// On Windows, this is equivalent to 'Peak Working Set (Memory)' in Task Manager.
       /// On other OS this might be very unreliable, depending on operating system and kernel version.

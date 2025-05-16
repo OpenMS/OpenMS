@@ -110,8 +110,10 @@ function(openms_add_compiler_flags target_name)
   
   # SIMD extensions (PUBLIC for binary compatibility)
   if(MSVC AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}")
+    # warning: if you change this, then also update OpenMS::SysInfo::fatalCPUCapabilityCheck()
     target_compile_options(${target_name} PUBLIC /arch:AVX)
   elseif(NOT MSVC AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "${x64_CPU}")
+    # warning: if you change this, then also update OpenMS::SysInfo::fatalCPUCapabilityCheck()
     target_compile_options(${target_name} PUBLIC -mssse3)
   endif()
   

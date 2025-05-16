@@ -24,27 +24,32 @@ namespace OpenMS
   {
 
     enum OpenMS_OS {OS_UNKNOWN, OS_MACOS, OS_WINDOWS, OS_LINUX};
-    std::string OpenMS_OSNames[] = {"unknown", "MacOS", "Windows", "Linux"};
+    static inline const std::string OpenMS_OSNames[] = {"unknown", "MacOS", "Windows", "Linux"};
     enum OpenMS_Architecture {ARCH_UNKNOWN, ARCH_32BIT, ARCH_64BIT};
-    std::string OpenMS_ArchNames[] = {"unknown", "32 bit", "64 bit"};
+    static inline const std::string OpenMS_ArchNames[] = {"unknown", "32 bit", "64 bit"};
 
     class OPENMS_DLLAPI OpenMSOSInfo
     {
-      OpenMS_OS os_;
-      String os_version_;
-      OpenMS_Architecture arch_;
+      OpenMS_OS os_ {OS_UNKNOWN};
+      String os_version_ {"unknown"};
+      OpenMS_Architecture arch_ {ARCH_UNKNOWN};
+      
+      /// @brief Constructor (private!)
+      OpenMSOSInfo() = default;
 
     public:
-      OpenMSOSInfo() :
-          os_(OS_UNKNOWN),
-          os_version_("unknown"),
-          arch_(ARCH_UNKNOWN)
-      {}
+
 
       /// @brief Get the current operating system (Windows, MacOS, Linux)
       String getOSAsString() const
       {
         return OpenMS_OSNames[os_];
+      }
+
+      /// @brief Get the current operating system (Windows, MacOS, Linux)
+      OpenMS_OS getOS() const
+      {
+        return os_;
       }
 
       /// @brief Get the current architecture (32-bit or 64-bit)

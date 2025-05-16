@@ -56,7 +56,7 @@ add_subdirectory(IsoSpec)
 add_subdirectory(GTE)
 add_subdirectory(Quadtree)
 add_subdirectory(tool_description_lib)
-
+add_subdirectory(vectorclass2)
 ##
 ## external packages (with fallback option to local version)
 ##
