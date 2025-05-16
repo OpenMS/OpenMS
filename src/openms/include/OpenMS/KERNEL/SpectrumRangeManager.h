@@ -81,21 +81,7 @@ namespace OpenMS
     */
     void extend(const BaseType& other, UInt ms_level = 0)
     {
-      if (ms_level == 0)
-      {
-        BaseType::extendUnsafe(other);
-      }
-      else
-      {
-        if (ms_level_ranges_.find(ms_level) == ms_level_ranges_.end())
-        {
-          ms_level_ranges_[ms_level] = other;
-        }
-        else
-        {
-          ms_level_ranges_[ms_level].extendUnsafe(other);
-        }
-      }
+      ms_level == 0 ? BaseType::extend(other) : ms_level_ranges_[ms_level].extend(other);
     }
     
     /**
@@ -135,20 +121,9 @@ namespace OpenMS
       @param rt The RT value to extend with
       @param ms_level The MS level for which to extend the RT range (0 for global range)
     */
-    void extendRT(double rt, UInt ms_level)
+    void extendRT(double rt, UInt ms_level = 0)
     {
-      if (ms_level == 0)
-      {
-        BaseType::extendRT(rt);
-      }
-      else
-      {
-        if (ms_level_ranges_.find(ms_level) == ms_level_ranges_.end())
-        {
-          ms_level_ranges_[ms_level] = BaseType();
-        }
-        ms_level_ranges_[ms_level].extendRT(rt);
-      }
+      ms_level == 0 ? BaseType::extendRT(rt) : ms_level_ranges_[ms_level].extendRT(rt);
     }
 
     /**
@@ -157,22 +132,10 @@ namespace OpenMS
       @param mz The m/z value to extend with
       @param ms_level The MS level for which to extend the m/z range (0 for global range)
     */
-    void extendMZ(double mz, UInt ms_level)
+    void extendMZ(double mz, UInt ms_level = 0)
     {
-      if (ms_level == 0)
-      {
-        BaseType::extendMZ(mz);
-      }
-      else
-      {
-        if (ms_level_ranges_.find(ms_level) == ms_level_ranges_.end())
-        {
-          ms_level_ranges_[ms_level] = BaseType();
-        }
-        ms_level_ranges_[ms_level].extendMZ(mz);
-      }
+      ms_level == 0 ? BaseType::extendMZ(mz) : ms_level_ranges_[ms_level].extendMZ(mz);
     }
-
 
     /**
       @brief Extends the ranges with the ranges of a spectrum using an MS level parameter
@@ -180,21 +143,10 @@ namespace OpenMS
       @param spectrum The spectrum whose ranges to extend from
       @param ms_level The MS level for which to extend the ranges (0 for global ranges)
     */
-    void extendUnsafe(const MSSpectrum& spectrum, UInt ms_level)
+    void extendUnsafe(const MSSpectrum& spectrum, UInt ms_level = 0)
     {
-      if (ms_level == 0)
-      {
-        BaseType::extendUnsafe(spectrum.getRange());
-      }
-      else
-      {
-        if (ms_level_ranges_.find(ms_level) == ms_level_ranges_.end())
-        {
-          ms_level_ranges_[ms_level] = BaseType();
-        }
-        ms_level_ranges_[ms_level].extendUnsafe(spectrum.getRange());
-      }
-    }
+      ms_level == 0 ? BaseType::extendUnsafe(spectrum.getRange()) : ms_level_ranges_[ms_level].extendUnsafe(spectrum.getRange());
+   }
     
   protected:
     /// MS level-specific ranges

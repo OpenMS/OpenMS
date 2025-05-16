@@ -254,8 +254,8 @@ namespace OpenMS
       
       // Update spectrum range manager with this spectrum's ranges
       // Add to both general ranges and MS level-specific ranges
-      spectrum_ranges_.extendUnsafe(*it, 0);
-      spectrum_ranges_.extendRT(it->getRT(), 0); // RT is not part of the range of an individual spectrum
+      spectrum_ranges_.extendUnsafe(*it);
+      spectrum_ranges_.extendRT(it->getRT()); // RT is not part of the range of an individual spectrum
       
       spectrum_ranges_.extendUnsafe(*it, it->getMSLevel());
       spectrum_ranges_.extendRT(it->getRT(), it->getMSLevel()); // RT is not part of the range of an individual spectrum
@@ -265,7 +265,7 @@ namespace OpenMS
       {
         // Extend both the general ranges and the MS1-specific ranges
         spectrum_ranges_.extendMZ(it->getPrecursors()[0].getMZ(), 1);
-        spectrum_ranges_.extendMZ(it->getPrecursors()[0].getMZ(), 0);
+        spectrum_ranges_.extendMZ(it->getPrecursors()[0].getMZ());
       }
     }
 
@@ -288,7 +288,7 @@ namespace OpenMS
     combined_ranges_.extendUnsafe(chromatogram_ranges_);
 
     #ifdef OPENMS_ASSERTIONS
-      // check if updateRanges() was necessary and find places where it was not
+      // check if updateRanges() was necessary to find places where it was not
       double im_min_new = combined_ranges_.RangeMobility::isEmpty() ? 0 : combined_ranges_.getMinMobility();
       double im_max_new = combined_ranges_.RangeMobility::isEmpty() ? 0 : combined_ranges_.getMaxMobility();
       double int_min_new = combined_ranges_.RangeIntensity::isEmpty() ? 0 : combined_ranges_.getMinIntensity();
