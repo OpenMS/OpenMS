@@ -718,8 +718,9 @@ namespace OpenMS
     }
 
     // sort for m/z and update ranges of newly loaded data
+
     peak_map_sptr->getMSExperiment().sortSpectra(true);
-    peak_map_sptr->getMSExperiment().updateRanges(1);
+    peak_map_sptr->getMSExperiment().updateRanges();
 
     // try to add the data
     if (caption == "")
@@ -2557,7 +2558,7 @@ namespace OpenMS
         lp->getPeakDataMuteable()->getMSExperiment().clear(true);
       }
       lp->getPeakDataMuteable()->getMSExperiment().sortSpectra(true);
-      lp->getPeakDataMuteable()->getMSExperiment().updateRanges(1);
+      lp->getPeakDataMuteable()->getMSExperiment().updateRanges(0);
     }
     else if (auto* lp = dynamic_cast<LayerDataFeature*>(&layer)) // feature data
     {
@@ -2598,7 +2599,7 @@ namespace OpenMS
         lp->getChromatogramData()->getMSExperiment().clear(true);
       }
       lp->getChromatogramData()->getMSExperiment().sortChromatograms(true);
-      lp->getChromatogramData()->getMSExperiment().updateRanges(1);
+      lp->getChromatogramData()->getMSExperiment().updateRanges();
     }
 
     // update all layers that need an update

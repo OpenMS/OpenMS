@@ -31,11 +31,11 @@ namespace OpenMS
     }
     
     // ranges of the experiment
-    double mz_min = exp_profile.getMinMZ();
-    double mz_max = exp_profile.getMaxMZ();
-    double rt_min = exp_profile.getMinRT();
-    double rt_max = exp_profile.getMaxRT();
-    
+    double mz_min = exp_profile.spectrumRanges().getMinMZ();
+    double mz_max = exp_profile.spectrumRanges().getMaxMZ();
+    double rt_min = exp_profile.spectrumRanges().getMinRT();
+    double rt_max = exp_profile.spectrumRanges().getMaxRT();
+
     // extend the grid by a small absolute margin
     double mz_margin = 1e-2;
     double rt_margin = 1e-2;
@@ -81,10 +81,10 @@ namespace OpenMS
     rt_typical_(rt_typical)
   {
     // ranges of the experiment
-    double mz_min = exp.getMinMZ();
-    double mz_max = exp.getMaxMZ();
-    double rt_min = exp.getMinRT();
-    double rt_max = exp.getMaxRT();
+    double mz_min = exp.spectrumRanges().byMSLevel(1).getMinMZ();
+    double mz_max = exp.spectrumRanges().byMSLevel(1).getMaxMZ();
+    double rt_min = exp.spectrumRanges().byMSLevel(1).getMinRT();
+    double rt_max = exp.spectrumRanges().byMSLevel(1).getMaxRT();
 
     if (!RangeMZ(0.0, 1.0e12).containsMZ({mz_min, mz_max}) ||
         !RangeRT(-1.0e12, 1.0e12).containsRT({rt_min, rt_max}) ) 
