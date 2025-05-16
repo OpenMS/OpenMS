@@ -89,7 +89,7 @@ RUN <<-EOF
 
     # copying only the binaries that are relevant to Linux
     cp -r THIRDPARTY/All/* ${THIRDPARTY_DIR}
-    cp -r THIRDPARTY/Linux/64bit/* ${THIRDPARTY_DIR}
+    cp -r THIRDPARTY/Linux/x86_64/* ${THIRDPARTY_DIR}
 
     rm -rf THIRDPARTY
 EOF
