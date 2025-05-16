@@ -1,6 +1,6 @@
 {
   "name": "openms",
-  "version-string": "3.5.0",
+  "version-string": "3.4.1",
   "dependencies": [
     "boost-core",
     "boost-math",
