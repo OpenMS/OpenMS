@@ -3929,10 +3929,14 @@ namespace OpenMS::Internal
     
     void MzMLHandler::writeTo(std::ostream& os)
     {
+        // Determine if output should be compressed based on file extension
         const bool compress = file_.toLower().hasSuffix(".gz");
+    
+        // Set gzip compression parameters (favor speed)
         boost::iostreams::gzip_params gz_params;
         gz_params.level = boost::iostreams::gzip::best_speed;
     
+        // Access experimental data and initialize progress tracking
         const MapType& exp = *cexp_;
         Size total_items = exp.size() + exp.getChromatograms().size();
         logger_.startProgress(0, total_items, "storing mzML file");
@@ -3940,14 +3944,16 @@ namespace OpenMS::Internal
         int progress = 0;
         UInt stored_spectra = 0, stored_chromatograms = 0;
     
+        // Setup validator and processing pointers
         Internal::MzMLValidator validator(mapping_, cv_);
         std::vector<std::vector<ConstDataProcessingPtr>> dps;
         std::string output_file = file_;
     
         try
         {
-          bool renew_native_ids = false;
-
+            bool renew_native_ids = false;
+    
+            // Stream setup (including optional compression filters)
             bio::filtering_ostream filter;
             bio::counter counter_filter;
             std::ostream* output_stream = &os;
@@ -3957,7 +3963,7 @@ namespace OpenMS::Internal
     
             bool pigz_available = false;
     
-            // Check pigz availability
+            // Try to detect if pigz (parallel gzip) is available on the system
             if (compress)
             {
                 String proc_stdout, proc_stderr;
@@ -3974,24 +3980,24 @@ namespace OpenMS::Internal
                 }
                 else
                 {
-                  OPENMS_LOG_ERROR << "pigz --version failed" << std::endl;
-                  OPENMS_LOG_ERROR << "stdout: " << proc_stdout << std::endl;
-                  OPENMS_LOG_ERROR << "stderr: " << proc_stderr << std::endl;
-                  
+                    OPENMS_LOG_ERROR << "pigz --version failed" << std::endl;
+                    OPENMS_LOG_ERROR << "stdout: " << proc_stdout << std::endl;
+                    OPENMS_LOG_ERROR << "stderr: " << proc_stderr << std::endl;
                 }
             }
-  
+    
+            // Use pigz for parallel compression if available
             if (compress && pigz_available)
             {
                 OPENMS_LOG_INFO << "Using pigz for compression (parallel gzip)" << std::endl;
+    
                 int max_threads = omp_get_max_threads();
                 int compression_level = std::clamp(max_threads, 1, 9);
     
                 OPENMS_LOG_INFO << "Setting pigz to use " << max_threads << " threads" << std::endl;
     
-                // Set up pigz pipe
+                // Start pigz as subprocess and pipe output through it
                 pigz_pipe = std::make_unique<bp::opstream>();
-    
                 pigz_process = std::make_unique<bp::child>(
                     bp::search_path("pigz"),
                     "-c",
@@ -4001,6 +4007,7 @@ namespace OpenMS::Internal
                     bp::std_out > boost::filesystem::path(output_file)
                 );
     
+                // Setup optional counter for index writing
                 if (options_.getWriteIndex())
                 {
                     filter.push(counter_filter);
@@ -4014,6 +4021,7 @@ namespace OpenMS::Internal
                 filter.push(*pigz_pipe);
                 output_stream = &filter;
             }
+            // Use built-in Boost gzip compression if pigz is not available
             else if (compress)
             {
                 OPENMS_LOG_INFO << "Using Boost gzip compression" << std::endl;
@@ -4034,15 +4042,16 @@ namespace OpenMS::Internal
             }
             else
             {
-                impl_->counter_ptr_ = nullptr; // uncompressed stream
+                // No compression: direct output
+                impl_->counter_ptr_ = nullptr;
             }
     
-            // Write Header
+            // Write mzML header
             writeHeader_(*output_stream, exp, dps, validator);
     
             compress_mode_ = compress;
     
-            // Write spectra
+            // Write spectrum list and individual spectra
             if (!exp.getSpectra().empty())
             {
                 *output_stream << "\t\t<spectrumList count=\"" << exp.getSpectra().size()
@@ -4059,7 +4068,7 @@ namespace OpenMS::Internal
                 *output_stream << "\t\t</spectrumList>\n";
             }
     
-            // Write chromatograms
+            // Write chromatogram list and individual chromatograms
             if (!exp.getChromatograms().empty())
             {
                 *output_stream << "\t\t<chromatogramList count=\"" << exp.getChromatograms().size()
@@ -4076,15 +4085,15 @@ namespace OpenMS::Internal
                 *output_stream << "\t\t</chromatogramList>\n";
             }
     
-            // Write footer
+            // Write mzML footer (includes optional index)
             MzMLHandlerHelper::writeFooter_(*output_stream, options_, spectra_offsets_, chromatograms_offsets_);
     
-            // Clean up and flush
+            // Handle flushing and cleanup for pigz subprocess
             if (pigz_process)
             {
                 output_stream->flush();
                 filter.reset();
-                pigz_pipe->pipe().close(); // signal EOF
+                pigz_pipe->pipe().close(); // Signal EOF to pigz
                 pigz_process->wait();
     
                 if (pigz_process->exit_code() != 0)
@@ -4093,10 +4102,13 @@ namespace OpenMS::Internal
                         String("pigz process failed with exit code ") + pigz_process->exit_code());
                 }
             }
+            // Cleanup for boost::iostreams filter chain
             else if (filter.size() > 0)
             {
                 filter.reset();
             }
+        }
+    
     
             logger_.endProgress(os.tellp());
             OPENMS_LOG_INFO << stored_spectra << " spectra and "
