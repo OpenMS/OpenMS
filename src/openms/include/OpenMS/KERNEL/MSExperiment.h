@@ -1342,17 +1342,6 @@ std::vector<MSChromatogram> extractXICs(
 
   public:
     /**
-     * @brief Returns a reference to the spectrum range manager
-     *
-     * The spectrum range manager provides access to m/z, intensity, retention time, and ion mobility
-     * ranges for spectra, with separate tracking for different MS levels.
-     *
-     * @return Reference to the spectrum range manager
-     * @see SpectrumRangeManager
-     */
-    SpectrumRangeManagerType& spectrumRanges() { return spectrum_ranges_; }
-    
-    /**
      * @brief Returns a const reference to the spectrum range manager
      *
      * The spectrum range manager provides access to m/z, intensity, retention time, and ion mobility
@@ -1362,18 +1351,7 @@ std::vector<MSChromatogram> extractXICs(
      * @see SpectrumRangeManager
      */
     const SpectrumRangeManagerType& spectrumRanges() const { return spectrum_ranges_; }
-
-    /**
-     * @brief Returns a reference to the chromatogram range manager
-     *
-     * The chromatogram range manager provides access to retention time, m/z, and intensity
-     * ranges for chromatograms.
-     *
-     * @return Reference to the chromatogram range manager
-     * @see ChromatogramRangeManager
-     */
-    ChromatogramRangeManagerType& chromatogramRanges() { return chromatogram_ranges_; }
-    
+   
     /**
      * @brief Returns a const reference to the chromatogram range manager
      *
@@ -1384,17 +1362,7 @@ std::vector<MSChromatogram> extractXICs(
      * @see ChromatogramRangeManager
      */
     const ChromatogramRangeManagerType& chromatogramRanges() const { return chromatogram_ranges_; }
-    
-    /**
-     * @brief Returns a reference to the combined range manager
-     *
-     * The combined range manager provides access to the overall ranges across both spectra and chromatograms.
-     * This is maintained for backward compatibility with code that expects a single range manager.
-     *
-     * @return Reference to the combined range manager
-     */
-    RangeManagerType& combinedRanges() { return combined_ranges_; }
-    
+        
     /**
      * @brief Returns a const reference to the combined range manager
      *
