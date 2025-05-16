@@ -50,7 +50,7 @@ namespace OpenMS
     RangeAllType getRange() const override
     {
       RangeAllType r;
-      r.assign(*chromatogram_map_);
+      r.assign(chromatogram_map_->chromatogramRanges());
       return r;
     }
 

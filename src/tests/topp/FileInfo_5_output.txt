@@ -12,11 +12,34 @@ MS levels: 1, 2
 Total number of peaks: 3149
 Number of spectra: 10
 
-Ranges:
+Combined Ranges (spectra + chromatograms):
   retention time: 20.87 .. 39.97 sec (0.3 min)
   mass-to-charge: 500.07 .. 1497.28
   ion mobility: <none> .. <none>
   intensity: 16.30 .. 38920.12
+
+Spectrum Ranges:
+  retention time: 20.87 .. 39.97 sec (0.3 min)
+  mass-to-charge: 500.07 .. 1497.28
+  ion mobility: <none> .. <none>
+  intensity: 16.30 .. 38920.12
+
+MS Level 1 Ranges:
+  retention time: 20.87 .. 39.97 sec (0.3 min)
+  mass-to-charge: 500.07 .. 1497.28
+  ion mobility: <none> .. <none>
+  intensity: 16.30 .. 38920.12
+
+MS Level 2 Ranges:
+  retention time: 25.40 .. 39.11 sec (0.2 min)
+  mass-to-charge: 500.10 .. 850.08
+  ion mobility: <none> .. <none>
+  intensity: 23.68 .. 729.68
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
 
 Number of spectra per MS level:
   level 1: 4
