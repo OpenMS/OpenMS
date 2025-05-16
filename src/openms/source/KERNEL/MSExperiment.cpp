@@ -220,9 +220,7 @@ namespace OpenMS
   */
 
   /**
-  @brief Updates the m/z, intensity, retention time, ion mobility and MS level ranges of all spectra with a certain ms level
-
-  @param ms_level MS level to consider for m/z range, RT range, intensity range and ion mobility (if negative, all MS levels are used)
+  @brief Updates the m/z, intensity, retention time, ion mobility ranges for all spectra and chromatograms
   */
   void MSExperiment::updateRanges()
   {

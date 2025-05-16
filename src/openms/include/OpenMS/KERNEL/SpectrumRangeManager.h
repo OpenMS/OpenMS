@@ -93,11 +93,11 @@ namespace OpenMS
     */
     const BaseType& byMSLevel(UInt ms_level = 0) const
     {
-      if (ms_level_ranges_.find(ms_level) == ms_level_ranges_.end())
+      if (auto it = ms_level_ranges_.find(ms_level); it != ms_level_ranges_.end())
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No ranges for this MS level", String(ms_level));
+        return it->second;
       }
-      return ms_level_ranges_.at(ms_level);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No ranges for this MS level", String(ms_level));
     }
 
     /**

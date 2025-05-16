@@ -33,23 +33,6 @@ namespace OpenMS
     /// Base type
     using BaseType = RangeManager<RangeRT, RangeIntensity, RangeMZ>;
 
-    /// Default constructor
-    ChromatogramRangeManager() = default;
-    
-    /// Copy constructor
-    ChromatogramRangeManager(const ChromatogramRangeManager& source) = default;
-    
-    /// Move constructor
-    ChromatogramRangeManager(ChromatogramRangeManager&& source) = default;
-    
-    /// Assignment operator
-    ChromatogramRangeManager& operator=(const ChromatogramRangeManager& source) = default;
-    
-    /// Move assignment operator
-    ChromatogramRangeManager& operator=(ChromatogramRangeManager&& source) = default;
-    
-    /// Destructor
-    ~ChromatogramRangeManager() = default;
   };
 
 } // namespace OpenMS
