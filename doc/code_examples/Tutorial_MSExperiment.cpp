@@ -62,8 +62,12 @@ int main()
   std::cout << "Get maximum RT on its own: " << exp.spectrumRanges().getMaxRT() << '\n';
   std::cout << "Get minimum m/z on its own: " << exp.spectrumRanges().getMinMZ() << '\n';
   std::cout << "Get maximum m/z on its own: " << exp.spectrumRanges().getMaxMZ() << '\n';
+
+  /* Printing the IM ranges is only possible if the spectra contain IM data.
   std::cout << "Get minimum IM on its own: " << exp.spectrumRanges().getMinMobility() << '\n';
   std::cout << "Get maximum IM on its own: " << exp.spectrumRanges().getMaxMobility() << '\n';
+  */
+
   // Store the spectra to a mzML file with:
   FileHandler fh;
   auto tmp_filename = File::getTemporaryFile();
