@@ -258,13 +258,6 @@ namespace OpenMS
       spectrum_ranges_.extendUnsafe(*it, it->getMSLevel());
       spectrum_ranges_.extendRT(it->getRT(), it->getMSLevel()); // RT is not part of the range of an individual spectrum
       
-      // For MS1 level, also include MS2 precursor m/z values
-      if (it->getMSLevel() == 2 && !it->getPrecursors().empty())
-      {
-        // Extend both the general ranges and the MS1-specific ranges
-        spectrum_ranges_.extendMZ(it->getPrecursors()[0].getMZ(), 1);
-        spectrum_ranges_.extendMZ(it->getPrecursors()[0].getMZ());
-      }
     }
 
     // Update chromatogram ranges

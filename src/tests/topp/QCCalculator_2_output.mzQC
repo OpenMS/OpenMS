@@ -1,6 +1,6 @@
 {
   "mzQC": {
-    "creationDate": "2025-05-16T09:59:57",
+    "creationDate": "2025-05-16T14:22:42",
     "version": "1.0.0",
     "contactName": "name",
     "contactAddress": "address",
@@ -71,7 +71,7 @@
             "name": "MZ acquisition range",
             "value": [
               0,
-              445
+              18
             ]
           },
           {
