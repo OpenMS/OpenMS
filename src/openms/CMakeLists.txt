@@ -60,6 +60,9 @@ set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Eigen3::Eigen
 ## setup the argumentes to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
 set(OPENMS_DEP_PRIVATE_LIBRARIES
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
+  #Original:
+  #  $<$<BOOL:${WITH_PARQUET}>:Arrow::arrow_shared Parquet::parquet_shared>
+  $<$<BOOL:${WITH_PARQUET}>:Arrow::arrow_static Arrow::parquet_static>
   ${LPTARGET}
   BZip2::BZip2
   Boost::boost
