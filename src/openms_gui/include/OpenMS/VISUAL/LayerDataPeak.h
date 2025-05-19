@@ -60,7 +60,7 @@ namespace OpenMS
     RangeAllType getRange() const override
     {
       RangeAllType r;
-      r.assign(peak_map_->getMSExperiment()->spectrumRanges());
+      r.assign(peak_map_->getMSExperiment().spectrumRanges());
       return r;
     }
 

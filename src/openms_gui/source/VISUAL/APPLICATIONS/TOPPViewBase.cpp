@@ -2558,7 +2558,7 @@ namespace OpenMS
         lp->getPeakDataMuteable()->getMSExperiment().clear(true);
       }
       lp->getPeakDataMuteable()->getMSExperiment().sortSpectra(true);
-      lp->getPeakDataMuteable()->getMSExperiment().updateRanges(0);
+      lp->getPeakDataMuteable()->getMSExperiment().updateRanges();
     }
     else if (auto* lp = dynamic_cast<LayerDataFeature*>(&layer)) // feature data
     {
