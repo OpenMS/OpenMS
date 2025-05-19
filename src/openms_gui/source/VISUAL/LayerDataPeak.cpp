@@ -80,7 +80,7 @@ namespace OpenMS
     Mobilogram projection_im;
     MSChromatogram projection_rt;
 
-    const auto& exp = *getPeakData()->getMSExperiment();
+    const auto& exp = getPeakData()->getMSExperiment();
     auto lvls = exp.getMSLevels(); // use for smallest MS level in the data (IM frames may have all level 1, or all level 2)
     for (auto i = exp.areaBeginConst(area, lvls[0]); i != exp.areaEndConst(); ++i)
     {
