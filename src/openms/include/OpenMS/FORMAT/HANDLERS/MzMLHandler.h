@@ -220,9 +220,12 @@ protected:
       typedef MzMLHandlerHelper::BinaryData BinaryData;
 
       const bool compress;
-      struct Impl; // forward declaration
+      /// Forward declaration
+      struct MzMLHandlerInternalState;
+      ///Pimple Pointer
+      std::unique_ptr<MzMLHandlerInternalState> internal_state_;
 
-      std::unique_ptr<Impl> impl_; ///< Pimpl pointer
+      
 
 
       /**@name Helper functions for storing data in memory

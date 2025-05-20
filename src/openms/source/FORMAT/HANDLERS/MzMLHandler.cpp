@@ -41,7 +41,7 @@
 namespace OpenMS::Internal
 {  
   // Impl structure
-  struct MzMLHandler::Impl 
+  struct MzMLHandler::MzMLHandlerInternalState 
 {
   boost::iostreams::counter* counter_ptr_;
 };
@@ -3984,6 +3984,7 @@ namespace OpenMS::Internal
                 }
                 else
                 {
+                    pigz_available = false;
                     OPENMS_LOG_ERROR << "pigz --version failed" << std::endl;
                     OPENMS_LOG_ERROR << "stdout: " << proc_stdout << std::endl;
                     OPENMS_LOG_ERROR << "stderr: " << proc_stderr << std::endl;
@@ -4015,11 +4016,11 @@ namespace OpenMS::Internal
             if (options_.getWriteIndex())
             {
                 filter.push(counter_filter);
-                impl_->counter_ptr_ = &counter_filter;
+                internal_state_->counter_ptr_ = &counter_filter;
             }
             else
             {
-                impl_->counter_ptr_ = nullptr;
+                internal_state_->counter_ptr_ = nullptr;
             }
 
             filter.push(pigz_pipe);
@@ -4034,13 +4035,13 @@ namespace OpenMS::Internal
                 if (options_.getWriteIndex())
                 {
                     filter.push(counter_filter);
-                    impl_->counter_ptr_ = &counter_filter;
+                    internal_state_->counter_ptr_ = &counter_filter;
                 }
                 else
                 {
-                    impl_->counter_ptr_ = nullptr;
+                    internal_state_->counter_ptr_ = nullptr;
                 }
-    
+  
                 filter.push(boost::iostreams::gzip_compressor(gz_params));
                 filter.push(os);
                 output_stream = &filter;
@@ -4048,7 +4049,7 @@ namespace OpenMS::Internal
             else
             {
                 // No compression: direct output
-                impl_->counter_ptr_ = nullptr;
+                internal_state_->counter_ptr_ = nullptr;
             }
     
             // Write mzML header
@@ -5092,12 +5093,12 @@ if (options_.getWriteIndex())
     Int64 offset = 0;
    if (compress)
 {
-    if (!impl_->counter_ptr_)
+    if (!internal_state_->counter_ptr_)
     {
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Compressed mode active but counter filter not available for offset calculation.");
     }
-    offset = impl_->counter_ptr_->characters();
+    offset = internal_state_->counter_ptr_->characters();
 }
     else
     {
@@ -5698,12 +5699,12 @@ void MzMLHandler::writeChromatogram_(std::ostream& os,
       Int64 offset = 0;
       if (compress)
       {
-          if (!impl_->counter_ptr_)
+          if (!internal_state_->counter_ptr_)
           {
               throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                   "Compressed mode active but counter filter not available for offset calculation.");
           }
-          offset = impl_->counter_ptr_->characters();
+          offset = internal_state_->counter_ptr_->characters();
       }
     
       else
