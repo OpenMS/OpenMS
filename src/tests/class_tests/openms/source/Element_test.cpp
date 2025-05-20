@@ -102,6 +102,11 @@ END_SECTION
 START_SECTION(( void setIsotopes(const std::vector<const Isotope*>& isotopes) ))
   std::vector<const Isotope*> isotopes = {new Isotope(), new Isotope()};
   e_ptr->setIsotopes(isotopes);
+  // Clean up after the test
+  for (auto iso : isotopes)
+  {
+    delete iso;
+  }
 END_SECTION
 
 START_SECTION(( const std::vector<const Isotope*>& getIsotopes() const))
