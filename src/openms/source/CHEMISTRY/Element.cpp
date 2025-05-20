@@ -93,20 +93,40 @@ namespace OpenMS
 
   void Element::setIsotopes(const std::vector<const Isotope*>& isotopes)
   {
+    std::cerr << "DEBUG: Element::setIsotopes called for " << name_ << " with " << isotopes.size() << " isotopes" << std::endl;
     isotopes_ = isotopes;
+    std::cerr << "DEBUG: Calling updateIsotopeDistr_()" << std::endl;
     updateIsotopeDistr_(); // calculate new cached distribution
+    std::cerr << "DEBUG: Element::setIsotopes completed" << std::endl;
   }
 
   void Element::updateIsotopeDistr_()
   {
+    std::cerr << "DEBUG: Element::updateIsotopeDistr_ called for " << name_ << std::endl;
     auto dist = isotope_distr_.getContainer();
     dist.clear();
     dist.reserve(isotopes_.size());
-    for (const auto& isotope : isotopes_)
+    std::cerr << "DEBUG: Processing " << isotopes_.size() << " isotopes" << std::endl;
+    
+    for (size_t i = 0; i < isotopes_.size(); i++)
     {
+      const auto& isotope = isotopes_[i];
+      if (isotope == nullptr)
+      {
+        std::cerr << "ERROR: Null isotope pointer at index " << i << std::endl;
+        continue;  // Skip null pointers to avoid crash
+      }
+      
+      std::cerr << "DEBUG: Processing isotope " << isotope->getName()
+                << " with weight " << isotope->getMonoWeight()
+                << " and abundance " << isotope->getAbundance() << std::endl;
+                
       dist.emplace_back(isotope->getMonoWeight(), isotope->getAbundance());
     }
+    
+    std::cerr << "DEBUG: Setting new isotope distribution with " << dist.size() << " entries" << std::endl;
     isotope_distr_.set(std::move(dist));
+    std::cerr << "DEBUG: Element::updateIsotopeDistr_ completed" << std::endl;
   }
 
   const std::vector<const Isotope*>& Element::getIsotopes() const

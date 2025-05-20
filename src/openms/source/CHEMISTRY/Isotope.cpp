@@ -71,7 +71,10 @@ namespace OpenMS
   /// Get corresponding element
   const Element* Isotope::getElement() const
   {
-    return ElementDB::getInstance()->getElement( atomic_number_ );
+    std::cerr << "DEBUG: Isotope::getElement() called for " << name_ << " with atomic number " << atomic_number_ << std::endl;
+    const Element* e = ElementDB::getInstance()->getElement( atomic_number_ );
+    std::cerr << "DEBUG: Isotope::getElement() returning pointer " << e << std::endl;
+    return e;
   }
 
   void Isotope::setHalfLife(double hl)

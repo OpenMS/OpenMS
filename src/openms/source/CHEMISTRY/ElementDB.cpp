@@ -119,49 +119,88 @@ namespace OpenMS
   }
 
   void ElementDB::addIsotope(const std::string& name,
-                  const std::string& symbol,
-                  const unsigned int an,
-                  double abundance,
-                  double mass,
-                  double half_life,
-                  Isotope::DecayMode decay,
-                  bool replace_existing)
+                     const std::string& symbol,
+                     const unsigned int an,
+                     double abundance,
+                     double mass,
+                     double half_life,
+                     Isotope::DecayMode decay,
+                     bool replace_existing)
   {
+    std::cerr << "DEBUG: Adding isotope " << name << " with symbol " << symbol << " and atomic number " << an << ", replace=" << replace_existing << std::endl;
     unsigned int mass_number = std::round(mass);
     string iso_name = "(" + std::to_string(mass_number) + ")" + name;
     string iso_symbol = "(" + std::to_string(mass_number) + ")" + symbol;
-
+  
+    std::cerr << "DEBUG: Calculated iso_name=" << iso_name << ", iso_symbol=" << iso_symbol << std::endl;
+    std::cerr << "DEBUG: Checking if element exists with atomic number " << an << std::endl;
+    
     if (!hasElement( an )  )
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Cannot add isotope ") +
           name + " since the element with  atomic number " + an + " does not yet exsist -- create it first!");
     }
-
+    
+    std::cerr << "DEBUG: Element with atomic number " << an << " exists" << std::endl;
+  
     if (hasElement( iso_symbol )  )
     {
+      std::cerr << "DEBUG: Isotope with symbol " << iso_symbol << " already exists" << std::endl;
+      
       if (!replace_existing)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Isotope with symbol ") + iso_symbol + " already exists and replace_existing is set to false.");
       }
+      
+      std::cerr << "DEBUG: Creating new isotope to replace existing one" << std::endl;
       const Isotope* isotope = new Isotope(iso_name, iso_symbol, an, mass_number - an, mass, abundance, half_life, decay);
+      std::cerr << "DEBUG: New isotope created successfully" << std::endl;
+      
+      std::cerr << "DEBUG: Calling addIsotopeToMaps_ to replace existing isotope" << std::endl;
       addIsotopeToMaps_(iso_name, iso_symbol, isotope);
+      std::cerr << "DEBUG: addIsotopeToMaps_ completed" << std::endl;
+      
       // we changed/updated the isotopes, so we need to update
+      std::cerr << "DEBUG: Getting element for isotope" << std::endl;
       const Element* const_ele = isotope->getElement();
+      std::cerr << "DEBUG: Element pointer: " << const_ele << std::endl;
+      
       Element* element = const_cast<Element*>(const_ele);
+      std::cerr << "DEBUG: Getting isotopes from element" << std::endl;
+      auto current_isotopes = element->getIsotopes();
+      std::cerr << "DEBUG: Element has " << current_isotopes.size() << " isotopes" << std::endl;
+      
+      std::cerr << "DEBUG: Calling element->setIsotopes to update" << std::endl;
       element->setIsotopes(element->getIsotopes());
+      std::cerr << "DEBUG: Element isotopes updated" << std::endl;
     }
     else
     {
+      std::cerr << "DEBUG: Isotope with symbol " << iso_symbol << " does not exist, creating new one" << std::endl;
       const Isotope* isotope = new Isotope(iso_name, iso_symbol, an, mass_number - an, mass, abundance, half_life, decay);
+      std::cerr << "DEBUG: New isotope created successfully" << std::endl;
+      
+      std::cerr << "DEBUG: Adding new isotope to maps" << std::endl;
       isotope = addIsotopeToMaps_(iso_name, iso_symbol, isotope);
-
+      std::cerr << "DEBUG: New isotope added to maps" << std::endl;
+  
       // we added a new isotope, so we need to add it to the element
+      std::cerr << "DEBUG: Getting element for new isotope" << std::endl;
       const Element* const_ele = isotope->getElement();
+      std::cerr << "DEBUG: Element pointer: " << const_ele << std::endl;
+      
       Element* element = const_cast<Element*>(const_ele);
+      std::cerr << "DEBUG: Getting isotopes list from element" << std::endl;
       auto iso_list = element->getIsotopes();
+      std::cerr << "DEBUG: Element has " << iso_list.size() << " isotopes" << std::endl;
+      
+      std::cerr << "DEBUG: Adding new isotope to list" << std::endl;
       iso_list.push_back(isotope);
+      std::cerr << "DEBUG: Updating element's isotope list" << std::endl;
       element->setIsotopes(iso_list);
+      std::cerr << "DEBUG: Element's isotope list updated successfully" << std::endl;
     }
+    std::cerr << "DEBUG: addIsotope completed successfully" << std::endl;
   }
 
   double ElementDB::calculateAvgWeight_(const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)
@@ -759,13 +798,44 @@ namespace OpenMS
 
   const Isotope* ElementDB::addIsotopeToMaps_(const std::string& iso_name, const std::string& iso_symbol, const Isotope* isotope)
   {
+    std::cerr << "DEBUG: addIsotopeToMaps_ called with iso_name=" << iso_name << ", iso_symbol=" << iso_symbol << std::endl;
+    
     if (isotopes_.find(iso_symbol) != isotopes_.end())
     {
-      // TODO: check that lookup is still valid after this
+      std::cerr << "DEBUG: Found existing isotope in isotopes_ map" << std::endl;
       const Isotope* const_iso = isotopes_[iso_symbol];
+      std::cerr << "DEBUG: Existing isotope pointer: " << const_iso << std::endl;
+      
       Isotope* iso = const_cast<Isotope*>(const_iso);
-      *iso = *isotope; // copy all data from input to the existing element
+      
+      // Instead of blindly using assignment operator which could break relationships,
+      // selectively update properties while preserving element relationships
+      std::cerr << "DEBUG: Selectively updating isotope properties (instead of using assignment operator)" << std::endl;
+      
+      // Keep the existing element relationship intact by not re-assigning atomic_number_
+      // Update only the properties that should change
+      iso->setAbundance(isotope->getAbundance());
+      iso->setMonoWeight(isotope->getMonoWeight());
+      iso->setHalfLife(isotope->getHalfLife());
+      iso->setNeutrons(isotope->getNeutrons());
+      iso->setDecayMode(isotope->getDecayMode());
+      
+      // Names and symbols are used in lookup maps, so we need to be careful with them
+      if (iso->getName() != isotope->getName())
+      {
+        std::cerr << "DEBUG: Updating isotope name" << std::endl;
+        iso->setName(isotope->getName());
+      }
+      
+      if (iso->getSymbol() != isotope->getSymbol())
+      {
+        std::cerr << "DEBUG: Updating isotope symbol" << std::endl;
+        iso->setSymbol(isotope->getSymbol());
+      }
+      
+      std::cerr << "DEBUG: Safe update completed, deleting new isotope instance" << std::endl;
       delete isotope;
+      std::cerr << "DEBUG: Returning existing isotope pointer" << std::endl;
       return iso;
     }
     else
