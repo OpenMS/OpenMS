@@ -177,19 +177,9 @@ endif()
 
 #------------------------------------------------------------------------------
 # Apache Arrow and Parquet
-
-# ORIGINAL (SEPARATE LIBRARIES): 
-# if (WITH_PARQUET)
-# find_package(Arrow CONFIG REQUIRED)
-# find_package(Parquet CONFIG REQUIRED)
-# endif()
-
-# Parquet is a sublibrary of Arrow, and we're going to be building arrow from 
-# source and enabling the PARQUET option. Parquet is too dependent on arrow 
-# to be installed seperately
 if (WITH_PARQUET)
-find_package(Arrow REQUIRED COMPONENTS Parquet) 
-#Tells cmake to check for parquet component.
+  find_package(Arrow CONFIG REQUIRED)
+  find_package(Parquet CONFIG REQUIRED)
 endif()
 
 #------------------------------------------------------------------------------
