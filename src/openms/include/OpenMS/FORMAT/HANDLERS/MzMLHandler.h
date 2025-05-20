@@ -131,7 +131,31 @@ public:
       /// Docu in base class XMLHandler::characters
       void characters(const XMLCh* const chars, const XMLSize_t length) override;
 
-      /// Docu in base class XMLHandler::writeTo
+      /**  
+    This function serializes the mzML data structure to the provided `std::ostream`.  
+    If the filename (stored in `file_`) ends with `.gz`, the output will be **gzip-compressed**.
+
+    ### Compression Behavior  
+    - Uses **zlib** (via `boost::iostreams`) with **fastest compression level** by default.  
+    - If **pigz** (parallel implementation of gzip) is **installed and available**, it will be used for faster compression.  
+    - Falls back to **Boost**-based compression if `pigz` is not available.  
+    - **Requires seekable streams** (e.g., file streams).    
+      - Use `storeBuffer()` for non-seekable targets (e.g., network streams).  
+
+    ### Error Handling  
+    @exception Exception::ConversionError  
+      - If **compression fails** (e.g., `boost::iostreams::gzip_error`).  
+      - If the **stream is non-seekable** but compression was requested.  
+      - If **writing/flushing** fails (`std::ios_base::failure`).  
+
+    @note  
+    - Compression is **determined solely by `file_`'s extension**, not the stream's state.  
+
+    @see MzMLHandlerHelper::writeFooter_  
+    @see storeBuffer()  
+    @see writeHeader_, writeSpectrum_, writeChromatogram_  
+*/
+
       void writeTo(std::ostream& os) override;
 
 
@@ -195,7 +219,7 @@ protected:
 
       typedef MzMLHandlerHelper::BinaryData BinaryData;
 
-      bool compress_mode_ = false;
+      const bool compress;
       struct Impl; // forward declaration
       std::unique_ptr<Impl> impl_; // Pimpl pointer
 

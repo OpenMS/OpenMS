@@ -116,16 +116,6 @@ namespace OpenMS::Internal
             last_offset = std::max(last_offset, chromatograms_offsets.back().second);
         }
 
-        Size total_entries = spectra_offsets.size() + chromatograms_offsets.size();
-        if (total_entries > 10)
-        {
-            indexlistoffset = 37622;
-        }
-        else
-        {
-            indexlistoffset = 2978;
-        }
-
         // Write index list
         int indexlists = static_cast<int>(!spectra_offsets.empty()) + static_cast<int>(!chromatograms_offsets.empty());
 

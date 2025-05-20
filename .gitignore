@@ -35,5 +35,3 @@ _CPack_Packages
 _deps
 Modules
 src/openms_gui/OpenMS_GUI_autogen
-src/openms/OpenMS_autogen
-files.associations: {"iosfwd": "cpp", "cctype": "cpp"}

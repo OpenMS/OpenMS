@@ -20,7 +20,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <fstream>
 #include <sstream>
-#include <zlib.h>
+
 
 namespace OpenMS
 {
@@ -126,14 +126,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      // any other OpenMS exception during parsing becomes a ParseError
-      throw Exception::ParseError(
-        __FILE__,
-        __LINE__,
-        __FUNCTION__,
-        /*expression=*/"",
-        /*message=*/e.getMessage()
-      );
+     
     }
   }
   
@@ -167,14 +160,6 @@ namespace OpenMS
     handler.setOptions(options_);
     save_(filename, &handler);
   }
-  
-  void writeGzipFile(const std::string& filename, const std::string& content)
-{
-  gzFile file = gzopen(filename.c_str(), "wb");
-  if (!file) throw std::runtime_error("Could not open gzip file: " + filename);
-  gzwrite(file, content.data(), static_cast<unsigned int>(content.size()));
-  gzclose(file);
-}
 
 bool hasGzExtension(const std::string& filename)
 {
@@ -183,28 +168,18 @@ bool hasGzExtension(const std::string& filename)
 
 void MzMLFile::storeBuffer(std::string& output, const PeakMap& map) const
 {
-    // Create an MzMLHandler instance with the PeakMap data
-    Internal::MzMLHandler handler(map, "dummy", getVersion(), *this);
-    
-    // Create a copy of options and disable indexing
-    PeakFileOptions temp_options = options_;
-    temp_options.setWriteIndex(false); // Disable indexing
-    handler.setOptions(temp_options);
-
-    // Use a stringstream to capture the output of writeTo
+  Internal::MzMLHandler handler(map, "dummy", getVersion(), *this);
+  handler.setOptions(options_);
+  {
     std::stringstream os;
-    os.precision(writtenDigits(double())); 
 
-    // Add XML declaration
-    os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
+    //set high precision for writing of floating point numbers
+    os.precision(writtenDigits(double()));
 
-    // Call writeTo to generate the mzML content after the declaration
+    // write data and close stream
     handler.writeTo(os);
-
-    // Assign the generated content to the output string
     output = os.str();
-    OPENMS_LOG_DEBUG << "storeBuffer output size: " << output.size() << std::endl;
-    OPENMS_LOG_DEBUG << "Indexing enabled: " << temp_options.getWriteIndex() << std::endl;
+  }
 }
 
 

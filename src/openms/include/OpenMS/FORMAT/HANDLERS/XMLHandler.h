@@ -371,8 +371,7 @@ public:
 
       ### Compression Behavior  
       - Uses **zlib** (via `boost::iostreams`) with **fastest compression level** by default.  
-      - **Requires seekable streams** (e.g., file streams).  
-        - If the stream is non-seekable (e.g., pipes, sockets), compression will **fail with `ConversionError`**.  
+      - **Requires seekable streams** (e.g., file streams).    
         - Use `storeBuffer()` for non-seekable targets (e.g., network streams).  
 
       ### Error Handling  
@@ -383,7 +382,7 @@ public:
 
       @note  
       - Compression is **determined solely by `file_`'s extension**, not the stream's state.  
-      - For **non-seekable streams**, write to an intermediate buffer (e.g., `std::stringstream`) or use `storeBuffer()`.  
+        
 
       @see MzMLHandlerHelper::writeFooter_  
       @see storeBuffer()  

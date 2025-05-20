@@ -7,9 +7,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
+
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
@@ -17,16 +19,22 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/ExternalProcess.h>
+
+#include <boost/iostreams/device/file.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
-#include <boost/iostreams/device/file.hpp>
-#include <fstream>
-#include <stdexcept>
-#include <map>
 #include <boost/iostreams/filter/counter.hpp> 
 #include <boost/process.hpp>
+
+#include <fstream>
 #include <iostream>
+
 #include <omp.h>
+#include <stdexcept>
+
+#include <map>
+
+
 
 
 
@@ -35,11 +43,8 @@ namespace OpenMS::Internal
   // Impl structure
   struct MzMLHandler::Impl 
 {
-  boost::iostreams::counter* counter_ptr_ = nullptr;
+  boost::iostreams::counter* counter_ptr_;
 };
-  namespace bp  = boost::process;
-  namespace bio = boost::iostreams;
-
 
     thread_local ProgressLogger pg_outer; ///< an extra logger for nested logging
 
@@ -58,7 +63,7 @@ namespace OpenMS::Internal
     }
 
     
- /// delegated c'tor for the common things
+    /// delegated c'tor for the common things
     MzMLHandler::MzMLHandler(const String& filename, const String& version, const ProgressLogger& logger)
       : XMLHandler(filename, version),
         logger_(logger),
@@ -91,7 +96,6 @@ namespace OpenMS::Internal
     {
       return options_;
     }
-
 
     /// handler which support partial loading, implement this method
     XMLHandler::LOADDETAIL MzMLHandler::getLoadDetail() const
@@ -712,10 +716,10 @@ namespace OpenMS::Internal
       constexpr XMLCh s_external_spectrum_id[] = { 'e','x','t','e','r','n','a','l','S','p','e','c','t','r','u','m','I','D' , 0};
       // constexpr XMLCh s_default_source_file_ref[] = { 'd','e','f','a','u','l','t','S','o','u','r','c','e','F','i','l','e','R','e','f' , 0};
       constexpr XMLCh s_scan_settings_ref[] = { 's','c','a','n','S','e','t','t','i','n','g','s','R','e','f' , 0};
-      //open_tags_.push_back(sm.convert(qname));
       
-      String tag = sm_.convert(qname);
-      open_tags_.push_back(tag);
+      open_tags_.push_back(sm_.convert(qname));
+      const String& tag = sm_.convert(qname);
+      
 
       // do nothing until a spectrum/chromatogram/spectrumList ends
       if (skip_spectrum_ || skip_chromatogram_)
@@ -3930,7 +3934,7 @@ namespace OpenMS::Internal
     void MzMLHandler::writeTo(std::ostream& os)
     {
         // Determine if output should be compressed based on file extension
-        const bool compress = file_.toLower().hasSuffix(".gz");
+        const bool compress = String(file_).toLower().hasSuffix(".gz");
     
         // Set gzip compression parameters (favor speed)
         boost::iostreams::gzip_params gz_params;
@@ -3947,19 +3951,19 @@ namespace OpenMS::Internal
         // Setup validator and processing pointers
         Internal::MzMLValidator validator(mapping_, cv_);
         std::vector<std::vector<ConstDataProcessingPtr>> dps;
-        std::string output_file = file_;
+        
     
         try
         {
             bool renew_native_ids = false;
     
             // Stream setup (including optional compression filters)
-            bio::filtering_ostream filter;
-            bio::counter counter_filter;
+            boost::iostreams::filtering_ostream filter;
+            boost::iostreams::counter counter_filter;
             std::ostream* output_stream = &os;
     
-            std::unique_ptr<bp::opstream> pigz_pipe;
-            std::unique_ptr<bp::child> pigz_process;
+            std::unique_ptr<boost::process::opstream> pigz_pipe;
+            std::unique_ptr<boost::process::child> pigz_process;
     
             bool pigz_available = false;
     
@@ -3995,31 +3999,32 @@ namespace OpenMS::Internal
                 int compression_level = std::clamp(max_threads, 1, 9);
     
                 OPENMS_LOG_INFO << "Setting pigz to use " << max_threads << " threads" << std::endl;
-    
-                // Start pigz as subprocess and pipe output through it
-                pigz_pipe = std::make_unique<bp::opstream>();
-                pigz_process = std::make_unique<bp::child>(
-                    bp::search_path("pigz"),
-                    "-c",
-                    "-p", std::to_string(max_threads),
-                    "-" + std::to_string(compression_level),
-                    bp::std_in < *pigz_pipe,
-                    bp::std_out > boost::filesystem::path(output_file)
-                );
-    
-                // Setup optional counter for index writing
-                if (options_.getWriteIndex())
-                {
-                    filter.push(counter_filter);
-                    impl_->counter_ptr_ = &counter_filter;
-                }
-                else
-                {
-                    impl_->counter_ptr_ = nullptr;
-                }
-    
-                filter.push(*pigz_pipe);
-                output_stream = &filter;
+
+            // Start pigz as subprocess and pipe output through it
+            boost::process::opstream pigz_pipe;
+            boost::process::child pigz_process(
+              boost::process::search_path("pigz"),
+                "-c",
+                "-p", std::to_string(max_threads),
+                "-" + std::to_string(compression_level),
+                boost::process::std_in < pigz_pipe,
+                boost::process::std_out > boost::filesystem::path(file_)
+            );
+
+            // Setup optional counter for index writing
+            if (options_.getWriteIndex())
+            {
+                filter.push(counter_filter);
+                impl_->counter_ptr_ = &counter_filter;
+            }
+            else
+            {
+                impl_->counter_ptr_ = nullptr;
+            }
+
+            filter.push(pigz_pipe);
+            output_stream = &filter;
+
             }
             // Use built-in Boost gzip compression if pigz is not available
             else if (compress)
@@ -4036,7 +4041,7 @@ namespace OpenMS::Internal
                     impl_->counter_ptr_ = nullptr;
                 }
     
-                filter.push(bio::gzip_compressor(gz_params));
+                filter.push(boost::iostreams::gzip_compressor(gz_params));
                 filter.push(os);
                 output_stream = &filter;
             }
@@ -4049,7 +4054,7 @@ namespace OpenMS::Internal
             // Write mzML header
             writeHeader_(*output_stream, exp, dps, validator);
     
-            compress_mode_ = compress;
+            
     
             // Write spectrum list and individual spectra
             if (!exp.getSpectra().empty())
@@ -4102,15 +4107,15 @@ namespace OpenMS::Internal
                         String("pigz process failed with exit code ") + pigz_process->exit_code());
                 }
             }
-            // Cleanup for boost::iostreams filter chain
+            // Cleanup for boost::iostreams filter chain Close and clears all filters, calls destructor
             else if (filter.size() > 0)
             {
                 filter.reset();
             }
-        }
+        
     
     
-            logger_.endProgress(os.tellp());
+            logger_.endProgress(counter);
             OPENMS_LOG_INFO << stored_spectra << " spectra and "
                             << stored_chromatograms << " chromatograms stored.\n";
         }
@@ -4118,13 +4123,13 @@ namespace OpenMS::Internal
         {
             throw Exception::ConversionError(
                 __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                String("GZip compression failed for '") + output_file + "' (" + String(e.error()) + "): " + e.what());
+                String("GZip compression failed for '") + file_+ "' (" + String(e.error()) + "): " + e.what());
         }
         catch (const std::ios_base::failure& e)
         {
             throw Exception::ConversionError(
                 __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                String("Stream error while writing to '") + output_file + "': " + e.what());
+                String("Stream error while writing to '") + file_ + "': " + e.what());
         }
     }
     
@@ -5085,7 +5090,7 @@ if (renew_native_ids)
 if (options_.getWriteIndex())
 {
     Int64 offset = 0;
-   if (compress_mode_)
+   if (compress)
 {
     if (!impl_->counter_ptr_)
     {
@@ -5104,7 +5109,7 @@ if (options_.getWriteIndex())
         }
         offset = static_cast<Int64>(pos);
     }
-    spectra_offsets_.emplace_back(native_id, offset + (compress_mode_ ? 0 : 3));
+    spectra_offsets_.emplace_back(native_id, offset + (compress ? + 3));
 }
 
 // IMPORTANT make sure the offset (above) corresponds to the start of the <spectrum tag
@@ -5691,7 +5696,7 @@ void MzMLHandler::writeChromatogram_(std::ostream& os,
   {
       // compute offset 
       Int64 offset = 0;
-      if (compress_mode_)
+      if (compress)
       {
           if (!impl_->counter_ptr_)
           {
@@ -5712,7 +5717,7 @@ void MzMLHandler::writeChromatogram_(std::ostream& os,
           offset = static_cast<Int64>(pos);
       }  
   
-      chromatograms_offsets_.emplace_back(native_id, offset + (compress_mode_ ? 0 : 3));
+      chromatograms_offsets_.emplace_back(native_id, offset + (compress ? 0 : 3));
   }
   
   os << "\t\t\t<chromatogram id=\"" << writeXMLEscape(chromatogram.getNativeID()) << "\" index=\"" << c << "\" defaultArrayLength=\"" << chromatogram.size() << "\">" << "\n";
