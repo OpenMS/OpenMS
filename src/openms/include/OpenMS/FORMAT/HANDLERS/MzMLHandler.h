@@ -221,7 +221,8 @@ protected:
 
       const bool compress;
       struct Impl; // forward declaration
-      std::unique_ptr<Impl> impl_; // Pimpl pointer
+
+      std::unique_ptr<Impl> impl_; ///< Pimpl pointer
 
 
       /**@name Helper functions for storing data in memory
