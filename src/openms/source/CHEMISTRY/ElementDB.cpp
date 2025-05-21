@@ -798,19 +798,11 @@ namespace OpenMS
 
   const Isotope* ElementDB::addIsotopeToMaps_(const std::string& iso_name, const std::string& iso_symbol, const Isotope* isotope)
   {
-    std::cerr << "DEBUG: addIsotopeToMaps_ called with iso_name=" << iso_name << ", iso_symbol=" << iso_symbol << std::endl;
-    
+    // If isotope already exists, update its properties while preserving element relationships
     if (isotopes_.find(iso_symbol) != isotopes_.end())
     {
-      std::cerr << "DEBUG: Found existing isotope in isotopes_ map" << std::endl;
       const Isotope* const_iso = isotopes_[iso_symbol];
-      std::cerr << "DEBUG: Existing isotope pointer: " << const_iso << std::endl;
-      
       Isotope* iso = const_cast<Isotope*>(const_iso);
-      
-      // Instead of blindly using assignment operator which could break relationships,
-      // selectively update properties while preserving element relationships
-      std::cerr << "DEBUG: Selectively updating isotope properties (instead of using assignment operator)" << std::endl;
       
       // Keep the existing element relationship intact by not re-assigning atomic_number_
       // Update only the properties that should change
@@ -823,17 +815,14 @@ namespace OpenMS
       // Names and symbols are used in lookup maps, so we need to be careful with them
       if (iso->getName() != isotope->getName())
       {
-        std::cerr << "DEBUG: Updating isotope name" << std::endl;
-        iso->setName(isotope->getName());
+      iso->setName(isotope->getName());
       }
       
       if (iso->getSymbol() != isotope->getSymbol())
       {
-        std::cerr << "DEBUG: Updating isotope symbol" << std::endl;
-        iso->setSymbol(isotope->getSymbol());
+      iso->setSymbol(isotope->getSymbol());
       }
       
-      std::cerr << "DEBUG: Returning existing isotope pointer" << std::endl;
       return iso;
     }
     else

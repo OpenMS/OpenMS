@@ -146,96 +146,56 @@ END_SECTION
 
 START_SECTION( void addIsotope(const std::string& name, const std::string& symbol, const unsigned int an, double abundance, double mass, double half_life, Isotope::DecayMode decay, bool replace_existing))
 {
-  std::cout << "Line " << __LINE__ << ": Start addIsotope test section" << std::endl;
   const Isotope * iso1 = e_ptr->getIsotope("(238)U");
-  std::cout << "Line " << __LINE__ << ": Got isotope (238)U" << std::endl;
   TEST_REAL_SIMILAR(iso1->getAbundance(), 0.992742) // test natural abundance
-  std::cout << "Line " << __LINE__ << ": Checked abundance" << std::endl;
-  std::cout << "Line " << __LINE__ << ": addIsotope call" << std::endl;
   e_ptr->addIsotope("Uranium", "U", 92u, 1.3, 238.05, 1e5, Isotope::DecayMode::UNKNOWN, true);
-  std::cout << "Line " << __LINE__ << ": addIsotope call completed" << std::endl;
 
   const Isotope * iso2 = e_ptr->getIsotope("(238)U");
-  std::cout << "Line " << __LINE__ << ": Got isotope again" << std::endl;
   // ptr addresses cannot change, otherwise we are in trouble since EmpiricalFormula uses those
   TEST_EQUAL(iso1, iso2)
-  std::cout << "Line " << __LINE__ << ": Verified pointers are equal" << std::endl;
   TEST_REAL_SIMILAR(iso1->getAbundance(), 1.3) // natural abundance has changed
-  std::cout << "Line " << __LINE__ << ": Verified abundance changed" << std::endl;
 
   // we have now managed to have 130% natural abundance for Uranium
   // NOTE: this is a major problem for average weight calculations etc
   const Element* element = e_ptr->getElement(92);
-  std::cout << "Line " << __LINE__ << ": Got element 92 (Uranium)" << std::endl;
   TEST_TRUE(element != nullptr)
-  std::cout << "Line " << __LINE__ << ": Verified element exists" << std::endl;
   double sum = 0;
   for (auto& iso : element->getIsotopeDistribution()) {sum += iso.getIntensity();}
-  std::cout << "Line " << __LINE__ << ": Calculated isotope sum: " << sum << std::endl;
   TEST_REAL_SIMILAR(sum, 1.30725795222315);
-  std::cout << "Line " << __LINE__ << ": Verified sum" << std::endl;
 
   // new Uranium isotope added
   TEST_TRUE(e_ptr->getIsotope("(314)C") == nullptr)
-  std::cout << "Line " << __LINE__ << ": Verified (314)C doesn't exist" << std::endl;
   int nr_isotopes = element->getIsotopes().size();
-  std::cout << "Line " << __LINE__ << ": Current number of isotopes: " << nr_isotopes << std::endl;
-  std::cout << "Line " << __LINE__ << ": addIsotope call" << std::endl;
   e_ptr->addIsotope("Uranium", "U", 92u, 0.3, 314.0, 1e5, Isotope::DecayMode::UNKNOWN, false);
-  std::cout << "Line " << __LINE__ << ": addIsotope call completed" << std::endl;
   const Isotope * new_iso = e_ptr->getIsotope("(314)U");
-  std::cout << "Line " << __LINE__ << ": Retrieved new isotope" << std::endl;
   TEST_EQUAL( new_iso != nullptr, true)
-  std::cout << "Line " << __LINE__ << ": Verified new isotope exists" << std::endl;
   TEST_EQUAL( new_iso->getElement(), element)
-  std::cout << "Line " << __LINE__ << ": Verified isotope has correct element" << std::endl;
   TEST_EQUAL( element->getIsotopes().size(), nr_isotopes+1) // increased number of isotopes by one
-  std::cout << "Line " << __LINE__ << ": Verified isotope count increased" << std::endl;
   TEST_EQUAL( element->getIsotopeDistribution().getContainer().size(), nr_isotopes+1) // increased number of isotopes by one
-  std::cout << "Line " << __LINE__ << ": Verified distribution size increased" << std::endl;
 
   // we have now managed to have 160% natural abundance for Uranium
   // NOTE: this is a major problem for average weight calculations etc
   sum = 0;
   for (auto& iso : element->getIsotopeDistribution()) {sum += iso.getIntensity();}
-  std::cout << "Line " << __LINE__ << ": Recalculated isotope sum: " << sum << std::endl;
   TEST_REAL_SIMILAR(sum, 1.60725795222315);
-  std::cout << "Line " << __LINE__ << ": Verified new sum" << std::endl;
 
   // Test that we cannot add isotopes for elements that dont exist
-  std::cout << "Line " << __LINE__ << ": addIsotope exception test" << std::endl;
   TEST_EXCEPTION(Exception::IllegalArgument, e_ptr->addIsotope("NewElement", "NE", 300, 0.5, 404, 100, Isotope::DecayMode::UNKNOWN, false))
-  std::cout << "Line " << __LINE__ << ": Exception test passed" << std::endl;
 
   {
-    std::cout << "Line " << __LINE__ << ": Starting nested scope" << std::endl;
     // Test that we cannot add twice with replace=false
-    std::cout << "Line " << __LINE__ << ": addIsotope call" << std::endl;
     e_ptr->addIsotope("NewElement", "NE", 800, 0.5, 404, 100, Isotope::DecayMode::UNKNOWN, false);
-    std::cout << "Line " << __LINE__ << ": addIsotope call completed" << std::endl;
-    std::cout << "Line " << __LINE__ << ": addIsotope exception test" << std::endl;
     TEST_EXCEPTION(Exception::IllegalArgument, e_ptr->addIsotope("NewElement", "NE", 800, 0.5, 404, 100, Isotope::DecayMode::UNKNOWN, false))
-    std::cout << "Line " << __LINE__ << ": Exception test passed" << std::endl;
     const Isotope* new_iso = e_ptr->getIsotope("(404)NE");
-    std::cout << "Line " << __LINE__ << ": Retrieved isotope" << std::endl;
     TEST_EQUAL( new_iso != nullptr, true);
-    std::cout << "Line " << __LINE__ << ": Verified isotope exists" << std::endl;
-    TEST_REAL_SIMILAR( new_iso->getAbundance(), 0.5)
-    std::cout << "Line " << __LINE__ << ": Verified abundance" << std::endl;
+    TEST_REAL_SIMILAR( new_iso->getAbundance(), 0.5);
 
     // we should be able to add the same one again with replace=true
-    std::cout << "Line " << __LINE__ << ": addIsotope call" << std::endl;
     e_ptr->addIsotope("NewElement", "NE", 800, 0.6, 404, 100, Isotope::DecayMode::UNKNOWN, true);
-    std::cout << "Line " << __LINE__ << ": addIsotope call completed" << std::endl;
     new_iso = e_ptr->getIsotope("(404)NE");
-    std::cout << "Line " << __LINE__ << ": Retrieved isotope again" << std::endl;
     TEST_EQUAL( new_iso != nullptr, true);
-    std::cout << "Line " << __LINE__ << ": Verified isotope still exists" << std::endl;
-    TEST_REAL_SIMILAR( new_iso->getAbundance(), 0.6)
-    std::cout << "Line " << __LINE__ << ": Verified new abundance" << std::endl;
-    std::cout << "Line " << __LINE__ << ": Ending nested scope" << std::endl;
+    TEST_REAL_SIMILAR( new_iso->getAbundance(), 0.6);
   }
-  std::cout << "Line " << __LINE__ << ": End addIsotope test section" << std::endl;
 }
 END_SECTION
 
