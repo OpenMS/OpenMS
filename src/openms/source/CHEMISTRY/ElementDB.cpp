@@ -15,6 +15,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <iostream>
 #include <cmath>
@@ -127,13 +128,10 @@ namespace OpenMS
                      Isotope::DecayMode decay,
                      bool replace_existing)
   {
-    std::cerr << "DEBUG: Adding isotope " << name << " with symbol " << symbol << " and atomic number " << an << ", replace=" << replace_existing << std::endl;
     unsigned int mass_number = std::round(mass);
     string iso_name = "(" + std::to_string(mass_number) + ")" + name;
     string iso_symbol = "(" + std::to_string(mass_number) + ")" + symbol;
   
-    std::cerr << "DEBUG: Calculated iso_name=" << iso_name << ", iso_symbol=" << iso_symbol << std::endl;
-    std::cerr << "DEBUG: Checking if element exists with atomic number " << an << std::endl;
     
     if (!hasElement( an )  )
     {
@@ -141,66 +139,40 @@ namespace OpenMS
           name + " since the element with  atomic number " + an + " does not yet exsist -- create it first!");
     }
     
-    std::cerr << "DEBUG: Element with atomic number " << an << " exists" << std::endl;
   
     if (hasElement( iso_symbol )  )
     {
-      std::cerr << "DEBUG: Isotope with symbol " << iso_symbol << " already exists" << std::endl;
       
       if (!replace_existing)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Isotope with symbol ") + iso_symbol + " already exists and replace_existing is set to false.");
       }
       
-      std::cerr << "DEBUG: Creating new isotope to replace existing one" << std::endl;
-      const Isotope* isotope = new Isotope(iso_name, iso_symbol, an, mass_number - an, mass, abundance, half_life, decay);
-      std::cerr << "DEBUG: New isotope created successfully" << std::endl;
-      
-      std::cerr << "DEBUG: Calling addIsotopeToMaps_ to replace existing isotope" << std::endl;
+      const Isotope* isotope = new Isotope(iso_name, iso_symbol, an, mass_number - an, mass, abundance, half_life, decay);      
       addIsotopeToMaps_(iso_name, iso_symbol, isotope);
-      std::cerr << "DEBUG: addIsotopeToMaps_ completed" << std::endl;
       
       // we changed/updated the isotopes, so we need to update
-      std::cerr << "DEBUG: Getting element for isotope" << std::endl;
       const Element* const_ele = isotope->getElement();
-      std::cerr << "DEBUG: Element pointer: " << const_ele << std::endl;
       
       Element* element = const_cast<Element*>(const_ele);
-      std::cerr << "DEBUG: Getting isotopes from element" << std::endl;
       auto current_isotopes = element->getIsotopes();
-      std::cerr << "DEBUG: Element has " << current_isotopes.size() << " isotopes" << std::endl;
       
-      std::cerr << "DEBUG: Calling element->setIsotopes to update" << std::endl;
       element->setIsotopes(element->getIsotopes());
-      std::cerr << "DEBUG: Element isotopes updated" << std::endl;
     }
     else
     {
-      std::cerr << "DEBUG: Isotope with symbol " << iso_symbol << " does not exist, creating new one" << std::endl;
-      const Isotope* isotope = new Isotope(iso_name, iso_symbol, an, mass_number - an, mass, abundance, half_life, decay);
-      std::cerr << "DEBUG: New isotope created successfully" << std::endl;
-      
-      std::cerr << "DEBUG: Adding new isotope to maps" << std::endl;
+      const Isotope* isotope = new Isotope(iso_name, iso_symbol, an, mass_number - an, mass, abundance, half_life, decay);      
       isotope = addIsotopeToMaps_(iso_name, iso_symbol, isotope);
-      std::cerr << "DEBUG: New isotope added to maps" << std::endl;
   
       // we added a new isotope, so we need to add it to the element
-      std::cerr << "DEBUG: Getting element for new isotope" << std::endl;
       const Element* const_ele = isotope->getElement();
-      std::cerr << "DEBUG: Element pointer: " << const_ele << std::endl;
       
       Element* element = const_cast<Element*>(const_ele);
-      std::cerr << "DEBUG: Getting isotopes list from element" << std::endl;
       auto iso_list = element->getIsotopes();
-      std::cerr << "DEBUG: Element has " << iso_list.size() << " isotopes" << std::endl;
       
-      std::cerr << "DEBUG: Adding new isotope to list" << std::endl;
       iso_list.push_back(isotope);
-      std::cerr << "DEBUG: Updating element's isotope list" << std::endl;
       element->setIsotopes(iso_list);
-      std::cerr << "DEBUG: Element's isotope list updated successfully" << std::endl;
     }
-    std::cerr << "DEBUG: addIsotope completed successfully" << std::endl;
   }
 
   double ElementDB::calculateAvgWeight_(const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)
@@ -624,7 +596,7 @@ namespace OpenMS
 
     map<unsigned int, double> iridium_abundance = {{191u, 0.3723}, {193u, 0.6277}};
     map<unsigned int, double> iridium_mass = {{191u, 190.960591}, {193u, 192.962924}};
-    buildElement_("Iridium", "Ir", 77u, rhenium_abundance, rhenium_mass);
+    buildElement_("Iridium", "Ir", 77u, iridium_abundance, iridium_mass);
 
 
     // Pt-190 is radioactive but with a very long half-life. Since its natural occurence is very low, we neglect it by default (m=189.959930 abund.frac.=0.00014)

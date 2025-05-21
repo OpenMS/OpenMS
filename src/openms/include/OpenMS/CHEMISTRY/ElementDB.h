@@ -77,7 +77,7 @@ public:
     */
     const Isotope* getIsotope(const std::string& name) const;
 
-    /// returns a pointer to the element of atomic number; if no element is found 0 is returned
+    /// returns a pointer to the element of atomic number; if no element is found nullptr is returned
     const Element* getElement(unsigned int atomic_number) const;
 
     /** Adds or replaces a new element to the database
@@ -105,6 +105,7 @@ public:
     /** Adds or replaces a new isotope in the database
      *
      * Adds a new isotope (or replaces an existing one if @em replace_existing is true).
+     * This function also updates the element's isotope distribution when a new isotope is added.
      *
      * @param name Common name of the element
      * @param symbol Element symbol (one or two letter)
@@ -178,16 +179,20 @@ protected:
     /// add element objects to documentation maps
     const Isotope* addIsotopeToMaps_(const std::string& name, const std::string& symbol, const Isotope* e);
 
-    /**_ resets all containers
+    /** Resets all containers
     **/
     void clear_();
 
+    /// Map of element names to Element pointers
     std::unordered_map<std::string, const Element*> names_;
 
+    /// Map of element symbols to Element pointers
     std::unordered_map<std::string, const Element*> symbols_;
 
+    /// Map of atomic numbers to Element pointers
     std::unordered_map<unsigned int, const Element*> atomic_numbers_;
 
+    /// Map of isotope symbols to Isotope pointers
     std::unordered_map<std::string, const Isotope*> isotopes_;
 
 private:
