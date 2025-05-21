@@ -833,8 +833,6 @@ namespace OpenMS
         iso->setSymbol(isotope->getSymbol());
       }
       
-      std::cerr << "DEBUG: Safe update completed, deleting new isotope instance" << std::endl;
-      delete isotope;
       std::cerr << "DEBUG: Returning existing isotope pointer" << std::endl;
       return iso;
     }
