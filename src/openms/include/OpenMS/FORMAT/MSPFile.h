@@ -11,11 +11,13 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 
 #include <vector>
 
 namespace OpenMS
 {
+  class AnnotatedMSRun;
   /**
       @brief File adapter for MSP files (NIST spectra library)
 
@@ -59,11 +61,23 @@ public:
     void load(const String & filename, std::vector<PeptideIdentification> & ids, PeakMap & exp);
 
     /**
+        @brief Loads a map from a MSPFile file.
+
+        @param filename the filename of the experiment
+        @param annot_exp annotated experiment with spectra and ids
+
+        @throw FileNotFound is thrown if the file could not be found
+        @throw ParseError is thrown if the given file could not be parsed
+        @throw ElementNotFound is thrown if a annotated modification cannot be found in ModificationsDB (PSI-MOD definitions)
+    */
+    void load(const String & filename, AnnotatedMSRun & annot_exp);
+
+    /**
         @brief Stores a map in a MSPFile file.
 
         @throw UnableToCreateFile is thrown if the given file could not be created
     */
-    void store(const String & filename, const PeakMap & exp) const;
+    void store(const String & filename, const AnnotatedMSRun & exp) const;
 
 protected:
 
