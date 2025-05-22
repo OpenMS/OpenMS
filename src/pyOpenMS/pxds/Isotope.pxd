@@ -57,7 +57,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Isotope.h>" namespace "OpenMS":
         String getSymbol() nogil except + # wrap-doc:Returns symbol of the element
 
 
-        const Element* getElement() # wrap-doc:Get corresponding element
+        const Element* getElement() nogil except + # wrap-doc:Get corresponding element
 
         void setHalfLife(double hl) nogil except + # wrap-doc:set isotope half life in seconds
         double getHalfLife() nogil except + # wrap-doc:get isotope half life in seconds
