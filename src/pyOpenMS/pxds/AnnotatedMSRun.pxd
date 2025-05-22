@@ -29,24 +29,22 @@ cdef extern from "<OpenMS/METADATA/AnnotatedMSRun.h>" namespace "OpenMS":
         #    run.setMSExperiment(exp)
         #    run.setPeptideIdentifications(my_peptide_ids)
         
-        AnnotatedMSRun() nogil except +
-        AnnotatedMSRun(MSExperiment) nogil except +
-        AnnotatedMSRun(AnnotatedMSRun) nogil except +
+        AnnotatedMSRun() except + nogil
+        AnnotatedMSRun(MSExperiment) except + nogil
+        AnnotatedMSRun(AnnotatedMSRun) except + nogil
         
         # Protein identification methods
-        libcpp_vector[ProteinIdentification]& getProteinIdentifications() nogil except +
-        const libcpp_vector[ProteinIdentification]& getProteinIdentifications() nogil except + # wrap-ignore
+        libcpp_vector[ProteinIdentification] getProteinIdentifications() except + nogil
+        void setProteinIdentifications(libcpp_vector[ProteinIdentification]& ids) except + nogil
         
         # Peptide identification methods
-        libcpp_vector[PeptideIdentification]& getPeptideIdentifications() nogil except +
-        const libcpp_vector[PeptideIdentification]& getPeptideIdentifications() nogil except + # wrap-ignore
-        void setPeptideIdentifications(libcpp_vector[PeptideIdentification]& ids) nogil except +
+        libcpp_vector[PeptideIdentification] getPeptideIdentifications() except + nogil
+        void setPeptideIdentifications(libcpp_vector[PeptideIdentification]& ids) except + nogil
         
         # MSExperiment methods
-        MSExperiment& getMSExperiment() nogil except +
-        const MSExperiment& getMSExperiment() nogil except + # wrap-ignore
-        void setMSExperiment(MSExperiment& experiment) nogil except +
+        MSExperiment getMSExperiment() except + nogil
+        void setMSExperiment(MSExperiment& experiment) except + nogil
         
         # Access methods
-        libcpp_pair[MSSpectrum&, PeptideIdentification&] operator[](size_t idx) nogil except + # wrap-ignore
+        libcpp_pair[MSSpectrum, PeptideIdentification] operator[](size_t idx) except + nogil # wrap-ignore
         
