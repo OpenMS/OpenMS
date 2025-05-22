@@ -1320,9 +1320,6 @@ std::vector<MSChromatogram> extractXICs(
     /// returns true if any MS spectra of trthe specified level contain at least one peak with intensity of 0.0
     bool hasZeroIntensities(size_t ms_level) const;
 
-    /// do any of the spectra have a PeptideID?
-    bool hasPeptideIdentifications() const;
-
     /// Are all MSSpectra in this experiment part of an IM Frame? I.e. they all have the same RT, but different drift times
     bool isIMFrame() const;
 
