@@ -47,7 +47,7 @@ START_SECTION((virtual void run()))
   MzMLFile mzml_file;
   mzml_file.getOptions().addMSLevel(1);
   mzml_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmPicked.mzML"),input);
-  input.updateRanges(1);
+  input.updateRanges();
   FeatureMap output;
 
   //parameters

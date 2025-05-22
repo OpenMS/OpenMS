@@ -242,10 +242,10 @@ namespace OpenMS
     //new scope to make local variables disappear
     {
       startProgress(0, intensity_bins_ * intensity_bins_, "Precalculating intensity scores");
-      double rt_start = map_.getMinRT();
-      double mz_start = map_.getMinMZ();
-      intensity_rt_step_ = (map_.getMaxRT() - rt_start) / (double)intensity_bins_;
-      intensity_mz_step_ = (map_.getMaxMZ() - mz_start) / (double)intensity_bins_;
+      double rt_start = map_.spectrumRanges().byMSLevel(1).getMinRT();
+      double mz_start = map_.spectrumRanges().byMSLevel(1).getMinMZ();
+      intensity_rt_step_ = (map_.spectrumRanges().byMSLevel(1).getMaxRT() - rt_start) / (double)intensity_bins_;
+      intensity_mz_step_ = (map_.spectrumRanges().byMSLevel(1).getMaxMZ() - mz_start) / (double)intensity_bins_;
       intensity_thresholds_.resize(intensity_bins_);
       for (Size rt = 0; rt < intensity_bins_; ++rt)
       {
@@ -356,7 +356,7 @@ namespace OpenMS
     //---------------------------------------------------------------------------
     //new scope to make local variables disappear
     {
-      double max_mass = map_.getMaxMZ() * charge_high;
+      double max_mass = map_.spectrumRanges().byMSLevel(1).getMaxMZ() * charge_high;
       Size num_isotopes = std::ceil(max_mass / mass_window_width_) + 1;
       startProgress(0, num_isotopes, "Precalculating isotope distributions");
 
@@ -1829,8 +1829,8 @@ namespace OpenMS
     double intensity  = map_[spectrum][peak].getIntensity();
     double rt = map_[spectrum].getRT();
     double mz = map_[spectrum][peak].getMZ();
-    double rt_min = map_.getMinRT();
-    double mz_min = map_.getMinMZ();
+    double rt_min = map_.spectrumRanges().byMSLevel(1).getMinRT();
+    double mz_min = map_.spectrumRanges().byMSLevel(1).getMinMZ();
     UInt rt_bin = std::min(2 * intensity_bins_ - 1, (UInt) std::floor((rt - rt_min) / intensity_rt_step_ * 2.0));
     UInt mz_bin = std::min(2 * intensity_bins_ - 1, (UInt) std::floor((mz - mz_min) / intensity_mz_step_ * 2.0));
     // determine mz bins

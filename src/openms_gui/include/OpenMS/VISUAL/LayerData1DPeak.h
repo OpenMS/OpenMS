@@ -34,7 +34,7 @@ namespace OpenMS
 
     bool hasIndex(Size index) const override
     {
-      return index < peak_map_->size();
+      return index < peak_map_->getMSExperiment().size();
     }
 
     RangeAllType getRangeForArea(const RangeAllType partial_range) const override

@@ -25,6 +25,12 @@
 
 namespace OpenMS
 {
+  /* Concept for FeatureMap or ConsensusMap*/
+  template <typename MapType>
+  concept IsFCMap = std::same_as<MapType, OpenMS::FeatureMap> || std::same_as<MapType, OpenMS::ConsensusMap>; 
+
+  class AnnotatedMSRun;
+
   /**
     @brief A map alignment algorithm based on peptide identifications from MS2 spectra.
 
@@ -74,9 +80,9 @@ public:
     }
 
     /**
-      @brief Align feature maps, consensus maps, peak maps, or peptide identifications.
+      @brief Align feature maps, consensus maps, or peptide identifications.
 
-      @param data Vector of input data (FeatureMap, ConsensusMap, PeakMap or @p vector<PeptideIdentification>) that should be aligned.
+      @param data Vector of input data (FeatureMap, ConsensusMap, or @p vector<PeptideIdentification>) that should be aligned.
       @param transformations Vector of RT transformations that will be computed.
       @param reference_index Index in @p data of the reference to align to, if any
 
@@ -201,7 +207,7 @@ protected:
 
       @return Are the RTs already sorted? (Here: false)
     */
-    bool getRetentionTimes_(const PeakMap& experiment, SeqToList& rt_data);
+    bool getRetentionTimes_(const AnnotatedMSRun& experiment, SeqToList& rt_data);
 
     /**
       @brief Collect retention time data from peptide IDs contained in feature maps or consensus maps
@@ -217,8 +223,8 @@ protected:
 
       @return Are the RTs already sorted? (Here: true)
     */
-    template <typename MapType>
-    bool getRetentionTimes_(const MapType& features, SeqToList& rt_data)
+
+    bool getRetentionTimes_(const IsFCMap auto& features, SeqToList& rt_data)
     {
       if (!score_cutoff_)
       {
@@ -236,8 +242,7 @@ protected:
         { return a <= b; };
       }
 
-      for (typename MapType::ConstIterator feat_it = features.begin();
-           feat_it != features.end(); ++feat_it)
+      for (auto feat_it = features.cbegin(); feat_it != features.cend(); ++feat_it)
       {
         if (use_feature_rt_)
         {

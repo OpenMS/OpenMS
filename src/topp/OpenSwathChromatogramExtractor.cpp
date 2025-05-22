@@ -221,7 +221,7 @@ protected:
       // Find the transitions to extract and extract them
       MapType tmp_out;
       OpenMS::TargetedExperiment transition_exp_used;
-      FileHandler().loadExperiment(file_list[i], *exp, {FileTypes::MZML});
+      FileHandler().loadExperiment(file_list[i], *exp, {FileTypes::MZML}, log_type_);
       if (exp->empty())
       { 
         continue; // if empty, go on
