@@ -13,7 +13,6 @@ from Types cimport *
 from DocumentIdentifier cimport *
 from RangeManager cimport *
 from MetaInfoInterface cimport *
-from MSExperiment cimport *
 
 # this class has addons, see the ./addons folder
 
