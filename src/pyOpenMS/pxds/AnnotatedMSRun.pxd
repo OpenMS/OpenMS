@@ -43,7 +43,6 @@ cdef extern from "<OpenMS/METADATA/AnnotatedMSRun.h>" namespace "OpenMS":
         
         # MSExperiment methods
         MSExperiment getMSExperiment() except + nogil
-        const MSExperiment getMSExperiment() except + nogil # wrap-ignore
         void setMSExperiment(MSExperiment& experiment) except + nogil
         
         # Access methods

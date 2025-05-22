@@ -119,7 +119,6 @@ cdef extern from "<OpenMS/KERNEL/RangeManager.h>" namespace "OpenMS":
 
 
     cdef cppclass RangeManagerRtMzIntMob "OpenMS::RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>":
-        # wrap-ignore
         # no-pxd-import
         RangeManagerRtMzIntMob() except + nogil
         RangeManagerRtMzIntMob(RangeManagerRtMzIntMob &) except + nogil
