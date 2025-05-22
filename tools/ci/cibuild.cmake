@@ -107,6 +107,7 @@ set(VARS_TO_LOAD
   "Python_FIND_STRATEGY"
   "WITH_GUI"
   "WITH_THERMORAWFILEPARSER_TEST"
+  "COMPILE_PXDS"
  )
 
 message("tools/ci/cibuild.cmake: Loading the following vars from ENV if available: ${VARS_TO_LOAD}")
@@ -184,7 +185,10 @@ if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
   endif()
   if("$ENV{ENABLE_CWL_GENERATION}" STREQUAL "ON")
-  ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "generate_cwl_files" NUMBER_ERRORS _build_errors)
+    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "generate_cwl_files" NUMBER_ERRORS _build_errors)
+  endif()
+  if("$ENV{COMPILE_PXDS}" STREQUAL "ON")
+    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "compile_pxds" NUMBER_ERRORS _build_errors)
   endif()
 else()
   set(_build_errors 0)
