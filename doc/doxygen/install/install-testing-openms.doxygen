@@ -1,0 +1,26 @@
+After building %OpenMS and TOPP, you should test your installation by
+executing the following command:
+
+```sh
+make test
+```
+
+or
+
+```sh
+ctest
+```
+
+By using `ctest` you can also execute a subset of tests by using the
+`-R SUBSTRING` option and run tests in parallel using the `-j` option.
+For example,
+
+```sh
+ctest -R TOPP_ -j 4
+```
+
+will run all TOPP test using 4 jobs.
+
+For more information, consult the `ctest` [man page][ctest].
+
+[ctest]: http://manpages.ubuntu.com/manpages/hardy/man1/ctest.1.html

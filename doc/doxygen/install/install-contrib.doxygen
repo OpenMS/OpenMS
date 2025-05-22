@@ -1,0 +1,39 @@
+Under certain circumstances you may want to build all dependencies
+from source code.  In order to facilitate the installation of the
+libraries required for %OpenMS we provide a "contrib" package
+containing the following libraries: Boost, %Eigen, libSVM, libHDF5,
+glpk, zlib, bzip2, CoinMP and Xerces-C.
+
+The following commands can be used to build all of these dependencies
+(assuming you have already cloned the %OpenMS repository using the
+commands previously used in this document):
+
+```sh
+mkdir -p "$OPENMS_DIR/contrib_build"
+cd "$OPENMS_DIR/contrib_build"
+cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=8 "$OPENMS_DIR/OpenMS/contrib"
+```
+
+Alternatively, you can build one dependency at a time by using the
+`BUILD_TYPE` flag.  For example:
+
+```sh
+cmake \
+  -DBUILD_TYPE=LIBSVM \
+  -DNUMBER_OF_JOBS=8 \
+  "$OPENMS_DIR/OpenMS/contrib"
+```
+
+If everything worked, the following sub-directories were created under
+the `contrib` build directory:
+
+- `lib`: containing the libraries needed by %OpenMS.
+
+- `include`: containing the header files needed for %OpenMS.
+
+You can now build %OpenMS with the instructions in this document by
+adding the following flag to `cmake`:
+
+```sh
+-DOPENMS_CONTRIB_LIBS="$OPENMS_DIR/contrib_build"
+```
