@@ -1,6 +1,6 @@
 
 
-    def getMapping(self, size_t idx):
+    def getMapping(AnnotatedMSRun self, size_t idx):
         """Cython signature: Mapping getMapping(size_t idx)"""
         #
         # Get a mapping of spectrum and peptide identification at the given index
@@ -34,7 +34,7 @@
         
         return (py_spectrum, py_peptide)
         
-    def __getitem__(self, size_t idx):
+    def __getitem__(AnnotatedMSRun self, size_t idx):
         """Get a mapping of spectrum and peptide identification at the given index"""
         # 
         # Parameters
@@ -54,7 +54,7 @@
         # 
         return self.getMapping(idx)
         
-    def __iter__(self):
+    def __iter__(AnnotatedMSRun self):
         """Iterate over all mappings of spectra and peptide identifications"""
         # 
         # Returns
