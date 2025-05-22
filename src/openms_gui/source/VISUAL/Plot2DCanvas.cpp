@@ -337,13 +337,14 @@ namespace OpenMS
           auto local_max  = -numeric_limits<Peak1D::IntensityType>::max();
           if (auto* lp = dynamic_cast<LayerDataPeak*>(&getLayer(i)))
           {
-            for (ExperimentType::ConstAreaIterator it = lp->getPeakData()->areaBeginConst(visible_area_.getAreaUnit().getMinRT(), visible_area_.getAreaUnit().getMaxRT(),
+            const MSExperiment& peak_data = lp->getPeakData()->getMSExperiment();
+            for (auto it = peak_data.areaBeginConst(visible_area_.getAreaUnit().getMinRT(), visible_area_.getAreaUnit().getMaxRT(),
                                                                                           visible_area_.getAreaUnit().getMinMZ(), visible_area_.getAreaUnit().getMaxMZ());
-                 it != lp->getPeakData()->areaEndConst();
+                 it != peak_data.areaEndConst();
                  ++it)
             {
               PeakIndex pi = it.getPeakIndex();
-              if (it->getIntensity() > local_max && getLayer(i).filters.passes((*lp->getPeakData())[pi.spectrum], pi.peak))
+              if (it->getIntensity() > local_max && getLayer(i).filters.passes(peak_data[pi.spectrum], pi.peak))
               {
                 local_max = it->getIntensity();
               }
@@ -720,7 +721,7 @@ namespace OpenMS
         else if (auto* lp = dynamic_cast<LayerDataPeak*>(&getCurrentLayer()))
         {
           //meta info
-          const ExperimentType::SpectrumType & s = selected_peak_.getSpectrum(*lp->getPeakData());
+          const ExperimentType::SpectrumType & s = selected_peak_.getSpectrum(lp->getPeakData()->getMSExperiment());
           for (Size m = 0; m < s.getFloatDataArrays().size(); ++m)
           {
             if (selected_peak_.peak < s.getFloatDataArrays()[m].size())
@@ -884,14 +885,16 @@ namespace OpenMS
       settings_menu->addAction("Show/hide projections");
       settings_menu->addAction("Show/hide MS/MS precursors");
 
+      auto& exp = lp->getPeakData()->getMSExperiment();
+
       //  in a IM-frame (IM vs. m/z), the RT is empty in `e_units`, and showing neighbouring RT scans is not possible (this layer only has this IM frame)
       //  --> skip entries for RT neighbours.
       if (!e_units.RangeRT::isEmpty())
       {
         // add surrounding survey scans
         // find nearest survey scan
-        SignedSize size = lp->getPeakData()->size();
-        Int current = lp->getPeakData()->RTBegin(e_units.getMinRT()) - lp->getPeakData()->begin();
+        SignedSize size = exp.size();
+        Int current = exp.RTBegin(e_units.getMinRT()) - exp.begin();
         if (current == size) // if the user clicked right of the last MS1 scan
         {
           current = std::max(SignedSize {0}, size - 1); // we want the rightmost valid scan index
@@ -900,12 +903,12 @@ namespace OpenMS
         SignedSize i = 0;
         while (current + i < size || current - i >= 0)
         {
-          if (current + i < size && (*lp->getPeakData())[current + i].getMSLevel() == 1)
+          if (current + i < size && exp[current + i].getMSLevel() == 1)
           {
             current += i;
             break;
           }
-          if (current - i >= 0 && (*lp->getPeakData())[current - i].getMSLevel() == 1)
+          if (current - i >= 0 && exp[current - i].getMSLevel() == 1)
           {
             current -= i;
             break;
@@ -918,28 +921,29 @@ namespace OpenMS
         i = 1;
         while (current - i >= 0 && indices.size() < 5)
         {
-          if ((*lp->getPeakData())[current - i].getMSLevel() == 1) { indices.push_back(current - i); }
+          if (exp[current - i].getMSLevel() == 1) { indices.push_back(current - i); }
           ++i;
         }
         i = 1;
         while (current + i < size && indices.size() < 9)
         {
-          if ((*lp->getPeakData())[current + i].getMSLevel() == 1) { indices.push_back(current + i); }
+          if (exp[current + i].getMSLevel() == 1) { indices.push_back(current + i); }
           ++i;
         }
         sort(indices.rbegin(), indices.rend());
         QMenu* ms1_scans = context_menu->addMenu("Survey scan in 1D");
         QMenu* ms1_meta = context_menu->addMenu("Survey scan meta data");
         context_menu->addSeparator();
+
         for (auto idx : indices)
         {
           if (idx == current) { ms1_scans->addSeparator(); }
-          ms1_scans->addAction(QString("RT: ") + QString::number((*lp->getPeakData())[idx].getRT()),
+          ms1_scans->addAction(QString("RT: ") + QString::number(exp[idx].getRT()),
                                [=]() { emit showSpectrumAsNew1D(idx); });
           if (idx == current) { ms1_scans->addSeparator(); }
 
           if (idx == current) { ms1_meta->addSeparator(); }
-          ms1_meta->addAction(QString("RT: ") + QString::number((*lp->getPeakData())[idx].getRT()), 
+          ms1_meta->addAction(QString("RT: ") + QString::number(exp[idx].getRT()),
                                 [=]() { showMetaData(true, idx); });
           if (idx == current) { ms1_meta->addSeparator(); }
         }
@@ -950,14 +954,15 @@ namespace OpenMS
         QMenu* msn_scans = new QMenu("fragment scan in 1D");
         QMenu* msn_meta = new QMenu("fragment scan meta data");
         bool item_added = collectFragmentScansInArea_(check_area, msn_scans, msn_meta);
-        if (! item_added)
+        if (!item_added)
         {
           // Now simply go for the 5 closest points in RT and check whether there
           // are any scans.
           // NOTE: that if we go for the visible area, we run the
           // risk of iterating through *all* the scans.
           check_area.RangeMZ::extend((RangeMZ)visible_area_.getAreaUnit());
-          const auto& specs = lp->getPeakData()->getSpectra();
+          const auto& exp = lp->getPeakData()->getMSExperiment();
+          const auto& specs = exp.getSpectra();
           check_area.RangeRT::operator=(RangeRT(specs[indices.back()].getRT(), specs[indices.front()].getRT()));
           item_added = collectFragmentScansInArea_(check_area, msn_scans, msn_meta);
 
@@ -966,6 +971,7 @@ namespace OpenMS
             item_added = collectFragmentScansInArea_(visible_area_.getAreaUnit(), msn_scans, msn_meta);
           }
         }
+
         if (item_added)
         {
           context_menu->addMenu(msn_scans);
@@ -973,7 +979,7 @@ namespace OpenMS
           context_menu->addSeparator();
         }
 
-        auto it_closest_MS = lp->getPeakData()->getClosestSpectrumInRT(e_units.getMinRT());
+        auto it_closest_MS = lp->getPeakData()->getMSExperiment().getClosestSpectrumInRT(e_units.getMinRT());
         if (it_closest_MS->containsIMData())
         {
           context_menu->addAction(
@@ -1072,7 +1078,7 @@ namespace OpenMS
       settings_menu->addAction("Show/hide projections");
       settings_menu->addAction("Show/hide MS/MS precursors");
 
-      const PeakMap& exp = *lc->getChromatogramData();
+      const PeakMap& exp = lc->getChromatogramData()->getMSExperiment();
 
       constexpr int CHROMATOGRAM_SHOW_MZ_RANGE = 10;
       auto search_area = e_units;
@@ -1527,8 +1533,10 @@ namespace OpenMS
     {
       auto& layer = dynamic_cast<LayerDataPeak&>(getCurrentLayer());
       bool item_added = false;
-      const auto last_RT = layer.getPeakData()->RTEnd(range.getMaxRT());
-      for (ExperimentType::ConstIterator it = layer.getPeakData()->RTBegin(range.getMinRT());
+      const MSExperiment& peak_data = layer.getPeakData()->getMSExperiment();
+      const auto last_RT = peak_data.RTEnd(range.getMaxRT());
+
+      for (auto it = peak_data.RTBegin(range.getMinRT());
                                          it != last_RT; ++it)
       {
         if (it->getPrecursors().empty()) continue;
@@ -1537,10 +1545,10 @@ namespace OpenMS
         if (it->getMSLevel() > 1 && range.containsMZ(mz))
         {
           msn_scans->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz),
-                               [=]() { emit showSpectrumAsNew1D(it - layer.getPeakData()->begin()); });
-          
+                               [=]() { emit showSpectrumAsNew1D(it - peak_data.begin()); });
           msn_meta->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz),
-                              [=]() { showMetaData(true, it - layer.getPeakData()->begin()); });
+                              [=]() { showMetaData(true, it - peak_data.begin()); });
+
           item_added = true;
         }
       }

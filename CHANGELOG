@@ -10,6 +10,13 @@ Parameters - list of algorithm or TOPP tool parameters that changed in this rele
 PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 #<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit e.g. https://github.com/OpenMS/OpenMS/pull/XXXX (replace XXXX with number of interest) for details
 
+
+- Libary:
+  ID information got factored out of MSSpectrum
+
+- removed outdated tools:
+  SpecLibCreator, SpecLibSearch, IDMassAccuracy
+
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (under development)              ----
 ------------------------------------------------------------------------------------------

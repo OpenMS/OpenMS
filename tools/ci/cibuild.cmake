@@ -89,7 +89,7 @@ set(VARS_TO_LOAD
   "ENABLE_TOPP_TESTING"
   "ENABLE_PIPELINE_TESTING"
   "ENABLE_DOCS"
-  "ENABLE_CWL"
+  "ENABLE_CWL_GENERATION"
   "ENABLE_TUTORIALS"
   "ENABLE_UPDATE_CHECK"
   "MT_ENABLE_OPENMP"
@@ -179,11 +179,11 @@ endif()
 if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
   if("$ENV{PYOPENMS}" STREQUAL "ON")
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "pyopenms" NUMBER_ERRORS _build_errors)
-    # Generate and valdiate the CWL files if "ENABLE_CWL" is set
+    # Generate and validate the CWL files if "ENABLE_CWL_GENERATION" is set
   else()
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
   endif()
-  if("$ENV{ENABLE_CWL}" STREQUAL "ON")
+  if("$ENV{ENABLE_CWL_GENERATION}" STREQUAL "ON")
   ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "generate_cwl_files" NUMBER_ERRORS _build_errors)
   endif()
 else()

@@ -49,7 +49,6 @@ IDExtractor
 IDFileConverter
 IDFilter
 IDMapper
-IDMassAccuracy
 IDMerger
 IDPosteriorErrorProbability
 IDRipper
@@ -123,8 +122,6 @@ SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
 SiriusExport
-SpecLibCreator
-SpecLibSearcher
 SpectraFilterNLargest
 SpectraFilterNormalizer
 SpectraFilterThresholdMower
