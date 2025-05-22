@@ -1,11 +1,22 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
-#include <iostream>
 #include <string>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+
+class StringManager_test : public OpenMS::Internal::StringManager
+{
+public:
+  StringManager_test() = default;
+  ~StringManager_test() = default;
+
+  static void compress64(const XMLCh* input_it, char* output_it)
+  {
+    StringManager::compress64_(input_it, output_it);
+  }
+};
 
 using namespace OpenMS::Internal;
 
@@ -42,19 +53,18 @@ bool isAscii = false;
 
 START_SECTION(isASCII(const XMLCh * chars, const XMLSize_t length))
   isAscii = StringManager::isASCII(ascii,a_length);
-  std::cout << "1 \n";
   TEST_TRUE(isAscii)
+
   isAscii = StringManager::isASCII(russianHello,r_length);
-  std::cout << "2 \n";
   TEST_FALSE(isAscii)
+
   isAscii  = StringManager::isASCII(mixed,m_length);
-  std::cout << "3 \n";
   TEST_FALSE(isAscii)
+
   isAscii = StringManager::isASCII(empty,e_length);
-  std::cout << "4 \n";
-  TEST_FALSE(isAscii)
+  TEST_TRUE(isAscii)
+
   isAscii = StringManager::isASCII(upperBoundary,u_length);
-  std::cout << "5 \n";
   TEST_TRUE(isAscii)
 END_SECTION
 
@@ -77,21 +87,19 @@ const XMLCh eight_block_kadabra[] = {
 
 START_SECTION(compress64 (const XMLCh* input_it, char* output_it))
     std::string o1_str(8,'\0');
-    StringManager::compress64(eight_block,o1_str.data());
+    StringManager_test::compress64(eight_block,o1_str.data());
     std::string res1_str = "Hello,Wo";
     TEST_STRING_EQUAL(o1_str,res1_str);
     
    
     std::string o2_str(8,'\0'); 
-    StringManager::compress64(eight_block_negative,o2_str.data());
+    StringManager_test::compress64(eight_block_negative,o2_str.data());
     std::string res2_str = res1_str;
     TEST_STRING_EQUAL(o2_str, res2_str);
 
     
     std::string o3_str(8,'\0');
-    // char res3 [9] = {0x42,0x45,0x4C,0x41,0x42,0x45,0x4C,0x41};
-    // res3[8] = '\0';
-    StringManager::compress64(eight_block_mixed,o3_str.data());
+    StringManager_test::compress64(eight_block_mixed,o3_str.data());
     std::string res3_str = {0x42,0x45,0x4C,0x41,0x42,0x45,0x4C,0x41};
     TEST_STRING_EQUAL(o3_str, res3_str);
 
@@ -101,7 +109,7 @@ START_SECTION(compress64 (const XMLCh* input_it, char* output_it))
     o4_str [2]  ='R';
     o4_str [3]  ='A';
     
-    StringManager::compress64(eight_block_kadabra,((o4_str.data())+4));
+    StringManager_test::compress64(eight_block_kadabra,((o4_str.data())+4));
     std::string res4_str = "ABRAKADABRA!";
     TEST_STRING_EQUAL(o4_str, res4_str);
 
@@ -129,7 +137,7 @@ START_SECTION(appendASCII(const XMLCh * chars, const XMLSize_t length, String & 
 
     StringManager::appendASCII(empty,e_length,o7_str);
     TEST_STRING_EQUAL(o7_str, res7_str);
-    std::cout << o7_str.size() << std::endl;
+    
 
 END_SECTION
 XMLCh* nullPointer = nullptr;

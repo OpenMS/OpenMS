@@ -434,17 +434,17 @@ namespace OpenMS::Internal
       // Vorverarbeitung einzelner Zeichen bis zum Alignment oder bis zum Ende des Strings
       for (size_t i = 0; i < chars_to_align; ++i) {
           if (*pos_ptr == 0) {
-              return processed_chars;
+              return i;
           }
           ++pos_ptr;
-          ++processed_chars;
       }
+      processed_chars = chars_to_align;
   
       // Hauptschleife mit SIMD-Operationen
+      const simde__m128i zero = simde_mm_setzero_si128();
       while (true) {
           // SIMD-Operation
-          simde__m128i bits = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(pos_ptr));
-          simde__m128i zero = simde_mm_setzero_si128();
+          simde__m128i bits = simde_mm_load_si128(reinterpret_cast<const simde__m128i*>(pos_ptr));
           simde__m128i cmp_zero = simde_mm_cmpeq_epi16(bits, zero);
           uint16_t zero_mask = simde_mm_movemask_epi8(cmp_zero);
   
@@ -463,7 +463,7 @@ namespace OpenMS::Internal
       return processed_chars;
   }
 
-    void StringManager::compress64(const XMLCh* inputIt, char* outputIt)
+    void StringManager::compress64_(const XMLCh* inputIt, char* outputIt)
     {
       simde__m128i bits = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(inputIt));
     
@@ -483,10 +483,10 @@ namespace OpenMS::Internal
   {
     if (length == 0)
     {
-      return false;
+      return true;
     }
 
-    Size quotient = length / 8;
+    Size fullBlocks = length / 8;
     Size remainder = length % 8;
 
     const XMLCh* inputPtr = chars;
@@ -494,7 +494,7 @@ namespace OpenMS::Internal
     bool bitmask = true;
 
     // Process blocks of 8 UTF-16 characters using SIMD
-    for (Size i = 0; i < quotient; ++i)
+    for (Size i = 0; i < fullBlocks; ++i)
     {
       simde__m128i bits = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(inputPtr));
       simde__m128i zero = simde_mm_setzero_si128();
@@ -503,8 +503,7 @@ namespace OpenMS::Internal
 
       if (simde_mm_movemask_epi8(cmp) != 0xFFFF)
       {
-        bitmask = false;
-        break;
+        return false;
       }
 
       inputPtr += 8;
@@ -515,8 +514,7 @@ namespace OpenMS::Internal
     {
       if (inputPtr[i] & 0xFF00)
       {
-        bitmask = false;
-        break;
+        return false;
       }
     }
 
@@ -532,7 +530,7 @@ namespace OpenMS::Internal
       // we can convert to char directly (only keeping the least
       // significant byte).
     
-      Size quotient = length / 8;
+      Size fullBlocks = length / 8;
       Size remainder = length % 8;
     
       const XMLCh* inputPtr = chars;
@@ -542,9 +540,9 @@ namespace OpenMS::Internal
       char* outputPtr = &result[currentSize];
     
       // Copy blocks of 8 characters at a time
-      for (Size i = 0; i < quotient; ++i)
+      for (Size i = 0; i < fullBlocks; ++i)
       {
-        compress64(inputPtr, outputPtr);
+        compress64_(inputPtr, outputPtr);
         inputPtr += 8;
         outputPtr += 8;
       }

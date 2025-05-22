@@ -21,7 +21,6 @@
 #include <xercesc/util/XMLString.hpp>
 
 #include <iosfwd>
-#include <iostream>
 #include <string>
 #include <memory>
 
@@ -211,19 +210,19 @@ namespace OpenMS
 
       typedef std::basic_string<XMLCh> XercesString;
 
-      // Converts from a narrow-character string to a wide-character string.
+      /// Converts from a narrow-character string to a wide-character string.
       inline static unique_xerces_ptr<XMLCh> fromNative_(const char* str)
       {
         return unique_xerces_ptr<XMLCh>(xercesc::XMLString::transcode(str));
       }
 
-      // Converts from a narrow-character string to a wide-character string.
+      /// Converts from a narrow-character string to a wide-character string.
       inline static unique_xerces_ptr<XMLCh> fromNative_(const String& str)
       {
         return fromNative_(str.c_str());
       }
 
-      // Converts from a wide-character string to a narrow-character string.
+      /// Converts from a wide-character string to a narrow-character string.
       inline static String toNative_(const XMLCh* str)
       { 
         String r;
@@ -239,12 +238,15 @@ namespace OpenMS
         return r;
       }
 
-      // Converts from a wide-character string to a narrow-character string.
+      /// Converts from a wide-character string to a narrow-character string.
       inline static String toNative_(const unique_xerces_ptr<XMLCh>& str)
       {
         return toNative_(str.get());
       }
 
+protected:
+      /// Compresses eight 8x16bit Chars in XMLCh* to 8x8bit Chars by cutting upper byte
+      static void compress64_ (const XMLCh * input_it, char* output_it);
 
 public:
       /// Constructor
@@ -300,8 +302,7 @@ public:
       /// Checks if supplied if chars in XMLCh* can be encoded with ASCII
       static bool isASCII(const XMLCh * chars, const XMLSize_t length);
 
-      /// Compresses eight 8x16bit Chars in XMLCh* to 8x8bit Chars by cutting upper byte
-      static void compress64 (const XMLCh * input_it, char* output_it);
+      
       
       /**
        * @brief Transcodes the supplied XMLCh* and appends it to the OpenMS String

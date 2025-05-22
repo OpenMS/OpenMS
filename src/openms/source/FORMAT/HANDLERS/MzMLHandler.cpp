@@ -21,7 +21,6 @@
 
 #include <map>
 
-using namespace std::literals;
 
 namespace OpenMS::Internal
 {
@@ -270,7 +269,7 @@ namespace OpenMS::Internal
       UInt meta_string_array_index = 0;
       for (Size i = 0; i < input_data.size(); i++) //loop over all binary data arrays
       {
-        if (input_data[i].meta.getName() != "m/z array"sv && input_data[i].meta.getName() != "intensity array"sv) // is meta data array?
+        if (input_data[i].meta.getName() != "m/z array" && input_data[i].meta.getName() != "intensity array") // is meta data array?
         {
           if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)
           {
