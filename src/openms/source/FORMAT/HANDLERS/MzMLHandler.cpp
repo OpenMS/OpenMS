@@ -3972,7 +3972,7 @@ namespace OpenMS::Internal
             {
                 String proc_stdout, proc_stderr;
                 auto lam_out = [&](const String& out) { proc_stdout += out; };
-                auto lam_err = [&](const String& out) { proc_stderr += out; };
+                auto lam_err = [&](const String& out) { proc_stdout += out; };
     
                 ExternalProcess ep(lam_out, lam_err);
                 auto rt = ep.run("pigz", {"--version"}, ".", true);
@@ -4116,7 +4116,7 @@ namespace OpenMS::Internal
         
     
     
-            logger_.endProgress(counter);
+            logger_.endProgress(progress);
             OPENMS_LOG_INFO << stored_spectra << " spectra and "
                             << stored_chromatograms << " chromatograms stored.\n";
         }
@@ -5110,7 +5110,7 @@ if (options_.getWriteIndex())
         }
         offset = static_cast<Int64>(pos);
     }
-    spectra_offsets_.emplace_back(native_id, offset + (compress ? + 3));
+    spectra_offsets_.emplace_back(native_id, offset + (compress ? 3 : 0));
 }
 
 // IMPORTANT make sure the offset (above) corresponds to the start of the <spectrum tag
