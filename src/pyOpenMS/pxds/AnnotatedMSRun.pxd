@@ -34,17 +34,16 @@ cdef extern from "<OpenMS/METADATA/AnnotatedMSRun.h>" namespace "OpenMS":
         AnnotatedMSRun(AnnotatedMSRun) except + nogil
         
         # Protein identification methods
-        libcpp_vector[ProteinIdentification]& getProteinIdentifications() except + nogil
-        const libcpp_vector[ProteinIdentification]& getProteinIdentifications() except + nogil # wrap-ignore
+        libcpp_vector[ProteinIdentification] getProteinIdentifications() except + nogil
+        void setProteinIdentifications(libcpp_vector[ProteinIdentification]& ids) except + nogil
         
         # Peptide identification methods
-        libcpp_vector[PeptideIdentification]& getPeptideIdentifications() except + nogil
-        const libcpp_vector[PeptideIdentification]& getPeptideIdentifications() except + nogil # wrap-ignore
+        libcpp_vector[PeptideIdentification] getPeptideIdentifications() except + nogil
         void setPeptideIdentifications(libcpp_vector[PeptideIdentification]& ids) except + nogil
         
         # MSExperiment methods
-        MSExperiment& getMSExperiment() except + nogil
-        const MSExperiment& getMSExperiment() except + nogil # wrap-ignore
+        MSExperiment getMSExperiment() except + nogil
+        const MSExperiment getMSExperiment() except + nogil # wrap-ignore
         void setMSExperiment(MSExperiment& experiment) except + nogil
         
         # Access methods
