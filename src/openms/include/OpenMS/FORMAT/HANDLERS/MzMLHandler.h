@@ -158,6 +158,11 @@ public:
 
       void writeTo(std::ostream& os) override;
 
+      ///Set compression level depending on user input
+      void setCompressionLevel(int level)
+    {
+        compression_level_ = std::clamp(level, 1, 9);
+    }
 
       //@}
 
@@ -204,6 +209,9 @@ public:
       void setLoadDetail(const LOADDETAIL d) override;
 
 protected:
+
+      /// default fastest compression
+      int compression_level_ = 1; 
 
       /// delegated constructor for the two public versions
       MzMLHandler(const String& filename, const String& version, const ProgressLogger& logger);

@@ -3938,7 +3938,7 @@ namespace OpenMS::Internal
     
         // Set gzip compression parameters (favor speed)
         boost::iostreams::gzip_params gz_params;
-        gz_params.level = boost::iostreams::gzip::best_speed;
+        gz_params.level = static_cast<unsigned int>(compression_level_);
     
         // Access experimental data and initialize progress tracking
         const MapType& exp = *cexp_;
@@ -3997,9 +3997,9 @@ namespace OpenMS::Internal
                 OPENMS_LOG_INFO << "Using pigz for compression (parallel gzip)" << std::endl;
     
                 int max_threads = omp_get_max_threads();
-                int compression_level = std::clamp(max_threads, 1, 9);
+                int level = compression_level_;
     
-                OPENMS_LOG_INFO << "Setting pigz to use " << max_threads << " threads" << std::endl;
+                OPENMS_LOG_INFO << "Setting pigz to use" << max_threads << "threads with compression level" << level << std::endl;
 
             // Start pigz as subprocess and pipe output through it
             boost::process::opstream pigz_pipe;
@@ -4007,7 +4007,7 @@ namespace OpenMS::Internal
               boost::process::search_path("pigz"),
                 "-c",
                 "-p", std::to_string(max_threads),
-                "-" + std::to_string(compression_level),
+                "-" + std::to_string(level),
                 boost::process::std_in < pigz_pipe,
                 boost::process::std_out > boost::filesystem::path(file_)
             );
