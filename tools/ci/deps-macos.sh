@@ -32,7 +32,7 @@ brew update
 
 # Required dependencies:
 brew install \
-  python@3.13 \
+  python \
   ccache \
   autoconf \
   automake \
