@@ -38,9 +38,9 @@
 
     @note Since macOS El Capitan 10.11, the command line tools can
     easily be installed via:
-    ```sh
+    \code
     xcode-select --install
-    ```
+    \endcode
 
   2. A package manager for installing the remaining dependencies.
 
@@ -63,16 +63,16 @@
 
   1. Begin by obtaining a copy of the %OpenMS source code:
 
-    ```sh
+    \code
     OPENMS_DIR=~/openms-development
     mkdir -p "$OPENMS_DIR"
     cd "$OPENMS_DIR"
     git clone --recurse-submodules https://github.com/OpenMS/OpenMS
-    ```
+    \endcode
 
   2. Then compile the source code:
 
-    ```sh
+    \code
     mkdir -p "$OPENMS_DIR/openms_build"
     cd "$OPENMS_DIR/openms_build"
     cmake \
@@ -80,7 +80,7 @@
       -DBOOST_USE_STATIC=OFF \
       "$OPENMS_DIR/OpenMS"
     make -j"$(nproc || sysctl -n hw.logicalcpu || echo 2)"
-    ```
+    \endcode
 
     @note After executing CMake you can list all of the make targets
     by running `make targets`.
@@ -95,9 +95,9 @@
     You can find pre-built binaries in the %OpenMS `THIRDPARTY`
     directory.  To use them set the `PATH` environment variable using
     the following command:
-    ```sh
+    \code
     export PATH="$OPENMS_DIR/OpenMS/THIRDPARTY/MacOS/$(uname -m)/Comet:$PATH"
-    ```
+    \endcode
 
   @section install_mac_cmake_flags Additional CMake Flags
 

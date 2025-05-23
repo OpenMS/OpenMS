@@ -8,21 +8,21 @@ The following commands can be used to build all of these dependencies
 (assuming you have already cloned the %OpenMS repository using the
 commands previously used in this document):
 
-```sh
+\code
 mkdir -p "$OPENMS_DIR/contrib_build"
 cd "$OPENMS_DIR/contrib_build"
 cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=8 "$OPENMS_DIR/OpenMS/contrib"
-```
+\endcode
 
 Alternatively, you can build one dependency at a time by using the
 `BUILD_TYPE` flag.  For example:
 
-```sh
+\code
 cmake \
   -DBUILD_TYPE=LIBSVM \
   -DNUMBER_OF_JOBS="$(nproc || sysctl -n hw.logicalcpu || echo 2)" \
   "$OPENMS_DIR/OpenMS/contrib"
-```
+\endcode
 
 If everything worked, the following sub-directories were created under
 the `contrib` build directory:
@@ -34,6 +34,6 @@ the `contrib` build directory:
 You can now build %OpenMS with the instructions in this document by
 adding the following flag to `cmake`:
 
-```sh
+\code
 -DOPENMS_CONTRIB_LIBS="$OPENMS_DIR/contrib_build"
-```
+\endcode

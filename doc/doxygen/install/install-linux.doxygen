@@ -42,7 +42,7 @@
   that they are incorrect please open a pull request or create an
   [issue][issues].
 
-  ```sh
+  \code
   # In newer distros change yum to dnf
   sudo yum groupinstall 'Development Tools'
   sudo yum install git tar
@@ -55,7 +55,7 @@
   # Get OPTIONAL installable contrib libraries preferably from our Contrib package in the next step.
   ## sudo yum install boost-devel libsvm-devel libzip-devel zlib-devel xerces-c-devel bzip2-devel libhdf5-devel glpk-devel
   # NOTE that you might need to use cmake3 instead of cmake in the commands of the following steps.
-  ```
+  \endcode
 
   @subsection install_linux_deps_suse openSUSE >= 13.2
 
@@ -63,7 +63,7 @@
   that they are incorrect please open a pull request or create an
   [issue][issues].
 
-  ```sh
+  \code
   # register obs://build.opensuse.org/devel:libraries:c_c++
   # tools
   sudo zypper install cmake gcc-c++ autoconf git patch automake libtool
@@ -72,27 +72,27 @@
   # OPTIONAL dependencies, preferably installed with our Contrib package in the next step
   ## sudo zypper install boost-devel libzip-devel zlib-devel \
   # libxerces-c-devel libbz2-devel libsvm-devel libhdf5-10
-  ```
+  \endcode
 
   @section install_linux_openms Building OpenMS
 
   1. Begin by obtaining a copy of the %OpenMS source code:
 
-    ```sh
+    \code
     OPENMS_DIR=~/openms-development
     mkdir -p "$OPENMS_DIR"
     cd "$OPENMS_DIR"
     git clone --recurse-submodules https://github.com/OpenMS/OpenMS
-    ```
+    \endcode
 
   2. Then compile the source code:
 
-    ```sh
+    \code
     mkdir -p "$OPENMS_DIR/openms_build"
     cd "$OPENMS_DIR/openms_build"
     cmake -DBOOST_USE_STATIC=OFF "$OPENMS_DIR/OpenMS"
     make -j"$(nproc || sysctl -n hw.logicalcpu || echo 2)"
-    ```
+    \endcode
 
     @note After executing CMake you can list all of the make targets
     by running `make targets`.
@@ -107,9 +107,9 @@
     You can find pre-built binaries in the %OpenMS `THIRDPARTY`
     directory.  To use them set the `PATH` environment variable using
     the following command:
-    ```sh
+    \code
     export PATH="$OPENMS_DIR/OpenMS/THIRDPARTY/Linux/$(uname -m)/Comet:$PATH"
-    ```
+    \endcode
   
   @section install_linux_cmake_flags Additional CMake Flags
 
@@ -144,10 +144,10 @@
   Setting the `QT_QPA_PLATFORM` environment variable to `minimal`
   before running a TOPP tool should help.  For example:
 
-  ```sh
+  \code
   export QT_QPA_PLATFORM=minimal
   $OPENMS_DIR/openms_build/bin/TOPPView
-  ```
+  \endcode
 
   [openms]: http://www.OpenMS.de
   [issues]: https://github.com/OpenMS/OpenMS/issues

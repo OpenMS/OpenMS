@@ -1,23 +1,23 @@
 After building %OpenMS and TOPP, you should test your installation by
 executing the following command:
 
-```sh
+\code
 make test
-```
+\endcode
 
 or
 
-```sh
+\code
 ctest
-```
+\endcode
 
 By using `ctest` you can also execute a subset of tests by using the
 `-R SUBSTRING` option and run tests in parallel using the `-j` option.
 For example,
 
-```sh
+\code
 ctest -R TOPP_ -j 4
-```
+\endcode
 
 will run all TOPP test using 4 jobs.
 
