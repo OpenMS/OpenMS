@@ -91,7 +91,7 @@
     mkdir -p "$OPENMS_DIR/openms_build"
     cd "$OPENMS_DIR/openms_build"
     cmake -DBOOST_USE_STATIC=OFF "$OPENMS_DIR/OpenMS"
-    make -j8
+    make -j"$(nproc || sysctl -n hw.logicalcpu || echo 2)"
     ```
 
     @note After executing CMake you can list all of the make targets
@@ -133,6 +133,21 @@
   the `contrib` package to compile **all** dependencies from source.
   Details can be found in the section entitled @ref
   install_linux_contrib.
+
+  @section build_linux_qt_issues Common Issues with Qt
+
+  If the graphical TOPP tools fail to start or exit with an error
+  message related to Qt you may need to set the `QT_QPA_PLATFORM`
+  environment variable.  This is especially true if you are executing
+  the graphical tools remotely over a SSH-forwarded X11 connection.
+
+  Setting the `QT_QPA_PLATFORM` environment variable to `minimal`
+  before running a TOPP tool should help.  For example:
+
+  ```sh
+  export QT_QPA_PLATFORM=minimal
+  $OPENMS_DIR/openms_build/bin/TOPPView
+  ```
 
   [openms]: http://www.OpenMS.de
   [issues]: https://github.com/OpenMS/OpenMS/issues

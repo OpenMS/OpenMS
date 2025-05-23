@@ -3,6 +3,26 @@
 set -eu
 set -o pipefail
 
+# Unfortunately GitHub's macOS runner already has Python installed so
+# we need to tell brew to overwrite the existing links.  The following
+# function will be called when the brew commands below are executed.
+# It then calls the real brew command.
+function brew() {
+  local action=$1
+  shift
+
+  # Bash on macOS doesn't allow using empty arrays.  Therefore we put
+  # the action name in the flags array so it always has at least one
+  # element.
+  local -a flags=("$action")
+
+  if [ "$action" = "install" ]; then
+    flags+=("--overwrite")
+  fi
+
+  command brew "${flags[@]}" "$@"
+}
+
 # Code between the following doxygen markers are included in the
 # public-facing OpenMS installation instructions.
 
@@ -11,7 +31,7 @@ set -o pipefail
 brew update
 
 # Required dependencies:
-brew install --force --overwrite \
+brew install \
   python@3.13 \
   ccache \
   autoconf \
@@ -31,7 +51,7 @@ brew install --force --overwrite \
   qt
 
 # Optional dependencies:
-brew install --force --overwrite \
+brew install \
   doxygen \
   ghostscript \
   graphviz

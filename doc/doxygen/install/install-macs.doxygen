@@ -23,18 +23,18 @@
   In order to compile %OpenMS, several applications need to be
   installed:
 
-  1. A compiler and its tool chain.
+  1. A compiler and its toolchain.
 
     Apple Clang is the officially supported compiler on macOS for
-    building %OpenMS (GCC can be used at your own risk).  Building
-    %OpenMS from source is currently only tested on the two or three
-    most recent macOS versions.
+    building %OpenMS (GCC can be used at your own risk).  %OpenMS is
+    tested with the Apple Clang toolchain that ships with the last
+    three Xcode releases.  Older Xcode versions may fail due to
+    missing C++20 features.
 
     A minimal installation of Apple Clang is achieved by downloading
     Apple's "Command Line Tools".  However we suggest using a full
-    Xcode installation from the Mac App Store.  %OpenMS requires
-    version 4.2 or greater.  More details can be found on the [Apple
-    Developer Site][xcode].
+    Xcode installation from the Mac App Store.  More details can be
+    found on the [Apple Developer Site][xcode].
 
     @note Since macOS El Capitan 10.11, the command line tools can
     easily be installed via:
@@ -79,7 +79,7 @@
       -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix qt)" \
       -DBOOST_USE_STATIC=OFF \
       "$OPENMS_DIR/OpenMS"
-    make -j8
+    make -j"$(nproc || sysctl -n hw.logicalcpu || echo 2)"
     ```
 
     @note After executing CMake you can list all of the make targets
@@ -98,7 +98,7 @@
     ```sh
     export PATH="$OPENMS_DIR/OpenMS/THIRDPARTY/MacOS/$(uname -m)/Comet:$PATH"
     ```
-    
+
   @section install_mac_cmake_flags Additional CMake Flags
 
   \include{doc} "../doxygen/install/common-cmake-parameters.doxygen"
@@ -110,7 +110,7 @@
   @section install_mac_contrib Installing the contrib Package
 
   \include{doc} "../doxygen/install/install-contrib.doxygen"
-  
+
   [openms]: http://www.OpenMS.de
   [issues]: https://github.com/OpenMS/OpenMS/issues
   [brew]: https://brew.sh/

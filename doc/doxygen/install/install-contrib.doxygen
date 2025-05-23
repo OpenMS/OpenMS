@@ -20,7 +20,7 @@ Alternatively, you can build one dependency at a time by using the
 ```sh
 cmake \
   -DBUILD_TYPE=LIBSVM \
-  -DNUMBER_OF_JOBS=8 \
+  -DNUMBER_OF_JOBS="$(nproc || sysctl -n hw.logicalcpu || echo 2)" \
   "$OPENMS_DIR/OpenMS/contrib"
 ```
 
