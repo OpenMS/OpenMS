@@ -11,6 +11,7 @@ from FASTAFile cimport *
 from ProteaseDigestion cimport *
 
 from MSExperiment cimport *
+from AnnotatedMSRun cimport *
 from MSSpectrum cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
@@ -76,8 +77,6 @@ cdef extern from "<OpenMS/PROCESSING/ID/IDFilter.h>" namespace "OpenMS":
                 #  :param peptides:
                 #  :param ignore_mods: Boolean operator default to false in case of any modifications in sequences during extraction
                 #  :return: Sequences
-
-        void updateHitRanks(libcpp_vector[ProteinIdentification]& identifications) except + nogil  # wrap-doc:Updates the hit ranks on all peptide or protein IDs
 
         void removeUnreferencedProteins(libcpp_vector[ProteinIdentification]& proteins, libcpp_vector[PeptideIdentification]& peptides) except + nogil  # wrap-doc:Removes protein hits from the protein IDs in a 'cmap' that are not referenced by a peptide in the features or if requested in the unassigned peptide list
 
@@ -177,15 +176,15 @@ cdef extern from "<OpenMS/PROCESSING/ID/IDFilter.h>" namespace "OpenMS":
 
         void removeDuplicatePeptideHits(libcpp_vector[PeptideIdentification]& peptides) except + nogil  # wrap-doc:Removes duplicate peptide hits from each peptide identification, keeping only unique hits (per ID)
 
-        void filterHitsByScore(MSExperiment& experiment, double peptide_threshold_score, double protein_threshold_score) except + nogil  # wrap-doc:Filters an MS/MS experiment according to score thresholds
+        void filterHitsByScore(AnnotatedMSRun& experiment, double peptide_threshold_score, double protein_threshold_score) except + nogil  # wrap-doc:Filters an MS/MS experiment according to score thresholds
 
-        void keepNBestHits(MSExperiment& experiment, Size n) except + nogil  # wrap-doc:Filters an MS/MS experiment by keeping the N best peptide hits for every spectrum
+        void keepNBestHits(AnnotatedMSRun& experiment, Size n) except + nogil  # wrap-doc:Filters an MS/MS experiment by keeping the N best peptide hits for every spectrum
         
         void keepBestPerPeptide(libcpp_vector[PeptideIdentification]& peptides, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum) except + nogil  # wrap-doc:Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence
 
         void keepBestPerPeptidePerRun(libcpp_vector[ProteinIdentification]& prot_ids, libcpp_vector[PeptideIdentification]& peptides, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum) except + nogil  # wrap-doc:Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence on a per run basis
         
-        void keepHitsMatchingProteins(MSExperiment& experiment, libcpp_vector[FASTAEntry]& proteins) except + nogil 
+        void keepHitsMatchingProteins(AnnotatedMSRun& experiment, libcpp_vector[FASTAEntry]& proteins) except + nogil
 
 cdef extern from "<OpenMS/PROCESSING/ID/IDFilter.h>" namespace "OpenMS::IDFilter":
     
