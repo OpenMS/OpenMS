@@ -126,7 +126,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-     
+     //Other parsing exceptions are caught silently (intentional)
     }
   }
   

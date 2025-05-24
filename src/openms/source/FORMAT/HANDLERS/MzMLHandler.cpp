@@ -50,7 +50,9 @@ namespace OpenMS::Internal
 
     /// Constructor for a read-only handler
     MzMLHandler::MzMLHandler(MapType& exp, const String& filename, const String& version, const ProgressLogger& logger)
-      : MzMLHandler(filename, version, logger)
+      : MzMLHandler(filename, version, logger),
+      compress_(String(filename).toLower().hasSuffix(".gz")),
+      internal_state_(std::make_unique<MzMLHandlerInternalState>())
     {
       exp_ = &exp;
     }
@@ -58,7 +60,8 @@ namespace OpenMS::Internal
     /// Constructor for a write-only handler
     MzMLHandler::MzMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger)
       : MzMLHandler(filename, version, logger),
-      compress_(String(filename).toLower().hasSuffix(".gz"))
+      compress_(String(filename).toLower().hasSuffix(".gz")),
+      internal_state_(std::make_unique<MzMLHandlerInternalState>())
     {
       cexp_ = &exp;
     }
@@ -5719,7 +5722,7 @@ void MzMLHandler::writeChromatogram_(std::ostream& os,
           offset = static_cast<Int64>(pos);
       }  
   
-      chromatograms_offsets_.emplace_back(native_id, offset + (compress_ ? 0 : 3));
+      chromatograms_offsets_.emplace_back(native_id, offset + 3);
   }
   
   os << "\t\t\t<chromatogram id=\"" << writeXMLEscape(chromatogram.getNativeID()) << "\" index=\"" << c << "\" defaultArrayLength=\"" << chromatogram.size() << "\">" << "\n";
