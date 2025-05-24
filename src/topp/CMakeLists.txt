@@ -7,7 +7,7 @@
 
 project("OpenMS_TOPP")
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
-find_package(Boost REQUIRED COMPONENTS filesystem system ...)
+
 
 # --------------------------------------------------------------------------
 # OpenMS' TOPP tools

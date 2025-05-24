@@ -141,6 +141,8 @@ public:
     - Falls back to **Boost**-based compression if `pigz` is not available.  
     - **Requires seekable streams** (e.g., file streams).    
       - Use `storeBuffer()` for non-seekable targets (e.g., network streams).  
+    - The compression level can be set by the user with -compression_level n (choose between 1 to 9)
+      - By default the compression level is 1 (fastest compression)
 
     ### Error Handling  
     @exception Exception::ConversionError  
@@ -227,7 +229,7 @@ protected:
 
       typedef MzMLHandlerHelper::BinaryData BinaryData;
 
-      bool compress;
+      const bool compress_;
       /// Forward declaration
       struct MzMLHandlerInternalState;
       ///Pimple Pointer

@@ -20,7 +20,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/ExternalProcess.h>
 
-#include <boost/iostreams/device/file.hpp>
+
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/counter.hpp> 
@@ -57,7 +57,8 @@ namespace OpenMS::Internal
 
     /// Constructor for a write-only handler
     MzMLHandler::MzMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger)
-      : MzMLHandler(filename, version, logger)
+      : MzMLHandler(filename, version, logger),
+      compress_(String(filename).toLower().hasSuffix(".gz"))
     {
       cexp_ = &exp;
     }
@@ -3934,7 +3935,7 @@ namespace OpenMS::Internal
     void MzMLHandler::writeTo(std::ostream& os)
     {
         // Determine if output should be compressed based on file extension
-        const bool compress = String(file_).toLower().hasSuffix(".gz");
+        //compress_ = String(file_).toLower().hasSuffix(".gz");
     
         // Set gzip compression parameters (favor speed)
         boost::iostreams::gzip_params gz_params;
@@ -3968,7 +3969,7 @@ namespace OpenMS::Internal
             bool pigz_available = false;
     
             // Try to detect if pigz (parallel gzip) is available on the system
-            if (compress)
+            if (compress_)
             {
                 String proc_stdout, proc_stderr;
                 auto lam_out = [&](const String& out) { proc_stdout += out; };
@@ -3985,14 +3986,14 @@ namespace OpenMS::Internal
                 else
                 {
                     pigz_available = false;
-                    OPENMS_LOG_ERROR << "pigz --version failed" << std::endl;
+                    OPENMS_LOG_ERROR << "pigz not available for parallel  compression" << std::endl;
                     OPENMS_LOG_ERROR << "stdout: " << proc_stdout << std::endl;
                     OPENMS_LOG_ERROR << "stderr: " << proc_stderr << std::endl;
                 }
             }
     
             // Use pigz for parallel compression if available
-            if (compress && pigz_available)
+            if (compress_ && pigz_available)
             {
                 OPENMS_LOG_INFO << "Using pigz for compression (parallel gzip)" << std::endl;
     
@@ -4002,13 +4003,13 @@ namespace OpenMS::Internal
                 OPENMS_LOG_INFO << "Setting pigz to use" << max_threads << "threads with compression level" << level << std::endl;
 
             // Start pigz as subprocess and pipe output through it
-            boost::process::opstream pigz_pipe;
-            boost::process::child pigz_process(
+            pigz_pipe = std::make_unique<boost::process::opstream>();
+            pigz_process = std::make_unique<boost::process::child>(
               boost::process::search_path("pigz"),
                 "-c",
                 "-p", std::to_string(max_threads),
                 "-" + std::to_string(level),
-                boost::process::std_in < pigz_pipe,
+                boost::process::std_in < *pigz_pipe,
                 boost::process::std_out > boost::filesystem::path(file_)
             );
 
@@ -4023,12 +4024,12 @@ namespace OpenMS::Internal
                 internal_state_->counter_ptr_ = nullptr;
             }
 
-            filter.push(pigz_pipe);
+            filter.push(*pigz_pipe);
             output_stream = &filter;
 
             }
             // Use built-in Boost gzip compression if pigz is not available
-            else if (compress)
+            else if (compress_)
             {
                 OPENMS_LOG_INFO << "Using Boost gzip compression" << std::endl;
     
@@ -5090,8 +5091,8 @@ if (renew_native_ids)
 
 if (options_.getWriteIndex())
 {
-    Int64 offset = 0;
-   if (compress)
+    Int64 offset;
+   if (compress_)
 {
     if (!internal_state_->counter_ptr_)
     {
@@ -5110,7 +5111,7 @@ if (options_.getWriteIndex())
         }
         offset = static_cast<Int64>(pos);
     }
-    spectra_offsets_.emplace_back(native_id, offset + (compress ? 3 : 0));
+    spectra_offsets_.emplace_back(native_id, offset + 3);
 }
 
 // IMPORTANT make sure the offset (above) corresponds to the start of the <spectrum tag
@@ -5696,8 +5697,8 @@ void MzMLHandler::writeChromatogram_(std::ostream& os,
   if (options_.getWriteIndex())
   {
       // compute offset 
-      Int64 offset = 0;
-      if (compress)
+      Int64 offset;
+      if (compress_)
       {
           if (!internal_state_->counter_ptr_)
           {
@@ -5718,7 +5719,7 @@ void MzMLHandler::writeChromatogram_(std::ostream& os,
           offset = static_cast<Int64>(pos);
       }  
   
-      chromatograms_offsets_.emplace_back(native_id, offset + (compress ? 0 : 3));
+      chromatograms_offsets_.emplace_back(native_id, offset + (compress_ ? 0 : 3));
   }
   
   os << "\t\t\t<chromatogram id=\"" << writeXMLEscape(chromatogram.getNativeID()) << "\" index=\"" << c << "\" defaultArrayLength=\"" << chromatogram.size() << "\">" << "\n";
