@@ -114,9 +114,6 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         int getPrecursorSpectrum(int zero_based_index) except + nogil  # wrap-doc:Returns the index of the precursor spectrum for spectrum at index @p zero_based_index
         
         # Range manager accessors
-        SpectrumRangeManager& spectrumRanges() except + nogil  # wrap-doc:Returns a reference to the spectrum range manager
-        const SpectrumRangeManager& spectrumRanges() const except + nogil  # wrap-doc:Returns a const reference to the spectrum range manager
-        ChromatogramRangeManager& chromatogramRanges() except + nogil  # wrap-doc:Returns a reference to the chromatogram range manager
-        const ChromatogramRangeManager& chromatogramRanges() const except + nogil  # wrap-doc:Returns a const reference to the chromatogram range manager
-        RangeManagerRtMzIntMob& combinedRanges() except + nogil  # wrap-doc:Returns a reference to the combined range manager (for backward compatibility)
-        const RangeManagerRtMzIntMob& combinedRanges() const except + nogil  # wrap-doc:Returns a const reference to the combined range manager (for backward compatibility)
+        SpectrumRangeManager spectrumRanges() except + nogil  # wrap-doc:Returns a reference to the spectrum range manager
+        ChromatogramRangeManager chromatogramRanges() except + nogil  # wrap-doc:Returns a reference to the chromatogram range manager
+        RangeManagerRtMzIntMob combinedRanges() except + nogil  # wrap-doc:Returns a reference to the combined range manager (for backward compatibility)

@@ -47,14 +47,14 @@ namespace OpenMS
   std::unique_ptr<LayerStoreData> LayerDataPeak::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
     auto ret = make_unique<LayerStoreDataPeakMapVisible>();
-    ret->storeVisibleExperiment(*peak_map_.get(), visible_range, layer_filters);
+    ret->storeVisibleExperiment(peak_map_->getMSExperiment(), visible_range, layer_filters);
     return ret;
   }
 
   std::unique_ptr<LayerStoreData> LayerDataPeak::storeFullData() const
   {
     auto ret = make_unique<LayerStoreDataPeakMapAll>();
-    ret->storeFullExperiment(*peak_map_.get());
+    ret->storeFullExperiment(peak_map_->getMSExperiment());
     return ret;
   }
 
@@ -79,7 +79,8 @@ namespace OpenMS
     MSSpectrum projection_mz;
     Mobilogram projection_im;
     MSChromatogram projection_rt;
-    const auto& exp = *getPeakData();
+
+    const auto& exp = getPeakData()->getMSExperiment();
     auto lvls = exp.getMSLevels(); // use for smallest MS level in the data (IM frames may have all level 1, or all level 2)
     for (auto i = exp.areaBeginConst(area, lvls[0]); i != exp.areaEndConst(); ++i)
     {
@@ -227,11 +228,11 @@ namespace OpenMS
     auto max_int = numeric_limits<IntType>::lowest();
     PeakIndex max_pi;
     
-    const auto map = *getPeakData();
+    const auto& map = getPeakData()->getMSExperiment();
     // for IM data, use whatever is there. For RT/mz data, use MSlevel 1
     const UInt MS_LEVEL = (! map.empty() && map.isIMFrame()) ? map[0].getMSLevel() : 1;
 
-    for (ExperimentType::ConstAreaIterator i = map.areaBeginConst(area, MS_LEVEL); i != map.areaEndConst(); ++i)
+    for (auto i = map.areaBeginConst(area, MS_LEVEL); i != map.areaEndConst(); ++i)
     {
       PeakIndex pi = i.getPeakIndex();
       if (i->getIntensity() > max_int && filters.passes((map)[pi.spectrum], pi.peak))
@@ -279,7 +280,7 @@ namespace OpenMS
 
   std::unique_ptr<LayerStatistics> LayerDataPeak::getStats() const
   {
-    return make_unique<LayerStatisticsPeakMap>(*peak_map_);
+    return make_unique<LayerStatisticsPeakMap>(peak_map_->getMSExperiment());
   }
 
   bool LayerDataPeak::annotate(const vector<PeptideIdentification>& identifications, const vector<ProteinIdentification>& protein_identifications)

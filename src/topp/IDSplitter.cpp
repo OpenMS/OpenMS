@@ -12,6 +12,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -77,9 +78,9 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (data annotated with identifications)");
-    setValidFormats_("in", ListUtils::create<String>("mzML,featureXML,consensusXML"));
+    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "Output file (data without identifications). Either 'out' or 'id_out' are required. They can be used together.", false);
-    setValidFormats_("out", ListUtils::create<String>("mzML,featureXML,consensusXML"));
+    setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
     registerOutputFile_("id_out", "<file>", "", "Output file (identifications). Either 'out' or 'id_out' are required. They can be used together.", false);
     setValidFormats_("id_out", ListUtils::create<String>("idXML"));
   }
@@ -101,28 +102,7 @@ protected:
 
     FileTypes::Type in_type = FileHandler::getType(in);
 
-    if (in_type == FileTypes::MZML)
-    {
-      PeakMap experiment;
-      FileHandler().loadExperiment(in, experiment, {FileTypes::MZML}, log_type_);
-      // what about unassigned peptide IDs?
-      for (PeakMap::Iterator exp_it = experiment.begin();
-           exp_it != experiment.end(); ++exp_it)
-      {
-        peptides.insert(peptides.end(),
-                        exp_it->getPeptideIdentifications().begin(),
-                        exp_it->getPeptideIdentifications().end());
-        exp_it->getPeptideIdentifications().clear();
-      }
-      experiment.getProteinIdentifications().swap(proteins);
-      if (!out.empty())
-      {
-        addDataProcessing_(experiment,
-                           getProcessingInfo_(DataProcessing::FILTERING));
-        FileHandler().storeExperiment(out, experiment, {FileTypes::MZML});
-      }
-    }
-    else if (in_type == FileTypes::FEATUREXML)
+    if (in_type == FileTypes::FEATUREXML)
     {
       FeatureMap features;
       FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML});
@@ -168,8 +148,8 @@ protected:
     if (!id_out.empty())
     {
       // IDMapper can match a peptide ID to several overlapping features,
-      // resulting in duplicates; this shouldn't be the case for peak data
-      if (in_type != FileTypes::MZML) removeDuplicates_(peptides);
+      // resulting in duplicates
+      removeDuplicates_(peptides);
       FileHandler().storeIdentifications(id_out, proteins, peptides, {FileTypes::IDXML});
     }
 

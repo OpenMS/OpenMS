@@ -78,6 +78,7 @@ set(datastructures_executables_list
 set(metadata_executables_list
   AcquisitionInfo_test
   Acquisition_test
+  AnnotatedMSRun_test
   CVTermList_test
   CVTermListInterface_test
   CVTerm_test
