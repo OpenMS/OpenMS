@@ -42,46 +42,45 @@ namespace OpenMS::Internal
 {  
   // Impl structure
   struct MzMLHandler::MzMLHandlerInternalState 
-{
-  boost::iostreams::counter* counter_ptr_;
-};
+  {
+    boost::iostreams::counter* counter_ptr_;
+  };
 
-    thread_local ProgressLogger pg_outer; ///< an extra logger for nested logging
+  thread_local ProgressLogger pg_outer; ///< an extra logger for nested logging
 
-    /// Constructor for a read-only handler
-    MzMLHandler::MzMLHandler(MapType& exp, const String& filename, const String& version, const ProgressLogger& logger)
-      : MzMLHandler(filename, version, logger),
-      compress_(String(filename).toLower().hasSuffix(".gz")),
-      internal_state_(std::make_unique<MzMLHandlerInternalState>())
+  /// Constructor for a read-only handler
+  MzMLHandler::MzMLHandler(MapType& exp, const String& filename, const String& version, const ProgressLogger& logger)
+    : MzMLHandler(filename, version, logger)
+  {
+    exp_ = &exp;
+  }
+
+  /// Constructor for a write-only handler
+  MzMLHandler::MzMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger)
+    : MzMLHandler(filename, version, logger)
+  {
+    cexp_ = &exp;
+  }
+
+  /// delegated c'tor for the common things
+  MzMLHandler::MzMLHandler(const String& filename, const String& version, const ProgressLogger& logger)
+    : XMLHandler(filename, version),
+      compress_(String(filename).toLower().hasSuffix(".gz")),  // Initialize const member in initializer list
+      logger_(logger),
+      cv_(ControlledVocabulary::getPSIMSCV())
+      
+  {
+    CVMappingFile().load(File::find("/MAPPING/ms-mapping.xml"), mapping_);
+
+    // check the version number of the mzML handler
+    if (VersionInfo::VersionDetails::create(version_) == VersionInfo::VersionDetails::EMPTY)
     {
-      exp_ = &exp;
+      OPENMS_LOG_ERROR << "MzMLHandler was initialized with an invalid version number: " << version_ << std::endl;
     }
+    pg_outer = logger; // inherit the logtype etc
 
-    /// Constructor for a write-only handler
-    MzMLHandler::MzMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger)
-      : MzMLHandler(filename, version, logger),
-      compress_(String(filename).toLower().hasSuffix(".gz")),
-      internal_state_(std::make_unique<MzMLHandlerInternalState>())
-    {
-      cexp_ = &exp;
-    }
-
-    
-    /// delegated c'tor for the common things
-    MzMLHandler::MzMLHandler(const String& filename, const String& version, const ProgressLogger& logger)
-      : XMLHandler(filename, version),
-        logger_(logger),
-        cv_(ControlledVocabulary::getPSIMSCV())
-    {
-      CVMappingFile().load(File::find("/MAPPING/ms-mapping.xml"), mapping_);
-
-      // check the version number of the mzML handler
-      if (VersionInfo::VersionDetails::create(version_) == VersionInfo::VersionDetails::EMPTY)
-      {
-        OPENMS_LOG_ERROR << "MzMLHandler was initialized with an invalid version number: " << version_ << std::endl;
-      }
-      pg_outer = logger; // inherit the logtype etc
-    }
+    internal_state_ = std::make_unique<MzMLHandlerInternalState>();
+  }
 
 
     /// Destructor
@@ -4005,16 +4004,19 @@ namespace OpenMS::Internal
     
                 OPENMS_LOG_INFO << "Setting pigz to use" << max_threads << "threads with compression level" << level << std::endl;
 
-            // Start pigz as subprocess and pipe output through it
-            pigz_pipe = std::make_unique<boost::process::opstream>();
-            pigz_process = std::make_unique<boost::process::child>(
-              boost::process::search_path("pigz"),
-                "-c",
-                "-p", std::to_string(max_threads),
-                "-" + std::to_string(level),
-                boost::process::std_in < *pigz_pipe,
-                boost::process::std_out > boost::filesystem::path(file_)
-            );
+                std::vector<std::string> pigz_args = {
+                  "-c",  // write to stdout
+                  "-p", std::to_string(max_threads),
+                  "-" + std::to_string(level) // pigz expects "-1" to "-9"
+              };
+              
+              pigz_process = std::make_unique<boost::process::child>(
+                  boost::process::search_path("pigz"),
+                  pigz_args,
+                  boost::process::std_in < *pigz_pipe,
+                  boost::process::std_out > boost::filesystem::path(file_)
+              );
+              
 
             // Setup optional counter for index writing
             if (options_.getWriteIndex())
