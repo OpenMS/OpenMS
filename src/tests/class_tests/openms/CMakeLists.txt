@@ -98,7 +98,10 @@ if (WITH_HDF5)
 endif()
 
 if (WITH_PARQUET)
-  target_link_libraries(Arrow_test Arrow::Arrow)
+  target_link_libraries(Arrow_test 
+  Arrow::arrow_shared
+  Parquet::parquet_shared
+  )
 endif()
 
 

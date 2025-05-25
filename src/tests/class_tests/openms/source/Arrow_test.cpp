@@ -1,24 +1,6 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-
-#include <OpenMS/CONCEPT/Types.h>
-
-using namespace std;
-//copyright
-
-#include <string>
-#include ""
-
-using namespace Parquet;
-//set vars
-START_TEST(Parquet, "$Id$")
-using namespace OpenMS;
-
-START_SECTION((Parquet()))
-
-// (Doc section: Includes)
-
 #include <arrow/api.h>
 
 #include <arrow/csv/api.h>
@@ -30,16 +12,19 @@ START_SECTION((Parquet()))
 #include <parquet/arrow/reader.h>
 
 #include <parquet/arrow/writer.h>
-
-
 #include <iostream>
+#include <vector>
+#include <memory>
+#include <arrow/status.h>
+#include <arrow/csv/reader.h>
 
-// (Doc section: Includes)
+using namespace OpenMS;
+
+//example code used here can be found at: https://arrow.apache.org/docs/cpp/tutorials/io_tutorial.html
 
 
-// (Doc section: GenInitialFile)
-
-arrow::Status GenInitialFile() {
+static ::arrow::Status GenInitialFile()
+{
 
   // Make a couple 8-bit integer arrays and a 16-bit integer array -- just like
 
@@ -137,18 +122,12 @@ arrow::Status GenInitialFile() {
       parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 5));
 
 
-  return arrow::Status::OK();
-
+ return ::arrow::Status::OK();
 }
 
-// (Doc section: GenInitialFile)
-
-
-// (Doc section: RunMain)
-
-arrow::Status RunMain() {
-
-  // (Doc section: RunMain)
+static ::arrow::Status RunMain() 
+{
+    // (Doc section: RunMain)
 
   // (Doc section: Gen Files)
 
@@ -156,20 +135,9 @@ arrow::Status RunMain() {
 
   // we'll also write a table in this example.
 
-  ARROW_RETURN_NOT_OK(GenInitialFile());
+  ARROW_RETURN_NOT_OK(GenInitialFile()); //adapted a bit to the test
 
-  // (Doc section: Gen Files)
-
-
-  // (Doc section: ReadableFile Definition)
-
-  // First, we have to set up a ReadableFile object, which just lets us point our
-
-  // readers to the right data on disk. We'll be reusing this object, and rebinding
-
-  // it to multiple files throughout the example.
-
-  std::shared_ptr<arrow::io::ReadableFile> infile;
+std::shared_ptr<arrow::io::ReadableFile> infile;
 
   // (Doc section: ReadableFile Definition)
 
@@ -360,33 +328,21 @@ arrow::Status RunMain() {
   // (Doc section: Parquet Write)
 
   // (Doc section: Return)
-
-  return arrow::Status::OK();
-
+  return ::arrow::Status::OK();
 }
 
-// (Doc section: Return)
+START_TEST(Arrow, "$Id$")
 
-
-// (Doc section: Main)
-
-int main() {
-
-  arrow::Status st = RunMain();
-
-  if (!st.ok()) {
-
-    std::cerr << st << std::endl;
-
-    return 1;
-
-  }
-
-  return 0;
-
+START_SECTION(GenInitialFile())
+{
+  TEST_EQUAL(GenInitialFile().ok(), true)
 }
+END_SECTION
 
-// (Doc section: Main)
+START_SECTION(RunMain())
+{
+  TEST_EQUAL(RunMain().ok(), true)
+}
 END_SECTION
 
 END_TEST
