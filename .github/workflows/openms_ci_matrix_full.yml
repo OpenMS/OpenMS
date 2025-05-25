@@ -247,6 +247,17 @@ jobs:
           sudo apt-get -qq install -y qt6-base-dev libqt6svg6-dev libqt6opengl6-dev libqt6openglwidgets6 libgl-dev
           sudo apt-get -qq install -y libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev \
            libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
+          
+          sudo apt update
+          sudo apt install -y -V ca-certificates lsb-release wget
+          wget https://packages.apache.org/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+          sudo apt update
+          sudo apt install -y -V ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+          sudo apt update
+          sudo apt install -y -V libarrow-dev
+          sudo apt install -y -V libarrow-dataset-dev
+          sudo apt install -y -V libparquet-dev
+          
           echo "cmake_prefix=" >> $GITHUB_OUTPUT
           ## always run doxygen on Ubuntu to detect Doxygen errors
           sudo apt-get -qq install -y doxygen ghostscript graphviz
@@ -426,6 +437,8 @@ jobs:
           CCACHE_COMPILERCHECK: content
           WITH_THERMORAWFILEPARSER_TEST: "OFF"
           Eigen3_DIR: "${{ steps.tools-prefix.outputs.eigen_choco }}" # Eigen is installed on windows using choco
+          WITH_PARQUET: "ON"
+
 
     - name: Test
       shell: bash
