@@ -655,7 +655,6 @@ protected:
     bool greedy_group_resolution = getStringOption_("protein_quantification") == "shared_peptides";
 
     if (!bayesian) {
-      // TODO allow choosing Bayesian
       BasicProteinInferenceAlgorithm prot_inference;
       Param bpi_param = getParam_().copy("BasicProteinInference:", true);
       writeDebug_("Parameters passed to BasicProteinInference algorithm", bpi_param, 3);
