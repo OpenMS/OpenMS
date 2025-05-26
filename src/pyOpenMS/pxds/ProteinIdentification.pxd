@@ -55,10 +55,7 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
         void setHigherScoreBetter(bool higher_is_better) except + nogil  # wrap-doc:Sets the orientation of the score (is higher better?)
         
         void sort() except + nogil  # wrap-doc:Sorts the protein hits according to their score
-        
-        void assignRanks() except + nogil  # wrap-doc:Sorts the protein hits by score and assigns ranks (best score has rank 1)
-
-        
+                
         void computeCoverage(libcpp_vector[PeptideIdentification] pep_ids) except + nogil  # wrap-doc:Compute the coverage (in percent) of all ProteinHits given PeptideHits
 
         
