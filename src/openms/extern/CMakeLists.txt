@@ -63,7 +63,7 @@ endif()
 ##
 ## external packages (with fallback option to local version)
 ##
-option(USE_EXTERNAL_JSON "Use an external nlohmann::json library" OFF)
+option(USE_EXTERNAL_JSON "Use an external nlohmann::json library" ON)
 message(STATUS "Option USE_EXTERNAL_JSON: ${USE_EXTERNAL_JSON}")
 if(USE_EXTERNAL_JSON)
     find_package(nlohmann_json REQUIRED GLOBAL)  ## global propagates the target up to the parent project
