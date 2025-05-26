@@ -104,6 +104,9 @@ public:
 
     /// Whether this is an Isotope or an Element (for casting)
     virtual bool isIsotope() const {return false;}
+
+    /// Force a refresh of the cached isotope distribution if isotopes have been changed
+    void refreshIsotopeDistribution();
     //@}
 
     /** @name Assignment
