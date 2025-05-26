@@ -200,16 +200,6 @@ protected:
     bool getRetentionTimes_(const IdentificationData& id_data, SeqToList& rt_data);
 
     /**
-      @brief Collect retention time data from peptide IDs annotated to spectra
-
-      @param experiment Input map for RT data
-      @param rt_data Lists of RT values for diff. peptide sequences (output)
-
-      @return Are the RTs already sorted? (Here: false)
-    */
-    bool getRetentionTimes_(const AnnotatedMSRun& experiment, SeqToList& rt_data);
-
-    /**
       @brief Collect retention time data from peptide IDs contained in feature maps or consensus maps
 
       The following global flags (mutually exclusive) influence the processing:\n
