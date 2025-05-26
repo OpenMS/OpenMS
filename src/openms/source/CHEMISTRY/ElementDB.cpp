@@ -151,13 +151,11 @@ namespace OpenMS
       const Isotope* isotope = new Isotope(iso_name, iso_symbol, an, mass_number - an, mass, abundance, half_life, decay);      
       addIsotopeToMaps_(iso_name, iso_symbol, isotope);
       
-      // we changed/updated the isotopes, so we need to update
+      // we changed/updated the isotopes, so we need to refresh the cached isotope distribution
       const Element* const_ele = isotope->getElement();
       
       Element* element = const_cast<Element*>(const_ele);
-      auto current_isotopes = element->getIsotopes();
-      
-      element->setIsotopes(element->getIsotopes());
+      element->refreshIsotopeDistribution();
     }
     else
     {

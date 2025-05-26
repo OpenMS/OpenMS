@@ -123,6 +123,11 @@ namespace OpenMS
     isotope_distr_.set(std::move(dist));    
   }
 
+  void Element::refreshIsotopeDistribution()
+  {
+    updateIsotopeDistr_();
+  }
+
   const std::vector<const Isotope*>& Element::getIsotopes() const
   {
     return isotopes_;

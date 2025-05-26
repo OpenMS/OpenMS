@@ -199,6 +199,46 @@ START_SECTION( void addIsotope(const std::string& name, const std::string& symbo
 }
 END_SECTION
 
+START_SECTION([EXTRA] Element::refreshIsotopeCache() functionality)
+{
+  // Test that refreshIsotopeCache() properly updates the isotope distribution
+  // after isotope modifications via ElementDB
+  
+  // Get a test element (Carbon)
+  const Element* carbon = e_ptr->getElement("Carbon");
+  TEST_NOT_EQUAL(carbon, elem_nullPointer)
+  
+  // Store original isotope distribution size
+  size_t original_isotope_count = carbon->getIsotopeDistribution().getContainer().size();
+  
+  // Add a new isotope to Carbon
+  e_ptr->addIsotope("Carbon", "C", 6, 0.1, 15.0, 1e5, Isotope::DecayMode::UNKNOWN, false);
+  
+  // Verify the isotope distribution was updated (this happens automatically via refreshIsotopeCache)
+  size_t new_isotope_count = carbon->getIsotopeDistribution().getContainer().size();
+  TEST_EQUAL(new_isotope_count, original_isotope_count + 1)
+  
+  // Verify the new isotope is in the distribution
+  bool found_new_isotope = false;
+  for (const auto& peak : carbon->getIsotopeDistribution().getContainer())
+  {
+    if (std::abs(peak.getMZ() - 15.0) < 1e-6 && std::abs(peak.getIntensity() - 0.1) < 1e-6)
+    {
+      found_new_isotope = true;
+      break;
+    }
+  }
+  TEST_EQUAL(found_new_isotope, true)
+  
+  // Test manual refresh (should be idempotent)
+  Element* mutable_carbon = const_cast<Element*>(carbon);
+  mutable_carbon->refreshIsotopeCache();
+  
+  // Distribution should remain the same after manual refresh
+  TEST_EQUAL(carbon->getIsotopeDistribution().getContainer().size(), new_isotope_count)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
