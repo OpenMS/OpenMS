@@ -13,6 +13,7 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CHEMISTRY/Isotope.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
@@ -100,8 +101,29 @@ START_SECTION(void setAverageWeight(double weight))
 END_SECTION
 
 START_SECTION(( void setIsotopes(const std::vector<const Isotope*>& isotopes) ))
-  std::vector<const Isotope*> isotopes = {new Isotope(), new Isotope()};
+  // Create isotopes with meaningful data to test cache functionality
+  Isotope* iso1 = new Isotope("Carbon-12", "C", 6, 6, 12.0, 0.9893, -1, Isotope::DecayMode::NONE);
+  Isotope* iso2 = new Isotope("Carbon-13", "C", 6, 7, 13.003355, 0.0107, -1, Isotope::DecayMode::NONE);
+  std::vector<const Isotope*> isotopes = {iso1, iso2};
+  
+  // Store initial isotope distribution for comparison
+  IsotopeDistribution initial_dist = e_ptr->getIsotopeDistribution();
+  
+  // Set isotopes and verify cache is updated
   e_ptr->setIsotopes(isotopes);
+  
+  // Verify the isotope distribution cache was updated correctly
+  const IsotopeDistribution& updated_dist = e_ptr->getIsotopeDistribution();
+  TEST_NOT_EQUAL(updated_dist == initial_dist, true) // Distribution should have changed
+  TEST_EQUAL(updated_dist.size(), 2) // Should contain 2 isotopes
+  
+  // Verify the isotope distribution contains the correct masses and abundances
+  auto container = updated_dist.getContainer();
+  TEST_REAL_SIMILAR(container[0].getMZ(), 12.0)
+  TEST_REAL_SIMILAR(container[0].getIntensity(), 0.9893)
+  TEST_REAL_SIMILAR(container[1].getMZ(), 13.003355)
+  TEST_REAL_SIMILAR(container[1].getIntensity(), 0.0107)
+  
   // Clean up after the test
   for (auto iso : isotopes)
   {
@@ -127,7 +149,12 @@ START_SECTION(double getMonoWeight() const)
 END_SECTION
 
 START_SECTION(virtual bool isIsotope())
+  // Test with Element - should return false
   TEST_EQUAL( e_ptr->isIsotope(), false )
+  
+  // Test with actual Isotope - should return true
+  Isotope isotope("Hydrogen-1", "H", 1, 0, 1.007825, 0.999885, -1, Isotope::DecayMode::NONE);
+  TEST_EQUAL( isotope.isIsotope(), true )
 END_SECTION
 
 START_SECTION(Element& operator = (const Element& element))

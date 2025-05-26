@@ -13,10 +13,10 @@
         else:
            raise Exception('can not handle type of %s' % (args,))
 
-        # void transform(const String&, IMSDataConsumer[Peak1D, ChromatogramPeak] *) nogil except + # wrap-ignore
-        # void transform(const String&, IMSDataConsumer[Peak1D, ChromatogramPeak] *, bool skip_full_count, bool skip_first_pass) nogil except +
-        # void transform(const String&, IMSDataConsumer[Peak1D, ChromatogramPeak] *, MSExperiment& e) nogil except + # wrap-ignore
-        # void transform(const String&, IMSDataConsumer[Peak1D, ChromatogramPeak] *, MSExperiment& e, bool skip_full_count, bool skip_first_pass) nogil except + # wrap-ignore
+        # void transform(const String&, IMSDataConsumer[Peak1D, ChromatogramPeak] *) except + nogil # wrap-ignore
+        # void transform(const String&, IMSDataConsumer[Peak1D, ChromatogramPeak] *, bool skip_full_count, bool skip_first_pass) except + nogil
+        # void transform(const String&, IMSDataConsumer[Peak1D, ChromatogramPeak] *, MSExperiment& e) except + nogil # wrap-ignore
+        # void transform(const String&, IMSDataConsumer[Peak1D, ChromatogramPeak] *, MSExperiment& e, bool skip_full_count, bool skip_first_pass) except + nogil # wrap-ignore
 
     def _transform_4(self, path, transformer, MSExperiment exp, bool skip_full_count, bool skip_first_pass):
         assert isinstance(exp, MSExperiment), 'arg exp wrong type'
