@@ -160,8 +160,9 @@ protected:
         else if (in_type == FileTypes::MZML) // this is expensive!
         {
           PeakMap exp;
+
           FileHandler().loadExperiment(in_files[i], exp, {FileTypes::MZML}, log_type_);
-          exp.updateRanges(1);
+          exp.updateRanges();
           s = exp.getSize();
         }
         if (s > max_count)

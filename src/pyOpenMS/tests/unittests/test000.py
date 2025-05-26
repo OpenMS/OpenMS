@@ -5477,9 +5477,9 @@ def testElementDB():
 
     #  not yet implemented
     #
-    # const Map[ String, Element * ]  getNames() except + nogil
-    # const Map[ String, Element * ] getSymbols() except + nogil
-    # const Map[unsigned int, Element * ] getAtomicNumbers() except + nogil
+    # const Map[ String, Element * ]  getNames() nogil except +
+    # const Map[ String, Element * ] getSymbols() nogil except +
+    # const Map[unsigned int, Element * ] getAtomicNumbers() nogil except +
 
 
 @report
@@ -5583,11 +5583,11 @@ def testModificationsDB():
 def testRNaseDB():
     """
     @tests: RNaseDB
-        const DigestionEnzymeRNA* getEnzyme(const String& name) except + nogil
-        const DigestionEnzymeRNA* getEnzymeByRegEx(const String& cleavage_regex) except + nogil
-        void getAllNames(libcpp_vector[ String ]& all_names) except + nogil
-        bool hasEnzyme(const String& name) except + nogil
-        bool hasRegEx(const String& cleavage_regex) except + nogil
+        const DigestionEnzymeRNA* getEnzyme(const String& name) nogil except +
+        const DigestionEnzymeRNA* getEnzymeByRegEx(const String& cleavage_regex) nogil except +
+        void getAllNames(libcpp_vector[ String ]& all_names) nogil except +
+        bool hasEnzyme(const String& name) nogil except +
+        bool hasRegEx(const String& cleavage_regex) nogil except +
      """
     db = pyopenms.RNaseDB()
     names = []

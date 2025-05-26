@@ -210,13 +210,6 @@ private:
       FileTypes::Type filetype = FileHandler::getType(reference_file);
       switch (filetype)
       {
-      case FileTypes::MZML:
-      {
-        PeakMap experiment;
-        FileHandler().loadExperiment(reference_file, experiment, {FileTypes::MZML}, log_type_);
-        algorithm.setReference(experiment);
-      }
-      break;
       case FileTypes::FEATUREXML:
       {
         FeatureMap features;

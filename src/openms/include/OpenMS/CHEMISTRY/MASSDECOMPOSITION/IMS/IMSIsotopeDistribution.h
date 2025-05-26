@@ -78,13 +78,7 @@ public:
           mass(local_mass), abundance(local_abundance)
         {}
 
-        bool operator==(const Peak & peak) const
-        {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
-          return peak.mass == mass && peak.abundance == abundance;
-#pragma clang diagnostic pop
-        }
+        bool operator==(const Peak& peak) const = default;
 
         mass_type mass;
         abundance_type abundance;
