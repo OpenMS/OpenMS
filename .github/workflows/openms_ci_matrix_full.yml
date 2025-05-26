@@ -419,6 +419,7 @@ jobs:
           ENABLE_GCC_WERROR: "OFF" # TODO think about that
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
+          WITH_PARQUET: "ON"
           SIGNING_IDENTITY: "-"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
@@ -438,7 +439,6 @@ jobs:
           CCACHE_COMPILERCHECK: content
           WITH_THERMORAWFILEPARSER_TEST: "OFF"
           Eigen3_DIR: "${{ steps.tools-prefix.outputs.eigen_choco }}" # Eigen is installed on windows using choco
-          WITH_PARQUET: "ON"
 
 
     - name: Test
