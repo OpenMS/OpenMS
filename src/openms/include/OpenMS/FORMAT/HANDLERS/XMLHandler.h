@@ -299,7 +299,7 @@ public:
       {
         return toNative_(str);
       }
-      /// Checks if supplied if chars in XMLCh* can be encoded with ASCII
+      /// Checks if supplied chars in XMLCh* can be encoded with ASCII (i.e. the upper byte of each char is 0)
       static bool isASCII(const XMLCh * chars, const XMLSize_t length);
 
       

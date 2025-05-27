@@ -303,7 +303,7 @@ namespace OpenMS::Internal
         }
         // no value, although there should be a numerical value
         else if (term.xref_type != ControlledVocabulary::CVTerm::NONE && term.xref_type != ControlledVocabulary::CVTerm::XSD_STRING && // should be numerical
-                 !cv.isChildOf(accession, "MS:1000513") // here the value type relates to the bits data array, not the 'value=' attribute!
+                 !cv.isChildOf(accession, "MS:1000513") // here the value type relates to the binary data array, not the 'value=' attribute!
         )
         {
           warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");

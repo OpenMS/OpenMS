@@ -29,7 +29,7 @@ START_TEST(StringManager, "$Id$")
 
 const XMLCh russianHello[] = {
     0x041F, 0x0440, 0x0438, 0x0432, 0x0435, 0x0442, 0x043C, 
-    0x0438, 0x0440, // "Привет мир" (Hello World in Russian)
+    0x0438, 0x0440,0x0000 // "Привет мир" (Hello World in Russian)
 };
 XMLSize_t r_length = xercesc::XMLString::stringLen(russianHello);
 
@@ -149,6 +149,7 @@ START_SECTION(strLength(const XMLCh* input_ptr))
     o_length = StringManager::strLength(upperBoundary);
     TEST_EQUAL(o_length, u_length);
     o_length = StringManager::strLength(nullPointer);
+    TEST_EQUAL(o_length, 0);
 END_SECTION
 
 END_TEST
