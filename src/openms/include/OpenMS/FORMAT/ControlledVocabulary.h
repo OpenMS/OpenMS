@@ -30,6 +30,21 @@ namespace OpenMS
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const ControlledVocabulary& cv);
 
 public:
+    /// ensure same hash on all platforms (for reproducibility)-
+    struct FNV1aHasher
+    {
+      size_t operator()(const String& key) const noexcept
+      {
+        size_t hash = 14695981039346656037ull;
+        for (auto c : key)
+        {
+          hash ^= static_cast<unsigned char>(c);
+          hash *= 1099511628211ull;
+        }
+        return hash;
+      }
+    };
+
     /// Representation of a CV term
     struct OPENMS_DLLAPI CVTerm
     {
@@ -128,7 +143,7 @@ public:
 
 
     /// returns all the terms stored in the CV
-    const std::unordered_map<String, CVTerm>& getTerms() const;
+    const std::unordered_map<String, CVTerm, FNV1aHasher>& getTerms() const;
 
     /**
         @brief Writes all child terms recursively into terms
@@ -201,9 +216,9 @@ protected:
     bool checkName_(const String& id, const String& name, bool ignore_case = true) const;
 
     /// Map from ID to CVTerm
-    std::unordered_map<String, CVTerm> terms_;
+    std::unordered_map<String, CVTerm, FNV1aHasher> terms_;
     /// Map from name to id
-    std::unordered_map<String, String> namesToIds_;
+    std::unordered_map<String, String, FNV1aHasher> namesToIds_;
     /// Name set in the load method
     String name_;
     /// CV label
