@@ -170,15 +170,15 @@ namespace OpenMS
 
     for (Int z = min_charge; z <= max_charge; ++z)
     {
-      Int charge = !positive_mode_ ? -z : z;
-      if (add_b_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::BIon, charge);
-      if (add_y_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::YIon, charge);
-      if (add_a_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::AIon, charge);
-      if (add_c_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::CIon, charge);
-      if (add_x_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::XIon, charge);
-      if (add_z_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::ZIon, charge);
-      if (add_zp1_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::Zp1Ion, charge);
-      if (add_zp2_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::Zp2Ion, charge);
+      Int abs_charge = std::abs(z);
+      if (add_b_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::BIon, abs_charge);
+      if (add_y_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::YIon, abs_charge);
+      if (add_a_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::AIon, abs_charge);
+      if (add_c_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::CIon, abs_charge);
+      if (add_x_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::XIon, abs_charge);
+      if (add_z_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::ZIon, abs_charge);
+      if (add_zp1_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::Zp1Ion, abs_charge);
+      if (add_zp2_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::Zp2Ion, abs_charge);
     }
 
     if (add_precursor_peaks_)
@@ -187,14 +187,14 @@ namespace OpenMS
       {
         for (Int z = min_charge; z <= max_charge; ++z)
         {
-          Int charge = !positive_mode_ ? -z : z;
+          Int charge = positive_mode_ ? z : -std::abs(z);
           addPrecursorPeaks_(spectrum, peptide, *ion_names, *charges, charge);
           chunks.add(false);
         }
       }
       else // add_all_precursor_charges_ = false, only add precursor with highest charge
       {
-        Int charge = !positive_mode_ ? -max_charge : max_charge;
+        Int charge = positive_mode_ ? max_charge : -std::abs(max_charge);
         addPrecursorPeaks_(spectrum, peptide, *ion_names, *charges, charge);
         chunks.add(false);
       }
@@ -400,24 +400,18 @@ namespace OpenMS
                                                         double intensity) const
   {
     String ion_name;
-    if (!positive_mode_)
-    {
-      ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(ion.size()) + String((Size)abs(charge), '-');
-    }
-    else
-    {
-      ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(ion.size()) + String((Size)abs(charge), '+');
-    }
+    char charge_sign = positive_mode_ ? '+' : '-';
+    ion_name = String(Residue::residueTypeToIonLetter(res_type)) + String(ion.size()) + String((Size)abs(charge), charge_sign);
 
     // manually compute correct sum formula (instead of using built-in assumption of hydrogen adduct)
-    EmpiricalFormula f;
-    if (!positive_mode_)
+    EmpiricalFormula f = ion.getFormula(res_type, charge);
+    if (positive_mode_)
     {
-      f = ion.getFormula(res_type, charge) - EmpiricalFormula("H") * abs(charge);
+      f += EmpiricalFormula("H") * abs(charge);
     }
     else
     {
-      f = ion.getFormula(res_type, charge) + EmpiricalFormula("H") * charge;
+      f -= EmpiricalFormula("H") * abs(charge);
     }
     f.setCharge(0);
 
@@ -455,15 +449,9 @@ namespace OpenMS
                          bool add_metainfo,
                          int charge) const
   {
-    String charge_str;
-    if (charge < 0)
-    {
-      charge_str = String((Size)abs(charge), '-');
-    }
-    else
-    {
-      charge_str = String((Size)abs(charge), '+');
-    }
+
+    char charge_sign = positive_mode_ ? '+' : '-';
+    String charge_str = String((Size)abs(charge), charge_sign);
     const String ion_type_str(Residue::residueTypeToIonLetter(res_type));
     const String ion_ordinal_str(String(ion_ordinal) + "-");
 
@@ -494,15 +482,8 @@ namespace OpenMS
                                                 const Residue::ResidueType res_type,
                                                 int charge) const
   {
-    String charge_str;
-    if (charge < 0)
-    {
-      charge_str = String((Size)abs(charge), '-');
-    }
-    else
-    {
-      charge_str = String((Size)abs(charge), '+');
-    }
+    char charge_sign = positive_mode_ ? '+' : '-';
+    String charge_str = String((Size)abs(charge), charge_sign);
     const String ion_type_str(Residue::residueTypeToIonLetter(res_type));
     const String ion_ordinal_str(String(ion.size()) + "-");
 
@@ -547,13 +528,13 @@ namespace OpenMS
       if (add_isotopes_)
       {
         // manually compute correct sum formula (instead of using built-in assumption of hydrogen adduct)
-        if (!positive_mode_)
+        if (positive_mode_)
         {
-          loss_ion -= EmpiricalFormula("H") * abs(charge);
+          loss_ion += EmpiricalFormula("H") * abs(charge);
         }
         else
         {
-          loss_ion += EmpiricalFormula("H") * charge;
+          loss_ion -= EmpiricalFormula("H") * abs(charge);
         }
         loss_ion.setCharge(0);
 
@@ -598,15 +579,9 @@ namespace OpenMS
                                                const Residue::ResidueType res_type,
                                                Int charge) const
   {
-    String charge_str;
-    if (charge < 0)
-    {
-      charge_str = String((Size)abs(charge), '-');
-    }
-    else
-    {
-      charge_str = String((Size)abs(charge), '+');
-    }
+    char charge_sign = positive_mode_ ? '+' : '-';
+
+    String charge_str = String((Size)abs(charge), charge_sign);
     const String ion_name_str(Residue::residueTypeToIonLetter(res_type));
 
     int min_nr_new_peaks = 1 + int(add_isotopes_) + int(add_losses_);
@@ -633,15 +608,7 @@ namespace OpenMS
       default: break;
     }
 
-    double mono_weight;
-    if (!positive_mode_)
-    {
-      mono_weight = -Constants::PROTON_MASS_U * abs(charge);
-    }
-    else
-    {
-      mono_weight = Constants::PROTON_MASS_U * charge;
-    }
+    double mono_weight = positive_mode_ ? Constants::PROTON_MASS_U * abs(charge) : -Constants::PROTON_MASS_U * abs(charge);
 
     std::set<EmpiricalFormula> fx_losses;
     // note: we will use a map instead of unordered_map because hashing the
@@ -869,16 +836,10 @@ namespace OpenMS
                                                         Int charge) const
   {
     String charge_str, ion_name;
-    if (!positive_mode_)
-    {
-      charge_str = String((Size)abs(charge), '-');
-      ion_name = "[M-H]" + charge_str;
-    }
-    else
-    {
-      charge_str = String((Size)abs(charge), '+');
-      ion_name = "[M+H]" + charge_str;
-    }
+    char charge_sign = positive_mode_ ? '+' : '-';
+
+    charge_str = String((Size)abs(charge), charge_sign);
+    ion_name = positive_mode_ ? "[M+H]" + charge_str : "[M-H]" + charge_str;
 
     // precursor peak
     double mono_pos = peptide.getMonoWeight(Residue::Full, charge);
@@ -886,14 +847,14 @@ namespace OpenMS
     if (add_isotopes_)
     {
       // manually compute correct sum formula (instead of using built-in assumption of hydrogen adduct)
-      EmpiricalFormula formula;
-      if (!positive_mode_)
+      EmpiricalFormula formula = peptide.getFormula(Residue::Full, charge);
+      if (positive_mode_)
       {
-        formula = peptide.getFormula(Residue::Full, charge) - EmpiricalFormula("H") * abs(charge);
+        formula += EmpiricalFormula("H") * abs(charge);
       }
       else
       {
-        formula = peptide.getFormula(Residue::Full, charge) + EmpiricalFormula("H") * charge;
+        formula -= EmpiricalFormula("H") * abs(charge);
       }
       formula.setCharge(0);
 
@@ -932,23 +893,16 @@ namespace OpenMS
     EmpiricalFormula ion = peptide.getFormula(Residue::Full, charge) - EmpiricalFormula("H2O");
     mono_pos = ion.getMonoWeight();
     String ion_name_h2o;
-    if (!positive_mode_)
-    {
-      ion_name_h2o = "[M-H]-H2O" + charge_str;
-    }
-    else
-    {
-      ion_name_h2o = "[M+H]-H2O" + charge_str;
-    }
+    ion_name_h2o = positive_mode_ ? "[M+H]-H2O" + charge_str : "[M-H]-H2O" + charge_str;
     if (add_isotopes_)
     {
-      if (!positive_mode_)
+      if (positive_mode_)
       {
-        ion -= EmpiricalFormula("H") * abs(charge);
+        ion += EmpiricalFormula("H") * abs(charge);
       }
       else
       {
-        ion += EmpiricalFormula("H") * charge;
+        ion -= EmpiricalFormula("H") * abs(charge);
       }
       ion.setCharge(0);
 
@@ -986,24 +940,17 @@ namespace OpenMS
     ion = peptide.getFormula(Residue::Full, charge) - EmpiricalFormula("NH3");
     mono_pos = ion.getMonoWeight();
     String ion_name_nh3;
-    if (!positive_mode_)
-    {
-      ion_name_nh3 = "[M-H]-NH3" + charge_str;
-    }
-    else
-    {
-      ion_name_nh3 = "[M+H]-NH3" + charge_str;
-    }
+    ion_name_nh3 = positive_mode_ ? "[M+H]-NH3" + charge_str : "[M-H]-NH3" + charge_str;
     if (add_isotopes_)
     {
       // manually compute correct sum formula (instead of using built-in assumption of hydrogen adduct)
-      if (!positive_mode_)
+      if (positive_mode_)
       {
-        ion -= EmpiricalFormula("H") * abs(charge);
+        ion += EmpiricalFormula("H") * abs(charge);
       }
       else
       {
-        ion += EmpiricalFormula("H") * charge;
+        ion -= EmpiricalFormula("H") * abs(charge);
       }
       ion.setCharge(0);
 

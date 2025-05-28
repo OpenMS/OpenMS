@@ -882,6 +882,100 @@ START_SECTION(([EXTRA] test first prefix loss))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] test ionization mode - positive vs negative mode))
+{  
+  AASequence peptide = AASequence::fromString("PEPTIDE");
+  TheoreticalSpectrumGenerator tsg_pos, tsg_neg;
+  PeakSpectrum spec_pos, spec_neg;
+  
+  // Test positive mode
+  Param param_pos = tsg_pos.getParameters();
+  param_pos.setValue("ionization_mode", "positive");
+  param_pos.setValue("add_metainfo", "true");
+  param_pos.setValue("add_precursor_peaks", "true");
+  param_pos.setValue("add_abundant_immonium_ions", "true");
+  tsg_pos.setParameters(param_pos);
+  
+  // Test negative mode
+  Param param_neg = tsg_neg.getParameters();
+  param_neg.setValue("ionization_mode", "negative");
+  param_neg.setValue("add_metainfo", "true");
+  param_neg.setValue("add_precursor_peaks", "true");
+  param_neg.setValue("add_abundant_immonium_ions", "true");
+  tsg_neg.setParameters(param_neg);
+  
+  // Generate spectra
+  tsg_pos.getSpectrum(spec_pos, peptide, 1, 2);
+  tsg_neg.getSpectrum(spec_neg, peptide, 1, 2);
+  
+  // Verify that both modes generate spectra
+  TEST_NOT_EQUAL(spec_pos.size(), 0);
+  TEST_NOT_EQUAL(spec_neg.size(), 0);
+  
+  // Verify precursor charges are correct for each mode
+  TEST_EQUAL(spec_pos.getPrecursors()[0].getCharge(), 3); // positive charge
+  TEST_EQUAL(spec_neg.getPrecursors()[0].getCharge(), -3); // negative charge
+  
+  // Verify that abundant immonium ions are only added in positive mode
+  // (this tests the positive_mode_ boolean check)
+  bool has_immonium_pos = false;
+  bool has_immonium_neg = false;
+  
+  if (!spec_pos.getStringDataArrays().empty()) {
+    auto& ion_names_pos = spec_pos.getStringDataArrays()[0];
+    for (const auto& name : ion_names_pos) {
+      if (name.hasPrefix("i")) {
+        has_immonium_pos = true;
+        break;
+      }
+    }
+  }
+  
+  if (!spec_neg.getStringDataArrays().empty()) {
+    auto& ion_names_neg = spec_neg.getStringDataArrays()[0];
+    for (const auto& name : ion_names_neg) {
+      if (name.hasPrefix("i")) {
+        has_immonium_neg = true;
+        break;
+      }
+    }
+  }
+  
+  TEST_EQUAL(has_immonium_pos, true);  // Should have immonium ions in positive mode
+  TEST_EQUAL(has_immonium_neg, false); // Should NOT have immonium ions in negative mode
+  
+  // Verify ion naming conventions are correct for each mode
+  if (!spec_pos.getStringDataArrays().empty()) {
+    auto& ion_names_pos = spec_pos.getStringDataArrays()[0];
+    bool has_positive_precursor = false;
+    for (const auto& name : ion_names_pos) {
+      if (name == "[M+H]++" || name == "[M+H]+") {
+        has_positive_precursor = true;
+        break;
+      }
+    }
+    TEST_EQUAL(has_positive_precursor, true);
+  }
+  
+  if (!spec_neg.getStringDataArrays().empty()) {
+    auto& ion_names_neg = spec_neg.getStringDataArrays()[0];
+    bool has_negative_precursor = false;
+    for (const auto& name : ion_names_neg) {
+      if (name == "[M-H]--" || name == "[M-H]-") {
+        has_negative_precursor = true;
+        break;
+      }
+    }
+    TEST_EQUAL(has_negative_precursor, true);
+  }
+  
+  // Test that invalid ionization mode values are properly rejected
+  Param param_invalid = tsg_pos.getParameters();
+  param_invalid.setValue("ionization_mode", "invalid");
+  TEST_EXCEPTION(Exception::InvalidParameter, tsg_pos.setParameters(param_invalid));
+}
+END_SECTION
+
 delete ptr;
 
 /////////////////////////////////////////////////////////////
