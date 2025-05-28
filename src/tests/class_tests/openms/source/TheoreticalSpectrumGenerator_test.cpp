@@ -976,6 +976,146 @@ START_SECTION(([EXTRA] test ionization mode - positive vs negative mode))
 }
 END_SECTION
 
+START_SECTION((test b and y ion masses in positive vs negative mode))
+{
+  // Test peptide: PEPTIDE
+  AASequence peptide = AASequence::fromString("PEPTIDE");
+  
+  // Setup positive mode generator
+  TheoreticalSpectrumGenerator tsg_pos;
+  Param param_pos = tsg_pos.getParameters();
+  param_pos.setValue("ionization_mode", "positive");
+  param_pos.setValue("add_b_ions", "true");
+  param_pos.setValue("add_y_ions", "true");
+  param_pos.setValue("add_a_ions", "false");
+  param_pos.setValue("add_c_ions", "false");
+  param_pos.setValue("add_x_ions", "false");
+  param_pos.setValue("add_z_ions", "false");
+  param_pos.setValue("add_precursor_peaks", "false");
+  param_pos.setValue("add_losses", "false");
+  param_pos.setValue("add_abundant_immonium_ions", "false");
+  param_pos.setValue("add_metainfo", "true");
+  tsg_pos.setParameters(param_pos);
+  
+  // Setup negative mode generator
+  TheoreticalSpectrumGenerator tsg_neg;
+  Param param_neg = tsg_neg.getParameters();
+  param_neg.setValue("ionization_mode", "negative");
+  param_neg.setValue("add_b_ions", "true");
+  param_neg.setValue("add_y_ions", "true");
+  param_neg.setValue("add_a_ions", "false");
+  param_neg.setValue("add_c_ions", "false");
+  param_neg.setValue("add_x_ions", "false");
+  param_neg.setValue("add_z_ions", "false");
+  param_neg.setValue("add_precursor_peaks", "false");
+  param_neg.setValue("add_losses", "false");
+  param_neg.setValue("add_abundant_immonium_ions", "false");
+  param_neg.setValue("add_metainfo", "true");
+  tsg_neg.setParameters(param_neg);
+  
+  // Generate spectra
+  PeakSpectrum spec_pos, spec_neg;
+  tsg_pos.getSpectrum(spec_pos, peptide, 1, 1);
+  tsg_neg.getSpectrum(spec_neg, peptide, 1, 1);
+  
+  // Both spectra should have the same number of peaks (same ion types)
+  TEST_EQUAL(spec_pos.size(), spec_neg.size());
+  
+  // Test specific b and y ions
+  
+  // Find y3 ion in both spectra
+  Peak1D y3_pos, y3_neg;
+  bool found_y3_pos = false, found_y3_neg = false;
+
+  for (Size i = 0; i < spec_pos.size(); ++i)
+  {
+    if (spec_pos.getStringDataArrays()[0][i] == "y3+")
+    {
+      y3_pos = spec_pos[i];
+      found_y3_pos = true;
+      break;
+    }
+  }
+  
+  for (Size i = 0; i < spec_neg.size(); ++i)
+  {
+    if (spec_neg.getStringDataArrays()[0][i] == "y3-")
+    {
+      y3_neg = spec_neg[i];
+      found_y3_neg = true;
+      break;
+    }
+  }
+
+  TEST_EQUAL(found_y3_pos, true);
+  TEST_EQUAL(found_y3_neg, true);
+
+  // y3 masses should differ by one proton mass (since y3 is a y ion in positive mode and a y ion in negative mode)
+  TEST_REAL_SIMILAR(y3_pos.getPosition()[0], y3_neg.getPosition()[0] + Constants::PROTON_MASS_U);
+
+  // Test that ion names are correctly formatted
+  bool has_positive_names = false, has_negative_names = false;
+  
+  for (Size i = 0; i < spec_pos.size(); ++i)
+  {
+    String name = spec_pos.getStringDataArrays()[0][i];
+    if (name.hasSuffix("+"))
+    {
+      has_positive_names = true;
+      break;
+    }
+  }
+  
+  for (Size i = 0; i < spec_neg.size(); ++i)
+  {
+    String name = spec_neg.getStringDataArrays()[0][i];
+    if (name.hasSuffix("-"))
+    {
+      has_negative_names = true;
+      break;
+    }
+  }
+  
+  TEST_EQUAL(has_positive_names, true);
+  TEST_EQUAL(has_negative_names, true);
+  
+  // Test charge 2 ions
+  PeakSpectrum spec_pos_2, spec_neg_2;
+  tsg_pos.getSpectrum(spec_pos_2, peptide, 2, 2);
+  tsg_neg.getSpectrum(spec_neg_2, peptide, 2, 2);
+  
+  // Find b2 charge 2 ions
+  Peak1D b2_pos_2, b2_neg_2;
+  bool found_b2_pos_2 = false, found_b2_neg_2 = false;
+  
+  for (Size i = 0; i < spec_pos_2.size(); ++i)
+  {
+    if (spec_pos_2.getStringDataArrays()[0][i] == "b2++")
+    {
+      b2_pos_2 = spec_pos_2[i];
+      found_b2_pos_2 = true;
+      break;
+    }
+  }
+  
+  for (Size i = 0; i < spec_neg_2.size(); ++i)
+  {
+    if (spec_neg_2.getStringDataArrays()[0][i] == "b2--")
+    {
+      b2_neg_2 = spec_neg_2[i];
+      found_b2_neg_2 = true;
+      break;
+    }
+  }
+  
+  TEST_EQUAL(found_b2_pos_2, true);
+  TEST_EQUAL(found_b2_neg_2, true);
+  
+  // For charge 2, m/z should differ by two proton masses
+  TEST_REAL_SIMILAR(b2_pos_2.getPosition()[0], b2_neg_2.getPosition()[0] + 2. * Constants::PROTON_MASS_U);
+}
+END_SECTION
+
 delete ptr;
 
 /////////////////////////////////////////////////////////////
