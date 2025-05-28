@@ -130,5 +130,6 @@ namespace OpenMS
     double pre_int_;
     double pre_int_H2O_;
     double pre_int_NH3_;
+    bool positive_mode_;
   };
 }
