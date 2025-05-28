@@ -13,7 +13,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <set>
-#include <map>
+#include <unordered_map>
 
 namespace OpenMS
 {
@@ -128,7 +128,7 @@ public:
 
 
     /// returns all the terms stored in the CV
-    const std::map<String, CVTerm>& getTerms() const;
+    const std::unordered_map<String, CVTerm>& getTerms() const;
 
     /**
         @brief Writes all child terms recursively into terms
@@ -201,9 +201,9 @@ protected:
     bool checkName_(const String& id, const String& name, bool ignore_case = true) const;
 
     /// Map from ID to CVTerm
-    std::map<String, CVTerm> terms_;
+    std::unordered_map<String, CVTerm> terms_;
     /// Map from name to id
-    std::map<String, String> namesToIds_;
+    std::unordered_map<String, String> namesToIds_;
     /// Name set in the load method
     String name_;
     /// CV label
