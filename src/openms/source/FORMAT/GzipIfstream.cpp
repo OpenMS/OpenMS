@@ -61,6 +61,7 @@ namespace OpenMS
       close();
     }
     gzfile_ = gzopen(filename, "rb"); // read binary: always open in binary mode because windows and mac open in text mode
+    gzbuffer(gzfile_, 524288);        // set buffer size to 512kb to improve read performance (about 7% for mzML files incl. parsing)
 
     //aborting, ahhh!
     if (gzfile_ == nullptr)

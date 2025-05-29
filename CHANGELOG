@@ -18,6 +18,7 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 
 General:
  - speed improvements:
+    - loading .gz files is about 7% faster (#8069)
   
 Dependencies:
 
