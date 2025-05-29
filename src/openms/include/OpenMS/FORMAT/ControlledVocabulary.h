@@ -13,7 +13,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <set>
-#include <unordered_map>
+#include <map>
 
 namespace OpenMS
 {
@@ -143,7 +143,7 @@ public:
 
 
     /// returns all the terms stored in the CV
-    const std::unordered_map<String, CVTerm, FNV1aHasher>& getTerms() const;
+    const std::map<String, CVTerm>& getTerms() const;
 
     /**
         @brief Writes all child terms recursively into terms
@@ -216,9 +216,10 @@ protected:
     bool checkName_(const String& id, const String& name, bool ignore_case = true) const;
 
     /// Map from ID to CVTerm
-    std::unordered_map<String, CVTerm, FNV1aHasher> terms_;
+    // note: unordered_map would be faster (5% for loading mzML), but order differs across platforms
+    std::map<String, CVTerm> terms_;
     /// Map from name to id
-    std::unordered_map<String, String, FNV1aHasher> namesToIds_;
+    std::map<String, String> namesToIds_;
     /// Name set in the load method
     String name_;
     /// CV label

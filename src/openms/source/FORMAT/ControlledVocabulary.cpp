@@ -512,7 +512,7 @@ namespace OpenMS
     return it->second;
   }
 
-  const std::unordered_map<String, ControlledVocabulary::CVTerm, ControlledVocabulary::FNV1aHasher>& ControlledVocabulary::getTerms() const
+  const std::map<String, ControlledVocabulary::CVTerm>& ControlledVocabulary::getTerms() const
   {
     return terms_;
   }

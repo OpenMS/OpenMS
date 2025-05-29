@@ -18,7 +18,6 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 
 General:
  - speed improvements:
-    -Operations related to CV terms are faster now (#8069)
   
 Dependencies:
 
