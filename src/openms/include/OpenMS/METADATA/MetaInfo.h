@@ -64,9 +64,14 @@ public:
     /// Equality operator
     bool operator!=(const MetaInfo& rhs) const;
 
+    /// Adds all metavalues from @p rhs, overwriting any existing values
     MetaInfo& operator+=(const MetaInfo& rhs)
     {
-      index_to_value_.insert(rhs.index_to_value_.begin(), rhs.index_to_value_.end());
+      // index_to_value_.insert(rhs.index_to_value_.begin(), rhs.index_to_value_.end()); // does not overwrite existing data
+      for (const auto& kv : rhs.index_to_value_)
+      {
+        index_to_value_[kv.first] = kv.second;
+      }
       return *this;
     }
 
