@@ -64,6 +64,12 @@ public:
     /// Equality operator
     bool operator!=(const MetaInfo& rhs) const;
 
+    MetaInfo& operator+=(const MetaInfo& rhs)
+    {
+      index_to_value_.insert(rhs.index_to_value_.begin(), rhs.index_to_value_.end());
+      return *this;
+    }
+
     /// Returns the value corresponding to a string, or a default value (default: DataValue::EMPTY) if not found
     const DataValue& getValue(const String& name, const DataValue& default_value = DataValue::EMPTY) const;
     /// Returns the value corresponding to an index, or a default value (default: DataValue::EMPTY) if not found
