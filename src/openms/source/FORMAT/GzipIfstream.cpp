@@ -44,7 +44,9 @@ namespace OpenMS
       if (n_buffer_ < 0)
       {
         close();
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "gzip file seems to be corrupted");
+        const char* err_string = gzerror(gzfile_, &gzerror_);
+        std::string error_message = err_string ? err_string : "unknown error (code: " + std::to_string(gzerror_) + ")";
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "error reading from gzip file", error_message);
       }
       return n_buffer_;
     }
