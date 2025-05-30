@@ -274,9 +274,6 @@ protected:
         IDFilter::removeEmptyIdentifications(pep_ids);
       }
 
-      IDFilter::updateHitRanks(prot_ids);
-      IDFilter::updateHitRanks(pep_ids);
-
       // we want to keep "empty" protein ID runs because they contain search meta data
 
       // update protein groupings if necessary:

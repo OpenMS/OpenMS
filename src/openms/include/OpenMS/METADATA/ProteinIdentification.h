@@ -363,8 +363,7 @@ public:
     void setHigherScoreBetter(bool higher_is_better);
     /// Sorts the protein hits according to their score
     void sort();
-    /// Sorts the protein hits by score and assigns ranks (best score has rank 1)
-    void assignRanks();
+
     /**
        @brief Compute the coverage (in percent) of all ProteinHits given PeptideHits
 

@@ -5,6 +5,7 @@ set(directory source/METADATA)
 set(sources_list
 AbsoluteQuantitationStandards.cpp
 Acquisition.cpp
+AnnotatedMSRun.cpp
 AcquisitionInfo.cpp
 CVTerm.cpp
 CVTermList.cpp
