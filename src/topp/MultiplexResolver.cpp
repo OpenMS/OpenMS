@@ -572,14 +572,14 @@ public:
      * load consensus map
      */
     ConsensusMap map_in;
-    FileHandler().loadConsensusFeatures(in_, map_in, {FileTypes::CONSENSUSXML});
+    FileHandler().loadConsensusFeatures(in_, map_in, {FileTypes::CONSENSUSXML}, log_type_);
 
     /**
      * load (optional) blacklist
      */
     if (!(in_blacklist_.empty()))
     {
-      FileHandler().loadExperiment(in_blacklist_, exp_blacklist_, {FileTypes::MZML});
+      FileHandler().loadExperiment(in_blacklist_, exp_blacklist_, {FileTypes::MZML}, log_type_);
     }
 
     /**
@@ -603,10 +603,10 @@ public:
     /**
      * store consensus maps
      */
-    FileHandler().storeConsensusFeatures(out_, map_out, {FileTypes::CONSENSUSXML});
+    FileHandler().storeConsensusFeatures(out_, map_out, {FileTypes::CONSENSUSXML}, log_type_);
     if (!out_conflicts_.empty())
     {
-      FileHandler().storeConsensusFeatures(out_conflicts_, map_conflicts, {FileTypes::CONSENSUSXML});
+      FileHandler().storeConsensusFeatures(out_conflicts_, map_conflicts, {FileTypes::CONSENSUSXML}, log_type_);
     }
    
     return EXECUTION_OK;

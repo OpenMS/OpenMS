@@ -10,6 +10,13 @@ Parameters - list of algorithm or TOPP tool parameters that changed in this rele
 PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 #<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit e.g. https://github.com/OpenMS/OpenMS/pull/XXXX (replace XXXX with number of interest) for details
 
+
+- Libary:
+  ID information got factored out of MSSpectrum
+
+- removed outdated tools:
+  SpecLibCreator, SpecLibSearch, IDMassAccuracy
+
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (under development)              ----
 ------------------------------------------------------------------------------------------
@@ -18,9 +25,8 @@ General:
   
 Dependencies:
 
-OpenSwath:
-
 Misc:
+ - show load/store progress for files in all TOPP tools (#8041)
 
 Fixes:
 
@@ -28,11 +34,11 @@ Library:
 - Removed `assignRanks` and `sortByRanks` in PeptideIdentifications and sort and filter by score instead. Also removed `updateHitRanks` in IDFilter (#7991)
 - Remove ranke member in PeptideHit and store ranks as meta value (for backwards compatibility). (#7997)
 
-- removed tools:
+Removed tools:
 
 
 ------------------------------------------------------------------------------------------
-----                                OpenMS 3.4.0     (under development)              ----
+----                                OpenMS 3.4.0     (May 2025)                       ----
 ------------------------------------------------------------------------------------------
 
 General:
@@ -75,7 +81,7 @@ Library:
 - made FASTA file reader more robust in presence of whitespaces (#7960)
 - add 3' cyclophosphate version of RNAse 4, fix handling of cleavage gains (#7928)
 
-- removed tools:
+Removed tools:
   - XTandemAdapter
   - MascotAdapter (note: MascotAdapterOnline still exists) (#7927)
 

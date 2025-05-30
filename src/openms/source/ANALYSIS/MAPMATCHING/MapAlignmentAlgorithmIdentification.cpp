@@ -10,6 +10,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 
 using namespace std;
 
@@ -93,8 +94,7 @@ namespace OpenMS
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
       const vector<PeptideIdentification>& peptides, SeqToList& rt_data)
   {
-    for (vector<PeptideIdentification>::const_iterator pep_it = peptides.begin();
-         pep_it != peptides.end(); ++pep_it)
+    for (auto pep_it = peptides.cbegin(); pep_it != peptides.cend(); ++pep_it)
     {
       if (!pep_it->getHits().empty())
       {
@@ -173,19 +173,6 @@ namespace OpenMS
         rt_data[molecule].push_back(hit->observation_ref->rt);
       }
     }
-    return false;
-  }
-
-  // lists of peptide hits in "maps" will be sorted
-  bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-      const PeakMap& experiment, SeqToList& rt_data)
-  {
-    for (PeakMap::ConstIterator exp_it = experiment.begin();
-         exp_it != experiment.end(); ++exp_it)
-    {
-      getRetentionTimes_(exp_it->getPeptideIdentifications(), rt_data);
-    }
-    // duplicate annotations should not be possible -> no need to remove them
     return false;
   }
 

@@ -424,7 +424,7 @@ namespace OpenMS
                                 const String& caption,
                                 const bool use_noise_cutoff)
   {
-    if (map->getSpectra().empty())
+    if (map->getMSExperiment().getSpectra().empty())
     {
       auto msg = "Your input data contains no spectra. Not adding layer.";
       OPENMS_LOG_WARN << msg << std::endl;
@@ -446,14 +446,14 @@ namespace OpenMS
     // calculate noise
     if (use_noise_cutoff)
     {
-      auto cutoff = estimateNoiseFromRandomScans(*map, 1, 10, 5); // 5% of low intensity data is considered noise
+      auto cutoff = estimateNoiseFromRandomScans(map->getMSExperiment(), 1, 10, 5); // 5% of low intensity data is considered noise
       DataFilters filters;
       filters.add(DataFilters::DataFilter(DataFilters::INTENSITY, DataFilters::GREATER_EQUAL, cutoff));
       initFilters(filters);
     }
     else // no mower, hide zeros if wanted
     {
-      if (map->hasZeroIntensities(1))
+      if (map->getMSExperiment().hasZeroIntensities(1))
       {
         DataFilters filters;
         filters.add(DataFilters::DataFilter(DataFilters::INTENSITY, DataFilters::GREATER_EQUAL, 0.001));
@@ -467,7 +467,7 @@ namespace OpenMS
   
   bool PlotCanvas::addChromLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename, const String& caption)
   {
-    if (map->getChromatograms().empty())
+    if (map->getMSExperiment().getChromatograms().empty())
     {
       auto msg = "Your input data contains no chromatograms. Not adding layer.";
       OPENMS_LOG_WARN << msg << std::endl;
@@ -747,11 +747,11 @@ namespace OpenMS
     {
       if (auto lp = dynamic_cast<LayerDataPeak*>(&layer))
       {
-        dlg.add(*lp->getPeakDataMuteable());
+        dlg.add(lp->getPeakDataMuteable()->getMSExperiment());
         // Exception for Plot1DCanvas, here we add the meta data of the one spectrum
         if (auto lp1 = dynamic_cast<LayerData1DPeak*>(&layer))
         {
-          dlg.add((*lp1->getPeakDataMuteable())[lp1->getCurrentIndex()]);
+          dlg.add(lp1->getPeakDataMuteable()->getMSExperiment()[lp1->getCurrentIndex()]);
         }
       }
       if (auto lp = dynamic_cast<LayerDataFeature*>(&layer))
@@ -775,7 +775,7 @@ namespace OpenMS
     {
       if (auto lp = dynamic_cast<LayerDataPeak*>(&layer))
       {
-        dlg.add((*lp->getPeakDataMuteable())[index]);
+        dlg.add(lp->getPeakDataMuteable()->getMSExperiment()[index]);
       }
       else if (auto lp = dynamic_cast<LayerDataFeature*>(&layer))
       {
