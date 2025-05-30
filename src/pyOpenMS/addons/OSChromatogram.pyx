@@ -1,6 +1,20 @@
 
 
     def getTimeArray(self):
+        """
+        Get the time array of the chromatogram as a numpy array.
+        
+        Returns:
+            np.ndarray: A 1D numpy array containing the time values (retention times)
+                       for each data point in the chromatogram.
+        
+        Example:
+            >>> chromatogram = OSChromatogram()
+            >>> times = chromatogram.getTimeArray()
+            >>> print(f"Retention times: {times}")
+            >>> # Safe to modify the returned array
+            >>> times[0] = 0.0  # This won't affect the original data
+        """
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getTimeArray()
         cdef np.ndarray[np.float64_t, ndim=1] retval
         cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
@@ -8,11 +22,51 @@
         return retval
 
     def getTimeArray_mv(self):
+        """
+        Get the time array of the chromatogram as a memory view.
+        
+        This method provides direct access to the underlying data without copying,
+        which is more memory efficient for large datasets.
+        
+        Returns:
+            memoryview: A memory view of the time values (retention times)
+                       for each data point in the chromatogram.
+        
+        Warning:
+            DO NOT store the returned memory view for later use after the
+            chromatogram object goes out of scope, as this will lead to
+            undefined behavior and potential crashes.
+            
+        Example:
+            >>> chromatogram = OSChromatogram()
+            >>> times_mv = chromatogram.getTimeArray_mv()
+            >>> # CORRECT: Use immediately
+            >>> max_time = max(times_mv)
+            >>>
+            >>> # WRONG: Don't do this!
+            >>> # stored_mv = chromatogram.getTimeArray_mv()
+            >>> # del chromatogram  # Memory view now points to invalid memory!
+            >>> # print(stored_mv[0])  # Undefined behavior/crash
+        """
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getTimeArray()
         cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
         return arr
 
     def getIntensityArray(self):
+        """
+        Get the intensity array of the chromatogram as a numpy array.
+        
+        Returns:
+            np.ndarray: A 1D numpy array containing the intensity values
+                       for each data point in the chromatogram.
+        
+        Example:
+            >>> chromatogram = OSChromatogram()
+            >>> intensities = chromatogram.getIntensityArray()
+            >>> print(f"Max intensity: {max(intensities)}")
+            >>> # Safe to modify the returned array
+            >>> intensities *= 2.0  # This won't affect the original data
+        """
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getIntensityArray()
         cdef np.ndarray[np.float64_t, ndim=1] retval
         cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
@@ -20,11 +74,54 @@
         return retval
 
     def getIntensityArray_mv(self):
+        """
+        Get the intensity array of the chromatogram as a memory view.
+        
+        This method provides direct access to the underlying data without copying,
+        which is more memory efficient for large datasets.
+        
+        Returns:
+            memoryview: A memory view of the intensity values
+                       for each data point in the chromatogram.
+        
+        Warning:
+            DO NOT store the returned memory view for later use after the
+            chromatogram object goes out of scope, as this will lead to
+            undefined behavior and potential crashes.
+            
+        Example:
+            >>> chromatogram = OSChromatogram()
+            >>> intensities_mv = chromatogram.getIntensityArray_mv()
+            >>> # CORRECT: Use immediately for calculations
+            >>> total_intensity = sum(intensities_mv)
+            >>>
+            >>> # WRONG: Don't do this!
+            >>> # stored_mv = chromatogram.getIntensityArray_mv()
+            >>> # del chromatogram  # Memory view now points to invalid memory!
+            >>> # print(sum(stored_mv))  # Undefined behavior/crash
+        """
         cdef shared_ptr[_OSBinaryDataArray] _r = self.inst.get().getIntensityArray()
         cdef double[::1] arr = <double [:_r.get().data.size()]>_r.get().data.data()
         return arr
 
     def getDataArrays(self):
+        """
+        Get all data arrays associated with the chromatogram.
+        
+        This includes the time array, intensity array, and any additional
+        meta data arrays that may be present in the chromatogram.
+        
+        Returns:
+            list: A list of OSBinaryDataArray objects containing all data arrays
+                 associated with this chromatogram.
+        
+        Example:
+            >>> chromatogram = OSChromatogram()
+            >>> data_arrays = chromatogram.getDataArrays()
+            >>> print(f"Number of data arrays: {len(data_arrays)}")
+            >>> for i, array in enumerate(data_arrays):
+            ...     print(f"Array {i}: {len(array.getData())} data points")
+        """
         cdef list py_result = []
         cdef OSBinaryDataArray rv
 
@@ -39,10 +136,32 @@
         return py_result
 
     def setDataArrays(self, list inp):
+        """
+        Set all data arrays for the chromatogram.
+        
+        This method replaces all existing data arrays with the provided ones.
+        The input should include time array, intensity array, and any additional
+        meta data arrays.
+        
+        Args:
+            inp (list): A list of OSBinaryDataArray objects to set as the
+                       chromatogram's data arrays.
+                       
+        Raises:
+            AssertionError: If inp is not a list or contains elements that are
+                           not OSBinaryDataArray instances.
+        
+        Example:
+            >>> chromatogram = OSChromatogram()
+            >>> time_array = OSBinaryDataArray()
+            >>> intensity_array = OSBinaryDataArray()
+            >>> # ... populate arrays with data ...
+            >>> chromatogram.setDataArrays([time_array, intensity_array])
+        """
         assert isinstance(inp, list) and all(isinstance(ele_inp, OSBinaryDataArray) for ele_inp in inp), 'Input has to be a list of elements of type OSBinaryDataArray'
 
-        cdef libcpp_vector[ shared_ptr[_OSBinaryDataArray] ]  _r = self.inst.get().getDataArrays() 
-        _r.clear() 
+        cdef libcpp_vector[ shared_ptr[_OSBinaryDataArray] ]  _r = self.inst.get().getDataArrays()
+        _r.clear()
 
         cdef OSBinaryDataArray rv
         for rv in inp:
@@ -51,17 +170,51 @@
         self.inst.get().setDataArrays(_r)
 
     def setTimeArray(self, list data):
+        """
+        Set the time array (retention times) for the chromatogram.
+        
+        Args:
+            data (list): A list of numeric values representing the retention times
+                        for each data point in the chromatogram. Values should be
+                        in ascending order.
+                        
+        Raises:
+            AssertionError: If data is not a list.
+        
+        Example:
+            >>> chromatogram = OSChromatogram()
+            >>> retention_times = [0.5, 1.0, 1.5, 2.0, 2.5]  # in minutes
+            >>> chromatogram.setTimeArray(retention_times)
+        """
         assert isinstance(data, list), 'arg transitions wrong type'
 
-        cdef shared_ptr[_OSBinaryDataArray] v0 = shared_ptr[_OSBinaryDataArray](new _OSBinaryDataArray() ) 
+        cdef shared_ptr[_OSBinaryDataArray] v0 = shared_ptr[_OSBinaryDataArray](new _OSBinaryDataArray() )
         cdef libcpp_vector[double] _vec = data
         v0.get().data = data
         self.inst.get().setTimeArray(v0)
 
     def setIntensityArray(self, list data):
+        """
+        Set the intensity array for the chromatogram.
+        
+        Args:
+            data (list): A list of numeric values representing the intensity values
+                        for each data point in the chromatogram. The length should
+                        match the time array length.
+                        
+        Raises:
+            AssertionError: If data is not a list.
+        
+        Example:
+            >>> chromatogram = OSChromatogram()
+            >>> intensities = [1000.0, 1500.0, 2000.0, 1200.0, 800.0]
+            >>> chromatogram.setIntensityArray(intensities)
+            >>> # Make sure length matches time array
+            >>> assert len(intensities) == len(chromatogram.getTimeArray())
+        """
         assert isinstance(data, list), 'arg transitions wrong type'
 
-        cdef shared_ptr[_OSBinaryDataArray] v0 = shared_ptr[_OSBinaryDataArray](new _OSBinaryDataArray() ) 
+        cdef shared_ptr[_OSBinaryDataArray] v0 = shared_ptr[_OSBinaryDataArray](new _OSBinaryDataArray() )
         cdef libcpp_vector[double] _vec = data
         v0.get().data = data
         self.inst.get().setIntensityArray(v0)
