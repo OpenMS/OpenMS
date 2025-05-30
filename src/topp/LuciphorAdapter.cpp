@@ -18,6 +18,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
+#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 
 #include <QProcessEnvironment>
 
@@ -493,6 +494,18 @@ protected:
       if (!pep_ids.empty())
       {
         IDFilter::keepNBestHits(pep_ids, 1); // LuciPHOR2 only calculates the best hit
+        
+        // Switch to PEP score type similar to BayesianProteinInferenceAlgorithm
+        IDScoreSwitcherAlgorithm switcher;
+        Size counter(0);
+        try
+        {
+          switcher.switchToGeneralScoreType(pep_ids, IDScoreSwitcherAlgorithm::ScoreType::PEP, counter);
+        }
+        catch (OpenMS::Exception::MissingInformation& /*e*/)
+        {
+          OPENMS_LOG_WARN << "Warning: Could not switch to PEP score type. Continuing with current score type." << std::endl;
+        }
       }
       else
       {
