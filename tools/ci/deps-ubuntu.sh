@@ -51,7 +51,6 @@ sudo apt-get -qq install -y \
   sudo apt-get install -y -V libarrow-dataset-dev
   sudo apt-get install -y -V libparquet-dev
 
-
 # Optional dependencies:
 sudo apt-get -qq install -y \
   doxygen \
