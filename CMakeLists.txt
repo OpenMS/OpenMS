@@ -67,7 +67,7 @@ enable_testing()
 #------------------------------------------------------------------------------
 # entries meant to be configured using CMake cache
 # - do NOT hardcode them here!
-# - edit them within CMakeCache.txt using ccmake or cmake -D VAR=VALUE
+# - edit them within CMakeCache.txt using ccmake or cmake -DVAR=VALUE
 #------------------------------------------------------------------------------
 # CMAKE_PREFIX_PATH
 # CMAKE_BUILD_TYPE
@@ -89,7 +89,11 @@ option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for a
 if(ENABLE_CWL_GENERATION AND NOT ENABLE_TDL)
     message(FATAL_ERROR "ENABLE_CWL_GENERATION requires ENABLE_TDL to be ON.")
 endif()
+<<<<<<< HEAD
 
+=======
+>>>>>>>>> Temporary merge branch 2
+>>>>>>> develop
 
 if(MSVC)
   option(MT_ENABLE_NESTED_OPENMP "Enable nested parallelism." OFF)

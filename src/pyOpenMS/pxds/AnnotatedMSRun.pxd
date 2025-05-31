@@ -30,8 +30,7 @@ cdef extern from "<OpenMS/METADATA/AnnotatedMSRun.h>" namespace "OpenMS":
         #    run.setPeptideIdentifications(my_peptide_ids)
         
         AnnotatedMSRun() except + nogil
-        AnnotatedMSRun(MSExperiment) except + nogil
-        AnnotatedMSRun(AnnotatedMSRun) except + nogil
+        AnnotatedMSRun(AnnotatedMSRun) except + nogil        
         
         # Protein identification methods
         libcpp_vector[ProteinIdentification] getProteinIdentifications() except + nogil
