@@ -54,7 +54,7 @@ option(JSON_SystemInclude                  "Include as system headers (skip for 
 if (JSON_CI)
     include(ci)
 endif ()
-set(JSON_ImplicitConversions OFF CACHE BOOL "Disable implicit JSON conversions")
+set(JSON_ImplicitConversions OFF CACHE BOOL "Disable implicit JSON conversions" FORCE)
 ##
 ## CONFIGURATION
 ##
