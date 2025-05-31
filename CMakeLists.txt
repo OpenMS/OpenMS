@@ -89,11 +89,6 @@ option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for a
 if(ENABLE_CWL_GENERATION AND NOT ENABLE_TDL)
     message(FATAL_ERROR "ENABLE_CWL_GENERATION requires ENABLE_TDL to be ON.")
 endif()
-<<<<<<< HEAD
-
-=======
->>>>>>>>> Temporary merge branch 2
->>>>>>> develop
 
 if(MSVC)
   option(MT_ENABLE_NESTED_OPENMP "Enable nested parallelism." OFF)

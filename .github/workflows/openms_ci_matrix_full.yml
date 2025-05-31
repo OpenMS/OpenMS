@@ -396,7 +396,7 @@ jobs:
           ENABLE_GCC_WERROR: "OFF" # TODO think about that
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
-          WITH_PARQUET: "ON"
+          WITH_PARQUET: "ON" #TCHANGE
           SIGNING_IDENTITY: "-"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
