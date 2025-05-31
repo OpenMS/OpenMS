@@ -80,8 +80,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         MSChromatogram calculateTIC() except + nogil  # wrap-doc:Returns the total ion chromatogram
         void clear(bool clear_meta_data) except + nogil  # wrap-doc:Clear all spectra data and meta data (if called with True)
 
-        void updateRanges() except + nogil  # wrap-doc:Recalculate global RT and m/z ranges after changes to the data has been made.
-        void updateRanges(int msLevel) except + nogil  # wrap-doc:Recalculate RT and m/z ranges for a specific MS level
+        void updateRanges() except + nogil  # wrap-doc:Recalculate global ranges for both spectra and chromatrograms after changes to the data has been made.
 
         void reserveSpaceSpectra(Size s) except + nogil 
         void reserveSpaceChromatograms(Size s) except + nogil 
@@ -114,9 +113,6 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         int getPrecursorSpectrum(int zero_based_index) except + nogil  # wrap-doc:Returns the index of the precursor spectrum for spectrum at index @p zero_based_index
         
         # Range manager accessors
-        SpectrumRangeManager& spectrumRanges() except + nogil  # wrap-doc:Returns a reference to the spectrum range manager
-        const SpectrumRangeManager& spectrumRanges() const except + nogil  # wrap-doc:Returns a const reference to the spectrum range manager
-        ChromatogramRangeManager& chromatogramRanges() except + nogil  # wrap-doc:Returns a reference to the chromatogram range manager
-        const ChromatogramRangeManager& chromatogramRanges() const except + nogil  # wrap-doc:Returns a const reference to the chromatogram range manager
-        RangeManagerRtMzIntMob& combinedRanges() except + nogil  # wrap-doc:Returns a reference to the combined range manager (for backward compatibility)
-        const RangeManagerRtMzIntMob& combinedRanges() const except + nogil  # wrap-doc:Returns a const reference to the combined range manager (for backward compatibility)
+        SpectrumRangeManager spectrumRanges() except + nogil  # wrap-doc:Returns a reference to the spectrum range manager
+        ChromatogramRangeManager chromatogramRanges() except + nogil  # wrap-doc:Returns a reference to the chromatogram range manager
+        # TODO: not working yet RangeManagerRtMzIntMob combinedRanges() except + nogil  # wrap-doc:Returns a reference to the combined range manager (for backward compatibility)

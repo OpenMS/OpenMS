@@ -39,14 +39,14 @@ def _testMetaInfoInterface(what):
 
     #void getKeys(libcpp_vector[String] & keys)
     #void getKeys(libcpp_vector[unsigned int] & keys)
-    #DataValue getMetaValue(unsigned int) nogil except +
-    #DataValue getMetaValue(String) nogil except +
-    #void setMetaValue(unsigned int, DataValue) nogil except +
-    #void setMetaValue(String, DataValue) nogil except +
-    #bool metaValueExists(String) nogil except +
-    #bool metaValueExists(unsigned int) nogil except +
-    #void removeMetaValue(String) nogil except +
-    #void removeMetaValue(unsigned int) nogil except +
+    #DataValue getMetaValue(unsigned int) except + nogil 
+    #DataValue getMetaValue(String) except + nogil 
+    #void setMetaValue(unsigned int, DataValue) except + nogil 
+    #void setMetaValue(String, DataValue) except + nogil 
+    #bool metaValueExists(String) except + nogil 
+    #bool metaValueExists(unsigned int) except + nogil 
+    #void removeMetaValue(String) except + nogil 
+    #void removeMetaValue(unsigned int) except + nogil 
 
     what.setMetaValue("key", 42)
     what.setMetaValue("key2", 42)
@@ -5369,9 +5369,9 @@ def testElementDB():
 
     #  not yet implemented
     #
-    # const Map[ String, Element * ]  getNames() nogil except +
-    # const Map[ String, Element * ] getSymbols() nogil except +
-    # const Map[unsigned int, Element * ] getAtomicNumbers() nogil except +
+    # const Map[ String, Element * ]  getNames() except + nogil 
+    # const Map[ String, Element * ] getSymbols() except + nogil 
+    # const Map[unsigned int, Element * ] getAtomicNumbers() except + nogil 
 
 
 @report
@@ -5475,11 +5475,11 @@ def testModificationsDB():
 def testRNaseDB():
     """
     @tests: RNaseDB
-        const DigestionEnzymeRNA* getEnzyme(const String& name) nogil except +
-        const DigestionEnzymeRNA* getEnzymeByRegEx(const String& cleavage_regex) nogil except +
-        void getAllNames(libcpp_vector[ String ]& all_names) nogil except +
-        bool hasEnzyme(const String& name) nogil except +
-        bool hasRegEx(const String& cleavage_regex) nogil except +
+        const DigestionEnzymeRNA* getEnzyme(const String& name) except + nogil 
+        const DigestionEnzymeRNA* getEnzymeByRegEx(const String& cleavage_regex) except + nogil 
+        void getAllNames(libcpp_vector[ String ]& all_names) except + nogil 
+        bool hasEnzyme(const String& name) except + nogil 
+        bool hasRegEx(const String& cleavage_regex) except + nogil 
      """
     db = pyopenms.RNaseDB()
     names = []
