@@ -44,7 +44,7 @@ option(JSON_BuildTests                     "Build the unit tests when BUILD_TEST
 option(JSON_CI                             "Enable CI build targets." OFF)
 option(JSON_Diagnostics                    "Use extended diagnostic messages." OFF)
 option(JSON_GlobalUDLs                     "Place use-defined string literals in the global namespace." ON)
-option(JSON_ImplicitConversions            "Enable implicit conversions." ON)
+option(JSON_ImplicitConversions            "Disable implicit conversions." OFF)
 option(JSON_DisableEnumSerialization       "Disable default integer enum serialization." OFF)
 option(JSON_LegacyDiscardedValueComparison "Enable legacy discarded value comparison." OFF)
 option(JSON_Install                        "Install CMake targets during install step." ${MAIN_PROJECT})
