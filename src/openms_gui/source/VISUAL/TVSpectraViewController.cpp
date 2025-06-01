@@ -74,9 +74,9 @@ namespace OpenMS
     {
       // get caption (either chromatogram idx or peptide sequence, if available)
       String basename_suffix;
-      if (chrom_exp_sptr->metaValueExists("peptide_sequence"))
+      if (chrom_exp_sptr->getMSExperiment().metaValueExists("peptide_sequence"))
       {
-        basename_suffix = String(chrom_exp_sptr->getMetaValue("peptide_sequence"));
+        basename_suffix = String(chrom_exp_sptr->getMSExperiment().getMetaValue("peptide_sequence"));
       }
       ((basename_suffix += "[") += index) += "]";
 

@@ -836,11 +836,11 @@ protected:
           switchScores_(pep);
         }
 
-		// add missing RTs to peptide IDs
-		MSExperiment exp;
-		MzMLFile mzml_file{};
+        // add missing RTs to peptide IDs
+        MSExperiment exp;
+        MzMLFile mzml_file{};
         mzml_file.getOptions().setMetadataOnly(true);
-		mzml_file.load(in, exp); 
+    		mzml_file.load(in, exp); 
         SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, exp);
       }
 

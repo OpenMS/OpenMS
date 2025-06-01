@@ -199,10 +199,10 @@ protected:
 
     // load experiments
     PeakMap exp_control;
-    FileHandler().loadExperiment(control_mzml, exp_control, {FileTypes::MZML});
+    FileHandler().loadExperiment(control_mzml, exp_control, {FileTypes::MZML}, log_type_);
 
     PeakMap exp_treatment;
-    FileHandler().loadExperiment(treatment_mzml, exp_treatment, {FileTypes::MZML});
+    FileHandler().loadExperiment(treatment_mzml, exp_treatment, {FileTypes::MZML}, log_type_);
 
     // extract precursor mz and rts
     vector<double> pc_mzs;
@@ -261,7 +261,7 @@ protected:
       }
     }
 
-    FileHandler().storeExperiment(out_mzml, exp_out, {FileTypes::MZML});
+    FileHandler().storeExperiment(out_mzml, exp_out, {FileTypes::MZML}, log_type_);
 
     return EXECUTION_OK;
   }

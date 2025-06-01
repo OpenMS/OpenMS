@@ -12,6 +12,7 @@
 #include <vector>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -28,7 +29,7 @@ namespace OpenMS
     Stores the primary information about a potential match, including:
     - The sequence (potentially with modifications) using AASequence.
     - The primary score assigned by the identification algorithm (e.g., search engine).
-    - The rank of this hit compared to other hits for the same spectrum.
+    - The rank of this hit compared to other hits for the same spectrum (stored as a meta value with key "rank").
     - The precursor charge state assumed for this match.
     - Evidence linking the peptide sequence to specific protein sequences (PeptideEvidence).
     - Optional annotations mapping fragment ions in the MS/MS spectrum to interpretations (PeakAnnotation).
@@ -48,7 +49,6 @@ namespace OpenMS
     public MetaInfoInterface
   {
 public:
-
     /**
    * @brief Contains annotations of a peak
 
@@ -286,9 +286,6 @@ protected:
 
     /// the score of the peptide hit
     double score_{};
-
-    /// the position(rank) where the hit appeared in the hit list
-    UInt rank_{};
 
     /// the charge of the peptide
     Int charge_{};

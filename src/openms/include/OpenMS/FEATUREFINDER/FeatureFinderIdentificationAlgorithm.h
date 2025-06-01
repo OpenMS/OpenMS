@@ -6,8 +6,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERIDENTIFICATIONALGORITHM_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERIDENTIFICATIONALGORITHM_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
@@ -16,23 +15,19 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
+#include <OpenMS/FEATUREFINDER/FFIDAlgoExternalIDHandler.h>
 
 #include <vector>
 #include <fstream>
 #include <map>
 
-namespace OpenMS
-{
-  class IsotopeDistribution;
-
-
-
+namespace OpenMS {
 class OPENMS_DLLAPI FeatureFinderIdentificationAlgorithm :
   public DefaultParamHandler
 {
 public:
   /// default constructor
-  FeatureFinderIdentificationAlgorithm(); 
+  FeatureFinderIdentificationAlgorithm();
 
   /// Main method for actual FeatureFinder
   /// External IDs (@p peptides_ext, @p proteins_ext) may be empty, 
@@ -207,9 +202,9 @@ protected:
   Size n_internal_features_; ///< internal feature counter (for FDR calculation)
   Size n_external_features_; ///< external feature counter (for FDR calculation)
   /// TransformationDescription trafo_; // RT transformation (to range 0-1)
-  TransformationDescription trafo_external_; ///< transform. to external RT scale
   std::map<String, double> isotope_probs_; ///< isotope probabilities of transitions
   MRMFeatureFinderScoring feat_finder_; ///< OpenSWATH feature finder
+  Internal::FFIDAlgoExternalIDHandler external_id_handler_; ///< Handler for external peptide IDs
 
   ProgressLogger prog_log_;
 
@@ -249,21 +244,7 @@ protected:
     PeptideMap& peptide_map,
     bool external = false);
 
-  void checkNumObservations_(Size n_pos, Size n_neg, const String& note = "") const;
-
-  void getUnbiasedSample_(const std::multimap<double, std::pair<Size, bool> >& valid_obs,
-                          std::map<Size, double>& training_labels);
-
-  void getRandomSample_(std::map<Size, double>& training_labels) const;
-
-  void classifyFeatures_(FeatureMap& features);
-
-  void filterFeaturesFinalizeAssay_(Feature& best_feature, double best_quality,
-                                    const double quality_cutoff);
-
   void filterFeatures_(FeatureMap& features, bool classified);
-
-  void calculateFDR_(FeatureMap& features);
 
   // seeds for untargeted extraction
   Size addSeeds_(std::vector<PeptideIdentification>& peptides, const FeatureMap& seeds);
@@ -313,9 +294,6 @@ protected:
 
     return chunks;
   }
-};
-
+}; // namespace OpenMS
 } // namespace OpenMS
-
-#endif
  

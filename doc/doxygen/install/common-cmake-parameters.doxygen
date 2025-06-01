@@ -108,3 +108,11 @@ The most important CMake variables are:
    </td>
   </tr>
 </table>
+
+A full list of the CMake variables is shown when you execute:
+
+\code
+ccmake .
+\endcode
+
+This works only after having executed `cmake` at least once.
