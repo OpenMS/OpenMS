@@ -50,6 +50,8 @@ sudo apt-get -qq install -y \
   sudo apt-get install -y -V libarrow-dev
   sudo apt-get install -y -V libarrow-dataset-dev
   sudo apt-get install -y -V libparquet-dev
+  sudo apt-get purge -y nlohmann-json3-dev
+
 
 # Optional dependencies:
 sudo apt-get -qq install -y \
