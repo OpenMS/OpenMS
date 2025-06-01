@@ -176,11 +176,11 @@ endif()
 
 
 #------------------------------------------------------------------------------
-# Apache Arrow and Parquet
-if (WITH_PARQUET)
-  find_package(Arrow CONFIG REQUIRED)
-  find_package(Parquet CONFIG REQUIRED)
-endif()
+ # Apache Arrow and Parquet
+ if (WITH_PARQUET)
+   find_package(Arrow CONFIG REQUIRED)
+   find_package(Parquet CONFIG REQUIRED)
+ endif()
 
 #------------------------------------------------------------------------------
 # Done finding contrib libraries

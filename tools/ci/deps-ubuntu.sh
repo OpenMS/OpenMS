@@ -47,10 +47,19 @@ sudo apt-get -qq install -y \
   sudo apt update
   sudo apt-get install -y -V ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
   sudo apt update
-  sudo apt-get install -y -V libarrow-dev
-  sudo apt-get install -y -V libarrow-dataset-dev
-  sudo apt-get install -y -V libparquet-dev
-  sudo apt-get purge -y nlohmann-json3-dev
+  sudo apt-get install -y --no-install-recommends \
+        libarrow-dev \
+        libparquet-dev \
+        libarrow-dataset-dev \
+        nlohmann-json3-dev
+  sudo mkdir -p /usr/local/block/nlohmann_json && \
+    echo "set(nlohmann_json_FOUND FALSE)" > /usr/local/block/nlohmann_json/nlohmann_jsonConfig.cmake
+
+  ENV CMAKE_PREFIX_PATH="/usr/local/block:${CMAKE_PREFIX_PATH}"
+  
+
+
+
 
 
 # Optional dependencies:
