@@ -11,23 +11,20 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 #<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit e.g. https://github.com/OpenMS/OpenMS/pull/XXXX (replace XXXX with number of interest) for details
 
 
-- Libary:
-  ID information got factored out of MSSpectrum
-
-- removed outdated tools:
-  SpecLibCreator, SpecLibSearch, IDMassAccuracy
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.5.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
 General:
+ - speed improvements:
+    - loading .gz files is about 7% faster (#8069)
   
 Dependencies:
 
 Misc:
  - show load/store progress for files in all TOPP tools (#8041)
-
+ 
 Fixes:
 
 Library:
@@ -36,6 +33,16 @@ Library:
 
 Removed tools:
 
+------------------------------------------------------------------------------------------
+----                                OpenMS 3.4.1     (May 2025)                       ----
+------------------------------------------------------------------------------------------
+
+Documentation:
+  - TOPPAS: tutorial update (#8025)
+  
+Fixes: 
+ - TOPPView: fix a few error messages boxes (in IM frames, and 2D projections) (#8047)
+ - RANSAC algorithm: avoid r^2 is zero; fixes crash in OpenSwathWorkflow (#8052 )
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.4.0     (May 2025)                       ----
