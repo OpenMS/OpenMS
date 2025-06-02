@@ -64,6 +64,8 @@ public:
     /// Equality operator
     bool operator!=(const MetaInfo& rhs) const;
 
+    /// Add all entries from @p rhs to this MetaInfo.
+    /// If an entry with the same index/name already exists, it will be overwritten.
     MetaInfo& operator+=(const MetaInfo& rhs)
     {
       index_to_value_.insert(rhs.index_to_value_.begin(), rhs.index_to_value_.end());
