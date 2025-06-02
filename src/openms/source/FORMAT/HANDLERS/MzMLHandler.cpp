@@ -348,14 +348,15 @@ namespace OpenMS::Internal
         Size meta_float_idx = 0, meta_int_idx = 0, meta_string_idx = 0;
         for (Size i = 0; i < input_data.size(); i++)
         {
-          if (i == int_index && i == mz_index) continue; // Skip m/z and intensity arrays
+          if (i == int_index || i == mz_index) continue; // Skip m/z and intensity arrays
           
           MetaArrayInfo info;
           info.input_index = i;
           info.data_type = input_data[i].data_type;
           info.precision = input_data[i].precision;
             
-          if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT) {
+          if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT) 
+          {
             info.spectrum_index = meta_float_idx++;
             //create new array
             spectrum.getFloatDataArrays().resize(spectrum.getFloatDataArrays().size() + 1);
@@ -363,7 +364,9 @@ namespace OpenMS::Internal
             spectrum.getFloatDataArrays().back().reserve(input_data[i].size);
             //copy meta info into MetaInfoDescription
             spectrum.getFloatDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
-          } else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT) {
+          } 
+          else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
+          {
             info.spectrum_index = meta_int_idx++;
             //create new array
             spectrum.getIntegerDataArrays().resize(spectrum.getIntegerDataArrays().size() + 1);
@@ -371,7 +374,9 @@ namespace OpenMS::Internal
             spectrum.getIntegerDataArrays().back().reserve(input_data[i].size);
             //copy meta info into MetaInfoDescription
             spectrum.getIntegerDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
-          } else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING) {
+          } 
+          else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
+          {
             info.spectrum_index = meta_string_idx++;
             //create new array
             spectrum.getStringDataArrays().resize(spectrum.getStringDataArrays().size() + 1);
@@ -385,7 +390,8 @@ namespace OpenMS::Internal
       }
 
       // Most common case: no ranges, 64/32 precision, no metadata
-      if (mz_precision_64 && !int_precision_64 && !has_metadata && !has_mz_range && !has_intensity_range) {
+      if (mz_precision_64 && !int_precision_64 && !has_metadata && !has_mz_range && !has_intensity_range)
+      {
         std::vector<double>::const_iterator mz_it = input_data[mz_index].floats_64.begin();
         std::vector<float>::const_iterator int_it = input_data[int_index].floats_32.begin();
         for (Size n = 0; n < default_arr_length; n++) {
@@ -399,7 +405,8 @@ namespace OpenMS::Internal
       }
 
       // Optimized case: no filtering, but with metadata
-      if (!has_mz_range && !has_intensity_range) {
+      if (!has_mz_range && !has_intensity_range)
+      {
         // Copy all peaks first using direct array access
         if (mz_precision_64 && int_precision_64) {
           const auto& mz_data = input_data[mz_index].floats_64;
