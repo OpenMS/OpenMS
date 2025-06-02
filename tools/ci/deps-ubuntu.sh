@@ -50,17 +50,6 @@ sudo apt-get -qq install -y \
   sudo apt-get install -y --no-install-recommends \
         libarrow-dev \
         libparquet-dev \
-        libarrow-dataset-dev \
-        nlohmann-json3-dev
-  sudo mkdir -p /usr/local/block/nlohmann_json && \
-    echo "set(nlohmann_json_FOUND FALSE)" > /usr/local/block/nlohmann_json/nlohmann_jsonConfig.cmake
-
-  ENV CMAKE_PREFIX_PATH="/usr/local/block:${CMAKE_PREFIX_PATH}"
-  
-
-
-
-
 
 # Optional dependencies:
 sudo apt-get -qq install -y \
