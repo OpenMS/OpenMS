@@ -6,16 +6,11 @@
 # or copy at http://opensource.org/licenses/MIT) 
 
 # add sources of the "sqlite3" static library
-add_library(sqlite3
+add_library(sqlite3 STATIC
  sqlite3.c
  sqlite3.h
 )
 
-if (WIN32)
-    if (BUILD_SHARED_LIBS)
-            add_definitions("-DSQLITE_API=__declspec(dllexport)")
-    endif()
-endif()
 
 add_library(SQLite::SQLite3 ALIAS sqlite3)
 
