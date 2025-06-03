@@ -137,7 +137,6 @@ namespace OpenMS
   ParsedEntry_ parseEntry_(const nlohmann::json::value_type& entry)
   {
     ParsedEntry_ parsed;
-    unique_ptr<Ribonucleotide> ribo (new Ribonucleotide());
     auto ribo = std::make_unique<Ribonucleotide>();
     ribo->setName(entry.at("name").get<std::string>());
     String code = entry.at("short_name").get<std::string>();
