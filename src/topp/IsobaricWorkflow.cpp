@@ -31,6 +31,7 @@
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 
@@ -180,18 +181,27 @@ protected:
     setValidFormats_("in_id", {"idXML"});
     registerInputFile_("exp_design", "<file>", "", "experimental design file (optional). If not given, the design is assumed to be unfractionated.", false);
     setValidFormats_("exp_design", {"tsv"});
-    registerOutputFile_("out", "<file>", "", "output consensusXML or mzTab file with quantitative information");
-    setValidFormats_("out", {"consensusXML","mzTab"});
+    registerOutputFile_("out", "<file>", "", "output consensusXML file");
+    setValidFormats_("out", {"consensusXML"});
+    registerOutputFile_("out_mzTab", "<file>", "", "output mzTab file with quantitative information");
+    setValidFormats_("out_mzTab", {"mzTab"});
     registerFlag_("calculate_id_purity", "Calculate the purity of the precursor ion based on the MS1 spectrum. Only used for MS3, otherwise it is the same as the quant. precursor purity.");
     registerIntOption_("max_parallel_files", "<num>", 1, "Maximum number of files to load in parallel.", false);
     registerFlag_("protein_inference", "Infer and group proteins");
     registerFlag_("protein_quant", "Quantify proteins from the peptide quantification. Implies protein inference.");
-    registerDoubleOption_("peptide_score", "<score>", NAN, "The score which should be reached by a peptide hit to be kept.  (use 'NAN' to disable this filter)", false);
+    registerDoubleOption_("psm_score", "<score>", NAN, "The score which should be reached by a peptide hit to be kept.  (use 'NAN' to disable this filter)", false);
     registerDoubleOption_("protein_score", "<score>", NAN, "The score which should be reached by a protein hit to be kept. All proteins are filtered based on their singleton scores irrespective of grouping. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides. (use 'NAN' to disable this filter)", false);
     registerFlag_("delete_unreferenced_peptide_hits", "Peptides not referenced by any protein are deleted in the IDs.");
     // registerFlag_("remove_decoys", "Remove decoys according to the information in the user parameters.");
     registerStringOption_("inference_method", "<option>", "aggregation", "Methods used for protein inference", false);
     setValidStrings_("inference_method", ListUtils::create<String>("aggregation,bayesian"));
+    registerStringOption_("picked_fdr", "<option>", "false", "Use a picked protein FDR", false, true);
+    setValidStrings_("picked_fdr", {"true", "false"});
+    registerStringOption_("picked_decoy_string", "<decoy_string>", "", "If using picked protein FDRs, which decoy string was used? Leave blank for auto-detection.", false, true);
+    registerStringOption_("picked_decoy_prefix", "<option>", "prefix", "If using picked protein FDRs, was the decoy string a prefix or suffix? Ignored during auto-detection.", false, true);
+    setValidStrings_("picked_decoy_prefix", {"prefix", "suffix"});
+    registerStringOption_("FDR_type", "<option>", "PSM", "Sub-protein FDR level. PSM, PSM+peptide (best PSM q-value).", false, true);
+    setValidStrings_("FDR_type", {"PSM", "PSM+peptide"});
     registerDoubleOption_("proteinFDR", "<threshold>", 1.0, "Protein FDR threshold (0.05=5%).", false);
     setMinFloat_("proteinFDR", 0.0);
     setMaxFloat_("proteinFDR", 1.0);
@@ -511,7 +521,7 @@ protected:
       FileHandler().loadIdentifications(id_file, prot_ids, pep_ids);
       // TODO filter by qvalue here?
       double pro_score = getDoubleOption_("protein_score");
-      double pep_score = getDoubleOption_("peptide_score");
+      double psm_score = getDoubleOption_("psm_score");
 
       if (!std::isnan(pro_score)) 
       {
@@ -519,10 +529,10 @@ protected:
         IDFilter::filterHitsByScore(prot_ids, pro_score);
       }
 
-      if (!std::isnan(pep_score)) 
+      if (! std::isnan(psm_score)) 
       {
-        OPENMS_LOG_INFO << "Filtering by peptide score (better than " << pep_score << ")..." << endl;
-        IDFilter::filterHitsByScore(pep_ids, pep_score);
+        OPENMS_LOG_INFO << "Filtering by PSM score (better than " << psm_score << ")..." << endl;
+        IDFilter::filterHitsByScore(pep_ids, psm_score);
       }
       
       merger.insertRuns(std::move(prot_ids), {}); // pep IDs will be stored in the consensus features
@@ -657,6 +667,8 @@ protected:
     if (!bayesian) {
       BasicProteinInferenceAlgorithm prot_inference;
       Param bpi_param = getParam_().copy("BasicProteinInference:", true);
+      bpi_param.setValue("annotate_indistinguishable_groups", groups ? "true" : "false");
+      bpi_param.setValue("greedy_group_resolution", greedy_group_resolution ? "true" : "false");
       writeDebug_("Parameters passed to BasicProteinInference algorithm", bpi_param, 3);
       prot_inference.setParameters(bpi_param);
       prot_inference.run(cmap, cmap.getProteinIdentifications()[0], false);
@@ -674,8 +686,25 @@ protected:
 
     FalseDiscoveryRate fdr;
     auto& proteins = cmap.getProteinIdentifications()[0];
-    fdr.applyBasic(proteins);
-    fdr.applyBasic(cmap, true);
+
+    if (getStringOption_("picked_fdr") == "true") 
+    {
+      fdr.applyPickedProteinFDR(proteins, getStringOption_("picked_decoy_string"), getStringOption_("picked_decoy_prefix") == "prefix");
+    }
+    else 
+    {
+      fdr.applyBasic(proteins);
+    }
+    
+    if (getStringOption_("FDR_type") == "PSM+peptide")
+    { 
+      fdr.applyBasicPeptideLevel(cmap, false);
+    }
+    else 
+    {
+      fdr.applyBasic(cmap, false);
+    }
+    
 
     bool rm_pep = getFlag_("delete_unreferenced_peptide_hits");
     if (rm_pep)
@@ -769,6 +798,25 @@ protected:
 
     // TODO also allow storing mzTab and even better, parquet
     FileHandler().storeConsensusFeatures(out, cmap);
+    
+    String out_mzTab = getStringOption_("out_mzTab");
+    if (! out_mzTab.empty()) 
+    {
+      const bool report_unidentified_features(false);
+      const bool report_unmapped(true);
+      const bool report_subfeatures(false);
+      const bool report_unidentified_spectra(false);
+      const bool report_not_only_best_psm_per_spectrum(false); 
+
+      MzTabFile().store(out_mzTab, 
+                        cmap, 
+                        false,
+                        report_unidentified_features, 
+                        report_unmapped, 
+                        report_subfeatures, 
+                        report_unidentified_spectra,
+                        report_not_only_best_psm_per_spectrum);
+    }
 
     return EXECUTION_OK;
   }
