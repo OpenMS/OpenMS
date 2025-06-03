@@ -225,14 +225,6 @@ if (SQLITE_USE_LEGACY_STRUCT)
     target_compile_definitions(SQLiteCpp PUBLIC SQLITE_USE_LEGACY_STRUCT)
 endif (SQLITE_USE_LEGACY_STRUCT)
 
-if (BUILD_SHARED_LIBS)
-    if (WIN32)
-        message(STATUS "Build shared libraries (DLLs).")
-        target_compile_definitions(SQLiteCpp PUBLIC "SQLITECPP_COMPILE_DLL")
-        target_compile_definitions(SQLiteCpp PRIVATE "SQLITECPP_DLL_EXPORT")
-    endif()
-endif()
-
 option(SQLITE_OMIT_LOAD_EXTENSION "Enable omit load extension" OFF)
 if (SQLITE_OMIT_LOAD_EXTENSION)
     # Enable the user definition of load_extension().
