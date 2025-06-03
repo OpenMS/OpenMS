@@ -90,7 +90,7 @@ namespace OpenMS
     // If we have an explicitly defined baseloss_formula
     if (auto e = entry.find("baseloss_formula"); e != entry.cend() && !e->is_null())
     {
-      return EmpiricalFormula(*e);
+      return EmpiricalFormula(e->get<std::string>());
     }
     //TODO: Calculate base loss formula from SMILES
     else // If we don't have a defined baseloss_formula calculate it from our shortCode
