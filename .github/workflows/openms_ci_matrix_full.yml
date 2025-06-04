@@ -272,7 +272,7 @@ jobs:
         if [[ "${{ matrix.os }}" == macos-* ]]; then
           # WARNING: Don't add any brew install commands here, edit
           # the following script instead:
-          cmake -DUSE_EXTERNAL_JSON=OFF
+          # cmake -DUSE_EXTERNAL_JSON=OFF if mac 
           bash OpenMS/tools/ci/deps-macos.sh
           echo "cmake_prefix=$(brew --prefix qt)/lib/cmake;$(brew --prefix qt);$(brew --prefix libomp)" >>$GITHUB_OUTPUT
         fi
@@ -417,8 +417,8 @@ jobs:
           CCACHE_COMPILERCHECK: content
           WITH_THERMORAWFILEPARSER_TEST: "OFF"
           Eigen3_DIR: "${{ steps.tools-prefix.outputs.eigen_choco }}" # Eigen is installed on windows using choco
-
-
+          #Perhaps, since we're building from source (contrib) in windows, we should set to off on default.
+          USE_EXTERNAL_JSON: ${{ startsWith(matrix.os, 'macos') && 'OFF' || 'ON' }} 
     - name: Test
       shell: bash
       run: |

@@ -109,6 +109,7 @@ set(VARS_TO_LOAD
   "WITH_PARQUET"
   "WITH_THERMORAWFILEPARSER_TEST"
   "COMPILE_PXDS"
+  "USE_EXTERNAL_JSON"
  )
 
 message("tools/ci/cibuild.cmake: Loading the following vars from ENV if available: ${VARS_TO_LOAD}")
