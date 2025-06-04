@@ -259,9 +259,6 @@ jobs:
           # Install eigen from choco
           choco install eigen -y --no-progress
           echo "eigen_choco=C:\ProgramData\chocolatey\lib\eigen\share\cmake" >> $GITHUB_OUTPUT
-          conda install -q -y libarrow-all=20.0.* -c conda-forge 
-          # Doing libarrow-all, but all we really need is [conda install] parquet-utils-20.0.0, libparquet-20.0.0, libarrow-20.0.0 I believe.
-          # It's probably worth giving both a try in CI. 
           choco install doxygen.portable ghostscript graphviz -y --no-progress
           
           if [[ "${{ steps.set-vars.outputs.pkg_type }}" != "none" ]]; then
@@ -275,6 +272,7 @@ jobs:
         if [[ "${{ matrix.os }}" == macos-* ]]; then
           # WARNING: Don't add any brew install commands here, edit
           # the following script instead:
+          cmake -DUSE_EXTERNAL_JSON=OFF
           bash OpenMS/tools/ci/deps-macos.sh
           echo "cmake_prefix=$(brew --prefix qt)/lib/cmake;$(brew --prefix qt);$(brew --prefix libomp)" >>$GITHUB_OUTPUT
         fi
