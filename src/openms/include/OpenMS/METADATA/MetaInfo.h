@@ -64,6 +64,18 @@ public:
     /// Equality operator
     bool operator!=(const MetaInfo& rhs) const;
 
+    /// Add all entries from @p rhs to this MetaInfo.
+    /// If an entry with the same index/name already exists, it will be overwritten.
+    MetaInfo& operator+=(const MetaInfo& rhs)
+    {
+      // index_to_value_.insert(rhs.index_to_value_.begin(), rhs.index_to_value_.end()); // does not overwrite existing data
+      for (const auto& kv : rhs.index_to_value_)
+      {
+        index_to_value_[kv.first] = kv.second;
+      }
+      return *this;
+    }
+
     /// Returns the value corresponding to a string, or a default value (default: DataValue::EMPTY) if not found
     const DataValue& getValue(const String& name, const DataValue& default_value = DataValue::EMPTY) const;
     /// Returns the value corresponding to an index, or a default value (default: DataValue::EMPTY) if not found

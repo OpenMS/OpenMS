@@ -30,6 +30,21 @@ namespace OpenMS
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const ControlledVocabulary& cv);
 
 public:
+    /// ensure same hash on all platforms (for reproducibility)-
+    struct FNV1aHasher
+    {
+      size_t operator()(const String& key) const noexcept
+      {
+        size_t hash = 14695981039346656037ull;
+        for (auto c : key)
+        {
+          hash ^= static_cast<unsigned char>(c);
+          hash *= 1099511628211ull;
+        }
+        return hash;
+      }
+    };
+
     /// Representation of a CV term
     struct OPENMS_DLLAPI CVTerm
     {
@@ -201,6 +216,7 @@ protected:
     bool checkName_(const String& id, const String& name, bool ignore_case = true) const;
 
     /// Map from ID to CVTerm
+    // note: unordered_map would be faster (5% for loading mzML), but order differs across platforms
     std::map<String, CVTerm> terms_;
     /// Map from name to id
     std::map<String, String> namesToIds_;
