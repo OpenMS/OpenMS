@@ -60,9 +60,6 @@ IonMobilityBinning
 IsobaricAnalyzer
 JSONExporter
 LuciphorAdapter
-MaRaClusterAdapter
-MascotAdapter
-MascotAdapterOnline
 MapAlignerIdentification
 MapAlignerPoseClustering
 MapAlignerTreeGuided
