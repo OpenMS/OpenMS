@@ -127,14 +127,13 @@ SpectraFilterNLargest
 SpectraFilterNormalizer
 SpectraFilterThresholdMower
 SpectraFilterWindowMower
-SpectraMerger
-TextExporter
-XFDR
-XTandemAdapter
 SpectraSTSearchAdapter
+SpectraMerger
 StaticModification
+TextExporter
 TICCalculator
 TriqlerConverter
+XTandemAdapter
 XFDR
 XMLValidator
 )
