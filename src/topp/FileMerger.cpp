@@ -41,7 +41,7 @@ using namespace std;
 </tr>
 <tr>
 <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool/instrument producing mergeable files </td>
-<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating merged files (e.g. @ref TOPP_XTandemAdapter for mzML, @ref TOPP_ProteinQuantifier for consensusXML) </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating merged files (e.g. @ref TOPP_CometAdapter for mzML, @ref TOPP_ProteinQuantifier for consensusXML) </td>
 </tr>
 </table>
 </center>
@@ -121,7 +121,7 @@ protected:
     TransformationDescription trafo;
     if (first_file) // no transformation necessary
     {
-      rt_offset_ = map.getMaxRT() + rt_gap_;
+      rt_offset_ = map.getMaxRT() + rt_gap_; // overall range for all spectra
       trafo.fitModel("identity");
     }
     else // subsequent file -> apply transformation

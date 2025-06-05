@@ -6,6 +6,9 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/config.h> // for OPENMS_ASSERTIONS
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <OpenMS/KERNEL/Peak1D.h>
 
 #include <OpenMS/KERNEL/Mobilogram.h>
@@ -26,12 +29,63 @@ namespace OpenMS
   }
   void Mobilogram::updateRanges()
   {
+    #ifdef OPENMS_ASSERTIONS
+      double im_min = RangeMobility::isEmpty() ? 0 : getMinMobility();
+      double im_max = RangeMobility::isEmpty() ? 0 : getMaxMobility();
+      double int_min = RangeIntensity::isEmpty() ? 0 : getMinIntensity();
+      double int_max = RangeIntensity::isEmpty() ? 0 : getMaxIntensity();
+    #endif
+
     clearRanges();
     for (const auto& peak : data_)
     {
       extendMobility(peak.getMobility());
       extendIntensity(peak.getIntensity());
     }
+
+    #ifdef OPENMS_ASSERTIONS
+      // check if updateRanges() was necessary and find places where it was not
+      double im_min_new = RangeMobility::isEmpty() ? 0 : getMinMobility();
+      double im_max_new = RangeMobility::isEmpty() ? 0 : getMaxMobility();
+      double int_min_new =  RangeIntensity::isEmpty() ? 0 : getMinIntensity();
+      double int_max_new =  RangeIntensity::isEmpty() ? 0 : getMaxIntensity();
+
+      if (im_min_new == im_min && im_max_new == im_max 
+        && int_min_new == int_min && int_max_new == int_max)
+      {
+        OPENMS_LOG_WARN << "Update ranges was called but ranges were already up-to-date" << std::endl;
+      } 
+    #endif     
+  }
+
+  const Mobilogram::FloatDataArrays &Mobilogram::getFloatDataArrays() const
+  {
+    return float_data_arrays_;
+  }
+
+  Mobilogram::FloatDataArrays &Mobilogram::getFloatDataArrays()
+  {
+    return float_data_arrays_;
+  }
+
+  const Mobilogram::StringDataArrays &Mobilogram::getStringDataArrays() const
+  {
+    return string_data_arrays_;
+  }
+
+  Mobilogram::StringDataArrays &Mobilogram::getStringDataArrays()
+  {
+    return string_data_arrays_;
+  }
+
+  const Mobilogram::IntegerDataArrays &Mobilogram::getIntegerDataArrays() const
+  {
+    return integer_data_arrays_;
+  }
+
+  Mobilogram::IntegerDataArrays &Mobilogram::getIntegerDataArrays()
+  {
+    return integer_data_arrays_;
   }
 
   String Mobilogram::getDriftTimeUnitAsString() const

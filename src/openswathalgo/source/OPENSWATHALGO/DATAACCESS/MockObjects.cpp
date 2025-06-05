@@ -90,6 +90,11 @@ namespace OpenSwath
     return m_rt;
   }
 
+  double MockMRMFeature::getMetaValue(std::string /* name */) const
+  {
+      return m_metavalue;
+  }
+
   size_t MockMRMFeature::size() const
   {
     return m_features.size();

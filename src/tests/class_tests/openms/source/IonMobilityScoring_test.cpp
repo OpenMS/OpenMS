@@ -197,8 +197,8 @@ START_SECTION(([EXTRA]
                              const RangeMobility im_range,
                              const double dia_extraction_window_,
                              const bool dia_extraction_ppm_,
-                             const bool use_spline,
-                             const double drift_extra) ))
+                             const double drift_extra,
+                             const bool apply_im_peak_picking) ))
 {
   OpenSwath_Scores scores;
 
@@ -209,6 +209,8 @@ START_SECTION(([EXTRA]
 
   double dia_extract_window_ = 0.3;
   bool dia_extraction_ppm_ = false;
+
+  bool apply_im_peak_picking_ = false;
 
   // Test #1: Empty Spectrum
   OpenSwath::SpectrumPtr drift_spectrum(new OpenSwath::Spectrum());
@@ -226,7 +228,7 @@ START_SECTION(([EXTRA]
   IonMobilityScoring::driftScoring(sptrArr, transitions, scores,
                                    drift_target, im_range_1,
                                    dia_extract_window_, dia_extraction_ppm_,
-                                   false, im_drift_extra_pcnt_);
+                                   im_drift_extra_pcnt_, apply_im_peak_picking_);
 
   TEST_REAL_SIMILAR(scores.im_drift, 0);
   TEST_REAL_SIMILAR(scores.im_drift_weighted, 0);
@@ -248,7 +250,7 @@ START_SECTION(([EXTRA]
   IonMobilityScoring::driftScoring(sptrArr2, transitions, scores,
                                    drift_target, im_range_1,
                                    dia_extract_window_, dia_extraction_ppm_,
-                                   false, im_drift_extra_pcnt_);
+                                   im_drift_extra_pcnt_, apply_im_peak_picking_);
 
   TEST_REAL_SIMILAR(scores.im_drift, (0.705405 + 0.4)/2.0 )
   TEST_REAL_SIMILAR(scores.im_drift_weighted, 0.662790697674419)
@@ -262,7 +264,7 @@ START_SECTION(([EXTRA]
   IonMobilityScoring::driftScoring(sptrArr2, transitions, scores,
                                    drift_target, im_range_1,
                                    dia_extract_window_, dia_extraction_ppm_,
-                                   false, im_drift_extra_pcnt_);
+                                   im_drift_extra_pcnt_, apply_im_peak_picking_);
 
   TEST_REAL_SIMILAR(scores.im_drift, (0.5 + 0.4)/2.0 )
   TEST_REAL_SIMILAR(scores.im_drift_weighted, 0.489473684210526)
@@ -279,7 +281,7 @@ START_SECTION(([EXTRA]
   IonMobilityScoring::driftScoring(sptrArr2, transitions, scores,
                                    drift_target, im_range_2,
                                    dia_extract_window_, dia_extraction_ppm_,
-                                   false, im_drift_extra_pcnt_);
+                                   im_drift_extra_pcnt_, apply_im_peak_picking_);
 
   TEST_REAL_SIMILAR(scores.im_drift, 1.1)
   TEST_REAL_SIMILAR(scores.im_drift_weighted, 1.1)
@@ -297,7 +299,7 @@ START_SECTION(([EXTRA]
   IonMobilityScoring::driftScoring(sptrArr2, transitions, scores,
                                    drift_target, im_range_3,
                                    dia_extract_window_, dia_extraction_ppm_,
-                                   false, im_drift_extra_pcnt_);
+                                   im_drift_extra_pcnt_, apply_im_peak_picking_);
 
   TEST_REAL_SIMILAR(scores.im_drift, 1.16666666666667)
   TEST_REAL_SIMILAR(scores.im_drift_weighted, 1.16666666666667)
@@ -314,7 +316,7 @@ START_SECTION(([EXTRA]
   IonMobilityScoring::driftScoring(sptrArr2, transitions, scores,
                                    drift_target, im_range_4,
                                    dia_extract_window_, dia_extraction_ppm_,
-                                   false, im_drift_extra_pcnt_);
+                                   im_drift_extra_pcnt_, apply_im_peak_picking_);
 
   TEST_REAL_SIMILAR(scores.im_drift, -1)
   TEST_REAL_SIMILAR(scores.im_drift_weighted, -1)
@@ -334,7 +336,6 @@ START_SECTION([EXTRA]
                                 const double drift_target,
                                 const double dia_extract_window_,
                                 const bool dia_extraction_ppm_,
-                                const bool use_spline,
                                 const double drift_extra))
 {
   OpenSwath_Scores scores;
@@ -347,6 +348,7 @@ START_SECTION([EXTRA]
 
   double dia_extract_window_ = 0.3;
   bool dia_extraction_ppm_ = false;
+
   OpenSwath::SpectrumPtr drift_spectrum(new OpenSwath::Spectrum());
   OpenSwath::BinaryDataArrayPtr ion_mobility(new OpenSwath::BinaryDataArray);
   drift_spectrum->getDataArrays().push_back( ion_mobility );
@@ -357,7 +359,7 @@ START_SECTION([EXTRA]
   IonMobilityScoring::driftScoringMS1(sptrArr, transitions, scores,
                                    drift_target, im_range,
                                    dia_extract_window_, dia_extraction_ppm_,
-                                   false, im_drift_extra_pcnt_);
+                                   im_drift_extra_pcnt_);
 
   OpenSwath::BinaryDataArrayPtr mass(new OpenSwath::BinaryDataArray);
   OpenSwath::BinaryDataArrayPtr intensity(new OpenSwath::BinaryDataArray);
@@ -370,7 +372,7 @@ START_SECTION([EXTRA]
   IonMobilityScoring::driftScoringMS1(sptrArr2, transitions, scores,
                                    drift_target, im_range,
                                    dia_extract_window_, dia_extraction_ppm_,
-                                   false, im_drift_extra_pcnt_);
+                                   im_drift_extra_pcnt_);
 
   drift_spectrum = ms1spec;
 
@@ -384,7 +386,7 @@ START_SECTION([EXTRA]
   IonMobilityScoring::driftScoringMS1(sptrArr3, transitions, scores,
                                    drift_target, im_range,
                                    dia_extract_window_, dia_extraction_ppm_,
-                                   false, im_drift_extra_pcnt_);
+                                   im_drift_extra_pcnt_);
 
   TEST_REAL_SIMILAR(scores.im_ms1_delta_score, 0.7)
 }
@@ -399,7 +401,6 @@ START_SECTION(([EXTRA]
                              const double drift_target,
                              const double dia_extraction_window_,
                              const bool dia_extraction_ppm_,
-                             const bool use_spline,
                              const double drift_extra) ))
 {
   OpenSwath_Scores scores;

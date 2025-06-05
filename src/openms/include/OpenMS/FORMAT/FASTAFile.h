@@ -96,7 +96,8 @@ namespace OpenMS
         ~FASTAFile() override = default;
 
         /**
-          @brief Prepares a FASTA file given by 'filename' for streamed reading using readNext().
+          @brief Prepares a FASTA file given by @p filename for streamed reading using readNext().
+
           @exception Exception::FileNotFound is thrown if the file does not exists.
           @exception Exception::ParseError is thrown if the file does not suit to the standard.
         */
@@ -106,11 +107,12 @@ namespace OpenMS
         void readStartWithProgress(const String& filename, const String& progress_label);
 
         /**
-        @brief Reads the next FASTA entry from file.
-        If you want to read all entries in one go, use load().
-        @return true if entry was read; false if EOF was reached
-        @exception Exception::FileNotFound is thrown if the file does not exists.
-        @exception Exception::ParseError is thrown if the file does not suit to the standard.
+          @brief Reads the next FASTA entry from file.
+
+          If you want to read all entries in one go, use load().
+          @return true if entry was read; false if EOF was reached
+          @exception Exception::FileNotFound is thrown if the file does not exists.
+          @exception Exception::ParseError is thrown if the file does not suit to the standard.
         */
         bool readNext(FASTAEntry& protein);
 

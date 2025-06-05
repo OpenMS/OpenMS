@@ -3192,7 +3192,7 @@ protected:
       tmp_pepid.setHigherScoreBetter(pep_ids[0].isHigherScoreBetter());
       for (Size i = 0; i != pep_ids.size(); ++i)
       {
-        pep_ids[i].assignRanks();
+        pep_ids[i].sort();
         const vector<PeptideHit>& hits = pep_ids[i].getHits();
         if (!hits.empty())
         {
@@ -3204,7 +3204,7 @@ protected:
         }
       }
 
-      tmp_pepid.assignRanks();
+      tmp_pepid.sort();
 
       SIPPeptide sip_peptide;
       sip_peptide.feature_type = feature_it->getMetaValue("feature_type"); // used to annotate feature type in reporting

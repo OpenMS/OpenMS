@@ -49,7 +49,6 @@ IDExtractor
 IDFileConverter
 IDFilter
 IDMapper
-IDMassAccuracy
 IDMerger
 IDPosteriorErrorProbability
 IDRipper
@@ -70,6 +69,8 @@ MapAlignerTreeGuided
 MapNormalizer
 MapRTTransformer
 MapStatistics
+MaRaClusterAdapter
+MascotAdapterOnline
 MassCalculator
 MassTraceExtractor
 MetaProSIP
@@ -125,8 +126,6 @@ SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
 SiriusExport
-SpecLibCreator
-SpecLibSearcher
 SpectraFilterNLargest
 SpectraFilterNormalizer
 SpectraFilterThresholdMower
@@ -139,6 +138,7 @@ SpectraSTSearchAdapter
 StaticModification
 TICCalculator
 TriqlerConverter
+XFDR
 XMLValidator
 )
 

@@ -121,7 +121,7 @@ namespace OpenMS
                                   const String& out_compoundinfo) const
   {
     // loop over all spectra in all files and write data to ofstream
-    ofstream os;
+    std::ofstream os;
 
     // create temporary input file (.ms)
     os.open(out_ms);

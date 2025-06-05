@@ -4,247 +4,116 @@
 
   @section install_mac_read Introduction
 
-  This document explains the installation
-  procedure for building %OpenMS from its sources. If you only want to use the
-  %OpenMS PiPeline (TOPP), you are strongly encouraged to
-  <b>download the binary installer</b> (see
-  <a href="http://www.OpenMS.de" target="_blank">here</a>), instead of building
-  %OpenMS from sources. Be aware though that we do not provide binary
-  installers for every MacOS version. For more information read the install
-  instructions for the TOPP binaries.
+  This document explains the procedure for building %OpenMS from
+  source.
 
-  This document especially considers the installation of several libraries that
-  are required by %OpenMS. Most of these libraries are made available in our
-  "contrib-package" (see below).
-  <br>
-  If you encounter errors during configuring/compiling our software,
-  search in our <a href="https://github.com/OpenMS/OpenMS/issues">issue tracker</a>,
-  already known. If not, please write to the mailing list (open-ms-general AT lists.sourceforge.net) or report the error
-  on our <a href="https://github.com/OpenMS/OpenMS/issues">issue tracker</a>.
+  If you only want to use the %OpenMS PiPeline (TOPP), you are
+  strongly encouraged to **download the binary installer** from the
+  [OpenMS][] website instead of building %OpenMS from sources. Be
+  aware though that we do not provide binary installers for every
+  macOS version.
 
-  @subsection hint_package_manager Package Managers
+  If you encounter errors while configuring or compiling %OpenMS,
+  search in the [issue tracker][issues] for a possible solution.  If
+  an existing issue can't be found please report the error using the
+  same issue tracker.
 
-  We suggest to use <a href="https://brew.sh/" target="_new">Homebrew</a>
-  to install most of the requirements for %OpenMS to ease the process of
-  upgrading those dependencies.
+  @subsection required_apps Required Applications and Dependencies
 
-  @subsection required_apps Required applications
+  In order to compile %OpenMS, several applications need to be
+  installed:
 
-  In order to compile %OpenMS, several applications need to be installed:
-  <ul>
-   <li>We only support building OpenMS via the standard Appleclang compiler (GCC can be tried at your own risk) and compilation is tested only on the two or three most recent macOS versions. Minimal installation is achieved by downloading Apple's "Command Line Tools", however we suggest installing a full Xcode (the current version can be obtained from the Mac App Store; required is version 4.2 or greater). More details can be found on the <a href="https://developer.apple.com/xcode/" target="_new" title="Xcode Downloads and Resources.">Apple Developer Site</a>.</li>
-   @note Since macOS El Capitan 10.11, the "Command Line Tools" can easily be installed via:
-   \code
-     xcode-select --install
-   \endcode
-   <li>CMake (>= 3.24) is required to configure and build the %OpenMS as well as some of its dependencies.</li>
-   <li>Qt6, its SVG module and the header files are required.
-   @note We recommend installing Qt using Homebrew with:
-   \code
-     brew install qt
-   \endcode
-   <li>
-    Building pyOpenMS, the Python bindings for %OpenMS, requires Python, Cython and a few Python packages. See
-    \ref pyOpenMS "here" for more detailed pyOpenMS build instructions.
-   </li>
-   <li>If you need to compile CoinMP yourself, you will also need gfortran as a Fortran compiler.</li>
-  </ul>
+  1. A compiler and its toolchain.
 
-  If your %OpenMS version is a development version obtained via Git, the
-  following applications are needed in order to create the %OpenMS
-  documentation:
+    Apple Clang is the officially supported compiler on macOS for
+    building %OpenMS (GCC can be used at your own risk).  %OpenMS is
+    tested with the Apple Clang toolchain that ships with the last
+    three Xcode releases.  Older Xcode versions may fail due to
+    missing C++20 features.
 
-  <ul>
-   <li><a href="http://www.doxygen.org/index.html">Doxygen</a> (recommended: >= 1.8.13, required: > 1.7.1, some might be buggy in between) is used to generate the %OpenMS documentation.</li>
-  </ul>
+    A minimal installation of Apple Clang is achieved by downloading
+    Apple's "Command Line Tools".  However we suggest using a full
+    Xcode installation from the Mac App Store.  More details can be
+    found on the [Apple Developer Site][xcode].
 
- <hr>
- @section install_mac_contrib Installing the contrib package
-
-  In order to facilitate the installation of the libraries required for
-  %OpenMS, we provide a "contrib-package" containing the libraries Boost,
-  Eigen, libSVM, libHDF5, glpk, zlib, bzip2, CoinMP and Xerces-C.
-
-  The contrib package is contained in the %OpenMS release package and is
-  available inside the <tt>contrib</tt> directory in the %OpenMS directory.
-
-  If you are using the developer version of %OpenMS via
+    @note Since macOS El Capitan 10.11, the command line tools can
+    easily be installed via:
     \code
-      cd ~
-      mkdir openms-development
-      cd openms-development
-      git clone https://github.com/OpenMS/OpenMS
-    \endcode
-  you have to checkout the empty folder by calling the following command:
-    \code
-      cd OpenMS
-      git submodule update --init contrib
+    xcode-select --install
     \endcode
 
-  CMake is used to check your system and build the contrib libraries.
+  2. A package manager for installing the remaining dependencies.
 
-  @note To avoid problems while building the libraries contained in the contrib
-  package, the path to your contrib directory should not contain any spaces.
+    For installing dependencies we suggest using the [Homebrew][brew]
+    package manager.  However, If you would rather built all
+    dependencies from source code you can do so using the %OpenMS
+    `contrib` directory.  Details can be found in the section entitled
+    @ref install_mac_contrib.
 
-  <ol>
-    <li>Open a Terminal (<tt>/Applications/Utilities/Terminal.app</tt>)</li>
-    <li>Create a build directory for the %OpenMS contrib e.g.,
-        \code
-        mkdir ~/openms-development/contrib_build
-        \endcode
-    </li>
-    <li>Enter the created directory and call <tt>cmake</tt> to build the contrib
+    After installing Homebrew the following commands will install all
+    needed dependencies for %OpenMS:
 
-        \code
-        cd <path_to_contrib_build>
-        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang <path_to_OpenMS_contrib>
-        \endcode
+    \snippet "../../tools/ci/deps-macos.sh" installation_documentation
 
-    Example:
-
-        \code
-        cd ~/openms-development/contrib_build
-        cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang ~/openms-development/OpenMS/contrib
-        \endcode
-    </li>
-  </ol>
-
-  If everything worked, the following sub-directories were created under
-  the contrib build directory:
-
-  <ul>
-    <li><tt>lib/</tt> containing the libraries needed by %OpenMS.</li>
-    <li><tt>include/</tt> containing the header files needed for %OpenMS.</li>
-  </ul>
-
-  @subsection using_system_libs Using system libraries
-
-  As an alternative to the contrib libraries shipped with %OpenMS
-  you can also use libraries installed via your package manager (Homebrew or
-  MacPorts).
-
-  For Homebrew the following sequence of commands installs most of the libraries
-  required by %OpenMS.
-
-    \code
-      brew install libsvm xerces-c boost glpk eigen hdf5
-    \endcode
-
-  @note Until the CoinMP complete package is migrated to the coin-or-tools tap, we suggest to use our contrib version. You will then additionally need gfortran as a Fortran compiler to build.
-  @note The compression libraries bzip and zlib should come with your macOS/XCode/commandline tools.
-  @note If using Boost from brew, since v1.75, its CMake config file links all dependent libraries to icu4c when using boost::regex as static library. Therefore, we suggest to use dynamic libraries in the OpenMS build stage.
-
-  For MacPorts the following sequence of commands installs some of the
-  libraries required by %OpenMS.
-
-    \code
-      sudo port install libsvm xercesc3 boost glpk eigen3 hdf5
-    \endcode
-
- The rest needs to be installed via the contrib.
-
-    \code
-      # assuming you cloned OpenMS to ~/openms-development/OpenMS
-      cd ~/openms-development/OpenMS
-      git submodule update --init contrib
-      mkdir ../contrib-build
-      cd ../contrib-build
-      cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DBUILD_TYPE=COINOR ~/openms-development/OpenMS/contrib
-    \endcode
-
-  <hr>
-
-  @note Some thirdparty software used via adapter tools in %OpenMS might also require an installed Java Runtime (brew cask install java).
+    @note If you still have Qt5 or Qt4 installed make sure to `brew
+    uninstall` or at least `brew unlink` them, so they are not used
+    when building %OpenMS.
 
   @section install_mac_openms Building OpenMS
 
-  Assuming you have successfully cloned OpenMS and installed the required libraries,
-  you can now build OpenMS. Therefore execute the following steps:
+  1. Begin by obtaining a copy of the %OpenMS source code:
 
-  <ol>
-    <li>Open a Terminal (<tt>/Applications/Utilities/Terminal.app</tt>)</li>
-    <li>Create a build directory for %OpenMS, e.g.,
-        \code
-        mkdir ~/openms-development/openms_build
-        \endcode
-    </li>
+    \code
+    OPENMS_DIR=~/openms-development
+    mkdir -p "$OPENMS_DIR"
+    cd "$OPENMS_DIR"
+    git clone --recurse-submodules https://github.com/OpenMS/OpenMS
+    \endcode
 
-    <li>Call <tt>cmake</tt> to create the build system there
+  2. Then compile the source code:
 
-        \code
-        cd <path_to_OpenMS_build>
-        cmake -DOPENMS_CONTRIB_LIBS=<path_to_contrib_build> -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix qt)" <path_to_OpenMS>
-        \endcode
+    \code
+    mkdir -p "$OPENMS_DIR/openms_build"
+    cd "$OPENMS_DIR/openms_build"
+    cmake \
+      -DCMAKE_PREFIX_PATH="$(brew --prefix);$(brew --prefix qt)" \
+      -DBOOST_USE_STATIC=OFF \
+      "$OPENMS_DIR/OpenMS"
+    make -j"$(nproc || sysctl -n hw.logicalcpu || echo 2)"
+    \endcode
 
-      @note If you obtained Boost from Homebrew, please add <code>-DBOOST_USE_STATIC=OFF</code> to the above command!
-      @note If you still have Qt5 or Qt4 installed make sure to brew uninstall or at least brew unlink it, so it is not picked up. The same holds for libraries that you built and passed with the contrib.
-      You can set additional CMake variables using the <code>-DVARIABLE=VALUE</code> option.
-      A full list of the CMake variables is shown when you execute
+    @note After executing CMake you can list all of the make targets
+    by running `make targets`.
 
-        \code
-        ccmake ~/openms-development/openms_build
-        \endcode
-      @note General cmake variables can be found in the CMake help. Not all of them can be overwritten.
-      @note You need to execute <tt>cmake</tt> at least once before
-            <tt>ccmake</tt> can be used.
-    </li>
-  </ol>
+  3. The TOPP tools should now be ready to use.
+
+    The applications are located in the `$OPENMS_DIR/openms_build/bin`
+    directory.
+
+    @note If you intend to use third party search engines like Comet,
+    their binaries also need to be in the `PATH` environment variable.
+    You can find pre-built binaries in the %OpenMS `THIRDPARTY`
+    directory.  To use them set the `PATH` environment variable using
+    the following command:
+    \code
+    export PATH="$OPENMS_DIR/OpenMS/THIRDPARTY/MacOS/$(uname -m)/Comet:$PATH"
+    \endcode
+
+  @section install_mac_cmake_flags Additional CMake Flags
 
   \include{doc} "../doxygen/install/common-cmake-parameters.doxygen"
 
-  After CMake was executed, you can list the make targets by calling:
+  @section install_mac_testing_openms Testing the OpenMS/TOPP Installation
 
-    \code
-    make targets
-    \endcode
+  \include{doc} "../doxygen/install/install-testing-openms.doxygen"
 
-  In order to build the %OpenMS library, the TOPP tools, tests and this
-  documentation execute the following command:
+  @section install_mac_contrib Installing the contrib Package
 
-    \code
-    make
-    \endcode
+  \include{doc} "../doxygen/install/install-contrib.doxygen"
 
-  The TOPP tools should now be ready to use. The executables are located in the
-  \c bin folder of the build directory. Add this folder to your
-  <b><tt>PATH</tt></b> variable for easy access.
-  @note When you intend to use thirdparty search engines like XTandem, their binaries also
-  need to be in the <b><tt>PATH</tt></b>. Build them or download them inside the OpenMS source folder with
-  \code
-  git submodule update --init THIRDPARTY
-  \endcode
-  and adapt the following for every thirdparty tool you want to use (shown for XTandem):
-  \code
-  export PATH=${PATH_TO_CLONED_OPENMS}/THIRDPARTY/${YOUR_OS}/${YOUR_ARCH}/XTandem:${PATH}
-  \endcode
-  If you want to enable the corresponding tests in CMake, this has to happen before you configure and build the
-  project.
-
- <hr>
- @section install_mac_testing_openms Testing your OpenMS/TOPP installation
-
-  After you have installed %OpenMS and TOPP, you should test your installation by executing the following command:
-
-    \code
-    make test
-    \endcode
-
-  or
-
-    \code
-    ctest
-    \endcode
-
-  Using <tt>ctest</tt> you can also execute only a subset of tests by using the -R [SUBSTRING] option and
-  run tests in parallel using the -j parameter. For example,
-
-    \code
-    ctest -R TOPP_ -j 4
-    \endcode
-
-  will run all TOPP test using 4 jobs.
-
-  For more information, consult ctest
-  <a href="http://manpages.ubuntu.com/manpages/hardy/man1/ctest.1.html" target="_new">man page</a>.
+  [openms]: http://www.OpenMS.de
+  [issues]: https://github.com/OpenMS/OpenMS/issues
+  [brew]: https://brew.sh/
+  [xcode]: https://developer.apple.com/xcode/
 
 */

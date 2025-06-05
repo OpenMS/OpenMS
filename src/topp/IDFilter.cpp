@@ -812,9 +812,6 @@ protected:
     IDFilter::removeEmptyIdentifications(peptides);
     // we want to keep "empty" protein IDs because they contain search meta data
 
-    IDFilter::updateHitRanks(proteins);
-    IDFilter::updateHitRanks(peptides);
-
     // some stats
     OPENMS_LOG_INFO << "Before filtering:\n"
              << n_prot_ids << " identification runs with "

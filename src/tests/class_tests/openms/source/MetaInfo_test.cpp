@@ -201,6 +201,22 @@ START_SECTION((bool operator!= (const MetaInfo& rhs) const))
 	TEST_EQUAL(i2!=i,false)
 END_SECTION
 
+START_SECTION((MetaInfo & operator+=(const MetaInfo& rhs)))
+  MetaInfo m_new, m_base;
+
+  m_base.setValue("label", String("old"));
+  m_base.setValue("exists_no_overwrite", 5.2);
+  
+  m_new.setValue("label", String("new")); // will be overwritten
+  m_new.setValue("icon", 4.3);            // will be added
+  
+  m_base += m_new;
+
+  TEST_EQUAL(m_base.getValue("label"), String("new"));
+  TEST_EQUAL(m_base.getValue("icon"), 4.3);
+  TEST_EQUAL(m_base.getValue("exists_no_overwrite"), 5.2);
+END_SECTION
+
 START_SECTION((void removeValue(UInt index)))
 	MetaInfo i,i2;
 

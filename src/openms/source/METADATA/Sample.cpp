@@ -8,8 +8,6 @@
 
 #include <OpenMS/METADATA/Sample.h>
 
-#include <OpenMS/METADATA/SampleTreatment.h>
-
 using namespace std;
 
 namespace OpenMS
@@ -38,26 +36,9 @@ namespace OpenMS
     concentration_(source.concentration_),
     subsamples_(source.subsamples_)
   {
-    // delete old treatments
-    for (auto& it : treatments_)
-    {
-      delete it;
-    }
-    treatments_.clear();
-    // copy treatments
-    for (const auto & it : source.treatments_)
-    {
-      treatments_.push_back(it->clone());
-    }
   }
 
-  Sample::~Sample()
-  {
-    for (auto& it : treatments_)
-    {
-      delete it;
-    }
-  }
+  Sample::~Sample() = default;
 
   Sample & Sample::operator=(const Sample & source)
   {
@@ -76,18 +57,6 @@ namespace OpenMS
     concentration_ = source.concentration_;
     subsamples_ = source.subsamples_;
     MetaInfoInterface::operator=(source);
-
-    // delete old treatments
-    for (auto& it : treatments_)
-    {
-      delete it;
-    }
-    treatments_.clear();
-    // copy treatments
-    for (const auto& it : source.treatments_)
-    {
-      treatments_.push_back(it->clone());
-    }
     return *this;
   }
 
@@ -103,21 +72,9 @@ namespace OpenMS
       volume_ != rhs.volume_ ||
       concentration_ != rhs.concentration_ ||
       subsamples_ != rhs.subsamples_ ||
-      MetaInfoInterface::operator!=(rhs) ||
-      treatments_.size() != rhs.treatments_.size()
-      )
+      MetaInfoInterface::operator!=(rhs))
     {
       return false;
-    }
-
-    // treatments
-    auto it2 = rhs.treatments_.begin();
-    for (auto it = treatments_.begin(); it != treatments_.end(); ++it, ++it2)
-    {
-      if (*it != *it2)
-      {
-        return false;
-      }
     }
     return true;
   }
@@ -216,77 +173,5 @@ namespace OpenMS
   {
     subsamples_ = subsamples;
   }
-
-  void Sample::addTreatment(const SampleTreatment & treatment, Int before_position)
-  {
-    if (before_position > Int(treatments_.size()))
-    {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, before_position, treatments_.size());
-    }
-    list<SampleTreatment *>::iterator it;
-    if (before_position >= 0)
-    {
-      it = treatments_.begin();
-      for (Int i = 0; i < before_position; ++i)
-      {
-        ++it;
-      }
-    }
-    else
-    {
-      it = treatments_.end();
-    }
-    SampleTreatment * tmp = treatment.clone();
-    treatments_.insert(it, tmp);
-  }
-
-  const SampleTreatment & Sample::getTreatment(UInt position) const
-  {
-    if (position >= treatments_.size())
-    {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, position, treatments_.size());
-    }
-    list<SampleTreatment *>::const_iterator it = treatments_.begin();
-    for (Size i = 0; i < position; ++i)
-    {
-      ++it;
-    }
-    return **it;
-  }
-
-  SampleTreatment & Sample::getTreatment(UInt position)
-  {
-    if (position >= treatments_.size())
-    {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, position, treatments_.size());
-    }
-    list<SampleTreatment *>::const_iterator it = treatments_.begin();
-    for (Size i = 0; i < position; ++i)
-    {
-      ++it;
-    }
-    return **it;
-  }
-
-  void Sample::removeTreatment(UInt position)
-  {
-    if (position >= treatments_.size())
-    {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, position, treatments_.size());
-    }
-    list<SampleTreatment *>::iterator it = treatments_.begin();
-    for (Size i = 0; i < position; ++i)
-    {
-      ++it;
-    }
-    delete(*it);
-    treatments_.erase(it);
-  }
-
-  Int Sample::countTreatments() const
-  {
-    return (Int)treatments_.size();
-  }
-
 }
 

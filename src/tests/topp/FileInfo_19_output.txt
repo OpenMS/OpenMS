@@ -1,20 +1,43 @@
 
 -- General information --
 
-File name: /workspace/OpenMS/src/tests/topp/FAIMS_test_data.mzML
+File name: /home/sachsenb/Development/OpenMS/src/tests/topp/FAIMS_test_data.mzML
 File type: mzML
 
 Instrument: 
 
 MS levels: 1, 2
-Total number of peaks: 2679
+Total number of peaks: 2681
 Number of spectra: 2
 
-Ranges:
+Combined Ranges (spectra + chromatograms):
+  retention time: 18.25 .. 18.39 sec (0.0 min)
+  mass-to-charge: 0.00 .. 1590.88
+  ion mobility: -65.00 .. -65.00
+  intensity: 0.00 .. 31878566.00
+
+Spectrum Ranges:
   retention time: 18.25 .. 18.39 sec (0.0 min)
   mass-to-charge: 110.07 .. 1590.88
-    ion mobility: -65.00 .. -65.00
-       intensity: 0.00 .. 5057372.00
+  ion mobility: -65.00 .. -65.00
+  intensity: 0.00 .. 5057372.00
+
+MS Level 1 Ranges:
+  retention time: 18.25 .. 18.25 sec (0.0 min)
+  mass-to-charge: 371.27 .. 1590.88
+  ion mobility: -65.00 .. -65.00
+  intensity: 0.00 .. 5057372.00
+
+MS Level 2 Ranges:
+  retention time: 18.39 .. 18.39 sec (0.0 min)
+  mass-to-charge: 110.07 .. 871.38
+  ion mobility: -65.00 .. -65.00
+  intensity: 1030.52 .. 15416.40
+
+Chromatogram Ranges:
+  retention time: 18.25 .. 18.39 sec (0.0 min)
+  mass-to-charge: 0.00 .. 0.00
+  intensity: 117547.13 .. 31878566.00
 
 Number of spectra per MS level:
   level 1: 1

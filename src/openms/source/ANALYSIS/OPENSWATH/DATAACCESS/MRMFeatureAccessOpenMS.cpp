@@ -115,6 +115,11 @@ namespace OpenMS
     return mrmfeature_.getRT();
   }
 
+  double MRMFeatureOpenMS::getMetaValue(std::string name) const
+  {
+    return mrmfeature_.getMetaValue(name);
+  }
+
   size_t MRMFeatureOpenMS::size() const
   {
     return features_.size();

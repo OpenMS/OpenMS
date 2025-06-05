@@ -12,7 +12,6 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
@@ -32,7 +31,6 @@ namespace OpenMS
   class Acquisition;
   class AcquisitionInfo;
   class ContactPerson;
-  class Digestion;
   class ExperimentalSettings;
   class Gradient;
   class HPLC;
@@ -45,18 +43,15 @@ namespace OpenMS
   class MetaInfoDescription;
   class MetaInfoInterface;
   class MetaInfoRegistry;
-  class Modification;
   class PeptideHit;
   class Precursor;
   class DataProcessing;
   class ProteinHit;
   class ProteinIdentification;
   class Sample;
-  class SampleTreatment;
   class Software;
   class SourceFile;
   class SpectrumSettings;
-  class Tagging;
   class DocumentIdentifier;
   class Product;
 
@@ -187,9 +182,6 @@ protected:
     void visualize_(MetaInfoInterface & meta, QTreeWidgetItem * parent = nullptr);
     void visualize_(Sample & meta, QTreeWidgetItem * parent = nullptr);
     void visualize_(HPLC & meta, QTreeWidgetItem * parent = nullptr);
-    void visualize_(Digestion & meta, QTreeWidgetItem * parent = nullptr);
-    void visualize_(Modification & meta, QTreeWidgetItem * parent = nullptr);
-    void visualize_(Tagging & meta, QTreeWidgetItem * parent = nullptr);
     void visualize_(Gradient & meta, QTreeWidgetItem * parent = nullptr);
     void visualize_(Software & meta, QTreeWidgetItem * parent = nullptr);
     void visualize_(ScanWindow & meta, QTreeWidgetItem * parent = nullptr);

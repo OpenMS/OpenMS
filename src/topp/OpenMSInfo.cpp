@@ -69,6 +69,7 @@ Build type   : Debug
 LP-Solver    : COIN-OR
 OpenMP       : enabled (maxThreads = 32)
 SIMD extensions : SSE, SSE2, SSE3, SSE4.1, SSE4.2, AVX
+Extra CXX flags : <none>
 
 << OS Information >>
 Name: Windows
@@ -115,21 +116,21 @@ protected:
 
     is << "\n\n"
        << green("<< OpenMS Version >>\n")
-       << "Version      : " << VersionInfo::getVersion() << "\n"
-       << "Build time   : " << VersionInfo::getTime() << "\n"
-       << "Git sha1     : " << VersionInfo::getRevision() << "\n"
-       << "Git branch   : " << VersionInfo::getBranch() << "\n"
-       << "\n"
+       << "Version      : " << VersionInfo::getVersion() << '\n'
+       << "Build time   : " << VersionInfo::getTime() << '\n'
+       << "Git sha1     : " << VersionInfo::getRevision() << '\n'
+       << "Git branch   : " << VersionInfo::getBranch() << '\n'
+       << '\n'
        << green("<< Installation information >>\n")
-       << "Data path    : " << File::getOpenMSDataPath() << "\n"
-       << "Temp path    : " << File::getTempDirectory() << "\n"
-       << "Userdata path: " << File::getUserDirectory() << "\n"
-       << "\n"
+       << "Data path    : " << File::getOpenMSDataPath() << '\n'
+       << "Temp path    : " << File::getTempDirectory() << '\n'
+       << "Userdata path: " << File::getUserDirectory() << '\n'
+       << '\n'
        << green("<< Build information >>\n") 
-       << "Source path  : " << OPENMS_SOURCE_PATH << "\n"
-       << "Binary path  : " << OPENMS_BINARY_PATH << "\n"
-       << "Binary arch  : " << Internal::OpenMSOSInfo::getBinaryArchitecture() << "\n"
-       << "Build type   : " << Internal::OpenMSBuildInfo::getBuildType() << "\n";
+       << "Source path  : " << OPENMS_SOURCE_PATH << '\n'
+       << "Binary path  : " << OPENMS_BINARY_PATH << '\n'
+       << "Binary arch  : " << Internal::OpenMSOSInfo::getBinaryArchitecture() << '\n'
+       << "Build type   : " << Internal::OpenMSBuildInfo::getBuildType() << '\n';
 #ifdef OPENMS_HAS_COINOR
     is << "LP-Solver    : COIN-OR\n";
 #else
@@ -138,22 +139,23 @@ protected:
 #ifdef _OPENMP
     is << "OpenMP       : "
        << "enabled (maxThreads = " << max_threads << ")"
-       << "\n";
+       << '\n';
 #else
     is << "OpenMP       : "
        << "disabled"
-       << "\n";
+       << '\n';
 #endif
-    is << "SIMD extensions : " << Internal::OpenMSOSInfo::getActiveSIMDExtensions() << "\n"
-       << "\n";
+    is << "SIMD extensions : " << Internal::OpenMSOSInfo::getActiveSIMDExtensions() << '\n'
+       << "Extra CXX flags : " << OPENMS_MORECXX_FLAGS << '\n'
+       << '\n';
 
     Internal::OpenMSOSInfo info = Internal::OpenMSOSInfo::getOSInfo();
 
     is << green("<< OS Information >>\n")
-       << "Name: " << info.getOSAsString() << "\n"
-       << "Version: " << info.getOSVersionAsString() << "\n"
-       << "Architecture: " << info.getArchAsString() << "\n"
-       << "\n";
+       << "Name: " << info.getOSAsString() << '\n'
+       << "Version: " << info.getOSVersionAsString() << '\n'
+       << "Architecture: " << info.getArchAsString() << '\n'
+       << '\n';
 
     return EXECUTION_OK;
   }

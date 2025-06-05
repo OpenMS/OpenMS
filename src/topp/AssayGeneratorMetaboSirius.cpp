@@ -206,7 +206,7 @@ protected:
     //-------------------------------------------------------------
     // Get CompoundInfo objects from tsv file
     //-------------------------------------------------------------
-    vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
+    std::vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
     // get number of files from maximum file_index value
     size_t n_files = 0;
     CsvFile csv(compoundinfo_file, '\t');
@@ -240,15 +240,15 @@ protected:
     // Get list of MetaboTargetedAssay (compound with all possible transitions)
     //--------------------------------------------------------------------------
     //get annotated spectra from SIRIUS project subdirs
-    vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra =
+    std::vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra =
       SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(subdirs, score_threshold, use_exact_mass, decoy_generation);
 
     // combine compound info with annotated spectra
-    vector<MetaboTargetedAssay::CompoundTargetDecoyPair> v_cmp_spec;
+    std::vector<MetaboTargetedAssay::CompoundTargetDecoyPair> v_cmp_spec;
     v_cmp_spec = MetaboTargetedAssay::pairCompoundWithAnnotatedTDSpectraPairs(v_cmpinfo, annotated_spectra);
 
     // pair compound info with potential transitions (filtered by min/max, exclude precursor)
-    vector<MetaboTargetedAssay> v_mta;
+    std::vector<MetaboTargetedAssay> v_mta;
     v_mta = MetaboTargetedAssay::extractMetaboTargetedAssayFragmentAnnotation(v_cmp_spec,
                                                                               transition_threshold,
                                                                               min_fragment_mz,
@@ -260,7 +260,7 @@ protected:
     // Combine ambigous identifications (derived from consensus features with similar m/z and RT)
     //--------------------------------------------------------------------------------------------
     // build feature maps (matching original raw data files by file_index) and perfom feature linking 
-    std::unordered_map< UInt64, vector<MetaboTargetedAssay> > ambiguity_groups = MetaboTargetedAssay::buildAmbiguityGroup(v_mta, ar_mz_tol, ar_rt_tol, ar_mz_tol_unit_res, n_files);
+    std::unordered_map< UInt64, std::vector<MetaboTargetedAssay> > ambiguity_groups = MetaboTargetedAssay::buildAmbiguityGroup(v_mta, ar_mz_tol, ar_rt_tol, ar_mz_tol_unit_res, n_files);
 
     // resolve identification ambiguity based on highest occurrence and highest intensity
     MetaboTargetedAssay::resolveAmbiguityGroup(ambiguity_groups, total_occurrence_filter, n_files);
@@ -268,8 +268,8 @@ protected:
     //--------------------------------------------------------------------------------------------
     // Merge all transitions in a TargetedExperiment and filter number of transitions
     //--------------------------------------------------------------------------------------------
-    vector<TargetedExperiment::Compound> v_cmp;
-    vector<ReactionMonitoringTransition> v_rmt_all;
+    std::vector<TargetedExperiment::Compound> v_cmp;
+    std::vector<ReactionMonitoringTransition> v_rmt_all;
     for (const auto &it : ambiguity_groups)
     {
       for (const auto &comp_it : it.second)
@@ -304,7 +304,7 @@ protected:
       if (!original)
       {
         const double chtwo_mass = EmpiricalFormula("CH2").getMonoWeight();
-        vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping> mappings = MetaboTargetedTargetDecoy::constructTargetDecoyMassMapping(t_exp);
+        std::vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping> mappings = MetaboTargetedTargetDecoy::constructTargetDecoyMassMapping(t_exp);
 
         if (resolve_overlap)
         {

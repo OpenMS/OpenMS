@@ -28,7 +28,7 @@ using namespace std;
             <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_CometAdapter (or other ID engines) </td>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_IDFilter </td>
         </tr>
         <tr>
@@ -273,9 +273,6 @@ protected:
       {
         IDFilter::removeEmptyIdentifications(pep_ids);
       }
-
-      IDFilter::updateHitRanks(prot_ids);
-      IDFilter::updateHitRanks(pep_ids);
 
       // we want to keep "empty" protein ID runs because they contain search meta data
 

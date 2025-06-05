@@ -109,8 +109,8 @@ protected:
     // Docu in base class
     bool finishAdding_() override;
 
-    /// Collects fragment ion scans in the indicated RT/mz area and adds them to the indicated action
-    bool collectFragmentScansInArea_(const RangeType& range, QAction* a, QMenu* msn_scans, QMenu* msn_meta);
+    /// Collects fragment ion scans in the indicated RT/mz area and adds them to the menus
+    bool collectFragmentScansInArea_(const RangeType& range, QMenu* msn_scans, QMenu* msn_meta);
 
     /// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
     void drawCoordinates_(QPainter& painter, const PeakIndex& peak);

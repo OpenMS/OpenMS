@@ -10,8 +10,6 @@
 
 #include <sstream>
 
-using namespace std;
-
 namespace OpenMS
 {
   class Colorizer;

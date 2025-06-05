@@ -59,8 +59,10 @@ namespace OpenMS
   public:
 
     // boost has a weird extra semicolon in their strong typedef
+    #ifdef __clang__
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wextra-semi"
+    #endif
 
     /// placeholder for peptides with the same parent proteins or protein groups
     BOOST_STRONG_TYPEDEF(boost::blank, PeptideCluster);
@@ -82,7 +84,9 @@ namespace OpenMS
     /// in which charge state a PSM was observed
     BOOST_STRONG_TYPEDEF(int, Charge);
 
+    #ifdef __clang__
     #pragma clang diagnostic pop
+    #endif
 
     //typedefs
     //TODO rename ProteinGroup type since it collides with the actual OpenMS ProteinGroup
