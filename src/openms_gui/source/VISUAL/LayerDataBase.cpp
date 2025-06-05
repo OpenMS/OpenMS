@@ -127,9 +127,6 @@ namespace OpenMS
     return getRange().getMaxIntensity();
   }
 
-/*
-*/
-
   LayerAnnotatorBase::LayerAnnotatorBase(const FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock) :
       supported_types_(supported_types),
       file_dialog_text_(file_dialog_text),
