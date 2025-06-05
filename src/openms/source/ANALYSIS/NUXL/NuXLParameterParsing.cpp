@@ -41,7 +41,7 @@ std::vector<NuXLFragmentAdductDefinition> NuXLParameterParsing::getMarkerIonsMas
 
     auto equal_by_mass = [](const NuXLFragmentAdductDefinition & a, const NuXLFragmentAdductDefinition & b) -> bool
     { 
-      return std::abs(a.mass - b.mass) < 1e-6; // compares mass values with a small tolerance
+      return a.mass == b.mass;
     };
 
   sort(marker_ions_unique_by_mass.begin(), marker_ions_unique_by_mass.end(), less_by_mass);
