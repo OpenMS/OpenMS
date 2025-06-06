@@ -133,7 +133,6 @@ StaticModification
 TextExporter
 TICCalculator
 TriqlerConverter
-XTandemAdapter
 XFDR
 XMLValidator
 )
