@@ -351,6 +351,7 @@ set(filtering_executables_list
   LowessSmoothing_test
   MassTraceDetection_test
   MorphologicalFilter_test
+  ModifiedSincSmoother_test
   MultiplexClustering_test
   MultiplexDeltaMasses_test
   MultiplexDeltaMassesGenerator_test
