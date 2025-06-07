@@ -4497,6 +4497,8 @@ static void scoreXLIons_(
         }
         pid.setHits(hits);
         pid.sort();
+        // iterate over peptide hits and set rank
+        vector<PeptideHit>& phs = pid.getHits();
         for (Size r = 0; r != phs.size(); ++r) 
         { 
           phs[r].setRank(static_cast<int>(r)); 
@@ -6238,10 +6240,13 @@ static void scoreXLIons_(
              }
           }
           pi.sort();
+          // iterate over peptide hits and set rank
+          vector<PeptideHit>& phs = pi.getHits();
           for (Size r = 0; r != phs.size(); ++r) 
           { 
             phs[r].setRank(static_cast<int>(r)); 
           }
+
         }
         OPENMS_LOG_INFO << "Imputed XL features in " << imputed << " linear peptides." << endl;
       }
