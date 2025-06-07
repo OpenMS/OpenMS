@@ -404,25 +404,25 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
     // Note: add the uncharged mass. Protons are added during spectrum generation.
     if (default_marker_ions_RNA) // TODO: check if we can derive this from target nucleotides
     {
-      ret.marker_ions.push_back({EmpiricalFormula("C9H13N2O9P1"), String("U"), EmpiricalFormula("C9H13N2O9P1").getMonoWeight()});
-      ret.marker_ions.push_back({EmpiricalFormula("C9H14N3O8P"), "C", EmpiricalFormula("C9H14N3O8P").getMonoWeight()});
-      ret.marker_ions.push_back({EmpiricalFormula("C10H14N5O8P"), "G", EmpiricalFormula("C10H14N5O8P").getMonoWeight()});
-      ret.marker_ions.push_back({EmpiricalFormula("C10H14N5O7P"), "A", EmpiricalFormula("C10H14N5O7P").getMonoWeight()});
-      ret.marker_ions.push_back({EmpiricalFormula("C4H4N2O2"), "U'", EmpiricalFormula("C4H4N2O2").getMonoWeight()});
-      ret.marker_ions.push_back({EmpiricalFormula("C4H5N3O"), "C'", EmpiricalFormula("C4H5N3O").getMonoWeight()});
-      ret.marker_ions.push_back({EmpiricalFormula("C5H5N5O"), "G'",  EmpiricalFormula("C5H5N5O").getMonoWeight()});
-      ret.marker_ions.push_back({EmpiricalFormula("C5H5N5"), "A'", EmpiricalFormula("C5H5N5").getMonoWeight()});
+      ret.marker_ions.emplace_back(EmpiricalFormula("C9H13N2O9P1"), String("U"), EmpiricalFormula("C9H13N2O9P1").getMonoWeight());
+      ret.marker_ions.emplace_back(EmpiricalFormula("C9H14N3O8P"), "C", EmpiricalFormula("C9H14N3O8P").getMonoWeight());
+      ret.marker_ions.emplace_back(EmpiricalFormula("C10H14N5O8P"), "G", EmpiricalFormula("C10H14N5O8P").getMonoWeight());
+      ret.marker_ions.emplace_back(EmpiricalFormula("C10H14N5O7P"), "A", EmpiricalFormula("C10H14N5O7P").getMonoWeight());
+      ret.marker_ions.emplace_back(EmpiricalFormula("C4H4N2O2"), "U'", EmpiricalFormula("C4H4N2O2").getMonoWeight());
+      ret.marker_ions.emplace_back(EmpiricalFormula("C4H5N3O"), "C'", EmpiricalFormula("C4H5N3O").getMonoWeight());
+      ret.marker_ions.emplace_back(EmpiricalFormula("C5H5N5O"), "G'",  EmpiricalFormula("C5H5N5O").getMonoWeight());
+      ret.marker_ions.emplace_back(EmpiricalFormula("C5H5N5"), "A'", EmpiricalFormula("C5H5N5").getMonoWeight());
     }
     else // DNA
     {
-      ret.marker_ions.push_back({EmpiricalFormula("C10H15N2O8P"), "T", EmpiricalFormula("C10H15N2O8P").getMonoWeight()});
-      ret.marker_ions.push_back({EmpiricalFormula("C9H14N3O7P"), "C", EmpiricalFormula("C9H14N3O7P").getMonoWeight()});
-      ret.marker_ions.push_back({EmpiricalFormula("C10H14N5O7P"), "G", EmpiricalFormula("C10H14N5O7P").getMonoWeight()});
-      ret.marker_ions.push_back({EmpiricalFormula("C10H14N5O6P"), "A", EmpiricalFormula("C10H14N5O6P").getMonoWeight()});
-      ret.marker_ions.push_back({EmpiricalFormula("C5H6N2O2"), "T'", EmpiricalFormula("C5H6N2O2").getMonoWeight()});
-      ret.marker_ions.push_back({EmpiricalFormula("C4H5N3O"), "C'", EmpiricalFormula("C4H5N3O").getMonoWeight()});
-      ret.marker_ions.push_back({EmpiricalFormula("C5H5N5O"), "G'", EmpiricalFormula("C5H5N5O").getMonoWeight()});
-      ret.marker_ions.push_back({EmpiricalFormula("C5H5N5"), "A'", EmpiricalFormula("C5H5N5").getMonoWeight()});
+      ret.marker_ions.emplace_back(EmpiricalFormula("C10H15N2O8P"), "T", EmpiricalFormula("C10H15N2O8P").getMonoWeight());
+      ret.marker_ions.emplace_back(EmpiricalFormula("C9H14N3O7P"), "C", EmpiricalFormula("C9H14N3O7P").getMonoWeight());
+      ret.marker_ions.emplace_back(EmpiricalFormula("C10H14N5O7P"), "G", EmpiricalFormula("C10H14N5O7P").getMonoWeight());
+      ret.marker_ions.emplace_back(EmpiricalFormula("C10H14N5O6P"), "A", EmpiricalFormula("C10H14N5O6P").getMonoWeight());
+      ret.marker_ions.emplace_back(EmpiricalFormula("C5H6N2O2"), "T'", EmpiricalFormula("C5H6N2O2").getMonoWeight());
+      ret.marker_ions.emplace_back(EmpiricalFormula("C4H5N3O"), "C'", EmpiricalFormula("C4H5N3O").getMonoWeight());
+      ret.marker_ions.emplace_back(EmpiricalFormula("C5H5N5O"), "G'", EmpiricalFormula("C5H5N5O").getMonoWeight());
+      ret.marker_ions.emplace_back(EmpiricalFormula("C5H5N5"), "A'", EmpiricalFormula("C5H5N5").getMonoWeight());
     } 
   }
 

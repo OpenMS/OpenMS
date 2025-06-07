@@ -30,6 +30,8 @@ struct OPENMS_DLLAPI NuXLFragmentAdductDefinition
 
   NuXLFragmentAdductDefinition(NuXLFragmentAdductDefinition&&) = default;
 
+  NuXLFragmentAdductDefinition(const EmpiricalFormula& f, const String& n, double m) : formula(f), name(n), mass(m) {}
+
   NuXLFragmentAdductDefinition& operator=(const NuXLFragmentAdductDefinition&) = default;
 
   NuXLFragmentAdductDefinition& operator=(NuXLFragmentAdductDefinition&&) = default;
@@ -37,6 +39,7 @@ struct OPENMS_DLLAPI NuXLFragmentAdductDefinition
   bool operator<(const NuXLFragmentAdductDefinition& other) const;
 
   bool operator==(const NuXLFragmentAdductDefinition& other) const;
+
 };
 
 }
