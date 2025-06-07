@@ -84,7 +84,7 @@ namespace OpenMS
           hits.push_back(h);
         }
         peptide_ids[index].setHits(hits);
-        peptide_ids[index].assignRanks();
+        peptide_ids[index].sort();
       }
     }
   }

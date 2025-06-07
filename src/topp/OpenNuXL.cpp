@@ -264,7 +264,6 @@ struct NuXLLinearRescore
             PeptideHit& ph = phits[psm_rank];
             ph.setScore(predictions[psm_index].probabilities[1]); // set probability of being a true hit as score
           }
-          //peptide_ids[index].assignRanks();  // TODO: check if reassigning ranks is detrimental
       }
     }
     else
@@ -400,7 +399,7 @@ struct NuXLLinearRescore
              PeptideHit& ph = phits[psm_rank];
              ph.setScore(predictions[psm_index].probabilities[1]); // set probability of being a target as score
            }
-          peptide_ids[index].assignRanks();    
+          peptide_ids[index].sort();    
         }
         // IdXMLFile().store(out_idxml + "_svm.idXML", protein_ids, peptide_ids);
       }
@@ -3699,11 +3698,14 @@ static void scoreXLIons_(
     }
 
     pi.setHits(phs);
-    pi.assignRanks();    
+    pi.sort();    
 
     // assign (unique) ranks
     phs = pi.getHits();
-    for (Size r = 0; r != phs.size(); ++r) { phs[r].setMetaValue("rank", static_cast<int>(r)); }
+    for (Size r = 0; r != phs.size(); ++r) 
+    { 
+      phs[r].setRank(static_cast<int>(r)); 
+    }
     pi.setHits(phs);
   }
 
@@ -4494,7 +4496,11 @@ static void scoreXLIons_(
           h.setScore(w2);
         }
         pid.setHits(hits);
-        pid.assignRanks();
+        pid.sort();
+        for (Size r = 0; r != phs.size(); ++r) 
+        { 
+          phs[r].setRank(static_cast<int>(r)); 
+        }
       }
       NuXLFDR fdr(1);
       vector<PeptideIdentification> pep_pi, xl_pi;
@@ -4532,7 +4538,7 @@ static void scoreXLIons_(
         h.setScore(w2);
       }
       pid.setHits(hits);
-      pid.assignRanks();
+      pid.sort();
     }
   }
 
@@ -6231,7 +6237,11 @@ static void scoreXLIons_(
                ++imputed;
              }
           }
-          pi.assignRanks();
+          pi.sort();
+          for (Size r = 0; r != phs.size(); ++r) 
+          { 
+            phs[r].setRank(static_cast<int>(r)); 
+          }
         }
         OPENMS_LOG_INFO << "Imputed XL features in " << imputed << " linear peptides." << endl;
       }
