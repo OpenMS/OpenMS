@@ -5503,7 +5503,9 @@ static void scoreXLIons_(
   #ifdef _OPENMP
                     omp_set_lock(&(annotated_peptides_lock[scan_index]));
                     omp_set_lock(&(annotated_XLs_lock[scan_index]));
+  #endif
                     ++nr_candidates[scan_index];
+  #ifdef _OPENMP
                     omp_unset_lock(&(annotated_XLs_lock[scan_index]));
                     omp_unset_lock(&(annotated_peptides_lock[scan_index]));
   #endif
@@ -5699,8 +5701,9 @@ static void scoreXLIons_(
   #ifdef _OPENMP
                       omp_set_lock(&(annotated_peptides_lock[scan_index]));
                       omp_set_lock(&(annotated_XLs_lock[scan_index]));
-                      // count candidate for spectrum
-                      ++nr_candidates[scan_index];
+  #endif
+                      ++nr_candidates[scan_index]; // count candidate for spectrum
+  #ifdef _OPENMP
                       omp_unset_lock(&(annotated_XLs_lock[scan_index]));
                       omp_unset_lock(&(annotated_peptides_lock[scan_index]));
   #endif
@@ -5917,7 +5920,9 @@ static void scoreXLIons_(
 #ifdef _OPENMP
                 omp_set_lock(&(annotated_peptides_lock[scan_index]));
                 omp_set_lock(&(annotated_XLs_lock[scan_index]));
+#endif                
                 ++nr_candidates[scan_index];
+#ifdef _OPENMP
                 omp_unset_lock(&(annotated_XLs_lock[scan_index]));
                 omp_unset_lock(&(annotated_peptides_lock[scan_index]));
 #endif
