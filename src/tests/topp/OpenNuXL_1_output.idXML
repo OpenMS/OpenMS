@@ -6,8 +6,8 @@
 				<UserParam type="string" name="extra_features" value="missed_cleavages,NuXL:mass_error_p,NuXL:err,NuXL:total_loss_score,NuXL:modds,NuXL:immonium_score,NuXL:precursor_score,NuXL:MIC,NuXL:Morph,NuXL:total_MIC,NuXL:ladder_score,NuXL:sequence_score,NuXL:total_Morph,NuXL:total_HS,NuXL:tag_XLed,NuXL:tag_unshifted,NuXL:tag_shifted,NuXL:aminoacid_max_tag,NuXL:aminoacid_id_to_max_tag_ratio,nr_candidates,-ln(poisson),NuXL:explained_peak_fraction,NuXL:theo_peak_fraction,NuXL:wTop50,NuXL:marker_ions_score,NuXL:partial_loss_score,NuXL:pl_MIC,NuXL:pl_err,NuXL:pl_Morph,NuXL:pl_modds,NuXL:pl_pc_MIC,NuXL:pl_im_MIC,NuXL:isPhospho,NuXL:isXL,NuXL:score,isotope_error,variable_modifications,precursor_intensity_log10,NuXL:NA_MASS_z0,NuXL:NA_length,nucleotide_mass_tags,n_theoretical_peaks,NuXL:XL_U"/>
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
 	</SearchParameters>
-	<IdentificationRun date="2025-01-23T14:35:20" search_engine="OpenNuXL" search_engine_version="3.4.0-pre-feature-NuXL-2025-01-23" search_parameters_ref="SP_0" >
-		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+	<IdentificationRun date="2025-06-08T16:59:48" search_engine="OpenNuXL" search_engine_version="3.5.0-pre-feature-NuXL-2025-06-07" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
 			<ProteinHit id="PH_0" accession="Cse1" score="0.0" sequence="MNLLIDNWIPVRPRNGGKVQIINLQSLYCSRDQWRLSLPRDDMELAALALLVCIGQIIAPAKDDVEFRHRIMNPLTEDEFQQLIAPWIDMFYLNHAEHPFMQTKGVKANDVTPMEKLLAGVSGATNCAFVNQPGQGEALCGGCTAIALFNQANQAPGFGGGFKSGLRGGTPVTTFVRGIDLRSTVLLNVLTLPRLQKQFPNESHTENQPTWIKPIKSNESIPASSIGFVRGLFWQPAHIELCDPIGIGKCSCCGQESNLRYTGFLKEKFTFTVNGLWPHPHSPCLVTVKKGEVEEKFLAFTTSAPSWTQISRVVVDKIIQNENGNRVAAVVNQFRNIAPQSPLELIMGGYRNNQASILERRHDVLMFNQGWQQYGNVINEIVTVGLGYKTALRKALYTFAEGFKNKDFKGAGVSVHETAERHFYRQSELLIPDVLANVNFSQADEVIADLRDKLHQLCEMLFNQSVAPYAHHPKLISTLALARATLYKHLRELKPQGGPSNG" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value=""/>
@@ -45,7 +45,7 @@
 				<UserParam type="float" name="NuXL:total_loss_score" value="11.444543838500977"/>
 				<UserParam type="float" name="NuXL:immonium_score" value="0.0"/>
 				<UserParam type="float" name="NuXL:precursor_score" value="0.0"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="0.0"/>
+				<UserParam type="float" name="NuXL:marker_ions_score" value="7.565847132354975e-03"/>
 				<UserParam type="float" name="NuXL:partial_loss_score" value="15.996561050415039"/>
 				<UserParam type="float" name="NuXL:MIC" value="0.216474175453186"/>
 				<UserParam type="float" name="NuXL:err" value="4.022435188293457"/>
@@ -62,7 +62,7 @@
 				<UserParam type="int" name="NuXL:tag_XLed" value="9"/>
 				<UserParam type="int" name="NuXL:tag_unshifted" value="7"/>
 				<UserParam type="int" name="NuXL:tag_shifted" value="8"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.652709424495697"/>
+				<UserParam type="float" name="NuXL:total_MIC" value="0.660275280475617"/>
 				<UserParam type="string" name="NuXL:NA" value="U-H2O1"/>
 				<UserParam type="int" name="NuXL:NA_length" value="1"/>
 				<UserParam type="string" name="NuXL:NT" value="U"/>
@@ -86,7 +86,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.912941634654999"/>
 				<UserParam type="float" name="CalcMass" value="712.782498583470897"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -125,7 +124,7 @@
 				<UserParam type="float" name="NuXL:total_loss_score" value="2.428377628326416"/>
 				<UserParam type="float" name="NuXL:immonium_score" value="0.0"/>
 				<UserParam type="float" name="NuXL:precursor_score" value="0.0"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="0.0"/>
+				<UserParam type="float" name="NuXL:marker_ions_score" value="0.035194162279367"/>
 				<UserParam type="float" name="NuXL:partial_loss_score" value="4.334724426269531"/>
 				<UserParam type="float" name="NuXL:MIC" value="0.130456954240799"/>
 				<UserParam type="float" name="NuXL:err" value="1.51176929473877"/>
@@ -142,7 +141,7 @@
 				<UserParam type="int" name="NuXL:tag_XLed" value="4"/>
 				<UserParam type="int" name="NuXL:tag_unshifted" value="2"/>
 				<UserParam type="int" name="NuXL:tag_shifted" value="3"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.501556992530823"/>
+				<UserParam type="float" name="NuXL:total_MIC" value="0.5367511510849"/>
 				<UserParam type="string" name="NuXL:NA" value="U-H2O1"/>
 				<UserParam type="int" name="NuXL:NA_length" value="1"/>
 				<UserParam type="string" name="NuXL:NT" value="U"/>
@@ -166,7 +165,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.294761180877686"/>
 				<UserParam type="float" name="CalcMass" value="590.765921955871136"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -205,7 +203,7 @@
 				<UserParam type="float" name="NuXL:total_loss_score" value="3.710045576095581"/>
 				<UserParam type="float" name="NuXL:immonium_score" value="0.0"/>
 				<UserParam type="float" name="NuXL:precursor_score" value="0.0"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="0.0"/>
+				<UserParam type="float" name="NuXL:marker_ions_score" value="0.284794986248016"/>
 				<UserParam type="float" name="NuXL:partial_loss_score" value="2.12938380241394"/>
 				<UserParam type="float" name="NuXL:MIC" value="0.190965637564659"/>
 				<UserParam type="float" name="NuXL:err" value="0.81897497177124"/>
@@ -222,7 +220,7 @@
 				<UserParam type="int" name="NuXL:tag_XLed" value="6"/>
 				<UserParam type="int" name="NuXL:tag_unshifted" value="3"/>
 				<UserParam type="int" name="NuXL:tag_shifted" value="3"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.306319385766983"/>
+				<UserParam type="float" name="NuXL:total_MIC" value="0.591114401817322"/>
 				<UserParam type="string" name="NuXL:NA" value="AU"/>
 				<UserParam type="int" name="NuXL:NA_length" value="2"/>
 				<UserParam type="string" name="NuXL:NT" value="U"/>
@@ -246,7 +244,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.509527504444122"/>
 				<UserParam type="float" name="CalcMass" value="508.184842697271051"/>
 				<UserParam type="int" name="missed_cleavages" value="0"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -285,7 +282,7 @@
 				<UserParam type="float" name="NuXL:total_loss_score" value="12.389053344726563"/>
 				<UserParam type="float" name="NuXL:immonium_score" value="0.018221665173769"/>
 				<UserParam type="float" name="NuXL:precursor_score" value="1.019881963729858"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="0.0"/>
+				<UserParam type="float" name="NuXL:marker_ions_score" value="0.085437878966331"/>
 				<UserParam type="float" name="NuXL:partial_loss_score" value="10.107473373413086"/>
 				<UserParam type="float" name="NuXL:MIC" value="0.218422010540962"/>
 				<UserParam type="float" name="NuXL:err" value="3.32442307472229"/>
@@ -302,7 +299,7 @@
 				<UserParam type="int" name="NuXL:tag_XLed" value="4"/>
 				<UserParam type="int" name="NuXL:tag_unshifted" value="8"/>
 				<UserParam type="int" name="NuXL:tag_shifted" value="5"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.461039960384369"/>
+				<UserParam type="float" name="NuXL:total_MIC" value="0.546477854251862"/>
 				<UserParam type="string" name="NuXL:NA" value="U"/>
 				<UserParam type="int" name="NuXL:NA_length" value="1"/>
 				<UserParam type="string" name="NuXL:NT" value="U"/>
@@ -326,7 +323,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="1.027302742004395"/>
 				<UserParam type="float" name="CalcMass" value="678.285010535621041"/>
 				<UserParam type="int" name="missed_cleavages" value="0"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -365,7 +361,7 @@
 				<UserParam type="float" name="NuXL:total_loss_score" value="19.087356567382813"/>
 				<UserParam type="float" name="NuXL:immonium_score" value="0.0"/>
 				<UserParam type="float" name="NuXL:precursor_score" value="0.0"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="0.0"/>
+				<UserParam type="float" name="NuXL:marker_ions_score" value="0.144947558641434"/>
 				<UserParam type="float" name="NuXL:partial_loss_score" value="12.68174934387207"/>
 				<UserParam type="float" name="NuXL:MIC" value="0.221869960427284"/>
 				<UserParam type="float" name="NuXL:err" value="1.67721426486969"/>
@@ -382,7 +378,7 @@
 				<UserParam type="int" name="NuXL:tag_XLed" value="4"/>
 				<UserParam type="int" name="NuXL:tag_unshifted" value="11"/>
 				<UserParam type="int" name="NuXL:tag_shifted" value="4"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.559105634689331"/>
+				<UserParam type="float" name="NuXL:total_MIC" value="0.704053163528442"/>
 				<UserParam type="string" name="NuXL:NA" value="U-H2O1"/>
 				<UserParam type="int" name="NuXL:NA_length" value="1"/>
 				<UserParam type="string" name="NuXL:NT" value="U"/>
@@ -406,7 +402,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="1.020170092582703"/>
 				<UserParam type="float" name="CalcMass" value="791.859071870571142"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -445,7 +440,7 @@
 				<UserParam type="float" name="NuXL:total_loss_score" value="14.357150077819824"/>
 				<UserParam type="float" name="NuXL:immonium_score" value="0.032235722988844"/>
 				<UserParam type="float" name="NuXL:precursor_score" value="0.0"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="0.0"/>
+				<UserParam type="float" name="NuXL:marker_ions_score" value="0.028084782883525"/>
 				<UserParam type="float" name="NuXL:partial_loss_score" value="5.950905799865723"/>
 				<UserParam type="float" name="NuXL:MIC" value="0.205655053257942"/>
 				<UserParam type="float" name="NuXL:err" value="2.922354459762573"/>
@@ -462,7 +457,7 @@
 				<UserParam type="int" name="NuXL:tag_XLed" value="0"/>
 				<UserParam type="int" name="NuXL:tag_unshifted" value="5"/>
 				<UserParam type="int" name="NuXL:tag_shifted" value="4"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.520781517028809"/>
+				<UserParam type="float" name="NuXL:total_MIC" value="0.548866271972656"/>
 				<UserParam type="string" name="NuXL:NA" value="U"/>
 				<UserParam type="int" name="NuXL:NA_length" value="1"/>
 				<UserParam type="string" name="NuXL:NT" value="U"/>
@@ -486,7 +481,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.285378307104111"/>
 				<UserParam type="float" name="CalcMass" value="828.695352611604562"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -525,7 +519,7 @@
 				<UserParam type="float" name="NuXL:total_loss_score" value="3.204911470413208"/>
 				<UserParam type="float" name="NuXL:immonium_score" value="0.0"/>
 				<UserParam type="float" name="NuXL:precursor_score" value="0.0"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="0.0"/>
+				<UserParam type="float" name="NuXL:marker_ions_score" value="0.180518850684166"/>
 				<UserParam type="float" name="NuXL:partial_loss_score" value="5.535653591156006"/>
 				<UserParam type="float" name="NuXL:MIC" value="0.135616391897202"/>
 				<UserParam type="float" name="NuXL:err" value="1.446312069892883"/>
@@ -542,7 +536,7 @@
 				<UserParam type="int" name="NuXL:tag_XLed" value="0"/>
 				<UserParam type="int" name="NuXL:tag_unshifted" value="3"/>
 				<UserParam type="int" name="NuXL:tag_shifted" value="4"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.326787233352661"/>
+				<UserParam type="float" name="NuXL:total_MIC" value="0.507306098937988"/>
 				<UserParam type="string" name="NuXL:NA" value="U-H2O1"/>
 				<UserParam type="int" name="NuXL:NA_length" value="1"/>
 				<UserParam type="string" name="NuXL:NT" value="U"/>
@@ -566,7 +560,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.44066721200943"/>
 				<UserParam type="float" name="CalcMass" value="656.794679583470952"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -605,7 +598,7 @@
 				<UserParam type="float" name="NuXL:total_loss_score" value="10.013267517089844"/>
 				<UserParam type="float" name="NuXL:immonium_score" value="0.0"/>
 				<UserParam type="float" name="NuXL:precursor_score" value="0.0"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="0.0"/>
+				<UserParam type="float" name="NuXL:marker_ions_score" value="0.023523418232799"/>
 				<UserParam type="float" name="NuXL:partial_loss_score" value="11.911209106445313"/>
 				<UserParam type="float" name="NuXL:MIC" value="0.229996383190155"/>
 				<UserParam type="float" name="NuXL:err" value="4.176675319671631"/>
@@ -622,7 +615,7 @@
 				<UserParam type="int" name="NuXL:tag_XLed" value="12"/>
 				<UserParam type="int" name="NuXL:tag_unshifted" value="4"/>
 				<UserParam type="int" name="NuXL:tag_shifted" value="8"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.445473939180374"/>
+				<UserParam type="float" name="NuXL:total_MIC" value="0.468997359275818"/>
 				<UserParam type="string" name="NuXL:NA" value="U"/>
 				<UserParam type="int" name="NuXL:NA_length" value="1"/>
 				<UserParam type="string" name="NuXL:NT" value="U"/>
@@ -646,7 +639,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.390141606330872"/>
 				<UserParam type="float" name="CalcMass" value="957.396027442920968"/>
 				<UserParam type="int" name="missed_cleavages" value="0"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -685,7 +677,7 @@
 				<UserParam type="float" name="NuXL:total_loss_score" value="2.676236867904663"/>
 				<UserParam type="float" name="NuXL:immonium_score" value="0.0"/>
 				<UserParam type="float" name="NuXL:precursor_score" value="0.0"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="0.0"/>
+				<UserParam type="float" name="NuXL:marker_ions_score" value="0.016020081937313"/>
 				<UserParam type="float" name="NuXL:partial_loss_score" value="5.566837310791016"/>
 				<UserParam type="float" name="NuXL:MIC" value="0.182740524411201"/>
 				<UserParam type="float" name="NuXL:err" value="1.045556426048279"/>
@@ -702,7 +694,7 @@
 				<UserParam type="int" name="NuXL:tag_XLed" value="5"/>
 				<UserParam type="int" name="NuXL:tag_unshifted" value="3"/>
 				<UserParam type="int" name="NuXL:tag_shifted" value="3"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.675136089324951"/>
+				<UserParam type="float" name="NuXL:total_MIC" value="0.691156148910523"/>
 				<UserParam type="string" name="NuXL:NA" value="U-H2O1"/>
 				<UserParam type="int" name="NuXL:NA_length" value="1"/>
 				<UserParam type="string" name="NuXL:NT" value="U"/>
@@ -726,7 +718,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.836548149585724"/>
 				<UserParam type="float" name="CalcMass" value="510.280478471821027"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -765,7 +756,7 @@
 				<UserParam type="float" name="NuXL:total_loss_score" value="9.227341651916504"/>
 				<UserParam type="float" name="NuXL:immonium_score" value="0.0"/>
 				<UserParam type="float" name="NuXL:precursor_score" value="0.0"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="0.0"/>
+				<UserParam type="float" name="NuXL:marker_ions_score" value="0.211580485105515"/>
 				<UserParam type="float" name="NuXL:partial_loss_score" value="1.977586507797241"/>
 				<UserParam type="float" name="NuXL:MIC" value="0.158668205142021"/>
 				<UserParam type="float" name="NuXL:err" value="2.008338689804077"/>
@@ -782,7 +773,7 @@
 				<UserParam type="int" name="NuXL:tag_XLed" value="8"/>
 				<UserParam type="int" name="NuXL:tag_unshifted" value="7"/>
 				<UserParam type="int" name="NuXL:tag_shifted" value="1"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.361539393663406"/>
+				<UserParam type="float" name="NuXL:total_MIC" value="0.573119878768921"/>
 				<UserParam type="string" name="NuXL:NA" value="U-H2O1"/>
 				<UserParam type="int" name="NuXL:NA_length" value="1"/>
 				<UserParam type="string" name="NuXL:NT" value="U"/>
@@ -806,7 +797,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.906518697738648"/>
 				<UserParam type="float" name="CalcMass" value="717.35543582272112"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -845,7 +835,7 @@
 				<UserParam type="float" name="NuXL:total_loss_score" value="19.278144836425781"/>
 				<UserParam type="float" name="NuXL:immonium_score" value="0.0"/>
 				<UserParam type="float" name="NuXL:precursor_score" value="0.0"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="0.0"/>
+				<UserParam type="float" name="NuXL:marker_ions_score" value="4.224430769681931e-03"/>
 				<UserParam type="float" name="NuXL:partial_loss_score" value="14.91402530670166"/>
 				<UserParam type="float" name="NuXL:MIC" value="0.371337056159973"/>
 				<UserParam type="float" name="NuXL:err" value="0.933578789234161"/>
@@ -862,7 +852,7 @@
 				<UserParam type="int" name="NuXL:tag_XLed" value="0"/>
 				<UserParam type="int" name="NuXL:tag_unshifted" value="11"/>
 				<UserParam type="int" name="NuXL:tag_shifted" value="6"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.674183785915375"/>
+				<UserParam type="float" name="NuXL:total_MIC" value="0.678408205509186"/>
 				<UserParam type="string" name="NuXL:NA" value="U"/>
 				<UserParam type="int" name="NuXL:NA_length" value="1"/>
 				<UserParam type="string" name="NuXL:NT" value="U"/>
@@ -886,7 +876,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="1.033757925033569"/>
 				<UserParam type="float" name="CalcMass" value="790.805747433670831"/>
 				<UserParam type="int" name="missed_cleavages" value="0"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -925,7 +914,7 @@
 				<UserParam type="float" name="NuXL:total_loss_score" value="6.533727645874023"/>
 				<UserParam type="float" name="NuXL:immonium_score" value="0.01489380095154"/>
 				<UserParam type="float" name="NuXL:precursor_score" value="0.0"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="0.0"/>
+				<UserParam type="float" name="NuXL:marker_ions_score" value="0.191279843449593"/>
 				<UserParam type="float" name="NuXL:partial_loss_score" value="1.056356310844421"/>
 				<UserParam type="float" name="NuXL:MIC" value="0.223560705780983"/>
 				<UserParam type="float" name="NuXL:err" value="1.67405891418457"/>
@@ -942,7 +931,7 @@
 				<UserParam type="int" name="NuXL:tag_XLed" value="7"/>
 				<UserParam type="int" name="NuXL:tag_unshifted" value="5"/>
 				<UserParam type="int" name="NuXL:tag_shifted" value="2"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.298202484846115"/>
+				<UserParam type="float" name="NuXL:total_MIC" value="0.489482343196869"/>
 				<UserParam type="string" name="NuXL:NA" value="U"/>
 				<UserParam type="int" name="NuXL:NA_length" value="1"/>
 				<UserParam type="string" name="NuXL:NT" value="U"/>
@@ -966,7 +955,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.902945101261139"/>
 				<UserParam type="float" name="CalcMass" value="648.256018265620924"/>
 				<UserParam type="int" name="missed_cleavages" value="0"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -1005,7 +993,7 @@
 				<UserParam type="float" name="NuXL:total_loss_score" value="14.737911224365234"/>
 				<UserParam type="float" name="NuXL:immonium_score" value="4.931734409183264e-03"/>
 				<UserParam type="float" name="NuXL:precursor_score" value="0.0"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="0.0"/>
+				<UserParam type="float" name="NuXL:marker_ions_score" value="0.078708566725254"/>
 				<UserParam type="float" name="NuXL:partial_loss_score" value="7.275259017944336"/>
 				<UserParam type="float" name="NuXL:MIC" value="0.299404740333557"/>
 				<UserParam type="float" name="NuXL:err" value="3.440641164779663"/>
@@ -1022,7 +1010,7 @@
 				<UserParam type="int" name="NuXL:tag_XLed" value="11"/>
 				<UserParam type="int" name="NuXL:tag_unshifted" value="7"/>
 				<UserParam type="int" name="NuXL:tag_shifted" value="4"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.581295311450958"/>
+				<UserParam type="float" name="NuXL:total_MIC" value="0.660003900527954"/>
 				<UserParam type="string" name="NuXL:NA" value="U-H2O1"/>
 				<UserParam type="int" name="NuXL:NA_length" value="1"/>
 				<UserParam type="string" name="NuXL:NT" value="U"/>
@@ -1046,7 +1034,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.946108102798462"/>
 				<UserParam type="float" name="CalcMass" value="938.368089776020952"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -1085,7 +1072,7 @@
 				<UserParam type="float" name="NuXL:total_loss_score" value="10.280866622924805"/>
 				<UserParam type="float" name="NuXL:immonium_score" value="0.0"/>
 				<UserParam type="float" name="NuXL:precursor_score" value="0.0"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="0.0"/>
+				<UserParam type="float" name="NuXL:marker_ions_score" value="0.148133501410484"/>
 				<UserParam type="float" name="NuXL:partial_loss_score" value="6.024999141693115"/>
 				<UserParam type="float" name="NuXL:MIC" value="0.165740802884102"/>
 				<UserParam type="float" name="NuXL:err" value="3.117662668228149"/>
@@ -1102,7 +1089,7 @@
 				<UserParam type="int" name="NuXL:tag_XLed" value="0"/>
 				<UserParam type="int" name="NuXL:tag_unshifted" value="5"/>
 				<UserParam type="int" name="NuXL:tag_shifted" value="4"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.35052478313446"/>
+				<UserParam type="float" name="NuXL:total_MIC" value="0.498658299446106"/>
 				<UserParam type="string" name="NuXL:NA" value="U-H2O1"/>
 				<UserParam type="int" name="NuXL:NA_length" value="1"/>
 				<UserParam type="string" name="NuXL:NT" value="U"/>
@@ -1126,7 +1113,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.360034078359604"/>
 				<UserParam type="float" name="CalcMass" value="933.940259753371038"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -1165,7 +1151,7 @@
 				<UserParam type="float" name="NuXL:total_loss_score" value="15.1768798828125"/>
 				<UserParam type="float" name="NuXL:immonium_score" value="0.090850010514259"/>
 				<UserParam type="float" name="NuXL:precursor_score" value="2.044005870819092"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="0.0"/>
+				<UserParam type="float" name="NuXL:marker_ions_score" value="0.177427634596825"/>
 				<UserParam type="float" name="NuXL:partial_loss_score" value="9.408187866210938"/>
 				<UserParam type="float" name="NuXL:MIC" value="0.253406018018723"/>
 				<UserParam type="float" name="NuXL:err" value="2.551411151885986"/>
@@ -1182,7 +1168,7 @@
 				<UserParam type="int" name="NuXL:tag_XLed" value="8"/>
 				<UserParam type="int" name="NuXL:tag_unshifted" value="8"/>
 				<UserParam type="int" name="NuXL:tag_shifted" value="7"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.506797969341278"/>
+				<UserParam type="float" name="NuXL:total_MIC" value="0.684225618839264"/>
 				<UserParam type="string" name="NuXL:NA" value="U"/>
 				<UserParam type="int" name="NuXL:NA_length" value="1"/>
 				<UserParam type="string" name="NuXL:NT" value="U"/>
@@ -1206,7 +1192,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.917045056819916"/>
 				<UserParam type="float" name="CalcMass" value="735.813069679171122"/>
 				<UserParam type="int" name="missed_cleavages" value="0"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -1245,7 +1230,7 @@
 				<UserParam type="float" name="NuXL:total_loss_score" value="5.432636737823486"/>
 				<UserParam type="float" name="NuXL:immonium_score" value="0.01465851161629"/>
 				<UserParam type="float" name="NuXL:precursor_score" value="0.0"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="0.0"/>
+				<UserParam type="float" name="NuXL:marker_ions_score" value="0.035705029964447"/>
 				<UserParam type="float" name="NuXL:partial_loss_score" value="4.279329776763916"/>
 				<UserParam type="float" name="NuXL:MIC" value="0.222448781132698"/>
 				<UserParam type="float" name="NuXL:err" value="0.880739748477936"/>
@@ -1262,7 +1247,7 @@
 				<UserParam type="int" name="NuXL:tag_XLed" value="8"/>
 				<UserParam type="int" name="NuXL:tag_unshifted" value="4"/>
 				<UserParam type="int" name="NuXL:tag_shifted" value="4"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.366305381059647"/>
+				<UserParam type="float" name="NuXL:total_MIC" value="0.402010411024094"/>
 				<UserParam type="string" name="NuXL:NA" value="U"/>
 				<UserParam type="int" name="NuXL:NA_length" value="1"/>
 				<UserParam type="string" name="NuXL:NT" value="U"/>
@@ -1286,7 +1271,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.411547899246216"/>
 				<UserParam type="float" name="CalcMass" value="833.866699370571041"/>
 				<UserParam type="int" name="missed_cleavages" value="0"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -1325,7 +1309,7 @@
 				<UserParam type="float" name="NuXL:total_loss_score" value="9.885402679443359"/>
 				<UserParam type="float" name="NuXL:immonium_score" value="0.0"/>
 				<UserParam type="float" name="NuXL:precursor_score" value="3.147655487060547"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="0.0"/>
+				<UserParam type="float" name="NuXL:marker_ions_score" value="0.048983357846737"/>
 				<UserParam type="float" name="NuXL:partial_loss_score" value="4.115770816802979"/>
 				<UserParam type="float" name="NuXL:MIC" value="0.331657320261002"/>
 				<UserParam type="float" name="NuXL:err" value="1.46866238117218"/>
@@ -1342,7 +1326,7 @@
 				<UserParam type="int" name="NuXL:tag_XLed" value="6"/>
 				<UserParam type="int" name="NuXL:tag_unshifted" value="7"/>
 				<UserParam type="int" name="NuXL:tag_shifted" value="3"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.559828281402588"/>
+				<UserParam type="float" name="NuXL:total_MIC" value="0.608811616897583"/>
 				<UserParam type="string" name="NuXL:NA" value="U"/>
 				<UserParam type="int" name="NuXL:NA_length" value="1"/>
 				<UserParam type="string" name="NuXL:NT" value="U"/>
@@ -1366,7 +1350,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.916457176208496"/>
 				<UserParam type="float" name="CalcMass" value="698.296729528221022"/>
 				<UserParam type="int" name="missed_cleavages" value="0"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -1405,7 +1388,7 @@
 				<UserParam type="float" name="NuXL:total_loss_score" value="3.611835241317749"/>
 				<UserParam type="float" name="NuXL:immonium_score" value="8.499994874000549e-03"/>
 				<UserParam type="float" name="NuXL:precursor_score" value="0.0"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="0.0"/>
+				<UserParam type="float" name="NuXL:marker_ions_score" value="0.043221984058619"/>
 				<UserParam type="float" name="NuXL:partial_loss_score" value="2.420245170593262"/>
 				<UserParam type="float" name="NuXL:MIC" value="0.372912466526032"/>
 				<UserParam type="float" name="NuXL:err" value="0.843211591243744"/>
@@ -1422,7 +1405,7 @@
 				<UserParam type="int" name="NuXL:tag_XLed" value="6"/>
 				<UserParam type="int" name="NuXL:tag_unshifted" value="3"/>
 				<UserParam type="int" name="NuXL:tag_shifted" value="3"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.580652296543121"/>
+				<UserParam type="float" name="NuXL:total_MIC" value="0.623874306678772"/>
 				<UserParam type="string" name="NuXL:NA" value="U"/>
 				<UserParam type="int" name="NuXL:NA_length" value="1"/>
 				<UserParam type="string" name="NuXL:NT" value="U"/>
@@ -1446,7 +1429,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.895485401153565"/>
 				<UserParam type="float" name="CalcMass" value="623.254135304920965"/>
 				<UserParam type="int" name="missed_cleavages" value="0"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -1485,7 +1467,7 @@
 				<UserParam type="float" name="NuXL:total_loss_score" value="9.457996368408203"/>
 				<UserParam type="float" name="NuXL:immonium_score" value="0.0"/>
 				<UserParam type="float" name="NuXL:precursor_score" value="0.0"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="0.0"/>
+				<UserParam type="float" name="NuXL:marker_ions_score" value="0.013511279597878"/>
 				<UserParam type="float" name="NuXL:partial_loss_score" value="5.934319019317627"/>
 				<UserParam type="float" name="NuXL:MIC" value="0.13300721347332"/>
 				<UserParam type="float" name="NuXL:err" value="3.174589395523071"/>
@@ -1502,7 +1484,7 @@
 				<UserParam type="int" name="NuXL:tag_XLed" value="7"/>
 				<UserParam type="int" name="NuXL:tag_unshifted" value="2"/>
 				<UserParam type="int" name="NuXL:tag_shifted" value="5"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.278390318155289"/>
+				<UserParam type="float" name="NuXL:total_MIC" value="0.291901588439941"/>
 				<UserParam type="string" name="NuXL:NA" value="U"/>
 				<UserParam type="int" name="NuXL:NA_length" value="1"/>
 				<UserParam type="string" name="NuXL:NT" value="U"/>
@@ -1526,7 +1508,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.100985206663609"/>
 				<UserParam type="float" name="CalcMass" value="861.38797662793786"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -1565,7 +1546,7 @@
 				<UserParam type="float" name="NuXL:total_loss_score" value="4.506982803344727"/>
 				<UserParam type="float" name="NuXL:immonium_score" value="4.267680924385786e-03"/>
 				<UserParam type="float" name="NuXL:precursor_score" value="0.0"/>
-				<UserParam type="float" name="NuXL:marker_ions_score" value="0.0"/>
+				<UserParam type="float" name="NuXL:marker_ions_score" value="9.696829132735729e-03"/>
 				<UserParam type="float" name="NuXL:partial_loss_score" value="0.042108997702599"/>
 				<UserParam type="float" name="NuXL:MIC" value="0.193572551012039"/>
 				<UserParam type="float" name="NuXL:err" value="1.506734490394592"/>
@@ -1582,7 +1563,7 @@
 				<UserParam type="int" name="NuXL:tag_XLed" value="0"/>
 				<UserParam type="int" name="NuXL:tag_unshifted" value="4"/>
 				<UserParam type="int" name="NuXL:tag_shifted" value="1"/>
-				<UserParam type="float" name="NuXL:total_MIC" value="0.200838148593903"/>
+				<UserParam type="float" name="NuXL:total_MIC" value="0.210534974932671"/>
 				<UserParam type="string" name="NuXL:NA" value="GU-H2O1"/>
 				<UserParam type="int" name="NuXL:NA_length" value="2"/>
 				<UserParam type="string" name="NuXL:NT" value="U"/>
@@ -1606,7 +1587,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.199528768658638"/>
 				<UserParam type="float" name="CalcMass" value="1043.458951210904388"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>

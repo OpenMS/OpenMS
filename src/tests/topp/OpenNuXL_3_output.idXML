@@ -6,8 +6,8 @@
 				<UserParam type="string" name="extra_features" value="missed_cleavages,NuXL:mass_error_p,NuXL:err,NuXL:total_loss_score,NuXL:modds,NuXL:immonium_score,NuXL:precursor_score,NuXL:MIC,NuXL:Morph,NuXL:total_MIC,NuXL:ladder_score,NuXL:sequence_score,NuXL:total_Morph,NuXL:total_HS,NuXL:tag_XLed,NuXL:tag_unshifted,NuXL:tag_shifted,NuXL:aminoacid_max_tag,NuXL:aminoacid_id_to_max_tag_ratio,nr_candidates,-ln(poisson),NuXL:explained_peak_fraction,NuXL:theo_peak_fraction,NuXL:wTop50,NuXL:marker_ions_score,NuXL:partial_loss_score,NuXL:pl_MIC,NuXL:pl_err,NuXL:pl_Morph,NuXL:pl_modds,NuXL:pl_pc_MIC,NuXL:pl_im_MIC,NuXL:isPhospho,NuXL:isXL,NuXL:score,isotope_error,variable_modifications,precursor_intensity_log10,NuXL:NA_MASS_z0,NuXL:NA_length,nucleotide_mass_tags,n_theoretical_peaks,NuXL:XL_U"/>
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
 	</SearchParameters>
-	<IdentificationRun date="2025-01-23T14:35:20" search_engine="OpenNuXL" search_engine_version="3.4.0-pre-feature-NuXL-2025-01-23" search_parameters_ref="SP_0" >
-		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+	<IdentificationRun date="2025-06-08T16:59:48" search_engine="OpenNuXL" search_engine_version="3.5.0-pre-feature-NuXL-2025-06-07" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
 			<ProteinHit id="PH_0" accession="Cas7" score="0.0" sequence="MSNFINIHVLISHSPSCLNRDDMNMQKDAIFGGKRRVRISSQSLKRAMRKSGYYAQNIGESSLRTIHLAQLRDVLRQKLGERFDQKIIDKTLALLSGKSVDEAEKISADAVTPWVVGEIAWFCEQVAKAEADNLDDKKLLKVLKEDIAAIRVNLQQGVDIALSGRMATSGMMTELGKVDGAMSIAHAITTHQVDSDIDWFTAVDDLQEQGSAHLGTQEFSSGVFYRYANINLAQLQENLGGASREQALEIATHVVHMLATEVPGAKQRTYAAFNPADMVMVNFSDMPLSMANAFEKAVKAKDGFLQPSIQAFNQYWDRVANGYGLNGAAAQFSLSDVDPITAQVKQMPTLEQLKSWVRNNGEA" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="Description" value=""/>
@@ -98,7 +98,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.912941634654999"/>
 				<UserParam type="float" name="CalcMass" value="712.782498583470897"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -178,7 +177,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.294761180877686"/>
 				<UserParam type="float" name="CalcMass" value="590.765921955871136"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -258,7 +256,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.509527504444122"/>
 				<UserParam type="float" name="CalcMass" value="508.184842697271051"/>
 				<UserParam type="int" name="missed_cleavages" value="0"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -338,7 +335,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="1.027302742004395"/>
 				<UserParam type="float" name="CalcMass" value="678.285010535621041"/>
 				<UserParam type="int" name="missed_cleavages" value="0"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -418,7 +414,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="1.020170092582703"/>
 				<UserParam type="float" name="CalcMass" value="791.859071870571142"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -498,7 +493,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.285378307104111"/>
 				<UserParam type="float" name="CalcMass" value="828.695352611604562"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -650,7 +644,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.44066721200943"/>
 				<UserParam type="float" name="CalcMass" value="656.794679583470952"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -802,7 +795,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.390141606330872"/>
 				<UserParam type="float" name="CalcMass" value="957.396027442920968"/>
 				<UserParam type="int" name="missed_cleavages" value="0"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -1030,7 +1022,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.836548149585724"/>
 				<UserParam type="float" name="CalcMass" value="510.280478471821027"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -1182,7 +1173,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.906518697738648"/>
 				<UserParam type="float" name="CalcMass" value="717.35543582272112"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -1262,7 +1252,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="1.033757925033569"/>
 				<UserParam type="float" name="CalcMass" value="790.805747433670831"/>
 				<UserParam type="int" name="missed_cleavages" value="0"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -1342,7 +1331,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.902945101261139"/>
 				<UserParam type="float" name="CalcMass" value="648.256018265620924"/>
 				<UserParam type="int" name="missed_cleavages" value="0"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -1422,7 +1410,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.946108102798462"/>
 				<UserParam type="float" name="CalcMass" value="938.368089776020952"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -1502,7 +1489,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.360034078359604"/>
 				<UserParam type="float" name="CalcMass" value="933.940259753371038"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -1582,7 +1568,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.917045056819916"/>
 				<UserParam type="float" name="CalcMass" value="735.813069679171122"/>
 				<UserParam type="int" name="missed_cleavages" value="0"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -1662,7 +1647,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.411547899246216"/>
 				<UserParam type="float" name="CalcMass" value="833.866699370571041"/>
 				<UserParam type="int" name="missed_cleavages" value="0"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -1742,7 +1726,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.916457176208496"/>
 				<UserParam type="float" name="CalcMass" value="698.296729528221022"/>
 				<UserParam type="int" name="missed_cleavages" value="0"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -1894,7 +1877,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.895485401153565"/>
 				<UserParam type="float" name="CalcMass" value="623.254135304920965"/>
 				<UserParam type="int" name="missed_cleavages" value="0"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -1974,7 +1956,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.100985206663609"/>
 				<UserParam type="float" name="CalcMass" value="861.38797662793786"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
@@ -2054,7 +2035,6 @@
 				<UserParam type="float" name="NuXL:sequence_score" value="0.199528768658638"/>
 				<UserParam type="float" name="CalcMass" value="1043.458951210904388"/>
 				<UserParam type="int" name="missed_cleavages" value="1"/>
-				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="int" name="CountSequenceIsTop" value="1"/>
 				<UserParam type="int" name="CountSequenceCharges" value="1"/>
 				<UserParam type="int" name="CountSequenceIsXL" value="1"/>
