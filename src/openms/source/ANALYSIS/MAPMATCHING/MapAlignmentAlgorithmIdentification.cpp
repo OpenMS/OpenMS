@@ -176,14 +176,6 @@ namespace OpenMS
     return false;
   }
 
-  // lists of peptide hits in "maps" will be sorted
-  bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-      const AnnotatedMSRun& experiment, SeqToList& rt_data)
-  {
-    getRetentionTimes_(experiment.getPeptideIdentifications(), rt_data);
-    return false;
-  }
-
   void MapAlignmentAlgorithmIdentification::computeTransformations_(
     vector<SeqToList>& rt_data, vector<TransformationDescription>& transforms,
     bool sorted)

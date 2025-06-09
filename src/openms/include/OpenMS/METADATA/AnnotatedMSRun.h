@@ -79,6 +79,24 @@ namespace OpenMS
     }
 
     /**
+     * @brief set the protein identifications
+     * @param ids Vector of protein identifications
+     */
+    void setProteinIdentifications(const std::vector<ProteinIdentification>& ids)
+    {
+      protein_ids_ = ids;
+    }
+
+    /**
+     * @brief Set the protein identifications (move version)
+     * @param ids Vector of protein identifications
+     */
+    void setProteinIdentifications(std::vector<ProteinIdentification>&& ids)
+    {
+      protein_ids_ = std::move(ids);
+    }
+
+    /**
      * @brief Get all peptide identifications for all spectra
      * @return A reference to the vector of peptide identifications
      */
@@ -91,7 +109,7 @@ namespace OpenMS
     const std::vector<PeptideIdentification>& getPeptideIdentifications() const;
 
     /**
-     * @brief Set all peptide identifications for all spectra
+     * @brief Set all peptide identifications for all spectra (move version)
      * @param ids Vector of peptide identifications
      */
     void setPeptideIdentifications(std::vector<PeptideIdentification>&& ids);
