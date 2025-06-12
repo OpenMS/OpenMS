@@ -29,6 +29,43 @@ namespace OpenMS{
                                                                                         "134C","134N","134ND","134CD",
                                                                                         "135N","135ND","135CD"};
 
+    int interaction_vector[35][14] = {  { -1, -1, -1, -1, -1, -1, -1,  1,  2,  3,  4,  6,  5,  7 },
+                                        { -1, -1, -1, -1, -1, -1,  0, -1,  4,  6, -1, -1,  8, 10 },
+                                        { -1, -1, -1, -1, -1,  0, -1,  4,  5,  7,  8, 10,  9, 11 },
+                                        { -1, -1, -1, -1,  0, -1, -1,  6,  7, -1, 10,  9, 11, -1 },
+                                        { -1, -1, -1,  0, -1,  1,  2, -1,  8, 10, -1, -1, 12, 14 },
+                                        { -1,  0, -1, -1, -1,  2, -1,  8,  9, 11, 12, 14, 13, 15 },
+                                        { -1, -1,  0, -1,  1, -1,  3, -1, 10,  9, -1, 12, 14, 13 },
+                                        {  0, -1, -1, -1,  2,  3, -1, 10, 11, -1, 14, 13, 15, -1 },
+                                        { -1,  1, -1,  2, -1,  4,  5, -1, 12, 14, -1, -1, 16, 18 },
+                                        { -1,  2,  3, -1,  6,  5, -1, 12, 13, 15, 16, 18, 17, 19 },
+                                        {  1, -1,  2,  3,  4,  6,  7, -1, 14, 13, -1, 16, 18, 17 },
+                                        {  2,  3, -1, -1,  5,  7, -1, 14, 15, -1, 18, 17, 19, -1 },
+                                        { -1,  4,  6,  5, -1,  8,  9, -1, 16, 18, -1, -1, 20, 22 },
+                                        {  6,  5,  7, -1, 10,  9, -1, 16, 17, 19, 20, 22, 21, 23 },
+                                        {  4,  6,  5,  7,  8, 10, 11, -1, 18, 17, -1, 20, 22, 21 },
+                                        {  5,  7, -1, -1,  9, 11, -1, 18, 19, -1, 22, 21, 23, -1 },
+                                        { -1,  8, 10,  9, -1, 12, 13, -1, 20, 22, -1, -1, 24, 26 },
+                                        { 10,  9, 11, -1, 14, 13, -1, 20, 21, 23, 24, 26, 25, 27 },
+                                        {  8, 10,  9, 11, 12, 14, 15, -1, 22, 21, -1, 24, 26, 25 },
+                                        {  9, 11, -1, -1, 13, 15, -1, 22, 23, -1, 26, 25, 27, -1 },
+                                        { -1, 12, 14, 13, -1, 16, 17, -1, 24, 26, -1, -1, 28, 30 },
+                                        { 14, 13, 15, -1, 18, 17, -1, 24, 25, 27, 28, 30, 29, 31 },
+                                        { 12, 14, 13, 15, 16, 18, 19, -1, 26, 25, -1, 28, 30, 29 },
+                                        { 13, 15, -1, -1, 17, 19, -1, 26, 27, -1, 30, 29, 31, -1 },
+                                        { -1, 16, 18, 17, -1, 20, 21, -1, 28, 30, -1, -1, 32, 33 },
+                                        { 18, 17, 19, -1, 22, 21, -1, 28, 29, 31, 32, 33, -1, 34 },
+                                        { 16, 18, 17, 19, 20, 22, 23, -1, 30, 29, -1, 32, 33, -1 },
+                                        { 17, 19, -1, -1, 21, 23, -1, 30, 31, -1, 33, -1, 34, -1 },
+                                        { -1, 20, 22, 21, -1, 24, 25, -1, 32, 33, -1, -1, -1, -1 },
+                                        { 22, 21, 23, -1, 26, 25, -1, 32, -1, 34, -1, -1, -1, -1 },
+                                        { 20, 22, 21, 23, 24, 26, 27, -1, 33, -1, -1, -1, -1, -1 },
+                                        { 21, 23, -1, -1, 25, 27, -1, 33, 34, -1, -1, -1, -1, -1 },
+                                        { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+                                        { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+                                        { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 }
+                                    }
+
     TMTThirtyFivePlexQuantitationMethod::TMTThirtyFivePlexQuantitationMethod(){
         setName("TMTThirtyFivePlexQuantitationMethod");
 
@@ -39,41 +76,41 @@ namespace OpenMS{
                                                                                 // isobaric channel information as to updated
                                                                                 // for the 16plex deuterated data.
                                                                                 // 
-        channels_.push_back(IsobaricChannelInformation("126" ,  0,  "", 126.127726, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("127N",  1, "", 127.124761,  {-1, -1, -1, -1,   -1, -1,  0,   -1,  3,-1,    -1,-1, 5,-1}));
-        channels_.push_back(IsobaricChannelInformation("127C",  2, "", 127.131081,  {-1, -1, -1, -1,   -1,  0, -1,    3,  4,-1,     5,-1, 6,-1}));
-        channels_.push_back(IsobaricChannelInformation("127D",  3,  "", 127.134003, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("128N",  4, "", 128.128116,  {-1, -1, -1,  0,   -1,  1,  2,   -1,  5,-1,    -1,-1, 7,-1}));
-        channels_.push_back(IsobaricChannelInformation("128C",  5, "", 128.134436,  {-1,  0, -1, -1,   -1,  2, -1,    5,  6,-1,     7,-1, 8,-1}));
-        channels_.push_back(IsobaricChannelInformation("128ND", 6,  "", 128.131038, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("128CD", 7,  "", 128.137358, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("129N",  8, "", 129.131471,  {-1,  1, -1,  2,   -1,  3,  4,   -1,  7,-1,    -1,-1, 9,-1}));
-        channels_.push_back(IsobaricChannelInformation("129C",  9, "", 129.137790,  {-1,  2, -1, -1,   -1,  4, -1,    7,  8,-1,     9,-1,10,-1}));
-        channels_.push_back(IsobaricChannelInformation("129ND", 10,  "", 129.134393,{-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("129CD", 11,  "", 129.140713,{-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("130N",  12, "", 130.134825, {-1,  3, -1,  4,   -1,  5,  6,   -1,  9,-1,    -1,-1,11,-1}));
-        channels_.push_back(IsobaricChannelInformation("130C",  13, "", 130.141145, {-1,  4, -1, -1,   -1,  6, -1,    9, 10,-1,    11,-1,12,-1}));
-        channels_.push_back(IsobaricChannelInformation("130ND", 14,  "", 130.137748,{-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("130CD", 15,  "", 130.144068,{-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("131N",  16, "", 131.138180, {-1,  5, -1,  6,   -1,  7,  8,   -1, 11,-1,    -1,-1,13,-1}));
-        channels_.push_back(IsobaricChannelInformation("131C", 17, "", 131.144500,  {-1,  6, -1, -1,   -1,  8, -1,   11, 12,-1,    13,-1,14,-1}));
-        channels_.push_back(IsobaricChannelInformation("131ND", 18,  "", 131.141103,{-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("131CD", 19,  "", 131.147423,{-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("132N", 20, "", 132.141535,  {-1,  7, -1,  8,   -1,  9, 10,   -1, 13,-1,    -1,-1,15,-1}));
-        channels_.push_back(IsobaricChannelInformation("132C", 21, "", 132.147855,  {-1,  8, -1, -1,   -1, 10, -1,   13, 14,-1,    15,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("132ND", 22,  "", 132.144458,{-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("132CD", 23, "", 132.150778, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("133N", 24, "", 133.144890,  {-1,  9, -1, 10,   -1, 11, 12,   -1, 15,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("133C", 25, "", 133.151210,  {-1, 10, -1, -1,   -1, 12, -1,   15, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("133ND", 26, "", 133.147813, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("133CD", 27, "", 133.154133, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("134N", 28, "", 134.148245,  {-1, 11, -1, 12,   -1, 13, 14,   -1, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("134C", 29, "", 134.154566,  {-1, 11, -1, 12,   -1, 13, 14,   -1, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("134ND", 30, "", 134.151171, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("134CD", 31, "", 134.157491, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("135N", 32, "", 135.151601,  {-1, 11, -1, 12,   -1, 13, 14,   -1, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("135ND", 33, "", 135.154526, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
-        channels_.push_back(IsobaricChannelInformation("135CD", 34, "", 135.160846, {-1, -1, -1, -1,   -1, -1, -1,   -1, -1,-1,    -1,-1,-1,-1}));
+        channels_.push_back(IsobaricChannelInformation("126" ,  0,  "", 126.127726, interaction_vector[0]));
+        channels_.push_back(IsobaricChannelInformation("127N",  1, "", 127.124761,  interaction_vector[1]));
+        channels_.push_back(IsobaricChannelInformation("127C",  2, "", 127.131081,  interaction_vector[2]));
+        channels_.push_back(IsobaricChannelInformation("127D",  3,  "", 127.134003, interaction_vector[3]));
+        channels_.push_back(IsobaricChannelInformation("128N",  4, "", 128.128116,  interaction_vector[4]));
+        channels_.push_back(IsobaricChannelInformation("128C",  5, "", 128.134436,  interaction_vector[5]));
+        channels_.push_back(IsobaricChannelInformation("128ND", 6,  "", 128.131038, interaction_vector[6]));
+        channels_.push_back(IsobaricChannelInformation("128CD", 7,  "", 128.137358, interaction_vector[7]));
+        channels_.push_back(IsobaricChannelInformation("129N",  8, "", 129.131471,  interaction_vector[8]));
+        channels_.push_back(IsobaricChannelInformation("129C",  9, "", 129.137790,  interaction_vector[9]));
+        channels_.push_back(IsobaricChannelInformation("129ND", 10,  "", 129.134393,interaction_vector[10]));
+        channels_.push_back(IsobaricChannelInformation("129CD", 11,  "", 129.140713,interaction_vector[11]));
+        channels_.push_back(IsobaricChannelInformation("130N",  12, "", 130.134825, interaction_vector[12]));
+        channels_.push_back(IsobaricChannelInformation("130C",  13, "", 130.141145, interaction_vector[13]));
+        channels_.push_back(IsobaricChannelInformation("130ND", 14,  "", 130.137748,interaction_vector[14]));
+        channels_.push_back(IsobaricChannelInformation("130CD", 15,  "", 130.144068,interaction_vector[15]));
+        channels_.push_back(IsobaricChannelInformation("131N",  16, "", 131.138180, interaction_vector[16]));
+        channels_.push_back(IsobaricChannelInformation("131C", 17, "", 131.144500,  interaction_vector[17]));
+        channels_.push_back(IsobaricChannelInformation("131ND", 18,  "", 131.141103,interaction_vector[18]));
+        channels_.push_back(IsobaricChannelInformation("131CD", 19,  "", 131.147423,interaction_vector[19]));
+        channels_.push_back(IsobaricChannelInformation("132N", 20, "", 132.141535,  interaction_vector[20]));
+        channels_.push_back(IsobaricChannelInformation("132C", 21, "", 132.147855,  interaction_vector[21]));
+        channels_.push_back(IsobaricChannelInformation("132ND", 22,  "", 132.144458,interaction_vector[22]));
+        channels_.push_back(IsobaricChannelInformation("132CD", 23, "", 132.150778, interaction_vector[23]));
+        channels_.push_back(IsobaricChannelInformation("133N", 24, "", 133.144890,  interaction_vector[24]));
+        channels_.push_back(IsobaricChannelInformation("133C", 25, "", 133.151210,  interaction_vector[25]));
+        channels_.push_back(IsobaricChannelInformation("133ND", 26, "", 133.147813, interaction_vector[26]));
+        channels_.push_back(IsobaricChannelInformation("133CD", 27, "", 133.154133, interaction_vector[27]));
+        channels_.push_back(IsobaricChannelInformation("134N", 28, "", 134.148245,  interaction_vector[28]));
+        channels_.push_back(IsobaricChannelInformation("134C", 29, "", 134.154566,  interaction_vector[29]));
+        channels_.push_back(IsobaricChannelInformation("134ND", 30, "", 134.151171, interaction_vector[30]));
+        channels_.push_back(IsobaricChannelInformation("134CD", 31, "", 134.157491, interaction_vector[31]));
+        channels_.push_back(IsobaricChannelInformation("135N", 32, "", 135.151601,  interaction_vector[32]));
+        channels_.push_back(IsobaricChannelInformation("135ND", 33, "", 135.154526, interaction_vector[33]));
+        channels_.push_back(IsobaricChannelInformation("135CD", 34, "", 135.160846, interaction_vector[34]));
         // we assume 126 to be the reference
         reference_channel_ = 0;
 

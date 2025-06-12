@@ -29,6 +29,40 @@ namespace OpenMS{
                                                                                         "134N","134ND", "134CD",
                                                                                         "135ND"};
 
+    int interaction_vector[32][14] = {  { -1, -1, -1, -1, -1, -1, -1,  1,  2,  3,  4,  6,  5,  7 },
+                                        { -1, -1, -1, -1, -1, -1,  0, -1,  4,  6, -1, -1,  8, 10 },
+                                        { -1, -1, -1, -1, -1,  0, -1,  4,  5,  7,  8, 10,  9, 11 },
+                                        { -1, -1, -1, -1,  0, -1, -1,  6,  7, -1, 10,  9, 11, -1 },
+                                        { -1, -1, -1,  0, -1,  1,  2, -1,  8, 10, -1, -1, 12, 14 },
+                                        { -1,  0, -1, -1, -1,  2, -1,  8,  9, 11, 12, 14, 13, 15 },
+                                        { -1, -1,  0, -1,  1, -1,  3, -1, 10,  9, -1, 12, 14, 13 },
+                                        {  0, -1, -1, -1,  2,  3, -1, 10, 11, -1, 14, 13, 15, -1 },
+                                        { -1,  1, -1,  2, -1,  4,  5, -1, 12, 14, -1, -1, 16, 18 },
+                                        { -1,  2,  3, -1,  6,  5, -1, 12, 13, 15, 16, 18, 17, 19 },
+                                        {  1, -1,  2,  3,  4,  6,  7, -1, 14, 13, -1, 16, 18, 17 },
+                                        {  2,  3, -1, -1,  5,  7, -1, 14, 15, -1, 18, 17, 19, -1 },
+                                        { -1,  4,  6,  5, -1,  8,  9, -1, 16, 18, -1, -1, 20, 22 },
+                                        {  6,  5,  7, -1, 10,  9, -1, 16, 17, 19, 20, 22, 21, 23 },
+                                        {  4,  6,  5,  7,  8, 10, 11, -1, 18, 17, -1, 20, 22, 21 },
+                                        {  5,  7, -1, -1,  9, 11, -1, 18, 19, -1, 22, 21, 23, -1 },
+                                        { -1,  8, 10,  9, -1, 12, 13, -1, 20, 22, -1, -1, 24, 26 },
+                                        { 10,  9, 11, -1, 14, 13, -1, 20, 21, 23, 24, 26, 25, 27 },
+                                        {  8, 10,  9, 11, 12, 14, 15, -1, 22, 21, -1, 24, 26, 25 },
+                                        {  9, 11, -1, -1, 13, 15, -1, 22, 23, -1, 26, 25, 27, -1 },
+                                        { -1, 12, 14, 13, -1, 16, 17, -1, 24, 26, -1, -1, 28, 29 },
+                                        { 14, 13, 15, -1, 18, 17, -1, 24, 25, 27, 28, 29, -1, 30 },
+                                        { 12, 14, 13, 15, 16, 18, 19, -1, 26, 25, -1, 28, 29, -1 },
+                                        { 13, 15, -1, -1, 17, 19, -1, 26, 27, -1, 29, -1, 30, -1 },
+                                        { -1, 16, 18, 17, -1, 20, 21, -1, 28, 29, -1, -1, -1, 31 },
+                                        { 18, 17, 19, -1, 22, 21, -1, 28, -1, 30, -1, 31, -1, -1 },
+                                        { 16, 18, 17, 19, 20, 22, 23, -1, 29, -1, -1, -1, 31, -1 },
+                                        { 17, 19, -1, -1, 21, 23, -1, 29, 30, -1, 31, -1, -1, -1 },
+                                        { -1, 20, 22, 21, -1, 24, 25, -1, -1, 31, -1, -1, -1, -1 },
+                                        { 20, 22, 21, 23, 24, 26, 27, -1, 31, -1, -1, -1, -1, -1 },
+                                        { 21, 23, -1, -1, 25, 27, -1, 31, -1, -1, -1, -1, -1, -1 },
+                                        { 24, 26, 25, 27, 28, 29, 30, -1, -1, -1, -1, -1, -1, -1 }
+    };
+
     TMTThirtyTwoPlexQuantitationMethod::TMTThirtyTwoPlexQuantitationMethod(){
         setName("TMTThirtyTwoPlexQuantitationMethod");
 
@@ -39,38 +73,38 @@ namespace OpenMS{
                                                                                 // isobaric channel information as to updated
                                                                                 // for the 16plex deuterated data.
                                                                                 // 
-        channels_.push_back(IsobaricChannelInformation("126",     0,  "", 126.127726,  { -1, -1, -1, -1, -1, -1, -1,  1,  2,  3,  4,  6,  5,  7 }));
-        channels_.push_back(IsobaricChannelInformation("127N",    1,  "", 127.124761,  { -1, -1, -1, -1, -1, -1,  0, -1,  4,  6, -1,  8,  8, 10 }));
-        channels_.push_back(IsobaricChannelInformation("127C",    2,  "", 127.131081,  { -1, -1, -1, -1,  0,  0, -1,  4,  5,  7,  8, 10,  9, 11 }));
-        channels_.push_back(IsobaricChannelInformation("127D",    3,  "", 127.134003,  { -1, -1, -1, -1,  0,  0, -1,  6,  7,  7, 10,  9, 11, 11 }));
-        channels_.push_back(IsobaricChannelInformation("128N",    4,  "", 128.128116,  { -1, -1,  0,  0,  1,  1,  2, -1,  8, 10, -1, 12, 12, 14 }));
-        channels_.push_back(IsobaricChannelInformation("128C",    5,  "", 128.134436,  {  0,  0,  0, -1,  2,  2,  3,  8,  9, 11, 12, 14, 13, 15 }));
-        channels_.push_back(IsobaricChannelInformation("128ND",   6,  "", 128.131038,  { -1,  0,  0,  0,  1,  1,  3,  8, 10,  9, 12, 12, 14, 13 }));
-        channels_.push_back(IsobaricChannelInformation("128CD",   7,  "", 128.137358,  {  0,  0, -1, -1,  2,  3, -1, 10, 11, 11, 14, 13, 15, 15 }));
-        channels_.push_back(IsobaricChannelInformation("129N",    8,  "", 129.131471,  {  1,  1,  2,  2,  4,  4,  5, -1, 12, 14, -1, 16, 16, 18 }));
-        channels_.push_back(IsobaricChannelInformation("129C",    9,  "", 129.137790,  {  2,  2,  3,  3,  6,  5,  7, 12, 13, 15, 16, 18, 17, 19 }));
-        channels_.push_back(IsobaricChannelInformation("129ND",  10,  "", 129.134393,  {  1,  1,  2,  3,  4,  6,  7, 12, 14, 13, 16, 16, 18, 17 }));
-        channels_.push_back(IsobaricChannelInformation("129CD",  11,  "", 129.140713,  {  2,  3,  3, -1,  5,  7, -1, 14, 15, 15, 18, 17, 19, 19 }));
-        channels_.push_back(IsobaricChannelInformation("130N",   12,  "", 130.134825,  {  4,  4,  6,  5,  8,  8,  9, -1, 16, 18, -1, 20, 20, 22 }));
-        channels_.push_back(IsobaricChannelInformation("130C",   13,  "", 130.141145,  {  6,  5,  7,  7, 10,  9, 11, 16, 17, 19, 20, 22, 21, 23 }));
-        channels_.push_back(IsobaricChannelInformation("130ND",  14,  "", 130.137748,  {  4,  6,  5,  7,  8, 10, 11, 16, 18, 17, 20, 20, 22, 21 }));
-        channels_.push_back(IsobaricChannelInformation("130CD",  15,  "", 130.144068,  {  5,  7,  7, -1,  9, 11, -1, 18, 19, 19, 22, 21, 23, 23 }));
-        channels_.push_back(IsobaricChannelInformation("131N",   16,  "", 131.138180,  {  8,  8, 10,  9, 12, 12, 13, -1, 20, 22, -1, 24, 24, 26 }));
-        channels_.push_back(IsobaricChannelInformation("131C",   17,  "", 131.144500,  { 10,  9, 11, 11, 14, 13, 15, 20, 21, 23, 24, 26, 25, 27 }));
-        channels_.push_back(IsobaricChannelInformation("131ND",  18,  "", 131.141103,  {  8, 10,  9, 11, 12, 14, 15, 20, 22, 21, 24, 24, 26, 25 }));
-        channels_.push_back(IsobaricChannelInformation("131CD",  19,  "", 131.147423,  {  9, 11, 11, -1, 13, 15, -1, 22, 23, 23, 26, 25, 27, 27 }));
-        channels_.push_back(IsobaricChannelInformation("132N",   20,  "", 132.141535,  { 12, 12, 14, 13, 16, 16, 17, -1, 24, 26, -1, 28, 28, 29 }));
-        channels_.push_back(IsobaricChannelInformation("132C",   21,  "", 132.147855,  { 14, 13, 15, 15, 18, 17, 19, 24, 25, 27, 28, 29, 30, 30 }));
-        channels_.push_back(IsobaricChannelInformation("132ND",  22,  "", 132.144458,  { 12, 14, 13, 15, 16, 18, 19, 24, 26, 25, 28, 28, 29, 29 }));
-        channels_.push_back(IsobaricChannelInformation("132CD",  23,  "", 132.150778,  { 13, 15, 15, -1, 17, 19, -1, 26, 27, 27, 29, 29, 30, 30 }));
-        channels_.push_back(IsobaricChannelInformation("133N",   24,  "", 133.144890,  { 16, 16, 18, 17, 20, 20, 21, -1, 28, 29, -1, -1, 31, 31 }));
-        channels_.push_back(IsobaricChannelInformation("133C",   25,  "", 133.151210,  { 18, 17, 19, 19, 22, 21, 23, 28, 30, 30, 31, 31, 31, -1 }));
-        channels_.push_back(IsobaricChannelInformation("133ND",  26,  "", 133.147813,  { 16, 18, 17, 19, 20, 22, 23, 28, 29, 29, -1, 31, 31, 31 }));
-        channels_.push_back(IsobaricChannelInformation("133CD",  27,  "", 133.154133,  { 17, 19, 19, -1, 21, 23, -1, 29, 30, 30, 31, 31, -1, -1 }));
-        channels_.push_back(IsobaricChannelInformation("134N",   28,  "", 134.148245,  { 20, 20, 22, 21, 24, 24, 25, -1, 31, 31, -1, -1, -1, -1 }));
-        channels_.push_back(IsobaricChannelInformation("134ND",  29,  "", 134.151171,  { 20, 22, 21, 23, 24, 26, 27, -1, 31, 31, -1, -1, -1, -1 }));
-        channels_.push_back(IsobaricChannelInformation("134CD",  30,  "", 134.157491,  { 21, 23, 23, -1, 25, 27, -1, 31, -1, -1, -1, -1, -1, -1 }));
-        channels_.push_back(IsobaricChannelInformation("135ND",  31,  "", 135.154526,  { 24, 26, 25, 27, 28, 29, 30, -1, -1, -1, -1, -1, -1, -1 }));
+        channels_.push_back(IsobaricChannelInformation("126",     0,  "", 126.127726, interaction_vector[0]));
+        channels_.push_back(IsobaricChannelInformation("127N",    1,  "", 127.124761, interaction_vector[1]));
+        channels_.push_back(IsobaricChannelInformation("127C",    2,  "", 127.131081, interaction_vector[2]));
+        channels_.push_back(IsobaricChannelInformation("127D",    3,  "", 127.134003, interaction_vector[3]));
+        channels_.push_back(IsobaricChannelInformation("128N",    4,  "", 128.128116, interaction_vector[4]));
+        channels_.push_back(IsobaricChannelInformation("128C",    5,  "", 128.134436, interaction_vector[5]));
+        channels_.push_back(IsobaricChannelInformation("128ND",   6,  "", 128.131038, interaction_vector[6]));
+        channels_.push_back(IsobaricChannelInformation("128CD",   7,  "", 128.137358, interaction_vector[7]));
+        channels_.push_back(IsobaricChannelInformation("129N",    8,  "", 129.131471, interaction_vector[8]));
+        channels_.push_back(IsobaricChannelInformation("129C",    9,  "", 129.137790, interaction_vector[9]));
+        channels_.push_back(IsobaricChannelInformation("129ND",  10,  "", 129.134393, interaction_vector[10]));
+        channels_.push_back(IsobaricChannelInformation("129CD",  11,  "", 129.140713, interaction_vector[11]));
+        channels_.push_back(IsobaricChannelInformation("130N",   12,  "", 130.134825, interaction_vector[12]));
+        channels_.push_back(IsobaricChannelInformation("130C",   13,  "", 130.141145, interaction_vector[13]));
+        channels_.push_back(IsobaricChannelInformation("130ND",  14,  "", 130.137748, interaction_vector[14]));
+        channels_.push_back(IsobaricChannelInformation("130CD",  15,  "", 130.144068, interaction_vector[15]));
+        channels_.push_back(IsobaricChannelInformation("131N",   16,  "", 131.138180, interaction_vector[16]));
+        channels_.push_back(IsobaricChannelInformation("131C",   17,  "", 131.144500, interaction_vector[17]));
+        channels_.push_back(IsobaricChannelInformation("131ND",  18,  "", 131.141103, interaction_vector[18]));
+        channels_.push_back(IsobaricChannelInformation("131CD",  19,  "", 131.147423, interaction_vector[19]));
+        channels_.push_back(IsobaricChannelInformation("132N",   20,  "", 132.141535, interaction_vector[20]));
+        channels_.push_back(IsobaricChannelInformation("132C",   21,  "", 132.147855, interaction_vector[21]));
+        channels_.push_back(IsobaricChannelInformation("132ND",  22,  "", 132.144458, interaction_vector[22]));
+        channels_.push_back(IsobaricChannelInformation("132CD",  23,  "", 132.150778, interaction_vector[23]));
+        channels_.push_back(IsobaricChannelInformation("133N",   24,  "", 133.144890, interaction_vector[24]));
+        channels_.push_back(IsobaricChannelInformation("133C",   25,  "", 133.151210, interaction_vector[25]));
+        channels_.push_back(IsobaricChannelInformation("133ND",  26,  "", 133.147813, interaction_vector[26]));
+        channels_.push_back(IsobaricChannelInformation("133CD",  27,  "", 133.154133, interaction_vector[27]));
+        channels_.push_back(IsobaricChannelInformation("134N",   28,  "", 134.148245, interaction_vector[28]));
+        channels_.push_back(IsobaricChannelInformation("134ND",  29,  "", 134.151171, interaction_vector[29]));
+        channels_.push_back(IsobaricChannelInformation("134CD",  30,  "", 134.157491, interaction_vector[30]));
+        channels_.push_back(IsobaricChannelInformation("135ND",  31,  "", 135.154526, interaction_vector[31]));
 
         // we assume 126 to be the reference
         reference_channel_ = 0;
@@ -230,3 +264,132 @@ Size TMTThirtyTwoPlexQuantitationMethod::getReferenceChannel() const
 }
 
 } // namespace OpenMS
+
+
+/// below is the code for gettig the iteraction vector and the same can be done for the tmt35
+/*
+std::vector<std::vector<int>> tmt32(32, std::vector<int>(14));// to store the interference
+std::vector<std::vector<double>> after_mass32(35, std::vector<double>(14));
+double o_mass32[32] = {
+    126.127726, 127.124761, 127.131081, 127.134003, 128.128116, 128.134436,
+    128.131038, 128.137358, 129.131471, 129.137790, 129.134393, 129.140713,
+    130.134825, 130.141145, 130.137748, 130.144068, 131.138180, 131.144500,
+    131.141103, 131.147423, 132.141535, 132.147855, 132.144458, 132.150778,
+    133.144890, 133.151210, 133.147813, 133.154133, 134.148245, 134.151171,
+    134.157491, 135.154526
+};// original mass
+
+std::vector<int[14]> tmt35(35); // same here
+std::vector<double[14]> after_mass35;
+double o_mass35[35] = {
+    126.127726, 127.124761, 127.131081, 127.134003, 128.128116,
+    128.134436, 128.131038, 128.137358, 129.131471, 129.137790,
+    129.134393, 129.140713, 130.134825, 130.141145, 130.137748,
+    130.144068, 131.138180, 131.144500, 131.141103, 131.147423,
+    132.141535, 132.147855, 132.144458, 132.150778, 133.144890,
+    133.151210, 133.147813, 133.154133, 134.148245, 134.154566,
+    134.151171, 134.157491, 135.151601,135.154526 ,135.160846
+};  
+// <-C13-H2",<-2C13",<-N15-H2",<-C13-N15",<-H2",<-C13",<-N15",<+N15",<+C13",<+H2",<+N15+C13",<+N15+H2",<+2C13",<+C13+H2>
+std::vector<std::string> channel_seq = {"-C13-H2","-2C13","-N15-H2","-C13-N15","-H2","-C13","-N15","+N15","+C13","+H2","+N15+C13","+N15+H2","+2C13","+C13+H2"};
+double weights[14]; // we will calculate only once for the above string
+
+const double c = Constants::C13C12_MASSDIFF_U;
+const double n = Constants::N15N14_MASSDIFF_U;
+const double h = Constants::H2H1_MASSDIFF_U;
+
+double get_mass(std::string inp){
+    double out = 0.0f;
+    if(inp.find("N15") < inp.size()){
+        out += n;
+    }
+    if(inp.find("H2") < inp.size()){
+        out += h;
+    }
+    if(inp.find("C13") < inp.size()){
+        int i = inp.find("C13");
+        if(inp[i-1] == '2'){
+            out += 2*c;
+        }else{
+            out += c;
+        }
+    }
+    return out;
+}
+
+double diff_n[32*14];
+
+int find_closest_index(double val, const double *o_mass32,int idx, double tolerance = 0.0015) {
+    int best_idx = -1;
+    double min_diff = 1e9; // large initial diff
+
+    for (int i = 0; i < 32; ++i) {
+        double diff = fabs(val - o_mass32[i]);
+        if (diff < min_diff) {
+            min_diff = diff;
+            best_idx = i;
+        }
+    }
+
+    // If the closest value is still too far away, treat it as invalid
+    // std::cout << min_diff << " ";
+    diff_n[idx] = min_diff;
+    if (min_diff > tolerance) return -1;
+    return best_idx;
+}
+
+
+// O(n^2 * no of channels) <-- bad
+void set_interference(std::vector<std::vector<int>> &intf, std::vector<std::vector<double>>& mass){
+    for(int i = 0; i < 32; i++){
+        for(int j = 0; j < 14; j++){
+            intf[i][j] = find_closest_index(mass[i][j], o_mass32, i*j );
+        }
+        // std::cout << std::endl;
+    }
+}
+
+int main(){
+
+    double min_n = 0.0f;
+    for (size_t i = 0; i < 31; i++){
+        min_n = std::min(min_n, std::abs(o_mass35[i]-o_mass35[i+1]));
+    }
+    std::cout << "mass min diff " << min_n << std::endl;
+    
+
+    int i = 0;
+
+    for(auto val : channel_seq){
+        if(val.find("-") == 0){
+            // std::cout << " k\n";
+            weights[i] = -1.0f * get_mass(val);
+        }else{
+            // std::cout << "nah\n";
+            weights[i] = get_mass(val);
+        }
+    i++;
+    }
+    // for 32plex
+    for(int i = 0; i < 32; i++){
+        for(int j = 0; j < 14; j++){
+            after_mass32[i][j] = o_mass32[i] + weights[j]; 
+        }
+    }
+
+    set_interference(tmt32, after_mass32);
+    for(int i = 0; i<32;i++){
+        std::cout << "{";
+        for(int j = 0; j<14; j++){
+            std::cout << tmt32[i][j] << ", ";
+        }
+        std::cout << "}\n";
+    }
+    min_n = 1.0f;
+    for(int i = 0; i< 32*14; i++){
+        min_n = std::max(min_n, diff_n[i]);
+    }
+    std::cout << "min is " << min_n << std::endl;
+}
+
+*/
