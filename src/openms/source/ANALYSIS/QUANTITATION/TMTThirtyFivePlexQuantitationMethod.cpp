@@ -95,44 +95,8 @@ namespace OpenMS{
         for(int i =0; i<35; i++){
             channels_.push_back(make_channel(channel_names_[i],i,o_mass35[i],i));
         };                                                                        
-        // channels_.push_back(IsobaricChannelInformation("126" ,  0,  "", 126.127726, interaction_vector[0]));
-        // channels_.push_back(IsobaricChannelInformation("127N",  1, "", 127.124761,  interaction_vector[1]));
-        // channels_.push_back(IsobaricChannelInformation("127C",  2, "", 127.131081,  interaction_vector[2]));
-        // channels_.push_back(IsobaricChannelInformation("127D",  3,  "", 127.134003, interaction_vector[3]));
-        // channels_.push_back(IsobaricChannelInformation("128N",  4, "", 128.128116,  interaction_vector[4]));
-        // channels_.push_back(IsobaricChannelInformation("128C",  5, "", 128.134436,  interaction_vector[5]));
-        // channels_.push_back(IsobaricChannelInformation("128ND", 6,  "", 128.131038, interaction_vector[6]));
-        // channels_.push_back(IsobaricChannelInformation("128CD", 7,  "", 128.137358, interaction_vector[7]));
-        // channels_.push_back(IsobaricChannelInformation("129N",  8, "", 129.131471,  interaction_vector[8]));
-        // channels_.push_back(IsobaricChannelInformation("129C",  9, "", 129.137790,  interaction_vector[9]));
-        // channels_.push_back(IsobaricChannelInformation("129ND", 10,  "", 129.134393,interaction_vector[10]));
-        // channels_.push_back(IsobaricChannelInformation("129CD", 11,  "", 129.140713,interaction_vector[11]));
-        // channels_.push_back(IsobaricChannelInformation("130N",  12, "", 130.134825, interaction_vector[12]));
-        // channels_.push_back(IsobaricChannelInformation("130C",  13, "", 130.141145, interaction_vector[13]));
-        // channels_.push_back(IsobaricChannelInformation("130ND", 14,  "", 130.137748,interaction_vector[14]));
-        // channels_.push_back(IsobaricChannelInformation("130CD", 15,  "", 130.144068,interaction_vector[15]));
-        // channels_.push_back(IsobaricChannelInformation("131N",  16, "", 131.138180, interaction_vector[16]));
-        // channels_.push_back(IsobaricChannelInformation("131C", 17, "", 131.144500,  interaction_vector[17]));
-        // channels_.push_back(IsobaricChannelInformation("131ND", 18,  "", 131.141103,interaction_vector[18]));
-        // channels_.push_back(IsobaricChannelInformation("131CD", 19,  "", 131.147423,interaction_vector[19]));
-        // channels_.push_back(IsobaricChannelInformation("132N", 20, "", 132.141535,  interaction_vector[20]));
-        // channels_.push_back(IsobaricChannelInformation("132C", 21, "", 132.147855,  interaction_vector[21]));
-        // channels_.push_back(IsobaricChannelInformation("132ND", 22,  "", 132.144458,interaction_vector[22]));
-        // channels_.push_back(IsobaricChannelInformation("132CD", 23, "", 132.150778, interaction_vector[23]));
-        // channels_.push_back(IsobaricChannelInformation("133N", 24, "", 133.144890,  interaction_vector[24]));
-        // channels_.push_back(IsobaricChannelInformation("133C", 25, "", 133.151210,  interaction_vector[25]));
-        // channels_.push_back(IsobaricChannelInformation("133ND", 26, "", 133.147813, interaction_vector[26]));
-        // channels_.push_back(IsobaricChannelInformation("133CD", 27, "", 133.154133, interaction_vector[27]));
-        // channels_.push_back(IsobaricChannelInformation("134N", 28, "", 134.148245,  interaction_vector[28]));
-        // channels_.push_back(IsobaricChannelInformation("134C", 29, "", 134.154566,  interaction_vector[29]));
-        // channels_.push_back(IsobaricChannelInformation("134ND", 30, "", 134.151171, interaction_vector[30]));
-        // channels_.push_back(IsobaricChannelInformation("134CD", 31, "", 134.157491, interaction_vector[31]));
-        // channels_.push_back(IsobaricChannelInformation("135N", 32, "", 135.151601,  interaction_vector[32]));
-        // channels_.push_back(IsobaricChannelInformation("135ND", 33, "", 135.154526, interaction_vector[33]));
-        // channels_.push_back(IsobaricChannelInformation("135CD", 34, "", 135.160846, interaction_vector[34]));
         // we assume 126 to be the reference
         reference_channel_ = 0;
-
         setDefaultParams_();
     }
 
