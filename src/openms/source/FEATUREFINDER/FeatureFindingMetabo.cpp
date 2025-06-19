@@ -198,6 +198,17 @@ namespace OpenMS
     return tmp;
   }
 
+  /// formulate a feature with meta values containing MassTrace IM values
+  std::vector<double> FeatureHypothesis::getAllCentroidIM() const
+  {
+    std::vector<double> tmp;
+    for (Size i = 0; i < iso_pattern_.size(); ++i)
+    {
+      tmp.push_back(iso_pattern_[i]->getCentroidIM());
+    }
+    return tmp;
+  }
+
   std::vector<double> FeatureHypothesis::getIsotopeDistances() const
   {
     std::vector<double> tmp;
@@ -248,6 +259,7 @@ namespace OpenMS
     DefaultParamHandler("FeatureFindingMetabo"), ProgressLogger()
   {
     defaults_.setValue("local_rt_range", 10.0, "RT range where to look for coeluting mass traces", {"advanced"}); // 5.0
+    defaults_.setValue("local_im_range", 0.02, "IM range where to look for coeluting mass traces", {"advanced"});
     defaults_.setValue("local_mz_range", 6.5, "MZ range where to look for isotopic mass traces", {"advanced"}); // 6.5
     defaults_.setValue("charge_lower_bound", 1, "Lowest charge state to consider"); // 1
     defaults_.setValue("charge_upper_bound", 3, "Highest charge state to consider"); // 3
@@ -282,6 +294,9 @@ namespace OpenMS
 
     defaults_.setValue("elements", "CHNOPS", "Elements assumes to be present in the sample (this influences isotope detection).");
 
+    defaults_.setValue("overlapping_features", "false", "Allow mass traces to be reused to explain lower scoring features. Recommended for peptides.");
+    defaults_.setValidStrings("overlapping_features", {"false","true"});
+
     defaultsToParam_();
 
     this->setLogType(CMD);
@@ -298,6 +313,7 @@ namespace OpenMS
   void FeatureFindingMetabo::updateMembers_()
   {
     local_rt_range_ = (double)param_.getValue("local_rt_range");
+    local_im_range_ = (double)param_.getValue("local_im_range");
     local_mz_range_ = (double)param_.getValue("local_mz_range");
     chrom_fwhm_ = (double)param_.getValue("chrom_fwhm");
 
@@ -327,6 +343,7 @@ namespace OpenMS
     use_mz_scoring_by_element_range_ = param_.getValue("mz_scoring_by_elements").toBool();
     std::string elements_list_ = param_.getValue("elements");
     elements_ = elementsFromString_(elements_list_);
+    overlapping_features_ = param_.getValue("overlapping_features").toBool();
   }
 
 
@@ -909,6 +926,7 @@ namespace OpenMS
       std::vector<const MassTrace*> local_traces;
       double ref_trace_mz(input_mtraces[i].getCentroidMZ());
       double ref_trace_rt(input_mtraces[i].getCentroidRT());
+      double ref_trace_im(input_mtraces[i].getCentroidIM());
 
       local_traces.push_back(&input_mtraces[i]);
 
@@ -921,7 +939,8 @@ namespace OpenMS
           break;
         }
         double diff_rt = std::fabs(input_mtraces[ext_idx].getCentroidRT() - ref_trace_rt);
-        if (diff_rt <= local_rt_range_)
+        double diff_im = std::fabs(input_mtraces[ext_idx].getCentroidIM() - ref_trace_im);
+        if (diff_rt <= local_rt_range_ && diff_im < local_im_range_)
         {
           // std::cout << " accepted!\n";
           local_traces.push_back(&input_mtraces[ext_idx]);
@@ -975,7 +994,7 @@ namespace OpenMS
 #endif
 
       // Skip hypotheses that contain a mass trace that has already been used
-      if (trace_coll) 
+      if (trace_coll && !overlapping_features_)
       {
         continue;
       }
@@ -1012,26 +1031,31 @@ namespace OpenMS
 
       if (report_summed_ints_)
       {
-        f.setIntensity(feat_hypos[hypo_idx].getSummedFeatureIntensity(report_smoothed_intensities_));
+        // f.setIntensity(feat_hypos[hypo_idx].getSummedFeatureIntensity(report_smoothed_intensities_));
+        f.setIntensity(feat_hypos[hypo_idx].getSummedFeatureIntensity(use_smoothed_intensities_));
       }
       else
       {
-        f.setIntensity(feat_hypos[hypo_idx].getMonoisotopicFeatureIntensity(report_smoothed_intensities_));
+        //f.setIntensity(feat_hypos[hypo_idx].getMonoisotopicFeatureIntensity(report_smoothed_intensities_));
+        f.setIntensity(feat_hypos[hypo_idx].getMonoisotopicFeatureIntensity(use_smoothed_intensities_));
       }
       
       f.setWidth(feat_hypos[hypo_idx].getFWHM());
       f.setCharge(feat_hypos[hypo_idx].getCharge());
       f.setMetaValue(3, feat_hypos[hypo_idx].getLabel());
-      f.setMetaValue("max_height", feat_hypos[hypo_idx].getMaxIntensity(report_smoothed_intensities_));
+      //f.setMetaValue("max_height", feat_hypos[hypo_idx].getMaxIntensity(report_smoothed_intensities_));
+      f.setMetaValue("max_height", feat_hypos[hypo_idx].getMaxIntensity(use_smoothed_intensities_));
 
       // store isotope intensities
-      std::vector<double> all_ints(feat_hypos[hypo_idx].getAllIntensities(report_smoothed_intensities_));
+      //std::vector<double> all_ints(feat_hypos[hypo_idx].getAllIntensities(report_smoothed_intensities_));
+      std::vector<double> all_ints(feat_hypos[hypo_idx].getAllIntensities(use_smoothed_intensities_));
       f.setMetaValue(Constants::UserParam::NUM_OF_MASSTRACES, all_ints.size());
       if (report_convex_hulls_) f.setConvexHulls(feat_hypos[hypo_idx].getConvexHulls());
       f.setOverallQuality(feat_hypos[hypo_idx].getScore());
       f.setMetaValue("masstrace_intensity", all_ints);
       f.setMetaValue("masstrace_centroid_rt", feat_hypos[hypo_idx].getAllCentroidRT());
-      f.setMetaValue("masstrace_centroid_mz", feat_hypos[hypo_idx].getAllCentroidMZ());;
+      f.setMetaValue("masstrace_centroid_mz", feat_hypos[hypo_idx].getAllCentroidMZ());
+      f.setMetaValue("masstrace_centroid_im", feat_hypos[hypo_idx].getAllCentroidIM());
       f.setMetaValue("isotope_distances", feat_hypos[hypo_idx].getIsotopeDistances());
       f.setMetaValue("legal_isotope_pattern", pass_isotope_filter);
       f.applyMemberFunction(&UniqueIdInterface::setUniqueId);
