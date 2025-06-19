@@ -99,7 +99,7 @@ namespace OpenMS
     */
     inline const double N15N14_MASSDIFF_U = 0.997034894015; // u
 
-    /** 2H1H mass difference
+    /** ^1H (Hydrogen) to ^2H (Deuterium) mass difference
         In units (\f$1.006276745946\f$u)     
     */
     inline const double H2H1_MASSDIFF_U = 1.006276745946; //u
