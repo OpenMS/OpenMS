@@ -94,7 +94,7 @@ namespace OpenMS
     */
     inline const double C13C12_MASSDIFF_U = 1.0033548378; // u
 
-    /** N15N14 mass difference.
+    /** ^14N to ^15N mass difference.
         In units (\f$0.997034894\f$u)
     */
     inline const double N15N14_MASSDIFF_U = 0.997034894015; // u
