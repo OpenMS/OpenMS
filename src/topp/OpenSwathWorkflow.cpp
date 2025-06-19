@@ -472,6 +472,7 @@ protected:
     registerStringOption_("irt_mz_extraction_window_unit", "<name>", "ppm", "Unit for mz extraction", false, true);
     setValidStrings_("irt_mz_extraction_window_unit", ListUtils::create<String>("Th,ppm"));
     registerDoubleOption_("irt_im_extraction_window", "<double>", -1, "Ion mobility extraction window used for iRT (in 1/K0 or milliseconds depending on library). -1 means do not perform ion mobility calibration", false, true);
+    registerDoubleOption_("irt_nonlinear_rt_extraction_window", "<double>", 600.0, "Only extract RT around this value for non linear iRT calibration (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false, true);
 
     registerDoubleOption_("min_rsq", "<double>", 0.95, "Minimum r-squared of RT peptides regression", false, true);
     registerDoubleOption_("min_coverage", "<double>", 0.6, "Minimum relative amount of RT peptides to keep", false, true);
@@ -928,8 +929,7 @@ protected:
                                         debug_level, pasef, load_into_memory,
                                         irt_trafo_out, irt_mzml_out);
 
-      cp_irt.rt_extraction_window = 900; // extract some substantial part of the RT range (should be covered by linear correction)
-      cp_irt.rt_extraction_window = 600; // extract some substantial part of the RT range (should be covered by linear correction)
+      cp_irt.rt_extraction_window = getDoubleOption_("irt_nonlinear_rt_extraction_window"); // extract some substantial part of the RT range (should be covered by linear correction)
 
       ///////////////////////////////////
       // Get the secondary transformation (nonlinear)
