@@ -4111,6 +4111,7 @@ namespace OpenMS::Internal
     }
     else if (filter.size() > 0)
     {
+        //remove all filters and close pipeline
         filter.reset();
     }
 
