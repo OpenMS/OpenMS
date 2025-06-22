@@ -79,18 +79,6 @@ namespace OpenMS
     data = std::move(result);
   }
 
-  std::vector<double> ModifiedSincSmoother::generateKernel(int degree, int m)
-  {
-    std::vector<double> kernel(2 * m + 1);
-    for (int i = -m; i <= m; ++i)
-    {
-      kernel[i + m] = std::exp(-std::pow(static_cast<double>(i), 2) / (2 * degree));
-    }
-    double sum = std::accumulate(kernel.begin(), kernel.end(), 0.0);
-    for (double& val : kernel) val /= sum;
-    return kernel;
-  }
-
   void ModifiedSincSmoother::extendData(const std::vector<double>& data, std::vector<double>& extended, int m, const std::string& boundary)
   {
     const int N = static_cast<int>(data.size());
@@ -101,7 +89,7 @@ namespace OpenMS
       for (int i = 0; i < m; ++i)
       {
         extended[i] = data[m - i];
-        extended[N + m + i] = data[N - 2 - i];
+        extended[N + m + i] = data[N - 1 - i];
       }
     }
     else
@@ -117,21 +105,35 @@ namespace OpenMS
 
   std::vector<double> ModifiedSincSmoother::edgeWeights(int degree, int m)
   {
-    std::vector<double> weights(2 * m + 1, 1.0);
-    for (int i = 0; i < m; ++i)
+    std::vector<double> weights(2 * m + 1, 0.0);
+    for (int i = -m; i <= m; ++i)
     {
-      weights[i] = weights[2 * m - i] = static_cast<double>(i + 1) / (m + 1);
+      if (i == 0)
+      {
+        weights[i + m] = 1.0; // center weight
+      }
+      else
+      {
+        weights[i + m] = 1.0 / (std::abs(i) * degree); // simple inverse distance weighting
+      }
     }
     return weights;
   }
-
   void ModifiedSincSmoother::fitWeighted(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& w, std::vector<double>& result)
   {
-    const size_t N = x.size();
+    const int N = static_cast<int>(x.size());
     result.resize(N);
-    for (size_t i = 0; i < N; ++i)
+    for (int i = 0; i < N; ++i)
     {
-      result[i] = x[i] * w[i];
+      double sum_w = 0.0;
+      double sum_wy = 0.0;
+      for (int j = 0; j < N; ++j)
+      {
+        double weight = w[std::abs(i - j)];
+        sum_w += weight;
+        sum_wy += weight * y[j];
+      }
+      result[i] = sum_w > 0 ? sum_wy / sum_w : y[i]; // avoid division by zero
     }
   }
-} // namespace OpenMS
+} 
