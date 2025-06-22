@@ -10,7 +10,7 @@ void testSmoothData_basic()
 {
   ModifiedSincSmoother smoother;
 
-  std::vector<double> input{1.0, 2.0, 3.0, 4.0, 5.0};
+  std::vector<double> input{1.0, 1.0, 1.0, 1.0, 1.0};
   std::vector<double> output;
 
   smoother.smoothData(input, output, 3, 0.5);
@@ -19,7 +19,7 @@ void testSmoothData_basic()
 
   for (size_t i = 0; i < output.size(); ++i)
   {
-    std::cout << "output[" << i << "] = " << output[i] << std::endl;
+    assert(std::abs(output[i] - 1.0) < 1e-10);
   }
 }
 
@@ -62,6 +62,24 @@ void testInvalidCutoff()
   try
   {
     smoother.smoothData(input, output, 3, -1.0); // invalid cutoff
+    assert(false);
+  }
+  catch (const std::invalid_argument& e)
+  {
+    std::cout << "Caught expected exception: " << e.what() << std::endl;
+  }
+  try
+  {
+    smoother.smoothData(input, output, 3, 1.5); // invalid cutoff
+    assert(false);
+  }
+  catch (const std::invalid_argument& e)
+  {
+    std::cout << "Caught expected exception: " << e.what() << std::endl;
+  }
+  try
+  {
+    smoother.smoothData(input, output, 3, 0.0); // invalid cutoff
     assert(false);
   }
   catch (const std::invalid_argument& e)
