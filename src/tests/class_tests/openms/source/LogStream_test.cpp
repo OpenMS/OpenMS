@@ -312,8 +312,8 @@ START_SECTION((void setPrefix(const std::ostream &s, const std::string &prefix))
 
 	String other_stream_regex = "BLABLA [ 1][0-9]\\.";
   boost::regex rx2(other_stream_regex);
-  // QRegExp rx2(other_stream_regex.c_str());
-  // QRegExpValidator v2(rx2, 0);
+  // QRegularExpression rx2(other_stream_regex.c_str());
+  // QRegularExpressionValidator v2(rx2, 0);
 
 	for (Size i=0;i<regex_list.size();++i)
 	{
