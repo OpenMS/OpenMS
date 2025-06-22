@@ -43,9 +43,6 @@ namespace OpenMS
     void smooth(std::vector<double>& data, int degree, int half_kernel_size);
 
   private:
-    /** @brief Generates smoothing kernel based on degree and size. */
-    std::vector<double> generateKernel(int degree, int m);
-
     /** @brief Extends data with boundary conditions. */
     void extendData(const std::vector<double>& data, std::vector<double>& extended, int m, const std::string& boundary);
 
