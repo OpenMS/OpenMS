@@ -3973,10 +3973,10 @@ namespace OpenMS::Internal
     // Try to detect if pigz (parallel gzip) is available on the system
     if (compress_)
     {
-    String stdout_, stderr_;
-    ExternalProcess::RETURNSTATE rt = ExternalProcess::run("pigz",{"--version"},&stdout_, &stderr_);
-    bool pigz_available = rt == ExternalProcess::SUCCESS &&
-                          stdout_.hasSubstring("pigz")
+        String stdout_, stderr_;
+        ExternalProcess::RETURNSTATE rt = ExternalProcess::run("pigz",{"--version"},&stdout_, &stderr_);
+        bool pigz_available = rt == ExternalProcess::SUCCESS &&
+                              stdout_.hasSubstring("pigz")
     }
 
     // Use pigz for parallel compression if available
