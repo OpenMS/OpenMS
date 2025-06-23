@@ -5500,15 +5500,8 @@ static void scoreXLIons_(
                     const PeakSpectrum & exp_spectrum = spectra[scan_index];
 
                     // count candidate for spectrum
-  #ifdef _OPENMP
-                    omp_set_lock(&(annotated_peptides_lock[scan_index]));
-                    omp_set_lock(&(annotated_XLs_lock[scan_index]));
-  #endif
+  #pragma omp atomic
                     ++nr_candidates[scan_index];
-  #ifdef _OPENMP
-                    omp_unset_lock(&(annotated_XLs_lock[scan_index]));
-                    omp_unset_lock(&(annotated_peptides_lock[scan_index]));
-  #endif
                     //const double exp_pc_mass = l->first;
                     const int & isotope_error = l->second.second;
                     const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
@@ -5610,8 +5603,10 @@ static void scoreXLIons_(
   #ifdef _OPENMP
                       omp_set_lock(&(annotated_peptides_lock[scan_index]));
                       omp_set_lock(&(annotated_XLs_lock[scan_index]));
+  #endif
                       // count matched peaks for spectrum
-                      matched_peaks[scan_index] += (size_t)ah.Morph ;
+                      matched_peaks[scan_index] += (size_t)ah.Morph;
+  #ifdef _OPENMP                    
                       omp_unset_lock(&(annotated_XLs_lock[scan_index]));
                       omp_unset_lock(&(annotated_peptides_lock[scan_index]));
   #endif                                 
@@ -5698,15 +5693,9 @@ static void scoreXLIons_(
                       //               ID-Filter
                       if (skip_peptide_spectrum.find(exp_spectrum.getNativeID()) != skip_peptide_spectrum.end()) { continue; }
 
-  #ifdef _OPENMP
-                      omp_set_lock(&(annotated_peptides_lock[scan_index]));
-                      omp_set_lock(&(annotated_XLs_lock[scan_index]));
-  #endif
+#pragma omp atomic
                       ++nr_candidates[scan_index]; // count candidate for spectrum
-  #ifdef _OPENMP
-                      omp_unset_lock(&(annotated_XLs_lock[scan_index]));
-                      omp_unset_lock(&(annotated_peptides_lock[scan_index]));
-  #endif
+
                       const int & isotope_error = l->second.second;
                       float tlss_MIC(0), 
                         tlss_err(1.0), 
@@ -5874,8 +5863,10 @@ static void scoreXLIons_(
   #ifdef _OPENMP
                       omp_set_lock(&(annotated_peptides_lock[scan_index]));
                       omp_set_lock(&(annotated_XLs_lock[scan_index]));
+  #endif
                       // count matched peaks for spectrum
                       matched_peaks[scan_index] += (size_t)ah.Morph + (size_t)ah.pl_Morph ;
+  #ifdef _OPENMP
                       omp_unset_lock(&(annotated_XLs_lock[scan_index]));
                       omp_unset_lock(&(annotated_peptides_lock[scan_index]));
   #endif                      
@@ -5917,15 +5908,9 @@ static void scoreXLIons_(
 
                 if (precursor_na_adduct != "none" && skip_peptide_spectrum.find(exp_spectrum.getNativeID()) != skip_peptide_spectrum.end()) continue;
 
-#ifdef _OPENMP
-                omp_set_lock(&(annotated_peptides_lock[scan_index]));
-                omp_set_lock(&(annotated_XLs_lock[scan_index]));
-#endif                
+#pragma omp atomic       
                 ++nr_candidates[scan_index];
-#ifdef _OPENMP
-                omp_unset_lock(&(annotated_XLs_lock[scan_index]));
-                omp_unset_lock(&(annotated_peptides_lock[scan_index]));
-#endif
+
                 const int & isotope_error = l->second.second;
                 const double & exp_pc_mass = l->first;
 
