@@ -17,6 +17,7 @@
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
+#include <OpenMS/SYSTEM/BuildInfo.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/ExternalProcess.h>
 
@@ -29,7 +30,6 @@
 #include <fstream>
 #include <iostream>
 
-#include <omp.h>
 #include <stdexcept>
 
 #include <map>
@@ -3973,28 +3973,10 @@ namespace OpenMS::Internal
     // Try to detect if pigz (parallel gzip) is available on the system
     if (compress_)
     {
-#ifdef _WIN32
-        FILE* pipe = _popen("pigz --version", "r");
-#else
-        FILE* pipe = popen("pigz --version", "r");
-#endif
-        if (pipe)
-        {
-            char buffer[128];
-            while (fgets(buffer, sizeof(buffer), pipe))
-            {
-                if (strstr(buffer, "pigz") || strstr(buffer, "Pigz"))
-                {
-                    pigz_available = true;
-                    break;
-                }
-            }
-#ifdef _WIN32
-            _pclose(pipe);
-#else
-            pclose(pipe);
-#endif
-        }
+    String stdout_, stderr_;
+    ExternalProcess::RETURNSTATE rt = ExternalProcess::run("pigz",{"--version"},&stdout_, &stderr_);
+    bool pigz_available = rt == ExternalProcess::SUCCESS &&
+                          stdout_.hasSubstring("pigz")
     }
 
     // Use pigz for parallel compression if available
@@ -4002,7 +3984,7 @@ namespace OpenMS::Internal
     {
         OPENMS_LOG_INFO << "Using pigz for compression (parallel gzip)" << std::endl;
 
-        int max_threads = omp_get_max_threads();
+        int max_threads = Internal::OpenMSBuildInfo::getOpenMPMaxNumThreads();
         int level = compression_level_;
 
         OPENMS_LOG_INFO << "Setting pigz to use " << max_threads << " threads with compression level " << level << std::endl;
