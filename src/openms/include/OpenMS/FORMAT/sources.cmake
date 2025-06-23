@@ -100,6 +100,7 @@ ToolDescriptionFile.h
 TransformationXMLFile.h
 TriqlerFile.h
 UnimodXMLFile.h
+Vec.h
 XMLFile.h
 XTandemInfile.h
 XTandemXMLFile.h
