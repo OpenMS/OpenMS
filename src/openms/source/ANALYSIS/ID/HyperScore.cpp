@@ -17,15 +17,19 @@ using std::vector;
 
 namespace OpenMS
 {
-  inline double HyperScore::logfactorial_(const int x, int base)
+#include <cmath>   // for std::lgamma
+
+  inline double HyperScore::logfactorial_(int x, int base)
   {
-    double z(0);
-    base = std::max(base, 2);
-    for (int i = base; i <= x; ++i)
-    {
-      z += log(i);
-    }
-    return z;
+      // ensure base ≥ 2, and that x ≥ base–1
+      base = std::max(base, 2);
+      if (x < base - 1) 
+          return 0.0;
+
+      // log(x!)     = lgamma(x+1)
+      // log((base-1)!) = lgamma(base)
+      return std::lgamma(double(x + 1)) 
+          - std::lgamma(double(base));
   }
 
 
