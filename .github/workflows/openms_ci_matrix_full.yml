@@ -416,7 +416,7 @@ jobs:
           CCACHE_COMPILERCHECK: content
           WITH_THERMORAWFILEPARSER_TEST: "OFF"
           Eigen3_DIR: "${{ steps.tools-prefix.outputs.eigen_choco }}" # Eigen is installed on windows using choco
-          USE_EXTERNAL_JSON: ${{(env.WITH_PARQUET == 'ON' && startsWith(matrix.os,'macos')) && 'OFF' || 'ON'}} 
+          USE_EXTERNAL_JSON: ${{startsWith(matrix.os,'macos') && 'OFF' || 'ON'}} 
           # Note that apache arrow's brew/apt packages are DIFFERENT. I believe Ubuntu's packages have Nlohmann_JSON bundled with them, while 
           # brew doesn't. As such, this results in compatibility issues between OpenMS' Nlohmann_JSON and Ubuntu's system packages. 
     - name: Test
