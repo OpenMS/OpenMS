@@ -1,7 +1,10 @@
 // Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
-
-#pragma once
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Marc Sturm, Chris Bielow, Moritz Aubermann $
+// --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/SYSTEM/SIMDe.h>
@@ -14,30 +17,30 @@ using namespace std;
 
 namespace OpenMS
 {
-  const Vec128 mask1_ = simde_mm_set1_epi32(0x3F000000);
-  const Vec128 mask2_ = simde_mm_set1_epi32(0x003F0000);
-  const Vec128 mask3_ = simde_mm_set1_epi32(0x00003F00);
-  const Vec128 mask4_ = simde_mm_set1_epi32(0x0000003F);
+  const Vec128i mask1_ = simde_mm_set1_epi32(0x3F000000);
+  const Vec128i mask2_ = simde_mm_set1_epi32(0x003F0000);
+  const Vec128i mask3_ = simde_mm_set1_epi32(0x00003F00);
+  const Vec128i mask4_ = simde_mm_set1_epi32(0x0000003F);
 
-  const Vec128 mask1d_ = simde_mm_set1_epi32(0xFF000000);
-  const Vec128 mask2d_ = simde_mm_set1_epi32(0x00FF0000);
-  const Vec128 mask3d_ = simde_mm_set1_epi32(0x0000FF00);
-  const Vec128 mask4d_ = simde_mm_set1_epi32(0x000000FF);
+  const Vec128i mask1d_ = simde_mm_set1_epi32(0xFF000000);
+  const Vec128i mask2d_ = simde_mm_set1_epi32(0x00FF0000);
+  const Vec128i mask3d_ = simde_mm_set1_epi32(0x0000FF00);
+  const Vec128i mask4d_ = simde_mm_set1_epi32(0x000000FF);
 
-  const Vec128 difference_A_ = simde_mm_set1_epi8('A');
-  const Vec128 difference_a_ = simde_mm_set1_epi8('a' - 26);
-  const Vec128 difference_0_ = simde_mm_set1_epi8('0' - 52);
-  const Vec128 difference_plus_ = simde_mm_set1_epi8('+');
-  const Vec128 difference_slash_ = simde_mm_set1_epi8('/');
+  const Vec128i difference_A_ = simde_mm_set1_epi8('A');
+  const Vec128i difference_a_ = simde_mm_set1_epi8('a' - 26);
+  const Vec128i difference_0_ = simde_mm_set1_epi8('0' - 52);
+  const Vec128i difference_plus_ = simde_mm_set1_epi8('+');
+  const Vec128i difference_slash_ = simde_mm_set1_epi8('/');
 
-  const Vec128 shuffle_mask_1_ = simde_mm_setr_epi8(2, 2, 1, 0, 5, 5, 4, 3, 8, 8, 7, 6, 11, 11, 10, 9);
-  const Vec128 shuffle_mask_2_ = simde_mm_setr_epi8(3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12);
-  const Vec128 shuffle_mask_big_endian_ = simde_mm_setr_epi8(0, 1, 2, 2, 3, 4, 5, 5, 6, 7, 8, 8, 9, 10, 11, 11);
-  const Vec128 shuffle_mask_d_2_ = simde_mm_setr_epi8(3, 2, 1, 7, 6, 5, 11, 10, 9, 15, 14, 13, 0, 4, 8, 12);
+  const Vec128i shuffle_mask_1_ = simde_mm_setr_epi8(2, 2, 1, 0, 5, 5, 4, 3, 8, 8, 7, 6, 11, 11, 10, 9);
+  const Vec128i shuffle_mask_2_ = simde_mm_setr_epi8(3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12);
+  const Vec128i shuffle_mask_big_endian_ = simde_mm_setr_epi8(0, 1, 2, 2, 3, 4, 5, 5, 6, 7, 8, 8, 9, 10, 11, 11);
+  const Vec128i shuffle_mask_d_2_ = simde_mm_setr_epi8(3, 2, 1, 7, 6, 5, 11, 10, 9, 15, 14, 13, 0, 4, 8, 12);
 
-  void registerEncoder_(Vec128& data_raw)
+  void registerEncoder_(Vec128i& data_raw)
   {
-    Vec128 data(data_raw);
+    Vec128i data(data_raw);
 
     data = (!OPENMS_IS_BIG_ENDIAN ? data.shuffle_epi8(shuffle_mask_1_) : data.shuffle_epi8(shuffle_mask_big_endian_));
 
@@ -47,48 +50,48 @@ namespace OpenMS
     if (!OPENMS_IS_BIG_ENDIAN)
       data = data.shuffle_epi8(shuffle_mask_2_);
 
-    Vec128 capital_mask = Vec128::cmplt_epi8(data, Vec128(simde_mm_set1_epi8(26)));
-    Vec128 all_mask = capital_mask;
+    Vec128i capital_mask = Vec128i::cmplt_epi8(data, Vec128i(simde_mm_set1_epi8(26)));
+    Vec128i all_mask = capital_mask;
 
-    Vec128 lower_case_mask = Vec128::andnot(all_mask, Vec128::cmplt_epi8(data, Vec128(simde_mm_set1_epi8(52))));
+    Vec128i lower_case_mask = Vec128i::andnot(all_mask, Vec128i::cmplt_epi8(data, Vec128i(simde_mm_set1_epi8(52))));
     all_mask |= lower_case_mask;
 
-    Vec128 number_mask = Vec128::andnot(all_mask, Vec128::cmplt_epi8(data, Vec128(simde_mm_set1_epi8(62))));
+    Vec128i number_mask = Vec128i::andnot(all_mask, Vec128i::cmplt_epi8(data, Vec128i(simde_mm_set1_epi8(62))));
     all_mask |= number_mask;
 
-    Vec128 plus_mask = Vec128::andnot(all_mask, Vec128::cmplt_epi8(data, Vec128(simde_mm_set1_epi8(63))));
+    Vec128i plus_mask = Vec128i::andnot(all_mask, Vec128i::cmplt_epi8(data, Vec128i(simde_mm_set1_epi8(63))));
     all_mask |= plus_mask;
 
-    Vec128 slash_mask = all_mask;
+    Vec128i slash_mask = all_mask;
 
     data = (capital_mask & (data + difference_A_)) |
            (lower_case_mask & (data + difference_a_)) |
            (number_mask & (data + difference_0_)) |
            (plus_mask & difference_plus_) |
-           (Vec128::andnot(slash_mask, difference_slash_));
+           (Vec128i::andnot(slash_mask, difference_slash_));
 
     data_raw = data;
   }
 
-  void registerDecoder_(Vec128& data_raw)
+  void registerDecoder_(Vec128i& data_raw)
   {
-    Vec128 data(data_raw);
+    Vec128i data(data_raw);
 
-    Vec128 plusMask = Vec128::cmpeq_epi8(data, difference_plus_);
-    Vec128 allMask = plusMask;
-    Vec128 slashMask = Vec128::cmpeq_epi8(data, difference_slash_);
+    Vec128i plusMask = Vec128i::cmpeq_epi8(data, difference_plus_);
+    Vec128i allMask = plusMask;
+    Vec128i slashMask = Vec128i::cmpeq_epi8(data, difference_slash_);
     allMask |= slashMask;
-    Vec128 numberMask = Vec128::andnot(allMask, Vec128::cmplt_epi8(data, Vec128(simde_mm_set1_epi8('9' + 1))));
+    Vec128i numberMask = Vec128i::andnot(allMask, Vec128i::cmplt_epi8(data, Vec128i(simde_mm_set1_epi8('9' + 1))));
     allMask |= numberMask;
-    Vec128 bigLetterMask = Vec128::andnot(allMask, Vec128::cmplt_epi8(data, Vec128(simde_mm_set1_epi8('Z' + 1))));
+    Vec128i bigLetterMask = Vec128i::andnot(allMask, Vec128i::cmplt_epi8(data, Vec128i(simde_mm_set1_epi8('Z' + 1))));
     allMask |= bigLetterMask;
-    Vec128 smallLetterMask = Vec128::andnot(allMask, Vec128::cmplt_epi8(data, Vec128(simde_mm_set1_epi8('z' + 1))));
+    Vec128i smallLetterMask = Vec128i::andnot(allMask, Vec128i::cmplt_epi8(data, Vec128i(simde_mm_set1_epi8('z' + 1))));
 
-    data = (plusMask & Vec128(simde_mm_set1_epi8(62))) |
-           (slashMask & Vec128(simde_mm_set1_epi8(63))) |
-           (numberMask & (data + Vec128(simde_mm_set1_epi8(4)))) |
-           (bigLetterMask & (data - Vec128(simde_mm_set1_epi8(65)))) |
-           (smallLetterMask & (data - Vec128(simde_mm_set1_epi8(71))));
+    data = (plusMask & Vec128i(simde_mm_set1_epi8(62))) |
+           (slashMask & Vec128i(simde_mm_set1_epi8(63))) |
+           (numberMask & (data + Vec128i(simde_mm_set1_epi8(4)))) |
+           (bigLetterMask & (data - Vec128i(simde_mm_set1_epi8(65)))) |
+           (smallLetterMask & (data - Vec128i(simde_mm_set1_epi8(71))));
 
     data = data.shuffle_epi8(shuffle_mask_2_);
 
@@ -110,13 +113,13 @@ namespace OpenMS
     in.resize(in.size() + 4, '\0');
     // otherwise there are cases where register encoder isnt allowed to access last bytes
 
-    Vec128 data {};
+    Vec128i data {};
     // loop  through input as long as it's safe to access memory
     for (int i = 0; i < loop; i++)
     {
       // each time the last 4 out of 16 byte string data get lost through processing, therefore jumps of 12 bytes (/characters)
       const simde__m128i* ptr = reinterpret_cast<const simde__m128i*>(&in[12*i]);
-      data = Vec128(simde_mm_lddqu_si128(ptr));
+      data = Vec128i(simde_mm_lddqu_si128(ptr));
       registerEncoder_(data);
       simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(&out[i * 16]), data);
     }
@@ -129,7 +132,7 @@ namespace OpenMS
     memcpy(&buffer[0], &in[read], in.size() - read - 4); // minus 4 because of 4 appended null bytes
 
     const simde__m128i* buffer_ptr = reinterpret_cast<const simde__m128i*>(&buffer[0]);
-    data = Vec128(simde_mm_lddqu_si128(buffer_ptr));
+    data = Vec128i(simde_mm_lddqu_si128(buffer_ptr));
     registerEncoder_(data);
     simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(&out[written]), data);
 
@@ -173,9 +176,9 @@ namespace OpenMS
     for (int i = 0; i < loop; i++)
     {
       const simde__m128i raw = simde_mm_lddqu_si128(reinterpret_cast<const simde__m128i*>(inPtr + i * 16));
-      Vec128 data(raw);
+      Vec128i data(raw);
       registerDecoder_(data);
-      simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(outPtr + i * 12), data.raw());
+      simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(outPtr + i * 12), data.val);
     }
     size_t read = loop * 16;
     std::array<char, 16> rest;
@@ -183,10 +186,10 @@ namespace OpenMS
     std::copy(in.begin() + read, in.end(), rest.begin());
 
     const simde__m128i raw = simde_mm_lddqu_si128(reinterpret_cast<const simde__m128i*>(&rest[0]));
-    Vec128 data(raw);
+    Vec128i data(raw);
     registerDecoder_(data);
     size_t written = loop * 12;
-    simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(outPtr + written), data.raw());
+    simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(outPtr + written), data.val);
     // cutting off decoding of appendix
     outsize = (in.size() / 4) * 3 - g;
     out.resize(outsize); 
@@ -275,6 +278,4 @@ namespace OpenMS
       }
     }
   }
-  // stringSimdEncoder_ and stringSimdDecoder_ don't need modification unless you want to use Vec128::load/store
-  // For now, the core logic is adapted above. Let me know if you want to refactor those too.
 } // namespace OpenMS
