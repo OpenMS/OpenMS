@@ -101,11 +101,11 @@ namespace OpenMS
     </tr>
     <tr>
         <td>...</td>
-        <td>...<br/></td>
+        <td>...<br></td>
         <td>...</td>
-        <td>...<br/></td>
-        <td>...<br/></td>
-        <td>...<br/></td>
+        <td>...<br></td>
+        <td>...<br></td>
+        <td>...<br></td>
     </tr>
     <tr>
         <td>22</td>
@@ -168,10 +168,10 @@ namespace OpenMS
     </tr>
     <tr>
         <td>...</td>
-        <td>...<br/></td>
+        <td>...<br></td>
         <td>...</td>
-        <td>...<br/></td>
-        <td>...<br/></td>
+        <td>...<br></td>
+        <td>...<br></td>
     </tr>
     <tr>
         <td>22</td>
@@ -200,8 +200,8 @@ namespace OpenMS
     </tr>
     <tr>
         <td>...</td>
-        <td>...<br/></td>
-        <td>...<br/></td>
+        <td>...<br></td>
+        <td>...<br></td>
     </tr>
     <tr>
         <td>22</td>

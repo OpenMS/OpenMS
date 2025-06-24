@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
+##
 ## PROJECT
 ## name and version
 ##
@@ -102,52 +103,41 @@ endif()
 ## TARGET
 ## create target and add include path
 ##
-# Original: add_library(${NLOHMANN_JSON_TARGET_NAME} INTERFACE)
-
-# massive if statement
-if(NOT TARGET ${NLOHMANN_JSON_TARGET_NAME})
-    add_library(${NLOHMANN_JSON_TARGET_NAME} INTERFACE)
-    # version check
-    if (${CMAKE_VERSION} VERSION_LESS "3.8.0")
-        target_compile_features(${NLOHMANN_JSON_TARGET_NAME} INTERFACE cxx_range_for)
-    else()
-        target_compile_features(${NLOHMANN_JSON_TARGET_NAME} INTERFACE cxx_std_11)
-    endif()
-    
-    
-    target_compile_definitions(
-        ${NLOHMANN_JSON_TARGET_NAME}
-        INTERFACE
-        $<$<NOT:$<BOOL:${JSON_GlobalUDLs}>>:JSON_USE_GLOBAL_UDLS=0>
-        $<$<NOT:$<BOOL:${JSON_ImplicitConversions}>>:JSON_USE_IMPLICIT_CONVERSIONS=0>
-        $<$<BOOL:${JSON_DisableEnumSerialization}>:JSON_DISABLE_ENUM_SERIALIZATION=1>
-        $<$<BOOL:${JSON_Diagnostics}>:JSON_DIAGNOSTICS=1>
-        $<$<BOOL:${JSON_LegacyDiscardedValueComparison}>:JSON_USE_LEGACY_DISCARDED_VALUE_COMPARISON=1>
-    )
-
-    target_include_directories(
-        ${NLOHMANN_JSON_TARGET_NAME}
-        ${NLOHMANN_JSON_SYSTEM_INCLUDE} INTERFACE
-        $<BUILD_INTERFACE:${NLOHMANN_JSON_INCLUDE_BUILD_DIR}>
-        $<INSTALL_INTERFACE:include>
-    )
-
-    ## add debug view definition file for msvc (natvis)
-    if (MSVC)
-        set(NLOHMANN_ADD_NATVIS TRUE)
-        set(NLOHMANN_NATVIS_FILE "nlohmann_json.natvis")
-        target_sources(
-            ${NLOHMANN_JSON_TARGET_NAME}
-            INTERFACE
-                $<INSTALL_INTERFACE:${NLOHMANN_NATVIS_FILE}>
-                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${NLOHMANN_NATVIS_FILE}>
-        )
-    endif()
+add_library(${NLOHMANN_JSON_TARGET_NAME} INTERFACE)
+add_library(${PROJECT_NAME}::${NLOHMANN_JSON_TARGET_NAME} ALIAS ${NLOHMANN_JSON_TARGET_NAME})
+if (${CMAKE_VERSION} VERSION_LESS "3.8.0")
+    target_compile_features(${NLOHMANN_JSON_TARGET_NAME} INTERFACE cxx_range_for)
+else()
+    target_compile_features(${NLOHMANN_JSON_TARGET_NAME} INTERFACE cxx_std_11)
 endif()
 
-#Make the alias OUTSIDE of if statement -- only create if we install the target.
-if(TARGET ${NLOHMANN_JSON_TARGET_NAME})
-    add_library(${PROJECT_NAME}::${NLOHMANN_JSON_TARGET_NAME} ALIAS ${NLOHMANN_JSON_TARGET_NAME})
+target_compile_definitions(
+    ${NLOHMANN_JSON_TARGET_NAME}
+    INTERFACE
+    $<$<NOT:$<BOOL:${JSON_GlobalUDLs}>>:JSON_USE_GLOBAL_UDLS=0>
+    $<$<NOT:$<BOOL:${JSON_ImplicitConversions}>>:JSON_USE_IMPLICIT_CONVERSIONS=0>
+    $<$<BOOL:${JSON_DisableEnumSerialization}>:JSON_DISABLE_ENUM_SERIALIZATION=1>
+    $<$<BOOL:${JSON_Diagnostics}>:JSON_DIAGNOSTICS=1>
+    $<$<BOOL:${JSON_LegacyDiscardedValueComparison}>:JSON_USE_LEGACY_DISCARDED_VALUE_COMPARISON=1>
+)
+
+target_include_directories(
+    ${NLOHMANN_JSON_TARGET_NAME}
+    ${NLOHMANN_JSON_SYSTEM_INCLUDE} INTERFACE
+    $<BUILD_INTERFACE:${NLOHMANN_JSON_INCLUDE_BUILD_DIR}>
+    $<INSTALL_INTERFACE:include>
+)
+
+## add debug view definition file for msvc (natvis)
+if (MSVC)
+    set(NLOHMANN_ADD_NATVIS TRUE)
+    set(NLOHMANN_NATVIS_FILE "nlohmann_json.natvis")
+    target_sources(
+        ${NLOHMANN_JSON_TARGET_NAME}
+        INTERFACE
+            $<INSTALL_INTERFACE:${NLOHMANN_NATVIS_FILE}>
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${NLOHMANN_NATVIS_FILE}>
+    )
 endif()
 
 # Install a pkg-config file, so other tools can find this.
