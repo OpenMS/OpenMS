@@ -191,11 +191,6 @@ namespace OpenMS
     outsize = (in.size() / 4) * 3 - g;
     out.resize(outsize); 
     }
-<<<<<<< Updated upstream
-=======
-  
-
->>>>>>> Stashed changes
   const char Base64::encoder_[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   const char Base64::decoder_[] = "|$$$}rstuvwxyz{$$$$$$$>?@ABCDEFGHIJKLMNOPQRSTUVW$$$$$$XYZ[\\]^_`abcdefghijklmnopq";
 
