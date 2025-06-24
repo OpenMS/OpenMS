@@ -5600,16 +5600,10 @@ static void scoreXLIons_(
                     //const double tags = exp_spectrum.getFloatDataArrays()[2][0];
                     ah.n_theoretical_peaks = n_theoretical_peaks;
 
-  #ifdef _OPENMP
-                      omp_set_lock(&(annotated_peptides_lock[scan_index]));
-                      omp_set_lock(&(annotated_XLs_lock[scan_index]));
-  #endif
-                      // count matched peaks for spectrum
-                      matched_peaks[scan_index] += (size_t)ah.Morph;
-  #ifdef _OPENMP                    
-                      omp_unset_lock(&(annotated_XLs_lock[scan_index]));
-                      omp_unset_lock(&(annotated_peptides_lock[scan_index]));
-  #endif                                 
+// count matched peaks for spectrum
+#pragma omp atomic
+                    matched_peaks[scan_index] += (size_t)ah.Morph;
+                         
                     ah.score = OpenNuXL::calculateCombinedScore(ah/*false, tags*/);
                     //ah.score = OpenNuXL::calculateFastScore(ah); does this work too
 
@@ -5860,16 +5854,9 @@ static void scoreXLIons_(
                       //const double tags = exp_spectrum.getFloatDataArrays()[2][0];
                       ah.n_theoretical_peaks = n_theoretical_peaks;
 
-  #ifdef _OPENMP
-                      omp_set_lock(&(annotated_peptides_lock[scan_index]));
-                      omp_set_lock(&(annotated_XLs_lock[scan_index]));
-  #endif
-                      // count matched peaks for spectrum
+#pragma omp atomic
                       matched_peaks[scan_index] += (size_t)ah.Morph + (size_t)ah.pl_Morph ;
-  #ifdef _OPENMP
-                      omp_unset_lock(&(annotated_XLs_lock[scan_index]));
-                      omp_unset_lock(&(annotated_peptides_lock[scan_index]));
-  #endif                      
+                    
                       ah.score = OpenNuXL::calculateCombinedScore(ah/*, true,tags*/ );
 
   #ifdef DEBUG_OpenNuXL
