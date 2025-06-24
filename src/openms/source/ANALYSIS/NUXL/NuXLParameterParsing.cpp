@@ -36,7 +36,7 @@ std::vector<NuXLFragmentAdductDefinition> NuXLParameterParsing::getMarkerIonsMas
 
   auto less_by_mass = [](const NuXLFragmentAdductDefinition & a, const NuXLFragmentAdductDefinition & b) -> bool
     { 
-      return a.mass < b.mass; 
+      return std::tie(a.mass, a.name) < std::tie(b.mass, b.name); // name required to break ties in case of same mass
     };
 
     auto equal_by_mass = [](const NuXLFragmentAdductDefinition & a, const NuXLFragmentAdductDefinition & b) -> bool
