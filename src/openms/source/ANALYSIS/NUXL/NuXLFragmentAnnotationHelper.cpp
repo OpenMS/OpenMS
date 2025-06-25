@@ -6,7 +6,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/RNPXL/RNPxlFragmentAnnotationHelper.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAnnotationHelper.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -17,17 +17,16 @@
 #include <algorithm>
 
 using namespace OpenMS;
-using namespace OpenMS::Internal;
 
 
 namespace OpenMS
 {
-  String RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon(char c, const String& fragment_shift_name)
+  String NuXLFragmentAnnotationHelper::getAnnotatedImmoniumIon(char c, const String& fragment_shift_name)
   {
-    return String("i") + c + "+" + fragment_shift_name;
+    return String("i") + c + "+" + fragment_shift_name + "+";
   }
 
-  std::vector<PeptideHit::PeakAnnotation> RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA(
+  std::vector<PeptideHit::PeakAnnotation> NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA(
     const String& ion_type, 
     const std::map<Size, std::vector<FragmentAnnotationDetail_> >& ion_annotation_details)
   {
@@ -42,11 +41,11 @@ namespace OpenMS
         fa.intensity = sit.intensity;
         if (sit.shift.empty())
         {
-          fa.annotation = ion_type + String(ait.first);
+          fa.annotation = ion_type + String(ait.first) + String(fa.charge, '+');
         }
         else
         {
-          const String annotation_text = ion_type + String(ait.first) + "+" + sit.shift; 
+          const String annotation_text = ion_type + String(ait.first) + "+" + sit.shift + String(fa.charge, '+'); 
           fa.annotation = annotation_text;
         }
         fas.push_back(std::move(fa));
@@ -55,7 +54,7 @@ namespace OpenMS
     return fas;
   }
 
-   std::vector<PeptideHit::PeakAnnotation> RNPxlFragmentAnnotationHelper::shiftedToPHFA(
+   std::vector<PeptideHit::PeakAnnotation> NuXLFragmentAnnotationHelper::shiftedToPHFA(
     const std::map<String, 
     std::set<std::pair<String, double> > >& shifted_ions)
   {
@@ -76,21 +75,22 @@ namespace OpenMS
     return fas;
   }
 
-
-  String RNPxlFragmentAnnotationHelper::shiftedIonsToString(const std::vector<PeptideHit::PeakAnnotation>& as)
+  String NuXLFragmentAnnotationHelper::shiftedIonsToString(const std::vector<PeptideHit::PeakAnnotation>& as)
   {
     std::vector<PeptideHit::PeakAnnotation> sorted(as);
     stable_sort(sorted.begin(), sorted.end());
     String fas;
     for (const auto & a : sorted)
     {
-      fas += String("(") + String::number(a.mz, 3) + "," + String::number(100.0 * a.intensity, 1) + ",\"" + a.annotation + "\")";    
+      fas += String("(") + String::number(a.mz, 3) + "," 
+        + String::number(100.0 * a.intensity, 1) + ",\"" 
+        + a.annotation + "\")";    
       if (&a != &sorted.back()) { fas += "|"; }     
     }
     return fas;
   }
 
-  void RNPxlFragmentAnnotationHelper::addShiftedPeakFragmentAnnotation_(
+  void NuXLFragmentAnnotationHelper::addShiftedPeakFragmentAnnotation_(
                                         const std::map<Size, std::vector<FragmentAnnotationDetail_>>& shifted_b_ions,
                                         const std::map<Size, std::vector<FragmentAnnotationDetail_>>& shifted_y_ions,
                                         const std::map<Size, std::vector<FragmentAnnotationDetail_>>& shifted_a_ions,
@@ -101,19 +101,19 @@ namespace OpenMS
   {
     if (!shifted_b_ions.empty())
     {
-      const std::vector<PeptideHit::PeakAnnotation>& fas_tmp = fragmentAnnotationDetailsToPHFA("b", shifted_b_ions);
+      const auto& fas_tmp = fragmentAnnotationDetailsToPHFA("b", shifted_b_ions);
       fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
     }
 
     if (!shifted_y_ions.empty())
     {
-      const std::vector<PeptideHit::PeakAnnotation>& fas_tmp = fragmentAnnotationDetailsToPHFA("y", shifted_y_ions);
+      const auto& fas_tmp = fragmentAnnotationDetailsToPHFA("y", shifted_y_ions);
       fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
     }
 
     if (!shifted_a_ions.empty())
     {
-      const std::vector<PeptideHit::PeakAnnotation>& fas_tmp = fragmentAnnotationDetailsToPHFA("a", shifted_a_ions);
+      const auto& fas_tmp = fragmentAnnotationDetailsToPHFA("a", shifted_a_ions);
       fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
     }
 

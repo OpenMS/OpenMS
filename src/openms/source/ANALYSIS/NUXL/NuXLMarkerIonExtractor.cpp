@@ -6,7 +6,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLMarkerIonExtractor.h>
 #include <OpenMS/PROCESSING/SCALING/Normalizer.h>
 
 using namespace std;
@@ -15,7 +15,7 @@ namespace OpenMS
 {
 
 
-RNPxlMarkerIonExtractor::MarkerIonsType RNPxlMarkerIonExtractor::extractMarkerIons(const PeakSpectrum& s, const double marker_tolerance)
+NuXLMarkerIonExtractor::MarkerIonsType NuXLMarkerIonExtractor::extractMarkerIons(const PeakSpectrum& s, const double marker_tolerance)
 {
   MarkerIonsType marker_ions;
   marker_ions["A"].push_back(make_pair(136.06231, 0.0));
@@ -30,7 +30,6 @@ RNPxlMarkerIonExtractor::MarkerIonsType RNPxlMarkerIonExtractor::extractMarkerIo
   PeakSpectrum spec(s);
   Normalizer normalizer;
   normalizer.filterSpectrum(spec);
-  spec.sortByPosition();
 
   // for each nucleotide with marker ions
   for (MarkerIonsType::iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)

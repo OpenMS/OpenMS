@@ -104,6 +104,7 @@ namespace OpenMS
     void predict(std::vector<Prediction>& predictions,
                  std::vector<Size> indexes = std::vector<Size>()) const;
 
+
     /**
        @brief Predict class labels or regression values (and probabilities).
 

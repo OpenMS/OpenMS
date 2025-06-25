@@ -376,7 +376,8 @@ namespace OpenMS
   void writePeptideHeader(SVOutStream& out, const String& what = "PEPTIDE",
                           bool incl_pred_rt = false,
                           bool incl_pred_pt = false,
-                          bool incl_first_dim = false)
+                          bool incl_first_dim = false,
+                          bool incl_peak_annotations = false)
   {
     bool old = out.modifyStrings(false);
     if (what.empty())
@@ -401,6 +402,10 @@ namespace OpenMS
     if (incl_pred_pt)
     {
       out << "predicted_pt";
+    }
+    if (incl_peak_annotations)
+    {
+      out << "peak_annotations";
     }
     out.modifyStrings(old);
   }
@@ -427,7 +432,7 @@ namespace OpenMS
   // write a peptide identification to the output stream
   void writePeptideId(SVOutStream& out, const PeptideIdentification& pid,
                       const String& what = "PEPTIDE", bool incl_pred_rt = false, bool incl_pred_pt = false,
-                      bool incl_first_dim = false, const StringList& peptide_id_meta_keys = StringList(), const StringList& peptide_hit_meta_keys = StringList())
+                      bool incl_first_dim = false, bool incl_peak_annotations = false, const StringList& peptide_id_meta_keys = StringList(), const StringList& peptide_hit_meta_keys = StringList())
   {
     for (const PeptideHit& hit : pid.getHits())
     {
@@ -531,6 +536,13 @@ namespace OpenMS
         }
         else out << "-1";
       }
+      if (incl_peak_annotations && !hit.getPeakAnnotations().empty())
+      {
+        String pa;
+        PeptideHit::PeakAnnotation::writePeakAnnotationsString_(pa, hit.getPeakAnnotations());
+        out << pa;
+      }
+      else out << "-1";
       writeMetaValues(out, pid, peptide_id_meta_keys);
       writeMetaValues(out, hit, peptide_hit_meta_keys);
       out << nl;
@@ -583,6 +595,10 @@ protected:
       registerIntOption_("id:add_protein_hit_metavalues", "<min_frequency>", -1, "Add columns for meta values on protein level which occur with a certain frequency (0-100%). Set to -1 to omit meta values (default).", false);
       setMinInt_("id:add_protein_hit_metavalues", -1);
       setMaxInt_("id:add_protein_hit_metavalues", 100);
+
+      registerStringOption_("id:annotations", "<method>", "none", "Format of peak annotations.", false);
+      setValidStrings_("id:annotations", ListUtils::create<String>("none,default"));
+      
       addEmptyLine_();
 
       registerTOPPSubsection_("consensus", "Options for consensusXML input files");
@@ -774,7 +790,7 @@ protected:
           }
           for (const PeptideIdentification& pep : feature_map.getUnassignedPeptideIdentifications())
           {
-            writePeptideId(output, pep, "UNASSIGNEDPEPTIDE", false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys);
+            writePeptideId(output, pep, "UNASSIGNEDPEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys);
           }
         }
 
@@ -810,7 +826,7 @@ protected:
           {
             for (const PeptideIdentification& pep : feat.getPeptideIdentifications())
             {
-              writePeptideId(output, pep, "PEPTIDE", false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys);
+              writePeptideId(output, pep, "PEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys);
             }
           }
         }
@@ -1286,7 +1302,7 @@ protected:
             // unassigned peptides
             for (vector<PeptideIdentification>::const_iterator pit = consensus_map.getUnassignedPeptideIdentifications().begin(); pit != consensus_map.getUnassignedPeptideIdentifications().end(); ++pit)
             {
-              writePeptideId(output, *pit, "UNASSIGNEDPEPTIDE", false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys);
+              writePeptideId(output, *pit, "UNASSIGNEDPEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys);
               // first_dim_... stuff not supported for now
             }
           }
@@ -1324,7 +1340,7 @@ protected:
                      cmit->getPeptideIdentifications().begin(); pit !=
                    cmit->getPeptideIdentifications().end(); ++pit)
               {
-                writePeptideId(output, *pit, "PEPTIDE", false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys);
+                writePeptideId(output, *pit, "PEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys);
               }
             }
           }
@@ -1394,7 +1410,7 @@ protected:
         }
         if (!proteins_only)
         {
-          writePeptideHeader(output, what, true, true, first_dim_rt);
+          writePeptideHeader(output, what, true, true, first_dim_rt, true);
           writeMetaValuesHeader(output, peptide_id_meta_keys);
           writeMetaValuesHeader(output, peptide_hit_meta_keys);
           output << nl;
@@ -1425,7 +1441,7 @@ protected:
             {
               if (pit->getIdentifier() == actual_id)
               {
-                writePeptideId(output, *pit, what, true, true, first_dim_rt, peptide_id_meta_keys, peptide_hit_meta_keys);
+                writePeptideId(output, *pit, what, true, true, first_dim_rt, true, peptide_id_meta_keys, peptide_hit_meta_keys);
               }
             }
           }

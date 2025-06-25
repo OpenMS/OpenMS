@@ -20,15 +20,13 @@
 
 namespace OpenMS
 {
-namespace Internal
-{
 
 /** 
    @brief Convenience functions to construct appealing fragment annotation strings
          and store them as PeptideHit::PeakAnnotation
  
  */
-class OPENMS_DLLAPI RNPxlFragmentAnnotationHelper
+class OPENMS_DLLAPI NuXLFragmentAnnotationHelper
 {
   public:
 
@@ -62,7 +60,7 @@ class OPENMS_DLLAPI RNPxlFragmentAnnotationHelper
 
   static String getAnnotatedImmoniumIon(char c, const String& fragment_shift_name);
 
-  /// conversion of RNPxl annotations to PeptideHit::PeakAnnotation
+  /// conversion of NuXL annotations to PeptideHit::PeakAnnotation
   static std::vector<PeptideHit::PeakAnnotation> fragmentAnnotationDetailsToPHFA(
     const String& ion_type, 
     const std::map<Size, std::vector<FragmentAnnotationDetail_> >& ion_annotation_details);
@@ -82,7 +80,6 @@ class OPENMS_DLLAPI RNPxlFragmentAnnotationHelper
                                          const std::vector<PeptideHit::PeakAnnotation>& annotated_precursor_ions,
                                          std::vector<PeptideHit::PeakAnnotation>& fas);
 };
-} // namespace Internal
 } // namespace OpenMS
 
 

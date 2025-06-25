@@ -517,6 +517,8 @@ set(analysis_executables_list
   PrecursorPurity_test
   QTClusterFinder_test
   ReactionMonitoringTransition_test
+  NuXLModificationsGenerator_test
+  NuXLParameterParsing_test
   SimpleSearchEngineAlgorithm_test
   SimpleSVM_test
   StablePairFinder_test
