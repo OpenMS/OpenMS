@@ -416,8 +416,7 @@ jobs:
           CCACHE_COMPILERCHECK: content
           WITH_THERMORAWFILEPARSER_TEST: "OFF"
           Eigen3_DIR: "${{ steps.tools-prefix.outputs.eigen_choco }}" # Eigen is installed on windows using choco
-          USE_EXTERNAL_JSON: ${{startsWith(matrix.os,'macos' || startsWith(matrix.os,'windows')) && 'OFF' || 'ON'}} 
-          # It's literally only Ubuntu's package manager that forcibly bundles nlohmann_json w/ arrow. The rest we can control via a cmake option in contrib +
+          USE_EXTERNAL_JSON: ${{ (startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')) && 'OFF' || 'ON' }}          # It's literally only Ubuntu's package manager that forcibly bundles nlohmann_json w/ arrow. The rest we can control via a cmake option in contrib +
           # brew doesn't bundle it in. If bundled in elsewhere, for the sake of compatibility, we should use that version of Nlohmann instead.
     - name: Test
       shell: bash
