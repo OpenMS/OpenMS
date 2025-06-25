@@ -91,15 +91,35 @@ namespace OpenMS
       {
         indices_to_keep.push_back(i);
       }
-#ifdef DEBUG_OpenNuXL
       else
       {
         // happens a lot with precursor peaks and internal ions
-        std::cout << "Removing duplicate peak at m/z: " << spec[i].getMZ() << endl;
-        std::cout << spec.getStringDataArrays()[0][i] << " - " 
-          << spec.getStringDataArrays()[0][indices_to_keep.back()] << std::endl;
+        // std::cout << "Removing duplicate peak at m/z: " << spec[i].getMZ() << endl;
+        // std::cout << spec.getStringDataArrays()[0][i] << " - " 
+        //  << spec.getStringDataArrays()[0][indices_to_keep.back()] << std::endl;
+
+        String curr = spec.getStringDataArrays()[0][i];
+        String last = spec.getStringDataArrays()[0][indices_to_keep.back()];
+
+        // some heuristics
+        // prefer lower case over upper case annotations
+        if (islower(curr[0]) && isupper(last[0]))
+        {
+          indices_to_keep.back() = i; // keep the lower case annotation (prefers normal ions over internal ions)
+        } 
+        else if (curr.size() < last.size()) // e.g. [M+2H-H2O]-HPO3 and [M+2H]-H3PO4, prefer last one as it is shorter
+        {
+          indices_to_keep.back() = i; // keep the one with the shorter annotation
+        }
+        else if (curr.size() == last.size())
+        {
+          // If sizes are equal, prefer the one lexicographically larger (i.e. y-ion over b-ion)
+          if (curr > last)
+          {
+            indices_to_keep.back() = i;
+          }
+        }
       }
-#endif
     }
 
     if (indices_to_keep.size() == spec.size()) return; // No duplicates found
