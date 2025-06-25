@@ -98,6 +98,11 @@ namespace OpenMS
         // std::cout << spec.getStringDataArrays()[0][i] << " - " 
         //  << spec.getStringDataArrays()[0][indices_to_keep.back()] << std::endl;
 
+        if (spec.getStringDataArrays().empty() || spec.getStringDataArrays()[0].empty())
+        {
+          continue; // No annotations to compare, just keep the peaks
+        }
+
         const String& curr = spec.getStringDataArrays()[0][i];
         const String& last = spec.getStringDataArrays()[0][indices_to_keep.back()];
 
@@ -358,7 +363,10 @@ namespace OpenMS
     {
       if (annotated_hits[scan_index].empty()) { continue; }
 
-      const PeakSpectrum & exp_spectrum = exp[scan_index];
+      PeakSpectrum exp_spectrum = exp[scan_index];
+
+      removeDuplicatedPeaks(exp_spectrum); // remove duplicate peaks based on m/z values (might be the issue on windows)
+
       const Size & precursor_charge = exp_spectrum.getPrecursors()[0].getCharge();
 
       for (auto & a : annotated_hits[scan_index])
