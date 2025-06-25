@@ -148,6 +148,7 @@ namespace OpenMS
      */
     bool filterByMissedCleavages(const String& sequence, const std::function<bool(const Int)>& filter) const;
 
+
   protected:
     /**
       @brief supports functionality for ProteaseDigestion as well (which is deeply weaved into the function)

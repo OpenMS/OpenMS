@@ -132,6 +132,7 @@ namespace OpenMS
     tools_map["NucleicAcidSearchEngine"] = Internal::ToolDescription("NucleicAcidSearchEngine", cat_rna);
     tools_map["OpenMSDatabasesInfo"] = Internal::ToolDescription("OpenMSDatabasesInfo", cat_dev);
     tools_map["OpenMSInfo"] = Internal::ToolDescription("OpenMSInfo", cat_misc);
+    tools_map["OpenNuXL"] = Internal::ToolDescription("OpenNuXL", cat_crosslinking);
     tools_map["OpenPepXL"] = Internal::ToolDescription("OpenPepXL", cat_crosslinking);
     tools_map["OpenPepXLLF"] = Internal::ToolDescription("OpenPepXLLF", cat_crosslinking);
     tools_map["OpenSwathAnalyzer"] = Internal::ToolDescription("OpenSwathAnalyzer", cat_targeted);

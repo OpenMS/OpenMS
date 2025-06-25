@@ -70,7 +70,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PScore.h>" namespace "OpenMS":
                 #  :param mz_window: Window in Thomson centered at each peak
 
 ## wrap static methods
-# cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS::PScore":
+# cdef extern from "<OpenMS/ANALYSIS/NUXL/PScore.h>" namespace "OpenMS::PScore":
 # 
 #    double massCorrectionTerm(double mass) except + nogil  #wrap-attach:PScore
 #    double cleavageCorrectionTerm(Size cleavages, bool consecutive_cleavage) except + nogil  #wrap-attach:PScore
