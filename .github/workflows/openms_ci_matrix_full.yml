@@ -396,7 +396,7 @@ jobs:
           ENABLE_GCC_WERROR: "OFF" # TODO think about that
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
-          WITH_PARQUET: ${{(startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'ubuntu')) && 'ON' || 'OFF' }} #Currently no functionality at all for windows since it depends on contrib TODO update this comment
+          WITH_PARQUET: ${{(startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'ubuntu')) && 'ON' || 'OFF' }} #Currently no functionality at all for windows since it depends on contrib
           SIGNING_IDENTITY: "-"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
@@ -416,8 +416,9 @@ jobs:
           CCACHE_COMPILERCHECK: content
           WITH_THERMORAWFILEPARSER_TEST: "OFF"
           Eigen3_DIR: "${{ steps.tools-prefix.outputs.eigen_choco }}" # Eigen is installed on windows using choco
-          USE_EXTERNAL_JSON: ${{ (startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')) && 'OFF' || 'ON' }}          # It's literally only Ubuntu's package manager that forcibly bundles nlohmann_json w/ arrow. The rest we can control via a cmake option in contrib +
-          # brew doesn't bundle it in. If bundled in elsewhere, for the sake of compatibility, we should use that version of Nlohmann instead.
+          USE_EXTERNAL_JSON: ${{startsWith(matrix.os,'macos') && 'OFF' || 'ON'}} 
+          # Note that apache arrow's brew/apt packages are DIFFERENT. I believe Ubuntu's packages have Nlohmann_JSON bundled with them, while 
+          # brew doesn't. As such, this results in compatibility issues between OpenMS' Nlohmann_JSON and Ubuntu's system packages. 
     - name: Test
       shell: bash
       run: |
