@@ -94,7 +94,6 @@ NuXLParameterParsing::getAllFeasibleFragmentAdducts(
         always_add_default_marker_ions,
         default_marker_ions_RNA);
 
-      // TODO: check if needed anymore - std::sort(feasible_adducts.begin(), feasible_adducts.end());
        all_pc_all_feasible_adducts[pc_adduct] = feasible_adducts;
        pc2mass[pc_adduct] = pc_mass;
        pc2ef[pc_adduct] = ef;
@@ -162,6 +161,7 @@ NuXLParameterParsing::NucleotideToFragmentAdductMap
 NuXLParameterParsing::getTargetNucleotideToFragmentAdducts(StringList fragment_adducts)
 {
   NucleotideToFragmentAdductMap nucleotide_to_fragment_adducts;
+  std::sort(fragment_adducts.begin(), fragment_adducts.end());
   for (String t : fragment_adducts)
   {
     t.removeWhitespaces();
