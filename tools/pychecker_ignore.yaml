@@ -282,7 +282,7 @@ PyOpenMSChecker:
         - int_coef
         - min_rt
         - max_rt
-    OpenMS::RNPxlModificationMassesResult:
+    OpenMS::NuXLModificationMassesResult:
         # STL attributes
         - mod_masses
         - mod_combinations
@@ -1560,9 +1560,9 @@ PyOpenMSChecker:
     - OpenMS::OpenSwathWindowLoader
     - OpenMS::OpenSwathWorkflow::ChromExtractParams
     - ModificationMassesResult
-    - RNPxlReportRow
+    - NuXLReportRow
     - TOPPFuzzyDiff
     - TOPPRNPxlXICFilter
     - MarkerIonExtractor
-    - RNPxlReportRowHeader
+    - NuXLReportRowHeader
     - TOPPRNPxl

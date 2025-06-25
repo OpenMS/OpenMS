@@ -4347,7 +4347,6 @@ def testPeptideIdentification():
     """
     @tests: PeptideIdentification
      PeptideIdentification.__init__
-     PeptideIdentification.assignRanks
      PeptideIdentification.clearMetaInfo
      PeptideIdentification.empty
      PeptideIdentification.getHits
@@ -4406,7 +4405,6 @@ def testPeptideIdentification():
     assert isinstance(pi.isHigherScoreBetter(), int)
     _testStrOutput(pi.getIdentifier())
     pi.setIdentifier("id")
-    pi.assignRanks()
     pi.sort()
     assert not pi.empty()
 

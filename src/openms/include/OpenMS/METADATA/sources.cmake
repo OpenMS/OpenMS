@@ -36,6 +36,7 @@ Precursor.h
 Product.h
 ProteinHit.h
 ProteinIdentification.h
+ProteinModificationSummary.h
 Sample.h
 ScanWindow.h
 Software.h
