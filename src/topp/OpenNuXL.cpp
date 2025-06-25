@@ -1731,7 +1731,7 @@ protected:
 
     std::sort(matches_z_fa.begin(), matches_z_fa.end(), [](const auto& a, const auto& b)
         {
-          return (get<0>(a) > get<0>(b));
+          return std::tie(get<0>(a), get<1>(a), get<2>(a)) > std::tie(get<0>(b), get<1>(b), get<2>(b));
         }
       ); // sorts by first element descending
     if (matches_z_fa.size() > 3) matches_z_fa.resize(3); // keep top 3 adducts (most peaks matched)
