@@ -98,8 +98,8 @@ namespace OpenMS
         // std::cout << spec.getStringDataArrays()[0][i] << " - " 
         //  << spec.getStringDataArrays()[0][indices_to_keep.back()] << std::endl;
 
-        String curr = spec.getStringDataArrays()[0][i];
-        String last = spec.getStringDataArrays()[0][indices_to_keep.back()];
+        const String& curr = spec.getStringDataArrays()[0][i];
+        const String& last = spec.getStringDataArrays()[0][indices_to_keep.back()];
 
         // some heuristics
         // prefer lower case over upper case annotations
@@ -122,7 +122,14 @@ namespace OpenMS
       }
     }
 
-    if (indices_to_keep.size() == spec.size()) return; // No duplicates found
+    if (indices_to_keep.size() == spec.size()) 
+    {
+      return; // No duplicates found
+    }
+    else
+    {
+      // std::cout << "Removed " << (spec.size() - indices_to_keep.size()) << " duplicate peaks from the spectrum." << std::endl;
+    }
 
     spec.select(indices_to_keep);
   }
