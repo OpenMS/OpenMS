@@ -13,10 +13,8 @@
 #include <QtCore/QTextStream>
 #include <nlohmann/json.hpp>
 
-// Whichever file nlohmann/json is used in MUST INCLUDE explicit conversions only. Thus far, this is the only such file with implicit conversions.
-// Nevertheless, this error should pop up in ci.
-// Take note of the example block here: https://json.nlohmann.me/api/macros/json_use_implicit_conversions/#version-history
-
+// This is the only place wherein Nlohmann/json is used. It is updating its requirements to work with explicit 
+// conversions only.
 using namespace std;
 /// @brief Specialize nlohmann::adl_serializer for OpenMS::EmpiricalFormula so that nlohmann::json
 // knows how to (de)serialize it: from_json constructs an EmpiricalFormula from a JSON string,to_json 
@@ -145,7 +143,7 @@ namespace OpenMS
   {
     ParsedEntry_ parsed;
     auto ribo = std::make_unique<Ribonucleotide>();
-    ribo->setName(entry.at("name").get<std::string>());
+    ribo->setName(entry.at("name").template get<std::string>());
     String code = entry.at("short_name").get<std::string>();
     ribo->setCode(code);
     // NewCode doesn't exist any more, we use the same shortname for compatibility

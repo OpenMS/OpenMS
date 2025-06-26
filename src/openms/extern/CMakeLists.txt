@@ -68,10 +68,11 @@ message(STATUS "Option USE_EXTERNAL_JSON: ${USE_EXTERNAL_JSON}")
 if(USE_EXTERNAL_JSON)
     find_package(nlohmann_json REQUIRED GLOBAL)  ## global propagates the target up to the parent project
     message(STATUS "External 'NLohmann::json' at: '${nlohmann_json_DIR}'")
-    set(JSON_USE_IMPLICIT_CONVERSIONS OFF)
+    target_compile_definitions(nlohmann_json::nlohmann_json INTERFACE JSON_USE_IMPLICIT_CONVERSIONS=0)
 else()
     set(JSON_BuildTests OFF CACHE INTERNAL "")
     add_subdirectory(nlohmann_json)
+    set(JSON_USE_IMPLICIT_CONVERSIONS=0)
 endif()
 
 option(USE_EXTERNAL_SQLITECPP "Use an external SQLiteCpp library" OFF)
