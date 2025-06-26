@@ -12,6 +12,7 @@ NuXLFragmentIonGenerator.cpp
 NuXLMarkerIonExtractor.cpp
 NuXLModificationsGenerator.cpp
 NuXLParameterParsing.cpp
+NuXLPreprocessSpectra.cpp
 NuXLPresets.cpp
 NuXLReport.cpp
 )

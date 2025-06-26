@@ -12,10 +12,13 @@
 #include <OpenMS/ANALYSIS/NUXL/NuXLAnnotateAndLocate.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLAnnotatedHit.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLParameterParsing.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLPresets.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/DATASTRUCTURES/StringView.h>
 
 using namespace std;
 using namespace OpenMS;
@@ -28,97 +31,349 @@ START_TEST(NuXLAnnotateAndLocate, "$Id$")
 
 START_SECTION((static void annotateAndLocate_(const PeakMap& exp, std::vector<std::vector<NuXLAnnotatedHit>>& annotated_hits, const NuXLModificationMassesResult& mm, const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, Size max_variable_mods_per_peptide, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const NuXLParameterParsing::PrecursorsToMS2Adducts& all_feasible_adducts)))
 {
-  // Create minimal test data for the annotateAndLocate_ method
+  // Create test data for the annotateAndLocate_ method
   PeakMap exp;
   
-  // Create a simple spectrum
+  // Create MS2 spectrum
   MSSpectrum spectrum;
-  spectrum.setRT(100.0);
+  
+  // Set spectrum metadata
   spectrum.setMSLevel(2);
+  spectrum.setRT(26.236534118652301); // RT in seconds
+  spectrum.setNativeID("scan=0");
   
-  // Add some peaks
-  Peak1D peak;
-  peak.setMZ(100.0);
-  peak.setIntensity(1000.0);
-  spectrum.push_back(peak);
-  
-  peak.setMZ(200.0);
-  peak.setIntensity(500.0);
-  spectrum.push_back(peak);
-  
-  // Add precursor information
+  // Set precursor information
   Precursor precursor;
-  precursor.setMZ(300.0);
+  precursor.setMZ(678.284423828125);
   precursor.setCharge(2);
-  spectrum.getPrecursors().push_back(precursor);
+  precursor.setIntensity(0.0); // Not specified in MGF
   
-  // Add required data arrays
+  vector<Precursor> precursors;
+  precursors.push_back(precursor);
+  spectrum.setPrecursors(precursors);
+  
+  // Define peak data (m/z, intensity pairs)
+  vector<pair<double, double>> peak_data = {
+      {110.071525573730469, 6.253766e04},
+      {112.050888061523438, 3.577897e04},
+      {112.086700439453125, 1.105394e04},
+      {114.056053161621094, 2988.362305},
+      {115.086708068847656, 3076.342773},
+      {116.070907592773438, 3446.308594},
+      {129.102294921875, 1.756605e04},
+      {130.032073974609375, 4686.557129},
+      {130.08587646484375, 5617.307129},
+      {136.0618896484375, 2.164918e05},
+      {136.074996948242188, 2.029108e04},
+      {137.047286987304688, 3687.551514},
+      {137.065200805664063, 6387.198242},
+      {147.1129150390625, 1.92404e04},
+      {148.042221069335938, 3363.700928},
+      {152.056503295898438, 1.203792e04},
+      {158.092330932617188, 1.480457e04},
+      {161.092391967773438, 3599.997803},
+      {164.99444580078125, 3784.263916},
+      {169.13360595703125, 4.185202e04},
+      {173.092025756835938, 1.233966e04},
+      {175.071029663085938, 1.580166e04},
+      {175.118759155273438, 8.477893e04},
+      {179.045318603515625, 1.823629e04},
+      {189.0687255859375, 1.301581e04},
+      {192.101638793945313, 1.350166e04},
+      {197.128097534179688, 1.393258e04},
+      {198.168533325195313, 1.331057e04},
+      {198.191116333007813, 2.554027e04},
+      {204.134170532226563, 2.405196e04},
+      {205.065078735351563, 3374.075928},
+      {213.014556884765625, 4348.111328},
+      {218.151031494140625, 3751.484131},
+      {227.066131591796875, 1.017478e05},
+      {228.071426391601563, 1.20593e04},
+      {229.127822875976563, 3365.893799},
+      {232.13983154296875, 1.504747e04},
+      {233.105987548828125, 5794.908691},
+      {233.131546020507813, 1.410256e05},
+      {237.123031616210938, 1.239832e04},
+      {239.113800048828125, 3990.227051},
+      {240.134185791015625, 5963.953613},
+      {246.155319213867188, 1.500475e04},
+      {250.093399047851563, 5158.16748},
+      {251.101776123046875, 1.641352e04},
+      {261.126708984375, 8.40667e04},
+      {268.164642333984375, 1.894302e04},
+      {284.12322998046875, 3232.119629},
+      {286.150421142578125, 1.869846e04},
+      {288.20086669921875, 3759.060547},
+      {303.177154541015625, 1.501742e05},
+      {304.178009033203125, 1.185856e04},
+      {306.1414794921875, 3565.862061},
+      {312.047698974609375, 5508.858398},
+      {317.217926025390625, 1.34463e04},
+      {330.05950927734375, 4.907482e04},
+      {332.163787841796875, 5.271074e04},
+      {345.22412109375, 2.51371e04},
+      {348.0694580078125, 3864.993897},
+      {359.13421630859375, 4295.918457},
+      {362.1336669921875, 1.616536e04},
+      {363.131317138671875, 1.351985e04},
+      {368.21673583984375, 5.284671e04},
+      {368.71990966796875, 2.359747e04},
+      {377.221343994140625, 7.732263e04},
+      {377.719268798828125, 2.048313e04},
+      {399.233306884765625, 1.637699e04},
+      {415.200531005859375, 5554.976074},
+      {416.16107177734375, 4973.861328},
+      {416.2611083984375, 1.733192e05},
+      {417.262054443359375, 2.281113e04},
+      {418.123992919921875, 1.756198e04},
+      {423.222259521484375, 4217.286133},
+      {424.219085693359375, 1.986142e04},
+      {435.182647705078125, 5197.253906},
+      {459.148712158203125, 4979.168457},
+      {460.137542724609375, 3691.867432},
+      {466.247894287109375, 3510.215576},
+      {477.163330078125, 2.09019e04},
+      {484.256866455078125, 2.417197e04},
+      {488.129302978515625, 4284.745117},
+      {499.19189453125, 4154.002441},
+      {505.15753173828125, 2.958442e04},
+      {507.261810302734375, 4367.555176},
+      {510.177032470703125, 4766.870606},
+      {514.7666015625, 4061.070557},
+      {515.2484130859375, 4104.623047},
+      {515.33038330078125, 1.04829e05},
+      {516.34088134765625, 1.926769e04},
+      {517.205078125, 5048.685547},
+      {519.75439453125, 5256.198242},
+      {527.185791015625, 1.428935e04},
+      {528.1842041015625, 1.262405e04},
+      {541.75848388671875, 1.145473e04},
+      {544.24188232421875, 1.113731e04},
+      {550.15606689453125, 3788.122559},
+      {554.76214599609375, 5055.256836},
+      {555.177978515625, 5592.391113},
+      {562.26092529296875, 1.931875e04},
+      {562.775390625, 1.217805e04},
+      {563.275390625, 3.180423e04},
+      {563.7735595703125, 1.516493e04},
+      {567.764404296875, 6875.622559},
+      {568.26849365234375, 6272.043457},
+      {571.7821044921875, 5.705805e04},
+      {572.27984619140625, 6.670002e04},
+      {572.78509521484375, 3.137877e04},
+      {576.77349853515625, 3.774367e04},
+      {577.27886962890625, 2.628601e04},
+      {580.26910400390625, 1.242485e04},
+      {583.31561279296875, 4133.029297},
+      {585.777587890625, 4305.655762},
+      {589.7821044921875, 1.17204e04},
+      {590.28338623046875, 4917.491699},
+      {598.28643798828125, 2.424438e04},
+      {598.37109375, 1.423503e04},
+      {602.77374267578125, 1.171851e04},
+      {603.2696533203125, 5092.021484},
+      {611.28338623046875, 1.388459e04},
+      {611.7808837890625, 3.834531e04},
+      {612.27587890625, 1.353678e04},
+      {614.22186279296875, 5917.741699},
+      {616.3775634765625, 2.142273e05},
+      {617.3787841796875, 4.907813e04},
+      {620.29071044921875, 7.968598e04},
+      {620.7886962890625, 7.448647e04},
+      {621.28009033203125, 1.615241e04},
+      {624.2008056640625, 2.882028e04},
+      {625.20501708984375, 6245.141602},
+      {626.36175537109375, 5554.005859},
+      {629.2969970703125, 3.109704e05},
+      {629.7974853515625, 1.909436e05},
+      {638.30474853515625, 1.256815e04},
+      {642.2138671875, 2.738232e04},
+      {643.2093505859375, 5399.541504},
+      {648.33551025390625, 1.2203e04},
+      {656.23358154296875, 5101.35791},
+      {660.23907470703125, 1.513047e04},
+      {660.77899169921875, 4942.533203},
+      {669.27935791015625, 1.950834e04},
+      {669.778564453125, 1.390851e04},
+      {678.237548828125, 4.527829e04},
+      {696.25799560546875, 5.060615e04},
+      {722.1842041015625, 6325.642578},
+      {725.2520751953125, 2.302715e04},
+      {735.421142578125, 1.520849e04},
+      {740.19207763671875, 5457.153809},
+      {743.26336669921875, 2.377473e04},
+      {753.4393310546875, 1.013214e05},
+      {754.43768310546875, 3.028721e04},
+      {777.3187255859375, 4896.175293},
+      {795.32861328125, 1.31911e04},
+      {798.3021240234375, 5863.57666},
+      {813.4117431640625, 4935.314941},
+      {814.327880859375, 6533.92627},
+      {824.3211669921875, 1.895101e04},
+      {825.31719970703125, 1.169664e04},
+      {834.40716552734375, 4818.745117},
+      {842.3365478515625, 2.336112e04},
+      {843.3336181640625, 5359.795898},
+      {884.44525146484375, 6872.038086},
+      {898.3970947265625, 1.272029e04},
+      {909.42108154296875, 5247.175293},
+      {916.491455078125, 5883.089844},
+      {921.43280029296875, 4168.393555},
+      {927.43896484375, 1.906384e04},
+      {937.42437744140625, 5556.257813},
+      {955.418212890625, 2.53536e04},
+      {980.47265625, 4401.492188},
+      {985.42645263671875, 1.125866e04},
+      {998.47479248046875, 1.84024e04},
+      {1025.4136962890625, 1.467806e04},
+      {1031.5264892578125, 6.322954e04},
+      {1032.5228271484375, 2.714641e04},
+      {1078.453857421875, 5037.069824},
+      {1083.4879150390625, 1.257548e04},
+      {1096.454833984375, 1.260347e04},
+      {1143.546875, 1.702259e04},
+      {1144.5631103515625, 6057.237793}
+  };
+  
+  // Add peaks to spectrum
+  spectrum.reserve(peak_data.size());
+  for (const auto& peak : peak_data) {
+      spectrum.push_back(Peak1D(peak.first, peak.second));
+  }
+  
+  // Sort peaks by m/z (recommended for OpenMS spectra)
+  spectrum.sortByPosition();
+  
+  // Add required data arrays (charge information for each peak)
   spectrum.getIntegerDataArrays().resize(1);
-  spectrum.getIntegerDataArrays()[0].push_back(1); // charge for first peak
-  spectrum.getIntegerDataArrays()[0].push_back(1); // charge for second peak
+  for (size_t i = 0; i < peak_data.size(); ++i) {
+      spectrum.getIntegerDataArrays()[0].push_back(0); // Default charge of 0 (unknown) for fragment peaks
+  }
   
   exp.addSpectrum(spectrum);
   
+
   // Create empty annotated hits vector
   vector<vector<NuXLAnnotatedHit>> annotated_hits;
   annotated_hits.resize(1); // One spectrum
   
-  // Create minimal NuXLModificationMassesResult
-  NuXLModificationMassesResult mm;
-  mm.formula2mass[""] = 0.0;
+  // Retrieve preset for RNA-UV (U) to get default PrecursorToMS2Adducts
+  StringList modifications;
+  StringList fragment_adducts;
+  String can_cross_link;
+  StringList target_nucleotides;
+  StringList mappings;
+
+  NuXLPresets::getPresets("RNA-UV (U)", target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link);
+
+  // Convert string to set
+  set<char> can_xl;
+  for (const auto& c : can_cross_link) { can_xl.insert(c); }
+
+  // Create NuXLModificationMassesResult
+  NuXLModificationMassesResult mm = NuXLModificationsGenerator::initModificationMassesNA(
+            target_nucleotides,
+            StringList(),
+            can_xl,
+            mappings,
+            modifications,
+            "",
+            false,
+            2);
+
+  mm.formula2mass[""] = 0; // insert "null" modification otherwise peptides without NA will not be searched
   mm.mod_combinations[""].insert("none");
   
   // Create empty modification maps
   ModifiedPeptideGenerator::MapToResidueType fixed_modifications;
   ModifiedPeptideGenerator::MapToResidueType variable_modifications;
   
-  // Create empty feasible adducts
-  NuXLParameterParsing::PrecursorsToMS2Adducts all_feasible_adducts;
+  // Get nucleotide to fragment adducts mapping
+  NuXLParameterParsing::NucleotideToFragmentAdductMap nucleotide_to_fragment_adducts =
+    NuXLParameterParsing::getTargetNucleotideToFragmentAdducts(fragment_adducts);
+  
+  // Get all feasible fragment adducts from all possible precursor adducts
+  NuXLParameterParsing::PrecursorsToMS2Adducts all_feasible_adducts =
+    NuXLParameterParsing::getAllFeasibleFragmentAdducts(mm, nucleotide_to_fragment_adducts, can_xl, true, true);
   
   // Test parameters
   Size max_variable_mods_per_peptide = 2;
   double fragment_mass_tolerance = 0.1;
   bool fragment_mass_tolerance_unit_ppm = false;
   
-  // Test with empty annotated hits (should not crash)
-  TEST_EXCEPTION(Exception::BaseException, 
-    NuXLAnnotateAndLocate::annotateAndLocate_(
-      exp, 
-      annotated_hits, 
-      mm, 
-      fixed_modifications, 
-      variable_modifications, 
-      max_variable_mods_per_peptide, 
-      fragment_mass_tolerance, 
-      fragment_mass_tolerance_unit_ppm, 
-      all_feasible_adducts
-    )
-  )
+  // Create an annotated hit with peptide sequence DYHTVLGAR and precursor adduct U-H2O1
+  NuXLAnnotatedHit hit;
+  hit.sequence = StringView("DYHTVLGAR");
+  hit.peptide_mod_index = 0; // No peptide modifications
+  hit.cross_linked_nucleotide = 'U';
   
-  // Since this is a complex integration method that requires extensive setup,
-  // we mainly test that it doesn't crash with minimal valid input.
-  // More comprehensive tests would require setting up proper NuXLAnnotatedHit objects
-  // with valid sequences, modification indices, etc.
+  // Find the index for "U-H2O1" in the modification combinations
+  // "U-H2O1" corresponds to formula "C9H11N2O8P1"
+  Size na_mod_index = 0;
+  for (const auto& pair : mm.mod_combinations) {
+    if (pair.first == "C9H11N2O8P1" && pair.second.find("U-H2O1") != pair.second.end()) {
+      break;
+    }
+    na_mod_index++;
+  }
+  hit.NA_mod_index = na_mod_index;
   
-  // Test that the method exists and can be called (basic smoke test)
-  // The method should handle empty annotated_hits gracefully
-  annotated_hits[0].clear(); // Ensure it's empty
+  // Set some basic scores for a realistic hit
+  hit.score = 10.0;
+  hit.mass_error_p = 0.5;
+  hit.total_loss_score = 5.0;
+  hit.total_MIC = 0.3;
   
-  // This should not crash and should return without doing anything
+  // Add the hit to the annotated hits
+  annotated_hits[0].push_back(hit);
+  
+  // Test that the method can handle a real annotated hit
   NuXLAnnotateAndLocate::annotateAndLocate_(
-    exp, 
-    annotated_hits, 
-    mm, 
-    fixed_modifications, 
-    variable_modifications, 
-    max_variable_mods_per_peptide, 
-    fragment_mass_tolerance, 
-    fragment_mass_tolerance_unit_ppm, 
+    exp,
+    annotated_hits,
+    mm,
+    fixed_modifications,
+    variable_modifications,
+    max_variable_mods_per_peptide,
+    fragment_mass_tolerance,
+    fragment_mass_tolerance_unit_ppm,
     all_feasible_adducts
   );
+
+    // Test localization and annotation results (dummy expected values for now)
+  TEST_EQUAL(annotated_hits[0].size(), 1)
+  const NuXLAnnotatedHit& processed_hit = annotated_hits[0][0];
+
+  // Test that localization fields are populated
+  TEST_NOT_EQUAL(processed_hit.localization_scores, "")
+  TEST_NOT_EQUAL(processed_hit.best_localization, "")
+  TEST_NOT_EQUAL(processed_hit.best_localization_score, 0.0)
+  TEST_NOT_EQUAL(processed_hit.best_localization_position, -1)
+
+    // Expected best_localization (dummy value - to be replaced with correct one)
+  String expected_best_localization = "DyHTVLGAR"; // or specific localization pattern
+  TEST_EQUAL(processed_hit.best_localization, expected_best_localization)
+
+  String expected_localization_scores = "dummy_localization_scores";
+  TEST_EQUAL(processed_hit.localization_scores, expected_localization_scores)
   
-  // Verify that empty input results in no changes
-  TEST_EQUAL(annotated_hits[0].size(), 0)
+  // Expected best_localization_score (dummy value - to be replaced with correct one)
+  float expected_best_localization_score = 1.0f;
+  TEST_REAL_SIMILAR(processed_hit.best_localization_score, expected_best_localization_score)
+  
+  // Expected best_localization_position (dummy value - to be replaced with correct one)
+  int expected_best_localization_position = 0; // or specific position
+  TEST_EQUAL(processed_hit.best_localization_position, expected_best_localization_position)
+  
+  // Test that at least some fragment annotations were generated
+  // (specific annotations to be validated once expected values are known)
+  for (const auto& annotation : processed_hit.fragment_annotations) {
+    TEST_NOT_EQUAL(annotation.annotation, "")
+    TEST_REAL_SIMILAR(annotation.mz, 0.0)
+    TEST_REAL_SIMILAR(annotation.intensity, 0.0)
+  }
+  
+
 }
 END_SECTION
 

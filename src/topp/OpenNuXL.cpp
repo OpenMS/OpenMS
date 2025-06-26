@@ -40,6 +40,7 @@
 #include <OpenMS/ANALYSIS/NUXL/NuXLFragmentAnnotationHelper.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLFragmentIonGenerator.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLParameterParsing.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLPreprocessSpectra.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLPresets.h>
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
@@ -3048,185 +3049,6 @@ static void scoreXLIons_(
        to highly charged fragments in the low m/z region
      - Calculate TIC of filtered spectrum
    */
-  void preprocessSpectra_(PeakMap& exp, 
-/*
-    double fragment_mass_tolerance,
-    bool fragment_mass_tolerance_unit_ppm,
-*/
-    bool single_charge_spectra, 
-    bool annotate_charge,
-    double window_size,
-    size_t peakcount,
-    const std::map<String, PrecursorPurity::PurityScores>& purities)
-  {
-    // filter MS2 map
-    // remove 0 intensities
-    ThresholdMower threshold_mower_filter;
-    threshold_mower_filter.filterPeakMap(exp);
-
-#pragma omp parallel for
-    for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
-    {
-      MSSpectrum & spec = exp[exp_index];
-
-      // sort by mz
-      spec.sortByPosition();
-
-      // deisotope
-      NuXLDeisotoper::deisotopeAndSingleCharge(spec, 
-                                         0.01,
-                                         false,
-                                         1, 3, 
-                                         false, 
-                                         2, 10, 
-                                         single_charge_spectra, 
-                                         annotate_charge,
-                                         false, // no iso peak count annotation
-                                         true, // decreasing isotope model
-                                         2, // enforce only starting from second peak
-                                         true); // add up intensities
-    }
-
-    filterPeakInterference_(exp, purities);
-
-    // remove empty spectra as they can cause trouble downstream
-    auto& sp = exp.getSpectra();
-    sp.erase(std::remove_if(sp.begin(), sp.end(), [](const MSSpectrum& s) { return s.empty(); }), exp.end());
-/*
-    SqrtMower sqrt_mower_filter;
-    sqrt_mower_filter.filterPeakMap(exp);
-*/
-    Normalizer normalizer;
-    normalizer.filterPeakMap(exp);
-
-    // sort by rt
-    exp.sortSpectra(false);
-
-    // filter settings
-    WindowMower window_mower_filter;
-    Param filter_param = window_mower_filter.getParameters();
-    filter_param.setValue("windowsize", window_size, "The size of the sliding window along the m/z axis.");
-    filter_param.setValue("peakcount", peakcount, "The number of peaks that should be kept.");
-    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
-    window_mower_filter.setParameters(filter_param);
-
-    NLargest nlargest_filter = NLargest(400);
-
-    #ifdef DEBUG_OpenNuXL
-    BinnedSpectrum peak_density(MSSpectrum(), 0.03, false, 0, 0);
-    #endif
-
-#pragma omp parallel for
-    for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
-    {
-      MSSpectrum & spec = exp[exp_index];
-      // sort by mz
-      spec.sortByPosition();
-
-      if (annotate_charge)
-      { 
-        // set Unknown charge to z=1. Otherwise we get a lot of spurious matches 
-        // to highly charged fragments in the low m/z region
-        if (spec.empty()) continue; // TODO: maybe add empty integerdataarray in deisotoping? seems to be missing here
-        DataArrays::IntegerDataArray& ia = spec.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX]; // charge array
-        for (int & z : ia) { if (z == 0) { z = 1; } }
-      } 
-    #ifdef DEBUG_OpenNuXL
-      OPENMS_LOG_DEBUG << "after deisotoping..." << endl;
-      OPENMS_LOG_DEBUG << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
-      OPENMS_LOG_DEBUG << "Fragment charges in spectrum: " << exp_index  << endl;
-      if (spec.getIntegerDataArrays().size())
-        for (Size i = 0; i != spec.size(); ++i) 
-          OPENMS_LOG_DEBUG  << spec[i].getMZ() << "\t" << spec[i].getIntensity() << "\t" << ia[i] << endl;
-      OPENMS_LOG_DEBUG << endl;
-    #endif
-
-      // remove noise
-      window_mower_filter.filterPeakSpectrum(spec);
-
-    #ifdef DEBUG_OpenNuXL
-      OPENMS_LOG_DEBUG << "after mower..." << endl;
-      OPENMS_LOG_DEBUG << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
-      for (Size i = 0; i != spec.size(); ++i) OPENMS_LOG_DEBUG << spec[i].getMZ() << "\t" << spec[i].getIntensity() << endl;
-      OPENMS_LOG_DEBUG << "Fragment charges in spectrum: " << exp_index  << endl;
-      if (spec.getIntegerDataArrays().size())
-        for (Size i = 0; i != spec.size(); ++i) 
-          OPENMS_LOG_DEBUG  << spec[i].getMZ() << "\t" << spec[i].getIntensity() << "\t" << ia[i] << endl;
-    #endif
-    
-      nlargest_filter.filterPeakSpectrum(spec);
-
-    #ifdef DEBUG_OpenNuXL
-      OPENMS_LOG_DEBUG << "after nlargest..." << endl;
-      OPENMS_LOG_DEBUG << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
-      for (Size i = 0; i != spec.size(); ++i) OPENMS_LOG_DEBUG << spec[i].getMZ() << "\t" << spec[i].getIntensity() << endl;
-      OPENMS_LOG_DEBUG << "Fragment charges in spectrum: " << exp_index  << endl;
-      if (spec.getIntegerDataArrays().size())
-        for (Size i = 0; i != spec.size(); ++i) 
-          OPENMS_LOG_DEBUG  << spec[i].getMZ() << "\t" << spec[i].getIntensity() << "\t" << ia[i] << endl;
-    #endif
- 
-      // sort (nlargest changes order)
-      spec.sortByPosition();
-  
-    #ifdef DEBUG_OpenNuXL
-      OPENMS_LOG_DEBUG << "after sort..." << endl;
-      OPENMS_LOG_DEBUG << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
-      for (Size i = 0; i != spec.size(); ++i) OPENMS_LOG_DEBUG << spec[i].getMZ() << "\t" << spec.getIntensity() << endl;
-      if (spec.getIntegerDataArrays().size())
-        for (Size i = 0; i != spec.size(); ++i) 
-          OPENMS_LOG_DEBUG  << spec[i].getMZ() << "\t" << spec[i].getIntensity() << "\t" << ia[i] << endl;
-    #endif
-
-#ifdef DEBUG_OpenNuXL
-      BinnedSpectrum bs(spec, 0.03, false, 0, 0);
-      bs.getBins().coeffs().cwiseMax(1);
-
-#pragma omp critical (peak_density_access)
-      peak_density.getBins() += bs.getBins();
-#endif
-
-      // calculate TIC and store in float data array
-      spec.getFloatDataArrays().clear();
-      spec.getFloatDataArrays().resize(1);
-      double TIC = spec.calculateTIC();
-      spec.getFloatDataArrays()[0].push_back(TIC);
-      spec.getFloatDataArrays()[0].setName("TIC");
-/*
-      vector<Interval_> is;
-      const double precursor_mass = spec.getPrecursors()[0].getMZ() * spec.getPrecursors()[0].getCharge();
-      for (const auto& p : spec)
-      {
-        const double mz = p.getMZ();
-        if (mz > precursor_mass) break; // don't consider peaks after precursor mass
-        const double tol = fragment_mass_tolerance_unit_ppm ? fragment_mass_tolerance * 1e-6 * mz : fragment_mass_tolerance;
-        Interval_ a;
-        a.start = mz - tol;
-        a.end = mz + tol;
-        is.push_back(a);
-      }
-      spec.getFloatDataArrays().resize(2);
-      spec.getFloatDataArrays()[1].setName("P_RANDOM_MATCH");
-      const double area_of_union = getAreaOfIntervalUnion_(is);
-      const double p_random_match = std::max(area_of_union / precursor_mass, 1e-6); // cap at low value
-      spec.getFloatDataArrays()[1].resize(1);
-      //cout << p_random_match << " " << area_of_union << " " << precursor_mass << " " << spec.getNativeID()  << endl;
-      spec.getFloatDataArrays()[1][0] = p_random_match;
-*/
-    }
-
-#ifdef DEBUG_OpenNuXL
-    ofstream dist_file;
-    dist_file.open(getStringOption_("in") + ".fragment_dist.csv");
-    dist_file << "m/z\tfragments" << "\n";
-    for (double mz = 0; mz < 2500.0; mz+=0.03)
-    {
-      dist_file << mz << "\t" << peak_density.getBinIntensity(mz) << "\n";
-    }
-    dist_file.close();
-#endif
-    if (debug_level_ > 10) MzMLFile().store("debug_filtering.mzML", exp); 
-  }
 
   void filterTopNAnnotations_(vector<vector<NuXLAnnotatedHit>>& ahs, const Size top_hits)
   {
@@ -4597,38 +4419,6 @@ static void scoreXLIons_(
     }
   }
 
-  void filterPeakInterference_(PeakMap& spectra, const map<String, PrecursorPurity::PurityScores>& purities, double fragment_mass_tolerance = 20.0, bool fragment_mass_tolerance_unit_ppm = true)
-  {
-    double filtered_peaks_count{0};
-    size_t filtered_spectra{0};
-    for (auto& s : spectra)
-    {
-      unordered_set<size_t> idx_to_remove;
-      auto it = purities.find(s.getNativeID());
-      if (it != purities.end())
-      {        
-        for (const auto& interfering_peak : it->second.interfering_peaks)
-        {
-          const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? interfering_peak.getMZ()  * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-          auto pos = s.findNearest(interfering_peak.getMZ(), max_dist_dalton, max_dist_dalton); 
-          if (pos != -1) 
-          {
-            idx_to_remove.insert(pos);
-          }
-        }
-        vector<size_t> idx_to_keep; // inverse
-        for (size_t i = 0; i != s.size(); ++i)
-        { // add indices we don't want to remove
-          if (idx_to_remove.find(i) == idx_to_remove.end()) idx_to_keep.push_back(i);
-        }
-        filtered_peaks_count += idx_to_remove.size();
-        s.select(idx_to_keep);
-      }
-      ++filtered_spectra;
-    } 
-    OPENMS_LOG_INFO << "Filtered out " << filtered_peaks_count << " peaks in total that matched to precursor interference." << endl;
-    if (filtered_spectra > 0) OPENMS_LOG_INFO << "  On average " << filtered_peaks_count / (double)filtered_spectra << " peaks per MS2." << endl;
-  }
 
   ExitCodes main_(int, const char**) override
   {
@@ -5229,11 +5019,9 @@ static void scoreXLIons_(
     progresslogger.startProgress(0, 1, "Filtering spectra...");
     const double window_size = getDoubleOption_("window_size");
     const size_t peak_count = getIntOption_("peak_count");
-    preprocessSpectra_(spectra, 
-    //                   fragment_mass_tolerance, 
-    //                   fragment_mass_tolerance_unit_ppm, 
+    NuXLPreprocessSpectra::preprocessSpectra(spectra,
                        false, // keep charge as is
-                       true, window_size, peak_count, purities); // annotate charge  
+                       true, window_size, peak_count, purities); // annotate charge
     progresslogger.endProgress();
 
     progresslogger.startProgress(0, 1, "Calculate Nucleotide Tags...");
@@ -5957,9 +5745,7 @@ static void scoreXLIons_(
       convertVSSCToCCS(spectra);
     }
 
-    preprocessSpectra_(spectra, 
-    //                   fragment_mass_tolerance, 
-    //                   fragment_mass_tolerance_unit_ppm, 
+    NuXLPreprocessSpectra::preprocessSpectra(spectra,
                        false, // no single charge (false)
                        true, window_size, peak_count, purities); // annotate charge (true)
 
