@@ -92,3 +92,4 @@ namespace OpenMS
       void getTag_(std::string& tag, const std::vector<double>& mzs, const size_t i, std::vector<std::string>& tags, const size_t charge) const;
   };
 }
+

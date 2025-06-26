@@ -75,7 +75,7 @@ START_SECTION((void SpectrumAnnotator::annotateMatches(PeakSpectrum& spec, const
   ABORT_IF(spec.size() != types.size() || types.size() != pls)
   for (size_t i = 0; i < spec.size(); ++i)
   {
-    TEST_STRING_EQUAL(types[i],annotlist[i])
+    TEST_STRING_EQUAL(types[i], annotlist[i])
   }
   TEST_REAL_SIMILAR(spec.getMetaValue("fragment_mass_tolerance"),0.1)
 END_SECTION
