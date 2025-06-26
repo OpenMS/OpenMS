@@ -516,6 +516,7 @@ set(analysis_executables_list
   ReactionMonitoringTransition_test
   NuXLModificationsGenerator_test
   NuXLParameterParsing_test
+  NuXLAnnotateAndLocate_test
   SimpleSearchEngineAlgorithm_test
   SimpleSVM_test
   StablePairFinder_test
