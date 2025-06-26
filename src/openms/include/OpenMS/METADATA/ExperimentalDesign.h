@@ -66,150 +66,40 @@ namespace OpenMS
     For details on the MSstats columns please refer to the MSstats manual for details
     (https://www.bioconductor.org/packages/release/bioc/vignettes/MSstats/inst/doc/MSstats.html).
 
-    <table>
-    <tr>
-        <th>Fraction_Group</th>
-        <th>Fraction</th>
-        <th>Spectra_Filepath</th>
-        <th>Label</th>
-        <th>MSstats_Condition</th>
-        <th>MSstats_BioReplicate</th>
-    </tr>
-    <tr>
-        <td>1</td>
-        <td>1</td>
-        <td>UPS1_12500amol_R1.mzML</td>
-        <td>1</td>
-        <td>12500 amol</td>
-        <td>1</td>
-    </tr>
-    <tr>
-        <td>2</td>
-        <td>1</td>
-        <td>UPS1_12500amol_R2.mzML</td>
-        <td>1</td>
-        <td>12500 amol</td>
-        <td>2</td>
-    </tr>
-    <tr>
-        <td>3</td>
-        <td>1</td>
-        <td>UPS1_12500amol_R3.mzML</td>
-        <td>1</td>
-        <td>12500 amol</td>
-        <td>3</td>
-    </tr>
-    <tr>
-        <td>...</td>
-        <td>...</td>
-        <td>...</td>
-        <td>...</td>
-        <td>...</td>
-        <td>...</td>
-    </tr>
-    <tr>
-        <td>22</td>
-        <td>1</td>
-        <td>UPS1_500amol_R1.mzML</td>
-        <td>1</td>
-        <td>500 amol</td>
-        <td>1</td>
-    </tr>
-    <tr>
-        <td>23</td>
-        <td>1</td>
-        <td>UPS1_500amol_R2.mzML</td>
-        <td>1</td>
-        <td>500 amol</td>
-        <td>2</td>
-    </tr>
-    <tr>
-        <td>24</td>
-        <td>1</td>
-        <td>UPS1_500amol_R3.mzML</td>
-        <td>1</td>
-        <td>500 amol</td>
-        <td>3</td>
-    </tr>
-    </table>
-
-    Alternatively, the experimental design can be specified with a file consisting of two tables whose headers are separated
-    by a blank line. The two tables are:
-
-    - The file section table and the sample section table.
-    - The file section consists of columns Fraction_Group, Fraction, Spectra_Filepath, Label and Sample
-
-    The sample section consists of columns Sample, MSstats_Condition and MSstats_BioReplicate.
-
-    The content is the same as described for the one table format, except that the additional numeric sample column
-    allows referencing between file and sample section.
-
-    <table>
-    <tr>
-        <th>Fraction_Group</th>
-        <th>Fraction</th>
-        <th>Spectra_Filepath</th>
-        <th>Label</th>
-        <th>Sample</th>
-    </tr>
-    <tr>
-        <td>1</td>
-        <td>1</td>
-        <td>UPS1_12500amol_R1.mzML</td>
-        <td>1</td>
-        <td>1</td>
-    </tr>
-    <tr>
-        <td>2</td>
-        <td>1</td>
-        <td>UPS1_12500amol_R2.mzML</td>
-        <td>1</td>
-        <td>2</td>
-    </tr>
-    <tr>
-        <td>...</td>
-        <td>...</td>
-        <td>...</td>
-        <td>...</td>
-        <td>...</td>
-    </tr>
-    <tr>
-        <td>22</td>
-        <td>1</td>
-        <td>UPS1_500amol_R1.mzML</td>
-        <td>1</td>
-        <td>22</td>
-    </tr>
-    </table>
-
-    <table>
-    <tr>
-        <th>Sample</th>
-        <th>MSstats_Condition</th>
-        <th>MSstats_BioReplicate</th>        
-    </tr>
-    <tr>
-        <td>1</td>
-        <td>12500 amol</td>
-        <td>1</td>
-    </tr>
-    <tr>
-        <td>2</td>
-        <td>12500 amol</td>
-        <td>2</td>
-    </tr>
-    <tr>
-        <td>...</td>
-        <td>...</td>
-        <td>...</td>
-    </tr>
-    <tr>
-        <td>22</td>
-        <td>500 amol</td>
-        <td>3</td>
-    </tr>
-    </table>
-
+ | Fraction_Group | Fraction | Spectra_Filepath         | Label | MSstats_Condition | MSstats_BioReplicate |
+ |----------------|----------|---------------------------|-------|--------------------|------------------------|
+ | 1              | 1        | UPS1_12500amol_R1.mzML    | 1     | 12500 amol         | 1                      |
+ | 2              | 1        | UPS1_12500amol_R2.mzML    | 1     | 12500 amol         | 2                      |
+ | 3              | 1        | UPS1_12500amol_R3.mzML    | 1     | 12500 amol         | 3                      |
+ | ...            | ...      | ...                       | ...   | ...                | ...                    |
+ | 22             | 1        | UPS1_500amol_R1.mzML      | 1     | 500 amol           | 1                      |
+ | 23             | 1        | UPS1_500amol_R2.mzML      | 1     | 500 amol           | 2                      |
+ | 24             | 1        | UPS1_500amol_R3.mzML      | 1     | 500 amol           | 3                      |
+ 
+ Alternatively, the experimental design can be specified with a file consisting of two tables 
+ whose headers are separated by a blank line.
+ 
+ The two tables are:
+ - The file section table and the sample section table.
+ - The file section consists of columns `Fraction_Group`, `Fraction`, `Spectra_Filepath`, `Label`, and `Sample`
+ 
+ File section:
+ 
+ | Fraction_Group | Fraction | Spectra_Filepath         | Label | Sample |
+ |----------------|----------|---------------------------|-------|--------|
+ | 1              | 1        | UPS1_12500amol_R1.mzML    | 1     | 1      |
+ | 2              | 1        | UPS1_12500amol_R2.mzML    | 1     | 2      |
+ | ...            | ...      | ...                       | ...   | ...    |
+ | 22             | 1        | UPS1_500amol_R1.mzML      | 1     | 22     |
+ 
+ Sample section:
+ 
+ | Sample | MSstats_Condition | MSstats_BioReplicate |
+ |--------|--------------------|------------------------|
+ | 1      | 12500 amol         | 1                      |
+ | 2      | 12500 amol         | 2                      |
+ | ...    | ...                | ...                    |
+ | 22     | 500 amol           | 3                      |
 
   @ingroup Metadata
 
