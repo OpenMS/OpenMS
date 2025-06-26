@@ -311,7 +311,8 @@ START_SECTION((static void annotateAndLocate_(const PeakMap& exp, std::vector<st
   
   // Create an annotated hit with peptide sequence DYHTVLGAR and precursor adduct U-H2O1
   NuXLAnnotatedHit hit;
-  hit.sequence = StringView("DYHTVLGAR");
+  const String seq = "DYHTVLGAR";
+  hit.sequence = StringView(seq);
   hit.peptide_mod_index = 0; // No peptide modifications
   hit.cross_linked_nucleotide = 'U';
   
