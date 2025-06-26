@@ -349,6 +349,8 @@ protected:
 
 
       ms_feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+      // ensure data is sorted
+      ms_feat_map.sortByPosition();
 
       //-------------------------------------------------------------
       // writing output
