@@ -14,6 +14,8 @@
 #include <OpenMS/ANALYSIS/NUXL/NuXLParameterParsing.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLPresets.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>
+#include <OpenMS/ANALYSIS/NUXL/NuXLPreprocessSpectra.h>
+#include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak1D.h>
@@ -244,15 +246,21 @@ START_SECTION((static void annotateAndLocate_(const PeakMap& exp, std::vector<st
   // Sort peaks by m/z (recommended for OpenMS spectra)
   spectrum.sortByPosition();
   
-  // Add required data arrays (charge information for each peak)
-  spectrum.getIntegerDataArrays().resize(1);
-  for (size_t i = 0; i < peak_data.size(); ++i) {
-      spectrum.getIntegerDataArrays()[0].push_back(0); // Default charge of 0 (unknown) for fragment peaks
-  }
-  
   exp.addSpectrum(spectrum);
   
-
+  // Preprocess spectra analogous to OpenNuXL using the newly added method
+  // This will properly annotate charge arrays and perform other preprocessing steps
+  std::map<String, PrecursorPurity::PurityScores> purities; // Empty purities map for test
+  double window_size = 100.0; // Default window size from OpenNuXL
+  Size peak_count = 6; // Default peak count from OpenNuXL
+  
+  NuXLPreprocessSpectra::preprocessSpectra(exp,
+                                            false, // no single charge conversion
+                                            true,  // annotate charge
+                                            window_size,
+                                            peak_count,
+                                            purities);
+  
   // Create empty annotated hits vector
   vector<vector<NuXLAnnotatedHit>> annotated_hits;
   annotated_hits.resize(1); // One spectrum
@@ -327,7 +335,7 @@ START_SECTION((static void annotateAndLocate_(const PeakMap& exp, std::vector<st
   // Add the hit to the annotated hits
   annotated_hits[0].push_back(hit);
   
-  // Test that the method can handle a real annotated hit
+  // Test that the method can handle a real annotated hit after preprocessing
   NuXLAnnotateAndLocate::annotateAndLocate_(
     exp,
     annotated_hits,
@@ -354,25 +362,160 @@ START_SECTION((static void annotateAndLocate_(const PeakMap& exp, std::vector<st
   String expected_best_localization = "DyHTVLGAR"; // or specific localization pattern
   TEST_EQUAL(processed_hit.best_localization, expected_best_localization)
 
-  String expected_localization_scores = "dummy_localization_scores";
+  String expected_localization_scores = "0,73.67,0,0,0,5.09,0,0,0";
   TEST_EQUAL(processed_hit.localization_scores, expected_localization_scores)
   
-  // Expected best_localization_score (dummy value - to be replaced with correct one)
-  float expected_best_localization_score = 1.0f;
+  // Expected best_localization_score
+  double expected_best_localization_score = 0.736718;
   TEST_REAL_SIMILAR(processed_hit.best_localization_score, expected_best_localization_score)
   
-  // Expected best_localization_position (dummy value - to be replaced with correct one)
-  int expected_best_localization_position = 0; // or specific position
+  // Expected best_localization_position
+  int expected_best_localization_position = 1;
   TEST_EQUAL(processed_hit.best_localization_position, expected_best_localization_position)
   
-  // Test that at least some fragment annotations were generated
-  // (specific annotations to be validated once expected values are known)
-  for (const auto& annotation : processed_hit.fragment_annotations) {
-    TEST_NOT_EQUAL(annotation.annotation, "")
-    TEST_REAL_SIMILAR(annotation.mz, 0.0)
-    TEST_REAL_SIMILAR(annotation.intensity, 0.0)
-  }
+  // Test that fragment annotations were generated with expected values
+  TEST_EQUAL(processed_hit.fragment_annotations.size(), 35)
   
+  // Test all fragment annotations with their expected values
+  TEST_EQUAL(processed_hit.fragment_annotations[0].annotation, "y1+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[0].mz, 175.118759155273)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[0].intensity, 0.168911263346672)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[1].annotation, "y3+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[1].mz, 303.177154541016)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[1].intensity, 0.322829753160477)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[2].annotation, "y4+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[2].mz, 416.261108398438)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[2].intensity, 0.390764802694321)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[3].annotation, "y5+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[3].mz, 515.330383300781)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[3].intensity, 0.247246921062469)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[4].annotation, "y6+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[4].mz, 616.377563476562)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[4].intensity, 0.524602711200714)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[5].annotation, "y7++")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[5].mz, 377.221343994141)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[5].intensity, 0.194865584373474)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[6].annotation, "y7+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[6].mz, 753.439331054688)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[6].intensity, 0.262213468551636)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[7].annotation, "y8+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[7].mz, 916.491455078125)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[7].intensity, 0.0117213102057576)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[8].annotation, "iH+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[8].mz, 110.07152557373)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[8].intensity, 0.124598354101181)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[9].annotation, "iY+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[9].mz, 136.061889648438)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[9].intensity, 0.444058150053024)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[10].annotation, "HTVL-CO")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[10].mz, 423.222259521484)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[10].intensity, 0.047973770648241)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[11].annotation, "a2-H2O1+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[11].mz, 233.131546020508)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[11].intensity, 0.280975610017776)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[12].annotation, "b2-H2O1+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[12].mz, 261.126708984375)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[12].intensity, 0.167492240667343)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[13].annotation, "y7-H2O1++")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[13].mz, 368.216735839844)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[13].intensity, 0.152305334806442)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[14].annotation, "y7-H2O1+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[14].mz, 735.421142578125)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[14].intensity, 0.0303009878844023)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[15].annotation, "y8-H2O1+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[15].mz, 898.397094726562)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[15].intensity, 0.0253435652703047)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[16].annotation, "b2+U-H3PO4+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[16].mz, 505.157531738281)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[16].intensity, 0.0589432045817375)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[17].annotation, "b4+U-H3PO4+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[17].mz, 743.263366699219)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[17].intensity, 0.0473681353032589)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[18].annotation, "b5+U-H3PO4+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[18].mz, 842.336547851562)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[18].intensity, 0.0572227798402309)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[19].annotation, "b6+U-H3PO4+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[19].mz, 955.418212890625)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[19].intensity, 0.0505138337612152)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[20].annotation, "b8+C3O+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[20].mz, 909.421081542969)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[20].intensity, 0.0104543315246701)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[21].annotation, "b8+U-H3PO4+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[21].mz, 1083.48791503906)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[21].intensity, 0.0250550508499146)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[22].annotation, "y8+U-H3PO4++")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[22].mz, 571.782104492188)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[22].intensity, 0.309090495109558)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[23].annotation, "a2+U-H3PO4+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[23].mz, 477.163330078125)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[23].intensity, 0.041644386947155)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[24].annotation, "a4+U-H2O+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[24].mz, 795.32861328125)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[24].intensity, 0.0262815933674574)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[25].annotation, "a5+U-H3PO4+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[25].mz, 814.327880859375)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[25].intensity, 0.0130180194973946)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[26].annotation, "a6+U-H3PO4+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[26].mz, 927.43896484375)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[26].intensity, 0.0379822850227356)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[27].annotation, "iL+U'++")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[27].mz, 198.191116333008)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[27].intensity, 0.0508857481181622)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[28].annotation, "iY+U-H3PO4++")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[28].mz, 362.133666992188)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[28].intensity, 0.0591440200805664)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[29].annotation, "MI:C'+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[29].mz, 112.050888061523)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[29].intensity, 0.0712850615382195)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[30].annotation, "MI:U-H3PO4+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[30].mz, 227.066131591797)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[30].intensity, 0.226746201515198)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[31].annotation, "[M+H]+")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[31].mz, 1031.52648925781)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[31].intensity, 0.180062621831894)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[32].annotation, "[M+2H-H2O]+U-H3PO4++")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[32].mz, 620.290710449219)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[32].intensity, 0.307169020175934)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[33].annotation, "[M+2H]+U-H3PO4++")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[33].mz, 629.296997070312)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[33].intensity, 1)
+  
+  TEST_EQUAL(processed_hit.fragment_annotations[34].annotation, "[M+2H+U-H2O1]++")
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[34].mz, 669.279357910156)
+  TEST_REAL_SIMILAR(processed_hit.fragment_annotations[34].intensity, 0.0665788426995277)
 
 }
 END_SECTION
