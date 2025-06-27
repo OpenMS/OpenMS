@@ -352,6 +352,10 @@ protected:
     setValidStrings_("greedy_group_resolution", ListUtils::create<String>("true,false"));
     registerFlag_("ratios", "Add the log2 ratios of the abundance values to the output. Format: log_2(x_0/x_0) <sep> log_2(x_1/x_0) <sep> log_2(x_2/x_0) ...", false);
     registerFlag_("ratiosSILAC", "Add the log2 ratios for a triple SILAC experiment to the output. Only applicable to consensus maps of exactly three sub-maps. Format: log_2(heavy/light) <sep> log_2(heavy/middle) <sep> log_2(middle/light)", false);
+    
+    registerStringOption_("detailed_protein_output", "<choice>", "false", "Output protein abundances with detailed file+channel level headers (similar to detailed peptide output). When enabled, protein output will show abundance_filename_channel columns instead of abundance_N.", false);
+    setValidStrings_("detailed_protein_output", {"true","false"});
+
     registerTOPPSubsection_("format", "Output formatting options");
     registerStringOption_("format:separator", "<sep>", "", "Character(s) used to separate fields; by default, the 'tab' character is used", false);
     registerStringOption_("format:quoting", "<method>", "double", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
@@ -483,9 +487,33 @@ protected:
   {
     const bool print_ratios = getFlag_("ratios");
     const bool print_SILACratios = getFlag_("ratiosSILAC");
+    const bool detailed_protein_output = (getStringOption_("detailed_protein_output") == "true");
+    
+    ExperimentalDesign::MSFileSection msfile_section = ed.getMSFileSection();
+    
+    // Extract the Spectra Filepath column from the design
+    std::vector<String> design_filenames;
+    for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
+    {
+      const String fn = File::basename(f.path);
+      design_filenames.push_back(fn);
+    }
+    
     // write header:
     out << "protein" << "n_proteins" << "protein_score" << "n_peptides";
-    if (ed.getNumberOfSamples() <= 1)
+    
+    if (detailed_protein_output && ed.getNumberOfSamples() > 1)
+    {
+      // Use detailed file+channel headers
+      for (Size f = 0; f < design_filenames.size(); ++f)
+      {
+        for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
+        {
+          out << "abundance_" + design_filenames[f] + "_" + String(c+1);
+        }
+      }
+    }
+    else if (ed.getNumberOfSamples() <= 1)
     {
       out << "abundance";
     }
@@ -558,14 +586,45 @@ protected:
         out << ListUtils::concatenate(group.first, '/') << group.first.size()
             << group.second;
       }
-      Size n_peptide = q.second.abundances.size();
+      Size n_peptide = q.second.peptide_abundances.size();
       out << n_peptide;
 
-      for (size_t sample_id = 0; sample_id < ed.getNumberOfSamples(); ++sample_id)
+      if (detailed_protein_output && ed.getNumberOfSamples() > 1)
       {
-        // write abundance for the sample if it exists, 0 otherwise:
-        SampleAbundances::const_iterator pos = q.second.total_abundances.find(sample_id);
-        out << (pos != q.second.total_abundances.end() ? pos->second : 0.0);
+        // Write detailed abundances (file+channel level)
+        for (auto& file : design_filenames) // note: we need to use the order in the experimental design file
+        {
+          for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
+          {
+            double total_abundance = 0.0;
+            // Sum abundances across all fractions and charge states for this file+channel
+            for (auto const& fraction : q.second.detailed_abundances)
+            {
+              auto filename_it = fraction.second.find(file);
+              if (filename_it != fraction.second.end())
+              {
+                for (auto const& charge : filename_it->second)
+                {
+                  auto channel_it = charge.second.find(c);
+                  if (channel_it != charge.second.end())
+                  {
+                    total_abundance += channel_it->second;
+                  }
+                }
+              }
+            }
+            out << total_abundance;
+          }
+        }
+      }
+      else
+      {
+        for (size_t sample_id = 0; sample_id < ed.getNumberOfSamples(); ++sample_id)
+        {
+          // write abundance for the sample if it exists, 0 otherwise:
+          SampleAbundances::const_iterator pos = q.second.total_abundances.find(sample_id);
+          out << (pos != q.second.total_abundances.end() ? pos->second : 0.0);
+        }
       }
 
       // if ratios-flag is set, print log2-ratios. ab1/ab0, ab2/ab0, ... , ab'n/ab0
@@ -782,6 +841,7 @@ protected:
     String mztab = getStringOption_("mztab");
     String design_file = getStringOption_("design");
     bool greedy_group_resolution = getStringOption_("greedy_group_resolution") == "true";
+    bool detailed_protein_output = getStringOption_("detailed_protein_output") == "true";
 
     if (out.empty() && peptide_out.empty())
     {
@@ -857,7 +917,7 @@ protected:
       }
       quantifier.readQuantData(features, ed);
       quantifier.quantifyPeptides(peptides_); // quantify on peptide level
-      quantifier.quantifyProteins(proteins_);
+      quantifier.quantifyProteins(proteins_, detailed_protein_output);
     }
     else if (in_type == FileTypes::IDXML)
     {
@@ -880,7 +940,7 @@ protected:
       }
       quantifier.readQuantData(proteins, peptides, ed);
       quantifier.quantifyPeptides(peptides_); // quantify on peptide level
-      quantifier.quantifyProteins(proteins_);
+      quantifier.quantifyProteins(proteins_, detailed_protein_output);
     }
     else // consensusXML
     {
@@ -902,7 +962,7 @@ protected:
 
       quantifier.readQuantData(consensus, ed);
       quantifier.quantifyPeptides(peptides_); // quantify on peptide level
-      quantifier.quantifyProteins(proteins_);
+      quantifier.quantifyProteins(proteins_, detailed_protein_output);
 
       // write mzTab file
       if (!mztab.empty())

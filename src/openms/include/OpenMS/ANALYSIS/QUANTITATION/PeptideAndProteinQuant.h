@@ -65,9 +65,15 @@ public:
     struct ProteinData
     {
       /// mapping: peptide (unmodified) -> sample -> abundance
-      std::map<String, SampleAbundances> abundances;
+      std::map<String, SampleAbundances> peptide_abundances;
 
-      std::map<String, SampleAbundances> psm_counts;
+      std::map<String, SampleAbundances> peptide_psm_counts;
+
+      /// mapping: fraction -> filename -> charge -> channel/label -> abundance
+      std::map<Int, std::map<String, std::map<Int, std::map<Int, double>>>> detailed_abundances;
+
+      /// mapping: fraction -> filename -> charge -> channel/label -> PSM counts
+      std::map<Int, std::map<String, std::map<Int, std::map<Int, double>>>> detailed_psm_counts;
 
       /// mapping: sample -> total abundance
       SampleAbundances total_abundances;
@@ -162,9 +168,13 @@ public:
          @brief Compute protein abundances.
 
          Peptide abundances must be computed first with quantifyPeptides(). Optional protein inference information (e.g. from Fido or ProteinProphet) can be supplied via @p proteins.
+         
+         @param proteins Optional protein inference information
+         @param detailed_protein_output If true, populate detailed_abundances and detailed_psm_counts members in ProteinData with file+channel level aggregation
     */
-    void quantifyProteins(const ProteinIdentification& proteins = 
-                          ProteinIdentification());
+    void quantifyProteins(const ProteinIdentification& proteins =
+                          ProteinIdentification(),
+                          bool detailed_protein_output = false);
 
     /// Get summary statistics
     const Statistics& getStatistics();
