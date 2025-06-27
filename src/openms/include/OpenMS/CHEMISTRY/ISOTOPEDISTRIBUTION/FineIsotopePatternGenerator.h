@@ -126,16 +126,20 @@ namespace OpenMS
     {}
 
     /**
-      * @brief Creates an isotope distribution from an empirical sum formula
-      *
-      * Iterates through all elements, convolves them according to the number
-      * of atoms from that element and sums up the result.
-      *
-      * @note The constructed isotope distribution is sorted by m/z which slows
-      * down processing, consider using IsoSpec (IsoSpecWrapper /
-      * IsoSpecGeneratorWrapper) directly for increased performance.
-      *
-      **/
+     * @brief Creates an isotope distribution from an empirical sum formula
+     *
+     * Iterates through all elements, convolves them according to the number
+     * of atoms from that element and sums up the result.
+     *
+     * If the EmpiricalFormula has a charge 'q' != 0, then 'q' hydrogen atoms are added
+     * to the formula to match the result of EmpiricalFormula::getMonoWeight().
+     * Set charge = 0 to avoid this behavior.
+     *  
+     * @note The constructed isotope distribution is sorted by m/z which slows
+     * down processing, consider using IsoSpec (IsoSpecWrapper /
+     * IsoSpecGeneratorWrapper) directly for increased performance.
+     *
+     **/
     IsotopeDistribution run(const EmpiricalFormula&) const override;
 
     /// Set probability stop condition (lower values generate fewer results)

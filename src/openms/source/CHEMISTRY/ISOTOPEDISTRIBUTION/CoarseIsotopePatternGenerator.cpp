@@ -9,6 +9,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <include/OpenMS/CONCEPT/Constants.h>
@@ -66,6 +67,10 @@ namespace OpenMS
       result.set(convolve(result.getContainer(),
                           convolvePow_(tmp.getContainer(), it->second)));
     }
+    
+    // charged adducts are assumed to be H+, but are not part of the actual formula, yet are used in EmpiricalFormula::getMonoWeight();
+    auto proton_charge = ElementDB::getInstance()->getElement("H")->getIsotopeDistribution();
+    result.set(convolve(result.getContainer(), convolvePow_(proton_charge.getContainer(), formula.getCharge())));
 
     // replace atomic numbers with masses.
     result.set(correctMass_(result.getContainer(), formula.getLightestIsotopeWeight()));
