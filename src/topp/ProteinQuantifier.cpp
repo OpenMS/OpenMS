@@ -593,27 +593,25 @@ protected:
       if (detailed_protein_output)
       {
         // Write detailed abundances (file+channel level)
-        for (auto& file : design_filenames) // note: we need to use the order in the experimental design file
-        {
-          String filename = file.second; // get the filename from the design
+        for (auto& [fraction_group, filename] : design_filenames) // note: we need to use the order in the experimental design file
+        {          
           for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
           {
             double total_abundance = 0.0;
-            bool found_data = false;
             // Sum abundances across all fractions for this file+channel
             for (auto const& fraction : q.second.detailed_abundances)
             {
-              if (auto filename_it = fraction.second.find(filename); filename_it != fraction.second.end())
+              const auto& filename_to_channel = fraction.second;
+              if (auto filename_it = filename_to_channel.find(filename); filename_it != filename_to_channel.end())
               {
-                if (auto channel_it = filename_it->second.find(c); channel_it != filename_it->second.end())
+                const auto& channel_to_abundance = filename_it->second;
+                if (auto channel_it = channel_to_abundance.find(c); channel_it != channel_to_abundance.end())
                 {
                   total_abundance += channel_it->second;
-                  found_data = true;
                 }
               }
-            }
-            // Always output a value (0.0 if no data found) to maintain CSV structure
-            out << (found_data ? total_abundance : 0.0);
+            }            
+            out << total_abundance; // Always output a value (0.0 if no data found) to maintain CSV structure
           }
         }
       }
