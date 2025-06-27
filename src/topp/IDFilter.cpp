@@ -760,6 +760,13 @@ protected:
       }
     }
 
+    if (getFlag_("remove_decoys"))
+    {
+      OPENMS_LOG_INFO << "Removing decoy hits..." << endl;
+      IDFilter::removeDecoyHits(peptides);
+      IDFilter::removeDecoyHits(proteins);
+    }
+
     // Clean-up:
 
     // propagate filter from PSM level to protein level
