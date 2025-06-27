@@ -377,21 +377,21 @@ protected:
     ExperimentalDesign::MSFileSection msfile_section = ed.getMSFileSection();
 
     // Extract the Spectra Filepath column from the design
-    std::vector<String> design_filenames;
+    map<UInt64, String> design_filenames;
     for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
     {
       const String fn = File::basename(f.path);
-      design_filenames.push_back(fn);
+      design_filenames[f.fraction_group] = fn;
     }
-
+    
     // write header:
     out << "peptide" << "protein" << "n_proteins" << "charge";
-    for (Size f = 0; f < design_filenames.size(); ++f)
+    for (const auto& [fraction_group, filename] : design_filenames)
     {
       for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
       {
-        out << "abundance_" + design_filenames[f] + "_" + String(c+1);
-      }       
+        out << "abundance_" + filename + "_" + String(c+1);
+      }
     }
 
     out << "fraction" << endl;
@@ -435,13 +435,13 @@ protected:
             // fill file + channel/label columns 
             for (auto& file : design_filenames) // note: we need to use the order in the experimental design file
             {
+              String filename = file.second; // get the filename from the design
               for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
               {
                 bool no_quant = false;
-                if (filename_to_chargemap.find(file) != filename_to_chargemap.end())
+                if (filename_to_chargemap.find(filename) != filename_to_chargemap.end())
                 {
-                  const auto& charge_map = filename_to_chargemap.at(file);
-                  if (charge_map.find(charge) != charge_map.end())
+                  if (const auto& charge_map = filename_to_chargemap.at(filename); charge_map.find(charge) != charge_map.end())
                   {
                     const auto& channel_to_abundance = charge_map.at(charge);
                     if (channel_to_abundance.find(c) != channel_to_abundance.end())
@@ -491,11 +491,12 @@ protected:
     ExperimentalDesign::MSFileSection msfile_section = ed.getMSFileSection();
     
     // Extract the Spectra Filepath column from the design
-    std::vector<String> design_filenames;
+
+    map<UInt64, String> design_filenames;
     for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
     {
       const String fn = File::basename(f.path);
-      design_filenames.push_back(fn);
+      design_filenames[f.fraction_group] = fn;
     }
     
     // write header:
@@ -503,12 +504,13 @@ protected:
     
     if (detailed_protein_output)
     {
+      OPENMS_LOG_INFO << "Writing detailed protein output for " << design_filenames.size() << " files and " << ed.getNumberOfLabels() << " channels." << std::endl;
       // Use detailed file+channel headers
-      for (Size f = 0; f < design_filenames.size(); ++f)
+      for (const auto& [fraction_group, filename] : design_filenames)
       {
         for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
         {
-          out << "abundance_" + design_filenames[f] + "_" + String(c+1);
+          out << "abundance_" + filename + "_" + String(c+1);
         }
       }
     }
@@ -593,26 +595,25 @@ protected:
         // Write detailed abundances (file+channel level)
         for (auto& file : design_filenames) // note: we need to use the order in the experimental design file
         {
+          String filename = file.second; // get the filename from the design
           for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
           {
             double total_abundance = 0.0;
-            // Sum abundances across all fractions and charge states for this file+channel
+            bool found_data = false;
+            // Sum abundances across all fractions for this file+channel
             for (auto const& fraction : q.second.detailed_abundances)
             {
-              auto filename_it = fraction.second.find(file);
-              if (filename_it != fraction.second.end())
+              if (auto filename_it = fraction.second.find(filename); filename_it != fraction.second.end())
               {
-                for (auto const& charge : filename_it->second)
+                if (auto channel_it = filename_it->second.find(c); channel_it != filename_it->second.end())
                 {
-                  auto channel_it = charge.second.find(c);
-                  if (channel_it != charge.second.end())
-                  {
-                    total_abundance += channel_it->second;
-                  }
+                  total_abundance += channel_it->second;
+                  found_data = true;
                 }
               }
             }
-            out << total_abundance;
+            // Always output a value (0.0 if no data found) to maintain CSV structure
+            out << (found_data ? total_abundance : 0.0);
           }
         }
       }

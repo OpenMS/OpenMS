@@ -69,11 +69,11 @@ public:
 
       std::map<String, SampleAbundances> peptide_psm_counts;
 
-      /// mapping: fraction -> filename -> charge -> channel/label -> abundance
-      std::map<Int, std::map<String, std::map<Int, std::map<Int, double>>>> detailed_abundances;
+      /// mapping: fraction -> filename -> channel/label -> abundance
+      std::map<Int, std::map<String, std::map<Int, double>>> detailed_abundances;
 
-      /// mapping: fraction -> filename -> charge -> channel/label -> PSM counts
-      std::map<Int, std::map<String, std::map<Int, std::map<Int, double>>>> detailed_psm_counts;
+      /// mapping: fraction -> filename -> channel/label -> PSM counts
+      std::map<Int, std::map<String, std::map<Int, double>>> detailed_psm_counts;
 
       /// mapping: sample -> total abundance
       SampleAbundances total_abundances;

@@ -25,7 +25,6 @@
 #include <algorithm>
 
 using namespace std;
-using namespace OpenMS;
 
 namespace OpenMS
 {
@@ -513,7 +512,7 @@ namespace OpenMS
             {
               for (auto const& channel : charge.second)
               {
-                prot_quant_[accession].detailed_abundances[fraction.first][filename.first][charge.first][channel.first] += channel.second;
+                prot_quant_[accession].detailed_abundances[fraction.first][filename.first][channel.first] += channel.second;
               }
             }
           }
@@ -528,7 +527,7 @@ namespace OpenMS
             {
               for (auto const& channel : charge.second)
               {
-                prot_quant_[accession].detailed_psm_counts[fraction.first][filename.first][charge.first][channel.first] += channel.second;
+                prot_quant_[accession].detailed_psm_counts[fraction.first][filename.first][channel.first] += channel.second;
               }
             }
           }
@@ -670,8 +669,8 @@ namespace OpenMS
       // if detailed output is requested, perform detailed aggregation using the same selected peptides
       if (detailed_protein_output)
       {
-        // organize detailed abundances by (fraction, filename, charge, channel) combinations
-        map<tuple<Int, String, Int, Int>, DoubleList> detailed_abundances_by_key; // key -> list of abundances from selected peptides
+        // organize detailed abundances by (fraction, filename, channel) combinations
+        map<tuple<Int, String, Int>, DoubleList> detailed_abundances_by_key; // key -> list of abundances from selected peptides
         
         // collect detailed abundances from selected peptides
         for (const auto& pep : peptides)    // for all selected peptides
@@ -693,7 +692,7 @@ namespace OpenMS
                     {
                       for (auto const& channel : charge.second)
                       {
-                        auto key = make_tuple(fraction.first, filename.first, charge.first, channel.first);
+                        auto key = make_tuple(fraction.first, filename.first, channel.first);
                         detailed_abundances_by_key[key].push_back(channel.second);
                       }
                     }
@@ -711,8 +710,7 @@ namespace OpenMS
           auto key = detailed_ab.first;
           Int fraction = get<0>(key);
           String filename = get<1>(key);
-          Int charge = get<2>(key);
-          Int channel = get<3>(key);
+          Int channel = get<2>(key);
           
           DoubleList& all_abundances = detailed_ab.second;
           
@@ -757,8 +755,8 @@ namespace OpenMS
             abundance_result = Math::sum(all_abundances.begin(), all_abundances.end());
           }
           
-          // store the aggregated result in detailed_abundances (overwrite the accumulated values)
-          prot_q.second.detailed_abundances[fraction][filename][charge][channel] = abundance_result;
+          // store the aggregated result in detailed_abundances
+          prot_q.second.detailed_abundances[fraction][filename][channel] = abundance_result;
         }
       }
 
