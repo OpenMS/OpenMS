@@ -370,19 +370,26 @@ protected:
   /// Write a table of peptide results.
   void writePeptideTable_(SVOutStream& out, const PeptideQuant& quant, const ExperimentalDesign& ed)
   {
+    ExperimentalDesign::MSFileSection msfile_section = ed.getMSFileSection();
+
+    // Extract the Spectra Filepath column from the design
+    std::vector<String> design_filenames;
+    for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
+    {
+      const String fn = File::basename(f.path);
+      design_filenames.push_back(fn);
+    }
+
     // write header:
     out << "peptide" << "protein" << "n_proteins" << "charge";
-    if (ed.getNumberOfSamples() <= 1)
+    for (Size f = 0; f < design_filenames.size(); ++f)
     {
-      out << "abundance";
-    }
-    else
-    {
-      for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
+      for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
       {
-        out << "abundance_" + String(i+1);
-      }
+        out << "abundance_" + design_filenames[f] + "_" + String(c+1);
+      }       
     }
+
     out << "fraction" << endl;
 
     bool best_charge_and_fraction = algo_params_.getValue("best_charge_and_fraction") == "true";
@@ -402,33 +409,55 @@ protected:
       if (best_charge_and_fraction)
       {
         // write individual abundances (one line for each charge state and fraction):
-        for (auto const & fa : q.second.abundances)
+        for (auto const & fa : q.second.abundances) // loop over fractions
         {
           const Size fraction = fa.first;
-          for (auto const & ab : fa.second)
-          {
-            out << q.first.toString() << protein << accessions.size() << ab.first;
+          auto& filename_to_chargemap = fa.second; // filenames -> (charge -> abundance)
 
-            for (size_t sample_id = 0; sample_id < ed.getNumberOfSamples(); ++sample_id)
-            {
-              // write abundance for the sample if it exists, 0 otherwise:
-              auto pos = ab.second.find(sample_id);
-              if (pos != ab.second.end())
-              {
-                // Sum all abundance values in the nested map
-                double abundance = 0.0;
-                for (const auto& nested : pos->second)
-                {
-                  abundance += nested.second;
-                }
-                out << abundance;
-              }
-              else
-              {
-                out << 0.0;
-              }
+          std::set<Int64> charge_of_peptide; // store the charge states of the peptide
+          
+          // determine charge states the peptide was quantified over all files
+          for (const auto& filenames : filename_to_chargemap) {
+            for (const auto& [charge, abundance] : filenames.second) {
+              charge_of_peptide.insert(charge); // store the charge state for this peptide
             }
-            out << fraction << endl; // output fraction
+          }
+
+          for (Int64 charge : charge_of_peptide)
+          {
+            // write peptide sequence, protein, number of accessions, and charge:
+            out << q.first.toString() << protein << accessions.size() << charge;
+
+            // fill file + channel/label columns 
+            for (auto& file : design_filenames) // note: we need to use the order in the experimental design file
+            {
+              for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
+              {
+                bool no_quant = false;
+                if (filename_to_chargemap.find(file) != filename_to_chargemap.end())
+                {
+                  const auto& charge_map = filename_to_chargemap.at(file);
+                  if (charge_map.find(charge) != charge_map.end())
+                  {
+                    const auto& channel_to_abundance = charge_map.at(charge);
+                    if (channel_to_abundance.find(c) != channel_to_abundance.end())
+                    {
+                      out << channel_to_abundance.at(c);
+                    }
+                  }
+                  else
+                  {
+                    no_quant = true;
+                  }
+                }
+                if (no_quant)
+                {
+                  out << 0.0; // no abundance for this file and charge
+                }
+              }
+              out << fraction << endl; // output fraction
+            }
+
           }
         }
       }

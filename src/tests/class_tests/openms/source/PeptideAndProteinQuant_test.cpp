@@ -159,7 +159,11 @@ START_SECTION((const PeptideQuant& getPeptideResults()))
   TEST_EQUAL(pep_data.psm_count, 2);
   pep_data = pep_quant[AASequence::fromString("CCCCC")];
   TEST_EQUAL(pep_data.abundances.size(), 1); // one fraction
-  TEST_EQUAL(pep_data.abundances[1].size(), 2); // two charges
+  TEST_EQUAL(pep_data.abundances[1].size(), 1); // one file
+  auto& map_file_to_charges = *pep_data.abundances[1].begin();
+  TEST_EQUAL(map_file_to_charges.second.size(), 2); // two charges
+
+  
   TEST_EQUAL(pep_data.total_abundances.size(), 1);
   TEST_REAL_SIMILAR(pep_data.total_abundances[0], 7777);
   TEST_EQUAL(pep_data.accessions.size(), 1);
@@ -171,7 +175,9 @@ START_SECTION((const PeptideQuant& getPeptideResults()))
   TEST_EQUAL(pep_data.psm_count, 1);
   pep_data = pep_quant[AASequence::fromString("GGGGG")];
   TEST_EQUAL(pep_data.abundances.size(), 1); // one fraction
-  TEST_EQUAL(pep_data.abundances[1].size(), 1); // one charge
+  TEST_EQUAL(pep_data.abundances[1].size(), 1); // one file
+  TEST_EQUAL((*pep_data.abundances[1].begin()).second.size(), 1); // two charges  
+
   TEST_EQUAL(pep_data.total_abundances.size(), 1);
   TEST_REAL_SIMILAR(pep_data.total_abundances[0], 7777);
   TEST_EQUAL(pep_data.accessions.size(), 2);
@@ -181,7 +187,9 @@ START_SECTION((const PeptideQuant& getPeptideResults()))
   TEST_EQUAL(pep_quant.size(), 4);
   pep_data = pep_quant[AASequence::fromString("AAAK")];
   TEST_EQUAL(pep_data.abundances.size(), 1); // one fraction
-  TEST_EQUAL(pep_data.abundances[1].size(), 1); // one charge
+  TEST_EQUAL(pep_data.abundances[1].size(), 2); // two files
+  TEST_EQUAL((*pep_data.abundances[1].begin()).second.size(), 1); // one charge
+
   TEST_EQUAL(pep_data.total_abundances.size(), 2);
   TEST_REAL_SIMILAR(pep_data.total_abundances[0], 1000);
   TEST_REAL_SIMILAR(pep_data.total_abundances[2], 1000);
@@ -189,7 +197,9 @@ START_SECTION((const PeptideQuant& getPeptideResults()))
   TEST_EQUAL(pep_data.psm_count, 1);
   pep_data = pep_quant[AASequence::fromString("CCCK")];
   TEST_EQUAL(pep_data.abundances.size(), 1); // one fraction
-  TEST_EQUAL(pep_data.abundances[1].size(), 1); // one charge
+  TEST_EQUAL(pep_data.abundances[1].size(), 2); // two files
+  TEST_EQUAL((*pep_data.abundances[1].begin()).second.size(), 1); // one charge
+
   TEST_EQUAL(pep_data.total_abundances.size(), 2);
   TEST_REAL_SIMILAR(pep_data.total_abundances[0], 200);
   TEST_REAL_SIMILAR(pep_data.total_abundances[1], 200);
@@ -197,7 +207,9 @@ START_SECTION((const PeptideQuant& getPeptideResults()))
   TEST_EQUAL(pep_data.psm_count, 1);
   pep_data = pep_quant[AASequence::fromString("EEEK")];
   TEST_EQUAL(pep_data.abundances.size(), 1); // one fraction
-  TEST_EQUAL(pep_data.abundances[1].size(), 1); // one charge
+  TEST_EQUAL(pep_data.abundances[1].size(), 3); // three files
+  TEST_EQUAL((*pep_data.abundances[1].begin()).second.size(), 1); // one charge
+
   TEST_EQUAL(pep_data.total_abundances.size(), 3);
   TEST_REAL_SIMILAR(pep_data.total_abundances[0], 30);
   TEST_REAL_SIMILAR(pep_data.total_abundances[1], 30);
@@ -206,7 +218,9 @@ START_SECTION((const PeptideQuant& getPeptideResults()))
   TEST_EQUAL(pep_data.psm_count, 1);
   pep_data = pep_quant[AASequence::fromString("GGG")];
   TEST_EQUAL(pep_data.abundances.size(), 1); // one fraction
-  TEST_EQUAL(pep_data.abundances[1].size(), 1); // one charge
+  TEST_EQUAL(pep_data.abundances[1].size(), 2); // two files
+  TEST_EQUAL((*pep_data.abundances[1].begin()).second.size(), 1); // one charge
+
   TEST_EQUAL(pep_data.total_abundances.size(), 2);
   TEST_REAL_SIMILAR(pep_data.total_abundances[0], 4);
   TEST_REAL_SIMILAR(pep_data.total_abundances[1], 4);
