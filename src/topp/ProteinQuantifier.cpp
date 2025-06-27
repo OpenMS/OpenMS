@@ -459,9 +459,8 @@ protected:
                   out << 0.0; // no abundance for this file and charge
                 }
               }
-              out << fraction << endl; // output fraction
             }
-
+            out << fraction << endl; // output fraction
           }
         }
       }
@@ -502,7 +501,7 @@ protected:
     // write header:
     out << "protein" << "n_proteins" << "protein_score" << "n_peptides";
     
-    if (detailed_protein_output && ed.getNumberOfSamples() > 1)
+    if (detailed_protein_output)
     {
       // Use detailed file+channel headers
       for (Size f = 0; f < design_filenames.size(); ++f)
@@ -589,7 +588,7 @@ protected:
       Size n_peptide = q.second.peptide_abundances.size();
       out << n_peptide;
 
-      if (detailed_protein_output && ed.getNumberOfSamples() > 1)
+      if (detailed_protein_output)
       {
         // Write detailed abundances (file+channel level)
         for (auto& file : design_filenames) // note: we need to use the order in the experimental design file
