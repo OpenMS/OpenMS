@@ -14,8 +14,18 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <algorithm>
 
 using namespace std;
+using namespace OpenMS;
 
 namespace OpenMS
 {
@@ -101,8 +111,9 @@ namespace OpenMS
 
   void PeptideAndProteinQuant::quantifyFeature_(const FeatureHandle& feature,
                                                 const size_t fraction,
-                                                const size_t sample,
-                                                const PeptideHit& hit)
+                                                const String& filename,
+                                                const PeptideHit& hit,
+                                                Int channel_or_label)
   {
     // return if annotation for the feature is ambiguous or missing
     if (hit == PeptideHit()) { return; }
@@ -114,51 +125,76 @@ namespace OpenMS
     // not there, you are adding another element. In a next iteration this whole
     // class should be rewritten to use insert/emplace and find or better yet,
     // since we have "normal" 0-based values for samples now, vectors.
-    pep_quant_[seq].abundances[fraction][hit.getCharge()][sample] +=
+    pep_quant_[seq].abundances[fraction][filename][hit.getCharge()][channel_or_label] +=
       feature.getIntensity(); // new map element is initialized with 0
   }
 
-  bool PeptideAndProteinQuant::getBest_(const std::map<Int, std::map<Int, SampleAbundances>>& peptide_abundances, std::pair<size_t, size_t>& best)
+  bool PeptideAndProteinQuant::getBest_(const std::map<Int, std::map<String, std::map<Int, std::map<Int, double>>>>& peptide_abundances, std::tuple<size_t, String, size_t, Int>& best)
   {
     size_t best_n_quant(0);
     double best_abundance(0);
-    best = std::make_pair(0,0);
+    best = std::make_tuple(0, "", 0, 0);
 
-    for (auto & fa : peptide_abundances) // for all fractions 
+    for (auto & fa : peptide_abundances) // for all fractions
     {
-      for (auto & ca : fa.second) // for all charge states
+      for (auto & fna : fa.second) // for all filenames
       {
-        const Int & fraction = fa.first;
-        const Int & charge = ca.first;
-
-        double current_abundance = std::accumulate(
-          std::begin(ca.second),
-          std::end(ca.second),
-          0.0,
-          [] (int value, const SampleAbundances::value_type& p)
-          { return value + p.second; }
-          ); // loop over all samples and sum abundances
-
-        if (current_abundance <= 0) { continue; }
-
-        const size_t current_n_quant = ca.second.size();
-        if (current_n_quant > best_n_quant)
-        {           
-          best_abundance = current_abundance;
-          best_n_quant = current_n_quant;
-          best = std::make_pair(fraction, charge);
-        }
-        else if (current_n_quant == best_n_quant 
-                 && current_abundance > best_abundance) // resolve tie by abundance
+        for (auto & ca : fna.second) // for all charge states
         {
-          best_abundance = current_abundance;
-          best = std::make_pair(fraction, charge);
+          for (auto & cha : ca.second) // for all channels
+          {
+            const Int & fraction = fa.first;
+            const String & filename = fna.first;
+            const Int & charge = ca.first;
+            const Int & channel = cha.first;
+
+            double current_abundance = cha.second;
+
+            if (current_abundance <= 0) { continue; }
+
+            const size_t current_n_quant = 1; // Each entry represents one quantification
+            if (current_n_quant > best_n_quant)
+            {
+              best_abundance = current_abundance;
+              best_n_quant = current_n_quant;
+              best = std::make_tuple(fraction, filename, charge, channel);
+            }
+            else if (current_n_quant == best_n_quant
+                     && current_abundance > best_abundance) // resolve tie by abundance
+            {
+              best_abundance = current_abundance;
+              best = std::make_tuple(fraction, filename, charge, channel);
+            }
+          }
         }
       }
     }
-    return best_abundance > 0.;
+    
+    return best_n_quant > 0; // Return true if at least one abundance was found
   }
 
+  size_t PeptideAndProteinQuant::getSampleFromFilenameAndChannel_(const String& filename,
+                                                                 Int channel_or_label,
+                                                                 const ExperimentalDesign& ed) const
+  {
+    // Map filename and label to sample using experimental design
+    const auto& ms_section = ed.getMSFileSection();
+    for (const auto& entry : ms_section)
+    {
+      String ed_filename = FileHandler::stripExtension(File::basename(entry.path));
+      if (ed_filename == filename && entry.label == channel_or_label)
+      {
+        return entry.sample;
+      }
+    }
+    
+    // If not found, throw an exception with detailed information
+    throw Exception::MissingInformation(
+      __FILE__, 
+      __LINE__, 
+      OPENMS_PRETTY_FUNCTION, 
+      "Could not find sample mapping for filename '" + filename + "' and channel '" + String(channel_or_label) + "' in experimental design.");
+  }
 
   void PeptideAndProteinQuant::quantifyPeptides(
     const vector<PeptideIdentification>& peptides)
@@ -227,48 +263,66 @@ namespace OpenMS
       if (param_.getValue("best_charge_and_fraction") == "true")
       { // quantify according to the best charge state only:
 
-        // determine which fraction and charge state yields the maximum number of abundances 
+        // determine which fraction, filename, charge state, and channel yields the maximum abundance
         // (break ties by total abundance)
-        std::pair<size_t, size_t> best_fraction_and_charge;
+        std::tuple<size_t, String, size_t, Int> best_combination;
 
         // return false: only identified, not quantified
-        if (!getBest_(pep_q.second.abundances, best_fraction_and_charge)) 
-        { 
+        if (!getBest_(pep_q.second.abundances, best_combination))
+        {
           continue;
         }
         
-        // quantify according to the best fraction and charge state only:
-        for (auto & sa : pep_q.second.abundances[best_fraction_and_charge.first][best_fraction_and_charge.second])
-        {
-          pep_q.second.total_abundances[sa.first] = sa.second;
-        }
+        // quantify according to the best combination only:
+        size_t best_fraction = std::get<0>(best_combination);
+        String best_filename = std::get<1>(best_combination);
+        size_t best_charge = std::get<2>(best_combination);
+        Int best_channel = std::get<3>(best_combination);
+        
+        double abundance = pep_q.second.abundances[best_fraction][best_filename][best_charge][best_channel];
+        size_t sample_id = getSampleFromFilenameAndChannel_(best_filename, best_channel, experimental_design_);
+        pep_q.second.total_abundances[sample_id] = abundance;
       }
       else
-      { // sum up sample abundances over all fractions and charge states:
-        for (auto & fa : pep_q.second.abundances)  // for all fractions 
+      { // sum up sample abundances over all fractions, filenames, charge states, and channels:
+        for (auto & fa : pep_q.second.abundances)  // for all fractions
         {
-          for (auto & ca : fa.second) // for all charge states
-          {  
-            for (auto & sa : ca.second) // loop over all sample abundances
+          for (auto & fna : fa.second) // for all filenames
+          {
+            for (auto & ca : fna.second) // for all charge states
             {
-              const UInt64 & sample_id = sa.first;
-              const double & sample_abundance = sa.second;
-              pep_q.second.total_abundances[sample_id] += sample_abundance;
+              for (auto & cha : ca.second) // for all channels
+              {
+                const String & filename = fna.first;
+                const Int & channel = cha.first;
+                const double & abundance = cha.second;
+                
+                // Map (filename, channel) to sample using ExperimentalDesign
+                size_t sample_id = getSampleFromFilenameAndChannel_(filename, channel, experimental_design_);
+                pep_q.second.total_abundances[sample_id] += abundance;
+              }
             }
           }
         }
       }
 
-      // for PSM counts we cover all fractions and charge states
-      for (auto & fa : pep_q.second.psm_counts) // for all fractions 
+      // for PSM counts we cover all fractions, filenames, charge states, and channels
+      for (auto & fa : pep_q.second.psm_counts) // for all fractions
       {
-        for (auto & ca : fa.second) // for all charge states
-        {  
-          for (auto & sa : ca.second) // loop over all psm counts
+        for (auto & fna : fa.second) // for all filenames
+        {
+          for (auto & ca : fna.second) // for all charge states
           {
-            const UInt64 & sample_id = sa.first;
-            const double & sample_counts = sa.second;
-            pep_q.second.total_psm_counts[sample_id] += sample_counts;
+            for (auto & cha : ca.second) // for all channels
+            {
+              const String & filename = fna.first;
+              const Int & channel = cha.first;
+              const double & psm_counts = cha.second;
+              
+              // Map (filename, channel) to sample using ExperimentalDesign
+              size_t sample_id = getSampleFromFilenameAndChannel_(filename, channel, experimental_design_);
+              pep_q.second.total_psm_counts[sample_id] += psm_counts;
+            }
           }
         }
       }
@@ -338,11 +392,17 @@ namespace OpenMS
       // scale individual abundances
       for (auto & fa : pep_q.second.abundances) // for all fractions
       {
-        for (auto & ca : fa.second) // for all charge states
+        for (auto & fna : fa.second) // for all filenames
         {
-          for (auto & sa : ca.second) // loop over all sample abundances
+          for (auto & ca : fna.second) // for all charge states
           {
-            sa.second *= scale_factors[sa.first];
+            for (auto & cha : ca.second) // for all channels
+            {
+              const String & filename = fna.first;
+              const Int & channel = cha.first;
+              size_t sample_id = getSampleFromFilenameAndChannel_(filename, channel, experimental_design_);
+              cha.second *= scale_factors[sample_id];
+            }
           }
         }
       }
@@ -617,12 +677,25 @@ namespace OpenMS
     const ExperimentalDesign& ed)
   {
     updateMembers_(); // clear data
+    experimental_design_ = ed; // store experimental design for aggregation
 
     stats_.n_samples = ed.getNumberOfSamples();
     stats_.n_fractions = 1;
     stats_.n_ms_files = ed.getNumberOfMSFiles();
 
     stats_.total_features = features.size();
+
+    // For FeatureMap, extract filename from metadata or use default
+    String filename = "default";
+    if (features.metaValueExists("filename"))
+    {
+      filename = FileHandler::stripExtension(File::basename(features.getMetaValue("filename")));
+    }
+    else if (!ed.getMSFileSection().empty())
+    {
+      // Use first MS file from experimental design as fallback
+      filename = FileHandler::stripExtension(File::basename(ed.getMSFileSection()[0].path));
+    }
 
     for (auto & f : features)
     {
@@ -635,8 +708,9 @@ namespace OpenMS
       countPeptides_(f.getPeptideIdentifications());
       PeptideHit hit = getAnnotation_(f.getPeptideIdentifications());
       FeatureHandle handle(0, f);
-      const size_t fraction(1), sample(0);
-      quantifyFeature_(handle, fraction, sample, hit); // updates "stats_.quant_features"
+      const size_t fraction(1);
+      const Int label(1); // Default label for LFQ data
+      quantifyFeature_(handle, fraction, filename, hit, label); // updates "stats_.quant_features"
     }
     countPeptides_(features.getUnassignedPeptideIdentifications());
     stats_.total_peptides = pep_quant_.size();
@@ -651,6 +725,7 @@ namespace OpenMS
   {
     // TODO check that the file section of the experimental design is compatible with what can be parsed from the consensus map.
     updateMembers_(); // clear data
+    experimental_design_ = ed; // store experimental design for aggregation
 
     if (consensus.empty())
     {
@@ -704,8 +779,7 @@ namespace OpenMS
         if (auto it = fileAndLabel2MSFileSectionEntry.find(c_fn + String(c_lab)); it != fileAndLabel2MSFileSectionEntry.end())
         {
           const size_t fraction = it->second.fraction;
-          const size_t sample = it->second.sample;
-          quantifyFeature_(f, fraction, sample, hit); // updates "stats_.quant_features"          
+          quantifyFeature_(f, fraction, c_fn, hit, c_lab); // updates "stats_.quant_features"
         }
         else
         {
@@ -722,11 +796,12 @@ namespace OpenMS
 
 
   void PeptideAndProteinQuant::readQuantData(
-    vector<ProteinIdentification>& proteins,
-    vector<PeptideIdentification>& peptides,
+    std::vector<ProteinIdentification>& proteins,
+    std::vector<PeptideIdentification>& peptides,
     const ExperimentalDesign& ed)
   {
     updateMembers_(); // clear data
+    experimental_design_ = ed; // store experimental design for aggregation
 
     stats_.n_samples = ed.getNumberOfSamples();
     stats_.n_fractions = ed.getNumberOfFractions();
@@ -797,11 +872,12 @@ namespace OpenMS
           "MS file annotated in protein identification doesn't match any in the experimental design.");
       }
 
-      size_t sample = row->sample;
       size_t fraction = row->fraction;
+      String filename = FileHandler::stripExtension(File::basename(ms_file_path));
+      Int label = row->label; // Use label from experimental design
 
-      // count peptides in the different fractions, charge states, and samples
-      pep_quant_[seq].abundances[fraction][hit.getCharge()][sample] += 1;
+      // count peptides in the different fractions, filenames, charge states, and channels
+      pep_quant_[seq].abundances[fraction][filename][hit.getCharge()][label] += 1;
     }
     stats_.total_peptides = pep_quant_.size();
   }

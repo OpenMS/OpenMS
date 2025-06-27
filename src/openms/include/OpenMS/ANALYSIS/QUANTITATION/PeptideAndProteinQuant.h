@@ -36,11 +36,11 @@ public:
     /// Quantitative and associated data for a peptide
     struct PeptideData
     {
-      /// mapping: fraction -> charge -> sample -> abundance
-      std::map<Int, std::map<Int, SampleAbundances>> abundances;
+      /// mapping: fraction -> filename -> charge -> channel/label -> abundance
+      std::map<Int, std::map<String, std::map<Int, std::map<Int, double>>>> abundances;
 
-      /// mapping: fraction -> charge -> sample -> abundance
-      std::map<Int, std::map<Int, SampleAbundances>> psm_counts;
+      /// mapping: fraction -> filename -> charge -> channel/label -> abundance
+      std::map<Int, std::map<String, std::map<Int, std::map<Int, double>>>> psm_counts;
 
       /// mapping: sample -> total abundance
       SampleAbundances total_abundances;
@@ -192,6 +192,9 @@ private:
     /// Protein quantification data
     ProteinQuant prot_quant_;
 
+    /// Experimental design for filename/channel to sample mapping
+    ExperimentalDesign experimental_design_;
+
 
     /**
          @brief Get the "canonical" annotation (a single peptide hit) of a feature/consensus feature from the associated list of peptide identifications.
@@ -204,26 +207,28 @@ private:
     /**
          @brief Gather quantitative information from a feature.
 
-         Store quantitative information from @p feature in member @p pep_quant_, based on the peptide annotation in @p hit. 
+         Store quantitative information from @p feature in member @p pep_quant_, based on the peptide annotation in @p hit.
          @p fraction, use 0 for first fraction (or if no fractionation was performed)
-         @p sample, use 0 for first sample, 1 for second, ... 
+         @p filename, the base filename (without path/extension) from which the feature originates
+         @p channel_or_label, the channel/label identifier (e.g., TMT channel, typically 1 for LFQ)
          If @p hit is empty ("ambiguous/no annotation"), nothing is stored.
     */
-    void quantifyFeature_(const FeatureHandle& feature, 
-      size_t fraction, 
-      size_t sample, 
-      const PeptideHit& hit);
+    void quantifyFeature_(const FeatureHandle& feature,
+      size_t fraction,
+      const String& filename,
+      const PeptideHit& hit,
+      Int channel_or_label);
 
     /**
-     *   @brief Determine fraction and charge state of a peptide with the highest
+     *   @brief Determine fraction, filename, charge state, and channel of a peptide with the highest
      *   number of abundances.
-     *   @param peptide_abundances Const input map fraction -> charge -> SampleAbundances
-     *   @param best Will additionally return the best fraction and charge state
+     *   @param peptide_abundances Const input map fraction -> filename -> charge -> channel -> abundance
+     *   @param best Will additionally return the best fraction, filename, charge state, and channel
      *   @return true if at least one abundance was found, false otherwise
-     */ 
+     */
     bool getBest_(
-      const std::map<Int, std::map<Int, SampleAbundances>> & peptide_abundances, 
-      std::pair<size_t, size_t> & best);
+      const std::map<Int, std::map<String, std::map<Int, std::map<Int, double>>>> & peptide_abundances,
+      std::tuple<size_t, String, size_t, Int> & best);
 
     /**
          @brief Order keys (charges/peptides for peptide/protein quantification) according to how many samples they allow to quantify, breaking ties by total abundance.
@@ -285,6 +290,18 @@ private:
          The peptide hits in @p peptides are sorted by score in the process.
     */
     void countPeptides_(std::vector<PeptideIdentification>& peptides);
+
+    /**
+         @brief Map (filename, channel) to sample using ExperimentalDesign.
+         
+         @param filename The base filename (without path/extension)
+         @param channel_or_label The channel/label identifier
+         @param ed The experimental design containing the mapping information
+         @return The sample ID corresponding to the filename and channel
+    */
+    size_t getSampleFromFilenameAndChannel_(const String& filename,
+                                           Int channel_or_label,
+                                           const ExperimentalDesign& ed) const;
 
     /// Clear all data when parameters are set
     void updateMembers_() override;

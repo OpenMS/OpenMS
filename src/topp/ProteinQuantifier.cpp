@@ -412,8 +412,21 @@ protected:
             for (size_t sample_id = 0; sample_id < ed.getNumberOfSamples(); ++sample_id)
             {
               // write abundance for the sample if it exists, 0 otherwise:
-              SampleAbundances::const_iterator pos = ab.second.find(sample_id);
-              out << (pos != ab.second.end() ? pos->second : 0.0);
+              auto pos = ab.second.find(sample_id);
+              if (pos != ab.second.end())
+              {
+                // Sum all abundance values in the nested map
+                double abundance = 0.0;
+                for (const auto& nested : pos->second)
+                {
+                  abundance += nested.second;
+                }
+                out << abundance;
+              }
+              else
+              {
+                out << 0.0;
+              }
             }
             out << fraction << endl; // output fraction
           }
