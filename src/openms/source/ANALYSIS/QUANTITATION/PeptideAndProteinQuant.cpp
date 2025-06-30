@@ -7,7 +7,6 @@
 // --------------------------------------------------------------------------
 //
 
-#include "PeptideAndProteinQuant.h"
 
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -447,137 +446,55 @@ namespace OpenMS
   }
 
 
-  void PeptideAndProteinQuant::quantifyProteins(const ProteinIdentification&
-                                                proteins,
+  void PeptideAndProteinQuant::quantifyProteins(const ProteinIdentification& proteins,
                                                 bool detailed_protein_output)
   {
     if (pep_quant_.empty())
     {
       OPENMS_LOG_WARN << "Warning: No peptides quantified." << endl;
+      return;
     }
 
-    // if information about (indistinguishable) protein groups is available, map
-    // each accession to the accession of the leader of its group of proteins:
-    map<String, String> accession_to_leader;
-    mapAccessionToLeader(proteins, accession_to_leader);
+    // Phase 1: Transfer peptide data to protein structures
+    transferPeptideDataToProteins_(proteins, detailed_protein_output);
 
-    // for (auto & a : accession_to_leader) { std::cout << a.first << "\tis led by:\t" << a.second << endl; }
-
-    bool contains_accessions {false};
-
-    for (auto const& pep_q : pep_quant_)
-    {
-      String accession = getAccession_(pep_q.second.accessions, accession_to_leader);
-      OPENMS_LOG_DEBUG << "Peptide id mapped to leader: " << accession << endl;
-
-      // not enough evidence or mapping to multiple groups
-      if (accession.empty())
-        continue;
-
-      contains_accessions = true;
-      // proteotypic peptide
-      const String peptide = pep_q.first.toUnmodifiedString();
-
-      prot_quant_[accession].psm_count += pep_q.second.psm_count;
-
-      // transfer abundances and counts from peptides->protein
-      // summarize abundances and counts between different peptidoforms
-      for (auto const& sta : pep_q.second.total_abundances)
-      {
-        prot_quant_[accession].peptide_abundances[peptide][sta.first] += sta.second;
-      }
-
-      for (auto const& sta : pep_q.second.total_psm_counts)
-      {
-        prot_quant_[accession].peptide_psm_counts[peptide][sta.first] += sta.second;
-      }
-
-      // if detailed output is requested, also collect detailed abundances
-      if (detailed_protein_output)
-      {
-        // transfer detailed abundances from peptide to protein
-        for (auto const& fraction : pep_q.second.abundances)
-        {
-          for (auto const& filename : fraction.second)
-          {
-            for (auto const& charge : filename.second)
-            {
-              for (auto const& channel : charge.second)
-              {
-                prot_quant_[accession].channel_level_abundances[fraction.first][filename.first][channel.first] += channel.second;
-#ifdef DEBUG_PROTEINQUANTIFIER                
-                std::cout << "DEBUG: Adding abundance for protein " << accession
-                          << " fraction " << fraction.first
-                          << " filename " << filename.first
-                          << " charge " << charge.first
-                          << " channel " << channel.first
-                          << ": " << channel.second << endl; 
-#endif
-              }
-            }
-          }
-        }
-
-        // transfer detailed PSM counts from peptide to protein
-        for (auto const& fraction : pep_q.second.psm_counts)
-        {
-          for (auto const& filename : fraction.second)
-          {
-            for (auto const& charge : filename.second)
-            {
-              for (auto const& channel : charge.second)
-              {
-                prot_quant_[accession].channel_level_psm_counts[fraction.first][filename.first][channel.first] += channel.second;
-              }
-            }
-          }
-        }
-      }
-    }
-
-    if (!contains_accessions)
-    {
-      OPENMS_LOG_FATAL_ERROR << "No protein matches found, cannot quantify proteins." << endl;
-      throw Exception::MissingInformation(
-        __FILE__,
-        __LINE__,
-        OPENMS_PRETTY_FUNCTION,
-        "No protein matches found, cannot quantify proteins.");
-    }
-
+    // Phase 2: Extract and validate parameters
     std::string method = param_.getValue("method");
     Size top_n = param_.getValue("top:N");
     std::string aggregate = param_.getValue("top:aggregate");
     bool include_all = param_.getValue("top:include_all") == "true";
     bool fix_peptides = param_.getValue("consensus:fix_peptides") == "true";
 
+    // Handle iBAQ parameter overrides
     if (method == "iBAQ")
     {
       top_n = 0;
       aggregate = "sum";
     }
 
+    // Phase 3: Process each protein
     for (auto& prot_q : prot_quant_)
     {
+      const String& accession = prot_q.first;
       const ProteinData& pd = prot_q.second;
 
-      // calculate PSM counts based on all (!) peptides of a protein (group)
+      // Calculate PSM counts based on all peptides of a protein (group)
       for (auto const& pep2sa : pd.peptide_psm_counts)
-      { // for all peptides of this protein (group)
+      {
         const SampleAbundances& sas = pep2sa.second;
         for (auto const& sa : sas)
         {
           const Size& sample_id = sa.first;
           const Size& psms = sa.second;
           if (psms > 0)
-            prot_q.second.total_distinct_peptides[sample_id]++; // count this peptide sequence once if observed in sample
-          prot_q.second.total_psm_counts[sample_id] += psms;    // count all PSMs of this protein in this sample
+            prot_q.second.total_distinct_peptides[sample_id]++;
+          prot_q.second.total_psm_counts[sample_id] += psms;
         }
       }
 
-      // select which peptides of the current protein (group) are quantified
+      // Check if protein has enough peptides (for statistics)
       if ((top_n > 0) && (prot_q.second.peptide_abundances.size() < top_n))
-      { // not enough proteotypic peptides? skip protein (except if user chose to include the nevertheless)
+      {
         stats_.too_few_peptides++;
         if (!include_all)
         {
@@ -585,182 +502,25 @@ namespace OpenMS
         }
       }
 
-      vector<String> peptides; // peptides selected for quantification
-      if (fix_peptides && (top_n == 0))
-      {
-        // consider all peptides that occur in every sample:
-        for (auto const& ab : prot_q.second.peptide_abundances)
-        {
-          if (ab.second.size() == stats_.n_samples)
-          {
-            peptides.push_back(ab.first);
-          }
-        }
-      }
-      else if (fix_peptides && (top_n > 0) && (prot_q.second.peptide_abundances.size() > top_n))
-      {
-        orderBest_(prot_q.second.peptide_abundances, peptides);
-        peptides.resize(top_n);
-      }
-      else
-      {
-        // consider all peptides of the protein:
-        for (auto const& ab : prot_q.second.peptide_abundances)
-        {
-          peptides.push_back(ab.first);
-        }
-      }
-      // done selecting peptides for quantification
+      // Select peptides for quantification
+      std::vector<String> selected_peptides = selectPeptidesForQuantification_(
+          accession, top_n, include_all, fix_peptides);
 
-      // consider only the selected peptides for quantification:
-      map<UInt64, DoubleList> abundances; // all peptide abundances by sample
-      for (const auto& pep : peptides)    // for all selected peptides
-      {
-        for (auto& sa : prot_q.second.peptide_abundances[pep]) // copy over all abundances
-        {
-          abundances[sa.first].push_back(sa.second);
-        }
-      }
+      // Calculate protein abundances
+      calculateProteinAbundances_(accession, selected_peptides, aggregate, top_n, include_all);
 
-      for (auto& ab : abundances)
-      {
-        // check if the protein has enough peptides in this sample
-        if (!include_all && (top_n > 0) && (ab.second.size() < top_n))
-        {
-          continue;
-        }
-
-        // if we have more than "top", reduce to the top ones
-        if ((top_n > 0) && (ab.second.size() > top_n))
-        {
-          // sort descending:
-          sort(ab.second.begin(), ab.second.end(), greater<double>());
-          ab.second.resize(top_n); // remove all but best N values
-        }
-
-        double abundance_result;
-        if (aggregate == "median")
-        {
-          abundance_result = Math::median(ab.second.begin(), ab.second.end());
-        }
-        else if (aggregate == "mean")
-        {
-          abundance_result = Math::mean(ab.second.begin(), ab.second.end());
-        }
-        else if (aggregate == "weighted_mean")
-        {
-          double sum_intensities = 0;
-          double sum_intensities_squared = 0;
-          for (auto const& in : ab.second)
-          {
-            sum_intensities += in;
-            sum_intensities_squared += in * in;
-          }
-          abundance_result = sum_intensities_squared / sum_intensities;
-        }
-        else // "sum"
-        {
-          abundance_result = Math::sum(ab.second.begin(), ab.second.end());
-        }
-
-        prot_q.second.total_abundances[ab.first] = abundance_result;
-      }
-
-      // if detailed output is requested, perform detailed aggregation using the same selected peptides
       if (detailed_protein_output)
       {
-        // organize detailed abundances by (fraction, filename, channel) combinations
-        map<tuple<Int, String, Int>, DoubleList> detailed_abundances_by_key; // key -> list of abundances from selected peptides
+        // if information about (indistinguishable) protein groups is available, map
+        // each accession to the accession of the leader of its group of proteins:
+        map<String, String> accession_to_leader;
+        mapAccessionToLeader(proteins, accession_to_leader);
         
-        // collect detailed abundances from selected peptides
-        for (const auto& pep : peptides)    // for all selected peptides
-        {
-          // find the original peptide data to get detailed abundances
-          for (auto const& pep_q_check : pep_quant_)
-          {
-            if (pep_q_check.first.toUnmodifiedString() == pep)
-            {
-              String check_accession = getAccession_(pep_q_check.second.accessions, accession_to_leader);
-              if (check_accession == prot_q.first) // this peptide belongs to current protein
-              {
-                // collect detailed abundances from this peptide
-                for (auto const& fraction : pep_q_check.second.abundances)
-                {
-                  for (auto const& filename : fraction.second)
-                  {
-                    for (auto const& charge : filename.second)
-                    {
-                      for (auto const& channel : charge.second)
-                      {
-                        auto key = make_tuple(fraction.first, filename.first, channel.first);
-                        detailed_abundances_by_key[key].push_back(channel.second);
-                      }
-                    }
-                  }
-                }
-                break; // found the peptide, no need to continue searching
-              }
-            }
-          }
-        }
-        
-        // now aggregate for each detailed key using the same aggregation method
-        for (auto& detailed_ab : detailed_abundances_by_key)
-        {
-          auto key = detailed_ab.first;
-          Int fraction = get<0>(key);
-          String filename = get<1>(key);
-          Int channel = get<2>(key);
-          
-          DoubleList& all_abundances = detailed_ab.second;
-          
-          if (all_abundances.empty()) continue;
-          
-          // check if we have enough peptides for this detailed key
-          if (!include_all && (top_n > 0) && (all_abundances.size() < top_n))
-          {
-            continue;
-          }
-          
-          // if we have more than "top", reduce to the top ones
-          if ((top_n > 0) && (all_abundances.size() > top_n))
-          {
-            // sort descending:
-            sort(all_abundances.begin(), all_abundances.end(), greater<double>());
-            all_abundances.resize(top_n); // remove all but best N values
-          }
-          
-          double abundance_result;
-          if (aggregate == "median")
-          {
-            abundance_result = Math::median(all_abundances.begin(), all_abundances.end());
-          }
-          else if (aggregate == "mean")
-          {
-            abundance_result = Math::mean(all_abundances.begin(), all_abundances.end());
-          }
-          else if (aggregate == "weighted_mean")
-          {
-            double sum_intensities = 0;
-            double sum_intensities_squared = 0;
-            for (auto const& in : all_abundances)
-            {
-              sum_intensities += in;
-              sum_intensities_squared += in * in;
-            }
-            abundance_result = sum_intensities_squared / sum_intensities;
-          }
-          else // "sum"
-          {
-            abundance_result = Math::sum(all_abundances.begin(), all_abundances.end());
-          }
-
-          // store the aggregated result in channel_level_abundances
-          prot_q.second.channel_level_abundances[fraction][filename][channel] = abundance_result;
-        }
+        calculateDetailedProteinAbundances_(accession, selected_peptides, aggregate,
+                                           top_n, include_all, accession_to_leader);
       }
 
-      // update statistics:
+      // Update statistics
       if (prot_q.second.total_abundances.empty())
       {
         stats_.too_few_peptides++;
@@ -770,32 +530,11 @@ namespace OpenMS
         stats_.quant_proteins++;
       }
     }
+
+    // Phase 4: Post-processing
     if (method == "iBAQ")
     {
-      EnzymaticDigestion digest{};
-      for (auto & hit : proteins.getHits())
-      {
-        const OpenMS::String & hit_accession = hit.getAccession();
-        const OpenMS::String & hit_sequence = hit.getSequence();
-
-        if (prot_quant_.find(hit_accession) != prot_quant_.end())
-        {
-          if (hit_sequence.empty())
-          {
-            prot_quant_.erase(hit_accession);
-            OPENMS_LOG_WARN << "Removed " << hit_accession <<  ", no protein sequence found!" << endl;
-          }
-          else
-          {
-            std::vector<StringView> peptides {};
-            digest.digestUnmodified(StringView(hit_sequence), peptides);
-            for (auto& total_abundance : prot_quant_[hit_accession].total_abundances)
-            {
-              total_abundance.second /= double(peptides.size());
-            }
-          }
-        }
-      }
+      performIbaqNormalization_(proteins);
     }
   }
 
@@ -1136,4 +875,337 @@ namespace OpenMS
     }
   } 
 
+
+  void PeptideAndProteinQuant::transferPeptideDataToProteins_(const ProteinIdentification& proteins, 
+                                                             bool detailed_protein_output)
+  {
+    // if information about (indistinguishable) protein groups is available, map
+    // each accession to the accession of the leader of its group of proteins:
+    map<String, String> accession_to_leader;
+    mapAccessionToLeader(proteins, accession_to_leader);
+
+    bool contains_accessions {false};
+
+    for (auto const& pep_q : pep_quant_)
+    {
+      String accession = getAccession_(pep_q.second.accessions, accession_to_leader);
+      OPENMS_LOG_DEBUG << "Peptide id mapped to leader: " << accession << endl;
+
+      // not enough evidence or mapping to multiple groups
+      if (accession.empty())
+        continue;
+
+      contains_accessions = true;
+      // proteotypic peptide
+      const String peptide = pep_q.first.toUnmodifiedString();
+
+      prot_quant_[accession].psm_count += pep_q.second.psm_count;
+
+      // transfer abundances and counts from peptides->protein
+      // summarize abundances and counts between different peptidoforms
+      for (auto const& sta : pep_q.second.total_abundances)
+      {
+        prot_quant_[accession].peptide_abundances[peptide][sta.first] += sta.second;
+      }
+
+      for (auto const& sta : pep_q.second.total_psm_counts)
+      {
+        prot_quant_[accession].peptide_psm_counts[peptide][sta.first] += sta.second;
+      }
+
+      // if detailed output is requested, also collect detailed abundances
+      if (detailed_protein_output)
+      {
+        // transfer detailed abundances from peptide to protein
+        for (auto const& fraction : pep_q.second.abundances)
+        {
+          for (auto const& filename : fraction.second)
+          {
+            for (auto const& charge : filename.second)
+            {
+              for (auto const& channel : charge.second)
+              {
+                prot_quant_[accession].channel_level_abundances[fraction.first][filename.first][channel.first] += channel.second;
+#ifdef DEBUG_PROTEINQUANTIFIER                
+                std::cout << "DEBUG: Adding abundance for protein " << accession
+                          << " fraction " << fraction.first
+                          << " filename " << filename.first
+                          << " charge " << charge.first
+                          << " channel " << channel.first
+                          << ": " << channel.second << endl; 
+#endif
+              }
+            }
+          }
+        }
+
+        // transfer detailed PSM counts from peptide to protein
+        for (auto const& fraction : pep_q.second.psm_counts)
+        {
+          for (auto const& filename : fraction.second)
+          {
+            for (auto const& charge : filename.second)
+            {
+              for (auto const& channel : charge.second)
+              {
+                prot_quant_[accession].channel_level_psm_counts[fraction.first][filename.first][channel.first] += channel.second;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (!contains_accessions)
+    {
+      OPENMS_LOG_FATAL_ERROR << "No protein matches found, cannot quantify proteins." << endl;
+      throw Exception::MissingInformation(
+        __FILE__,
+        __LINE__,
+        OPENMS_PRETTY_FUNCTION,
+        "No protein matches found, cannot quantify proteins.");
+    }
+  }
+
+  std::vector<String> PeptideAndProteinQuant::selectPeptidesForQuantification_(const String& protein_accession,
+                                                                              Size top_n,
+                                                                              bool include_all,
+                                                                              bool fix_peptides)
+  {
+    std::vector<String> peptides;
+    
+    auto prot_it = prot_quant_.find(protein_accession);
+    if (prot_it == prot_quant_.end())
+    {
+      return peptides; // empty vector
+    }
+    
+    const ProteinData& pd = prot_it->second;
+
+
+    if (fix_peptides && (top_n == 0))
+    {
+      // consider all peptides that occur in every sample:
+      for (auto const& ab : pd.peptide_abundances)
+      {
+        if (ab.second.size() == stats_.n_samples)
+        {
+          peptides.push_back(ab.first);
+        }
+      }
+    }
+    else if (fix_peptides && (top_n > 0) && (pd.peptide_abundances.size() > top_n))
+    {
+      orderBest_(pd.peptide_abundances, peptides);
+      peptides.resize(top_n);
+    }
+    else
+    {
+      // consider all peptides of the protein:
+      for (auto const& ab : pd.peptide_abundances)
+      {
+        peptides.push_back(ab.first);
+      }
+    }
+
+    return peptides;
+  }
+
+  double PeptideAndProteinQuant::aggregateAbundances_(const std::vector<double>& abundances,
+                                                     const String& method) const
+  {
+    if (abundances.empty())
+    {
+      return 0.0;
+    }
+
+    if (method == "median")
+    {
+      std::vector<double> sorted_abundances = abundances; // make a copy for sorting
+      return Math::median(sorted_abundances.begin(), sorted_abundances.end());
+    }
+    else if (method == "mean")
+    {
+      return Math::mean(abundances.begin(), abundances.end());
+    }
+    else if (method == "weighted_mean")
+    {
+      double sum_intensities = 0;
+      double sum_intensities_squared = 0;
+      for (auto const& intensity : abundances)
+      {
+        sum_intensities += intensity;
+        sum_intensities_squared += intensity * intensity;
+      }
+      return sum_intensities_squared / sum_intensities;
+    }
+    else // "sum"
+    {
+      return Math::sum(abundances.begin(), abundances.end());
+    }
+  }
+
+  void PeptideAndProteinQuant::calculateProteinAbundances_(const String& protein_accession,
+                                                          const std::vector<String>& selected_peptides,
+                                                          const String& aggregate_method,
+                                                          Size top_n,
+                                                          bool include_all)
+  {
+    auto prot_it = prot_quant_.find(protein_accession);
+    if (prot_it == prot_quant_.end())
+    {
+      return;
+    }
+
+    ProteinData& pd = prot_it->second;
+
+    // consider only the selected peptides for quantification:
+    map<UInt64, DoubleList> abundances; // all peptide abundances by sample
+    for (const auto& pep : selected_peptides)    // for all selected peptides
+    {
+      auto pep_it = pd.peptide_abundances.find(pep);
+      if (pep_it != pd.peptide_abundances.end())
+      {
+        for (auto& sa : pep_it->second) // copy over all abundances
+        {
+          abundances[sa.first].push_back(sa.second);
+        }
+      }
+    }
+
+    for (auto& ab : abundances)
+    {
+      // check if the protein has enough peptides in this sample
+      if (!include_all && (top_n > 0) && (ab.second.size() < top_n))
+      {
+        continue;
+      }
+
+      // if we have more than "top", reduce to the top ones
+      if ((top_n > 0) && (ab.second.size() > top_n))
+      {
+        // sort descending:
+        sort(ab.second.begin(), ab.second.end(), greater<double>());
+        ab.second.resize(top_n); // remove all but best N values
+      }
+
+      double abundance_result = aggregateAbundances_(ab.second, aggregate_method);
+      pd.total_abundances[ab.first] = abundance_result;
+    }
+  }
+
+  void PeptideAndProteinQuant::calculateDetailedProteinAbundances_(const String& protein_accession,
+                                                                  const std::vector<String>& selected_peptides,
+                                                                  const String& aggregate_method,
+                                                                  Size top_n,
+                                                                  bool include_all,
+                                                                  const std::map<String, String>& accession_to_leader)
+  {
+    auto prot_it = prot_quant_.find(protein_accession);
+    if (prot_it == prot_quant_.end())
+    {
+      return;
+    }
+
+    ProteinData& pd = prot_it->second;
+
+    // organize detailed abundances by (fraction, filename, channel) combinations
+    map<tuple<Int, String, Int>, DoubleList> detailed_abundances_by_key; // key -> list of abundances from selected peptides
+    
+    // collect detailed abundances from selected peptides
+    for (const auto& pep : selected_peptides)    // for all selected peptides
+    {
+      // find the original peptide data to get detailed abundances
+      for (auto const& pep_q_check : pep_quant_)
+      {
+        if (pep_q_check.first.toUnmodifiedString() == pep)
+        {
+          String check_accession = getAccession_(pep_q_check.second.accessions, 
+                                                const_cast<std::map<String, String>&>(accession_to_leader));
+          if (check_accession == protein_accession) // this peptide belongs to current protein
+          {
+            // collect detailed abundances from this peptide
+            for (auto const& fraction : pep_q_check.second.abundances)
+            {
+              for (auto const& filename : fraction.second)
+              {
+                for (auto const& charge : filename.second)
+                {
+                  for (auto const& channel : charge.second)
+                  {
+                    auto key = make_tuple(fraction.first, filename.first, channel.first);
+                    detailed_abundances_by_key[key].push_back(channel.second);
+                  }
+                }
+              }
+            }
+            break; // found the peptide, no need to continue searching
+          }
+        }
+      }
+    }
+    
+    // now aggregate for each detailed key using the same aggregation method
+    for (auto& detailed_ab : detailed_abundances_by_key)
+    {
+      auto key = detailed_ab.first;
+      Int fraction = get<0>(key);
+      String filename = get<1>(key);
+      Int channel = get<2>(key);
+      
+      DoubleList& all_abundances = detailed_ab.second;
+      
+      if (all_abundances.empty()) continue;
+      
+      // check if we have enough peptides for this detailed key
+      if (!include_all && (top_n > 0) && (all_abundances.size() < top_n))
+      {
+        continue;
+      }
+      
+      // if we have more than "top", reduce to the top ones
+      if ((top_n > 0) && (all_abundances.size() > top_n))
+      {
+        // sort descending:
+        sort(all_abundances.begin(), all_abundances.end(), greater<double>());
+        all_abundances.resize(top_n); // remove all but best N values
+      }
+      
+      double abundance_result = aggregateAbundances_(all_abundances, aggregate_method);
+
+      // store the aggregated result in channel_level_abundances
+      pd.channel_level_abundances[fraction][filename][channel] = abundance_result;
+    }
+  }
+
+  void PeptideAndProteinQuant::performIbaqNormalization_(const ProteinIdentification& proteins)
+  {
+    EnzymaticDigestion digest{};
+    for (auto & hit : proteins.getHits())
+    {
+      const OpenMS::String & hit_accession = hit.getAccession();
+      const OpenMS::String & hit_sequence = hit.getSequence();
+
+      if (prot_quant_.find(hit_accession) != prot_quant_.end())
+      {
+        if (hit_sequence.empty())
+        {
+          prot_quant_.erase(hit_accession);
+          OPENMS_LOG_WARN << "Removed " << hit_accession <<  ", no protein sequence found!" << endl;
+        }
+        else
+        {
+          std::vector<StringView> peptides {};
+          digest.digestUnmodified(StringView(hit_sequence), peptides);
+          for (auto& total_abundance : prot_quant_[hit_accession].total_abundances)
+          {
+            total_abundance.second /= double(peptides.size());
+          }
+        }
+      }
+    }
+  }
+
+
 }
+

@@ -280,6 +280,80 @@ private:
     void normalizePeptides_();
 
     /**
+         @brief Transfer peptide-level quantitative data to protein-level data structures.
+         
+         This method populates prot_quant_ with peptide abundance and PSM count data.
+         
+         @param proteins Protein identification information
+         @param detailed_protein_output If true, populate detailed channel-level data
+    */
+    void transferPeptideDataToProteins_(const ProteinIdentification& proteins,
+                                       bool detailed_protein_output);
+
+    /**
+         @brief Select peptides for protein quantification based on filtering criteria.
+         
+         @param protein_accession The protein accession to select peptides for
+         @param top_n Maximum number of peptides to select (0 = no limit)
+         @param include_all Whether to include proteins with insufficient peptides
+         @param fix_peptides Whether to use consistent peptides across samples
+         @return Vector of selected peptide sequences
+    */
+    std::vector<String> selectPeptidesForQuantification_(const String& protein_accession,
+                                                        Size top_n,
+                                                        bool include_all,
+                                                        bool fix_peptides);
+
+    /**
+         @brief Aggregate abundances using the specified mathematical method.
+         
+         @param abundances Vector of abundance values to aggregate
+         @param method Aggregation method ("median", "mean", "weighted_mean", "sum")
+         @return Aggregated abundance value
+    */
+    double aggregateAbundances_(const std::vector<double>& abundances,
+                               const String& method) const;
+
+    /**
+         @brief Calculate protein abundances for a single protein using selected peptides.
+         
+         @param protein_accession The protein accession
+         @param selected_peptides Vector of peptide sequences to use for quantification
+         @param aggregate_method Method to aggregate peptide abundances
+         @param top_n Maximum number of peptides to use per sample
+         @param include_all Whether to include proteins with insufficient peptides
+    */
+    void calculateProteinAbundances_(const String& protein_accession,
+                                    const std::vector<String>& selected_peptides,
+                                    const String& aggregate_method,
+                                    Size top_n,
+                                    bool include_all);
+
+    /**
+         @brief Calculate detailed protein abundances at channel level using selected peptides.
+         
+         @param protein_accession The protein accession
+         @param selected_peptides Vector of peptide sequences to use for quantification
+         @param aggregate_method Method to aggregate peptide abundances
+         @param top_n Maximum number of peptides to use per sample
+         @param include_all Whether to include proteins with insufficient peptides
+         @param accession_to_leader Map for resolving protein group leaders
+    */
+    void calculateDetailedProteinAbundances_(const String& protein_accession,
+                                           const std::vector<String>& selected_peptides,
+                                           const String& aggregate_method,
+                                           Size top_n,
+                                           bool include_all,
+                                           const std::map<String, String>& accession_to_leader);
+
+    /**
+         @brief Perform iBAQ normalization on protein abundances.
+         
+         @param proteins Protein identification information containing sequences
+    */
+    void performIbaqNormalization_(const ProteinIdentification& proteins);
+
+    /**
          @brief Get the "canonical" protein accession from the list of protein accessions of a peptide.
 
          @param pep_accessions Protein accessions of a peptide
