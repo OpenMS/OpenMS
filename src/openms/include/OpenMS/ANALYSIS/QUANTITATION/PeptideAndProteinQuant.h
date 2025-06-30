@@ -170,9 +170,9 @@ public:
          Peptide abundances must be computed first with quantifyPeptides(). Optional protein inference information (e.g. from Fido or ProteinProphet) can be supplied via @p proteins.
          
          @param proteins Optional protein inference information
-         @param detailed_protein_output If true, populate channel_level_abundances and channel_level_psm_counts members in ProteinData with file+channel level aggregation
+         @param file_and_channel_level_output If true, populate channel_level_abundances and channel_level_psm_counts members in ProteinData with file+channel level aggregation
     */
-    void quantifyProteins(const ProteinIdentification& proteins = ProteinIdentification(), bool detailed_protein_output = false);
+    void quantifyProteins(const ProteinIdentification& proteins = ProteinIdentification(), bool file_and_channel_level_output = false);
 
     void mapAccessionToLeader(const OpenMS::ProteinIdentification& proteins, std::map<OpenMS::String, OpenMS::String>& accession_to_leader);
 
@@ -285,10 +285,10 @@ private:
          This method populates prot_quant_ with peptide abundance and PSM count data.
          
          @param proteins Protein identification information
-         @param detailed_protein_output If true, populate detailed channel-level data
+         @param file_and_channel_level_output If true, populate detailed channel-level data
     */
     void transferPeptideDataToProteins_(const ProteinIdentification& proteins,
-                                       bool detailed_protein_output);
+                                       bool file_and_channel_level_output);
 
     /**
          @brief Select peptides for protein quantification based on filtering criteria.

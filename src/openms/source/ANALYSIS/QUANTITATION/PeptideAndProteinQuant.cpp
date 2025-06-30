@@ -447,7 +447,7 @@ namespace OpenMS
 
 
   void PeptideAndProteinQuant::quantifyProteins(const ProteinIdentification& proteins,
-                                                bool detailed_protein_output)
+                                                bool file_and_channel_level_output)
   {
     if (pep_quant_.empty())
     {
@@ -456,7 +456,7 @@ namespace OpenMS
     }
 
     // Phase 1: Transfer peptide data to protein structures
-    transferPeptideDataToProteins_(proteins, detailed_protein_output);
+    transferPeptideDataToProteins_(proteins, file_and_channel_level_output);
 
     // Phase 2: Extract and validate parameters
     std::string method = param_.getValue("method");
@@ -509,7 +509,7 @@ namespace OpenMS
       // Calculate protein abundances
       calculateProteinAbundances_(accession, selected_peptides, aggregate, top_n, include_all);
 
-      if (detailed_protein_output)
+      if (file_and_channel_level_output)
       {
         // if information about (indistinguishable) protein groups is available, map
         // each accession to the accession of the leader of its group of proteins:
@@ -877,7 +877,7 @@ namespace OpenMS
 
 
   void PeptideAndProteinQuant::transferPeptideDataToProteins_(const ProteinIdentification& proteins, 
-                                                             bool detailed_protein_output)
+                                                             bool file_and_channel_level_output)
   {
     // if information about (indistinguishable) protein groups is available, map
     // each accession to the accession of the leader of its group of proteins:
@@ -914,7 +914,7 @@ namespace OpenMS
       }
 
       // if detailed output is requested, also collect detailed abundances
-      if (detailed_protein_output)
+      if (file_and_channel_level_output)
       {
         // transfer detailed abundances from peptide to protein
         for (auto const& fraction : pep_q.second.abundances)

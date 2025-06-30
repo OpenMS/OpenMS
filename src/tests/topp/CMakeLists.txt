@@ -2308,7 +2308,7 @@ add_test("TOPP_ProteinQuantifier_16" ${TOPP_BIN_PATH}/ProteinQuantifier -test -i
 add_test("TOPP_ProteinQuantifier_16_out1" ${DIFF} -in1 ProteinQuantifier_16_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_16_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_16_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_16")
 
-add_test("TOPP_ProteinQuantifier_17" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.tsv -detailed_protein_output "true"  -out ProteinQuantifier_17_output.tmp -top:include_all -best_charge_and_fraction )
+add_test("TOPP_ProteinQuantifier_17" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.tsv -file_and_channel_level_output "true"  -out ProteinQuantifier_17_output.tmp -top:include_all -best_charge_and_fraction )
 add_test("TOPP_ProteinQuantifier_17_out1" ${DIFF} -in1 ProteinQuantifier_17_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_17_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_17_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_17")
 #------------------------------------------------------------------------------
