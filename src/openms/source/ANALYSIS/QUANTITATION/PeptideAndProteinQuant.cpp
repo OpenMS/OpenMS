@@ -7,21 +7,23 @@
 // --------------------------------------------------------------------------
 //
 
+#include "PeptideAndProteinQuant.h"
+
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/MATH/StatisticFunctions.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/DATASTRUCTURES/StringView.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringView.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/ExperimentalDesign.h>
-#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <algorithm>
 
 using namespace std;
@@ -457,17 +459,7 @@ namespace OpenMS
     // if information about (indistinguishable) protein groups is available, map
     // each accession to the accession of the leader of its group of proteins:
     map<String, String> accession_to_leader;
-    if (!proteins.getIndistinguishableProteins().empty())
-    {
-      for (auto const& pg : proteins.getIndistinguishableProteins())
-      {
-        for (auto const& acc : pg.accessions)
-        {
-          // each accession should only occur once, but we don't check...
-          accession_to_leader[acc] = pg.accessions[0];
-        }
-      }
-    }
+    mapAccessionToLeader(proteins, accession_to_leader);
 
     // for (auto & a : accession_to_leader) { std::cout << a.first << "\tis led by:\t" << a.second << endl; }
 
@@ -512,7 +504,15 @@ namespace OpenMS
             {
               for (auto const& channel : charge.second)
               {
-                prot_quant_[accession].detailed_abundances[fraction.first][filename.first][channel.first] += channel.second;
+                prot_quant_[accession].channel_level_abundances[fraction.first][filename.first][channel.first] += channel.second;
+#ifdef DEBUG_PROTEINQUANTIFIER                
+                std::cout << "DEBUG: Adding abundance for protein " << accession
+                          << " fraction " << fraction.first
+                          << " filename " << filename.first
+                          << " charge " << charge.first
+                          << " channel " << channel.first
+                          << ": " << channel.second << endl; 
+#endif
               }
             }
           }
@@ -527,7 +527,7 @@ namespace OpenMS
             {
               for (auto const& channel : charge.second)
               {
-                prot_quant_[accession].detailed_psm_counts[fraction.first][filename.first][channel.first] += channel.second;
+                prot_quant_[accession].channel_level_psm_counts[fraction.first][filename.first][channel.first] += channel.second;
               }
             }
           }
@@ -754,9 +754,9 @@ namespace OpenMS
           {
             abundance_result = Math::sum(all_abundances.begin(), all_abundances.end());
           }
-          
-          // store the aggregated result in detailed_abundances
-          prot_q.second.detailed_abundances[fraction][filename][channel] = abundance_result;
+
+          // store the aggregated result in channel_level_abundances
+          prot_q.second.channel_level_abundances[fraction][filename][channel] = abundance_result;
         }
       }
 
@@ -800,9 +800,22 @@ namespace OpenMS
   }
 
 
-  void PeptideAndProteinQuant::readQuantData(
-    FeatureMap& features,
-    const ExperimentalDesign& ed)
+  void PeptideAndProteinQuant::mapAccessionToLeader(const OpenMS::ProteinIdentification& proteins,
+                                                    std::map<OpenMS::String, OpenMS::String>& accession_to_leader)
+  {
+    if (! proteins.getIndistinguishableProteins().empty())
+    {
+      for (auto const& pg : proteins.getIndistinguishableProteins())
+      {
+        for (auto const& acc : pg.accessions)
+        {
+          // each accession should only occur once, but we don't check...
+          accession_to_leader[acc] = pg.accessions[0];
+        }
+      }
+    }
+  }
+  void PeptideAndProteinQuant::readQuantData(FeatureMap& features, const ExperimentalDesign& ed)
   {
     updateMembers_(); // clear data
     experimental_design_ = ed; // store experimental design for aggregation

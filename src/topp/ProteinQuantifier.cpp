@@ -599,7 +599,7 @@ protected:
           {
             double total_abundance = 0.0;
             // Sum abundances across all fractions for this file+channel
-            for (auto const& fraction : q.second.detailed_abundances)
+            for (auto const& fraction : q.second.channel_level_abundances)
             {
               const auto& filename_to_channel = fraction.second;
               if (auto filename_it = filename_to_channel.find(filename); filename_it != filename_to_channel.end())

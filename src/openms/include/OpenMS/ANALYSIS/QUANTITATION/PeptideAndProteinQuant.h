@@ -70,10 +70,10 @@ public:
       std::map<String, SampleAbundances> peptide_psm_counts;
 
       /// mapping: fraction -> filename -> channel/label -> abundance
-      std::map<Int, std::map<String, std::map<Int, double>>> detailed_abundances;
+      std::map<Int, std::map<String, std::map<Int, double>>> channel_level_abundances;
 
       /// mapping: fraction -> filename -> channel/label -> PSM counts
-      std::map<Int, std::map<String, std::map<Int, double>>> detailed_psm_counts;
+      std::map<Int, std::map<String, std::map<Int, double>>> channel_level_psm_counts;
 
       /// mapping: sample -> total abundance
       SampleAbundances total_abundances;
@@ -170,11 +170,11 @@ public:
          Peptide abundances must be computed first with quantifyPeptides(). Optional protein inference information (e.g. from Fido or ProteinProphet) can be supplied via @p proteins.
          
          @param proteins Optional protein inference information
-         @param detailed_protein_output If true, populate detailed_abundances and detailed_psm_counts members in ProteinData with file+channel level aggregation
+         @param detailed_protein_output If true, populate channel_level_abundances and channel_level_psm_counts members in ProteinData with file+channel level aggregation
     */
-    void quantifyProteins(const ProteinIdentification& proteins =
-                          ProteinIdentification(),
-                          bool detailed_protein_output = false);
+    void quantifyProteins(const ProteinIdentification& proteins = ProteinIdentification(), bool detailed_protein_output = false);
+
+    void mapAccessionToLeader(const OpenMS::ProteinIdentification& proteins, std::map<OpenMS::String, OpenMS::String>& accession_to_leader);
 
     /// Get summary statistics
     const Statistics& getStatistics();
