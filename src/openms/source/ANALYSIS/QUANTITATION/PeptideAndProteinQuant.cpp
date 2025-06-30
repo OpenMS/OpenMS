@@ -1110,7 +1110,7 @@ namespace OpenMS
     ProteinData& pd = prot_it->second;
 
     // organize detailed abundances by (fraction, filename, channel) combinations
-    map<tuple<Int, String, Int>, DoubleList> detailed_abundances_by_key; // key -> list of abundances from selected peptides
+    map<tuple<Int, String, Int>, DoubleList> channel_level_abundances_for_selected_peptides;
     
     // collect detailed abundances from selected peptides
     for (const auto& pep : selected_peptides)    // for all selected peptides
@@ -1133,8 +1133,19 @@ namespace OpenMS
                 {
                   for (auto const& channel : charge.second)
                   {
-                    auto key = make_tuple(fraction.first, filename.first, channel.first);
-                    detailed_abundances_by_key[key].push_back(channel.second);
+                    auto peptide = make_tuple(fraction.first, filename.first, channel.first);
+                    channel_level_abundances_for_selected_peptides[peptide].push_back(channel.second);
+
+                    #ifdef DEBUG_PEPTIDEANDPROTEINQUANT
+                    std::cout << "DEBUG: Adding abundance for leader " <<
+                              getAccession_(pep_q_check.second.accessions, const_cast<std::map<String, String>&>(accession_to_leader))
+                              << pep
+                              << " fraction " << fraction.first
+                              << " filename " << filename.first
+                              << " charge " << charge.first
+                              << " channel " << channel.first
+                              << ": " << channel.second << endl;
+                    #endif
                   }
                 }
               }
@@ -1145,13 +1156,13 @@ namespace OpenMS
       }
     }
     
-    // now aggregate for each detailed key using the same aggregation method
-    for (auto& detailed_ab : detailed_abundances_by_key)
+    // now aggregate using the same aggregation method
+    for (auto& detailed_ab : channel_level_abundances_for_selected_peptides)
     {
-      auto key = detailed_ab.first;
-      Int fraction = get<0>(key);
-      String filename = get<1>(key);
-      Int channel = get<2>(key);
+      const auto& selected_peptide = detailed_ab.first;
+      Int fraction = get<0>(selected_peptide);
+      String filename = get<1>(selected_peptide);
+      Int channel = get<2>(selected_peptide);
       
       DoubleList& all_abundances = detailed_ab.second;
       
@@ -1175,6 +1186,14 @@ namespace OpenMS
 
       // store the aggregated result in channel_level_abundances
       pd.channel_level_abundances[fraction][filename][channel] = abundance_result;
+      #ifdef DEBUG_PEPTIDEANDPROTEINQUANT
+      std::cout << "DEBUG: Protein " << protein_accession
+                << " leader " << getAccession_(protein_accession, const_cast<std::map<String, String>&>(accession_to_leader))
+                << " fraction " << fraction
+                << " filename " << filename
+                << " channel " << channel
+                << ": " << abundance_result << endl;
+      #endif
     }
   }
 

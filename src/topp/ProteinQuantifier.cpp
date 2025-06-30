@@ -486,31 +486,40 @@ protected:
   {
     const bool print_ratios = getFlag_("ratios");
     const bool print_SILACratios = getFlag_("ratiosSILAC");
-    const bool detailed_protein_output = (getStringOption_("detailed_protein_output") == "true");
+    const bool channel_level_output = (getStringOption_("detailed_protein_output") == "true");
     
     ExperimentalDesign::MSFileSection msfile_section = ed.getMSFileSection();
     
     // Extract the Spectra Filepath column from the design
 
-    map<UInt64, String> design_filenames;
+    map<UInt64, map<UInt64, String>> design_group_fraction_filename;
+    UInt64 n_files = 0;
     for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
     {
-      const String fn = File::basename(f.path);
-      design_filenames[f.fraction_group] = fn;
+      const String fn = FileHandler::stripExtension(File::basename(f.path));
+      design_group_fraction_filename[f.fraction_group][f.fraction] = fn;
+      n_files++;
     }
     
     // write header:
     out << "protein" << "n_proteins" << "protein_score" << "n_peptides";
     
-    if (detailed_protein_output)
+    if (channel_level_output)
     {
-      OPENMS_LOG_INFO << "Writing detailed protein output for " << design_filenames.size() << " files and " << ed.getNumberOfLabels() << " channels." << std::endl;
+      OPENMS_LOG_INFO << "Writing detailed protein output for " << design_group_fraction_filename.size() 
+        << " fraction groups "
+        << n_files << " files and "
+        << ed.getNumberOfLabels() << " channels." << std::endl;
+
       // Use detailed file+channel headers
-      for (const auto& [fraction_group, filename] : design_filenames)
+      for (const auto& [fraction_group, filename_map] : design_group_fraction_filename) // ordered by fraction_group identifier
       {
-        for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
+        for (const auto& [fraction, filename] : filename_map)
         {
-          out << "abundance_" + filename + "_" + String(c+1);
+          for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
+          {
+            out << "abundance_" + filename + "_" + String(c+1);
+          }
         }
       }
     }
@@ -562,7 +571,7 @@ protected:
       }
     }
 
-    for (auto const & q : quant)
+    for (auto const & q : quant) // for each protein quantification
     {
       if (q.second.total_abundances.empty())
       {
@@ -590,28 +599,69 @@ protected:
       Size n_peptide = q.second.peptide_abundances.size();
       out << n_peptide;
 
-      if (detailed_protein_output)
+      if (channel_level_output)
       {
         // Write detailed abundances (file+channel level)
-        for (auto& [fraction_group, filename] : design_filenames) // note: we need to use the order in the experimental design file
-        {          
-          for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
+        // We loop over the filenames in the design file, as this is the order we expect in the output.
+        for (const auto& [group_id, fraction_to_filename_map] : design_group_fraction_filename)
+        {
+          for (auto [fraction, design_filename] : fraction_to_filename_map)
           {
-            double total_abundance = 0.0;
-            // Sum abundances across all fractions for this file+channel
-            for (auto const& fraction : q.second.channel_level_abundances)
+            // Process each filename within the fraction group
+            // important: strip file extension and path to find the entry
+            design_filename = FileHandler::stripExtension(File::basename(design_filename));
+            std::cout 
+              << "Experimental design: fraction group: " << group_id 
+              << ", filename: '" << design_filename
+              << "', fraction: " << fraction
+              << " of the experimental design." << std::endl;
+
+            // for each file in the design, fill the channels quantity
+            for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
             {
-              const auto& filename_to_channel = fraction.second;
-              if (auto filename_it = filename_to_channel.find(filename); filename_it != filename_to_channel.end())
+              double channel_quantity{};
+
+              // search across all fractions for this file+channel
+              for (auto const& fraction : q.second.channel_level_abundances)
               {
-                const auto& channel_to_abundance = filename_it->second;
-                if (auto channel_it = channel_to_abundance.find(c); channel_it != channel_to_abundance.end())
+                std::cout << q.first << std::endl;
+                const auto& filename_to_channel_map = fraction.second;
+                // print filename
+
+                if (auto file_level_it = filename_to_channel_map.find(design_filename); 
+                  file_level_it == filename_to_channel_map.end())
                 {
-                  total_abundance += channel_it->second;
+                  continue; // not the quant for this file TODO: could be done faster
+                }
+                else
+                {
+                  // Found the right file, now search for the channel
+                  if (auto channel_it = file_level_it->second.find(c);
+                      channel_it != file_level_it->second.end())
+                  {
+                    channel_quantity += channel_it->second; // there should be only one entry per file+channel
+                  }
                 }
               }
-            }            
-            out << total_abundance; // Always output a value (0.0 if no data found) to maintain CSV structure
+
+              if (channel_quantity == 0.0)
+              {
+                std::cout << "No quantity found for '" << design_filename << "'" << std::endl;
+                // print all filenames in fraction
+                for (auto const& fraction : q.second.channel_level_abundances)
+                {
+                  const auto& filename_to_channel_map = fraction.second;
+                  std::cout << "Files with quantities for this protein: " << std::endl;
+                  for (const auto& [filename, channels] : filename_to_channel_map)
+                  {
+                    std::cout << "'" << filename << "'" << std::endl;
+                  }
+                }
+                std::cout << std::endl;
+              }
+          
+              out << channel_quantity; // Always output a value (0.0 if no data found) to maintain CSV structure
+            }    
           }
         }
       }
