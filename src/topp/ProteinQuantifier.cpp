@@ -522,9 +522,19 @@ protected:
     }
     else
     {
+      // Get sample condition names from experimental design sample section
+      const auto& sample_section = ed.getSampleSection();
+      
+      std::cout << "Writing protein output for " << ed.getNumberOfSamples() 
+        << std::endl;
       for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
       {
-        out << "abundance_sample" + String(i+1);
+        String sample_condition = "unknown";
+        if (sample_section.hasFactor("MSstats_Condition"))
+        {
+          sample_condition = sample_section.getFactorValue(i, "MSstats_Condition");
+        }
+        out << "abundance_sample" + String(i+1) + "[" + sample_condition + "]";
       }
 
       // TODO MULTIPLEXING: check if correct

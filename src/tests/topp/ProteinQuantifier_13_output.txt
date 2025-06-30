@@ -1,5 +1,5 @@
 # Protein abundances computed from file '/home/sachsenb/Development/OpenMS/src/tests/topp/ProteinQuantifier_input.consensusXML'
 # Parameters (relevant only): method=top, top:N=3, top:aggregate=sum, top:include_all=true, consensus:fix_peptides=true
 # Files/samples associated with abundance values below: 1: 'sample1', 2: 'sample2', 3: 'sample3'
-"protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance_sample1"	"abundance_sample2"	"abundance_sample3"	"SILACratio_1"	"SILACratio_2"	"SILACratio_3"
+"protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance_sample1[unknown]"	"abundance_sample2[unknown]"	"abundance_sample3[unknown]"	"SILACratio_1"	"SILACratio_2"	"SILACratio_3"
 "Protein"	1	0.9097144245	4	1230.0	230.0	1030.0	-0.256013978156022	2.162938571126206	-2.418952549282227
