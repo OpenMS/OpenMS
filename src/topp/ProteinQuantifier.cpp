@@ -383,7 +383,7 @@ protected:
     {
       for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
       {
-        out << "abundance_" + filename + "_" + String(c+1);
+        out << "abundance|" + filename + "|ch" + String(c+1);
       }
     }
 
@@ -511,7 +511,7 @@ protected:
         {
           for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
           {
-            out << "abundance_" + filename + "_" + String(c+1);
+            out << "abundance|" + filename + "|ch" + String(c+1);
           }
         }
       }
