@@ -100,14 +100,14 @@ The output files produced by this tool have a table format, with columns as desc
 - @b n_proteins: Number of indistinguishable proteins quantified (usually "1").
 - @b protein_score: Protein score, e.g. ProteinProphet probability (if available).
 - @b n_peptides: Number of proteotypic peptides observed for this protein (or group of indistinguishable proteins) across all samples. Note that not necessarily all of these peptides contribute to the protein abundance (depending on parameter @p top).
-- @b abundance: Computed protein abundance. For consensusXML input, there will be one column  per sample ("abundance_1", "abundance_2", etc.).
+- @b abundance: Computed protein abundance. For consensusXML input, there will be one column  per sample ("abundance_sample1", "abundance_sample2", etc.).
 
 <b>Peptide output</b> (one peptide or - if @p best_charge_and_fraction is set - one charge state and fraction of a peptide per line):
 - @b peptide: Peptide sequence. Only peptides that occur in unambiguous annotations of features are reported.
 - @b protein: Protein accession(s) for the peptide (separated by "/" if more than one).
 - @b n_proteins: Number of proteins this peptide maps to. (Same as the number of accessions in the previous column.)
 - @b charge: Charge state quantified in this line. "0" (for "all charges") unless @p best_charge_and_fraction was set.
-- @b abundance: Computed abundance for this peptide. If the charge in the preceding column is 0, this is the total abundance of the peptide over all charge states; otherwise, it is only the abundance observed for the indicated charge (in this case, there may be more than one line for the peptide sequence). Again, for consensusXML input, there will be one column  per sample ("abundance_1", "abundance_2", etc.). Also for consensusXML, the reported values are already normalized if @p consensus:normalize was set.
+- @b abundance: Computed abundance for this peptide. If the charge in the preceding column is 0, this is the total abundance of the peptide over all charge states; otherwise, it is only the abundance observed for the indicated charge (in this case, there may be more than one line for the peptide sequence). Again, for consensusXML input, there will be one column  per sample ("abundance_sample1", "abundance_sample2", etc.). Also for consensusXML, the reported values are already normalized if @p consensus:normalize was set.
 
 <B>Protein quantification examples</B>
 
@@ -524,7 +524,7 @@ protected:
     {
       for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
       {
-        out << "abundance_" + String(i+1);
+        out << "abundance_sample" + String(i+1);
       }
 
       // TODO MULTIPLEXING: check if correct

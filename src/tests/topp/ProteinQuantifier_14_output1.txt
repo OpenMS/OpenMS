@@ -1,7 +1,7 @@
 # Protein abundances computed from file '/home/sachsenb/Development/OpenMS/src/tests/topp/ProteinQuantifier_input.idXML'
 # Parameters (relevant only): method=top, top:N=0, top:aggregate=sum
 # Files/samples associated with abundance values below: 1: 'file1', 2: 'file2'
-"protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance_1"	"abundance_2"
+"protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance_sample1"	"abundance_sample2"
 "IPI00006803"	1	0	1	0.0	1.0
 "IPI00010790"	1	0	2	3.0	2.0
 "IPI00014592"	1	0	1	0.0	1.0
