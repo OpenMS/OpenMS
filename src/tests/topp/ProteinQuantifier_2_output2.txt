@@ -1,6 +1,6 @@
 # Peptide abundances computed from file '/home/sachsenb/Development/OpenMS/src/tests/topp/ProteinQuantifier_input.featureXML'
 # Parameters (relevant only): best_charge_and_fraction=true
-"peptide"	"protein"	"n_proteins"	"charge"	"abundance_file1.mzML_1"	"fraction"
+"peptide"	"protein"	"n_proteins"	"charge"	"abundance_file1_1"	"fraction"
 "AAAAA"	"Protein0"	1	1	1
 "CCCCC"	"Protein0"	1	1	1
 "CCCCC"	"Protein0"	1	2	1

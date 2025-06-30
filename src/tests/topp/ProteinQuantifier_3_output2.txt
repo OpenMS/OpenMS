@@ -1,5 +1,5 @@
 # Peptide abundances computed from file '/home/sachsenb/Development/OpenMS/src/tests/topp/ProteinQuantifier_3_input.featureXML'
 # Parameters (relevant only): (none)
-"peptide"	"protein"	"n_proteins"	"charge"	"abundance_file1.mzML_1"	"fraction"
+"peptide"	"protein"	"n_proteins"	"charge"	"abundance_file1_1"	"fraction"
 "CCCCC"	"Protein0"	1	0	7777.0	"all"
 ".(Carbamidomethyl)CCCCC"	"Protein0"	1	0	2222.0	"all"

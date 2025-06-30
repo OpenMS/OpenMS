@@ -373,7 +373,7 @@ protected:
     map<UInt64, String> design_filenames;
     for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
     {
-      const String fn = File::basename(f.path);
+      const String fn = FileHandler::stripExtension(File::basename(f.path));      
       design_filenames[f.fraction_group] = fn;
     }
     
@@ -769,7 +769,7 @@ protected:
       map<String, String> sample_id_to_filename;
       for (const auto& e : ms_section)
       {
-        String ed_filename = File::basename(e.path);
+        String ed_filename = FileHandler::stripExtension(File::basename(e.path));
         String ed_label = e.label;
         String ed_sample = e.sample;
         sample_id_to_filename[e.sample] = ed_filename; // should be 0,...,n_samples-1

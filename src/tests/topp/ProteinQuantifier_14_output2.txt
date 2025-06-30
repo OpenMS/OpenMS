@@ -1,7 +1,7 @@
 # Peptide abundances computed from file '/home/sachsenb/Development/OpenMS/src/tests/topp/ProteinQuantifier_input.idXML'
 # Parameters (relevant only): (none)
-# Files/samples associated with abundance values below: 1: 'file1.mzML', 2: 'file2.mzML'
-"peptide"	"protein"	"n_proteins"	"charge"	"abundance_file1.mzML_1"	"abundance_file2.mzML_1"	"fraction"
+# Files/samples associated with abundance values below: 1: 'file1', 2: 'file2'
+"peptide"	"protein"	"n_proteins"	"charge"	"abundance_file1_1"	"abundance_file2_1"	"fraction"
 "EHVQLRDK"	"IPI00006803"	1	0	0.0	1.0	"all"
 "SSLKNYANK"	"IPI00010790"	1	0	1.0	0.0	"all"
 "LLTAQEQPVYI"	"IPI00294556"	1	0	0.0	1.0	"all"
