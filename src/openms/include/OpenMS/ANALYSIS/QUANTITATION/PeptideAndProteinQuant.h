@@ -295,13 +295,11 @@ private:
          
          @param protein_accession The protein accession to select peptides for
          @param top_n Maximum number of peptides to select (0 = no limit)
-         @param include_all Whether to include proteins with insufficient peptides
          @param fix_peptides Whether to use consistent peptides across samples
          @return Vector of selected peptide sequences
     */
     std::vector<String> selectPeptidesForQuantification_(const String& protein_accession,
                                                         Size top_n,
-                                                        bool include_all,
                                                         bool fix_peptides);
 
     /**

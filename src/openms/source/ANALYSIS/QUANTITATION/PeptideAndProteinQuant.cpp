@@ -504,7 +504,7 @@ namespace OpenMS
 
       // Select peptides for quantification
       std::vector<String> selected_peptides = selectPeptidesForQuantification_(
-          accession, top_n, include_all, fix_peptides);
+          accession, top_n, fix_peptides);
 
       // Calculate protein abundances
       calculateProteinAbundances_(accession, selected_peptides, aggregate, top_n, include_all);
@@ -969,7 +969,6 @@ namespace OpenMS
 
   std::vector<String> PeptideAndProteinQuant::selectPeptidesForQuantification_(const String& protein_accession,
                                                                               Size top_n,
-                                                                              bool include_all,
                                                                               bool fix_peptides)
   {
     std::vector<String> peptides;
@@ -981,7 +980,6 @@ namespace OpenMS
     }
     
     const ProteinData& pd = prot_it->second;
-
 
     if (fix_peptides && (top_n == 0))
     {
