@@ -353,8 +353,8 @@ protected:
     registerFlag_("ratios", "Add the log2 ratios of the abundance values to the output. Format: log_2(x_0/x_0) <sep> log_2(x_1/x_0) <sep> log_2(x_2/x_0) ...", false);
     registerFlag_("ratiosSILAC", "Add the log2 ratios for a triple SILAC experiment to the output. Only applicable to consensus maps of exactly three sub-maps. Format: log_2(heavy/light) <sep> log_2(heavy/middle) <sep> log_2(middle/light)", false);
     
-    registerStringOption_("detailed_protein_output", "<choice>", "false", "Output protein abundances with detailed file+channel level headers (similar to detailed peptide output). When enabled, protein output will show abundance_filename_channel columns instead of abundance_N.", false);
-    setValidStrings_("detailed_protein_output", {"true","false"});
+    registerStringOption_("file_and_channel_level_output", "<choice>", "false", "Output protein abundances with detailed file+channel level headers (similar to detailed peptide output). When enabled, protein output will show abundance_filename_channel columns instead of abundance_N.", false);
+    setValidStrings_("file_and_channel_level_output", {"true","false"});
 
     registerTOPPSubsection_("format", "Output formatting options");
     registerStringOption_("format:separator", "<sep>", "", "Character(s) used to separate fields; by default, the 'tab' character is used", false);
@@ -362,14 +362,7 @@ protected:
     setValidStrings_("format:quoting", ListUtils::create<String>("none,double,escape"));
     registerStringOption_("format:replacement", "<x>", "_", "If 'quoting' is 'none', used to replace occurrences of the separator in strings before writing", false);
 
-    // registerSubsection_("algorithm", "Algorithm parameters section");
   }
-
-  // Param getSubsectionDefaults_(const String& /* section */) const
-  // {
-  //     return PeptideAndProteinQuant().getParameters();
-  // }
-
 
   /// Write a table of peptide results.
   void writePeptideTable_(SVOutStream& out, const PeptideQuant& quant, const ExperimentalDesign& ed)
@@ -486,7 +479,7 @@ protected:
   {
     const bool print_ratios = getFlag_("ratios");
     const bool print_SILACratios = getFlag_("ratiosSILAC");
-    const bool channel_level_output = (getStringOption_("detailed_protein_output") == "true");
+    const bool channel_level_output = (getStringOption_("file_and_channel_level_output") == "true");
     
     ExperimentalDesign::MSFileSection msfile_section = ed.getMSFileSection();
     
@@ -610,11 +603,14 @@ protected:
             // Process each filename within the fraction group
             // important: strip file extension and path to find the entry
             design_filename = FileHandler::stripExtension(File::basename(design_filename));
+            
+            #ifdef DEBUG_PROTEINQUANTIFIER
             std::cout 
               << "Experimental design: fraction group: " << group_id 
               << ", filename: '" << design_filename
               << "', fraction: " << fraction
               << " of the experimental design." << std::endl;
+            #endif
 
             // for each file in the design, fill the channels quantity
             for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
@@ -646,18 +642,20 @@ protected:
 
               if (channel_quantity == 0.0)
               {
-                std::cout << "No quantity found for '" << design_filename << "'" << std::endl;
-                // print all filenames in fraction
-                for (auto const& fraction : q.second.channel_level_abundances)
-                {
-                  const auto& filename_to_channel_map = fraction.second;
-                  std::cout << "Files with quantities for this protein: " << std::endl;
-                  for (const auto& [filename, channels] : filename_to_channel_map)
+                #ifdef DEBUG_PROTEINQUANTIFIER
+                  std::cout << "No quantity found for '" << design_filename << "'" << std::endl;
+                  // print all filenames in fraction
+                  for (auto const& fraction : q.second.channel_level_abundances)
                   {
-                    std::cout << "'" << filename << "'" << std::endl;
+                    const auto& filename_to_channel_map = fraction.second;
+                    std::cout << "Files with quantities for this protein: " << std::endl;
+                    for (const auto& [filename, channels] : filename_to_channel_map)
+                    {
+                      std::cout << "'" << filename << "'" << std::endl;
+                    }
                   }
-                }
-                std::cout << std::endl;
+                  std::cout << std::endl;
+                #endif
               }
           
               out << channel_quantity; // Always output a value (0.0 if no data found) to maintain CSV structure
@@ -889,7 +887,7 @@ protected:
     String mztab = getStringOption_("mztab");
     String design_file = getStringOption_("design");
     bool greedy_group_resolution = getStringOption_("greedy_group_resolution") == "true";
-    bool detailed_protein_output = getStringOption_("detailed_protein_output") == "true";
+    bool file_and_channel_level_output = getStringOption_("file_and_channel_level_output") == "true";
 
     if (out.empty() && peptide_out.empty())
     {
@@ -965,7 +963,7 @@ protected:
       }
       quantifier.readQuantData(features, ed);
       quantifier.quantifyPeptides(peptides_); // quantify on peptide level
-      quantifier.quantifyProteins(proteins_, detailed_protein_output);
+      quantifier.quantifyProteins(proteins_, file_and_channel_level_output);
     }
     else if (in_type == FileTypes::IDXML)
     {
@@ -988,7 +986,7 @@ protected:
       }
       quantifier.readQuantData(proteins, peptides, ed);
       quantifier.quantifyPeptides(peptides_); // quantify on peptide level
-      quantifier.quantifyProteins(proteins_, detailed_protein_output);
+      quantifier.quantifyProteins(proteins_, file_and_channel_level_output);
     }
     else // consensusXML
     {
@@ -1010,7 +1008,7 @@ protected:
 
       quantifier.readQuantData(consensus, ed);
       quantifier.quantifyPeptides(peptides_); // quantify on peptide level
-      quantifier.quantifyProteins(proteins_, detailed_protein_output);
+      quantifier.quantifyProteins(proteins_, file_and_channel_level_output);
 
       // write mzTab file
       if (!mztab.empty())
