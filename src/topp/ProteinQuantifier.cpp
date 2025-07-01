@@ -474,32 +474,17 @@ protected:
     }
   }
 
-  /// Write a table of protein results.
-  void writeProteinTable_(SVOutStream& out, const ProteinQuant& quant, const ExperimentalDesign& ed)
+  /// Write header for protein table based on output format options
+  void writeProteinTableHeader_(SVOutStream& out, const ExperimentalDesign& ed,
+                               const map<UInt64, map<UInt64, String>>& design_group_fraction_filename,
+                               UInt64 n_files, bool channel_level_output, bool print_ratios, bool print_SILACratios)
   {
-    const bool print_ratios = getFlag_("ratios");
-    const bool print_SILACratios = getFlag_("ratiosSILAC");
-    const bool channel_level_output = (getStringOption_("file_and_channel_level_output") == "true");
-    
-    ExperimentalDesign::MSFileSection msfile_section = ed.getMSFileSection();
-    
-    // Extract the Spectra Filepath column from the design
-
-    map<UInt64, map<UInt64, String>> design_group_fraction_filename;
-    UInt64 n_files = 0;
-    for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
-    {
-      const String fn = FileHandler::stripExtension(File::basename(f.path));
-      design_group_fraction_filename[f.fraction_group][f.fraction] = fn;
-      n_files++;
-    }
-    
     // write header:
     out << "protein" << "n_proteins" << "protein_score" << "n_peptides";
     
     if (channel_level_output)
     {
-      OPENMS_LOG_INFO << "Writing detailed protein output for " << design_group_fraction_filename.size() 
+      OPENMS_LOG_INFO << "Writing detailed protein output for " << design_group_fraction_filename.size()
         << " fraction groups "
         << n_files << " files and "
         << ed.getNumberOfLabels() << " channels." << std::endl;
@@ -525,7 +510,7 @@ protected:
       // Get sample condition names from experimental design sample section
       const auto& sample_section = ed.getSampleSection();
       
-      std::cout << "Writing protein output for " << ed.getNumberOfSamples() 
+      std::cout << "Writing protein output for " << ed.getNumberOfSamples()
         << std::endl;
       for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
       {
@@ -557,6 +542,30 @@ protected:
     }
 
     out << endl;
+  }
+
+  /// Write a table of protein results.
+  void writeProteinTable_(SVOutStream& out, const ProteinQuant& quant, const ExperimentalDesign& ed)
+  {
+    const bool print_ratios = getFlag_("ratios");
+    const bool print_SILACratios = getFlag_("ratiosSILAC");
+    const bool channel_level_output = (getStringOption_("file_and_channel_level_output") == "true");
+    
+    ExperimentalDesign::MSFileSection msfile_section = ed.getMSFileSection();
+    
+    // Extract the Spectra Filepath column from the design
+    map<UInt64, map<UInt64, String>> design_group_fraction_filename;
+    UInt64 n_files = 0;
+    for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
+    {
+      const String fn = FileHandler::stripExtension(File::basename(f.path));
+      design_group_fraction_filename[f.fraction_group][f.fraction] = fn;
+      n_files++;
+    }
+    
+    // Write table header
+    writeProteinTableHeader_(out, ed, design_group_fraction_filename, n_files,
+                            channel_level_output, print_ratios, print_SILACratios);
 
     // mapping: accession of leader -> (accessions of grouped proteins, score)
     map<String, pair<StringList, double> > leader_to_group;
