@@ -834,7 +834,6 @@ namespace OpenMS
         const SampleAbundances& total_abundances = q.second.total_abundances;
         const SampleAbundances& total_psm_counts = q.second.total_psm_counts;
         const SampleAbundances& total_distinct_peptides = q.second.total_distinct_peptides;
-        const auto& channel_level_abundances = q.second.channel_level_abundances;
         const auto& file_level_psm_counts = q.second.file_level_psm_counts;
       
         // TODO: OPENMS_ASSERT(id_group->float_data_arrays.empty(), "Protein group float data array not empty!.");
