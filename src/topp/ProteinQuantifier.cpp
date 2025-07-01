@@ -636,47 +636,19 @@ protected:
             {
               double channel_quantity{};
 
-              // search across all fractions for this file+channel
-              for (auto const& fraction : q.second.channel_level_abundances)
-              {
-                std::cout << q.first << std::endl;
-                const auto& filename_to_channel_map = fraction.second;
-                // print filename
+              const auto& filename_to_channel_map = q.second.channel_level_abundances;
 
-                if (auto file_level_it = filename_to_channel_map.find(design_filename); 
-                  file_level_it == filename_to_channel_map.end())
+              if (auto file_level_it = filename_to_channel_map.find(design_filename); 
+                file_level_it != filename_to_channel_map.end())
+              {
+                // Found the file, now search for the channel
+                if (auto channel_it = file_level_it->second.find(c);
+                    channel_it != file_level_it->second.end())
                 {
-                  continue; // not the quant for this file TODO: could be done faster
-                }
-                else
-                {
-                  // Found the right file, now search for the channel
-                  if (auto channel_it = file_level_it->second.find(c);
-                      channel_it != file_level_it->second.end())
-                  {
-                    channel_quantity += channel_it->second; // there should be only one entry per file+channel
-                  }
+                  channel_quantity = channel_it->second; // there should be only one entry per file+channel
                 }
               }
-
-              if (channel_quantity == 0.0)
-              {
-                #ifdef DEBUG_PROTEINQUANTIFIER
-                  std::cout << "No quantity found for '" << design_filename << "'" << std::endl;
-                  // print all filenames in fraction
-                  for (auto const& fraction : q.second.channel_level_abundances)
-                  {
-                    const auto& filename_to_channel_map = fraction.second;
-                    std::cout << "Files with quantities for this protein: " << std::endl;
-                    for (const auto& [filename, channels] : filename_to_channel_map)
-                    {
-                      std::cout << "'" << filename << "'" << std::endl;
-                    }
-                  }
-                  std::cout << std::endl;
-                #endif
-              }
-          
+         
               out << channel_quantity; // Always output a value (0.0 if no data found) to maintain CSV structure
             }    
           }
@@ -900,7 +872,7 @@ protected:
 
   /// Process FeatureXML input and perform quantification
   ExperimentalDesign processFeatureXMLInput_(const String& in, const String& design_file,
-                                            PeptideAndProteinQuant& quantifier, bool file_and_channel_level_output)
+                                            PeptideAndProteinQuant& quantifier)
   {
     FeatureMap features;
     FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML});
@@ -917,14 +889,14 @@ protected:
     }
     quantifier.readQuantData(features, ed);
     quantifier.quantifyPeptides(peptides_);
-    quantifier.quantifyProteins(proteins_, file_and_channel_level_output);
+    quantifier.quantifyProteins(proteins_);
     
     return ed;
   }
 
   /// Process IdXML input and perform quantification
   ExperimentalDesign processIdXMLInput_(const String& in, const String& design_file,
-                                       PeptideAndProteinQuant& quantifier, bool file_and_channel_level_output)
+                                       PeptideAndProteinQuant& quantifier)
   {
     spectral_counting_ = true;
     vector<ProteinIdentification> proteins;
@@ -945,14 +917,14 @@ protected:
     }
     quantifier.readQuantData(proteins, peptides, ed);
     quantifier.quantifyPeptides(peptides_);
-    quantifier.quantifyProteins(proteins_, file_and_channel_level_output);
+    quantifier.quantifyProteins(proteins_);
     
     return ed;
   }
 
   /// Process ConsensusXML input and perform quantification
   ExperimentalDesign processConsensusXMLInput_(const String& in, const String& design_file, const String& mztab,
-                                              PeptideAndProteinQuant& quantifier, bool file_and_channel_level_output)
+                                              PeptideAndProteinQuant& quantifier)
   {
     ConsensusMap consensus;
     FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
@@ -972,7 +944,7 @@ protected:
 
     quantifier.readQuantData(consensus, ed);
     quantifier.quantifyPeptides(peptides_);
-    quantifier.quantifyProteins(proteins_, file_and_channel_level_output);
+    quantifier.quantifyProteins(proteins_);
 
     // write mzTab file
     if (!mztab.empty())
@@ -1074,15 +1046,15 @@ protected:
     // Process input based on file type
     if (in_type == FileTypes::FEATUREXML)
     {
-      ed = processFeatureXMLInput_(in, design_file, quantifier, file_and_channel_level_output);
+      ed = processFeatureXMLInput_(in, design_file, quantifier);
     }
     else if (in_type == FileTypes::IDXML)
     {
-      ed = processIdXMLInput_(in, design_file, quantifier, file_and_channel_level_output);
+      ed = processIdXMLInput_(in, design_file, quantifier);
     }
     else // consensusXML
     {
-      ed = processConsensusXMLInput_(in, design_file, mztab, quantifier, file_and_channel_level_output);
+      ed = processConsensusXMLInput_(in, design_file, mztab, quantifier);
     }
 
     // output:
