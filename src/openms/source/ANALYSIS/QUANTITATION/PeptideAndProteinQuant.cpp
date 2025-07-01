@@ -173,7 +173,7 @@ namespace OpenMS
     return best_n_quant > 0; // Return true if at least one abundance was found
   }
 
-  size_t PeptideAndProteinQuant::getSampleFromFilenameAndChannel_(const String& filename,
+  size_t PeptideAndProteinQuant::getSampleIDFromFilenameAndChannel_(const String& filename,
                                                                  Int channel_or_label,
                                                                  const ExperimentalDesign& ed) const
   {
@@ -280,7 +280,7 @@ namespace OpenMS
         Int best_channel = std::get<3>(best_combination);
         
         double abundance = pep_q.second.abundances[best_fraction][best_filename][best_charge][best_channel];
-        size_t sample_id = getSampleFromFilenameAndChannel_(best_filename, best_channel, experimental_design_);
+        size_t sample_id = getSampleIDFromFilenameAndChannel_(best_filename, best_channel, experimental_design_);
         pep_q.second.total_abundances[sample_id] = abundance;
       }
       else
@@ -298,7 +298,7 @@ namespace OpenMS
                 const double & abundance = cha.second;
                 
                 // Map (filename, channel) to sample using ExperimentalDesign
-                size_t sample_id = getSampleFromFilenameAndChannel_(filename, channel, experimental_design_);
+                size_t sample_id = getSampleIDFromFilenameAndChannel_(filename, channel, experimental_design_);
                 pep_q.second.total_abundances[sample_id] += abundance;
               }
             }
@@ -319,7 +319,7 @@ namespace OpenMS
             // In multiplexed design, e.g. TMT, a signle PSM is associated with all samples measured in the different channels/labels 
             for (Size channel = 0; channel < experimental_design_.getNumberOfLabels(); ++channel)
             {
-              size_t sample_id = getSampleFromFilenameAndChannel_(filename, channel, experimental_design_);              
+              size_t sample_id = getSampleIDFromFilenameAndChannel_(filename, channel, experimental_design_);              
               pep_q.second.total_psm_counts[sample_id] += psm_counts; // accumulate PSM counts for spectral counting
             }
           }
@@ -399,7 +399,7 @@ namespace OpenMS
             {
               const String & filename = fna.first;
               const Int & channel = cha.first;
-              size_t sample_id = getSampleFromFilenameAndChannel_(filename, channel, experimental_design_);
+              size_t sample_id = getSampleIDFromFilenameAndChannel_(filename, channel, experimental_design_);
               cha.second *= scale_factors[sample_id];
             }
           }
@@ -792,6 +792,19 @@ namespace OpenMS
     ProteinIdentification& proteins,
     bool remove_unquantified)
   {
+    // read experimental design as it is needed to annotate quantities in the correct order
+    ExperimentalDesign::MSFileSection msfile_section = experimental_design_.getMSFileSection();
+    
+    // Extract the Spectra Filepath column from the design
+    map<UInt64, map<UInt64, String>> design_group_fraction_filename;
+    UInt64 n_files = 0;
+    for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
+    {
+      const String fn = FileHandler::stripExtension(File::basename(f.path));
+      design_group_fraction_filename[f.fraction_group][f.fraction] = fn;
+      n_files++;
+    }
+
     auto & id_groups = proteins.getIndistinguishableProteins();
 
     for (const auto& q : protein_quants)
@@ -830,19 +843,11 @@ namespace OpenMS
         {
           n_file_channel_combinations += filename.second.size();
         }
-
-        // Calculate number of arrays needed for each type:
-        // FloatDataArrays: 3 (sample-level) + 1 (file_channel_level_abundance)
-        size_t float_arrays_needed = 4;
-        // StringDataArrays: 2 (file_channel_level_filename, file_level_filename)
-        size_t string_arrays_needed = 2;
-        // IntegerDataArrays: 2 (file_channel_level_channel, file_level_psm_count)
-        size_t integer_arrays_needed = 2;
-        
+       
         // TODO: OPENMS_ASSERT(id_group->float_data_arrays.empty(), "Protein group float data array not empty!.");
-        id_group->getFloatDataArrays().resize(float_arrays_needed);
-        id_group->getStringDataArrays().resize(string_arrays_needed);
-        id_group->getIntegerDataArrays().resize(integer_arrays_needed);
+        id_group->getFloatDataArrays().resize(4);
+        id_group->getStringDataArrays().resize(2);
+        id_group->getIntegerDataArrays().resize(2);
         
         // Sample-level arrays (indices 0-2)
         ProteinIdentification::ProteinGroup::FloatDataArray & abundances = id_group->getFloatDataArrays()[0];
@@ -878,16 +883,60 @@ namespace OpenMS
         file_channel_level_filename.setName("file_channel_level_filename");
         auto& file_channel_level_channel = id_group->getIntegerDataArrays()[0];
         file_channel_level_channel.setName("file_channel_level_channel");
-        size_t index = 0;
-        for (const auto& filename : channel_level_abundances)
+
+        // TODO: map file/channel to the order of the experimental design
+        
+
+        // We loop over the filenames in the design file, as this is the order we expect in the output.
+        for (const auto& [group_id, fraction_to_filename_map] : design_group_fraction_filename)
         {
-          for (const auto& channel : filename.second)
+          for (auto [fraction, design_filename] : fraction_to_filename_map)
           {
-            file_channel_level_abundance.push_back(channel.second);
-            file_channel_level_filename.push_back(filename.first);
-            file_channel_level_channel.push_back(channel.first);
+            // Process each filename within the fraction group
+            // important: strip file extension and path to find the entry
+            design_filename = FileHandler::stripExtension(File::basename(design_filename));
+            
+            #ifdef DEBUG_PROTEINQUANTIFIER
+            std::cout 
+              << "Experimental design: fraction group: " << group_id 
+              << ", filename: '" << design_filename
+              << "', fraction: " << fraction
+              << " of the experimental design." << std::endl;
+            #endif
+
+            // for each file in the design, fill the channels quantity
+            for (Size c = 0; c < experimental_design_.getNumberOfLabels(); ++c)
+            {
+              double channel_abundance{};
+
+              const auto& filename_to_channel_map = q.second.channel_level_abundances;
+
+              if (auto file_level_it = filename_to_channel_map.find(design_filename); 
+                file_level_it != filename_to_channel_map.end())
+              {
+                // Found the file, now search for the channel
+                if (auto channel_it = file_level_it->second.find(c);
+                    channel_it != file_level_it->second.end())
+                {
+                  channel_abundance = channel_it->second;
+                }
+              }
+
+              file_channel_level_abundance.push_back(channel_abundance);
+              file_channel_level_filename.push_back(design_filename);
+              file_channel_level_channel.push_back(c);
+         
+              //#if DEBUG_PEPTIDEANDPROTEINQUANT
+              std::cout << "DEBUG: Adding abundance for protein to meta value " << acc
+                        << " filename " << design_filename
+                        << " channel " << c
+                        << ": " << channel_abundance << endl;
+              //#endif
+
+            }    
           }
         }
+
         OPENMS_POSTCONDITION(file_channel_level_abundance.size() == n_file_channel_combinations, "File/channel level abundance array size does not match expected size.");
 
         // Add file level PSM counts

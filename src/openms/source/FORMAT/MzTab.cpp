@@ -1288,18 +1288,24 @@ namespace OpenMS
 
   size_t MzTab::getQuantStudyVariables_(const ProteinIdentification& pid)
   {
-    size_t quant_study_variables(0);
     for (auto & p : pid.getIndistinguishableProteins())
     {
-      if (p.getFloatDataArrays().empty()
-        || p.getFloatDataArrays()[0].getName() != "abundances")
-      {
-        quant_study_variables = 0;
-        break;
+      // check if there is a float data array with the expected name
+      const auto& float_arrays = p.getFloatDataArrays();
+      auto it = std::find_if(float_arrays.begin(), float_arrays.end(),
+                         [](const auto& arr) {return arr.getName() == "file_channel_level_abundance";});
+
+      if (it == float_arrays.end()) // if no such array exists, we assume that this is not a quantification run
+      {        
+        return 0;       
       }
-      quant_study_variables = p.getFloatDataArrays()[0].size();
+      else
+      {        
+        // if such an array exists, we take the size of the first one as the number of quantification study variables
+        // (this is a simplification, but should be sufficient for most cases)
+        return it->size();
+      }          
     }
-    return quant_study_variables; 
   }
 
   MzTabParameter MzTab::getProteinScoreType_(const ProteinIdentification& prot_id)
@@ -1596,21 +1602,26 @@ namespace OpenMS
     }
     if (coverage >= 0) { protein_row.coverage = MzTabDouble(coverage); }
 
-    // Store quantitative value attached to abundances in study variables
-    if (!group.getFloatDataArrays().empty()
-      && group.getFloatDataArrays()[0].getName() == "abundances")
+
+    // check if there is a float data array with the expected name
+    const auto& float_arrays = group.getFloatDataArrays();
+    auto it = std::find_if(float_arrays.begin(), float_arrays.end(),
+                        [](const auto& arr) {return arr.getName() == "file_channel_level_abundance";});
+
+    if (it != float_arrays.end()) // if no such array exists, we assume that this is not a quantification run
     {
-      const ProteinIdentification::ProteinGroup::FloatDataArray & fa = group.getFloatDataArrays()[0];
+      // Store quantitative value attached to abundances in study variables / assays
+      const ProteinIdentification::ProteinGroup::FloatDataArray & fa = *it;
       Size s(1);
       for (float f : fa)
       {
-        protein_row.protein_abundance_assay[s] = MzTabDouble(f); // assay has same information as SV (without design)
+        protein_row.protein_abundance_assay[s] = MzTabDouble(f); // assay has same information as SV (without design) to keep things simple
         protein_row.protein_abundance_study_variable[s] = MzTabDouble(f);
         protein_row.protein_abundance_stdev_study_variable[s] = MzTabDouble();
         protein_row.protein_abundance_std_error_study_variable[s] = MzTabDouble();
-        ++s;
+        ++s; // increment assay index
       }
-    }
+    }    
 
     // add protein description of first (leader) protein
     protein_row.description = MzTabString(leader_protein.getDescription());
@@ -3172,3 +3183,4 @@ state0:
     }
   }
 }
+

@@ -379,7 +379,7 @@ private:
          @param ed The experimental design containing the mapping information
          @return The sample ID corresponding to the filename and channel
     */
-    size_t getSampleFromFilenameAndChannel_(const String& filename,
+    size_t getSampleIDFromFilenameAndChannel_(const String& filename,
                                            Int channel_or_label,
                                            const ExperimentalDesign& ed) const;
 
