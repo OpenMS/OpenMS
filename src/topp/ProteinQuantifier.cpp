@@ -381,9 +381,9 @@ protected:
     out << "peptide" << "protein" << "n_proteins" << "charge";
     for (const auto& [fraction_group, filename] : design_filenames)
     {
-      for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
+      for (Size c = 1; c <= ed.getNumberOfLabels(); ++c)
       {
-        out << "abundance|" + filename + "|ch" + String(c+1);
+        out << "abundance|" + filename + "|ch" + String(c);
       }
     }
 
@@ -429,7 +429,7 @@ protected:
             for (auto& file : design_filenames) // note: we need to use the order in the experimental design file
             {
               String filename = file.second; // get the filename from the design
-              for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
+              for (Size c = 1; c <= ed.getNumberOfLabels(); ++c)
               {
                 bool no_quant = false;
                 if (filename_to_chargemap.find(filename) != filename_to_chargemap.end())
@@ -494,9 +494,9 @@ protected:
       {
         for (const auto& [fraction, filename] : filename_map)
         {
-          for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
+          for (Size c = 1; c <= ed.getNumberOfLabels(); ++c)
           {
-            out << "abundance|" + filename + "|ch" + String(c+1);
+            out << "abundance|" + filename + "|ch" + String(c);
           }
         }
       }
@@ -512,7 +512,7 @@ protected:
       
       std::cout << "Writing protein output for " << ed.getNumberOfSamples()
         << std::endl;
-      for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
+      for (Size i = 0; i < ed.getNumberOfSamples(); ++i) // samples are 0-indexed 
       {
         String sample_condition = "unknown";
         if (sample_section.hasFactor("MSstats_Condition"))
@@ -632,7 +632,7 @@ protected:
             #endif
 
             // for each file in the design, fill the channels quantity
-            for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
+            for (Size c = 1; c <= ed.getNumberOfLabels(); ++c)
             {
               double channel_quantity{};
 

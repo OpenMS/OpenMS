@@ -317,7 +317,7 @@ namespace OpenMS
             const double & psm_counts = ca.second;
             
             // In multiplexed design, e.g. TMT, a signle PSM is associated with all samples measured in the different channels/labels 
-            for (Size channel = 0; channel < experimental_design_.getNumberOfLabels(); ++channel)
+            for (Size channel = 1; channel <= experimental_design_.getNumberOfLabels(); ++channel)
             {
               size_t sample_id = getSampleIDFromFilenameAndChannel_(filename, channel, experimental_design_);              
               pep_q.second.total_psm_counts[sample_id] += psm_counts; // accumulate PSM counts for spectral counting
@@ -836,14 +836,7 @@ namespace OpenMS
         const SampleAbundances& total_distinct_peptides = q.second.total_distinct_peptides;
         const auto& channel_level_abundances = q.second.channel_level_abundances;
         const auto& file_level_psm_counts = q.second.file_level_psm_counts;
-
-        // Count total number of file/channel combinations for proper sizing
-        size_t n_file_channel_combinations = 0;
-        for (const auto& filename : channel_level_abundances)
-        {
-          n_file_channel_combinations += filename.second.size();
-        }
-       
+      
         // TODO: OPENMS_ASSERT(id_group->float_data_arrays.empty(), "Protein group float data array not empty!.");
         id_group->getFloatDataArrays().resize(4);
         id_group->getStringDataArrays().resize(2);
@@ -883,9 +876,7 @@ namespace OpenMS
         file_channel_level_filename.setName("file_channel_level_filename");
         auto& file_channel_level_channel = id_group->getIntegerDataArrays()[0];
         file_channel_level_channel.setName("file_channel_level_channel");
-
-        // TODO: map file/channel to the order of the experimental design
-        
+     
 
         // We loop over the filenames in the design file, as this is the order we expect in the output.
         for (const auto& [group_id, fraction_to_filename_map] : design_group_fraction_filename)
@@ -905,7 +896,7 @@ namespace OpenMS
             #endif
 
             // for each file in the design, fill the channels quantity
-            for (Size c = 0; c < experimental_design_.getNumberOfLabels(); ++c)
+            for (Size c = 1; c <= experimental_design_.getNumberOfLabels(); ++c) // label/channel numbers are 1-based
             {
               double channel_abundance{};
 
@@ -914,6 +905,12 @@ namespace OpenMS
               if (auto file_level_it = filename_to_channel_map.find(design_filename); 
                 file_level_it != filename_to_channel_map.end())
               {
+                if (file_level_it->second.find(0) != file_level_it->second.end()) throw Exception::MissingInformation(
+                  __FILE__, 
+                  __LINE__, 
+                  OPENMS_PRETTY_FUNCTION, 
+                  "Channel found that should not exist.");
+
                 // Found the file, now search for the channel
                 if (auto channel_it = file_level_it->second.find(c);
                     channel_it != file_level_it->second.end())
@@ -926,18 +923,16 @@ namespace OpenMS
               file_channel_level_filename.push_back(design_filename);
               file_channel_level_channel.push_back(c);
          
-              //#if DEBUG_PEPTIDEANDPROTEINQUANT
+              #if DEBUG_PEPTIDEANDPROTEINQUANT
               std::cout << "DEBUG: Adding abundance for protein to meta value " << acc
                         << " filename " << design_filename
                         << " channel " << c
                         << ": " << channel_abundance << endl;
-              //#endif
+              #endif
 
             }    
           }
         }
-
-        OPENMS_POSTCONDITION(file_channel_level_abundance.size() == n_file_channel_combinations, "File/channel level abundance array size does not match expected size.");
 
         // Add file level PSM counts
         auto& file_level_psm_count = id_group->getIntegerDataArrays()[1];
@@ -982,29 +977,29 @@ namespace OpenMS
 
     for (auto const& pep_q : pep_quant_)
     {
-      String accession = getAccession_(pep_q.second.accessions, accession_to_leader);
-      OPENMS_LOG_DEBUG << "Peptide id mapped to leader: " << accession << endl;
+      String leader_accession = getAccession_(pep_q.second.accessions, accession_to_leader);
+      OPENMS_LOG_DEBUG << "Peptide id mapped to leader: " << leader_accession << endl;
 
       // not enough evidence or mapping to multiple groups
-      if (accession.empty())
+      if (leader_accession.empty())
         continue;
 
       contains_accessions = true;
       // proteotypic peptide
       const String peptide = pep_q.first.toUnmodifiedString();
 
-      prot_quant_[accession].psm_count += pep_q.second.psm_count;
+      prot_quant_[leader_accession].psm_count += pep_q.second.psm_count; // total PSM count for this group of proteins (represented by the leader accession)
 
       // transfer abundances and counts from peptides->protein
       // summarize abundances and counts between different peptidoforms
       for (auto const& sta : pep_q.second.total_abundances)
       {
-        prot_quant_[accession].peptide_abundances[peptide][sta.first] += sta.second;
+        prot_quant_[leader_accession].peptide_abundances[peptide][sta.first] += sta.second;
       }
 
       for (auto const& sta : pep_q.second.total_psm_counts)
       {
-        prot_quant_[accession].peptide_psm_counts[peptide][sta.first] += sta.second;
+        prot_quant_[leader_accession].peptide_psm_counts[peptide][sta.first] += sta.second;
       }
 
       // transfer detailed abundances from peptide to protein
@@ -1016,7 +1011,7 @@ namespace OpenMS
           {
             for (auto const& channel : charge.second)
             {
-              prot_quant_[accession].channel_level_abundances[filename.first][channel.first] += channel.second;
+              prot_quant_[leader_accession].channel_level_abundances[filename.first][channel.first] += channel.second;
 #ifdef DEBUG_PROTEINQUANTIFIER                
               std::cout << "DEBUG: Adding abundance for protein " << accession
                         << " fraction " << fraction.first
@@ -1037,7 +1032,7 @@ namespace OpenMS
         {
           for (auto const& charge : filename.second)
           {
-            prot_quant_[accession].file_level_psm_counts[filename.first] += (UInt)charge.second;
+            prot_quant_[leader_accession].file_level_psm_counts[filename.first] += (UInt)charge.second;
           }
         }
       }
@@ -1186,8 +1181,7 @@ namespace OpenMS
                                                                   bool include_all,
                                                                   const std::map<String, String>& accession_to_leader)
   {
-    auto prot_it = prot_quant_.find(protein_accession);
-    if (prot_it == prot_quant_.end())
+    if (auto prot_it = prot_quant_.find(protein_accession); prot_it == prot_quant_.end())
     {
       return;
     }

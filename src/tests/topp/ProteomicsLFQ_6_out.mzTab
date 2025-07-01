@@ -6,8 +6,8 @@ MTD	description	OpenMS export from consensusXML
 MTD	protein_search_engine_score[1]	[MS, MS:1003117, OpenMS:Target-decoy protein q-value, ]
 MTD	peptide_search_engine_score[1]	[MS, MS:1003114, OpenMS:Best PSM Score, ]
 MTD	psm_search_engine_score[1]	[MS, MS:1003115, OpenMS:Target-decoy PSM q-value, ]
-MTD	software[1]	[MS, MS:1000752, TOPP software, 3.0.0-pre-develop-2022-11-12]
-MTD	software[2]	[MS, MS:1002203, TOPP ProteinInference, 3.0.0-pre-develop-2022-11-12]
+MTD	software[1]	[MS, MS:1000752, TOPP software, 3.5.0-pre-refactor-proteinquantifier-2025-07-01]
+MTD	software[2]	[MS, MS:1002203, TOPP ProteinInference, 3.5.0-pre-refactor-proteinquantifier-2025-07-01]
 MTD	software[3]	[MS, MS:1002048, MS-GF+, Release (v2020.07.02)]
 MTD	software[3]-setting[1]	db:/home/runner/work/proteomicslfq/proteomicslfq/work/18/7e5d1c763cd2b6d07a6e5129b9bc20/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
 MTD	software[3]-setting[2]	db_version:null
@@ -31,22 +31,22 @@ MTD	quantification_method	[MS, MS:1001834, LC-MS label-free quantitation analysi
 MTD	protein-quantification_unit	[, , Abundance, ]
 MTD	peptide-quantification_unit	[, , Abundance, ]
 MTD	ms_run[1]-format	[MS, MS:1000584, mzML file, ]
-MTD	ms_run[1]-location	file:///workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML
+MTD	ms_run[1]-location	file:///home/sachsenb/Development/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML
 MTD	ms_run[1]-id_format	[MS, MS:1000777, spectrum identifier nativeID format, ]
 MTD	ms_run[2]-format	[MS, MS:1000584, mzML file, ]
-MTD	ms_run[2]-location	file:///workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML
+MTD	ms_run[2]-location	file:///home/sachsenb/Development/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML
 MTD	ms_run[2]-id_format	[MS, MS:1000777, spectrum identifier nativeID format, ]
 MTD	ms_run[3]-format	[MS, MS:1000584, mzML file, ]
-MTD	ms_run[3]-location	file:///workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML
+MTD	ms_run[3]-location	file:///home/sachsenb/Development/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML
 MTD	ms_run[3]-id_format	[MS, MS:1000777, spectrum identifier nativeID format, ]
 MTD	ms_run[4]-format	[MS, MS:1000584, mzML file, ]
-MTD	ms_run[4]-location	file:///workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML
+MTD	ms_run[4]-location	file:///home/sachsenb/Development/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML
 MTD	ms_run[4]-id_format	[MS, MS:1000777, spectrum identifier nativeID format, ]
 MTD	ms_run[5]-format	[MS, MS:1000584, mzML file, ]
-MTD	ms_run[5]-location	file:///workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML
+MTD	ms_run[5]-location	file:///home/sachsenb/Development/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML
 MTD	ms_run[5]-id_format	[MS, MS:1000777, spectrum identifier nativeID format, ]
 MTD	ms_run[6]-format	[MS, MS:1000584, mzML file, ]
-MTD	ms_run[6]-location	file:///workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML
+MTD	ms_run[6]-location	file:///home/sachsenb/Development/OpenMS/share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML
 MTD	ms_run[6]-id_format	[MS, MS:1000777, spectrum identifier nativeID format, ]
 MTD	assay[1]-quantification_reagent	[MS, MS:1002038, unlabeled sample, ]
 MTD	assay[1]-ms_run_ref	ms_run[1],ms_run[4]
@@ -92,12 +92,12 @@ PRT	tr|A9FJQ1|A9FJQ1_SORC5	Putative uncharacterized protein OS=Sorangium cellulo
 PRT	sp|A9FU01|T23O_SORC5	Tryptophan 2,3-dioxygenase OS=Sorangium cellulosum (strain So ce56) GN=kynA PE=3 SV=1	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.551724137931035	null	null	0.019417475728155	null	null	null	null	null	null	null	null	null	null	null	null	null	1	0	protein_details
 PRT	tr|A9GE86|A9GE86_SORC5	Putative cytochrome c peroxidase OS=Sorangium cellulosum (strain So ce56) GN=sce9284 PE=4 SV=1	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.633333333333333	null	null	0.016583747927032	null	null	null	null	null	null	null	null	null	null	null	null	null	1	0	protein_details
 PRT	tr|A9FP67|A9FP67_SORC5	Putative uncharacterized protein OS=Sorangium cellulosum (strain So ce56) GN=sce1870 PE=4 SV=1	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.645161290322581	null	null	0.029411764705882	null	null	null	null	null	null	null	null	null	null	null	null	null	1	0	protein_details
-PRT	P02769|ALBU_BOVIN	Serum albumin - Bos taurus (Bovine).	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.142857142857143	P02769|ALBU_BOVIN	111-UNIMOD:35	0.434925864909391	155.0	0.0	0.0	155.0	null	null	0.0	null	null	0.0	null	null	null	null	null	single_protein
+PRT	P02769|ALBU_BOVIN	Serum albumin - Bos taurus (Bovine).	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.142857142857143	P02769|ALBU_BOVIN	111-UNIMOD:35	0.434925864909391	154.0	0.0	0.0	154.0	null	null	0.0	null	null	0.0	null	null	null	null	null	single_protein
 PRT	P00761|TRYP_PIG	Trypsin - Sus scrofa (Pig).	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.142857142857143	P00761|TRYP_PIG	null	0.077922077922078	8.0	0.0	0.0	8.0	null	null	0.0	null	null	0.0	null	null	null	null	null	single_protein
 PRT	P06871|TRY1_CANFA	Cationic trypsin - Canis familiaris (Dog).	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.142857142857143	P06871|TRY1_CANFA	null	0.040650406504065	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	single_protein
-PRT	sp|O46375|TTHY_BOVIN	Transthyretin OS=Bos taurus GN=TTR PE=1 SV=1	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.142857142857143	sp|O46375|TTHY_BOVIN	33-UNIMOD:35	0.299319727891156	11.0	0.0	0.0	11.0	null	null	0.0	null	null	0.0	null	null	null	null	null	single_protein
+PRT	sp|O46375|TTHY_BOVIN	Transthyretin OS=Bos taurus GN=TTR PE=1 SV=1	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.142857142857143	sp|O46375|TTHY_BOVIN	33-UNIMOD:35	0.299319727891156	9.0	0.0	0.0	9.0	null	null	0.0	null	null	0.0	null	null	null	null	null	single_protein
 PRT	tr|A9GKZ3|A9GKZ3_SORC5	Enoyl-CoA hydratase / 3-hydroxyacyl-CoA dehydrogenase / 3-hydroxybutyryl-CoA epimerase OS=Sorangium cellulosum (strain So ce56) GN=sce0048 PE=3 SV=1	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.142857142857143	tr|A9GKZ3|A9GKZ3_SORC5	null	8.086253369272237e-03	1.0	0.0	0.0	1.0	null	null	0.0	null	null	0.0	null	null	null	null	null	single_protein
-PRT	P46406|G3P_RABIT	Glyceraldehyde-3-phosphate dehydrogenase - Oryctolagus cuniculus (Rabbit).	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.142857142857143	P46406|G3P_RABIT	229-UNIMOD:35	0.021021021021021	2.0	0.0	0.0	2.0	null	null	0.0	null	null	0.0	null	null	null	null	null	single_protein
+PRT	P46406|G3P_RABIT	Glyceraldehyde-3-phosphate dehydrogenase - Oryctolagus cuniculus (Rabbit).	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.142857142857143	P46406|G3P_RABIT	229-UNIMOD:35	0.021021021021021	1.0	0.0	0.0	1.0	null	null	0.0	null	null	0.0	null	null	null	null	null	single_protein
 PRT	tr|A9FKB2|A9FKB2_SORC5	Hypothetical 19.5 kD protein in emrE-rus intergenic region OS=Sorangium cellulosum (strain So ce56) GN=sce4937 PE=4 SV=1	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.25	tr|A9FKB2|A9FKB2_SORC5	7-UNIMOD:35	0.028673835125448	1.0	0.0	0.0	1.0	null	null	0.0	null	null	0.0	null	null	null	null	null	single_protein
 PRT	Q92764|KRT35_HUMAN	Keratin, type I cuticular Ha5 - Homo sapiens (Human).	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.444444444444444	O76013|KRT36_HUMAN,O76014|KRT37_HUMAN,O76015|KRT38_HUMAN,Q14525|KT33B_HUMAN,Q14532|K1H2_HUMAN,Q15323|K1H1_HUMAN,Q92764|KRT35_HUMAN	null	0.016025659283684	2.0	0.0	0.0	2.0	null	null	0.0	null	null	0.0	null	null	null	null	null	indistinguishable_protein_group
 PRT	P62739|ACTA_BOVIN	Actin, aortic smooth muscle - Bos taurus (Bovine).	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.5	P62739|ACTA_BOVIN	null	0.042440318302387	2.0	0.0	0.0	2.0	null	null	0.0	null	null	0.0	null	null	null	null	null	single_protein
@@ -283,9 +283,9 @@ PSM	HLVDEPQNLIK	177	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_targe
 PSM	NMRPSK	178	tr|A9GKZ3|A9GKZ3_SORC5	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , MS-GF+, Release (v2020.07.02)]	9.523809523809526e-03	null	2286.446300000000065	2	366.69293212890625	366.69469967712098	ms_run[5]:spectrum=3251	K	A	184	189	0.535635517396128	2.6506683e-10	0.0	0.0	0	NMRPSK
 PSM	FVEGLYK	179	sp|O46375|TTHY_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , MS-GF+, Release (v2020.07.02)]	9.523809523809526e-03	null	2133.277599999999893	2	428.234222412109375	428.234180955671036	ms_run[5]:spectrum=3034	K	V	84	90	0.546437783854693	2.8192298e-10	0.0	0.0	0	FVEGLYK
 PSM	YLYEIAR	180	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , MS-GF+, Release (v2020.07.02)]	9.523809523809526e-03	null	2250.060500000000047	2	464.25006103515625	464.250362519471025	ms_run[5]:spectrum=3191	K	R	161	167	0.609594115483772	5.8311533e-10	0.0	0.0	0	YLYEIAR
-PSM	RPCFSALTPDETYVPK	181	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , MS-GF+, Release (v2020.07.02)]	9.523809523809526e-03	3-UNIMOD:4	2476.880599999999959	3	627.6463623046875	627.645224415137705	ms_run[5]:spectrum=3440	R	A	508	523	0.617717634009429	6.253018699999998e-10	0.0	0.0	0	RPC(Carbamidomethyl)FSALTPDETYVPK
+PSM	RPCFSALTPDETYVPK	181	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , MS-GF+, Release (v2020.07.02)]	9.523809523809526e-03	3-UNIMOD:4	2476.880599999999959	3	627.6463623046875	627.645224415137818	ms_run[5]:spectrum=3440	R	A	508	523	0.617717634009429	6.253018699999998e-10	0.0	0.0	0	RPC(Carbamidomethyl)FSALTPDETYVPK
 PSM	LTGMAFR	182	P46406|G3P_RABIT	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , MS-GF+, Release (v2020.07.02)]	9.523809523809526e-03	null	2126.265899999999874	2	398.212493896484375	398.212725256871011	ms_run[5]:spectrum=3023	K	V	226	232	0.619213653226558	6.53702e-10	0.0	0.0	0	LTGMAFR
-PSM	VPQVSTPTLVEVSR	183	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , MS-GF+, Release (v2020.07.02)]	0.017857142857143	null	2421.171600000000126	3	504.619232177734375	504.619115012304292	ms_run[5]:spectrum=3377	K	S	438	451	0.654361176791242	9.792811e-10	0.0	0.0	0	VPQVSTPTLVEVSR
+PSM	VPQVSTPTLVEVSR	183	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , MS-GF+, Release (v2020.07.02)]	0.017857142857143	null	2421.171600000000126	3	504.619232177734375	504.619115012304462	ms_run[5]:spectrum=3377	K	S	438	451	0.654361176791242	9.792811e-10	0.0	0.0	0	VPQVSTPTLVEVSR
 PSM	QEPERNECFLSHKDDSPDLPK	184	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , MS-GF+, Release (v2020.07.02)]	0.017857142857143	8-UNIMOD:4	2133.619000000000142	4	636.04791259765625	636.047321465146183	ms_run[5]:spectrum=3035	K	L	118	138	0.666818443221534	1.1418156e-09	0.0	0.0	0	QEPERNEC(Carbamidomethyl)FLSHKDDSPDLPK
 PSM	CCTESLVNR	186	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , MS-GF+, Release (v2020.07.02)]	0.024793388429752	1-UNIMOD:4,2-UNIMOD:4	2010.421399999999949	2	570.25628662109375	569.752618393021066	ms_run[5]:spectrum=2873	K	R	499	507	0.69144288335729	1.5941457e-09	0.037037037037037	0.037037037037037	0	C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR
 PSM	HLVDEPQNLIK	187	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , MS-GF+, Release (v2020.07.02)]	0.024793388429752	null	2211.329000000000178	2	653.36181640625	653.361704997970946	ms_run[5]:spectrum=3125	K	Q	402	412	0.698594464341205	1.7468196e-09	0.037037037037037	0.037037037037037	0	HLVDEPQNLIK
@@ -314,5 +314,5 @@ PSM	HLVDEPQNLIK	212	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_targe
 PSM	MWHHAPMR	213	tr|A9FKB2|A9FKB2_SORC5	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , MS-GF+, Release (v2020.07.02)]	0.017857142857143	7-UNIMOD:35	2009.607700000000023	2	541.7451171875	541.24456528137091	ms_run[6]:spectrum=2769	-	T	1	8	0.640291152310855	1.4445357e-09	0.0	0.0	0	MWHHAPM(Oxidation)R
 PSM	FVEGLYK	214	sp|O46375|TTHY_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , MS-GF+, Release (v2020.07.02)]	0.017857142857143	null	2125.652300000000196	2	428.234069824218693	428.234180955671036	ms_run[6]:spectrum=2885	K	V	84	90	0.643846563010666	1.5238906e-09	0.0	0.0	0	FVEGLYK
 PSM	HLVDEPQNLIK	215	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , MS-GF+, Release (v2020.07.02)]	0.024793388429752	null	2295.557999999999993	3	435.91015625	435.910228820904251	ms_run[6]:spectrum=3064	K	Q	402	412	0.70069648226291	2.9893779e-09	0.0	0.0	0	HLVDEPQNLIK
-PSM	VPQVSTPTLVEVSR	217	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , MS-GF+, Release (v2020.07.02)]	0.03448275862069	null	2421.077999999999975	3	504.618865966796875	504.619115012304292	ms_run[6]:spectrum=3168	K	S	438	451	0.793129960536052	1.1053932e-08	0.066666666666667	0.066666666666667	0	VPQVSTPTLVEVSR
+PSM	VPQVSTPTLVEVSR	217	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , MS-GF+, Release (v2020.07.02)]	0.03448275862069	null	2421.077999999999975	3	504.618865966796875	504.619115012304462	ms_run[6]:spectrum=3168	K	S	438	451	0.793129960536052	1.1053932e-08	0.066666666666667	0.066666666666667	0	VPQVSTPTLVEVSR
 PSM	QPVAVK	218	tr|A9GCS7|A9GCS7_SORC5	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , MS-GF+, Release (v2020.07.02)]	0.040540540540541	null	2492.773200000000088	2	321.203277587890625	321.202683296171017	ms_run[6]:spectrum=3216	K	C	46	51	0.804482620049216	1.43656536e-08	0.066666666666667	0.066666666666667	0	QPVAVK
