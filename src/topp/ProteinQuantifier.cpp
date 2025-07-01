@@ -381,9 +381,9 @@ protected:
     out << "peptide" << "protein" << "n_proteins" << "charge";
     for (const auto& [fraction_group, filename] : design_filenames)
     {
-      for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
+      for (Size c = 1; c <= ed.getNumberOfLabels(); ++c)
       {
-        out << "abundance|" + filename + "|ch" + String(c+1);
+        out << "abundance|" + filename + "|ch" + String(c);
       }
     }
 
@@ -429,7 +429,7 @@ protected:
             for (auto& file : design_filenames) // note: we need to use the order in the experimental design file
             {
               String filename = file.second; // get the filename from the design
-              for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
+              for (Size c = 1; c <= ed.getNumberOfLabels(); ++c)
               {
                 bool no_quant = false;
                 if (filename_to_chargemap.find(filename) != filename_to_chargemap.end())
@@ -474,32 +474,17 @@ protected:
     }
   }
 
-  /// Write a table of protein results.
-  void writeProteinTable_(SVOutStream& out, const ProteinQuant& quant, const ExperimentalDesign& ed)
+  /// Write header for protein table based on output format options
+  void writeProteinTableHeader_(SVOutStream& out, const ExperimentalDesign& ed,
+                               const map<UInt64, map<UInt64, String>>& design_group_fraction_filename,
+                               UInt64 n_files, bool channel_level_output, bool print_ratios, bool print_SILACratios)
   {
-    const bool print_ratios = getFlag_("ratios");
-    const bool print_SILACratios = getFlag_("ratiosSILAC");
-    const bool channel_level_output = (getStringOption_("file_and_channel_level_output") == "true");
-    
-    ExperimentalDesign::MSFileSection msfile_section = ed.getMSFileSection();
-    
-    // Extract the Spectra Filepath column from the design
-
-    map<UInt64, map<UInt64, String>> design_group_fraction_filename;
-    UInt64 n_files = 0;
-    for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
-    {
-      const String fn = FileHandler::stripExtension(File::basename(f.path));
-      design_group_fraction_filename[f.fraction_group][f.fraction] = fn;
-      n_files++;
-    }
-    
     // write header:
     out << "protein" << "n_proteins" << "protein_score" << "n_peptides";
     
     if (channel_level_output)
     {
-      OPENMS_LOG_INFO << "Writing detailed protein output for " << design_group_fraction_filename.size() 
+      OPENMS_LOG_INFO << "Writing detailed protein output for " << design_group_fraction_filename.size()
         << " fraction groups "
         << n_files << " files and "
         << ed.getNumberOfLabels() << " channels." << std::endl;
@@ -509,9 +494,9 @@ protected:
       {
         for (const auto& [fraction, filename] : filename_map)
         {
-          for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
+          for (Size c = 1; c <= ed.getNumberOfLabels(); ++c)
           {
-            out << "abundance|" + filename + "|ch" + String(c+1);
+            out << "abundance|" + filename + "|ch" + String(c);
           }
         }
       }
@@ -525,9 +510,9 @@ protected:
       // Get sample condition names from experimental design sample section
       const auto& sample_section = ed.getSampleSection();
       
-      std::cout << "Writing protein output for " << ed.getNumberOfSamples() 
+      std::cout << "Writing protein output for " << ed.getNumberOfSamples()
         << std::endl;
-      for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
+      for (Size i = 0; i < ed.getNumberOfSamples(); ++i) // samples are 0-indexed 
       {
         String sample_condition = "unknown";
         if (sample_section.hasFactor("MSstats_Condition"))
@@ -557,6 +542,30 @@ protected:
     }
 
     out << endl;
+  }
+
+  /// Write a table of protein results.
+  void writeProteinTable_(SVOutStream& out, const ProteinQuant& quant, const ExperimentalDesign& ed)
+  {
+    const bool print_ratios = getFlag_("ratios");
+    const bool print_SILACratios = getFlag_("ratiosSILAC");
+    const bool channel_level_output = (getStringOption_("file_and_channel_level_output") == "true");
+    
+    ExperimentalDesign::MSFileSection msfile_section = ed.getMSFileSection();
+    
+    // Extract the Spectra Filepath column from the design
+    map<UInt64, map<UInt64, String>> design_group_fraction_filename;
+    UInt64 n_files = 0;
+    for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
+    {
+      const String fn = FileHandler::stripExtension(File::basename(f.path));
+      design_group_fraction_filename[f.fraction_group][f.fraction] = fn;
+      n_files++;
+    }
+    
+    // Write table header
+    writeProteinTableHeader_(out, ed, design_group_fraction_filename, n_files,
+                            channel_level_output, print_ratios, print_SILACratios);
 
     // mapping: accession of leader -> (accessions of grouped proteins, score)
     map<String, pair<StringList, double> > leader_to_group;
@@ -623,51 +632,23 @@ protected:
             #endif
 
             // for each file in the design, fill the channels quantity
-            for (Size c = 0; c < ed.getNumberOfLabels(); ++c)
+            for (Size c = 1; c <= ed.getNumberOfLabels(); ++c)
             {
               double channel_quantity{};
 
-              // search across all fractions for this file+channel
-              for (auto const& fraction : q.second.channel_level_abundances)
-              {
-                std::cout << q.first << std::endl;
-                const auto& filename_to_channel_map = fraction.second;
-                // print filename
+              const auto& filename_to_channel_map = q.second.channel_level_abundances;
 
-                if (auto file_level_it = filename_to_channel_map.find(design_filename); 
-                  file_level_it == filename_to_channel_map.end())
+              if (auto file_level_it = filename_to_channel_map.find(design_filename); 
+                file_level_it != filename_to_channel_map.end())
+              {
+                // Found the file, now search for the channel
+                if (auto channel_it = file_level_it->second.find(c);
+                    channel_it != file_level_it->second.end())
                 {
-                  continue; // not the quant for this file TODO: could be done faster
-                }
-                else
-                {
-                  // Found the right file, now search for the channel
-                  if (auto channel_it = file_level_it->second.find(c);
-                      channel_it != file_level_it->second.end())
-                  {
-                    channel_quantity += channel_it->second; // there should be only one entry per file+channel
-                  }
+                  channel_quantity = channel_it->second; // there should be only one entry per file+channel
                 }
               }
-
-              if (channel_quantity == 0.0)
-              {
-                #ifdef DEBUG_PROTEINQUANTIFIER
-                  std::cout << "No quantity found for '" << design_filename << "'" << std::endl;
-                  // print all filenames in fraction
-                  for (auto const& fraction : q.second.channel_level_abundances)
-                  {
-                    const auto& filename_to_channel_map = fraction.second;
-                    std::cout << "Files with quantities for this protein: " << std::endl;
-                    for (const auto& [filename, channels] : filename_to_channel_map)
-                    {
-                      std::cout << "'" << filename << "'" << std::endl;
-                    }
-                  }
-                  std::cout << std::endl;
-                #endif
-              }
-          
+         
               out << channel_quantity; // Always output a value (0.0 if no data found) to maintain CSV structure
             }    
           }
@@ -889,6 +870,113 @@ protected:
     }
   }
 
+  /// Process FeatureXML input and perform quantification
+  ExperimentalDesign processFeatureXMLInput_(const String& in, const String& design_file,
+                                            PeptideAndProteinQuant& quantifier)
+  {
+    FeatureMap features;
+    FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML});
+    columns_headers_[0].filename = in;
+
+    ExperimentalDesign ed = getExperimentalDesignFeatureMap_(design_file, features);
+
+    // protein inference results in the featureXML?
+    if (getStringOption_("protein_groups").empty() &&
+        (features.getProteinIdentifications().size() == 1) &&
+        (!features.getProteinIdentifications()[0].getHits().empty()))
+    {
+      proteins_ = features.getProteinIdentifications()[0];
+    }
+    quantifier.readQuantData(features, ed);
+    quantifier.quantifyPeptides(peptides_);
+    quantifier.quantifyProteins(proteins_);
+    
+    return ed;
+  }
+
+  /// Process IdXML input and perform quantification
+  ExperimentalDesign processIdXMLInput_(const String& in, const String& design_file,
+                                       PeptideAndProteinQuant& quantifier)
+  {
+    spectral_counting_ = true;
+    vector<ProteinIdentification> proteins;
+    vector<PeptideIdentification> peptides;
+    FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML});
+    for (Size i = 0; i < proteins.size(); ++i)
+    {
+      columns_headers_[i].filename = proteins[i].getSearchEngine() + "_" + proteins[i].getDateTime().toString();
+    }
+
+    ExperimentalDesign ed = getExperimentalDesignIds_(design_file, proteins);
+
+    // protein inference results in the idXML?
+    if (getStringOption_("protein_groups").empty() && (proteins.size() == 1) &&
+        (!proteins[0].getHits().empty()))
+    {
+      proteins_ = proteins[0];
+    }
+    quantifier.readQuantData(proteins, peptides, ed);
+    quantifier.quantifyPeptides(peptides_);
+    quantifier.quantifyProteins(proteins_);
+    
+    return ed;
+  }
+
+  /// Process ConsensusXML input and perform quantification
+  ExperimentalDesign processConsensusXMLInput_(const String& in, const String& design_file, const String& mztab,
+                                              PeptideAndProteinQuant& quantifier)
+  {
+    ConsensusMap consensus;
+    FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
+    columns_headers_ = consensus.getColumnHeaders();
+
+    ExperimentalDesign ed = getExperimentalDesignConsensusMap_(design_file, consensus);
+
+    bool inference_in_cxml = false;
+    // protein inference results in the consensusXML or from external ID-only file?
+    if (getStringOption_("protein_groups").empty() &&
+        (consensus.getProteinIdentifications().size() == 1) &&
+        consensus.getProteinIdentifications()[0].hasInferenceData())
+    {
+      proteins_ = consensus.getProteinIdentifications()[0];
+      inference_in_cxml = true;
+    }
+
+    quantifier.readQuantData(consensus, ed);
+    quantifier.quantifyPeptides(peptides_);
+    quantifier.quantifyProteins(proteins_);
+
+    // write mzTab file
+    if (!mztab.empty())
+    {
+      // annotate quants to protein(groups) for easier export in mzTab
+      auto const & protein_quants = quantifier.getProteinResults();
+      quantifier.annotateQuantificationsToProteins(protein_quants, proteins_);
+      if (!inference_in_cxml)
+      {
+        auto& prots = consensus.getProteinIdentifications();
+        prots.insert(prots.begin(), proteins_); // insert inference information as first protein identification
+      }
+      else
+      {
+        std::swap(consensus.getProteinIdentifications()[0], proteins_);
+      }
+
+      // fill MzTab with meta data and quants annotated in identification data structure
+      const bool report_unmapped(true);
+      const bool report_unidentified_features(false);
+      const bool report_subfeatures(false);
+      MzTabFile().store(mztab,
+        consensus,
+        !inference_in_cxml,
+        report_unidentified_features,
+        report_unmapped,
+        report_subfeatures);
+    }
+    
+    return ed;
+  }
+
   ExitCodes main_(int, const char**) override
   {
     String in = getStringOption_("in");
@@ -911,7 +999,7 @@ protected:
     {
       vector<ProteinIdentification> proteins;
       FileHandler().loadIdentifications(protein_groups, proteins, peptides_, {FileTypes::IDXML});
-      if (proteins.empty() || 
+      if (proteins.empty() ||
           proteins[0].getIndistinguishableProteins().empty())
       {
         throw Exception::MissingInformation(
@@ -935,7 +1023,6 @@ protected:
     algo_params_ = quantifier.getParameters();
     Logger::LogStream nirvana; // avoid parameter update messages
     algo_params_.update(getParam_(), false, nirvana);
-    // algo_params_.update(getParam_());
     quantifier.setParameters(algo_params_);
 
     // iBAQ works only with feature intensity values in consensusXML or featureXML files
@@ -956,102 +1043,18 @@ protected:
 
     ExperimentalDesign ed;
 
+    // Process input based on file type
     if (in_type == FileTypes::FEATUREXML)
     {
-      FeatureMap features;
-      FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML});
-      columns_headers_[0].filename = in;
-
-      ed = getExperimentalDesignFeatureMap_(design_file, features);
-
-      // protein inference results in the featureXML?
-      if (protein_groups.empty() &&
-          (features.getProteinIdentifications().size() == 1) &&
-          (!features.getProteinIdentifications()[0].getHits().empty()))
-      {
-        proteins_ = features.getProteinIdentifications()[0];
-      }
-      quantifier.readQuantData(features, ed);
-      quantifier.quantifyPeptides(peptides_); // quantify on peptide level
-      quantifier.quantifyProteins(proteins_, file_and_channel_level_output);
+      ed = processFeatureXMLInput_(in, design_file, quantifier);
     }
     else if (in_type == FileTypes::IDXML)
     {
-      spectral_counting_ = true;
-      vector<ProteinIdentification> proteins;
-      vector<PeptideIdentification> peptides;
-      FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML});
-      for (Size i = 0; i < proteins.size(); ++i)
-      {
-        columns_headers_[i].filename = proteins[i].getSearchEngine() + "_" + proteins[i].getDateTime().toString();
-      }
-
-      ed = getExperimentalDesignIds_(design_file, proteins);
-
-      // protein inference results in the idXML?
-      if (protein_groups.empty() && (proteins.size() == 1) && 
-          (!proteins[0].getHits().empty()))
-      {
-        proteins_ = proteins[0];
-      }
-      quantifier.readQuantData(proteins, peptides, ed);
-      quantifier.quantifyPeptides(peptides_); // quantify on peptide level
-      quantifier.quantifyProteins(proteins_, file_and_channel_level_output);
+      ed = processIdXMLInput_(in, design_file, quantifier);
     }
     else // consensusXML
     {
-      ConsensusMap consensus;
-      FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
-      columns_headers_ = consensus.getColumnHeaders();
-
-      ed = getExperimentalDesignConsensusMap_(design_file, consensus);
-
-      bool inference_in_cxml = false;
-      // protein inference results in the consensusXML or from external ID-only file?
-      if (protein_groups.empty() &&
-          (consensus.getProteinIdentifications().size() == 1) &&
-          consensus.getProteinIdentifications()[0].hasInferenceData())
-      {
-        proteins_ = consensus.getProteinIdentifications()[0];
-        inference_in_cxml = true;
-      }
-
-      quantifier.readQuantData(consensus, ed);
-      quantifier.quantifyPeptides(peptides_); // quantify on peptide level
-      quantifier.quantifyProteins(proteins_, file_and_channel_level_output);
-
-      // write mzTab file
-      if (!mztab.empty())
-      {
-        // annotate quants to protein(groups) for easier export in mzTab
-        auto const & protein_quants = quantifier.getProteinResults();
-        quantifier.annotateQuantificationsToProteins(protein_quants, proteins_);
-        if (!inference_in_cxml)
-        {
-          auto& prots = consensus.getProteinIdentifications();
-          prots.insert(prots.begin(), proteins_); // insert inference information as first protein identification
-        }
-        else
-        {
-          std::swap(consensus.getProteinIdentifications()[0], proteins_);
-        }
-        /*
-        * TODO: maybe an assertion that the numbers of quantified proteins / ind. proteins match
-        auto n_ind_prot = consensus.getProteinIdentifications()[0].getIndistinguishableProteins().size();
-        cout << "MzTab Export: " << n_ind_prot << endl;
-        */
-
-        // fill MzTab with meta data and quants annotated in identification data structure
-        const bool report_unmapped(true);
-        const bool report_unidentified_features(false);
-        const bool report_subfeatures(false);
-        MzTabFile().store(mztab,
-          consensus, 
-          !inference_in_cxml,
-          report_unidentified_features,
-          report_unmapped,
-          report_subfeatures);
-      }
+      ed = processConsensusXMLInput_(in, design_file, mztab, quantifier);
     }
 
     // output:
