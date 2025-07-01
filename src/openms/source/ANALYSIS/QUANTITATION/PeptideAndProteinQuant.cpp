@@ -831,11 +831,18 @@ namespace OpenMS
           n_file_channel_combinations += filename.second.size();
         }
 
-        // Calculate total number of arrays needed: 3 (sample-level) + 2 * n_file_channel_combinations (file/channel-level)
-        size_t total_arrays = 3 + 2 * n_file_channel_combinations;
+        // Calculate number of arrays needed for each type:
+        // FloatDataArrays: 3 (sample-level) + 1 (file_channel_level_abundance)
+        size_t float_arrays_needed = 4;
+        // StringDataArrays: 2 (file_channel_level_filename, file_level_filename)
+        size_t string_arrays_needed = 2;
+        // IntegerDataArrays: 2 (file_channel_level_channel, file_level_psm_count)
+        size_t integer_arrays_needed = 2;
         
         // TODO: OPENMS_ASSERT(id_group->float_data_arrays.empty(), "Protein group float data array not empty!.");
-        id_group->getFloatDataArrays().resize(total_arrays);
+        id_group->getFloatDataArrays().resize(float_arrays_needed);
+        id_group->getStringDataArrays().resize(string_arrays_needed);
+        id_group->getIntegerDataArrays().resize(integer_arrays_needed);
         
         // Sample-level arrays (indices 0-2)
         ProteinIdentification::ProteinGroup::FloatDataArray & abundances = id_group->getFloatDataArrays()[0];
@@ -864,32 +871,35 @@ namespace OpenMS
           peptide_counts[s.first] = (float) s.second;
         }
 
-        // File and channel level arrays (starting from index 3)
-        size_t array_index = 3;
-        
         // Add file/channel level abundances
+        auto& file_channel_level_abundance = id_group->getFloatDataArrays()[3];
+        file_channel_level_abundance.setName("file_channel_level_abundance");
+        auto& file_channel_level_filename = id_group->getStringDataArrays()[0];
+        file_channel_level_filename.setName("file_channel_level_filename");
+        auto& file_channel_level_channel = id_group->getIntegerDataArrays()[0];
+        file_channel_level_channel.setName("file_channel_level_channel");
+        size_t index = 0;
         for (const auto& filename : channel_level_abundances)
         {
           for (const auto& channel : filename.second)
           {
-            auto& file_channel_abundance = id_group->getFloatDataArrays()[array_index];
-            String array_name = "abundance|" + filename.first + "|channel" + String(channel.first);
-            file_channel_abundance.setName(array_name);
-            file_channel_abundance.resize(1);
-            file_channel_abundance[0] = (float) channel.second;
-            array_index++;
+            file_channel_level_abundance.push_back(channel.second);
+            file_channel_level_filename.push_back(filename.first);
+            file_channel_level_channel.push_back(channel.first);
           }
         }
+        OPENMS_POSTCONDITION(file_channel_level_abundance.size() == n_file_channel_combinations, "File/channel level abundance array size does not match expected size.");
 
-        // Add file/channel level PSM counts
+        // Add file level PSM counts
+        auto& file_level_psm_count = id_group->getIntegerDataArrays()[1];
+        file_level_psm_count.setName("file_level_psm_count");
+        auto& file_level_filename = id_group->getStringDataArrays()[1];
+        file_level_filename.setName("file_level_filename");
+
         for (const auto& filename : file_level_psm_counts)
         {
-          auto& file_channel_psm_count = id_group->getFloatDataArrays()[array_index];
-          String array_name = "psm_count|" + filename.first;
-          file_channel_psm_count.setName(array_name);
-          file_channel_psm_count.resize(1);
-          file_channel_psm_count[0] = (float)filename.second;
-          array_index++;
+          file_level_psm_count.push_back((int)filename.second);
+          file_level_filename.push_back(filename.first);
         }
       }
       else
@@ -1249,7 +1259,4 @@ namespace OpenMS
       }
     }
   }
-
-
 }
-

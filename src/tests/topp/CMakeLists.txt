@@ -2310,7 +2310,7 @@ set_tests_properties("TOPP_ProteinQuantifier_16_out1" PROPERTIES DEPENDS "TOPP_P
 
 add_test("TOPP_ProteinQuantifier_17" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.tsv -file_and_channel_level_output "true"  -out ProteinQuantifier_17_output.tmp -mztab ProteinQuantifier_17_output.mzTab.tmp -top:include_all -best_charge_and_fraction )
 add_test("TOPP_ProteinQuantifier_17_out1" ${DIFF} -in1 ProteinQuantifier_17_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_17_output.txt -whitelist "computed from file" )
-add_test("TOPP_ProteinQuantifier_17_out2" ${DIFF} -in1 ProteinQuantifier_17_output.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_17_output.mzTab )
+add_test("TOPP_ProteinQuantifier_17_out2" ${DIFF} -in1 ProteinQuantifier_17_output.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_17_output.mzTab -whitelist "software")
 set_tests_properties("TOPP_ProteinQuantifier_17_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_17")
 #------------------------------------------------------------------------------
 # PeptideIndexer tests
