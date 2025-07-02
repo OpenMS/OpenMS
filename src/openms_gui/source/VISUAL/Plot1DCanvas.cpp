@@ -729,6 +729,7 @@ namespace OpenMS
     {
       Painter1DBase::drawCross(begin, &painter, 8);
     }
+
     // draw elongation as dashed line (while in measure mode and for all existing distance annotations)
     if (draw_elongation)
     {

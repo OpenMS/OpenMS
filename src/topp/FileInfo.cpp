@@ -1206,6 +1206,7 @@ protected:
         // collect all search engines which generated the data
         search_engines.emplace(id_data.proteins[i].getSearchEngine(), id_data.proteins[i].getSearchEngineVersion());
       }
+
       if (peptide_length.empty())
       { // avoid invalid-range exception when computing mean()
         peptide_length.push_back(0);
