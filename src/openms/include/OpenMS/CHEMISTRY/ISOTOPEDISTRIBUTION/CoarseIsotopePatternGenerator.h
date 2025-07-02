@@ -109,8 +109,12 @@ namespace OpenMS
       * Iterates through all elements, convolves them according to the number
       * of atoms from that element and sums up the result.
       *
+      * If the EmpiricalFormula has a charge 'q' != 0, then 'q' hydrogen atoms are added
+      * to the formula to match the result of EmpiricalFormula::getMonoWeight().
+      * Set `ef.charge = 0` to avoid this behavior.
+      *
       **/
-    IsotopeDistribution run(const EmpiricalFormula&) const override;
+    IsotopeDistribution run(const EmpiricalFormula& ef) const override;
 
     /**
        @brief Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported

@@ -231,10 +231,10 @@ START_SECTION(( [EXTRA CH]IsotopeDistribution run(const EmpiricalFormula&) const
     IsotopeDistribution id = gen.run(ef);
     TEST_EQUAL(id.size(), 3)
 
-    TEST_REAL_SIMILAR(id[0].getMZ(), 180.063)
-    TEST_REAL_SIMILAR(id[0].getIntensity(), 0.922633) // 0.922119)
+    TEST_REAL_SIMILAR(id[0].getMZ(), 182.0790404466)
+    TEST_REAL_SIMILAR(id[0].getIntensity(), 0.922421) 
 
-    TEST_REAL_SIMILAR(id[2].getMZ(), 182.068 ) 
+    TEST_REAL_SIMILAR(id[2].getMZ(), 184.0832944466) 
     TEST_REAL_SIMILAR(id[2].getIntensity(), 0.0113774 )
   }
 }
