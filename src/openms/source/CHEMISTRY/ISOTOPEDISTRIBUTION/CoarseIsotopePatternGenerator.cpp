@@ -58,6 +58,12 @@ namespace OpenMS
 
   IsotopeDistribution CoarseIsotopePatternGenerator::run(const EmpiricalFormula& formula) const
   {
+    if (formula.getCharge() < 0)
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "CoarseIsotopePatternGenerator does not support negative charges (formula: " + formula.toString() + ").");
+    }
+
     IsotopeDistribution result;
 
     auto it = formula.begin();

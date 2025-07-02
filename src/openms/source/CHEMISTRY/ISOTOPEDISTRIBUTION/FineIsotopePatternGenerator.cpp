@@ -17,8 +17,14 @@ namespace OpenMS
 {
   IsotopeDistribution FineIsotopePatternGenerator::run(const EmpiricalFormula& formula) const
   {
-    if (formula.getCharge() != 0)
+    if (formula.getCharge() < 0)
     {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "FineIsotopePatternGenerator does not support negative charges (formula: " + formula.toString() + ").");
+    }
+    if (formula.getCharge() > 0)
+    {
+
       // add hydrogen atoms to the formula to match the charge
       EmpiricalFormula charged_formula = formula;
       charged_formula += EmpiricalFormula(formula.getCharge(), ElementDB::getInstance()->getElement("H"));

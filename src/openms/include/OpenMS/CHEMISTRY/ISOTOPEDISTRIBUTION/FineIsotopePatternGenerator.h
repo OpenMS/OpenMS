@@ -139,6 +139,7 @@ namespace OpenMS
      * down processing, consider using IsoSpec (IsoSpecWrapper /
      * IsoSpecGeneratorWrapper) directly for increased performance.
      *
+     * @throw Exception::Precondition if the formula has a negative charge
      **/
     IsotopeDistribution run(const EmpiricalFormula& ef) const override;
 

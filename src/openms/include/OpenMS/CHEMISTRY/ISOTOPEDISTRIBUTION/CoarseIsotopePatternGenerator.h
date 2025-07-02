@@ -109,10 +109,11 @@ namespace OpenMS
       * Iterates through all elements, convolves them according to the number
       * of atoms from that element and sums up the result.
       *
-      * If the EmpiricalFormula has a charge 'q' != 0, then 'q' hydrogen atoms are added
+      * If the EmpiricalFormula has a charge 'q' > 0, then 'q' hydrogen atoms are added
       * to the formula to match the result of EmpiricalFormula::getMonoWeight().
       * Set `ef.charge = 0` to avoid this behavior.
       *
+      *  @throw Exception::Precondition if the formula has a negative charge
       **/
     IsotopeDistribution run(const EmpiricalFormula& ef) const override;
 

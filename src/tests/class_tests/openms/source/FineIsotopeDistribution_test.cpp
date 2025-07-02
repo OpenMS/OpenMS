@@ -237,6 +237,15 @@ START_SECTION(( [EXTRA CH]IsotopeDistribution run(const EmpiricalFormula&) const
     TEST_REAL_SIMILAR(id[2].getMZ(), 184.0832944466) 
     TEST_REAL_SIMILAR(id[2].getIntensity(), 0.0113774 )
   }
+
+
+  ef.setCharge(-2);
+  {
+    FineIsotopePatternGenerator gen(0.01, false, false);
+    TEST_EXCEPTION(Exception::Precondition,
+                   gen.run(ef)); // negative charge not allowed
+  }
+
 }
 END_SECTION
 
