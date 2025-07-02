@@ -102,12 +102,6 @@ public:
    */
   void fillProteinHits(std::vector<ProteinHit>& hits, int max_target_count) const;
 
-  /// get decoy factor for FDR estimation; decoy factor is the size ratio between target and decoy.
-  double getDecoyFactor() const
-  {
-    return decoy_factor_;
-  }
-
   /// maximum node score for tag generation and extension
   const static int max_node_score = 8;
 
@@ -189,7 +183,6 @@ private:
   int max_gap_count_ = 0;
   int max_aa_in_gap_ = 2;
   int min_cov_aa_ = 3;
-  double decoy_factor_ = -1;
   double max_edge_mass_ = 0;
 };
 } // namespace OpenMS

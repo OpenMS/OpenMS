@@ -6,6 +6,7 @@
 // $Authors: Kyowon Jeong$
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHExtenderAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHTaggerAlgorithm.h>
@@ -82,9 +83,9 @@ bool FLASHTnTAlgorithm::areConsistent_(const ProteinHit& a, const ProteinHit& b,
   if (mass1 * mass2 < 0) return false;
   if (mass1 > 0 && mass2 > 0 && std::abs(mass1 - mass2) > std::max(mass1, mass2) * tol / 1e6 * 2) return false;
 
-  //double rt1 = a.getMetaValue("RT");
-  //double rt2 = b.getMetaValue("RT");
-  //if (std::abs(rt1 - rt2) < 30.0) return true; // if rts are within 30 sec, true
+  // double rt1 = a.getMetaValue("RT");
+  // double rt2 = b.getMetaValue("RT");
+  // if (std::abs(rt1 - rt2) < 30.0) return true; // if rts are within 30 sec, true
 
   if (a.metaValueExists("mod_masses") && b.metaValueExists("mod_masses"))
   {
@@ -100,14 +101,8 @@ bool FLASHTnTAlgorithm::areConsistent_(const ProteinHit& a, const ProteinHit& b,
 
       for (Size i = 0; i < mod_masses1.size(); i++)
       {
-        if (std::abs(mod_masses1[i] - mod_masses2[i]) > std::max(mod_masses1[i], mod_masses2[i]) * tol / 1e6 * 2)
-        {
-          return false;
-        }
-        else if (mod_starts1[i] > mod_ends2[i] || mod_starts2[i] > mod_ends1[i])
-        {
-          return false;
-        }
+        if (std::abs(mod_masses1[i] - mod_masses2[i]) > std::max(mod_masses1[i], mod_masses2[i]) * tol / 1e6 * 2) { return false; }
+        else if (mod_starts1[i] > mod_ends2[i] || mod_starts2[i] > mod_ends1[i]) { return false; }
       }
     }
     return true;
@@ -151,10 +146,25 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
   setLogType(CMD);
   startProgress(0, (SignedSize)map.size(), "Running FLASHTnT ...");
 
+
   int max_mod_cntr = extender_param_.getValue("max_mod_count");
   double max_mod_mass = max_mod_cntr * (double)extender_param_.getValue("max_mod_mass") + 1.0;
   std::map<double, std::vector<ResidueModification>> mod_map;
   const auto inst = ModificationsDB::getInstance(); // give this from outside ...
+  std::map<std::string, std::vector<Size>> tag_to_protein_indices;
+  std::vector<std::string> tag_seqs, protein_seqs;
+
+  double taget_count = 0;
+  double decoy_count = 0;
+  for (const auto& fe : fasta_entry)
+  {
+    if (fe.identifier.hasPrefix("DECOY")) { decoy_count++; }
+    else { taget_count++; }
+    protein_seqs.push_back(fe.sequence);
+  }
+
+  decoy_factor_ = decoy_count / taget_count;
+
   std::vector<String> mod_strs;
   inst->getAllSearchModifications(mod_strs);
   for (int i = 0; i < mod_strs.size(); i++)
@@ -165,12 +175,13 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
   }
   double precursor_tol = -1;
 
-  std::vector<std::map<int,std::set<Size>>> fasta_index, rev_fasta_index;
-
   for (int index = 0; index < map.size(); index++)
   {
     auto spec = map[index];
     nextProgress();
+
+    if (spec.size() < 5) continue;
+
     int scan = FLASHDeconvAlgorithm::getScanNumber(map, index);
 
     DeconvolvedSpectrum dspec(scan);
@@ -184,7 +195,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
     if (spec.getMSLevel() == 1 && precursor_tol < 0)
     {
       precursor_tol = tol;
-      //continue;
+      // continue;
     }
 
     int q_loc_s = deconv_meta_str.find("qscore=") + 7;
@@ -243,7 +254,6 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
 
       dspec.setPrecursorPeakGroup(pg);
     }
-
     for (Size i = 0; i < spec.size(); i++)
     {
       PeakGroup peak;
@@ -253,9 +263,8 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
       peak.setScanNumber(scan);
       dspec.push_back(peak);
     }
-    if (dspec.size() < 5) continue;
 
-    if(dspec.size() > max_node_cntr_)
+    if (dspec.size() > max_node_cntr_)
     {
       dspec.sortByQscore();
       std::vector<PeakGroup> filtered_peaks;
@@ -274,25 +283,61 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
     // Run tagger
     tagger.setParameters(tagger_param_);
     tagger.run(dspec, tol);
-    FLASHExtenderAlgorithm extender;
-    extender.setParameters(extender_param_);
-    extender.setModificationMap(mod_map);
     tagger.fillTags(tags_);
-    std::vector<ProteinHit> hits;
-    std::vector<FLASHHelperClasses::Tag> tags;
-
-    tagger.runMatching(fasta_entry, dspec, max_mod_mass);
-    tagger.fillTags(tags);
-    tagger.fillProteinHits(hits, max_hit_count);
-
-   // hit_by_tag |= !hits.empty();
-    extender.run(hits, tags, dspec,tol, multiple_hits_per_spec_);
-    extender.fillProteoforms(proteoform_hits_);
-
-    decoy_factor_ = tagger.getDecoyFactor();
   }
+
+  for (auto& tag : tags_)
+  {
+    String tag_seq = tag.getSequence();
+    String tag_uppercase_seq = tag_seq.toUpper();
+    if (tag_to_protein_indices.find(tag_uppercase_seq) != tag_to_protein_indices.end()) continue;
+    tag_to_protein_indices[tag_uppercase_seq] = std::vector<Size>();
+    tag_seqs.push_back(tag_uppercase_seq);
+  } // now we have all the tags
+
+
+  // tag_seqs protein_seqs
+
+  ACTrie ac_trie(0, 0); // no ambiguities, no mismatches
+
+  ac_trie.addNeedlesAndCompress(tag_seqs);
+
+  OpenMS::ACTrieState ac_state;
+
+//#pragma omp parallel for default(none) shared(protein_seqs, ac_state, ac_trie)
+  for (int i = 0; i < protein_seqs.size(); ++i)
+  {
+    const auto& prot_seq = protein_seqs[i];
+    ac_state.setQuery(prot_seq);
+    ac_trie.getAllHits(ac_state);
+
+//   for (auto h : ac_state.hits)
+//   {
+//     std::cout << "Found needle #" << h.needle_index << "(" << tag_seqs[h.needle_index] << ") at pos " << h.query_pos << " in protein " <<
+//       prot_seq << "\n";
+//   }
+  }
+
+
+  // FLASHExtenderAlgorithm extender;
+  //     extender.setParameters(extender_param_);
+  //     extender.setModificationMap(mod_map);
+
+  //    std::vector<ProteinHit> hits;
+  //    std::vector<FLASHHelperClasses::Tag> matched_tags;
+  //
+  //    tagger.runMatching(fasta_entry, dspec, max_mod_mass);
+  //    tagger.fillTags(matched_tags);
+  //    tagger.fillProteinHits(hits, max_hit_count);
+  //
+  //   // hit_by_tag |= !hits.empty();
+  //    extender.run(hits, matched_tags, dspec,tol, multiple_hits_per_spec_);
+  //    extender.fillProteoforms(proteoform_hits_);
+  //  }
   endProgress();
-  // redefine tag index and proteoform to tag indics
+  return;
+
+  // redefine tag index and proteoform to tag indices
   std::map<int, int> scan_index_offset;
   int offset = 0;
   for (auto& tag : tags_)
@@ -328,7 +373,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
                                                : (left.getScore() > right.getScore());
   });
 
-  if (decoy_factor_ > 0 || !keep_underdetermined_)
+  if (decoy_factor_ > 0 || ! keep_underdetermined_)
   {
     std::vector<ProteinHit> filtered_proteoform_hits;
     filtered_proteoform_hits.reserve(proteoform_hits_.size());
@@ -370,7 +415,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
           else
           {
             taget_count++;
-            if (is_rep) taget_count_pro ++;
+            if (is_rep) taget_count_pro++;
           }
 
           double tmp_qvalue = decoy_count / (decoy_count + taget_count);
@@ -402,8 +447,8 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
           if (k == 0
               && ((double)hit.getMetaValue("Mass") < 0 || (int)hit.getMetaValue("StartPosition") < 0 || (int)hit.getMetaValue("EndPosition") < 0))
             continue;
-          if (k == 1 && ((double)hit.getMetaValue("Mass") > 0 && (int)hit.getMetaValue("StartPosition") > 0
-                         && (int)hit.getMetaValue("EndPosition") > 0))
+          if (k == 1
+              && ((double)hit.getMetaValue("Mass") > 0 && (int)hit.getMetaValue("StartPosition") > 0 && (int)hit.getMetaValue("EndPosition") > 0))
             continue;
 
           bool is_decoy = hit.getAccession().hasPrefix("DECOY");
@@ -427,7 +472,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
         }
       }
     }
-    //std::cout<< tags_.size() << " " << proteoform_hits_.size() << " " << filtered_proteoform_hits.size()<<std::endl;
+    // std::cout<< tags_.size() << " " << proteoform_hits_.size() << " " << filtered_proteoform_hits.size()<<std::endl;
     proteoform_hits_.swap(filtered_proteoform_hits);
   }
   std::sort(proteoform_hits_.begin(), proteoform_hits_.end(),
@@ -450,7 +495,6 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
   // get all protoeforms - mass and score.
   // get all combinations with a certain tolerance.
   // record the best ranking combination(s) along with summed score (can score be non overlapping?) and mass difference
-
 }
 
 void FLASHTnTAlgorithm::getProteoformHitsMatchedBy(const FLASHHelperClasses::Tag& tag, std::vector<ProteinHit>& hits) const

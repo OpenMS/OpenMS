@@ -9,6 +9,7 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHTaggerAlgorithm.h>
 #include <utility>
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 
 namespace OpenMS
 {
@@ -719,6 +720,7 @@ void FLASHTaggerAlgorithm::vectorizeFasta_(const std::vector<FASTAFile::FASTAEnt
   }
 }
 
+
 // Make output struct containing all information about matched entries and tags, coverage, score etc.
 void FLASHTaggerAlgorithm::runMatching(const std::vector<FASTAFile::FASTAEntry>& fasta_entry,
                                        const DeconvolvedSpectrum& deconvolved_spectrum,
@@ -736,17 +738,6 @@ void FLASHTaggerAlgorithm::runMatching(const std::vector<FASTAFile::FASTAEntry>&
 
   startProgress(0, (SignedSize)fasta_entry.size(), "Running FLASHTagger: searching database");
 
-  if (decoy_factor_ < 0)
-  {
-    double taget_count = 0;
-    double decoy_count = 0;
-    for (const auto& fe : fasta_entry)
-    {
-      if (fe.identifier.hasPrefix("DECOY")) { decoy_count++; }
-      else { taget_count++; }
-      decoy_factor_ = decoy_count / taget_count;
-    }
-  }
 
   std::vector<int> spec_vec;
   std::vector<int> spec_scores;
