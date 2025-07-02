@@ -11,6 +11,8 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/MATH/MathFunctions.h>
 
+#include <unordered_map>
+
 namespace OpenMS
 {
   class AASequence;
@@ -46,7 +48,11 @@ namespace OpenMS
       /* 
           @brief shuffle the protein's peptide sequences between enzymatic cutting positions.
           each peptide is shuffled @param max_attempts times to minimize sequence identity.
-          note: modifications are discarded 
+
+          Note: 
+            - Generated decoys are retrieved from a cache to prevent that same peptide (in different proteins) 
+              leads to different decoys.
+            - modifications are discarded 
       */
       AASequence shufflePeptides(
             const AASequence& aas,
@@ -60,6 +66,9 @@ namespace OpenMS
 
       // portable shuffle
       Math::RandomShuffler shuffler_;
+
+      // ensures that shuffling same peptide (in different proteins) leads to same decoy
+      std::unordered_map<std::string, std::string> td_cache_;
   };
 }
 
