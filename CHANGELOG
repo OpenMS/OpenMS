@@ -27,6 +27,7 @@ Misc:
  - show load/store progress for files in all TOPP tools (#8041)
  
 Fixes:
+  - unify isotopic distributions (coarse vs. fine) for EmpiricalFormulas with charge (#8099)
 
 Library:
 - Removed `assignRanks` and `sortByRanks` in PeptideIdentifications and sort and filter by score instead. Also removed `updateHitRanks` in IDFilter (#7991)
