@@ -440,45 +440,29 @@ namespace OpenMS
                 right_bound_im = centroid_im + ion_mobility_tolerance_;
                 left_bound_im = centroid_im - ion_mobility_tolerance_;
 
-                Size next_down_peak_idx_right = spec_trace_down.findNearest(right_bound);
-                Size next_down_peak_idx_left = spec_trace_down.findNearest(left_bound);
-
-                // to avoid undeclared error, set next_down_idx as the left bound idx initially
-                // they will be updated if we discover closer neighbors
-                next_down_peak_idx = next_down_peak_idx_left;
-                next_down_peak_mz = spec_trace_down[next_down_peak_idx_left].getMZ();
-                next_down_peak_int = spec_trace_down[next_down_peak_idx_left].getIntensity();
-                next_down_peak_im = spec_trace_down.getFloatDataArrays()[Ion_Mobility_idx][next_down_peak_idx_left];
-
-                // we will only do brute force ion mobility neighbor search if right and left
-                // bound indices are not matching (suggesting presence of multiple close neighbors)
-                if (next_down_peak_idx_right != next_down_peak_idx_left)
+                auto left_bound_it = spec_trace_down.MZBegin(left_bound);
+                Size next_down_peak_idx_left = left_bound_it - spec_trace_down.begin();
+                auto right_bound_it = spec_trace_down.MZEnd(right_bound);
+                Size next_down_peak_idx_right = right_bound_it - spec_trace_down.begin();
+            
+                // iterate over all peaks in the m/z bounds
+                for (Size i = next_down_peak_idx_left; i < next_down_peak_idx_right; ++i)
                 {
-                  // generate a map of ion mobility value -- peak index pairs from mz peak neighbors
-                  std::map<int, double> ionMobilityMap;
-                  for (Size im_i = next_down_peak_idx_left; im_i <= next_down_peak_idx_right; ++im_i)
+                  // check if the ion mobility value is within bounds
+                  double im_value = spec_trace_down.getFloatDataArrays()[Ion_Mobility_idx][i];
+                  
+                  if (im_value >= left_bound_im && im_value <= right_bound_im) // iterate over peaks in IM bounds
                   {
-                    ionMobilityMap[im_i] = spec_trace_down.getFloatDataArrays()[Ion_Mobility_idx][im_i];
-                  }
-                  // find the closest ion mobility value to centroid_im
-                  // and update next_down_peak_idx
-                  double closestValue = ionMobilityMap.begin()->second;
-                  Size closestIndex = ionMobilityMap.begin()->first;
-                  for (const auto& entry : ionMobilityMap)
-                  {
-                    double difference = std::abs(entry.second - centroid_im);
-                    if (difference < std::abs(closestValue - centroid_im))
+                    if (std::abs(spec_trace_down[i].getMZ() - centroid_mz) < std::abs(next_down_peak_mz - centroid_mz))
                     {
-                      closestValue = entry.second;
-                      closestIndex = entry.first;
-                    }
+                      // update next down peak index, mz, intensity and ion mobility
+                      next_down_peak_idx = i;
+                      next_down_peak_mz = spec_trace_down[next_down_peak_idx].getMZ();
+                      next_down_peak_int = spec_trace_down[next_down_peak_idx].getIntensity();
+                      next_down_peak_im = im_value;
+                    }                    
                   }
-                  // the closestIndex will become the new next_down_peak_idx
-                  next_down_peak_idx = closestIndex;
-                  next_down_peak_mz = spec_trace_down[next_down_peak_idx].getMZ();
-                  next_down_peak_int = spec_trace_down[next_down_peak_idx].getIntensity();
-                  next_down_peak_im = spec_trace_down.getFloatDataArrays()[Ion_Mobility_idx][next_down_peak_idx];
-                }
+                }                              
               }
 
               // If the peak is within acceptable bounds and not visited, add peak to mass trace
@@ -568,39 +552,30 @@ namespace OpenMS
                 right_bound_im = centroid_im + ion_mobility_tolerance_;
                 left_bound_im = centroid_im - ion_mobility_tolerance_;
 
-                Size next_up_peak_idx_right = spec_trace_up.findNearest(right_bound);
-                Size next_up_peak_idx_left = spec_trace_up.findNearest(left_bound);
+                auto left_bound_it = spec_trace_up.MZBegin(left_bound);
+                Size next_up_peak_idx_left = left_bound_it - spec_trace_up.begin();
+                auto right_bound_it = spec_trace_up.MZEnd(right_bound);
+                Size next_up_peak_idx_right = right_bound_it - spec_trace_up.begin();
 
-                next_up_peak_idx = next_up_peak_idx_left;
-                next_up_peak_mz = spec_trace_up[next_up_peak_idx_left].getMZ();
-                next_up_peak_int = spec_trace_up[next_up_peak_idx_left].getIntensity();
-                next_up_peak_im = spec_trace_up.getFloatDataArrays()[Ion_Mobility_idx][next_up_peak_idx_left];
-
-                if (next_up_peak_idx_right != next_up_peak_idx_left)
+             
+                // iterate over all peaks in the m/z bounds
+                for (Size i = next_up_peak_idx_left; i < next_up_peak_idx_right; ++i)
                 {
-                  std::map<int, double> ionMobilityMap;
-                  for (Size im_i = next_up_peak_idx_left; im_i <= next_up_peak_idx_right; ++im_i)
+                  // check if the ion mobility value is within bounds
+                  double im_value = spec_trace_up.getFloatDataArrays()[Ion_Mobility_idx][i];
+                  
+                  if (im_value >= left_bound_im && im_value <= right_bound_im) // iterate over peaks in IM bounds
                   {
-                    ionMobilityMap[im_i] = spec_trace_up.getFloatDataArrays()[Ion_Mobility_idx][im_i];
-                  }
-
-                  double closestValue = ionMobilityMap.begin()->second;
-                  Size closestIndex = ionMobilityMap.begin()->first;
-                  for (const auto& entry : ionMobilityMap)
-                  {
-                    double difference = std::abs(entry.second - centroid_im);
-                    if (difference < std::abs(closestValue - centroid_im))
+                    if (std::abs(spec_trace_up[i].getMZ() - centroid_mz) < std::abs(next_up_peak_mz - centroid_mz))
                     {
-                      closestValue = entry.second;
-                      closestIndex = entry.first;
+                      // update next up peak index, mz, intensity and ion mobility
+                      next_up_peak_idx = i;
+                      next_up_peak_mz = spec_trace_up[next_up_peak_idx].getMZ();
+                      next_up_peak_int = spec_trace_up[next_up_peak_idx].getIntensity();
+                      next_up_peak_im = im_value;
                     }
                   }
-
-                  next_up_peak_idx = closestIndex;
-                  next_up_peak_mz = spec_trace_up[next_up_peak_idx].getMZ();
-                  next_up_peak_int = spec_trace_up[next_up_peak_idx].getIntensity();
-                  next_up_peak_im = spec_trace_up.getFloatDataArrays()[Ion_Mobility_idx][next_up_peak_idx];
-                }
+                }                              
               }
 
               // Unified peak acceptance logic
@@ -619,12 +594,13 @@ namespace OpenMS
 
                 if (has_fwhm_im_) { fwhms_im.push_back(spec_trace_up.getFloatDataArrays()[IM_fwhm_idx][next_up_peak_idx]); }
 
+                MassTraceDetection::updateIterativeWeightedMean_(next_up_peak_mz, next_up_peak_int, centroid_mz, prev_counter, prev_denom);
+                
                 if (has_centroid_im_)
                 {
                   MassTraceDetection::updateIterativeWeightedMean_(next_up_peak_im, next_up_peak_int, centroid_im, prev_counter_im, prev_denom_im);
                 }
 
-                MassTraceDetection::updateIterativeWeightedMean_(next_up_peak_mz, next_up_peak_int, centroid_mz, prev_counter, prev_denom);
                 gathered_idx.emplace_back(trace_up_idx + 1, next_up_peak_idx);
 
                 if (reestimate_mt_sd_) { updateWeightedSDEstimateRobust(next_peak, centroid_mz, ftl_sd, intensity_so_far); }
