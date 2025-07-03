@@ -89,8 +89,8 @@ namespace OpenMS
 
     // Abort if no data points are contained
     auto& layer = dynamic_cast<LayerDataPeak&>(getCurrentLayer());
-      
-    if (layer.getPeakData()->empty())
+    const MSExperiment& peak_data = layer.getPeakData()->getMSExperiment();
+    if (peak_data.empty())
     {
       popIncompleteLayer_("Cannot add a dataset that contains no survey scans. Aborting!");
       return false;

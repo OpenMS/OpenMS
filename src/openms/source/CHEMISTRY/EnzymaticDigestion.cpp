@@ -115,14 +115,14 @@ namespace OpenMS
     return positions;
   }
 
-  bool EnzymaticDigestion::isValidProduct(const String& sequence, int pos, int length, bool ignore_missed_cleavages) const
-  {
-    return isValidProduct_(sequence, pos, length, ignore_missed_cleavages, false, false);
-  }
-
   Size EnzymaticDigestion::countInternalCleavageSites(const String& sequence) const
   {
     return tokenize_(sequence).size() - 1;
+  }
+
+  bool EnzymaticDigestion::isValidProduct(const String& sequence, int pos, int length, bool ignore_missed_cleavages) const
+  {
+    return isValidProduct_(sequence, pos, length, ignore_missed_cleavages, false, false);
   }
 
   bool EnzymaticDigestion::filterByMissedCleavages(const String& sequence, const std::function<bool(Int)>& filter) const

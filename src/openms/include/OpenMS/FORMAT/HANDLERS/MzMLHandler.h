@@ -260,15 +260,6 @@ protected:
       void populateChromatogramsWithData_();
 
       /**
-          @brief Add extra data arrays to a spectrum
-
-          Add the float, integer and string data arrays to a spectrum.
-      */
-      void addSpectrumMetaData_(const std::vector<MzMLHandlerHelper::BinaryData>& input_data,
-                                const Size n,
-                                SpectrumType& spectrum) const;
-
-      /**
           @brief Fill a single spectrum with data from input
 
           @note Do not modify any internal state variables of the class since

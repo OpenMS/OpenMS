@@ -58,9 +58,7 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
         String     getExperimentLabel() except + nogil 
         void       setExperimentLabel(String) except + nogil 
 
-        void       assignRanks() except + nogil 
         void       sort() except + nogil 
-        void sortByRank() except + nogil 
         bool       empty() except + nogil 
 
         libcpp_vector[PeptideHit] getReferencingHits(libcpp_vector[PeptideHit], libcpp_set[String] &) except + nogil  # wrap-doc:Returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)

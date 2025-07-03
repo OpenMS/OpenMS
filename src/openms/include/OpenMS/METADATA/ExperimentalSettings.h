@@ -100,13 +100,6 @@ public:
     /// sets the free-text comment
     void setComment(const String & comment);
 
-    /// returns a const reference to the protein ProteinIdentification vector
-    const std::vector<ProteinIdentification> & getProteinIdentifications() const;
-    /// returns a mutable reference to the protein ProteinIdentification vector
-    std::vector<ProteinIdentification> & getProteinIdentifications();
-    /// sets the protein ProteinIdentification vector
-    void setProteinIdentifications(const std::vector<ProteinIdentification> & protein_identifications);
-
     /// returns fraction identifier
     const String & getFractionIdentifier() const;
     /// sets the fraction identifier
@@ -120,7 +113,6 @@ protected:
     HPLC hplc_;
     DateTime datetime_;
     String comment_;
-    std::vector<ProteinIdentification> protein_identifications_;
     String fraction_identifier_;
   };
 

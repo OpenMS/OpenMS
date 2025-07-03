@@ -201,7 +201,6 @@ namespace OpenMS
       for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
       {
         it->sort();
-        it->assignRanks();
         std::vector<PeptideHit> hits = it->getHits();
         assignDeltaScore_(hits, "MS:1001171", "MASCOT:delta_score");
         
@@ -226,7 +225,6 @@ namespace OpenMS
       for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
       {
         it->sort();
-        it->assignRanks();
         assignDeltaScore_(it->getHits(), "CONCAT:lnEvalue", "CONCAT:deltaLnEvalue");
       }
     }
@@ -603,7 +601,6 @@ namespace OpenMS
       for (vector<PeptideIdentification>::iterator pi = peptide_ids.begin(); pi != peptide_ids.end(); ++pi)
       {
         pi->sort();
-        pi->assignRanks();
         vector<vector<PeptideHit>::iterator> incompletes;
 
         size_t imputed_back = imputed_values;

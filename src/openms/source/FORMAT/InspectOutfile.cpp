@@ -267,7 +267,7 @@ namespace OpenMS
     }
 
     if (!peptide_identifications.empty())
-      peptide_identifications.back().assignRanks();
+      peptide_identifications.back().sort();
 
     // search the sequence of the proteins
     if (!protein_identification.getHits().empty() && !database_filename.empty())

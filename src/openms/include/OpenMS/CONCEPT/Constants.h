@@ -321,6 +321,11 @@ namespace OpenMS
       */
       inline const std::string   ISOTOPE_ERROR = "isotope_error";
 
+      /** User parameter name to indicate a peptide q-value
+              String
+      */
+      inline const std::string   PEPTIDE_Q_VALUE = "peptide q-value";
+
       // Cross-Linking Mass Spectrometry user parameters
       /** Name of OpenPepXL main score (PSI CV term)
               String
@@ -558,6 +563,21 @@ namespace OpenMS
               String
       */
       inline const std::string   MSM_SUM_FORMULA = "Sum_Formula";
+
+      /** User parameter name for the base name which links to underlying peak map
+              String
+      */
+      inline const std::string   BASE_NAME = "base_name";
+
+      /** User parameter name for the significance threshold in PeptideIdentification
+              Double
+      */
+      inline const std::string   SIGNIFICANCE_THRESHOLD = "significance_threshold";
+      
+      /** User parameter name for the rank of a peptide hit
+              String
+      */
+      inline const std::string   RANK = "rank";
     }
 
     //@}
