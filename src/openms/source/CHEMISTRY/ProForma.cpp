@@ -12,45 +12,52 @@
 
 namespace OpenMS
 {
-    ProForma::ProForma(const AASequence& seq) : sequence_(seq) {}
+    ProForma::ProForma(const AASequence& seq):
+        ProgressLogger(),
+        sequence_(seq)
+    {}
 
-    void ProForma::validateCVModification(const std::string& modification)
+    void ProForma::validateCVModification(const String& modification)
     {
         size_t colon_pos = modification.find(':');
-        if (colon_pos == std::string::npos)
+        if (colon_pos == String::npos)
         {
-            std::cout << "No CV prefix found in modification: " << modification << std::endl;
-            return;
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+             "No CV prefix found in modification: " + modification);
         }
 
-        std::string cv = modification.substr(0, colon_pos);
-        std::string accession = modification.substr(colon_pos + 1);
+        String cv = modification.substr(0, colon_pos);
+        String accession = modification.substr(colon_pos + 1);
 
-        std::cout << "Validating CV: " << cv << " with accession: " << accession << std::endl;
+        OPENMS_LOG_DEBUG << "Validating CV: " << cv << " with accession: " << accession << std::endl;
 
         if (supported_cvs_.find(cv) == supported_cvs_.end())
         {
-            std::cout << "Unsupported CV detected: " << cv << std::endl;
-            throw std::invalid_argument("Unsupported CV/ontology: " + cv);
+            OPENMS_LOG_ERROR << "Unsupported CV detected: " << cv << std::endl;
+            throw Exception::IllegalArgument(
+                __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Unsupported CV/ontology: " + cv);
         }
 
         if (accession.empty())
         {
-            throw std::invalid_argument("Accession number cannot be empty in modification: " + modification);
+            throw Exception::IllegalArgument(
+                __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Accession number cannot be empty in modification: " + modification);
         }
     }
 
-    void ProForma::parseCVModificationNames(const std::string& modString, size_t& pos, size_t residue_pos)
+    void ProForma::parseCVModificationNames(const String& modString, size_t& pos, size_t residue_pos)
     {
         size_t modStart = modString.find('[', pos);
         size_t modEnd = modString.find(']', modStart);
-        if (modStart == std::string::npos || modEnd == std::string::npos)
+        if (modStart == String::npos || modEnd == String::npos)
         {
             throwParseError("Invalid modification format: Missing brackets for CV modification.");
         }
 
-        std::string modification = modString.substr(modStart + 1, modEnd - modStart - 1);
-        std::cout << "Parsing CV modification: " << modification << " at position " << residue_pos << std::endl;
+        String modification = modString.substr(modStart + 1, modEnd - modStart - 1);
+        OPENMS_LOG_DEBUG << "Parsing CV modification: " << modification << " at position " << residue_pos << std::endl;
 
         validateCVModification(modification);
 
@@ -67,17 +74,17 @@ namespace OpenMS
         pos = modEnd + 1;
     }
 
-    void ProForma::parseStandardModification(const std::string& modString, size_t& pos, size_t residue_pos)
+    void ProForma::parseStandardModification(const String& modString, size_t& pos, size_t residue_pos)
     {
         size_t modStart = modString.find('[', pos);
         size_t modEnd = modString.find(']', modStart);
-        if (modStart == std::string::npos || modEnd == std::string::npos)
+        if (modStart == String::npos || modEnd == String::npos)
         {
             throwParseError("Invalid modification format: Missing brackets for standard modification.");
         }
 
-        std::string modification = modString.substr(modStart + 1, modEnd - modStart - 1);
-        std::cout << "Parsing standard modification: " << modification << " at position " << residue_pos << std::endl;
+        String modification = modString.substr(modStart + 1, modEnd - modStart - 1);
+        OPENMS_LOG_DEBUG << "Parsing standard modification: " << modification << " at position " << residue_pos << std::endl;
 
         ModificationAttributes attributes;
         attributes.modification_name = modification;
@@ -86,17 +93,17 @@ namespace OpenMS
         pos = modEnd + 1;
     }
 
-    void ProForma::parseDeltaMassNotation(const std::string& modString, size_t& pos, size_t residue_pos)
+    void ProForma::parseDeltaMassNotation(const String& modString, size_t& pos, size_t residue_pos)
     {
       size_t modStart = modString.find('[', pos);
       size_t modEnd = modString.find(']', modStart);
-      if (modStart == std::string::npos || modEnd == std::string::npos)
+      if (modStart == String::npos || modEnd == String::npos)
       {
         throwParseError("Invalid mass shift notation: Missing brackets.");
       }
 
-      std::string modification = modString.substr(modStart + 1, modEnd - modStart - 1);
-      std::cout << "Parsing mass shift: " << modification << " at position " << residue_pos << std::endl;
+      String modification = modString.substr(modStart + 1, modEnd - modStart - 1);
+      OPENMS_LOG_DEBUG << "Parsing mass shift: " << modification << " at position " << residue_pos << std::endl;
 
       if (modification[0] != '+' && modification[0] != '-')
       {
@@ -127,16 +134,16 @@ namespace OpenMS
     }
 
 
-    void ProForma::parseNTerminalModification(const std::string& modString, size_t& pos)
+    void ProForma::parseNTerminalModification(const String& modString, size_t& pos)
     {
         size_t modEnd = modString.find("]-", pos);
-        if (modEnd == std::string::npos)
+        if (modEnd == String::npos)
         {
             throwParseError("Invalid N-terminal modification format: Missing brackets and '-' indicator.");
         }
 
-        std::string modification = modString.substr(1, modEnd - 1);
-        std::cout << "Parsing N-terminal modification: " << modification << std::endl;
+        String modification = modString.substr(1, modEnd - 1);
+        OPENMS_LOG_DEBUG << "Parsing N-terminal modification: " << modification << std::endl;
 
         ModificationAttributes attributes;
         attributes.modification_name = modification;
@@ -145,17 +152,17 @@ namespace OpenMS
         pos = modEnd + 2;
     }
 
-    void ProForma::parseCTerminalModification(const std::string& modString, size_t& pos)
+    void ProForma::parseCTerminalModification(const String& modString, size_t& pos)
     {
         size_t modStart = modString.find("-[", pos);
         size_t modEnd = modString.find(']', modStart);
-        if (modStart == std::string::npos || modEnd == std::string::npos)
+        if (modStart == String::npos || modEnd == String::npos)
         {
             throwParseError("Invalid C-terminal modification format: Missing brackets and '-' indicator.");
         }
 
-        std::string modification = modString.substr(modStart + 2, modEnd - modStart - 2);
-        std::cout << "Parsing C-terminal modification: " << modification << std::endl;
+        String modification = modString.substr(modStart + 2, modEnd - modStart - 2);
+        OPENMS_LOG_DEBUG << "Parsing C-terminal modification: " << modification << std::endl;
 
         ModificationAttributes attributes;
         attributes.modification_name = modification;
@@ -164,52 +171,41 @@ namespace OpenMS
         pos = modEnd + 1;
     }
 
-    void ProForma::parseRangeModification(const std::string& modString, size_t& pos)
+    void ProForma::parseRangeModification(const String& modString, size_t& pos)
     {
       size_t rangeStart = modString.find('(', pos);
       size_t rangeEnd = modString.find(')', rangeStart);
-      if (rangeStart == std::string::npos || rangeEnd == std::string::npos)
+      if (rangeStart == String::npos || rangeEnd == String::npos)
       {
         throwParseError("Invalid range format: Missing parentheses.");
       }
 
       // Extract the range of residues (e.g., "ESFRMS" in "PRT(ESFRMS)[+19.0523]ISK")
-      std::string range = modString.substr(rangeStart + 1, rangeEnd - rangeStart - 1);
-      std::cout << "Parsing range modification: " << range << std::endl;
+      String range = modString.substr(rangeStart + 1, rangeEnd - rangeStart - 1);
+      OPENMS_LOG_DEBUG << "Parsing range modification: " << range << std::endl;
 
       size_t modStart = modString.find('[', rangeEnd);
       size_t modEnd = modString.find(']', modStart);
-      if (modStart == std::string::npos || modEnd == std::string::npos)
+      if (modStart == String::npos || modEnd == String::npos)
       {
         throwParseError("Invalid modification format: Missing brackets after range.");
       }
 
-      std::string modification = modString.substr(modStart + 1, modEnd - modStart - 1);
-      std::cout << "Applying modification: " << modification << " to range: " << range << std::endl;
+      String modification = modString.substr(modStart + 1, modEnd - modStart - 1);
+      OPENMS_LOG_DEBUG << "Applying modification: " << modification << " to range: " << range << std::endl;
 
-      // Calculate the exact start position in the sequence for the range
-      size_t range_seq_start = 0;
-      for (size_t i = 0; i < sequence_.size(); ++i)
-      {
-        // Find the first occurrence of the range in the sequence (i.e., match "ESFRMS")
-        std::string substring = sequence_.toString().substr(i, range.size());
-        if (substring == range)
-        {
-          range_seq_start = i + 1; // +1 because the range starts from 1
-          break;
-        }
-      }
+      // The range starts after the sequence that we have already parsed
+      size_t range_seq_start = sequence_.size() + 1; // Default to after the sequence end
 
-      if (range_seq_start == 0)
-      {
-        throwParseError("Range not found in sequence.");
-      }
+      OPENMS_LOG_DEBUG << "Range starts at sequence position: " << range_seq_start << std::endl;
+
+      sequence_ += AASequence::fromString(range); // Append the range to the sequence
 
       // Apply the modification to the entire range
       ModificationAttributes attributes;
       attributes.modification_name = modification;
       attributes.range = {range_seq_start, range_seq_start + range.size() - 1};  // Store the range as a pair (start, end)
-
+      OPENMS_LOG_DEBUG << "Range of modification: " << attributes.range.first << " - " << attributes.range.second << std::endl;
       // Apply the modification from range start to range end
       for (size_t i = range_seq_start; i <= range_seq_start + range.size() - 1; ++i)
       {
@@ -222,91 +218,65 @@ namespace OpenMS
 
       // Update the current position to after the closing bracket of the modification
       pos = modEnd + 1;
-
-      // If there's additional sequence after the modification (like "ISK"), we need to ensure it's processed properly.
-      if (pos < modString.size())
-      {
-        std::string remaining_seq = modString.substr(pos);
-        // Add the remaining residues (ISK in this case) to the sequence if it hasn't already been processed
-        size_t expected_remaining_start = range_seq_start + range.size();
-
-        if (remaining_seq.size() + expected_remaining_start - 1 <= sequence_.size())
-        {
-          // Verify that the next part of the string matches the unprocessed part of the sequence
-          std::string sequence_part = sequence_.toString().substr(expected_remaining_start - 1);
-          if (remaining_seq != sequence_part)
-          {
-            sequence_ = AASequence::fromString(sequence_.toString().substr(0, expected_remaining_start) + remaining_seq);
-          }
-        }
-
-        pos = modString.size(); // Set position to the end of the string
-      }
     }
 
     // UPDATED FUNCTION TO HANDLE RANGES
-    AASequence ProForma::fromProFormaString(const std::string& proforma_str)
+    void ProForma::fromProFormaString(const String& proforma_str)
     {
-      AASequence seq;
+      //AASequence seq;
       size_t pos = 0;
       size_t residue_pos = 0;
+      modifications_.clear(); // Clear previous modifications
+      sequence_ = AASequence(); // Clear previous sequence
 
       while (pos < proforma_str.size())
       {
-        try
+        // Handle amino acid residues
+        if (std::isalpha(proforma_str[pos]))
         {
-          // Handle amino acid residues
-          if (std::isalpha(proforma_str[pos]))
+          sequence_ += ResidueDB::getInstance()->getResidue(proforma_str.substr(pos, 1));
+          residue_pos = sequence_.size();
+          pos++;
+        }
+        // Handle modifications (PSI-MOD, UNIMOD, RESID, etc.)
+        else if (proforma_str[pos] == '[')
+        {
+          if (proforma_str.find(':', pos) != String::npos)
           {
-            seq = seq + ResidueDB::getInstance()->getResidue(proforma_str.substr(pos, 1));
-            residue_pos = seq.size();
-            pos++;
+            parseCVModificationNames(proforma_str, pos, residue_pos);
           }
-          // Handle modifications (PSI-MOD, UNIMOD, RESID, etc.)
-          else if (proforma_str[pos] == '[')
+          else if (proforma_str[pos + 1] == '+' || proforma_str[pos + 1] == '-')
           {
-            if (proforma_str.find(':', pos) != std::string::npos)
-            {
-              parseCVModificationNames(proforma_str, pos, residue_pos);
-            }
-            else if (proforma_str[pos + 1] == '+' || proforma_str[pos + 1] == '-')
-            {
-              parseDeltaMassNotation(proforma_str, pos, residue_pos);
-            }
-            else
-            {
-              parseStandardModification(proforma_str, pos, residue_pos);
-            }
-          }
-          // Handle N-terminal and C-terminal modifications
-          else if (proforma_str[pos] == '-' && proforma_str[pos + 1] == '[')
-          {
-            parseCTerminalModification(proforma_str, pos);
-          }
-          else if (proforma_str[pos] == '[' && proforma_str.find("]-") != std::string::npos)
-          {
-            parseNTerminalModification(proforma_str, pos);
-          }
-          // Handle range modifications
-          else if (proforma_str[pos] == '(')
-          {
-            parseRangeModification(proforma_str, pos);  // Range modification handling
+            parseDeltaMassNotation(proforma_str, pos, residue_pos);
           }
           else
           {
-            pos++;
+            parseStandardModification(proforma_str, pos, residue_pos);
           }
         }
-        catch (const std::runtime_error& e)
+        // Handle N-terminal and C-terminal modifications
+        else if (proforma_str[pos] == '-' && proforma_str[pos + 1] == '[')
         {
-          throw std::runtime_error("Error parsing ProForma string: " + std::string(e.what()));
+          parseCTerminalModification(proforma_str, pos);
+        }
+        else if (proforma_str[pos] == '[' && proforma_str.find("]-") != String::npos)
+        {
+          parseNTerminalModification(proforma_str, pos);
+        }
+        // Handle range modifications
+        else if (proforma_str[pos] == '(')
+        {
+          parseRangeModification(proforma_str, pos);  // Range modification handling
+        }
+        else
+        {
+          pos++;
         }
       }
-      return seq;
     }
 
 
-    std::string ProForma::toProFormaString() const
+    String ProForma::toProFormaString() const
     {
       std::stringstream ss;
 
@@ -357,14 +327,15 @@ namespace OpenMS
           {
             ss << "?";
           }
+          mod_name.str("");
+          mod_name.clear();
         }
 
         // Close range if applicable
         if (in_range && i == range_end)
         {
           ss << ")";  // Close range after the last residue in the range
-          String mod_name_str = mod_name.str();
-          mod_name.clear();
+          String mod_name_str = it->second.modification_name;
           if (!mod_name_str.empty())
           {
             ss << "[" << mod_name_str << "]";
@@ -385,30 +356,34 @@ namespace OpenMS
 
 
 /////////////
-    void ProForma::throwParseError(const std::string& message) const
+    void ProForma::throwParseError(const String& message) const
     {
-      throw std::runtime_error("ProForma parsing error: " + message);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error parsing ProForma string: " + message, "Please check the format and ensure all modifications are correctly specified.");
     }
 
 
     void ProForma::removeModification(size_t position)
     {
-      std::cout << "Attempting to remove modification at position: " << position << std::endl;
+      OPENMS_LOG_DEBUG << "Attempting to remove modification at position: " << position << std::endl;
+      if (position > sequence_.size())
+      {
+        throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
 
       auto it = modifications_.find(position);
       if (it != modifications_.end())
       {
-        std::cout << "Removing modification: " << it->second.modification_name << " at position: " << position << std::endl;
+        OPENMS_LOG_DEBUG << "Removing modification: " << it->second.modification_name << " at position: " << position << std::endl;
         modifications_.erase(it);
       }
       else
       {
-        std::cerr << "No modification found at position: " << position << std::endl;
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid position", "No modification found at the specified position: " + std::to_string(position));
       }
     }
 
     // N term mod : start_pos = 0. Modification after the first a.a. : start_pos = 1
-    void ProForma::addModification(size_t start_pos, size_t end_pos, const std::string& mod_id, double mass_shift)
+    void ProForma::addModification(size_t start_pos, size_t end_pos, const String& mod_id, double mass_shift)
     {
       modifications_[start_pos] = {mass_shift, false, false, mod_id, std::pair<size_t, size_t>(start_pos, end_pos)};
     }
