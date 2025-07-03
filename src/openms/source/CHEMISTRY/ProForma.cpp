@@ -12,11 +12,6 @@
 
 namespace OpenMS
 {
-    ProForma::ProForma(const AASequence& seq):
-        ProgressLogger(),
-        sequence_(seq)
-    {}
-
     void ProForma::validateCVModification(const String& modification)
     {
         size_t colon_pos = modification.find(':');

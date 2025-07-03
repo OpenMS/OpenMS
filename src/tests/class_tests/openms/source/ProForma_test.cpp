@@ -20,7 +20,7 @@ START_TEST(ProForma, "$Id$")
 ProForma* ptr = nullptr;
 
 START_SECTION(ProForma(const AASequence& seq))
-  ptr = new ProForma(AASequence::fromString("ACDEFGHIK"));
+  ptr = new ProForma();
   TEST_NOT_EQUAL(ptr, nullptr);
 END_SECTION
 
@@ -31,7 +31,7 @@ END_SECTION
 
 String proforma_str = "ACDEFGHIK";
 AASequence seq = AASequence::fromString(proforma_str);
-ProForma proforma(seq);
+ProForma proforma;
 
 START_SECTION(AASequence FromProFormaString(const string& proforma_str))
   proforma_str = "A[Phospho]CDEFGHIK";

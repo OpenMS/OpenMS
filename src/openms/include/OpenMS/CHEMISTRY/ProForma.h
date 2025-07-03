@@ -33,9 +33,6 @@ namespace OpenMS
         public ProgressLogger
     {
     public:
-        // Constructor
-        explicit ProForma(const AASequence& seq);
-
         // Parse the ProForma string and populate the hash map
         void fromProFormaString(const String& proforma_str);
 
