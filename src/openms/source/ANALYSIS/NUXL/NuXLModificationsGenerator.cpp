@@ -340,7 +340,7 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
       }
       // sort nucleotides so we compare based on nucleotide composition 
       // e.g.: AC-H2O and CA-H2O are considered the same
-      std::sort(nucleotide_style_formula.begin(), nucleotide_style_formula.end());
+      std::stable_sort(nucleotide_style_formula.begin(), nucleotide_style_formula.end());
 
       // restrict mandatory cross-linked nts/sugars (lowercase letters) to one
       // e.g., could be a sugar that MUST be cross-linked
@@ -471,11 +471,11 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
       // sort nucleotides up to beginning of modification (first '+' or '-')
       if (p != String::npos)
       {
-        std::sort(nucleotide_style_formula.begin(), nucleotide_style_formula.begin() + p);
+        std::stable_sort(nucleotide_style_formula.begin(), nucleotide_style_formula.begin() + p);
       }
       else
       {
-        std::sort(nucleotide_style_formula.begin(), nucleotide_style_formula.end());
+        std::stable_sort(nucleotide_style_formula.begin(), nucleotide_style_formula.end());
       }
 
       // only print ambiguous sequences once

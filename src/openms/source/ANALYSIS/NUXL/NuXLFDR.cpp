@@ -224,7 +224,7 @@ namespace OpenMS
 
     // treat disabled filtering as 100% FDR
     std::replace(xl_PSM_qvalue_thresholds.begin(), xl_PSM_qvalue_thresholds.end(), 0.0, 1.0);
-    std::sort(xl_PSM_qvalue_thresholds.begin(), xl_PSM_qvalue_thresholds.end(), greater<double>()); // important: sort by threshold (descending) to generate results by applying increasingly stringent q-value filters
+    std::stable_sort(xl_PSM_qvalue_thresholds.begin(), xl_PSM_qvalue_thresholds.end(), greater<double>()); // important: sort by threshold (descending) to generate results by applying increasingly stringent q-value filters
 
     if (xl_PSM_qvalue_thresholds.size() != xl_peptidelevel_qvalue_thresholds.size())
     {

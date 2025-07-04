@@ -761,7 +761,7 @@ Output format:
 
     // sort report entries (largest number of XL PSM count first) 
     cout << "Sorting entries... " << endl;
-    std::sort(report.begin(), report.end(), 
+    std::stable_sort(report.begin(), report.end(), 
       [](const pair<string, ProteinReport> & a, const pair<string, ProteinReport> & b) -> bool
       { 
          return std::tie(a.second.CSMs_of_unique_peptides, a.second.CSMs_of_shared_peptides, a.first) 
@@ -851,7 +851,7 @@ Output format:
       IDBoostGraph ibg{prot_id, pep_copy, true, false, false}; // only consider top hit
       ibg.calculateAndAnnotateIndistProteins(false); // only indistinguishable protein groups
       ipg = prot_id.getIndistinguishableProteins();
-      std::sort(std::begin(ipg), std::end(ipg));
+      std::stable_sort(std::begin(ipg), std::end(ipg));
     }
 
     // calculate proteins with unique XL peptide
@@ -940,7 +940,7 @@ Output format:
       total_psms += ac.second;
     }
 
-    std::sort(count2adduct.begin(), count2adduct.end(), 
+    std::stable_sort(count2adduct.begin(), count2adduct.end(), 
       [](const pair<size_t, String> & a, const pair<size_t, String> & b) -> bool
       { 
          return std::tie(a.first, a.second) > std::tie(b.first, b.second);

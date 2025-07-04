@@ -161,7 +161,7 @@ NuXLParameterParsing::NucleotideToFragmentAdductMap
 NuXLParameterParsing::getTargetNucleotideToFragmentAdducts(StringList fragment_adducts)
 {
   NucleotideToFragmentAdductMap nucleotide_to_fragment_adducts;
-  std::sort(fragment_adducts.begin(), fragment_adducts.end());
+  std::stable_sort(fragment_adducts.begin(), fragment_adducts.end());
   for (String t : fragment_adducts)
   {
     t.removeWhitespaces();
@@ -429,7 +429,7 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
 
   // Because, e.g., ribose might be a feasible fragment of any nucleotide, we keep only one version
   // Note: sort by formula and (as tie breaker) the name
-  std::sort(ret.marker_ions.begin(), ret.marker_ions.end(),
+  std::stable_sort(ret.marker_ions.begin(), ret.marker_ions.end(),
     [](NuXLFragmentAdductDefinition const & a, NuXLFragmentAdductDefinition const & b)
     {
       const String as = a.formula.toString();
