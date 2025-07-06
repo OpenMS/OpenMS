@@ -492,7 +492,7 @@ protected:
     // ProForma 2.0 extensions
     bool is_ambiguous_;                           ///< Ambiguous modification flag
     double ambiguous_score_;                      ///< Score for ambiguous modifications (0.0-1.0)
-    String ambiguous_label_;                      ///< Label for ambiguous modifications (#label)
+    String ambiguous_label_;                      ///< Label for ambiguous modifications
     std::pair<size_t, size_t> position_range_;   ///< Position range for range modifications
     bool is_range_modification_;                 ///< Flag for range modifications
     

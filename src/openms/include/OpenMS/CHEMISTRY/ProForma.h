@@ -72,7 +72,7 @@ namespace OpenMS
      *   - Occurrence limits for ambiguous modifications
      * - **INFO tags**: `INFO:` metadata annotations
      *
-     * @section examples Usage Examples
+     * @section proforma_usage_examples Usage Examples
      *
      * @code{.cpp}
      * ProForma proforma;
@@ -121,7 +121,7 @@ namespace OpenMS
          * @throws Exception::ParseError If the ProForma string has invalid syntax
          * @throws Exception::IllegalArgument If unsupported CV/ontology is used
          *
-         * @section parsing_examples Parsing Examples
+         * @section proforma_parsing_examples Parsing Examples
          *
          * @code{.cpp}
          * ProForma pf;
@@ -176,7 +176,7 @@ namespace OpenMS
          *
          * @throws Exception::OutOfRange If position is beyond sequence boundaries
          *
-         * @section modification_examples Modification Examples
+         * @section proforma_modification_examples Modification Examples
          *
          * @code{.cpp}
          * ProForma pf;
