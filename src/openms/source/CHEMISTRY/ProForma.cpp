@@ -48,7 +48,7 @@ namespace OpenMS
         size_t modEnd = modString.find(']', modStart);
         if (modStart == String::npos || modEnd == String::npos)
         {
-            throwParseError("Invalid modification format: Missing brackets for CV modification.");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid modification format: Missing brackets for CV modification.", "Missing brackets for CV modification.");
         }
 
         String modification = modString.substr(modStart + 1, modEnd - modStart - 1);
@@ -105,7 +105,7 @@ namespace OpenMS
         }
         else
         {
-            throwParseError("Unsupported CV/ontology in modification: " + modification);
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unsupported CV/ontology in modification: " + modification, "Unsupported CV/ontology in modification.");
         }
         attributes.setName(modification);
 
@@ -125,7 +125,7 @@ namespace OpenMS
         size_t modEnd = modString.find(']', modStart);
         if (modStart == String::npos || modEnd == String::npos)
         {
-            throwParseError("Invalid modification format: Missing brackets for standard modification.");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid modification format: Missing brackets for standard modification.", "Missing brackets for standard modification.");
         }
 
         String modification = modString.substr(modStart + 1, modEnd - modStart - 1);
@@ -144,7 +144,7 @@ namespace OpenMS
       size_t modEnd = modString.find(']', modStart);
       if (modStart == String::npos || modEnd == String::npos)
       {
-        throwParseError("Invalid mass shift notation: Missing brackets.");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid mass shift notation: Missing brackets.", "Missing brackets.");
       }
 
       String modification = modString.substr(modStart + 1, modEnd - modStart - 1);
@@ -152,7 +152,7 @@ namespace OpenMS
 
       if (modification[0] != '+' && modification[0] != '-')
       {
-        throwParseError("Invalid mass shift format: Missing +/- sign.");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid mass shift format: Missing +/- sign.", "Invalid mass shift format.");
       }
 
       try
@@ -172,7 +172,7 @@ namespace OpenMS
       }
       catch (const std::invalid_argument&)
       {
-        throwParseError("Invalid mass shift format: Could not convert to double.");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid mass shift format: Could not convert to double.", "Invalid mass shift format.");
       }
 
       pos = modEnd + 1;
@@ -184,7 +184,7 @@ namespace OpenMS
         size_t modEnd = modString.find("]-", pos);
         if (modEnd == String::npos)
         {
-            throwParseError("Invalid N-terminal modification format: Missing brackets and '-' indicator.");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid N-terminal modification format:  " + modString, "Missing brackets and '-' indicator.");
         }
 
         String modification = modString.substr(1, modEnd - 1);
@@ -203,7 +203,7 @@ namespace OpenMS
         size_t modEnd = modString.find(']', modStart);
         if (modStart == String::npos || modEnd == String::npos)
         {
-            throwParseError("Invalid C-terminal modification format: Missing brackets and '-' indicator.");
+           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid C-terminal modification format:  " + modString, "Missing brackets and '-' indicator.");
         }
 
         String modification = modString.substr(modStart + 2, modEnd - modStart - 2);
@@ -222,7 +222,7 @@ namespace OpenMS
       size_t rangeEnd = modString.find(')', rangeStart);
       if (rangeStart == String::npos || rangeEnd == String::npos)
       {
-        throwParseError("Invalid range format: Missing parentheses.");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid range format:  " + modString, "Missing parentheses.");
       }
 
       // Extract the range of residues (e.g., "ESFRMS" in "PRT(ESFRMS)[+19.0523]ISK")
@@ -233,7 +233,7 @@ namespace OpenMS
       size_t modEnd = modString.find(']', modStart);
       if (modStart == String::npos || modEnd == String::npos)
       {
-        throwParseError("Invalid modification format: Missing brackets after range.");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid modification format:  " + modString, "Missing brackets after range.");
       }
 
       String modification = modString.substr(modStart + 1, modEnd - modStart - 1);
@@ -407,15 +407,6 @@ namespace OpenMS
 
       return ss.str();
     }
-
-
-
-/////////////
-    void ProForma::throwParseError(const String& message) const
-    {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error parsing ProForma string: " + message, "Please check the format and ensure all modifications are correctly specified.");
-    }
-
 
     void ProForma::removeModification(size_t position)
     {
