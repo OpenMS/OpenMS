@@ -646,7 +646,6 @@ namespace OpenMS
         {
           mod.setName(name);
           mod.setId(name);
-          mod.setFullName(name);
         }
       }
       else if (line_wo_spaces.hasPrefix("is_a:"))
