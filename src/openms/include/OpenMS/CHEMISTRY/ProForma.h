@@ -239,7 +239,7 @@ namespace OpenMS
          * @param pos Current parsing position (updated after parsing)
          * @param residue_pos Position in sequence where modification applies
          */
-        void parseCVModificationNames(const String& modString, size_t& pos, size_t residue_pos);
+        void parseCVModificationNames_(const String& modString, size_t& pos, size_t residue_pos);
         
         /**
          * @brief Parse named modifications
@@ -250,8 +250,8 @@ namespace OpenMS
          * @param pos Current parsing position (updated after parsing)
          * @param residue_pos Position in sequence where modification applies
          */
-        void parseStandardModification(const String& modString, size_t& pos, size_t residue_pos);
-        
+        void parseStandardModification_(const String& modString, size_t& pos, size_t residue_pos);
+
         /**
          * @brief Parse delta mass notation
          *
@@ -262,7 +262,7 @@ namespace OpenMS
          * @param pos Current parsing position (updated after parsing)
          * @param residue_pos Position in sequence where modification applies
          */
-        void parseDeltaMassNotation(const String& modString, size_t& pos, size_t residue_pos);
+        void parseDeltaMassNotation_(const String& modString, size_t& pos, size_t residue_pos);
         
         /**
          * @brief Parse N-terminal modifications
@@ -272,7 +272,7 @@ namespace OpenMS
          * @param modString The complete ProForma string being parsed
          * @param pos Current parsing position (updated after parsing)
          */
-        void parseNTerminalModification(const String& modString, size_t& pos);
+        void parseNTerminalModification_(const String& modString, size_t& pos);
         
         /**
          * @brief Parse C-terminal modifications
@@ -282,7 +282,7 @@ namespace OpenMS
          * @param modString The complete ProForma string being parsed
          * @param pos Current parsing position (updated after parsing)
          */
-        void parseCTerminalModification(const String& modString, size_t& pos);
+        void parseCTerminalModification_(const String& modString, size_t& pos);
         
         /**
          * @brief Parse range modifications
@@ -292,7 +292,7 @@ namespace OpenMS
          * @param modString The complete ProForma string being parsed
          * @param pos Current parsing position (updated after parsing)
          */
-        void parseRangeModification(const String& modString, size_t& pos);
+        void parseRangeModification_(const String& modString, size_t& pos);
         
         /**
          * @brief Validate controlled vocabulary modification format
@@ -303,6 +303,6 @@ namespace OpenMS
          * @param modification The modification string to validate (without brackets)
          * @throws Exception::IllegalArgument If CV is unsupported or format is invalid
          */
-        void validateCVModification(const String& modification);
+        void validateCVModification_(const String& modification);
     };
 }

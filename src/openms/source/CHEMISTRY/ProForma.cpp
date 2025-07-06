@@ -42,7 +42,7 @@ namespace OpenMS
      * @note This validation ensures compliance with ProForma 2.0 specification
      *       which requires explicit CV prefixes for ontology-based modifications.
      */
-    void ProForma::validateCVModification(const String& modification)
+    void ProForma::validateCVModification_(const String& modification)
     {
         size_t colon_pos = modification.find(':');
         if (colon_pos == String::npos)
@@ -96,7 +96,7 @@ namespace OpenMS
      *
      * @note Also handles ambiguous modification markers (?) following the closing bracket
      */
-    void ProForma::parseCVModificationNames(const String& modString, size_t& pos, size_t residue_pos)
+    void ProForma::parseCVModificationNames_(const String& modString, size_t& pos, size_t residue_pos)
     {
         size_t modStart = modString.find('[', pos);
         size_t modEnd = modString.find(']', modStart);
@@ -108,7 +108,7 @@ namespace OpenMS
         String modification = modString.substr(modStart + 1, modEnd - modStart - 1);
         OPENMS_LOG_DEBUG << "Parsing CV modification: " << modification << " at position " << residue_pos << std::endl;
 
-        validateCVModification(modification);
+        validateCVModification_(modification);
 
         ResidueModification attributes;
 
@@ -163,7 +163,7 @@ namespace OpenMS
         }
         attributes.setName(modification);
 
-        if (modString.size() > modEnd + 1 && modString[modEnd + 1] == '?')
+        if (modString[modEnd + 1] == '?')
         {
             attributes.setAmbiguous(true);
             modEnd++;
@@ -194,7 +194,7 @@ namespace OpenMS
      * @note This method handles the most basic form of ProForma modification notation
      *       and is commonly used for well-known modifications with standard names.
      */
-    void ProForma::parseStandardModification(const String& modString, size_t& pos, size_t residue_pos)
+    void ProForma::parseStandardModification_(const String& modString, size_t& pos, size_t residue_pos)
     {
         size_t modStart = modString.find('[', pos);
         size_t modEnd = modString.find(']', modStart);
@@ -241,7 +241,7 @@ namespace OpenMS
      * @note This parser enforces ProForma 2.0 requirement for explicit +/- signs
      *       to distinguish mass shifts from other modification types.
      */
-    void ProForma::parseDeltaMassNotation(const String& modString, size_t& pos, size_t residue_pos)
+    void ProForma::parseDeltaMassNotation_(const String& modString, size_t& pos, size_t residue_pos)
     {
       size_t modStart = modString.find('[', pos);
       size_t modEnd = modString.find(']', modStart);
@@ -260,12 +260,12 @@ namespace OpenMS
 
       try
       {
-        double mass_shift = std::stod(modification);  // Convert to double
+        double mass_shift = modification.toDouble();  // Convert to double
         ResidueModification attributes;
         attributes.setDiffMonoMass(mass_shift);  // Store the mass shift in attributes
 
         // Check if the modification is ambiguous
-        if (modString.size() > modEnd + 1 && modString[modEnd + 1] == '?')
+        if (modString[modEnd + 1] == '?')
         {
           attributes.setAmbiguous(true);
           modEnd++;
@@ -273,7 +273,7 @@ namespace OpenMS
 
         modifications_[residue_pos] = attributes;  // Add to modifications map
       }
-      catch (const std::invalid_argument&)
+      catch (const Exception::ConversionError&)
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid mass shift format: Could not convert to double.", "Invalid mass shift format.");
       }
@@ -307,7 +307,7 @@ namespace OpenMS
      * @note N-terminal modifications are stored at position 0 in the modifications map
      *       to distinguish them from modifications on the first amino acid (position 1).
      */
-    void ProForma::parseNTerminalModification(const String& modString, size_t& pos)
+    void ProForma::parseNTerminalModification_(const String& modString, size_t& pos)
     {
         size_t modEnd = modString.find("]-", pos);
         if (modEnd == String::npos)
@@ -351,7 +351,7 @@ namespace OpenMS
      *       in the modifications map to distinguish them from modifications on
      *       the last amino acid.
      */
-    void ProForma::parseCTerminalModification(const String& modString, size_t& pos)
+    void ProForma::parseCTerminalModification_(const String& modString, size_t& pos)
     {
         size_t modStart = modString.find("-[", pos);
         size_t modEnd = modString.find(']', modStart);
@@ -395,7 +395,7 @@ namespace OpenMS
      *       The range sequence is appended to the main sequence during parsing.
      *       Each position in the range gets the same modification attributes.
      */
-    void ProForma::parseRangeModification(const String& modString, size_t& pos)
+    void ProForma::parseRangeModification_(const String& modString, size_t& pos)
     {
       size_t rangeStart = modString.find('(', pos);
       size_t rangeEnd = modString.find(')', rangeStart);
@@ -499,30 +499,30 @@ namespace OpenMS
         {
           if (proforma_str.find(':', pos) != String::npos)
           {
-            parseCVModificationNames(proforma_str, pos, residue_pos);
+            parseCVModificationNames_(proforma_str, pos, residue_pos);
           }
           else if (proforma_str[pos + 1] == '+' || proforma_str[pos + 1] == '-')
           {
-            parseDeltaMassNotation(proforma_str, pos, residue_pos);
+            parseDeltaMassNotation_(proforma_str, pos, residue_pos);
           }
           else
           {
-            parseStandardModification(proforma_str, pos, residue_pos);
+            parseStandardModification_(proforma_str, pos, residue_pos);
           }
         }
         // Handle N-terminal and C-terminal modifications
         else if (proforma_str[pos] == '-' && proforma_str[pos + 1] == '[')
         {
-          parseCTerminalModification(proforma_str, pos);
+          parseCTerminalModification_(proforma_str, pos);
         }
         else if (proforma_str[pos] == '[' && proforma_str.find("]-") != String::npos)
         {
-          parseNTerminalModification(proforma_str, pos);
+          parseNTerminalModification_(proforma_str, pos);
         }
         // Handle range modifications
         else if (proforma_str[pos] == '(')
         {
-          parseRangeModification(proforma_str, pos);  // Range modification handling
+          parseRangeModification_(proforma_str, pos);  // Range modification handling
         }
         else
         {
