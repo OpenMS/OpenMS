@@ -13,6 +13,7 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CHEMISTRY/ProForma.h>
 
 #include <cmath>
 #include <iostream>
@@ -33,7 +34,18 @@ namespace OpenMS
     diff_average_mass_(0.0),
     diff_mono_mass_(0.0),
     neutral_loss_mono_masses_(0),
-    neutral_loss_average_masses_(0)
+    neutral_loss_average_masses_(0),
+    is_ambiguous_(false),
+    ambiguous_score_(0.0),
+    ambiguous_label_(""),
+    position_range_(0, 0),
+    is_range_modification_(false),
+    resid_accession_(""),
+    gnome_accession_(""),
+    xlmod_accession_(""),
+    is_glycan_modification_(false),
+    charge_state_(0),
+    has_charge_(false)
   {
   }
 
@@ -799,5 +811,107 @@ namespace OpenMS
     ret += ']';
     return ret;
   }
-  
+
+  // ProForma 2.0 extensions implementation
+
+  void ResidueModification::setAmbiguous(bool ambiguous, double score, const String& label)
+  {
+    is_ambiguous_ = ambiguous;
+    ambiguous_score_ = score;
+    ambiguous_label_ = label;
+  }
+
+  bool ResidueModification::isAmbiguous() const
+  {
+    return is_ambiguous_;
+  }
+
+  double ResidueModification::getAmbiguousScore() const
+  {
+    return ambiguous_score_;
+  }
+
+  const String& ResidueModification::getAmbiguousLabel() const
+  {
+    return ambiguous_label_;
+  }
+
+  void ResidueModification::setPositionRange(size_t start, size_t end)
+  {
+    position_range_ = std::make_pair(start, end);
+    is_range_modification_ = (start != end);
+  }
+
+  std::pair<size_t, size_t> ResidueModification::getPositionRange() const
+  {
+    return position_range_;
+  }
+
+  bool ResidueModification::isRangeModification() const
+  {
+    return is_range_modification_;
+  }
+
+  void ResidueModification::setRESIDAccession(const String& accession)
+  {
+    resid_accession_ = accession;
+  }
+
+  const String& ResidueModification::getRESIDAccession() const
+  {
+    return resid_accession_;
+  }
+
+  void ResidueModification::setGNOmeAccession(const String& accession)
+  {
+    gnome_accession_ = accession;
+  }
+
+  const String& ResidueModification::getGNOmeAccession() const
+  {
+    return gnome_accession_;
+  }
+
+  void ResidueModification::setXLMODAccession(const String& accession)
+  {
+    xlmod_accession_ = accession;
+  }
+
+  const String& ResidueModification::getXLMODAccession() const
+  {
+    return xlmod_accession_;
+  }
+
+  void ResidueModification::setGlycanComposition(const std::map<String, int>& composition)
+  {
+    glycan_composition_ = composition;
+    is_glycan_modification_ = !composition.empty();
+  }
+
+  const std::map<String, int>& ResidueModification::getGlycanComposition() const
+  {
+    return glycan_composition_;
+  }
+
+  bool ResidueModification::isGlycanModification() const
+  {
+    return is_glycan_modification_;
+  }
+
+  void ResidueModification::setChargedFormula(const EmpiricalFormula& formula, int charge)
+  {
+    diff_formula_ = formula;
+    charge_state_ = charge;
+    has_charge_ = true;
+  }
+
+  int ResidueModification::getChargeState() const
+  {
+    return charge_state_;
+  }
+
+  bool ResidueModification::hasCharge() const
+  {
+    return has_charge_;
+  }
 }

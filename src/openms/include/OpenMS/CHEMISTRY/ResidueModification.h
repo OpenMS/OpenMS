@@ -13,11 +13,15 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 #include <set>
+#include <map>
 
 namespace OpenMS
 {
   // forward declaration
   class Residue;
+  
+  // Forward declaration for compatibility
+  struct ModificationAttributes;
 
   /** @brief Representation of a modification on an amino acid residue
 
@@ -301,10 +305,77 @@ public:
 
     /// returns the neutral loss average weight
     std::vector<double> getNeutralLossAverageMasses() const;
+
+    // ProForma 2.0 extensions
+
+    /// sets ambiguous modification properties
+    void setAmbiguous(bool ambiguous, double score = 0.0, const String& label = "");
+
+    /// returns true if this is an ambiguous modification
+    bool isAmbiguous() const;
+
+    /// returns the ambiguous score (0.0-1.0)
+    double getAmbiguousScore() const;
+
+    /// returns the ambiguous label
+    const String& getAmbiguousLabel() const;
+
+    /// sets the position range for range modifications
+    void setPositionRange(size_t start, size_t end);
+
+    /// returns the position range
+    std::pair<size_t, size_t> getPositionRange() const;
+
+    /// returns true if this is a range modification
+    bool isRangeModification() const;
+
+    /// sets the RESID accession
+    void setRESIDAccession(const String& accession);
+
+    /// returns the RESID accession
+    const String& getRESIDAccession() const;
+
+    /// sets the GNOme accession
+    void setGNOmeAccession(const String& accession);
+
+    /// returns the GNOme accession
+    const String& getGNOmeAccession() const;
+
+    /// sets the XL-MOD accession
+    void setXLMODAccession(const String& accession);
+
+    /// returns the XL-MOD accession
+    const String& getXLMODAccession() const;
+
+    /// sets the glycan composition
+    void setGlycanComposition(const std::map<String, int>& composition);
+
+    /// returns the glycan composition
+    const std::map<String, int>& getGlycanComposition() const;
+
+    /// returns true if this is a glycan modification
+    bool isGlycanModification() const;
+
+    /// sets a charged formula with charge state
+    void setChargedFormula(const EmpiricalFormula& formula, int charge);
+
+    /// returns the charge state
+    int getChargeState() const;
+
+    /// returns true if this modification has a charge state
+    bool hasCharge() const;
+
+    // Compatibility methods for ModificationAttributes migration
+    
+    /// creates a ResidueModification from a ModificationAttributes struct
+    static ResidueModification fromModificationAttributes(const ModificationAttributes& attrs);
+    
+    /// converts this ResidueModification to a ModificationAttributes struct
+    ModificationAttributes toModificationAttributes() const;
     //@}
 
     /** @name Predicates
-    */
+     */
     //@{
     /// returns true if a neutral loss formula is set
     bool hasNeutralLoss() const;
@@ -417,5 +488,25 @@ protected:
     std::vector<double> neutral_loss_mono_masses_;
 
     std::vector<double> neutral_loss_average_masses_;
+
+    // ProForma 2.0 extensions
+    bool is_ambiguous_;                           ///< Ambiguous modification flag
+    double ambiguous_score_;                      ///< Score for ambiguous modifications (0.0-1.0)
+    String ambiguous_label_;                      ///< Label for ambiguous modifications (#label)
+    std::pair<size_t, size_t> position_range_;   ///< Position range for range modifications
+    bool is_range_modification_;                 ///< Flag for range modifications
+    
+    // Extended CV support
+    String resid_accession_;                     ///< RESID accession
+    String gnome_accession_;                     ///< GNOme accession
+    String xlmod_accession_;                     ///< XL-MOD accession
+    
+    // Basic glycan support
+    std::map<String, int> glycan_composition_;   ///< Monosaccharide -> count
+    bool is_glycan_modification_;                ///< Flag for glycan modifications
+    
+    // Enhanced formula support
+    int charge_state_;                           ///< Charge state for charged formulas
+    bool has_charge_;                           ///< Flag for charged formulas
   };
 }

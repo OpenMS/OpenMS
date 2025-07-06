@@ -99,7 +99,24 @@ START_SECTION(AASequence FromProFormaString(const string& proforma_str))
 
 END_SECTION
 
-//removeModification
+START_SECTION(void addModification(size_t start_pos, size_t end_pos, const String& mod_id, double mass_shift))
+  proforma_str = "ACDEFGHIK";
+  proforma.fromProFormaString(proforma_str);
+  proforma.addModification(1, 1, "Phospho", 79.966331);
+  TEST_EQUAL(proforma.toProFormaString(), "A[Phospho]CDEFGHIK");
+  
+  // Test adding a modification at the N-terminus
+  proforma.addModification(0, 0, "Acetyl", 42.010565);
+  TEST_EQUAL(proforma.toProFormaString(), "[Acetyl]-A[Phospho]CDEFGHIK");
+
+  // Test adding a modification at the C-terminus
+  proforma.addModification(10, 10, "Amidation", -0.984016);
+  TEST_EQUAL(proforma.toProFormaString(), "[Acetyl]-A[Phospho]CDEFGHIK-[Amidation]");
+  
+  // Test adding a modification with mass shift
+  proforma.addModification(1, 1, "DeltaMass", 15.99);
+END_SECTION
+
 START_SECTION(void removeModification(size_t position))  
   proforma_str = "A[Phospho]CDEFGHIK";
   proforma.fromProFormaString(proforma_str);

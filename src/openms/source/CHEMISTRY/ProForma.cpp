@@ -56,12 +56,62 @@ namespace OpenMS
 
         validateCVModification(modification);
 
-        ModificationAttributes attributes;
-        attributes.modification_name = modification;
+        ResidueModification attributes;
+
+        if (modification.hasPrefix("UNIMOD:"))
+        {
+            // Handle UNIMOD modifications
+            size_t colon_pos = modification.find(':');
+            String unimod_id = modification.substr(colon_pos + 1);
+            OPENMS_LOG_DEBUG << "UNIMOD ID: " << unimod_id << std::endl;
+            attributes.setId(unimod_id);
+            modifications_[residue_pos] = attributes;
+        }
+        else if (modification.hasPrefix("MOD:"))
+        {
+            // Handle MOD modifications
+            size_t colon_pos = modification.find(':');
+            String mod_id = modification.substr(colon_pos + 1);
+            OPENMS_LOG_DEBUG << "MOD ID: " << mod_id << std::endl;
+            attributes.setId(mod_id);
+            modifications_[residue_pos] = attributes;
+        }
+        else if (modification.hasPrefix("RESID:"))
+        {
+            // Handle RESID modifications
+            size_t colon_pos = modification.find(':');
+            String resid_id = modification.substr(colon_pos + 1);
+            OPENMS_LOG_DEBUG << "RESID ID: " << resid_id << std::endl;
+            attributes.setRESIDAccession(resid_id);
+            modifications_[residue_pos] = attributes;
+        }
+        else if (modification.hasPrefix("XLMOD:"))
+        {
+            // Handle XLMOD modifications
+            size_t colon_pos = modification.find(':');
+            String xlm_id = modification.substr(colon_pos + 1);
+            OPENMS_LOG_DEBUG << "XLMOD ID: " << xlm_id << std::endl;
+            attributes.setXLMODAccession(xlm_id);
+            modifications_[residue_pos] = attributes;
+        }
+        else if (modification.hasPrefix("GNO:"))
+        {
+            // Handle GNO modifications
+            size_t colon_pos = modification.find(':');
+            String gno_id = modification.substr(colon_pos + 1);
+            OPENMS_LOG_DEBUG << "GNO ID: " << gno_id << std::endl;
+            attributes.setId(gno_id);
+            modifications_[residue_pos] = attributes;
+        }
+        else
+        {
+            throwParseError("Unsupported CV/ontology in modification: " + modification);
+        }
+        attributes.setName(modification);
 
         if (modString.size() > modEnd + 1 && modString[modEnd + 1] == '?')
         {
-            attributes.ambiguous_start = true;
+            attributes.setAmbiguous(true);
             modEnd++;
         }
 
@@ -81,8 +131,8 @@ namespace OpenMS
         String modification = modString.substr(modStart + 1, modEnd - modStart - 1);
         OPENMS_LOG_DEBUG << "Parsing standard modification: " << modification << " at position " << residue_pos << std::endl;
 
-        ModificationAttributes attributes;
-        attributes.modification_name = modification;
+        ResidueModification attributes;
+        attributes.setName(modification);
 
         modifications_[residue_pos] = attributes;
         pos = modEnd + 1;
@@ -108,13 +158,13 @@ namespace OpenMS
       try
       {
         double mass_shift = std::stod(modification);  // Convert to double
-        ModificationAttributes attributes;
-        attributes.mass_shift = mass_shift;  // Store the mass shift in attributes
+        ResidueModification attributes;
+        attributes.setDiffMonoMass(mass_shift);  // Store the mass shift in attributes
 
         // Check if the modification is ambiguous
         if (modString.size() > modEnd + 1 && modString[modEnd + 1] == '?')
         {
-          attributes.ambiguous_start = true;
+          attributes.setAmbiguous(true);
           modEnd++;
         }
 
@@ -140,8 +190,8 @@ namespace OpenMS
         String modification = modString.substr(1, modEnd - 1);
         OPENMS_LOG_DEBUG << "Parsing N-terminal modification: " << modification << std::endl;
 
-        ModificationAttributes attributes;
-        attributes.modification_name = modification;
+        ResidueModification attributes;
+        attributes.setName(modification);
         modifications_[0] = attributes;
 
         pos = modEnd + 2;
@@ -159,8 +209,8 @@ namespace OpenMS
         String modification = modString.substr(modStart + 2, modEnd - modStart - 2);
         OPENMS_LOG_DEBUG << "Parsing C-terminal modification: " << modification << std::endl;
 
-        ModificationAttributes attributes;
-        attributes.modification_name = modification;
+        ResidueModification attributes;
+        attributes.setName(modification);
         modifications_[sequence_.size() + 1] = attributes;
 
         pos = modEnd + 1;
@@ -197,10 +247,10 @@ namespace OpenMS
       sequence_ += AASequence::fromString(range); // Append the range to the sequence
 
       // Apply the modification to the entire range
-      ModificationAttributes attributes;
-      attributes.modification_name = modification;
-      attributes.range = {range_seq_start, range_seq_start + range.size() - 1};  // Store the range as a pair (start, end)
-      OPENMS_LOG_DEBUG << "Range of modification: " << attributes.range.first << " - " << attributes.range.second << std::endl;
+      ResidueModification attributes;
+      attributes.setName(modification);
+      attributes.setPositionRange(range_seq_start, range_seq_start + range.size() - 1);  // Store the range as a pair (start, end)
+      OPENMS_LOG_DEBUG << "Range of modification: " << attributes.getPositionRange().first << " - " << attributes.getPositionRange().second << std::endl;
       // Apply the modification from range start to range end
       for (size_t i = range_seq_start; i <= range_seq_start + range.size() - 1; ++i)
       {
@@ -278,7 +328,7 @@ namespace OpenMS
       // Handle N-terminal modification
       if (modifications_.find(0) != modifications_.end())
       {
-        ss << "[" << modifications_.at(0).modification_name << "]-";
+        ss << "[" << modifications_.at(0).getName() << "]-";
       }
 
       bool in_range = false;
@@ -291,10 +341,10 @@ namespace OpenMS
         auto it = modifications_.find(i);
 
         // Open range if applicable
-        if (it != modifications_.end() && it->second.range.first == i && it->second.range.second != i && !in_range)
+        if (it != modifications_.end() && it->second.getPositionRange().first == i && it->second.getPositionRange().second != i && !in_range)
         {
           //range_start = it->second.range.first;
-          range_end = it->second.range.second;
+          range_end = it->second.getPositionRange().second;
           ss << "(";  // Open range
           in_range = true;
         }
@@ -303,22 +353,22 @@ namespace OpenMS
 
         if (it != modifications_.end())
         {
-          if (!it->second.modification_name.empty())
+          if (!it->second.getName().empty())
           {
-            mod_name << "[" << it->second.modification_name << "]";
+            mod_name << "[" << it->second.getName() << "]";
           }
-          else if (it->second.mass_shift != 0.0)
+          else if (it->second.getDiffMonoMass() != 0.0)
           {
-            mod_name << "[" << (it->second.mass_shift > 0 ? "+" : "") << it->second.mass_shift << "]";
+            mod_name << "[" << (it->second.getDiffMonoMass() > 0 ? "+" : "") << it->second.getDiffMonoMass() << "]";
           }
 
-          if (it->second.range.first == it->second.range.second)
+          if (it->second.getPositionRange().first == it->second.getPositionRange().second)
           {
             ss << mod_name.str();
             mod_name.clear();
           }
 
-          if (it->second.ambiguous_start)
+          if (it->second.isAmbiguous())
           {
             ss << "?";
           }
@@ -330,7 +380,7 @@ namespace OpenMS
         if (in_range && i == range_end)
         {
           ss << ")";  // Close range after the last residue in the range
-          String mod_name_str = it->second.modification_name;
+          String mod_name_str = it->second.getName();
           if (!mod_name_str.empty())
           {
             ss << "[" << mod_name_str << "]";
@@ -342,7 +392,17 @@ namespace OpenMS
       // Handle C-terminal modification
       if (modifications_.find(sequence_.size() + 1) != modifications_.end())
       {
-        ss << "-[" << modifications_.at(sequence_.size() + 1).modification_name << "]";
+        ss << "-[" << modifications_.at(sequence_.size() + 1).getName() << "]";
+        OPENMS_LOG_DEBUG << "Found C-terminal modification at position " << (sequence_.size() + 1) << ": " << modifications_.at(sequence_.size() + 1).getName() << std::endl;
+      }
+      else
+      {
+        OPENMS_LOG_DEBUG << "No C-terminal modification found at position " << (sequence_.size() + 1) << std::endl;
+        // Check if there's a modification at the last amino acid position that should be treated as C-terminal
+        if (modifications_.find(sequence_.size()) != modifications_.end())
+        {
+          OPENMS_LOG_DEBUG << "Found modification at last amino acid position " << sequence_.size() << ": " << modifications_.at(sequence_.size()).getName() << std::endl;
+        }
       }
 
       return ss.str();
@@ -368,7 +428,7 @@ namespace OpenMS
       auto it = modifications_.find(position);
       if (it != modifications_.end())
       {
-        OPENMS_LOG_DEBUG << "Removing modification: " << it->second.modification_name << " at position: " << position << std::endl;
+        OPENMS_LOG_DEBUG << "Removing modification: " << it->second.getName() << " at position: " << position << std::endl;
         modifications_.erase(it);
       }
       else
@@ -380,6 +440,46 @@ namespace OpenMS
     // N term mod : start_pos = 0. Modification after the first a.a. : start_pos = 1
     void ProForma::addModification(size_t start_pos, size_t end_pos, const String& mod_id, double mass_shift)
     {
-      modifications_[start_pos] = {mass_shift, false, false, mod_id, std::pair<size_t, size_t>(start_pos, end_pos)};
+      OPENMS_LOG_DEBUG << "addModification called: mod_id=" << mod_id << ", start_pos=" << start_pos
+                       << ", end_pos=" << end_pos << ", sequence_size=" << sequence_.size() << std::endl;
+      
+      if (start_pos > sequence_.size() + 1)
+      {
+        throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
+
+      ResidueModification mod;
+      
+      // Set modification properties
+      if (!mod_id.empty())
+      {
+        mod.setName(mod_id);
+      }
+      
+      if (mass_shift != 0.0)
+      {
+        mod.setDiffMonoMass(mass_shift);
+      }
+      
+      // Set position range
+      if (start_pos != end_pos)
+      {
+        // Range modification
+        mod.setPositionRange(start_pos, end_pos);
+        // Apply the modification to all positions in the range
+        for (size_t i = start_pos; i <= end_pos; ++i)
+        {
+          modifications_[i] = mod;
+        }
+      }
+      else
+      {
+        // Single position modification
+        mod.setPositionRange(start_pos, start_pos);
+        modifications_[start_pos] = mod;
+      }
+      
+      OPENMS_LOG_DEBUG << "Added modification: " << mod_id << " with mass shift: " << mass_shift
+                       << " at position(s): " << start_pos << " to " << end_pos << " (sequence size: " << sequence_.size() << ")" << std::endl;
     }
     }

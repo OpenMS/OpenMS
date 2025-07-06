@@ -10,8 +10,8 @@
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <vector>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -20,17 +20,10 @@
 
 namespace OpenMS
 {
-    struct ModificationAttributes
-    {
-        double mass_shift = 0.0;
-        bool ambiguous_start = false;
-        bool stop_position = false;
-        std::string modification_name;
-        std::pair<size_t, size_t> range = {0, 0};
-    };
+    // Forward declarations
+    class ResidueModification;
 
-    class OPENMS_DLLAPI ProForma:
-        public ProgressLogger
+    class OPENMS_DLLAPI ProForma
     {
     public:
         // Parse the ProForma string and populate the hash map
@@ -47,7 +40,7 @@ namespace OpenMS
 
     private:
         AASequence sequence_;
-        std::unordered_map<size_t, ModificationAttributes> modifications_;
+        std::unordered_map<size_t, ResidueModification> modifications_;
         std::unordered_set<String> supported_cvs_{"UNIMOD", "MOD", "RESID", "XLMOD", "GNO"};
 
         // Parsing methods
