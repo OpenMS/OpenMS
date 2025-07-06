@@ -5,6 +5,19 @@
 // $Maintainer: Ayesha Feroz $
 // $Authors: Ayesha Feroz, Tom Müller$
 // --------------------------------------------------------------------------
+
+/**
+ * @file ProForma.cpp
+ * @brief Implementation of ProForma peptidoform notation parser
+ *
+ * This file implements the ProForma class for parsing and generating
+ * ProForma notation strings according to the HUPO-PSI ProForma 2.0 specification.
+ *
+ * The implementation provides a state-machine based parser that processes
+ * ProForma strings character by character, handling different syntax elements
+ * including amino acids, modifications, and special notations.
+ */
+
 #include <OpenMS/CHEMISTRY/ProForma.h>
 #include <sstream>
 #include <stdexcept>
@@ -12,6 +25,23 @@
 
 namespace OpenMS
 {
+    /**
+     * @brief Validates controlled vocabulary modification syntax and support
+     *
+     * This method implements ProForma 2.0 section on "Controlled vocabularies"
+     * by validating that:
+     * 1. The modification follows CV:accession format
+     * 2. The CV is among the supported vocabularies (UNIMOD, MOD, RESID, XLMOD, GNO)
+     * 3. The accession is not empty
+     *
+     * @param modification The modification string without square brackets (e.g., "UNIMOD:35")
+     *
+     * @throws Exception::IllegalArgument If CV format is invalid, CV is unsupported,
+     *                                    or accession is empty
+     *
+     * @note This validation ensures compliance with ProForma 2.0 specification
+     *       which requires explicit CV prefixes for ontology-based modifications.
+     */
     void ProForma::validateCVModification(const String& modification)
     {
         size_t colon_pos = modification.find(':');
@@ -26,6 +56,7 @@ namespace OpenMS
 
         OPENMS_LOG_DEBUG << "Validating CV: " << cv << " with accession: " << accession << std::endl;
 
+        // Check against supported controlled vocabularies as defined in ProForma 2.0
         if (supported_cvs_.find(cv) == supported_cvs_.end())
         {
             OPENMS_LOG_ERROR << "Unsupported CV detected: " << cv << std::endl;
@@ -42,6 +73,29 @@ namespace OpenMS
         }
     }
 
+    /**
+     * @brief Parse controlled vocabulary (CV) based modifications
+     *
+     * Implements parsing for ProForma 2.0 "Controlled vocabularies" section.
+     * Handles modifications specified using ontology accessions from supported
+     * controlled vocabularies.
+     *
+     * Supported formats:
+     * - UNIMOD: [UNIMOD:35] (oxidation)
+     * - PSI-MOD: [MOD:00046] (phosphorylation)
+     * - RESID: [RESID:AA0037] (phosphoserine)
+     * - XLMOD: [XLMOD:02000] (cross-linking modifications)
+     * - GNOme: [GNO:G00001] (glycan modifications)
+     *
+     * @param modString The complete ProForma string being parsed
+     * @param pos Current parsing position, updated to character after modification
+     * @param residue_pos 1-based position in sequence where modification applies
+     *
+     * @throws Exception::ParseError If bracket structure is malformed
+     * @throws Exception::IllegalArgument If CV is unsupported or format invalid
+     *
+     * @note Also handles ambiguous modification markers (?) following the closing bracket
+     */
     void ProForma::parseCVModificationNames(const String& modString, size_t& pos, size_t residue_pos)
     {
         size_t modStart = modString.find('[', pos);
@@ -119,6 +173,27 @@ namespace OpenMS
         pos = modEnd + 1;
     }
 
+    /**
+     * @brief Parse named modifications without controlled vocabulary prefixes
+     *
+     * Handles user-defined modification names that don't use controlled vocabulary
+     * notation. These are free-text modification names enclosed in square brackets.
+     *
+     * Examples:
+     * - [Phospho] - phosphorylation
+     * - [Acetyl] - acetylation
+     * - [Oxidation] - oxidation
+     * - [MyCustomMod] - user-defined modification
+     *
+     * @param modString The complete ProForma string being parsed
+     * @param pos Current parsing position, updated to character after modification
+     * @param residue_pos 1-based position in sequence where modification applies
+     *
+     * @throws Exception::ParseError If bracket structure is malformed
+     *
+     * @note This method handles the most basic form of ProForma modification notation
+     *       and is commonly used for well-known modifications with standard names.
+     */
     void ProForma::parseStandardModification(const String& modString, size_t& pos, size_t residue_pos)
     {
         size_t modStart = modString.find('[', pos);
@@ -138,6 +213,34 @@ namespace OpenMS
         pos = modEnd + 1;
     }
 
+    /**
+     * @brief Parse delta mass notation modifications
+     *
+     * Implements ProForma 2.0 "Delta mass" notation for modifications specified
+     * as mass shifts. This is useful when the exact modification is unknown but
+     * the mass difference is measured.
+     *
+     * Format requirements (ProForma 2.0 compliant):
+     * - Must start with explicit + or - sign
+     * - Must be a valid decimal number
+     * - Mass in Daltons (Da)
+     * - Optional ? for ambiguous modifications
+     *
+     * Examples:
+     * - [+15.9949] - oxidation mass shift
+     * - [-17.0265] - loss of ammonia
+     * - [+79.9663] - phosphorylation mass shift
+     * - [+42.0106]? - ambiguous acetylation
+     *
+     * @param modString The complete ProForma string being parsed
+     * @param pos Current parsing position, updated to character after modification
+     * @param residue_pos 1-based position in sequence where modification applies
+     *
+     * @throws Exception::ParseError If brackets missing, sign missing, or invalid number format
+     *
+     * @note This parser enforces ProForma 2.0 requirement for explicit +/- signs
+     *       to distinguish mass shifts from other modification types.
+     */
     void ProForma::parseDeltaMassNotation(const String& modString, size_t& pos, size_t residue_pos)
     {
       size_t modStart = modString.find('[', pos);
@@ -179,6 +282,31 @@ namespace OpenMS
     }
 
 
+    /**
+     * @brief Parse N-terminal modifications
+     *
+     * Implements ProForma 2.0 "Terminal modifications" section for modifications
+     * at the peptide N-terminus. These modifications affect the amino group of
+     * the first amino acid or the peptide as a whole.
+     *
+     * Required format: [modification]-sequence
+     * - Opening bracket immediately followed by modification name
+     * - Closing bracket followed by dash
+     * - Sequence follows the dash
+     *
+     * Examples:
+     * - [Acetyl]-PEPTIDE - N-terminal acetylation
+     * - [Carbamyl]-MSEQUENCE - N-terminal carbamylation
+     * - [TMT6plex]-PEPTIDE - TMT labeling at N-terminus
+     *
+     * @param modString The complete ProForma string being parsed
+     * @param pos Current parsing position, updated to character after "]-" sequence
+     *
+     * @throws Exception::ParseError If the expected "]-" pattern is not found
+     *
+     * @note N-terminal modifications are stored at position 0 in the modifications map
+     *       to distinguish them from modifications on the first amino acid (position 1).
+     */
     void ProForma::parseNTerminalModification(const String& modString, size_t& pos)
     {
         size_t modEnd = modString.find("]-", pos);
@@ -187,16 +315,42 @@ namespace OpenMS
             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid N-terminal modification format:  " + modString, "Missing brackets and '-' indicator.");
         }
 
-        String modification = modString.substr(1, modEnd - 1);
+        String modification = modString.substr(1, modEnd - 1);  // Skip opening '[', extract to closing ']'
         OPENMS_LOG_DEBUG << "Parsing N-terminal modification: " << modification << std::endl;
 
         ResidueModification attributes;
         attributes.setName(modification);
-        modifications_[0] = attributes;
+        modifications_[0] = attributes;  // Position 0 = N-terminus
 
-        pos = modEnd + 2;
+        pos = modEnd + 2;  // Move past the "]-" sequence
     }
 
+    /**
+     * @brief Parse C-terminal modifications
+     *
+     * Implements ProForma 2.0 "Terminal modifications" section for modifications
+     * at the peptide C-terminus. These modifications affect the carboxyl group of
+     * the last amino acid or the peptide as a whole.
+     *
+     * Required format: sequence-[modification]
+     * - Sequence followed by dash
+     * - Opening bracket with modification name
+     * - Closing bracket
+     *
+     * Examples:
+     * - PEPTIDE-[Amidation] - C-terminal amidation
+     * - SEQUENCE-[Methylester] - C-terminal methylation
+     * - PEPTIDE-[Deamidation] - C-terminal deamidation
+     *
+     * @param modString The complete ProForma string being parsed
+     * @param pos Current parsing position, updated to character after closing bracket
+     *
+     * @throws Exception::ParseError If the expected "-[...]" pattern is not found
+     *
+     * @note C-terminal modifications are stored at position (sequence_length + 1)
+     *       in the modifications map to distinguish them from modifications on
+     *       the last amino acid.
+     */
     void ProForma::parseCTerminalModification(const String& modString, size_t& pos)
     {
         size_t modStart = modString.find("-[", pos);
@@ -206,16 +360,41 @@ namespace OpenMS
            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid C-terminal modification format:  " + modString, "Missing brackets and '-' indicator.");
         }
 
-        String modification = modString.substr(modStart + 2, modEnd - modStart - 2);
+        String modification = modString.substr(modStart + 2, modEnd - modStart - 2);  // Extract between "-[" and "]"
         OPENMS_LOG_DEBUG << "Parsing C-terminal modification: " << modification << std::endl;
 
         ResidueModification attributes;
         attributes.setName(modification);
-        modifications_[sequence_.size() + 1] = attributes;
+        modifications_[sequence_.size() + 1] = attributes;  // Position after sequence end = C-terminus
 
-        pos = modEnd + 1;
+        pos = modEnd + 1;  // Move past the closing bracket
     }
 
+    /**
+     * @brief Parse range modifications spanning multiple residues
+     *
+     * Implements parsing for modifications that span multiple consecutive amino acids.
+     *
+     * Required format: prefix(range)[modification]suffix
+     * - Parentheses enclose the amino acid sequence affected by the modification
+     * - Square brackets follow with the modification specification
+     * - The range becomes part of the main sequence
+     *
+     * Examples:
+     * - A(CDE)[+12.5]FGH - modification affecting residues CDE as a unit
+     * - PEP(TIDE)[Oxidation] - oxidation affecting the TIDE region
+     * - (MSEQ)[+15.99]UENCE - N-terminal region modification
+     *
+     * @param modString The complete ProForma string being parsed
+     * @param pos Current parsing position, updated to character after modification
+     *
+     * @throws Exception::ParseError If parentheses or brackets are missing/malformed
+     * @throws std::out_of_range If range extends beyond sequence boundaries
+     *
+     * @note Range modifications are applied to all positions within the specified range.
+     *       The range sequence is appended to the main sequence during parsing.
+     *       Each position in the range gets the same modification attributes.
+     */
     void ProForma::parseRangeModification(const String& modString, size_t& pos)
     {
       size_t rangeStart = modString.find('(', pos);
@@ -265,7 +444,39 @@ namespace OpenMS
       pos = modEnd + 1;
     }
 
-    // UPDATED FUNCTION TO HANDLE RANGES
+    /**
+     * @brief Main parser function for ProForma notation strings
+     *
+     * This is the primary entry point for parsing ProForma strings. It implements
+     * a state-machine based parser that processes the input character by character,
+     * identifying and dispatching to appropriate specialized parsing functions.
+     *
+     * Parsing algorithm:
+     * 1. Clear any existing sequence and modifications
+     * 2. Iterate through each character in the input string
+     * 3. Identify syntax elements (amino acids, brackets, parentheses, etc.)
+     * 4. Dispatch to specialized parsers for each element type
+     * 5. Build the final sequence and modification map
+     *
+     * Supported ProForma 2.0 elements parsed:
+     * - Amino acid residues (A-Z including unconventional and ambiguous)
+     * - CV modifications ([CV:accession])
+     * - Named modifications ([name])
+     * - Delta mass modifications ([+/-mass])
+     * - N-terminal modifications ([mod]-)
+     * - C-terminal modifications (-[mod])
+     * - Range modifications ((range)[mod])
+     * - Ambiguous markers (?)
+     *
+     * @param proforma_str The ProForma notation string to parse
+     *
+     * @throws Exception::ParseError For malformed syntax elements
+     * @throws Exception::IllegalArgument For unsupported CV ontologies
+     * @throws std::out_of_range For invalid sequence positions
+     *
+     * @note This method clears any existing sequence and modification data
+     *       before parsing the new input string.
+     */
     void ProForma::fromProFormaString(const String& proforma_str)
     {
       //AASequence seq;
@@ -321,6 +532,35 @@ namespace OpenMS
     }
 
 
+    /**
+     * @brief Generate ProForma notation string from internal representation
+     *
+     * Converts the current amino acid sequence and modifications back into
+     * a valid ProForma notation string. The output follows ProForma 2.0
+     * syntax conventions and can be parsed back by fromProFormaString().
+     *
+     * Generation algorithm:
+     * 1. Add N-terminal modification if present ([mod]-)
+     * 2. Iterate through sequence positions
+     * 3. Handle range modifications with parentheses
+     * 4. Add amino acid residue
+     * 5. Add modifications for current position
+     * 6. Add ambiguous markers if applicable
+     * 7. Close ranges when appropriate
+     * 8. Add C-terminal modification if present (-[mod])
+     *
+     * Output format elements:
+     * - Named modifications: [ModName]
+     * - Mass shift modifications: [+/-mass]
+     * - CV modifications: [CV:accession]
+     * - N-terminal: [mod]-sequence
+     * - C-terminal: sequence-[mod]
+     * - Range modifications: prefix(range)[mod]suffix
+     * - Ambiguous: [mod]?
+     *
+     * @return ProForma notation string representing current peptidoform
+     *
+     */
     String ProForma::toProFormaString() const
     {
       std::stringstream ss;
@@ -408,6 +648,25 @@ namespace OpenMS
       return ss.str();
     }
 
+    /**
+     * @brief Remove modification at specified position
+     *
+     * Removes a modification from the internal modifications map at the given position.
+     * This method allows for dynamic modification of the peptidoform after parsing.
+     *
+     * Position mapping:
+     * - 0: N-terminal modification
+     * - 1 to sequence_length: Amino acid positions (1-based)
+     * - sequence_length + 1: C-terminal modification
+     *
+     * @param position The position from which to remove the modification
+     *
+     * @throws Exception::OutOfRange If position exceeds sequence length + 1
+     * @throws Exception::InvalidValue If no modification exists at the specified position
+     *
+     * @note This method only removes the modification; it does not affect the
+     *       underlying amino acid sequence.
+     */
     void ProForma::removeModification(size_t position)
     {
       OPENMS_LOG_DEBUG << "Attempting to remove modification at position: " << position << std::endl;
@@ -428,7 +687,35 @@ namespace OpenMS
       }
     }
 
-    // N term mod : start_pos = 0. Modification after the first a.a. : start_pos = 1
+    /**
+     * @brief Add modification to specified position or range
+     *
+     * Adds a modification to the internal modifications map at the specified position(s).
+     * This method allows for programmatic construction of peptidoforms by adding
+     * modifications after sequence initialization.
+     *
+     * Position mapping:
+     * - 0: N-terminal modification
+     * - 1 to sequence_length: Amino acid positions (1-based indexing)
+     * - sequence_length + 1: C-terminal modification
+     *
+     * Modification types supported:
+     * - Named modifications: Specify non-empty mod_id
+     * - Mass shift modifications: Specify non-zero mass_shift
+     * - Combined: Both mod_id and mass_shift can be provided
+     * - Range modifications: start_pos != end_pos
+     *
+     * @param start_pos Starting position for the modification (0-based for terminals)
+     * @param end_pos Ending position for range modifications (inclusive)
+     * @param mod_id Modification identifier or name (empty string for mass-only modifications)
+     * @param mass_shift Mass difference in Daltons (0.0 for name-only modifications)
+     *
+     * @throws Exception::OutOfRange If start_pos exceeds sequence length + 1
+     *
+     * @note For range modifications (start_pos != end_pos), the same modification
+     *       attributes are applied to all positions within the range inclusive.
+     *       Single position modifications have start_pos == end_pos.
+     */
     void ProForma::addModification(size_t start_pos, size_t end_pos, const String& mod_id, double mass_shift)
     {
       OPENMS_LOG_DEBUG << "addModification called: mod_id=" << mod_id << ", start_pos=" << start_pos
