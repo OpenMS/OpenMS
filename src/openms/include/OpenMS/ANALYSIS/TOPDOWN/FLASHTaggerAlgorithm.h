@@ -159,7 +159,7 @@ private:
 
   static Size find_with_X_(const std::string_view& A, const String& B, Size pos = 0);
 
-  std::set<const Residue*> aas_ = ResidueDB::getInstance()->getResidues("Natural20");
+  std::set<const Residue*> aas_ = ResidueDB::getInstance()->getResidues("Natural19WithoutI");
   std::map<double, std::vector<Residue>> aa_mass_map_;
   std::map<double, std::vector<std::vector<Residue>>> gap_mass_map_;
   std::map<int, std::map<int, std::vector<String>>> edge_aa_map_;

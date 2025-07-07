@@ -83,6 +83,12 @@ bool FLASHTnTAlgorithm::areConsistent_(const ProteinHit& a, const ProteinHit& b,
   if (mass1 * mass2 < 0) return false;
   if (mass1 > 0 && mass2 > 0 && std::abs(mass1 - mass2) > std::max(mass1, mass2) * tol / 1e6 * 2) return false;
 
+  int sp1 = a.getMetaValue("StartPosition");
+  int ep1 = a.getMetaValue("EndPosition");
+
+  int sp2 = b.getMetaValue("StartPosition");
+  int ep2 = b.getMetaValue("EndPosition");
+
   // double rt1 = a.getMetaValue("RT");
   // double rt2 = b.getMetaValue("RT");
   // if (std::abs(rt1 - rt2) < 30.0) return true; // if rts are within 30 sec, true
@@ -108,7 +114,9 @@ bool FLASHTnTAlgorithm::areConsistent_(const ProteinHit& a, const ProteinHit& b,
     return true;
   }
   else if (! a.metaValueExists("mod_masses") && ! a.metaValueExists("mod_masses"))
-    return true;
+  {
+    if (sp1 == sp2 && ep1 == ep2) return true;
+  }
   return false;
 }
 
@@ -141,29 +149,42 @@ void FLASHTnTAlgorithm::markRepresentativeProteoformHits_(double tol)
 }
 
 
-void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile::FASTAEntry>& fasta_entry)
+void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile::FASTAEntry>& original_fasta_entry)
 {
   setLogType(CMD);
-  startProgress(0, (SignedSize)map.size(), "Running FLASHTnT ...");
-
 
   int max_mod_cntr = extender_param_.getValue("max_mod_count");
   double max_mod_mass = max_mod_cntr * (double)extender_param_.getValue("max_mod_mass") + 1.0;
   std::map<double, std::vector<ResidueModification>> mod_map;
-  const auto inst = ModificationsDB::getInstance(); // give this from outside ...
-  std::map<std::string, std::vector<Size>> tag_to_protein_indices;
+  const auto inst = ModificationsDB::getInstance();             // give this from outside ...
+  std::map<String, std::vector<Size>> tag_to_protein_indices;   // tag to protein index in fasta
+  std::map<String, std::vector<Size>> tag_to_protein_positions; // tag to protein position
+  std::map<int, std::vector<Size>> scan_to_tag_indices;         // scan number to tag indices
   std::vector<std::string> tag_seqs, protein_seqs;
+  std::vector<DeconvolvedSpectrum> dspecs;
 
-  double taget_count = 0;
-  double decoy_count = 0;
-  for (const auto& fe : fasta_entry)
+  std::vector<FASTAFile::FASTAEntry> fasta_entry;
+  fasta_entry.reserve(original_fasta_entry.size());
+  for (const auto& fe : original_fasta_entry)
   {
-    if (fe.identifier.hasPrefix("DECOY")) { decoy_count++; }
-    else { taget_count++; }
-    protein_seqs.push_back(fe.sequence);
+    auto seq = fe.sequence;
+    std::replace(seq.begin(), seq.end(), 'I', 'L');
+    fasta_entry.emplace_back(fe.identifier, fe.description, seq);
   }
 
-  decoy_factor_ = decoy_count / taget_count;
+  {
+    protein_seqs.reserve(fasta_entry.size());
+    double taget_count = 0;
+    double decoy_count = 0;
+    for (const auto& fe : fasta_entry)
+    {
+      if (fe.identifier.hasPrefix("DECOY")) { decoy_count++; }
+      else { taget_count++; }
+      protein_seqs.push_back(fe.sequence);
+    }
+
+    decoy_factor_ = decoy_count / taget_count;
+  }
 
   std::vector<String> mod_strs;
   inst->getAllSearchModifications(mod_strs);
@@ -173,7 +194,9 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
     if (std::abs(mod.getDiffMonoMass()) > max_mod_mass) continue;
     mod_map[mod.getDiffMonoMass()].push_back(mod);
   }
-  double precursor_tol = -1;
+  double precursor_tol = -1, tol;
+
+  startProgress(0, (SignedSize)map.size(), "Finding sequence tags ...");
 
   for (int index = 0; index < map.size(); index++)
   {
@@ -191,7 +214,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
     int tol_loc_s = deconv_meta_str.find("tol=") + 4;
     int tol_loc_e = deconv_meta_str.find(";", tol_loc_s);
 
-    double tol = stod(deconv_meta_str.substr(tol_loc_s, tol_loc_e - tol_loc_s));
+    tol = stod(deconv_meta_str.substr(tol_loc_s, tol_loc_e - tol_loc_s));
     if (spec.getMSLevel() == 1 && precursor_tol < 0)
     {
       precursor_tol = tol;
@@ -278,7 +301,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
     }
 
     dspec.sort();
-
+    dspecs.push_back(dspec);
     FLASHTaggerAlgorithm tagger;
     // Run tagger
     tagger.setParameters(tagger_param_);
@@ -286,85 +309,138 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
     tagger.fillTags(tags_);
   }
 
-  for (auto& tag : tags_)
-  {
-    String tag_seq = tag.getSequence();
-    String tag_uppercase_seq = tag_seq.toUpper();
-    if (tag_to_protein_indices.find(tag_uppercase_seq) != tag_to_protein_indices.end()) continue;
-    tag_to_protein_indices[tag_uppercase_seq] = std::vector<Size>();
-    tag_seqs.push_back(tag_uppercase_seq);
-  } // now we have all the tags
+  endProgress();
 
+  for (Size i = 0; i < tags_.size(); i++)
+  {
+    const auto& seq = tags_[i].getUppercaseSequence();
+    scan_to_tag_indices[tags_[i].getScan()].push_back(i);
+    tags_[i].setIndex((int)i);
+    if (tag_to_protein_indices.find(seq) != tag_to_protein_indices.end()) continue;
+    tag_to_protein_indices[seq] = std::vector<Size>();
+    tag_to_protein_positions[seq] = std::vector<Size>();
+    tag_seqs.push_back(seq);
+  } // now we have all the tags
 
   // tag_seqs protein_seqs
 
   ACTrie ac_trie(0, 0); // no ambiguities, no mismatches
-
   ac_trie.addNeedlesAndCompress(tag_seqs);
-
   OpenMS::ACTrieState ac_state;
 
-//#pragma omp parallel for default(none) shared(protein_seqs, ac_state, ac_trie)
-  for (int i = 0; i < protein_seqs.size(); ++i)
+  startProgress(0, (SignedSize)protein_seqs.size(), "Searching tags against database ...");
+  // #pragma omp parallel for default(none) shared(protein_seqs, ac_state, ac_trie)
+  for (int i = 0; i < protein_seqs.size(); i++) // // Natural19WithoutI
   {
-    const auto& prot_seq = protein_seqs[i];
-    ac_state.setQuery(prot_seq);
+    nextProgress();
+    ac_state.setQuery(protein_seqs[i]);
     ac_trie.getAllHits(ac_state);
 
-//   for (auto h : ac_state.hits)
-//   {
-//     std::cout << "Found needle #" << h.needle_index << "(" << tag_seqs[h.needle_index] << ") at pos " << h.query_pos << " in protein " <<
-//       prot_seq << "\n";
-//   }
+    for (const auto& h : ac_state.hits)
+    {
+      String seq = tag_seqs[h.needle_index];
+      tag_to_protein_indices[seq].push_back(i);
+      tag_to_protein_positions[seq].push_back(h.query_pos);
+    }
   }
 
-
-  // FLASHExtenderAlgorithm extender;
-  //     extender.setParameters(extender_param_);
-  //     extender.setModificationMap(mod_map);
-
-  //    std::vector<ProteinHit> hits;
-  //    std::vector<FLASHHelperClasses::Tag> matched_tags;
-  //
-  //    tagger.runMatching(fasta_entry, dspec, max_mod_mass);
-  //    tagger.fillTags(matched_tags);
-  //    tagger.fillProteinHits(hits, max_hit_count);
-  //
-  //   // hit_by_tag |= !hits.empty();
-  //    extender.run(hits, matched_tags, dspec,tol, multiple_hits_per_spec_);
-  //    extender.fillProteoforms(proteoform_hits_);
-  //  }
   endProgress();
-  return;
+  startProgress(0, (SignedSize)dspecs.size(), "Running extension algorithm ...");
+
+  for (const auto& dspec : dspecs)
+  {
+   // if (dspec.getScanNumber() > 993) break;
+    nextProgress();
+    if (scan_to_tag_indices.find(dspec.getScanNumber()) == scan_to_tag_indices.end()) continue;
+    const auto& tag_indices = scan_to_tag_indices[dspec.getScanNumber()];
+    std::vector<ProteinHit> hits;
+    std::map<Size, std::set<Size>> pi_to_pos;         // protein index to covered positions
+    std::map<Size, std::set<Size>> pi_to_tag_indices; // protein index to tag indices
+
+    for (const auto& tag_index : tag_indices)
+    {
+      const auto& tag = tags_[tag_index];
+      const auto& seq = tag.getUppercaseSequence();
+
+      const auto& pis = tag_to_protein_indices[seq];
+      const auto& pps = tag_to_protein_positions[seq];
+      for (Size i = 0; i < pis.size(); i++)
+      {
+        pi_to_tag_indices[pis[i]].insert(tag_index);
+        for (Size j = 0; j < 1; j++) // seq.length()
+          pi_to_pos[pis[i]].insert(pps[i] + j);
+      }
+    }
+
+    for (const auto& [pi, pp] : pi_to_pos)
+    {
+      const auto& fe = fasta_entry[pi];
+      double covered_pos = (double)pp.size();
+      double coverage = (double)covered_pos / (double)fe.sequence.length();
+      ProteinHit hit(coverage, 0, fe.identifier, fe.sequence); //
+      hit.setDescription(fe.description);
+      hit.setMetaValue("Scan", dspec.getScanNumber());
+      hit.setMetaValue("MatchedAA", covered_pos);
+      hit.setCoverage(coverage);
+      hit.setMetaValue("TagIndices", std::vector<int>(pi_to_tag_indices[pi].begin(), pi_to_tag_indices[pi].end()));
+      hit.setMetaValue("TagPositions", std::vector<int>(pi_to_pos[pi].begin(), pi_to_pos[pi].end()));
+      hit.setMetaValue("FastaIndex", pi);
+      hits.push_back(hit);
+    }
+
+    std::sort(hits.begin(), hits.end(), [](const ProteinHit& left, const ProteinHit& right) {
+      return left.getScore() == right.getScore() ? (left.getCoverage() == right.getCoverage() ? (left.getDescription() > right.getDescription())
+                                                                                              : (left.getCoverage() > right.getCoverage()))
+                                                 : (left.getScore() > right.getScore());
+    });
+
+    if (hits.empty()) continue;
+
+    if (hits.size() > max_hit_count) { hits.resize(max_hit_count); }
+
+//    for (auto& hit : hits)
+//    {
+//      std::cout<< dspec.getScanNumber() << " " << hit.getScore() << " " << hit.getAccession() << std::endl;
+//      for (auto jj : hit.getMetaValue("TagPositions").toIntList()) std::cout<< jj << std::endl;
+//    }
+
+    FLASHExtenderAlgorithm extender;
+    extender.setParameters(extender_param_);
+    extender.setModificationMap(mod_map);
+    extender.run(hits, tags_, dspec, tol, multiple_hits_per_spec_);
+    extender.fillProteoforms(proteoform_hits_);
+  }
+
+  endProgress();
 
   // redefine tag index and proteoform to tag indices
-  std::map<int, int> scan_index_offset;
-  int offset = 0;
-  for (auto& tag : tags_)
-  {
-    int scan = tag.getScan();
-    if (scan_index_offset.find(scan) == scan_index_offset.end()) scan_index_offset[scan] = offset;
-    offset++;
-  }
-
-  for (auto& tag : tags_)
-  {
-    int scan = tag.getScan();
-    int index = tag.getIndex();
-    tag.setIndex(index + scan_index_offset[scan]);
-  }
-
-  for (auto& hit : proteoform_hits_)
-  {
-    std::vector<int> tag_indices;
-    if (hit.metaValueExists("TagIndices")) tag_indices = hit.getMetaValue("TagIndices").toIntList();
-    int scan = hit.getMetaValue("Scan");
-    for (int& tag_index : tag_indices)
-    {
-      tag_index += scan_index_offset[scan];
-    }
-    hit.setMetaValue("TagIndices", tag_indices);
-  }
+  //  std::map<int, int> scan_index_offset;
+  //  int offset = 0;
+  //  for (auto& tag : tags_)
+  //  {
+  //    int scan = tag.getScan();
+  //    if (scan_index_offset.find(scan) == scan_index_offset.end()) scan_index_offset[scan] = offset;
+  //    offset++;
+  //  }
+  //
+  //  for (auto& tag : tags_)
+  //  {
+  //    int scan = tag.getScan();
+  //    int index = tag.getIndex();
+  //    tag.setIndex(index + scan_index_offset[scan]);
+  //  }
+  //
+  //  for (auto& hit : proteoform_hits_)
+  //  {
+  //    std::vector<int> tag_indices;
+  //    if (hit.metaValueExists("TagIndices")) tag_indices = hit.getMetaValue("TagIndices").toIntList();
+  //    int scan = hit.getMetaValue("Scan");
+  //    for (int& tag_index : tag_indices)
+  //    {
+  //      tag_index += scan_index_offset[scan];
+  //    }
+  //    hit.setMetaValue("TagIndices", tag_indices);
+  //  }
 
   markRepresentativeProteoformHits_(precursor_tol);
   std::sort(proteoform_hits_.begin(), proteoform_hits_.end(), [](const ProteinHit& left, const ProteinHit& right) {
@@ -472,7 +548,6 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
         }
       }
     }
-    // std::cout<< tags_.size() << " " << proteoform_hits_.size() << " " << filtered_proteoform_hits.size()<<std::endl;
     proteoform_hits_.swap(filtered_proteoform_hits);
   }
   std::sort(proteoform_hits_.begin(), proteoform_hits_.end(),
@@ -482,6 +557,8 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
   int proteoform_index = 0;
   for (auto& hit : proteoform_hits_)
   {
+    int fasta_index = hit.getMetaValue("FastaIndex");
+    hit.setSequence(original_fasta_entry[fasta_index].sequence);
     hit.setMetaValue("Index", proteoform_index);
     for (int tag_index : (std::vector<int>)hit.getMetaValue("TagIndices").toIntList())
     {

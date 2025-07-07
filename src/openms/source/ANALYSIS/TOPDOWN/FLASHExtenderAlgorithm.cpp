@@ -332,25 +332,28 @@ void FLASHExtenderAlgorithm::run_(const ProteinHit& hit,
   hi.dag_ = FLASHHelperClasses::DAG((1 + node_spec.size()) * (1 + pro_masses.size()) * (1 + max_mod_cntr_) * (1 + max_path_score_ - min_path_score_));
 
   bool tag_found = false;
+  auto seq = hit.getSequence();
+
   for (const auto& tag : matched_tags)
   {
     if (hi.mode_ == 2 && hi.calculated_precursor_mass_ <= 0) continue;
-    const auto& upper_seq = tag.getUppercaseSequence();
+    const auto& upper_tag_seq = tag.getUppercaseSequence();
     bool has_lower_case = std::any_of(tag.getSequence().begin(), tag.getSequence().end(), ::islower) ;
-    if (has_lower_case && upper_case_seqs.find(upper_seq) != upper_case_seqs.end()) continue;
+    if (has_lower_case && upper_case_seqs.find(upper_tag_seq) != upper_case_seqs.end()) continue;
 
     tag_found = true;
     std::vector<int> positions;
     std::vector<double> masses;
 
-    FLASHTaggerAlgorithm::fillMatchedPositionsAndFlankingMassDiffs(positions, masses, -1, hit.getSequence(), tag);
+
+    FLASHTaggerAlgorithm::fillMatchedPositionsAndFlankingMassDiffs(positions, masses, -1, seq, tag);
     auto tag_masses = tag.getMzs();
     std::sort(tag_masses.begin(), tag_masses.end());
 
     double seq_mass = 0;
     if (has_lower_case)
     {
-      seq_mass = AASequence::fromString(upper_seq, true).getMonoWeight(Residue::Internal);
+      seq_mass = AASequence::fromString(upper_tag_seq, true).getMonoWeight(Residue::Internal);
     }
     std::vector<double> start_masses, end_masses, start_tols, end_tols;
     if (tag.getCtermMass() >= 0) // suffix
@@ -446,7 +449,6 @@ void FLASHExtenderAlgorithm::run_(const ProteinHit& hit,
   }
 
   constructDAG_(sinks, hi, tag_edges, max_mod_cntr_for_last_mode, tag_found);
-
   Size src = getVertex_(0, 0, 0, 0, pro_masses.size());
   std::vector<int> max_scores(max_mod_cntr_ + 1, 0);
   for (Size sink : sinks)
@@ -506,7 +508,7 @@ void FLASHExtenderAlgorithm::run_(const ProteinHit& hit,
 }
 
 void FLASHExtenderAlgorithm::run(std::vector<ProteinHit>& hits,
-                                 const std::vector<FLASHHelperClasses::Tag>& tags,
+                                 const std::vector<FLASHHelperClasses::Tag>& all_tags,
                                  const DeconvolvedSpectrum& dspec,
                                  double ppm,
                                  bool multiple_hits_per_spec)
@@ -532,7 +534,6 @@ void FLASHExtenderAlgorithm::run(std::vector<ProteinHit>& hits,
   tol_ = ppm / 1e6;
   proteoform_hits_.clear();
 
-  tags_ = tags;
   std::vector<double> mzs;
   std::vector<int> scores;
 
@@ -541,7 +542,7 @@ void FLASHExtenderAlgorithm::run(std::vector<ProteinHit>& hits,
 
   startProgress(0, (int)hits.size(), "running FLASHExtender ...");
 
-#pragma omp parallel for default(none) shared(hits, dspec, multiple_hits_per_spec, i2f_mass, std::cout)
+#pragma omp parallel for default(none) shared(hits, all_tags, dspec, multiple_hits_per_spec, i2f_mass, std::cout)
   for (int i = 0; i < ((int)hits.size()); i++)
   {
     nextProgress();
@@ -556,16 +557,15 @@ void FLASHExtenderAlgorithm::run(std::vector<ProteinHit>& hits,
     std::map<int, std::vector<Size>> best_path_map;               // mode, best paths
 
     std::vector<int> used_mode;
-    std::vector<FLASHHelperClasses::Tag> matched_tags;
 
     if (! hit.metaValueExists("TagIndices")) continue;
 
-    const std::vector<int>& tag_indices = hit.getMetaValue("TagIndices");
+    const std::vector<int>& tag_indices = hit.getMetaValue("TagIndices").toIntList();
 
-    matched_tags.reserve(tag_indices.size());
-    for (const auto& index : tag_indices)
+    std::vector<FLASHHelperClasses::Tag> matched_tags;
+    for (const auto ti : tag_indices)
     {
-      matched_tags.push_back(tags_[index]);
+      matched_tags.push_back(all_tags[ti]);
     }
 
     std::map<int, std::set<int>> matched_position_map;
@@ -594,6 +594,7 @@ void FLASHExtenderAlgorithm::run(std::vector<ProteinHit>& hits,
       if (hi.visited_.empty())
         hi.visited_ = boost::dynamic_bitset<>((3 + dspec.size() * ion_types_str_.size()) * (1 + pro_masses.size()) * (1 + max_mod_cntr_)
                                               * (1 + max_path_score_ - min_path_score_));
+
       run_(hit, hi, matched_tags, all_path_map[hi.mode_], max_mod_cntr_for_last_mode);
 
       if (hi.mode_ < 2)

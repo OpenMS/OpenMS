@@ -588,7 +588,6 @@ void FLASHTaggerAlgorithm::getTags_(const std::vector<double>& mzs, const std::v
 {
   std::vector<int> _scores;
   std::vector<double> _mzs;
-  int threshold;
 
   _mzs.push_back(.0);
   _scores.push_back(0);

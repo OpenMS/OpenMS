@@ -160,7 +160,6 @@ private:
   std::vector<double> prefix_shifts_;
   std::vector<double> suffix_shifts_;
   std::vector<ProteinHit> proteoform_hits_;
-  std::vector<FLASHHelperClasses::Tag> tags_;
   double tol_;
 
   int max_mod_cntr_ = 0;
