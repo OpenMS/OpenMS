@@ -106,8 +106,10 @@ set(VARS_TO_LOAD
   "Python_ROOT_DIR"
   "Python_FIND_STRATEGY"
   "WITH_GUI"
+  "WITH_PARQUET"
   "WITH_THERMORAWFILEPARSER_TEST"
   "COMPILE_PXDS"
+  "USE_EXTERNAL_JSON"
  )
 
 message("tools/ci/cibuild.cmake: Loading the following vars from ENV if available: ${VARS_TO_LOAD}")
