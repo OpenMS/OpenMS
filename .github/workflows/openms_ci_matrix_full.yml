@@ -224,6 +224,28 @@ jobs:
         # NOTE: x64 is hardcoded. No support for 32bit
         arch: x64
 
+    - name: Setup conda environment for Parquet (Windows only)
+      if: startsWith(matrix.os, 'windows')
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-update-conda: true
+        python-version: 3.9
+        activate-environment: openms-parquet
+        use-mamba: true
+
+    - name: Install Parquet dependencies (Windows only)
+      if: startsWith(matrix.os, 'windows')
+      shell: bash -el {0}
+      run: |
+        conda activate openms-parquet
+        # None of the other arrow sublibraries seemed necessary, but it's an easy addition.
+        conda install -c conda-forge libarrow libparquet -y
+        # Get the conda environment path for later use
+        echo "CONDA_ENV_PATH=$(conda info --base)/envs/openms-parquet" >> $GITHUB_ENV
+        # Add conda environment to PATH for cmake to find the libraries
+        echo "$(conda info --base)/envs/openms-parquet/bin" >> $GITHUB_PATH
+        echo "$(conda info --base)/envs/openms-parquet/Library/bin" >> $GITHUB_PATH
+
     - name: Install Qt (Windows)
       if: startsWith(matrix.os, 'windows')
       uses: jurplel/install-qt-action@v4
@@ -250,7 +272,9 @@ jobs:
         
         if [[ "${{ matrix.os }}" == windows-* ]]; then
           # QT_ROOT_DIR set by Install Qt step
-          echo "cmake_prefix=$QT_ROOT_DIR/lib/cmake;$QT_ROOT_DIR" >> $GITHUB_OUTPUT
+          # Add conda environment paths to CMAKE_PREFIX_PATH for finding Arrow/Parquet
+          CONDA_CMAKE_PREFIX="$CONDA_ENV_PATH/Library;$CONDA_ENV_PATH/Library/cmake"
+          echo "cmake_prefix=$QT_ROOT_DIR/lib/cmake;$QT_ROOT_DIR;$CONDA_CMAKE_PREFIX" >> $GITHUB_OUTPUT
           choco install ccache ninja -y --no-progress
           choco install cmake -y --no-progress
           ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
@@ -396,7 +420,7 @@ jobs:
           ENABLE_GCC_WERROR: "OFF" # TODO think about that
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
-          WITH_PARQUET: ${{(startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'ubuntu')) && 'ON' || 'OFF' }} #Currently no functionality at all for windows since it depends on contrib
+          WITH_PARQUET: "ON" # Conda on windows, Apt on Ubuntu, Brew on MacOS
           SIGNING_IDENTITY: "-"
           ADDRESS_SANITIZER: "Off"
           BUILD_TYPE: "Release"
@@ -416,7 +440,8 @@ jobs:
           CCACHE_COMPILERCHECK: content
           WITH_THERMORAWFILEPARSER_TEST: "OFF"
           Eigen3_DIR: "${{ steps.tools-prefix.outputs.eigen_choco }}" # Eigen is installed on windows using choco
-          USE_EXTERNAL_JSON: ${{ (startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')) && 'OFF' || 'ON' }}          # It's literally only Ubuntu's package manager that forcibly bundles nlohmann_json w/ arrow. The rest we can control via a cmake option in contrib +
+          USE_EXTERNAL_JSON: ${{ (startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'windows')) && 'OFF' || 'ON' }}          
+          # It's literally only Ubuntu's package manager that forcibly bundles nlohmann_json w/ arrow. The rest we can control via a cmake option in contrib +
           # Note that apache arrow's brew/apt packages are DIFFERENT. I believe Ubuntu's packages have Nlohmann_JSON bundled with them, while 
           # brew doesn't. As such, this results in compatibility issues between OpenMS' Nlohmann_JSON and Ubuntu's system packages. 
     - name: Test
