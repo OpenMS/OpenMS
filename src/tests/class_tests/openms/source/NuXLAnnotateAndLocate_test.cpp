@@ -33,10 +33,7 @@ START_TEST(NuXLAnnotateAndLocate, "$Id$")
 
 START_SECTION((static void annotateAndLocate_(const PeakMap& exp, std::vector<std::vector<NuXLAnnotatedHit>>& annotated_hits, const NuXLModificationMassesResult& mm, const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, Size max_variable_mods_per_peptide, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const NuXLParameterParsing::PrecursorsToMS2Adducts& all_feasible_adducts)))
 {
-  for (auto iter = 0; iter != 10; ++iter)
-  {
-
-  // Create test data for the annotateAndLocate_ method
+    // Create test data for the annotateAndLocate_ method
   PeakMap exp;
   
   // Create MS2 spectrum
@@ -315,6 +312,7 @@ START_SECTION((static void annotateAndLocate_(const PeakMap& exp, std::vector<st
   TEST_EQUAL(all_feasible_adducts.size(), 14) // check number of precursor adducts
 
   // print all feasible adducts for debugging
+  /*
   for (const auto& [precursor, adducts] : all_feasible_adducts)
   {
     std::cout << "Precursor: " << precursor << std::endl;
@@ -327,6 +325,7 @@ START_SECTION((static void annotateAndLocate_(const PeakMap& exp, std::vector<st
       }
     }
   }
+  */
 
   // Test expected feasible adducts for each precursor adduct
   // Define expected adducts for validation
@@ -566,7 +565,6 @@ START_SECTION((static void annotateAndLocate_(const PeakMap& exp, std::vector<st
   TEST_REAL_SIMILAR(processed_hit.fragment_annotations[29].mz, 669.279357910156)
   TEST_REAL_SIMILAR(processed_hit.fragment_annotations[29].intensity, 0.0665788426995277)
   
-}
 }
 END_SECTION
 
