@@ -253,6 +253,10 @@ set_tests_properties("TOPP_MassTraceExtractor_4_out" PROPERTIES DEPENDS "TOPP_Ma
 add_test("TOPP_MassTraceExtractor_5" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_4.ini -in ${DATA_DIR_TOPP}/MassTraceExtractor_5_input.mzML -out MassTraceExtractor_5.tmp.featureXML)
 add_test("TOPP_MassTraceExtractor_5_out" ${DIFF} -whitelist "id=" -in1 MassTraceExtractor_5.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_5_output.featureXML )
 set_tests_properties("TOPP_MassTraceExtractor_5_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_5")
+# temporary test. Isolate one trace that causes test to fail on MacOS 13-14 and Ubuntu.
+add_test("TOPP_MassTraceExtractor_6" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_4.ini -in ${DATA_DIR_TOPP}/MassTraceExtractor_6_input.mzML -out MassTraceExtractor_6.tmp.featureXML)
+add_test("TOPP_MassTraceExtractor_6_out" ${DIFF} -whitelist "id=" -in1 MassTraceExtractor_6.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_6_output.featureXML )
+set_tests_properties("TOPP_MassTraceExtractor_6_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_6")
 
 #------------------------------------------------------------------------------
 # FeatureFinderMetabo test
