@@ -261,6 +261,10 @@ START_SECTION((static void annotateAndLocate_(const PeakMap& exp, std::vector<st
                                             peak_count,
                                             purities);
   
+  // Check that preprocessing worked correctly
+  TEST_EQUAL(exp.size(), 1) // One spectrum
+  TEST_EQUAL(exp[0].size(), 58) // check number of peaks after processing
+
   // Create empty annotated hits vector
   vector<vector<NuXLAnnotatedHit>> annotated_hits;
   annotated_hits.resize(1); // One spectrum
@@ -303,6 +307,74 @@ START_SECTION((static void annotateAndLocate_(const PeakMap& exp, std::vector<st
   // Get all feasible fragment adducts from all possible precursor adducts
   NuXLParameterParsing::PrecursorsToMS2Adducts all_feasible_adducts =
     NuXLParameterParsing::getAllFeasibleFragmentAdducts(mm, nucleotide_to_fragment_adducts, can_xl, true, true);
+
+  // Check that same adducts are returned
+  TEST_EQUAL(all_feasible_adducts.size(), 14) // check number of precursor adducts
+
+  // print all feasible adducts for debugging
+  for (const auto& [precursor, adducts] : all_feasible_adducts)
+  {
+    std::cout << "Precursor: " << precursor << std::endl;
+    for (const auto& [adduct_key, adduct_definitions] : adducts.feasible_adducts)
+    {
+      std::cout << "  Adduct: " << adduct_key << std::endl;
+      for (const auto& definition : adduct_definitions)
+      {
+        std::cout << "    Definition: " << definition.name << " (Formula: " << definition.formula << ", Mass: " << definition.mass << ")" << std::endl;
+      }
+    }
+  }
+
+  // Test expected feasible adducts for each precursor adduct
+  // Define expected adducts for validation
+  std::map<String, std::vector<String>> expected_adducts = {
+    {"AU", {"U", "C3O", "U'-H2O", "U'", "U-H3PO4", "U-HPO3", "U-H2O", "U"}},
+    {"AU-H2O1", {"U", "C3O", "U'-H2O", "U'", "U-H3PO4", "U-HPO3", "U-H2O", "U"}},
+    {"CU", {"U", "C3O", "U'-H2O", "U'", "U-H3PO4", "U-HPO3", "U-H2O", "U"}},
+    {"CU-H2O1", {"U", "C3O", "U'-H2O", "U'", "U-H3PO4", "U-HPO3", "U-H2O", "U"}},
+    {"GU", {"U", "C3O", "U'-H2O", "U'", "U-H3PO4", "U-HPO3", "U-H2O", "U"}},
+    {"GU-H2O1", {"U", "C3O", "U'-H2O", "U'", "U-H3PO4", "U-HPO3", "U-H2O", "U"}},
+    {"U", {"U", "C3O", "U'-H2O", "U'", "U-H3PO4", "U-HPO3", "U-H2O", "U"}},
+    {"U-H2O1", {"U", "C3O", "U'-H2O", "U'", "U-H3PO4", "U-H2O"}},
+    {"UA-H3N1", {"U", "C3O", "U'-H2O", "U'", "U-H3PO4", "U-HPO3", "U-H2O", "U"}},
+    {"UC-H3N1", {"U", "C3O", "U'-H2O", "U'", "U-H3PO4", "U-HPO3", "U-H2O", "U"}},
+    {"UG-H3N1", {"U", "C3O", "U'-H2O", "U'", "U-H3PO4", "U-HPO3", "U-H2O", "U"}},
+    {"UU", {"U", "C3O", "U'-H2O", "U'", "U-H3PO4", "U-HPO3", "U-H2O", "U"}},
+    {"UU-H2O1", {"U", "C3O", "U'-H2O", "U'", "U-H3PO4", "U-HPO3", "U-H2O", "U"}},
+    {"none", {}}
+  };
+
+  // Validate each precursor adduct exists and has correct feasible adducts
+  for (const auto& [expected_precursor, expected_adduct_list] : expected_adducts) {
+    // Test that the precursor adduct exists
+    auto precursor_it = all_feasible_adducts.find(expected_precursor);
+    TEST_FALSE(precursor_it == all_feasible_adducts.end());
+    
+    if (precursor_it != all_feasible_adducts.end()) {
+      // Build actual adduct list for this precursor
+      std::vector<String> actual_adducts;
+      for (const auto& [adduct_key, adduct_definitions] : precursor_it->second.feasible_adducts) {
+        actual_adducts.push_back(adduct_key);
+        for (const auto& definition : adduct_definitions) {
+          if (!definition.name.empty()) {
+            actual_adducts.push_back(definition.name);
+          }
+        }
+      }
+      
+      // Test that the number of adducts matches
+      TEST_EQUAL(actual_adducts.size(), expected_adduct_list.size())
+      
+      // Test that each expected adduct is present
+      for (size_t i = 0; i < expected_adduct_list.size() && i < actual_adducts.size(); ++i) {
+        TEST_EQUAL(actual_adducts[i], expected_adduct_list[i])
+      }
+    }
+  }
+
+  // Test that no unexpected precursor adducts are present
+  TEST_EQUAL(all_feasible_adducts.size(), expected_adducts.size())
+            
   
   // Test parameters
   Size max_variable_mods_per_peptide = 2;
