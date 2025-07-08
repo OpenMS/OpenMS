@@ -39,14 +39,21 @@ def _testMetaInfoInterface(what):
 
     #void getKeys(libcpp_vector[String] & keys)
     #void getKeys(libcpp_vector[unsigned int] & keys)
-    #DataValue getMetaValue(unsigned int) except + nogil 
-    #DataValue getMetaValue(String) except + nogil 
-    #void setMetaValue(unsigned int, DataValue) except + nogil 
-    #void setMetaValue(String, DataValue) except + nogil 
-    #bool metaValueExists(String) except + nogil 
-    #bool metaValueExists(unsigned int) except + nogil 
-    #void removeMetaValue(String) except + nogil 
-    #void removeMetaValue(unsigned int) except + nogil 
+    #DataValue getMetaValue(unsigned int) except + nogil
+    #DataValue getMetaValue(String) except + nogil
+    #void setMetaValue(unsigned int, DataValue) except + nogil
+    #void setMetaValue(String, DataValue) except + nogil
+    #bool metaValueExists(String) except + nogil
+    #bool metaValueExists(unsigned int) except + nogil
+    #void removeMetaValue(String) except + nogil
+    #void removeMetaValue(unsigned int) except + nogil
+
+    # Store essential meta values (like rank for PeptideHit) before testing
+    essential_keys = [b"rank"]
+    preserved_values = {}
+    for key in essential_keys:
+        if what.metaValueExists(key):
+            preserved_values[key] = what.getMetaValue(key)
 
     what.setMetaValue("key", 42)
     what.setMetaValue("key2", 42)
@@ -64,9 +71,16 @@ def _testMetaInfoInterface(what):
     assert what.getMetaValue(keys[0]) == 42
 
     what.clearMetaInfo()
+    
+    # Restore essential meta values after clearMetaInfo
+    for key, value in preserved_values.items():
+        what.setMetaValue(key, value)
+    
     keys = []
     what.getKeys(keys)
-    assert len(keys) == 0
+    # Check that only essential keys remain (if any were preserved)
+    expected_len = len(preserved_values)
+    assert len(keys) == expected_len
 
 
 @report
@@ -3005,7 +3019,6 @@ def testMSSpectrum():
      MSSpectrum.getMetaValue
      MSSpectrum.getName
      MSSpectrum.getNativeID
-     MSSpectrum.getPeptideIdentifications
      MSSpectrum.getPrecursors
      MSSpectrum.getProducts
      MSSpectrum.getRT
@@ -3120,10 +3133,6 @@ def testMSSpectrum():
     prec.setCharge(1)
     spec.setPrecursors([prec])
     spec.setMetaValue('total ion current', 600)
-    pepid = pyopenms.PeptideIdentification()
-    hit = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString('A'))
-    pepid.setHits([hit])
-    spec.setPeptideIdentifications([pepid])
 
     data = np.array( [5, 8] ).astype(np.float32)
     f_da = [ pyopenms.FloatDataArray() ]
@@ -3139,7 +3148,7 @@ def testMSSpectrum():
     spec.setStringDataArrays([s_da])
 
     df = spec.get_df()
-    assert df.shape == (2, 11)
+    assert df.shape == (2, 10)
     assert df.loc[0, 'mz'] == 1000.0
     assert df.loc[0, 'intensity'] == 200.0
     assert df.loc[0, 'ion_mobility'] == 5.0
@@ -3149,7 +3158,6 @@ def testMSSpectrum():
     assert df.loc[0, 'precursor_charge'] == 1
     assert df.loc[0, 'native_id'] == 'scan=1'
     assert df.loc[0, 'ion_annotation'] == 'b3+'
-    assert df.loc[0, 'sequence'] == 'A'
     assert df.loc[0, 'total ion current'] == 600
 
     spec.clear(False)
@@ -4813,7 +4821,6 @@ def testSpectrumSetting(s=pyopenms.SpectrumSettings()):
      SpectrumSettings.getDataProcessing
      SpectrumSettings.getInstrumentSettings
      SpectrumSettings.getNativeID
-     SpectrumSettings.getPeptideIdentifications
      SpectrumSettings.getPrecursors
      SpectrumSettings.getProducts
      SpectrumSettings.getSourceFile
@@ -4823,7 +4830,6 @@ def testSpectrumSetting(s=pyopenms.SpectrumSettings()):
      SpectrumSettings.setDataProcessing
      SpectrumSettings.setInstrumentSettings
      SpectrumSettings.setNativeID
-     SpectrumSettings.setPeptideIdentifications
      SpectrumSettings.setPrecursors
      SpectrumSettings.setProducts
      SpectrumSettings.setSourceFile
@@ -4838,13 +4844,11 @@ def testSpectrumSetting(s=pyopenms.SpectrumSettings()):
     assert isinstance(s.getAcquisitionInfo(), pyopenms.AcquisitionInfo)
     assert isinstance(s.getInstrumentSettings(), pyopenms.InstrumentSettings)
     assert isinstance(s.getSourceFile(), pyopenms.SourceFile)
-    assert isinstance(s.getPeptideIdentifications(), list)
     assert isinstance(s.getDataProcessing(), list)
 
     s.setAcquisitionInfo(s.getAcquisitionInfo())
     s.setInstrumentSettings(s.getInstrumentSettings())
     s.setSourceFile(s.getSourceFile())
-    s.setPeptideIdentifications(s.getPeptideIdentifications())
     s.setDataProcessing(s.getDataProcessing())
     s.setComment(s.getComment())
     s.setPrecursors(s.getPrecursors())
@@ -5238,11 +5242,6 @@ def testConsensusIDAlgorithmBest():
     assert algo.apply
 
 @report
-def testConsensusIDAlgorithmIdentity():
-    algo = pyopenms.ConsensusIDAlgorithmIdentity()
-    assert algo.apply
-
-@report
 def testConsensusIDAlgorithmPEPIons():
     algo = pyopenms.ConsensusIDAlgorithmPEPIons()
     assert algo.apply
@@ -5255,11 +5254,6 @@ def testConsensusIDAlgorithmPEPMatrix():
 @report
 def testConsensusIDAlgorithmRanks():
     algo = pyopenms.ConsensusIDAlgorithmRanks()
-    assert algo.apply
-
-@report
-def testConsensusIDAlgorithmSimilarity():
-    algo = pyopenms.ConsensusIDAlgorithmSimilarity()
     assert algo.apply
 
 @report
