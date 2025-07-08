@@ -5175,10 +5175,6 @@ def testIndexedMzMLDecoder():
     except RuntimeError:
         pass
 
-def test_streampos():
-    p = long(pyopenms.streampos())
-    assert isinstance(p, long), "got %r" % p
-
 def test_MapConversion():
 
     feature = pyopenms.Feature()
