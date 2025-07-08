@@ -16,6 +16,7 @@
 #include <OpenMS/SYSTEM/SIMDe.h>
 
 #include <algorithm>
+#include <bit>
 #include <set>
 
 using namespace std;
@@ -418,7 +419,8 @@ namespace OpenMS::Internal
       }
     }
 
-    size_t StringManager::strLength(const XMLCh* input_ptr) {
+    size_t StringManager::strLength(const XMLCh* input_ptr)
+    {
       if (input_ptr == nullptr) {
           return 0;
       }
@@ -426,13 +428,14 @@ namespace OpenMS::Internal
       XMLSize_t processed_chars = 0;
       const XMLCh* pos_ptr = input_ptr;
   
-      // Verarbeite einzelne Zeichen, bis der Pointer 16-Byte-aligned ist
+      // find number of characters until we reach a 16-byte aligned address
       uintptr_t ptr_value = reinterpret_cast<uintptr_t>(pos_ptr);
-      size_t misalignment = ptr_value & 0xF; // Berechnet Misalignment als (Adresswert) mod 16
-      size_t chars_to_align = misalignment ? (16 - misalignment) / sizeof(XMLCh) : 0;
+      size_t misalignment = ptr_value & 15; // modulo 16 to find misalignment
+      int chars_to_align = misalignment ? (16 - misalignment) / sizeof(XMLCh) : 0;
   
-      // Vorverarbeitung einzelner Zeichen bis zum Alignment oder bis zum Ende des Strings
-      for (size_t i = 0; i < chars_to_align; ++i) {
+      // process one by one until we reach a 16-byte aligned address (where a SIMD load can be used)
+      for (int i = 0; i < chars_to_align; ++i)
+      {
           if (*pos_ptr == 0) {
               return i;
           }
@@ -440,28 +443,29 @@ namespace OpenMS::Internal
       }
       processed_chars = chars_to_align;
   
-      // Hauptschleife mit SIMD-Operationen
+      // SIMD loop: find the first zero character in blocks of 8 UTF-16 characters (16 bytes each)
       const simde__m128i zero = simde_mm_setzero_si128();
-      while (true) {
-          // SIMD-Operation
+      while (true)
+      {
           simde__m128i bits = simde_mm_load_si128(reinterpret_cast<const simde__m128i*>(pos_ptr));
-          simde__m128i cmp_zero = simde_mm_cmpeq_epi16(bits, zero);
-          uint16_t zero_mask = simde_mm_movemask_epi8(cmp_zero);
+          simde__m128i cmp_zero = simde_mm_cmpeq_epi16(bits, zero); // sets bits to 0xFFFF (2 bytes) for each character that is zero
+          uint16_t zero_mask = simde_mm_movemask_epi8(cmp_zero);    // extracts MSB from each byte 
   
-          if (zero_mask != 0x0000) {
-              size_t byte_pos_zero = __builtin_ctz(zero_mask);
-              size_t char_pos_zero = byte_pos_zero / 2;
+          if (zero_mask != 0)
+          { // Found a zero character
+              auto byte_pos_zero = std::countr_zero(zero_mask); // count trailing zeros to find the first zero character
+              auto char_pos_zero = byte_pos_zero / 2;           // each UTF-16 character is 2 bytes, so divide by 2 to get character position
               return processed_chars + char_pos_zero;
           }
   
-          // 8 Zeichen (16 Bytes) wurden verarbeitet, keine Null gefunden
+          // 8 chars (each 16 bytes) had no zero
           pos_ptr += 8;
           processed_chars += 8;
       }
   
-      // Diese Zeile wird nie erreicht
+      // never reached
       return processed_chars;
-  }
+    }
 
     void StringManager::compress64_(const XMLCh* inputIt, char* outputIt)
     {
@@ -480,46 +484,45 @@ namespace OpenMS::Internal
     }
 
     bool StringManager::isASCII(const XMLCh* chars, const XMLSize_t length)
-  {
-    if (length == 0)
     {
+      if (length == 0)
+      {
+        return true;
+      }
+
+      Size fullBlocks = length / 8;
+      Size remainder = length % 8;
+
+      const XMLCh* inputPtr = chars;
+      simde__m128i mask = simde_mm_set1_epi16(0xFF00);
+
+      // Process blocks of 8 UTF-16 characters using SIMD
+      for (Size i = 0; i < fullBlocks; ++i)
+      {
+        simde__m128i bits = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(inputPtr));
+        simde__m128i zero = simde_mm_setzero_si128();
+        simde__m128i andOp = simde_mm_and_si128(bits, mask);
+        simde__m128i cmp = simde_mm_cmpeq_epi16(andOp, zero);
+
+        if (simde_mm_movemask_epi8(cmp) != 0xFFFF)
+        {
+          return false;
+        }
+
+        inputPtr += 8;
+      }
+
+      // Check remaining characters individually
+      for (Size i = 0; i < remainder; ++i)
+      {
+        if (inputPtr[i] & 0xFF00)
+        {
+          return false;
+        }
+      }
+
       return true;
     }
-
-    Size fullBlocks = length / 8;
-    Size remainder = length % 8;
-
-    const XMLCh* inputPtr = chars;
-    simde__m128i mask = simde_mm_set1_epi16(0xFF00);
-    bool bitmask = true;
-
-    // Process blocks of 8 UTF-16 characters using SIMD
-    for (Size i = 0; i < fullBlocks; ++i)
-    {
-      simde__m128i bits = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(inputPtr));
-      simde__m128i zero = simde_mm_setzero_si128();
-      simde__m128i andOp = simde_mm_and_si128(bits, mask);
-      simde__m128i cmp = simde_mm_cmpeq_epi16(andOp, zero);
-
-      if (simde_mm_movemask_epi8(cmp) != 0xFFFF)
-      {
-        return false;
-      }
-
-      inputPtr += 8;
-    }
-
-  // Check remaining characters individually
-    for (Size i = 0; i < remainder && bitmask; ++i)
-    {
-      if (inputPtr[i] & 0xFF00)
-      {
-        return false;
-      }
-    }
-
-    return bitmask;
-  }
 
     void StringManager::appendASCII(const XMLCh* chars, const XMLSize_t length, String& result)
     {
@@ -556,13 +559,8 @@ namespace OpenMS::Internal
 
     //*******************************************************************************************************************
     
-    StringManager::StringManager()
-    = default;
+    StringManager::StringManager() = default;
 
-    StringManager::~StringManager()
-    = default;
+    StringManager::~StringManager() = default;
 
-    
-
-
-} // namespace OpenMS   // namespace Internal
+} // namespace OpenMS::Internal
