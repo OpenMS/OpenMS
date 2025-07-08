@@ -349,12 +349,12 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
 
   for (const auto& dspec : dspecs)
   {
-   // if (dspec.getScanNumber() > 993) break;
     nextProgress();
+    //if (dspec.getScanNumber() > 993)break;
     if (scan_to_tag_indices.find(dspec.getScanNumber()) == scan_to_tag_indices.end()) continue;
     const auto& tag_indices = scan_to_tag_indices[dspec.getScanNumber()];
     std::vector<ProteinHit> hits;
-    std::map<Size, std::set<Size>> pi_to_pos;         // protein index to covered positions
+    std::map<Size, std::map<Size, int>> pi_to_pos;         // protein index to covered positions
     std::map<Size, std::set<Size>> pi_to_tag_indices; // protein index to tag indices
 
     for (const auto& tag_index : tag_indices)
@@ -367,8 +367,10 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
       for (Size i = 0; i < pis.size(); i++)
       {
         pi_to_tag_indices[pis[i]].insert(tag_index);
-        for (Size j = 0; j < 1; j++) // seq.length()
-          pi_to_pos[pis[i]].insert(pps[i] + j);
+        for (int j = 0; j <= seq.length(); j++) //
+        {
+          pi_to_pos[pis[i]][pps[i] + j] = 1;//tag.getScore(j);
+        }
       }
     }
 
@@ -377,13 +379,24 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
       const auto& fe = fasta_entry[pi];
       double covered_pos = (double)pp.size();
       double coverage = (double)covered_pos / (double)fe.sequence.length();
+      int score = std::accumulate(
+        pp.begin(), pp.end(), 0,
+        [](int acc, const std::pair<const Size, int>& p) {
+          return acc + p.second;
+        });
+      std::vector<int> positions;
+      std::transform(pp.begin(), pp.end(), std::back_inserter(positions),
+                     [](const std::pair<const Size, int>& p) {
+                       return p.first;
+                     });
+
       ProteinHit hit(coverage, 0, fe.identifier, fe.sequence); //
       hit.setDescription(fe.description);
       hit.setMetaValue("Scan", dspec.getScanNumber());
       hit.setMetaValue("MatchedAA", covered_pos);
       hit.setCoverage(coverage);
       hit.setMetaValue("TagIndices", std::vector<int>(pi_to_tag_indices[pi].begin(), pi_to_tag_indices[pi].end()));
-      hit.setMetaValue("TagPositions", std::vector<int>(pi_to_pos[pi].begin(), pi_to_pos[pi].end()));
+      hit.setMetaValue("TagPositions", positions);
       hit.setMetaValue("FastaIndex", pi);
       hits.push_back(hit);
     }
@@ -398,11 +411,11 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
 
     if (hits.size() > max_hit_count) { hits.resize(max_hit_count); }
 
-//    for (auto& hit : hits)
-//    {
-//      std::cout<< dspec.getScanNumber() << " " << hit.getScore() << " " << hit.getAccession() << std::endl;
-//      for (auto jj : hit.getMetaValue("TagPositions").toIntList()) std::cout<< jj << std::endl;
-//    }
+    for (auto& hit : hits)
+    {
+      //std::cout<< dspec.getScanNumber() << " " << hit.getScore() << " " << hit.getAccession() << std::endl;
+      //for (auto jj : hit.getMetaValue("TagPositions").toIntList()) std::cout<< jj << std::endl;
+    }
 
     FLASHExtenderAlgorithm extender;
     extender.setParameters(extender_param_);
@@ -412,35 +425,6 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
   }
 
   endProgress();
-
-  // redefine tag index and proteoform to tag indices
-  //  std::map<int, int> scan_index_offset;
-  //  int offset = 0;
-  //  for (auto& tag : tags_)
-  //  {
-  //    int scan = tag.getScan();
-  //    if (scan_index_offset.find(scan) == scan_index_offset.end()) scan_index_offset[scan] = offset;
-  //    offset++;
-  //  }
-  //
-  //  for (auto& tag : tags_)
-  //  {
-  //    int scan = tag.getScan();
-  //    int index = tag.getIndex();
-  //    tag.setIndex(index + scan_index_offset[scan]);
-  //  }
-  //
-  //  for (auto& hit : proteoform_hits_)
-  //  {
-  //    std::vector<int> tag_indices;
-  //    if (hit.metaValueExists("TagIndices")) tag_indices = hit.getMetaValue("TagIndices").toIntList();
-  //    int scan = hit.getMetaValue("Scan");
-  //    for (int& tag_index : tag_indices)
-  //    {
-  //      tag_index += scan_index_offset[scan];
-  //    }
-  //    hit.setMetaValue("TagIndices", tag_indices);
-  //  }
 
   markRepresentativeProteoformHits_(precursor_tol);
   std::sort(proteoform_hits_.begin(), proteoform_hits_.end(), [](const ProteinHit& left, const ProteinHit& right) {
