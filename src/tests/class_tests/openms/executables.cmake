@@ -78,6 +78,7 @@ set(datastructures_executables_list
 set(metadata_executables_list
   AcquisitionInfo_test
   Acquisition_test
+  AnnotatedMSRun_test
   CVTermList_test
   CVTermListInterface_test
   CVTerm_test
@@ -269,6 +270,9 @@ set(format_executables_list
 
 if(WITH_HDF5)
   list(APPEND format_executables_list HDF5_test)
+endif()
+if(WITH_PARQUET)
+  list(APPEND format_executables_list Arrow_test)
 endif()
 
 set(math_executables_list
@@ -513,6 +517,8 @@ set(analysis_executables_list
   PrecursorPurity_test
   QTClusterFinder_test
   ReactionMonitoringTransition_test
+  NuXLModificationsGenerator_test
+  NuXLParameterParsing_test
   SimpleSearchEngineAlgorithm_test
   SimpleSVM_test
   StablePairFinder_test

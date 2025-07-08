@@ -153,7 +153,7 @@ class TOPPOpenSwathMzMLFileCacher
       MapType exp;
       SqMassFile sqfile;
       sqfile.load(in, exp);
-      FileHandler().storeExperiment(out, exp, {FileTypes::MZML});
+      FileHandler().storeExperiment(out, exp, {FileTypes::MZML}, log_type_);
       return EXECUTION_OK;
     }
     else if (in_type == FileTypes::MZML && out_type == FileTypes::SQMASS && process_lowmemory)
@@ -186,7 +186,7 @@ class TOPPOpenSwathMzMLFileCacher
       sqfile.setConfig(config);
 
       MapType exp;
-      FileHandler().loadExperiment(in, exp, {FileTypes::MZML});
+      FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
       sqfile.store(out, exp);
       return EXECUTION_OK;
     }

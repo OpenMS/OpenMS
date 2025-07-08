@@ -86,6 +86,7 @@ def changed_dir(dirname):
 def strtobool(val):
     """Convert a string representation of truth to true (1) or false (0).
 
+<<<<<<< HEAD
     True values are 'y', 'yes', 't', 'true', 'on', and '1'; false values
     are 'n', 'no', 'f', 'false', 'off', and '0'.  Raises ValueError if
     'val' is anything else.
@@ -96,6 +97,48 @@ def strtobool(val):
         return 1
     elif val in ('n', 'no', 'f', 'false', 'off', '0'):
         return 0
+=======
+if iswin:
+    # /EHs is important. It sets _CPPUNWIND which causes boost to
+    # set BOOST_NO_EXCEPTION in <boost/config/compiler/visualc.hpp>
+    # such that  boost::throw_excption() is declared but not implemented.
+    # The linker does not like that very much ...
+    extra_compile_args = ["/EHs", "/bigobj"]
+    extra_compile_args.append("/std:c++17")
+    extra_link_args.append("/std:c++17")
+
+elif sys.platform.startswith("linux"):
+    extra_link_args = ["-Wl,-s"]
+    if OMP:
+        libraries.append("libomp")
+        libraries.append("pthread")
+elif sys.platform == "darwin":
+    library_dirs.insert(0,j(OPEN_MS_BUILD_DIR,"pyOpenMS","pyopenms"))
+    if OMP:
+        libraries.append("omp")
+    # we need to manually link to the Qt Frameworks
+    python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
+    pyopenms_path = f"@loader_path/../lib/python{python_version}/site-packages/pyopenms"
+    extra_compile_args = ["-Qunused-arguments", "-fopenmp"]
+    extra_link_args = ["-Wl,-rpath,@loader_path/../lib", f"-Wl,-rpath,{pyopenms_path}", "-lomp"]
+if IS_DEBUG:
+    extra_compile_args.append("-g2")
+if OMP and OPENMP_CXX_FLAGS:
+    extra_compile_args.extend(OPENMP_CXX_FLAGS.split(";"))
+
+if not iswin:
+    extra_link_args.append("-std=c++17")
+    extra_compile_args.append("-std=c++17")
+    if isosx: # MacOS
+        extra_compile_args.append("-stdlib=libc++")
+        extra_link_args.append("-stdlib=libc++") # MacOS libstdc++ does not include c++11+ lib support.
+        extra_link_args.append("-mmacosx-version-min=10.9") # due to libc++
+        extra_compile_args.append("-Wno-deprecated")
+        extra_compile_args.append("-Wno-nullability-completeness")
+        if (osx_ver >= "10.14.0" and SYSROOT_OSX_PATH): # since macOS Mojave
+            extra_link_args.append("-isysroot" + SYSROOT_OSX_PATH)
+            extra_compile_args.append("-isysroot" + SYSROOT_OSX_PATH)
+>>>>>>> develop
     else:
         raise ValueError("invalid truth value %r" % (val,))
 
@@ -141,7 +184,7 @@ class build_ext(_build_ext):
                      ('extra-cmake-args=', None, 'extra arguments for CMake'),
                      ('num_modules=', None, 'number of modules to split cython cpps into'),
                      ('num_threads=', None, 'number of threads to use for building, i.e. how many modules to build in parallel'),
-                     ('build-type=', None, 'build type (debug or release), default release'),] +
+                     ('build-type=', None, 'build type (debug or release), default release')] +
                     _build_ext.user_options)
 
     def initialize_options(self):

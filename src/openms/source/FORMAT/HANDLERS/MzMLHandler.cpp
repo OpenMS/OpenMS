@@ -64,7 +64,13 @@ namespace OpenMS::Internal
     {
       options_ = opt;
       spectrum_data_.reserve(options_.getMaxDataPoolSize());
-      chromatogram_data_.reserve(options_.getMaxDataPoolSize());
+
+      // Reserve memory for chromatogram data based on the maximum data pool size if chromatograms are to be skipped.
+      skip_chromatogram_ = options_.getSkipChromatograms();
+      if (!skip_chromatogram_)
+      {
+        chromatogram_data_.reserve(options_.getMaxDataPoolSize());
+      }
     }
 
     /// Get the peak file options
@@ -250,50 +256,6 @@ namespace OpenMS::Internal
       chromatogram_data_.clear();
     }
 
-    void MzMLHandler::addSpectrumMetaData_(const std::vector<MzMLHandlerHelper::BinaryData>& input_data,
-                                           const Size n,
-                                           SpectrumType& spectrum) const
-    {
-
-      // add meta data
-      UInt meta_float_array_index = 0;
-      UInt meta_int_array_index = 0;
-      UInt meta_string_array_index = 0;
-      for (Size i = 0; i < input_data.size(); i++) //loop over all binary data arrays
-      {
-        if (input_data[i].meta.getName() != "m/z array" && input_data[i].meta.getName() != "intensity array") // is meta data array?
-        {
-          if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)
-          {
-            if (n < input_data[i].size)
-            {
-              double value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].floats_64[n] : input_data[i].floats_32[n];
-              spectrum.getFloatDataArrays()[meta_float_array_index].push_back(value);
-            }
-            ++meta_float_array_index;
-          }
-          else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
-          {
-            if (n < input_data[i].size)
-            {
-              Int64 value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].ints_64[n] : input_data[i].ints_32[n];
-              spectrum.getIntegerDataArrays()[meta_int_array_index].push_back(value);
-            }
-            ++meta_int_array_index;
-          }
-          else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
-          {
-            if (n < input_data[i].decoded_char.size())
-            {
-              String value = input_data[i].decoded_char[n];
-              spectrum.getStringDataArrays()[meta_string_array_index].push_back(value);
-            }
-            ++meta_string_array_index;
-          }
-        }
-      }
-    }
-
     void MzMLHandler::populateSpectraWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
                                                Size& default_arr_length,
                                                const PeakFileOptions& peak_file_options,
@@ -358,79 +320,81 @@ namespace OpenMS::Internal
         warning(LOAD, String("Fixing faulty defaultArrayLength to ") + default_arr_length + ".");
       }
 
-      //create meta data arrays and reserve enough space for the content
-      if (input_data.size() > 2)
-      {
-        for (Size i = 0; i < input_data.size(); i++)
-        {
-          if (input_data[i].meta.getName() != "m/z array" && input_data[i].meta.getName() != "intensity array")
-          {
-            if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)
-            {
-              //create new array
-              spectrum.getFloatDataArrays().resize(spectrum.getFloatDataArrays().size() + 1);
-              //reserve space in the array
-              spectrum.getFloatDataArrays().back().reserve(input_data[i].size);
-              //copy meta info into MetaInfoDescription
-              spectrum.getFloatDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
-            }
-            else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
-            {
-              //create new array
-              spectrum.getIntegerDataArrays().resize(spectrum.getIntegerDataArrays().size() + 1);
-              //reserve space in the array
-              spectrum.getIntegerDataArrays().back().reserve(input_data[i].size);
-              //copy meta info into MetaInfoDescription
-              spectrum.getIntegerDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
-            }
-            else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
-            {
-              //create new array
-              spectrum.getStringDataArrays().resize(spectrum.getStringDataArrays().size() + 1);
-              //reserve space in the array
-              spectrum.getStringDataArrays().back().reserve(input_data[i].decoded_char.size());
-              //copy meta info into MetaInfoDescription
-              spectrum.getStringDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
-            }
-          }
-        }
-      }
-
       // Copy meta data from m/z and intensity binary
       // We don't have this as a separate location => store it in spectrum
-      for (Size i = 0; i < input_data.size(); i++)
-      {
-        if (input_data[i].meta.getName() == "m/z array" || input_data[i].meta.getName() == "intensity array")
-        {
-          std::vector<UInt> keys;
-          input_data[i].meta.getKeys(keys);
-          for (Size k = 0; k < keys.size(); ++k)
-          {
-            spectrum.setMetaValue(keys[k], input_data[i].meta.getMetaValue(keys[k]));
-          }
-        }
-      }
-
-      // We found that the push back approach is about 5% faster than using
-      // iterators (e.g. spectrum iterator that gets updated)
+      spectrum.addMetaValues(input_data[mz_index].meta);
+      spectrum.addMetaValues(input_data[int_index].meta);
 
       //add the peaks and the meta data to the container (if they pass the restrictions)
       PeakType tmp;
       spectrum.reserve(default_arr_length);
 
-      // the most common case: no ranges, 64 / 32 precision
-      //  -> this saves about 10 % load time
-      if ( mz_precision_64 && !int_precision_64 &&
-           input_data.size() == 2 &&
-           !peak_file_options.hasMZRange() &&
-           !peak_file_options.hasIntensityRange()
-         )
+      // Optimized code paths for different scenarios
+      bool has_mz_range = peak_file_options.hasMZRange();
+      bool has_intensity_range = peak_file_options.hasIntensityRange();
+      bool has_metadata = input_data.size() > 2;
+
+      // Pre-identify metadata arrays and create spectrum arrays for efficient access
+      struct MetaArrayInfo {
+        Size input_index;
+        Size spectrum_index;
+        MzMLHandlerHelper::BinaryData::DATA_TYPE data_type;
+        MzMLHandlerHelper::BinaryData::PRECISION precision;
+      };
+      std::vector<MetaArrayInfo> meta_arrays;
+      meta_arrays.reserve(input_data.size() - 2); // reserve space for all but m/z and intensity arrays
+      if (has_metadata)
       {
-        std::vector< double >::const_iterator mz_it = input_data[mz_index].floats_64.begin();
-        std::vector< float >::const_iterator int_it = input_data[int_index].floats_32.begin();
-        for (Size n = 0; n < default_arr_length; n++)
+        Size meta_float_idx = 0, meta_int_idx = 0, meta_string_idx = 0;
+        for (Size i = 0; i < input_data.size(); i++)
         {
-          //add peak
+          if (i == int_index || i == mz_index) continue; // Skip m/z and intensity arrays
+          
+          MetaArrayInfo info;
+          info.input_index = i;
+          info.data_type = input_data[i].data_type;
+          info.precision = input_data[i].precision;
+            
+          if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT) 
+          {
+            info.spectrum_index = meta_float_idx++;
+            //create new array
+            spectrum.getFloatDataArrays().resize(spectrum.getFloatDataArrays().size() + 1);
+            //reserve space in the array
+            spectrum.getFloatDataArrays().back().reserve(input_data[i].size);
+            //copy meta info into MetaInfoDescription
+            spectrum.getFloatDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
+          } 
+          else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
+          {
+            info.spectrum_index = meta_int_idx++;
+            //create new array
+            spectrum.getIntegerDataArrays().resize(spectrum.getIntegerDataArrays().size() + 1);
+            //reserve space in the array
+            spectrum.getIntegerDataArrays().back().reserve(input_data[i].size);
+            //copy meta info into MetaInfoDescription
+            spectrum.getIntegerDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
+          } 
+          else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
+          {
+            info.spectrum_index = meta_string_idx++;
+            //create new array
+            spectrum.getStringDataArrays().resize(spectrum.getStringDataArrays().size() + 1);
+            //reserve space in the array
+            spectrum.getStringDataArrays().back().reserve(input_data[i].decoded_char.size());
+            //copy meta info into MetaInfoDescription
+            spectrum.getStringDataArrays().back().MetaInfoDescription::operator=(input_data[i].meta);
+          }
+          meta_arrays.push_back(info);
+        }
+      }
+
+      // Most common case: no ranges, 64/32 precision, no metadata
+      if (mz_precision_64 && !int_precision_64 && !has_metadata && !has_mz_range && !has_intensity_range)
+      {
+        std::vector<double>::const_iterator mz_it = input_data[mz_index].floats_64.begin();
+        std::vector<float>::const_iterator int_it = input_data[int_index].floats_32.begin();
+        for (Size n = 0; n < default_arr_length; n++) {
           tmp.setIntensity(*int_it);
           tmp.setMZ(*mz_it);
           ++mz_it;
@@ -440,24 +404,110 @@ namespace OpenMS::Internal
         return;
       }
 
-      for (Size n = 0; n < default_arr_length; n++)
+      // Optimized case: no filtering, but with metadata
+      if (!has_mz_range && !has_intensity_range)
       {
+        // Copy all peaks first using direct array access
+        if (mz_precision_64 && int_precision_64) {
+          const auto& mz_data = input_data[mz_index].floats_64;
+          const auto& int_data = input_data[int_index].floats_64;
+          for (Size n = 0; n < default_arr_length; n++) {
+            tmp.setMZ(mz_data[n]);
+            tmp.setIntensity(int_data[n]);
+            spectrum.push_back(tmp);
+          }
+        } else if (mz_precision_64 && !int_precision_64) {
+          const auto& mz_data = input_data[mz_index].floats_64;
+          const auto& int_data = input_data[int_index].floats_32;
+          for (Size n = 0; n < default_arr_length; n++) {
+            tmp.setMZ(mz_data[n]);
+            tmp.setIntensity(int_data[n]);
+            spectrum.push_back(tmp);
+          }
+        } else if (!mz_precision_64 && int_precision_64) {
+          const auto& mz_data = input_data[mz_index].floats_32;
+          const auto& int_data = input_data[int_index].floats_64;
+          for (Size n = 0; n < default_arr_length; n++) {
+            tmp.setMZ(mz_data[n]);
+            tmp.setIntensity(int_data[n]);
+            spectrum.push_back(tmp);
+          }
+        } else {
+          const auto& mz_data = input_data[mz_index].floats_32;
+          const auto& int_data = input_data[int_index].floats_32;
+          for (Size n = 0; n < default_arr_length; n++) {
+            tmp.setMZ(mz_data[n]);
+            tmp.setIntensity(int_data[n]);
+            spectrum.push_back(tmp);
+          }
+        }
+
+        // Copy all metadata arrays in bulk
+        if (has_metadata) {
+          for (const auto& meta : meta_arrays) {
+            const auto& data = input_data[meta.input_index];
+            Size copy_length = std::min(default_arr_length, data.size);
+            // no warning if size mismatched required; done while converting from base64
+
+            if (meta.data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT) {
+              auto& target_array = spectrum.getFloatDataArrays()[meta.spectrum_index];
+              target_array.reserve(copy_length);
+              if (meta.precision == MzMLHandlerHelper::BinaryData::PRE_64) {
+                target_array.insert(target_array.end(), data.floats_64.begin(), data.floats_64.begin() + copy_length);
+              } else {
+                target_array.insert(target_array.end(), data.floats_32.begin(), data.floats_32.begin() + copy_length);
+              }
+            } else if (meta.data_type == MzMLHandlerHelper::BinaryData::DT_INT) {
+              auto& target_array = spectrum.getIntegerDataArrays()[meta.spectrum_index];
+              target_array.reserve(copy_length);
+              if (meta.precision == MzMLHandlerHelper::BinaryData::PRE_64) {
+                target_array.insert(target_array.end(), data.ints_64.begin(), data.ints_64.begin() + copy_length);
+              } else {
+                target_array.insert(target_array.end(), data.ints_32.begin(), data.ints_32.begin() + copy_length);
+              }
+            } else if (meta.data_type == MzMLHandlerHelper::BinaryData::DT_STRING) {
+              auto& target_array = spectrum.getStringDataArrays()[meta.spectrum_index];
+              Size string_copy_length = std::min(copy_length, data.decoded_char.size());
+              target_array.reserve(string_copy_length);
+              target_array.insert(target_array.end(), data.decoded_char.begin(), data.decoded_char.begin() + string_copy_length);
+            }
+          }
+        }
+        return;
+      }
+
+      // General case with filtering (rare case - keep simple)
+      for (Size n = 0; n < default_arr_length; n++) {
         double mz = mz_precision_64 ? input_data[mz_index].floats_64[n] : input_data[mz_index].floats_32[n];
         double intensity = int_precision_64 ? input_data[int_index].floats_64[n] : input_data[int_index].floats_32[n];
-        if ((!peak_file_options.hasMZRange() || peak_file_options.getMZRange().encloses(DPosition<1>(mz)))
-           && (!peak_file_options.hasIntensityRange() || peak_file_options.getIntensityRange().encloses(DPosition<1>(intensity))))
-        {
-          //add peak
+        
+        if ((!has_mz_range || peak_file_options.getMZRange().encloses(DPosition<1>(mz))) &&
+            (!has_intensity_range || peak_file_options.getIntensityRange().encloses(DPosition<1>(intensity)))) {
+          
           tmp.setIntensity(intensity);
           tmp.setMZ(mz);
           spectrum.push_back(tmp);
 
-          // Only if there are more than 2 data arrays, we need to check
-          // for meta data (as there will always be an m/z and intensity
-          // array)
-          if (input_data.size() > 2)
-          {
-            addSpectrumMetaData_(input_data, n, spectrum);
+          // Add metadata efficiently for filtered peaks
+          if (has_metadata) {
+            for (const auto& meta : meta_arrays) {
+              const auto& data = input_data[meta.input_index];
+              if (n < data.size) {
+                if (meta.data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT) {
+                  double value = (meta.precision == MzMLHandlerHelper::BinaryData::PRE_64) ?
+                                 data.floats_64[n] : data.floats_32[n];
+                  spectrum.getFloatDataArrays()[meta.spectrum_index].push_back(value);
+                } else if (meta.data_type == MzMLHandlerHelper::BinaryData::DT_INT) {
+                  Int64 value = (meta.precision == MzMLHandlerHelper::BinaryData::PRE_64) ?
+                                data.ints_64[n] : data.ints_32[n];
+                  spectrum.getIntegerDataArrays()[meta.spectrum_index].push_back(value);
+                } else if (meta.data_type == MzMLHandlerHelper::BinaryData::DT_STRING) {
+                  if (n < data.decoded_char.size()) {
+                    spectrum.getStringDataArrays()[meta.spectrum_index].push_back(data.decoded_char[n]);
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -762,7 +812,7 @@ namespace OpenMS::Internal
           skip_chromatogram_ = true; // skip the remaining chrom, until endElement(chromatogram)
           ++chromatogram_count_;
         }
-
+    
         chromatogram_ = ChromatogramType();
         default_array_length_ = attributeAsInt_(attributes, s_default_array_length);
         String source_file_ref;
@@ -810,9 +860,15 @@ namespace OpenMS::Internal
       }
       else if (tag == "chromatogramList")
       {
+        // return if skip_chromatogram_ true
+        if (skip_chromatogram_)
+        {
+          return;
+        }
+    
         // default data processing
         default_processing_ = attributeAsString_(attributes, s_default_data_processing_ref);
-
+    
         //Abort if we need meta data only
         if (options_.getMetadataOnly())
         {
@@ -1289,7 +1345,10 @@ namespace OpenMS::Internal
         {
           case XMLHandler::LD_ALLDATA:
           case XMLHandler::LD_COUNTS_WITHOPTIONS:
-            skip_chromatogram_ = false; // don't skip the next chrom
+            if (!options_.getSkipChromatograms())
+            {
+              skip_chromatogram_ = false;  // don't skip the next chrom
+            }
             break;
           case XMLHandler::LD_RAWCOUNTS:
             skip_chromatogram_ = true; // we always skip chroms; we only need the outer <spectrumList/chromatogramList count=...>

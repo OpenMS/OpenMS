@@ -93,7 +93,7 @@ public:
         setProgress(is.tellg());
         ++spectrum_number;
       } // next spectrum
-
+      exp.updateRanges();
       endProgress();
     }
 

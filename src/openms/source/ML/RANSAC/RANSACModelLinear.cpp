@@ -43,7 +43,7 @@ namespace OpenMS::Math
       }
 
       LinearRegression lin_reg;
-      lin_reg.computeRegression(0.95, x.begin(), x.end(), y.begin(), false);
+      lin_reg.computeRegression(0.95, x.begin(), x.end(), y.begin(), true);
 
       return lin_reg.getRSquared();
     }

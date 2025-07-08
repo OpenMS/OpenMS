@@ -8,6 +8,7 @@ from ProteinIdentification cimport *
 from PeptideIdentification cimport *
 
 from MSExperiment cimport *
+from AnnotatedMSRun cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
 
@@ -20,11 +21,11 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
         IDMapper() except + nogil  # wrap-doc:Annotates an MSExperiment, FeatureMap or ConsensusMap with peptide identifications
         IDMapper(IDMapper &) except + nogil 
 
-        void annotate(MSExperiment & map_,
-                      libcpp_vector[PeptideIdentification] & ids,
-                      libcpp_vector[ProteinIdentification] & protein_ids,
-                      bool clear_ids,
-                      bool mapMS1) except + nogil 
+        void annotate(AnnotatedMSRun & map_,
+                       libcpp_vector[PeptideIdentification] & ids,
+                       libcpp_vector[ProteinIdentification] & protein_ids,
+                       bool clear_ids,
+                       bool mapMS1) except + nogil
             # wrap-doc:
                 #  Mapping method for peak maps\n
                 #  
@@ -33,7 +34,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #  Note that a PeptideIdentication is added to ALL spectra which are within the allowed RT and MZ boundaries
                 #  
                 #  
-                #  :param map: MSExperiment to receive the identifications
+                #  :param map: AnnotatedMSRun to receive the identifications
                 #  :param peptide_ids: PeptideIdentification for the MSExperiment
                 #  :param protein_ids: ProteinIdentification for the MSExperiment
                 #  :param clear_ids: Reset peptide and protein identifications of each scan before annotating
@@ -41,10 +42,10 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #  :raises:
                 #    Exception: MissingInformation is thrown if entries of 'peptide_ids' do not contain 'MZ' and 'RT' information
 
-        void annotate(MSExperiment & map_,
-                      FeatureMap & fmap,
-                      bool clear_ids,
-                      bool mapMS1) except + nogil 
+        void annotate(AnnotatedMSRun & map_,
+                       FeatureMap & fmap,
+                       bool clear_ids,
+                       bool mapMS1) except + nogil
             # wrap-doc:
                 #  Mapping method for peak maps\n
                 #  
@@ -55,7 +56,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #  RT and m/z are taken from the peptides, or (if missing) from the feature itself
                 #  
                 #  
-                #  :param map: MSExperiment to receive the identifications
+                #  :param map: AnnotatedMSRun to receive the identifications
                 #  :param fmap: FeatureMap with PeptideIdentifications for the MSExperiment
                 #  :param clear_ids: Reset peptide and protein identifications of each scan before annotating
                 #  :param map_ms1: Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)

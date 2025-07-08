@@ -85,12 +85,16 @@ WORKDIR ${SOURCE_DIR}
 RUN mkdir -p ${THIRDPARTY_DIR}
 RUN <<-EOF
     set -eux
-    git submodule update --depth=1 --init THIRDPARTY
+
+    ALL_DIR=THIRDPARTY/All
+    LINUX_DIR=THIRDPARTY/Linux/x86_64
+
+    if [ ! -d "$ALL_DIR" ] || [ ! -d "$LINUX_DIR" ]; then
+      git submodule update --depth=1 --init THIRDPARTY
+    fi
 
     # copying only the binaries that are relevant to Linux
-    cp -r THIRDPARTY/All/* ${THIRDPARTY_DIR}
-    cp -r THIRDPARTY/Linux/64bit/* ${THIRDPARTY_DIR}
-
+    cp -vr "$ALL_DIR"/* "$LINUX_DIR"/* ${THIRDPARTY_DIR}
     rm -rf THIRDPARTY
 EOF
 

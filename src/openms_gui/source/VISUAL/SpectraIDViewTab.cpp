@@ -33,6 +33,8 @@
 #include <vector>
 #include <string>
 
+//#define DEBUG_SPECTRA_ID_VIEW 1
+
 using namespace std;
 
 ///@improvement write the visibility-status of the columns in toppview.ini and read at start
@@ -44,13 +46,13 @@ namespace Clmn
   enum HeaderNames
   { // indices into QTableWidget's columns (which start at index 0)
     MS_LEVEL, SPEC_INDEX, RT, PRECURSOR_MZ, DISSOCIATION, SCANTYPE, ZOOM, SCORE, RANK, 
-    CHARGE, SEQUENCE, ACCESSIONS, ID_NR, PEPHIT_NR, CURATED, PREC_PPM, PREC_INT, PEAK_ANNOTATIONS, /* last entry --> */ SIZE_OF_HEADERNAMES
+    CHARGE, SEQUENCE, ACCESSIONS, START, END, ID_NR, PEPHIT_NR, CURATED, PREC_PPM, PREC_INT, PEAK_ANNOTATIONS, /* last entry --> */ SIZE_OF_HEADERNAMES
   };
   // keep in SYNC with enum HeaderNames
   const QStringList HEADER_NAMES = QStringList()
                                     << "MS" << "index" << "RT"
                                     << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score"
-                                    << "rank" << "charge" << "sequence" << "accessions" << "#ID" << "#PH"
+                                    << "rank" << "charge" << "sequence" << "accessions" << "start" << "end" << "#ID" << "#PH"
                                     << "Curated" << "precursor error (|ppm|)" << "precursor intensity" << "peak annotations";
 }
 
@@ -159,35 +161,34 @@ namespace OpenMS
 
     if (is_first_time_loading_ && layer_)
     {
-      for (const auto& spec : *layer_->getPeakData())
+      auto& annotated_peak_data = *layer_->getPeakData();
+
+      if (annotated_peak_data.getPeptideIdentifications().empty())
       {
-        if (!spec.getPeptideIdentifications().empty())
+        return;
+      }
+      
+      for (const auto& [spec, pepid] : annotated_peak_data)
+      {
+        const vector<PeptideHit>& pep_hits = pepid.getHits();
+        //add id_accession as the key of the map and push the peptideID to the vector value-
+        for (const auto & pep_hit : pep_hits)
         {
-          const vector<PeptideIdentification>& peptide_ids = spec.getPeptideIdentifications();
+          const vector<PeptideEvidence>& evidences = pep_hit.getPeptideEvidences();
 
-          for (const auto& pepid : peptide_ids)
+          for (const auto & evidence : evidences)
           {
-            const vector<PeptideHit>& pep_hits = pepid.getHits();
-            //add id_accession as the key of the map and push the peptideID to the vector value-
-            for (const auto & pep_hit : pep_hits)
-            {
-              const vector<PeptideEvidence>& evidences = pep_hit.getPeptideEvidences();
-
-              for (const auto & evidence : evidences)
-              {
-                const String& id_accession = evidence.getProteinAccession();
-                protein_to_peptide_id_map[id_accession].push_back(&pepid);
-              }
-            }
+            const String& id_accession = evidence.getProteinAccession();            
+            protein_to_peptide_id_map[id_accession].push_back(&pepid);
           }
-        }
+        }        
       }
       // set is_first_time_loading to false so that the map gets created only the first time!
       is_first_time_loading_ = false;
     }
   }
 
-  //extract required part of accession and open browser
+  // extract required part of accession and open browser
   QString SpectraIDViewTab::extractNumFromAccession_(const QString& full_accession)
   {
     // anchored (^...$) regex for matching accession
@@ -407,7 +408,8 @@ namespace OpenMS
     }
 
     int current_spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
-    const auto& exp = *layer_->getPeakData();
+    const auto& annotated_exp = *layer_->getPeakData();
+    const auto& exp = annotated_exp.getMSExperiment();
     const auto& spec2 = exp[current_spectrum_index];
 
     //
@@ -416,16 +418,16 @@ namespace OpenMS
     // show precursor spectrum (usually MS1)
     if (column == Clmn::PRECURSOR_MZ)
     {
-      const auto prec_it = exp.getPrecursorSpectrum(exp.begin() + current_spectrum_index);
-
-      if (prec_it != exp.end() && !spec2.getPrecursors().empty())
+      const auto prec_it = exp.getPrecursorSpectrum(exp.getSpectra().begin() + current_spectrum_index);
+      
+      if (prec_it != exp.getSpectra().end() && !spec2.getPrecursors().empty())
       {
         double precursor_mz = spec2.getPrecursors()[0].getMZ();
         // determine start and stop of isolation window
         double isolation_window_lower_mz = precursor_mz - spec2.getPrecursors()[0].getIsolationWindowLowerOffset();
         double isolation_window_upper_mz = precursor_mz + spec2.getPrecursors()[0].getIsolationWindowUpperOffset();
 
-        emit spectrumSelected(std::distance(exp.begin(), prec_it), -1, -1);// no identification or hit selected (-1)
+        emit spectrumSelected(std::distance(exp.getSpectra().begin(), prec_it), -1, -1); // no identification or hit selected (-1)
         // zoom into precursor area
         emit requestVisibleArea1D(isolation_window_lower_mz - 50.0, isolation_window_upper_mz + 50.0);
       }
@@ -453,12 +455,12 @@ namespace OpenMS
       auto item_pepid = table_widget_->item(row, Clmn::ID_NR);
       if (item_pepid)// might be null for MS1 spectra
       {
-        int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
+        // int current_identification_index = item_pepid->data(Qt::DisplayRole).toInt();
         int current_peptide_hit_index = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
 
-        const vector<PeptideIdentification>& peptide_ids = spec2.getPeptideIdentifications();
-        const vector<PeptideHit>& pep_hits = peptide_ids[current_identification_index].getHits();
-        const PeptideHit& hit = pep_hits[current_peptide_hit_index];
+        const PeptideIdentification& peptide_id = annotated_exp.getPeptideIdentifications()[current_spectrum_index];
+        const vector<PeptideHit>& phits = peptide_id.getHits();
+        const PeptideHit& hit = phits[current_peptide_hit_index];
 
         // initialize window, when the table is requested for the first time
         // afterwards the size will stay at the manually resized window size
@@ -523,7 +525,7 @@ namespace OpenMS
     // want the list of unidentified MS2 spectra (obtained by unchecking the 'just hits' button).
     auto* ptr_peak = dynamic_cast<const LayerDataPeak*>(layer);
     bool no_data = (ptr_peak == nullptr
-                    || (ptr_peak && ptr_peak->getPeakData()->empty()));
+                    || (ptr_peak && ptr_peak->getPeakData()->getMSExperiment().empty()));
     return !no_data;
   }
 
@@ -588,17 +590,12 @@ namespace OpenMS
       // only when checked, otherwise only highlights
     {
       int row = selected_spec_row_idx;
-      int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
+      //int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
       int num_id = table_widget_->item(row, Clmn::ID_NR)->data(Qt::DisplayRole).toInt();
-      int num_ph = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
-      const auto& spec = layer_->getPeakData()->operator[](spectrum_index);
-      const vector<PeptideIdentification>& pep_id = spec.getPeptideIdentifications();
-
-      if(!spec.getPeptideIdentifications().empty())
-      {
-        const vector<PeptideHit>& hits = pep_id[num_id].getHits();
-        if (!hits.empty()) accs = hits[num_ph].extractProteinAccessionsSet();
-      }
+      int num_ph = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();      
+      const PeptideIdentification& pep_id = layer_->getPeakData()->getPeptideIdentifications()[num_id];
+      const vector<PeptideHit>& hits = pep_id.getHits();
+      if (!hits.empty()) accs = hits[num_ph].extractProteinAccessionsSet();
     }
 
     // create header labels (setting header labels must occur after fill)
@@ -668,6 +665,9 @@ namespace OpenMS
 
   void SpectraIDViewTab::updateEntries_()
   {
+    #ifdef DEBUG_SPECTRA_ID_VIEW
+      cout << "Updating entries in SpectraIDViewTab" << endl;
+    #endif
 
     // no valid peak layer attached
     if (!hasData(layer_))
@@ -699,24 +699,20 @@ namespace OpenMS
     {
       std::vector<std::reference_wrapper<const PeptideHit>> all_hits;
 
-      for (const auto& spec : layer_->getPeakData()->getSpectra())
+      for (auto [spectrum, peptide_id] : *layer_->getPeakData())
       {
-        UInt ms_level = spec.getMSLevel();
-        const vector<PeptideIdentification>& peptide_ids = spec.getPeptideIdentifications();
+        UInt ms_level = spectrum.getMSLevel();
 
-        if (ms_level != 2 || peptide_ids.empty()) // skip non ms2 spectra and spectra with no identification
+        if (ms_level != 2) // skip non ms2 spectra and spectra with no identification
         {
           continue;
         }
 
-        for (const auto& pep_id : peptide_ids)
+        const vector<PeptideHit>& phits = peptide_id.getHits();
+        all_hits.insert(all_hits.end(), phits.begin(), phits.end());
+        if (!has_peak_annotations && !phits.empty() && !phits[0].getPeakAnnotations().empty())
         {
-          const vector<PeptideHit>& phits = pep_id.getHits();
-          all_hits.insert(all_hits.end(), phits.begin(), phits.end());
-          if (!has_peak_annotations && !phits[0].getPeakAnnotations().empty())
-          {
-            has_peak_annotations = true;
-          }
+          has_peak_annotations = true;
         }
       }
 
@@ -748,25 +744,25 @@ namespace OpenMS
     // generate flat list
     int selected_row(-1);
     // index i is needed, so iterate the old way...
-    for (Size i = 0; i < layer_->getPeakData()->size(); ++i)
+    for (Size i = 0; i < layer_->getPeakData()->getMSExperiment().size(); ++i)
     {
-      const MSSpectrum& spectrum = (*layer_->getPeakData())[i];
+      auto [spectrum, peptide_id] = (*layer_->getPeakData())[i];
       const UInt ms_level = spectrum.getMSLevel();
-      const vector<PeptideIdentification>& pi = spectrum.getPeptideIdentifications();
-      const Size id_count = pi.size();
       const vector<Precursor> & precursors = spectrum.getPrecursors();
+      const Size id_count = peptide_id.getHits().size();
 
       // allow only MS2 OR MS1 with peptideIDs (from Mass Fingerprinting)
-      if (ms_level != 2 && id_count == 0)
+      if (ms_level != 2)
       { 
         continue;
       }
 
       // skip
-      if (hide_no_identification_->isChecked() && id_count == 0) 
+      if (hide_no_identification_->isChecked() && id_count == 0)
       { 
         continue;
       }
+
       // set row background color
       QColor bg_color = (id_count == 0 ? Qt::white : QColor::fromRgb(127,255,148));
 
@@ -780,107 +776,126 @@ namespace OpenMS
       }
       else
       {
-        for (Size pi_idx = 0; pi_idx != id_count; ++pi_idx)
+        // get peptide identifications of current spectrum
+        #ifdef DEBUG_SPECTRA_ID_VIEW
+          cout << "Peptide hits: " << peptide_id.getHits().size() << endl;
+        #endif
+
+        for (Size ph_idx = 0; ph_idx != peptide_id.getHits().size(); ++ph_idx)
         {
-          for (Size ph_idx = 0; ph_idx != pi[pi_idx].getHits().size(); ++ph_idx)
+          #ifdef DEBUG_SPECTRA_ID_VIEW
+            cout << "Peptide hit index: " << ph_idx << endl;
+            cout << "Peptide hit: " << peptide_id.getHits()[ph_idx].getSequence().toString() << endl;
+          #endif
+          const PeptideHit& ph = peptide_id.getHits()[ph_idx];
+
+          // add new row at the end of the table
+          table_widget_->insertRow(table_widget_->rowCount());
+
+          fillRow_(spectrum, i, bg_color);
+
+          table_widget_->setAtBottomRow(ph.getScore(), Clmn::SCORE, bg_color);
+          table_widget_->setAtBottomRow((int)ph.getRank(), Clmn::RANK, bg_color);
+          table_widget_->setAtBottomRow(ph.getCharge(), Clmn::CHARGE, bg_color);
+
+          // sequence
+          String seq = ph.getSequence().toString();
+          if (seq.empty())
           {
-            const PeptideHit& ph = pi[pi_idx].getHits()[ph_idx];
+            seq = ph.getMetaValue("label");
+          }
+          table_widget_->setAtBottomRow(seq.toQString(), Clmn::SEQUENCE, bg_color);
 
-            // add new row at the end of the table
-            table_widget_->insertRow(table_widget_->rowCount());
-
-            fillRow_(spectrum, i, bg_color);
-
-            table_widget_->setAtBottomRow(ph.getScore(), Clmn::SCORE, bg_color);
-            table_widget_->setAtBottomRow((int)ph.getRank(), Clmn::RANK, bg_color);
-            table_widget_->setAtBottomRow(ph.getCharge(), Clmn::CHARGE, bg_color);
-
-            // sequence
-            String seq = ph.getSequence().toString();
-            if (seq.empty())
-            {
-              seq = ph.getMetaValue("label");
+       // accession, start and end in protein (note that one peptide might match twice into same protein)
+        const vector<PeptideEvidence>& pevids = ph.getPeptideEvidences();
+        vector<String> protein_accessions;
+        vector<String> protein_starts;
+        vector<String> protein_ends;
+        for (const PeptideEvidence& ev : pevids)
+        {
+          protein_accessions.push_back(ev.getProteinAccession());
+          protein_starts.push_back(ev.getStart() + 1);
+          protein_ends.push_back(ev.getEnd() + 1);
+        }
+        String accessions = ListUtils::concatenate(vector<String>(protein_accessions.begin(), protein_accessions.end()), ", ");
+        String starts = ListUtils::concatenate(vector<String>(protein_starts.begin(), protein_starts.end()), ", ");
+        String ends = ListUtils::concatenate(vector<String>(protein_ends.begin(), protein_ends.end()), ", ");
+        table_widget_->setAtBottomRow(accessions.toQString(), Clmn::ACCESSIONS, bg_color);
+        table_widget_->setAtBottomRow(starts.toQString(), Clmn::START, bg_color);
+        table_widget_->setAtBottomRow(ends.toQString(), Clmn::END, bg_color);
+        table_widget_->setAtBottomRow((int) i, Clmn::ID_NR, bg_color); // spectrum index
+        table_widget_->setAtBottomRow((int)(ph_idx), Clmn::PEPHIT_NR, bg_color);
+        
+        bool selected(false);
+        if (ph.metaValueExists("selected"))
+        {
+          selected = ph.getMetaValue("selected").toString() == "true";
+        }
+        table_widget_->setAtBottomRow(selected, Clmn::CURATED, bg_color);
+        
+        // additional precursor infos, e.g. ppm error
+        if (!precursors.empty())
+        {
+          const Precursor& first_precursor = precursors.front();
+          double ppm_error(0);
+          // Protein:RNA cross-link, Protein-Protein cross-link, or other data with a precomputed precursor error
+          if (ph.metaValueExists(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))
+          {
+            ppm_error = fabs((double)ph.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM));
+          }
+          else if (ph.metaValueExists("OMS:precursor_mz_error_ppm")) // for legacy reasons added in OpenMS 2.5
+          {
+            ppm_error = fabs((double)ph.getMetaValue("OMS:precursor_mz_error_ppm"));
+          }
+          else if (!ph.getSequence().empty()) // works for normal linear fragments with the correct modifications included in the AASequence
+          {
+              double exp_precursor = first_precursor.getMZ();
+              int charge = first_precursor.getCharge();
+              double theo_precursor= ph.getSequence().getMZ(charge);
+              ppm_error = fabs((exp_precursor - theo_precursor) / exp_precursor / 1e-6);
             }
-            table_widget_->setAtBottomRow(seq.toQString(), Clmn::SEQUENCE, bg_color);
+            table_widget_->setAtBottomRow(ppm_error, Clmn::PREC_PPM, bg_color);
+          }
 
-            // accession
-            set<String> protein_accessions = ph.extractProteinAccessionsSet();
-            String accessions = ListUtils::concatenate(vector<String>(protein_accessions.begin(), protein_accessions.end()), ", ");
-            table_widget_->setAtBottomRow(accessions.toQString(), Clmn::ACCESSIONS, bg_color);
-            table_widget_->setAtBottomRow((int)(pi_idx), Clmn::ID_NR, bg_color);
-            table_widget_->setAtBottomRow((int)(ph_idx), Clmn::PEPHIT_NR, bg_color);
-
-            bool selected(false);
-            if (ph.metaValueExists("selected"))
+          // add additional meta value columns
+          if (create_rows_for_commmon_metavalue_->isChecked())
+          {
+            Int current_col = Clmn::PEAK_ANNOTATIONS;
+            // add peak annotation column (part of meta-value assessment above)
+            if (has_peak_annotations)
             {
-              selected = ph.getMetaValue("selected").toString() == "true";
+              // set hidden data for export to TSV
+              QString annotation;
+              for (const PeptideHit::PeakAnnotation& pa : ph.getPeakAnnotations())
+              {
+                annotation += String(pa.mz).toQString() + "|" +
+                  String(pa.intensity).toQString() + "|" +
+                  String(pa.charge).toQString() + "|" +
+                  pa.annotation.toQString() + ";";
+              }
+              QTableWidgetItem* item = table_widget_->setAtBottomRow("show", current_col, bg_color, Qt::blue);
+              item->setData(Qt::UserRole, annotation);
+              ++current_col;
             }
-            table_widget_->setAtBottomRow(selected, Clmn::CURATED, bg_color);
-
-            // additional precursor infos, e.g. ppm error
-            if (!precursors.empty())
+            for (const auto& ck : common_keys)
             {
-              const Precursor& first_precursor = precursors.front();
-              double ppm_error(0);
-              // Protein:RNA cross-link, Protein-Protein cross-link, or other data with a precomputed precursor error
-              if (ph.metaValueExists(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))
+              const DataValue& dv = ph.getMetaValue(ck);
+              if (dv.valueType() == DataValue::DOUBLE_VALUE)
               {
-                ppm_error = fabs((double)ph.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM));
+                table_widget_->setAtBottomRow(double(dv), current_col, bg_color);
               }
-              else if (ph.metaValueExists("OMS:precursor_mz_error_ppm")) // for legacy reasons added in OpenMS 2.5
+              else
               {
-                ppm_error = fabs((double)ph.getMetaValue("OMS:precursor_mz_error_ppm"));
+                table_widget_->setAtBottomRow(dv.toQString(), current_col, bg_color);
               }
-              else if (!ph.getSequence().empty()) // works for normal linear fragments with the correct modifications included in the AASequence
-              {
-                double exp_precursor = first_precursor.getMZ();
-                int charge = first_precursor.getCharge();
-                double theo_precursor= ph.getSequence().getMZ(charge);
-                ppm_error = fabs((exp_precursor - theo_precursor) / exp_precursor / 1e-6);
-              }
-              table_widget_->setAtBottomRow(ppm_error, Clmn::PREC_PPM, bg_color);
-            }
-
-            // add additional meta value columns
-            if (create_rows_for_commmon_metavalue_->isChecked())
-            {
-              Int current_col = Clmn::PEAK_ANNOTATIONS;
-              // add peak annotation column (part of meta-value assessment above)
-              if (has_peak_annotations)
-              {
-                // set hidden data for export to TSV
-                QString annotation;
-                for (const PeptideHit::PeakAnnotation& pa : ph.getPeakAnnotations())
-                {
-                  annotation += String(pa.mz).toQString() + "|" +
-                    String(pa.intensity).toQString() + "|" +
-                    String(pa.charge).toQString() + "|" +
-                    pa.annotation.toQString() + ";";
-                }
-                QTableWidgetItem* item = table_widget_->setAtBottomRow("show", current_col, bg_color, Qt::blue);
-                item->setData(Qt::UserRole, annotation);
-                ++current_col;
-              }
-              for (const auto& ck : common_keys)
-              {
-                const DataValue& dv = ph.getMetaValue(ck);
-                if (dv.valueType() == DataValue::DOUBLE_VALUE)
-                {
-                  table_widget_->setAtBottomRow(double(dv), current_col, bg_color);
-                }
-                else
-                {
-                  table_widget_->setAtBottomRow(dv.toQString(), current_col, bg_color);
-                }
-                
-                ++current_col;
-              }
+              
+              ++current_col;
             }
           }
         }
       }
 
-      if ((int)i == restore_spec_index)
+      if ((int)restore_spec_index)
       {
         // get model index of selected spectrum, 
         // as table_widget_->rowCount() returns rows starting from 1, selected row is 1 less than the returned row
@@ -937,7 +952,7 @@ namespace OpenMS
   void SpectraIDViewTab::saveIDs_()
   {
     // no valid peak layer attached
-    if (layer_ == nullptr || layer_->getPeakData()->empty() || layer_->type != LayerDataBase::DT_PEAK)
+    if (layer_ == nullptr || layer_->getPeakData()->getMSExperiment().empty() || layer_->type != LayerDataBase::DT_PEAK)
     {
       return;
     }
@@ -945,7 +960,7 @@ namespace OpenMS
     // synchronize PeptideHits with the annotations in the spectrum
     dynamic_cast<LayerData1DPeak*>(layer_)->synchronizePeakAnnotations();
 
-    vector<ProteinIdentification> prot_id = (*layer_->getPeakData()).getProteinIdentifications();
+    vector<ProteinIdentification> prot_id = layer_->getPeakData()->getProteinIdentifications();
     vector<PeptideIdentification> all_pep_ids;
 
     // collect PeptideIdentifications from each spectrum, while making sure each spectrum is only considered once
@@ -963,9 +978,8 @@ namespace OpenMS
       }
       added_spectra.insert(spectrum_index);
 
-      // collect all PeptideIdentifications from this spectrum
-      const vector<PeptideIdentification>& pep_id = (*layer_->getPeakData())[spectrum_index].getPeptideIdentifications();
-      copy(pep_id.begin(), pep_id.end(), back_inserter(all_pep_ids));
+      const PeptideIdentification& pep_id = (*layer_->getPeakData())[spectrum_index].second;
+      all_pep_ids.push_back(pep_id);
     }
 
     QString filename = GUIHelpers::getSaveFilename(this, "Save file", "", FileTypeList({FileTypes::IDXML, FileTypes::MZIDENTML}), true, FileTypes::IDXML);
@@ -987,17 +1001,17 @@ namespace OpenMS
     // extract position of the correct Spectrum, PeptideIdentification and PeptideHit from the table
     int row = item->row();
     String selected = item->checkState() == Qt::Checked ? "true" : "false";
-    int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
+    // int spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
     int num_id = table_widget_->item(row, Clmn::ID_NR)->data(Qt::DisplayRole).toInt();
     int num_ph = table_widget_->item(row, Clmn::PEPHIT_NR)->data(Qt::DisplayRole).toInt();
 
     // maintain sortability of our checkbox column
     TableView::updateCheckBoxItem(item);
 
-    vector<PeptideIdentification>& pep_id = (*layer_->getPeakDataMuteable())[spectrum_index].getPeptideIdentifications();
+    PeptideIdentification& pep_id = (*layer_->getPeakDataMuteable())[num_id].second;
 
     // update "selected" value in the correct PeptideHits
-    vector<PeptideHit>& hits = pep_id[num_id].getHits();
+    vector<PeptideHit>& hits = pep_id.getHits();
     // XL-MS specific case, both PeptideHits belong to the same cross-link
     if (hits[0].metaValueExists("xl_chain")) 
     {
@@ -1015,7 +1029,22 @@ namespace OpenMS
 
   void SpectraIDViewTab::fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor& background_color)
   {
+    // fill spectrum information in columns
     const vector<Precursor>& precursors = spectrum.getPrecursors();
+
+    #ifdef DEBUG_SPECTRA_ID_VIEW
+      cout << "Filling row in SpectraIDViewTab" << endl;
+      cout << spectrum.getMSLevel() << endl
+            << "RT: " << spectrum.getRT() << endl
+            << "Scan mode: " << spectrum.getInstrumentSettings().getScanMode() << endl
+            << "Zoom scan: " << spectrum.getInstrumentSettings().getZoomScan() << endl
+            << "Spectrum index: " << spec_index << endl
+            << "Precursor MZ: " << (precursors.empty() ? 0 : precursors.front().getMZ()) << endl
+            << "Precursor charge: " << (precursors.empty() ? 0 : precursors.front().getCharge()) << endl
+            << "Precursor intensity: " << (precursors.empty() ? 0 : precursors.front().getIntensity()) << endl            
+            << endl;
+    #endif
+
 
     table_widget_->setAtBottomRow(QString::number(spectrum.getMSLevel()), Clmn::MS_LEVEL, background_color);
     table_widget_->setAtBottomRow(spec_index, Clmn::SPEC_INDEX, background_color);

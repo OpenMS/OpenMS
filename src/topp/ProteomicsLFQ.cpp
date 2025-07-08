@@ -362,7 +362,7 @@ protected:
     // load raw file
 
     PeakMap ms_raw;
-    FileHandler().loadExperiment(mz_file, ms_raw, {FileTypes::MZML});
+    FileHandler().loadExperiment(mz_file, ms_raw, {FileTypes::MZML}, log_type_);
     ms_raw.clearMetaDataArrays();
     ms_raw.updateRanges();
 
@@ -819,7 +819,7 @@ protected:
   {
 
     const String& mz_file_abs_path = File::absolutePath(mz_file);
-    FileHandler().loadIdentifications(id_file_abs_path, protein_ids, peptide_ids, {FileTypes::IDXML});
+    FileHandler().loadIdentifications(id_file_abs_path, protein_ids, peptide_ids, {FileTypes::IDXML}, log_type_);
 
     ExitCodes e = checkSingleRunPerID_(protein_ids, id_file_abs_path);
     if (e != EXECUTION_OK) return e;
@@ -1092,7 +1092,7 @@ protected:
         calculateSeeds_(ms_centroided, seeds, median_fwhm);
         if (debug_level_ > 666)
         {
-          FileHandler().storeFeatures("debug_seeds_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", seeds, {FileTypes::FEATUREXML});
+          FileHandler().storeFeatures("debug_seeds_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", seeds, {FileTypes::FEATUREXML}, log_type_);
         }
       }
 
@@ -1309,12 +1309,12 @@ protected:
       
       if (debug_level_ > 666)
       {
-        FileHandler().storeFeatures("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", feature_maps.back(), {FileTypes::FEATUREXML});
+        FileHandler().storeFeatures("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", feature_maps.back(), {FileTypes::FEATUREXML}, log_type_);
       }
 
       if (debug_level_ > 10000)
       {
-        FileHandler().storeExperiment("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + "_chroms.mzML", ffi.getChromatograms(), {FileTypes::MZML});
+        FileHandler().storeExperiment("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + "_chroms.mzML", ffi.getChromatograms(), {FileTypes::MZML}, log_type_);
       }
 
       ++fraction_group;
@@ -1393,7 +1393,7 @@ protected:
 
     if (debug_level_ >= 666)
     {
-      FileHandler().storeConsensusFeatures("debug_fraction_" + String(ms_files.first) +  ".consensusXML", consensus_fraction, {FileTypes::CONSENSUSXML});
+      FileHandler().storeConsensusFeatures("debug_fraction_" + String(ms_files.first) +  ".consensusXML", consensus_fraction, {FileTypes::CONSENSUSXML}, log_type_);
       writeDebug_("to produce a consensus map with: " + String(consensus_fraction.getColumnHeaders().size()) + " columns.", 1);
     }
 
@@ -1784,7 +1784,7 @@ protected:
 
       if (debug_level_ >= 666)
       {
-        FileHandler().storeConsensusFeatures("debug_after_normalization.consensusXML", consensus, {FileTypes::CONSENSUSXML});
+        FileHandler().storeConsensusFeatures("debug_after_normalization.consensusXML", consensus, {FileTypes::CONSENSUSXML}, log_type_);
       }
     }
     else if (getStringOption_("quantification_method") == "spectral_counting")
@@ -1939,7 +1939,7 @@ protected:
     {
       // Note: idXML and consensusXML doesn't support writing quantification at protein groups
       // (they are nevertheless stored and passed to mzTab for proper export)
-      FileHandler().storeConsensusFeatures(getStringOption_("out_cxml"), consensus, {FileTypes::CONSENSUSXML});
+      FileHandler().storeConsensusFeatures(getStringOption_("out_cxml"), consensus, {FileTypes::CONSENSUSXML}, log_type_);
     }
 
     // Fill MzTab with meta data and quants annotated in identification data structure

@@ -5,6 +5,7 @@ set(directory include/OpenMS/METADATA)
 set(sources_list_h
 AbsoluteQuantitationStandards.h
 Acquisition.h
+AnnotatedMSRun.h
 AcquisitionInfo.h
 CVTerm.h
 CVTermList.h
@@ -35,6 +36,7 @@ Precursor.h
 Product.h
 ProteinHit.h
 ProteinIdentification.h
+ProteinModificationSummary.h
 Sample.h
 ScanWindow.h
 Software.h

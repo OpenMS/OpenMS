@@ -114,7 +114,7 @@ namespace OpenMS
                 << hit.getScore() << endl;
 #endif
     }
-    ids[0].assignRanks();
+    ids[0].sort();
   }
 
   void ConsensusIDAlgorithm::apply(vector<PeptideIdentification>& ids,

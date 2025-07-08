@@ -122,7 +122,6 @@ START_SECTION(std::vector< Size > load(const String& result_filename, std::vecto
             vector<PeptideEvidence> pes = peptide_identifications[0].getHits()[0].getPeptideEvidences();
             TEST_EQUAL(pes[0].getAABefore(), 'E')
             TEST_EQUAL(pes[0].getAAAfter(), 'K')
-			TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getCharge(), 1)
             TEST_EQUAL(pes.size(), 1)
             TEST_STRING_EQUAL(pes[0].getProteinAccession(), "P68509")
@@ -145,7 +144,6 @@ START_SECTION(std::vector< Size > load(const String& result_filename, std::vecto
             vector<PeptideEvidence> pes = peptide_identifications[0].getHits()[0].getPeptideEvidences();
             TEST_EQUAL(pes[0].getAABefore(), 'E')
             TEST_EQUAL(pes[0].getAAAfter(), 'K')
-			TEST_EQUAL(peptide_identifications[0].getHits()[0].getRank(), 1)
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getCharge(), 1)
             TEST_EQUAL(pes.size(), 1)
             TEST_STRING_EQUAL(pes[0].getProteinAccession(), "P68509")
@@ -154,7 +152,6 @@ START_SECTION(std::vector< Size > load(const String& result_filename, std::vecto
             vector<PeptideEvidence> pes1 = peptide_identifications[0].getHits()[1].getPeptideEvidences();
             TEST_EQUAL(pes1[0].getAABefore(), 'R')
             TEST_EQUAL(pes1[0].getAAAfter(), 'K')
-			TEST_EQUAL(peptide_identifications[0].getHits()[1].getRank(), 2)
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getCharge(), 1)
             TEST_EQUAL(pes1.size(), 1)
             TEST_STRING_EQUAL(pes1[0].getProteinAccession(), "P68509")

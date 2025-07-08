@@ -760,6 +760,13 @@ protected:
       }
     }
 
+    if (getFlag_("remove_decoys"))
+    {
+      OPENMS_LOG_INFO << "Removing decoy hits..." << endl;
+      IDFilter::removeDecoyHits(peptides);
+      IDFilter::removeDecoyHits(proteins);
+    }
+
     // Clean-up:
 
     // propagate filter from PSM level to protein level
@@ -804,9 +811,6 @@ protected:
 
     IDFilter::removeEmptyIdentifications(peptides);
     // we want to keep "empty" protein IDs because they contain search meta data
-
-    IDFilter::updateHitRanks(proteins);
-    IDFilter::updateHitRanks(peptides);
 
     // some stats
     OPENMS_LOG_INFO << "Before filtering:\n"
