@@ -19,6 +19,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <regex>
+#include <algorithm>
 
 using namespace std;
 
@@ -80,6 +81,9 @@ namespace OpenMS
   static void removeDuplicatedPeaks(MSSpectrum& spec)
   {
     if (spec.empty()) return;
+    
+    // Ensure spectrum is consistently sorted to provide deterministic duplicate detection
+    spec.sortByPosition();
 
     std::vector<Size> indices_to_keep;
     indices_to_keep.push_back(0); // Always keep the first peak
@@ -118,10 +122,47 @@ namespace OpenMS
         }
         else if (curr.size() == last.size())
         {
-          // If sizes are equal, prefer the one lexicographically larger (i.e. y-ion over b-ion)
-          if (curr > last)
+          // If sizes are equal, use deterministic comparison to ensure reproducible behavior
+          // across platforms. We create a stable ordering based on multiple criteria:
+          // 1. Compare ion type (y > x > c > b > a) for fragment ions
+          // 2. If same ion type, compare ion numbers numerically
+          // 3. Finally, fall back to deterministic string comparison using std::lexicographical_compare
+          
+          auto getIonTypePriority = [](const String& annotation) -> int {
+            if (annotation.empty()) return 0;
+            char first_char = annotation[0];
+            switch (first_char) {
+              case 'y': return 5;  // highest priority
+              case 'x': return 4;
+              case 'c': return 3;
+              case 'b': return 2;
+              case 'a': return 1;
+              default: return 0;   // lowest priority for other ion types
+            }
+          };
+          
+          int curr_priority = getIonTypePriority(curr);
+          int last_priority = getIonTypePriority(last);
+          
+          if (curr_priority != last_priority)
           {
-            indices_to_keep.back() = i;
+            if (curr_priority > last_priority)
+            {
+              indices_to_keep.back() = i;
+            }
+          }
+          else
+          {
+            // Same ion type priority, use deterministic lexicographical comparison
+            // std::lexicographical_compare is guaranteed to be consistent across platforms
+            bool curr_is_greater = std::lexicographical_compare(
+              last.begin(), last.end(),
+              curr.begin(), curr.end()
+            );
+            if (curr_is_greater)
+            {
+              indices_to_keep.back() = i;
+            }
           }
         }
       }
