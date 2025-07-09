@@ -55,14 +55,14 @@ public:
   void run(const DeconvolvedSpectrum& deconvolved_spectrum, double ppm);
 
   /**
-   *@brief  Match the tags against protein sequences in the input fasta entry.
+   *@brief  Match the tags against protein sequences.
    * The maximum modification mass is used to skip protein sequences that do not match with
    * tag flanking masses.
-   * @param fasta_entry fasta entries from the input proteome database in fasta format
+   * @param hits protein hits to search against
    * @param deconvolved_spectrum deconvolved spectrum from FLASHDeconv
    * @param max_mod_mass maximum modification mass (a positive number)
    */
-  void runMatching(const std::vector<FASTAFile::FASTAEntry>& fasta_entry,
+  void runMatching(std::vector<ProteinHit> hits,
                    const DeconvolvedSpectrum& deconvolved_spectrum,
                    double max_mod_mass = 0);
 
@@ -136,9 +136,8 @@ private:
   Size getVertex_(int index, int path_score, int level, int iso_level, int gap_level) const;
   int getIndex_(Size vertex) const;
 
-  void getScoreAndMatchCount_(const std::vector<int>& spec_vec,
-                              const boost::dynamic_bitset<>& pro_vec,
-                              //const boost::dynamic_bitset<>& mask_pro_vec,
+  void getScoreAndMatchCount_(const std::vector<Size>& spec_vec,
+                              const std::unordered_set<Size>& pro_vec,
                               const std::set<int>& spec_pro_diffs,
                               const std::vector<int>& spec_scores,
                               int& max_score, int& match_cntr) const;
@@ -152,10 +151,9 @@ private:
                      int scan,
                      double ppm, int mode);
 
-  //static std::vector<boost::dynamic_bitset<>> vectorized_fasta_entry_, rev_vectorized_fasta_entry_;
-  //static std::vector<std::map<int, double>> mass_map_, rev_mass_map_;
-
-  static void vectorizeFasta_(const std::vector<FASTAFile::FASTAEntry>& fasta_entry, bool reverse);
+  static void vectorizeProteinSequence_(const std::vector<ProteinHit>& hits,
+                                        std::vector<std::unordered_set<Size>>& vec_pro,
+                                        std::vector<std::unordered_set<Size>>& rev_vec_pro);
 
   static Size find_with_X_(const std::string_view& A, const String& B, Size pos = 0);
 
