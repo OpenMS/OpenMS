@@ -1154,7 +1154,7 @@ namespace OpenMS
       {
         // Create a temporary vector with a single PeptideIdentification
         PeptideIdentificationList temp_vec = {peptide_id};
-        keepNBestHits(temp_vec, n);
+        keepNBestHits(temp_vec.asVector(), n);
         // Copy back the filtered hits
         if (!temp_vec.empty())
         {
@@ -1187,9 +1187,9 @@ namespace OpenMS
       // which sorts Hits first.
       for (auto& feat : map)
       {
-        keepNBestHits(feat.getPeptideIdentifications(), n);
+        keepNBestHits(feat.getPeptideIdentifications().asVector(), n);
       }
-      keepNBestHits(map.getUnassignedPeptideIdentifications(), n);
+      keepNBestHits(map.getUnassignedPeptideIdentifications().asVector(), n);
     }
 
     template<class MapType>

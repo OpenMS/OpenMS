@@ -188,6 +188,134 @@ namespace OpenMS
     {
       return data_.insert(where, from, to);
     }
+    
+    /// Clear all elements
+    void clear() noexcept
+    {
+      data_.clear();
+    }
+    
+    /// Get reverse iterator to beginning
+    reverse_iterator rbegin() noexcept
+    {
+      return data_.rbegin();
+    }
+    
+    /// Get const reverse iterator to beginning
+    const_reverse_iterator rbegin() const noexcept
+    {
+      return data_.rbegin();
+    }
+    
+    /// Get reverse iterator to end
+    reverse_iterator rend() noexcept
+    {
+      return data_.rend();
+    }
+    
+    /// Get const reverse iterator to end
+    const_reverse_iterator rend() const noexcept
+    {
+      return data_.rend();
+    }
+    
+    /// Get const reverse iterator to beginning
+    const_reverse_iterator crbegin() const noexcept
+    {
+      return data_.crbegin();
+    }
+    
+    /// Get const reverse iterator to end
+    const_reverse_iterator crend() const noexcept
+    {
+      return data_.crend();
+    }
+    
+    /// Swap contents with another ExposedVector
+    void swap(ExposedVector& other) noexcept
+    {
+      data_.swap(other.data_);
+    }
+    
+    /// Assign values from iterators
+    template<typename InputIt>
+    void assign(InputIt first, InputIt last)
+    {
+      data_.assign(first, last);
+    }
+    
+    /// Assign n copies of value
+    void assign(size_type count, const VectorElement& value)
+    {
+      data_.assign(count, value);
+    }
+    
+    /// Assign from initializer list
+    void assign(std::initializer_list<VectorElement> init)
+    {
+      data_.assign(init);
+    }
+    
+    /// Get first element
+    VectorElement& front() noexcept
+    {
+      return data_.front();
+    }
+    
+    /// Get first element (const)
+    const VectorElement& front() const noexcept
+    {
+      return data_.front();
+    }
+    
+    /// Get maximum possible size
+    size_type max_size() const noexcept
+    {
+      return data_.max_size();
+    }
+    
+    /// Get current capacity
+    size_type capacity() const noexcept
+    {
+      return data_.capacity();
+    }
+    
+    /// Shrink capacity to fit size
+    void shrink_to_fit()
+    {
+      data_.shrink_to_fit();
+    }
+    
+    /// Insert single element
+    iterator insert(const_iterator pos, const VectorElement& value)
+    {
+      return data_.insert(pos, value);
+    }
+    
+    /// Insert single element (move)
+    iterator insert(const_iterator pos, VectorElement&& value)
+    {
+      return data_.insert(pos, std::move(value));
+    }
+    
+    /// Insert n copies of value
+    iterator insert(const_iterator pos, size_type count, const VectorElement& value)
+    {
+      return data_.insert(pos, count, value);
+    }
+    
+    /// Insert from initializer list
+    iterator insert(const_iterator pos, std::initializer_list<VectorElement> init)
+    {
+      return data_.insert(pos, init);
+    }
+    
+    /// Emplace element at position
+    template<typename... Args>
+    iterator emplace(const_iterator pos, Args&&... args)
+    {
+      return data_.emplace(pos, std::forward<Args>(args)...);
+    }
 
     /// read-only access to the underlying data
     const VecMember& getData() const
@@ -199,6 +327,55 @@ namespace OpenMS
     {
       return data_;
     }
+    
+    /// Equality comparison
+    bool operator==(const ExposedVector& other) const
+    {
+      return data_ == other.data_;
+    }
+    
+    /// Inequality comparison
+    bool operator!=(const ExposedVector& other) const
+    {
+      return data_ != other.data_;
+    }
+    
+    /// Less than comparison
+    bool operator<(const ExposedVector& other) const
+    {
+      return data_ < other.data_;
+    }
+    
+    /// Less than or equal comparison
+    bool operator<=(const ExposedVector& other) const
+    {
+      return data_ <= other.data_;
+    }
+    
+    /// Greater than comparison
+    bool operator>(const ExposedVector& other) const
+    {
+      return data_ > other.data_;
+    }
+    
+    /// Greater than or equal comparison
+    bool operator>=(const ExposedVector& other) const
+    {
+      return data_ >= other.data_;
+    }
   };
+
+} // namespace OpenMS
+
+// Global swap function for ExposedVector (ADL - Argument-Dependent Lookup)
+namespace std {
+  template<typename T>
+  void swap(OpenMS::ExposedVector<T>& lhs, OpenMS::ExposedVector<T>& rhs) noexcept
+  {
+    lhs.swap(rhs);
+  }
+}
+
+namespace OpenMS {
 
 } // namespace OpenMS

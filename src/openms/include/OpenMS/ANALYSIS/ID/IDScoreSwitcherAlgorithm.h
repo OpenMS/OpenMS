@@ -689,7 +689,7 @@ namespace OpenMS
       param.setValue("old_score", ""); // use default name generated for old score
       idsa.setParameters(param);            
       Size counter = 0;       
-      idsa.switchToGeneralScoreType(pep_ids, result.requested_score_type, counter);
+      idsa.switchToGeneralScoreType(pep_ids.asVector(), result.requested_score_type, counter);
       OPENMS_LOG_DEBUG << "Switched scores for " << counter << " IDs." << std::endl;
 
       result.score_switched = true;
