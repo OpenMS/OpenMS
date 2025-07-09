@@ -69,7 +69,7 @@ namespace OpenMS::Internal
 
     // writer
     XQuestResultXMLHandler::XQuestResultXMLHandler(const std::vector<ProteinIdentification>& pro_id,
-                                                   const std::vector<PeptideIdentification>& pep_id,
+                                                   const PeptideIdentificationList& pep_id,
                                                    const String& filename,
                                                    const String& version
                                                  ) :

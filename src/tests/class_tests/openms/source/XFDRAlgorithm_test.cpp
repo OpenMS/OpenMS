@@ -39,9 +39,9 @@ START_SECTION(virtual ~XFDRAlgorithm())
 }
 END_SECTION
 
-START_SECTION(ExitCodes run(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id))
+START_SECTION(ExitCodes run(PeptideIdentificationList& peptide_ids, ProteinIdentification& protein_id))
 
-std::vector<PeptideIdentification> peptide_ids;
+PeptideIdentificationList peptide_ids;
 std::vector<ProteinIdentification> protein_ids;
 ProteinIdentification protein_id;
 

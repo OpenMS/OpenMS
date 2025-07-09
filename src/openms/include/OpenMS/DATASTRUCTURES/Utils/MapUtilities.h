@@ -81,7 +81,7 @@ namespace OpenMS
 
   private:
     template <class T>
-    void applyFunctionOnPeptideIDs_(std::vector<PeptideIdentification>& idvec, T&& f)
+    void applyFunctionOnPeptideIDs_(PeptideIdentificationList& idvec, T&& f)
     {
       for (auto& id : idvec)
       {
@@ -90,7 +90,7 @@ namespace OpenMS
     }
 
     template <class T>
-    void applyFunctionOnPeptideHits_(std::vector<PeptideIdentification>& idvec, T&& f)
+    void applyFunctionOnPeptideHits_(PeptideIdentificationList& idvec, T&& f)
     {
       for (auto& id : idvec)
       {
@@ -102,7 +102,7 @@ namespace OpenMS
     }
 
     template <class T>
-    void applyFunctionOnPeptideIDs_(const std::vector<PeptideIdentification>& idvec, T&& f) const
+    void applyFunctionOnPeptideIDs_(const PeptideIdentificationList& idvec, T&& f) const
     {
       for (const auto& id : idvec)
       {
@@ -111,7 +111,7 @@ namespace OpenMS
     }
 
     template <class T>
-    void applyFunctionOnPeptideHits_(const std::vector<PeptideIdentification>& idvec, T&& f) const
+    void applyFunctionOnPeptideHits_(const PeptideIdentificationList& idvec, T&& f) const
     {
       for (const auto& id : idvec)
       {

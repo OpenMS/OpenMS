@@ -91,7 +91,7 @@ namespace OpenMS
     /// @param targets_first If target groups should get picked first no matter the posterior
     /// @todo warning: all peptides are used (not filtered for matching protein ID run yet).
     static void resolve(ProteinIdentification& protein,
-                        std::vector<PeptideIdentification>& peptides,
+                        PeptideIdentificationList& peptides,
                         bool resolve_ties,
                         bool targets_first);
 
@@ -100,7 +100,7 @@ namespace OpenMS
     /// @param inferred_protein_id ProteinIdentification object storing IDs and groups
     /// @param inferred_peptide_ids Vector of ProteinIdentifications with links to the proteins
     static void run(std::vector<ProteinIdentification>& inferred_protein_id, 
-                    std::vector<PeptideIdentification>& inferred_peptide_ids);
+                    PeptideIdentificationList& inferred_peptide_ids);
 
     /// Initialize and store the graph (= maps), needs sorted groups for
     /// correct functionality. Therefore sorts the indist. protein groups
@@ -109,7 +109,7 @@ namespace OpenMS
     /// @param peptides vector of ProteinIdentifications with links to the proteins
     /// @param skip_sort Skips sorting of groups, nothing is modified then.
     void buildGraph(ProteinIdentification& protein,
-                    const std::vector<PeptideIdentification>& peptides,
+                    const PeptideIdentificationList& peptides,
                     bool skip_sort = false);
       
     /// Applies resolveConnectedComponent to every component of the graph and
@@ -119,7 +119,7 @@ namespace OpenMS
     /// @param peptides vector of ProteinIdentifications with links to the proteins
     /// @todo warning: all peptides are used (not filtered for matching protein ID run yet).
     void resolveGraph(ProteinIdentification& protein,
-                      std::vector<PeptideIdentification>& peptides);
+                      PeptideIdentificationList& peptides);
     
     /// Does a BFS on the two maps (= two parts of the graph; indist. prot. groups
     /// and peptides), switching from one to the other in each step.
@@ -143,7 +143,7 @@ namespace OpenMS
      */
     void resolveConnectedComponent(ConnectedComponent& conn_comp,
                                     ProteinIdentification& protein,
-                                    std::vector<PeptideIdentification>& peptides);
+                                    PeptideIdentificationList& peptides);
 };
   
 } //namespace OpenMS

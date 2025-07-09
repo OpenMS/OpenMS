@@ -21,7 +21,7 @@ namespace OpenMS
   {
   }
 
-  void NuXLFDR::QValueAtPSMLevel(vector<PeptideIdentification>& peptide_ids) const
+  void NuXLFDR::QValueAtPSMLevel(PeptideIdentificationList& peptide_ids) const
   {
     FalseDiscoveryRate fdr;
     Param p = fdr.getParameters();
@@ -35,8 +35,10 @@ namespace OpenMS
     fdr.apply(peptide_ids, true); // also calculate Constants::UserParam::PEPTIDE_Q_VALUE
   }
 
-  void NuXLFDR::splitIntoPeptidesAndXLs(const vector<PeptideIdentification>& peptide_ids, vector<PeptideIdentification>& pep_pi, vector<PeptideIdentification>& xl_pi) const
+  void NuXLFDR::splitIntoPeptidesAndXLs(const PeptideIdentificationList& peptide_ids, PeptideIdentificationList& pep_pi, PeptideIdentificationList& xl_pi) const
   {
+    pep_pi.clear();
+    xl_pi.clear();
     for (const auto & pi : peptide_ids)
     {
       vector<PeptideHit> pep_ph, xl_ph;
@@ -56,7 +58,7 @@ namespace OpenMS
     }
   }
 
-  void NuXLFDR::mergePeptidesAndXLs(const vector<PeptideIdentification>& pep_pi, const vector<PeptideIdentification>& xl_pi, vector<PeptideIdentification>& peptide_ids) const
+  void NuXLFDR::mergePeptidesAndXLs(const PeptideIdentificationList& pep_pi, const PeptideIdentificationList& xl_pi, PeptideIdentificationList& peptide_ids) const
   {
     peptide_ids.clear();
     map<String, size_t> native_id_to_id_index;
@@ -89,7 +91,7 @@ namespace OpenMS
     }
   }
 
-  void NuXLFDR::calculatePeptideAndXLQValueAtPSMLevel(const vector<PeptideIdentification>& peptide_ids, vector<PeptideIdentification>& pep_pi, vector<PeptideIdentification>& xl_pi) const
+  void NuXLFDR::calculatePeptideAndXLQValueAtPSMLevel(const PeptideIdentificationList& peptide_ids, PeptideIdentificationList& pep_pi, PeptideIdentificationList& xl_pi) const
   {
     FalseDiscoveryRate fdr;
     Param p = fdr.getParameters();
@@ -110,11 +112,11 @@ namespace OpenMS
 
   void NuXLFDR::calculatePeptideAndXLQValueAndFilterAtPSMLevel(
       const vector<ProteinIdentification>& protein_ids,
-      const vector<PeptideIdentification>& peptide_ids, 
-      vector<PeptideIdentification>& pep_pi,
+      const PeptideIdentificationList& peptide_ids, 
+      PeptideIdentificationList& pep_pi,
       double peptide_PSM_qvalue_threshold,
       double peptide_peptide_qvalue_threshold,
-      vector<PeptideIdentification>& xl_pi,
+      PeptideIdentificationList& xl_pi,
       vector<double> xl_PSM_qvalue_thresholds,
       vector<double> xl_peptidelevel_qvalue_thresholds,
       const String& out_idxml,

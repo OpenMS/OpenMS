@@ -26,9 +26,13 @@ cdef extern from "<OpenMS/KERNEL/BaseFeature.h>" namespace "OpenMS":
         void setCharge(Int q) except + nogil  # wrap-doc:Sets the charge state
         AnnotationState getAnnotationState() except + nogil  # wrap-doc:State of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only
 
-        libcpp_vector[PeptideIdentification] getPeptideIdentifications() except + nogil  # wrap-doc:Returns the PeptideIdentification vector
+        PeptideIdentificationList getPeptideIdentifications() except + nogil  # wrap-doc:Returns the PeptideIdentification vector
         
-        void setPeptideIdentifications(libcpp_vector[PeptideIdentification] & peptides) except + nogil  # wrap-doc:Sets the PeptideIdentification vector
+        void setPeptideIdentifications(PeptideIdentificationList & peptides) except + nogil  # wrap-doc:Sets the PeptideIdentification vector
+
+        # PeptideIdentificationList methods (new typed interface)
+        PeptideIdentificationList& getPeptideIdentificationsRef() except + nogil # wrap-ignore
+        void setPeptideIdentifications(PeptideIdentificationList & peptides) except + nogil  # wrap-doc:Sets the PeptideIdentificationList
 
         bool operator==(BaseFeature) except + nogil 
         bool operator!=(BaseFeature) except + nogil 

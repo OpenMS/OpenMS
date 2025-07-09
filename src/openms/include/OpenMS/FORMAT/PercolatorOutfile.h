@@ -42,7 +42,7 @@ namespace OpenMS
 
     /// Loads a Percolator output file
     void load(const String& filename, ProteinIdentification& proteins,
-              std::vector<PeptideIdentification>& peptides,
+              PeptideIdentificationList& peptides,
               SpectrumMetaDataLookup& lookup,
               enum ScoreType output_score = QVALUE);
 

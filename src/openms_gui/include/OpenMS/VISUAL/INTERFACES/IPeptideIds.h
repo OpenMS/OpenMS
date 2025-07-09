@@ -22,7 +22,7 @@ namespace OpenMS
   class OPENMS_GUI_DLLAPI IPeptideIds
   {
   public:
-    using PepIds = std::vector<PeptideIdentification>;
+    using PepIds = PeptideIdentificationList;
     
     /// get the peptide IDs for this layer
     virtual const PepIds& getPeptideIds() const = 0;

@@ -1404,7 +1404,7 @@ protected:
         }
       }
       vector<ProteinIdentification> proteins;
-      vector<PeptideIdentification> peptides;
+      PeptideIdentificationList peptides;
       IdentificationDataConverter::exportIDs(id_data, proteins, peptides);
       FileHandler().storeIdentifications(id_out, proteins, peptides, {FileTypes::IDXML});
     }

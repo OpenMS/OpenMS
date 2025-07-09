@@ -50,6 +50,6 @@ namespace OpenMS
                const String& label,
                const FeatureMap& feature_map,
                std::vector<ProteinIdentification>& prot_ids,
-               std::vector<PeptideIdentification>& pep_ids) const;
+               PeptideIdentificationList& pep_ids) const;
   };
 }

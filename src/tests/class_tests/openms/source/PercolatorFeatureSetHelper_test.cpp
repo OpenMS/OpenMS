@@ -18,7 +18,7 @@
 using namespace OpenMS;
 using namespace std;
 
-bool check_pepids(const vector<PeptideIdentification>& check, const vector<PeptideIdentification>& against)
+bool check_pepids(const PeptideIdentificationList& check, const PeptideIdentificationList& against)
 {
     std::vector<String> upk, upkc;
     TEST_EQUAL(check.size(), against.size())

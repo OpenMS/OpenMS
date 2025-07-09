@@ -10,498 +10,213 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <string>
-
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/MascotXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-
 ///////////////////////////
-
-START_TEST(PeptideIdentification, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
+START_TEST(PeptideIdentificationList, "$Id$")
 
-double peptide_significance_threshold = 42.3;
-std::vector<PeptideHit> peptide_hits;
-PeptideHit peptide_hit;
-ProteinIdentification protein_identification;
-vector<PeptideIdentification> identifications;
-MascotXMLFile xml_file;
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 
-peptide_hits.push_back(peptide_hit);
+PeptideIdentificationList* ptr = nullptr;
+PeptideIdentificationList* null_ptr = nullptr;
 
-
-PeptideIdentification* ptr = nullptr;
-PeptideIdentification* nullPointer = nullptr;
-START_SECTION((PeptideIdentification()))
-  ptr = new PeptideIdentification();
-  TEST_NOT_EQUAL(ptr, nullPointer)
+START_SECTION(PeptideIdentificationList())
+{
+  ptr = new PeptideIdentificationList();
+  TEST_NOT_EQUAL(ptr, null_ptr)
+}
 END_SECTION
 
-START_SECTION((virtual ~PeptideIdentification()))
-  PeptideIdentification hits;
+START_SECTION(~PeptideIdentificationList())
+{
   delete ptr;
-END_SECTION
-
-// Copy Constructor
-START_SECTION((PeptideIdentification(const PeptideIdentification& source)))
-{
-  PeptideIdentification hits;
-  hits.setSignificanceThreshold(peptide_significance_threshold);
-  hits.setHits(peptide_hits);
-  hits.setMetaValue("label",17);
-  hits.setIdentifier("id");
-  hits.setScoreType("score_type");
-  hits.setHigherScoreBetter(false);
-
-  PeptideIdentification hits2(hits);
-
-  TEST_EQUAL(hits.getSignificanceThreshold(), hits2.getSignificanceThreshold())
-  TEST_TRUE(hits.getHits().size() == 1)
-  TEST_TRUE(*(hits.getHits().begin()) == peptide_hit)
-  TEST_EQUAL((UInt)hits.getMetaValue("label"),17)
-  TEST_EQUAL(hits.getIdentifier(),"id")
-  TEST_EQUAL(hits.getScoreType(),"score_type")
-  TEST_FALSE(hits.isHigherScoreBetter())
 }
 END_SECTION
 
-// Move Constructor
-START_SECTION((PeptideIdentification(PeptideIdentification&& source) noexcept))
+START_SECTION((PeptideIdentificationList(const Base& base)))
 {
-  // Ensure that PeptideIdentification has a no-except move constructor (otherwise
-  // std::vector is inefficient and will copy instead of move).
-  TEST_TRUE(noexcept(PeptideIdentification(std::declval<PeptideIdentification&&>())))
-
-  PeptideIdentification hits;
-  hits.setSignificanceThreshold(peptide_significance_threshold);
-  hits.setHits(peptide_hits);
-  hits.setMetaValue("label",17);
-  hits.setIdentifier("id");
-  hits.setScoreType("score_type");
-  hits.setHigherScoreBetter(false);
-
-  PeptideIdentification example(hits);
-
-  PeptideIdentification hits2(std::move(example));
-
-  TEST_EQUAL(hits.getSignificanceThreshold(), hits2.getSignificanceThreshold())
-  TEST_TRUE(hits.getHits().size() == 1)
-  TEST_TRUE(*(hits.getHits().begin()) == peptide_hit)
-  TEST_EQUAL((UInt)hits.getMetaValue("label"),17)
-  TEST_EQUAL(hits.getIdentifier(),"id")
-  TEST_EQUAL(hits.getScoreType(),"score_type")
-  TEST_FALSE(hits.isHigherScoreBetter())
-
-  // the move source should be empty
-  TEST_TRUE(example.getHits().empty())
-  TEST_TRUE(example.isMetaEmpty())
-  TEST_TRUE(example.getIdentifier().empty())
-  TEST_TRUE(example.getScoreType().empty())
+  PeptideIdentificationList base_vector;
+  PeptideIdentification pep_id;
+  pep_id.setRT(1234.5);
+  pep_id.setMZ(567.8);
+  base_vector.push_back(pep_id);
+  
+  PeptideIdentificationList spectra_ids(base_vector);
+  TEST_EQUAL(spectra_ids.size(), 1)
+  TEST_REAL_SIMILAR(spectra_ids[0].getRT(), 1234.5)
+  TEST_REAL_SIMILAR(spectra_ids[0].getMZ(), 567.8)
 }
 END_SECTION
 
-START_SECTION((PeptideIdentification& operator=(const PeptideIdentification& source)))
-  PeptideIdentification hits;
-  hits.setSignificanceThreshold(peptide_significance_threshold);
-  hits.setHits(peptide_hits);
-  hits.setMetaValue("label",17);
-  hits.setIdentifier("id");
-  hits.setScoreType("score_type");
-  hits.setHigherScoreBetter(false);
-
-  PeptideIdentification hits2;
-  hits2 = hits;
-
-  TEST_EQUAL(hits.getSignificanceThreshold(), hits2.getSignificanceThreshold())
-  TEST_TRUE(hits.getHits().size() == 1)
-  TEST_TRUE(*(hits.getHits().begin()) == peptide_hit)
-  TEST_EQUAL((UInt)hits.getMetaValue("label"),17)
-  TEST_EQUAL(hits.getIdentifier(),"id")
-  TEST_EQUAL(hits.getScoreType(),"score_type")
-  TEST_FALSE(hits.isHigherScoreBetter())
-END_SECTION
-
-START_SECTION((bool operator == (const PeptideIdentification& rhs) const))
-  PeptideIdentification search1, search2;
-  TEST_TRUE(search1 == search2)
-
-  search1.setSignificanceThreshold(peptide_significance_threshold);
-  TEST_FALSE(search1 == search2)
-  search1 = search2;
-
-  search2.setMetaValue("label",17);
-  TEST_FALSE(search1 == search2)
-  search1 = search2;
-
-  search2.setIdentifier("id");
-  TEST_FALSE(search1 == search2)
-  search1 = search2;
-
-  search2.setScoreType("score_type");
-  TEST_FALSE(search1 == search2)
-  search1 = search2;
-
-  search2.setHigherScoreBetter(false);
-  TEST_FALSE(search1 == search2)
-  search1 = search2;
-END_SECTION
-
-
-START_SECTION((bool operator != (const PeptideIdentification& rhs) const))
-  PeptideIdentification search1, search2;
-  TEST_FALSE(search1 != search2)
-
-  search1.setSignificanceThreshold(peptide_significance_threshold);
-  TEST_FALSE(search1 == search2)
-  search1 = search2;
-
-  //rest does not need to be tested, as it is tested in the operator== test implicitly!
-END_SECTION
-
-
-START_SECTION((double getRT() const))
-	PeptideIdentification pi;
-	TEST_FALSE(pi.hasRT());
-	pi.setRT(1024.0);
-	TEST_EQUAL(pi.getRT(), 1024.0);
-END_SECTION
-
-START_SECTION(void setRT(double mz))
-	NOT_TESTABLE // tested above
-END_SECTION
-
-START_SECTION(bool hasRT())
-	NOT_TESTABLE // tested above
-END_SECTION
-
-START_SECTION((double getMZ() const))
-	PeptideIdentification pi;
-	TEST_FALSE(pi.hasMZ());
-	pi.setMZ(1024.0);
-	TEST_EQUAL(pi.getMZ(), 1024.0);
-END_SECTION
-
-
-START_SECTION(bool hasMZ())
-  NOT_TESTABLE // tested above
-END_SECTION
-
-
-START_SECTION((double getSignificanceThreshold() const))
-	PeptideIdentification hits;
-	hits.setSignificanceThreshold(peptide_significance_threshold);
-	TEST_EQUAL(hits.getSignificanceThreshold(), peptide_significance_threshold)
-END_SECTION
-
-START_SECTION((const std::vector<PeptideHit>& getHits() const))
-  PeptideIdentification hits;
-  hits.insertHit(peptide_hit);
-  TEST_TRUE(hits.getHits().size() == 1)
-  TEST_TRUE(hits.getHits()[0] == peptide_hit)
-END_SECTION
-
-START_SECTION((void insertHit(const PeptideHit &hit)))
-  PeptideIdentification hits;
-  hits.insertHit(peptide_hit);
-  TEST_TRUE(hits.getHits().size() == 1)
-  TEST_TRUE(*(hits.getHits().begin()) == peptide_hit)
-END_SECTION
-
-START_SECTION((void setHits(const std::vector< PeptideHit > &hits)))
-  PeptideIdentification hits;
-  hits.setHits(peptide_hits);
-  TEST_TRUE(hits.getHits() == peptide_hits)
-END_SECTION
-
-START_SECTION((void setSignificanceThreshold(double value)))
-  PeptideIdentification hits;
-  hits.setSignificanceThreshold(peptide_significance_threshold);
-  TEST_EQUAL(hits.getSignificanceThreshold(), peptide_significance_threshold)
-END_SECTION
-
-START_SECTION((void testSignificanceThresholdMetaValue()))
+START_SECTION((PeptideIdentificationList(Base&& base)))
 {
-  PeptideIdentification id;
+  PeptideIdentificationList base_vector;
+  PeptideIdentification pep_id;
+  pep_id.setRT(9876.5);
+  pep_id.setMZ(432.1);
+  base_vector.push_back(pep_id);
   
-  // Test default value
-  TEST_EQUAL(id.getSignificanceThreshold(), 0.0);
-  TEST_EQUAL(id.metaValueExists(Constants::UserParam::SIGNIFICANCE_THRESHOLD), false);
-  
-  // Test setting a new value
-  id.setSignificanceThreshold(42.0);
-  TEST_EQUAL(id.getSignificanceThreshold(), 42.0);
-  TEST_EQUAL(id.getMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD), 42.0);
-  
-  // Test that the meta value is copied
-  PeptideIdentification id2(id);
-  TEST_EQUAL(id2.getSignificanceThreshold(), 42.0);
-  TEST_EQUAL(id2.getMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD), 42.0);
-  
-  // Test assignment operator
-  PeptideIdentification id3;
-  id3 = id;
-  TEST_EQUAL(id3.getSignificanceThreshold(), 42.0);
-  TEST_EQUAL(id3.getMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD), 42.0);
+  PeptideIdentificationList spectra_ids(std::move(base_vector));
+  TEST_EQUAL(spectra_ids.size(), 1)
+  TEST_REAL_SIMILAR(spectra_ids[0].getRT(), 9876.5)
+  TEST_REAL_SIMILAR(spectra_ids[0].getMZ(), 432.1)
 }
 END_SECTION
 
-START_SECTION((String& getScoreType() const))
-	PeptideIdentification hits;
-	TEST_EQUAL(hits.getScoreType(), "")
-END_SECTION
-
-START_SECTION((void setScoreType(const String& type)))
-	PeptideIdentification hits;
-	hits.setScoreType("bla");
-	TEST_EQUAL(hits.getScoreType(), "bla")
-END_SECTION
-
-START_SECTION((bool isHigherScoreBetter() const))
-	PeptideIdentification hits;
-	TEST_TRUE(hits.isHigherScoreBetter())
-END_SECTION
-
-START_SECTION((void setHigherScoreBetter(bool value)))
-  PeptideIdentification hits;
-  hits.setHigherScoreBetter(false);
-  TEST_FALSE(hits.isHigherScoreBetter())
-END_SECTION
-
-START_SECTION((const String& getIdentifier() const))
-  PeptideIdentification hits;
-  TEST_EQUAL(hits.getIdentifier(),"")
-END_SECTION
-
-START_SECTION((void setIdentifier(const String& id)))
-  PeptideIdentification hits;
-  hits.setIdentifier("bla");
-  TEST_EQUAL(hits.getIdentifier(),"bla")
-END_SECTION
-
-START_SECTION((bool empty() const))
-  PeptideIdentification hits;
-  TEST_TRUE(hits.empty())
-  hits.setSignificanceThreshold(1);
-  TEST_FALSE(hits.empty())
-
-  hits.setSignificanceThreshold(0);
-  TEST_TRUE(hits.empty())
-
-  hits.setBaseName("basename");
-  TEST_FALSE(hits.empty())
-
-  hits.setBaseName("");
-  TEST_TRUE(hits.empty())
-
-  hits.insertHit(peptide_hit);
-  TEST_FALSE(hits.empty())
-END_SECTION
-
-START_SECTION((void sort()))
-  PeptideIdentification id;
-  PeptideHit hit;
-  hit.setScore(23);
-  hit.setSequence(AASequence::fromString("SECONDPROTEIN"));
-  id.insertHit(hit);
-  hit.setScore(45);
-  hit.setSequence(AASequence::fromString("FIRSTPROTEIN"));
-  id.insertHit(hit);
-  hit.setScore(7);
-  hit.setSequence(AASequence::fromString("THIRDPROTEIN"));
-  id.insertHit(hit);
-
-  //higher score is better
-  id.sort();
-
-  TEST_EQUAL(id.getHits()[0].getSequence(), AASequence::fromString("FIRSTPROTEIN"))
-  TEST_EQUAL(id.getHits()[1].getSequence(), AASequence::fromString("SECONDPROTEIN"))
-  TEST_EQUAL(id.getHits()[2].getSequence(), AASequence::fromString("THIRDPROTEIN"))
-  TEST_EQUAL(id.getHits()[0].getScore(), 45)
-  TEST_EQUAL(id.getHits()[1].getScore(), 23)
-  TEST_EQUAL(id.getHits()[2].getScore(), 7)
-
-  //lower score is better
-  id.setHigherScoreBetter(false);
-  id.sort();
-
-  TEST_EQUAL(id.getHits()[0].getSequence(), AASequence::fromString("THIRDPROTEIN"))
-  TEST_EQUAL(id.getHits()[1].getSequence(), AASequence::fromString("SECONDPROTEIN"))
-  TEST_EQUAL(id.getHits()[2].getSequence(), AASequence::fromString("FIRSTPROTEIN"))
-  TEST_EQUAL(id.getHits()[0].getScore(), 7)
-  TEST_EQUAL(id.getHits()[1].getScore(), 23)
-  TEST_EQUAL(id.getHits()[2].getScore(), 45)
-
-END_SECTION
-
-
-START_SECTION(static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit> & , const std::set<String> & accession))
+START_SECTION((PeptideIdentificationList(size_type count)))
 {
-  PeptideIdentification id;
-  PeptideHit hit;
-  vector< PeptideHit > peptide_hits;
-
-  hit.setScore(23);
-  hit.setSequence(AASequence::fromString("FIRSTPROTEIN"));
-  PeptideEvidence pe;
-  pe.setProteinAccession("TEST_PROTEIN1");
-  hit.addPeptideEvidence(pe);
-  id.insertHit(hit);
-
-  hit = PeptideHit();
-  hit.setScore(10);
-  hit.setSequence(AASequence::fromString("SECONDPROTEIN"));
-  pe.setProteinAccession("TEST_PROTEIN2");
-  hit.addPeptideEvidence(pe);
-  id.insertHit(hit);
-
-  hit = PeptideHit();
-  hit.setScore(11);
-  hit.setSequence(AASequence::fromString("THIRDPROTEIN"));
-  pe.setProteinAccession("TEST_PROTEIN2");
-  hit.addPeptideEvidence(pe);
-  id.insertHit(hit);
-
-  set<String> query_accession;
-  query_accession.insert("TEST_PROTEIN2");
-  peptide_hits = PeptideIdentification::getReferencingHits(id.getHits(), query_accession);
-  TEST_EQUAL(peptide_hits.size(), 2)
-  TEST_EQUAL(peptide_hits[0].getSequence(), AASequence::fromString("SECONDPROTEIN"))
-  TEST_EQUAL(peptide_hits[1].getSequence(), AASequence::fromString("THIRDPROTEIN"))
-
-  query_accession.insert("TEST_PROTEIN3");
-  peptide_hits = PeptideIdentification::getReferencingHits(id.getHits(), query_accession);
-  TEST_EQUAL(peptide_hits.size(), 2)
-  TEST_EQUAL(peptide_hits[0].getSequence(), AASequence::fromString("SECONDPROTEIN"))
-  TEST_EQUAL(peptide_hits[1].getSequence(), AASequence::fromString("THIRDPROTEIN"))
-}
-{
-  PeptideIdentification id;
-  PeptideHit hit;
-  vector< PeptideHit > peptide_hits;
-
-  hit.setScore(23);
-  hit.setSequence(AASequence::fromString("FIRSTPROTEIN"));
-  PeptideEvidence pe;
-  pe.setProteinAccession("TEST_PROTEIN1");
-  hit.addPeptideEvidence(pe);
-  id.insertHit(hit);
-
-  hit = PeptideHit();
-  hit.setScore(10);
-  hit.setSequence(AASequence::fromString("SECONDPROTEIN"));
-  pe.setProteinAccession("TEST_PROTEIN2");
-  hit.addPeptideEvidence(pe);
-  id.insertHit(hit);
-
-  hit = PeptideHit();
-  hit.setScore(11);
-  hit.setSequence(AASequence::fromString("THIRDPROTEIN"));
-  pe.setProteinAccession("TEST_PROTEIN3");
-  hit.addPeptideEvidence(pe);
-  id.insertHit(hit);
-
-  set<String> query_accession;
-  query_accession.insert("TEST_PROTEIN2");
-  query_accession.insert("TEST_PROTEIN3");
-  peptide_hits = PeptideIdentification::getReferencingHits(id.getHits(), query_accession);
-  TEST_EQUAL(peptide_hits.size(), 2)
-  TEST_EQUAL(peptide_hits[0].getSequence(), AASequence::fromString("SECONDPROTEIN"))
-  TEST_EQUAL(peptide_hits[1].getSequence(), AASequence::fromString("THIRDPROTEIN"))
+  PeptideIdentificationList spectra_ids(3);
+  TEST_EQUAL(spectra_ids.size(), 3)
 }
 END_SECTION
 
-START_SECTION((static std::multimap<String, std::pair<Size, Size>> buildUIDsFromAllPepIDs(const ConsensusMap &cmap)))
+START_SECTION((PeptideIdentificationList(size_type count, const PeptideIdentification& value)))
 {
-  ConsensusMap cmap;
-  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_2.consensusXML"), cmap);
-  std::multimap<String, std::pair<Size, Size>> map_of_UIDs = PeptideIdentification::buildUIDsFromAllPepIDs(cmap);
-
-  auto b = map_of_UIDs.begin();
-  TEST_EQUAL(b->first,
-             "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML|spectrum=112")
-  TEST_EQUAL(b->second.first, Size(-1))
-  TEST_EQUAL(b->second.second, 4)
-  ++b;
-  TEST_EQUAL(b->first,
-             "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML|spectrum=113")
-  TEST_EQUAL(b->second.first, 11)
-  TEST_EQUAL(b->second.second, 0)
-  ++b;
-  TEST_EQUAL(b->first,
-             "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML|spectrum=118")
-  TEST_EQUAL(b->second.first, 4)
-  TEST_EQUAL(b->second.second, 0)
-
-  FeatureMap fmap;
-  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MQEvidence_1.featureXML"), fmap);
-  ProteinIdentification::Mapping mp_c(cmap.getProteinIdentifications());
-  const map<String, StringList>& identifier_to_msrunpath = mp_c.identifier_to_msrunpath;
-
-
-  String uid_zero = PeptideIdentification::buildUIDFromPepID(cmap[0].getPeptideIdentifications()[0], identifier_to_msrunpath);
-  String uid_one = PeptideIdentification::buildUIDFromPepID(cmap[0].getPeptideIdentifications()[1], identifier_to_msrunpath);
-  String uid_two = PeptideIdentification::buildUIDFromPepID(cmap[0].getPeptideIdentifications()[2], identifier_to_msrunpath);
-
-  TEST_EQUAL(uid_zero,"file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0014b_2.mzML|spectrum=219")
-  TEST_EQUAL(uid_one, "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0016_1.mzML|spectrum=33")
-  TEST_EQUAL(uid_two, "file:///C:/Users/bielow/AppData/Local/Temp/20190911_110348_8204_1/Untitled_workflow/002_FileFilter/out/ES-0016_2_.mzML|spectrum=133")
+  PeptideIdentification pep_id;
+  pep_id.setRT(555.5);
+  pep_id.setMZ(777.7);
+  
+  PeptideIdentificationList spectra_ids(2, pep_id);
+  TEST_EQUAL(spectra_ids.size(), 2)
+  TEST_REAL_SIMILAR(spectra_ids[0].getRT(), 555.5)
+  TEST_REAL_SIMILAR(spectra_ids[1].getRT(), 555.5)
+  TEST_REAL_SIMILAR(spectra_ids[0].getMZ(), 777.7)
+  TEST_REAL_SIMILAR(spectra_ids[1].getMZ(), 777.7)
 }
 END_SECTION
 
-START_SECTION((static String buildUIDFromPepID(const PeptideIdentification& pep_id,const std::map<String, StringList>& fidentifier_to_msrunpath)))
+START_SECTION((PeptideIdentificationList(std::initializer_list<PeptideIdentification> init)))
 {
-      NOT_TESTABLE //Tested above
+  PeptideIdentification pep_id1, pep_id2;
+  pep_id1.setRT(111.1);
+  pep_id1.setMZ(222.2);
+  pep_id2.setRT(333.3);
+  pep_id2.setMZ(444.4);
+  
+  PeptideIdentificationList spectra_ids{pep_id1, pep_id2};
+  TEST_EQUAL(spectra_ids.size(), 2)
+  TEST_REAL_SIMILAR(spectra_ids[0].getRT(), 111.1)
+  TEST_REAL_SIMILAR(spectra_ids[1].getRT(), 333.3)
 }
 END_SECTION
 
-START_SECTION((const String& getBaseName() const))
-  PeptideIdentification id;
-  TEST_EQUAL(id.getBaseName(), "")
+START_SECTION((PeptideIdentificationList& operator=(const Base& base)))
+{
+  PeptideIdentificationList base_vector;
+  PeptideIdentification pep_id;
+  pep_id.setRT(654.3);
+  pep_id.setMZ(987.6);
+  base_vector.push_back(pep_id);
   
-  id.setBaseName("test_base_name");
-  TEST_EQUAL(id.getBaseName(), "test_base_name")
-  
-  // Test that it's stored as a MetaValue
-  TEST_TRUE(id.metaValueExists(Constants::UserParam::BASE_NAME))
-  TEST_EQUAL(id.getMetaValue(Constants::UserParam::BASE_NAME), "test_base_name")
+  PeptideIdentificationList spectra_ids;
+  spectra_ids = base_vector;
+  TEST_EQUAL(spectra_ids.size(), 1)
+  TEST_REAL_SIMILAR(spectra_ids[0].getRT(), 654.3)
+  TEST_REAL_SIMILAR(spectra_ids[0].getMZ(), 987.6)
+}
 END_SECTION
 
-START_SECTION((void setBaseName(const String& base_name)))
-  PeptideIdentification id;
+START_SECTION((PeptideIdentificationList& operator=(Base&& base)))
+{
+  PeptideIdentificationList base_vector;
+  PeptideIdentification pep_id;
+  pep_id.setRT(147.2);
+  pep_id.setMZ(258.3);
+  base_vector.push_back(pep_id);
   
-  // Test setting a non-empty base name
-  id.setBaseName("test_base_name");
-  TEST_EQUAL(id.getBaseName(), "test_base_name")
-  TEST_TRUE(id.metaValueExists(Constants::UserParam::BASE_NAME))
-  
-  // Test setting an empty base name (should remove the meta value)
-  id.setBaseName("");
-  TEST_EQUAL(id.getBaseName(), "")
-  TEST_FALSE(id.metaValueExists(Constants::UserParam::BASE_NAME))
-  
-  // Test that empty() method works correctly with base name as meta value
-  TEST_TRUE(id.empty())
-  id.setBaseName("test_base_name");
-  TEST_FALSE(id.empty())
-  id.setBaseName("");
-  TEST_TRUE(id.empty())
+  PeptideIdentificationList spectra_ids;
+  spectra_ids = std::move(base_vector);
+  TEST_EQUAL(spectra_ids.size(), 1)
+  TEST_REAL_SIMILAR(spectra_ids[0].getRT(), 147.2)
+  TEST_REAL_SIMILAR(spectra_ids[0].getMZ(), 258.3)
+}
 END_SECTION
 
+START_SECTION((PeptideIdentificationList& operator=(std::initializer_list<PeptideIdentification> init)))
+{
+  PeptideIdentification pep_id1, pep_id2;
+  pep_id1.setRT(369.7);
+  pep_id1.setMZ(741.8);
+  pep_id2.setRT(852.9);
+  pep_id2.setMZ(963.1);
+  
+  PeptideIdentificationList spectra_ids;
+  spectra_ids = {pep_id1, pep_id2};
+  TEST_EQUAL(spectra_ids.size(), 2)
+  TEST_REAL_SIMILAR(spectra_ids[0].getRT(), 369.7)
+  TEST_REAL_SIMILAR(spectra_ids[1].getRT(), 852.9)
+}
+END_SECTION
+
+START_SECTION((Vector inheritance test))
+{
+  PeptideIdentificationList spectra_ids;
+  
+  // Test that all vector methods are available
+  PeptideIdentification pep_id;
+  pep_id.setRT(100.0);
+  pep_id.setMZ(200.0);
+  
+  // Test push_back
+  spectra_ids.push_back(pep_id);
+  TEST_EQUAL(spectra_ids.size(), 1)
+  
+  // Test clear
+  spectra_ids.clear();
+  TEST_EQUAL(spectra_ids.size(), 0)
+  TEST_EQUAL(spectra_ids.empty(), true)
+  
+  // Test reserve and capacity
+  spectra_ids.reserve(10);
+  TEST_EQUAL(spectra_ids.capacity() >= 10, true)
+  
+  // Test iterators
+  spectra_ids.push_back(pep_id);
+  spectra_ids.push_back(pep_id);
+  
+  size_t count = 0;
+  for (auto it = spectra_ids.begin(); it != spectra_ids.end(); ++it)
+  {
+    count++;
+  }
+  TEST_EQUAL(count, 2)
+  
+  // Test range-based for loop
+  count = 0;
+  for (const auto& id : spectra_ids)
+  {
+    count++;
+  }
+  TEST_EQUAL(count, 2)
+}
+END_SECTION
+
+START_SECTION((Type compatibility test))
+{
+  // Test that PeptideIdentificationList can be used where PeptideIdentificationList is expected
+  PeptideIdentificationList spectra_ids;
+  PeptideIdentification pep_id;
+  pep_id.setRT(500.0);
+  pep_id.setMZ(600.0);
+  spectra_ids.push_back(pep_id);
+  
+  // Test assignment to base type
+  PeptideIdentificationList base_vector = spectra_ids;
+  TEST_EQUAL(base_vector.size(), 1)
+  TEST_REAL_SIMILAR(base_vector[0].getRT(), 500.0)
+  TEST_REAL_SIMILAR(base_vector[0].getMZ(), 600.0)
+  
+  // Test const reference compatibility
+  const PeptideIdentificationList& const_ref = spectra_ids;
+  TEST_EQUAL(const_ref.size(), 1)
+  TEST_REAL_SIMILAR(const_ref[0].getRT(), 500.0)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 END_TEST
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////

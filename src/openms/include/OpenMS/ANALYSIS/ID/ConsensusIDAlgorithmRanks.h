@@ -40,7 +40,7 @@ namespace OpenMS
     ConsensusIDAlgorithmRanks& operator=(const ConsensusIDAlgorithmRanks&);
 
     /// Assign peptide scores based on search ranks
-    void preprocess_(std::vector<PeptideIdentification>& ids) override;
+    void preprocess_(PeptideIdentificationList& ids) override;
 
     /// Aggregate peptide scores into one final score (by averaging ranks)
     double getAggregateScore_(std::vector<double>& scores,

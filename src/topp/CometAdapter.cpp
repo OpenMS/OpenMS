@@ -730,7 +730,7 @@ protected:
     vector<String> fixed_modifications_names = getStringList_("fixed_modifications");
     vector<String> variable_modifications_names = getStringList_("variable_modifications");
 
-    vector<PeptideIdentification> peptide_identifications;
+    PeptideIdentificationList peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
 
     writeDebug_("load PepXMLFile", 1);

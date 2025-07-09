@@ -25,7 +25,7 @@ namespace OpenMS
     /// Import from legacy peptide/protein identifications
     static void importIDs(IdentificationData& id_data,
                           const std::vector<ProteinIdentification>& proteins,
-                          const std::vector<PeptideIdentification>& peptides);
+                          const PeptideIdentificationList& peptides);
 
     /*!
       @brief Export to legacy peptide/protein identifications
@@ -34,7 +34,7 @@ namespace OpenMS
     */
     static void exportIDs(const IdentificationData& id_data,
                           std::vector<ProteinIdentification>& proteins,
-                          std::vector<PeptideIdentification>& peptides,
+                          PeptideIdentificationList& peptides,
                           bool export_ids_wo_scores = false);
 
     /// Export to mzTab format
@@ -281,7 +281,7 @@ namespace OpenMS
       ProteinIdentification& protein);
 
     static void handleFeatureImport_(Feature& feature, const IntList& indexes,
-                                     std::vector<PeptideIdentification>& peptides,
+                                     PeptideIdentificationList& peptides,
                                      Size& id_counter, bool clear_original);
 
     static void handleFeatureExport_(Feature& feature, const IntList& indexes,

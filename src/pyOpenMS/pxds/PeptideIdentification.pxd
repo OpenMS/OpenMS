@@ -63,3 +63,21 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
 
         libcpp_vector[PeptideHit] getReferencingHits(libcpp_vector[PeptideHit], libcpp_set[String] &) except + nogil  # wrap-doc:Returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)
 
+    # PeptideIdentificationList class - a typed vector of PeptideIdentification objects
+    cdef cppclass PeptideIdentificationList(libcpp_vector[PeptideIdentification]):
+        # wrap-inherits:
+        #   libcpp_vector[PeptideIdentification]
+        # wrap-doc:
+        #  A typed vector of PeptideIdentification objects
+        #  
+        #  This class is a wrapper around PeptideIdentificationList that provides
+        #  better type safety and potential for future enhancements. It inherits all
+        #  vector operations while providing a distinct type for identifications
+        #  associated with spectra.
+
+        PeptideIdentificationList() except + nogil 
+        PeptideIdentificationList(PeptideIdentificationList &) except + nogil 
+        PeptideIdentificationList(libcpp_vector[PeptideIdentification] &) except + nogil 
+        PeptideIdentificationList(size_t) except + nogil 
+        PeptideIdentificationList(size_t, PeptideIdentification &) except + nogil 
+

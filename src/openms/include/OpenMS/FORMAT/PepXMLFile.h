@@ -60,7 +60,7 @@ public:
     */
     void load(const String& filename,
               std::vector<ProteinIdentification>& proteins,
-              std::vector<PeptideIdentification>& peptides,
+              PeptideIdentificationList& peptides,
               const String& experiment_name,
               const SpectrumMetaDataLookup& lookup);
 
@@ -72,7 +72,7 @@ public:
     */
     void load(const String& filename,
               std::vector<ProteinIdentification>& proteins,
-              std::vector<PeptideIdentification>& peptides,
+              PeptideIdentificationList& peptides,
               const String& experiment_name = "");
 
     /**
@@ -81,7 +81,7 @@ public:
         @exception Exception::UnableToCreateFile is thrown if the file could not be opened for writing
     */
     void store(const String& filename, std::vector<ProteinIdentification>& protein_ids,
-               std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "",
+               PeptideIdentificationList& peptide_ids, const String& mz_file = "",
                const String& mz_name = "", bool peptideprophet_analyzed = false, double rt_tolerance = 0.01);
 
     /**
@@ -186,7 +186,7 @@ private:
     std::vector<ProteinIdentification>* proteins_;
 
     /// Pointer to the list of identified peptides
-    std::vector<PeptideIdentification>* peptides_;
+    PeptideIdentificationList* peptides_;
 
     /// Pointer to wrapper for looking up spectrum meta data
     const SpectrumMetaDataLookup* lookup_;

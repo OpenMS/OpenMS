@@ -66,7 +66,7 @@ struct OPENMS_DLLAPI NuXLReport
 {
   static std::vector<NuXLReportRow> annotate(
     const PeakMap& spectra, 
-    std::vector<PeptideIdentification>& peptide_ids, 
+    PeptideIdentificationList& peptide_ids, 
     const StringList& meta_values_to_export,
     double marker_ions_tolerance);
 };
@@ -76,14 +76,14 @@ struct OPENMS_DLLAPI NuXLReport
 struct OPENMS_DLLAPI NuXLProteinReport
 {
   static void annotateProteinModificationForTopHits(std::vector<ProteinIdentification>& prot_ids, 
-    const std::vector<PeptideIdentification>& peps, 
+    const PeptideIdentificationList& peps, 
     TextFile& tsv_file);
 
   // crosslink efficiency = frequency of the crosslinked amino acid / frequency of the amino acid in all crosslink spectrum matches
-  static std::map<char, double> getCrossLinkEfficiency(const std::vector<PeptideIdentification>& peps);
+  static std::map<char, double> getCrossLinkEfficiency(const PeptideIdentificationList& peps);
 
   // returns map of adduct to counts
-  static std::map<String, size_t> countAdducts(const std::vector<PeptideIdentification>& peps);
+  static std::map<String, size_t> countAdducts(const PeptideIdentificationList& peps);
 
   static void mapAccessionToTDProteins(ProteinIdentification& prot_id, std::map<String, ProteinHit*>& acc2protein_targets, std::map<String, ProteinHit*>& acc2protein_decoys);
 };

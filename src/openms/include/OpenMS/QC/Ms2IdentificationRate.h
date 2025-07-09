@@ -104,7 +104,7 @@ namespace OpenMS
      * @exception               MissingInformation is thrown if the experiment doesn't contain MS2 spectra
      * @exception               Precondition is thrown if there are more identifications than MS2 spectra
      */
-    void compute(const std::vector<PeptideIdentification>& pep_ids, const MSExperiment& exp, bool assume_all_target = false);
+    void compute(const PeptideIdentificationList& pep_ids, const MSExperiment& exp, bool assume_all_target = false);
 
     /// returns the name of the metric
     const String& getName() const override;

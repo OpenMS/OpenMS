@@ -690,7 +690,7 @@ namespace OpenMS
     }
   }
 
-  void OPXLHelper::buildPeptideIDs(std::vector<PeptideIdentification> & peptide_ids, const std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > & top_csms_spectrum, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > > & all_top_csms, Size all_top_csms_current_index, const PeakMap & spectra, Size scan_index, Size scan_index_heavy)
+  void OPXLHelper::buildPeptideIDs(PeptideIdentificationList & peptide_ids, const std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > & top_csms_spectrum, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > > & all_top_csms, Size all_top_csms_current_index, const PeakMap & spectra, Size scan_index, Size scan_index_heavy)
   {
     for (Size i = 0; i < top_csms_spectrum.size(); ++i)
     {
@@ -1156,7 +1156,7 @@ namespace OpenMS
 
       }
     }
-    vector<PeptideIdentification> new_peptide_ids_vector;
+    PeptideIdentificationList new_peptide_ids_vector;
     new_peptide_ids_vector.reserve(new_peptide_ids.size());
     for (pair<String, PeptideIdentification> mit : new_peptide_ids)
     {

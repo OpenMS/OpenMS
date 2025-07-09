@@ -52,7 +52,7 @@ public:
     */
     void store(const String& filename,
                const std::vector<ProteinIdentification>& poid,
-               const std::vector<PeptideIdentification>& peid) const;
+               const PeptideIdentificationList& peid) const;
 
     /**
      * @brief Returns the total number of hits in the file

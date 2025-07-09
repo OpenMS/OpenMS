@@ -334,7 +334,7 @@ namespace OpenMS
   }
 
   // @TODO: should this function handle "max_mods_per_peptide_" as well?
-  void ModificationDefinitionsSet::inferFromPeptides(const vector<PeptideIdentification>& peptides)
+  void ModificationDefinitionsSet::inferFromPeptides(const PeptideIdentificationList& peptides)
   {
     // amino acid (or terminus) -> set of modifications (incl. no mod. = 0):
     map<String, set<const ResidueModification*> > mod_map;

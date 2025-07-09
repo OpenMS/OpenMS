@@ -31,7 +31,7 @@ namespace OpenMS
 public:
       /// Constructor
       MascotXMLHandler(ProteinIdentification& protein_identification,
-                       std::vector<PeptideIdentification>& identifications,
+                       PeptideIdentificationList& identifications,
                        const String& filename,
                        std::map<String, std::vector<AASequence> >& peptides,
                        const SpectrumMetaDataLookup& lookup);
@@ -54,7 +54,7 @@ public:
 private:
 
       ProteinIdentification& protein_identification_; ///< the protein identifications
-      std::vector<PeptideIdentification>& id_data_; ///< the identifications (storing the peptide hits)
+      PeptideIdentificationList& id_data_; ///< the identifications (storing the peptide hits)
       ProteinHit actual_protein_hit_;
       PeptideHit actual_peptide_hit_;
       PeptideEvidence actual_peptide_evidence_;

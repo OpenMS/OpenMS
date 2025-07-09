@@ -192,7 +192,7 @@ protected:
 
     // initialize solution vectors
     vector<ProteinIdentification> protein_ids(1);
-    vector<PeptideIdentification> peptide_ids;
+    PeptideIdentificationList peptide_ids;
 
     // these are mainly necessary for writing out xQuest type spectrum files
     OPXLDataStructs::PreprocessedPairSpectra preprocessed_pair_spectra(0);

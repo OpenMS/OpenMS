@@ -25,30 +25,30 @@ class OPENMS_DLLAPI NuXLFDR
     explicit NuXLFDR(size_t report_top_hits);
 
     // split by meta value "NuXL:isXL" == 0
-    void splitIntoPeptidesAndXLs(const std::vector<PeptideIdentification>& peptide_ids, 
-      std::vector<PeptideIdentification>& pep_pi, 
-      std::vector<PeptideIdentification>& xl_pi) const;
+    void splitIntoPeptidesAndXLs(const PeptideIdentificationList& peptide_ids, 
+      PeptideIdentificationList& pep_pi, 
+      PeptideIdentificationList& xl_pi) const;
 
-    void mergePeptidesAndXLs(const std::vector<PeptideIdentification>& pep_pi, 
-      const std::vector<PeptideIdentification>& xl_pi, 
-      std::vector<PeptideIdentification>& peptide_ids) const;
+    void mergePeptidesAndXLs(const PeptideIdentificationList& pep_pi, 
+      const PeptideIdentificationList& xl_pi, 
+      PeptideIdentificationList& peptide_ids) const;
 
     // calculate PSM-level q-values (irrespective of XL/non-XL class)
-    void QValueAtPSMLevel(std::vector<PeptideIdentification>& peptide_ids) const;
+    void QValueAtPSMLevel(PeptideIdentificationList& peptide_ids) const;
 
     // calculate PSM-level q-values for XL and non-XL class separately.
-    void calculatePeptideAndXLQValueAtPSMLevel(const std::vector<PeptideIdentification>& peptide_ids, 
-      std::vector<PeptideIdentification>& pep_pi, 
-      std::vector<PeptideIdentification>& xl_pi) const;
+    void calculatePeptideAndXLQValueAtPSMLevel(const PeptideIdentificationList& peptide_ids, 
+      PeptideIdentificationList& pep_pi, 
+      PeptideIdentificationList& xl_pi) const;
 
     // calculate separate FDRs, filter decoys, write PSM and protein reports
     void calculatePeptideAndXLQValueAndFilterAtPSMLevel(
       const std::vector<ProteinIdentification>& protein_ids,
-      const std::vector<PeptideIdentification>& peptide_ids, 
-      std::vector<PeptideIdentification>& pep,
+      const PeptideIdentificationList& peptide_ids, 
+      PeptideIdentificationList& pep,
       double peptide_PSM_qvalue_threshold,
       double peptide_peptide_qvalue_threshold,
-      std::vector<PeptideIdentification>& xl_pi,
+      PeptideIdentificationList& xl_pi,
       std::vector<double> xl_PSM_qvalue_thresholds,
       std::vector<double> xl_peptidelevel_qvalue_thresholds,
       const String& out_idxml,

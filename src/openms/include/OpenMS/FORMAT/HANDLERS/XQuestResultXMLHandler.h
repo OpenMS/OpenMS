@@ -39,7 +39,7 @@ namespace OpenMS
 
       /// Constructor for a write-only handler for internal identification structures
       XQuestResultXMLHandler(const std::vector<ProteinIdentification>& pro_id,
-                             const std::vector<PeptideIdentification>& pep_id,
+                             const PeptideIdentificationList& pep_id,
                              const String& filename,
                              const String& version
                            );
@@ -113,7 +113,7 @@ namespace OpenMS
 
       // internal ID items for writing files
       const std::vector<ProteinIdentification>* cpro_id_;
-      const std::vector<PeptideIdentification>* cpep_id_;
+      const PeptideIdentificationList* cpep_id_;
 
       UInt n_hits_; ///< Total no. of hits found in the result XML file
 

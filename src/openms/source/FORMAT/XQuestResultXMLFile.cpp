@@ -62,7 +62,7 @@ namespace OpenMS
     return this->max_score_;
   }
 
-  void XQuestResultXMLFile::store(const String& filename, const std::vector<ProteinIdentification>& poid, const std::vector<PeptideIdentification>& peid) const
+  void XQuestResultXMLFile::store(const String& filename, const std::vector<ProteinIdentification>& poid, const PeptideIdentificationList& peid) const
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::XQUESTXML))
     {

@@ -61,7 +61,7 @@ namespace OpenMS
      @param protein_id The ProteinIdentification from an XL-MS experiment
 
      */
-    ExitCodes run(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id);
+    ExitCodes run(PeptideIdentificationList& peptide_ids, ProteinIdentification& protein_id);
 
     /**
     * @brief Checks whether the parameters of the object are valid
@@ -81,7 +81,7 @@ private:
    *  * Set the identifier of the Peptide Identification if there is only one protein identification
    *
    */
-    void initDataStructures_(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id);
+    void initDataStructures_(PeptideIdentificationList& peptide_ids, ProteinIdentification& protein_id);
 
     /**
      * @brief Inspects a PeptideIdentification and assigns all cross-link types that this identification belongs to
@@ -112,7 +112,7 @@ private:
     */
     static void calc_qfdr_(const std::vector< double >& fdr, std::vector< double >& qfdr);
 
-    void findTopUniqueHits_(std::vector<PeptideIdentification>& peptide_ids);
+    void findTopUniqueHits_(PeptideIdentificationList& peptide_ids);
 
     void writeArgumentsLog_() const;
 

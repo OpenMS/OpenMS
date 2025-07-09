@@ -65,7 +65,7 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
         AnnotationState getAnnotationState() except + nogil 
 
    
-        libcpp_vector[PeptideIdentification] getPeptideIdentifications() except + nogil  # wrap-doc:Returns a reference to the PeptideIdentification vector
+        PeptideIdentificationList getPeptideIdentifications() except + nogil  # wrap-doc:Returns a reference to the PeptideIdentification vector
         
-        void setPeptideIdentifications(libcpp_vector[PeptideIdentification] & peptides) except + nogil  # wrap-doc:Sets the PeptideIdentification vector
+        void setPeptideIdentifications(PeptideIdentificationList & peptides) except + nogil  # wrap-doc:Sets the PeptideIdentification vector
 

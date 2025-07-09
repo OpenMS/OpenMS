@@ -53,7 +53,7 @@ public:
 
          The peptide hits in @p peptides will be sorted if @p use_peptide_mass is true.
     */
-    void generateSeedList(std::vector<PeptideIdentification> & peptides,
+    void generateSeedList(PeptideIdentificationList & peptides,
                           SeedList & seeds, bool use_peptide_mass = false);
 
 

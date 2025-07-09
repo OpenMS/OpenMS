@@ -64,7 +64,7 @@ namespace OpenMS
            identified peptide lengths mean (peptide_length_mean)
 
    **/
-    Result compute(std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
+    Result compute(std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids);
 
     const String& getName() const override;
 

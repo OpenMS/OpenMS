@@ -51,7 +51,7 @@ public:
 
       @ingroup FileIO
     */
-    void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, ModificationDefinitionsSet& mod_def_set);
+    void load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, ModificationDefinitionsSet& mod_def_set);
 
 
 protected:

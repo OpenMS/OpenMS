@@ -42,10 +42,10 @@ cdef extern from "<OpenMS/PROCESSING/ID/IDFilter.h>" namespace "OpenMS":
         IDFilter() except + nogil  
         IDFilter(IDFilter &) except + nogil  #compiler
 
-        Size countHits(libcpp_vector[PeptideIdentification] identifications) except + nogil  # wrap-doc:Returns the total number of peptide hits in a vector of peptide identifications
+        Size countHits(PeptideIdentificationList identifications) except + nogil  # wrap-doc:Returns the total number of peptide hits in a vector of peptide identifications
         Size countHits(libcpp_vector[ProteinIdentification] identifications) except + nogil  # wrap-doc:Returns the total number of protein hits in a vector of protein identifications
 
-        bool getBestHit(libcpp_vector[PeptideIdentification] identifications, bool assume_sorted, PeptideHit& best_hit) except + nogil 
+        bool getBestHit(PeptideIdentificationList identifications, bool assume_sorted, PeptideHit& best_hit) except + nogil 
             # wrap-doc:
                 #  Finds the best-scoring hit in a vector of peptide or protein identifications\n
                 #  
@@ -69,7 +69,7 @@ cdef extern from "<OpenMS/PROCESSING/ID/IDFilter.h>" namespace "OpenMS":
                 #  :param best_hit: Contains the best hit if successful in a vector of protein identifications
                 #  :return: true if a hit was present, false otherwise
 
-        void extractPeptideSequences(libcpp_vector[PeptideIdentification]& peptides, libcpp_set[String]& sequences, bool ignore_mods) except + nogil 
+        void extractPeptideSequences(PeptideIdentificationList& peptides, libcpp_set[String]& sequences, bool ignore_mods) except + nogil 
             # wrap-doc:
                 #  Extracts all unique peptide sequences from a list of peptide IDs
                 #  
@@ -78,9 +78,9 @@ cdef extern from "<OpenMS/PROCESSING/ID/IDFilter.h>" namespace "OpenMS":
                 #  :param ignore_mods: Boolean operator default to false in case of any modifications in sequences during extraction
                 #  :return: Sequences
 
-        void removeUnreferencedProteins(libcpp_vector[ProteinIdentification]& proteins, libcpp_vector[PeptideIdentification]& peptides) except + nogil  # wrap-doc:Removes protein hits from the protein IDs in a 'cmap' that are not referenced by a peptide in the features or if requested in the unassigned peptide list
+        void removeUnreferencedProteins(libcpp_vector[ProteinIdentification]& proteins, PeptideIdentificationList& peptides) except + nogil  # wrap-doc:Removes protein hits from the protein IDs in a 'cmap' that are not referenced by a peptide in the features or if requested in the unassigned peptide list
 
-        void updateProteinReferences(libcpp_vector[PeptideIdentification]& peptides, libcpp_vector[ProteinIdentification]& proteins, bool remove_peptides_without_reference) except + nogil  # wrap-doc:Removes references to missing proteins. Only PeptideEvidence entries that reference protein hits in 'proteins' are kept in the peptide hits
+        void updateProteinReferences(PeptideIdentificationList& peptides, libcpp_vector[ProteinIdentification]& proteins, bool remove_peptides_without_reference) except + nogil  # wrap-doc:Removes references to missing proteins. Only PeptideEvidence entries that reference protein hits in 'proteins' are kept in the peptide hits
 
         bool updateProteinGroups(libcpp_vector[ProteinGroup]& groups, libcpp_vector[ProteinHit]& hits) except + nogil 
             # wrap-doc:
@@ -91,18 +91,18 @@ cdef extern from "<OpenMS/PROCESSING/ID/IDFilter.h>" namespace "OpenMS":
                 #  :param hits: Available protein hits (all others are removed from the groups)
                 #  :return: Returns whether the groups are still valid (which is the case if only whole groups, if any, were removed)
 
-        void removeEmptyIdentifications(libcpp_vector[PeptideIdentification]& ids) except + nogil  # wrap-doc:Removes peptide or protein identifications that have no hits in them
+        void removeEmptyIdentifications(PeptideIdentificationList& ids) except + nogil  # wrap-doc:Removes peptide or protein identifications that have no hits in them
         void removeEmptyIdentifications(libcpp_vector[ProteinIdentification]& ids) except + nogil  # wrap-doc:Removes peptide or protein identifications that have no hits in them
 
-        void filterHitsByScore(libcpp_vector[PeptideIdentification]& ids, double threshold_score) except + nogil  # wrap-doc:Filters peptide or protein identifications according to the score of the hits. The score orientation has to be set to higherscorebetter in each PeptideIdentification. Only peptide/protein hits with a score at least as good as 'threshold_score' are kept
+        void filterHitsByScore(PeptideIdentificationList& ids, double threshold_score) except + nogil  # wrap-doc:Filters peptide or protein identifications according to the score of the hits. The score orientation has to be set to higherscorebetter in each PeptideIdentification. Only peptide/protein hits with a score at least as good as 'threshold_score' are kept
         void filterHitsByScore(libcpp_vector[ProteinIdentification]& ids, double threshold_score) except + nogil  # wrap-doc:Filters peptide or protein identifications according to the score of the hits. The score orientation has to be set to higherscorebetter in each PeptideIdentification/ProteinIdentifiation. Only peptide/protein hits with a score at least as good as 'threshold_score' are kept
 
-        void keepNBestSpectra(libcpp_vector[PeptideIdentification]& peptides, Size n) except + nogil  # wrap-doc:Filter identifications by "N best" PeptideIdentification objects (better PeptideIdentification means better [best] PeptideHit than other)
+        void keepNBestSpectra(PeptideIdentificationList& peptides, Size n) except + nogil  # wrap-doc:Filter identifications by "N best" PeptideIdentification objects (better PeptideIdentification means better [best] PeptideHit than other)
 
-        void keepNBestHits(libcpp_vector[PeptideIdentification]& ids, Size n) except + nogil  # TODO
+        void keepNBestHits(PeptideIdentificationList& ids, Size n) except + nogil  # TODO
         void keepNBestHits(libcpp_vector[ProteinIdentification]& ids, Size n) except + nogil  # TODO
 
-        void filterHitsByRank(libcpp_vector[PeptideIdentification]& ids, Size min_rank, Size max_rank) except + nogil 
+        void filterHitsByRank(PeptideIdentificationList& ids, Size min_rank, Size max_rank) except + nogil 
             # wrap-doc:
                 #  Filters peptide or protein identifications according to the ranking of the hits\n
                 #  
@@ -126,16 +126,16 @@ cdef extern from "<OpenMS/PROCESSING/ID/IDFilter.h>" namespace "OpenMS":
                 #  
                 #  Note: There may be several hits with the same rank in a peptide or protein ID (if the scores are the same). This method is useful if a range of higher hits is needed for decoy fairness analysis
 
-        void removeDecoyHits(libcpp_vector[PeptideIdentification]& ids) except + nogil  # wrap-doc:Removes hits annotated as decoys from peptide or protein identifications. Checks for meta values named "target_decoy" and "isDecoy", and removes protein/peptide hits if the values are "decoy" and "true", respectively
+        void removeDecoyHits(PeptideIdentificationList& ids) except + nogil  # wrap-doc:Removes hits annotated as decoys from peptide or protein identifications. Checks for meta values named "target_decoy" and "isDecoy", and removes protein/peptide hits if the values are "decoy" and "true", respectively
         void removeDecoyHits(libcpp_vector[ProteinIdentification]& ids) except + nogil  # wrap-doc:Removes hits annotated as decoys from peptide or protein identifications. Checks for meta values named "target_decoy" and "isDecoy", and removes protein/peptide hits if the values are "decoy" and "true", respectively
 
-        void removeHitsMatchingProteins(libcpp_vector[PeptideIdentification]& ids, libcpp_set[String] accessions) except + nogil  # wrap-doc:Filters peptide or protein identifications according to the given proteins (negative)
+        void removeHitsMatchingProteins(PeptideIdentificationList& ids, libcpp_set[String] accessions) except + nogil  # wrap-doc:Filters peptide or protein identifications according to the given proteins (negative)
         void removeHitsMatchingProteins(libcpp_vector[ProteinIdentification]& ids, libcpp_set[String] accessions) except + nogil  # wrap-doc:Filters peptide or protein identifications according to the given proteins (negative)
 
-        void keepHitsMatchingProteins(libcpp_vector[PeptideIdentification]& ids, libcpp_set[String] accessions) except + nogil  # wrap-doc:Filters peptide or protein identifications according to the given proteins (positive)
+        void keepHitsMatchingProteins(PeptideIdentificationList& ids, libcpp_set[String] accessions) except + nogil  # wrap-doc:Filters peptide or protein identifications according to the given proteins (positive)
         void keepHitsMatchingProteins(libcpp_vector[ProteinIdentification]& ids, libcpp_set[String] accessions) except + nogil  # wrap-doc:Filters peptide or protein identifications according to the given proteins (positive)
 
-        void keepBestPeptideHits(libcpp_vector[PeptideIdentification]& peptides, bool strict) except + nogil  
+        void keepBestPeptideHits(PeptideIdentificationList& peptides, bool strict) except + nogil  
             # wrap-doc:
                 #  Filters peptide identifications keeping only the single best-scoring hit per ID
                 #  
@@ -143,17 +143,17 @@ cdef extern from "<OpenMS/PROCESSING/ID/IDFilter.h>" namespace "OpenMS":
                 #  :param peptides: Input/output
                 #  :param strict: If set, keep the best hit only if its score is unique - i.e. ties are not allowed. (Otherwise all hits with the best score is kept.)
 
-        void filterPeptidesByLength(libcpp_vector[PeptideIdentification]& peptides, Size min_length, Size max_length) except + nogil  # wrap-doc:Filters peptide identifications according to peptide sequence length
+        void filterPeptidesByLength(PeptideIdentificationList& peptides, Size min_length, Size max_length) except + nogil  # wrap-doc:Filters peptide identifications according to peptide sequence length
 
-        void filterPeptidesByCharge(libcpp_vector[PeptideIdentification]& peptides, Size min_charge, Size max_charge) except + nogil  # wrap-doc:Filters peptide identifications according to charge state
+        void filterPeptidesByCharge(PeptideIdentificationList& peptides, Size min_charge, Size max_charge) except + nogil  # wrap-doc:Filters peptide identifications according to charge state
 
-        void filterPeptidesByRT(libcpp_vector[PeptideIdentification]& peptides, Size min_rt, Size max_rt) except + nogil  # wrap-doc:Filters peptide identifications by precursor RT, keeping only IDs in the given range
+        void filterPeptidesByRT(PeptideIdentificationList& peptides, Size min_rt, Size max_rt) except + nogil  # wrap-doc:Filters peptide identifications by precursor RT, keeping only IDs in the given range
 
-        void filterPeptidesByMZ(libcpp_vector[PeptideIdentification]& peptides, Size min_mz, Size max_mz) except + nogil  # wrap-doc:Filters peptide identifications by precursor m/z, keeping only IDs in the given range
+        void filterPeptidesByMZ(PeptideIdentificationList& peptides, Size min_mz, Size max_mz) except + nogil  # wrap-doc:Filters peptide identifications by precursor m/z, keeping only IDs in the given range
 
-        void filterPeptidesByMZError(libcpp_vector[PeptideIdentification]& peptides, double mass_error, bool unit_ppm) except + nogil  # wrap-doc:Filter peptide identifications according to mass deviation
+        void filterPeptidesByMZError(PeptideIdentificationList& peptides, double mass_error, bool unit_ppm) except + nogil  # wrap-doc:Filter peptide identifications according to mass deviation
 
-        void filterPeptidesByRTPredictPValue(libcpp_vector[PeptideIdentification]& peptides, const String& metavalue_key, double threshold) except + nogil 
+        void filterPeptidesByRTPredictPValue(PeptideIdentificationList& peptides, const String& metavalue_key, double threshold) except + nogil 
             # wrap-doc:
                 #  Filters peptide identifications according to p-values from RTPredict\n
                 #  
@@ -164,25 +164,25 @@ cdef extern from "<OpenMS/PROCESSING/ID/IDFilter.h>" namespace "OpenMS":
                 #  :param metavalue_key: Name of the meta value that holds the p-value: "predicted_RT_p_value" or "predicted_RT_p_value_first_dim"
                 #  :param threshold: P-value threshold
 
-        void removePeptidesWithMatchingModifications(libcpp_vector[PeptideIdentification]& peptides, libcpp_set[String]& modifications) except + nogil  # wrap-doc:Removes all peptide hits that have at least one of the given modifications
+        void removePeptidesWithMatchingModifications(PeptideIdentificationList& peptides, libcpp_set[String]& modifications) except + nogil  # wrap-doc:Removes all peptide hits that have at least one of the given modifications
 
-        void keepPeptidesWithMatchingModifications(libcpp_vector[PeptideIdentification]& peptides, libcpp_set[String]& modifications) except + nogil  # wrap-doc:Keeps only peptide hits that have at least one of the given modifications
+        void keepPeptidesWithMatchingModifications(PeptideIdentificationList& peptides, libcpp_set[String]& modifications) except + nogil  # wrap-doc:Keeps only peptide hits that have at least one of the given modifications
 
-        void removePeptidesWithMatchingSequences(libcpp_vector[PeptideIdentification]& peptides, libcpp_vector[PeptideIdentification]& bad_peptides, bool ignore_mods) except + nogil  # wrap-doc:Removes all peptide hits with a sequence that matches one in 'bad_peptides'
+        void removePeptidesWithMatchingSequences(PeptideIdentificationList& peptides, PeptideIdentificationList& bad_peptides, bool ignore_mods) except + nogil  # wrap-doc:Removes all peptide hits with a sequence that matches one in 'bad_peptides'
 
-        void keepPeptidesWithMatchingSequences(libcpp_vector[PeptideIdentification]& peptides, libcpp_vector[PeptideIdentification]& bad_peptides, bool ignore_mods) except + nogil  # wrap-doc:Removes all peptide hits with a sequence that does not match one in 'good_peptides'
+        void keepPeptidesWithMatchingSequences(PeptideIdentificationList& peptides, PeptideIdentificationList& bad_peptides, bool ignore_mods) except + nogil  # wrap-doc:Removes all peptide hits with a sequence that does not match one in 'good_peptides'
 
-        void keepUniquePeptidesPerProtein(libcpp_vector[PeptideIdentification]& peptides) except + nogil  # wrap-doc:Removes all peptides that are not annotated as unique for a protein (by PeptideIndexer)
+        void keepUniquePeptidesPerProtein(PeptideIdentificationList& peptides) except + nogil  # wrap-doc:Removes all peptides that are not annotated as unique for a protein (by PeptideIndexer)
 
-        void removeDuplicatePeptideHits(libcpp_vector[PeptideIdentification]& peptides) except + nogil  # wrap-doc:Removes duplicate peptide hits from each peptide identification, keeping only unique hits (per ID)
+        void removeDuplicatePeptideHits(PeptideIdentificationList& peptides) except + nogil  # wrap-doc:Removes duplicate peptide hits from each peptide identification, keeping only unique hits (per ID)
 
         void filterHitsByScore(AnnotatedMSRun& experiment, double peptide_threshold_score, double protein_threshold_score) except + nogil  # wrap-doc:Filters an MS/MS experiment according to score thresholds
 
         void keepNBestHits(AnnotatedMSRun& experiment, Size n) except + nogil  # wrap-doc:Filters an MS/MS experiment by keeping the N best peptide hits for every spectrum
         
-        void keepBestPerPeptide(libcpp_vector[PeptideIdentification]& peptides, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum) except + nogil  # wrap-doc:Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence
+        void keepBestPerPeptide(PeptideIdentificationList& peptides, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum) except + nogil  # wrap-doc:Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence
 
-        void keepBestPerPeptidePerRun(libcpp_vector[ProteinIdentification]& prot_ids, libcpp_vector[PeptideIdentification]& peptides, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum) except + nogil  # wrap-doc:Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence on a per run basis
+        void keepBestPerPeptidePerRun(libcpp_vector[ProteinIdentification]& prot_ids, PeptideIdentificationList& peptides, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum) except + nogil  # wrap-doc:Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence on a per run basis
         
         void keepHitsMatchingProteins(AnnotatedMSRun& experiment, libcpp_vector[FASTAEntry]& proteins) except + nogil
 
@@ -205,4 +205,4 @@ cdef extern from "<OpenMS/PROCESSING/ID/IDFilter.h>" namespace "OpenMS::IDFilter
                         bool methionine_cleavage) except + nogil 
 
         # bool operator()(PeptideEvidence & evidence) except + nogil 
-        void filterPeptideEvidences(libcpp_vector[ PeptideIdentification ] & peptides) except + nogil 
+        void filterPeptideEvidences(PeptideIdentificationList & peptides) except + nogil 

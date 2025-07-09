@@ -51,11 +51,11 @@ public:
               @param fwd_ids Input parameter which represents the identifications of the forward search
               @param rev_ids Input parameter which represents the identifications of the reversed search
       */
-    void apply(std::vector<PeptideIdentification> & prob_ids,
-               const std::vector<PeptideIdentification> & fwd_ids,
-               const std::vector<PeptideIdentification> & rev_ids);
+    void apply(PeptideIdentificationList & prob_ids,
+               const PeptideIdentificationList & fwd_ids,
+               const PeptideIdentificationList & rev_ids);
 
-    void apply(std::vector<PeptideIdentification> & ids);
+    void apply(PeptideIdentificationList & ids);
 
 protected:
 
@@ -119,7 +119,7 @@ protected:
     void generateDistributionImage_(const std::vector<double> & all_ids, const Transformation_ & all_trans, const String & fwd_formula, const String & rev_formula, const String & filename);
 
 
-    void apply_(std::vector<PeptideIdentification> & ids, const std::vector<double> & rev_scores, const std::vector<double> & fwd_scores, const std::vector<double> & all_scores);
+    void apply_(PeptideIdentificationList & ids, const std::vector<double> & rev_scores, const std::vector<double> & fwd_scores, const std::vector<double> & all_scores);
 
   };
 

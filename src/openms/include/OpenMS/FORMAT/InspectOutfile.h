@@ -57,7 +57,7 @@ public:
             @throw ParseError is thrown if the given file could not be parsed
             @throw FileEmpty is thrown if the given file is empty
     */
-    std::vector<Size> load(const String & result_filename, std::vector<PeptideIdentification> & peptide_identifications, ProteinIdentification & protein_identification, const double p_value_threshold, const String & database_filename = "");
+    std::vector<Size> load(const String & result_filename, PeptideIdentificationList & peptide_identifications, ProteinIdentification & protein_identification, const double p_value_threshold, const String & database_filename = "");
 
     /** loads only results which exceeds a given P-value threshold
 
@@ -92,7 +92,7 @@ public:
 
             @throw Exception::ParseError
     */
-    void getPrecursorRTandMZ(const std::vector<std::pair<String, std::vector<std::pair<Size, Size> > > > & files_and_peptide_identification_with_scan_number, std::vector<PeptideIdentification> & ids);
+    void getPrecursorRTandMZ(const std::vector<std::pair<String, std::vector<std::pair<Size, Size> > > > & files_and_peptide_identification_with_scan_number, PeptideIdentificationList & ids);
 
     /** retrieve the labels of a given database (at the moment FASTA and Swissprot)
 

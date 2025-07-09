@@ -269,7 +269,7 @@ namespace OpenMS
     /// add peptide identifications to the layer
     /// Only supported for DT_PEAK, DT_FEATURE and DT_CONSENSUS.
     /// Will return false otherwise.
-    virtual bool annotate(const std::vector<PeptideIdentification>& identifications,
+    virtual bool annotate(const PeptideIdentificationList& identifications,
                           const std::vector<ProteinIdentification>& protein_identifications);
 
 

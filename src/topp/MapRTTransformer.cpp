@@ -188,7 +188,7 @@ protected:
       else if (in_type == FileTypes::IDXML)
       {
         vector<ProteinIdentification> proteins;
-        vector<PeptideIdentification> peptides;
+        PeptideIdentificationList peptides;
         FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML}, log_type_);
         bool store_original_rt = getFlag_("store_original_rt");
         MapAlignmentTransformer::transformRetentionTimes(peptides, trafo,

@@ -72,10 +72,10 @@ public:
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler for internal identification structures
-      MzIdentMLDOMHandler(const std::vector<ProteinIdentification>& pro_id, const std::vector<PeptideIdentification>& pep_id, const String& version, const ProgressLogger& logger);
+      MzIdentMLDOMHandler(const std::vector<ProteinIdentification>& pro_id, const PeptideIdentificationList& pep_id, const String& version, const ProgressLogger& logger);
 
       /// Constructor for a read-only handler for internal identification structures
-      MzIdentMLDOMHandler(std::vector<ProteinIdentification>& pro_id, std::vector<PeptideIdentification>& pep_id, const String& version, const ProgressLogger& logger);
+      MzIdentMLDOMHandler(std::vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const String& version, const ProgressLogger& logger);
 
       /// Destructor
       virtual ~MzIdentMLDOMHandler();
@@ -98,12 +98,12 @@ protected:
       ///Internal +w Identification Item for proteins
       std::vector<ProteinIdentification>* pro_id_ = nullptr;
       ///Internal +w Identification Item for peptides
-      std::vector<PeptideIdentification>* pep_id_ = nullptr;
+      PeptideIdentificationList* pep_id_ = nullptr;
 
       ///Internal -w Identification Item for proteins
       const std::vector<ProteinIdentification>* cpro_id_ = nullptr;
       ///Internal -w Identification Item for peptides
-      const std::vector<PeptideIdentification>* cpep_id_ = nullptr;
+      const PeptideIdentificationList* cpep_id_ = nullptr;
 
       ///Internal version keeping
       const String schema_version_;

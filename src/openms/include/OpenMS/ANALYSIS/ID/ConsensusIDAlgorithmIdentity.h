@@ -39,7 +39,7 @@ namespace OpenMS
 
        @throw Exception::InvalidValue Score orientations do not agree
     */
-    virtual void preprocess_(std::vector<PeptideIdentification>& ids);
+    virtual void preprocess_(PeptideIdentificationList& ids);
 
     /**
        @brief Aggregate peptide scores into one final score (to be implemented by subclasses).
@@ -60,7 +60,7 @@ namespace OpenMS
     ConsensusIDAlgorithmIdentity& operator=(const ConsensusIDAlgorithmIdentity&);
 
     /// Consensus scoring
-    void apply_(std::vector<PeptideIdentification>& ids,
+    void apply_(PeptideIdentificationList& ids,
         const std::map<String, String>& se_info,
         SequenceGrouping& results) override;
   };

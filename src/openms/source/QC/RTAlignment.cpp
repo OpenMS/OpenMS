@@ -58,7 +58,7 @@ namespace OpenMS
     compute(features.getUnassignedPeptideIdentifications(), trafo);
   }
 
-  void RTAlignment::compute(std::vector<PeptideIdentification>& ids, const TransformationDescription& trafo) const
+  void RTAlignment::compute(PeptideIdentificationList& ids, const TransformationDescription& trafo) const
   {
     // set meta values for all unasssigned PeptideIdentifications
     for (PeptideIdentification& id : ids)

@@ -24,7 +24,7 @@ namespace OpenMS
   {
     public:
       static void store(const String& pin_file, 
-        const std::vector<PeptideIdentification>& peptide_ids, 
+        const PeptideIdentificationList& peptide_ids, 
         const StringList& feature_set, 
         const std::string& enz, 
         int min_charge, 
@@ -58,7 +58,7 @@ namespace OpenMS
       * @throws `Exception::ParseError` if any line in the input file does not have the expected number of columns.
       * TODO: implement something similar to PepXMLFile().setPreferredFixedModifications(getModifications_(fixed_modifications_names));      
       */
-      static std::vector<PeptideIdentification> load(const String& pin_file, 
+      static PeptideIdentificationList load(const String& pin_file, 
         bool higher_score_better, 
         const String& score_name, 
         const StringList& extra_scores,
@@ -74,7 +74,7 @@ namespace OpenMS
 
       //id <tab> label <tab> scannr <tab> calcmass <tab> expmass <tab> feature1 <tab> ... <tab> featureN <tab> peptide <tab> proteinId1 <tab> .. <tab> proteinIdM
       static TextFile preparePin_(
-        const std::vector<PeptideIdentification>& peptide_ids, 
+        const PeptideIdentificationList& peptide_ids, 
         const StringList& feature_set, 
         const std::string& enz, 
         int min_charge, 

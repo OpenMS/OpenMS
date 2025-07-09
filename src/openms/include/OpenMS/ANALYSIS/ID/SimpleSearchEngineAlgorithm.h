@@ -39,7 +39,7 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
     ExitCodes search(const String& in_mzML, 
       const String& in_db, 
       std::vector<ProteinIdentification>& prot_ids,
-      std::vector<PeptideIdentification>& pep_ids) const;
+      PeptideIdentificationList& pep_ids) const;
   protected:
     void updateMembers_() override;
 
@@ -73,7 +73,7 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
     void postProcessHits_(const PeakMap& exp, 
       std::vector<std::vector<SimpleSearchEngineAlgorithm::AnnotatedHit_> >& annotated_hits, 
       std::vector<ProteinIdentification>& protein_ids, 
-      std::vector<PeptideIdentification>& peptide_ids, 
+      PeptideIdentificationList& peptide_ids, 
       Size top_hits,
       const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
       const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,

@@ -153,7 +153,7 @@ public:
       @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
     */
     void collectQCData(std::vector<ProteinIdentification>& prot_ids,
-                       std::vector<PeptideIdentification>& pep_ids,
+                       PeptideIdentificationList& pep_ids,
                        const FeatureMap& feature_map,
                        const ConsensusMap& consensus_map,
                        const String& inputfile_raw,

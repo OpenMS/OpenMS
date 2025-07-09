@@ -60,7 +60,7 @@ public:
     */
     void load(const String& filename,
               ProteinIdentification& protein_identification,
-              std::vector<PeptideIdentification>& id_data,
+              PeptideIdentificationList& id_data,
               bool load_proteins = true,
               bool load_empty_hits = true);
 
@@ -87,7 +87,7 @@ private:
     void readMappingFile_();
 
     /// the identifications (storing the peptide hits)
-    std::vector<PeptideIdentification>* peptide_identifications_;
+    PeptideIdentificationList* peptide_identifications_;
 
     ProteinHit actual_protein_hit_;
 

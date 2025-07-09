@@ -52,7 +52,7 @@ namespace OpenMS
      * @param fmap FeatureMap with Peptide and ProteinIdentifications
      */
     void compute(FeatureMap& fmap);
-    void compute(std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
+    void compute(std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids);
 
     /// returns the name of the metric
     const String& getName() const override;

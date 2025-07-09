@@ -21,10 +21,10 @@ using namespace OpenMS;
 START_TEST(XQuestResultXMLFile, "$Id$")
 
 
-START_SECTION(void store(const String& filename, const std::vector<ProteinIdentification>& poid, const std::vector<PeptideIdentification>& peid) const)
+START_SECTION(void store(const String& filename, const std::vector<ProteinIdentification>& poid, const PeptideIdentificationList& peid) const)
 
   std::vector<ProteinIdentification> protein_ids;
-  std::vector<PeptideIdentification> peptide_ids;
+  PeptideIdentificationList peptide_ids;
 
   String xquest_input_file= OPENMS_GET_TEST_DATA_PATH("XQuestResultXMLFile_test_data.xquest.xml");
   XQuestResultXMLFile().load(xquest_input_file, peptide_ids, protein_ids);

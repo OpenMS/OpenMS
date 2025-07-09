@@ -773,7 +773,7 @@ namespace OpenMS
       f.setUniqueId();
       f.ensureUniqueId();
       PeptideIdentification pep;
-      vector<PeptideIdentification> v_pep;
+      PeptideIdentificationList v_pep;
 
       // check - no target and decoy available
       if (it.second.target_mz == 0.0 && it.second.decoy_mz == 0.0)

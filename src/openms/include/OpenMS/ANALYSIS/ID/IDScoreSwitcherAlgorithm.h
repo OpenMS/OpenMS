@@ -345,7 +345,7 @@ namespace OpenMS
    @note This method assumes that all PeptideIdentification objects in the input vector have the same score type and orientation.
   */
   void determineScoreNameOrientationAndType(
-    const std::vector<PeptideIdentification>& pep_ids, 
+    const PeptideIdentificationList& pep_ids, 
     String& name, 
     bool& higher_better,
     ScoreType& score_type)
@@ -481,7 +481,7 @@ namespace OpenMS
      * @param pep_ids The peptide identifications whose scores need to be switched.
      * @param counter A reference to a counter that will be incremented for each peptide identification processed.     
      */
-    void switchScores(std::vector<PeptideIdentification>& pep_ids, Size& counter)
+    void switchScores(PeptideIdentificationList& pep_ids, Size& counter)
     {
       if (pep_ids.empty()) return;
 
@@ -654,7 +654,7 @@ namespace OpenMS
    * @return IDSwitchResult A struct containing details about the original and requested score types,
    *                        whether a switch was performed, and the number of IDs updated.
    */
-  static IDSwitchResult switchToScoreType(std::vector<PeptideIdentification>& pep_ids, String requested_score_type_as_string)
+  static IDSwitchResult switchToScoreType(PeptideIdentificationList& pep_ids, String requested_score_type_as_string)
   {
     IDSwitchResult result;
     // fill in the original score name, orientation and type
@@ -743,7 +743,7 @@ namespace OpenMS
    * @param pep_ids A vector of PeptideIdentification objects to be updated.
    * @param isr An IDSwitchResult object containing information about the score switch state and original score details.
    */
-  static void switchBackScoreType(std::vector<PeptideIdentification>& pep_ids, IDSwitchResult isr)
+  static void switchBackScoreType(PeptideIdentificationList& pep_ids, IDSwitchResult isr)
   {
     if (isr.score_switched)
     {

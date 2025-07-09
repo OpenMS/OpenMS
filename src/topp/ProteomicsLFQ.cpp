@@ -429,7 +429,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  void recalibrateMasses_(MSExperiment & ms_centroided, vector<PeptideIdentification>& peptide_ids, const String & id_file_abs_path)
+  void recalibrateMasses_(MSExperiment & ms_centroided, PeptideIdentificationList& peptide_ids, const String & id_file_abs_path)
   {
     InternalCalibration ic;
     ic.setLogType(log_type_);
@@ -789,7 +789,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes switchScoreType_(vector<PeptideIdentification>& peptide_ids, const String& id_file_abs_path)
+  ExitCodes switchScoreType_(PeptideIdentificationList& peptide_ids, const String& id_file_abs_path)
   {
     // Check if score types are valid. TODO
     try
@@ -813,7 +813,7 @@ protected:
     const Size& fraction_group,
     const Size& fraction,
     vector<ProteinIdentification>& protein_ids, 
-    vector<PeptideIdentification>& peptide_ids,
+    PeptideIdentificationList& peptide_ids,
     set<String>& fixed_modifications,  // adds to
     set<String>& variable_modifications) // adds to
   {
@@ -1046,7 +1046,7 @@ protected:
 
       // load and clean identification data associated with MS run
       vector<ProteinIdentification> protein_ids;
-      vector<PeptideIdentification> peptide_ids;
+      PeptideIdentificationList peptide_ids;
       const String& mz_file_abs_path = File::absolutePath(mz_file);
       const String& id_file_abs_path = File::absolutePath(mzfile2idfile.at(mz_file_abs_path));
 
@@ -1068,7 +1068,7 @@ protected:
       }
 
       vector<ProteinIdentification> ext_protein_ids;
-      vector<PeptideIdentification> ext_peptide_ids;
+      PeptideIdentificationList ext_peptide_ids;
 
       //////////////////////////////////////////
       // Chromatographic parameter estimation
@@ -1816,7 +1816,7 @@ protected:
         { 
           // load and clean identification data associated with MS run
           vector<ProteinIdentification> protein_ids;
-          vector<PeptideIdentification> peptide_ids;
+          PeptideIdentificationList peptide_ids;
           const String& mz_file_abs_path = File::absolutePath(mz_file);
           const String& id_file_abs_path = File::absolutePath(mzfile2idfile.at(mz_file_abs_path));
 

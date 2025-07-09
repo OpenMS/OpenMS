@@ -554,7 +554,7 @@ public:
     */
     static MzTab exportIdentificationsToMzTab(
         const std::vector<ProteinIdentification>& prot_ids,
-        const std::vector<PeptideIdentification>& peptide_ids,
+        const PeptideIdentificationList& peptide_ids,
         const String& filename,
         bool first_run_inference_only,
         bool export_empty_pep_ids = false,
@@ -861,7 +861,7 @@ public:
     // otherwise as CHEMMOD (see MzTab specification for details)
     static MzTabString getModificationIdentifier_(const ResidueModification& r);
 
-    static void checkSequenceUniqueness_(const std::vector<PeptideIdentification>& curr_pep_ids);
+    static void checkSequenceUniqueness_(const PeptideIdentificationList& curr_pep_ids);
 
     MzTabMetaData meta_data_;
     MzTabProteinSectionRows protein_data_;

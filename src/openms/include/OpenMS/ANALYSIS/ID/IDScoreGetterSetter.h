@@ -91,7 +91,7 @@ namespace OpenMS
 
     static void fillPeptideScoreMap_(
       std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
-      std::vector<PeptideIdentification> const& ids);
+      PeptideIdentificationList const& ids);
 
     static void fillPeptideScoreMap_(
       std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
@@ -120,7 +120,7 @@ namespace OpenMS
     template<class ...Args>
     static void getScores_(
         ScoreToTgtDecLabelPairs &scores_labels,
-        const std::vector<PeptideIdentification> &ids,
+        const PeptideIdentificationList &ids,
         Args &&... args)
     {
       for (const PeptideIdentification &id : ids)
@@ -595,7 +595,7 @@ namespace OpenMS
     }
 
     static void setPeptideScoresFromMap_(std::unordered_map<String, ScoreToTgtDecLabelPair> const& seq_to_fdr,
-                                         std::vector<PeptideIdentification>& ids,
+                                         PeptideIdentificationList& ids,
                                          std::string const& score_type,
                                          bool keep_decoys);
 

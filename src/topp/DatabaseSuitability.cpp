@@ -172,7 +172,7 @@ protected:
 
     FileHandler x;
     vector<ProteinIdentification> prot_ids;
-    vector<PeptideIdentification> pep_ids;
+    PeptideIdentificationList pep_ids;
     x.loadIdentifications(in_id, prot_ids, pep_ids, {FileTypes::IDXML});
 
     if (prot_ids.empty())
@@ -182,7 +182,7 @@ protected:
     }
 
     vector<ProteinIdentification> novo_prots;
-    vector<PeptideIdentification> novo_peps;
+    PeptideIdentificationList novo_peps;
     x.loadIdentifications(in_novo, novo_prots, novo_peps, {FileTypes::IDXML});
 
     FASTAFile f;
@@ -220,7 +220,7 @@ protected:
 
     QCBase::SpectraMap mapping;
     mapping.calculateMap(exp);
-    vector<PeptideIdentification> copy_ids(pep_ids); //unattractive solution for now
+    PeptideIdentificationList copy_ids(pep_ids); //unattractive solution for now
     FalseDiscoveryRate fdr;
     fdr.apply(copy_ids);
     PSMExplainedIonCurrent eic;

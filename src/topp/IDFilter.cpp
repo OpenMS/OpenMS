@@ -231,7 +231,7 @@ protected:
     String outputfile_name = getStringOption_("out");
 
     vector<ProteinIdentification> proteins;
-    vector<PeptideIdentification> peptides;
+    PeptideIdentificationList peptides;
 
     //only used for cxml
     ConsensusMap cmap;
@@ -368,7 +368,7 @@ protected:
     if (!whitelist_peptides.empty())
     {
       OPENMS_LOG_INFO << "Filtering by inclusion peptide whitelisting..." << endl;
-      vector<PeptideIdentification> inclusion_peptides;
+      PeptideIdentificationList inclusion_peptides;
       vector<ProteinIdentification> inclusion_proteins; // ignored
       FileHandler().loadIdentifications(whitelist_peptides, inclusion_proteins,
                        inclusion_peptides, {FileTypes::IDXML});
@@ -418,7 +418,7 @@ protected:
     if (!blacklist_peptides.empty())
     {
       OPENMS_LOG_INFO << "Filtering by exclusion peptide blacklisting..." << endl;
-      vector<PeptideIdentification> exclusion_peptides;
+      PeptideIdentificationList exclusion_peptides;
       vector<ProteinIdentification> exclusion_proteins; // ignored
       FileHandler().loadIdentifications(blacklist_peptides, exclusion_proteins,
                        exclusion_peptides, {FileTypes::IDXML});

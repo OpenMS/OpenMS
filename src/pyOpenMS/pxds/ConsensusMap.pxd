@@ -87,12 +87,16 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
                 libcpp_vector[ProteinIdentification]
                 ) except + nogil  # wrap-doc:Sets the protein identifications
 
-        libcpp_vector[PeptideIdentification]\
+        PeptideIdentificationList\
                 getUnassignedPeptideIdentifications() except + nogil  # TODO
 
         void setUnassignedPeptideIdentifications(
-                libcpp_vector[PeptideIdentification]
+                PeptideIdentificationList
                 ) except + nogil  # wrap-doc:Sets the unassigned peptide identifications
+
+        # PeptideIdentificationList methods (new typed interface)
+        PeptideIdentificationList& getUnassignedPeptideIdentificationsRef() except + nogil # wrap-ignore
+        void setUnassignedPeptideIdentifications(PeptideIdentificationList & unassigned_peptide_identifications) except + nogil # wrap-doc:Sets the unassigned PeptideIdentificationList
 
         libcpp_vector[DataProcessing] getDataProcessing() except + nogil  # wrap-doc:Returns a const reference to the description of the applied data processing
         void setDataProcessing(libcpp_vector[DataProcessing])   except + nogil  # wrap-doc:Sets the description of the applied data processing
