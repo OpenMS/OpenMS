@@ -210,5 +210,3 @@ protected:
 
 } //namespace OpenMS
 
-// Include PeptideIdentificationList after PeptideIdentification is defined
-#include <OpenMS/METADATA/PeptideIdentificationList.h>

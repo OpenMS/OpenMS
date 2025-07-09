@@ -18,9 +18,6 @@ namespace OpenMS
     
     This class represents a collection of PeptideIdentification objects, typically 
     originating from multiple spectra within a single identification run or experiment.
-    It serves as a strongly-typed container that provides all the functionality of 
-    std::vector<PeptideIdentification> while maintaining better type safety and 
-    enabling future extensions specific to peptide identification workflows.
     
     PeptideIdentificationList is commonly used in scenarios where multiple spectra 
     have been searched against a database, resulting in a list of identifications that 
@@ -31,9 +28,8 @@ namespace OpenMS
     - Aggregating results from multiple search engines
     - Managing identifications in feature mapping workflows
     
-    The class uses composition over inheritance (via ExposedVector) to avoid the 
-    well-known pitfalls of inheriting directly from STL containers, such as issues 
-    with polymorphic destruction and memory management.
+    Note: The class uses composition over inheritance (via ExposedVector) to avoid the 
+    well-known pitfalls of inheriting directly from STL containers
     
     Usage example:
     @code
@@ -60,10 +56,8 @@ namespace OpenMS
     @endcode
     
     The container provides full vector-like functionality including element access,
-    iteration, size management, and all standard algorithms. It seamlessly integrates
-    with OpenMS algorithms that expect either std::vector<PeptideIdentification> or
-    PeptideIdentificationList through appropriate overloads.
-    
+    iteration, size management, and all standard algorithms.
+
     @see PeptideIdentification, ProteinIdentification, IDFilter, BasicProteinInferenceAlgorithm, ExposedVector
     
     @ingroup Metadata
