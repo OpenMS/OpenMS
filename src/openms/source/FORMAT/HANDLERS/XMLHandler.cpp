@@ -458,7 +458,7 @@ namespace OpenMS::Internal
               return processed_chars + char_pos_zero;
           }
   
-          // 8 chars (each 16 bytes) had no zero
+          // 8 chars (each 2 bytes) had no zero
           pos_ptr += 8;
           processed_chars += 8;
       }
