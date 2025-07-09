@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/MetaInfoDescription.h>
+#include <compare>
 
 namespace OpenMS
 {
@@ -21,6 +22,30 @@ namespace OpenMS
       public std::vector<float>
     {
       using std::vector<float>::vector; // to allow for aggregate initialization of FloatDataArray
+
+    public:
+      /// Spaceship operator for three-way comparison
+      auto operator<=>(const FloatDataArray& rhs) const
+      {
+        // Compare MetaInfoDescription base class first
+        const MetaInfoDescription& lhs_meta = *this;
+        const MetaInfoDescription& rhs_meta = rhs;
+        if (lhs_meta != rhs_meta)
+        {
+          // Since MetaInfoDescription doesn't have spaceship, we provide a consistent ordering
+          // by comparing memory addresses (this gives us a total ordering)
+          return &lhs_meta < &rhs_meta ? std::partial_ordering::less : std::partial_ordering::greater;
+        }
+        // Then compare the vector part (returns partial_ordering for floats)
+        return static_cast<const std::vector<float>&>(*this) <=> static_cast<const std::vector<float>&>(rhs);
+      }
+
+      /// Equality operator
+      bool operator==(const FloatDataArray& rhs) const
+      {
+        return static_cast<const MetaInfoDescription&>(*this) == static_cast<const MetaInfoDescription&>(rhs) && 
+               static_cast<const std::vector<float>&>(*this) == static_cast<const std::vector<float>&>(rhs);
+      }
     };
 
     /// Integer data array class
@@ -29,6 +54,30 @@ namespace OpenMS
       public std::vector<Int>
     {
       using std::vector<int>::vector; // to allow for aggregate initialization of IntegerDataArray
+
+    public:
+      /// Spaceship operator for three-way comparison
+      auto operator<=>(const IntegerDataArray& rhs) const
+      {
+        // Compare MetaInfoDescription base class first
+        const MetaInfoDescription& lhs_meta = *this;
+        const MetaInfoDescription& rhs_meta = rhs;
+        if (lhs_meta != rhs_meta)
+        {
+          // Since MetaInfoDescription doesn't have spaceship, we provide a consistent ordering
+          // by comparing memory addresses (this gives us a total ordering)
+          return &lhs_meta < &rhs_meta ? std::strong_ordering::less : std::strong_ordering::greater;
+        }
+        // Then compare the vector part
+        return static_cast<const std::vector<Int>&>(*this) <=> static_cast<const std::vector<Int>&>(rhs);
+      }
+
+      /// Equality operator
+      bool operator==(const IntegerDataArray& rhs) const
+      {
+        return static_cast<const MetaInfoDescription&>(*this) == static_cast<const MetaInfoDescription&>(rhs) && 
+               static_cast<const std::vector<Int>&>(*this) == static_cast<const std::vector<Int>&>(rhs);
+      }
     };
 
     /// String data array class
@@ -37,6 +86,30 @@ namespace OpenMS
       public std::vector<String>
     {
       using std::vector<String>::vector; // to allow for aggregate initialization of StringDataArray
+
+    public:
+      /// Spaceship operator for three-way comparison
+      auto operator<=>(const StringDataArray& rhs) const
+      {
+        // Compare MetaInfoDescription base class first
+        const MetaInfoDescription& lhs_meta = *this;
+        const MetaInfoDescription& rhs_meta = rhs;
+        if (lhs_meta != rhs_meta)
+        {
+          // Since MetaInfoDescription doesn't have spaceship, we provide a consistent ordering
+          // by comparing memory addresses (this gives us a total ordering)
+          return &lhs_meta < &rhs_meta ? std::strong_ordering::less : std::strong_ordering::greater;
+        }
+        // Then compare the vector part
+        return static_cast<const std::vector<String>&>(*this) <=> static_cast<const std::vector<String>&>(rhs);
+      }
+
+      /// Equality operator
+      bool operator==(const StringDataArray& rhs) const
+      {
+        return static_cast<const MetaInfoDescription&>(*this) == static_cast<const MetaInfoDescription&>(rhs) && 
+               static_cast<const std::vector<String>&>(*this) == static_cast<const std::vector<String>&>(rhs);
+      }
     };
 
   }

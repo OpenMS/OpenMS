@@ -84,6 +84,7 @@ set(metadata_executables_list
   CVTerm_test
   ChromatogramSettings_test
   ContactPerson_test
+  DataArrays_test
   DataProcessing_test
   DocumentIdentifier_test
   ExperimentalDesign_test
