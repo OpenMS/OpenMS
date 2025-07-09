@@ -48,5 +48,5 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>" namespace "Op
     libcpp_set[String] getVariableModificationNames() except + nogil  # wrap-doc:Returns only the names of the variable modifications
     libcpp_set[String] getModificationNames() except + nogil  # wrap-doc:Returns only the names of the modifications stored in the set
     bool isCompatible(AASequence &peptide) except + nogil  # wrap-doc:Returns true if the peptide is compatible with the definitions, e.g. does not contain other modifications
-    void inferFromPeptides(PeptideIdentificationList &peptides) except + nogil  # wrap-doc:Infers the sets of defined modifications from the modifications present on peptide identifications
+    void inferFromPeptides(PeptideIdentificationList peptides) except + nogil  # wrap-doc:Infers the sets of defined modifications from the modifications present on peptide identifications
     
