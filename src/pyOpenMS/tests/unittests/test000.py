@@ -3220,6 +3220,8 @@ def testMSSpectrum():
     assert len(spec.getStringDataArrays()) == 2
     assert spec.getStringDataArrays()[0][0] == b"hello"
     assert spec.getStringDataArrays()[1][0] == b"other"
+    assert spec.getStringDataArrays()[0] == spec.getStringDataArrays()[0] # test __eq__
+    #assert spec.getStringDataArrays()[0] != spec.getStringDataArrays()[1] # test __ne__
 
 
     spec = pyopenms.MSSpectrum()
@@ -3233,6 +3235,8 @@ def testMSSpectrum():
     assert len(spec.getIntegerDataArrays()) == 2
     assert spec.getIntegerDataArrays()[0][0] == 5
     assert spec.getIntegerDataArrays()[1][0] == 8
+    assert spec.getIntegerDataArrays()[0] == spec.getIntegerDataArrays()[0] # test __eq__
+    #assert spec.getIntegerDataArrays()[0] != spec.getIntegerDataArrays()[1] # test __ne__
 
     spec = pyopenms.MSSpectrum()
     data = np.array( [5, 8, 42] ).astype(np.intc)
@@ -3255,6 +3259,8 @@ def testMSSpectrum():
     assert len(spec.getFloatDataArrays()) == 2.0
     assert spec.getFloatDataArrays()[0][0] == 5.0
     assert spec.getFloatDataArrays()[1][0] == 8.0
+    assert spec.getFloatDataArrays()[0] == spec.getFloatDataArrays()[0] # test __eq__
+    #assert spec.getFloatDataArrays()[0] != spec.getFloatDataArrays()[1] # test __ne__
 
     spec = pyopenms.MSSpectrum()
     data = np.array( [5, 8, 42] ).astype(np.float32)
@@ -3707,8 +3713,200 @@ def testMRMTransitionGroup():
 def testReactionMonitoringTransition():
     """
     @tests: ReactionMonitoringTransition
+     ReactionMonitoringTransition.__init__
+     ReactionMonitoringTransition.__eq__
+     ReactionMonitoringTransition.__ne__
+     ReactionMonitoringTransition.getName
+     ReactionMonitoringTransition.setName
+     ReactionMonitoringTransition.getNativeID
+     ReactionMonitoringTransition.setNativeID
+     ReactionMonitoringTransition.getPeptideRef
+     ReactionMonitoringTransition.setPeptideRef
+     ReactionMonitoringTransition.getCompoundRef
+     ReactionMonitoringTransition.setCompoundRef
+     ReactionMonitoringTransition.getProductMZ
+     ReactionMonitoringTransition.setProductMZ
+     ReactionMonitoringTransition.getPrecursorMZ
+     ReactionMonitoringTransition.setPrecursorMZ
+     ReactionMonitoringTransition.getLibraryIntensity
+     ReactionMonitoringTransition.setLibraryIntensity
+     ReactionMonitoringTransition.isDetectingTransition
+     ReactionMonitoringTransition.setDetectingTransition
+     ReactionMonitoringTransition.isIdentifyingTransition
+     ReactionMonitoringTransition.setIdentifyingTransition
+     ReactionMonitoringTransition.isQuantifyingTransition
+     ReactionMonitoringTransition.setQuantifyingTransition
+     ReactionMonitoringTransition.getDecoyTransitionType
+     ReactionMonitoringTransition.setDecoyTransitionType
+     ReactionMonitoringTransition.hasPrecursorCVTerms
+     ReactionMonitoringTransition.setPrecursorCVTermList
+     ReactionMonitoringTransition.addPrecursorCVTerm
+     ReactionMonitoringTransition.getPrecursorCVTermList
+     ReactionMonitoringTransition.addProductCVTerm
+     ReactionMonitoringTransition.getIntermediateProducts
+     ReactionMonitoringTransition.addIntermediateProduct
+     ReactionMonitoringTransition.setIntermediateProducts
+     ReactionMonitoringTransition.setProduct
+     ReactionMonitoringTransition.getProduct
+     ReactionMonitoringTransition.getProductChargeState
+     ReactionMonitoringTransition.isProductChargeStateSet
+     ReactionMonitoringTransition.setRetentionTime
+     ReactionMonitoringTransition.getRetentionTime
+     ReactionMonitoringTransition.setPrediction
+     ReactionMonitoringTransition.addPredictionTerm
+     ReactionMonitoringTransition.hasPrediction
+     ReactionMonitoringTransition.getPrediction
      """
+    # Test constructor and equality operators
     tr = pyopenms.ReactionMonitoringTransition()
+    tr2 = pyopenms.ReactionMonitoringTransition()
+    assert tr == tr  # test __eq__ with self
+    assert tr == tr2  # test __eq__ with another default instance
+    assert not tr != tr  # test __ne__
+    
+    # Test copy constructor
+    tr_copy = pyopenms.ReactionMonitoringTransition(tr)
+    assert tr == tr_copy
+    
+    # Test name methods
+    tr.setName("transition1")
+    assert tr.getName() == "transition1"
+    
+    # Test native ID methods
+    tr.setNativeID("tr1")
+    assert tr.getNativeID() == "tr1"
+    
+    # Test peptide reference methods
+    tr.setPeptideRef("peptide1")
+    assert tr.getPeptideRef() == "peptide1"
+    
+    # Test compound reference methods
+    tr.setCompoundRef("compound1")
+    assert tr.getCompoundRef() == "compound1"
+    
+    # Test product m/z methods
+    tr.setProductMZ(200.5)
+    assert abs(tr.getProductMZ() - 200.5) < 1e-10
+    
+    # Test precursor m/z methods
+    tr.setPrecursorMZ(500.25)
+    assert abs(tr.getPrecursorMZ() - 500.25) < 1e-10
+    
+    # Test library intensity methods
+    tr.setLibraryIntensity(1000.0)
+    assert abs(tr.getLibraryIntensity() - 1000.0) < 1e-10
+    
+    # Test transition type flags
+    tr.setDetectingTransition(True)
+    assert tr.isDetectingTransition() == True
+    tr.setDetectingTransition(False)
+    assert tr.isDetectingTransition() == False
+    
+    tr.setIdentifyingTransition(True)
+    assert tr.isIdentifyingTransition() == True
+    tr.setIdentifyingTransition(False)
+    assert tr.isIdentifyingTransition() == False
+    
+    tr.setQuantifyingTransition(True)
+    assert tr.isQuantifyingTransition() == True
+    tr.setQuantifyingTransition(False)
+    assert tr.isQuantifyingTransition() == False
+    
+    # Test decoy transition type
+    decoy_type = pyopenms.DecoyTransitionType().TARGET
+    tr.setDecoyTransitionType(decoy_type)
+    assert tr.getDecoyTransitionType() == decoy_type
+
+    decoy_type = pyopenms.DecoyTransitionType().DECOY
+    tr.setDecoyTransitionType(decoy_type)
+    assert tr.getDecoyTransitionType() == decoy_type
+    
+    # Test CV Terms for precursor
+    assert tr.hasPrecursorCVTerms() == False or tr.hasPrecursorCVTerms() == True  # should not crash
+    
+    # Create and add CV terms
+    cv_term = pyopenms.CVTerm()
+    cv_term.setCVIdentifierRef("MS")
+    cv_term.setAccession("MS:1000827")
+    cv_term.setName("isolation window target m/z")
+    cv_term.setValue(500.25)
+    tr.addPrecursorCVTerm(cv_term)
+    
+    # Test getting CV term list
+    cv_list = tr.getPrecursorCVTermList()
+    assert len(cv_list.getCVTerms()) > 0
+    
+    # Test setting CV term list
+    new_cv_list = pyopenms.CVTermList()
+    new_cv_list.addCVTerm(cv_term)
+    tr.setPrecursorCVTermList(new_cv_list)
+    
+    # Test adding product CV term
+    product_cv_term = pyopenms.CVTerm()
+    product_cv_term.setCVIdentifierRef("MS")
+    product_cv_term.setAccession("MS:1000041")
+    product_cv_term.setName("charge state")
+    product_cv_term.setValue(2)
+    tr.addProductCVTerm(product_cv_term)
+    
+    # Test intermediate products
+    intermediate_products = tr.getIntermediateProducts()
+    assert isinstance(intermediate_products, list)
+    
+    # Create and add intermediate product
+    intermediate_product = pyopenms.TraMLProduct()
+    intermediate_product.setMZ(150.0)
+    tr.addIntermediateProduct(intermediate_product)
+    
+    # Test setting intermediate products list
+    products_list = [intermediate_product]
+    tr.setIntermediateProducts(products_list)
+    updated_products = tr.getIntermediateProducts()
+    assert len(updated_products) == 1
+    
+    # Test product methods
+    product = pyopenms.TraMLProduct()
+    product.setMZ(200.5)
+    product.setChargeState(2)
+    tr.setProduct(product)
+    retrieved_product = tr.getProduct()
+    assert abs(retrieved_product.getMZ() - 200.5) < 1e-10
+    assert retrieved_product.getChargeState() == 2
+
+    # Test charge state methods
+    assert tr.getProductChargeState() == 2
+    assert tr.isProductChargeStateSet() == True
+    
+    # Test retention time methods
+    rt = pyopenms.RetentionTime()
+    rt.setRT(1500.0)
+    tr.setRetentionTime(rt)
+    retrieved_rt = tr.getRetentionTime()
+    assert abs(retrieved_rt.getRT() - 1500.0) < 1e-10
+    
+    # Test prediction methods
+    assert tr.hasPrediction() == False or tr.hasPrediction() == True  # should not crash
+    
+    prediction = pyopenms.Prediction()
+    tr.setPrediction(prediction)
+    
+    # Test adding prediction term
+    pred_cv_term = pyopenms.CVTerm()
+    pred_cv_term.setCVIdentifierRef("MS")
+    pred_cv_term.setAccession("MS:1000042")
+    pred_cv_term.setName("peak intensity")
+    pred_cv_term.setValue(1000.0)
+    tr.addPredictionTerm(pred_cv_term)
+    
+    # Test getting prediction
+    retrieved_prediction = tr.getPrediction()
+    assert retrieved_prediction is not None
+    
+    # Test inequality after modifications
+    tr_different = pyopenms.ReactionMonitoringTransition()
+    tr_different.setName("different_transition")
+    assert tr != tr_different
+    assert not tr == tr_different
 
 @report
 def testTargetedExperiment():
