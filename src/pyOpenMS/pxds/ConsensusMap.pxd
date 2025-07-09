@@ -8,6 +8,7 @@ from MSExperiment cimport *
 from Feature cimport *
 from ProteinIdentification cimport *
 from PeptideIdentification cimport *
+from PeptideIdentificationList cimport *
 from DataProcessing cimport *
 from Types cimport *
 from DocumentIdentifier cimport *

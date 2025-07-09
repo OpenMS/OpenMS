@@ -239,7 +239,7 @@ namespace OpenMS
                                            std::vector<ProteinIdentification> &prot_ids) const
   {
     Size min_peptides_per_protein = static_cast<Size>(param_.getValue("min_peptides_per_protein"));
-    IDFilter::keepNBestHits(pep_ids.asVector(),1); // we should filter for best psm per spec only, since those will be the psms used, also filterUnreferencedProteins depends on it (e.g. after resolution)
+    IDFilter::keepNBestHits(pep_ids,1); // we should filter for best psm per spec only, since those will be the psms used, also filterUnreferencedProteins depends on it (e.g. after resolution)
     std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
     std::unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
 

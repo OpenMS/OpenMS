@@ -272,6 +272,21 @@ namespace OpenMS
     }
 
     /**
+      @brief Switches the score type of a PeptideIdentificationList to a general score type.
+
+      Overload for PeptideIdentificationList to avoid template deduction issues.
+
+      @param pep_ids The PeptideIdentificationList whose scores need to be switched.
+      @param type The desired general score type to switch to.
+      @param counter A reference to a counter that will be incremented for each peptide identification processed.
+    */
+    void switchToGeneralScoreType(PeptideIdentificationList& pep_ids, ScoreType type, Size& counter)
+    {
+      std::vector<PeptideIdentification>& vec = pep_ids.getData();
+      switchToGeneralScoreType(vec, type, counter);
+    }
+
+    /**
       @brief Switches the score type of a ConsensusMap to a general score type.
 
       Looks at the first Hit of the given ConsensusMap and according to the given score type,
@@ -689,7 +704,7 @@ namespace OpenMS
       param.setValue("old_score", ""); // use default name generated for old score
       idsa.setParameters(param);            
       Size counter = 0;       
-      idsa.switchToGeneralScoreType(pep_ids.asVector(), result.requested_score_type, counter);
+      idsa.switchToGeneralScoreType(pep_ids, result.requested_score_type, counter);
       OPENMS_LOG_DEBUG << "Switched scores for " << counter << " IDs." << std::endl;
 
       result.score_switched = true;

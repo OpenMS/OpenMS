@@ -16,13 +16,55 @@ namespace OpenMS
   /**
     @brief Container for peptide identifications from multiple spectra.
     
-    This class represents a collection of PeptideIdentification objects,
-    typically from multiple spectra in a single identification run.
-    It provides all the functionality of std::vector<PeptideIdentification>
-    while maintaining type safety and allowing for future extensions.
+    This class represents a collection of PeptideIdentification objects, typically 
+    originating from multiple spectra within a single identification run or experiment.
+    It serves as a strongly-typed container that provides all the functionality of 
+    std::vector<PeptideIdentification> while maintaining better type safety and 
+    enabling future extensions specific to peptide identification workflows.
     
-    Uses composition over inheritance to avoid the pitfalls of inheriting
-    from STL containers.
+    PeptideIdentificationList is commonly used in scenarios where multiple spectra 
+    have been searched against a database, resulting in a list of identifications that 
+    need to be processed together. Examples include:
+    
+    - Storing all peptide identifications from an LC-MS/MS run
+    - Collecting identifications for protein inference algorithms
+    - Aggregating results from multiple search engines
+    - Managing identifications in feature mapping workflows
+    
+    The class uses composition over inheritance (via ExposedVector) to avoid the 
+    well-known pitfalls of inheriting directly from STL containers, such as issues 
+    with polymorphic destruction and memory management.
+    
+    Usage example:
+    @code
+    PeptideIdentificationList peptide_ids;
+    
+    // Add identifications from search results
+    PeptideIdentification id1, id2;
+    id1.setRT(1234.5);
+    id1.setMZ(567.8);
+    peptide_ids.push_back(id1);
+    peptide_ids.push_back(id2);
+    
+    // Process all identifications
+    for (auto& id : peptide_ids)
+    {
+      // Apply filtering, scoring, etc.
+      IDFilter::keepNBestHits(id, 5);
+    }
+    
+    // Use with algorithms that operate on collections
+    IDFilter::keepNBestHits(peptide_ids, 1);
+    BasicProteinInferenceAlgorithm algo;
+    algo.run(peptide_ids, protein_ids);
+    @endcode
+    
+    The container provides full vector-like functionality including element access,
+    iteration, size management, and all standard algorithms. It seamlessly integrates
+    with OpenMS algorithms that expect either std::vector<PeptideIdentification> or
+    PeptideIdentificationList through appropriate overloads.
+    
+    @see PeptideIdentification, ProteinIdentification, IDFilter, BasicProteinInferenceAlgorithm, ExposedVector
     
     @ingroup Metadata
   */
@@ -85,17 +127,6 @@ namespace OpenMS
       return data_;
     }
     
-    /// Explicit access to underlying vector for template compatibility
-    std::vector<PeptideIdentification>& asVector()
-    {
-      return data_;
-    }
-    
-    /// Explicit access to underlying vector for template compatibility (const)
-    const std::vector<PeptideIdentification>& asVector() const
-    {
-      return data_;
-    }
     //@}
   };
 

@@ -5,6 +5,7 @@ from RichPeak2D cimport *
 from UniqueIdInterface cimport *
 from BaseFeature cimport *
 from PeptideIdentification cimport *
+from PeptideIdentificationList cimport *
 
 cdef extern from "<OpenMS/KERNEL/BaseFeature.h>" namespace "OpenMS":
 

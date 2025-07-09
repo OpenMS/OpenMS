@@ -4,6 +4,7 @@ from MRMFeature cimport *
 from UniqueIdInterface cimport *
 from ProteinIdentification cimport *
 from PeptideIdentification cimport *
+from PeptideIdentificationList cimport *
 from DataProcessing cimport *
 from MetaInfoInterface cimport *
 from DocumentIdentifier cimport *

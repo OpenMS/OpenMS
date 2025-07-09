@@ -5,6 +5,7 @@ from DefaultParamHandler cimport *
 from ProgressLogger cimport *
 from ProteinIdentification cimport *
 from ProteinIdentification cimport *
+from PeptideIdentificationList cimport *
 from PeptideHit cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespace "OpenMS":

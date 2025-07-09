@@ -6,6 +6,7 @@ from String cimport *
 from DefaultParamHandler cimport *
 
 from PeptideIdentification cimport *
+from PeptideIdentificationList cimport *
 from ProteinIdentification cimport *
 from FASTAFile cimport *
 from ProteaseDigestion cimport *

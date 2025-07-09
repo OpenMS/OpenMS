@@ -899,6 +899,20 @@ namespace OpenMS
     }
 
     /**
+       @brief Filters peptide identifications according to the ranking of the hits.
+
+       Overload for PeptideIdentificationList to avoid template deduction issues.
+
+       @param pep_ids The PeptideIdentificationList to filter.
+       @param n Maximum number of hits to keep.
+    */
+    static void keepNBestHits(PeptideIdentificationList& pep_ids, Size n)
+    {
+      std::vector<PeptideIdentification>& vec = pep_ids.getData();
+      keepNBestHits(vec, n);
+    }
+
+    /**
        @brief Filters peptide or protein identifications according to the ranking of the hits.
 
        The hits between @p min_rank and @p max_rank (both inclusive) in each ID are kept.
@@ -1154,7 +1168,7 @@ namespace OpenMS
       {
         // Create a temporary vector with a single PeptideIdentification
         PeptideIdentificationList temp_vec = {peptide_id};
-        keepNBestHits(temp_vec.asVector(), n);
+        keepNBestHits(temp_vec, n);
         // Copy back the filtered hits
         if (!temp_vec.empty())
         {
@@ -1187,9 +1201,9 @@ namespace OpenMS
       // which sorts Hits first.
       for (auto& feat : map)
       {
-        keepNBestHits(feat.getPeptideIdentifications().asVector(), n);
+        keepNBestHits(feat.getPeptideIdentifications(), n);
       }
-      keepNBestHits(map.getUnassignedPeptideIdentifications().asVector(), n);
+      keepNBestHits(map.getUnassignedPeptideIdentifications(), n);
     }
 
     template<class MapType>
