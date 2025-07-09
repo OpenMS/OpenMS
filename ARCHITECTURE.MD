@@ -66,7 +66,7 @@ TOPP consists of comprehensive suite of command-line tools built on top of the O
 
 The Python bindings for OpenMS are generated through a specialized process:
 
-- **Autowrap Tool**: A custom Python tool developed specifically for generating OpenMS bindings.
+- **Autowrap Tool**: A custom Python tool developed specifically for generating OpenMS bindings. ([README](https://github.com/OpenMS/autowrap/blob/master/docs/README.md)).
 - **Declaration Process**:
   - Developers declare classes and functions to be exposed to Python in `.pxd` files located in the `pxds/` directory
   - These declarations specify the function signatures and class hierarchies
@@ -84,8 +84,6 @@ The Python bindings for OpenMS are generated through a specialized process:
   - Complex template instantiations
   - Multiple inheritance scenarios
   - Static methods and variables
-
-For additional documentation and examples and syntax expected by autowrap, see https://github.com/OpenMS/autowrap/blob/master/docs/README.md
 
 #### Manual Extensions with PYX Files
 
