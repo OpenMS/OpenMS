@@ -3214,6 +3214,7 @@ def testMSSpectrum():
     string_da = [ pyopenms.StringDataArray() ]
     string_da[0].push_back("hello")
     string_da[0].push_back("world")
+    string_da[0].setName("greetings")
     string_da.append( pyopenms.StringDataArray() )
     string_da[1].push_back("other")
     spec.setStringDataArrays( string_da )
@@ -3221,7 +3222,7 @@ def testMSSpectrum():
     assert spec.getStringDataArrays()[0][0] == b"hello"
     assert spec.getStringDataArrays()[1][0] == b"other"
     assert spec.getStringDataArrays()[0] == spec.getStringDataArrays()[0] # test __eq__
-    #assert spec.getStringDataArrays()[0] != spec.getStringDataArrays()[1] # test __ne__
+    assert spec.getStringDataArrays()[0] != spec.getStringDataArrays()[1] # test __ne__
 
 
     spec = pyopenms.MSSpectrum()
@@ -3229,6 +3230,7 @@ def testMSSpectrum():
     int_da = [ pyopenms.IntegerDataArray() ]
     int_da[0].push_back(5)
     int_da[0].push_back(6)
+    int_da[0].setName("test")
     int_da.append( pyopenms.IntegerDataArray() )
     int_da[1].push_back(8)
     spec.setIntegerDataArrays( int_da )
@@ -3236,7 +3238,7 @@ def testMSSpectrum():
     assert spec.getIntegerDataArrays()[0][0] == 5
     assert spec.getIntegerDataArrays()[1][0] == 8
     assert spec.getIntegerDataArrays()[0] == spec.getIntegerDataArrays()[0] # test __eq__
-    #assert spec.getIntegerDataArrays()[0] != spec.getIntegerDataArrays()[1] # test __ne__
+    assert spec.getIntegerDataArrays()[0] != spec.getIntegerDataArrays()[1] # test __ne__
 
     spec = pyopenms.MSSpectrum()
     data = np.array( [5, 8, 42] ).astype(np.intc)
@@ -3253,6 +3255,7 @@ def testMSSpectrum():
     f_da = [ pyopenms.FloatDataArray() ]
     f_da[0].push_back(5.0)
     f_da[0].push_back(6.0)
+    f_da[0].setName("test")
     f_da.append( pyopenms.FloatDataArray() )
     f_da[1].push_back(8.0)
     spec.setFloatDataArrays( f_da )
@@ -3260,7 +3263,7 @@ def testMSSpectrum():
     assert spec.getFloatDataArrays()[0][0] == 5.0
     assert spec.getFloatDataArrays()[1][0] == 8.0
     assert spec.getFloatDataArrays()[0] == spec.getFloatDataArrays()[0] # test __eq__
-    #assert spec.getFloatDataArrays()[0] != spec.getFloatDataArrays()[1] # test __ne__
+    assert spec.getFloatDataArrays()[0] != spec.getFloatDataArrays()[1] # test __ne__
 
     spec = pyopenms.MSSpectrum()
     data = np.array( [5, 8, 42] ).astype(np.float32)
