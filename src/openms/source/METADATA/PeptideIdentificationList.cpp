@@ -10,6 +10,4 @@
 
 namespace OpenMS
 {
-  // Currently empty as all functionality is inline in the header
-  // This file exists for potential future non-inline implementations
 }
