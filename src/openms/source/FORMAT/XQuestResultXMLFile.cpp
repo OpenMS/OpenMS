@@ -23,7 +23,7 @@ namespace OpenMS
   XQuestResultXMLFile::~XQuestResultXMLFile() = default;
 
   void XQuestResultXMLFile::load(const String & filename,
-                                 std::vector < PeptideIdentification > & pep_ids,
+                                 PeptideIdentificationList & pep_ids,
                                  std::vector< ProteinIdentification > & prot_ids
                                 )
   {

@@ -843,7 +843,7 @@ namespace OpenMS
     for (const auto& c_it : c_map)
     {
       vector <PeptideIdentification> v_pep;
-      v_pep = c_it.getPeptideIdentifications();
+      v_pep = c_it.getPeptideIdentifications().getData();
       vector <MetaboTargetedAssay> ambi_group;
       for (const auto& p_it : v_pep)
       {

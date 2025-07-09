@@ -4,6 +4,7 @@ from String cimport *
 from StringList cimport *
 from ModificationDefinition cimport *
 from PeptideIdentification cimport *
+from PeptideIdentificationList cimport *
 from AASequence cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>" namespace "OpenMS":

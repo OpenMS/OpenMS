@@ -10,6 +10,7 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
 
@@ -41,7 +42,7 @@ public:
       @param prot_ids Where the protein identification of the input file will be loaded to.
      */
     void load(const String & filename,
-              std::vector< PeptideIdentification > & pep_ids,
+              PeptideIdentificationList & pep_ids,
               std::vector< ProteinIdentification > & prot_ids
             );
 

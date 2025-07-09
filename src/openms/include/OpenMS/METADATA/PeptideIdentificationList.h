@@ -113,21 +113,6 @@ namespace OpenMS
     }
     //@}
     
-    /// @name Conversion operators for compatibility with existing code
-    //@{
-    /// Implicit conversion to std::vector<PeptideIdentification>&
-    operator std::vector<PeptideIdentification>&() 
-    {
-      return data_;
-    }
-    
-    /// Implicit conversion to const std::vector<PeptideIdentification>&
-    operator const std::vector<PeptideIdentification>&() const
-    {
-      return data_;
-    }
-    
-    //@}
   };
 
 } //namespace OpenMS

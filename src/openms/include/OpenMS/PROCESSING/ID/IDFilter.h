@@ -18,6 +18,7 @@
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/config.h>
@@ -632,6 +633,38 @@ namespace OpenMS
         counter += id_it->getHits().size();
       }
       return counter;
+    }
+
+    /// @overload
+    static Size countHits(const PeptideIdentificationList& ids)
+    {
+      Size counter = 0;
+      for (const auto& id : ids)
+      {
+        counter += id.getHits().size();
+      }
+      return counter;
+    }
+
+    /// @overload
+    static void filterHitsByRank(PeptideIdentificationList& ids, Size min_rank, Size max_rank)
+    {
+      std::vector<PeptideIdentification>& vec = ids.getData();
+      filterHitsByRank(vec, min_rank, max_rank);
+    }
+
+    /// @overload
+    static void removeHitsMatchingProteins(PeptideIdentificationList& ids, const std::set<String>& accessions)
+    {
+      std::vector<PeptideIdentification>& vec = ids.getData();
+      removeHitsMatchingProteins(vec, accessions);
+    }
+
+    /// @overload
+    static void keepHitsMatchingProteins(PeptideIdentificationList& ids, const std::set<String>& accessions)
+    {
+      std::vector<PeptideIdentification>& vec = ids.getData();
+      keepHitsMatchingProteins(vec, accessions);
     }
 
     /**

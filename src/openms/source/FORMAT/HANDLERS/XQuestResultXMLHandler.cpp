@@ -42,7 +42,7 @@ namespace OpenMS::Internal
 
     // reader
     XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename,
-                                                   std::vector< PeptideIdentification > & pep_ids,
+                                                   PeptideIdentificationList & pep_ids,
                                                    std::vector< ProteinIdentification > & prot_ids
                                                   ) :
       XMLHandler(filename, "1.0"),

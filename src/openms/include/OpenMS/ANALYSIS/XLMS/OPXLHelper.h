@@ -14,6 +14,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <numeric>
 
 namespace OpenMS
@@ -165,24 +166,36 @@ namespace OpenMS
        * @param peptide_ids The vector of peptide_ids containing XL-MS search results with alpha and beta PeptideHits, after mapping of peptides to proteins
        */
       static void addProteinPositionMetaValues(std::vector< PeptideIdentification > & peptide_ids);
+      
+      /// @overload
+      static void addProteinPositionMetaValues(PeptideIdentificationList & peptide_ids);
 
       /**
        * @brief adds xl_target_decoy MetaValue that combines alpha and beta target_decoy info
        * @param peptide_ids The vector of peptide_ids containing XL-MS search results with alpha and beta PeptideHits, after mapping of peptides to proteins
        */
       static void addXLTargetDecoyMV(std::vector< PeptideIdentification > & peptide_ids);
+      
+      /// @overload
+      static void addXLTargetDecoyMV(PeptideIdentificationList & peptide_ids);
 
       /**
        * @brief adds accessions_beta MetaValue to alpha peptides for TOPPView visualization and CSV table output
        * @param peptide_ids The vector of peptide_ids containing XL-MS search results with alpha and beta PeptideHits, after mapping of peptides to proteins
        */
       static void addBetaAccessions(std::vector< PeptideIdentification > & peptide_ids);
+      
+      /// @overload
+      static void addBetaAccessions(PeptideIdentificationList & peptide_ids);
 
       /**
        * @brief removes beta peptides from cross-link IDs, since all info is already contained in the alpha peptide hits
        * @param peptide_ids The vector of peptide_ids containing XL-MS search results with alpha and beta PeptideHits
        */
       static void removeBetaPeptideHits(std::vector< PeptideIdentification > & peptide_ids);
+      
+      /// @overload
+      static void removeBetaPeptideHits(PeptideIdentificationList & peptide_ids);
 
       /**
        * @brief Adds the list of features that percolator should use for OpenPepXL
@@ -195,6 +208,9 @@ namespace OpenMS
        * @param peptide_ids The vector of peptide_ids containing XL-MS search results without beta PeptideHits
        */
       static void computeDeltaScores(std::vector< PeptideIdentification >& peptide_ids);
+      
+      /// @overload
+      static void computeDeltaScores(PeptideIdentificationList & peptide_ids);
 
       /**
        * @brief combines all hits to spectrum pairs with the same light spectrum into one ranked list
@@ -207,6 +223,9 @@ namespace OpenMS
        * @param number_top_hits The chosen number of reported top hits
        */
       static std::vector< PeptideIdentification > combineTopRanksFromPairs(std::vector< PeptideIdentification > & peptide_ids, Size number_top_hits);
+      
+      /// @overload
+      static std::vector< PeptideIdentification > combineTopRanksFromPairs(PeptideIdentificationList & peptide_ids, Size number_top_hits);
 
       /**
        * @brief Searches for cross-link candidates for a MS/MS spectrum

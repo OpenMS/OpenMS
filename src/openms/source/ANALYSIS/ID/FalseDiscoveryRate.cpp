@@ -1338,7 +1338,7 @@ namespace OpenMS
     }
     calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
     if (!scores_labels.empty())
-      IDScoreGetterSetter::setScores_<PeptideIdentification>(scores_to_FDR, ids, score_type, false, add_decoy_peptides);
+      IDScoreGetterSetter::setScores_<PeptideIdentification>(scores_to_FDR, ids.getData(), score_type, false, add_decoy_peptides);
     scores_to_FDR.clear();
   }
 

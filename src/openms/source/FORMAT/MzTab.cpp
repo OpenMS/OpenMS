@@ -1228,7 +1228,7 @@ namespace OpenMS
       // only consider best peptide hit for export
       PeptideIdentificationList dummy;
       dummy.push_back(pid);
-      IDFilter::getBestHit<PeptideIdentification>(dummy, false, current_ph); // TODO: add getBestHit for PeptideHits so no copying to dummy is needed
+      IDFilter::getBestHit<PeptideIdentification>(dummy.getData(), false, current_ph); // TODO: add getBestHit for PeptideHits so no copying to dummy is needed
     }
     else
     {

@@ -1156,13 +1156,43 @@ namespace OpenMS
 
       }
     }
-    PeptideIdentificationList new_peptide_ids_vector;
+    std::vector<PeptideIdentification> new_peptide_ids_vector;
     new_peptide_ids_vector.reserve(new_peptide_ids.size());
     for (pair<String, PeptideIdentification> mit : new_peptide_ids)
     {
       new_peptide_ids_vector.push_back(mit.second);
     }
     peptide_ids = new_peptide_ids_vector;
+  }
+
+  void OPXLHelper::addProteinPositionMetaValues(PeptideIdentificationList& peptide_ids)
+  {
+    addProteinPositionMetaValues(peptide_ids.getData());
+  }
+
+  void OPXLHelper::addXLTargetDecoyMV(PeptideIdentificationList& peptide_ids)
+  {
+    addXLTargetDecoyMV(peptide_ids.getData());
+  }
+
+  void OPXLHelper::addBetaAccessions(PeptideIdentificationList& peptide_ids)
+  {
+    addBetaAccessions(peptide_ids.getData());
+  }
+
+  void OPXLHelper::removeBetaPeptideHits(PeptideIdentificationList& peptide_ids)
+  {
+    removeBetaPeptideHits(peptide_ids.getData());
+  }
+
+  void OPXLHelper::computeDeltaScores(PeptideIdentificationList& peptide_ids)
+  {
+    computeDeltaScores(peptide_ids.getData());
+  }
+
+  std::vector<PeptideIdentification> OPXLHelper::combineTopRanksFromPairs(PeptideIdentificationList& peptide_ids, Size number_top_hits)
+  {
+    return combineTopRanksFromPairs(peptide_ids.getData(), number_top_hits);
   }
 
   void OPXLHelper::addPercolatorFeatureList(ProteinIdentification& prot_id)

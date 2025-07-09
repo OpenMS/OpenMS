@@ -34,7 +34,7 @@ START_SECTION(void store(const String& filename, const std::vector<ProteinIdenti
 
   XQuestResultXMLFile().store(out_file, protein_ids, peptide_ids);
 
-  std::vector< PeptideIdentification > peptide_id_vector;
+  PeptideIdentificationList peptide_id_vector;
   std::vector< ProteinIdentification > protein_id_vector;
   XQuestResultXMLFile().load(out_file, peptide_id_vector, protein_id_vector);
 
