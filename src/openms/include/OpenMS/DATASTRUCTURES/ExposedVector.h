@@ -12,9 +12,15 @@
 #include <cstddef>   // for size_t
 #include <vector>
 #include <algorithm>
+#include <concepts>
 
 namespace OpenMS
 {
+  template<typename T>
+  concept LessThanComparable = requires(const T& a, const T& b) { // less and greater
+      { a < b } -> std::convertible_to<bool>;
+  };
+
 
 /// Macro to expose common dependent types, such as @p iterator in the derived class
 #define EXPOSED_VECTOR_INTERFACE(InnerElement) \
@@ -341,32 +347,25 @@ namespace OpenMS
       return data_ != other.data_;
     }
     
-    /// Less than comparison
-    bool operator<(const ExposedVector& other) const
+    // Define operators only if underlying vector supports them
+    bool operator<(const ExposedVector& other) const requires LessThanComparable<VectorElement>
     {
-      return data_ < other.data_;
+        return data_ < other.data_;
     }
 
-    /// Less than or equal comparison
-    bool operator<=(const ExposedVector& other) const
+    bool operator<=(const ExposedVector& other) const requires LessThanComparable<VectorElement>
     {
-      return std::lexicographical_compare(data_.begin(), data_.end(),
-                                        other.data_.begin(), other.data_.end()) 
-                                        || data_ == other.data_;
+        return data_ <= other.data_;
     }
 
-    /// Greater than comparison
-    bool operator>(const ExposedVector& other) const
+    bool operator>(const ExposedVector& other) const requires LessThanComparable<VectorElement>
     {
-      return std::lexicographical_compare(other.data_.begin(), other.data_.end(),
-                                        data_.begin(), data_.end());
+        return data_ > other.data_;
     }
 
-    /// Greater than or equal comparison
-    bool operator>=(const ExposedVector& other) const
+    bool operator>=(const ExposedVector& other) const requires LessThanComparable<VectorElement>
     {
-      return !std::lexicographical_compare(data_.begin(), data_.end(),
-                                          other.data_.begin(), other.data_.end());    
+        return data_ >= other.data_;
     }
-  };
+   };
 } // namespace OpenMS
