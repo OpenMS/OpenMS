@@ -11,6 +11,7 @@
 
 #include <cstddef>   // for size_t
 #include <vector>
+#include <algorithm>
 
 namespace OpenMS
 {
@@ -345,25 +346,28 @@ namespace OpenMS
     {
       return data_ < other.data_;
     }
-    
+
     /// Less than or equal comparison
     bool operator<=(const ExposedVector& other) const
     {
-      return data_ <= other.data_;
+      return std::lexicographical_compare(data_.begin(), data_.end(),
+                                        other.data_.begin(), other.data_.end()) 
+                                        || data_ == other.data_;
     }
-    
+
     /// Greater than comparison
     bool operator>(const ExposedVector& other) const
     {
-      return data_ > other.data_;
+      return std::lexicographical_compare(other.data_.begin(), other.data_.end(),
+                                        data_.begin(), data_.end());
     }
-    
+
     /// Greater than or equal comparison
     bool operator>=(const ExposedVector& other) const
     {
-      return data_ >= other.data_;
-    }
-  };
+      return !std::lexicographical_compare(data_.begin(), data_.end(),
+                                          other.data_.begin(), other.data_.end());    
+    };
 
 } // namespace OpenMS
 
