@@ -30,6 +30,10 @@ namespace OpenMS
 
   bool MetaInfoDescription::operator<(const MetaInfoDescription & rhs) const
   {
+    // Compare data processing by size first (fast)
+    if (data_processing_.size() != rhs.data_processing_.size())
+      return data_processing_.size() < rhs.data_processing_.size();
+
     // First compare the MetaInfoInterface base
     if (MetaInfoInterface::operator!=(rhs))
     {
@@ -41,7 +45,11 @@ namespace OpenMS
       {
         return lhs_empty < rhs_empty;
       }
-      
+
+      // Compare name
+      if (name_ != rhs.name_)
+        return name_ < rhs.name_;
+
       // If both non-empty, compare by getting keys and comparing them
       std::vector<UInt> lhs_keys, rhs_keys;
       getKeys(lhs_keys);
@@ -59,14 +67,6 @@ namespace OpenMS
           return lhs_val < rhs_val;
       }
     }
-    
-    // Compare name
-    if (name_ != rhs.name_)
-      return name_ < rhs.name_;
-    
-    // Compare data processing by size first
-    if (data_processing_.size() != rhs.data_processing_.size())
-      return data_processing_.size() < rhs.data_processing_.size();
     
     // Compare data processing elements (simplified comparison by comparing names)
     for (size_t i = 0; i < data_processing_.size(); ++i)
