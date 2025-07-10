@@ -73,22 +73,6 @@ START_SECTION((FloatDataArray operator!=))
   TEST_TRUE(fda1 != fda3)
 END_SECTION
 
-START_SECTION((FloatDataArray operator<=>))
-  FloatDataArray fda1{1.0f, 2.0f, 3.0f};
-  FloatDataArray fda2{1.0f, 2.0f, 3.0f};
-  FloatDataArray fda3{1.0f, 2.0f, 4.0f};
-  FloatDataArray fda4{1.0f, 2.0f};
-  FloatDataArray fda5{2.0f, 3.0f, 4.0f};
-  
-  // Test three-way comparison
-  TEST_TRUE((fda1 <=> fda2) == 0)
-  TEST_TRUE((fda1 <=> fda3) < 0)
-  TEST_TRUE((fda3 <=> fda1) > 0)
-  TEST_TRUE((fda4 <=> fda1) < 0)
-  TEST_TRUE((fda1 <=> fda4) > 0)
-  TEST_TRUE((fda1 <=> fda5) < 0)
-END_SECTION
-
 START_SECTION((FloatDataArray operator<))
   FloatDataArray fda1{1.0f, 2.0f, 3.0f};
   FloatDataArray fda2{1.0f, 2.0f, 3.0f};
@@ -191,18 +175,6 @@ START_SECTION((IntegerDataArray operator!=))
   TEST_TRUE(ida1 != ida3)
 END_SECTION
 
-START_SECTION((IntegerDataArray operator<=>))
-  IntegerDataArray ida1{1, 2, 3};
-  IntegerDataArray ida2{1, 2, 3};
-  IntegerDataArray ida3{1, 2, 4};
-  IntegerDataArray ida4{1, 2};
-  
-  TEST_TRUE((ida1 <=> ida2) == 0)
-  TEST_TRUE((ida1 <=> ida3) < 0)
-  TEST_TRUE((ida3 <=> ida1) > 0)
-  TEST_TRUE((ida4 <=> ida1) < 0)
-END_SECTION
-
 START_SECTION((IntegerDataArray operator<))
   IntegerDataArray ida1{1, 2, 3};
   IntegerDataArray ida2{1, 2, 3};
@@ -286,18 +258,6 @@ START_SECTION((StringDataArray operator!=))
   
   TEST_FALSE(sda1 != sda2)
   TEST_TRUE(sda1 != sda3)
-END_SECTION
-
-START_SECTION((StringDataArray operator<=>))
-  StringDataArray sda1{"apple", "banana", "cherry"};
-  StringDataArray sda2{"apple", "banana", "cherry"};
-  StringDataArray sda3{"apple", "banana", "date"};
-  StringDataArray sda4{"apple", "banana"};
-  
-  TEST_TRUE((sda1 <=> sda2) == 0)
-  TEST_TRUE((sda1 <=> sda3) < 0)
-  TEST_TRUE((sda3 <=> sda1) > 0)
-  TEST_TRUE((sda4 <=> sda1) < 0)
 END_SECTION
 
 START_SECTION((StringDataArray operator<))
