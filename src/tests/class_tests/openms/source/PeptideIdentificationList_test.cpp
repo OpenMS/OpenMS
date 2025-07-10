@@ -37,9 +37,9 @@ START_SECTION(~PeptideIdentificationList())
 }
 END_SECTION
 
-START_SECTION((PeptideIdentificationList(const std::vector<PeptideIdentification>& vec)))
+START_SECTION((PeptideIdentificationList(const PeptideIdentificationList& vec)))
 {
-  std::vector<PeptideIdentification> base_vector;
+  PeptideIdentificationList base_vector;
   PeptideIdentification pep_id;
   pep_id.setRT(1234.5);
   pep_id.setMZ(567.8);
@@ -52,9 +52,9 @@ START_SECTION((PeptideIdentificationList(const std::vector<PeptideIdentification
 }
 END_SECTION
 
-START_SECTION((PeptideIdentificationList(std::vector<PeptideIdentification>&& vec)))
+START_SECTION((PeptideIdentificationList(PeptideIdentificationList&& vec)))
 {
-  std::vector<PeptideIdentification> base_vector;
+  PeptideIdentificationList base_vector;
   PeptideIdentification pep_id;
   pep_id.setRT(1234.5);
   pep_id.setMZ(567.8);
@@ -92,7 +92,7 @@ END_SECTION
 
 START_SECTION((PeptideIdentificationList(InputIt first, InputIt last)))
 {
-  std::vector<PeptideIdentification> base_vector;
+  PeptideIdentificationList base_vector;
   for (int i = 0; i < 3; ++i)
   {
     PeptideIdentification pep_id;
@@ -190,9 +190,9 @@ START_SECTION((PeptideIdentificationList& operator=(PeptideIdentificationList&&)
 }
 END_SECTION
 
-START_SECTION((PeptideIdentificationList& operator=(const std::vector<PeptideIdentification>& vec)))
+START_SECTION((PeptideIdentificationList& operator=(const PeptideIdentificationList& vec)))
 {
-  std::vector<PeptideIdentification> base_vector;
+  PeptideIdentificationList base_vector;
   PeptideIdentification pep_id;
   pep_id.setRT(1234.5);
   pep_id.setMZ(567.8);
@@ -206,9 +206,9 @@ START_SECTION((PeptideIdentificationList& operator=(const std::vector<PeptideIde
 }
 END_SECTION
 
-START_SECTION((PeptideIdentificationList& operator=(std::vector<PeptideIdentification>&& vec)))
+START_SECTION((PeptideIdentificationList& operator=(PeptideIdentificationList&& vec)))
 {
-  std::vector<PeptideIdentification> base_vector;
+  PeptideIdentificationList base_vector;
   PeptideIdentification pep_id;
   pep_id.setRT(1234.5);
   pep_id.setMZ(567.8);
