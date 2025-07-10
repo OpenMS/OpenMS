@@ -91,7 +91,7 @@ Given a FASTA file containing RNA sequences (and optionally decoys) and an mzML 
 Output is in the form of an mzTab-like text file containing the search results.
 Optionally, an idXML file suitable for visualizing search results in TOPPView (parameter @p id_out) and a "target coordinates" file for label-free quantification using FeatureFinderMetaboIdent (parameter @p lfq_out) can be generated.
 
-Modified ribonucleotides can either be specified in the FASTA input file if they are expected at a specific site. As globally replacing the unmodifieed base (as @e fixed modifications), or set as @e variable modifications in the tool options.
+Modified ribonucleotides can either be specified in the FASTA input file if they are expected at a specific site. As globally replacing the unmodified base (as @e fixed modifications), or set as @e variable modifications in the tool options.
 Information on available modifications is taken from the Modomics database (http://modomics.genesilico.pl/).
 In addition to these "standard" modifications, OpenMS defines "generic" and "ambiguous" ones:
 <br>
