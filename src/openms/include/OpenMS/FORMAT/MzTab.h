@@ -15,6 +15,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <optional>
 

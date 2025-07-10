@@ -16,6 +16,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <algorithm>
 #include <limits>

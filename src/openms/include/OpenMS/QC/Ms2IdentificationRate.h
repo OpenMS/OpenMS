@@ -11,6 +11,7 @@
 #include <OpenMS/QC/QCBase.h>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <string>
 #include <vector>
 

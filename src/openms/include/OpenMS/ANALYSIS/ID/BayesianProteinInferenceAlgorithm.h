@@ -13,6 +13,7 @@
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/ML/GRIDSEARCH/GridSearch.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
 #include <functional>

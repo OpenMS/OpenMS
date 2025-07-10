@@ -16,6 +16,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h> // for "StringList"
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <set>
 

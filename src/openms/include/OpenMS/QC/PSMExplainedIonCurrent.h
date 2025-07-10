@@ -10,6 +10,7 @@
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/QC/QCBase.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <vector>
 
 namespace OpenMS

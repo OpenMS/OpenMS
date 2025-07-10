@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/QC/QCBase.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 namespace OpenMS
 {

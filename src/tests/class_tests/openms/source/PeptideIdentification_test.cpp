@@ -130,6 +130,7 @@ START_SECTION((PeptideIdentificationList& operator=(Base&& base)))
   
   PeptideIdentificationList spectra_ids;
   spectra_ids = std::move(base_vector);
+  TEST_TRUE(base_vector.empty())
   TEST_EQUAL(spectra_ids.size(), 1)
   TEST_REAL_SIMILAR(spectra_ids[0].getRT(), 147.2)
   TEST_REAL_SIMILAR(spectra_ids[0].getMZ(), 258.3)

@@ -11,6 +11,7 @@
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <boost/range/combine.hpp>
 
 #include <vector>

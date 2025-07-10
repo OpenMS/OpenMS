@@ -11,6 +11,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/QC/QCBase.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 
 namespace OpenMS

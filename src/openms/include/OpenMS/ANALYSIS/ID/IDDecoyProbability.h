@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/MATH/STATISTICS/GammaDistributionFitter.h>
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
