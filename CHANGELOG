@@ -23,6 +23,11 @@ General:
     - loading of mzML files is 7-25% faster in general (SIMD ASCII conversion) (#8105)
     
 Dependencies:
+    - PyOpenMS now depends on Autowrap 0.23.0
+    - PyOpenMS now supports Cython 3.1
+
+NucleicAcidSearchEngine:
+    - add support for global fixed modifications as a search parameter
 
 Misc:
  - show load/store progress for files in all TOPP tools (#8041)

@@ -415,6 +415,7 @@ add_custom_command(
 )
 
 # this acts as a mutex in make, to not have race conditions on the above command in the next parallel targets
+# USES_TERMINAL ensures the command runs in a single terminal session, preventing parallel execution
 add_custom_target(compile_pxds DEPENDS ${PYCPPFILES} ${PYPYXFILES})
 
 set(PY_EXTRA_ARGS "")
