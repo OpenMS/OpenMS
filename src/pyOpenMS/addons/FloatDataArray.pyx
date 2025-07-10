@@ -16,7 +16,7 @@
 
     def __setitem__(self, key, value):
         assert isinstance(key, int), 'arg key wrong type'
-        assert isinstance(value, (int, int, float)), 'arg value wrong type'
+        assert isinstance(value, (int, float)), 'arg value wrong type'
         assert key >= 0, 'arg key cannot be negative'
 
         cdef unsigned int _idx = (<int>key)
