@@ -385,21 +385,34 @@ configure_file(${_env_py_in} ${_env_py} @ONLY)
 #------------------------------------------------------------------------------
 # create targets in makefile
 
+# Fix race condition: Use a single sentinel file as OUTPUT instead of multiple files
+# This ensures the custom command runs only once even with parallel make
+set(PYGEN_SENTINEL "${CMAKE_BINARY_DIR}/pyOpenMS/.cpp_extension_generated")
+
 IF(LINUX AND PY_NO_OUTPUT)
   add_custom_command(
-    OUTPUT ${PYCPPFILES} ${PYPYXFILES}
+    OUTPUT ${PYGEN_SENTINEL}
     DEPENDS OpenMS # fake dependency to see if a header file has changed (TODO should probably depend on pxds)
     COMMAND ${Python_EXECUTABLE} create_cpp_extension.py 2> /dev/null
+    COMMAND ${CMAKE_COMMAND} -E touch ${PYGEN_SENTINEL}
     COMMENT "Creating C++ extension with autowrap and Cython"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ELSE()
   add_custom_command(
-    OUTPUT ${PYCPPFILES} ${PYPYXFILES}
+    OUTPUT ${PYGEN_SENTINEL}
     DEPENDS OpenMS # fake dependency to see if a header file has changed (TODO should probably depend on pxds)
     COMMAND ${Python_EXECUTABLE} create_cpp_extension.py
+    COMMAND ${CMAKE_COMMAND} -E touch ${PYGEN_SENTINEL}
     COMMENT "Creating C++ extension with autowrap and Cython"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ENDIF()
+
+# Ensure all generated files depend on the sentinel
+add_custom_command(
+  OUTPUT ${PYCPPFILES} ${PYPYXFILES}
+  DEPENDS ${PYGEN_SENTINEL}
+  COMMENT "Generated files depend on successful code generation"
+)
 
 # this acts as a mutex in make, to not have race conditions on the above command in the next parallel targets
 add_custom_target(compile_pxds DEPENDS ${PYCPPFILES} ${PYPYXFILES})

@@ -9,8 +9,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>" name
     cdef cppclass FeatureGroupingAlgorithm(DefaultParamHandler):
         # wrap-inherits:
         #   DefaultParamHandler
-        # wrap-ignore
-        # Abstract Class
+
+        #TODO: This was included in wrap-ignore with autowrap 22. 22 just didn't ignore it. 23 does, so we remove the annotiation since derived classes refer to it.
         void transferSubelements(libcpp_vector[ConsensusMap] maps,
                                  ConsensusMap & out
                                 ) except + nogil  # wrap-doc:Transfers subelements (grouped features) from input consensus maps to the result consensus map
