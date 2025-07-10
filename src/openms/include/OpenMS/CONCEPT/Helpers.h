@@ -8,11 +8,22 @@
 
 #pragma once
 
-#include <vector>
 #include <boost/shared_ptr.hpp>
+
+#include <compare>
+#include <vector>
 
 namespace OpenMS
 {
+  // For ADL version of <=> for STL containers
+  // This is needed to ensure that the std::vector<T> <=> operator is used
+  template <typename T>
+  auto operator<=>(const std::vector<T>& lhs, const std::vector<T>& rhs) {
+    return std::lexicographical_compare_three_way(
+        lhs.begin(), lhs.end(), rhs.begin(), rhs.end(), std::compare_three_way{}
+    );
+  }
+
   namespace Helpers 
   {
 
@@ -71,6 +82,7 @@ namespace OpenMS
     }
 
   }
+
 }
 
 

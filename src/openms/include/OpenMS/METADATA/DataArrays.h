@@ -9,6 +9,8 @@
 #pragma once
 
 #include <OpenMS/METADATA/MetaInfoDescription.h>
+#include <OpenMS/CONCEPT/Helpers.h> // for ADL version of <=> for STL containers
+
 #include <compare>
 
 namespace OpenMS
