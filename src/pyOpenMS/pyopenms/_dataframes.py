@@ -701,15 +701,6 @@ class _MSSpectrumDF(_MSSpectrum):
         
         df['native_id'] = _np.full(cnt, self.getNativeID(), dtype=_np.dtype('U100'))
 
-        # peptide sequence
-        peps = self.getPeptideIdentifications()  # type: list[PeptideIdentification]
-        seq = ''
-        if peps:
-            hits = peps[0].getHits()
-            if hits:
-                seq = hits[0].getSequence().toString()
-        df['sequence'] = _np.full(cnt, seq, dtype=_np.dtype(f'U{len(seq)}'))
-
         # ion annotations in string data array with names IonName or IonNames
         ion_annotations = _np.full(cnt, '', dtype=_np.dtype('U1'))
         for sda in self.getStringDataArrays():
