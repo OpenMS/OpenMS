@@ -56,7 +56,7 @@ int main(int argc, char** argv)
   std::cout << "Skipped over " << line_count - error_count << " lines with unavoidable warnings";
   if (error_count)
   {
-    std::cerr << "\n\nFound " << error_count << " Doxygen warnings. See above. Please fix them.\n";
+    std::cerr << "\n\nFound " << error_count << " Doxygen errors. See above. Please fix them.\n";
     return 1;
   }
   
