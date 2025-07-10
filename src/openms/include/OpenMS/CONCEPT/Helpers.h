@@ -10,36 +10,10 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include <compare>
 #include <vector>
 
 namespace OpenMS
 {
-
-  // missing in libc++
-  template <typename InputIt1, typename InputIt2, typename Comp = std::compare_three_way>
-  auto lexicographical_compare_three_way(InputIt1 first1, InputIt1 last1,
-                                                 InputIt2 first2, InputIt2 last2,
-                                                 Comp comp = {}) {
-    for (; first1 != last1 && first2 != last2; ++first1, ++first2) {
-        auto cmp = comp(*first1, *first2);
-        if (cmp != 0)
-            return cmp;
-    }
-    return (first1 == last1) ?
-           ((first2 == last2) ? std::strong_ordering::equal : std::strong_ordering::less) :
-           std::strong_ordering::greater;
-  }
-
-  // For ADL version of <=> for STL containers
-  // This is needed to ensure that the std::vector<T> <=> operator is used
-  template <typename T>
-  auto operator<=>(const std::vector<T>& lhs, const std::vector<T>& rhs) {
-    return std::lexicographical_compare_three_way(
-        lhs.begin(), lhs.end(), rhs.begin(), rhs.end(), std::compare_three_way{}
-    );
-  }
-
   namespace Helpers 
   {
 
