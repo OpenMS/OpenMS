@@ -11,7 +11,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessTransformi
         # wrap-inherits:
         #  ISpectrumAccess
         # wrap-ignore
-        # ABSTRACT class
 
         SpectrumAccessTransforming(SpectrumAccessTransforming) except + nogil  # wrap-ignore
 

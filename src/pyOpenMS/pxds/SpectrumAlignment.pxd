@@ -10,6 +10,7 @@ cdef extern from "<OpenMS/COMPARISON/SpectrumAlignment.h>" namespace "OpenMS":
     cdef cppclass SpectrumAlignment(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler
+
         # wrap-doc:
         #  Aligns the peaks of two sorted spectra
         #  Method 1: Using a banded (width via 'tolerance' parameter) alignment if absolute tolerances are given

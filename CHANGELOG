@@ -19,8 +19,9 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 General:
  - speed improvements:
     - loading .gz files is about 7% faster (#8069)
-    - loading of mzML files with more than than mz/intensity (e.g. ion mobility) is 20-40% faster (#8074)
-  
+    - loading of mzML files with more than than m/z+intensity (e.g. ion mobility) is 20-40% faster (#8074)
+    - loading of mzML files is 7-25% faster in general (SIMD ASCII conversion) (#8105)
+    
 Dependencies:
 
 Misc:

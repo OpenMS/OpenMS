@@ -99,6 +99,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespa
     cdef enum AggregationMethod "OpenMS::BasicProteinInferenceAlgorithm::AggregationMethod":
         # wrap-doc:
         #    Aggregation method
+
         # wrap-attach:
         #    BasicProteinInferenceAlgorithm
         PROD # wrap-doc:Aggregate by product (ignore zeroes)
