@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <compare>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -39,6 +40,8 @@ public:
 
     /// Equality operator
     bool operator==(const MetaInfoDescription & rhs) const;
+    /// Three-way comparison operator
+    auto operator<=>(const MetaInfoDescription & rhs) const;
 
     /// returns the name of the peak annotations
     const String & getName() const;
@@ -53,7 +56,6 @@ public:
     void setDataProcessing(const std::vector<DataProcessingPtr> & data_processing);
 
 protected:
-    String comment_;
     String name_;
     std::vector<DataProcessingPtr> data_processing_;
   };
