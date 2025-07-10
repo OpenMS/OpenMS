@@ -667,6 +667,13 @@ namespace OpenMS
       keepHitsMatchingProteins(vec, accessions);
     }
 
+    /// @overload
+    static void getBestHit(PeptideIdentificationList& ids, bool assume_sorted, PeptideHit& best_hit)
+    {
+      std::vector<PeptideIdentification>& vec = ids.getData();
+      getBestHit(vec, assume_sorted, best_hit);
+    }
+
     /**
        @brief Finds the best-scoring hit in a vector of peptide or protein identifications.
 
