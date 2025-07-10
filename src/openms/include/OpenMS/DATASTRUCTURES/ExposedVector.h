@@ -367,6 +367,6 @@ namespace OpenMS
     {
       return !std::lexicographical_compare(data_.begin(), data_.end(),
                                           other.data_.begin(), other.data_.end());    
-    };
-
-}; // namespace OpenMS
+    }
+  };
+} // namespace OpenMS
