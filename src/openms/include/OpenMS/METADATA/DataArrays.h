@@ -26,17 +26,38 @@ namespace OpenMS
       using std::vector<float>::vector; // to allow for aggregate initialization of FloatDataArray
 
     public:
-      /// Spaceship operator for three-way comparison
-      auto operator<=>(const FloatDataArray& rhs) const
+      /// Less than operator
+      bool operator<(const FloatDataArray& rhs) const
       {
-        // Compare MetaInfoDescription base class first
         const MetaInfoDescription& lhs_meta = *this;
         const MetaInfoDescription& rhs_meta = rhs;
-        if (auto cmp = lhs_meta <=> rhs_meta; cmp != 0)
-          return std::partial_ordering(cmp);
-        
-        // Then compare the vector part (returns partial_ordering for floats)
-        return static_cast<const std::vector<float>&>(*this) <=> static_cast<const std::vector<float>&>(rhs);
+        if (lhs_meta != rhs_meta)
+          return lhs_meta < rhs_meta;
+        return static_cast<const std::vector<float>&>(*this) < static_cast<const std::vector<float>&>(rhs);
+      }
+
+      /// Less than or equal operator
+      bool operator<=(const FloatDataArray& rhs) const
+      {
+        return *this < rhs || *this == rhs;
+      }
+
+      /// Greater than operator
+      bool operator>(const FloatDataArray& rhs) const
+      {
+        return !(*this <= rhs);
+      }
+
+      /// Greater than or equal operator
+      bool operator>=(const FloatDataArray& rhs) const
+      {
+        return !(*this < rhs);
+      }
+
+      /// Not equal operator
+      bool operator!=(const FloatDataArray& rhs) const
+      {
+        return !(*this == rhs);
       }
 
       /// Equality operator
@@ -55,17 +76,38 @@ namespace OpenMS
       using std::vector<int>::vector; // to allow for aggregate initialization of IntegerDataArray
 
     public:
-      /// Spaceship operator for three-way comparison
-      auto operator<=>(const IntegerDataArray& rhs) const
+      /// Less than operator
+      bool operator<(const IntegerDataArray& rhs) const
       {
-        // Compare MetaInfoDescription base class first
         const MetaInfoDescription& lhs_meta = *this;
         const MetaInfoDescription& rhs_meta = rhs;
-        if (auto cmp = lhs_meta <=> rhs_meta; cmp != 0)
-          return cmp;
-        
-        // Then compare the vector part
-        return static_cast<const std::vector<Int>&>(*this) <=> static_cast<const std::vector<Int>&>(rhs);
+        if (lhs_meta != rhs_meta)
+          return lhs_meta < rhs_meta;
+        return static_cast<const std::vector<Int>&>(*this) < static_cast<const std::vector<Int>&>(rhs);
+      }
+
+      /// Less than or equal operator
+      bool operator<=(const IntegerDataArray& rhs) const
+      {
+        return *this < rhs || *this == rhs;
+      }
+
+      /// Greater than operator
+      bool operator>(const IntegerDataArray& rhs) const
+      {
+        return !(*this <= rhs);
+      }
+
+      /// Greater than or equal operator
+      bool operator>=(const IntegerDataArray& rhs) const
+      {
+        return !(*this < rhs);
+      }
+
+      /// Not equal operator
+      bool operator!=(const IntegerDataArray& rhs) const
+      {
+        return !(*this == rhs);
       }
 
       /// Equality operator
@@ -84,17 +126,38 @@ namespace OpenMS
       using std::vector<String>::vector; // to allow for aggregate initialization of StringDataArray
 
     public:
-      /// Spaceship operator for three-way comparison
-      auto operator<=>(const StringDataArray& rhs) const
+      /// Less than operator
+      bool operator<(const StringDataArray& rhs) const
       {
-        // Compare MetaInfoDescription base class first
         const MetaInfoDescription& lhs_meta = *this;
         const MetaInfoDescription& rhs_meta = rhs;
-        if (auto cmp = lhs_meta <=> rhs_meta; cmp != 0)
-          return cmp;
-        
-        // Then compare the vector part
-        return static_cast<const std::vector<String>&>(*this) <=> static_cast<const std::vector<String>&>(rhs);
+        if (lhs_meta != rhs_meta)
+          return lhs_meta < rhs_meta;
+        return static_cast<const std::vector<String>&>(*this) < static_cast<const std::vector<String>&>(rhs);
+      }
+
+      /// Less than or equal operator
+      bool operator<=(const StringDataArray& rhs) const
+      {
+        return *this < rhs || *this == rhs;
+      }
+
+      /// Greater than operator
+      bool operator>(const StringDataArray& rhs) const
+      {
+        return !(*this <= rhs);
+      }
+
+      /// Greater than or equal operator
+      bool operator>=(const StringDataArray& rhs) const
+      {
+        return !(*this < rhs);
+      }
+
+      /// Not equal operator
+      bool operator!=(const StringDataArray& rhs) const
+      {
+        return !(*this == rhs);
       }
 
       /// Equality operator
