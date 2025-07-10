@@ -369,17 +369,4 @@ namespace OpenMS
                                           other.data_.begin(), other.data_.end());    
     };
 
-} // namespace OpenMS
-
-// Global swap function for ExposedVector (ADL - Argument-Dependent Lookup)
-namespace std {
-  template<typename T>
-  void swap(OpenMS::ExposedVector<T>& lhs, OpenMS::ExposedVector<T>& rhs) noexcept
-  {
-    lhs.swap(rhs);
-  }
-}
-
-namespace OpenMS {
-
-} // namespace OpenMS
+}; // namespace OpenMS
