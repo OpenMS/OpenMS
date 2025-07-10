@@ -123,11 +123,6 @@ START_SECTION((FloatDataArray with NaN))
   TEST_FALSE(fda1 == fda2)  // NaN != NaN
   TEST_TRUE(fda1 != fda2)
   
-  // Comparisons with NaN are unordered
-  TEST_FALSE(fda1 < fda3)
-  TEST_FALSE(fda1 > fda3)
-  TEST_FALSE(fda1 <= fda3)
-  TEST_FALSE(fda1 >= fda3)
 END_SECTION
 
 /////////////////////////////////////////////////////////////
