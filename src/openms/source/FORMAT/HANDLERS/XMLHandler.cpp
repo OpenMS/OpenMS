@@ -447,6 +447,29 @@ namespace OpenMS::Internal
       const simde__m128i zero = simde_mm_setzero_si128();  
       while (true)
       {
+          // Check if we have at least 8 characters (16 bytes) remaining to safely load
+          // First do a quick check for null terminator in the next 8 characters
+          bool has_null_in_next_8 = false;
+          for (int i = 0; i < 8; ++i)
+          {
+              if (pos_ptr[i] == 0)
+              {
+                  has_null_in_next_8 = true;
+                  break;
+              }
+          }
+          
+          if (has_null_in_next_8)
+          {
+              // Fall back to character-by-character processing for the remainder
+              while (*pos_ptr != 0)
+              {
+                  ++pos_ptr;
+                  ++processed_chars;
+              }
+              return processed_chars;
+          }
+          
           simde__m128i bits = simde_mm_load_si128(reinterpret_cast<const simde__m128i*>(pos_ptr));
           simde__m128i cmp_zero = simde_mm_cmpeq_epi16(bits, zero); // sets bits to 0xFFFF (2 bytes) for each character that is zero
           uint16_t zero_mask = simde_mm_movemask_epi8(cmp_zero);    // extracts MSB from each byte
