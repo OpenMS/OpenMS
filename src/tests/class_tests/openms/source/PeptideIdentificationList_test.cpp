@@ -39,13 +39,13 @@ END_SECTION
 
 START_SECTION((PeptideIdentificationList(const PeptideIdentificationList& vec)))
 {
-  PeptideIdentificationList base_vector;
+  PeptideIdentificationList id_list;
   PeptideIdentification pep_id;
   pep_id.setRT(1234.5);
   pep_id.setMZ(567.8);
-  base_vector.push_back(pep_id);
+  id_list.push_back(pep_id);
   
-  PeptideIdentificationList pep_ids(base_vector);
+  PeptideIdentificationList pep_ids(id_list);
   TEST_EQUAL(pep_ids.size(), 1)
   TEST_REAL_SIMILAR(pep_ids[0].getRT(), 1234.5)
   TEST_REAL_SIMILAR(pep_ids[0].getMZ(), 567.8)
@@ -54,14 +54,15 @@ END_SECTION
 
 START_SECTION((PeptideIdentificationList(PeptideIdentificationList&& vec)))
 {
-  PeptideIdentificationList base_vector;
+  PeptideIdentificationList id_list;
   PeptideIdentification pep_id;
   pep_id.setRT(1234.5);
   pep_id.setMZ(567.8);
-  base_vector.push_back(pep_id);
+  id_list.push_back(pep_id);
   
-  PeptideIdentificationList pep_ids(std::move(base_vector));
+  PeptideIdentificationList pep_ids(std::move(id_list));
   TEST_EQUAL(pep_ids.size(), 1)
+  TEST_EQUAL(id_list.capacity(), 0)  // this is a move constructor, so the original id_list should be empty and not occupy any memory on the heap
   TEST_REAL_SIMILAR(pep_ids[0].getRT(), 1234.5)
   TEST_REAL_SIMILAR(pep_ids[0].getMZ(), 567.8)
 }
@@ -92,16 +93,16 @@ END_SECTION
 
 START_SECTION((PeptideIdentificationList(InputIt first, InputIt last)))
 {
-  PeptideIdentificationList base_vector;
+  PeptideIdentificationList id_list;
   for (int i = 0; i < 3; ++i)
   {
     PeptideIdentification pep_id;
     pep_id.setRT(i * 100.0);
     pep_id.setMZ(i * 200.0);
-    base_vector.push_back(pep_id);
+    id_list.push_back(pep_id);
   }
   
-  PeptideIdentificationList pep_ids(base_vector.begin(), base_vector.end());
+  PeptideIdentificationList pep_ids(id_list.begin(), id_list.end());
   TEST_EQUAL(pep_ids.size(), 3)
   for (size_t i = 0; i < 3; ++i)
   {
@@ -153,6 +154,7 @@ START_SECTION((PeptideIdentificationList(PeptideIdentificationList&&)))
   
   PeptideIdentificationList pep_ids2(std::move(pep_ids1));
   TEST_EQUAL(pep_ids2.size(), 1)
+  TEST_EQUAL(pep_ids1.capacity(), 0)  // this is a move constructor, so the original pep_ids1 should be empty and not occupy any memory on the heap
   TEST_REAL_SIMILAR(pep_ids2[0].getRT(), 1234.5)
   TEST_REAL_SIMILAR(pep_ids2[0].getMZ(), 567.8)
 }
@@ -192,14 +194,14 @@ END_SECTION
 
 START_SECTION((PeptideIdentificationList& operator=(const PeptideIdentificationList& vec)))
 {
-  PeptideIdentificationList base_vector;
+  PeptideIdentificationList id_list;
   PeptideIdentification pep_id;
   pep_id.setRT(1234.5);
   pep_id.setMZ(567.8);
-  base_vector.push_back(pep_id);
+  id_list.push_back(pep_id);
   
   PeptideIdentificationList pep_ids;
-  pep_ids = base_vector;
+  pep_ids = id_list;
   TEST_EQUAL(pep_ids.size(), 1)
   TEST_REAL_SIMILAR(pep_ids[0].getRT(), 1234.5)
   TEST_REAL_SIMILAR(pep_ids[0].getMZ(), 567.8)
@@ -208,14 +210,14 @@ END_SECTION
 
 START_SECTION((PeptideIdentificationList& operator=(PeptideIdentificationList&& vec)))
 {
-  PeptideIdentificationList base_vector;
+  PeptideIdentificationList id_list;
   PeptideIdentification pep_id;
   pep_id.setRT(1234.5);
   pep_id.setMZ(567.8);
-  base_vector.push_back(pep_id);
+  id_list.push_back(pep_id);
   
   PeptideIdentificationList pep_ids;
-  pep_ids = std::move(base_vector);
+  pep_ids = std::move(id_list);
   TEST_EQUAL(pep_ids.size(), 1)
   TEST_REAL_SIMILAR(pep_ids[0].getRT(), 1234.5)
   TEST_REAL_SIMILAR(pep_ids[0].getMZ(), 567.8)
