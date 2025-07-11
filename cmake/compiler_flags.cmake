@@ -137,6 +137,7 @@ function(openms_add_compiler_flags target_name)
     endif()
   elseif(MSVC)
     target_compile_options(${target_name} PRIVATE
+      /fp:precise
       /wd4251 /wd4275  # disable dll-interface warning
       /wd4996          # disable deprecated functions warning
       /wd4661          # disable explicit template instantiation request warning
