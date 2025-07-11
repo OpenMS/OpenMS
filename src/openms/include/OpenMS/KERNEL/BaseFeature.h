@@ -10,6 +10,7 @@
 
 #include <OpenMS/KERNEL/RichPeak2D.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <optional>
@@ -152,13 +153,13 @@ public:
     /// @name Functions for dealing with identifications in legacy format
     ///@{
     /// returns a const reference to the PeptideIdentification vector
-    const std::vector<PeptideIdentification>& getPeptideIdentifications() const;
+    const PeptideIdentificationList& getPeptideIdentifications() const;
 
     /// returns a mutable reference to the PeptideIdentification vector
-    std::vector<PeptideIdentification>& getPeptideIdentifications();
+    PeptideIdentificationList& getPeptideIdentifications();
 
     /// sets the PeptideIdentification vector
-    void setPeptideIdentifications(const std::vector<PeptideIdentification>& peptides);
+    void setPeptideIdentifications(const PeptideIdentificationList& peptides);
 
     /// sorts PeptideIdentifications, assuming they have the same scoreType.
     void sortPeptideIdentifications();
@@ -214,7 +215,7 @@ protected:
     WidthType width_;
 
     /// PeptideIdentifications belonging to the feature
-    std::vector<PeptideIdentification> peptides_;
+    PeptideIdentificationList peptides_;
 
     /// primary ID (peptide, RNA, compound) assigned to this feature
     std::optional<IdentificationData::IdentifiedMolecule> primary_id_;

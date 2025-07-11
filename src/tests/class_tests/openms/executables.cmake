@@ -84,6 +84,7 @@ set(metadata_executables_list
   CVTerm_test
   ChromatogramSettings_test
   ContactPerson_test
+  DataArrays_test
   DataProcessing_test
   DocumentIdentifier_test
   ExperimentalDesign_test
@@ -105,6 +106,7 @@ set(metadata_executables_list
   PeptideEvidence_test
   PeptideHit_test
   PeptideIdentification_test
+  PeptideIdentificationList_test
   Precursor_test
   Product_test
   ProteinHit_test

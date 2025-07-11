@@ -14,6 +14,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 
 namespace OpenMS
@@ -49,7 +50,7 @@ public:
     */
     void load(const String& filename,
               ProteinIdentification& protein_identification,
-              std::vector<PeptideIdentification>& id_data,
+              PeptideIdentificationList& id_data,
               const SpectrumMetaDataLookup& lookup);
 
     /**
@@ -66,7 +67,7 @@ public:
     */
     void load(const String& filename,
               ProteinIdentification& protein_identification,
-              std::vector<PeptideIdentification>& id_data, 
+              PeptideIdentificationList& id_data, 
               std::map<String, std::vector<AASequence> >& peptides, 
               const SpectrumMetaDataLookup& lookup);
 

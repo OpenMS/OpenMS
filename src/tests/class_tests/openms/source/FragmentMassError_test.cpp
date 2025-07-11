@@ -237,14 +237,14 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const std:
 END_SECTION
 
 // tests compute function with pepIDs
-START_SECTION(void compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp,
+START_SECTION(void compute(PeptideIdentificationList& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp,
                            const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20));
 {
   //--------------------------------------------------------------------
   // create valid input data
   //--------------------------------------------------------------------
   // Peptide Identifications
-  std::vector<PeptideIdentification> pep_ids;
+  PeptideIdentificationList pep_ids;
 
   // empty PeptideIdentification
   PeptideIdentification pep_id_empty;
@@ -348,7 +348,7 @@ START_SECTION(void compute(std::vector<PeptideIdentification>& pep_ids, const Pr
   //--------------------------------------------------------------------
 
   // PeptideIdentification with RT matching to a MS1 Spectrum
-  std::vector<PeptideIdentification> ms1_id({createPeptideIdentification("XTandem::3")});
+  PeptideIdentificationList ms1_id({createPeptideIdentification("XTandem::3")});
 
   // set MS1 Spectrum to exp
   exp.setSpectra({createMSSpectrum(1, 5, "XTandem::3")});
@@ -361,7 +361,7 @@ START_SECTION(void compute(std::vector<PeptideIdentification>& pep_ids, const Pr
   //--------------------------------------------------------------------
 
   // PeptideIdentification with RT matching to MSSpectrum with fragmentation method SORI
-  std::vector<PeptideIdentification> sori_id({createPeptideIdentification("XTandem::5")});
+  PeptideIdentificationList sori_id({createPeptideIdentification("XTandem::5")});
 
   // MSExperiment with fragmentation method SORI (not supported)
   exp.setSpectra({createMSSpectrum(2, 7, "XTandem::5", Precursor::ActivationMethod::SORI)});
@@ -374,7 +374,7 @@ START_SECTION(void compute(std::vector<PeptideIdentification>& pep_ids, const Pr
   //--------------------------------------------------------------------
 
   // PeptideIdentification with RT matching to MSSpectrum with no peaks
-  std::vector<PeptideIdentification> no_peaks_id({createPeptideIdentification("XTandem::6")});
+  PeptideIdentificationList no_peaks_id({createPeptideIdentification("XTandem::6")});
 
   // MSExperiment without peaks
   exp.setSpectra({createMSSpectrum(2, 4, "XTandem::6")});

@@ -402,12 +402,12 @@ protected:
     }
   }
   
-  ExitCodes readInputFiles_(const StringList& in_list, vector<PeptideIdentification>& all_peptide_ids, vector<ProteinIdentification>& all_protein_ids, bool isDecoy, bool& found_decoys, int& min_charge, int& max_charge)
+  ExitCodes readInputFiles_(const StringList& in_list, PeptideIdentificationList& all_peptide_ids, vector<ProteinIdentification>& all_protein_ids, bool isDecoy, bool& found_decoys, int& min_charge, int& max_charge)
   {
     for (StringList::const_iterator fit = in_list.begin(); fit != in_list.end(); ++fit)
     {
       String file_idx(distance(in_list.begin(), fit));
-      vector<PeptideIdentification> peptide_ids;
+      PeptideIdentificationList peptide_ids;
       vector<ProteinIdentification> protein_ids;
       String in = *fit;
       FileTypes::Type in_type = FileHandler::getType(in);
@@ -561,7 +561,7 @@ protected:
     //-------------------------------------------------------------
     // general variables and data to perform PercolatorAdapter
     //-------------------------------------------------------------
-    vector<PeptideIdentification> all_peptide_ids;
+    PeptideIdentificationList all_peptide_ids;
     vector<ProteinIdentification> all_protein_ids;
 
     //-------------------------------------------------------------

@@ -153,7 +153,7 @@ protected:
     }
 
     vector<ProteinIdentification> prot_ids;
-    vector<PeptideIdentification> pep_ids;
+    PeptideIdentificationList pep_ids;
     if (!inputfile_id.empty())
     {
       cout << "Reading idXML file..." << endl;

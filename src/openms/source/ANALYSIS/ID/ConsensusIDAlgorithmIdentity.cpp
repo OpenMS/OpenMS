@@ -20,13 +20,13 @@ namespace OpenMS
 
 
   void ConsensusIDAlgorithmIdentity::preprocess_(
-    vector<PeptideIdentification>& ids)
+    PeptideIdentificationList& ids)
   {
     // check score types and orientations:
     bool higher_better = ids[0].isHigherScoreBetter();
     set<String> score_types;
 
-    for (vector<PeptideIdentification>::iterator pep_it = ids.begin();
+    for (PeptideIdentificationList::iterator pep_it = ids.begin();
          pep_it != ids.end(); ++pep_it)
     {
       if (pep_it->isHigherScoreBetter() != higher_better)
@@ -53,14 +53,14 @@ namespace OpenMS
   }
 
 
-  void ConsensusIDAlgorithmIdentity::apply_(vector<PeptideIdentification>& ids,
+  void ConsensusIDAlgorithmIdentity::apply_(PeptideIdentificationList& ids,
                                             const map<String, String>& se_info,
                                             SequenceGrouping& results)
   {
     preprocess_(ids);
 
     // group peptide hits by sequence:
-    for (vector<PeptideIdentification>::iterator pep_it = ids.begin();
+    for (PeptideIdentificationList::iterator pep_it = ids.begin();
          pep_it != ids.end(); ++pep_it)
     {
       String score_type = pep_it->getScoreType();

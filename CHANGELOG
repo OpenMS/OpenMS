@@ -23,6 +23,11 @@ General:
     - loading of mzML files is 7-25% faster in general (SIMD ASCII conversion) (#8105)
     
 Dependencies:
+    - PyOpenMS now depends on Autowrap 0.23.0
+    - PyOpenMS now supports Cython 3.1
+
+NucleicAcidSearchEngine:
+    - add support for global fixed modifications as a search parameter
 
 Misc:
  - show load/store progress for files in all TOPP tools (#8041)
@@ -32,6 +37,7 @@ Fixes:
 Library:
 - Removed `assignRanks` and `sortByRanks` in PeptideIdentifications and sort and filter by score instead. Also removed `updateHitRanks` in IDFilter (#7991)
 - Remove ranke member in PeptideHit and store ranks as meta value (for backwards compatibility). (#7997)
+- std::vector<PeptideIdentification> now is encapsulated in a class PeptideIdentificationList
 
 Added tools:
 - OpenNuXL - A peptide-RNA/DNA cross-linking search engine

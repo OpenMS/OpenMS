@@ -5,6 +5,7 @@ from DefaultParamHandler cimport *
 from ProgressLogger cimport *
 from ProteinIdentification cimport *
 from ProteinIdentification cimport *
+from PeptideIdentificationList cimport *
 from PeptideHit cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespace "OpenMS":
@@ -61,7 +62,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespa
 
         BasicProteinInferenceAlgorithm(BasicProteinInferenceAlgorithm) except + nogil  #wrap-ignore
 
-        void run(libcpp_vector[ PeptideIdentification ] & pep_ids,
+        void run(PeptideIdentificationList & pep_ids,
                  libcpp_vector[ ProteinIdentification ] & prot_ids) except + nogil 
           # wrap-doc:
           #  Performs basic aggregation-based inference per ProteinIdentification run. See class help.
@@ -71,7 +72,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>" namespa
           #  :param prot_ids: Vector of protein identification runs. Scores will be overwritten and groups added.
           #  :return: Writes its results into prot_ids
 
-        void run(libcpp_vector[ PeptideIdentification ] & pep_ids,
+        void run(PeptideIdentificationList & pep_ids,
                                 ProteinIdentification & prot_id) except + nogil 
           # wrap-doc:
           #  Performs basic aggregation-based inference on single ProteinIdentification run. See class help.

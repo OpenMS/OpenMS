@@ -94,7 +94,7 @@ namespace OpenMS
   }
 
   SearchEngineBase::ExitCodes SearchEngineBase::reindex_(std::vector<ProteinIdentification>& protein_identifications, 
-                                       std::vector<PeptideIdentification>& peptide_identifications) const
+                                       PeptideIdentificationList& peptide_identifications) const
   {
     if (getStringOption_("reindex") == "true")
     {

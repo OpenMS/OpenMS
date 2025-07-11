@@ -12,6 +12,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 
@@ -148,7 +149,7 @@ public:
          Parameters should be set before using this method, as setting parameters will clear all results.
     */
     void readQuantData(std::vector<ProteinIdentification>& proteins,
-                       std::vector<PeptideIdentification>& peptides,
+                       PeptideIdentificationList& peptides,
                        const ExperimentalDesign& ed);
 
     /**
@@ -160,8 +161,8 @@ public:
 
          Optional (peptide-level) protein inference information (e.g. from Fido or ProteinProphet) can be supplied via @p peptides. In that case, peptide-to-protein associations - the basis for protein-level quantification - will also be read from @p peptides!
     */
-    void quantifyPeptides(const std::vector<PeptideIdentification>& peptides =
-                          std::vector<PeptideIdentification>());
+    void quantifyPeptides(const PeptideIdentificationList& peptides =
+                          PeptideIdentificationList());
 
 
     /**
@@ -212,7 +213,7 @@ private:
          Only the best-scoring peptide hit of each ID in @p peptides is taken into account. The hits of each ID must already be sorted! If there's more than one ID and the best hits are not identical by sequence, or if there's no peptide ID, an empty peptide hit (for "ambiguous/no annotation") is returned.
          Protein accessions from identical peptide hits are accumulated.
     */
-    PeptideHit getAnnotation_(std::vector<PeptideIdentification>& peptides);
+    PeptideHit getAnnotation_(PeptideIdentificationList& peptides);
 
     /**
          @brief Gather quantitative information from a feature.
@@ -369,7 +370,7 @@ private:
 
          The peptide hits in @p peptides are sorted by score in the process.
     */
-    void countPeptides_(std::vector<PeptideIdentification>& peptides);
+    void countPeptides_(PeptideIdentificationList& peptides);
 
     /**
          @brief Map (filename, channel) to sample using ExperimentalDesign.

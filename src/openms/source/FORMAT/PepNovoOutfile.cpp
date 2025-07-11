@@ -34,7 +34,7 @@ namespace OpenMS
   void
   PepNovoOutfile::load(
     const std::string & result_filename,
-    vector<PeptideIdentification> & peptide_identifications,
+    PeptideIdentificationList & peptide_identifications,
     ProteinIdentification & protein_identification,
     const double & score_threshold,
     const IndexPosMappingType & index_to_precursor,

@@ -101,7 +101,7 @@ START_SECTION((const PeptideIdentification& getPeptideIdentification(size_t inde
 END_SECTION
 
 
-START_SECTION((std::vector<PeptideIdentification>& getPeptideIdentifications()))
+START_SECTION((PeptideIdentificationList& getPeptideIdentifications()))
   AnnotatedMSRun annotated_data;
   MSExperiment exp;
   MSSpectrum spec1, spec2;
@@ -126,7 +126,7 @@ START_SECTION((std::vector<PeptideIdentification>& getPeptideIdentifications()))
   TEST_EQUAL(annotated_data.getPeptideIdentifications()[1].getHits()[0].getSequence().toString(), "PEPTIDAR")
 END_SECTION
 
-START_SECTION((const std::vector<PeptideIdentification>& getPeptideIdentifications() const))
+START_SECTION((const PeptideIdentificationList& getPeptideIdentifications() const))
   AnnotatedMSRun annotated_data;
   MSExperiment exp;
   MSSpectrum spec1, spec2;
@@ -178,7 +178,7 @@ START_SECTION((void setPeptideIdentification(PeptideIdentification&& id, size_t 
 END_SECTION
 
 
-START_SECTION((void setPeptideIdentifications(std::vector<PeptideIdentification>&& ids)))
+START_SECTION((void setPeptideIdentifications(PeptideIdentificationList&& ids)))
   AnnotatedMSRun annotated_data;
   MSExperiment exp;
   MSSpectrum spec1, spec2;
@@ -187,7 +187,7 @@ START_SECTION((void setPeptideIdentifications(std::vector<PeptideIdentification>
   annotated_data.getMSExperiment() = std::move(exp);
   
   // Create a vector of peptide identifications
-  std::vector<PeptideIdentification> pep_ids;
+  PeptideIdentificationList pep_ids;
   PeptideIdentification pep_id1, pep_id2;
   PeptideHit hit1, hit2;
   hit1.setSequence(AASequence::fromString("PEPTIDER"));

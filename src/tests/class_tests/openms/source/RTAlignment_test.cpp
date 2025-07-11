@@ -56,8 +56,8 @@ START_SECTION(const String& getName() const override) {TEST_EQUAL(rtA.getName(),
   // Valid FeatureMap
   FeatureMap fmap;
   PeptideIdentification peptide_ID;
-  vector<PeptideIdentification> identifications;
-  vector<PeptideIdentification> unassignedIDs;
+  PeptideIdentificationList identifications;
+  PeptideIdentificationList unassignedIDs;
   Feature feature1, feature2;
   peptide_ID.setRT(0);
   identifications.push_back(peptide_ID);

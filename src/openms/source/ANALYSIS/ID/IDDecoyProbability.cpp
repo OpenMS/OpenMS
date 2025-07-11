@@ -36,7 +36,7 @@ namespace OpenMS
 
   IDDecoyProbability::~IDDecoyProbability() = default;
 
-  void IDDecoyProbability::apply(vector<PeptideIdentification> & ids)
+  void IDDecoyProbability::apply(PeptideIdentificationList & ids)
   {
     double lower_score_better_default_value_if_zero(static_cast<double>(param_.getValue("lower_score_better_default_value_if_zero")));
     double lower_score_better_default_value_if_zero_exp = pow(10.0, -lower_score_better_default_value_if_zero);
@@ -88,11 +88,11 @@ namespace OpenMS
     return;
   }
 
-  void IDDecoyProbability::apply(vector<PeptideIdentification> & prob_ids, const vector<PeptideIdentification> & orig_fwd_ids, const vector<PeptideIdentification> & rev_ids)
+  void IDDecoyProbability::apply(PeptideIdentificationList & prob_ids, const PeptideIdentificationList & orig_fwd_ids, const PeptideIdentificationList & rev_ids)
   {
     double lower_score_better_default_value_if_zero((double)param_.getValue("lower_score_better_default_value_if_zero"));
     double lower_score_better_default_value_if_zero_exp = pow((double)10.0, -lower_score_better_default_value_if_zero);
-    vector<PeptideIdentification> fwd_ids = orig_fwd_ids;
+    PeptideIdentificationList fwd_ids = orig_fwd_ids;
     vector<double> rev_scores, fwd_scores, all_scores;
 
     // get the forward scores
@@ -157,7 +157,7 @@ namespace OpenMS
     return;
   }
 
-  void IDDecoyProbability::apply_(vector<PeptideIdentification> & ids, const vector<double> & rev_scores, const vector<double> & fwd_scores, const vector<double> & all_scores)
+  void IDDecoyProbability::apply_(PeptideIdentificationList & ids, const vector<double> & rev_scores, const vector<double> & fwd_scores, const vector<double> & all_scores)
   {
     Size number_of_bins(param_.getValue("number_of_bins"));
 
@@ -340,7 +340,7 @@ namespace OpenMS
     generateDistributionImage_(all_scores_normalized, all_trafo, gauss_formula, gamma_formula, (String)param_.getValue("fwd_filename"));
 #endif
 
-    vector<PeptideIdentification> new_prob_ids;
+    PeptideIdentificationList new_prob_ids;
     // calculate the probabilities and write them to the IDs
     for (const PeptideIdentification& pep : ids)
     {

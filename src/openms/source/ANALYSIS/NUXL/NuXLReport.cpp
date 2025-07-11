@@ -123,7 +123,7 @@ namespace OpenMS
     return ListUtils::concatenate(sl, separator);
   }
 
-  std::vector<NuXLReportRow> NuXLReport::annotate(const PeakMap& spectra, std::vector<PeptideIdentification>& peptide_ids, const StringList& meta_values_to_export, double marker_ions_tolerance)
+  std::vector<NuXLReportRow> NuXLReport::annotate(const PeakMap& spectra, PeptideIdentificationList& peptide_ids, const StringList& meta_values_to_export, double marker_ions_tolerance)
   {
     std::map<Size, Size> map_spectra_to_id;
     for (Size i = 0; i != peptide_ids.size(); ++i)
@@ -271,7 +271,7 @@ namespace OpenMS
 }
 
   // crosslink efficiency = frequency of the crosslinked amino acid / frequency of the amino acid in all crosslink spectrum matches
-  map<char, double> NuXLProteinReport::getCrossLinkEfficiency(const vector<PeptideIdentification>& peps)
+  map<char, double> NuXLProteinReport::getCrossLinkEfficiency(const PeptideIdentificationList& peps)
   {
     map<char, double> aa_xl_freq;
     map<char, double> aa_freq;
@@ -311,7 +311,7 @@ namespace OpenMS
   }
 
   // returns map of adduct to counts
-  map<String, size_t> NuXLProteinReport::countAdducts(const vector<PeptideIdentification>& peps)
+  map<String, size_t> NuXLProteinReport::countAdducts(const PeptideIdentificationList& peps)
   {
     map<String, size_t> adduct2count;
     for (const PeptideIdentification& pep : peps)
@@ -377,7 +377,7 @@ Output format:
 
   ProteinsReport getProteinReportEntries(
 //    vector<ProteinIdentification>& prot_ids, 
-    const vector<PeptideIdentification>& peps,
+    const PeptideIdentificationList& peps,
     const map<String, ProteinHit*>& acc2protein_targets,
     const std::map<string, set<string>>& peptide2proteins
     )
@@ -714,7 +714,7 @@ Output format:
 
   void NuXLProteinReport::annotateProteinModificationForTopHits(
     vector<ProteinIdentification>& prot_ids, 
-    const vector<PeptideIdentification>& peps, 
+    const PeptideIdentificationList& peps, 
     TextFile& tsv_file)
   {
     assert(prot_ids.size() == 1); // support for one run only
@@ -847,7 +847,7 @@ Output format:
     vector<ProteinIdentification::ProteinGroup> ipg;
     if (!prot_id.getHits().empty())
     {
-      vector<PeptideIdentification> pep_copy{peps}; // TODO: why copy needed?
+      PeptideIdentificationList pep_copy{peps}; // TODO: why copy needed?
       IDBoostGraph ibg{prot_id, pep_copy, true, false, false}; // only consider top hit
       ibg.calculateAndAnnotateIndistProteins(false); // only indistinguishable protein groups
       ipg = prot_id.getIndistinguishableProteins();
