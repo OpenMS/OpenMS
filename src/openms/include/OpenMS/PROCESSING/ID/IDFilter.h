@@ -1459,17 +1459,17 @@ namespace OpenMS
     // Specific overloads for PeptideIdentificationList to ensure correct template resolution
     static void removeDecoyHits(PeptideIdentificationList& ids)
     {
-      removeDecoyHits(static_cast<PeptideIdentificationList&>(ids));
+      removeDecoyHits(ids.getData());
     }
 
     static void filterHitsByScore(PeptideIdentificationList& ids, double threshold_score)
     {
-      filterHitsByScore(static_cast<PeptideIdentificationList&>(ids), threshold_score);
+      filterHitsByScore(ids.getData(), threshold_score);
     }
 
     static void removeUnreferencedProteins(std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& ids)
     {
-      removeUnreferencedProteins(proteins, static_cast<PeptideIdentificationList&>(ids));
+      removeUnreferencedProteins(proteins, ids.getData());
     }
   };
 

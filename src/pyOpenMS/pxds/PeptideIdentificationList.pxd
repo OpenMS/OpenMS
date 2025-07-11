@@ -6,22 +6,29 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentificationList.h>" namespace "Open
 
     cdef cppclass PeptideIdentificationList:
         # wrap-doc:
-        #  Container for peptide identifications from multiple spectra.
+        #  A container for peptide identifications from multiple spectra.
+        #
+        #  This class provides a vector-like interface for managing collections
+        #  of peptide identifications, typically obtained from tandem mass
+        #  spectrometry experiments or peptide database searches. Each PeptideIdentification represents
+        #  the identification results from a single spectrum.
+        #
+        #  This class supports direct iteration in Python.
 
         PeptideIdentificationList() except + nogil 
         PeptideIdentificationList(PeptideIdentificationList) except + nogil 
         
         # Vector-like interface
-        int size() except + nogil 
-        bool empty() except + nogil 
-        void clear() except + nogil 
-        void push_back(PeptideIdentification) except + nogil 
+        int size() except + nogil  # wrap-doc:Returns the number of peptide identifications
+        bool empty() except + nogil  # wrap-doc:Returns true if the container is empty
+        void clear() except + nogil  # wrap-doc:Removes all peptide identifications from the container
+        void push_back(PeptideIdentification) except + nogil  # wrap-doc:Adds a peptide identification to the end of the container
         
         # Element access
-        PeptideIdentification operator[](size_t) except + nogil 
-        PeptideIdentification at(size_t) except + nogil 
-        PeptideIdentification back() except + nogil 
-        PeptideIdentification front() except + nogil 
+        PeptideIdentification & operator[](size_t)      except + nogil  #wrap-upper-limit:size()
+        PeptideIdentification at(size_t) except + nogil  # wrap-doc:Returns the peptide identification at the given index with bounds checking
+        PeptideIdentification back() except + nogil  # wrap-doc:Returns the last peptide identification in the container
+        PeptideIdentification front() except + nogil  # wrap-doc:Returns the first peptide identification in the container
         
         # Iterators for Python iteration support
         libcpp_vector[PeptideIdentification].iterator begin() except + nogil     # wrap-iter-begin:__iter__(PeptideIdentification)
