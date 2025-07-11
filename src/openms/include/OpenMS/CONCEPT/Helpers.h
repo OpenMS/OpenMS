@@ -8,8 +8,9 @@
 
 #pragma once
 
-#include <vector>
 #include <boost/shared_ptr.hpp>
+
+#include <vector>
 
 namespace OpenMS
 {
@@ -71,6 +72,7 @@ namespace OpenMS
     }
 
   }
+
 }
 
 
