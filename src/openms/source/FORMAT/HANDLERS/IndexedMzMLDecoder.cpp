@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
@@ -236,8 +237,8 @@ namespace OpenMS
     }
     xercesc::DOMNode* indexListNode = li->item(0);
 
-    XMLCh* x_idref_tag = xercesc::XMLString::transcode("idRef");
-    XMLCh* x_name_tag = xercesc::XMLString::transcode("name");
+    Internal::unique_xerces_ptr<XMLCh> x_idref_tag(xercesc::XMLString::transcode("idRef"));
+    Internal::unique_xerces_ptr<XMLCh> x_name_tag(xercesc::XMLString::transcode("name"));
 
     xercesc::DOMNodeList* index_elems = indexListNode->getChildNodes();
     const  XMLSize_t nodeCount_ = index_elems->getLength();
@@ -272,22 +273,18 @@ namespace OpenMS
           {
             xercesc::DOMElement* currentElement = dynamic_cast<xercesc::DOMElement*>(currentONode);
 
-            char* x_name = xercesc::XMLString::transcode(currentElement->getAttribute(x_idref_tag));
-            char* x_offset = xercesc::XMLString::transcode(currentONode->getTextContent());
+            Internal::unique_xerces_ptr<char> x_name(xercesc::XMLString::transcode(currentElement->getAttribute(x_idref_tag.get())));
+            Internal::unique_xerces_ptr<char> x_offset(xercesc::XMLString::transcode(currentONode->getTextContent()));
 
-            std::streampos thisOffset = OpenMS::IndexedMzMLUtils::stringToStreampos( String(x_offset) );
-            result.emplace_back(String(x_name), thisOffset);
-
-            xercesc::XMLString::release(&x_name);
-            xercesc::XMLString::release(&x_offset);
+            std::streampos thisOffset = OpenMS::IndexedMzMLUtils::stringToStreampos( String(x_offset.get()) );
+            result.emplace_back(String(x_name.get()), thisOffset);
           }
         }
 
         // should be either spectrum or chromatogram ...
         xercesc::DOMElement* currentElement = dynamic_cast<xercesc::DOMElement*>(currentNode);
-        char* x_indexName = xercesc::XMLString::transcode(currentElement->getAttribute(x_name_tag));
-        std::string name(x_indexName);
-        xercesc::XMLString::release(&x_indexName);
+        Internal::unique_xerces_ptr<char> x_indexName(xercesc::XMLString::transcode(currentElement->getAttribute(x_name_tag.get())));
+        std::string name(x_indexName.get());
 
         if (name == "spectrum")
         {
@@ -302,14 +299,10 @@ namespace OpenMS
           std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: expected only " <<
             "'spectrum' or 'chromatogram' below indexList but found instead '" << 
             name << "'." << std::endl;
-          xercesc::XMLString::release(&x_idref_tag);
-          xercesc::XMLString::release(&x_name_tag);
           return -1;
         }
       }
     }
-    xercesc::XMLString::release(&x_idref_tag);
-    xercesc::XMLString::release(&x_name_tag);
 
     return 0;
   }

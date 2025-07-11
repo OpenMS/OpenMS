@@ -160,8 +160,8 @@ private:
       // what if no encoding given http://xerces.apache.org/xerces-c/apiDocs-3/classInputSource.html
       if (!enforced_encoding_.empty())
       {
-        static const XMLCh* s_enc = xercesc::XMLString::transcode(enforced_encoding_.c_str());
-        source->setEncoding(s_enc);
+        Internal::unique_xerces_ptr<XMLCh> s_enc(xercesc::XMLString::transcode(enforced_encoding_.c_str()));
+        source->setEncoding(s_enc.get());
       }
       
       parse(source.get(), handler);
@@ -198,8 +198,8 @@ private:
       // what if no encoding given http://xerces.apache.org/xerces-c/apiDocs-3/classInputSource.html
       if (!enforced_encoding_.empty())
       {
-        static const XMLCh* s_enc = xercesc::XMLString::transcode(enforced_encoding_.c_str());
-        source->setEncoding(s_enc);
+        Internal::unique_xerces_ptr<XMLCh> s_enc(xercesc::XMLString::transcode(enforced_encoding_.c_str()));
+        source->setEncoding(s_enc.get());
       }
       
       parse(source.get(), handler);

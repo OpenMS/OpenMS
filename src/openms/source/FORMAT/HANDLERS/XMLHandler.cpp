@@ -444,12 +444,12 @@ namespace OpenMS::Internal
       processed_chars = chars_to_align;
   
       // SIMD loop: find the first zero character in blocks of 8 UTF-16 characters (16 bytes each)
-      const simde__m128i zero = simde_mm_setzero_si128();
+      const simde__m128i zero = simde_mm_setzero_si128();  
       while (true)
       {
           simde__m128i bits = simde_mm_load_si128(reinterpret_cast<const simde__m128i*>(pos_ptr));
           simde__m128i cmp_zero = simde_mm_cmpeq_epi16(bits, zero); // sets bits to 0xFFFF (2 bytes) for each character that is zero
-          uint16_t zero_mask = simde_mm_movemask_epi8(cmp_zero);    // extracts MSB from each byte 
+          uint16_t zero_mask = simde_mm_movemask_epi8(cmp_zero);    // extracts MSB from each byte
   
           if (zero_mask != 0)
           { // Found a zero character
@@ -457,7 +457,7 @@ namespace OpenMS::Internal
               auto char_pos_zero = byte_pos_zero / 2;           // each UTF-16 character is 2 bytes, so divide by 2 to get character position
               return processed_chars + char_pos_zero;
           }
-  
+
           // 8 chars (each 2 bytes) had no zero
           pos_ptr += 8;
           processed_chars += 8;
