@@ -10,7 +10,9 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessTransformi
     cdef cppclass SpectrumAccessTransforming(ISpectrumAccess) :
         # wrap-inherits:
         #  ISpectrumAccess
-        # wrap-ignore
+
+        #TODO: This was included in wrap-ignore with autowrap 22. 22 just didn't ignore it. 23 does, so we remove the annotiation since derived classes refer to it.
+
 
         SpectrumAccessTransforming(SpectrumAccessTransforming) except + nogil  # wrap-ignore
 
