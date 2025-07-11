@@ -22,7 +22,7 @@ namespace OpenMS
 
 
   void ConsensusIDAlgorithmRanks::preprocess_(
-    vector<PeptideIdentification>& ids)
+    PeptideIdentificationList& ids)
   {
     // The idea here is that each peptide hit (sequence) gets assigned a score
     // from each ID run, based on its rank in the list of search results.
@@ -38,7 +38,7 @@ namespace OpenMS
     current_considered_hits_ = considered_hits_;
     bool set_considered_hits = (considered_hits_ == 0);
 
-    for (vector<PeptideIdentification>::iterator pep_it = ids.begin();
+    for (PeptideIdentificationList::iterator pep_it = ids.begin();
          pep_it != ids.end(); ++pep_it)
     {
       pep_it->sort();

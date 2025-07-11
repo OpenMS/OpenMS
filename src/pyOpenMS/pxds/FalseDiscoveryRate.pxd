@@ -15,8 +15,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>" namespace "OpenMS":
         # private
         FalseDiscoveryRate(FalseDiscoveryRate &) except + nogil  #wrap-ignore
 
-        void apply(libcpp_vector[PeptideIdentification] & forward_ids, libcpp_vector[PeptideIdentification] & reverse_ids) except + nogil  
-        void apply(libcpp_vector[PeptideIdentification] & id) except + nogil  
+        void apply(PeptideIdentificationList & forward_ids, PeptideIdentificationList & reverse_ids) except + nogil  
+        void apply(PeptideIdentificationList & id) except + nogil  
         void apply(libcpp_vector[ProteinIdentification] & forward_ids, libcpp_vector[ProteinIdentification] & reverse_ids) except + nogil  
         void apply(libcpp_vector[ProteinIdentification] & id) except + nogil  
 
@@ -25,9 +25,9 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>" namespace "OpenMS":
         double applyEvaluateProteinIDs(ProteinIdentification& ids, double pepCutoff, UInt fpCutoff, double diffWeight) except + nogil 
 
         # simpler reimplementation of the apply function above for PSMs. With charge and identifier info from run_info
-        void applyBasic(libcpp_vector[ProteinIdentification] & run_info, libcpp_vector[PeptideIdentification] & ids) except + nogil 
+        void applyBasic(libcpp_vector[ProteinIdentification] & run_info, PeptideIdentificationList & ids) except + nogil 
         # simpler reimplementation of the apply function above for PSMs or peptides. Use charge=0 and identifier="" for "all".
-        void applyBasic(libcpp_vector[PeptideIdentification] & ids, bool higher_score_better, int charge, String identifier, bool only_best_per_pep);
+        void applyBasic(PeptideIdentificationList & ids, bool higher_score_better, int charge, String identifier, bool only_best_per_pep);
     
         # simpler reimplementation of the apply function above for peptides in ConsensusMaps.
         void applyBasic(ConsensusMap & cmap, bool use_unassigned_peptides) except + nogil 
@@ -38,7 +38,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>" namespace "OpenMS":
 
         # calculates the AUC until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
         # if fp_cutoff = 0, it will calculate the full AUC
-        double rocN(libcpp_vector[PeptideIdentification] & ids, Size fp_cutoff) except + nogil 
+        double rocN(PeptideIdentificationList & ids, Size fp_cutoff) except + nogil 
         # calculates the AUC until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
         # if fp_cutoff = 0, it will calculate the full AUC
         double rocN(ConsensusMap& ids, Size fp_cutoff, bool include_unassigned_peptides) except + nogil 

@@ -8,6 +8,7 @@ from MSExperiment cimport *
 from Feature cimport *
 from ProteinIdentification cimport *
 from PeptideIdentification cimport *
+from PeptideIdentificationList cimport *
 from DataProcessing cimport *
 from Types cimport *
 from DocumentIdentifier cimport *
@@ -87,12 +88,9 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
                 libcpp_vector[ProteinIdentification]
                 ) except + nogil  # wrap-doc:Sets the protein identifications
 
-        libcpp_vector[PeptideIdentification]\
-                getUnassignedPeptideIdentifications() except + nogil  # TODO
-
-        void setUnassignedPeptideIdentifications(
-                libcpp_vector[PeptideIdentification]
-                ) except + nogil  # wrap-doc:Sets the unassigned peptide identifications
+        # PeptideIdentificationList methods
+        PeptideIdentificationList getUnassignedPeptideIdentifications() except + nogil # wrap-ignore
+        void setUnassignedPeptideIdentifications(PeptideIdentificationList unassigned_peptide_identifications) except + nogil # wrap-doc:Sets the unassigned PeptideIdentificationList
 
         libcpp_vector[DataProcessing] getDataProcessing() except + nogil  # wrap-doc:Returns a const reference to the description of the applied data processing
         void setDataProcessing(libcpp_vector[DataProcessing])   except + nogil  # wrap-doc:Sets the description of the applied data processing

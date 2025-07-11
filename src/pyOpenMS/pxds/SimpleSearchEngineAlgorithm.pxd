@@ -18,4 +18,4 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>" namespace 
         void search(const String& in_mzML, 
           const String& in_db, 
           libcpp_vector[ ProteinIdentification ] & prot_ids,
-          libcpp_vector[ PeptideIdentification ] & pep_ids) except + nogil 
+          PeptideIdentificationList & pep_ids) except + nogil 

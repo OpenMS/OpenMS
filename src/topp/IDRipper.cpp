@@ -104,7 +104,7 @@ protected:
     //-------------------------------------------------------------
 
     vector<ProteinIdentification> proteins;
-    vector<PeptideIdentification> peptides;
+    PeptideIdentificationList peptides;
     FileHandler().loadIdentifications(file_name, proteins, peptides, {FileTypes::IDXML});
 
     // ensure protein and peptide identifications are presented, otherwise we don't have to rip anything anyhow

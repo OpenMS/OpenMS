@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/FORMAT/XQuestResultXMLFile.h>" namespace "OpenMS":
         XQuestResultXMLFile(XQuestResultXMLFile &) except + nogil 
 
         void load(const String & filename,
-                libcpp_vector[ PeptideIdentification ] & pep_ids,
+                PeptideIdentificationList & pep_ids,
                 libcpp_vector[ ProteinIdentification ] & prot_ids) except + nogil 
         # wrap-doc:
                 #  Load the content of the xquest.xml file into the provided data structures
@@ -29,7 +29,7 @@ cdef extern from "<OpenMS/FORMAT/XQuestResultXMLFile.h>" namespace "OpenMS":
 
         void store(const String & filename,
                 libcpp_vector[ ProteinIdentification ] & poid,
-                libcpp_vector[ PeptideIdentification ] & peid) except + nogil  # wrap-doc:Stores the identifications in a xQuest XML file
+                PeptideIdentificationList & peid) except + nogil  # wrap-doc:Stores the identifications in a xQuest XML file
 
         int getNumberOfHits() except + nogil  # wrap-doc:Returns the total number of hits in the file
         double getMinScore() except + nogil  # wrap-doc:Returns minimum score among the hits in the file

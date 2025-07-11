@@ -34,8 +34,8 @@ namespace OpenMS
 
   // static
   void IDConflictResolverAlgorithm::resolveConflictKeepMatching_(
-      vector<PeptideIdentification> & peptides,
-      vector<PeptideIdentification> & removed,
+      PeptideIdentificationList & peptides,
+      PeptideIdentificationList & removed,
       UInt64 uid)
   {
     if (peptides.empty()) { return; }
@@ -46,7 +46,7 @@ namespace OpenMS
       pep.sort();
     }
 
-    vector<PeptideIdentification>::iterator pos;
+    PeptideIdentificationList::iterator pos;
     if (peptides[0].isHigherScoreBetter())     // find highest-scoring ID
     {
       pos = max_element(peptides.begin(), peptides.end(), compareIDsSmallerScores_);
@@ -91,8 +91,8 @@ namespace OpenMS
 
   // static
   void IDConflictResolverAlgorithm::resolveConflict_(
-    vector<PeptideIdentification> & peptides, 
-    vector<PeptideIdentification> & removed,
+    PeptideIdentificationList & peptides, 
+    PeptideIdentificationList & removed,
     UInt64 uid)
   {
     if (peptides.empty()) { return; }
@@ -112,7 +112,7 @@ namespace OpenMS
       pep.setMetaValue("feature_id", String(uid));
     }
 
-    vector<PeptideIdentification>::iterator pos;
+    PeptideIdentificationList::iterator pos;
     if (peptides[0].isHigherScoreBetter())     // find highest-scoring ID
     {
       pos = max_element(peptides.begin(), peptides.end(), compareIDsSmallerScores_);
@@ -129,7 +129,7 @@ namespace OpenMS
     }
      
     // copy conflicting ones right of best one
-    vector<PeptideIdentification>::iterator pos1p = pos + 1;
+    PeptideIdentificationList::iterator pos1p = pos + 1;
     for (auto it = pos1p; it != peptides.end(); ++it) // OMS_CODING_TEST_EXCLUDE
     {
       removed.push_back(*it);

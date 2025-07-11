@@ -106,6 +106,7 @@ set(metadata_executables_list
   PeptideEvidence_test
   PeptideHit_test
   PeptideIdentification_test
+  PeptideIdentificationList_test
   Precursor_test
   Product_test
   ProteinHit_test

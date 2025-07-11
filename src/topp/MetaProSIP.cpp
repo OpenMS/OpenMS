@@ -3018,9 +3018,9 @@ protected:
     // if also unassigned ids are used create a pseudo feature
     if (use_unassigned_ids)
     {
-      const vector<PeptideIdentification> unassigned_ids = feature_map.getUnassignedPeptideIdentifications();
+      const PeptideIdentificationList unassigned_ids = feature_map.getUnassignedPeptideIdentifications();
       Size unassigned_id_features = 0;
-      for (vector<PeptideIdentification>::const_iterator it = unassigned_ids.begin(); it != unassigned_ids.end(); ++it)
+      for (PeptideIdentificationList::const_iterator it = unassigned_ids.begin(); it != unassigned_ids.end(); ++it)
       {
         vector<PeptideHit> hits = it->getHits();
         if (!hits.empty())
@@ -3037,7 +3037,7 @@ protected:
           double mz =  hits[0].getSequence().getMZ(charge);
           f.setMZ(mz);
           // add id to pseudo feature
-          vector<PeptideIdentification> id;
+          PeptideIdentificationList id;
           id.push_back(*it);
           f.setPeptideIdentifications(id);
           feature_map.push_back(f);
@@ -3065,8 +3065,8 @@ protected:
       // in features
       for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it) // for each peptide feature
       {
-        const vector<PeptideIdentification>& f_ids = feature_it->getPeptideIdentifications();
-        for (vector<PeptideIdentification>::const_iterator id_it = f_ids.begin(); id_it != f_ids.end(); ++id_it)
+        const PeptideIdentificationList& f_ids = feature_it->getPeptideIdentifications();
+        for (PeptideIdentificationList::const_iterator id_it = f_ids.begin(); id_it != f_ids.end(); ++id_it)
         {
           if (!id_it->getHits().empty())
           {
@@ -3080,8 +3080,8 @@ protected:
       }
 
       // and in unassigned ids
-      const vector<PeptideIdentification> unassigned_ids = feature_map.getUnassignedPeptideIdentifications();
-      for (vector<PeptideIdentification>::const_iterator it = unassigned_ids.begin(); it != unassigned_ids.end(); ++it)
+      const PeptideIdentificationList unassigned_ids = feature_map.getUnassignedPeptideIdentifications();
+      for (PeptideIdentificationList::const_iterator it = unassigned_ids.begin(); it != unassigned_ids.end(); ++it)
       {
         const vector<PeptideHit> hits = it->getHits();
         if (!hits.empty())
@@ -3126,7 +3126,7 @@ protected:
           vector<PeptideHit> pseudo_hits;
           pseudo_hits.push_back(pseudo_hit);
           pseudo_id.setHits(pseudo_hits);
-          vector<PeptideIdentification> id;
+          PeptideIdentificationList id;
           id.push_back(pseudo_id);
           f.setPeptideIdentifications(id);
           f.setRT(peak_map[i].getRT());
@@ -3177,7 +3177,7 @@ protected:
       }
 
       // Extract 1 or more MS/MS with identifications assigned to the feature by IDMapper
-      vector<PeptideIdentification> pep_ids = feature_it->getPeptideIdentifications();
+      PeptideIdentificationList pep_ids = feature_it->getPeptideIdentifications();
 
       nPSMs += pep_ids.size();
 

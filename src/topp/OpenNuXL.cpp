@@ -115,7 +115,7 @@ struct NuXLLinearRescore
   /* @brief create a single main score using best and worst hits from peptides and XLs (without considering target/decoy information to prevent overfitting)
      This effectively scales the score to the range [0,1] and allows to use the same score for both peptides and XLs without leaking target/decoy information.
   */
-  static void apply(std::vector<PeptideIdentification>& peptide_ids)
+  static void apply(PeptideIdentificationList& peptide_ids)
   {
     StringList feature_set; // additional scores considered for score calibration
     
@@ -530,7 +530,7 @@ struct NuXLRTPrediction
     return make_tuple(x,y);
   }
 
-  std::tuple<SimpleSVM::PredictorMap, map<size_t, double>> buildPredictorsAndResponse_(const vector<PeptideIdentification>& peptides, bool all_hits)
+  std::tuple<SimpleSVM::PredictorMap, map<size_t, double>> buildPredictorsAndResponse_(const PeptideIdentificationList& peptides, bool all_hits)
   {
     std::cout << "Feature encoding..." << std::endl; 
     SimpleSVM::PredictorMap x;
@@ -620,7 +620,7 @@ struct NuXLRTPrediction
 
   // spectra centroided MS1 (MS2 optional), IDs need to be filtered to contain only high confidend ones
   void train(const std::string& spectra_filename, 
-    vector<PeptideIdentification> peptides, 
+    PeptideIdentificationList peptides, 
     const vector<ProteinIdentification>& proteins)
   {
     // detect features for accurate (elution profile apex) retention times
@@ -641,7 +641,7 @@ struct NuXLRTPrediction
     svm.setup(x, y, false); // set up regression and train
   }
 
-  void annotatePredictions_(const vector<SimpleSVM::Prediction>& preds, vector<PeptideIdentification>& peptides, bool all_hits)
+  void annotatePredictions_(const vector<SimpleSVM::Prediction>& preds, PeptideIdentificationList& peptides, bool all_hits)
   {   
     size_t i{};
     for (auto& pid : peptides)
@@ -660,7 +660,7 @@ struct NuXLRTPrediction
   }
 
   // annotates the RT error on all data
-  void predict(vector<PeptideIdentification>& peptides)
+  void predict(PeptideIdentificationList& peptides)
   {
     std::cout << "Predicting..." << std::endl; 
     const bool all_hits{true};
@@ -3718,7 +3718,7 @@ static void scoreXLIons_(
     vector<vector<NuXLAnnotatedHit> >& annotated_XL_hits, 
     vector<vector<NuXLAnnotatedHit> >& annotated_peptide_hits, 
     vector<ProteinIdentification>& protein_ids, 
-    vector<PeptideIdentification>& peptide_ids, 
+    PeptideIdentificationList& peptide_ids, 
     const NuXLModificationMassesResult& mm, 
     const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications, 
     const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
@@ -4447,7 +4447,7 @@ static void scoreXLIons_(
     return EXECUTION_OK;
   }
 
-  void optimizeFDR(vector<PeptideIdentification>& peptide_ids)
+  void optimizeFDR(PeptideIdentificationList& peptide_ids)
   {
     size_t most_XLs{0};
     double best_p{1}, best_q{1};
@@ -4459,7 +4459,7 @@ static void scoreXLIons_(
 //    double max_wTop50 = 0;
 //    double max_length = 0;
 
-    vector<PeptideIdentification> pids{peptide_ids};
+    PeptideIdentificationList pids{peptide_ids};
     for (auto& pid : pids)
     {
       if (pid.getRT() > max_rt) max_rt = pid.getRT(); 
@@ -4478,7 +4478,7 @@ static void scoreXLIons_(
     for (double q = 0.0; q < 1.01; q = q + 0.1)
     for (double p = 0.0; p < 1.01; p = p + 0.1)
     {
-      vector<PeptideIdentification> pids{peptide_ids};
+      PeptideIdentificationList pids{peptide_ids};
       for (auto& pid : pids)
       {
         auto hits = pid.getHits();
@@ -4505,7 +4505,7 @@ static void scoreXLIons_(
         }
       }
       NuXLFDR fdr(1);
-      vector<PeptideIdentification> pep_pi, xl_pi;
+      PeptideIdentificationList pep_pi, xl_pi;
       fdr.calculatePeptideAndXLQValueAtPSMLevel(pids, pep_pi, xl_pi);
       IDFilter::keepNBestHits(xl_pi, 1);
       IDFilter::filterHitsByScore(pep_pi, 0.01); // 1% peptide FDR, TODO: pROC
@@ -4709,7 +4709,7 @@ static void scoreXLIons_(
     {
       SimpleSearchEngineAlgorithm sse;
       vector<ProteinIdentification> prot_ids;
-      vector<PeptideIdentification> pep_ids;
+      PeptideIdentificationList pep_ids;
       Param p = sse.getParameters();
       p.setValue("precursor:mass_tolerance", precursor_mass_tolerance);
       p.setValue("precursor:mass_tolerance_unit", getStringOption_("precursor:mass_tolerance_unit"));
@@ -4760,7 +4760,7 @@ static void scoreXLIons_(
 /// try to run percolator
       {    
         vector<ProteinIdentification> perc_prot_ids;
-        vector<PeptideIdentification> perc_pep_ids;
+        PeptideIdentificationList perc_pep_ids;
 
         const String percolator_executable = getStringOption_("percolator_executable");
         bool sufficient_PSMs_for_score_recalibration = pep_ids.size() > 1000;
@@ -5937,7 +5937,7 @@ static void scoreXLIons_(
     OPENMS_LOG_INFO << "Peptides (decoys): " << count_decoy_peptides << endl;
     OPENMS_LOG_INFO << "Processed peptides: " << processed_petides.size() << endl;
 
-    vector<PeptideIdentification> peptide_ids;
+    PeptideIdentificationList peptide_ids;
     vector<ProteinIdentification> protein_ids;
     progresslogger.startProgress(0, 1, "Post-processing PSMs... (spectra filtering)");
 
@@ -6155,7 +6155,7 @@ static void scoreXLIons_(
       {
         OPENMS_LOG_INFO << "Imputing decoy medians." << endl;
         // calculate median score of decoys for specific meta value
-        auto metaMedian = [](const vector<PeptideIdentification> & peptide_ids, const String name)->double
+        auto metaMedian = [](const PeptideIdentificationList & peptide_ids, const String name)->double
         {
           vector<double> decoy_XL_scores;
           for (const auto & pi : peptide_ids)
@@ -6175,7 +6175,7 @@ static void scoreXLIons_(
      
 /*
         // all medians 
-        auto metaMean = [](const vector<PeptideIdentification> & peptide_ids, const String name)->double
+        auto metaMean = [](const PeptideIdentificationList & peptide_ids, const String name)->double
         {
           vector<double> decoy_XL_scores;
           for (const auto & pi : peptide_ids)
@@ -6241,7 +6241,7 @@ static void scoreXLIons_(
       }
      
 /* 
-      vector<PeptideIdentification> pep_pi, xl_pi;
+      PeptideIdentificationList pep_pi, xl_pi;
       fdr.calculatePeptideAndXLQValueAtPSMLevel(peptide_ids, pep_pi, xl_pi);
       fdr.mergePeptidesAndXLs(pep_pi, xl_pi, peptide_ids);
       xl_pi.clear();
@@ -6302,7 +6302,7 @@ static void scoreXLIons_(
       if (RTpredict)
       {
         NuXLFDR fdr(1); // 1=keep only top scoring per spectrum
-        vector<PeptideIdentification> pep_pi, xl_pi;
+        PeptideIdentificationList pep_pi, xl_pi;
         fdr.calculatePeptideAndXLQValueAtPSMLevel(peptide_ids, pep_pi, xl_pi);
         IDFilter::keepNBestHits(xl_pi, 1);
         IDFilter::filterHitsByScore(pep_pi, 0.05);
@@ -6336,7 +6336,7 @@ static void scoreXLIons_(
       OPENMS_LOG_INFO << "Calculating peptide and XL q-values." << endl;
       String original_PSM_output_filename(out_idxml);
       original_PSM_output_filename.substitute(".idXML", "_");
-      vector<PeptideIdentification> pep_pi, xl_pi;
+      PeptideIdentificationList pep_pi, xl_pi;
       if (extra_output_directory.empty())
       {
         fdr.calculatePeptideAndXLQValueAndFilterAtPSMLevel(protein_ids,
@@ -6444,7 +6444,7 @@ static void scoreXLIons_(
             csv_file.store(out_percolator_tsv);
           }
 
-          vector<PeptideIdentification> pep_pi, xl_pi;
+          PeptideIdentificationList pep_pi, xl_pi;
           
           String percolator_PSM_output_filename(out_idxml);
           percolator_PSM_output_filename.substitute(".idXML", "_perc_");

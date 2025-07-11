@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/QC/QCBase.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 namespace OpenMS
 {
@@ -49,7 +50,7 @@ namespace OpenMS
     @param ids: PepIDs to receive the new metavalues
     @param trafo: Transformation information to get needed data from
     **/
-    void compute(std::vector<PeptideIdentification>& ids, const TransformationDescription& trafo) const;
+    void compute(PeptideIdentificationList& ids, const TransformationDescription& trafo) const;
 
     /// returns the name of the metric
     const String& getName() const override;

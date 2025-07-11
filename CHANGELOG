@@ -37,6 +37,7 @@ Fixes:
 Library:
 - Removed `assignRanks` and `sortByRanks` in PeptideIdentifications and sort and filter by score instead. Also removed `updateHitRanks` in IDFilter (#7991)
 - Remove ranke member in PeptideHit and store ranks as meta value (for backwards compatibility). (#7997)
+- std::vector<PeptideIdentification> now is encapsulated in a class PeptideIdentificationList
 
 Added tools:
 - OpenNuXL - A peptide-RNA/DNA cross-linking search engine

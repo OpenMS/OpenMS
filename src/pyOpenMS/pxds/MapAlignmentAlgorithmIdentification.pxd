@@ -26,8 +26,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentificati
         void align(libcpp_vector[FeatureMap]&, libcpp_vector[TransformationDescription]&, int) except + nogil 
         void align(libcpp_vector[ConsensusMap]&, libcpp_vector[TransformationDescription]&, int) except + nogil 
         # TODO nested STL
-        void align(libcpp_vector[libcpp_vector[PeptideIdentification]]& ids, libcpp_vector[TransformationDescription]& trafos, int ref_index) except + nogil  #wrap-ignore
+        void align(libcpp_vector[PeptideIdentificationList]& ids, libcpp_vector[TransformationDescription]& trafos, int ref_index) except + nogil  #wrap-ignore
 
         void setReference(FeatureMap&) except + nogil 
         void setReference(ConsensusMap&) except + nogil 
-        void setReference(libcpp_vector[PeptideIdentification]&) except + nogil 
+        void setReference(PeptideIdentificationList&) except + nogil 

@@ -151,7 +151,7 @@ protected:
     // loading input
     //-------------------------------------------------------------
 
-    vector<PeptideIdentification> pep_ids;
+    PeptideIdentificationList pep_ids;
     vector<ProteinIdentification> prot_ids;
 
     FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});

@@ -4621,6 +4621,76 @@ def testPeptideIdentification():
 
 
 @report
+def testPeptideIdentificationList():
+    """
+    @tests: PeptideIdentificationList
+     PeptideIdentificationList.__init__
+     PeptideIdentificationList.size
+     PeptideIdentificationList.empty
+     PeptideIdentificationList.clear
+     PeptideIdentificationList.push_back
+     PeptideIdentificationList.__getitem__
+     PeptideIdentificationList.__iter__
+    """
+    import pyopenms
+
+    # Test default constructor
+    pil = pyopenms.PeptideIdentificationList()
+    assert pil.empty()
+    assert pil.size() == 0
+
+    # Create some PeptideIdentification objects for testing
+    pi1 = pyopenms.PeptideIdentification()
+    pi1.setRT(100.0)
+    pi1.setMZ(200.0)
+    pi1.setIdentifier("test1")
+    
+    pi2 = pyopenms.PeptideIdentification()
+    pi2.setRT(150.0)
+    pi2.setMZ(250.0)
+    pi2.setIdentifier("test2")
+
+    # Test push_back
+    pil.push_back(pi1)
+    assert not pil.empty()
+    assert pil.size() == 1
+    
+    pil.push_back(pi2)
+    assert pil.size() == 2
+
+    # Test element access
+    first = pil[0]
+    assert first.getRT() == 100.0
+    assert first.getMZ() == 200.0
+    assert first.getIdentifier() == "test1"
+    
+    second = pil[1]
+    assert second.getRT() == 150.0
+    assert second.getMZ() == 250.0
+    assert second.getIdentifier() == "test2"
+
+    # Test iteration
+    count = 0
+    for pi in pil:
+        assert isinstance(pi, pyopenms.PeptideIdentification)
+        count += 1
+    assert count == 2
+
+    # Test constructor from vector
+    import pyopenms
+    vec = [pi1, pi2]
+    pil2 = pyopenms.PeptideIdentificationList(vec)
+    assert pil2.size() == 2
+    assert pil2[0].getIdentifier() == "test1"
+    assert pil2[1].getIdentifier() == "test2"
+
+    # Test clear
+    pil.clear()
+    assert pil.empty()
+    assert pil.size() == 0
+
+
+@report
 def testPolarity():
     """
     @tests: Polarity
