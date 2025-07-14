@@ -668,10 +668,10 @@ namespace OpenMS
     }
 
     /// @overload
-    static void getBestHit(PeptideIdentificationList& ids, bool assume_sorted, PeptideHit& best_hit)
+    static bool getBestHit(PeptideIdentificationList& ids, bool assume_sorted, PeptideHit& best_hit)
     {
       std::vector<PeptideIdentification>& vec = ids.getData();
-      getBestHit(vec, assume_sorted, best_hit);
+      return getBestHit(vec, assume_sorted, best_hit);
     }
 
     /**
