@@ -366,11 +366,25 @@ namespace OpenMS
     bool& higher_better,
     ScoreType& score_type)
   {
-    //TODO check all pep IDs? this assumes equality
     if (!pep_ids.empty())
     {
-      name = pep_ids[0].getScoreType(); // The name of the score. Typically a name like "XTandem" or "Percolator_qvalue"
-      higher_better = pep_ids[0].isHigherScoreBetter();
+      // Use list-level metadata when available for better consistency
+      if (pep_ids.usesListLevelScores())
+      {
+        name = pep_ids.getListScoreType();
+        higher_better = pep_ids.isListHigherScoreBetter();
+      }
+      else
+      {
+        // Validate consistency if using individual scores
+        if (!pep_ids.hasConsistentScoreMetadata())
+        {
+          OPENMS_LOG_WARN << "Warning: Inconsistent score metadata found in PeptideIdentificationList. "
+                          << "Consider using migrateFromIndividualScores() for better consistency." << std::endl;
+        }
+        name = pep_ids[0].getScoreType();
+        higher_better = pep_ids[0].isHigherScoreBetter();
+      }
       
       // look up the score category ("RAW", "PEP", "q-value", etc.) for the given score name
       for (auto& [scoretype, names] : type_to_str_)
@@ -501,7 +515,12 @@ namespace OpenMS
     {
       if (pep_ids.empty()) return;
 
-      if (new_score_ == pep_ids[0].getScoreType()) // correct score already set
+      // Use list-level score type when available, otherwise fall back to individual
+      String current_score_type = pep_ids.usesListLevelScores() ? 
+                                   pep_ids.getListScoreType() : 
+                                   pep_ids[0].getScoreType();
+
+      if (new_score_ == current_score_type) // correct score already set
       {
         return;
       }
@@ -509,6 +528,13 @@ namespace OpenMS
       for (auto& id : pep_ids)
       {
         switchScores(id, counter);
+      }
+      
+      // Update list-level metadata if it's being used
+      if (pep_ids.usesListLevelScores())
+      {
+        pep_ids.setListScoreType(new_score_type_);
+        pep_ids.setListHigherScoreBetter(higher_better_);
       }
     }
 

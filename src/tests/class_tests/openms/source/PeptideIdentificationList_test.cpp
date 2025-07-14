@@ -290,6 +290,195 @@ START_SECTION((Test comparison operators))
 }
 END_SECTION
 
+START_SECTION((Test list-level score metadata methods))
+{
+  PeptideIdentificationList pep_ids;
+  
+  // Test default state
+  TEST_EQUAL(pep_ids.usesListLevelScores(), false)
+  TEST_EQUAL(pep_ids.getListScoreType(), "")
+  TEST_EQUAL(pep_ids.isListHigherScoreBetter(), false)
+  
+  // Test setting list-level metadata
+  pep_ids.setListScoreType("Mascot");
+  pep_ids.setListHigherScoreBetter(true);
+  pep_ids.enableListLevelScores(true);
+  
+  TEST_EQUAL(pep_ids.usesListLevelScores(), true)
+  TEST_EQUAL(pep_ids.getListScoreType(), "Mascot")
+  TEST_EQUAL(pep_ids.isListHigherScoreBetter(), true)
+  
+  // Test disabling list-level scores
+  pep_ids.enableListLevelScores(false);
+  TEST_EQUAL(pep_ids.usesListLevelScores(), false)
+}
+END_SECTION
+
+START_SECTION((Test score consistency validation))
+{
+  PeptideIdentificationList pep_ids;
+  
+  // Test empty list consistency
+  TEST_EQUAL(pep_ids.hasConsistentScoreMetadata(), true)
+  pep_ids.validateScoreConsistency();  // Should not throw
+  
+  // Test single element consistency
+  PeptideIdentification pep_id1;
+  pep_id1.setScoreType("Mascot");
+  pep_id1.setHigherScoreBetter(true);
+  pep_ids.push_back(pep_id1);
+  
+  TEST_EQUAL(pep_ids.hasConsistentScoreMetadata(), true)
+  pep_ids.validateScoreConsistency();  // Should not throw
+  
+  // Test consistent multiple elements
+  PeptideIdentification pep_id2;
+  pep_id2.setScoreType("Mascot");
+  pep_id2.setHigherScoreBetter(true);
+  pep_ids.push_back(pep_id2);
+  
+  TEST_EQUAL(pep_ids.hasConsistentScoreMetadata(), true)
+  pep_ids.validateScoreConsistency();  // Should not throw
+  
+  // Test inconsistent score types
+  PeptideIdentification pep_id3;
+  pep_id3.setScoreType("Sequest");
+  pep_id3.setHigherScoreBetter(true);
+  pep_ids.push_back(pep_id3);
+  
+  TEST_EQUAL(pep_ids.hasConsistentScoreMetadata(), false)
+  TEST_EXCEPTION(Exception::InvalidValue, pep_ids.validateScoreConsistency())
+  
+  // Fix inconsistency by changing score type
+  pep_ids[2].setScoreType("Mascot");
+  TEST_EQUAL(pep_ids.hasConsistentScoreMetadata(), true)
+  
+  // Test inconsistent score orientations
+  pep_ids[2].setHigherScoreBetter(false);
+  TEST_EQUAL(pep_ids.hasConsistentScoreMetadata(), false)
+  TEST_EXCEPTION(Exception::InvalidValue, pep_ids.validateScoreConsistency())
+}
+END_SECTION
+
+START_SECTION((Test migration from individual scores))
+{
+  PeptideIdentificationList pep_ids;
+  
+  // Test migration with empty list
+  pep_ids.migrateFromIndividualScores();
+  TEST_EQUAL(pep_ids.usesListLevelScores(), true)
+  TEST_EQUAL(pep_ids.getListScoreType(), "")
+  TEST_EQUAL(pep_ids.isListHigherScoreBetter(), false)
+  
+  // Reset and add consistent elements
+  pep_ids.clear();
+  pep_ids.enableListLevelScores(false);
+  PeptideIdentification pep_id1, pep_id2;
+  pep_id1.setScoreType("Mascot");
+  pep_id1.setHigherScoreBetter(true);
+  pep_id2.setScoreType("Mascot");
+  pep_id2.setHigherScoreBetter(true);
+  pep_ids.push_back(pep_id1);
+  pep_ids.push_back(pep_id2);
+  
+  // Test successful migration
+  pep_ids.migrateFromIndividualScores();
+  TEST_EQUAL(pep_ids.usesListLevelScores(), true)
+  TEST_EQUAL(pep_ids.getListScoreType(), "Mascot")
+  TEST_EQUAL(pep_ids.isListHigherScoreBetter(), true)
+  
+  // Test migration with inconsistent scores (should throw)
+  pep_ids.enableListLevelScores(false);
+  pep_ids[1].setScoreType("Sequest");
+  TEST_EXCEPTION(Exception::InvalidValue, pep_ids.migrateFromIndividualScores())
+}
+END_SECTION
+
+START_SECTION((Test sync to individual scores))
+{
+  PeptideIdentificationList pep_ids;
+  
+  // Setup list with different individual scores
+  PeptideIdentification pep_id1, pep_id2;
+  pep_id1.setScoreType("Mascot");
+  pep_id1.setHigherScoreBetter(true);
+  pep_id2.setScoreType("Sequest");
+  pep_id2.setHigherScoreBetter(false);
+  pep_ids.push_back(pep_id1);
+  pep_ids.push_back(pep_id2);
+  
+  // Set list-level metadata
+  pep_ids.setListScoreType("Percolator");
+  pep_ids.setListHigherScoreBetter(false);
+  pep_ids.enableListLevelScores(true);
+  
+  // Sync to individual scores
+  pep_ids.syncToIndividualScores();
+  
+  // Check that individual scores were updated
+  TEST_EQUAL(pep_ids[0].getScoreType(), "Percolator")
+  TEST_EQUAL(pep_ids[0].isHigherScoreBetter(), false)
+  TEST_EQUAL(pep_ids[1].getScoreType(), "Percolator")
+  TEST_EQUAL(pep_ids[1].isHigherScoreBetter(), false)
+  
+  // Test sync when list-level scores are disabled (should be no-op)
+  pep_ids.enableListLevelScores(false);
+  pep_ids.setListScoreType("NewScore");
+  pep_ids.syncToIndividualScores();
+  
+  // Should not have changed
+  TEST_EQUAL(pep_ids[0].getScoreType(), "Percolator")
+  TEST_EQUAL(pep_ids[1].getScoreType(), "Percolator")
+}
+END_SECTION
+
+START_SECTION((Test file I/O helper methods))
+{
+  PeptideIdentificationList pep_ids;
+  
+  // Test tryMigrateAfterLoad with empty list
+  pep_ids.tryMigrateAfterLoad();
+  TEST_EQUAL(pep_ids.usesListLevelScores(), false)
+  
+  // Test tryMigrateAfterLoad with consistent scores
+  PeptideIdentification pep_id1, pep_id2;
+  pep_id1.setScoreType("Mascot");
+  pep_id1.setHigherScoreBetter(true);
+  pep_id2.setScoreType("Mascot");
+  pep_id2.setHigherScoreBetter(true);
+  pep_ids.push_back(pep_id1);
+  pep_ids.push_back(pep_id2);
+  
+  pep_ids.tryMigrateAfterLoad();
+  TEST_EQUAL(pep_ids.usesListLevelScores(), true)
+  TEST_EQUAL(pep_ids.getListScoreType(), "Mascot")
+  TEST_EQUAL(pep_ids.isListHigherScoreBetter(), true)
+  
+  // Test tryMigrateAfterLoad with inconsistent scores (should not migrate)
+  pep_ids.enableListLevelScores(false);
+  pep_ids[1].setScoreType("Sequest");
+  pep_ids.tryMigrateAfterLoad();
+  TEST_EQUAL(pep_ids.usesListLevelScores(), false)
+  
+  // Test force migration with inconsistent scores
+  TEST_EXCEPTION(Exception::InvalidValue, pep_ids.tryMigrateAfterLoad(true))
+  
+  // Test prepareForSave
+  pep_ids[1].setScoreType("Mascot");  // Fix inconsistency
+  pep_ids.migrateFromIndividualScores();
+  pep_ids.setListScoreType("NewScore");
+  pep_ids.setListHigherScoreBetter(false);
+  
+  pep_ids.prepareForSave();
+  
+  // Check that individual scores were synced
+  TEST_EQUAL(pep_ids[0].getScoreType(), "NewScore")
+  TEST_EQUAL(pep_ids[0].isHigherScoreBetter(), false)
+  TEST_EQUAL(pep_ids[1].getScoreType(), "NewScore")
+  TEST_EQUAL(pep_ids[1].isHigherScoreBetter(), false)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

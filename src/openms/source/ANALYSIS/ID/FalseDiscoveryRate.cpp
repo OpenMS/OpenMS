@@ -66,7 +66,10 @@ namespace OpenMS
       return;
     }
 
-    bool higher_score_better = ids.begin()->isHigherScoreBetter();
+    // Use list-level metadata when available for better consistency
+    bool higher_score_better = ids.usesListLevelScores() ? 
+                               ids.isListHigherScoreBetter() : 
+                               ids.begin()->isHigherScoreBetter();
 
     // first search for all identifiers and charge variants
     set<String> identifiers;
@@ -1007,16 +1010,22 @@ namespace OpenMS
       const auto& pep_ids = cf.getPeptideIdentifications();
       if (!pep_ids.empty())
       {
-        higher_score_better = pep_ids[0].isHigherScoreBetter();
+        // Use list-level metadata when available
+        higher_score_better = pep_ids.usesListLevelScores() ? 
+                             pep_ids.isListHigherScoreBetter() : 
+                             pep_ids[0].isHigherScoreBetter();
         break;
       }
     }
     if (cmap.empty())
     {
-      for (const auto& id : cmap.getUnassignedPeptideIdentifications())
+      const auto& unassigned = cmap.getUnassignedPeptideIdentifications();
+      if (!unassigned.empty())
       {
-        higher_score_better = id.isHigherScoreBetter();
-        break;
+        // Use list-level metadata when available
+        higher_score_better = unassigned.usesListLevelScores() ? 
+                             unassigned.isListHigherScoreBetter() : 
+                             unassigned[0].isHigherScoreBetter();
       }
     }
 
