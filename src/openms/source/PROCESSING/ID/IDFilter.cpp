@@ -469,7 +469,7 @@ namespace OpenMS
       {
         pep.sort();
         double top_score = hits[0].getScore();
-        bool higher_better = pep.isHigherScoreBetter();
+        bool higher_better = peptides.getEffectiveHigherScoreBetter();
         struct HasGoodScore<PeptideHit> good_score(top_score, higher_better);
         if (strict) // only one best score allowed
         {
@@ -715,27 +715,21 @@ namespace OpenMS
 
   void IDFilter::keepNBestSpectra(PeptideIdentificationList& peptides, Size n)
   {
-    String score_type;
+    String score_type = peptides.getEffectiveScoreType();
     for (PeptideIdentification& p : peptides)
     {
       p.sort();
-      if (score_type.empty())
+      // Validate that individual entries are consistent with effective score type
+      if (!p.getScoreType().empty() && p.getScoreType() != score_type)
       {
-        score_type = p.getScoreType();
-      }
-      else
-      {
-        if (p.getScoreType() != score_type)
-        {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("PSM score types must be identical to allow proper filtering."));
-        }
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("PSM score types must be identical to allow proper filtering."));
       }
     }
 
     // there might be fewer spectra identified than n -> adapt
     n = std::min(n, peptides.size());
 
-    auto has_better_peptidehit = [](const PeptideIdentification& l, const PeptideIdentification& r) {
+    auto has_better_peptidehit = [&peptides](const PeptideIdentification& l, const PeptideIdentification& r) {
       if (r.getHits().empty())
       {
         return true; // right has no hit? -> left is better
@@ -744,7 +738,7 @@ namespace OpenMS
       {
         return false; // left has no hit but right has a hit? -> right is better
       }
-      const bool higher_better = l.isHigherScoreBetter();
+      const bool higher_better = peptides.getEffectiveHigherScoreBetter();
       const double l_score = l.getHits()[0].getScore();
       const double r_score = r.getHits()[0].getScore();
 

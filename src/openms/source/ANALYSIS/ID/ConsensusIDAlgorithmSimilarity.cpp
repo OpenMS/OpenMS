@@ -24,14 +24,22 @@ namespace OpenMS
     const map<String, String>& se_info,
     SequenceGrouping& results)
   {
+    String effective_score_type = ids.getEffectiveScoreType();
+    if (effective_score_type != "Posterior Error Probability" &&
+        effective_score_type != "pep" &&
+        effective_score_type != "MS:1001493")
+    {
+      String msg = "Score type must be 'Posterior Error Probability'";
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    msg, effective_score_type);
+    }
+    // Validate individual entries are consistent with effective score type
     for (PeptideIdentificationList::iterator id = ids.begin();
          id != ids.end(); ++id)
     {
-      if (id->getScoreType() != "Posterior Error Probability" &&
-          id->getScoreType() != "pep" &&
-          id->getScoreType() != "MS:1001493")
+      if (!id->getScoreType().empty() && id->getScoreType() != effective_score_type)
       {
-        String msg = "Score type must be 'Posterior Error Probability'";
+        String msg = "Individual score types must match the effective score type";
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       msg, id->getScoreType());
       }
@@ -40,7 +48,7 @@ namespace OpenMS
     for (PeptideIdentificationList::iterator id1 = ids.begin();
          id1 != ids.end(); ++id1)
     {
-      String score_type = id1->getScoreType();
+      String score_type = ids.getEffectiveScoreType();
       auto se = se_info.find(id1->getIdentifier());
       if (se != se_info.end())
       {
@@ -57,7 +65,7 @@ namespace OpenMS
           compareChargeStates_(pos->second.charge, hit1->getCharge(),
                                pos->first);
           pos->second.scores.emplace_back(hit1->getScore());
-          pos->second.types.emplace_back(id1->getScoreType());
+          pos->second.types.emplace_back(score_type);
           for (const auto& ev : hit1->getPeptideEvidences())
           {
             pos->second.evidence.emplace(ev);

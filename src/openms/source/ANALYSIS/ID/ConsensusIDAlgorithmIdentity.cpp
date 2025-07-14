@@ -23,23 +23,28 @@ namespace OpenMS
     PeptideIdentificationList& ids)
   {
     // check score types and orientations:
-    bool higher_better = ids[0].isHigherScoreBetter();
+    bool higher_better = ids.getEffectiveHigherScoreBetter();
+    String effective_score_type = ids.getEffectiveScoreType();
     set<String> score_types;
 
     for (PeptideIdentificationList::iterator pep_it = ids.begin();
          pep_it != ids.end(); ++pep_it)
     {
-      if (pep_it->isHigherScoreBetter() != higher_better)
+      // Validate individual entries are consistent with effective orientation
+      if (!pep_it->getScoreType().empty() && pep_it->isHigherScoreBetter() != higher_better)
       {
         // scores with different orientations definitely aren't comparable:
         String hi_lo = higher_better ? "higher/lower" : "lower/higher";
-        String msg = "Score types '" + ids[0].getScoreType() + "' and '" +
+        String msg = "Score types '" + effective_score_type + "' and '" +
           pep_it->getScoreType() + "' have different orientations (" + hi_lo +
           " is better) and cannot be compared meaningfully.";
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       msg, higher_better ? "false" : "true");
       }
-      score_types.insert(pep_it->getScoreType());
+      if (!pep_it->getScoreType().empty())
+      {
+        score_types.insert(pep_it->getScoreType());
+      }
     }
 
     if (score_types.size() > 1)
@@ -63,7 +68,7 @@ namespace OpenMS
     for (PeptideIdentificationList::iterator pep_it = ids.begin();
          pep_it != ids.end(); ++pep_it)
     {
-      String score_type = pep_it->getScoreType();
+      String score_type = ids.getEffectiveScoreType();
       auto se = se_info.find(pep_it->getIdentifier());
       if (se != se_info.end())
       {
@@ -103,7 +108,7 @@ namespace OpenMS
     }
 
     // calculate score and support, and update results with them:
-    bool higher_better = ids[0].isHigherScoreBetter();
+    bool higher_better = ids.getEffectiveHigherScoreBetter();
     Size n_other_ids = (count_empty_ ? number_of_runs_ : ids.size()) - 1;
     for (SequenceGrouping::iterator res_it = results.begin(); 
          res_it != results.end(); ++res_it)

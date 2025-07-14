@@ -119,13 +119,17 @@ public:
     void setSignificanceThreshold(double value);
 
     /// returns the peptide score type
+    /// @deprecated Use PeptideIdentificationList::getEffectiveScoreType() for list-level access
     const String& getScoreType() const;
     /// sets the peptide score type
+    /// @deprecated Use PeptideIdentificationList::setScoreType() for list-level access
     void setScoreType(const String& type);
 
     /// returns the peptide score orientation
+    /// @deprecated Use PeptideIdentificationList::getEffectiveHigherScoreBetter() for list-level access
     bool isHigherScoreBetter() const;
     /// sets the peptide score orientation
+    /// @deprecated Use PeptideIdentificationList::setHigherScoreBetter() for list-level access
     void setHigherScoreBetter(bool value);
 
     /// Returns the identifier which links this PI to its corresponding ProteinIdentification

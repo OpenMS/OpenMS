@@ -276,15 +276,25 @@ namespace OpenMS
     bool treat_modification_variants_separately(param_.getValue("treat_modification_variants_separately").toBool());
     bool use_shared_peptides(param_.getValue("use_shared_peptides").toBool());
 
+    String effective_score_type = pep_ids.getEffectiveScoreType();
+    if (effective_score_type != overall_score_type)
+    {
+      throw OpenMS::Exception::InvalidParameter(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "Effective score type does not match overall score type. Aborting...");
+    }
+    // Validate individual entries are consistent with effective score type
     for (auto &pep : pep_ids)
     {
-      if (pep.getScoreType() != overall_score_type)
+      if (!pep.getScoreType().empty() && pep.getScoreType() != effective_score_type)
       {
         throw OpenMS::Exception::InvalidParameter(
             __FILE__,
             __LINE__,
             OPENMS_PRETTY_FUNCTION,
-            "Differing score_types in the PeptideHits. Aborting...");
+            "Individual score types must match the effective score type. Aborting...");
       }
       //skip if it does not belong to run
       if (!run_id.empty() && pep.getIdentifier() != run_id)

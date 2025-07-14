@@ -72,7 +72,7 @@ namespace OpenMS
             continue;
           }
 
-          if (sortByUnique_(peptide_hits_local, it_pepid->isHigherScoreBetter())) // we found a unique peptide
+          if (sortByUnique_(peptide_hits_local, consensus_map[i_cm].getPeptideIdentifications().getEffectiveHigherScoreBetter())) // we found a unique peptide
           {
             peptide_hits.push_back(peptide_hits_local[0]);
           }
@@ -84,7 +84,7 @@ namespace OpenMS
         // TODO: better idea?
         if (!peptide_hits.empty())
         {
-          if (sortByUnique_(peptide_hits, consensus_map[i_cm].getPeptideIdentifications()[0].isHigherScoreBetter())) //found a unique peptide for current ConsensusElement
+          if (sortByUnique_(peptide_hits, consensus_map[i_cm].getPeptideIdentifications().getEffectiveHigherScoreBetter())) //found a unique peptide for current ConsensusElement
           {
             consensus_to_peptide[i_cm] = peptide_hits[0];
 #ifdef DEBUG_INFERENCE
