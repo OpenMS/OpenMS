@@ -77,33 +77,18 @@ namespace OpenMS
     SequenceGrouping results;
     apply_(ids, se_info, results); // actual (subclass-specific) processing
 
-    // Use list-level metadata when available, otherwise validate individual consistency
-    String score_type;
-    bool higher_better;
-    if (ids.usesListLevelScores())
-    {
-      score_type = ids.getListScoreType();
-      higher_better = ids.isListHigherScoreBetter();
-    }
-    else
-    {
-      // Validate consistency before proceeding
-      ids.validateScoreConsistency();
-      score_type = ids[0].getScoreType();
-      higher_better = ids[0].isHigherScoreBetter();
-    }
+    // Use effective score metadata (list-level if available, otherwise from first element)
+    String score_type = ids.getEffectiveScoreType();
+    bool higher_better = ids.getEffectiveHigherScoreBetter();
     
     ids.clear();
     ids.resize(1);
     ids[0].setScoreType(score_type);
     ids[0].setHigherScoreBetter(higher_better);
     
-    // Update list-level metadata if it was being used
-    if (ids.usesListLevelScores())
-    {
-      ids.setListScoreType(score_type);
-      ids.setListHigherScoreBetter(higher_better);
-    }
+    // Set list-level metadata
+    ids.setScoreType(score_type);
+    ids.setHigherScoreBetter(higher_better);
     for (SequenceGrouping::iterator res_it = results.begin(); 
          res_it != results.end(); ++res_it)
     {

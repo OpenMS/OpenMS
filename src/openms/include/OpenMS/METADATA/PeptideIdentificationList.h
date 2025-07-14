@@ -65,9 +65,8 @@ namespace OpenMS
   class OPENMS_DLLAPI PeptideIdentificationList : public ExposedVector<PeptideIdentification>
   {
   private:
-    String list_score_type_;
-    bool list_higher_score_better_ = false;
-    bool use_list_level_scores_ = false;  // Feature flag for migration
+    String score_type_;
+    bool higher_score_better_ = false;
 
   public:
     EXPOSED_VECTOR_INTERFACE(PeptideIdentification)
@@ -115,40 +114,19 @@ namespace OpenMS
     /// @name List-level score metadata methods
     //@{
     /// Returns the list-level score type
-    const String& getListScoreType() const;
+    const String& getScoreType() const;
     /// Sets the list-level score type
-    void setListScoreType(const String& type);
+    void setScoreType(const String& type);
     
-    /// Returns the list-level score orientation
-    bool isListHigherScoreBetter() const;
-    /// Sets the list-level score orientation
-    void setListHigherScoreBetter(bool value);
+    /// Returns whether higher scores are better for the list
+    bool isHigherScoreBetter() const;
+    /// Sets whether higher scores are better for the list
+    void setHigherScoreBetter(bool value);
     
-    /// Returns whether list-level scores are enabled
-    bool usesListLevelScores() const;
-    /// Enables or disables list-level score metadata
-    void enableListLevelScores(bool enable = true);
-    //@}
-    
-    /// @name Validation and migration methods
-    //@{
-    /// Checks if all PeptideIdentification objects have consistent score metadata
-    bool hasConsistentScoreMetadata() const;
-    /// Validates that all PeptideIdentification objects have consistent score metadata (throws if not)
-    void validateScoreConsistency() const;
-    /// Migrates from individual PeptideIdentification score metadata to list-level metadata
-    void migrateFromIndividualScores();
-    /// Synchronizes list-level metadata back to individual PeptideIdentification objects
-    void syncToIndividualScores();
-    
-    /// @name File I/O helper methods
-    //@{
-    /// Attempts to migrate to list-level scores after file loading for consistency and performance
-    /// @param force_migration If true, always attempts migration. If false, only migrates if scores are consistent
-    void tryMigrateAfterLoad(bool force_migration = false);
-    /// Ensures individual scores are synced before file saving for backward compatibility
-    void prepareForSave();
-    //@}
+    /// Returns the effective score type (list-level if set, otherwise from first element)
+    String getEffectiveScoreType() const;
+    /// Returns the effective score orientation (list-level if set, otherwise from first element)
+    bool getEffectiveHigherScoreBetter() const;
     //@}
     
   };
