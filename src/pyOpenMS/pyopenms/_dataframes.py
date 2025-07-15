@@ -515,7 +515,7 @@ MSExperiment.__name__ = 'MSExperiment'
 # TODO think about the best way for such top-level function. IMHO in python, encapsulation in a stateless class in unnecessary.
 #   We should probably not just import this whole submodule without prefix.
 def peptide_identifications_to_df(peps: _PeptideIdentificationList, decode_ontology : bool = True,
-                                  default_missing_values: dict = {bool: False, int: -9999, float: _np.nan, str: ''},
+                                  default_missing_values: dict = None,
                                   export_unidentified : bool = True):
     """Converts a list of peptide identifications to a pandas DataFrame.
     Parameters:
@@ -526,6 +526,10 @@ def peptide_identifications_to_df(peps: _PeptideIdentificationList, decode_ontol
     Returns:
     pandas.DataFrame: peptide identifications in a DataFrame
     """
+
+    if default_missing_values is None:
+        default_missing_values = {bool: False, int: -9999, float: _np.nan, str: ''}
+        
     switchDict = {bool: '?', int: 'i', float: 'f', str: 'U100'}
 
     # filter out PeptideIdentifications without PeptideHits if export_unidentified == False
