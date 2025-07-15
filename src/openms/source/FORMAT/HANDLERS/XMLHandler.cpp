@@ -419,6 +419,14 @@ namespace OpenMS::Internal
       }
     }
 
+    // https://github.com/OpenMS/OpenMS/issues/8122
+    // GCC/CLANG
+    #if defined(__GNUC__)
+    __attribute__((no_sanitize("address")))
+    // MSVC
+    #elif defined(_MSC_VER)
+    __declspec(no_sanitize_address)
+    #endif
     size_t StringManager::strLength(const XMLCh* input_ptr)
     {
       if (input_ptr == nullptr) {
@@ -428,48 +436,42 @@ namespace OpenMS::Internal
       XMLSize_t processed_chars = 0;
       const XMLCh* pos_ptr = input_ptr;
   
+      // find number of characters until we reach a 16-byte aligned address
+      uintptr_t ptr_value = reinterpret_cast<uintptr_t>(pos_ptr);
+      size_t misalignment = ptr_value & 15; // modulo 16 to find misalignment
+      int chars_to_align = misalignment ? (16 - misalignment) / sizeof(XMLCh) : 0;
+  
+      // process one by one until we reach a 16-byte aligned address (where a SIMD load can be used)
+      for (int i = 0; i < chars_to_align; ++i)
+      {
+          if (*pos_ptr == 0) {
+              return i;
+          }
+          ++pos_ptr;
+      }
+      processed_chars = chars_to_align;
+  
       // SIMD loop: find the first zero character in blocks of 8 UTF-16 characters (16 bytes each)
       const simde__m128i zero = simde_mm_setzero_si128();
-      
       while (true)
       {
-          // First check if we have at least 8 characters remaining by scanning ahead
-          const XMLCh* check_ptr = pos_ptr;
-          bool has_full_block = true;
-          for (int i = 0; i < 8; ++i) {
-              if (*check_ptr == 0) {
-                  has_full_block = false;
-                  break;
-              }
-              ++check_ptr;
+          simde__m128i bits = simde_mm_load_si128(reinterpret_cast<const simde__m128i*>(pos_ptr));
+          simde__m128i cmp_zero = simde_mm_cmpeq_epi16(bits, zero); // sets bits to 0xFFFF (2 bytes) for each character that is zero
+          uint16_t zero_mask = simde_mm_movemask_epi8(cmp_zero);    // extracts MSB from each byte 
+  
+          if (zero_mask != 0)
+          { // Found a zero character
+              auto byte_pos_zero = std::countr_zero(zero_mask); // count trailing zeros to find the first zero character
+              auto char_pos_zero = byte_pos_zero / 2;           // each UTF-16 character is 2 bytes, so divide by 2 to get character position
+              return processed_chars + char_pos_zero;
           }
-          
-          if (has_full_block) {
-              // Safe to read 16 bytes since we verified 8 characters are available
-              simde__m128i bits = simde_mm_load_si128(reinterpret_cast<const simde__m128i*>(pos_ptr));
-              simde__m128i cmp_zero = simde_mm_cmpeq_epi16(bits, zero); // sets bits to 0xFFFF (2 bytes) for each character that is zero
-              uint16_t zero_mask = simde_mm_movemask_epi8(cmp_zero);    // extracts MSB from each byte 
-      
-              if (zero_mask != 0)
-              { // Found a zero character
-                  auto byte_pos_zero = std::countr_zero(zero_mask); // count trailing zeros to find the first zero character
-                  auto char_pos_zero = byte_pos_zero / 2;           // each UTF-16 character is 2 bytes, so divide by 2 to get character position
-                  return processed_chars + char_pos_zero;
-              }
-      
-              // 8 chars (each 2 bytes) had no zero
-              pos_ptr += 8;
-              processed_chars += 8;
-          } else {
-              // Handle remaining characters individually
-              while (*pos_ptr != 0) {
-                  pos_ptr++;
-                  processed_chars++;
-              }
-              break;
-          }
+  
+          // 8 chars (each 2 bytes) had no zero
+          pos_ptr += 8;
+          processed_chars += 8;
       }
-      
+  
+      // never reached
       return processed_chars;
     }
 
