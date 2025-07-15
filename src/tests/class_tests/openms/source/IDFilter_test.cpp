@@ -354,7 +354,7 @@ START_SECTION((template <class IdentificationType> static void filterHitsByScore
                     "MRSLGYVAVISAVATDTDK");
 
   IDFilter::filterHitsByScore(peptides, 41);
-  TEST_EQUAL(peptides.getEffectiveScoreType(), "Mascot");
+  TEST_EQUAL(peptides.getScoreType(), "Mascot");
   TEST_EQUAL(peptide_hits.size(), 0);
 }
 END_SECTION
@@ -365,7 +365,7 @@ START_SECTION((template <class IdentificationType> static void keepNBestHits(vec
   vector<PeptideHit>& peptide_hits = peptides[0].getHits();
 
   IDFilter::keepNBestHits(peptides, 3);
-  TEST_EQUAL(peptides.getEffectiveScoreType(), "Mascot");
+  TEST_EQUAL(peptides.getScoreType(), "Mascot");
 
   TEST_EQUAL(peptide_hits.size(), 3);
   TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 40);
@@ -447,7 +447,7 @@ START_SECTION((template <class IdentificationType> static void removeHitsMatchin
   PeptideIdentificationList peptides = global_peptides;
   IDFilter::removeHitsMatchingProteins(peptides, accessions);
 
-  TEST_EQUAL(peptides.getEffectiveScoreType(), "Mascot");
+  TEST_EQUAL(peptides.getScoreType(), "Mascot");
   TEST_EQUAL(peptides[0].getHits().size(), 9);
   // check some examples:
   TEST_EQUAL(peptides[0].getHits()[0].getSequence().toString(),
@@ -476,7 +476,7 @@ START_SECTION((template <class IdentificationType> static void keepHitsMatchingP
   PeptideIdentificationList peptides = global_peptides;
   IDFilter::keepHitsMatchingProteins(peptides, accessions);
 
-  TEST_EQUAL(peptides.getEffectiveScoreType(), "Mascot");
+  TEST_EQUAL(peptides.getScoreType(), "Mascot");
   TEST_EQUAL(peptides[0].getHits().size(), 2);
   TEST_EQUAL(peptides[0].getHits()[0].getSequence().toString(),
                     "LHASGITVTEIPVTATNFK");
@@ -492,7 +492,7 @@ START_SECTION((static void keepBestPeptideHits(PeptideIdentificationList& peptid
 
   // not strict:
   IDFilter::keepBestPeptideHits(peptides);
-  TEST_EQUAL(peptides.getEffectiveScoreType(), "Mascot");
+  TEST_EQUAL(peptides.getScoreType(), "Mascot");
   TEST_EQUAL(peptide_hits.size(), 2);
   TEST_REAL_SIMILAR(peptide_hits[0].getScore(), 40);
   TEST_EQUAL(peptide_hits[0].getSequence().toString(),
@@ -503,7 +503,7 @@ START_SECTION((static void keepBestPeptideHits(PeptideIdentificationList& peptid
 
   // strict:
   IDFilter::keepBestPeptideHits(peptides, true);
-  TEST_EQUAL(peptides.getEffectiveScoreType(), "Mascot");
+  TEST_EQUAL(peptides.getScoreType(), "Mascot");
   TEST_EQUAL(peptide_hits.size(), 0);
 }
 END_SECTION
@@ -754,7 +754,7 @@ START_SECTION((static void removePeptidesWithMatchingSequences(PeptideIdentifica
 
   // modification-aware filtering:
   IDFilter::removePeptidesWithMatchingSequences(peptides, bad_peptides, false);
-  TEST_EQUAL(peptides.getEffectiveScoreType(), "Mascot");
+  TEST_EQUAL(peptides.getScoreType(), "Mascot");
   TEST_EQUAL(peptide_hits.size(), 3);
   TEST_EQUAL(peptide_hits[0].getSequence(),
              AASequence::fromString("TGCDTWGQGTLVTVSSASTK"));
@@ -768,7 +768,7 @@ START_SECTION((static void removePeptidesWithMatchingSequences(PeptideIdentifica
 
   // modification-unaware filtering:
   IDFilter::removePeptidesWithMatchingSequences(peptides, bad_peptides, true);
-  TEST_EQUAL(peptides.getEffectiveScoreType(), "Mascot");
+  TEST_EQUAL(peptides.getScoreType(), "Mascot");
   TEST_EQUAL(peptide_hits.size(), 2);
   TEST_EQUAL(peptide_hits[0].getSequence().toString(), 
                     "TGCDTWGQGTLVTVSSASTK");
@@ -792,7 +792,7 @@ START_SECTION((static void keepPeptidesWithMatchingSequences(PeptideIdentificati
 
   // modification-unaware filtering:
   IDFilter::keepPeptidesWithMatchingSequences(peptides, good_peptides, true);
-  TEST_EQUAL(peptides.getEffectiveScoreType(), "Mascot");
+  TEST_EQUAL(peptides.getScoreType(), "Mascot");
   TEST_EQUAL(peptide_hits.size(), 4);
   TEST_EQUAL(peptide_hits[0].getSequence().toString(), 
                     "MSLLSNMISIVKVGYNAR");
@@ -809,7 +809,7 @@ START_SECTION((static void keepPeptidesWithMatchingSequences(PeptideIdentificati
 
   // modification-aware filtering:
   IDFilter::keepPeptidesWithMatchingSequences(peptides, good_peptides, false);
-  TEST_EQUAL(peptides.getEffectiveScoreType(), "Mascot");
+  TEST_EQUAL(peptides.getScoreType(), "Mascot");
   TEST_EQUAL(peptide_hits.size(), 3);
   TEST_EQUAL(peptide_hits[0].getSequence().toString(),
                     "TGCDTWGQGTLVTVSSASTK");

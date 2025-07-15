@@ -222,7 +222,7 @@ protected:
         better_ = [](double, double)
         {return true;};
       }
-      else if (features[0].getPeptideIdentifications().getEffectiveHigherScoreBetter())
+      else if (features[0].getPeptideIdentifications().isHigherScoreBetter())
       {
         better_ = [](double a, double b)
         { return a >= b; };
@@ -252,7 +252,7 @@ protected:
                                              feat_it->getRT());
               if (current_distance < rt_distance)
               {
-                const PeptideHit* best_hit = getBestScoringHit(pep_it->getHits(), feat_it->getPeptideIdentifications().getEffectiveHigherScoreBetter());
+                const PeptideHit* best_hit = getBestScoringHit(pep_it->getHits(), feat_it->getPeptideIdentifications().isHigherScoreBetter());
                 if (best_hit && better_(best_hit->getScore(), min_score_))
                 {
                   sequence = best_hit->getSequence().toString();

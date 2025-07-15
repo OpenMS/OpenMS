@@ -74,7 +74,7 @@ namespace OpenMS
     std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
     const PeptideIdentificationList& ids)
   {
-    bool higher_better = ids.getEffectiveHigherScoreBetter();
+    bool higher_better = ids.isHigherScoreBetter();
     for (auto const & id : ids)
     {
       addToPeptideScoreMap_(seq_to_score_labels, id, higher_better);
@@ -93,7 +93,7 @@ namespace OpenMS
       const auto& pepids = feature.getPeptideIdentifications();
       if (!pepids.empty())
       {
-        higher_better = pepids.getEffectiveHigherScoreBetter();
+        higher_better = pepids.isHigherScoreBetter();
         break;
       }
     }
@@ -271,7 +271,7 @@ namespace OpenMS
                                                      std::string const& score_type,
                                                      bool keep_decoys)
   {
-    const auto& old_score_type = ids.getEffectiveScoreType();
+    const auto& old_score_type = ids.getScoreType();
     for (auto& id : ids)
     {
       if (id.getHits().empty())

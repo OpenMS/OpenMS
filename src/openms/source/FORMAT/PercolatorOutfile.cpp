@@ -310,6 +310,11 @@ namespace OpenMS
                                   params.variable_modifications);
     proteins.setSearchParameters(params);
 
+    // Set score metadata at list level for Percolator
+    peptides.setScoreType(score_type_names[output_score]);
+    bool higher_better = (output_score == SCORE); // only "score" is higher-better, qvalue and PEP are lower-better
+    peptides.setHigherScoreBetter(higher_better);
+
     OPENMS_LOG_INFO << "Created " << proteins.getHits().size() << " protein hits.\n"
              << "Created " << peptides.size() << " peptide hits (PSMs)."
              << endl;

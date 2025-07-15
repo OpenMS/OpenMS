@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.9" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<UserParam type="stringList" name="spectra_data" value="[file://E:\NotARealFileJustATest.mzML]"/>
-	<IdentificationRun id="PI_0" date="2021-09-21T14:15:05" search_engine="AccurateMassSearch" search_engine_version="">
+	<IdentificationRun id="PI_0" date="2025-07-16T10:05:55" search_engine="AccurateMassSearch" search_engine_version="">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
@@ -68,7 +68,7 @@
 				<pt x="275.75" y="160.074747981591997" />
 				<pt x="275.5" y="160.074746944823005" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="AccurateMassSearchScore" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="2">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB39534]"/>
 					<UserParam type="stringList" name="description" value="[Panaxydol chlorohydrin]"/>
@@ -408,7 +408,7 @@
 				<pt x="301.5" y="162.075457604903988" />
 				<pt x="301.25" y="162.075141390115988" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="AccurateMassSearchScore" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB01190]"/>
 					<UserParam type="stringList" name="description" value="[Indoleacetaldehyde]"/>
@@ -701,14 +701,14 @@
 				<pt x="313.25" y="162.135471024520001" />
 				<pt x="313.0" y="162.135512495312014" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="AccurateMassSearchScore" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[null]"/>
 					<UserParam type="stringList" name="description" value="[null]"/>
 					<UserParam type="string" name="modifications" value="null"/>
 					<UserParam type="string" name="chemical_formula" value=""/>
-					<UserParam type="float" name="mz_error_ppm" value="nan"/>
-					<UserParam type="float" name="mz_error_Da" value="nan"/>
+					<UserParam type="float" name="mz_error_ppm" value="NaN"/>
+					<UserParam type="float" name="mz_error_Da" value="NaN"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="label" value="T43_T106_T170"/>
@@ -1101,7 +1101,7 @@
 				<pt x="281.25" y="163.060958097314" />
 				<pt x="281.0" y="163.061399761246008" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="AccurateMassSearchScore" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB32394,HMDB:HMDB36073,HMDB:HMDB41009]"/>
 					<UserParam type="stringList" name="description" value="[6-Methylcoumarin,Viburtinal,7-Methyl-2-benzofurancarboxaldehyde]"/>
@@ -1172,14 +1172,14 @@
 				<pt x="257.25" y="161.132490074972992" />
 				<pt x="257.0" y="161.132154679943994" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="AccurateMassSearchScore" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="0">
 					<UserParam type="stringList" name="identifier" value="[null]"/>
 					<UserParam type="stringList" name="description" value="[null]"/>
 					<UserParam type="string" name="modifications" value="null"/>
 					<UserParam type="string" name="chemical_formula" value=""/>
-					<UserParam type="float" name="mz_error_ppm" value="nan"/>
-					<UserParam type="float" name="mz_error_Da" value="nan"/>
+					<UserParam type="float" name="mz_error_ppm" value="NaN"/>
+					<UserParam type="float" name="mz_error_Da" value="NaN"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="label" value="T160"/>
@@ -1373,14 +1373,14 @@
 				<pt x="278.25" y="164.039161803902005" />
 				<pt x="278.0" y="164.039176318679012" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="AccurateMassSearchScore" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[null]"/>
 					<UserParam type="stringList" name="description" value="[null]"/>
 					<UserParam type="string" name="modifications" value="null"/>
 					<UserParam type="string" name="chemical_formula" value=""/>
-					<UserParam type="float" name="mz_error_ppm" value="nan"/>
-					<UserParam type="float" name="mz_error_Da" value="nan"/>
+					<UserParam type="float" name="mz_error_ppm" value="NaN"/>
+					<UserParam type="float" name="mz_error_Da" value="NaN"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="label" value="T41_T102"/>
@@ -1538,14 +1538,14 @@
 				<pt x="312.75" y="164.077397355578" />
 				<pt x="312.5" y="164.077411351969999" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="AccurateMassSearchScore" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[null]"/>
 					<UserParam type="stringList" name="description" value="[null]"/>
 					<UserParam type="string" name="modifications" value="null"/>
 					<UserParam type="string" name="chemical_formula" value=""/>
-					<UserParam type="float" name="mz_error_ppm" value="nan"/>
-					<UserParam type="float" name="mz_error_Da" value="nan"/>
+					<UserParam type="float" name="mz_error_ppm" value="NaN"/>
+					<UserParam type="float" name="mz_error_Da" value="NaN"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="label" value="T69_T134"/>
@@ -2321,14 +2321,14 @@
 				<pt x="256.75" y="167.072754372819986" />
 				<pt x="256.5" y="167.072641883296996" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="AccurateMassSearchScore" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[null]"/>
 					<UserParam type="stringList" name="description" value="[null]"/>
 					<UserParam type="string" name="modifications" value="null"/>
 					<UserParam type="string" name="chemical_formula" value=""/>
-					<UserParam type="float" name="mz_error_ppm" value="nan"/>
-					<UserParam type="float" name="mz_error_Da" value="nan"/>
+					<UserParam type="float" name="mz_error_ppm" value="NaN"/>
+					<UserParam type="float" name="mz_error_Da" value="NaN"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="label" value="T3_T12_T48_T61_T101"/>
@@ -2530,7 +2530,7 @@
 				<pt x="279.25" y="165.056099230053007" />
 				<pt x="279.0" y="165.056276517687991" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="AccurateMassSearchScore" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="2">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB14564,HMDB:HMDB15202]"/>
 					<UserParam type="stringList" name="description" value="[Promazine,Promethazine]"/>
@@ -2604,7 +2604,7 @@
 				<pt x="253.25" y="165.056446029549988" />
 				<pt x="253.0" y="165.056428922847999" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="AccurateMassSearchScore" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="2">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB14564,HMDB:HMDB15202]"/>
 					<UserParam type="stringList" name="description" value="[Promazine,Promethazine]"/>

@@ -43,8 +43,8 @@ namespace OpenMS
     vector<double> rev_scores, fwd_scores, all_scores;
 
     // get the forward scores
-    String effective_score_type = ids.getEffectiveScoreType();
-    bool effective_higher_better = ids.getEffectiveHigherScoreBetter();
+    String score_type = ids.getScoreType();
+    bool score_higher_better = ids.isHigherScoreBetter();
     for (PeptideIdentification& pep : ids)
     {
       if (!pep.getHits().empty())
@@ -54,9 +54,9 @@ namespace OpenMS
         {
           double score = pit.getScore();
 
-          pit.setMetaValue(effective_score_type + "_Score", score);
+          pit.setMetaValue(score_type + "_Score", score);
 
-          if (!effective_higher_better)
+          if (!score_higher_better)
           {
             if (score < lower_score_better_default_value_if_zero_exp)
             {
@@ -97,8 +97,8 @@ namespace OpenMS
     vector<double> rev_scores, fwd_scores, all_scores;
 
     // get the forward scores
-    String score_type = fwd_ids.getEffectiveScoreType();
-    bool higher_score_better = fwd_ids.getEffectiveHigherScoreBetter();
+    String score_type = fwd_ids.getScoreType();
+    bool higher_score_better = fwd_ids.isHigherScoreBetter();
     for (PeptideIdentification& pep : fwd_ids)
     {
       if (!pep.getHits().empty())
@@ -129,7 +129,7 @@ namespace OpenMS
     }
 
     // get the reverse scores
-    bool rev_higher_score_better = rev_ids.getEffectiveHigherScoreBetter();
+    bool rev_higher_score_better = rev_ids.isHigherScoreBetter();
     for (const PeptideIdentification& pep : rev_ids)
     {
       if (!pep.getHits().empty())
@@ -345,19 +345,19 @@ namespace OpenMS
 
     PeptideIdentificationList new_prob_ids;
     // calculate the probabilities and write them to the IDs
-    String effective_score_type = ids.getEffectiveScoreType();
-    bool effective_higher_score_better = ids.getEffectiveHigherScoreBetter();
+    String id_score_type = ids.getScoreType();
+    bool score_higher_better = ids.isHigherScoreBetter();
     for (const PeptideIdentification& pep : ids)
     {
       if (!pep.getHits().empty())
       {
         vector<PeptideHit> hits;
-        String score_type = effective_score_type + "_score";
+        String score_type = id_score_type + "_score";
         for (const PeptideHit& pit : pep.getHits())
         {
           PeptideHit hit = pit;
           double score = hit.getScore();
-          if (!effective_higher_score_better)
+          if (!score_higher_better)
           {
             score = -log10(score);
           }
@@ -373,7 +373,7 @@ namespace OpenMS
     }
     // Set score metadata at list level
     new_prob_ids.setHigherScoreBetter(true);
-    new_prob_ids.setScoreType(effective_score_type + "_DecoyProbability");
+    new_prob_ids.setScoreType(id_score_type + "_DecoyProbability");
     ids = new_prob_ids;
   }
 

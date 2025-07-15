@@ -32,15 +32,9 @@ namespace OpenMS
     ConsensusIDAlgorithmIdentity();
 
     /**
-       @brief Preprocessing of peptide IDs (in the beginning of "apply_").
-
-       Checks whether the score types are the same (warns if not) and whether the score orientations agree (error if not).
-
-       @param ids Input/output peptide identifications
-
-       @throw Exception::InvalidValue Score orientations do not agree
+       @brief Hook for preprocessing of peptide IDs (in the beginning of "apply_").
     */
-    virtual void preprocess_(PeptideIdentificationList& ids);
+    virtual void preprocess_(PeptideIdentificationList&) {};
 
     /**
        @brief Aggregate peptide scores into one final score (to be implemented by subclasses).

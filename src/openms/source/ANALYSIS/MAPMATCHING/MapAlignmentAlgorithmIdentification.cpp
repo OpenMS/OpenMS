@@ -98,7 +98,7 @@ namespace OpenMS
     {
       if (!pep_it->getHits().empty())
       {
-        const PeptideHit* best_hit = getBestScoringHit(pep_it->getHits(), peptides.getEffectiveHigherScoreBetter());
+        const PeptideHit* best_hit = getBestScoringHit(pep_it->getHits(), peptides.isHigherScoreBetter());
         if (better_(best_hit->getScore(), min_score_))
         {
           const String& seq = best_hit->getSequence().toString();

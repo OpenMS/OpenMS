@@ -199,15 +199,15 @@ START_SECTION((Test effective score methods))
   PeptideIdentificationList pep_ids;
   
   // Test empty list
-  TEST_EQUAL(pep_ids.getEffectiveScoreType(), "")
-  TEST_EQUAL(pep_ids.getEffectiveHigherScoreBetter(), false)
+  TEST_EQUAL(pep_ids.getScoreType(), "")
+  TEST_EQUAL(pep_ids.isHigherScoreBetter(), false)
   
   // Test with list-level metadata set
   pep_ids.setScoreType("Mascot");
   pep_ids.setHigherScoreBetter(true);
   
-  TEST_EQUAL(pep_ids.getEffectiveScoreType(), "Mascot")
-  TEST_EQUAL(pep_ids.getEffectiveHigherScoreBetter(), true)
+  TEST_EQUAL(pep_ids.getScoreType(), "Mascot")
+  TEST_EQUAL(pep_ids.isHigherScoreBetter(), true)
   
   // Test with empty list-level metadata - should return defaults
   pep_ids.setScoreType("");  // Clear list-level
@@ -217,15 +217,15 @@ START_SECTION((Test effective score methods))
   pep_ids.push_back(pep_id);
   
   // With centralized score handling, effective methods return list-level values
-  TEST_EQUAL(pep_ids.getEffectiveScoreType(), "")
-  TEST_EQUAL(pep_ids.getEffectiveHigherScoreBetter(), false)
+  TEST_EQUAL(pep_ids.getScoreType(), "")
+  TEST_EQUAL(pep_ids.isHigherScoreBetter(), false)
   
   // Test that list-level overrides individual
   pep_ids.setScoreType("Percolator");
   pep_ids.setHigherScoreBetter(true);
   
-  TEST_EQUAL(pep_ids.getEffectiveScoreType(), "Percolator")
-  TEST_EQUAL(pep_ids.getEffectiveHigherScoreBetter(), true)
+  TEST_EQUAL(pep_ids.getScoreType(), "Percolator")
+  TEST_EQUAL(pep_ids.isHigherScoreBetter(), true)
 }
 END_SECTION
 

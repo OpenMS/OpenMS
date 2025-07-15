@@ -251,7 +251,7 @@ namespace OpenMS
       for (PeptideIdentificationList::iterator pit = new_peptide_ids.begin(); pit != new_peptide_ids.end(); ++pit)
       {
         PeptideIdentification ins = *pit;
-        String st = new_peptide_ids.getEffectiveScoreType();
+        String st = new_peptide_ids.getScoreType();
         //prepare for merge
         for (vector<PeptideHit>::iterator hit = ins.getHits().begin(); hit != ins.getHits().end(); ++hit)
         {

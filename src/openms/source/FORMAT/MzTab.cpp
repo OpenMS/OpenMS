@@ -1111,8 +1111,8 @@ namespace OpenMS
         sit->second = MzTabDouble(curr_score);
 
         //TODO assumes same scores & score types
-        if ((curr_pep_ids.getEffectiveHigherScoreBetter() && curr_score >= best_score)
-        || (!curr_pep_ids.getEffectiveHigherScoreBetter() && curr_score <= best_score))
+        if ((curr_pep_ids.isHigherScoreBetter() && curr_score >= best_score)
+        || (!curr_pep_ids.isHigherScoreBetter() && curr_score <= best_score))
         {
           best_score = curr_score;
           if (pep.metaValueExists("spectrum_reference"))

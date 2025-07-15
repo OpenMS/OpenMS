@@ -124,7 +124,7 @@ protected:
     //-------------------------------------------------------------
     if (best_hits)
     {
-      bool higher_score_better = identifications.getEffectiveHigherScoreBetter();
+      bool higher_score_better = identifications.isHigherScoreBetter();
       for (Size i = 0; i < identifications.size(); ++i)
       {
         identifications_with_scores.emplace_back(identifications[i].getHits()[0].getScore(), identifications[i]);

@@ -469,7 +469,7 @@ namespace OpenMS
       {
         pep.sort();
         double top_score = hits[0].getScore();
-        bool higher_better = peptides.getEffectiveHigherScoreBetter();
+        bool higher_better = peptides.isHigherScoreBetter();
         struct HasGoodScore<PeptideHit> good_score(top_score, higher_better);
         if (strict) // only one best score allowed
         {
@@ -715,7 +715,7 @@ namespace OpenMS
 
   void IDFilter::keepNBestSpectra(PeptideIdentificationList& peptides, Size n)
   {
-    String score_type = peptides.getEffectiveScoreType();
+    String score_type = peptides.getScoreType();
     for (PeptideIdentification& p : peptides)
     {
       p.sort();
@@ -734,7 +734,7 @@ namespace OpenMS
       {
         return false; // left has no hit but right has a hit? -> right is better
       }
-      const bool higher_better = peptides.getEffectiveHigherScoreBetter();
+      const bool higher_better = peptides.isHigherScoreBetter();
       const double l_score = l.getHits()[0].getScore();
       const double r_score = r.getHits()[0].getScore();
 

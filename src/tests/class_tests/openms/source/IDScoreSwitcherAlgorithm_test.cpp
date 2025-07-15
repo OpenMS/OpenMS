@@ -55,7 +55,7 @@ START_SECTION(switchToGeneralScoreType)
   IDScoreSwitcherAlgorithm switcher{};
   Size c(0);
   switcher.switchToGeneralScoreType(identifications, IDScoreSwitcherAlgorithm::ScoreType::PEP, c);
-  TEST_EQUAL(identifications.getEffectiveScoreType(), "Posterior Error Probability");
+  TEST_EQUAL(identifications.getScoreType(), "Posterior Error Probability");
 }
 END_SECTION
 

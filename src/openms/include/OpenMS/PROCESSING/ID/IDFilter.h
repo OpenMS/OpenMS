@@ -671,7 +671,7 @@ namespace OpenMS
     static bool getBestHit(PeptideIdentificationList& ids, bool assume_sorted, PeptideHit& best_hit)
     {
       std::vector<PeptideIdentification>& vec = ids.getData();
-      return getBestHit(vec, assume_sorted, best_hit, ids.getEffectiveScoreType(), ids.getEffectiveHigherScoreBetter());
+      return getBestHit(vec, assume_sorted, best_hit, ids.getScoreType(), ids.isHigherScoreBetter());
     }
 
     /**
@@ -860,32 +860,46 @@ namespace OpenMS
     template<class IdentificationType>
     static void filterHitsByScore(std::vector<IdentificationType>& ids, double threshold_score)
     {
+      // This template function is now only for types that have isHigherScoreBetter() method
+      // PeptideIdentification is handled by a separate overload that requires score metadata
+      static_assert(!std::is_same_v<IdentificationType, PeptideIdentification>,
+                   "PeptideIdentification requires separate overload with score metadata");
+      
       for (typename std::vector<IdentificationType>::iterator id_it = ids.begin(); id_it != ids.end(); ++id_it)
       {
-        bool higher_better;
-        if constexpr (std::is_same_v<IdentificationType, PeptideIdentification>)
-        {
-          // For PeptideIdentification, score metadata is not available at individual level
-          // This function should not be called directly for PeptideIdentification
-          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Use PeptideIdentificationList version for peptide identifications");
-        }
-        else
-        {
-          higher_better = id_it->isHigherScoreBetter();
-        }
+        bool higher_better = id_it->isHigherScoreBetter();
         struct HasGoodScore<typename IdentificationType::HitType> score_filter(threshold_score, higher_better);
         keepMatchingItems(id_it->getHits(), score_filter);
       }
     }
 
     /**
-     * @brief Filters peptide or protein identifications according to the score of the hits. 
-     * 
+     * @brief Filters peptide identifications according to the score of the hits.
+     *
+     * Specific overload for PeptideIdentification that requires explicit score metadata
+     * since individual PeptideIdentification objects don't store score orientation.
+     *
+     * @param ids The vector of peptide identifications to filter.
+     * @param threshold_score The threshold score to filter the hits.
+     * @param higher_score_better Whether higher scores are better for this score type.
+     */
+    static void filterHitsByScore(std::vector<PeptideIdentification>& ids, double threshold_score, bool higher_score_better)
+    {
+      for (auto& id : ids)
+      {
+        struct HasGoodScore<PeptideHit> score_filter(threshold_score, higher_score_better);
+        keepMatchingItems(id.getHits(), score_filter);
+      }
+    }
+
+    /**
+     * @brief Filters peptide or protein identifications according to the score of the hits.
+     *
      * Only peptide/protein hits with a score at least as good as @p threshold_score are kept. Score orientation is taken into account.
-     * This will look for a given @p score_type as the main score or in the secondary scores. 
-     * 
+     * This will look for a given @p score_type as the main score or in the secondary scores.
+     *
      * Note: Removes a hit if the @p score_type is not found at all.
-     * 
+     *
      * @tparam IdentificationType The type of identification.
      * @param ids The vector of identifications to filter.
      * @param threshold_score The threshold score to filter the hits.
@@ -1348,7 +1362,7 @@ namespace OpenMS
     static void annotateBestPerPeptidePerRunWithData(RunToSequenceToChargeToPepHitP& best_peps_per_run, PeptideIdentificationList& pep_ids, bool ignore_mods, bool ignore_charges,
                                                      Size nr_best_spectrum)
     {
-      bool higher_score_better = pep_ids.getEffectiveHigherScoreBetter();
+      bool higher_score_better = pep_ids.isHigherScoreBetter();
       for (auto& pep : pep_ids)
       {
         SequenceToChargeToPepHitP& best_pep = best_peps_per_run[pep.getIdentifier()];
@@ -1361,7 +1375,7 @@ namespace OpenMS
     /// Does not check Run information and just goes over all Peptide IDs
     static void annotateBestPerPeptide(PeptideIdentificationList& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
     {
-      bool higher_score_better = pep_ids.getEffectiveHigherScoreBetter();
+      bool higher_score_better = pep_ids.isHigherScoreBetter();
       SequenceToChargeToPepHitP best_pep;
       for (auto& pep : pep_ids)
       {
@@ -1498,7 +1512,9 @@ namespace OpenMS
 
     static void filterHitsByScore(PeptideIdentificationList& ids, double threshold_score)
     {
-      filterHitsByScore(ids.getData(), threshold_score);
+      // Use the list-level score metadata from PeptideIdentificationList
+      bool higher_score_better = ids.isHigherScoreBetter();
+      filterHitsByScore(ids.getData(), threshold_score, higher_score_better);
     }
 
     static void removeUnreferencedProteins(std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& ids)

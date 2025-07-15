@@ -152,6 +152,13 @@ public:
     */
     void sort();
 
+    /**
+         @brief Sorts the hits by score with explicit score orientation
+
+         @param higher_score_better whether higher scores are better
+    */
+    void sort(bool higher_score_better);
+
     /// Returns if this PeptideIdentification result is empty
     bool empty() const;
 

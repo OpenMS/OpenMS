@@ -301,6 +301,10 @@ namespace OpenMS
       peptide_identifications.push_back(peptide_identification);
     }
 
+    // Set score metadata at list level for PepNovo
+    peptide_identifications.setScoreType(score_type);
+    peptide_identifications.setHigherScoreBetter(true); // PepNovo: higher is better
+
     result_file.close();
     result_file.clear();
 

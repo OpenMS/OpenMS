@@ -36,7 +36,9 @@ START_SECTION(static void PeptideProteinResolution::run(vector<ProteinIdentifica
   vector<ProteinIdentification> prots;
   PeptideIdentificationList peps;
   IdXMLFile idf;
-  idf.load(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_in.idXML"), prots, peps);  
+  idf.load(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_in.idXML"), prots, peps);
+  peps.setScoreType("Posterior Error Probability");
+  peps.setHigherScoreBetter(false);
   PeptideProteinResolution::run(prots, peps);
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
@@ -47,7 +49,9 @@ START_SECTION(static void PeptideProteinResolution::run(vector<ProteinIdentifica
   peps.clear();
   tmp_filename.clear();
   NEW_TMP_FILE(tmp_filename);
-  idf.load(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_in2.idXML"), prots, peps);  
+  idf.load(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_in2.idXML"), prots, peps);
+  peps.setScoreType("Posterior Error Probability");
+  peps.setHigherScoreBetter(false);
   PeptideProteinResolution::run(prots, peps);
   IdXMLFile().store(tmp_filename, prots, peps);
   TEST_FILE_SIMILAR(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_out2.idXML"), tmp_filename);

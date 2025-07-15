@@ -64,12 +64,20 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI PeptideIdentificationList : public ExposedVector<PeptideIdentification>
   {
-  private:
-    String score_type_;
-    bool higher_score_better_ = false;
-
   public:
     EXPOSED_VECTOR_INTERFACE(PeptideIdentification)
+    
+    /// @name Copy semantics
+    //@{
+    /// Copy constructor
+    PeptideIdentificationList(const PeptideIdentificationList& other) = default;
+    
+    /// Copy assignment operator
+    PeptideIdentificationList& operator=(const PeptideIdentificationList& other) = default;
+
+    /// Move constructor
+    PeptideIdentificationList(PeptideIdentificationList&& other) noexcept = default;
+    //@}
     
     /// @name Additional constructors for std::vector compatibility
     //@{
@@ -123,12 +131,11 @@ namespace OpenMS
     /// Sets whether higher scores are better for the list
     void setHigherScoreBetter(bool value);
     
-    /// Returns the effective score type (list-level if set, otherwise from first element)
-    String getEffectiveScoreType() const;
-    /// Returns the effective score orientation (list-level if set, otherwise from first element)
-    bool getEffectiveHigherScoreBetter() const;
     //@}
     
+  private:
+    String score_type_;
+    bool higher_score_better_ = false;    
   };
 
 } //namespace OpenMS

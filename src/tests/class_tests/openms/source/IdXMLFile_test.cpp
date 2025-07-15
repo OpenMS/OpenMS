@@ -54,7 +54,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 
   /////////////// protein id 1 //////////////////
   TEST_EQUAL(protein_ids[0].getScoreType(),"MOWSE")
-  TEST_EQUAL(protein_ids[0].isHigherScoreBetter(),true)
+  TEST_FALSE(protein_ids[0].isHigherScoreBetter())
   TEST_EQUAL(protein_ids[0].getSearchEngine(),"Mascot")
   TEST_EQUAL(protein_ids[0].getSearchEngineVersion(),"2.1.0")
   TEST_EQUAL(protein_ids[0].getDateTime().getDate(),"2006-01-12")
@@ -94,8 +94,8 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[0].getHits()[1].getSequence(),"ABCDEFG")
 
   //peptide id 1
-  TEST_EQUAL(peptide_ids.getEffectiveScoreType(),"MOWSE")
-  TEST_EQUAL(peptide_ids.getEffectiveHigherScoreBetter(),false)
+  TEST_EQUAL(peptide_ids.getScoreType(),"MOWSE")
+  TEST_FALSE(protein_ids[0].isHigherScoreBetter())
   TEST_EQUAL(peptide_ids[0].getIdentifier().hasPrefix("Mascot_2006-01-12T12:13:14"), true)
   TEST_REAL_SIMILAR(peptide_ids[0].getMZ(),675.9)
   TEST_REAL_SIMILAR(peptide_ids[0].getRT(),1234.5)
@@ -121,8 +121,8 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(pes1.size(),0)
   //peptide id 2
   // Score metadata is now centralized at list level - already tested above
-  // TEST_EQUAL(peptide_ids.getEffectiveScoreType(),"MOWSE")
-  // TEST_EQUAL(peptide_ids.getEffectiveHigherScoreBetter(),true)
+  // TEST_EQUAL(peptide_ids.getScoreType(),"MOWSE")
+  // TEST_EQUAL(peptide_ids.isHigherScoreBetter(),true)
   TEST_EQUAL(peptide_ids[1].getIdentifier().hasPrefix("Mascot_2006-01-12T12:13:14"), true)
   TEST_EQUAL(peptide_ids[1].getHits().size(),2)
   //peptide hit 1
@@ -140,7 +140,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 
   /////////////// protein id 2 //////////////////
   TEST_EQUAL(protein_ids[1].getScoreType(),"MOWSE")
-  TEST_EQUAL(protein_ids[1].isHigherScoreBetter(),true)
+  TEST_FALSE(protein_ids[1].isHigherScoreBetter())
   TEST_EQUAL(protein_ids[1].getSearchEngine(),"Mascot")
   TEST_EQUAL(protein_ids[1].getSearchEngineVersion(),"2.1.1")
   TEST_EQUAL(protein_ids[1].getDateTime().getDate(),"2007-01-12")
@@ -165,8 +165,8 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[1].getHits()[0].getSequence(),"")
   //peptide id 3
   // Score metadata is now centralized at list level - already tested above
-  // TEST_EQUAL(peptide_ids.getEffectiveScoreType(),"MOWSE")
-  // TEST_EQUAL(peptide_ids.getEffectiveHigherScoreBetter(),true)
+  // TEST_EQUAL(peptide_ids.getScoreType(),"MOWSE")
+  // TEST_EQUAL(peptide_ids.isHigherScoreBetter(),true)
   TEST_EQUAL(peptide_ids[2].getIdentifier().hasPrefix("Mascot_2007-01-12T12:13:14"), true)
   TEST_EQUAL(peptide_ids[2].getHits().size(),1)
   //peptide hit 1

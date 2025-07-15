@@ -1002,7 +1002,7 @@ protected:
       size_t cnt = 0;
       String run_identifier = all_protein_ids.front().getIdentifier();
       const String scoreType = getStringOption_("score_type");
-      String old_score_type{all_peptide_ids.getEffectiveScoreType()}; // get original score type from list
+      String old_score_type{all_peptide_ids.getScoreType()}; // get original score type from list
       size_t index = 0;
       for (PeptideIdentification& pep_id : all_peptide_ids)
       {

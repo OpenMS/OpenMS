@@ -220,7 +220,7 @@ void TriqlerFile::storeLFQ(const String& filename,
     {
       // Note: Score type is now centralized - create temporary list to check
       PeptideIdentificationList temp_list(pep_ids);
-      if (!scores.isScoreType(temp_list.getEffectiveScoreType(), IDScoreSwitcherAlgorithm::ScoreType::PEP))
+      if (!scores.isScoreType(temp_list.getScoreType(), IDScoreSwitcherAlgorithm::ScoreType::PEP))
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "TriqlerFile export expects Posterior Error Probabilities in the IDs of all features"

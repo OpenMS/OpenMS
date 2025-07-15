@@ -203,7 +203,7 @@ private:
     if (keep_best_score_id && !feature.getPeptideIdentifications().empty())
     {
       const PeptideIdentificationList& pep_ids = feature.getPeptideIdentifications();
-      bool higher_score_better = pep_ids.getEffectiveHigherScoreBetter();
+      bool higher_score_better = pep_ids.isHigherScoreBetter();
       PeptideIdentification temp = pep_ids.front();
       //loop over all peptideIdentifications
       for (const PeptideIdentification& pep : pep_ids)

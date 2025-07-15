@@ -274,10 +274,11 @@ namespace OpenMS
           continue;
         }
 
+        // Use the score metadata from the PeptideIdentificationList
+        String score_type = peptide_ids.getScoreType().empty() ? "MS:1001143" : peptide_ids.getScoreType(); // Fallback to generic if not provided
         os << "\t\t<PeptideIdentification "
-           << "score_type=\"" << writeXMLEscape("MS:1001143") << "\" "; // Default generic search score
-        // Use default higher-is-better assumption for XML output
-        if (true)
+           << "score_type=\"" << writeXMLEscape(score_type) << "\" ";
+        if (peptide_ids.isHigherScoreBetter())
         {
           os << "higher_score_better=\"true\" ";
         }

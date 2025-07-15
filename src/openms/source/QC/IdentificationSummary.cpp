@@ -73,7 +73,7 @@ namespace OpenMS
     // get significance threshold if score type is FDR, else -1
     result.unique_peptides.count = peptides.size();
     result.unique_proteins.count = proteins.size();
-    if (pep_ids.getEffectiveScoreType() == "FDR")
+    if (pep_ids.getScoreType() == "FDR")
     {
       result.unique_peptides.fdr_threshold = pep_ids.front().getSignificanceThreshold();
     }

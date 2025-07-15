@@ -49,8 +49,7 @@ namespace OpenMS
         // give each hit a score based on the search rank (counting from 0):
         
         hit_it->setScore(rank - 1);
-      }
-      // Score metadata now handled at list level (will be set after processing all IDs)
+      }      
 
       // if "considered_hits" wasn't set, we find the max. number of hits:
       if (set_considered_hits &&
@@ -59,6 +58,8 @@ namespace OpenMS
         current_considered_hits_ = pep_it->getHits().size();
       }
     }
+    ids.setHigherScoreBetter(true); // not true now but after normalizing
+    ids.setScoreType("ConsensusID_ranks");
   }
 
 

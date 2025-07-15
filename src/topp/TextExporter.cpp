@@ -789,7 +789,7 @@ protected:
             writeProteinId(output, prot, protein_hit_meta_keys);
           }
           const auto& unassigned_peptides = feature_map.getUnassignedPeptideIdentifications();
-          String unassigned_score_type = unassigned_peptides.empty() ? "" : unassigned_peptides.getEffectiveScoreType();
+          String unassigned_score_type = unassigned_peptides.empty() ? "" : unassigned_peptides.getScoreType();
           for (const PeptideIdentification& pep : unassigned_peptides)
           {
             writePeptideId(output, pep, "UNASSIGNEDPEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys, unassigned_score_type);
@@ -827,7 +827,7 @@ protected:
           if (!no_ids)
           {
             const auto& feat_peptides = feat.getPeptideIdentifications();
-            String feat_score_type = feat_peptides.empty() ? "" : feat_peptides.getEffectiveScoreType();
+            String feat_score_type = feat_peptides.empty() ? "" : feat_peptides.getScoreType();
             for (const PeptideIdentification& pep : feat_peptides)
             {
               writePeptideId(output, pep, "PEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys, feat_score_type);
@@ -1305,7 +1305,7 @@ protected:
 
             // unassigned peptides
             const auto& consensus_unassigned = consensus_map.getUnassignedPeptideIdentifications();
-            String consensus_unassigned_score_type = consensus_unassigned.empty() ? "" : consensus_unassigned.getEffectiveScoreType();
+            String consensus_unassigned_score_type = consensus_unassigned.empty() ? "" : consensus_unassigned.getScoreType();
             for (PeptideIdentificationList::const_iterator pit = consensus_unassigned.begin(); pit != consensus_unassigned.end(); ++pit)
             {
               writePeptideId(output, *pit, "UNASSIGNEDPEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys, consensus_unassigned_score_type);
@@ -1343,7 +1343,7 @@ protected:
             if (!no_ids)
             {
               const auto& consensus_feat_peptides = cmit->getPeptideIdentifications();
-              String consensus_feat_score_type = consensus_feat_peptides.empty() ? "" : consensus_feat_peptides.getEffectiveScoreType();
+              String consensus_feat_score_type = consensus_feat_peptides.empty() ? "" : consensus_feat_peptides.getScoreType();
               for (PeptideIdentificationList::const_iterator pit = consensus_feat_peptides.begin(); pit != consensus_feat_peptides.end(); ++pit)
               {
                 writePeptideId(output, *pit, "PEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys, consensus_feat_score_type);
@@ -1442,7 +1442,7 @@ protected:
             // slight improvement on big idXML files with many different runs:
             // index the identifiers and peptide ids to avoid running over
             // them again and again (TODO)
-            String pep_ids_score_type = pep_ids.empty() ? "" : pep_ids.getEffectiveScoreType();
+            String pep_ids_score_type = pep_ids.empty() ? "" : pep_ids.getScoreType();
             for (PeptideIdentificationList::const_iterator pit =
                    pep_ids.begin(); pit != pep_ids.end(); ++pit)
             {

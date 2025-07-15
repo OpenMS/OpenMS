@@ -147,7 +147,7 @@ namespace OpenMS
     protein_identification.setSearchEngine(sequest);
     protein_identification.setSearchEngineVersion(sequest_version);
     protein_identification.setIdentifier(identifier);
-//      protein_identification.setScoreType("SEQUEST");
+    protein_identification.setScoreType("SEQUEST");
 
     // open the result
     ifstream result_file(result_filename.c_str());
@@ -387,6 +387,10 @@ namespace OpenMS
     {
       peptide_identifications.push_back(peptide_identification);
     }
+    
+    // Set score metadata at list level for SEQUEST
+    peptide_identifications.setScoreType(score_type);
+    peptide_identifications.setHigherScoreBetter(true); // SEQUEST: higher is better
     protein_identification.setHits(protein_hits);
     protein_identification.setDateTime(datetime);
 

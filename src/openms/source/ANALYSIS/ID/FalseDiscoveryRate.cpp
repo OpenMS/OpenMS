@@ -67,7 +67,7 @@ namespace OpenMS
     }
 
     // Use list-level metadata when available for better consistency
-    bool higher_score_better = ids.getEffectiveHigherScoreBetter();
+    bool higher_score_better = ids.isHigherScoreBetter();
 
     // first search for all identifiers and charge variants
     set<String> identifiers;
@@ -269,7 +269,7 @@ namespace OpenMS
               {
                 // if it is a target hit, there are no decoys, fdr/q-value should be zero then
                 new_hits.push_back(hits[i]);
-                String score_type = ids.getEffectiveScoreType() + "_score";
+                String score_type = ids.getScoreType() + "_score";
                 new_hits.back().setMetaValue(score_type, new_hits.back().getScore());
                 new_hits.back().setScore(0);
               }
@@ -324,7 +324,7 @@ namespace OpenMS
             continue;
           }
 
-          String score_type = ids.getEffectiveScoreType() + "_score";
+          String score_type = ids.getScoreType() + "_score";
           vector<PeptideHit> hits;
           for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
           {
@@ -423,14 +423,14 @@ namespace OpenMS
     }
 
     bool q_value = !param_.getValue("no_qvalues").toBool();
-    bool higher_score_better = fwd_ids.getEffectiveHigherScoreBetter();
+    bool higher_score_better = fwd_ids.isHigherScoreBetter();
     bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
     // calculate fdr for the forward scores
     map<double, double> score_to_fdr;
     calculateFDRs_(score_to_fdr, target_scores, decoy_scores, q_value, higher_score_better);
 
     // annotate fdr
-    String score_type = fwd_ids.getEffectiveScoreType() + "_score";
+    String score_type = fwd_ids.getScoreType() + "_score";
     
     // Set score metadata at list level instead of individual level
     if (q_value)
@@ -459,7 +459,7 @@ namespace OpenMS
     //write as well decoy peptides
     if (add_decoy_peptides)
     {
-      score_type = rev_ids.getEffectiveScoreType() + "_score";
+      score_type = rev_ids.getScoreType() + "_score";
       
       // Set score metadata at list level for reverse IDs too
       if (q_value)
@@ -883,7 +883,7 @@ namespace OpenMS
   //TODO can be templated for proteins
   double FalseDiscoveryRate::rocN(const PeptideIdentificationList& ids, Size fp_cutoff) const
   {
-    bool higher_score_better(ids.getEffectiveHigherScoreBetter());
+    bool higher_score_better(ids.isHigherScoreBetter());
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
 
     ScoreToTgtDecLabelPairs scores_labels;
@@ -908,7 +908,7 @@ namespace OpenMS
 
   double FalseDiscoveryRate::rocN(const PeptideIdentificationList& ids, Size fp_cutoff, const String& identifier) const
   {
-    bool higher_score_better(ids.getEffectiveHigherScoreBetter());
+    bool higher_score_better(ids.isHigherScoreBetter());
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
 
     ScoreToTgtDecLabelPairs scores_labels;
@@ -940,7 +940,7 @@ namespace OpenMS
       const auto& pepids = f.getPeptideIdentifications();
       if (!pepids.empty())
       {
-        higher_score_better = pepids.getEffectiveHigherScoreBetter();
+        higher_score_better = pepids.isHigherScoreBetter();
         break;
       }
     }
@@ -968,7 +968,7 @@ namespace OpenMS
 
   double FalseDiscoveryRate::rocN(const ConsensusMap& ids, Size fp_cutoff, const String& identifier, bool include_unassigned_peptides) const
   {
-    bool higher_score_better(ids[0].getPeptideIdentifications().getEffectiveHigherScoreBetter());
+    bool higher_score_better(ids[0].getPeptideIdentifications().isHigherScoreBetter());
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
 
     ScoreToTgtDecLabelPairs scores_labels;
@@ -1009,7 +1009,7 @@ namespace OpenMS
       if (!pep_ids.empty())
       {
         // Use list-level metadata when available
-        higher_score_better = pep_ids.getEffectiveHigherScoreBetter();
+        higher_score_better = pep_ids.isHigherScoreBetter();
         break;
       }
     }
@@ -1018,7 +1018,7 @@ namespace OpenMS
       const auto& unassigned = cmap.getUnassignedPeptideIdentifications();
       if (!unassigned.empty())
       {
-        higher_score_better = unassigned.getEffectiveHigherScoreBetter();
+        higher_score_better = unassigned.isHigherScoreBetter();
       }
     }
 
@@ -1147,7 +1147,7 @@ namespace OpenMS
         {
           if (pepid.getIdentifier() == identifier)
           {
-            higher_score_better = ids.getEffectiveHigherScoreBetter();
+            higher_score_better = ids.isHigherScoreBetter();
             break;
           }
         }
@@ -1175,7 +1175,7 @@ namespace OpenMS
         chargeRange.first = std::min(run.getSearchParameters().getChargeRange().first, chargeRange.first);
         chargeRange.second = std::max(run.getSearchParameters().getChargeRange().first, chargeRange.second);
       }
-      higher_score_better = ids.getEffectiveHigherScoreBetter();
+      higher_score_better = ids.isHigherScoreBetter();
       for (int c = chargeRange.first; c <= chargeRange.second; ++c)
       {
         if (c == 0) continue;
@@ -1184,7 +1184,7 @@ namespace OpenMS
     }
     else // altogether
     {
-      higher_score_better = ids.getEffectiveHigherScoreBetter();
+      higher_score_better = ids.isHigherScoreBetter();
       applyBasic(ids, higher_score_better);
     }
   }
@@ -1201,7 +1201,7 @@ namespace OpenMS
     {
       if (!f.getPeptideIdentifications().empty())
       {
-        higher_better = f.getPeptideIdentifications().getEffectiveHigherScoreBetter();
+        higher_better = f.getPeptideIdentifications().isHigherScoreBetter();
       }
     }
 
@@ -1240,7 +1240,7 @@ namespace OpenMS
     const string& score_type = q_value ? Constants::UserParam::PEPTIDE_Q_VALUE : "peptide FDR";
     bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
     // since we do not support multiple runs here yet, we take the orientation of the first ID
-    bool higher_better = ids.getEffectiveHigherScoreBetter();
+    bool higher_better = ids.isHigherScoreBetter();
 
     unordered_map<String, ScoreToTgtDecLabelPair> seq_to_score_labels;
     IDScoreGetterSetter::fillPeptideScoreMap_(seq_to_score_labels, ids);

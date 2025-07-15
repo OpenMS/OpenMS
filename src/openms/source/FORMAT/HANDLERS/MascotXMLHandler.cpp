@@ -591,7 +591,11 @@ namespace OpenMS::Internal
           var_mods.insert(var_mods.end(), mods_split.begin(), mods_split.end());
         }
         search_parameters_.variable_modifications = var_mods;
-        protein_identification_.setSearchParameters(search_parameters_);        
+        protein_identification_.setSearchParameters(search_parameters_);
+        
+        // Set score metadata at peptide identification list level for Mascot
+        id_data_.setScoreType("Mascot");
+        id_data_.setHigherScoreBetter(true); // Mascot: higher is better
       }
 
       tag_ = ""; // reset tag, for the following characters() call (due to line break) of the parent tag

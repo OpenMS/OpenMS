@@ -69,7 +69,7 @@ protected:
     void characters(const XMLCh* const chars, const XMLSize_t length) override;
 
     /// Writes a peptide identification to a stream (for assigned/unassigned peptide identifications)
-    void writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level);
+    void writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level, const String& score_type = "", bool higher_score_better = true);
 
     /// Add data from ProteinGroups to a MetaInfoInterface
     /// Since it can be used during load and store, it needs to take a param for the current mode (LOAD/STORE)

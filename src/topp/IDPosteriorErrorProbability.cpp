@@ -152,7 +152,7 @@ protected:
     bool target_decoy_available(false);
     if (!peptide_ids.empty())
     {
-      target_decoy_available = (peptide_ids.getEffectiveScoreType() == "q-value");
+      target_decoy_available = (peptide_ids.getScoreType() == "q-value");
       if (target_decoy_available)
       {
         // Check if any hits have target_decoy meta value

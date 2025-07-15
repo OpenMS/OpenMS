@@ -341,7 +341,7 @@ namespace OpenMS
         throw Exception::MissingInformation(__FILE__, __LINE__,
                                             OPENMS_PRETTY_FUNCTION, msg);
       }
-      else if (t == pep_ids.getEffectiveScoreType())
+      else if (t == pep_ids.getScoreType())
       {
         // we assume that all the other peptide ids
         // also already have the correct score set
@@ -397,7 +397,7 @@ namespace OpenMS
         if (!ids.empty())
         {
           new_type = findScoreType(ids[0], type);
-          if (new_type == ids.getEffectiveScoreType())
+          if (new_type == ids.getScoreType())
           {
             return;
           }
@@ -457,8 +457,8 @@ namespace OpenMS
     if (!pep_ids.empty())
     {
       // Use effective score metadata (list-level if available, otherwise from first element)
-      name = pep_ids.getEffectiveScoreType();
-      higher_better = pep_ids.getEffectiveHigherScoreBetter();
+      name = pep_ids.getScoreType();
+      higher_better = pep_ids.isHigherScoreBetter();
       
       // look up the score category ("RAW", "PEP", "q-value", etc.) for the given score name
       for (auto& [scoretype, names] : type_to_str_)
@@ -503,8 +503,8 @@ namespace OpenMS
       const auto& pep_ids = cf.getPeptideIdentifications();
       if (!pep_ids.empty())
       {
-        name = pep_ids.getEffectiveScoreType();
-        higher_better = pep_ids.getEffectiveHigherScoreBetter();
+        name = pep_ids.getScoreType();
+        higher_better = pep_ids.isHigherScoreBetter();
 
         // look up the score category ("RAW", "PEP", "q-value", etc.) for the given score name
         for (auto& [scoretype, names] : type_to_str_)
@@ -522,8 +522,8 @@ namespace OpenMS
     {
       for (const auto& id : cmap.getUnassignedPeptideIdentifications())
       {
-        name = cmap.getUnassignedPeptideIdentifications().getEffectiveScoreType();
-        higher_better = cmap.getUnassignedPeptideIdentifications().getEffectiveHigherScoreBetter();
+        name = cmap.getUnassignedPeptideIdentifications().getScoreType();
+        higher_better = cmap.getUnassignedPeptideIdentifications().isHigherScoreBetter();
 
          // look up the score category ("RAW", "PEP", "q-value", etc.) for the given score name
         for (auto& [scoretype, names] : type_to_str_)
@@ -559,7 +559,7 @@ namespace OpenMS
         const auto& ids = f.getPeptideIdentifications();
         if (!ids.empty())
         {
-          if (new_score_ == ids.getEffectiveScoreType()) // correct score or category already set
+          if (new_score_ == ids.getScoreType()) // correct score or category already set
           {
             return;
           }
@@ -590,7 +590,7 @@ namespace OpenMS
       if (pep_ids.empty()) return;
 
       // Use effective score type (list-level if available, otherwise from first element)
-      String current_score_type = pep_ids.getEffectiveScoreType();
+      String current_score_type = pep_ids.getScoreType();
 
       if (new_score_ == current_score_type) // correct score already set
       {

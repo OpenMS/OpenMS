@@ -745,7 +745,7 @@ namespace OpenMS
       auto& peptide_ids = feature.getPeptideIdentifications();
       if (!peptide_ids.empty())
       {
-        String score_type = peptide_ids.getEffectiveScoreType();
+        String score_type = peptide_ids.getScoreType();
         String score_l = score_type.toLower();
         bool convert_pep_to_pp = (score_l == "pep" || score_l == "posterior error probability" || score_l == "ms:1001493");
         
@@ -1052,7 +1052,7 @@ namespace OpenMS
     // Handle score type conversion before applying filter
     if (!peptideIDs.empty())
     {
-      String score_type = peptideIDs.getEffectiveScoreType();
+      String score_type = peptideIDs.getScoreType();
       String score_l = score_type.toLower();
       bool convert_pep_to_pp = (score_l == "pep" || score_l == "posterior error probability" || score_l == "ms:1001493");
       

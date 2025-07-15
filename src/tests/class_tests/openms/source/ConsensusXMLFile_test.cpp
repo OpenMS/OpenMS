@@ -191,6 +191,8 @@ START_SECTION((void store(const String &filename, const ConsensusMap &consensus_
 
   f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
 
+  TEST_EQUAL(map.getUnassignedPeptideIdentifications().getScoreType(), "score_type");
+
   // make protIDs non-unique
   map.getProteinIdentifications().push_back(map.getProteinIdentifications()[0]);
   TEST_EXCEPTION(Exception::ParseError, f.store(tmp_filename, map))

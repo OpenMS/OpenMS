@@ -125,7 +125,7 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
     TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), 33.85);
     TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[1].getScore(), 33.12);
     TEST_REAL_SIMILAR(peptide_identifications[1].getHits()[0].getScore(), 43.9);
-    TEST_EQUAL(peptide_identifications.getEffectiveScoreType(), "Mascot");
+    TEST_EQUAL(peptide_identifications.getScoreType(), "Mascot");
     // Score type is now centralized at list level - already tested above
     TEST_EQUAL(protein_identification.getDateTime() == date, true);
     TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATN(MOD:00565)FK(MOD:00445)"));
@@ -197,7 +197,7 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
     TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), 5.34);
     TEST_REAL_SIMILAR(peptide_identifications[49].getHits()[0].getScore(), 14.83);
     TEST_REAL_SIMILAR(peptide_identifications[49].getHits()[1].getScore(), 17.5);
-    TEST_EQUAL(peptide_identifications.getEffectiveScoreType(), "Mascot");
+    TEST_EQUAL(peptide_identifications.getScoreType(), "Mascot");
     // Score type is now centralized at list level - already tested above
     TEST_EQUAL(protein_identification.getDateTime().get() == "2011-06-24 19:34:54", true);
     TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), AASequence::fromString("VVFIK"));
@@ -295,7 +295,7 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
   TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), 33.85)
   TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[1].getScore(), 33.12)
   TEST_REAL_SIMILAR(peptide_identifications[1].getHits()[0].getScore(), 43.9)
-  TEST_EQUAL(peptide_identifications.getEffectiveScoreType(), "Mascot")
+  TEST_EQUAL(peptide_identifications.getScoreType(), "Mascot")
   // Score type is now centralized at list level - already tested above
   TEST_EQUAL(protein_identification.getDateTime() == date, true)
   TEST_EQUAL(peptide_identifications[0].getHits()[0].getSequence(), aa_sequence_1)

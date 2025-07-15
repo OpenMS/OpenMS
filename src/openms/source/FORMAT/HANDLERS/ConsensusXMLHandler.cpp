@@ -761,9 +761,10 @@ namespace OpenMS::Internal
     }
 
     //write unassigned peptide identifications
-    for (UInt i = 0; i < consensus_map.getUnassignedPeptideIdentifications().size(); ++i)
+    const auto& unassigned_pep_ids = consensus_map.getUnassignedPeptideIdentifications();
+    for (UInt i = 0; i < unassigned_pep_ids.size(); ++i)
     {
-      writePeptideIdentification_(file_, os, consensus_map.getUnassignedPeptideIdentifications()[i], "UnassignedPeptideIdentification", 1);
+      writePeptideIdentification_(file_, os, unassigned_pep_ids[i], "UnassignedPeptideIdentification", 1, unassigned_pep_ids.getScoreType(), unassigned_pep_ids.isHigherScoreBetter());
     }
 
     //file descriptions
@@ -820,9 +821,10 @@ namespace OpenMS::Internal
       os << "\t\t\t</groupedElementList>\n";
 
       // write PeptideIdentification
-      for (UInt j = 0; j < elem.getPeptideIdentifications().size(); ++j)
+      const auto& pep_id_list = elem.getPeptideIdentifications();
+      for (UInt j = 0; j < pep_id_list.size(); ++j)
       {
-        writePeptideIdentification_(file_, os, elem.getPeptideIdentifications()[j], "PeptideIdentification", 3);
+        writePeptideIdentification_(file_, os, pep_id_list[j], "PeptideIdentification", 3, pep_id_list.getScoreType(), pep_id_list.isHigherScoreBetter());
       }
 
       writeUserParam_("UserParam", os, elem, 3);
@@ -839,7 +841,7 @@ namespace OpenMS::Internal
   }
 
   void ConsensusXMLHandler::writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name,
-                                                UInt indentation_level)
+                                                UInt indentation_level, const String& id_score_type, bool higher_score_better)
   {
     String indent = String(indentation_level, '\t');
 
@@ -851,11 +853,10 @@ namespace OpenMS::Internal
     }
     os << indent << "<" << tag_name << " ";
     os << "identification_run_ref=\"" << identifier_id_[id.getIdentifier()] << "\" ";
-    // Note: Score metadata is now centralized at list level, but individual PeptideIdentification
-    // objects in XML still need score_type/higher_score_better attributes for compatibility.
-    // We use default values here since the actual metadata is stored at the list level.
-    os << "score_type=\"" << writeXMLEscape("MS:1001143") << "\" "; // Generic search score
-    os << "higher_score_better=\"true\" "; // Default assumption
+    // Use the score metadata passed from the PeptideIdentificationList
+    String score_type = id_score_type.empty() ? "MS:1001143" : id_score_type; // Fallback to generic if not provided
+    os << "score_type=\"" << writeXMLEscape(score_type) << "\" ";
+    os << "higher_score_better=\"" << (higher_score_better ? "true" : "false") << "\" ";
     os << "significance_threshold=\"" << id.getSignificanceThreshold() << "\" ";
     //mz
     if (id.hasMZ())

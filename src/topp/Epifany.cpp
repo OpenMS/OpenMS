@@ -185,7 +185,7 @@ protected:
   void convertPSMScores_(PeptideIdentificationList& mergedpeps)
   {
     //convert all scores to PPs
-    String score_l = mergedpeps.getEffectiveScoreType();
+    String score_l = mergedpeps.getScoreType();
     score_l = score_l.toLower();
     if (score_l == "pep" || score_l == "posterior error probability")
     {

@@ -29,14 +29,4 @@ namespace OpenMS
   {
     higher_score_better_ = value;
   }
-
-  String PeptideIdentificationList::getEffectiveScoreType() const
-  {
-    return score_type_;
-  }
-
-  bool PeptideIdentificationList::getEffectiveHigherScoreBetter() const
-  {
-    return higher_score_better_;
-  }
 }

@@ -291,7 +291,7 @@ namespace OpenMS
     for (auto & p : offset_peptides) // add offset peptides
     {
       peptides.push_back(std::move(p));
-      addPeptideToMap_(peptides.back(), peptide_map_, peptides.getEffectiveHigherScoreBetter());
+      addPeptideToMap_(peptides.back(), peptide_map_, peptides.isHigherScoreBetter());
       n_added++;
     }
     
@@ -359,7 +359,7 @@ namespace OpenMS
         peptides.back().setMZ(feat.getMZ());
         peptides.back().setMetaValue("FFId_category", "internal");
         peptides.back().setMetaValue("SeedFeatureID", String(feat.getUniqueId()));
-        addPeptideToMap_(peptides.back(), peptide_map_, peptides.getEffectiveHigherScoreBetter());
+        addPeptideToMap_(peptides.back(), peptide_map_, peptides.isHigherScoreBetter());
         ++seeds_added;
       }
     }
@@ -479,7 +479,7 @@ namespace OpenMS
 
     for (auto& pep : peptides)
     {
-      addPeptideToMap_(pep, peptide_map_, peptides.getEffectiveHigherScoreBetter()); // stores pointer to pep in map
+      addPeptideToMap_(pep, peptide_map_, peptides.isHigherScoreBetter()); // stores pointer to pep in map
       pep.setMetaValue("FFId_category", "internal");
     }
 
@@ -501,7 +501,7 @@ namespace OpenMS
       // Process and add external peptides
       for (PeptideIdentification& pep : peptides_ext)
       {
-        addPeptideToMap_(pep, peptide_map_, peptides_ext.getEffectiveHigherScoreBetter(), true);
+        addPeptideToMap_(pep, peptide_map_, peptides_ext.isHigherScoreBetter(), true);
         pep.setMetaValue("FFId_category", "external");
       }
       n_external_peps_ = peptide_map_.size() - n_internal_peps_;

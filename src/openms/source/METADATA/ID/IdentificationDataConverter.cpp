@@ -192,8 +192,8 @@ namespace OpenMS
                                  "converting peptide identifications");
     
     // Extract score metadata once from the peptide identification list
-    String effective_score_type = peptides.getEffectiveScoreType();
-    bool effective_higher_better = peptides.getEffectiveHigherScoreBetter();
+    String id_score_type = peptides.getScoreType();
+    bool score_higher_better = peptides.isHigherScoreBetter();
     
     Size peptides_counter = 0;
     for (const PeptideIdentification& pep : peptides)
@@ -265,7 +265,7 @@ namespace OpenMS
 
       ID::ObservationRef obs_ref = id_data.registerObservation(obs);
 
-      ID::ScoreType score_type(effective_score_type, effective_higher_better);
+      ID::ScoreType score_type(id_score_type, score_higher_better);
       ID::ScoreTypeRef score_ref = id_data.registerScoreType(score_type);
 
       // PeptideHit:

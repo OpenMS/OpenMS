@@ -786,12 +786,12 @@ namespace OpenMS
         }
         else
         {
-          bool haspep = peptide_ids.getEffectiveScoreType() == "Posterior Error Probability" || peptide_ids.getEffectiveScoreType() == "pep";
+          bool haspep = peptide_ids.getScoreType() == "Posterior Error Probability" || peptide_ids.getScoreType() == "pep";
           bool percolator = false;
           if (search_engine_name == "X! Tandem")
           {
             // check if score type is XTandem or qvalue/fdr
-            if (peptide_ids.getEffectiveScoreType() == "XTandem")
+            if (peptide_ids.getScoreType() == "XTandem")
             {
               f << "\t\t\t<search_score" << R"( name="hyperscore" value=")" << h.getScore() << "\"" << "/>\n";
               f << "\t\t\t<search_score" << R"( name="nextscore" value=")";
@@ -894,13 +894,13 @@ namespace OpenMS
           } // Anything else
           else
           {
-            f << "\t\t\t<search_score" << " name=\"" << peptide_ids.getEffectiveScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << " name=\"" << peptide_ids.getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
           }
           // Any search engine with a PEP (e.g. also our IDPEP) except Percolator which has
           // written that part already
           if (haspep && !percolator)
           {
-            f << "\t\t\t<search_score" << " name=\"" << peptide_ids.getEffectiveScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << " name=\"" << peptide_ids.getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
             double probability = 1.0 - h.getScore();
             f << "\t\t\t<analysis_result" << " analysis=\"peptideprophet\">\n";
             f << "\t\t\t\t<peptideprophet_result" << " probability=\"" << probability << "\"";

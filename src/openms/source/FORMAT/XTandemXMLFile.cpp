@@ -76,6 +76,10 @@ namespace OpenMS
     protein_identification.setDateTime(now);
     protein_identification.setIdentifier(identifier);
 
+    // Set score metadata at list level for XTandem peptide identifications
+    peptide_ids.setScoreType("XTandem");
+    peptide_ids.setHigherScoreBetter(true); // XTandem: higher is better
+
     // TODO search parameters are also available
 
     // mods may be changed, copy them back:

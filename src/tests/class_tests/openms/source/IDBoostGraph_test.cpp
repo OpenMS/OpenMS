@@ -1,3 +1,4 @@
+
 // Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
@@ -95,6 +96,7 @@ START_TEST(IDBoostGraph, "$Id$")
           PeptideIdentificationList peps;
           IdXMLFile idf;
           idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
+
           IDBoostGraph idb{prots[0], peps, 0, false, false};
           TEST_EQUAL(idb.getNrConnectedComponents(), 0)
           TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 14)
@@ -116,7 +118,7 @@ START_TEST(IDBoostGraph, "$Id$")
           PeptideIdentificationList peps;
           IdXMLFile idf;
           idf.load(OPENMS_GET_TEST_DATA_PATH("IDBoostGraph_test_in.idXML"),prots,peps);
-
+    
           IDBoostGraph idb{prots[0], peps, 1, true, false};
           TEST_EQUAL(idb.getNrConnectedComponents(), 0)
           TEST_EQUAL(boost::num_vertices(idb.getComponent(0)), 8)

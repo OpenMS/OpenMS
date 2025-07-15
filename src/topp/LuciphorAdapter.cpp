@@ -533,7 +533,7 @@ protected:
     
     // initialize map
     map<String, vector<String> > config_map;
-    String selection_method = getSelectionMethod_(pep_ids.getEffectiveScoreType(), prot_ids.begin()->getSearchEngine());
+    String selection_method = getSelectionMethod_(pep_ids.getScoreType(), prot_ids.begin()->getSearchEngine());
     
     ExitCodes ret = parseParameters_(config_map, id, in, out, target_mods, selection_method);
     if (ret != EXECUTION_OK)
@@ -594,7 +594,7 @@ protected:
       return ret;
     }
     
-    String effective_score_type = pep_ids.getEffectiveScoreType();
+    String score_type = pep_ids.getScoreType();
     for (PeptideIdentification& pep : pep_ids)
     {
       Size scan_idx;
@@ -614,7 +614,7 @@ protected:
       if (!pep.getHits().empty())
       {
         PeptideHit scored_hit = pep.getHits()[0];
-        addScoreToMetaValues_(scored_hit, effective_score_type);
+        addScoreToMetaValues_(scored_hit, score_type);
         
         struct LuciphorPSM l_psm;
         if (l_psms.count(scan_idx) > 0)

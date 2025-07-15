@@ -276,8 +276,8 @@ namespace OpenMS
     bool treat_modification_variants_separately(param_.getValue("treat_modification_variants_separately").toBool());
     bool use_shared_peptides(param_.getValue("use_shared_peptides").toBool());
 
-    String effective_score_type = pep_ids.getEffectiveScoreType();
-    if (effective_score_type != overall_score_type)
+    String score_type = pep_ids.getScoreType();
+    if (score_type != overall_score_type)
     {
       throw OpenMS::Exception::InvalidParameter(
           __FILE__,
@@ -285,8 +285,6 @@ namespace OpenMS
           OPENMS_PRETTY_FUNCTION,
           "Effective score type does not match overall score type. Aborting...");
     }
-    // Note: Score type validation now done at list level - individual entries no longer store score metadata
-    // No validation needed as all score metadata is centralized
 
     for (auto& pep : pep_ids)
     {

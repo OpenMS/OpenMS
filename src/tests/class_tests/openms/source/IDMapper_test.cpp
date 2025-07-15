@@ -166,11 +166,15 @@ START_SECTION((void annotate(AnnotatedMSRun& map, const PeptideIdentificationLis
   vector<ProteinIdentification> protein_identifications;
   String document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_1.idXML"), protein_identifications, identifications, document_id);
+  identifications.setScoreType("");
+  identifications.setHigherScoreBetter(true);
 
   PeptideIdentificationList identifications2;
   vector<ProteinIdentification> protein_identifications2;
   String document_id2;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_7.idXML"), protein_identifications2, identifications2, document_id2);
+  identifications2.setScoreType("");
+  identifications2.setHigherScoreBetter(true);
 
   TEST_EQUAL(identifications.size(),3)
   TEST_EQUAL(identifications[0].getHits().size(), 2)
@@ -290,6 +294,8 @@ START_SECTION((template < typename FeatureType > void annotate(FeatureMap< Featu
   vector<ProteinIdentification> protein_identifications;
   String document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_2.idXML"), protein_identifications, identifications, document_id);
+  identifications.setScoreType("");
+  identifications.setHigherScoreBetter(true);
 
   //--------------------------------------------------------------------------------------
   //TEST MAPPING TO CONVEX HULLS
@@ -406,6 +412,8 @@ START_SECTION((template < typename FeatureType > void annotate(FeatureMap< Featu
 
   // ******* PPM test *******
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_4.idXML"), protein_identifications, identifications);
+  identifications.setScoreType("");
+  identifications.setHigherScoreBetter(true);
 
   FeatureMap fm_ppm;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_4.featureXML"), fm_ppm);
@@ -464,7 +472,11 @@ START_SECTION((void annotate(ConsensusMap& map, const PeptideIdentificationList&
   String document_id;
   String document_id2;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.idXML"), protein_ids, peptide_ids, document_id);
+  peptide_ids.setScoreType("Inspect");
+  peptide_ids.setHigherScoreBetter(true);
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_5.idXML"), protein_ids2, peptide_ids2, document_id2);
+  peptide_ids2.setScoreType("PeptideProphet probability");
+  peptide_ids2.setHigherScoreBetter(true);
 
   ConsensusXMLFile cons_file;
 

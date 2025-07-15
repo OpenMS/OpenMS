@@ -19,32 +19,15 @@ namespace OpenMS
   }
 
 
-  void ConsensusIDAlgorithmIdentity::preprocess_(
-    PeptideIdentificationList& ids)
-  {
-    // With centralized score architecture, score type and orientation are consistent by design
-    // Individual PeptideIdentification objects no longer store score metadata
-    String effective_score_type = ids.getEffectiveScoreType();
-    bool higher_better = ids.getEffectiveHigherScoreBetter();
-    
-    // Log the effective score metadata being used
-    OPENMS_LOG_DEBUG << "Using effective score type: '" << effective_score_type
-                     << "' with orientation: " << (higher_better ? "higher" : "lower")
-                     << " is better." << endl;
-  }
-
-
   void ConsensusIDAlgorithmIdentity::apply_(PeptideIdentificationList& ids,
                                             const map<String, String>& se_info,
                                             SequenceGrouping& results)
   {
-    preprocess_(ids);
-
     // group peptide hits by sequence:
     for (PeptideIdentificationList::iterator pep_it = ids.begin();
          pep_it != ids.end(); ++pep_it)
     {
-      String score_type = ids.getEffectiveScoreType();
+      String score_type = ids.getScoreType();
       auto se = se_info.find(pep_it->getIdentifier());
       if (se != se_info.end())
       {
@@ -84,7 +67,7 @@ namespace OpenMS
     }
 
     // calculate score and support, and update results with them:
-    bool higher_better = ids.getEffectiveHigherScoreBetter();
+    bool higher_better = ids.isHigherScoreBetter();
     Size n_other_ids = (count_empty_ ? number_of_runs_ : ids.size()) - 1;
     for (SequenceGrouping::iterator res_it = results.begin(); 
          res_it != results.end(); ++res_it)

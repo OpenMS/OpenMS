@@ -129,6 +129,8 @@ pep_id.setHits({ target_novo_hit1, decoy1, decoy2 });
 pep_ids.push_back(pep_id);
 pep_ids.setScoreType("some_score");
 pep_ids.setHigherScoreBetter(false);
+top_decoy.setScoreType("some_score");
+top_decoy.setHigherScoreBetter(false);
 top_decoy.push_back(pep_id);
 
 pep_id.setHits({ target_db_hit1, decoy1, decoy3 });
@@ -137,6 +139,8 @@ top_decoy.push_back(pep_id);
 
 pep_id.setHits({ target_db_hit2 });
 pep_ids.push_back(pep_id);
+few_decoys.setScoreType("some_score");
+few_decoys.setHigherScoreBetter(false);
 few_decoys.push_back(pep_id);
 
 pep_id.setHits({ high_decoy, target_db_hit2 });
@@ -145,6 +149,8 @@ top_decoy.push_back(pep_id);
 pep_id.setHits({ target_novo_hit1, target_db_hit1, decoy2, decoy3});
 pep_ids.push_back(pep_id);
 top_decoy.push_back(pep_id);
+no_xcorr_ids.setScoreType("some_score");
+no_xcorr_ids.setHigherScoreBetter(false);
 no_xcorr_ids.push_back(pep_id);
 
 pep_id.setHits({ target_novo_hit2, target_db_hit1 });
@@ -161,6 +167,7 @@ PeptideIdentificationList FDR_id;
 pep_id.setHits({ decoy1 });
 FDR_id.push_back(pep_id);
 FDR_id.setScoreType("q-value");
+FDR_id.setHigherScoreBetter(false);
 
 vector<FASTAFile::FASTAEntry> empty_fasta;
 MSExperiment empty_exp;
@@ -354,7 +361,9 @@ START_SECTION(UInt numberOfUniqueProteins_(const PeptideIdentificationList& peps
   id_hit_without_info.setHits({empty_hit});
 
   PeptideIdentificationList ids({id1, id2, empty_id, id3});
-
+  ids.setScoreType("some_score");
+  ids.setHigherScoreBetter(false);
+  
   TEST_EQUAL(private_suit.numberOfUniqueProteins(ids), 3);
   TEST_EQUAL(private_suit.numberOfUniqueProteins(ids, 5), 4);
   TEST_EXCEPTION(Exception::MissingInformation, private_suit.numberOfUniqueProteins({id_hit_without_info}));
@@ -404,12 +413,14 @@ START_SECTION(double getScoreMatchingFDR_(const PeptideIdentificationList& pep_i
   
   PeptideIdentificationList test_ids = {id1, id2, id3, id4};
   test_ids.setScoreType("q-value");
+  test_ids.setHigherScoreBetter(false);
 
   TEST_EQUAL(private_suit.getScoreMatchingFDR(test_ids, 0.05, "some_score", true), 75);
   TEST_EQUAL(private_suit.getScoreMatchingFDR(test_ids, 0.05, "some", false), 120);
   
   PeptideIdentificationList single_id = {id1};
   single_id.setScoreType("e-value");
+  single_id.setHigherScoreBetter(false);
   TEST_EXCEPTION(Exception::IllegalArgument, private_suit.getScoreMatchingFDR(single_id, 0.05, "e-value", false));
   TEST_EXCEPTION(Exception::Precondition, private_suit.getScoreMatchingFDR(single_id, 0.05, "some_score", false));
 }

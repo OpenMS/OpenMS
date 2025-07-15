@@ -202,9 +202,9 @@ namespace OpenMS
         {
           files_and_peptide_identification_with_scan_number.back().second.emplace_back(peptide_identifications.size(), scan_number);
           peptide_identifications.push_back(peptide_identification);
-          // Set score metadata at list level for MQScore
-          peptide_identifications.setScoreType("MQScore");
-          peptide_identifications.setHigherScoreBetter(true); // MQScore: higher is better
+          // Set score metadata at list level for Inspect
+          peptide_identifications.setScoreType("Inspect");
+          peptide_identifications.setHigherScoreBetter(true); // Inspect: higher is better
         }
         peptide_identification = PeptideIdentification();
 
@@ -261,8 +261,8 @@ namespace OpenMS
       files_and_peptide_identification_with_scan_number.back().second.emplace_back(peptide_identifications.size(), scan_number);
       peptide_identifications.push_back(peptide_identification);
       // Set score metadata at list level for MQScore
-      peptide_identifications.setScoreType("MQScore");
-      peptide_identifications.setHigherScoreBetter(true); // MQScore: higher is better
+      peptide_identifications.setScoreType("Inspect");
+      peptide_identifications.setHigherScoreBetter(true);
     }
 
     // if the last file had no hits, delete it

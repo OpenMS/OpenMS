@@ -113,7 +113,7 @@ START_SECTION(std::vector< Size > load(const String& result_filename, std::vecto
 	if ( peptide_identifications.size() == 1 )
 	{
 		TEST_EQUAL(peptide_identifications[0].getHits().size(), 1)
-		TEST_STRING_EQUAL(peptide_identifications.getEffectiveScoreType(), "Inspect")
+		TEST_STRING_EQUAL(peptide_identifications.getScoreType(), "Inspect")
 		TEST_REAL_SIMILAR(peptide_identifications[0].getSignificanceThreshold(), 0.001)
 		if( peptide_identifications[0].getHits().size() == 1)
 		{
@@ -135,7 +135,7 @@ START_SECTION(std::vector< Size > load(const String& result_filename, std::vecto
 	if ( peptide_identifications.size() == 1 )
 	{
 		TEST_EQUAL(peptide_identifications[0].getHits().size(), 2)
-		TEST_STRING_EQUAL(peptide_identifications.getEffectiveScoreType(), "Inspect")
+		TEST_STRING_EQUAL(peptide_identifications.getScoreType(), "Inspect")
 		TEST_REAL_SIMILAR(peptide_identifications[0].getSignificanceThreshold(), 0.01)
 		if( peptide_identifications[0].getHits().size() == 2 )
 		{

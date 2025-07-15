@@ -247,14 +247,14 @@ namespace OpenMS
       if (pep_it->getHits().empty())
         continue; // shouldn't be the case
 
-      best1.insert(getBestHitSequence_(*pep_it, pep1.getEffectiveHigherScoreBetter()).toString());
+      best1.insert(getBestHitSequence_(*pep_it, pep1.isHigherScoreBetter()).toString());
     }
     for (PeptideIdentificationList::const_iterator pep_it = pep2.begin(); pep_it != pep2.end(); ++pep_it)
     {
       if (pep_it->getHits().empty())
         continue; // shouldn't be the case
 
-      best2.insert(getBestHitSequence_(*pep_it, pep2.getEffectiveHigherScoreBetter()).toString());
+      best2.insert(getBestHitSequence_(*pep_it, pep2.isHigherScoreBetter()).toString());
     }
     return best1 == best2;
   }

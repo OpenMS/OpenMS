@@ -82,8 +82,8 @@ START_SECTION((PeptideIdentification(const PeptideIdentification& source)))
   TEST_TRUE(*(hits.getHits().begin()) == peptide_hit)
   TEST_EQUAL((UInt)hits.getMetaValue("label"),17)
   TEST_EQUAL(hits.getIdentifier(),"id")
-  TEST_EQUAL(hits_list.getEffectiveScoreType(),"score_type")
-  TEST_FALSE(hits_list.getEffectiveHigherScoreBetter())
+  TEST_EQUAL(hits_list.getScoreType(),"score_type")
+  TEST_FALSE(hits_list.isHigherScoreBetter())
 }
 END_SECTION
 
@@ -119,8 +119,8 @@ START_SECTION((PeptideIdentification(PeptideIdentification&& source) noexcept))
   TEST_TRUE(*(hits.getHits().begin()) == peptide_hit)
   TEST_EQUAL((UInt)hits.getMetaValue("label"),17)
   TEST_EQUAL(hits.getIdentifier(),"id")
-  TEST_EQUAL(hits_list.getEffectiveScoreType(),"score_type")
-  TEST_FALSE(hits_list.getEffectiveHigherScoreBetter())
+  TEST_EQUAL(hits_list.getScoreType(),"score_type")
+  TEST_FALSE(hits_list.isHigherScoreBetter())
 
   // the move source should be empty
   TEST_TRUE(example.getHits().empty())
@@ -154,8 +154,8 @@ START_SECTION((PeptideIdentification& operator=(const PeptideIdentification& sou
   TEST_TRUE(*(hits.getHits().begin()) == peptide_hit)
   TEST_EQUAL((UInt)hits.getMetaValue("label"),17)
   TEST_EQUAL(hits.getIdentifier(),"id")
-  TEST_EQUAL(hits_list.getEffectiveScoreType(),"score_type")
-  TEST_FALSE(hits_list.getEffectiveHigherScoreBetter())
+  TEST_EQUAL(hits_list.getScoreType(),"score_type")
+  TEST_FALSE(hits_list.isHigherScoreBetter())
 END_SECTION
 
 START_SECTION((bool operator == (const PeptideIdentification& rhs) const))
@@ -290,11 +290,11 @@ START_SECTION((Score methods now managed at PeptideIdentificationList level))
   // Test setting values
   hits_list.setScoreType("bla");
   TEST_EQUAL(hits_list.getScoreType(), "bla")
-  TEST_EQUAL(hits_list.getEffectiveScoreType(), "bla")
+  TEST_EQUAL(hits_list.getScoreType(), "bla")
   
   hits_list.setHigherScoreBetter(true);
   TEST_TRUE(hits_list.isHigherScoreBetter())
-  TEST_TRUE(hits_list.getEffectiveHigherScoreBetter())
+  TEST_TRUE(hits_list.isHigherScoreBetter())
 END_SECTION
 
 START_SECTION((const String& getIdentifier() const))

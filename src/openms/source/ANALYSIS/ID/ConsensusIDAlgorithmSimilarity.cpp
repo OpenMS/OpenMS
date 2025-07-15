@@ -24,24 +24,22 @@ namespace OpenMS
     const map<String, String>& se_info,
     SequenceGrouping& results)
   {
-    String effective_score_type = ids.getEffectiveScoreType();
-    if (effective_score_type != "Posterior Error Probability" &&
-        effective_score_type != "pep" &&
-        effective_score_type != "MS:1001493")
+    String score_type = ids.getScoreType();
+    if (score_type != "Posterior Error Probability" &&
+        score_type != "pep" &&
+        score_type != "MS:1001493")
     {
       String msg = "Score type must be 'Posterior Error Probability'";
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    msg, effective_score_type);
+                                    msg, score_type);
     }
-    // With centralized score architecture, score type consistency is guaranteed by design
-    // Individual PeptideIdentification objects no longer store score metadata
-    OPENMS_LOG_DEBUG << "Using effective score type: '" << effective_score_type
-                     << "' for similarity comparison." << endl;
+
+    OPENMS_LOG_DEBUG << "Using score type: '" << score_type << "' for similarity comparison." << endl;
 
     for (PeptideIdentificationList::iterator id1 = ids.begin();
          id1 != ids.end(); ++id1)
     {
-      String score_type = ids.getEffectiveScoreType();
+      String score_type = ids.getScoreType();
       auto se = se_info.find(id1->getIdentifier());
       if (se != se_info.end())
       {

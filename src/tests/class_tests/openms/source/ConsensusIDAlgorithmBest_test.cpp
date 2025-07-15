@@ -152,6 +152,8 @@ START_SECTION([EXTRA] void apply(PeptideIdentificationList& ids))
   ConsensusIDAlgorithmBest consensus;
 
   PeptideIdentificationList id(1);
+  id.setScoreType("Posterior Error Probability");
+  id.setHigherScoreBetter(false);
   id[0].getHits().resize(2);
   id[0].getHits()[0].setSequence(AASequence::fromString("PEPTIDE"));
   id[0].getHits()[1] = id[0].getHits()[0]; // duplicated peptide hit

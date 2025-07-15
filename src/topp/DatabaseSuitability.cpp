@@ -200,7 +200,7 @@ protected:
     IDFilter::filterHitsByScore(novo_peps, novo_threshold);
     
     // Check score type at list level (centralized architecture)
-    if (novo_peps.getEffectiveScoreType() != "novorscore")
+    if (novo_peps.getScoreType() != "novorscore")
     {
       OPENMS_LOG_ERROR << in_novo << " contains identifications without a novorscore! Make sure this file contains only deNovo sequences." << endl;
       return INPUT_FILE_CORRUPT;

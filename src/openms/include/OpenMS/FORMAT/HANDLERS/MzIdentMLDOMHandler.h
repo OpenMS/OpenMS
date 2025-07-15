@@ -135,6 +135,9 @@ protected:
       void parseProteinAmbiguityGroupElement_(xercesc::DOMElement* proteinAmbiguityGroupElement, ProteinIdentification& protein_identification);
       void parseProteinDetectionListElements_(xercesc::DOMNodeList* proteinDetectionListElements);
       static ProteinIdentification::SearchParameters findSearchParameters_(std::pair<CVTermList, std::map<String, DataValue> > as_params);
+      
+      /// Helper function to set list-level score metadata based on CV terms and search engine
+      void setListLevelScoreMetadata_(PeptideIdentificationList& pep_list, const String& spectrumIdentificationList_ref);
       //@}
 
       /**@name Helper functions to build a DOM tree from the internal id structures*/

@@ -803,6 +803,8 @@ namespace OpenMS
 
   void AccurateMassSearchEngine::annotate_(const std::vector<AccurateMassSearchResult>& amr, BaseFeature& f) const
   {
+    f.getPeptideIdentifications().setScoreType("AccurateMassSearchScore");
+    f.getPeptideIdentifications().setHigherScoreBetter(true);
     f.getPeptideIdentifications().resize(f.getPeptideIdentifications().size() + 1);
     f.getPeptideIdentifications().back().setIdentifier(search_engine_identifier);
     for (const AccurateMassSearchResult& result : amr)

@@ -47,7 +47,7 @@ namespace OpenMS
     }
 
     PeptideIdentificationList::iterator pos;
-    if (peptides.getEffectiveHigherScoreBetter())     // find highest-scoring ID
+    if (peptides.isHigherScoreBetter())     // find highest-scoring ID
     {
       pos = max_element(peptides.begin(), peptides.end(), compareIDsSmallerScores_);
     }
@@ -113,7 +113,7 @@ namespace OpenMS
     }
 
     PeptideIdentificationList::iterator pos;
-    if (peptides.getEffectiveHigherScoreBetter())     // find highest-scoring ID
+    if (peptides.isHigherScoreBetter())     // find highest-scoring ID
     {
       pos = max_element(peptides.begin(), peptides.end(), compareIDsSmallerScores_);
     }
