@@ -216,7 +216,7 @@ namespace OpenMS::DIAHelpers
         {
           integratedWindowsIntensity.push_back(intensity);
           integratedWindowsMZ.push_back(mz);
-	  integratedWindowsIm.push_back(im);
+	        integratedWindowsIm.push_back(im);
         }
         else if (!remZero)
         {
@@ -228,7 +228,7 @@ namespace OpenMS::DIAHelpers
           }
           else
           {
-            integratedWindowsIm.push_back(-1);
+            integratedWindowsIm.push_back(-1.);
           }
         }
       }
@@ -433,7 +433,7 @@ namespace OpenMS::DIAHelpers
 
     /// given a peak of experimental mz and intensity, add isotope pattern to a "spectrum".
     void addSinglePeakIsotopes2Spec(double mz, double ity,
-                                    std::vector<std::pair<double, double> >& isotope_masses, //[out]
+                                    std::vector<std::pair<double, double>>& isotope_masses, //[out]
                                     Size nr_isotopes, int charge)
     {
       std::vector<std::pair<double, double> > isotopes;
@@ -471,7 +471,7 @@ namespace OpenMS::DIAHelpers
                               double mannmass, int charge)
     {
       charge = std::abs(charge);
-      Size mul = 1.;
+      Size mul = 1;
       for (UInt j = 0; j < nr_peaks; ++j, ++mul)
       {
         isotope_spec.emplace_back(mz - (mul * mannmass) / charge,

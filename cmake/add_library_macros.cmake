@@ -11,13 +11,6 @@ include(CMakeParseArguments)
 include(GenerateExportHeader)
 include(CheckLibArchitecture)
 
-
-#------------------------------------------------------------------------------
-# Enable AddressSanitizer and include some helper function to add compiler and linker flags
-#------------------------------------------------------------------------------  
-option(ADDRESS_SANITIZER "[Clang/GCC only] Enable AddressSanitizer mode (quite slow)." OFF)
-include(${PROJECT_SOURCE_DIR}/cmake/AddressSanitizer.cmake)
-
 #------------------------------------------------------------------------------
 ## export a single option indicating if libraries should be build as unity
 ## build

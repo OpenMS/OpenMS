@@ -67,11 +67,9 @@ namespace OpenSwath
   double manhattanDist(Texp itExpBeg, Texp itExpEnd, Ttheo itTheo)
   {
     double sum = 0.0;
-    for (std::size_t i = 0; itExpBeg < itExpEnd; ++itExpBeg, ++itTheo, ++i)
+    for (; itExpBeg < itExpEnd; ++itExpBeg, ++itTheo)
     {
-      double x = *itExpBeg - *itTheo;
-      x = fabs(x);
-      sum += x;
+      sum += fabs(*itExpBeg - *itTheo);
     }
     return sum;
   }
