@@ -629,7 +629,7 @@ def update_scores_from_df(peps: _PeptideIdentificationList, df : _pd.DataFrame, 
         pid_index = int(row["P_ID"])
         pi = _PeptideIdentification(peps[pid_index])
         pi.setScoreType(main_score_name)
-        hits = pi.getHits() # type: _PeptideIdentificationList
+        hits = pi.getHits() # type: list[PeptideHit]
         if len(hits) > 0:
             best_hit = hits[0]
             best_hit.setScore(float(row[main_score_name]))
