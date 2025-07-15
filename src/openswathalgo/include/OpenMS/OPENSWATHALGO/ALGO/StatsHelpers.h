@@ -13,6 +13,7 @@
 #include <cmath>
 #include <complex>
 #include <numeric>
+#include <execution>
 #include <vector>
 #include <cstddef>
 
@@ -45,10 +46,8 @@ namespace OpenSwath
   template <typename Texp, typename Ttheo>
   double dotProd(Texp intExpBeg, Texp intExpEnd, Ttheo intTheo)
   {
-    std::vector<double> res(std::distance(intExpBeg, intExpEnd));
-    std::transform(intExpBeg, intExpEnd, intTheo, res.begin(), std::multiplies<double>());
-    double sum = std::accumulate(res.begin(), res.end(), 0.);
-    return sum;
+      return std::transform_reduce(std::execution::unseq, intExpBeg, intExpEnd,
+                                intTheo, 0.0);
   }
 
   /**
