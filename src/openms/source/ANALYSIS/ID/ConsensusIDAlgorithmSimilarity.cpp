@@ -33,17 +33,10 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     msg, effective_score_type);
     }
-    // Validate individual entries are consistent with effective score type
-    for (PeptideIdentificationList::iterator id = ids.begin();
-         id != ids.end(); ++id)
-    {
-      if (!id->getScoreType().empty() && id->getScoreType() != effective_score_type)
-      {
-        String msg = "Individual score types must match the effective score type";
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      msg, id->getScoreType());
-      }
-    }
+    // With centralized score architecture, score type consistency is guaranteed by design
+    // Individual PeptideIdentification objects no longer store score metadata
+    OPENMS_LOG_DEBUG << "Using effective score type: '" << effective_score_type
+                     << "' for similarity comparison." << endl;
 
     for (PeptideIdentificationList::iterator id1 = ids.begin();
          id1 != ids.end(); ++id1)

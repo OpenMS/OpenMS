@@ -115,6 +115,10 @@ protected:
     std::map<String, String> id_identifier_;
     /// Temporary search parameters file
     ProteinIdentification::SearchParameters search_param_;
+    /// Temporary score type for XML parsing
+    String temp_score_type_;
+    /// Temporary score orientation for XML parsing
+    bool temp_higher_score_better_;
 
     UInt progress_;
   };

@@ -22,39 +22,15 @@ namespace OpenMS
   void ConsensusIDAlgorithmIdentity::preprocess_(
     PeptideIdentificationList& ids)
   {
-    // check score types and orientations:
-    bool higher_better = ids.getEffectiveHigherScoreBetter();
+    // With centralized score architecture, score type and orientation are consistent by design
+    // Individual PeptideIdentification objects no longer store score metadata
     String effective_score_type = ids.getEffectiveScoreType();
-    set<String> score_types;
-
-    for (PeptideIdentificationList::iterator pep_it = ids.begin();
-         pep_it != ids.end(); ++pep_it)
-    {
-      // Validate individual entries are consistent with effective orientation
-      if (!pep_it->getScoreType().empty() && pep_it->isHigherScoreBetter() != higher_better)
-      {
-        // scores with different orientations definitely aren't comparable:
-        String hi_lo = higher_better ? "higher/lower" : "lower/higher";
-        String msg = "Score types '" + effective_score_type + "' and '" +
-          pep_it->getScoreType() + "' have different orientations (" + hi_lo +
-          " is better) and cannot be compared meaningfully.";
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      msg, higher_better ? "false" : "true");
-      }
-      if (!pep_it->getScoreType().empty())
-      {
-        score_types.insert(pep_it->getScoreType());
-      }
-    }
-
-    if (score_types.size() > 1)
-    {
-      String types;
-      types.concatenate(score_types.begin(), score_types.end(), "'/'");
-      OPENMS_LOG_WARN << "Warning: Different score types for peptide hits found ('"
-               << types << "'). If the scores are not comparable, "
-               << "results will be meaningless." << endl;
-    }
+    bool higher_better = ids.getEffectiveHigherScoreBetter();
+    
+    // Log the effective score metadata being used
+    OPENMS_LOG_DEBUG << "Using effective score type: '" << effective_score_type
+                     << "' with orientation: " << (higher_better ? "higher" : "lower")
+                     << " is better." << endl;
   }
 
 

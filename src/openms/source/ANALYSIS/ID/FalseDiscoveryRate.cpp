@@ -940,7 +940,7 @@ namespace OpenMS
       const auto& pepids = f.getPeptideIdentifications();
       if (!pepids.empty())
       {
-        higher_score_better = pepids[0].isHigherScoreBetter();
+        higher_score_better = pepids.getEffectiveHigherScoreBetter();
         break;
       }
     }
@@ -968,7 +968,7 @@ namespace OpenMS
 
   double FalseDiscoveryRate::rocN(const ConsensusMap& ids, Size fp_cutoff, const String& identifier, bool include_unassigned_peptides) const
   {
-    bool higher_score_better(ids[0].getPeptideIdentifications().begin()->isHigherScoreBetter());
+    bool higher_score_better(ids[0].getPeptideIdentifications().getEffectiveHigherScoreBetter());
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
 
     ScoreToTgtDecLabelPairs scores_labels;
@@ -1147,7 +1147,7 @@ namespace OpenMS
         {
           if (pepid.getIdentifier() == identifier)
           {
-            higher_score_better = pepid.isHigherScoreBetter();
+            higher_score_better = ids.getEffectiveHigherScoreBetter();
             break;
           }
         }
@@ -1201,7 +1201,7 @@ namespace OpenMS
     {
       if (!f.getPeptideIdentifications().empty())
       {
-        higher_better = f.getPeptideIdentifications()[0].isHigherScoreBetter();
+        higher_better = f.getPeptideIdentifications().getEffectiveHigherScoreBetter();
       }
     }
 

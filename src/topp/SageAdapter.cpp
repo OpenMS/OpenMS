@@ -1131,11 +1131,9 @@ protected:
     DateTime now = DateTime::now();
     String identifier("Sage_" + now.get());
     protein_identifications[0].setIdentifier(identifier);
-    for (auto & pid : peptide_identifications) 
-    { 
+    for (auto & pid : peptide_identifications)
+    {
       pid.setIdentifier(identifier);
-      pid.setScoreType("ln(hyperscore)");
-      pid.setHigherScoreBetter(true);
     }
 
     auto& search_parameters = protein_identifications[0].getSearchParameters();
@@ -1230,6 +1228,11 @@ protected:
       {
       }
     }
+
+    // Set score metadata at list level before output
+    peptide_identifications.setScoreType("ln(hyperscore)");
+    peptide_identifications.setHigherScoreBetter(true);
+
     IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
     return EXECUTION_OK;
   }

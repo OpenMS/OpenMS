@@ -1301,7 +1301,7 @@ namespace OpenMS::Internal
               else // general case
               {
                 pep_id_->push_back(PeptideIdentification());
-                pep_id_->back().setHigherScoreBetter(false); //either a q-value or an e-value, only if neither available there will be another
+                // Score orientation is now handled at list level - using default assumption
                 pep_id_->back().setSpectrumReference( spectrumID);  // SpectrumIdentificationResult attribute spectrumID is taken from the mz_file and should correspond to MSSpectrum.nativeID, thus spectrum_reference will serve as reference. As the format of the 'reference' widely varies from vendor to vendor, spectrum_reference as string will serve best, indices are not recommended.
 
                 //fill pep_id_->back() with content
@@ -1713,8 +1713,7 @@ namespace OpenMS::Internal
       current_pep_id.setRT(RT_light);
       current_pep_id.setMZ(MZ_light);
       current_pep_id.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, spectrumID);
-      current_pep_id.setScoreType(Constants::UserParam::OPENPEPXL_SCORE);
-      current_pep_id.setHigherScoreBetter(true);
+      // Score metadata is now handled at list level - will be set when identification is added to list
 
       vector<PeptideHit> phs;
       PeptideHit ph_alpha;
@@ -2015,8 +2014,7 @@ namespace OpenMS::Internal
           if (scoreit->first != "MS:1002055") // do not use peptide-level q-values for now
           {
             score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
-            spectrum_identification.setHigherScoreBetter(false);
-            spectrum_identification.setScoreType("q-value"); //higherIsBetter = false
+            // Score metadata (q-value, higher=false) will be handled at list level
             scoretype = true;
             break;
           }
@@ -2024,24 +2022,21 @@ namespace OpenMS::Internal
         else if (specific_score_terms.find(scoreit->first) != specific_score_terms.end())
         {
           score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
-          spectrum_identification.setHigherScoreBetter(ControlledVocabulary::CVTerm::isHigherBetterScore(cv_.getTerm(scoreit->first)));
-          spectrum_identification.setScoreType(scoreit->second.front().getName());
+          // Score metadata will be handled at list level - store for later list assignment if needed
           scoretype = true;
           break;
         }
         else if (e_score_terms.find(scoreit->first) != e_score_terms.end())
         {
           score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
-          spectrum_identification.setHigherScoreBetter(false);
-          spectrum_identification.setScoreType("E-value"); //higherIsBetter = false
+          // Score metadata (E-value, higher=false) will be handled at list level
           scoretype = true;
           break;
         }
         else if (scoreit->first == "MS:1001143")
         {
-          spectrum_identification.setScoreType("PSM-level search engine specific statistic");
+          // Score metadata (PSM-level statistic, higher=true) will be handled at list level
           // TODO this is just an assumption for unknown scores
-          spectrum_identification.setHigherScoreBetter(true);
           scoretype = true;
         }
       }

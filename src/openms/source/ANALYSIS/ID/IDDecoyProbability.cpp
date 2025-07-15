@@ -366,13 +366,14 @@ namespace OpenMS
           hits.push_back(hit);
         }
         PeptideIdentification id = pep;
-        id.setHigherScoreBetter(true);
-        id.setScoreType(effective_score_type + "_DecoyProbability");
         id.setHits(hits);
 
         new_prob_ids.push_back(id);
       }
     }
+    // Set score metadata at list level
+    new_prob_ids.setHigherScoreBetter(true);
+    new_prob_ids.setScoreType(effective_score_type + "_DecoyProbability");
     ids = new_prob_ids;
   }
 

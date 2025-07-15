@@ -330,7 +330,7 @@ namespace OpenMS
 
     QStringList labels;
     int id = ws_->addWidget(visualizer);
-    labels << QString("PeptideIdentification %1").arg(meta.getScoreType().c_str()) << QString::number(id);
+    labels << QString("PeptideIdentification %1").arg(meta.getIdentifier().c_str()) << QString::number(id);
 
     visualizer->load(meta, id);
 

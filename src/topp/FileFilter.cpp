@@ -202,15 +202,17 @@ private:
     //flag: keep_best_score_id
     if (keep_best_score_id && !feature.getPeptideIdentifications().empty())
     {
-      PeptideIdentification temp = feature.getPeptideIdentifications().front();
+      const PeptideIdentificationList& pep_ids = feature.getPeptideIdentifications();
+      bool higher_score_better = pep_ids.getEffectiveHigherScoreBetter();
+      PeptideIdentification temp = pep_ids.front();
       //loop over all peptideIdentifications
-      for (const PeptideIdentification& pep : feature.getPeptideIdentifications())
+      for (const PeptideIdentification& pep : pep_ids)
       {
         //loop over all peptideHits
         for (const PeptideHit& pep_hit : pep.getHits())
         {
-          if ((pep.isHigherScoreBetter() && pep_hit.getScore() > temp.getHits().front().getScore()) ||
-              (!pep.isHigherScoreBetter() && pep_hit.getScore() < temp.getHits().front().getScore()))
+          if ((higher_score_better && pep_hit.getScore() > temp.getHits().front().getScore()) ||
+              (!higher_score_better && pep_hit.getScore() < temp.getHits().front().getScore()))
           {
             temp = pep;
           }

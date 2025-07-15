@@ -9,6 +9,7 @@
 //! [doxygen_snippet_Identification]
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -71,9 +72,11 @@ int main()
 
   peptide_id.setRT(1243.56);
   peptide_id.setMZ(440.0);
-  peptide_id.setScoreType("ScoreType");
-  peptide_id.setHigherScoreBetter(false);
   peptide_id.setIdentifier("Identifier");
+  
+  // Set score metadata at the list level (centralized approach)
+  peptide_ids.setScoreType("ScoreType");
+  peptide_ids.setHigherScoreBetter(false);
 
   // define additional meta value for the peptide identification
   peptide_id.setMetaValue("AdditionalMetaValue", "Value");
@@ -111,7 +114,7 @@ int main()
     // Peptide identification values
     cout << "Peptide ID m/z: " << peptide_id.getMZ() << '\n';
     cout << "Peptide ID rt: " << peptide_id.getRT() << '\n';
-    cout << "Peptide ID score type: " << peptide_id.getScoreType() << '\n';
+    cout << "Peptide ID score type: " << peptide_ids.getEffectiveScoreType() << '\n';
 
     // PeptideHits
     for (const auto& scored_hit : peptide_id.getHits())

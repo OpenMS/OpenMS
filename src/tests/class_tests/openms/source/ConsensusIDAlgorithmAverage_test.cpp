@@ -39,9 +39,9 @@ END_SECTION
 
 // create 3 ID runs:
 PeptideIdentification temp;
-temp.setScoreType("Posterior Error Probability");
-temp.setHigherScoreBetter(false);
 PeptideIdentificationList ids(3, temp);
+ids.setScoreType("Posterior Error Probability");
+ids.setHigherScoreBetter(false);
 vector<PeptideHit> hits;
 // the first ID has 5 hits
 hits.resize(5);
@@ -132,7 +132,7 @@ START_SECTION(void apply(PeptideIdentificationList& ids))
   TEST_EQUAL(hits[6].getSequence(), AASequence::fromString("E"));
   TEST_REAL_SIMILAR(hits[6].getScore(), 0.5);
 
-  ids[2].setHigherScoreBetter(true);
+  ids.setHigherScoreBetter(true);
   TEST_EXCEPTION(Exception::InvalidValue, consensus.apply(ids, empty));
 }
 END_SECTION

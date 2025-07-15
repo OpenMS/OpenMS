@@ -293,7 +293,7 @@ protected:
       for (const PeptideHit& hit : pep.getHits())
       {
         PeptideHit scored_hit = hit;
-        addScoreToMetaValues_(scored_hit, pep.getScoreType()); // backup score value
+        addScoreToMetaValues_(scored_hit, pep_ids.getEffectiveScoreType()); // backup score value
         
         OPENMS_LOG_DEBUG << "starting to compute AScore RT=" << pep.getRT() << " SEQUENCE: " << scored_hit.getSequence().toString() << std::endl;
         
@@ -302,8 +302,6 @@ protected:
       }
 
       PeptideIdentification new_pep_id(pep);
-      new_pep_id.setScoreType("PhosphoScore");
-      new_pep_id.setHigherScoreBetter(true);
       new_pep_id.setHits(scored_peptides);
       pep_out.push_back(new_pep_id);
     }
@@ -311,6 +309,10 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
+
+    // Set score metadata at list level before output
+    pep_out.setScoreType("PhosphoScore");
+    pep_out.setHigherScoreBetter(true);
 
     FileHandler().storeIdentifications(out, prot_ids, pep_out, {FileTypes::IDXML});
     return EXECUTION_OK;

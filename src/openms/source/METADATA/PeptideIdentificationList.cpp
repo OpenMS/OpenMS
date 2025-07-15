@@ -32,27 +32,11 @@ namespace OpenMS
 
   String PeptideIdentificationList::getEffectiveScoreType() const
   {
-    if (!score_type_.empty())
-    {
-      return score_type_;
-    }
-    if (!empty())
-    {
-      return front().getScoreType();
-    }
-    return "";
+    return score_type_;
   }
 
   bool PeptideIdentificationList::getEffectiveHigherScoreBetter() const
   {
-    if (!score_type_.empty())
-    {
-      return higher_score_better_;
-    }
-    if (!empty())
-    {
-      return front().isHigherScoreBetter();
-    }
-    return false;
+    return higher_score_better_;
   }
 }

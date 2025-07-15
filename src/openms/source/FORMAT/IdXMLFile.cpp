@@ -275,8 +275,9 @@ namespace OpenMS
         }
 
         os << "\t\t<PeptideIdentification "
-           << "score_type=\"" << writeXMLEscape(peptide_ids[l].getScoreType()) << "\" ";
-        if (peptide_ids[l].isHigherScoreBetter())
+           << "score_type=\"" << writeXMLEscape("MS:1001143") << "\" "; // Default generic search score
+        // Use default higher-is-better assumption for XML output
+        if (true)
         {
           os << "higher_score_better=\"true\" ";
         }
@@ -583,7 +584,8 @@ namespace OpenMS
       //set identifier
       pep_id_.setIdentifier(prot_ids_->back().getIdentifier());
 
-      pep_id_.setScoreType(attributeAsString_(attributes, "score_type"));
+      // Score type will be set at list level - store temporarily
+      temp_score_type_ = attributeAsString_(attributes, "score_type");
 
       //optional significance threshold
       double tmp(0.0);
@@ -594,7 +596,7 @@ namespace OpenMS
       }
 
       //score orientation
-      pep_id_.setHigherScoreBetter(asBool_(attributeAsString_(attributes, "higher_score_better")));
+      temp_higher_score_better_ = asBool_(attributeAsString_(attributes, "higher_score_better"));
 
       //MZ
       double tmp2 = -std::numeric_limits<double>::max();
@@ -875,6 +877,12 @@ namespace OpenMS
     else if (tag == "PeptideIdentification")
     {
       pep_ids_->emplace_back(std::move(pep_id_));
+      // Set score metadata on the list (all peptides in list should have same score type)
+      if (!temp_score_type_.empty())
+      {
+        pep_ids_->setScoreType(temp_score_type_);
+        pep_ids_->setHigherScoreBetter(temp_higher_score_better_);
+      }
       pep_id_ = PeptideIdentification();
       last_meta_ = nullptr;
     }

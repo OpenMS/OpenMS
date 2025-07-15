@@ -3189,7 +3189,7 @@ protected:
 
       // add best scoring PeptideHit of all PeptideIdentifications mapping to the current feature to tmp_pepid
       PeptideIdentification tmp_pepid;
-      tmp_pepid.setHigherScoreBetter(pep_ids[0].isHigherScoreBetter());
+      // Note: Score metadata is now centralized at list level, not needed for individual temporary objects
       for (Size i = 0; i != pep_ids.size(); ++i)
       {
         pep_ids[i].sort();

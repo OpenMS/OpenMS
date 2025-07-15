@@ -83,12 +83,19 @@ namespace OpenMS
     
     ids.clear();
     ids.resize(1);
-    ids[0].setScoreType(score_type);
-    ids[0].setHigherScoreBetter(higher_better);
     
-    // Set list-level metadata
-    ids.setScoreType(score_type);
-    ids.setHigherScoreBetter(higher_better);
+    // Set list-level metadata (individual objects no longer store score metadata)
+    // Check if this is a special consensus algorithm that changes score type
+    if (getName() == "ConsensusID_ranks")
+    {
+      ids.setScoreType("ConsensusID_ranks");
+      ids.setHigherScoreBetter(true); // normalized scores are higher-better
+    }
+    else
+    {
+      ids.setScoreType(score_type);
+      ids.setHigherScoreBetter(higher_better);
+    }
     for (SequenceGrouping::iterator res_it = results.begin(); 
          res_it != results.end(); ++res_it)
     {

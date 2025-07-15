@@ -1002,24 +1002,12 @@ protected:
       size_t cnt = 0;
       String run_identifier = all_protein_ids.front().getIdentifier();
       const String scoreType = getStringOption_("score_type");
+      String old_score_type{all_peptide_ids.getEffectiveScoreType()}; // get original score type from list
       size_t index = 0;
       for (PeptideIdentification& pep_id : all_peptide_ids)
       {
-        String old_score_type{pep_id.getScoreType()}; // copy because we modify the score type below
         index++;
         pep_id.setIdentifier(run_identifier);
-        if (scoreType == "pep")
-        {
-          pep_id.setScoreType("Posterior Error Probability");
-        }
-        else
-        {
-          //TODO we should make a difference between peptide-level q-values and psm-level q-values!
-          // I am just not changing it right now, because a lot of tools currently depend on
-          // the score being exactly "q-value"
-          pep_id.setScoreType(scoreType);
-        }
-        pep_id.setHigherScoreBetter(scoreType == "svm");
         
         String scan_identifier = PercolatorInfile::getScanIdentifier(pep_id, index);
         String file_identifier = pep_id.getMetaValue("file_origin", String());
@@ -1093,6 +1081,20 @@ protected:
       }
       OPENMS_LOG_INFO << "Scores of all other PSMs will be set to 1.0." << endl;
       OPENMS_LOG_INFO << cnt << " suitable PeptideHits of " << all_peptide_ids.size() <<  " PSMs were reannotated." << endl;
+
+      // Set score metadata at list level after processing all individual objects
+      if (scoreType == "pep")
+      {
+        all_peptide_ids.setScoreType("Posterior Error Probability");
+      }
+      else
+      {
+        //TODO we should make a difference between peptide-level q-values and psm-level q-values!
+        // I am just not changing it right now, because a lot of tools currently depend on
+        // the score being exactly "q-value"
+        all_peptide_ids.setScoreType(scoreType);
+      }
+      all_peptide_ids.setHigherScoreBetter(scoreType == "svm");
 
       // TODO: There should only be 1 ProteinIdentification element in this vector, no need for a for loop
       for (ProteinIdentification& prot_id_run : all_protein_ids)

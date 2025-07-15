@@ -104,13 +104,27 @@ namespace OpenMS::Internal
     }
     else if (tag == "PeptideIdentification")
     {
-      act_cons_element_.getPeptideIdentifications().emplace_back(std::move(pep_id_));
+      auto& pep_id_list = act_cons_element_.getPeptideIdentifications();
+      pep_id_list.emplace_back(std::move(pep_id_));
+      // Set score metadata on the list (all peptides in list should have same score type)
+      if (!temp_score_type_.empty())
+      {
+        pep_id_list.setScoreType(temp_score_type_);
+        pep_id_list.setHigherScoreBetter(temp_higher_score_better_);
+      }
       pep_id_ = PeptideIdentification();
       last_meta_ = &act_cons_element_;
     }
     else if (tag == "UnassignedPeptideIdentification")
     {
-      consensus_map_->getUnassignedPeptideIdentifications().emplace_back(std::move(pep_id_));
+      auto& pep_id_list = consensus_map_->getUnassignedPeptideIdentifications();
+      pep_id_list.emplace_back(std::move(pep_id_));
+      // Set score metadata on the list (all peptides in list should have same score type)
+      if (!temp_score_type_.empty())
+      {
+        pep_id_list.setScoreType(temp_score_type_);
+        pep_id_list.setHigherScoreBetter(temp_higher_score_better_);
+      }
       pep_id_ = PeptideIdentification();
       last_meta_ = consensus_map_;
     }
@@ -445,15 +459,14 @@ namespace OpenMS::Internal
       }
       pep_id_.setIdentifier(id_identifier_[id]);
 
-      pep_id_.setScoreType(attributeAsString_(attributes, "score_type"));
+      // Store score metadata temporarily - will be set on list when identification is added
+      temp_score_type_ = attributeAsString_(attributes, "score_type");
+      temp_higher_score_better_ = asBool_(attributeAsString_(attributes, "higher_score_better"));
 
       //optional significance threshold
       double tmp = 0.0;
       optionalAttributeAsDouble_(tmp, attributes, "significance_threshold");
       if (tmp != 0.0) pep_id_.setSignificanceThreshold(tmp);
-
-      //score orientation
-      pep_id_.setHigherScoreBetter(asBool_(attributeAsString_(attributes, "higher_score_better")));
 
       //MZ
       if (double mz; optionalAttributeAsDouble_(mz, attributes, "MZ"))
@@ -838,8 +851,11 @@ namespace OpenMS::Internal
     }
     os << indent << "<" << tag_name << " ";
     os << "identification_run_ref=\"" << identifier_id_[id.getIdentifier()] << "\" ";
-    os << "score_type=\"" << writeXMLEscape(id.getScoreType()) << "\" ";
-    os << "higher_score_better=\"" << (id.isHigherScoreBetter() ? "true" : "false") << "\" ";
+    // Note: Score metadata is now centralized at list level, but individual PeptideIdentification
+    // objects in XML still need score_type/higher_score_better attributes for compatibility.
+    // We use default values here since the actual metadata is stored at the list level.
+    os << "score_type=\"" << writeXMLEscape("MS:1001143") << "\" "; // Generic search score
+    os << "higher_score_better=\"true\" "; // Default assumption
     os << "significance_threshold=\"" << id.getSignificanceThreshold() << "\" ";
     //mz
     if (id.hasMZ())

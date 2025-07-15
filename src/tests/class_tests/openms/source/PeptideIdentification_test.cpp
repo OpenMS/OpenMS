@@ -18,7 +18,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -64,18 +64,26 @@ START_SECTION((PeptideIdentification(const PeptideIdentification& source)))
   hits.setHits(peptide_hits);
   hits.setMetaValue("label",17);
   hits.setIdentifier("id");
-  hits.setScoreType("score_type");
-  hits.setHigherScoreBetter(false);
+  
+  // Test score metadata using PeptideIdentificationList
+  PeptideIdentificationList hits_list;
+  hits_list.push_back(hits);
+  hits_list.setScoreType("score_type");
+  hits_list.setHigherScoreBetter(false);
 
   PeptideIdentification hits2(hits);
+  PeptideIdentificationList hits2_list;
+  hits2_list.push_back(hits2);
+  hits2_list.setScoreType("score_type");
+  hits2_list.setHigherScoreBetter(false);
 
   TEST_EQUAL(hits.getSignificanceThreshold(), hits2.getSignificanceThreshold())
   TEST_TRUE(hits.getHits().size() == 1)
   TEST_TRUE(*(hits.getHits().begin()) == peptide_hit)
   TEST_EQUAL((UInt)hits.getMetaValue("label"),17)
   TEST_EQUAL(hits.getIdentifier(),"id")
-  TEST_EQUAL(hits.getScoreType(),"score_type")
-  TEST_FALSE(hits.isHigherScoreBetter())
+  TEST_EQUAL(hits_list.getEffectiveScoreType(),"score_type")
+  TEST_FALSE(hits_list.getEffectiveHigherScoreBetter())
 }
 END_SECTION
 
@@ -91,26 +99,33 @@ START_SECTION((PeptideIdentification(PeptideIdentification&& source) noexcept))
   hits.setHits(peptide_hits);
   hits.setMetaValue("label",17);
   hits.setIdentifier("id");
-  hits.setScoreType("score_type");
-  hits.setHigherScoreBetter(false);
+  
+  // Test score metadata using PeptideIdentificationList
+  PeptideIdentificationList hits_list;
+  hits_list.push_back(hits);
+  hits_list.setScoreType("score_type");
+  hits_list.setHigherScoreBetter(false);
 
   PeptideIdentification example(hits);
 
   PeptideIdentification hits2(std::move(example));
+  PeptideIdentificationList hits2_list;
+  hits2_list.push_back(hits2);
+  hits2_list.setScoreType("score_type");
+  hits2_list.setHigherScoreBetter(false);
 
   TEST_EQUAL(hits.getSignificanceThreshold(), hits2.getSignificanceThreshold())
   TEST_TRUE(hits.getHits().size() == 1)
   TEST_TRUE(*(hits.getHits().begin()) == peptide_hit)
   TEST_EQUAL((UInt)hits.getMetaValue("label"),17)
   TEST_EQUAL(hits.getIdentifier(),"id")
-  TEST_EQUAL(hits.getScoreType(),"score_type")
-  TEST_FALSE(hits.isHigherScoreBetter())
+  TEST_EQUAL(hits_list.getEffectiveScoreType(),"score_type")
+  TEST_FALSE(hits_list.getEffectiveHigherScoreBetter())
 
   // the move source should be empty
   TEST_TRUE(example.getHits().empty())
   TEST_TRUE(example.isMetaEmpty())
   TEST_TRUE(example.getIdentifier().empty())
-  TEST_TRUE(example.getScoreType().empty())
 }
 END_SECTION
 
@@ -120,19 +135,27 @@ START_SECTION((PeptideIdentification& operator=(const PeptideIdentification& sou
   hits.setHits(peptide_hits);
   hits.setMetaValue("label",17);
   hits.setIdentifier("id");
-  hits.setScoreType("score_type");
-  hits.setHigherScoreBetter(false);
+  
+  // Test score metadata using PeptideIdentificationList
+  PeptideIdentificationList hits_list;
+  hits_list.push_back(hits);
+  hits_list.setScoreType("score_type");
+  hits_list.setHigherScoreBetter(false);
 
   PeptideIdentification hits2;
   hits2 = hits;
+  PeptideIdentificationList hits2_list;
+  hits2_list.push_back(hits2);
+  hits2_list.setScoreType("score_type");
+  hits2_list.setHigherScoreBetter(false);
 
   TEST_EQUAL(hits.getSignificanceThreshold(), hits2.getSignificanceThreshold())
   TEST_TRUE(hits.getHits().size() == 1)
   TEST_TRUE(*(hits.getHits().begin()) == peptide_hit)
   TEST_EQUAL((UInt)hits.getMetaValue("label"),17)
   TEST_EQUAL(hits.getIdentifier(),"id")
-  TEST_EQUAL(hits.getScoreType(),"score_type")
-  TEST_FALSE(hits.isHigherScoreBetter())
+  TEST_EQUAL(hits_list.getEffectiveScoreType(),"score_type")
+  TEST_FALSE(hits_list.getEffectiveHigherScoreBetter())
 END_SECTION
 
 START_SECTION((bool operator == (const PeptideIdentification& rhs) const))
@@ -151,13 +174,8 @@ START_SECTION((bool operator == (const PeptideIdentification& rhs) const))
   TEST_FALSE(search1 == search2)
   search1 = search2;
 
-  search2.setScoreType("score_type");
-  TEST_FALSE(search1 == search2)
-  search1 = search2;
-
-  search2.setHigherScoreBetter(false);
-  TEST_FALSE(search1 == search2)
-  search1 = search2;
+  // Note: Score type and higher score better are now managed at PeptideIdentificationList level
+  // Individual PeptideIdentification objects are equal regardless of score metadata
 END_SECTION
 
 
@@ -259,26 +277,24 @@ START_SECTION((void testSignificanceThresholdMetaValue()))
 }
 END_SECTION
 
-START_SECTION((String& getScoreType() const))
-	PeptideIdentification hits;
-	TEST_EQUAL(hits.getScoreType(), "")
-END_SECTION
-
-START_SECTION((void setScoreType(const String& type)))
-	PeptideIdentification hits;
-	hits.setScoreType("bla");
-	TEST_EQUAL(hits.getScoreType(), "bla")
-END_SECTION
-
-START_SECTION((bool isHigherScoreBetter() const))
-	PeptideIdentification hits;
-	TEST_TRUE(hits.isHigherScoreBetter())
-END_SECTION
-
-START_SECTION((void setHigherScoreBetter(bool value)))
+START_SECTION((Score methods now managed at PeptideIdentificationList level))
+  // Test that score metadata is now handled at the list level
+  PeptideIdentificationList hits_list;
   PeptideIdentification hits;
-  hits.setHigherScoreBetter(false);
-  TEST_FALSE(hits.isHigherScoreBetter())
+  hits_list.push_back(hits);
+  
+  // Test default values
+  TEST_EQUAL(hits_list.getScoreType(), "")
+  TEST_FALSE(hits_list.isHigherScoreBetter())
+  
+  // Test setting values
+  hits_list.setScoreType("bla");
+  TEST_EQUAL(hits_list.getScoreType(), "bla")
+  TEST_EQUAL(hits_list.getEffectiveScoreType(), "bla")
+  
+  hits_list.setHigherScoreBetter(true);
+  TEST_TRUE(hits_list.isHigherScoreBetter())
+  TEST_TRUE(hits_list.getEffectiveHigherScoreBetter())
 END_SECTION
 
 START_SECTION((const String& getIdentifier() const))
@@ -334,9 +350,9 @@ START_SECTION((void sort()))
   TEST_EQUAL(id.getHits()[1].getScore(), 23)
   TEST_EQUAL(id.getHits()[2].getScore(), 7)
 
-  //lower score is better
-  id.setHigherScoreBetter(false);
-  id.sort();
+  //lower score is better - use manual sorting with correct orientation
+  std::stable_sort(id.getHits().begin(), id.getHits().end(),
+                   PeptideIdentification::getScoreComparator(false));
 
   TEST_EQUAL(id.getHits()[0].getSequence(), AASequence::fromString("THIRDPROTEIN"))
   TEST_EQUAL(id.getHits()[1].getSequence(), AASequence::fromString("SECONDPROTEIN"))

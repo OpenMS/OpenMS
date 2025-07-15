@@ -49,9 +49,9 @@ namespace OpenMS
 
   inline void addToPeptideScoreMap_(
     std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
-    const PeptideIdentification& id)
+    const PeptideIdentification& id,
+    bool higher_better)
   {
-    bool higher_better = id.isHigherScoreBetter();
     if (id.getHits().empty())
     {
       return;
@@ -74,9 +74,10 @@ namespace OpenMS
     std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
     const PeptideIdentificationList& ids)
   {
+    bool higher_better = ids.getEffectiveHigherScoreBetter();
     for (auto const & id : ids)
     {
-      addToPeptideScoreMap_(seq_to_score_labels, id);
+      addToPeptideScoreMap_(seq_to_score_labels, id, higher_better);
     }
   }
 
@@ -85,8 +86,20 @@ namespace OpenMS
     ConsensusMap const& map,
     bool include_unassigned = true)
   {
+    // Get higher_better from first non-empty PeptideIdentificationList
+    bool higher_better = false;
+    for (const auto& feature : map)
+    {
+      const auto& pepids = feature.getPeptideIdentifications();
+      if (!pepids.empty())
+      {
+        higher_better = pepids.getEffectiveHigherScoreBetter();
+        break;
+      }
+    }
+    
     map.applyFunctionOnPeptideIDs(
-      [&seq_to_score_labels](const PeptideIdentification& id){addToPeptideScoreMap_(seq_to_score_labels, id);},
+      [&seq_to_score_labels, higher_better](const PeptideIdentification& id){addToPeptideScoreMap_(seq_to_score_labels, id, higher_better);},
       include_unassigned);
   }
 
@@ -258,6 +271,7 @@ namespace OpenMS
                                                      std::string const& score_type,
                                                      bool keep_decoys)
   {
+    const auto& old_score_type = ids.getEffectiveScoreType();
     for (auto& id : ids)
     {
       if (id.getHits().empty())
@@ -272,12 +286,10 @@ namespace OpenMS
       }
       const auto seq = best_hit.getSequence().toUnmodifiedString();
       auto it = seq_to_fdr.find(seq);
-      const auto& old_score_type = id.getScoreType();
       if (it != seq_to_fdr.end())
       {
         best_hit.setMetaValue(old_score_type, best_hit.getScore());
         best_hit.setScore(it->second.first);
-        id.setScoreType(score_type);
       }
       else
       {
@@ -285,6 +297,8 @@ namespace OpenMS
         continue;
       }
     }
+    // Set new score type at list level
+    ids.setScoreType(score_type);
   }
 
   void IDScoreGetterSetter::setPeptideScoresFromMap_(std::unordered_map<String, ScoreToTgtDecLabelPair> const& seq_to_fdr,

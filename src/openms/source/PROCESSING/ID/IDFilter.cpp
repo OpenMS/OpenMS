@@ -719,11 +719,7 @@ namespace OpenMS
     for (PeptideIdentification& p : peptides)
     {
       p.sort();
-      // Validate that individual entries are consistent with effective score type
-      if (!p.getScoreType().empty() && p.getScoreType() != score_type)
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("PSM score types must be identical to allow proper filtering."));
-      }
+      // Note: Score consistency is guaranteed by centralized architecture
     }
 
     // there might be fewer spectra identified than n -> adapt

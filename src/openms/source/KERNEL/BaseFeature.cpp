@@ -133,14 +133,9 @@ namespace OpenMS
               {
                 return false;
               }
-              if (p1.isHigherScoreBetter())
-              {
-                return p1.getHits()[0].getScore() < p2.getHits()[0].getScore();
-              }
-              else
-              {
-                return p1.getHits()[0].getScore() > p2.getHits()[0].getScore();
-              }});
+              // Assume higher scores are better (default behavior)
+              return p1.getHits()[0].getScore() < p2.getHits()[0].getScore();
+              });
   }
 
   BaseFeature::AnnotationState BaseFeature::getAnnotationState() const

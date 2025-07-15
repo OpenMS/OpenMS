@@ -45,7 +45,7 @@ START_SECTION((void importIDs(IdentificationData&, const vector<ProteinIdentific
   PeptideIdentificationList peptides_in;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), proteins_in, peptides_in);
   // IdentificationData doesn't allow score types with the same name, but different orientations:
-  peptides_in[0].setHigherScoreBetter(true);
+  peptides_in.setHigherScoreBetter(true);
 
   IdentificationData ids;
   IdentificationDataConverter::importIDs(ids, proteins_in, peptides_in);

@@ -291,7 +291,7 @@ namespace OpenMS
     for (auto & p : offset_peptides) // add offset peptides
     {
       peptides.push_back(std::move(p));
-      addPeptideToMap_(peptides.back(), peptide_map_);
+      addPeptideToMap_(peptides.back(), peptide_map_, peptides.getEffectiveHigherScoreBetter());
       n_added++;
     }
     
@@ -359,7 +359,7 @@ namespace OpenMS
         peptides.back().setMZ(feat.getMZ());
         peptides.back().setMetaValue("FFId_category", "internal");
         peptides.back().setMetaValue("SeedFeatureID", String(feat.getUniqueId()));
-        addPeptideToMap_(peptides.back(), peptide_map_);
+        addPeptideToMap_(peptides.back(), peptide_map_, peptides.getEffectiveHigherScoreBetter());
         ++seeds_added;
       }
     }
@@ -479,7 +479,7 @@ namespace OpenMS
 
     for (auto& pep : peptides)
     {
-      addPeptideToMap_(pep, peptide_map_); // stores pointer to pep in map
+      addPeptideToMap_(pep, peptide_map_, peptides.getEffectiveHigherScoreBetter()); // stores pointer to pep in map
       pep.setMetaValue("FFId_category", "internal");
     }
 
@@ -501,7 +501,7 @@ namespace OpenMS
       // Process and add external peptides
       for (PeptideIdentification& pep : peptides_ext)
       {
-        addPeptideToMap_(pep, peptide_map_, true);
+        addPeptideToMap_(pep, peptide_map_, peptides_ext.getEffectiveHigherScoreBetter(), true);
         pep.setMetaValue("FFId_category", "external");
       }
       n_external_peps_ = peptide_map_.size() - n_internal_peps_;
@@ -1371,7 +1371,7 @@ namespace OpenMS
     }
   }
 
-  void FeatureFinderIdentificationAlgorithm::addPeptideToMap_(PeptideIdentification& peptide, PeptideMap& peptide_map, bool external)
+  void FeatureFinderIdentificationAlgorithm::addPeptideToMap_(PeptideIdentification& peptide, PeptideMap& peptide_map, bool higher_score_better, bool external)
   {
     if (peptide.getHits().empty())
     {
@@ -1392,8 +1392,8 @@ namespace OpenMS
     }
     if (use_psm_cutoff_)
     {
-      if ( (peptide.isHigherScoreBetter() && hit.getScore() < psm_score_cutoff_) ||
-           (!peptide.isHigherScoreBetter() && hit.getScore() > psm_score_cutoff_) )
+      if ( (higher_score_better && hit.getScore() < psm_score_cutoff_) ||
+           (!higher_score_better && hit.getScore() > psm_score_cutoff_) )
       {
         unassignedIDs_.push_back(peptide);
         return;

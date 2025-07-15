@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <vector>
 #include <set>
+#include <type_traits>
 
 namespace OpenMS
 {
@@ -181,7 +182,7 @@ namespace OpenMS
                                               OPENMS_PRETTY_FUNCTION, msg.str());
         }
 
-        const String& old_score_meta = (old_score_.empty() ? id.getScoreType() :
+        const String& old_score_meta = (old_score_.empty() ? new_score_type_ :
                                  old_score_);
         const DataValue& dv = hit_it->getMetaValue(old_score_meta);
         if (!dv.isEmpty()) // meta value for old score already exists
@@ -203,8 +204,14 @@ namespace OpenMS
         }
         hit_it->setScore(hit_it->getMetaValue(new_score_));
       }
-      id.setScoreType(new_score_type_);
-      id.setHigherScoreBetter(higher_better_);
+      // Note: For PeptideIdentification, score metadata is handled at list level
+      // For other ID types, these methods may still exist
+      if constexpr (std::is_same_v<IDType, PeptideIdentification>) {
+        // Do nothing - score metadata is handled at list level
+      } else {
+        id.setScoreType(new_score_type_);
+        id.setHigherScoreBetter(higher_better_);
+      }
     }
 
     /**
@@ -244,7 +251,7 @@ namespace OpenMS
         throw Exception::MissingInformation(__FILE__, __LINE__,
                                             OPENMS_PRETTY_FUNCTION, msg);
       } 
-      else if (t == id[0].getScoreType())
+      else if (t == new_score_type_) // Check against current score type since individual methods removed
       {
         // we assume that all the other peptide ids
         // also already have the correct score set
@@ -271,6 +278,48 @@ namespace OpenMS
         switchScores(i, counter);
       }
     }
+    /**
+      @brief Helper method to switch scores for a single PeptideIdentification without setting score metadata.
+      
+      This method handles the score switching for individual PeptideIdentification objects.
+      It does not set score metadata since that's handled at the list level.
+      
+      @param id The PeptideIdentification whose scores need to be switched.
+      @param counter A reference to a counter that will be incremented for each peptide hit processed.
+    */
+    void switchScoresForPeptideIdentification(PeptideIdentification& id, Size& counter)
+    {
+      for (auto hit_it = id.getHits().begin();
+           hit_it != id.getHits().end(); ++hit_it, ++counter)
+      {
+        if (!hit_it->metaValueExists(new_score_))
+        {
+          std::stringstream msg;
+          msg << "Meta value '" << new_score_ << "' not found for " << *hit_it;
+          throw Exception::MissingInformation(__FILE__, __LINE__,
+                                              OPENMS_PRETTY_FUNCTION, msg.str());
+        }
+
+        const String& old_score_meta = (old_score_.empty() ? new_score_type_ :
+                                 old_score_);
+        const DataValue& dv = hit_it->getMetaValue(old_score_meta);
+        if (!dv.isEmpty()) // meta value for old score already exists
+        {
+          if (fabs((double(dv) - hit_it->getScore()) * 2.0 /
+                   (double(dv) + hit_it->getScore())) > tolerance_)
+          {          
+            hit_it->setMetaValue(old_score_meta + "~", hit_it->getScore());
+          }
+        }
+        else
+        {
+          hit_it->setMetaValue(old_score_meta, hit_it->getScore());
+        }
+        hit_it->setScore(hit_it->getMetaValue(new_score_));
+      }
+      // Note: Score metadata (setScoreType, setHigherScoreBetter) is now handled at list level
+    }
+
 
     /**
       @brief Switches the score type of a PeptideIdentificationList to a general score type.
@@ -283,8 +332,47 @@ namespace OpenMS
     */
     void switchToGeneralScoreType(PeptideIdentificationList& pep_ids, ScoreType type, Size& counter)
     {
-      std::vector<PeptideIdentification>& vec = pep_ids.getData();
-      switchToGeneralScoreType(vec, type, counter);
+      if (pep_ids.empty()) return;
+      
+      String t = findScoreType(pep_ids[0], type);
+      if (t.empty())
+      {
+        String msg = "First encountered ID does not have the requested score type.";
+        throw Exception::MissingInformation(__FILE__, __LINE__,
+                                            OPENMS_PRETTY_FUNCTION, msg);
+      }
+      else if (t == pep_ids.getEffectiveScoreType())
+      {
+        // we assume that all the other peptide ids
+        // also already have the correct score set
+        return;
+      }
+
+      if (t.hasSuffix("_score"))
+      {
+        new_score_type_ = t.chop(6);
+      }
+      else
+      {
+        new_score_type_ = t;
+      }
+      new_score_ = t;
+
+      if (higher_better_ != type_to_better_[type])
+      {
+        OPENMS_LOG_WARN << "Requested score type does not match the expected score direction. Correcting!\n";
+        higher_better_ = type_to_better_[type];
+      }
+      
+      // Switch scores for all identifications in the list
+      for (auto& id : pep_ids)
+      {
+        switchScoresForPeptideIdentification(id, counter);
+      }
+      
+      // Set the score metadata at the list level
+      pep_ids.setScoreType(new_score_type_);
+      pep_ids.setHigherScoreBetter(higher_better_);
     }
 
     /**
@@ -309,7 +397,7 @@ namespace OpenMS
         if (!ids.empty())
         {
           new_type = findScoreType(ids[0], type);
-          if (new_type == ids[0].getScoreType())
+          if (new_type == ids.getEffectiveScoreType())
           {
             return;
           }
@@ -415,8 +503,8 @@ namespace OpenMS
       const auto& pep_ids = cf.getPeptideIdentifications();
       if (!pep_ids.empty())
       {
-        name = pep_ids[0].getScoreType();
-        higher_better = pep_ids[0].isHigherScoreBetter();
+        name = pep_ids.getEffectiveScoreType();
+        higher_better = pep_ids.getEffectiveHigherScoreBetter();
 
         // look up the score category ("RAW", "PEP", "q-value", etc.) for the given score name
         for (auto& [scoretype, names] : type_to_str_)
@@ -434,8 +522,8 @@ namespace OpenMS
     {
       for (const auto& id : cmap.getUnassignedPeptideIdentifications())
       {
-        name = id.getScoreType();
-        higher_better = id.isHigherScoreBetter();
+        name = cmap.getUnassignedPeptideIdentifications().getEffectiveScoreType();
+        higher_better = cmap.getUnassignedPeptideIdentifications().getEffectiveHigherScoreBetter();
 
          // look up the score category ("RAW", "PEP", "q-value", etc.) for the given score name
         for (auto& [scoretype, names] : type_to_str_)
@@ -471,7 +559,7 @@ namespace OpenMS
         const auto& ids = f.getPeptideIdentifications();
         if (!ids.empty())
         {
-          if (new_score_ == ids[0].getScoreType()) // correct score or category already set
+          if (new_score_ == ids.getEffectiveScoreType()) // correct score or category already set
           {
             return;
           }
@@ -546,7 +634,14 @@ namespace OpenMS
     template <typename IDType>
     String findScoreType(IDType& id, IDScoreSwitcherAlgorithm::ScoreType type)
     {
-      const String& curr_score_type = id.getScoreType();
+      String curr_score_type;
+      if constexpr (std::is_same_v<std::remove_cv_t<IDType>, PeptideIdentification>) {
+        // For PeptideIdentification, we can't get individual score type
+        // We need to rely on meta values in hits for score type detection
+        curr_score_type = ""; // Will be determined from meta values below
+      } else {
+        curr_score_type = id.getScoreType();
+      }
       const std::set<String>& possible_types = type_to_str_[type];
       if (possible_types.find(curr_score_type) != possible_types.end())
       {

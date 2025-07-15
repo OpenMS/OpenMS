@@ -150,14 +150,21 @@ protected:
 
     // check if there is a q-value score and target_decoy information available
     bool target_decoy_available(false);
-    for (PeptideIdentification const & pep_id : peptide_ids)
+    if (!peptide_ids.empty())
     {
-      const vector<PeptideHit>& hits = pep_id.getHits();
-      if (!hits.empty())
+      target_decoy_available = (peptide_ids.getEffectiveScoreType() == "q-value");
+      if (target_decoy_available)
       {
-        target_decoy_available = (pep_id.getScoreType() == "q-value"
-                               && hits[0].metaValueExists("target_decoy"));
-        break;
+        // Check if any hits have target_decoy meta value
+        for (PeptideIdentification const & pep_id : peptide_ids)
+        {
+          const vector<PeptideHit>& hits = pep_id.getHits();
+          if (!hits.empty() && hits[0].metaValueExists("target_decoy"))
+          {
+            break;
+          }
+          target_decoy_available = false;
+        }
       }
     }
     
@@ -252,19 +259,16 @@ protected:
     }
     // Unfortunately this cannot go into the algorithm since
     // you would overwrite some score types before they are extracted when you
-    // do split_charge
-    for (auto& pep : peptide_ids)
+    // Set score metadata at list level (centralized architecture)
+    if (prob_correct)
     {
-      if (prob_correct)
-      {
-        pep.setScoreType("Posterior Probability");
-        pep.setHigherScoreBetter(true);
-      }
-      else
-      {
-        pep.setScoreType("Posterior Error Probability");
-        pep.setHigherScoreBetter(false);
-      }
+      peptide_ids.setScoreType("Posterior Probability");
+      peptide_ids.setHigherScoreBetter(true);
+    }
+    else
+    {
+      peptide_ids.setScoreType("Posterior Error Probability");
+      peptide_ids.setHigherScoreBetter(false);
     }
     //-------------------------------------------------------------
     // writing output

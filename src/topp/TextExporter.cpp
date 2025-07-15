@@ -432,7 +432,7 @@ namespace OpenMS
   // write a peptide identification to the output stream
   void writePeptideId(SVOutStream& out, const PeptideIdentification& pid,
                       const String& what = "PEPTIDE", bool incl_pred_rt = false, bool incl_pred_pt = false,
-                      bool incl_first_dim = false, bool incl_peak_annotations = false, const StringList& peptide_id_meta_keys = StringList(), const StringList& peptide_hit_meta_keys = StringList())
+                      bool incl_first_dim = false, bool incl_peak_annotations = false, const StringList& peptide_id_meta_keys = StringList(), const StringList& peptide_hit_meta_keys = StringList(), const String& score_type = "")
   {
     for (const PeptideHit& hit : pid.getHits())
     {
@@ -458,7 +458,7 @@ namespace OpenMS
       {
         out << "-1";
       }
-      out << hit << pid.getScoreType() << pid.getIdentifier();
+      out << hit << score_type << pid.getIdentifier();
 
       // For each accession/evidence, print the protein, the start and end position in one col each
       String accessions;
@@ -788,9 +788,11 @@ protected:
           {
             writeProteinId(output, prot, protein_hit_meta_keys);
           }
-          for (const PeptideIdentification& pep : feature_map.getUnassignedPeptideIdentifications())
+          const auto& unassigned_peptides = feature_map.getUnassignedPeptideIdentifications();
+          String unassigned_score_type = unassigned_peptides.empty() ? "" : unassigned_peptides.getEffectiveScoreType();
+          for (const PeptideIdentification& pep : unassigned_peptides)
           {
-            writePeptideId(output, pep, "UNASSIGNEDPEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys);
+            writePeptideId(output, pep, "UNASSIGNEDPEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys, unassigned_score_type);
           }
         }
 
@@ -824,9 +826,11 @@ protected:
           // peptide ids
           if (!no_ids)
           {
-            for (const PeptideIdentification& pep : feat.getPeptideIdentifications())
+            const auto& feat_peptides = feat.getPeptideIdentifications();
+            String feat_score_type = feat_peptides.empty() ? "" : feat_peptides.getEffectiveScoreType();
+            for (const PeptideIdentification& pep : feat_peptides)
             {
-              writePeptideId(output, pep, "PEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys);
+              writePeptideId(output, pep, "PEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys, feat_score_type);
             }
           }
         }
@@ -1300,9 +1304,11 @@ protected:
             }
 
             // unassigned peptides
-            for (PeptideIdentificationList::const_iterator pit = consensus_map.getUnassignedPeptideIdentifications().begin(); pit != consensus_map.getUnassignedPeptideIdentifications().end(); ++pit)
+            const auto& consensus_unassigned = consensus_map.getUnassignedPeptideIdentifications();
+            String consensus_unassigned_score_type = consensus_unassigned.empty() ? "" : consensus_unassigned.getEffectiveScoreType();
+            for (PeptideIdentificationList::const_iterator pit = consensus_unassigned.begin(); pit != consensus_unassigned.end(); ++pit)
             {
-              writePeptideId(output, *pit, "UNASSIGNEDPEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys);
+              writePeptideId(output, *pit, "UNASSIGNEDPEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys, consensus_unassigned_score_type);
               // first_dim_... stuff not supported for now
             }
           }
@@ -1336,11 +1342,11 @@ protected:
             // peptide ids
             if (!no_ids)
             {
-              for (PeptideIdentificationList::const_iterator pit =
-                     cmit->getPeptideIdentifications().begin(); pit !=
-                   cmit->getPeptideIdentifications().end(); ++pit)
+              const auto& consensus_feat_peptides = cmit->getPeptideIdentifications();
+              String consensus_feat_score_type = consensus_feat_peptides.empty() ? "" : consensus_feat_peptides.getEffectiveScoreType();
+              for (PeptideIdentificationList::const_iterator pit = consensus_feat_peptides.begin(); pit != consensus_feat_peptides.end(); ++pit)
               {
-                writePeptideId(output, *pit, "PEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys);
+                writePeptideId(output, *pit, "PEPTIDE", false, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys, consensus_feat_score_type);
               }
             }
           }
@@ -1436,12 +1442,13 @@ protected:
             // slight improvement on big idXML files with many different runs:
             // index the identifiers and peptide ids to avoid running over
             // them again and again (TODO)
+            String pep_ids_score_type = pep_ids.empty() ? "" : pep_ids.getEffectiveScoreType();
             for (PeptideIdentificationList::const_iterator pit =
                    pep_ids.begin(); pit != pep_ids.end(); ++pit)
             {
               if (pit->getIdentifier() == actual_id)
               {
-                writePeptideId(output, *pit, what, true, true, first_dim_rt, true, peptide_id_meta_keys, peptide_hit_meta_keys);
+                writePeptideId(output, *pit, what, true, true, first_dim_rt, true, peptide_id_meta_keys, peptide_hit_meta_keys, pep_ids_score_type);
               }
             }
           }

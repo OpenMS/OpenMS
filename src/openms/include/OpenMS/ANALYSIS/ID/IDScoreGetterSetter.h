@@ -274,17 +274,29 @@ namespace OpenMS
     static String setScoreType_(IDType &id, const std::string &score_type,
                          bool higher_better)
     {
-      String old_score_type = id.getScoreType() + "_score";
-      id.setScoreType(score_type);
-      id.setHigherScoreBetter(higher_better);
-      return old_score_type;
+      if constexpr (std::is_same_v<std::remove_cv_t<IDType>, PeptideIdentification>) {
+        // For PeptideIdentification, score metadata is handled at list level
+        // Individual objects don't store score metadata in centralized architecture
+        return "unknown_score";
+      } else {
+        String old_score_type = id.getScoreType() + "_score";
+        id.setScoreType(score_type);
+        id.setHigherScoreBetter(higher_better);
+        return old_score_type;
+      }
     }
 
     template<typename IDType>
     static void setScores_(const std::map<double, double> &scores_to_FDR, IDType &id, const std::string &score_type,
                     bool higher_better, bool keep_decoy)
     {
-      bool old_higher_better = id.isHigherScoreBetter();
+      bool old_higher_better;
+      if constexpr (std::is_same_v<std::remove_cv_t<IDType>, PeptideIdentification>) {
+        // For individual objects, higher_better will come from calling context
+        old_higher_better = higher_better; // Use the passed parameter since individual objects don't store this
+      } else {
+        old_higher_better = id.isHigherScoreBetter();
+      }
       String old_score_type = setScoreType_(id, score_type, higher_better);
 
       if (keep_decoy) //in-place set scores

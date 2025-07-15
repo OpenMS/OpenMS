@@ -72,8 +72,8 @@ namespace OpenMS
       prot_id_->setSearchParameters(sp);
       prot_id_->setScoreType("ProteinProphet probability");
       prot_id_->setHigherScoreBetter(true);
-      pep_id_->setScoreType("ProteinProphet probability");
-      pep_id_->setHigherScoreBetter(true);
+      // Note: Individual PeptideIdentification objects no longer store score metadata
+      // Score metadata should be handled at the PeptideIdentificationList level by the caller
     }
     // identifier for Protein & PeptideIdentification
     // <program_details analysis="proteinprophet" time="2009-11-29T18:30:03" ...

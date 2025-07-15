@@ -259,18 +259,15 @@ namespace OpenMS
       {
         case SCORE:
           hit.setScore(score);
-          peptide.setScoreType("Percolator_score");
-          peptide.setHigherScoreBetter(true);
+          // Note: Individual score metadata removed - caller should set on collection level
           break;
         case QVALUE:
           hit.setScore(qvalue);
-          peptide.setScoreType("q-value");
-          peptide.setHigherScoreBetter(false);
+          // Note: Individual score metadata removed - caller should set on collection level
           break;
         case POSTERRPROB:
           hit.setScore(posterrprob);
-          peptide.setScoreType("Posterior Error Probability");
-          peptide.setHigherScoreBetter(false);
+          // Note: Individual score metadata removed - caller should set on collection level
           break;
         case SIZE_OF_SCORETYPE:
           throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'output_score' must not be 'SIZE_OF_SCORETYPE'!");

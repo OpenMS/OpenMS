@@ -423,10 +423,10 @@ protected:
     }
   }
   
-  String getSelectionMethod_(const PeptideIdentification& pep_id, String search_engine)
+  String getSelectionMethod_(const String& score_type, String search_engine)
   {
     String selection_method = "";
-    if (pep_id.getScoreType() == "Posterior Error Probability" || pep_id.getScoreType() == "pep" || search_engine == "Percolator")
+    if (score_type == "Posterior Error Probability" || score_type == "pep" || search_engine == "Percolator")
     {
       selection_method = score_selection_method_[0];
     }
@@ -533,7 +533,7 @@ protected:
     
     // initialize map
     map<String, vector<String> > config_map;
-    String selection_method = getSelectionMethod_(pep_ids[0], prot_ids.begin()->getSearchEngine());
+    String selection_method = getSelectionMethod_(pep_ids.getEffectiveScoreType(), prot_ids.begin()->getSearchEngine());
     
     ExitCodes ret = parseParameters_(config_map, id, in, out, target_mods, selection_method);
     if (ret != EXECUTION_OK)
@@ -594,6 +594,7 @@ protected:
       return ret;
     }
     
+    String effective_score_type = pep_ids.getEffectiveScoreType();
     for (PeptideIdentification& pep : pep_ids)
     {
       Size scan_idx;
@@ -613,7 +614,7 @@ protected:
       if (!pep.getHits().empty())
       {
         PeptideHit scored_hit = pep.getHits()[0];
-        addScoreToMetaValues_(scored_hit, pep.getScoreType());
+        addScoreToMetaValues_(scored_hit, effective_score_type);
         
         struct LuciphorPSM l_psm;
         if (l_psms.count(scan_idx) > 0)
@@ -647,12 +648,14 @@ protected:
       }
       
       PeptideIdentification new_pep_id(pep);
-      new_pep_id.setScoreType("Luciphor_delta_score");
-      new_pep_id.setHigherScoreBetter(true);
       new_pep_id.setHits(scored_peptides);
       new_pep_id.sort();
       pep_out.push_back(new_pep_id);
     }
+    
+    // Set score metadata at list level (centralized architecture)
+    pep_out.setScoreType("Luciphor_delta_score");
+    pep_out.setHigherScoreBetter(true);
 
     // store which modifications have been localized
     for (auto& p : prot_ids)

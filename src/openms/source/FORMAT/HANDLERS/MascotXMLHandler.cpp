@@ -555,7 +555,7 @@ namespace OpenMS::Internal
         if (!already_stored)
         {
           id_data_[peptide_identification_index_].setIdentifier(identifier_);
-          id_data_[peptide_identification_index_].setScoreType("Mascot");
+          // Score type "Mascot" will be set at the list level when identifications are processed
           actual_peptide_evidence_.setProteinAccession(actual_protein_hit_.getAccession());
           actual_peptide_hit_.addPeptideEvidence(actual_peptide_evidence_);
           id_data_[peptide_identification_index_].insertHit(actual_peptide_hit_);
@@ -572,7 +572,7 @@ namespace OpenMS::Internal
       else if (tag_ == "u_peptide" || tag_ == "q_peptide")
       {
         id_data_[peptide_identification_index_].setIdentifier(identifier_);
-        id_data_[peptide_identification_index_].setScoreType("Mascot");
+        // Score type "Mascot" will be set at the list level when identifications are processed
         id_data_[peptide_identification_index_].insertHit(actual_peptide_hit_);
         actual_peptide_evidence_ = PeptideEvidence();
         actual_peptide_hit_ = PeptideHit();

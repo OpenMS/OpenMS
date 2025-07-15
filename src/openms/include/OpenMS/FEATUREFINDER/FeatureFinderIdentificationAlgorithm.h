@@ -243,6 +243,7 @@ protected:
   /// @todo find better solution
   void addPeptideToMap_(PeptideIdentification& peptide,
     PeptideMap& peptide_map,
+    bool higher_score_better,
     bool external = false);
 
   void filterFeatures_(FeatureMap& features, bool classified);

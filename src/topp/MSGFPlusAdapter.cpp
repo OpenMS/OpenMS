@@ -413,8 +413,7 @@ protected:
 
       hit.setScore(hit.getMetaValue("MS:1002052"));
     }
-    id.setScoreType("SpecEValue");
-    id.setHigherScoreBetter(false);
+    // Note: Score metadata will be set at list level after all IDs are processed
   }
 
   bool createLockedDBIndex(const String& db_name, const QString java_executable, const QString java_memory, const QString executable)
@@ -781,8 +780,7 @@ protected:
             pep_ident.setRT(rt_mapping[spec_id][0]);
             pep_ident.setMZ(rt_mapping[spec_id][1]);
             pep_ident.setMetaValue("ScanNumber", scan_number);
-            pep_ident.setScoreType("SpecEValue");
-            pep_ident.setHigherScoreBetter(false);
+            // Note: Score metadata will be set at list level after all IDs are processed
             pep_ident.setIdentifier(identifier);
           }
           if (!hit_exists) // add new PeptideHit

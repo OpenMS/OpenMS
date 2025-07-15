@@ -50,8 +50,7 @@ namespace OpenMS
         
         hit_it->setScore(rank - 1);
       }
-      pep_it->setScoreType("ConsensusID_ranks");
-      pep_it->setHigherScoreBetter(true); // not true now, but after normalizing
+      // Score metadata now handled at list level (will be set after processing all IDs)
 
       // if "considered_hits" wasn't set, we find the max. number of hits:
       if (set_considered_hits &&

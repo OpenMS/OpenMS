@@ -54,12 +54,13 @@ namespace OpenMS
   
   void DBSuitability::compute(PeptideIdentificationList&& pep_ids, const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params)
   {
+    if (pep_ids.getEffectiveScoreType() == "q-value") // q-value as score?
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
+    }
+    
     for (const auto& id : pep_ids)
     {
-      if (id.getScoreType() == "q-value") // q-value as score?
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q-value found at PeptideIdentifications. That is not allowed! Please make sure FDR did not run previously.");
-      }
       if (id.getHits().empty()) continue;
       if (id.getHits()[0].metaValueExists("q-value")) // q-value at meta values?
       {
@@ -421,7 +422,7 @@ namespace OpenMS
       return;
     }
 
-    bool hsb = pep_ids[0].isHigherScoreBetter();
+    bool hsb = pep_ids.getEffectiveHigherScoreBetter();
 
     // calculate score that corresponds to the FDR cut-off
     double score_cut_off;
@@ -431,7 +432,7 @@ namespace OpenMS
       FalseDiscoveryRate fdr;
       fdr.apply(ids_copy);
 
-      score_cut_off = getScoreMatchingFDR_(ids_copy, param_.getValue("FDR"), pep_ids[0].getScoreType(), hsb);
+      score_cut_off = getScoreMatchingFDR_(ids_copy, param_.getValue("FDR"), pep_ids.getEffectiveScoreType(), hsb);
     }
 
     if (!no_re_rank)
@@ -654,16 +655,17 @@ namespace OpenMS
       worst_score = -DBL_MAX;
     }
 
+    // Check if FDR has run (all IDs in list have same score type)
+    if (pep_ids.getEffectiveScoreType() != "q-value")
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No q-value found at peptide identification.");
+    }
+
     for (const auto& id: pep_ids)
     {
       const vector<PeptideHit>& hits = id.getHits();
 
       if (hits.empty()) continue;
-
-      if (id.getScoreType() != "q-value") // did FDR run?
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No q-value found at peptide identification.");
-      }
 
       const PeptideHit& top_hit = hits[0]; // get first hit
 

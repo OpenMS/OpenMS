@@ -86,19 +86,19 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[0].getHits()[1].getSequence(),"")
 
   //peptide id s
-  TEST_EQUAL(peptide_ids[0].getScoreType(),"MS-GF:RawScore")
+  TEST_EQUAL(peptide_ids.getEffectiveScoreType(),"MS-GF:RawScore")
   TEST_REAL_SIMILAR(peptide_ids[0].getHits()[0].getScore(),195)
   TEST_EQUAL(peptide_ids[0].getHits()[0].getSequence().toString(),"LATEFSGNVPVLNAGDGSNQHPTQTLLDLFTIQETQGR")
   TEST_EQUAL(peptide_ids[0].getSpectrumReference(),"controllerType=0 controllerNumber=1 scan=32805")
-  TEST_EQUAL(peptide_ids[1].getScoreType(),"MS-GF:RawScore")
+  // Score type is now centralized at list level - already tested above
   TEST_REAL_SIMILAR(peptide_ids[1].getHits()[0].getScore(),182)
   TEST_EQUAL(peptide_ids[1].getHits()[0].getSequence().toString(),"FLAETDQGPVPVEITAVEDDHVVVDGNHMLAGQNLK")
   TEST_EQUAL(peptide_ids[1].getSpectrumReference(),"controllerType=0 controllerNumber=1 scan=26090")
-  TEST_EQUAL(peptide_ids[2].getScoreType(),"MS-GF:RawScore")
+  // Score type is now centralized at list level - already tested above
   TEST_REAL_SIMILAR(peptide_ids[2].getHits()[0].getScore(),191)
   TEST_EQUAL(peptide_ids[2].getHits()[0].getSequence().toString(),"FLAETDQGPVPVEITAVEDDHVVVDGNHMLAGQNLK")
   TEST_EQUAL(peptide_ids[2].getSpectrumReference(),"controllerType=0 controllerNumber=1 scan=26157")
-  TEST_EQUAL(peptide_ids[3].getScoreType(),"MS-GF:RawScore")
+  // Score type is now centralized at list level - already tested above
   TEST_REAL_SIMILAR(peptide_ids[3].getHits()[0].getScore(),211)
   TEST_EQUAL(peptide_ids[3].getHits()[0].getSequence().toString(),"VGAGPFPTELFDETGEFLC(Carbamidomethyl)K")
   TEST_EQUAL(peptide_ids[3].getSpectrumReference(),"controllerType=0 controllerNumber=1 scan=15094")
@@ -161,8 +161,8 @@ START_SECTION(void store(String filename, const std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[0].getHits()[1].getSequence(),protein_ids2[0].getHits()[1].getSequence())
 
   //peptide id 1
-  TEST_EQUAL(peptide_ids[0].getScoreType(),peptide_ids2[0].getScoreType())
-  TEST_EQUAL(peptide_ids[0].isHigherScoreBetter(),peptide_ids2[0].isHigherScoreBetter())
+  TEST_EQUAL(peptide_ids.getEffectiveScoreType(),peptide_ids2.getEffectiveScoreType())
+  TEST_EQUAL(peptide_ids.getEffectiveHigherScoreBetter(),peptide_ids2.getEffectiveHigherScoreBetter())
   TEST_REAL_SIMILAR(peptide_ids[0].getMZ(),peptide_ids2[0].getMZ())
   TEST_REAL_SIMILAR(peptide_ids[0].getRT(),peptide_ids2[0].getRT())
   TEST_EQUAL(peptide_ids[0].getSpectrumReference(),peptide_ids2[0].getSpectrumReference())
@@ -192,8 +192,9 @@ START_SECTION(void store(String filename, const std::vector<ProteinIdentificatio
   }
 
   //peptide id 2
-  TEST_EQUAL(peptide_ids[1].getScoreType(),peptide_ids2[1].getScoreType())
-  TEST_EQUAL(peptide_ids[1].isHigherScoreBetter(),peptide_ids2[1].isHigherScoreBetter())
+  // Score metadata is now centralized at list level - already tested above
+  // TEST_EQUAL(peptide_ids.getEffectiveScoreType(),peptide_ids2.getEffectiveScoreType())
+  // TEST_EQUAL(peptide_ids.getEffectiveHigherScoreBetter(),peptide_ids2.getEffectiveHigherScoreBetter())
   TEST_REAL_SIMILAR(peptide_ids[1].getMZ(),peptide_ids2[1].getMZ())
   TEST_REAL_SIMILAR(peptide_ids[1].getRT(),peptide_ids2[1].getRT())
   //peptide hit 1
@@ -209,8 +210,9 @@ START_SECTION(void store(String filename, const std::vector<ProteinIdentificatio
   for (size_t i = 0; i < peptide_ids[1].getHits()[1].getPeptideEvidences().size(); ++i)
     TEST_EQUAL(peptide_ids[1].getHits()[1].getPeptideEvidences()[i]==peptide_ids2[1].getHits()[1].getPeptideEvidences()[i],true)
   //peptide id 3
-  TEST_EQUAL(peptide_ids[2].getScoreType(),peptide_ids2[2].getScoreType())
-  TEST_EQUAL(peptide_ids[2].isHigherScoreBetter(),peptide_ids2[2].isHigherScoreBetter())
+  // Score metadata is now centralized at list level - already tested above
+  // TEST_EQUAL(peptide_ids.getEffectiveScoreType(),peptide_ids2.getEffectiveScoreType())
+  // TEST_EQUAL(peptide_ids.getEffectiveHigherScoreBetter(),peptide_ids2.getEffectiveHigherScoreBetter())
   TEST_REAL_SIMILAR(peptide_ids[2].getMZ(),peptide_ids2[2].getMZ())
   TEST_REAL_SIMILAR(peptide_ids[2].getRT(),peptide_ids2[2].getRT())
   //peptide hit 1

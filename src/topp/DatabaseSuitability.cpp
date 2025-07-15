@@ -198,14 +198,17 @@ protected:
 
     Size total_number_novo_seqs = novo_peps.size();
     IDFilter::filterHitsByScore(novo_peps, novo_threshold);
+    
+    // Check score type at list level (centralized architecture)
+    if (novo_peps.getEffectiveScoreType() != "novorscore")
+    {
+      OPENMS_LOG_ERROR << in_novo << " contains identifications without a novorscore! Make sure this file contains only deNovo sequences." << endl;
+      return INPUT_FILE_CORRUPT;
+    }
+    
     set<AASequence> unique_novo;
     for (const auto& pep_id : novo_peps)
     {
-      if (pep_id.getScoreType() != "novorscore")
-      {
-        OPENMS_LOG_ERROR << in_novo << " contains at least one identification without a novorscore! Make sure this file contains only deNovo sequences." << endl;
-        return INPUT_FILE_CORRUPT;
-      }
       if (pep_id.getHits().empty())
       {
         continue;

@@ -589,7 +589,7 @@ namespace OpenMS::Internal
         // Set Attributes of Peptide Identification
         peptide_identification.setMZ(this->mz_light_);
         peptide_identification.setRT(this->rt_light_);
-        peptide_identification.setScoreType("OpenPepXL:score"); // Needed, since hard-coded in MzIdentMLHandler
+        // Score type "OpenPepXL:score" will be set at the list level when identifications are processed
 
         String prot1_string = this->attributeAsString_(attributes, "prot1");
 

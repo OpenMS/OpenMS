@@ -1111,8 +1111,8 @@ namespace OpenMS
         sit->second = MzTabDouble(curr_score);
 
         //TODO assumes same scores & score types
-        if ((pep.isHigherScoreBetter() && curr_score >= best_score)
-        || (!pep.isHigherScoreBetter() && curr_score <= best_score))
+        if ((curr_pep_ids.getEffectiveHigherScoreBetter() && curr_score >= best_score)
+        || (!curr_pep_ids.getEffectiveHigherScoreBetter() && curr_score <= best_score))
         {
           best_score = curr_score;
           if (pep.metaValueExists("spectrum_reference"))
@@ -1388,7 +1388,9 @@ namespace OpenMS
       {
         if (pep->getIdentifier() == (*it)->getIdentifier())
         {
-          search_engine_score_type = pep->getScoreType();
+          // Note: Score type is now managed at list level, not individual PeptideIdentification level
+          // Using default "unknown_score" since individual PeptideIdentification no longer stores score metadata
+          search_engine_score_type = "unknown_score";
           break;
         }
       }

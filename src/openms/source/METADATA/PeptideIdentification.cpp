@@ -20,8 +20,6 @@ namespace OpenMS
     MetaInfoInterface(),
     id_(),
     hits_(),
-    score_type_(),
-    higher_score_better_(true),
     mz_(std::numeric_limits<double>::quiet_NaN()),
     rt_(std::numeric_limits<double>::quiet_NaN())
   {
@@ -36,8 +34,6 @@ namespace OpenMS
            && id_ == rhs.id_
            && hits_ == rhs.hits_
            && getSignificanceThreshold() == rhs.getSignificanceThreshold()
-           && score_type_ == rhs.score_type_
-           && higher_score_better_ == rhs.higher_score_better_
            && getExperimentLabel() == rhs.getExperimentLabel()
            && getBaseName() == rhs.getBaseName()
            && (mz_ == rhs.mz_ || (!this->hasMZ() && !rhs.hasMZ())) // might be NaN, so comparing == will always be false
@@ -128,25 +124,6 @@ namespace OpenMS
     }
   }
 
-  const String& PeptideIdentification::getScoreType() const
-  {
-    return score_type_;
-  }
-
-  void PeptideIdentification::setScoreType(const String& type)
-  {
-    score_type_ = type;
-  }
-
-  bool PeptideIdentification::isHigherScoreBetter() const
-  {
-    return higher_score_better_;
-  }
-
-  void PeptideIdentification::setHigherScoreBetter(bool value)
-  {
-    higher_score_better_ = value;
-  }
 
   const String& PeptideIdentification::getIdentifier() const
   {
@@ -217,7 +194,7 @@ namespace OpenMS
 
   void PeptideIdentification::sort()
   {
-    std::stable_sort(hits_.begin(), hits_.end(), getScoreComparator(higher_score_better_));
+    std::stable_sort(hits_.begin(), hits_.end(), getScoreComparator(true)); // Default to higher-is-better
   }
 
   bool PeptideIdentification::empty() const
@@ -225,8 +202,6 @@ namespace OpenMS
     return id_.empty()
            && hits_.empty()
            && getSignificanceThreshold() == 0.0
-           && score_type_.empty()
-           && higher_score_better_ == true
            && getBaseName().empty();
   }
 

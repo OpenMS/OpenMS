@@ -209,16 +209,15 @@ START_SECTION((Test effective score methods))
   TEST_EQUAL(pep_ids.getEffectiveScoreType(), "Mascot")
   TEST_EQUAL(pep_ids.getEffectiveHigherScoreBetter(), true)
   
-  // Test with individual elements but no list-level metadata
+  // Test with empty list-level metadata - should return defaults
   pep_ids.setScoreType("");  // Clear list-level
   pep_ids.setHigherScoreBetter(false);
   
   PeptideIdentification pep_id;
-  pep_id.setScoreType("Sequest");
-  pep_id.setHigherScoreBetter(false);
   pep_ids.push_back(pep_id);
   
-  TEST_EQUAL(pep_ids.getEffectiveScoreType(), "Sequest")
+  // With centralized score handling, effective methods return list-level values
+  TEST_EQUAL(pep_ids.getEffectiveScoreType(), "")
   TEST_EQUAL(pep_ids.getEffectiveHigherScoreBetter(), false)
   
   // Test that list-level overrides individual

@@ -39,9 +39,9 @@ END_SECTION
 
 // create 3 ID runs:
 PeptideIdentification temp;
-temp.setScoreType("Posterior Error Probability");
-temp.setHigherScoreBetter(false);
 PeptideIdentificationList ids(3, temp);
+ids.setScoreType("Posterior Error Probability");
+ids.setHigherScoreBetter(false);
 vector<PeptideHit> hits;
 // the first ID has 5 hits
 hits.resize(5);

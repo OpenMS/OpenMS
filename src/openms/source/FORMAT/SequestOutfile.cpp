@@ -180,7 +180,7 @@ namespace OpenMS
     databases.push_back(database);
 
     score_type = (sf_column == -1) ? "SEQUEST prelim." : "SEQUEST";
-    peptide_identification.setScoreType(score_type);
+    // Note: Individual score metadata removed - caller should set on collection level
 
     if (no_pvalues)
     {

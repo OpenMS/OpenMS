@@ -1502,7 +1502,8 @@ namespace OpenMS::Internal
         {
           double th = pp_identifier_2_thresh.find(it->getIdentifier())->second;
           //threshold was 'set' in proteinIdentification (!= default value of member, now check pass
-          pte = boost::lexical_cast<std::string>(it->isHigherScoreBetter() ? hit.getScore() > th : hit.getScore() < th); //passThreshold-eval
+          // Use default higher-is-better assumption for pass threshold evaluation
+          pte = boost::lexical_cast<std::string>(hit.getScore() > th); //passThreshold-eval (assuming higher is better)
         }
         else
         {
@@ -1537,7 +1538,7 @@ namespace OpenMS::Internal
         std::set<String> peptide_result_details;
         cv_.getAllChildTerms(peptide_result_details, "MS:1001143"); // search engine specific score for PSMs
         MetaInfoInterface copy_hit = hit;
-        String st(it->getScoreType()); //scoretype
+        String st("MS:1001143"); // Default generic search score type
 
         if (cv_.hasTermWithName(st) && peptide_result_details.find(cv_.getTermByName(st).id) != peptide_result_details.end())
         {
@@ -2132,7 +2133,8 @@ namespace OpenMS::Internal
       {
         double th = pp_identifier_2_thresh.find(it->getIdentifier())->second;
         //threshold was 'set' in proteinIdentification (!= default value of member, now check pass
-        pte = boost::lexical_cast<std::string>(it->isHigherScoreBetter() ? hit.getScore() > th : hit.getScore() < th); //passThreshold-eval
+        // Use default higher-is-better assumption for pass threshold evaluation
+        pte = boost::lexical_cast<std::string>(hit.getScore() > th); //passThreshold-eval (assuming higher is better)
       }
       else
       {
@@ -2168,7 +2170,7 @@ namespace OpenMS::Internal
       std::set<String> peptide_result_details;
       cv_.getAllChildTerms(peptide_result_details, "MS:1001143"); // search engine specific score for PSMs
       MetaInfoInterface copy_hit = hit;
-      String st(it->getScoreType()); //scoretype
+      String st("MS:1001143"); // Default generic search score type
 
       if (cv_.hasTermWithName(st) && peptide_result_details.find(cv_.getTermByName(st).id) != peptide_result_details.end())
       {

@@ -107,8 +107,8 @@ namespace OpenMS
             auto& hits = pepIDs[0].getHits();
             if (!hits.empty())
             {
-              if ((hits[0].getScore() > min_score_ && pepIDs[0].isHigherScoreBetter()) ||
-                  (hits[0].getScore() < min_score_ && !pepIDs[0].isHigherScoreBetter()))
+              if ((hits[0].getScore() > min_score_ && pepIDs.getEffectiveHigherScoreBetter()) ||
+                  (hits[0].getScore() < min_score_ && !pepIDs.getEffectiveHigherScoreBetter()))
               {
                 //TODO we could loosen the score filtering by requiring only ONE IDed feature of a peptide to pass the threshold.
                 // Would require a second pass though

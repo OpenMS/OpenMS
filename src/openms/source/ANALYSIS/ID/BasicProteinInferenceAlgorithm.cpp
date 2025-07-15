@@ -285,17 +285,11 @@ namespace OpenMS
           OPENMS_PRETTY_FUNCTION,
           "Effective score type does not match overall score type. Aborting...");
     }
-    // Validate individual entries are consistent with effective score type
-    for (auto &pep : pep_ids)
+    // Note: Score type validation now done at list level - individual entries no longer store score metadata
+    // No validation needed as all score metadata is centralized
+
+    for (auto& pep : pep_ids)
     {
-      if (!pep.getScoreType().empty() && pep.getScoreType() != effective_score_type)
-      {
-        throw OpenMS::Exception::InvalidParameter(
-            __FILE__,
-            __LINE__,
-            OPENMS_PRETTY_FUNCTION,
-            "Individual score types must match the effective score type. Aborting...");
-      }
       //skip if it does not belong to run
       if (!run_id.empty() && pep.getIdentifier() != run_id)
         continue;

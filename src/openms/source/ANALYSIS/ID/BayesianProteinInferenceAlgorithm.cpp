@@ -694,34 +694,11 @@ namespace OpenMS
     // emergency posteriors?
     //TODO test performance of getting the probability cutoff every time vs capture free lambda
     double probability_cutoff = param_.getValue("psm_probability_cutoff");
+    // Simplified lambda - score type conversion handled at calling sites
     checkConvertAndFilterPepHits_ = [probability_cutoff](PeptideIdentification &pep_id/*, const String& run_id*/)
     {
       //if (pep_id.getIdentifier() == run_id)
       //{
-      String score_l = pep_id.getScoreType();
-      score_l = score_l.toLower();
-      if (score_l == "pep" || score_l == "posterior error probability" || score_l == "ms:1001493")
-      {
-        for (auto &pep_hit : pep_id.getHits())
-        {
-          double newScore = 1. - pep_hit.getScore();
-          pep_hit.setScore(newScore);
-        }
-        pep_id.setScoreType("Posterior Probability");
-        pep_id.setHigherScoreBetter(true);
-      }
-      else
-      {
-        if (score_l != "posterior probability")
-        {
-          throw OpenMS::Exception::InvalidParameter(
-              __FILE__,
-              __LINE__,
-              OPENMS_PRETTY_FUNCTION,
-              "Epifany needs Posterior (Error) Probabilities in the Peptide Hits. Use Percolator with PEP score"
-              " or run IDPosteriorErrorProbability first.");
-        }
-      }
       //TODO remove hits "on-the-go"?
       IDFilter::removeMatchingItems(pep_id.getHits(),
                                     [&probability_cutoff](PeptideHit &hit)
@@ -760,6 +737,45 @@ namespace OpenMS
     }
 
     //TODO filtering needs to account for run info if we allow running on a subset.
+    
+    // Handle score type conversion before applying filter
+    // Check each feature's peptide IDs for score type conversion
+    for (auto& feature : cmap)
+    {
+      auto& peptide_ids = feature.getPeptideIdentifications();
+      if (!peptide_ids.empty())
+      {
+        String score_type = peptide_ids.getEffectiveScoreType();
+        String score_l = score_type.toLower();
+        bool convert_pep_to_pp = (score_l == "pep" || score_l == "posterior error probability" || score_l == "ms:1001493");
+        
+        if (convert_pep_to_pp)
+        {
+          // Convert PEP scores to PP scores
+          for (auto& pep_id : peptide_ids)
+          {
+            for (auto& pep_hit : pep_id.getHits())
+            {
+              double newScore = 1. - pep_hit.getScore();
+              pep_hit.setScore(newScore);
+            }
+          }
+          // Update list-level metadata
+          peptide_ids.setScoreType("Posterior Probability");
+          peptide_ids.setHigherScoreBetter(true);
+        }
+        else if (score_l != "posterior probability")
+        {
+          throw OpenMS::Exception::InvalidParameter(
+              __FILE__,
+              __LINE__,
+              OPENMS_PRETTY_FUNCTION,
+              "Epifany needs Posterior (Error) Probabilities in the Peptide Hits. Use Percolator with PEP score"
+              " or run IDPosteriorErrorProbability first.");
+        }
+      }
+    }
+    
     cmap.applyFunctionOnPeptideIDs(checkConvertAndFilterPepHits_);
     //TODO BIG filter empty PeptideIDs afterwards
 
@@ -1032,6 +1048,40 @@ namespace OpenMS
     bool use_run_info = param_.getValue("model_parameters:extended_model").toBool();
 
     //TODO BIG filtering needs to account for run info if only a subset is to be processed!
+    
+    // Handle score type conversion before applying filter
+    if (!peptideIDs.empty())
+    {
+      String score_type = peptideIDs.getEffectiveScoreType();
+      String score_l = score_type.toLower();
+      bool convert_pep_to_pp = (score_l == "pep" || score_l == "posterior error probability" || score_l == "ms:1001493");
+      
+      if (convert_pep_to_pp)
+      {
+        // Convert PEP scores to PP scores
+        for (auto& pep_id : peptideIDs)
+        {
+          for (auto& pep_hit : pep_id.getHits())
+          {
+            double newScore = 1. - pep_hit.getScore();
+            pep_hit.setScore(newScore);
+          }
+        }
+        // Update list-level metadata
+        peptideIDs.setScoreType("Posterior Probability");
+        peptideIDs.setHigherScoreBetter(true);
+      }
+      else if (score_l != "posterior probability")
+      {
+        throw OpenMS::Exception::InvalidParameter(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "Epifany needs Posterior (Error) Probabilities in the Peptide Hits. Use Percolator with PEP score"
+            " or run IDPosteriorErrorProbability first.");
+      }
+    }
+    
     std::for_each(peptideIDs.begin(), peptideIDs.end(), checkConvertAndFilterPepHits_);
     IDFilter::removeEmptyIdentifications(peptideIDs);
 

@@ -296,8 +296,6 @@ protected:
         
       PeptideIdentification pi;
       pi.setSpectrumReference( exp[mapping.findByScanNumber(sl[1].toInt())].getNativeID());
-      pi.setScoreType("novorscore");
-      pi.setHigherScoreBetter(true);
       pi.setRT(sl[2].toDouble());
       pi.setMZ(sl[3].toDouble());
 
@@ -353,6 +351,10 @@ protected:
     protein_ids[0].setSearchParameters(search_parameters);
      
     OPENMS_LOG_INFO << "NOVOR created " << peptide_ids.size() << " PSMs from " << count_written << " MS2 spectra (" << (peptide_ids.size() * 100 / count_written) << "% annotated)\n";
+
+    // Set score metadata at list level before output
+    peptide_ids.setScoreType("novorscore");
+    peptide_ids.setHigherScoreBetter(true);
 
     FileHandler().storeIdentifications(out, protein_ids, peptide_ids, {FileTypes::IDXML});
 

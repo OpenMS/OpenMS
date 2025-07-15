@@ -55,15 +55,22 @@ namespace OpenMS
 
     identifier_->setText(temp_.getIdentifier().toQString());
     identification_threshold_->setText(QString::number(temp_.getSignificanceThreshold()));
-    score_type_->setText(temp_.getScoreType().toQString());
-    higher_better_->setCurrentIndex(temp_.isHigherScoreBetter());
+    
+    // Score metadata is now centralized in PeptideIdentificationList
+    // For individual objects, we show placeholder values and disable editing
+    score_type_->setText("N/A (see list level)");
+    score_type_->setEnabled(false);
+    higher_better_->setCurrentIndex(0);
+    higher_better_->setEnabled(false);
   }
 
   void PeptideIdentificationVisualizer::updateTree_()
   {
     if (filter_threshold_->text() != "")
     {
-      pidv_caller_->filterHits_(filter_threshold_->text().toDouble(), temp_.isHigherScoreBetter(), tree_id_);
+      // For filtering, we need to determine score orientation from context
+      // Default to higher-is-better = true as a reasonable fallback
+      pidv_caller_->filterHits_(filter_threshold_->text().toDouble(), true, tree_id_);
     }
     else
     {
@@ -75,8 +82,10 @@ namespace OpenMS
   {
     ptr_->setIdentifier(identifier_->text());
     ptr_->setSignificanceThreshold(identification_threshold_->text().toFloat());
-    ptr_->setScoreType(score_type_->text());
-    ptr_->setHigherScoreBetter(higher_better_->currentIndex());
+    
+    // Score metadata (setScoreType, setHigherScoreBetter) is now managed at
+    // PeptideIdentificationList level and cannot be set on individual objects
+    // These operations are disabled in this context
 
     temp_ = (*ptr_);
   }

@@ -247,22 +247,22 @@ namespace OpenMS
       if (pep_it->getHits().empty())
         continue; // shouldn't be the case
 
-      best1.insert(getBestHitSequence_(*pep_it).toString());
+      best1.insert(getBestHitSequence_(*pep_it, pep1.getEffectiveHigherScoreBetter()).toString());
     }
     for (PeptideIdentificationList::const_iterator pep_it = pep2.begin(); pep_it != pep2.end(); ++pep_it)
     {
       if (pep_it->getHits().empty())
         continue; // shouldn't be the case
 
-      best2.insert(getBestHitSequence_(*pep_it).toString());
+      best2.insert(getBestHitSequence_(*pep_it, pep2.getEffectiveHigherScoreBetter()).toString());
     }
     return best1 == best2;
   }
 
-  const AASequence& StablePairFinder::getBestHitSequence_(const PeptideIdentification& peptideIdentification) const
+  const AASequence& StablePairFinder::getBestHitSequence_(const PeptideIdentification& peptideIdentification, bool higher_better) const
   {
 
-    if (peptideIdentification.isHigherScoreBetter())
+    if (higher_better)
     {
       return std::min_element(peptideIdentification.getHits().begin(),
                               peptideIdentification.getHits().end(),

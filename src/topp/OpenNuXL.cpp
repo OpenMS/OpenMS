@@ -3504,8 +3504,6 @@ static void scoreXLIons_(
   {
     pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
     pi.setMetaValue("spectrum_reference", spec.getNativeID());
-    pi.setScoreType("NuXLScore");
-    pi.setHigherScoreBetter(true);
     pi.setRT(spec.getRT());
     pi.setMZ(spec.getPrecursors()[0].getMZ());
     double precursor_intensity_log10 = log10(1.0 + spec.getPrecursors()[0].getIntensity());
@@ -6325,6 +6323,10 @@ static void scoreXLIons_(
         protein_ids[0].setSearchParameters(search_parameters);
       }
 
+      // Set score metadata at list level before output
+      peptide_ids.setScoreType("NuXLScore");
+      peptide_ids.setHigherScoreBetter(true);
+
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
 
@@ -6504,6 +6506,10 @@ static void scoreXLIons_(
     }
     else  // no decoys
     {
+      // Set score metadata at list level before output
+      peptide_ids.setScoreType("NuXLScore");
+      peptide_ids.setHigherScoreBetter(true);
+
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
       // TODO: probably not supported / wrong at this point

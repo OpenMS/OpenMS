@@ -49,8 +49,7 @@ namespace OpenMS
     set<String> accessions;
     for (PeptideIdentification& pep : peptide_identifications)
     {
-      pep.setScoreType("OMSSA");
-      pep.setHigherScoreBetter(false);
+      // Score metadata is now set at list level
       pep.setIdentifier(identifier);
       pep.sort();
 
@@ -83,6 +82,10 @@ namespace OpenMS
     // Date of the search is not available -> set it to now()
     protein_identification.setDateTime(now);
     protein_identification.setIdentifier(identifier);
+
+    // Set score metadata at list level for peptide identifications
+    peptide_identifications.setScoreType("OMSSA");
+    peptide_identifications.setHigherScoreBetter(false); // OMSSA uses E-values, lower is better
 
     // search parameters are also not available
   }

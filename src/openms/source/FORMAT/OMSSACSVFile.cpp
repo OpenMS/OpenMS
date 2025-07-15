@@ -76,12 +76,16 @@ namespace OpenMS
         // new id
         //id_data.push_back(IdentificationData());
         id_data.emplace_back();
-        id_data.back().setScoreType("OMSSA");
+        // Score metadata is now set at list level
         actual_spectrum_number = (UInt)split[0].trim().toInt();
       }
 
       id_data.back().insertHit(p);
     }
+
+    // Set score metadata at list level after loading all data
+    id_data.setScoreType("OMSSA");
+    id_data.setHigherScoreBetter(false); // OMSSA uses E-values, lower is better
 
   }
 

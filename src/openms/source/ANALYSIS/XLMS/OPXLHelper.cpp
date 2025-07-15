@@ -944,7 +944,7 @@ namespace OpenMS
 
       peptide_id.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, specIDs);
       peptide_id.setHits(phs);
-      peptide_id.setScoreType(Constants::UserParam::OPENPEPXL_SCORE);
+      // Score type will be set at list level
 
 // This critical section is called this way, because access to all_top_csms also happens in OpenPepXLAlgorithm and OpenPepXLLFAlgorithm.
 // Access to peptide_ids is also critical, but it is only accessed here during parallel processing.
@@ -1147,7 +1147,7 @@ namespace OpenMS
         {
           new_id.setRT(id.getRT());
           new_id.setMZ(id.getMZ());
-          new_id.setScoreType(Constants::UserParam::OPENPEPXL_SCORE);
+          // Score type will be set at list level
           new_id.setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, current_spectrum);
         }
         hit.removeMetaValue("xl_chain");

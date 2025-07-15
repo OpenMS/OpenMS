@@ -786,12 +786,12 @@ namespace OpenMS
         }
         else
         {
-          bool haspep = pep.getScoreType() == "Posterior Error Probability" || pep.getScoreType() == "pep";
+          bool haspep = peptide_ids.getEffectiveScoreType() == "Posterior Error Probability" || peptide_ids.getEffectiveScoreType() == "pep";
           bool percolator = false;
           if (search_engine_name == "X! Tandem")
           {
             // check if score type is XTandem or qvalue/fdr
-            if (pep.getScoreType() == "XTandem")
+            if (peptide_ids.getEffectiveScoreType() == "XTandem")
             {
               f << "\t\t\t<search_score" << R"( name="hyperscore" value=")" << h.getScore() << "\"" << "/>\n";
               f << "\t\t\t<search_score" << R"( name="nextscore" value=")";
@@ -894,13 +894,13 @@ namespace OpenMS
           } // Anything else
           else
           {
-            f << "\t\t\t<search_score" << " name=\"" << pep.getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << " name=\"" << peptide_ids.getEffectiveScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
           }
           // Any search engine with a PEP (e.g. also our IDPEP) except Percolator which has
           // written that part already
           if (haspep && !percolator)
           {
-            f << "\t\t\t<search_score" << " name=\"" << pep.getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
+            f << "\t\t\t<search_score" << " name=\"" << peptide_ids.getEffectiveScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
             double probability = 1.0 - h.getScore();
             f << "\t\t\t<analysis_result" << " analysis=\"peptideprophet\">\n";
             f << "\t\t\t\t<peptideprophet_result" << " probability=\"" << probability << "\"";
@@ -1154,8 +1154,7 @@ namespace OpenMS
       {
         value = attributeAsDouble_(attributes, "value");
         peptide_hit_.setScore(value);
-        current_peptide_.setScoreType(name);
-        current_peptide_.setHigherScoreBetter(false);
+        // Note: Individual score metadata removed - caller should set on collection level
         if (search_engine_ == "Comet")
         {
           peptide_hit_.setMetaValue("MS:1002257", value); // name: Comet:expectation value
@@ -1174,8 +1173,7 @@ namespace OpenMS
       {
         value = attributeAsDouble_(attributes, "value");
         peptide_hit_.setScore(value);
-        current_peptide_.setScoreType(name);
-        current_peptide_.setHigherScoreBetter(true);
+        // Note: Individual score metadata removed - caller should set on collection level
       }
       // if (name == "hyperscore")
       // { // X!Tandem score
@@ -1190,8 +1188,7 @@ namespace OpenMS
         if (search_engine_ != "MyriMatch") //MyriMatch has also an xcorr, but we want to ignore it
         {
           peptide_hit_.setScore(value);
-          current_peptide_.setScoreType(name); // add "Sequest" to name?
-          current_peptide_.setHigherScoreBetter(true);
+          // Note: Individual score metadata removed - caller should set on collection level
         }
         if (search_engine_ == "Comet")
         {
@@ -1208,8 +1205,7 @@ namespace OpenMS
       {
         value = attributeAsDouble_(attributes, "value");
         peptide_hit_.setScore(value);
-        current_peptide_.setScoreType(name);
-        current_peptide_.setHigherScoreBetter(true);
+        // Note: Individual score metadata removed - caller should set on collection level
         peptide_hit_.setMetaValue("MS:1001419", value); // def: "SpectraST spectrum score.
       }
       else if (name == "hyperscore")
@@ -1510,12 +1506,8 @@ namespace OpenMS
       // PeptideProphet probability overwrites original search score
       // maybe TODO: deal with meta data associated with PeptideProphet search
       double value = attributeAsDouble_(attributes, "probability");
-      if (current_peptide_.getScoreType() != "InterProphet probability")
-      {
-        peptide_hit_.setScore(value);
-        current_peptide_.setScoreType("PeptideProphet probability");
-        current_peptide_.setHigherScoreBetter(true);
-      }
+      // Note: Score type is now centralized - always set the score during parsing
+      peptide_hit_.setScore(value);
       current_analysis_result_.main_score = value;
       current_analysis_result_.higher_is_better = true;
     }
@@ -1525,8 +1517,7 @@ namespace OpenMS
       // original search score
       double value = attributeAsDouble_(attributes, "probability");
       peptide_hit_.setScore(value);
-      current_peptide_.setScoreType("InterProphet probability");
-      current_peptide_.setHigherScoreBetter(true);
+      // Note: Individual score metadata removed - caller should set on collection level
       current_analysis_result_.main_score = value;
       current_analysis_result_.higher_is_better = true;
     }

@@ -252,8 +252,7 @@ namespace OpenMS
       if (sSpecId != spec_id)
       {
         pids.resize(pids.size() + 1);
-        pids.back().setHigherScoreBetter(higher_score_better);
-        pids.back().setScoreType(score_name);
+        // Note: Individual score metadata removed - caller should set on collection level
         pids.back().setMetaValue(Constants::UserParam::ID_MERGE_INDEX, map_filename_to_idx.at(raw_file_name));
         pids.back().setRT(row[to_idx.at("retentiontime")].toDouble() * 60.0); // search engines typically write minutes (e.g., sage)
         pids.back().setMetaValue("PinSpecId", sSpecId);  

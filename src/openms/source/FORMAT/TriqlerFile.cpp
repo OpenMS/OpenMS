@@ -215,14 +215,21 @@ void TriqlerFile::storeLFQ(const String& filename,
   {
     const BaseFeature &base_feature = aggregatedInfo.features[i];
 
-    for (const PeptideIdentification &pep_id : base_feature.getPeptideIdentifications())
+    const auto& pep_ids = base_feature.getPeptideIdentifications();
+    if (!pep_ids.empty())
     {
-      if (!scores.isScoreType(pep_id.getScoreType(), IDScoreSwitcherAlgorithm::ScoreType::PEP))
+      // Note: Score type is now centralized - create temporary list to check
+      PeptideIdentificationList temp_list(pep_ids);
+      if (!scores.isScoreType(temp_list.getEffectiveScoreType(), IDScoreSwitcherAlgorithm::ScoreType::PEP))
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "TriqlerFile export expects Posterior Error Probabilities in the IDs of all features"
           " to convert them to Posterior Probabilities.");
       }
+    }
+
+    for (const PeptideIdentification &pep_id : pep_ids)
+    {
       for (const PeptideHit & pep_hit : pep_id.getHits())
       {
         const String & sequence = pep_hit.getSequence().toString(); // to modified string

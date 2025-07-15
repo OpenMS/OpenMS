@@ -270,8 +270,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
         PeptideIdentification pi{};
         pi.setSpectrumReference( spec.getNativeID());
         pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
-        pi.setScoreType("ln(hyperscore)");
-        pi.setHigherScoreBetter(true);
+        // Score metadata will be set at list level
         double mz = spec.getPrecursors()[0].getMZ();
         pi.setRT(spec.getRT());
         pi.setMZ(mz);
@@ -396,6 +395,10 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
     search_parameters.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
+    
+    // Set score metadata at list level
+    peptide_ids.setScoreType("ln(hyperscore)");
+    peptide_ids.setHigherScoreBetter(true);
   }
 
 

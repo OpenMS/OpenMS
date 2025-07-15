@@ -238,7 +238,7 @@ namespace OpenMS
       for (PeptideIdentificationList::iterator pit = all_peptide_ids.begin(); pit != all_peptide_ids.end(); ++pit)
       {
         PeptideIdentification ins = *pit;
-        ins.setScoreType("multiple");
+        // Score type will be set at list level
         ins.setIdentifier("TopPerc_multiple_SE_input");
         String spectrum_reference = getScanMergeKey_(pit, all_peptide_ids.begin());
         unified[spectrum_reference] = ins;
@@ -251,7 +251,7 @@ namespace OpenMS
       for (PeptideIdentificationList::iterator pit = new_peptide_ids.begin(); pit != new_peptide_ids.end(); ++pit)
       {
         PeptideIdentification ins = *pit;
-        String st = pit->getScoreType();
+        String st = new_peptide_ids.getEffectiveScoreType();
         //prepare for merge
         for (vector<PeptideHit>::iterator hit = ins.getHits().begin(); hit != ins.getHits().end(); ++hit)
         {
@@ -298,7 +298,7 @@ namespace OpenMS
             hit->setMetaValue("MS:1001330", hit->getMetaValue("E-Value"));
           }
         }
-        ins.setScoreType("multiple");
+        // Score type will be set at list level
         ins.setIdentifier("TopPerc_multiple_SE_input");
         String spectrum_reference = getScanMergeKey_(pit, new_peptide_ids.begin());
         //merge in unified map

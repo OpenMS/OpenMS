@@ -190,6 +190,11 @@ namespace OpenMS
     Size unknown_obs_counter = 1;
     progresslogger.startProgress(0, peptides.size(),
                                  "converting peptide identifications");
+    
+    // Extract score metadata once from the peptide identification list
+    String effective_score_type = peptides.getEffectiveScoreType();
+    bool effective_higher_better = peptides.getEffectiveHigherScoreBetter();
+    
     Size peptides_counter = 0;
     for (const PeptideIdentification& pep : peptides)
     {
@@ -260,7 +265,7 @@ namespace OpenMS
 
       ID::ObservationRef obs_ref = id_data.registerObservation(obs);
 
-      ID::ScoreType score_type(pep.getScoreType(), pep.isHigherScoreBetter());
+      ID::ScoreType score_type(effective_score_type, effective_higher_better);
       ID::ScoreTypeRef score_ref = id_data.registerScoreType(score_type);
 
       // PeptideHit:
@@ -441,6 +446,11 @@ namespace OpenMS
     // order steps by date, if available:
     set<StepOpt, StepOptCompare> steps;
 
+    // Track score metadata to set at list level
+    String list_score_type;
+    bool list_higher_better = true;
+    bool first_peptide = true;
+    
     for (const auto& obsref_stepopt2vechits_scoretype : psm_data)
     {
       const ID::Observation& obs = *obsref_stepopt2vechits_scoretype.first.first;
@@ -452,8 +462,15 @@ namespace OpenMS
       peptide.setSpectrumReference( obs.data_id);
       peptide.setHits(obsref_stepopt2vechits_scoretype.second.first);
       const ID::ScoreType& score_type = *obsref_stepopt2vechits_scoretype.second.second;
-      peptide.setScoreType(score_type.cv_term.getName());
-      peptide.setHigherScoreBetter(score_type.higher_better);
+      
+      // Capture score metadata for list-level setting
+      if (first_peptide)
+      {
+        list_score_type = score_type.cv_term.getName();
+        list_higher_better = score_type.higher_better;
+        first_peptide = false;
+      }
+      
       if (obsref_stepopt2vechits_scoretype.first.second) // processing step given
       {
         peptide.setIdentifier(String(Size(&(**obsref_stepopt2vechits_scoretype.first.second))));
@@ -467,6 +484,13 @@ namespace OpenMS
     }
     // sort peptide IDs by RT and m/z to improve reproducibility:
     sort(peptides.begin(), peptides.end(), PepIDCompare());
+
+    // Set score metadata at the list level (centralized approach)
+    if (!list_score_type.empty())
+    {
+      peptides.setScoreType(list_score_type);
+      peptides.setHigherScoreBetter(list_higher_better);
+    }
 
     map<StepOpt, pair<vector<ProteinHit>, ID::ScoreTypeRef>> prot_data;
     for (const auto& parent : id_data.getParentSequences())

@@ -118,20 +118,6 @@ public:
     /// setting of the peptide significance threshold value (stored as a meta value)
     void setSignificanceThreshold(double value);
 
-    /// returns the peptide score type
-    /// @deprecated Use PeptideIdentificationList::getEffectiveScoreType() for list-level access
-    const String& getScoreType() const;
-    /// sets the peptide score type
-    /// @deprecated Use PeptideIdentificationList::setScoreType() for list-level access
-    void setScoreType(const String& type);
-
-    /// returns the peptide score orientation
-    /// @deprecated Use PeptideIdentificationList::getEffectiveHigherScoreBetter() for list-level access
-    bool isHigherScoreBetter() const;
-    /// sets the peptide score orientation
-    /// @deprecated Use PeptideIdentificationList::setHigherScoreBetter() for list-level access
-    void setHigherScoreBetter(bool value);
-
     /// Returns the identifier which links this PI to its corresponding ProteinIdentification
     const String& getIdentifier() const;
     /// sets the identifier which links this PI to its corresponding ProteinIdentification
@@ -206,8 +192,6 @@ public:
 protected:
     String id_; ///< Identifier by which ProteinIdentification and PeptideIdentification are matched
     std::vector<PeptideHit> hits_; ///< A list containing the peptide hits
-    String score_type_; ///< The score type (Mascot, Sequest, e-value, p-value)
-    bool higher_score_better_; ///< The score orientation
     double mz_;
     double rt_;
   };

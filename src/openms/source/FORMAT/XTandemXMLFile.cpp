@@ -54,9 +54,8 @@ namespace OpenMS
     for (map<UInt, vector<PeptideHit> >::iterator it = peptide_hits_.begin(); it != peptide_hits_.end(); ++it)
     {
       PeptideIdentification id;
-      id.setScoreType("XTandem");
-      id.setHigherScoreBetter(true);
       id.setIdentifier(identifier);
+      // Note: Individual score metadata removed - caller should set on collection level
       id.setSpectrumReference( spectrum_ids_[it->first]);
 
       id.getHits().swap(it->second);

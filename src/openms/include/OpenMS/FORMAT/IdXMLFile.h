@@ -157,6 +157,10 @@ protected:
     String* document_id_;
     /// true if a prot id is contained in the current run
     bool prot_id_in_run_;
+    /// Temporary score type for XML parsing
+    String temp_score_type_;
+    /// Temporary score orientation for XML parsing
+    bool temp_higher_score_better_;
     //@}
   };
 

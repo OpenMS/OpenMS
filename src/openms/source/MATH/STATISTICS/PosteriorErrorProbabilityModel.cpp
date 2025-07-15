@@ -962,13 +962,16 @@ namespace OpenMS::Math
                                          "tide-search","Sage","SimpleSearchEngine",
                                          "OpenMS/ConsensusID_best","OpenMS/ConsensusID_worst","OpenMS/ConsensusID_average"};
 
+      // Extract score type once from the peptide identification list
+      String effective_score_type = peptide_ids.getEffectiveScoreType();
+
       if (split_charge)
       {  // determine different charges in data
         for (PeptideIdentification const & pep_id : peptide_ids)
         {
           const vector<PeptideHit>& hits = pep_id.getHits();
           for (PeptideHit const & hit : hits)
-          { 
+          {
             charges.insert(hit.getCharge());
           }
         }
@@ -1010,7 +1013,7 @@ namespace OpenMS::Math
                   {
                     if (!hits.empty() && (!split_charge || hits[0].getCharge() == *charge_it))
                     {
-                      double score = PosteriorErrorProbabilityModel::transformScore_(supported_engine, hits[0], pep.getScoreType());
+                      double score = PosteriorErrorProbabilityModel::transformScore_(supported_engine, hits[0], effective_score_type);
                       if (!std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                       {
                         scores.push_back(score);
@@ -1035,7 +1038,7 @@ namespace OpenMS::Math
                     {
                       if (!split_charge || (hit.getCharge() == *charge_it))
                       {
-                        double score = PosteriorErrorProbabilityModel::transformScore_(supported_engine, hit, pep.getScoreType());
+                        double score = PosteriorErrorProbabilityModel::transformScore_(supported_engine, hit, effective_score_type);
                         if (!std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                         {
                           scores.push_back(score);
@@ -1095,6 +1098,9 @@ namespace OpenMS::Math
       unable_to_fit_data = false;
       data_might_not_be_well_fit = false;
 
+      // Extract score type once from the peptide identification list
+      String effective_score_type = peptide_ids.getEffectiveScoreType();
+
       engine.toUpper();
       for (ProteinIdentification& prot : protein_ids)
       {
@@ -1107,7 +1113,7 @@ namespace OpenMS::Math
           {
             if (prot.getIdentifier() == pep.getIdentifier())
             {
-              String score_type = pep.getScoreType() + "_score";
+              String score_type = effective_score_type + "_score";
               vector<PeptideHit> hits = pep.getHits();
               for (PeptideHit & hit : hits)
               {
@@ -1115,7 +1121,7 @@ namespace OpenMS::Math
                 {
                   double score;
                   hit.setMetaValue(score_type, hit.getScore());
-                  score = PosteriorErrorProbabilityModel::transformScore_(engine, hit, pep.getScoreType());
+                  score = PosteriorErrorProbabilityModel::transformScore_(engine, hit, effective_score_type);
 
                   //TODO they should be ignored during fitting already!
                   // and in this issue the -log(10^99) should actually be an acceptable value.

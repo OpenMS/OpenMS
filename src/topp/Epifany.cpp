@@ -185,31 +185,31 @@ protected:
   void convertPSMScores_(PeptideIdentificationList& mergedpeps)
   {
     //convert all scores to PPs
-    for (auto& pep_id : mergedpeps)
+    String score_l = mergedpeps.getEffectiveScoreType();
+    score_l = score_l.toLower();
+    if (score_l == "pep" || score_l == "posterior error probability")
     {
-      String score_l = pep_id.getScoreType();
-      score_l = score_l.toLower();
-      if (score_l == "pep" || score_l == "posterior error probability")
+      for (auto& pep_id : mergedpeps)
       {
         for (auto& pep_hit : pep_id.getHits())
         {
           double newScore = 1. - pep_hit.getScore();
           pep_hit.setScore(newScore);
         }
-        pep_id.setScoreType("Posterior Probability");
-        pep_id.setHigherScoreBetter(true);
       }
-      else
+      mergedpeps.setScoreType("Posterior Probability");
+      mergedpeps.setHigherScoreBetter(true);
+    }
+    else
+    {
+      if (score_l != "posterior probability")
       {
-        if (score_l != "Posterior Probability")
-        {
           throw OpenMS::Exception::InvalidParameter(
               __FILE__,
               __LINE__,
               OPENMS_PRETTY_FUNCTION,
               "Epifany needs Posterior (Error) Probabilities in the Peptide Hits. Use Percolator with PEP score"
               "or run IDPosteriorErrorProbability first.");
-        }
       }
     }
   }

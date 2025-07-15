@@ -193,8 +193,8 @@ namespace OpenMS
           }
         }
         peptide_identification.setSignificanceThreshold(score_threshold);
-        peptide_identification.setScoreType(score_type);
         peptide_identification.setIdentifier(identifier);
+        // Note: Individual score metadata removed - set at PeptideIdentificationList level after parsing
       }
       else if (line.hasPrefix("#Index"))         // #Index  Prob    Score   N-mass  C-Mass  [M+H]   Charge  Sequence
       {

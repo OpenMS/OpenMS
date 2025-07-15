@@ -153,9 +153,9 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       p.setValue("score_type", "RAW");  // should use the XTandem score meta value      
       bpia.setParameters(p);
 
-      TEST_EQUAL(peps[0].getScoreType(), "Posterior Error Probability"); // check if main score is PEP
+      TEST_EQUAL(peps.getEffectiveScoreType(), "Posterior Error Probability"); // check if main score is PEP
       bpia.run(peps, prots);
-      TEST_EQUAL(peps[0].getScoreType(), "Posterior Error Probability"); // check if main score has been reset again to PEP
+      TEST_EQUAL(peps.getEffectiveScoreType(), "Posterior Error Probability"); // check if main score has been reset again to PEP
       
       TEST_EQUAL(prots[0].getHits()[0].getScore(), 2.5)
       TEST_EQUAL(prots[0].getHits()[1].getScore(), 2.5)
@@ -193,9 +193,9 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       p.setValue("score_type", "RAW");  // should use the XTandem score meta value
       bpia.setParameters(p);
 
-      TEST_EQUAL(peps[0].getScoreType(), "Posterior Error Probability"); // check if main score is PEP
+      TEST_EQUAL(peps.getEffectiveScoreType(), "Posterior Error Probability"); // check if main score is PEP
       bpia.run(peps, prots);
-      TEST_EQUAL(peps[0].getScoreType(), "Posterior Error Probability"); // check if main score has been reset again to PEP
+      TEST_EQUAL(peps.getEffectiveScoreType(), "Posterior Error Probability"); // check if main score has been reset again to PEP
 
       TEST_EQUAL(prots[0].getHits().size(), 4)
       TEST_EQUAL(prots[0].getHits().at(0).getScore(), 2.5)

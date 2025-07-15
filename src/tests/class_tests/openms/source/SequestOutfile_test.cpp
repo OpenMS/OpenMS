@@ -82,7 +82,7 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
 	if ( peptide_identifications.size() == 1 )
 	{
 		TEST_EQUAL(peptide_identifications[0].getHits().size(), 4)
-		TEST_STRING_EQUAL(peptide_identifications[0].getScoreType(), "SEQUEST")
+		TEST_STRING_EQUAL(peptide_identifications.getEffectiveScoreType(), "SEQUEST")
 		TEST_STRING_EQUAL(peptide_identifications[0].getIdentifier(), "TurboSEQUEST_2004-03-16")
 		TEST_REAL_SIMILAR(peptide_identifications[0].getSignificanceThreshold(), 1.0)
 		if ( peptide_identifications[0].getHits().size() == 4 )
@@ -192,7 +192,7 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
 	TEST_EQUAL(peptide_identifications.size(), 1)
 	if ( peptide_identifications.size() == 1 )
 	{
-		TEST_STRING_EQUAL(peptide_identifications[0].getScoreType(), "SEQUEST")
+		TEST_STRING_EQUAL(peptide_identifications.getEffectiveScoreType(), "SEQUEST")
 		TEST_STRING_EQUAL(peptide_identifications[0].getIdentifier(), "TurboSEQUEST_2004-03-16")
 		TEST_EQUAL(peptide_identifications[0].getHits().size(), 2)
 		TEST_REAL_SIMILAR(peptide_identifications[0].getSignificanceThreshold(), 0.01)

@@ -79,9 +79,9 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   for (Size i = 1; i < 9; ++i) // should be the same for all peptides from the first search run:
   {
     accu_result &= (first.getIdentifier() == peptides[i].getIdentifier());
-    accu_result &= (first.getScoreType() == peptides[i].getScoreType());
-    accu_result &= (first.isHigherScoreBetter() ==
-                    peptides[i].isHigherScoreBetter());
+    accu_result &= (peptides.getEffectiveScoreType() == peptides.getEffectiveScoreType());
+    accu_result &= (peptides.getEffectiveHigherScoreBetter() ==
+                    peptides.getEffectiveHigherScoreBetter());
     accu_result &= (first.getSignificanceThreshold() ==
                     peptides[i].getSignificanceThreshold());
   }

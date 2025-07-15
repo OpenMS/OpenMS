@@ -54,9 +54,9 @@ public:
 
   }
 
-  static bool compareIDsWithScores(pair<double, PeptideIdentification>& a, pair<double, PeptideIdentification>& b)
+  static bool compareIDsWithScores(pair<double, PeptideIdentification>& a, pair<double, PeptideIdentification>& b, bool higher_score_better)
   {
-    if (a.second.isHigherScoreBetter())
+    if (higher_score_better)
     {
       return a.first > b.first;
     }
@@ -124,11 +124,17 @@ protected:
     //-------------------------------------------------------------
     if (best_hits)
     {
+      bool higher_score_better = identifications.getEffectiveHigherScoreBetter();
       for (Size i = 0; i < identifications.size(); ++i)
       {
         identifications_with_scores.emplace_back(identifications[i].getHits()[0].getScore(), identifications[i]);
       }
-      sort(identifications_with_scores.begin(), identifications_with_scores.end(), TOPPIDExtractor::compareIDsWithScores);
+      sort(identifications_with_scores.begin(), identifications_with_scores.end(),
+           [higher_score_better](const auto& a, const auto& b) {
+             return TOPPIDExtractor::compareIDsWithScores(const_cast<std::pair<double, PeptideIdentification>&>(a),
+                                                           const_cast<std::pair<double, PeptideIdentification>&>(b),
+                                                           higher_score_better);
+           });
       it = identifications_with_scores.begin();
       while (it != identifications_with_scores.end() && chosen_ids.size() < number_of_peptides)
       {
