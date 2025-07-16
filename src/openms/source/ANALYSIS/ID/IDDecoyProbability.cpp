@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <boost/math/special_functions/gamma.hpp>
 #include <fstream>

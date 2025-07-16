@@ -67,6 +67,9 @@ namespace OpenMS
   public:
     EXPOSED_VECTOR_INTERFACE(PeptideIdentification)
     
+    /// Default constructor
+    PeptideIdentificationList() = default;
+    
     /// @name Copy semantics
     //@{
     /// Copy constructor

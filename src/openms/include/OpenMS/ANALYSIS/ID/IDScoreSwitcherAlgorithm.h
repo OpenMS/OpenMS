@@ -520,22 +520,19 @@ namespace OpenMS
 
     if (name.empty() && include_unassigned)
     {
-      for (const auto& id : cmap.getUnassignedPeptideIdentifications())
-      {
-        name = cmap.getUnassignedPeptideIdentifications().getScoreType();
-        higher_better = cmap.getUnassignedPeptideIdentifications().isHigherScoreBetter();
+      name = cmap.getUnassignedPeptideIdentifications().getScoreType();
+      higher_better = cmap.getUnassignedPeptideIdentifications().isHigherScoreBetter();
 
-         // look up the score category ("RAW", "PEP", "q-value", etc.) for the given score name
-        for (auto& [scoretype, names] : type_to_str_)
+        // look up the score category ("RAW", "PEP", "q-value", etc.) for the given score name
+      for (auto& [scoretype, names] : type_to_str_)
+      {
+        if (names.find(name) != names.end())
         {
-          if (names.find(name) != names.end())
-          {
-            score_type = scoretype;
-            return;
-          }
-        }        
-        return;
-      }
+          score_type = scoretype;
+          return;
+        }
+      }        
+      return;
     }    
   }
 

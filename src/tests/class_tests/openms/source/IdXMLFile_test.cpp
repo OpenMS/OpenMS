@@ -54,7 +54,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 
   /////////////// protein id 1 //////////////////
   TEST_EQUAL(protein_ids[0].getScoreType(),"MOWSE")
-  TEST_FALSE(protein_ids[0].isHigherScoreBetter())
+  TEST_TRUE(protein_ids[0].isHigherScoreBetter())
   TEST_EQUAL(protein_ids[0].getSearchEngine(),"Mascot")
   TEST_EQUAL(protein_ids[0].getSearchEngineVersion(),"2.1.0")
   TEST_EQUAL(protein_ids[0].getDateTime().getDate(),"2006-01-12")
@@ -95,7 +95,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 
   //peptide id 1
   TEST_EQUAL(peptide_ids.getScoreType(),"MOWSE")
-  TEST_FALSE(protein_ids[0].isHigherScoreBetter())
+  TEST_TRUE(peptide_ids.isHigherScoreBetter())
   TEST_EQUAL(peptide_ids[0].getIdentifier().hasPrefix("Mascot_2006-01-12T12:13:14"), true)
   TEST_REAL_SIMILAR(peptide_ids[0].getMZ(),675.9)
   TEST_REAL_SIMILAR(peptide_ids[0].getRT(),1234.5)
@@ -103,26 +103,25 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL((String)(peptide_ids[0].getMetaValue("name")),"PeptideIdentification")
   TEST_EQUAL(peptide_ids[0].getHits().size(),2)
   //peptide hit 1
-  TEST_REAL_SIMILAR(peptide_ids[0].getHits()[0].getScore(),0.9)
-  TEST_EQUAL(peptide_ids[0].getHits()[0].getSequence(), AASequence::fromString("PEPTIDER"))
+  TEST_REAL_SIMILAR(peptide_ids[0].getHits()[0].getScore(),1.4)
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getSequence(), AASequence::fromString("PEPTIDERR"))
   TEST_EQUAL(peptide_ids[0].getHits()[0].getCharge(),1)
   vector<PeptideEvidence> pes0 = peptide_ids[0].getHits()[0].getPeptideEvidences();
-  TEST_EQUAL(pes0.size(),2)
-  TEST_EQUAL(pes0[0].getProteinAccession(),"PROT1")
-  TEST_EQUAL(pes0[1].getProteinAccession(),"PROT2")
-  TEST_EQUAL(pes0[0].getAABefore(),'A')
-  TEST_EQUAL(pes0[0].getAAAfter(),'B')
-  TEST_EQUAL((String)(peptide_ids[0].getHits()[0].getMetaValue("name")),"PeptideHit")
+  TEST_EQUAL(pes0.size(),0)
   //peptide hit 2
-  TEST_REAL_SIMILAR(peptide_ids[0].getHits()[1].getScore(),1.4)
+  TEST_REAL_SIMILAR(peptide_ids[0].getHits()[1].getScore(),0.9)
   vector<PeptideEvidence> pes1 = peptide_ids[0].getHits()[1].getPeptideEvidences();
-  TEST_EQUAL(peptide_ids[0].getHits()[1].getSequence(), AASequence::fromString("PEPTIDERR"))
+  TEST_EQUAL((String)(peptide_ids[0].getHits()[1].getMetaValue("name")),"PeptideHit")
+  TEST_EQUAL(pes1.size(),2)
+  TEST_EQUAL(pes1[0].getProteinAccession(),"PROT1")
+  TEST_EQUAL(pes1[1].getProteinAccession(),"PROT2")
+  TEST_EQUAL(pes1[0].getAABefore(),'A')
+  TEST_EQUAL(pes1[0].getAAAfter(),'B')
+
+  TEST_EQUAL(peptide_ids[0].getHits()[1].getSequence(), AASequence::fromString("PEPTIDER"))
   TEST_EQUAL(peptide_ids[0].getHits()[1].getCharge(),1)
-  TEST_EQUAL(pes1.size(),0)
+
   //peptide id 2
-  // Score metadata is now centralized at list level - already tested above
-  // TEST_EQUAL(peptide_ids.getScoreType(),"MOWSE")
-  // TEST_EQUAL(peptide_ids.isHigherScoreBetter(),true)
   TEST_EQUAL(peptide_ids[1].getIdentifier().hasPrefix("Mascot_2006-01-12T12:13:14"), true)
   TEST_EQUAL(peptide_ids[1].getHits().size(),2)
   //peptide hit 1
@@ -140,7 +139,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 
   /////////////// protein id 2 //////////////////
   TEST_EQUAL(protein_ids[1].getScoreType(),"MOWSE")
-  TEST_FALSE(protein_ids[1].isHigherScoreBetter())
+  TEST_TRUE(protein_ids[1].isHigherScoreBetter())
   TEST_EQUAL(protein_ids[1].getSearchEngine(),"Mascot")
   TEST_EQUAL(protein_ids[1].getSearchEngineVersion(),"2.1.1")
   TEST_EQUAL(protein_ids[1].getDateTime().getDate(),"2007-01-12")

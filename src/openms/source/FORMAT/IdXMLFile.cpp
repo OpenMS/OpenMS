@@ -313,8 +313,8 @@ namespace OpenMS
         // copy current hit
         PeptideIdentification pep_id = peptide_ids[l];
 
-        // sort by score
-        pep_id.sort();
+        // sort by score using list-level score orientation
+        pep_id.sort(peptide_ids.isHigherScoreBetter());
         const vector<PeptideHit>& pep_hits = pep_id.getHits();
 
         for (const PeptideHit& p_hit : pep_hits)
