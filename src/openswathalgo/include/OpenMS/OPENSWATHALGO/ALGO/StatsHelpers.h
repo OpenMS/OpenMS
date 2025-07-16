@@ -17,8 +17,6 @@
 #include <vector>
 #include <cstddef>
 
-#include <Eigen/Core>
-
 namespace OpenSwath
 {
 
@@ -46,21 +44,17 @@ namespace OpenSwath
   @brief compute dotprod of vectors
   */
   template <typename Texp, typename Ttheo>
-  double dotProd(Texp intExpBeg, Texp intExpEnd, Ttheo intTheo)
-  {
-    size_t size = std::distance(intExpBeg, intExpEnd);
-    
-    // Get the value types
-    using ExpType = typename std::iterator_traits<Texp>::value_type;
-    using TheoType = typename std::iterator_traits<Ttheo>::value_type;
-    
-    // Create appropriate Eigen maps based on the actual data types
-    Eigen::Map<const Eigen::Matrix<ExpType, Eigen::Dynamic, 1>> vec1(&(*intExpBeg), size);
-    Eigen::Map<const Eigen::Matrix<TheoType, Eigen::Dynamic, 1>> vec2(&(*intTheo), size);
-    
-    // Compute dot product and cast result to double
-    return static_cast<double>(vec1.dot(vec2));
-  }
+  double dotProd(Texp intExpBeg, Texp intExpEnd, Ttheo intTheo);
+
+  // Explicit template instantiation declarations (tell the compiler these exist)
+  extern template double dotProd<std::vector<double>::const_iterator, std::vector<double>::const_iterator>(
+    std::vector<double>::const_iterator, std::vector<double>::const_iterator, std::vector<double>::const_iterator);
+  
+  extern template double dotProd<std::vector<float>::const_iterator, std::vector<float>::const_iterator>(
+    std::vector<float>::const_iterator, std::vector<float>::const_iterator, std::vector<float>::const_iterator);
+  
+  extern template double dotProd<std::vector<int>::const_iterator, std::vector<int>::const_iterator>(
+    std::vector<int>::const_iterator, std::vector<int>::const_iterator, std::vector<int>::const_iterator);
 
   /**
     @brief the dot product scoring
