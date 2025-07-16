@@ -17,6 +17,8 @@
 #include <vector>
 #include <cstddef>
 
+#include <Eigen/Core>
+
 namespace OpenSwath
 {
 
@@ -46,8 +48,18 @@ namespace OpenSwath
   template <typename Texp, typename Ttheo>
   double dotProd(Texp intExpBeg, Texp intExpEnd, Ttheo intTheo)
   {
-      return std::transform_reduce(std::execution::unseq, intExpBeg, intExpEnd,
-                                intTheo, 0.0);
+    size_t size = std::distance(intExpBeg, intExpEnd);
+    
+    // Get the value types
+    using ExpType = typename std::iterator_traits<Texp>::value_type;
+    using TheoType = typename std::iterator_traits<Ttheo>::value_type;
+    
+    // Create appropriate Eigen maps based on the actual data types
+    Eigen::Map<const Eigen::Matrix<ExpType, Eigen::Dynamic, 1>> vec1(&(*intExpBeg), size);
+    Eigen::Map<const Eigen::Matrix<TheoType, Eigen::Dynamic, 1>> vec2(&(*intTheo), size);
+    
+    // Compute dot product and cast result to double
+    return static_cast<double>(vec1.dot(vec2));
   }
 
   /**

@@ -420,10 +420,8 @@ namespace OpenMS::Internal
     }
 
     // https://github.com/OpenMS/OpenMS/issues/8122
-    // GCC/CLANG
     #if defined(__GNUC__)
     __attribute__((no_sanitize("address")))
-    // MSVC
     #elif defined(_MSC_VER)
     __declspec(no_sanitize_address)
     #endif
@@ -455,7 +453,12 @@ namespace OpenMS::Internal
       const simde__m128i zero = simde_mm_setzero_si128();
       while (true)
       {
-          simde__m128i bits = simde_mm_load_si128(reinterpret_cast<const simde__m128i*>(pos_ptr));
+          #if defined(__GNUC__)
+          __attribute__((no_sanitize("address"))) simde__m128i bits = simde_mm_load_si128(reinterpret_cast<const simde__m128i*>(pos_ptr));
+          // MSVC
+          #elif defined(_MSC_VER)
+          __declspec(no_sanitize_address) simde__m128i bits = simde_mm_load_si128(reinterpret_cast<const simde__m128i*>(pos_ptr));
+          #endif
           simde__m128i cmp_zero = simde_mm_cmpeq_epi16(bits, zero); // sets bits to 0xFFFF (2 bytes) for each character that is zero
           uint16_t zero_mask = simde_mm_movemask_epi8(cmp_zero);    // extracts MSB from each byte 
   
