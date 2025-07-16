@@ -62,7 +62,7 @@ public:
    * @param deconvolved_spectrum deconvolved spectrum from FLASHDeconv
    * @param max_mod_mass maximum modification mass (a positive number)
    */
-  void runMatching(std::vector<ProteinHit> hits,
+  static void runMatching(std::vector<ProteinHit> hits,
                    const DeconvolvedSpectrum& deconvolved_spectrum,
                    double max_mod_mass = 0);
 
@@ -75,7 +75,6 @@ public:
 
   /// get the node score from peakgroup
   static int getNodeScore(const PeakGroup& peak_group);
-
 
   /**
   * Fill matched protein sequence positions and corresponding flankiing masses
@@ -91,16 +90,6 @@ public:
                                                       double flanking_mass_tol,
                                                       const String& seq,
                                                       const FLASHHelperClasses::Tag& tag);
-
-  /**
-   * fill the protein hits, up to @p max_target_count hits. The hits are selected
-   * from the high to low scoring ones.
-   * After collecting max_target_count hits, if more hits are found with the same score,
-   * they are also filled.
-   * @param hits
-   * @param max_target_count
-   */
-  void fillProteinHits(std::vector<ProteinHit>& hits, int max_target_count) const;
 
   /// maximum node score for tag generation and extension
   const static int max_node_score = 8;
@@ -136,11 +125,11 @@ private:
   Size getVertex_(int index, int path_score, int level, int iso_level, int gap_level) const;
   int getIndex_(Size vertex) const;
 
-  void getScoreAndMatchCount_(const std::vector<Size>& spec_vec,
+  static void getScoreAndMatchCount_(const std::vector<Size>& spec_vec,
                               const std::unordered_set<Size>& pro_vec,
                               const std::set<int>& spec_pro_diffs,
                               const std::vector<int>& spec_scores,
-                              int& max_score, int& match_cntr) const;
+                              int& max_score, int& match_cntr);
 
 
   void updateTagSet_(std::set<FLASHHelperClasses::Tag>& tag_set,
@@ -163,7 +152,6 @@ private:
   std::map<int, std::map<int, std::vector<String>>> edge_aa_map_;
 
   std::vector<FLASHHelperClasses::Tag> tags_; // from scan to tags
-  std::vector<ProteinHit> protein_hits_;
 
   std::set<double> common_shifts_;
   std::set<double> n_term_shifts_;
@@ -180,7 +168,6 @@ private:
   int min_path_score_ = 0;
   int max_gap_count_ = 0;
   int max_aa_in_gap_ = 2;
-  int min_cov_aa_ = 3;
   double max_edge_mass_ = 0;
 };
 } // namespace OpenMS

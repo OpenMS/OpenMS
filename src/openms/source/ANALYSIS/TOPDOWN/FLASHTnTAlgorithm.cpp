@@ -15,6 +15,7 @@
 
 namespace OpenMS
 {
+inline const int min_tag_count = 2;
 inline const int max_hit_count = 20;
 FLASHTnTAlgorithm::FLASHTnTAlgorithm(): DefaultParamHandler("FLASHTnTAlgorithm"), ProgressLogger()
 {
@@ -345,7 +346,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
   }
 
   endProgress();
-  startProgress(0, (SignedSize)dspecs.size(), "Running extension algorithm ...");
+  startProgress(0, (SignedSize)dspecs.size(), "Running candidate protein filtration and extension algorithm ...");
 
   for (const auto& dspec : dspecs)
   {
@@ -379,17 +380,13 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
       const auto& fe = fasta_entry[pi];
       double covered_pos = (double)pp.size();
       double coverage = (double)covered_pos / (double)fe.sequence.length();
-      int score = std::accumulate(
-        pp.begin(), pp.end(), 0,
-        [](int acc, const std::pair<const Size, int>& p) {
-          return acc + p.second;
-        });
+
       std::vector<int> positions;
       std::transform(pp.begin(), pp.end(), std::back_inserter(positions),
                      [](const std::pair<const Size, int>& p) {
                        return p.first;
                      });
-
+      //if (positions.size() < min_tag_count) continue;
       ProteinHit hit(coverage, 0, fe.identifier, fe.sequence); //
       hit.setDescription(fe.description);
       hit.setMetaValue("Scan", dspec.getScanNumber());
@@ -401,21 +398,26 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
       hits.push_back(hit);
     }
 
+    if (hits.empty()) continue;
+
+        std::sort(hits.begin(), hits.end(), [](const ProteinHit& left, const ProteinHit& right) {
+          return left.getScore() == right.getScore() ? (left.getCoverage() == right.getCoverage() ? (left.getDescription() > right.getDescription())
+                                                                                                  : (left.getCoverage() > right.getCoverage()))
+                                                     : (left.getScore() > right.getScore());
+        });
+   // std::cout<<hits.size()<<std::endl; // 예전 runmathcing 으로 좀 돌아갈 듯.. tag 매칭도 필요함. 그래도 빠르긴 하다만....
+    //if (hits.size() > 5 * max_hit_count) { hits.resize(5 * max_hit_count); }
+        if (hits.size() > 100*max_hit_count) { hits.resize(100*max_hit_count); }
+
+    FLASHTaggerAlgorithm::runMatching(hits, dspec, max_mod_mass);
+
     std::sort(hits.begin(), hits.end(), [](const ProteinHit& left, const ProteinHit& right) {
       return left.getScore() == right.getScore() ? (left.getCoverage() == right.getCoverage() ? (left.getDescription() > right.getDescription())
                                                                                               : (left.getCoverage() > right.getCoverage()))
                                                  : (left.getScore() > right.getScore());
     });
 
-    if (hits.empty()) continue;
-
     if (hits.size() > max_hit_count) { hits.resize(max_hit_count); }
-
-    for (auto& hit : hits)
-    {
-      //std::cout<< dspec.getScanNumber() << " " << hit.getScore() << " " << hit.getAccession() << std::endl;
-      //for (auto jj : hit.getMetaValue("TagPositions").toIntList()) std::cout<< jj << std::endl;
-    }
 
     FLASHExtenderAlgorithm extender;
     extender.setParameters(extender_param_);

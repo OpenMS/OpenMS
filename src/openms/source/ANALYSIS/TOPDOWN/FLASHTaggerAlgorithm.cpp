@@ -390,7 +390,6 @@ void FLASHTaggerAlgorithm::updateMembers_()
   if (areSetsEqualWithinTolerance(n_term_shifts_, c_term_shifts_, .0001)) common_shifts_ = c_term_shifts_;
 
   consider_diff_ion_jumps_ = common_shifts_.size() > 1 || n_term_shifts_.size() > 1 || c_term_shifts_.size() > 1;
-  //min_cov_aa_ = (int)param_.getValue("min_matched_aa");
   max_aa_in_gap_ = param_.getValue("max_aa_in_gap");
   max_gap_count_ = param_.getValue("allow_gap").toString() == "true" ? 1 : 0;
   // prsm_fdr_ = param_.getValue("fdr");
@@ -553,7 +552,7 @@ void FLASHTaggerAlgorithm::getScoreAndMatchCount_(const std::vector<Size>& spec_
                                                   const std::set<int>& spec_pro_diffs,
                                                   const std::vector<int>& spec_scores,
                                                   int& max_score,
-                                                  int& match_cntr) const
+                                                  int& match_cntr)
 {
   max_score = 0;
   match_cntr = 0;
@@ -717,7 +716,6 @@ void FLASHTaggerAlgorithm::runMatching(std::vector<ProteinHit> hits,
                                        const double max_mod_mass)
 {
   int scan = deconvolved_spectrum.getScanNumber();
-  protein_hits_.clear();
   std::vector<std::unordered_set<Size>> vec_pro, rev_vec_pro;
   vectorizeProteinSequence_(hits, vec_pro, rev_vec_pro);
 
@@ -753,28 +751,7 @@ void FLASHTaggerAlgorithm::runMatching(std::vector<ProteinHit> hits,
     if (! c_spec_pro_diffs.empty()) { getScoreAndMatchCount_(spec_vec, rev_vec_pro[i], c_spec_pro_diffs, spec_scores, match_score2, match_cntr2); }
 
     match_cntr = match_cntr1 + match_cntr2;
-    if (match_cntr < min_cov_aa_) continue;
     hit.setScore(std::max(match_score1, match_score2));
-  }
-}
-
-void FLASHTaggerAlgorithm::fillProteinHits(std::vector<ProteinHit>& hits, int max_target_count) const
-{
-  hits.reserve(protein_hits_.size());
-  int count = 0;
-
-  count = 0;
-  double prev_score = 0;
-  for (const auto& hit : protein_hits_)
-  {
-
-    if (hit.getScore() <= 0) break;
-    hits.push_back(hit);
-    if (max_target_count > 0 && count++ >= max_target_count)
-    {
-      if (hit.getScore() < prev_score) break; // keep adding if the score is the same
-    }
-    prev_score = hit.getScore();
   }
 }
 
