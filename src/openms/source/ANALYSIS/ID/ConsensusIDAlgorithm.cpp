@@ -78,7 +78,6 @@ namespace OpenMS
     apply_(ids, se_info, results); // actual (subclass-specific) processing
 
     String score_type = ids.getScoreType();
-    bool higher_better = ids.isHigherScoreBetter();
     
     ids.clear();
     ids.resize(1);

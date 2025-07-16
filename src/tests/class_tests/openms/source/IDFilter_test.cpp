@@ -109,23 +109,31 @@ START_SECTION((template <class IdentificationType> static Size countHits(const v
 }
 END_SECTION
 
-START_SECTION((template <class IdentificationType> static bool getBestHit(const vector<IdentificationType>& identifications, bool assume_sorted, typename IdentificationType::HitType& best_hit)))
+START_SECTION((static bool getBestPeptideHit(const PeptideIdentificationList& identifications, bool assume_sorted, PeptideHit& best_hit)))
 {
   PeptideIdentificationList peptides = global_peptides;
   PeptideHit best_hit;
-  IDFilter::getBestHit(peptides, true, best_hit);
+  
+  // Test with higher scores better (default)
+  IDFilter::getBestPeptideHit(peptides, true, best_hit);
   TEST_REAL_SIMILAR(best_hit.getScore(), 40);
   TEST_EQUAL(best_hit.getSequence().toString(), "FINFGVNVEVLSRFQTK");
 
+  // Test with lower scores better
   peptides.setHigherScoreBetter(false);
-  IDFilter::getBestHit(peptides, false, best_hit);
+  IDFilter::getBestPeptideHit(peptides, false, best_hit);
   TEST_REAL_SIMILAR(best_hit.getScore(), 10);
   TEST_EQUAL(best_hit.getSequence().toString(),
                     "MSLLSNM(Oxidation)ISIVKVGYNAR");
-  ProteinHit best_hit2;
-  IDFilter::getBestHit(global_proteins, false, best_hit2);
-  TEST_REAL_SIMILAR(best_hit2.getScore(), 32.3);
-  TEST_EQUAL(best_hit2.getAccession(), "Q824A5");
+}
+END_SECTION
+
+START_SECTION((static bool getBestProteinHit(const std::vector<ProteinIdentification>& identifications, bool assume_sorted, ProteinHit& best_hit)))
+{
+  ProteinHit best_hit;
+  IDFilter::getBestProteinHit(global_proteins, false, best_hit);
+  TEST_REAL_SIMILAR(best_hit.getScore(), 32.3);
+  TEST_EQUAL(best_hit.getAccession(), "Q824A5");
 }
 END_SECTION
 

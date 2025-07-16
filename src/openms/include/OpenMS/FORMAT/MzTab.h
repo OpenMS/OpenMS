@@ -605,7 +605,8 @@ public:
           bool first_run_inference_only,
           bool export_empty_pep_ids = false,
           bool export_all_psms = false,
-          const String& title = "ID export from OpenMS");
+          const String& title = "ID export from OpenMS",
+          bool psm_higher_better = true);
 
          const MzTabMetaData& getMetaData() const;
 
@@ -653,6 +654,7 @@ public:
          size_t psm_id_ = 0;
          size_t current_psm_idx_ = 0;
          MzTabString db_, db_version_;
+         bool psm_higher_better_;
 
          std::vector<String> prt_optional_column_names_;
          std::vector<String> pep_optional_column_names_;
@@ -724,6 +726,7 @@ public:
          size_t psm_id_ = 0;
          size_t current_psm_idx_ = 0;
          MzTabString db_, db_version_;
+         bool psm_higher_better_;
 
          std::vector<String> prt_optional_column_names_;
          std::vector<String> pep_optional_column_names_;
@@ -749,7 +752,8 @@ public:
       MzTabString const& db,
       MzTabString const& db_version,
       bool const export_empty_pep_ids,
-      bool const export_all_psms);
+      bool const export_all_psms,
+      bool const higher_better);
 
     static MzTabPeptideSectionRow peptideSectionRowFromConsensusFeature_(
       const ConsensusFeature& c, 

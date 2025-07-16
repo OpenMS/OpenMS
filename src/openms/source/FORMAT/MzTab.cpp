@@ -1140,7 +1140,8 @@ namespace OpenMS
      const MzTabString& db,
      const MzTabString& db_version,
      const bool export_empty_pep_ids,
-     const bool export_all_psms)
+     const bool export_all_psms,
+     const bool higher_better)
   {
     // skip empty peptide identification objects, if they are not wanted
     if (pid.getHits().empty() && !export_empty_pep_ids)
@@ -1226,9 +1227,7 @@ namespace OpenMS
     if (!export_all_psms)
     {
       // only consider best peptide hit for export
-      PeptideIdentificationList dummy;
-      dummy.push_back(pid);
-      IDFilter::getBestHit<PeptideIdentification>(dummy.getData(), false, current_ph); // TODO: add getBestHit for PeptideHits so no copying to dummy is needed
+      IDFilter::getBestPeptideHit(pid, false, current_ph, higher_better);
     }
     else
     {
@@ -2010,12 +2009,14 @@ Not sure how to handle these:
     bool first_run_inference_only,
     bool export_empty_pep_ids,
     bool export_all_psms,
-    const String& title):
+    const String& title,
+    bool psm_higher_better):
       prot_ids_(prot_ids),
       peptide_ids_(peptide_ids),
       filename_(filename),
       export_empty_pep_ids_(export_empty_pep_ids),
-      export_all_psms_(export_all_psms)
+      export_all_psms_(export_all_psms),
+      psm_higher_better_(psm_higher_better)
   {
     ////////////////////////////////////////////////
     // create some lookup structures and precalculate some values
@@ -2292,7 +2293,8 @@ state0:
         db_,
         db_version_,
         export_empty_pep_ids_,
-        export_all_psms_);
+        export_all_psms_,
+        psm_higher_better_);
 
     if (!export_all_psms_ || current_psm_idx_ == pid->getHits().size()-1)
     {
@@ -2618,11 +2620,14 @@ state0:
 
     peptide_ids_.reserve(new_size);
 
+
+    psm_higher_better_ = true;
     // extract mapped IDs
     for (Size i = 0; i < consensus_map.size(); ++i)
     {
       const ConsensusFeature& c = consensus_map[i];
       const PeptideIdentificationList& p = c.getPeptideIdentifications();
+      psm_higher_better_ = p.isHigherScoreBetter(); // we assume all have same score orientation (not checked)
       for (const PeptideIdentification& pi : p) { peptide_ids_.push_back(&pi); }
     }
 
@@ -2630,6 +2635,7 @@ state0:
     if (export_unassigned_ids)
     {
       const PeptideIdentificationList& up = consensus_map.getUnassignedPeptideIdentifications();
+      psm_higher_better_ = up.isHigherScoreBetter(); // we assume all have same score orientation (not checked)
       for (const PeptideIdentification& pi : up) { peptide_ids_.push_back(&pi); }
     }
 
@@ -3082,7 +3088,8 @@ state0:
         db_,
         db_version_,
         export_empty_pep_ids_,
-        export_all_psms_);
+        export_all_psms_,
+        psm_higher_better_);  
 
     if (!export_all_psms_ || current_psm_idx_ == pid->getHits().size()-1)
     {

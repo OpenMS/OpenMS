@@ -278,47 +278,6 @@ namespace OpenMS
         switchScores(i, counter);
       }
     }
-    /**
-      @brief Helper method to switch scores for a single PeptideIdentification without setting score metadata.
-      
-      This method handles the score switching for individual PeptideIdentification objects.
-      It does not set score metadata since that's handled at the list level.
-      
-      @param id The PeptideIdentification whose scores need to be switched.
-      @param counter A reference to a counter that will be incremented for each peptide hit processed.
-    */
-    void switchScoresForPeptideIdentification(PeptideIdentification& id, Size& counter)
-    {
-      for (auto hit_it = id.getHits().begin();
-           hit_it != id.getHits().end(); ++hit_it, ++counter)
-      {
-        if (!hit_it->metaValueExists(new_score_))
-        {
-          std::stringstream msg;
-          msg << "Meta value '" << new_score_ << "' not found for " << *hit_it;
-          throw Exception::MissingInformation(__FILE__, __LINE__,
-                                              OPENMS_PRETTY_FUNCTION, msg.str());
-        }
-
-        const String& old_score_meta = (old_score_.empty() ? new_score_type_ :
-                                 old_score_);
-        const DataValue& dv = hit_it->getMetaValue(old_score_meta);
-        if (!dv.isEmpty()) // meta value for old score already exists
-        {
-          if (fabs((double(dv) - hit_it->getScore()) * 2.0 /
-                   (double(dv) + hit_it->getScore())) > tolerance_)
-          {          
-            hit_it->setMetaValue(old_score_meta + "~", hit_it->getScore());
-          }
-        }
-        else
-        {
-          hit_it->setMetaValue(old_score_meta, hit_it->getScore());
-        }
-        hit_it->setScore(hit_it->getMetaValue(new_score_));
-      }
-      // Note: Score metadata (setScoreType, setHigherScoreBetter) is now handled at list level
-    }
 
 
     /**
@@ -367,7 +326,7 @@ namespace OpenMS
       // Switch scores for all identifications in the list
       for (auto& id : pep_ids)
       {
-        switchScoresForPeptideIdentification(id, counter);
+        switchScores(id, counter);
       }
       
       // Set the score metadata at the list level

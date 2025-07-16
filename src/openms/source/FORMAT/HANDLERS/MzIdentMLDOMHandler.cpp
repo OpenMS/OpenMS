@@ -1946,9 +1946,6 @@ namespace OpenMS::Internal
       current_pep_id.setHits(phs);
       pep_id_->push_back(current_pep_id);
       
-      // Set list-level score metadata based on the search engine and score type
-      setListLevelScoreMetadata_(*pep_id_, spectrumIdentificationList_ref);
-      
       pep_id_->back().sort();
     }
 
@@ -2011,6 +2008,9 @@ namespace OpenMS::Internal
       e_score_terms.insert(e_score_tmp.begin(),e_score_tmp.end()); //E-value for peptides
       cv_.getAllChildTerms(specific_score_terms, "MS:1001143"); //search engine specific score for PSMs
       bool scoretype = false;
+      String score_name = "unknown";
+      bool higher_score_better = true;
+      
       for (map<String, vector<OpenMS::CVTerm>>::const_iterator scoreit = param_cv.getCVTerms().begin(); scoreit != param_cv.getCVTerms().end(); ++scoreit)
       {
         if (q_score_terms.find(scoreit->first) != q_score_terms.end() || scoreit->first == "MS:1002354")
@@ -2018,7 +2018,8 @@ namespace OpenMS::Internal
           if (scoreit->first != "MS:1002055") // do not use peptide-level q-values for now
           {
             score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
-            // Score metadata (q-value, higher=false) will be handled at list level
+            score_name = "q-value";
+            higher_score_better = false;
             scoretype = true;
             break;
           }
@@ -2026,22 +2027,36 @@ namespace OpenMS::Internal
         else if (specific_score_terms.find(scoreit->first) != specific_score_terms.end())
         {
           score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
-          // Score metadata will be handled at list level - store for later list assignment if needed
+          score_name = scoreit->second.front().getName();
+          higher_score_better = ControlledVocabulary::CVTerm::isHigherBetterScore(cv_.getTerm(scoreit->first));
           scoretype = true;
           break;
         }
         else if (e_score_terms.find(scoreit->first) != e_score_terms.end())
         {
           score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
-          // Score metadata (E-value, higher=false) will be handled at list level
+          score_name = "E-value";
+          higher_score_better = false;
           scoretype = true;
           break;
         }
         else if (scoreit->first == "MS:1001143")
         {
-          // Score metadata (PSM-level statistic, higher=true) will be handled at list level
-          // TODO this is just an assumption for unknown scores
+          score_name = "PSM-level search engine specific statistic";
+          higher_score_better = true; // default assumption for unknown scores
           scoretype = true;
+        }
+      }
+      
+      // Set list-level score metadata based on CV term analysis
+      if (scoretype && pep_id_ && score_name != "unknown")
+      {
+        // Only set if we haven't already set valid score metadata
+        String current_score_type = pep_id_->getScoreType();
+        if (current_score_type.empty() || current_score_type == "unknown" || current_score_type == "MS:1001143")
+        {
+          pep_id_->setScoreType(score_name);
+          pep_id_->setHigherScoreBetter(higher_score_better);
         }
       }
       if (scoretype) //else (i.e. no q/E/raw score or threshold not passed) no hit will be read TODO @mths: yielding no peptide hits will be error prone!!! what to do? remove and warn peptideidentifications with no hits inside?!
@@ -2164,9 +2179,6 @@ namespace OpenMS::Internal
 //        sort(temp.begin(), temp.end());
 //        spectrum_identification.getHits().back().setProteinAccessions(temp);
         spectrum_identification.insertHit(hit);
-        
-        // Set list-level score metadata when adding hits
-        setListLevelScoreMetadata_(*pep_id_, spectrumIdentificationList_ref);
 
         // due to redundant references this is not needed! peptideref already maps to all those PeptideEvidence elements
         //      DOMElement* child = spectrumIdentificationItemElement->getFirstElementChild();
@@ -3020,121 +3032,5 @@ namespace OpenMS::Internal
       return sp;
     }
 
-    void MzIdentMLDOMHandler::setListLevelScoreMetadata_(PeptideIdentificationList& pep_list, const String& spectrumIdentificationList_ref)
-    {
-      if (pep_list.empty()) return;
-      
-      // Check if the PeptideIdentificationList already has a valid score type set
-      // Don't overwrite existing valid score types to prevent interference with other file formats
-      String existing_score_type = pep_list.getScoreType();
-      if (!existing_score_type.empty() &&
-          existing_score_type != "unknown" &&
-          existing_score_type != "MS:1001143")
-      {
-        return; // Don't overwrite existing valid score types
-      }
-      
-      // Get the search engine information
-      String search_engine = "unknown";
-      if (!pro_id_->empty() && si_pro_map_.find(spectrumIdentificationList_ref) != si_pro_map_.end())
-      {
-        size_t pro_idx = si_pro_map_[spectrumIdentificationList_ref];
-        if (pro_idx < pro_id_->size())
-        {
-          search_engine = (*pro_id_)[pro_idx].getSearchEngine();
-        }
-      }
-      
-      // Map CV terms and search engines to OpenMS score types and directionality
-      String score_type = "unknown";
-      bool higher_better = true; // default assumption
-      
-      // Check if we have CV terms in the current identification to determine score type
-      if (!pep_list.empty() && !pep_list.back().getHits().empty())
-      {
-        const PeptideHit& hit = pep_list.back().getHits()[0];
-        
-        // Check for specific score CV terms in meta values
-        if (hit.metaValueExists("MS:1002354") || hit.metaValueExists("MS:1002355") ||
-            hit.metaValueExists("MS:1002356") || hit.metaValueExists("MS:1002357"))
-        {
-          score_type = "q-value";
-          higher_better = false;
-        }
-        else if (hit.metaValueExists("MS:1001872") || hit.metaValueExists("MS:1002353"))
-        {
-          score_type = "E-value";
-          higher_better = false;
-        }
-        else if (hit.metaValueExists("MS:1001330")) // X!Tandem expect
-        {
-          score_type = "expect";
-          higher_better = false;
-        }
-        else if (hit.metaValueExists("MS:1001172")) // Mascot score
-        {
-          score_type = "Mascot";
-          higher_better = true;
-        }
-        else if (hit.metaValueExists("MS:1002052")) // MS-GF+ SpecEValue
-        {
-          score_type = "MS-GF+";
-          higher_better = false;
-        }
-        else if (hit.metaValueExists("MS:1002053")) // MS-GF+ EValue
-        {
-          score_type = "MS-GF+";
-          higher_better = false;
-        }
-      }
-      
-      // If we couldn't determine from CV terms, use search engine name
-      if (score_type == "unknown")
-      {
-        if (search_engine == "OMSSA")
-        {
-          score_type = "OMSSA";
-          higher_better = false; // OMSSA E-value
-        }
-        else if (search_engine == "Mascot")
-        {
-          score_type = "Mascot";
-          higher_better = true;
-        }
-        else if (search_engine == "XTandem" || search_engine == "X\\!Tandem")
-        {
-          score_type = "X!Tandem";
-          higher_better = false; // expect value
-        }
-        else if (search_engine == "SEQUEST")
-        {
-          score_type = "SEQUEST";
-          higher_better = true; // XCorr
-        }
-        else if (search_engine == "MS-GF+")
-        {
-          score_type = "MS-GF+";
-          higher_better = false; // SpecEValue
-        }
-        else if (search_engine == "Percolator")
-        {
-          score_type = "Percolator";
-          higher_better = false; // q-value
-        }
-        else if (search_engine == "OpenPepXL")
-        {
-          score_type = "OpenPepXL";
-          higher_better = true; // OpenPepXL score
-        }
-        else
-        {
-          score_type = search_engine; // use search engine name as fallback
-        }
-      }
-      
-      // Set the score metadata on the list
-      pep_list.setScoreType(score_type);
-      pep_list.setHigherScoreBetter(higher_better);
-    }
  
 } // namespace OpenMS::Internal

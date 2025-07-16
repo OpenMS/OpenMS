@@ -46,14 +46,14 @@ cdef extern from "<OpenMS/PROCESSING/ID/IDFilter.h>" namespace "OpenMS":
         Size countHits(PeptideIdentificationList identifications) except + nogil  # wrap-doc:Returns the total number of peptide hits in a vector of peptide identifications
         Size countHits(libcpp_vector[ProteinIdentification] identifications) except + nogil  # wrap-doc:Returns the total number of protein hits in a vector of protein identifications
 
-        bool getBestHit(PeptideIdentificationList identifications, bool assume_sorted, PeptideHit& best_hit) except + nogil 
+        bool getBestPeptideHit(PeptideIdentificationList identifications, bool assume_sorted, PeptideHit& best_hit) except + nogil 
             # wrap-doc:
-                #  Finds the best-scoring hit in a vector of peptide or protein identifications\n
+                #  Finds the best-scoring hit in a list of peptide identification
                 #  
                 #  If there are several hits with the best score, the first one is taken
                 #  
                 #  
-                #  :param identifications: Vector of peptide or protein IDs, each containing one or more (peptide/protein) hits
+                #  :param identifications: PeptideIdentificationList
                 #  :param assume_sorted: Are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
                 #  :param best_hit: Contains the best hit if successful in a vector of peptide identifications
                 #  :return: true if a hit was present, false otherwise

@@ -26,6 +26,7 @@
 #include <climits>
 #include <functional>
 #include <map>
+#include <optional>
 #include <set>
 #include <unordered_set>
 #include <vector>
@@ -667,83 +668,221 @@ namespace OpenMS
       keepHitsMatchingProteins(vec, accessions);
     }
 
-    /// @overload
-    static bool getBestHit(PeptideIdentificationList& ids, bool assume_sorted, PeptideHit& best_hit)
+    /**
+     * @brief Finds the best-scoring hit in peptide identifications.
+     *
+     * If there are several hits with the best score, the first one is taken.
+     *
+     * @param identifications peptide identifications
+     * @param assume_sorted Are hits within each ID sorted by score (best first)?
+     * @param best_hit Output parameter containing the best hit if found
+     *
+     * @throws Exception::InvalidParameter if score_type is empty
+     * @return true if a hit was found, false otherwise
+     */
+    static bool getBestPeptideHit(
+        const PeptideIdentificationList& identifications,
+        bool assume_sorted,
+        PeptideHit& best_hit)
     {
-      std::vector<PeptideIdentification>& vec = ids.getData();
-      return getBestHit(vec, assume_sorted, best_hit, ids.getScoreType(), ids.isHigherScoreBetter());
+      bool higher_better = identifications.isHigherScoreBetter();
+      
+      if (identifications.empty())
+      {
+        return false;
+      }
+      
+      std::optional<PeptideHit> current_best;
+
+      for (const auto& identification : identifications)
+      {
+        PeptideHit best_in_current;
+        if (getBestPeptideHit(identification, assume_sorted, best_in_current, higher_better))
+        {
+          if (!current_best.has_value() ||
+              isHitBetter_(best_in_current, *current_best, higher_better))
+          {
+            current_best = best_in_current;
+          }
+        }
+      }
+
+      if (current_best.has_value())
+      {
+        best_hit = *current_best;
+        return true;
+      }
+      
+      return false;
     }
 
     /**
-       @brief Finds the best-scoring hit in a vector of peptide or protein identifications.
+     * @brief Finds the best-scoring hit in a single peptide identification.
+     *
+     * If there are several hits with the best score, the first one is taken.
+     *
+     * @param identification Single peptide identification to search
+     * @param assume_sorted Are hits sorted by score (best first)?
+     * @param best_hit Output parameter containing the best hit if found
+     * @param higher_better Whether higher scores indicate better hits
+     *
+     * @return true if a hit was found, false otherwise
+     */
+    static bool getBestPeptideHit(
+        const PeptideIdentification& identification,
+        bool assume_sorted,
+        PeptideHit& best_hit,
+        bool higher_better)
+    {
+      const auto& hits = identification.getHits();
+      if (hits.empty())
+      {
+        return false;
+      }
 
-       If there are several hits with the best score, the first one is taken.
+      const auto best_hit_opt = findBestPeptideHit_(hits, assume_sorted, higher_better);
+      if (best_hit_opt.has_value())
+      {
+        best_hit = *best_hit_opt;
+        return true;
+      }
+      
+      return false;
+    }
 
-       @param identifications Vector of peptide or protein IDs, each containing one or more (peptide/protein) hits
-       @param assume_sorted Are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
-       @param best_hit Contains the best hit if successful
-
-       @throws Exception::InvalidValue if the IDs have different score types (i.e. scores cannot be compared)
-
-       @return true if a hit was present, false otherwise
-    */
-    template<class IdentificationType>
-    static bool getBestHit(const std::vector<IdentificationType>& identifications, bool assume_sorted, typename IdentificationType::HitType& best_hit, const String& score_type = "", bool higher_better = true)
+    /**
+     * @brief Finds the best-scoring hit in protein identifications.
+     *
+     * If there are several hits with the best score, the first one is taken.
+     *
+     * @param identifications Vector of protein identifications
+     * @param assume_sorted Are hits within each ID sorted by score (best first)?
+     * @param best_hit Output parameter containing the best hit if found
+     *
+     * @throws Exception::InvalidValue if identifications have different score types
+     * @return true if a hit was found, false otherwise
+     */
+    static bool getBestProteinHit(
+        const std::vector<ProteinIdentification>& identifications,
+        bool assume_sorted,
+        ProteinHit& best_hit)
     {
       if (identifications.empty())
+      {
         return false;
+      }
 
-      typename std::vector<IdentificationType>::const_iterator best_id_it = identifications.end();
-      typename std::vector<typename IdentificationType::HitType>::const_iterator best_hit_it;
+      std::optional<ProteinHit> current_best;
+      String reference_score_type;
+      bool higher_better = true;
 
-      for (typename std::vector<IdentificationType>::const_iterator id_it = identifications.begin(); id_it != identifications.end(); ++id_it)
+      for (const auto& identification : identifications)
       {
-        if (id_it->getHits().empty())
+        const auto& hits = identification.getHits();
+        if (hits.empty())
+        {
           continue;
-
-        if (best_id_it == identifications.end()) // no previous "best" hit
-        {
-          best_id_it = id_it;
-          best_hit_it = id_it->getHits().begin();
-        }
-        else if constexpr (std::is_same_v<IdentificationType, PeptideIdentification>)
-        {
-          // For PeptideIdentification, score metadata is provided as parameters
-          // Skip score type validation as it's centralized at list level
-        }
-        else if (best_id_it->getScoreType() != id_it->getScoreType())
-        {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Can't compare scores of different types", best_id_it->getScoreType() + "/" + id_it->getScoreType());
         }
 
-        bool higher_better_local;
-        if constexpr (std::is_same_v<IdentificationType, PeptideIdentification>)
+        // Validate score type consistency
+        if (reference_score_type.empty())
         {
-          higher_better_local = higher_better; // Use provided parameter
+          reference_score_type = identification.getScoreType();
+          higher_better = identification.isHigherScoreBetter();
         }
-        else
+        else if (reference_score_type != identification.getScoreType())
         {
-          higher_better_local = best_id_it->isHigherScoreBetter();
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Cannot compare scores of different types",
+              reference_score_type + " vs " + identification.getScoreType());
         }
-        for (typename std::vector<typename IdentificationType::HitType>::const_iterator hit_it = id_it->getHits().begin(); hit_it != id_it->getHits().end(); ++hit_it)
+
+        const auto best_in_current = findBestProteinHit_(hits, assume_sorted, higher_better);
+        if (best_in_current.has_value())
         {
-          if ((higher_better_local && (hit_it->getScore() > best_hit_it->getScore())) || (!higher_better_local && (hit_it->getScore() < best_hit_it->getScore())))
+          if (!current_best.has_value() ||
+              isHitBetter_(*best_in_current, *current_best, higher_better))
           {
-            best_hit_it = hit_it;
+            current_best = *best_in_current;
           }
-          if (assume_sorted)
-            break; // only consider the first hit
         }
       }
 
-      if (best_id_it == identifications.end())
+      if (current_best.has_value())
       {
-        return false; // no hits in any IDs
+        best_hit = *current_best;
+        return true;
+      }
+      
+      return false;
+    }
+
+  private:
+    /**
+     * @brief Helper to find best peptide hit within a single identification.
+     */
+    static std::optional<PeptideHit> findBestPeptideHit_(
+        const std::vector<PeptideHit>& hits,
+        bool assume_sorted,
+        bool higher_better)
+    {
+      if (hits.empty())
+      {
+        return std::nullopt;
       }
 
-      best_hit = *best_hit_it;
-      return true;
+      if (assume_sorted)
+      {
+        return hits.front();
+      }
+
+      auto best_it = std::max_element(hits.begin(), hits.end(),
+          [higher_better](const PeptideHit& a, const PeptideHit& b) {
+            return higher_better ? (a.getScore() < b.getScore()) : (a.getScore() > b.getScore());
+          });
+      
+      return *best_it;
     }
+
+    /**
+     * @brief Helper to find best protein hit within a single identification.
+     */
+    static std::optional<ProteinHit> findBestProteinHit_(
+        const std::vector<ProteinHit>& hits,
+        bool assume_sorted,
+        bool higher_better)
+    {
+      if (hits.empty())
+      {
+        return std::nullopt;
+      }
+
+      if (assume_sorted)
+      {
+        return hits.front();
+      }
+
+      auto best_it = std::max_element(hits.begin(), hits.end(),
+          [higher_better](const ProteinHit& a, const ProteinHit& b) {
+            return higher_better ? (a.getScore() < b.getScore()) : (a.getScore() > b.getScore());
+          });
+      
+      return *best_it;
+    }
+
+    /**
+     * @brief Helper to compare hits according to scoring direction.
+     */
+    template<typename HitType>
+    static bool isHitBetter_(const HitType& candidate, const HitType& current_best, bool higher_better) noexcept
+    {
+      const double candidate_score = candidate.getScore();
+      const double current_score = current_best.getScore();
+      
+      return higher_better ? (candidate_score > current_score) : (candidate_score < current_score);
+    }
+
+  public:
 
     /**
        @brief Extracts all unique peptide sequences from a list of peptide IDs
