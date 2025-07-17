@@ -139,6 +139,13 @@ namespace OpenMS
         }
       }
     }
+
+    // semi-specific variants
+    if (specificity_ == SPEC_SEMI)
+    {
+      wrong_size = wrong_size + semiSpecificDigestion_(pep_positions, output, min_length, max_length);
+    }
+
     return wrong_size;
   }
 

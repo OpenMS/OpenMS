@@ -49,7 +49,9 @@ namespace OpenMS
     Size digest(const AASequence& protein, std::vector<AASequence>& output, Size min_length = 1, Size max_length = 0) const;
 
     /** 
-       @brief Performs the enzymatic digestion of a protein represented as AASequence
+       @brief Performs the enzymatic digestion of a protein represented as AASequence.
+       By default, only fully specific products are generated.
+       If object's Specificity is set to SPEC_SEMI (1), also generates semi-specific products.
 
        @param protein Sequence to digest
        @param output Digestion products (start and end indices of peptides)

@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow, Xiao Liang $
-// $Authors: Marc Sturm, Chris Bielow $
+// $Authors: Marc Sturm, Chris Bielow, Jeremi Maciejewski $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -178,6 +178,21 @@ namespace OpenMS
       @return Cleavage positions (this includes @p start, but not @p end)
      */
     std::vector<int> tokenize_(const String& sequence, int start = 0, int end = -1) const;
+
+    /**
+      @brief Generates semi-specific digestion products
+
+      Function handling semi-specific digestion (specificity == 1).
+      It is intended for calling after tokenizing and missed cleavages variants generation.
+
+      @param cleavage_positions A (sorted!) vector of cleavage positions, as returned by tokenize_(). First and last cleavage should be sequence termini.
+      @param output A vector into which produced variants are emplaced.
+      @param min_length Minimal length of reported products
+      @param max_length Maximal length of reported products
+
+      @return number of digestion products NOT matching the length restrictions.
+    */
+    Size semiSpecificDigestion_(const std::vector<int>& cleavage_positions, std::vector<std::pair<Size, Size>>& output, Size min_length = 0, Size max_length = -1) const;
 
     /**
        @brief Helper function for digestUnmodified()

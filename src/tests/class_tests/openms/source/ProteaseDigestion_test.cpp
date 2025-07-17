@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Marc Sturm, Chris Bielow $
+// $Authors: Marc Sturm, Chris Bielow, Jeremi Maciejewski $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -13,6 +13,7 @@
 
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <vector>
+#include <algorithm>
 using namespace OpenMS;
 using namespace std;
 
@@ -227,6 +228,66 @@ START_SECTION((Size digest(const AASequence& protein, std::vector<AASequence>& o
     TEST_EQUAL(out.size(), 11*10/2)
     pd.digest(AASequence::fromString("ABC"), out);
     TEST_EQUAL(out.size(), 4*3/2)
+
+    // ------------------------
+    // semi-specific digestion
+    // ------------------------
+    pd.setSpecificity(pd.SPEC_SEMI);
+
+    // Lambda to allow searching 'out' with std::find_if()
+    std::string ref = "";
+    auto compare_aa = [&ref](AASequence seq) -> bool
+    {
+        return seq.toUnmodifiedString() == ref;
+    };
+
+    // Make sure unspecific cleavage still works
+    pd.setEnzyme("unspecific cleavage");
+    pd.digest(AASequence::fromString("ABCDEFGHIJ"), out);
+    TEST_EQUAL(out.size(), 11*10/2);
+    pd.digest(AASequence::fromString("ABC"), out);
+    TEST_EQUAL(out.size(), 4*3/2);
+
+    pd.setEnzyme("Trypsin/P");
+    pd.digest(AASequence::fromString("AGLRMHP"), out);
+    // AGLR, MHP, GLR, MH, LR, M, R, AGL, HP, AG, P, A
+    TEST_EQUAL(out.size(), 12);
+    // Assumes output is sorted as: fully-specific -> missed clv -> semi-specific
+    // Are fully-specific variants still here?
+    TEST_EQUAL(out[0].toString(), "AGLR");
+    TEST_EQUAL(out[1].toString(), "MHP");
+    // Are there semi-specific variants?
+    ref = "AGL";
+    TEST_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
+    ref = "HP";
+    TEST_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
+    // Make sure cleavage sites are iterated over in right order.
+    // (forward for N-terminus cleavage, backwards for C-terminus cleavage)
+    ref = "GLRMHP";
+    TEST_NOT_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
+    ref = "AGLRMH";
+    TEST_NOT_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
+
+    // Test if it works with missed cleavages
+    pd.setMissedCleavages(2);
+    pd.digest(AASequence::fromString("AGLRMHPQGHKWYV"), out);
+    ref = "AGLRMHPQGHKW";
+    TEST_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
+    ref = "GHKWYV";
+    TEST_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
+    ref = "A";
+    TEST_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
+
+    // Test if min_size and max_size apply to semi-specific products
+    discarded = pd.digest(AASequence::fromString("AGLRMHP"), out, 2);
+    TEST_EQUAL(discarded, 4); // A, R, P, M
+
+    pd.digest(AASequence::fromString("AGLRMHPQGHKWYV"), out, 3, 10);
+    ref = "AG";
+    TEST_NOT_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
+    ref = "AGLRMHPQGHKW";
+    TEST_NOT_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
+
 END_SECTION
 
 START_SECTION((bool isValidProduct(const String& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages, bool allow_nterm_protein_cleavage, bool allow_random_asp_pro_cleavage)))
