@@ -174,7 +174,18 @@ namespace OpenMS
       for (auto hit_it = id.getHits().begin();
            hit_it != id.getHits().end(); ++hit_it, ++counter)
       {
-        if (!hit_it->metaValueExists(new_score_))
+        // Check if new_score_ is a meta value or if it's the main score type
+        bool new_score_is_meta = hit_it->metaValueExists(new_score_);
+        bool new_score_is_main_score = false;
+        
+        // For PeptideIdentification in centralized architecture, check if new_score_ matches the main score
+        if constexpr (std::is_same_v<IDType, PeptideIdentification>) {
+          // If new_score_ is not found as meta value, it might be the main score type
+          // In this case, we should use the current score value directly
+          new_score_is_main_score = !new_score_is_meta;
+        }
+        
+        if (!new_score_is_meta && !new_score_is_main_score)
         {
           std::stringstream msg;
           msg << "Meta value '" << new_score_ << "' not found for " << *hit_it;
@@ -184,8 +195,24 @@ namespace OpenMS
 
         const String& old_score_meta = (old_score_.empty() ? new_score_type_ :
                                  old_score_);
-        const DataValue& dv = hit_it->getMetaValue(old_score_meta);
-        if (!dv.isEmpty()) // meta value for old score already exists
+        
+        DataValue dv;
+        bool old_score_exists = false;
+        
+        if (hit_it->metaValueExists(old_score_meta))
+        {
+          dv = hit_it->getMetaValue(old_score_meta);
+          old_score_exists = true;
+        }
+        else if (!old_score_.empty())
+        {
+          // If old_score_ is specified but not found as meta value, 
+          // it might be the current main score - use current score value
+          dv = hit_it->getScore();
+          old_score_exists = true;
+        }
+        
+        if (old_score_exists && !dv.isEmpty()) // meta value for old score already exists
         {
           // TODO: find a better way to check if old score type is something different (even if it has same name)
           // This currently, is a workaround for e.g., having Percolator_qvalue as meta value and same q-value as main score (getScore()).
@@ -202,7 +229,17 @@ namespace OpenMS
         {
           hit_it->setMetaValue(old_score_meta, hit_it->getScore());
         }
-        hit_it->setScore(hit_it->getMetaValue(new_score_));
+        // Set the new score value
+        if (new_score_is_meta)
+        {
+          hit_it->setScore(hit_it->getMetaValue(new_score_));
+        }
+        else if (new_score_is_main_score)
+        {
+          // If new_score_ is the main score type, keep the current score value
+          // This happens when switching to the same score type as the current main score
+          // No action needed - the score is already correct
+        }
       }
       // Note: For PeptideIdentification, score metadata is handled at list level
       // For other ID types, these methods may still exist
@@ -293,7 +330,7 @@ namespace OpenMS
     {
       if (pep_ids.empty()) return;
       
-      String t = findScoreType(pep_ids[0], type);
+      String t = findScoreType(pep_ids[0], type, pep_ids.getScoreType());
       if (t.empty())
       {
         String msg = "First encountered ID does not have the requested score type.";
@@ -315,7 +352,12 @@ namespace OpenMS
       {
         new_score_type_ = t;
       }
-      new_score_ = t;
+      
+      // Only set new_score_ if it wasn't already set from parameters
+      if (new_score_.empty())
+      {
+        new_score_ = t;
+      }
 
       if (higher_better_ != type_to_better_[type])
       {
@@ -355,7 +397,7 @@ namespace OpenMS
         const auto& ids = f.getPeptideIdentifications();
         if (!ids.empty())
         {
-          new_type = findScoreType(ids[0], type);
+          new_type = findScoreType(ids[0], type, ids.getScoreType());
           if (new_type == ids.getScoreType())
           {
             return;
@@ -592,8 +634,8 @@ namespace OpenMS
     {
       String curr_score_type;
       if constexpr (std::is_same_v<std::remove_cv_t<IDType>, PeptideIdentification>) {
-        // For PeptideIdentification, we can't get individual score type
-        // We need to rely on meta values in hits for score type detection
+        // For PeptideIdentification, we can't get individual score type anymore
+        // after the refactoring, but we can check if the ID belongs to a list
         curr_score_type = ""; // Will be determined from meta values below
       } else {
         curr_score_type = id.getScoreType();
@@ -626,6 +668,41 @@ namespace OpenMS
         OPENMS_LOG_WARN << "Score of requested type not found in the UserParams of the checked ID object.\n";
         return "";
       }
+    }
+
+    // Overload for PeptideIdentification that accepts current score type from the containing list
+    String findScoreType(const PeptideIdentification& id, IDScoreSwitcherAlgorithm::ScoreType type, const String& current_score_type)
+    {
+      const std::set<String>& possible_types = type_to_str_[type];
+      
+      // First check if the current score type matches the requested type
+      if (possible_types.find(current_score_type) != possible_types.end())
+      {
+        OPENMS_LOG_INFO << "Requested score type already set as main score: " + current_score_type + "\n";
+        return current_score_type;
+      }
+      
+      // If not, fall back to the standard method to look in meta values
+      if (id.getHits().empty())
+      {
+        OPENMS_LOG_WARN << "Identification entry used to check for alternative score was empty.\n";
+        return "";
+      }
+      
+      const auto& hit = id.getHits()[0];
+      for (const auto& poss_str : possible_types)
+      {
+        if (hit.metaValueExists(poss_str)) 
+        {
+          return poss_str;
+        }
+        else if (hit.metaValueExists(poss_str + "_score")) 
+        {
+          return poss_str + "_score";
+        }
+      }
+      OPENMS_LOG_WARN << "Score of requested type not found in the UserParams of the checked ID object.\n";
+      return "";
     }
 
   /**
@@ -755,12 +832,35 @@ namespace OpenMS
     if (result.requested_score_type != result.original_score_type) // switch needed because we change type?
     { // user requests a different score type than the main score
       result.requested_score_higher_better = IDScoreSwitcherAlgorithm().isScoreTypeHigherBetter(result.requested_score_type);
+      
+      // Find the actual score name for the requested type
+      String target_score_name;
+      
+      // For PeptideIdentificationList, check if the requested score type matches the current list-level score type
+      IDScoreSwitcherAlgorithm temp_switcher;
+      const std::set<String>& possible_types = temp_switcher.type_to_str_[result.requested_score_type];
+      if (possible_types.find(result.original_score_name) != possible_types.end())
+      {
+        // The current list-level score type is already of the requested type
+        target_score_name = result.original_score_name;
+      }
+      else
+      {
+        // Look for the score type in meta values, passing the current score type for context
+        target_score_name = temp_switcher.findScoreType(pep_ids[0], result.requested_score_type, result.original_score_name);
+        if (target_score_name.empty())
+        {
+          String msg = "Requested score type not found in peptide identifications.";
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
+        }
+      }
+      
       IDScoreSwitcherAlgorithm idsa;
       auto param = idsa.getDefaults();
-      param.setValue("new_score", result.requested_score_name);
+      param.setValue("new_score", target_score_name); // Use the actual score name found
       param.setValue("new_score_orientation", result.requested_score_higher_better ? "higher_better" : "lower_better");
       param.setValue("proteins", "false");
-      param.setValue("old_score", ""); // use default name generated for old score
+      param.setValue("old_score", result.original_score_name); // Store current main score as meta value
       idsa.setParameters(param);            
       Size counter = 0;       
       idsa.switchToGeneralScoreType(pep_ids, result.requested_score_type, counter);

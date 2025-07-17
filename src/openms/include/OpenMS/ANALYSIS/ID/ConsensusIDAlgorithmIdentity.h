@@ -34,7 +34,11 @@ namespace OpenMS
     /**
        @brief Hook for preprocessing of peptide IDs (in the beginning of "apply_").
     */
-    virtual void preprocess_(PeptideIdentificationList&) {};
+    virtual void preprocess_(PeptideIdentificationList& ids) override
+    {
+      // Call base class validation
+      ConsensusIDAlgorithm::preprocess_(ids);
+    }
 
     /**
        @brief Aggregate peptide scores into one final score (to be implemented by subclasses).

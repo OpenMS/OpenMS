@@ -104,6 +104,18 @@ namespace OpenMS
     /// Compare (and possibly update) charge state information
     void compareChargeStates_(Int& recorded_charge, Int new_charge, const AASequence& peptide);
 
+    /**
+       @brief Preprocessing of peptide IDs (in the beginning of "apply_").
+
+       Default implementation validates that score types and orientations are compatible.
+       Can be overridden by subclasses for additional preprocessing.
+
+       @param ids Input/output peptide identifications
+
+       @throw Exception::InvalidValue Score orientations or types are incompatible
+    */
+    virtual void preprocess_(PeptideIdentificationList& ids);
+
   private:
     /// Not implemented
     ConsensusIDAlgorithm(const ConsensusIDAlgorithm&) = delete;

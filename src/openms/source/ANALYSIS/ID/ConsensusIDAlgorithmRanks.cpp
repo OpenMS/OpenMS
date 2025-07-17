@@ -24,6 +24,12 @@ namespace OpenMS
   void ConsensusIDAlgorithmRanks::preprocess_(
     PeptideIdentificationList& ids)
   {
+    // Call base class validation first
+    ConsensusIDAlgorithmIdentity::preprocess_(ids);
+    
+    // Store original score orientation before we change it
+    bool original_higher_better = ids.isHigherScoreBetter();
+    
     // The idea here is that each peptide hit (sequence) gets assigned a score
     // from each ID run, based on its rank in the list of search results.
     // The best hit of a run will receive score 0, the second best 1, etc. up to
@@ -41,7 +47,8 @@ namespace OpenMS
     for (PeptideIdentificationList::iterator pep_it = ids.begin();
          pep_it != ids.end(); ++pep_it)
     {
-      pep_it->sort();
+      // Sort using the correct orientation for the original score type
+      pep_it->sort(original_higher_better);
       Size rank = 1;
       for (vector<PeptideHit>::iterator hit_it = pep_it->getHits().begin();
            hit_it != pep_it->getHits().end(); ++hit_it, ++rank)

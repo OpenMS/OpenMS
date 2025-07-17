@@ -275,7 +275,7 @@ namespace OpenMS
         }
 
         // Use the score metadata from the PeptideIdentificationList
-        String score_type = peptide_ids.getScoreType().empty() ? "MS:1001143" : peptide_ids.getScoreType(); // Fallback to generic if not provided
+        String score_type = peptide_ids.getScoreType(); // Use the score type as provided, even if empty
         os << "\t\t<PeptideIdentification "
            << "score_type=\"" << writeXMLEscape(score_type) << "\" ";
         if (peptide_ids.isHigherScoreBetter())

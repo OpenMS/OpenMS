@@ -61,10 +61,21 @@ namespace OpenMS
 
     number_of_runs_ = (number_of_runs != 0) ? number_of_runs : ids.size();
 
+    // Validate that all runs have compatible score types and orientations
+    // This validation was previously in preprocess_ methods but needs to be done here
+    // after the refactoring to centralized score metadata
+    preprocess_(ids);
+
     // prepare data here, so that it doesn't have to happen in each algorithm:
+    // Skip sorting if score type has been changed by preprocess_ (e.g., ConsensusIDAlgorithmRanks)
+    bool skip_sort = (ids.getScoreType() == "ConsensusID_ranks");
+    
     for (PeptideIdentification& pep : ids)
     {
-      pep.sort();
+      if (!skip_sort)
+      {
+        pep.sort(ids.isHigherScoreBetter());
+      }
       if ((considered_hits_ > 0) &&
           (pep.getHits().size() > considered_hits_))
       {
@@ -113,7 +124,7 @@ namespace OpenMS
                 << hit.getScore() << endl;
 #endif
     }
-    ids[0].sort();
+    ids[0].sort(ids.isHigherScoreBetter());
   }
 
   void ConsensusIDAlgorithm::apply(PeptideIdentificationList& ids,
@@ -139,6 +150,43 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                                     msg, String(new_charge));
     }
+  }
+
+  void ConsensusIDAlgorithm::preprocess_(PeptideIdentificationList& ids)
+  {
+    // Validate score type compatibility
+    // With the centralized score metadata architecture, all IDs in a list
+    // should have the same score type and orientation
+    if (ids.empty()) return;
+    
+    String list_score_type = ids.getScoreType();
+    bool list_higher_better = ids.isHigherScoreBetter();
+    
+    // Check if this is a "Posterior Error Probability" score type being set to higher_better=true
+    // This should be invalid since PEP scores are always "lower is better"
+    if (list_score_type == "Posterior Error Probability" && list_higher_better)
+    {
+      String msg = "Score type 'Posterior Error Probability' cannot have higher_better=true. "
+                   "Posterior Error Probability scores are always 'lower is better'.";
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    msg, "true");
+    }
+    
+    // Check for other known score types that have fixed orientations
+    if (list_score_type.hasSubstring("Error") || list_score_type.hasSubstring("error") ||
+        list_score_type.hasSubstring("E-value") || list_score_type.hasSubstring("e-value") ||
+        list_score_type.hasSubstring("FDR") || list_score_type.hasSubstring("q-value"))
+    {
+      if (list_higher_better)
+      {
+        String msg = "Score type '" + list_score_type + "' should typically have higher_better=false. "
+                     "Error rates, E-values, FDR, and q-values are usually 'lower is better'.";
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      msg, "true");
+      }
+    }
+    
+    // Additional validation could be added here for other score types
   }
 
 } // namespace OpenMS

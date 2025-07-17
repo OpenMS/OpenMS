@@ -978,7 +978,7 @@ namespace OpenMS::Internal
     os << indent << "<" << tag_name << " ";
     os << "identification_run_ref=\"" << identifier_id_[id.getIdentifier()] << "\" ";
     // Use the score metadata passed from the PeptideIdentificationList
-    String score_type = id_score_type.empty() ? "MS:1001143" : id_score_type; // Fallback to generic if not provided
+    String score_type = id_score_type.empty() ? "score_type" : id_score_type; // Fallback to generic score_type if not provided
     os << "score_type=\"" << writeXMLEscape(score_type) << "\" ";
     os << "higher_score_better=\"" << (higher_score_better ? "true" : "false") << "\" ";
     os << "significance_threshold=\"" << id.getSignificanceThreshold() << "\" ";

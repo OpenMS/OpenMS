@@ -106,6 +106,11 @@ START_SECTION(void apply(PeptideIdentificationList& ids))
   TEST_EQUAL(f.size(), 1);
   hits = f[0].getHits();
   TEST_EQUAL(hits.size(), 7);
+  
+  // Debug output
+  for (Size i = 0; i < hits.size(); ++i) {
+    cout << "Hit " << i << ": " << hits[i].getSequence() << " score=" << hits[i].getScore() << endl;
+  }
 
   TEST_EQUAL(hits[0].getSequence(), AASequence::fromString("C"));
   TEST_REAL_SIMILAR(hits[0].getScore(), 0.8);
