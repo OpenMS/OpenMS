@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS":
         void load(const String& filename, libcpp_vector[FASTAEntry] & data) except + nogil  # wrap-doc:Loads a FASTA file given by 'filename' and stores the information in 'data'
         void store(const String& filename, libcpp_vector[FASTAEntry] & data) except + nogil  # wrap-doc:Stores the data given by 'data' at the file 'filename'
 
-        void readStart(const String & filename) except + nogil  
+        void readStart(const String & filename) except + nogil
             # wrap-doc:
             #  Prepares a FASTA file given by 'filename' for streamed reading using readNext()
             #  
@@ -27,7 +27,7 @@ cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS":
             #      Exception:FileNotFound is thrown if the file does not exists
             #  :raises:
             #      Exception:ParseError is thrown if the file does not suit to the standard
-        bool readNext(FASTAEntry & protein) except + nogil 
+        bool readNext(FASTAEntry & protein) except + nogil
             # wrap-doc:
             #  Reads the next FASTA entry from file
             #  
@@ -41,7 +41,7 @@ cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS":
         # NAMESPACE # std::streampos position() except + nogil 
         bool atEnd() except + nogil  # wrap-doc:Boolean function to check if streams is at end of file
         # NAMESPACE # bool setPosition(const std::streampos & pos) except + nogil 
-        void writeStart(const String & filename) except + nogil  
+        void writeStart(const String & filename) except + nogil
             # wrap-doc:
             #  Prepares a FASTA file given by 'filename' for streamed writing using writeNext()
             #  

@@ -59,7 +59,7 @@ namespace OpenMS
   }
 
   void SequestOutfile::load(const String& result_filename,
-                            vector<PeptideIdentification>& peptide_identifications,
+                            PeptideIdentificationList& peptide_identifications,
                             ProteinIdentification& protein_identification,
                             const double p_value_threshold,
                             vector<double>& pvalues,

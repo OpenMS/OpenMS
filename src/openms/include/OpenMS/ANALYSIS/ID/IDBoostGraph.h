@@ -17,6 +17,7 @@
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
 #include <unordered_map>
@@ -342,7 +343,7 @@ namespace OpenMS
 
     /// Constructors
     IDBoostGraph(ProteinIdentification& proteins,
-                std::vector<PeptideIdentification>& idedSpectra,
+                PeptideIdentificationList& idedSpectra,
                 Size use_top_psms,
                 bool use_run_info,
                 bool best_psms_annotated,
@@ -531,7 +532,7 @@ namespace OpenMS
     /// @todo we could include building the graph in important "main" functions like inferPosteriors
     /// to make the methods safer, but it is also nice to be able to reuse the graph
     void buildGraph_(ProteinIdentification& proteins,
-                    std::vector<PeptideIdentification>& idedSpectra,
+                    PeptideIdentificationList& idedSpectra,
                     Size use_top_psms,
                     bool best_psms_annotated = false);
 
@@ -571,7 +572,7 @@ namespace OpenMS
                                const ExperimentalDesign& ed);
 
     void buildGraphWithRunInfo_(ProteinIdentification& proteins,
-                               std::vector<PeptideIdentification>& idedSpectra,
+                               PeptideIdentificationList& idedSpectra,
                                Size use_top_psms,
                                const ExperimentalDesign& ed);
 

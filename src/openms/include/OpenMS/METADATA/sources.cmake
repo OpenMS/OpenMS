@@ -32,6 +32,7 @@ MetaInfoRegistry.h
 PeptideEvidence.h
 PeptideHit.h
 PeptideIdentification.h
+PeptideIdentificationList.h
 Precursor.h
 Product.h
 ProteinHit.h

@@ -39,7 +39,7 @@ START_SECTION(~ConsensusIDAlgorithmPEPMatrix())
 END_SECTION
 
 
-START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
+START_SECTION(void apply(PeptideIdentificationList& ids))
 {
   NOT_TESTABLE // tested by ConsensusID TOPP tool tests
 }

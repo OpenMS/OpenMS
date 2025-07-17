@@ -49,7 +49,7 @@ namespace OpenMS
     return true;
   }
 
-  vector<Size> InspectOutfile::load(const String& result_filename, vector<PeptideIdentification>& peptide_identifications,
+  vector<Size> InspectOutfile::load(const String& result_filename, PeptideIdentificationList& peptide_identifications,
                                     ProteinIdentification& protein_identification, const double p_value_threshold, const String& database_filename)
   {
     // check whether the p_value is correct
@@ -536,7 +536,7 @@ namespace OpenMS
   void
   InspectOutfile::getPrecursorRTandMZ(
     const vector<pair<String, vector<pair<Size, Size> > > >& files_and_peptide_identification_with_scan_number,
-    vector<PeptideIdentification>& ids)
+    PeptideIdentificationList& ids)
   {
     PeakMap experiment;
     String type;

@@ -49,7 +49,7 @@ namespace OpenMS
   }
 
 
-  void ConsensusIDAlgorithm::apply(vector<PeptideIdentification>& ids,
+  void ConsensusIDAlgorithm::apply(PeptideIdentificationList& ids,
                                    const map<String, String>& se_info,
                                    Size number_of_runs)
   {
@@ -117,7 +117,7 @@ namespace OpenMS
     ids[0].sort();
   }
 
-  void ConsensusIDAlgorithm::apply(vector<PeptideIdentification>& ids,
+  void ConsensusIDAlgorithm::apply(PeptideIdentificationList& ids,
                                    Size number_of_runs)
   {
     const auto empty = map<String,String>();

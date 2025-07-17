@@ -114,7 +114,7 @@ namespace OpenMS
         // mass fingerprint annotation of name etc.
         case 1:
         { 
-          addPeakAnnotations_(std::vector<PeptideIdentification>(1, pi)); 
+          addPeakAnnotations_(PeptideIdentificationList(1, pi)); 
           break;
         }
 
@@ -157,7 +157,7 @@ namespace OpenMS
     // else if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
   }
 
-  void TVIdentificationViewController::addPeakAnnotations_(const vector<PeptideIdentification>& ph)
+  void TVIdentificationViewController::addPeakAnnotations_(const PeptideIdentificationList& ph)
   {
     #ifdef DEBUG_IDENTIFICATION_VIEW
       cout << "TVIdentificationViewController::addPeakAnnotations() called" << endl;
@@ -182,7 +182,7 @@ namespace OpenMS
       QMessageBox::warning(tv_, "Error", "The spectrum is not sorted! Aborting!");
       return;
     }
-    for (vector<PeptideIdentification>::const_iterator it = ph.begin();
+    for (PeptideIdentificationList::const_iterator it = ph.begin();
                                                             it!= ph.end();
                                                             ++it)
     {
@@ -336,7 +336,7 @@ namespace OpenMS
       {
         case 1: // mass fingerprint annotation of name etc and precursor labels
         {
-          addPeakAnnotations_(std::vector<PeptideIdentification>(1, pid));
+          addPeakAnnotations_(PeptideIdentificationList(1, pid));
           vector<Precursor> precursors;
 
           // collect all MS2 spectra precursor till next MS1 spectrum is encountered
@@ -1337,7 +1337,7 @@ namespace OpenMS
 
         if (ms_level != 2) continue;
 
-        const vector<PeptideIdentification>& peptide_ids = current_layer.getPeakData()->getPeptideIdentifications();
+        const PeptideIdentificationList& peptide_ids = current_layer.getPeakData()->getPeptideIdentifications();
         if (i >= peptide_ids.size())
         {
           OPENMS_LOG_FATAL_ERROR << "Peptide identification index out of bounds!" << endl;

@@ -59,7 +59,7 @@ using namespace OpenMS;
     max_score_ = arg_minscore_;
   }
 
-  XFDRAlgorithm::ExitCodes XFDRAlgorithm::run(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id)
+  XFDRAlgorithm::ExitCodes XFDRAlgorithm::run(PeptideIdentificationList& peptide_ids, ProteinIdentification& protein_id)
   {
     writeArgumentsLog_();
     std::cout << "Initializing data structures..." << std::endl;
@@ -266,7 +266,7 @@ using namespace OpenMS;
     return EXECUTION_OK;
   }
 
-  void XFDRAlgorithm::initDataStructures_(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id)
+  void XFDRAlgorithm::initDataStructures_(PeptideIdentificationList& peptide_ids, ProteinIdentification& protein_id)
   {
     const String prot_identifier = protein_id.getIdentifier();
 
@@ -486,7 +486,7 @@ using namespace OpenMS;
     }
   }
 
-  void XFDRAlgorithm::findTopUniqueHits_(std::vector<PeptideIdentification>& peptide_ids)
+  void XFDRAlgorithm::findTopUniqueHits_(PeptideIdentificationList& peptide_ids)
   {
     for (PeptideIdentification& pep_id : peptide_ids)
     {

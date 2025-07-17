@@ -88,7 +88,7 @@ namespace OpenMS
     chrom_annotation_ = OSWDataSharedPtrType(new OSWData(std::move(data)));
   }
 */
-  bool LayerDataBase::annotate(const vector<PeptideIdentification>& identifications,
+  bool LayerDataBase::annotate(const PeptideIdentificationList& identifications,
                            const vector<ProteinIdentification>& protein_identifications)
   {
     IDMapper mapper;
@@ -207,7 +207,7 @@ namespace OpenMS
   bool LayerAnnotatorPeptideID::annotateWorker_(LayerDataBase& layer, const String& filename, LogWindow& /*log*/) const
   {
     FileTypes::Type type = FileHandler::getType(filename);
-    vector<PeptideIdentification> identifications;
+    PeptideIdentificationList identifications;
     vector<ProteinIdentification> protein_identifications;
     FileHandler().loadIdentifications(filename, protein_identifications, identifications, {type});
 

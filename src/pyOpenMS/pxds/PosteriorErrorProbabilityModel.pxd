@@ -89,7 +89,7 @@ cdef extern from "<OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>" nam
         #                  const bool prob_correct,
         #                  const bool split_charge,
         #                  libcpp_vector[ ProteinIdentification ] & protein_ids,
-        #                  libcpp_vector[ PeptideIdentification ] & peptide_ids,
+        #                  PeptideIdentificationList & peptide_ids,
         #                  bool unable_to_fit_data,
         #                  bool data_might_not_be_well_fit) except + nogil 
 

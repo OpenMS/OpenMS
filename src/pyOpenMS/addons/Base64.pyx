@@ -7,7 +7,7 @@
         assert isinstance(in_, list) and all(isinstance(elemt_rec, float) for elemt_rec in in_), 'arg in_ wrong type'
         assert to_byte_order in [0, 1], 'arg to_byte_order wrong type'
         assert isinstance(out, String), 'arg out wrong type'
-        assert isinstance(zlib_compression, (int, long)), 'arg zlib_compression wrong type'
+        assert isinstance(zlib_compression, int), 'arg zlib_compression wrong type'
         cdef libcpp_vector[double] v0 = in_
     
     
@@ -19,7 +19,7 @@
         assert (isinstance(in_, str) or isinstance(in_, unicode) or isinstance(in_, bytes) or isinstance(in_, String)), 'arg in_ wrong type'
         assert from_byte_order in [0, 1], 'arg from_byte_order wrong type'
         assert isinstance(out, list) and all(isinstance(elemt_rec, float) for elemt_rec in out), 'arg out wrong type'
-        assert isinstance(zlib_compression, (int, long)), 'arg zlib_compression wrong type'
+        assert isinstance(zlib_compression, int), 'arg zlib_compression wrong type'
     
     
         cdef libcpp_vector[double] v2 = out
@@ -32,7 +32,7 @@
         assert isinstance(in_, list) and all(isinstance(elemt_rec, float) for elemt_rec in in_), 'arg in_ wrong type'
         assert to_byte_order in [0, 1], 'arg to_byte_order wrong type'
         assert isinstance(out, String), 'arg out wrong type'
-        assert isinstance(zlib_compression, (int, long)), 'arg zlib_compression wrong type'
+        assert isinstance(zlib_compression, int), 'arg zlib_compression wrong type'
         cdef libcpp_vector[float] v0 = in_
     
     
@@ -44,7 +44,7 @@
         assert (isinstance(in_, str) or isinstance(in_, unicode) or isinstance(in_, bytes) or isinstance(in_, String)), 'arg in_ wrong type'
         assert from_byte_order in [0, 1], 'arg from_byte_order wrong type'
         assert isinstance(out, list) and all(isinstance(elemt_rec, float) for elemt_rec in out), 'arg out wrong type'
-        assert isinstance(zlib_compression, (int, long)), 'arg zlib_compression wrong type'
+        assert isinstance(zlib_compression, int), 'arg zlib_compression wrong type'
     
     
         cdef libcpp_vector[float] v2 = out

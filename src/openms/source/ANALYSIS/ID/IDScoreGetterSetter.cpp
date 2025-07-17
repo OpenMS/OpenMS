@@ -72,7 +72,7 @@ namespace OpenMS
 
   void IDScoreGetterSetter::fillPeptideScoreMap_(
     std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
-    const vector<PeptideIdentification>& ids)
+    const PeptideIdentificationList& ids)
   {
     for (auto const & id : ids)
     {
@@ -254,7 +254,7 @@ namespace OpenMS
     }
   }
   void IDScoreGetterSetter::setPeptideScoresFromMap_(std::unordered_map<String, ScoreToTgtDecLabelPair> const& seq_to_fdr,
-                                                     vector<PeptideIdentification>& ids,
+                                                     PeptideIdentificationList& ids,
                                                      std::string const& score_type,
                                                      bool keep_decoys)
   {

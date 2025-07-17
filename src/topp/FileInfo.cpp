@@ -120,7 +120,7 @@ namespace OpenMS
   {
     String identifier;
     vector<ProteinIdentification> proteins;
-    vector<PeptideIdentification> peptides;
+    PeptideIdentificationList peptides;
   };
 
   /// Write SomeStatistics to a stream.
@@ -955,7 +955,7 @@ protected:
       {
         ++charges[feat[i].getCharge()];
         tic += feat[i].getIntensity();
-        const vector<PeptideIdentification> &peptide_ids = feat[i].getPeptideIdentifications();
+        const PeptideIdentificationList &peptide_ids = feat[i].getPeptideIdentifications();
         ++numberofids[peptide_ids.size()];
       }
 

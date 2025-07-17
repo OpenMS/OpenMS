@@ -961,7 +961,7 @@ namespace OpenMS
     dynamic_cast<LayerData1DPeak*>(layer_)->synchronizePeakAnnotations();
 
     vector<ProteinIdentification> prot_id = layer_->getPeakData()->getProteinIdentifications();
-    vector<PeptideIdentification> all_pep_ids;
+    PeptideIdentificationList all_pep_ids;
 
     // collect PeptideIdentifications from each spectrum, while making sure each spectrum is only considered once
     // otherwise duplicates will be stored, if more than one PeptideHit is contained in a PeptideIdentification

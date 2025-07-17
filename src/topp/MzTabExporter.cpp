@@ -119,12 +119,12 @@ protected:
         FileHandler().loadFeatures(in, feature_map, {FileTypes::FEATUREXML});
 
         // calculate coverage
-        vector<PeptideIdentification> pep_ids;
+        PeptideIdentificationList pep_ids;
         vector<ProteinIdentification> prot_ids = feature_map.getProteinIdentifications();        
 
         for (Size i = 0; i < feature_map.size(); ++i) // collect all (assigned and unassigned to a feature) peptide ids
         {
-          const vector<PeptideIdentification>& pep_ids_bf = feature_map[i].getPeptideIdentifications();
+          const PeptideIdentificationList& pep_ids_bf = feature_map[i].getPeptideIdentifications();
           pep_ids.insert(pep_ids.end(), pep_ids_bf.begin(), pep_ids_bf.end());
         }
 
@@ -150,7 +150,7 @@ protected:
       if (in_type == FileTypes::IDXML)
       {
         vector<ProteinIdentification> prot_ids;
-        vector<PeptideIdentification> pep_ids;
+        PeptideIdentificationList pep_ids;
         FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
 
         MzTabFile().store(out,
@@ -167,7 +167,7 @@ protected:
       {
         String document_id;
         vector<ProteinIdentification> prot_ids;
-        vector<PeptideIdentification> pep_ids;
+        PeptideIdentificationList pep_ids;
         FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::MZIDENTML});
 
         MzTabFile().store(out,
