@@ -13,7 +13,6 @@
 #include <cmath>
 #include <complex>
 #include <numeric>
-#include <execution>
 #include <vector>
 #include <cstddef>
 
@@ -46,6 +45,8 @@ namespace OpenSwath
   template <typename Texp, typename Ttheo>
   double dotProd(Texp intExpBeg, Texp intExpEnd, Ttheo intTheo);
 
+  /// @cond
+  
   // Explicit template instantiation declarations (tell the compiler these exist)
   extern template double dotProd<std::vector<double>::const_iterator, std::vector<double>::const_iterator>(
     std::vector<double>::const_iterator, std::vector<double>::const_iterator, std::vector<double>::const_iterator);
@@ -56,6 +57,8 @@ namespace OpenSwath
   extern template double dotProd<std::vector<int>::const_iterator, std::vector<int>::const_iterator>(
     std::vector<int>::const_iterator, std::vector<int>::const_iterator, std::vector<int>::const_iterator);
 
+  /// @endcond
+  
   /**
     @brief the dot product scoring
 
