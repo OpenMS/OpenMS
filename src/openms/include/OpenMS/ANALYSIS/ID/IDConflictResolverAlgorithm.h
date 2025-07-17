@@ -127,6 +127,7 @@ protected:
     for (typename T::value_type& element : map)
     {
       PeptideIdentificationList& pep_ids = element.getPeptideIdentifications();
+      bool higher_score_better = pep_ids.isHigherScoreBetter();
       
       if (!pep_ids.empty())
       {
@@ -138,7 +139,7 @@ protected:
         }
         
         // Make sure best hit is in front, i.e. sort hits first.
-        pep_ids.front().sort();
+        pep_ids.front().sort(higher_score_better);
         const std::vector<PeptideHit>& hits = pep_ids.front().getHits();
         
         if (!hits.empty())

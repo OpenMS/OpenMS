@@ -122,19 +122,28 @@ namespace OpenMS
 
   void BaseFeature::sortPeptideIdentifications()
   {
+    bool higher_score_better = peptides_.isHigherScoreBetter();
     std::sort(peptides_.rbegin(),peptides_.rend(),
-              [](PeptideIdentification& p1, PeptideIdentification& p2)
-              {p1.sort();p2.sort();
-              if (p1.empty())
+              [&higher_score_better](PeptideIdentification& p1, PeptideIdentification& p2)
               {
-                return true;
-              }
-              if (p2.empty())
-              {
-                return false;
-              }
-              // Assume higher scores are better (default behavior)
-              return p1.getHits()[0].getScore() < p2.getHits()[0].getScore();
+                p1.sort(higher_score_better);
+                p2.sort(higher_score_better);
+                if (p1.empty())
+                {
+                  return true;
+                }
+                if (p2.empty())
+                {
+                  return false;
+                }
+                if (higher_score_better)
+                {
+                  return p1.getHits()[0].getScore() < p2.getHits()[0].getScore();
+                }
+                else
+                {
+                  return p1.getHits()[0].getScore() > p2.getHits()[0].getScore();
+                } 
               });
   }
 
@@ -156,7 +165,7 @@ namespace OpenMS
         if (!peptides_[i].getHits().empty())
         {
           PeptideIdentification id_tmp = peptides_[i];
-          id_tmp.sort();  // look at best hit only - requires sorting
+          id_tmp.sort(peptides_.isHigherScoreBetter());  // look at best hit only - requires sorting
           seqs.insert(id_tmp.getHits()[0].getSequence().toString());
         }
       }

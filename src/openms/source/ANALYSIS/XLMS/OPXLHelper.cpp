@@ -1187,12 +1187,12 @@ namespace OpenMS
 
   void OPXLHelper::computeDeltaScores(PeptideIdentificationList& peptide_ids)
   {
-    computeDeltaScores(peptide_ids.getData());
+    computeDeltaScores(peptide_ids.getData(), peptide_ids.isHigherScoreBetter());
   }
 
   std::vector<PeptideIdentification> OPXLHelper::combineTopRanksFromPairs(PeptideIdentificationList& peptide_ids, Size number_top_hits)
   {
-    return combineTopRanksFromPairs(peptide_ids.getData(), number_top_hits);
+    return combineTopRanksFromPairs(peptide_ids.getData(), number_top_hits, peptide_ids.isHigherScoreBetter());
   }
 
   void OPXLHelper::addPercolatorFeatureList(ProteinIdentification& prot_id)
@@ -1243,11 +1243,11 @@ namespace OpenMS
     prot_id.setSearchParameters(search_params);
   }
 
-  void OPXLHelper::computeDeltaScores(std::vector< PeptideIdentification > & peptide_ids)
+  void OPXLHelper::computeDeltaScores(std::vector< PeptideIdentification > & peptide_ids, bool higher_score_better)
   {
     for (PeptideIdentification& pep_id : peptide_ids)
     {
-      pep_id.sort();
+      pep_id.sort(higher_score_better);
       vector<PeptideHit>& phs = pep_id.getHits();
 
       // at least two PeptideHits needed for an actual delta score
@@ -1267,7 +1267,7 @@ namespace OpenMS
     }
   }
 
-  std::vector< PeptideIdentification > OPXLHelper::combineTopRanksFromPairs(std::vector< PeptideIdentification > & peptide_ids, Size number_top_hits)
+  std::vector< PeptideIdentification > OPXLHelper::combineTopRanksFromPairs(std::vector< PeptideIdentification > & peptide_ids, Size number_top_hits, bool higher_score_better)
   {
     std::vector< PeptideIdentification > new_peptide_ids;
     std::vector< PeptideIdentification > current_spectrum_peptide_ids;

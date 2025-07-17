@@ -1031,6 +1031,54 @@ namespace OpenMS
       prot_it.getHits().erase(result, first);
     }
 
+    // Set score type on PeptideIdentificationList based on search engine
+    // (moved from individual PeptideIdentification to list level after refactoring)
+    if (!peptides.empty() && !search_engine_.empty())
+    {
+      String score_type;
+      if (search_engine_ == "X! Tandem" || search_engine_.hasPrefix("X! Tandem"))
+      {
+        score_type = "XTandem";
+      }
+      else if (search_engine_ == "MASCOT")
+      {
+        score_type = "Mascot";
+      }
+      else if (search_engine_ == "Comet")
+      {
+        score_type = "Comet";
+      }
+      else if (search_engine_ == "OMSSA")
+      {
+        score_type = "OMSSA";
+      }
+      else if (search_engine_ == "MSGFPlus")
+      {
+        score_type = "MSGFPlus";
+      }
+      else
+      {
+        // For unknown search engines, use the search engine name as score type
+        score_type = search_engine_;
+      }
+      
+      peptides.setScoreType(score_type);
+      
+      // Set higher_score_better based on typical behavior for each search engine
+      if (search_engine_ == "X! Tandem" || search_engine_.hasPrefix("X! Tandem"))
+      {
+        peptides.setHigherScoreBetter(true); // hyperscore is higher = better
+      }
+      else if (search_engine_ == "MASCOT")
+      {
+        peptides.setHigherScoreBetter(true); // ion score is higher = better
+      }
+      else
+      {
+        peptides.setHigherScoreBetter(false); // expect values are lower = better
+      }
+    }
+
     // reset members
     exp_name_.clear();
     prot_id_.clear();
@@ -1898,7 +1946,17 @@ namespace OpenMS
         prot_it = --proteins_->end();
         prot_id_ = prot_id_ + "_" + search_id_; // make sure the ID is unique
       }
-      prot_it->setSearchEngine(search_engine_);
+      // Normalize search engine name for consistency with writing logic
+      String normalized_engine = search_engine_;
+      if (search_engine_.hasPrefix("X! Tandem"))
+      {
+        normalized_engine = "XTandem";
+      }
+      else if (search_engine_ == "MASCOT")
+      {
+        normalized_engine = "Mascot";
+      }
+      prot_it->setSearchEngine(normalized_engine);
       prot_it->setIdentifier(prot_id_);
     }
     else if (element == "sample_enzyme") // parent: "msms_run_summary"

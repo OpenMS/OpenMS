@@ -66,7 +66,14 @@ namespace OpenMS
   {
   public:
     EXPOSED_VECTOR_INTERFACE(PeptideIdentification)
-    
+
+    //@{
+    typedef iterator Iterator;
+    typedef const_iterator ConstIterator;
+    typedef reverse_iterator ReverseIterator;
+    typedef const_reverse_iterator ConstReverseIterator;
+    //@}
+
     /// Default constructor
     PeptideIdentificationList() = default;
     
@@ -89,9 +96,10 @@ namespace OpenMS
       : ExposedVector<PeptideIdentification>(vec.begin(), vec.end()) {}
     
     /// Move constructor from std::vector
-    PeptideIdentificationList(std::vector<PeptideIdentification>&& vec) 
-      : ExposedVector<PeptideIdentification>(std::make_move_iterator(vec.begin()), 
-                                            std::make_move_iterator(vec.end())) {}
+    PeptideIdentificationList(std::vector<PeptideIdentification>&& vec) noexcept
+    {
+      data_ = std::move(vec);
+    }
     
     /// Constructor from initializer list
     PeptideIdentificationList(std::initializer_list<PeptideIdentification> init) 
@@ -138,7 +146,7 @@ namespace OpenMS
     
   private:
     String score_type_;
-    bool higher_score_better_ = false;    
+    bool higher_score_better_ = true; // default is higher score better   
   };
 
 } //namespace OpenMS

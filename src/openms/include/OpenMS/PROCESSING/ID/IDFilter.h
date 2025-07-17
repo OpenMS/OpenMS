@@ -648,13 +648,6 @@ namespace OpenMS
     }
 
     /// @overload
-    static void filterHitsByRank(PeptideIdentificationList& ids, Size min_rank, Size max_rank)
-    {
-      std::vector<PeptideIdentification>& vec = ids.getData();
-      filterHitsByRank(vec, min_rank, max_rank);
-    }
-
-    /// @overload
     static void removeHitsMatchingProteins(PeptideIdentificationList& ids, const std::set<String>& accessions)
     {
       std::vector<PeptideIdentification>& vec = ids.getData();
@@ -1109,14 +1102,13 @@ namespace OpenMS
     }
 
     /**
-      @brief Filters peptide or protein identifications according to the score of the hits, keeping the @p n best hits per ID.
+      @brief Filters protein identifications according to the score of the hits, keeping the @p n best hits per ID.
 
       The score orientation (are higher scores better?) is taken into account.
     */
-    template<class IdentificationType>
-    static void keepNBestHits(std::vector<IdentificationType>& ids, Size n)
+    static void keepNBestHits(std::vector<ProteinIdentification>& ids, Size n)
     {
-      for (typename std::vector<IdentificationType>::iterator id_it = ids.begin(); id_it != ids.end(); ++id_it)
+      for (auto id_it = ids.begin(); id_it != ids.end(); ++id_it)
       {
         id_it->sort();
         if (n < id_it->getHits().size())
@@ -1134,8 +1126,12 @@ namespace OpenMS
     */
     static void keepNBestHits(PeptideIdentificationList& pep_ids, Size n)
     {
-      std::vector<PeptideIdentification>& vec = pep_ids.getData();
-      keepNBestHits(vec, n);
+      for (auto id_it = pep_ids.begin(); id_it != pep_ids.end(); ++id_it)
+      {
+        id_it->sort(pep_ids.isHigherScoreBetter());
+        if (n < id_it->getHits().size())
+          id_it->getHits().resize(n);
+      }
     }
 
     /**
@@ -1152,8 +1148,7 @@ namespace OpenMS
 
        @note The ranks of the hits may be invalidated.
     */
-    template<class IdentificationType>
-    static void filterHitsByRank(std::vector<IdentificationType>& ids, Size min_rank, Size max_rank)
+    static void filterHitsByRank(std::vector<ProteinIdentification>& ids, Size min_rank, Size max_rank)
     {
       for (auto& id : ids)
       {
@@ -1183,6 +1178,39 @@ namespace OpenMS
         );
       }
     }
+
+    static void filterHitsByRank(PeptideIdentificationList& ids, Size min_rank, Size max_rank)
+    {
+      bool higher_score_better = ids.isHigherScoreBetter();
+      for (auto& id : ids)
+      {
+        auto& hits = id.getHits();
+        if (hits.empty()) continue;
+
+        id.sort(higher_score_better); // Ensure hits are properly sorted
+
+        // ignore max_rank?
+        if (max_rank < min_rank) max_rank = hits.size();
+
+        Size rank = 1;
+        double last_score = hits.front().getScore();
+
+        // Remove hits not within [min_rank, max_rank], while computing rank on the fly
+        hits.erase(
+          std::remove_if(hits.begin(), hits.end(),
+            [&](const auto& hit) {
+              if (hit.getScore() != last_score)
+              {
+                ++rank;
+                last_score = hit.getScore();
+              }
+              return rank < min_rank || rank > max_rank;
+            }),
+          hits.end()
+        );
+      }
+    }
+
     
     /**
        @brief Removes hits annotated as decoys from peptide or protein identifications.
@@ -1529,7 +1557,7 @@ namespace OpenMS
     static void annotateBestPerPeptideWithData(SequenceToChargeToPepHitP& best_pep, PeptideIdentification& pep, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum, bool higher_score_better)
     {
       // make sure that first = best hit
-      pep.sort();
+      pep.sort(higher_score_better);
 
       auto pepIt = pep.getHits().begin();
       auto pepItEnd = nr_best_spectrum == 0 || pep.getHits().size() <= nr_best_spectrum ? pep.getHits().end() : pep.getHits().begin() + nr_best_spectrum;

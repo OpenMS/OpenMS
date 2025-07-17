@@ -53,7 +53,7 @@ vector<ProteinIdentification> global_proteins;
 PeptideIdentificationList global_peptides;
 IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test.idXML"),
                  global_proteins, global_peptides);
-global_peptides[0].sort(); // makes it easier to compare results
+global_peptides[0].sort(global_peptides.isHigherScoreBetter()); // makes it easier to compare results
 
 IDFilter* ptr = nullptr;
 IDFilter* nullPointer = nullptr;

@@ -3696,7 +3696,7 @@ static void scoreXLIons_(
     }
 
     pi.setHits(phs);
-    pi.sort();    
+    pi.sort(true); // NuXL:score is higher better    
 
     // assign (unique) ranks
     phs = pi.getHits();
@@ -4494,7 +4494,7 @@ static void scoreXLIons_(
           h.setScore(w2);
         }
         pid.setHits(hits);
-        pid.sort();
+        pid.sort(peptide_ids.isHigherScoreBetter());
         // iterate over peptide hits and set rank
         vector<PeptideHit>& phs = pid.getHits();
         for (Size r = 0; r != phs.size(); ++r) 
@@ -4538,7 +4538,7 @@ static void scoreXLIons_(
         h.setScore(w2);
       }
       pid.setHits(hits);
-      pid.sort();
+      pid.sort(peptide_ids.isHigherScoreBetter());
     }
   }
 
@@ -6214,7 +6214,7 @@ static void scoreXLIons_(
                ++imputed;
              }
           }
-          pi.sort();
+          pi.sort(peptide_ids.isHigherScoreBetter());
           // iterate over peptide hits and set rank
           vector<PeptideHit>& phs = pi.getHits();
           for (Size r = 0; r != phs.size(); ++r) 

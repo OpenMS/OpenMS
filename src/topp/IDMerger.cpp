@@ -393,7 +393,7 @@ protected:
       for (PeptideIdentification & pep : base_peptides)
       {
         if (pep.getHits().empty()) continue;
-        pep.sort();
+        pep.sort(base_peptides.isHigherScoreBetter());
         sequences.insert(pep.getHits()[0].getSequence());
       }
       peptides.insert(peptides.end(), base_peptides.begin(),
@@ -404,10 +404,11 @@ protected:
             ++file_it)
       {
         set<String> accessions; // keep track to avoid duplicates
+        bool higher_score_better = file_it->isHigherScoreBetter();
         for (auto pep_it = file_it->begin(); pep_it != file_it->end(); ++pep_it)
         {
           if (pep_it->getHits().empty()) continue;
-          pep_it->sort();
+          pep_it->sort(higher_score_better);
           const PeptideHit& hit = pep_it->getHits()[0];
           OPENMS_LOG_DEBUG << "peptide: " << hit.getSequence().toString() << endl;
           // skip ahead if peptide is not new:

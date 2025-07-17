@@ -37,13 +37,14 @@ namespace OpenMS
                                            peptides, SeedList& seeds,
                                            bool use_peptide_mass)
   {
+    bool higher_score_better = peptides.isHigherScoreBetter();
     seeds.clear();
     for (PeptideIdentification& pep : peptides)
     {
       double mz;
       if (!pep.getHits().empty() && use_peptide_mass)
       {
-        pep.sort();
+        pep.sort(higher_score_better);
         const PeptideHit& hit = pep.getHits().front();
         Int charge = hit.getCharge();
         mz = hit.getSequence().getMZ(charge);

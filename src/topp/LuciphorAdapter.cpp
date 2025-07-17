@@ -595,6 +595,9 @@ protected:
     }
     
     String score_type = pep_ids.getScoreType();
+    pep_out.setScoreType("Luciphor_delta_score");
+    pep_out.setHigherScoreBetter(true);
+
     for (PeptideIdentification& pep : pep_ids)
     {
       Size scan_idx;
@@ -649,13 +652,11 @@ protected:
       
       PeptideIdentification new_pep_id(pep);
       new_pep_id.setHits(scored_peptides);
-      new_pep_id.sort();
+      new_pep_id.sort(pep_out.isHigherScoreBetter());
       pep_out.push_back(new_pep_id);
     }
     
-    // Set score metadata at list level (centralized architecture)
-    pep_out.setScoreType("Luciphor_delta_score");
-    pep_out.setHigherScoreBetter(true);
+  
 
     // store which modifications have been localized
     for (auto& p : prot_ids)

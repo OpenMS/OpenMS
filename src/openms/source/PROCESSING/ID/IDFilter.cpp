@@ -462,12 +462,13 @@ namespace OpenMS
 
   void IDFilter::keepBestPeptideHits(PeptideIdentificationList& peptides, bool strict)
   {
+    bool higher_better = peptides.isHigherScoreBetter();
     for (PeptideIdentification& pep : peptides)
     {
       vector<PeptideHit>& hits = pep.getHits();
       if (hits.size() > 1)
       {
-        pep.sort();
+        pep.sort(higher_better); // sort by score (descending)
         double top_score = hits[0].getScore();
         bool higher_better = peptides.isHigherScoreBetter();
         struct HasGoodScore<PeptideHit> good_score(top_score, higher_better);
@@ -716,10 +717,10 @@ namespace OpenMS
   void IDFilter::keepNBestSpectra(PeptideIdentificationList& peptides, Size n)
   {
     String score_type = peptides.getScoreType();
+    bool higher_better = peptides.isHigherScoreBetter();
     for (PeptideIdentification& p : peptides)
     {
-      p.sort();
-      // Note: Score consistency is guaranteed by centralized architecture
+      p.sort(higher_better);      
     }
 
     // there might be fewer spectra identified than n -> adapt

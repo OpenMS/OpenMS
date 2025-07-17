@@ -197,10 +197,10 @@ namespace OpenMS
       feature_set.push_back("MS:1001171"); // unchanged mScore
       feature_set.push_back("MASCOT:delta_score"); // delta score based on mScore
       feature_set.push_back("MASCOT:hasMod"); // bool: has post translational modification
-      
-      for (PeptideIdentificationList::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+      bool higher_score_better = peptide_ids.isHigherScoreBetter();
+      for (auto it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
       {
-        it->sort();
+        it->sort(higher_score_better);
         std::vector<PeptideHit> hits = it->getHits();
         assignDeltaScore_(hits, "MS:1001171", "MASCOT:delta_score");
         
@@ -213,7 +213,8 @@ namespace OpenMS
     }
 
     void PercolatorFeatureSetHelper::addCONCATSEFeatures(PeptideIdentificationList& peptide_ids, StringList& search_engines_used, StringList& feature_set)
-    {     
+    {  
+      bool higher_score_better = peptide_ids.isHigherScoreBetter();   
       for (StringList::iterator it = search_engines_used.begin(); it != search_engines_used.end(); ++it) {
         feature_set.push_back("CONCAT:" + *it);
       }
@@ -224,7 +225,7 @@ namespace OpenMS
       // feature values have been set in concatMULTISEids
       for (PeptideIdentificationList::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
       {
-        it->sort();
+        it->sort(higher_score_better);
         assignDeltaScore_(it->getHits(), "CONCAT:lnEvalue", "CONCAT:deltaLnEvalue");
       }
     }
@@ -598,9 +599,10 @@ namespace OpenMS
 
       OPENMS_LOG_DEBUG << "Looking for minimum feature set:" << ListUtils::concatenate(feature_set, ", ") << "." << endl;
 
+      bool higher_score_better = peptide_ids.isHigherScoreBetter();
       for (PeptideIdentificationList::iterator pi = peptide_ids.begin(); pi != peptide_ids.end(); ++pi)
       {
-        pi->sort();
+        pi->sort(higher_score_better);
         vector<vector<PeptideHit>::iterator> incompletes;
 
         size_t imputed_back = imputed_values;

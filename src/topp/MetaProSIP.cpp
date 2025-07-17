@@ -3192,7 +3192,7 @@ protected:
       // Note: Score metadata is now centralized at list level, not needed for individual temporary objects
       for (Size i = 0; i != pep_ids.size(); ++i)
       {
-        pep_ids[i].sort();
+        pep_ids[i].sort(pep_ids.isHigherScoreBetter());
         const vector<PeptideHit>& hits = pep_ids[i].getHits();
         if (!hits.empty())
         {
@@ -3204,7 +3204,7 @@ protected:
         }
       }
 
-      tmp_pepid.sort();
+      tmp_pepid.sort(pep_ids.isHigherScoreBetter());
 
       SIPPeptide sip_peptide;
       sip_peptide.feature_type = feature_it->getMetaValue("feature_type"); // used to annotate feature type in reporting

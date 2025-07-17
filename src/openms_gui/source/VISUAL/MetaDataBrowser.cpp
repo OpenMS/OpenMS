@@ -345,7 +345,7 @@ namespace OpenMS
     }
 
     //check for proteins and peptides hits
-    meta.sort();
+    meta.sort(true);
 
     //list all peptides hits in the tree
     for (Size i = 0; i < meta.getHits().size(); ++i)

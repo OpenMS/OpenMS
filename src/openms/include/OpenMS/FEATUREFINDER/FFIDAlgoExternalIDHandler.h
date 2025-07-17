@@ -53,7 +53,7 @@ namespace Internal
     void reset();
 
     /// Add an external peptide to the handler's map
-    void addExternalPeptide(PeptideIdentification& peptide);
+    void addExternalPeptide(PeptideIdentification& peptide, bool higher_score_better);
     
     /// Process external peptide IDs
     void processExternalPeptides(PeptideIdentificationList& peptides_ext);
@@ -90,7 +90,7 @@ namespace Internal
     void addExternalPeptideToMap_(PeptideIdentification& peptide,
                                std::map<AASequence,
                                std::map<Int, std::pair<std::multimap<double, PeptideIdentification*>,
-                                                      std::multimap<double, PeptideIdentification*>>>>& peptide_map);
+                                                      std::multimap<double, PeptideIdentification*>>>>& peptide_map, bool higher_score_better);
     
     /// Fill an external RTMap from our data for a specific peptide and charge
     bool fillExternalRTMap_(const AASequence& sequence, Int charge,

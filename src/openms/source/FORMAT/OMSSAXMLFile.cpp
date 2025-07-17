@@ -51,7 +51,7 @@ namespace OpenMS
     {
       // Score metadata is now set at list level
       pep.setIdentifier(identifier);
-      pep.sort();
+      pep.sort(peptide_identifications.isHigherScoreBetter());
 
       if (load_proteins)
       {

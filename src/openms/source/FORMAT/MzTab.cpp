@@ -834,7 +834,7 @@ namespace OpenMS
     // create new peptide id object to assist in sorting
     PeptideIdentification new_pep_id = pep_ids[0];
     new_pep_id.setHits(all_hits);
-    new_pep_id.sort();
+    new_pep_id.sort(pep_ids.isHigherScoreBetter());
 
     const PeptideHit& best_ph = new_pep_id.getHits()[0];
     const AASequence& aas = best_ph.getSequence();

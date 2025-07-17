@@ -260,7 +260,7 @@ namespace OpenMS
     void fillIDs_(const PeptideIdentificationList& pep_ids, const double tol_ppm, CalibrantStats_& stats);
 
     /// determine if sequence is within tol_ppm and update stats; fills mz_ref with the theoretical m/z of the sequence
-    bool isDecalibrated_(const PeptideIdentification& pep_id, const double mz_obs, const double tol_ppm, CalibrantStats_& stats, double& mz_ref);
+    bool isDecalibrated_(const PeptideIdentification& pep_id, const double mz_obs, const double tol_ppm, CalibrantStats_& stats, double& mz_ref, bool higher_score_better = true);
 
     /**
      @brief Calibrate m/z of a spectrum, ignoring precursors!

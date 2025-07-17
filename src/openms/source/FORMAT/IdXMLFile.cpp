@@ -276,9 +276,18 @@ namespace OpenMS
 
         // Use the score metadata from the PeptideIdentificationList
         String score_type = peptide_ids.getScoreType(); // Use the score type as provided, even if empty
+        bool higher_score_better = peptide_ids.isHigherScoreBetter();
+        
+        // Validate score type and orientation consistency
+        if (score_type.empty())
+        {
+          OPENMS_LOG_WARN << "Warning: Empty score type in PeptideIdentificationList during XML serialization. "
+                          << "This may indicate missing or inconsistent score metadata." << std::endl;
+        }
+        
         os << "\t\t<PeptideIdentification "
            << "score_type=\"" << writeXMLEscape(score_type) << "\" ";
-        if (peptide_ids.isHigherScoreBetter())
+        if (higher_score_better)
         {
           os << "higher_score_better=\"true\" ";
         }
@@ -587,6 +596,32 @@ namespace OpenMS
 
       // Score type will be set at list level - store temporarily
       temp_score_type_ = attributeAsString_(attributes, "score_type");
+      
+      // Validate and improve score type parsing
+      if (!temp_score_type_.empty())
+      {
+        // Trim whitespace and validate score type
+        temp_score_type_.trim();
+        
+        // Check for common truncation issues and warn
+        if (temp_score_type_.size() < 2)
+        {
+          OPENMS_LOG_WARN << "Warning: Very short score type '" << temp_score_type_
+                          << "' detected during XML parsing. This may indicate truncation." << std::endl;
+        }
+        
+        // Check for known problematic patterns
+        if (temp_score_type_ == "Unknown" || temp_score_type_ == "unknown" ||
+            temp_score_type_.hasSubstring("Unknown") || temp_score_type_.hasSubstring("unknown"))
+        {
+          OPENMS_LOG_WARN << "Warning: Unknown score type '" << temp_score_type_
+                          << "' detected during XML parsing. Score type validation may be needed." << std::endl;
+        }
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "Warning: Empty score type in PeptideIdentification during XML parsing." << std::endl;
+      }
 
       //optional significance threshold
       double tmp(0.0);
@@ -881,8 +916,24 @@ namespace OpenMS
       // Set score metadata on the list (all peptides in list should have same score type)
       if (!temp_score_type_.empty())
       {
-        pep_ids_->setScoreType(temp_score_type_);
-        pep_ids_->setHigherScoreBetter(temp_higher_score_better_);
+        // Only set score metadata if not already set, or validate consistency
+        String current_score_type = pep_ids_->getScoreType();
+        bool current_higher_better = pep_ids_->isHigherScoreBetter();
+        
+        if (current_score_type.empty())
+        {
+          // First peptide sets the score metadata for the entire list
+          pep_ids_->setScoreType(temp_score_type_);
+          pep_ids_->setHigherScoreBetter(temp_higher_score_better_);
+        }
+        else if (current_score_type != temp_score_type_ || current_higher_better != temp_higher_score_better_)
+        {
+          // Score type conflict - warn and keep the first one
+          OPENMS_LOG_WARN << "Warning: Inconsistent score types in PeptideIdentification list. "
+                          << "Expected: '" << current_score_type << "' (higher_better=" << current_higher_better
+                          << "), but found: '" << temp_score_type_ << "' (higher_better=" << temp_higher_score_better_
+                          << "). Keeping the first score type." << std::endl;
+        }
       }
       pep_id_ = PeptideIdentification();
       last_meta_ = nullptr;

@@ -183,7 +183,7 @@ START_SECTION((Test list-level score metadata methods))
   
   // Test default state
   TEST_EQUAL(pep_ids.getScoreType(), "")
-  TEST_EQUAL(pep_ids.isHigherScoreBetter(), false)
+  TEST_TRUE(pep_ids.isHigherScoreBetter())
   
   // Test setting list-level metadata
   pep_ids.setScoreType("Mascot");
@@ -200,7 +200,7 @@ START_SECTION((Test effective score methods))
   
   // Test empty list
   TEST_EQUAL(pep_ids.getScoreType(), "")
-  TEST_EQUAL(pep_ids.isHigherScoreBetter(), false)
+  TEST_TRUE(pep_ids.isHigherScoreBetter())
   
   // Test with list-level metadata set
   pep_ids.setScoreType("Mascot");

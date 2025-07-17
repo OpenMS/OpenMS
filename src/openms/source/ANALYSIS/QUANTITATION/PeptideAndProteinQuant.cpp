@@ -70,10 +70,11 @@ namespace OpenMS
   void PeptideAndProteinQuant::countPeptides_(
     PeptideIdentificationList& peptides)
   {
+    bool higher_score_better = peptides.isHigherScoreBetter();
     for (auto & pep : peptides)
     {
       if (pep.getHits().empty()) continue;
-      pep.sort(); // TODO: move this out of count peptides
+      pep.sort(higher_score_better); // TODO: move this out of count peptides
       const PeptideHit& hit = pep.getHits()[0]; // get best hit
       PeptideData& data = pep_quant_[hit.getSequence()];
       data.psm_count++;

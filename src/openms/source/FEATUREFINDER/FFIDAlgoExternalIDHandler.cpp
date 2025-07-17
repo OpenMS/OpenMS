@@ -54,15 +54,15 @@ namespace Internal
     svm_probs_internal_.clear();
     n_internal_features_ = 0;
   }
-  
-  void FFIDAlgoExternalIDHandler::addExternalPeptide(PeptideIdentification& peptide)
+
+  void FFIDAlgoExternalIDHandler::addExternalPeptide(PeptideIdentification& peptide, bool higher_score_better)
   {
     if (peptide.getHits().empty())
     {
       return;
     }
     
-    peptide.sort();
+    peptide.sort(higher_score_better);
     PeptideHit& hit = peptide.getHits()[0];
     peptide.getHits().resize(1);
     
@@ -81,7 +81,7 @@ namespace Internal
   {
     for (PeptideIdentification& pep : peptides_ext)
     {
-      addExternalPeptide(pep);
+      addExternalPeptide(pep, peptides_ext.isHigherScoreBetter());
       pep.setMetaValue("FFId_category", "external");
     }
     
@@ -148,11 +148,11 @@ namespace Internal
   void FFIDAlgoExternalIDHandler::addExternalPeptideToMap_(PeptideIdentification& peptide,
                              std::map<AASequence,
                              std::map<Int, std::pair<std::multimap<double, PeptideIdentification*>,
-                                                    std::multimap<double, PeptideIdentification*>>>>& peptide_map)
+                                                    std::multimap<double, PeptideIdentification*>>>>& peptide_map, bool higher_score_better)
   {
     if (peptide.getHits().empty()) return;
-    
-    peptide.sort();
+
+    peptide.sort(higher_score_better);
     PeptideHit& hit = peptide.getHits()[0];
     peptide.getHits().resize(1);
     

@@ -75,7 +75,7 @@ namespace OpenMS
     for (auto it = ids.begin(); it != ids.end(); ++it)
     {
       identifiers.insert(it->getIdentifier());
-      it->sort();
+      it->sort(higher_score_better);
 
       if (!use_all_hits && it->getHits().size() > 1)
       {
@@ -392,7 +392,7 @@ namespace OpenMS
     // Still need to sort individual identifications
     for (PeptideIdentificationList::iterator it = ids.begin(); it != ids.end(); ++it)
     {
-      it->sort();
+      it->sort(ids.isHigherScoreBetter());
     }
 
     return;

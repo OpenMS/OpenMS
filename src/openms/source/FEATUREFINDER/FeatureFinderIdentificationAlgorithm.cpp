@@ -1377,7 +1377,7 @@ namespace OpenMS
     {
       return;
     }
-    peptide.sort();
+    peptide.sort(higher_score_better);
     PeptideHit& hit = peptide.getHits()[0];
     peptide.getHits().resize(1);
 

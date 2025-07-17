@@ -285,7 +285,7 @@ START_SECTION((Score methods now managed at PeptideIdentificationList level))
   
   // Test default values
   TEST_EQUAL(hits_list.getScoreType(), "")
-  TEST_FALSE(hits_list.isHigherScoreBetter())
+  TEST_TRUE(hits_list.isHigherScoreBetter())
   
   // Test setting values
   hits_list.setScoreType("bla");
@@ -341,7 +341,7 @@ START_SECTION((void sort()))
   id.insertHit(hit);
 
   //higher score is better
-  id.sort();
+  id.sort(true);
 
   TEST_EQUAL(id.getHits()[0].getSequence(), AASequence::fromString("FIRSTPROTEIN"))
   TEST_EQUAL(id.getHits()[1].getSequence(), AASequence::fromString("SECONDPROTEIN"))

@@ -70,6 +70,7 @@ namespace OpenMS
       ++id_index;
     }
 
+    bool higher_score_better = pep_pi.isHigherScoreBetter();
     for (const auto & pi : xl_pi)
     {
       if (native_id_to_id_index.find(pi.getMetaValue("spectrum_reference")) == native_id_to_id_index.end())
@@ -86,7 +87,7 @@ namespace OpenMS
           hits.push_back(h);
         }
         peptide_ids[index].setHits(hits);
-        peptide_ids[index].sort();
+        peptide_ids[index].sort(higher_score_better);
       }
     }
   }

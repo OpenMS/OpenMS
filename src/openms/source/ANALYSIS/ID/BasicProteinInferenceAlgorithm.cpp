@@ -265,7 +265,7 @@ namespace OpenMS
     IDScoreSwitcherAlgorithm::switchBackScoreType(pep_ids, isr); // NOP if no switch was performed
   }
 
-  void BasicProteinInferenceAlgorithm::aggregatePeptideScores_(
+  void BasicProteinInferenceAlgorithm::aggregatePeptideScores_(  // TODO: check why we need higher_better as a parameter in addition to the PeptideIdentificationList
       std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
       PeptideIdentificationList& pep_ids,
       const String& overall_score_type,
@@ -286,6 +286,9 @@ namespace OpenMS
           "Effective score type does not match overall score type. Aborting...");
     }
 
+    // Ensure individual orientation matches list orientation for correct sorting
+    pep_ids.setHigherScoreBetter(higher_better);
+
     for (auto& pep : pep_ids)
     {
       //skip if it does not belong to run
@@ -294,8 +297,9 @@ namespace OpenMS
       //skip if no hits (which almost could be considered and error or warning)
       if (pep.getHits().empty())
         continue;
+
       //make sure that first = best hit
-      pep.sort();
+      pep.sort(higher_better);
 
       //TODO think about if using any but the best PSM per spectrum makes sense in such a simple aggregation scheme
       //for (auto& hit : pep.getHits())
@@ -304,8 +308,7 @@ namespace OpenMS
       //skip if shared and option not enabled
       //TODO warn if not present but requested?
       //TODO use nr of evidences to re-calculate sharedness?
-      if (!use_shared_peptides &&
-      (!hit.metaValueExists("protein_references") || (hit.getMetaValue("protein_references") == "non-unique")))
+      if (!use_shared_peptides && hit.metaValueExists("protein_references") && (hit.getMetaValue("protein_references") == "non-unique"))
         continue;
 
       //TODO refactor: this is very similar to IDFilter best per peptide functionality
@@ -379,20 +382,21 @@ namespace OpenMS
       const PeptideHit& first_peptide_hit = *charge_to_peptide_hit.begin()->second;
       for (const auto &acc : first_peptide_hit.extractProteinAccessionsSet())
       {
+        auto prot_count_pair_it = acc_to_protein_hitP_and_count.find(std::string(acc));
+        if (prot_count_pair_it == acc_to_protein_hitP_and_count.end())
+        {
+          OPENMS_LOG_WARN << "Warning, skipping pep that maps to a non existent protein accession. "
+          << first_peptide_hit.getSequence().toUnmodifiedString() << std::endl;
+          continue; // very weird, has an accession that was not in the proteins loaded in the beginning
+          //TODO error? Suppress log?
+        }
+
+        ProteinHit *protein = prot_count_pair_it->second.first;
+        // Count each peptide sequence only once per protein (not per charge state)
+        prot_count_pair_it->second.second++;
+
         for (const auto &charge_pep_hit_pair : charge_to_peptide_hit)
         {
-          auto prot_count_pair_it = acc_to_protein_hitP_and_count.find(std::string(acc));
-          if (prot_count_pair_it == acc_to_protein_hitP_and_count.end())
-          {
-            OPENMS_LOG_WARN << "Warning, skipping pep that maps to a non existent protein accession. "
-            << first_peptide_hit.getSequence().toUnmodifiedString() << std::endl;
-            continue; // very weird, has an accession that was not in the proteins loaded in the beginning
-            //TODO error? Suppress log?
-          }
-
-          ProteinHit *protein = prot_count_pair_it->second.first;
-          prot_count_pair_it->second.second++;
-
           const PeptideHit& pep_hit = *charge_pep_hit_pair.second;
           double new_score = pep_hit.getScore();
 

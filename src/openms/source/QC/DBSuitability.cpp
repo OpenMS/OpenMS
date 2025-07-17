@@ -89,7 +89,7 @@ namespace OpenMS
     // make sure pep_ids are sorted
     for (auto& pep_id : pep_ids)
     {
-      pep_id.sort();
+      pep_id.sort(pep_ids.isHigherScoreBetter());
     }
     calculateSuitability_(pep_ids, suitability_data_full);
 
@@ -120,7 +120,7 @@ namespace OpenMS
         // make sure pep_ids are sorted
         for (auto& pep_id : subsampled_ids)
         {
-          pep_id.sort();
+          pep_id.sort(subsampled_ids.isHigherScoreBetter());
         }
 
         SuitabilityData suitability_data_sampled;

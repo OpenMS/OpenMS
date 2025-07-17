@@ -146,13 +146,6 @@ public:
     static std::function<bool(const PeptideHit&, const PeptideHit&)> getScoreComparator(bool higher_score_better);
 
     /**
-         @brief Sorts the hits by score
-
-         Sorting takes the score orientation (@p higher_score_better_) into account, i.e. after sorting, the best-scoring hit is the first.
-    */
-    void sort();
-
-    /**
          @brief Sorts the hits by score with explicit score orientation
 
          @param higher_score_better whether higher scores are better

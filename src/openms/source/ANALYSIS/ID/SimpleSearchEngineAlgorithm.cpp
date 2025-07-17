@@ -235,6 +235,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       const String& enzyme,
       const String& database_name) const
   {
+    const bool higher_score_better = true; // SimpleSearchEngineAlgorithm always uses HyperScore which is higher-is-better
     // remove all but top n scoring
 #pragma omp parallel for default(none) shared(annotated_hits, top_hits)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
@@ -338,7 +339,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           phs.push_back(ph);
         }
         pi.setHits(phs);
-        pi.sort();
+        pi.sort(higher_score_better);
 
 #pragma omp critical (peptide_ids_access)
         {
@@ -398,7 +399,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     
     // Set score metadata at list level
     peptide_ids.setScoreType("ln(hyperscore)");
-    peptide_ids.setHigherScoreBetter(true);
+    peptide_ids.setHigherScoreBetter(higher_score_better);
   }
 
 

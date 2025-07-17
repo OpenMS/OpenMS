@@ -192,11 +192,6 @@ namespace OpenMS
     }
   }
 
-  void PeptideIdentification::sort()
-  {
-    std::stable_sort(hits_.begin(), hits_.end(), getScoreComparator(true)); // Default to higher-is-better
-  }
-
   void PeptideIdentification::sort(bool higher_score_better)
   {
     std::stable_sort(hits_.begin(), hits_.end(), getScoreComparator(higher_score_better));

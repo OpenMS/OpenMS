@@ -1322,7 +1322,7 @@ namespace OpenMS::Internal
 
               pep_id_->back().setIdentifier(pro_id_->at(si_pro_map_[id]).getIdentifier());
 
-              pep_id_->back().sort();
+              pep_id_->back().sort(pep_id_->isHigherScoreBetter());
 
               //adopt cv s
               for (map<String, vector<CVTerm> >::const_iterator cvit =  params.first.getCVTerms().begin(); cvit != params.first.getCVTerms().end(); ++cvit)
@@ -1945,8 +1945,8 @@ namespace OpenMS::Internal
       }
       current_pep_id.setHits(phs);
       pep_id_->push_back(current_pep_id);
-      
-      pep_id_->back().sort();
+
+      pep_id_->back().sort(pep_id_->isHigherScoreBetter());
     }
 
     void MzIdentMLDOMHandler::parseSpectrumIdentificationItemElement_(DOMElement* spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification, String& spectrumIdentificationList_ref)
@@ -2037,6 +2037,14 @@ namespace OpenMS::Internal
           score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
           score_name = "E-value";
           higher_score_better = false;
+          scoretype = true;
+          break;
+        }
+        else if (scoreit->first == "MS:1003024") // OpenPepXL:score - explicit handling
+        {
+          score = scoreit->second.front().getValue().toString().toDouble();
+          score_name = "OpenPepXL:score";
+          higher_score_better = ControlledVocabulary::CVTerm::isHigherBetterScore(cv_.getTerm(scoreit->first));
           scoretype = true;
           break;
         }
@@ -2965,7 +2973,38 @@ namespace OpenMS::Internal
           current_si->setAttribute(CONST_XMLCH("rank"), StringManager::convertPtr(String(ph->getRank() + 1)).get());
           current_si->setAttribute(CONST_XMLCH("passThreshold"), CONST_XMLCH("TBA"));
           current_si->setAttribute(CONST_XMLCH("sample_ref"), CONST_XMLCH("TBA"));
-          // TODO cvs for score!
+          
+          // Add cvParam for score
+          String score_type = pep_id_->getScoreType();
+          double score_value = ph->getScore();
+          
+          if (!score_type.empty())
+          {
+            DOMElement* score_cv = current_si->getOwnerDocument()->createElement(CONST_XMLCH("cvParam"));
+            
+            // Handle specific score types with their proper CV accessions
+            if (score_type == "OpenPepXL:score")
+            {
+              score_cv->setAttribute(CONST_XMLCH("accession"), CONST_XMLCH("MS:1003024"));
+              score_cv->setAttribute(CONST_XMLCH("name"), CONST_XMLCH("OpenPepXL:score"));
+            }
+            else if (score_type == "OpenXQuest:combined score")
+            {
+              score_cv->setAttribute(CONST_XMLCH("accession"), CONST_XMLCH("MS:1002681"));
+              score_cv->setAttribute(CONST_XMLCH("name"), CONST_XMLCH("OpenXQuest:combined score"));
+            }
+            else
+            {
+              // Default to search engine specific score
+              score_cv->setAttribute(CONST_XMLCH("accession"), CONST_XMLCH("MS:1001143"));
+              score_cv->setAttribute(CONST_XMLCH("name"), CONST_XMLCH("search engine specific score"));
+            }
+            
+            score_cv->setAttribute(CONST_XMLCH("cvRef"), CONST_XMLCH("PSI-MS"));
+            score_cv->setAttribute(CONST_XMLCH("value"), StringManager::convertPtr(String(score_value)).get());
+            current_si->appendChild(score_cv);
+          }
+          
           current_sr->appendChild(current_si);
           for (list<String>::iterator pepevref = hit_pev_.front().begin(); pepevref != hit_pev_.front().end(); ++pepevref)
           {

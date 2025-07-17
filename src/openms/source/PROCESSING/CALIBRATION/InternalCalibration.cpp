@@ -229,10 +229,10 @@ namespace OpenMS
     }
  }
 
-  bool InternalCalibration::isDecalibrated_(const PeptideIdentification& pep_id, const double mz_obs, const double tol_ppm, CalibrantStats_& stats, double& mz_ref)
+  bool InternalCalibration::isDecalibrated_(const PeptideIdentification& pep_id, const double mz_obs, const double tol_ppm, CalibrantStats_& stats, double& mz_ref, bool higher_score_better)
   {
     PeptideIdentification pid = pep_id;
-    pid.sort();
+    pid.sort(higher_score_better);
     int q = pid.getHits()[0].getCharge();
     mz_ref = pid.getHits()[0].getSequence().getMZ(q);
 

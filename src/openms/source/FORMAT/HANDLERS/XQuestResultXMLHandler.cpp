@@ -589,7 +589,6 @@ namespace OpenMS::Internal
         // Set Attributes of Peptide Identification
         peptide_identification.setMZ(this->mz_light_);
         peptide_identification.setRT(this->rt_light_);
-        // Score type "OpenPepXL:score" will be set at the list level when identifications are processed
 
         String prot1_string = this->attributeAsString_(attributes, "prot1");
 
@@ -836,6 +835,7 @@ namespace OpenMS::Internal
         this->pep_ids_->push_back(peptide_identification);
         this->n_hits_++;
       }
+      pep_ids_->setScoreType("OpenPepXL:score");
     }
 
     StringList XQuestResultXMLHandler::splitByNth(const String& input, const char separator, const Size n)

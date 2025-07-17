@@ -219,7 +219,7 @@ protected:
         {
           pep_a[it->second].insertHit(h);
         }
-        pep_a[it->second].sort();
+        pep_a[it->second].sort(pep_a.isHigherScoreBetter());
       }
     }
   }

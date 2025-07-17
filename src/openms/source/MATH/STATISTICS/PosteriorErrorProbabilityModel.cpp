@@ -1007,7 +1007,7 @@ namespace OpenMS::Math
                 // make sure we are comparing peptide and proteins of the same search run
                 if (prot.getIdentifier() == pep.getIdentifier())
                 {
-                  pep.sort();
+                  pep.sort(peptide_ids.isHigherScoreBetter());
                   vector<PeptideHit>& hits = pep.getHits();
                   if (top_hits_only)
                   {
@@ -1154,6 +1154,7 @@ namespace OpenMS::Math
               pep.setHits(hits);
             }
           }
+
         }
       }
     }

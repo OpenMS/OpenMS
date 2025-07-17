@@ -51,6 +51,10 @@ namespace OpenMS
 
     // convert mapping id -> peptide_hits into peptide hits list
     peptide_ids.clear();
+    // Set score metadata at list level for XTandem peptide identifications
+    peptide_ids.setScoreType("XTandem");
+    peptide_ids.setHigherScoreBetter(true); // XTandem: higher is better
+
     for (map<UInt, vector<PeptideHit> >::iterator it = peptide_hits_.begin(); it != peptide_hits_.end(); ++it)
     {
       PeptideIdentification id;
@@ -59,7 +63,7 @@ namespace OpenMS
       id.setSpectrumReference( spectrum_ids_[it->first]);
 
       id.getHits().swap(it->second);
-      id.sort();
+      id.sort(peptide_ids.isHigherScoreBetter()); // sort hits by score, highest first
       peptide_ids.push_back(id);
     }
 
@@ -76,9 +80,7 @@ namespace OpenMS
     protein_identification.setDateTime(now);
     protein_identification.setIdentifier(identifier);
 
-    // Set score metadata at list level for XTandem peptide identifications
-    peptide_ids.setScoreType("XTandem");
-    peptide_ids.setHigherScoreBetter(true); // XTandem: higher is better
+
 
     // TODO search parameters are also available
 

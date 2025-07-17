@@ -40,10 +40,11 @@ namespace OpenMS
   {
     if (peptides.empty()) { return; }
 
+    bool higher_score_better = peptides.isHigherScoreBetter();
     for (PeptideIdentification & pep : peptides)
     {
-      // sort hits
-      pep.sort();
+      // sort hits TODO: move into PeptideIdentificationList
+      pep.sort(higher_score_better);
     }
 
     PeptideIdentificationList::iterator pos;
@@ -97,10 +98,11 @@ namespace OpenMS
   {
     if (peptides.empty()) { return; }
 
+    bool higher_score_better = peptides.isHigherScoreBetter();
     for (PeptideIdentification & pep : peptides)
     {
       // sort hits
-      pep.sort();
+      pep.sort(higher_score_better);
 
       // remove all but the best hit
       if (!pep.getHits().empty())

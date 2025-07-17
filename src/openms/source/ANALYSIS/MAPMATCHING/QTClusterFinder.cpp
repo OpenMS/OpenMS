@@ -386,9 +386,10 @@ namespace OpenMS
         GridFeature& gfeat = grid_features.back();
         // sort peptide hits once now, instead of multiple times later:
         auto& bfeat = const_cast<BaseFeature&>(gfeat.getFeature());
+        bool higher_score_better = bfeat.getPeptideIdentifications().isHigherScoreBetter();
         for (auto& pep : bfeat.getPeptideIdentifications())
         {
-          pep.sort();
+          pep.sort(higher_score_better);
         }
         grid.insert(make_pair(Grid::ClusterCenter(gfeat.getRT(), gfeat.getMZ()),
                               &gfeat));

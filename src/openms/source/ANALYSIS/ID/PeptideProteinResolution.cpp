@@ -782,6 +782,23 @@ namespace OpenMS
   void PeptideProteinResolution::run(vector<ProteinIdentification>& inferred_protein_ids, 
     PeptideIdentificationList& inferred_peptide_ids)
   {
+    // Convert Posterior Error Probability to Posterior Probability if needed
+    if (inferred_peptide_ids.getScoreType() == "Posterior Error Probability")
+    {
+      // Convert all peptide hit scores: PP = 1.0 - PEP
+      for (auto& pep_id : inferred_peptide_ids)
+      {
+        for (auto& hit : pep_id.getHits())
+        {
+          hit.setScore(1.0 - hit.getScore());
+        }
+      }
+      
+      // Update score metadata at list level
+      inferred_peptide_ids.setScoreType("Posterior Probability");
+      inferred_peptide_ids.setHigherScoreBetter(true);
+    }
+    
     PeptideProteinResolution ppr;
     ppr.buildGraph(inferred_protein_ids[0], inferred_peptide_ids);
     ppr.resolveGraph(inferred_protein_ids[0], inferred_peptide_ids);    

@@ -503,7 +503,7 @@ private:
   {
     for (PeptideIdentification& pep_id : pep_ids)
     {
-      pep_id.sort(); // sort the PeptideHits of PeptideIdentifications by Score (Best PeptideHit at index 0)
+      pep_id.sort(pep_ids.isHigherScoreBetter()); // sort the PeptideHits of PeptideIdentifications by Score (Best PeptideHit at index 0) 
     }
     std::sort(pep_ids.begin(), pep_ids.end(), [](const PeptideIdentification& a,const PeptideIdentification& b)
     {

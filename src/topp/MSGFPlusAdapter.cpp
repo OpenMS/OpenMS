@@ -814,7 +814,7 @@ protected:
              it != peptide_identifications.end(); ++it)
         {
           pep = it->second;
-          pep.sort();
+          pep.sort(peptide_ids.isHigherScoreBetter());
           peptide_ids.push_back(pep);
         }
       }

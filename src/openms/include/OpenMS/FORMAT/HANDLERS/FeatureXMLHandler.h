@@ -96,7 +96,7 @@ protected:
     void writeFeature_(const String& filename, std::ostream& os, const Feature& feat, const String& identifier_prefix, UInt64 identifier, UInt indentation_level);
 
     /// Writes a peptide identification to a stream (for assigned/unassigned peptide identifications)
-    void writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level, const String& score_type = "", bool higher_score_better = true);
+    void writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level, const String& score_type, bool higher_score_better);
 
     /**
         @brief update the pointer to the current feature

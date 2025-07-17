@@ -138,7 +138,7 @@ START_SECTION(void load(const String& filename, FeatureMap& features))
   auto& un_peptides = features.getUnassignedPeptideIdentifications();
   for (auto& un_pep : un_peptides)
   {
-    un_pep.sort();
+    un_pep.sort(un_peptides.isHigherScoreBetter());
   }
   //features.setProteinIdentifications(proteins);
   //features.setUnassignedPeptideIdentifications(un_peptides);
@@ -197,7 +197,7 @@ START_SECTION(void load(const String& filename, ConsensusMap& consensus))
   auto& un_peptides = consensus.getUnassignedPeptideIdentifications();
   for (auto& un_pep : un_peptides)
   {
-    un_pep.sort();
+    un_pep.sort(un_peptides.isHigherScoreBetter());
   }
   consensus.sortByPosition();
 

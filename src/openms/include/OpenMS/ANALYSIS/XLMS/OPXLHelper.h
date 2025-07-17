@@ -207,7 +207,7 @@ namespace OpenMS
        * @brief sorts PeptideHits for each PeptideIdentification by score and adds the delta score as a MetaValue
        * @param peptide_ids The vector of peptide_ids containing XL-MS search results without beta PeptideHits
        */
-      static void computeDeltaScores(std::vector< PeptideIdentification >& peptide_ids);
+      static void computeDeltaScores(std::vector< PeptideIdentification >& peptide_ids, bool higher_score_better);
       
       /// @overload
       static void computeDeltaScores(PeptideIdentificationList & peptide_ids);
@@ -222,7 +222,7 @@ namespace OpenMS
        * @param peptide_ids PeptideIdentifications from a Cross-Linking MS search with labeled linkers
        * @param number_top_hits The chosen number of reported top hits
        */
-      static std::vector< PeptideIdentification > combineTopRanksFromPairs(std::vector< PeptideIdentification > & peptide_ids, Size number_top_hits);
+      static std::vector< PeptideIdentification > combineTopRanksFromPairs(std::vector< PeptideIdentification > & peptide_ids, Size number_top_hits, bool higher_score_better);
       
       /// @overload
       static std::vector< PeptideIdentification > combineTopRanksFromPairs(PeptideIdentificationList & peptide_ids, Size number_top_hits);
