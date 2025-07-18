@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8  -*-
+
+## ----------------------------------------------------------------------------
+## $Maintainer: $
+## $Authors: Hannes Roest, Timo Sachsenberg, axelwalter,
+##           Samuel Wein, Uwe Schmitt, Joshua Charkow,
+##           Nikos Patikas, Chris Bielow, Julianus Pfeuffer,
+##           Oliver Alka, Stephan Aiche $
+## ----------------------------------------------------------------------------
 from __future__ import print_function
 
 import pyopenms

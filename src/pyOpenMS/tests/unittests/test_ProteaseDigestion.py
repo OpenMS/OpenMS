@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8  -*-
+
+## ----------------------------------------------------------------------------
+## $Maintainer: $
+## $Authors: Hendrik Weisser, Hannes Roest, Stephan Aiche,
+##           Jeremi Maciejewski $
+## ----------------------------------------------------------------------------
 import pyopenms
 
 @report
