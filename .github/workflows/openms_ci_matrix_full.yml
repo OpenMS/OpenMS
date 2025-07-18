@@ -384,12 +384,23 @@ jobs:
           # do not fail immediately
           set +e
 
+          # On Linux we always build pyOpenMS
+          if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
+            export PYOPENMS=ON
+          fi
+
           # Generate the CWL descriptors if we are going to build a package
-          if [ ${{steps.set-vars.outputs.pkg_type }} != "none" ]; then
+          if [[ "${{steps.set-vars.outputs.pkg_type}}" != "none" ]] ||
+             [[ "${PYOPENMS:-}" == "ON" ]]
+          then
             python -m venv openms-cwl
             source openms-cwl/bin/activate
             pip install -q cwltool
             export ENABLE_CWL=ON
+          fi
+
+          if [[ "${PYOPENMS:-}" == "ON" ]]; then
+            python -m pip install -r $GITHUB_WORKSPACE/OpenMS/src/pyOpenMS/requirements_bld.txt
           fi
 
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
@@ -447,6 +458,11 @@ jobs:
     - name: Test
       shell: bash
       run: |
+          # On Linux we always build pyOpenMS
+          if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
+            export PYOPENMS=ON
+          fi
+
           ${{ steps.set-vars.outputs.xvfb }} ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
