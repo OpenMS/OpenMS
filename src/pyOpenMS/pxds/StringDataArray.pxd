@@ -23,7 +23,8 @@ cdef extern from "<OpenMS/METADATA/DataArrays.h>" namespace "OpenMS::DataArrays"
         bool operator!=(StringDataArray) except + nogil
 
         Size size() except + nogil
-        void resize(size_t n) except + nogil 
+        void resize(size_t n) except + nogil
+        # Implemented in StringDataArray.pyx
         String& operator[](size_t) except + nogil  # wrap-ignore
         void clear() except + nogil 
         void push_back(String) except + nogil 
