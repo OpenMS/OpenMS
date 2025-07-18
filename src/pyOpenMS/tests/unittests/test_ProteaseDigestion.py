@@ -8,6 +8,13 @@
 ## ----------------------------------------------------------------------------
 import pyopenms
 
+def report(f):
+    @wraps(f)
+    def wrapper(*a, **kw):
+        print("run ", f.__name__)
+        f(*a, **kw)
+    return wrapper
+
 @report
 def testProteaseDigestion():
     """
@@ -28,7 +35,7 @@ def testProteaseDigestion():
     assert ff.getEnzymeName() == "Trypsin/P"
 
     assert pyopenms.ProteaseDigestion().digest is not None
-    seq = AASequence.fromString("MHARLVP")
+    seq = pyopenms.AASequence.fromString("MHARLVP")
     output = []
     ff.digest(seq, output)
     # MHAR, LVP

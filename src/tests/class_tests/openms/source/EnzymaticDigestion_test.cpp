@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Marc Sturm, Chris Bielow $
+// $Authors: Marc Sturm, Chris Bielow, Jeremi Maciejewski $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -279,6 +279,33 @@ START_SECTION((Size digestUnmodified(const StringView sequence, std::vector<Stri
     s = "ABC";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 4 * 3 / 2);
+}
+END_SECTION
+
+START_SECTION((Size semiSpecificDigestion_(const std::vector<int>& cleavage_positions, std::vector<std::pair<Size, Size>>& output, Size min_length, Size max_length) const))
+{
+    class TempChild : public EnzymaticDigestion
+    {
+        public:
+            void tmpSetEnzyme(const DigestionEnzyme* enzyme)
+            {
+                this->setEnzyme(enzyme);
+            }
+
+            Size tmpSemiSpecificDigestion_(const std::vector<int>& cleavage_positions, std::vector<std::pair<Size, Size>>& output, Size min_length = 1, Size max_length = 100) const
+            {
+                return this->semiSpecificDigestion_(cleavage_positions, output, min_length, max_length);
+            }
+    };
+    TempChild tmp;
+    tmp.tmpSetEnzyme(ProteaseDB::getInstance()->getEnzyme("Trypsin"));
+
+    std::vector<std::pair<size_t,size_t>> output = {};
+
+    // Test too few cleavage sites exception
+    std::vector<int> cleavage_positions = {};
+    TEST_EXCEPTION(Exception::InvalidValue,
+        tmp.tmpSemiSpecificDigestion_(cleavage_positions, output));
 }
 END_SECTION
 

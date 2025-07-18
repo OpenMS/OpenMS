@@ -117,6 +117,14 @@ namespace OpenMS
 
   Size EnzymaticDigestion::semiSpecificDigestion_(const std::vector<int>& cleavage_positions, std::vector<std::pair<Size, Size>>& output, Size min_length, Size max_length) const
   {
+    // Too few cleavage sites - should be at least sequence start and end
+    if (cleavage_positions.size() < 2)
+    {
+      String value(cleavage_positions.begin(), cleavage_positions.end());
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        String("Too few cleavage positions - at least sequence start and end positions are required."), value);
+    }
+
     int mc = missed_cleavages_;
     Size wrong = 0;
 
@@ -132,8 +140,8 @@ namespace OpenMS
     // Lambda checking min & max conditions and adding to output
     auto variant = [&output, &wrong, min_length, max_length](Size x, Size y)
     {
-      if (min_length <= std::abs((int)y - (int)x) &&
-          max_length >= std::abs((int)y - (int)x))
+      if (min_length <= y - x &&
+          max_length >= y - x)
       {
         output.emplace_back(x, y);
       } else ++wrong;

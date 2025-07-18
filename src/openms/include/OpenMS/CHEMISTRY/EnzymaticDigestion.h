@@ -182,8 +182,10 @@ namespace OpenMS
     /**
       @brief Generates semi-specific digestion products
 
-      Function handling semi-specific digestion (specificity == 1).
+      Function handling semi-specific digestion (specificity_ == Specificity::SPEC_SEMI).
       It is intended for calling after tokenizing and missed cleavages variants generation.
+      Fully-specific variants are skipped.
+      Also generates semi-specific variants with missed cleavages.
 
       @param cleavage_positions A (sorted!) vector of cleavage positions, as returned by tokenize_(). First and last cleavage should be sequence termini.
       @param output A vector into which produced variants are emplaced.

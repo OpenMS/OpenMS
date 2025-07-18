@@ -236,7 +236,7 @@ START_SECTION((Size digest(const AASequence& protein, std::vector<AASequence>& o
 
     // Lambda to allow searching 'out' with std::find_if()
     std::string ref = "";
-    auto compare_aa = [&ref](AASequence seq) -> bool
+    auto compare_aa = [&ref](const AASequence& seq) -> bool
     {
         return seq.toUnmodifiedString() == ref;
     };
@@ -278,6 +278,11 @@ START_SECTION((Size digest(const AASequence& protein, std::vector<AASequence>& o
     ref = "A";
     TEST_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
 
+    // Test if it works with protein without internal cleavage sites
+    pd.setMissedCleavages(1);
+    pd.digest(AASequence::fromString("AHLW"), out);
+    TEST_EQUAL(out.size(), 7); // AHLW, HLW, AHL, LW, AH, W, A
+
     // Test if min_size and max_size apply to semi-specific products
     discarded = pd.digest(AASequence::fromString("AGLRMHP"), out, 2);
     TEST_EQUAL(discarded, 4); // A, R, P, M
@@ -287,6 +292,14 @@ START_SECTION((Size digest(const AASequence& protein, std::vector<AASequence>& o
     TEST_NOT_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
     ref = "AGLRMHPQGHKW";
     TEST_NOT_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
+
+    // ------------------------
+    // Exceptions
+    // ------------------------
+    pd.setSpecificity(pd.SIZE_OF_SPECIFICITY);
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue,
+        pd.digest(AASequence::fromString("ABCDEF"), out),
+        "the value '10' was used but is not valid; Specificity value set on current ProteaseDigestion object is not supported by ProteaseDigestion::digest().");
 
 END_SECTION
 
