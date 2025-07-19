@@ -69,10 +69,10 @@ START_SECTION((void readQuantData(ConsensusMap& consensus, ExperimentalDesign& e
 }
 END_SECTION
 
-START_SECTION((void readQuantData(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides, ExperimentalDesign& ed)))
+START_SECTION((void readQuantData(vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, ExperimentalDesign& ed)))
 {
   vector<ProteinIdentification> proteins;
-  vector<PeptideIdentification> peptides;
+  PeptideIdentificationList peptides;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.idXML"), proteins, peptides);
   TEST_EQUAL(quantifier_identifications.getPeptideResults().empty(), true);
   ExperimentalDesign design = ExperimentalDesign::fromIdentifications(proteins);
@@ -82,7 +82,7 @@ START_SECTION((void readQuantData(vector<ProteinIdentification>& proteins, vecto
 }
 END_SECTION
 
-START_SECTION((void quantifyPeptides(const std::vector<PeptideIdentification>& peptides = std::vector<PeptideIdentification>())))
+START_SECTION((void quantifyPeptides(const PeptideIdentificationList& peptides = PeptideIdentificationList())))
 {
   NOT_TESTABLE // tested together with the "readQuantData" methods
 }

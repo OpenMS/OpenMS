@@ -229,14 +229,14 @@ namespace OpenMS
   }
 
 
-  Size FeatureFinderIdentificationAlgorithm::addOffsetPeptides_(vector<PeptideIdentification>& peptides, double offset)
+  Size FeatureFinderIdentificationAlgorithm::addOffsetPeptides_(PeptideIdentificationList& peptides, double offset)
   {
     // WARNING: Superhack! Use unique ID to distinguish seeds from real IDs. Use a mod that will never occur to
     // make them truly unique and not be converted to an actual modification.
     const String pseudo_mod_name = String(10000);
     AASequence some_seq = AASequence::fromString("XXX[" + pseudo_mod_name + "]");
 
-    vector<PeptideIdentification> offset_peptides;
+    PeptideIdentificationList offset_peptides;
     offset_peptides.reserve(peptides.size());
     Size n_added{};
     for (const auto & p : peptides) // for every peptide (or seed) we add an offset peptide
@@ -298,7 +298,7 @@ namespace OpenMS
     return n_added;
   }
 
-  Size FeatureFinderIdentificationAlgorithm::addSeeds_(vector<PeptideIdentification>& peptides, const FeatureMap& seeds)
+  Size FeatureFinderIdentificationAlgorithm::addSeeds_(PeptideIdentificationList& peptides, const FeatureMap& seeds)
   {
     size_t seeds_added{};
     // WARNING: Superhack! Use unique ID to distinguish seeds from real IDs. Use a mod that will never occur to
@@ -368,9 +368,9 @@ namespace OpenMS
   }
 
   void FeatureFinderIdentificationAlgorithm::run(
-    vector<PeptideIdentification> peptides,
+    PeptideIdentificationList peptides,
     const vector<ProteinIdentification>& proteins,
-    vector<PeptideIdentification> peptides_ext,
+    PeptideIdentificationList peptides_ext,
     vector<ProteinIdentification> proteins_ext,
     FeatureMap& features,
     const FeatureMap& seeds,
@@ -608,7 +608,7 @@ namespace OpenMS
     // remove all hits with pseudo ids (seeds)
     for (Feature& f : features)
     {
-      std::vector<PeptideIdentification>& ids = f.getPeptideIdentifications();
+      PeptideIdentificationList& ids = f.getPeptideIdentifications();
 
       // if we have peptide identifications assigned and all are annotated as OffsetPeptide, we mark the feature is also an OffsetPeptide
       if (!ids.empty() && std::all_of(ids.begin(), ids.end(), [](const PeptideIdentification & pid) { return pid.metaValueExists("OffsetPeptide"); }))
@@ -638,7 +638,7 @@ namespace OpenMS
     }
 
     // clean up unassigned PeptideIdentifications
-    std::vector<PeptideIdentification>& ids = features.getUnassignedPeptideIdentifications();
+    PeptideIdentificationList& ids = features.getUnassignedPeptideIdentifications();
     for (auto & pid : ids)
     {
       std::vector<PeptideHit>& hits = pid.getHits();

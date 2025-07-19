@@ -460,7 +460,7 @@ namespace OpenMS
 
         @return If a new layer was created
     */
-    bool addLayer(std::vector<PeptideIdentification>& peptides, const String& filename = "", const String& caption = "");
+    bool addLayer(PeptideIdentificationList& peptides, const String& filename = "", const String& caption = "");
 
     /// Returns the minimum intensity of the active layer
     inline float getCurrentMinIntensity() const

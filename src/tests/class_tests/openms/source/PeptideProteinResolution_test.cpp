@@ -31,10 +31,10 @@ START_SECTION(PeptideProteinResolution())
 }
 END_SECTION
 
-START_SECTION(static void PeptideProteinResolution::run(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides))
+START_SECTION(static void PeptideProteinResolution::run(vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides))
 {
   vector<ProteinIdentification> prots;
-  vector<PeptideIdentification> peps;
+  PeptideIdentificationList peps;
   IdXMLFile idf;
   idf.load(OPENMS_GET_TEST_DATA_PATH("PeptideProteinResolution_in.idXML"), prots, peps);  
   PeptideProteinResolution::run(prots, peps);

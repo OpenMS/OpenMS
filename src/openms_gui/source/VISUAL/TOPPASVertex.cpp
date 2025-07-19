@@ -79,10 +79,17 @@ namespace OpenMS
   {
     // display file type(s)
     std::map<String, Size> suffices;
-    for (const auto& fn : filenames_)
+    try 
     {
-      auto type = FileHandler::getType(fn.toStdString());
-      ++suffices[FileTypes::typeToName(type)];
+      for (const auto& fn : filenames_)
+      {
+        auto type = FileHandler::getType(fn.toStdString());
+        ++suffices[FileTypes::typeToName(type)];
+      }
+    }
+    catch (...)
+    { // in a dry-run, the file might not exist, so we cannot determine the type
+      ++suffices[FileTypes::typeToName(FileTypes::UNKNOWN)];
     }
     QStringList text_l;
     for (const auto& [suffix, count] : suffices)

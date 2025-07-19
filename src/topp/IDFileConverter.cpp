@@ -137,7 +137,7 @@ public:
   }
 
 private:
-  bool add_ionmatches_(vector<PeptideIdentification>& peptide_identifications, String filename, double tolerance)
+  bool add_ionmatches_(PeptideIdentificationList& peptide_identifications, String filename, double tolerance)
   {
       TheoreticalSpectrumGenerator tg;
       Param tgp(tg.getDefaults());
@@ -244,7 +244,7 @@ protected:
     // general variables and data
     //-------------------------------------------------------------
     FileHandler fh;
-    vector<PeptideIdentification> peptide_identifications;
+    PeptideIdentificationList peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
     SpectrumMetaDataLookup lookup;
     IdentificationData id_data;
@@ -311,7 +311,7 @@ protected:
       // Now get to work ...
       for (vector<String>::const_iterator in_files_it = in_files.begin(); in_files_it != in_files.end(); ++in_files_it)
       {
-        vector<PeptideIdentification> peptide_ids_seq;
+        PeptideIdentificationList peptide_ids_seq;
         ProteinIdentification protein_id_seq;
         vector<double> pvalues_seq;
         vector<String> in_file_vec;

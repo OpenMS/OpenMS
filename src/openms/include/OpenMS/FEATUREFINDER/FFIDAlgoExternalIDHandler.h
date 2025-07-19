@@ -15,6 +15,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -55,12 +56,12 @@ namespace Internal
     void addExternalPeptide(PeptideIdentification& peptide);
     
     /// Process external peptide IDs
-    void processExternalPeptides(std::vector<PeptideIdentification>& peptides_ext);
+    void processExternalPeptides(PeptideIdentificationList& peptides_ext);
     
     /// Align internal and external IDs to estimate RT shifts and return RT uncertainty
     double alignInternalAndExternalIDs(
-        const std::vector<PeptideIdentification>& peptides_internal,
-        const std::vector<PeptideIdentification>& peptides_external,
+        const PeptideIdentificationList& peptides_internal,
+        const PeptideIdentificationList& peptides_external,
         double rt_quantile);
     
     /// Transform RT from internal to external scale

@@ -76,7 +76,7 @@ protected:
   ExitCodes main_(int, const char**) override
   {
     vector<ProteinIdentification> protein_identifications;
-    vector<PeptideIdentification> identifications;
+    PeptideIdentificationList identifications;
     std::vector<FASTAFile::FASTAEntry> protein_data;
     FASTAFile file;
     ProteaseDigestion digestor;

@@ -14,6 +14,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
 
@@ -53,7 +54,7 @@ public:
 
          The peptide hits in @p peptides will be sorted if @p use_peptide_mass is true.
     */
-    void generateSeedList(std::vector<PeptideIdentification> & peptides,
+    void generateSeedList(PeptideIdentificationList & peptides,
                           SeedList & seeds, bool use_peptide_mass = false);
 
 

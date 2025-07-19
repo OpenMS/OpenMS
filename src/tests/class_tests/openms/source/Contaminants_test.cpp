@@ -79,7 +79,7 @@ vector<FASTAFile::FASTAEntry> contaminantsFile;
 }
 
 // set the unassigned peptideidentifications
-std::vector<PeptideIdentification> ids2(3);
+PeptideIdentificationList ids2(3);
 PeptideHit hit2;
 hit2.setSequence(AASequence::fromString("AAAAAAAAAAK"));
 ids2[0].setHits({hit2});

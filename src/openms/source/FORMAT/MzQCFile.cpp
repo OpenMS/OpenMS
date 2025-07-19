@@ -34,7 +34,7 @@ namespace OpenMS
                        const String& label,
                        const FeatureMap& feature_map,
                        vector<ProteinIdentification>& prot_ids,
-                       vector<PeptideIdentification>& pep_ids) const
+                       PeptideIdentificationList& pep_ids) const
   {
     // --------------------------------------------------------------------
     // preparing output stream, quality metrics json object, CV, status

@@ -10,6 +10,8 @@
 
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <boost/range/combine.hpp>
 
 #include <vector>
@@ -100,25 +102,25 @@ namespace OpenMS
      * @brief Get all peptide identifications for all spectra
      * @return A reference to the vector of peptide identifications
      */
-    std::vector<PeptideIdentification>& getPeptideIdentifications();
+    PeptideIdentificationList& getPeptideIdentifications();
     
     /**
      * @brief Get all peptide identifications for all spectra (const version)
      * @return A const reference to the vector of peptide identifications
      */
-    const std::vector<PeptideIdentification>& getPeptideIdentifications() const;
+    const PeptideIdentificationList& getPeptideIdentifications() const;
 
     /**
      * @brief Set all peptide identifications for all spectra (move version)
      * @param ids Vector of peptide identifications
      */
-    void setPeptideIdentifications(std::vector<PeptideIdentification>&& ids);
+    void setPeptideIdentifications(PeptideIdentificationList&& ids);
 
     /**
      * @brief Set all peptide identifications for all spectra
      * @param ids Vector of peptide identifications
      */
-    void setPeptideIdentifications(const std::vector<PeptideIdentification>& ids);
+    void setPeptideIdentifications(const PeptideIdentificationList& ids);
 
     /**
      * @brief Get the MSExperiment
@@ -323,15 +325,15 @@ namespace OpenMS
       T2 m_ptr2;
     };
 
-    typedef AnnotatedMSRun::PairIterator<std::vector<MSSpectrum>::iterator, std::vector<PeptideIdentification>::iterator> Iterator;
-    typedef AnnotatedMSRun::PairIterator<std::vector<MSSpectrum>::const_iterator, std::vector<PeptideIdentification>::const_iterator> ConstIterator;
+    typedef AnnotatedMSRun::PairIterator<std::vector<MSSpectrum>::iterator, PeptideIdentificationList::iterator> Iterator;
+    typedef AnnotatedMSRun::PairIterator<std::vector<MSSpectrum>::const_iterator, PeptideIdentificationList::const_iterator> ConstIterator;
 
   private:
 
     // Helper to enforce invariant
     void checkPeptideIdSize_(const char* function_name) const;
 
-    std::vector<PeptideIdentification> peptide_ids_;
+    PeptideIdentificationList peptide_ids_;
     std::vector<ProteinIdentification> protein_ids_;
     MSExperiment data;
   };

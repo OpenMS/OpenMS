@@ -10,6 +10,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
 
@@ -58,7 +59,7 @@ public:
         @throw ParseError is thrown if the given file could not be parsed
         @throw ElementNotFound is thrown if a annotated modification cannot be found in ModificationsDB (PSI-MOD definitions)
     */
-    void load(const String & filename, std::vector<PeptideIdentification> & ids, PeakMap & exp);
+    void load(const String & filename, PeptideIdentificationList & ids, PeakMap & exp);
 
     /**
         @brief Loads a map from a MSPFile file.
