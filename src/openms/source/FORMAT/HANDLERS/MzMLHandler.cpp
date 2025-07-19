@@ -3853,10 +3853,14 @@ namespace OpenMS::Internal
       //activation (mandatory)
       //--------------------------------------------------------------------------------------------
       os << "\t\t\t\t\t\t<activation>\n";
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
+#ifdef __clang__
+      #pragma clang diagnostic push
+      #pragma clang diagnostic ignored "-Wfloat-equal"
+#endif
       if (precursor.getActivationEnergy() != 0)
-#pragma clang diagnostic pop
+#ifdef __clang__
+      #pragma clang diagnostic pop
+#endif
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000509\" name=\"activation energy\" value=\"" << precursor.getActivationEnergy() << "\" unitAccession=\"UO:0000266\" unitName=\"electronvolt\" unitCvRef=\"UO\" />\n";
       }
