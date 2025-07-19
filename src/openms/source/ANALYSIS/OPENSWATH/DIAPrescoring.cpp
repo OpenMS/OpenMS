@@ -161,46 +161,12 @@ namespace OpenMS
     DIAHelpers::extractSecond(spectrumWIso, intTheor);
     std::vector<double> intExp, mzExp, imExp;
     DIAHelpers::integrateWindows(spec, mzTheor, dia_extract_window_, intExp, mzExp, imExp, im_range);
-    // print intTheor intExp and mzExp for debugging
-    std::cout << "intTheor: ";
-    for (const auto& val : intTheor)
-    {
-      std::cout << val << " ";
-    }
-    std::cout << std::endl;
-    std::cout << "intExp: ";
-    for (const auto& val : intExp)
-    {
-      std::cout << val << " ";
-    }
-    std::cout << std::endl;
-    std::cout << "mzExp: ";
-    for (const auto& val : mzExp)
-    {
-      std::cout << val << " ";
-    }
-    std::cout << std::endl;
     std::transform(intExp.cbegin(), intExp.cend(), intExp.begin(), [](double val){return std::sqrt(val);});
     std::transform(intTheor.cbegin(), intTheor.cend(), intTheor.begin(), [](double val){return std::sqrt(val);});
 
-    std::cout << "sqrt(intExp): ";
-    for (const auto& val : intExp)
-    {
-      std::cout << val << " ";
-    }
-    std::cout << std::endl;
-    std::cout << "sqrt(intTheor): ";
-    for (const auto& val : intTheor)
-    {
-      std::cout << val << " ";
-    }
-    std::cout << std::endl;
     // get sum for normalization. All entries in both should be positive
     double intExpTotal = std::accumulate(intExp.cbegin(), intExp.cend(), 0.0);
     double intTheorTotal = std::accumulate(intTheor.cbegin(), intTheor.cend(), 0.0);
-
-    // print them
-    std::cout << "intExpTotal vs. intTheorTotal: " << intExpTotal << " " << intTheorTotal << std::endl;
 
     OpenSwath::normalize(intExp, intExpTotal, intExp);
     OpenSwath::normalize(intTheor, intTheorTotal, intTheor);
@@ -236,35 +202,10 @@ namespace OpenMS
     OpenSwath::normalize(intExp, intExpEuclidNorm, intExp);
     OpenSwath::normalize(intTheor, intTheorEuclidNorm, intTheor);
 
-    std::cout << "Norms: intExpEuclidNorm: " << intExpEuclidNorm
-              << " intTheorEuclidNorm: " << intTheorEuclidNorm
-              << " intTheorNegEuclidNorm: " << intTheorNegEuclidNorm << std::endl;
-
-    std::cout << "Normalized intExp: ";
-    for (const auto& val : intExp)
-    {
-      std::cout << val << " ";
-    }
-    std::cout << std::endl;
-    std::cout << "Normalized intTheor: ";
-    for (const auto& val : intTheor)
-    {
-      std::cout << val << " ";
-    }
-    std::cout << std::endl;
-    std::cout << "Normalized intTheorNeg: ";
-    for (const auto& val : intTheorNeg)
-    {
-      std::cout << val << " ";
-    }
-    std::cout << std::endl;
-
     //calculate maximum possible value and maximum negative value to rescale
     // depends on the amount of relative weight is negative
     // TODO check if it is the same amount for every spectrum, then we could leave it out.
     double negVal = (-negWeight/intTheorNegEuclidNorm) * sqrt(nrNegPeaks*lt.size());
-
-    std::cout << "negVal: " << negVal << std::endl;
 
     std::vector<double> intTheorNegBest;
     intTheorNegBest.resize(intTheorNeg.size());
@@ -279,31 +220,15 @@ namespace OpenMS
                      return 0.;
                    }
     });
-    std::cout << "intTheorNegBest: ";
-    for (const auto& val : intTheorNegBest)
-    {
-      std::cout << val << " ";
-    }
-    std::cout << std::endl;
+
     double intTheorNegBestEuclidNorm = OpenSwath::norm(intTheorNegBest.cbegin(), intTheorNegBest.cend());
-    std::cout << "intTheorNegBestEuclidNorm: " << intTheorNegBestEuclidNorm << std::endl;
 
     OpenSwath::normalize(intTheorNegBest, intTheorNegBestEuclidNorm, intTheorNegBest);
-    std::cout << "Normalized intTheorNegBest: ";
-    for (const auto& val : intTheorNegBest)
-    {
-      std::cout << val << " ";
-    }
-    std::cout << std::endl;
     double posVal = OpenSwath::dotProd(intTheorNegBest.cbegin(), intTheorNegBest.cend(), intTheorNeg.cbegin());
 
-    std::cout << "posVal: " << posVal << std::endl;
-
     dotprod = OpenSwath::dotProd(intExp.cbegin(), intExp.cend(), intTheorNeg.cbegin());
-    std::cout << "dotprod: " << dotprod << std::endl;
     //simplified: dotprod = (((dotprod - negVal) * (1. - -1.)) / (posVal - negVal)) + -1.;
     dotprod = (((dotprod - negVal) * 2.) / (posVal - negVal)) - 1.;
-    std::cout << "dotprod rescaled: " << dotprod << std::endl;
   }
 
   void DiaPrescore::updateMembers_()
