@@ -7,6 +7,7 @@
 ##           Jeremi Maciejewski $
 ## ----------------------------------------------------------------------------
 import pyopenms
+from functools import wraps
 
 def report(f):
     @wraps(f)
