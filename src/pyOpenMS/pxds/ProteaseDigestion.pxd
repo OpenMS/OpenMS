@@ -50,7 +50,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDigestion.h>" namespace "OpenMS":
         #        #
         #        # Semi-specific digestion
         #        result_semispecific = []
-        #        dig.setSpecificity(1)
+        #        dig.setSpecificity(EnzymaticDigestion.SPEC_SEMI)
         #        dig.digest(bsa_aaseq, result_semispecific)
         #        #
         #        # Using digestUnmodified without the need for AASequence from the EnzymaticDigestion base class

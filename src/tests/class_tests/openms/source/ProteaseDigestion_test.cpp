@@ -258,25 +258,25 @@ START_SECTION((Size digest(const AASequence& protein, std::vector<AASequence>& o
     TEST_EQUAL(out[1].toString(), "MHP");
     // Are there semi-specific variants?
     ref = "AGL";
-    TEST_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
+    TEST_TRUE(std::find_if(out.begin(),out.end(),compare_aa) != out.end());
     ref = "HP";
-    TEST_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
+    TEST_TRUE(std::find_if(out.begin(),out.end(),compare_aa) != out.end());
     // Make sure cleavage sites are iterated over in right order.
     // (forward for N-terminus cleavage, backwards for C-terminus cleavage)
     ref = "GLRMHP";
-    TEST_NOT_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
+    TEST_FALSE(std::find_if(out.begin(),out.end(),compare_aa) != out.end());
     ref = "AGLRMH";
-    TEST_NOT_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
+    TEST_FALSE(std::find_if(out.begin(),out.end(),compare_aa) != out.end());
 
     // Test if it works with missed cleavages
     pd.setMissedCleavages(2);
     pd.digest(AASequence::fromString("AGLRMHPQGHKWYV"), out);
     ref = "AGLRMHPQGHKW";
-    TEST_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
+    TEST_TRUE(std::find_if(out.begin(),out.end(),compare_aa) != out.end());
     ref = "GHKWYV";
-    TEST_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
+    TEST_TRUE(std::find_if(out.begin(),out.end(),compare_aa) != out.end());
     ref = "A";
-    TEST_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
+    TEST_TRUE(std::find_if(out.begin(),out.end(),compare_aa) != out.end());
 
     // Test if it works with protein without internal cleavage sites
     pd.setMissedCleavages(1);
@@ -289,9 +289,9 @@ START_SECTION((Size digest(const AASequence& protein, std::vector<AASequence>& o
 
     pd.digest(AASequence::fromString("AGLRMHPQGHKWYV"), out, 3, 10);
     ref = "AG";
-    TEST_NOT_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
+    TEST_FALSE(std::find_if(out.begin(),out.end(),compare_aa) != out.end());
     ref = "AGLRMHPQGHKW";
-    TEST_NOT_EQUAL(std::find_if(out.begin(),out.end(),compare_aa) != out.end(), true);
+    TEST_FALSE(std::find_if(out.begin(),out.end(),compare_aa) != out.end());
 
     // ------------------------
     // Exceptions
