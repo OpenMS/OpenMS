@@ -52,10 +52,10 @@ def testProteaseDigestion():
     assert ff.peptideCount(seq) == 2
 
     assert pyopenms.ProteaseDigestion().isValidProduct is not None
-    assert ff.isValidProduct(seq, 0, 4)
-    assert not ff.isValidProduct(seq, 3, 4)
+    assert ff.isValidProduct(seq, 0, 4, True, False)
+    assert not ff.isValidProduct(seq, 3, 4, True, False)
     ff.setSpecificity(1)
-    assert ff.isValidProduct(seq, 1, 3)
+    assert ff.isValidProduct(seq, 1, 3, True, False)
 
     assert pyopenms.ProteaseDigestion().getMissedCleavages is not None
     assert pyopenms.ProteaseDigestion().setMissedCleavages is not None
