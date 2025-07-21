@@ -125,6 +125,14 @@ namespace OpenMS
         String("Too few cleavage positions - at least sequence start and end positions are required."), value);
     }
 
+    // cleavage_positions has to be sorted
+    if (! is_sorted(cleavage_positions.begin(), cleavage_positions.end()))
+    {
+      String value(cleavage_positions.begin(), cleavage_positions.end());
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        String("Vector of cleavage positions (cleavage_positions) is not sorted, but it should be."));
+    }
+
     int mc = missed_cleavages_;
     Size wrong = 0;
 

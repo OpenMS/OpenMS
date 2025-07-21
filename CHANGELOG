@@ -29,9 +29,6 @@ Dependencies:
 NucleicAcidSearchEngine:
     - add support for global fixed modifications as a search parameter
 
-ProteaseDigestion:
-    - add support for semi-specific digestion in objects where specificity is set to SPEC_SEMI (1)
-
 Misc:
  - show load/store progress for files in all TOPP tools (#8041)
  
@@ -43,6 +40,7 @@ Library:
 - Remove ranke member in PeptideHit and store ranks as meta value (for backwards compatibility). (#7997)
 - std::vector<PeptideIdentification> now is encapsulated in a class PeptideIdentificationList
 - Added `EnzymaticDigestion.semiSpecificDigestion_()`
+- ProteaseDigestion: add support for semi-specific digestion (#8130)
 
 Added tools:
 - OpenNuXL - A peptide-RNA/DNA cross-linking search engine

@@ -193,6 +193,8 @@ namespace OpenMS
       @param max_length Maximal length of reported products
 
       @return number of digestion products NOT matching the length restrictions.
+      @throw Exception::InvalidValue if number of cleavage_positions is smaller than 2 (at least sequence termini are required).
+      @throw Exception::Precondition if vector cleavage_positions is not sorted.
     */
     Size semiSpecificDigestion_(const std::vector<int>& cleavage_positions, std::vector<std::pair<Size, Size>>& output, Size min_length = 0, Size max_length = -1) const;
 
