@@ -1734,13 +1734,13 @@ def testIDDecoyProbability():
 @report
 def testFeatureGrouping():
     """
-    @tests: FeatureGroupingAlgorithm
-     FeatureGroupingAlgorithm.getDefaults
-     FeatureGroupingAlgorithm.getName
-     FeatureGroupingAlgorithm.getParameters
-     FeatureGroupingAlgorithm.setName
-     FeatureGroupingAlgorithm.setParameters
-     FeatureGroupingAlgorithm.transferSubelements
+    @tests: FeatureGroupingAlgorithmQT
+     FeatureGroupingAlgorithmQT.getDefaults
+     FeatureGroupingAlgorithmQT.getName
+     FeatureGroupingAlgorithmQT.getParameters
+     FeatureGroupingAlgorithmQT.setName
+     FeatureGroupingAlgorithmQT.setParameters
+     FeatureGroupingAlgorithmQT.transferSubelements
      FeatureGroupingAlgorithmQT.__init__
      FeatureGroupingAlgorithmQT.getDefaults
      FeatureGroupingAlgorithmQT.getName
@@ -1751,12 +1751,12 @@ def testFeatureGrouping():
      FeatureGroupingAlgorithmQT.transferSubelements
     """
 
-    assert pyopenms.FeatureGroupingAlgorithm.getDefaults is not None
-    assert pyopenms.FeatureGroupingAlgorithm.getName is not None
-    assert pyopenms.FeatureGroupingAlgorithm.getParameters is not None
-    assert pyopenms.FeatureGroupingAlgorithm.setName is not None
-    assert pyopenms.FeatureGroupingAlgorithm.setParameters is not None
-    assert pyopenms.FeatureGroupingAlgorithm.transferSubelements is not None
+    assert pyopenms.FeatureGroupingAlgorithmQT.getDefaults is not None
+    assert pyopenms.FeatureGroupingAlgorithmQT.getName is not None
+    assert pyopenms.FeatureGroupingAlgorithmQT.getParameters is not None
+    assert pyopenms.FeatureGroupingAlgorithmQT.setName is not None
+    assert pyopenms.FeatureGroupingAlgorithmQT.setParameters is not None
+    assert pyopenms.FeatureGroupingAlgorithmQT.transferSubelements is not None
 
     qt = pyopenms.FeatureGroupingAlgorithmQT()
     qt.getDefaults()
@@ -1870,8 +1870,8 @@ def testFeatureMap():
     assert fm2.getProteinIdentifications() == []
     fm2.setProteinIdentifications([])
 
-    assert fm2.getUnassignedPeptideIdentifications() == []
-    fm2.setUnassignedPeptideIdentifications([])
+    assert fm2.getUnassignedPeptideIdentifications().empty()
+    fm2.setUnassignedPeptideIdentifications(pyopenms.PeptideIdentificationList())
 
     fm2.clear()
     assert fm2.size() == 0
@@ -1922,14 +1922,16 @@ def testFeatureXMLFile():
     f.setMetaValue('spectrum_native_id', 'spectrum=123')
     pep_id = pyopenms.PeptideIdentification()
     pep_id.insertHit(pyopenms.PeptideHit())
-    f.setPeptideIdentifications([pep_id])
+    peplist = pyopenms.PeptideIdentificationList()
+    peplist.push_back(pep_id)
+    f.setPeptideIdentifications(peplist)
 
     fm.push_back(f)
 
     f.setMetaValue('spectrum_native_id', 'spectrum=124')
     fm.push_back(f)
 
-    assert len(fm.get_assigned_peptide_identifications()) == 2
+    assert fm.get_assigned_peptide_identifications().size() == 2
     assert fm.get_df(meta_values='all').shape == (2, 16)
     assert fm.get_df(meta_values='all', export_peptide_identifications=False).shape == (2, 12)
 
@@ -2058,7 +2060,7 @@ def testIdXMLFile():
 @report
 def test_peptide_identifications_to_df():
     # convert to dataframe
-    peps = []
+    peps = pyopenms.PeptideIdentificationList()
 
     p = pyopenms.PeptideIdentification()
     p.setRT(1243.56)
@@ -2083,7 +2085,7 @@ def test_peptide_identifications_to_df():
     h.setPeptideEvidences([e1, e2])
     p.insertHit(h)
 
-    peps.append(p)
+    peps.push_back(p)
 
     p1 = pyopenms.PeptideIdentification()
     p1.setRT(1243.56)
@@ -2092,7 +2094,7 @@ def test_peptide_identifications_to_df():
     p1.setHigherScoreBetter(False)
     p1.setIdentifier("IdentificationRun2")
 
-    peps.append(p1)
+    peps.push_back(p1)
 
     assert pyopenms.peptide_identifications_to_df(peps).shape == (2,12)
     assert pyopenms.peptide_identifications_to_df(peps, decode_ontology=False).shape == (2,12)
@@ -4678,8 +4680,9 @@ def testPeptideIdentificationList():
 
     # Test constructor from vector
     import pyopenms
-    vec = [pi1, pi2]
-    pil2 = pyopenms.PeptideIdentificationList(vec)
+    pil2 = pyopenms.PeptideIdentificationList()
+    pil2.push_back(pi1)
+    pil2.push_back(pi2)
     assert pil2.size() == 2
     assert pil2[0].getIdentifier() == "test1"
     assert pil2[1].getIdentifier() == "test2"

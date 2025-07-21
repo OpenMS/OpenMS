@@ -275,6 +275,13 @@ if(ENABLE_UPDATE_CHECK)
   message(STATUS "    - Set the environment variable OPENMS_DISABLE_UPDATE_CHECK to disable the functionality at runtime.")
 endif()
 
+
+#------------------------------------------------------------------------------
+# Enable AddressSanitizer
+#------------------------------------------------------------------------------  
+option(ADDRESS_SANITIZER "Enable AddressSanitizer mode (quite slow)." OFF)
+include(${PROJECT_SOURCE_DIR}/cmake/AddressSanitizer.cmake)
+
 #------------------------------------------------------------------------------
 # we build shared libraries
 set(BUILD_SHARED_LIBS true)
