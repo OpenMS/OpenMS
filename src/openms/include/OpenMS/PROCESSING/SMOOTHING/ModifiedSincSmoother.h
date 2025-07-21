@@ -1,55 +1,86 @@
 #pragma once
 
-#include <OpenMS/config.h>
-#include <OpenMS/CONCEPT/Macros.h>
 #include <vector>
-#include <string>
+#include <cmath>
+#include <stdexcept>
+#include <numeric>
 
 namespace OpenMS
 {
-  /**
-   * @brief Implements modified sinc-based smoothing algorithms for data processing.
-   *
-   * The ModifiedSincSmoother class provides smoothing functionality using 
-   * modified sinc filters with windowing. It supports both direct convolution-based
-   * smoothing and polynomial-based smoothing approaches.
-   */
-  class OPENMS_DLLAPI ModifiedSincSmoother
+  class ModifiedSincSmoother
   {
   public:
-    ModifiedSincSmoother();
-    ~ModifiedSincSmoother();
+    ModifiedSincSmoother(bool isMS1, int degree, int m);
 
-    /**
-     * @brief Smooths input data using a modified sinc filter with Hamming windowing.
-     *
-     * @param input Input data vector to be smoothed
-     * @param output Output vector to store smoothed results
-     * @param window_size Size of the smoothing window (must be odd, >= 3)
-     * @param cutoff_frequency Normalized cutoff frequency (0 < cutoff <= 1)
-     */
-    void smoothData(const std::vector<double>& input,
-                    std::vector<double>& output,
-                    const int window_size,
-                    const double cutoff_frequency);
-
-    /**
-     * @brief Smooths data in-place using the modified sinc algorithm.
-     *
-     * @param data Vector of data points to be smoothed.
-     * @param degree Polynomial degree for the smoothing filter.
-     * @param half_kernel_size Half-size of the smoothing kernel.
-     */
-    void smooth(std::vector<double>& data, int degree, int half_kernel_size);
+    std::vector<double> smooth(const std::vector<double>& data);
+    std::vector<double> smoothExceptBoundaries(const std::vector<double>& data);
+    static int bandwidthToM(bool isMS1, int degree, double bandwidth);
+    static int noiseGainToM(bool isMS1, int degree, double noiseGain);
+    static double savitzkyGolayBandwidth(int degree, int m);
 
   private:
-    /** @brief Extends data with boundary conditions. */
-    void extendData(const std::vector<double>& data, std::vector<double>& extended, int m, const std::string& boundary);
+    bool isMS1_;
+    int degree_;
+    int m_;
+    std::vector<double> kernel_;
+    std::vector<double> fit_weights_;
 
-    /** @brief Computes edge weights for boundary handling. */
-    std::vector<double> edgeWeights(int degree, int m);
+    std::vector<double> makeKernel(bool isMS1, int degree, int m, const std::vector<double>& coeffs);
+    std::vector<double> getCoefficients(bool isMS1, int degree, int m);
+    std::vector<double> makeFitWeights(bool isMS1, int degree, int m);
+    std::vector<double> extendData(const std::vector<double>& data, int m, int degree);
 
-    /** @brief Performs weighted fitting on data points. */
-    void fitWeighted(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& w, std::vector<double>& result);
+    struct LinearRegression
+    {
+      double sum_weights = 0;
+      double sum_x = 0;
+      double sum_y = 0;
+      double sum_xy = 0;
+      double sum_x2 = 0;
+      double sum_y2 = 0;
+      double offset = NAN;
+      double slope = NAN;
+      bool calculated = false;
+
+      void clear()
+      {
+        sum_weights = sum_x = sum_y = sum_xy = sum_x2 = sum_y2 = 0;
+        calculated = false;
+      }
+
+      void addPointW(double x, double y, double weight)
+      {
+        sum_weights += weight;
+        sum_x += weight * x;
+        sum_y += weight * y;
+        sum_xy += weight * x * y;
+        sum_x2 += weight * x * x;
+        sum_y2 += weight * y * y;
+        calculated = false;
+      }
+
+      void calculate()
+      {
+        double denom = sum_x2 - (sum_x * sum_x) / sum_weights;
+        slope = (sum_xy - sum_x * sum_y / sum_weights) / denom;
+        if (std::isnan(slope)) slope = 0;
+        offset = (sum_y - slope * sum_x) / sum_weights;
+        calculated = true;
+      }
+
+      double getOffset()
+      {
+        if (!calculated) calculate();
+        return offset;
+      }
+
+      double getSlope()
+      {
+        if (!calculated) calculate();
+        return slope;
+      }
+    };
+
+    static double sqr(double x) { return x * x; }
   };
-}
+} // namespace OpenMS
