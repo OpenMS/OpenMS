@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <OpenMS/CHEMISTRY/SequenceBase.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -30,7 +31,7 @@ namespace OpenMS
    */
 
 
-  class OPENMS_DLLAPI NASequence
+  class OPENMS_DLLAPI NASequence : public SequenceBase<NASequence>
   {
     /**
       @brief an enum of all possible fragment ion types
@@ -332,6 +333,12 @@ namespace OpenMS
 
     virtual ~NASequence() = default; /// destructor
 
+    /// constructor from a string, e.g. "AAA" or "A[mod1]G[mod2]C"
+    NASequence(const String& s);
+
+    /// constructor from a C string, e.g. "AAA" or "A[mod1]G[mod2]C"
+    NASequence(const char* s);
+
     bool operator==(const NASequence& rhs) const; ///< element-wise equality
     bool operator!=(const NASequence& rhs) const; ///< not quality
     bool operator<(const NASequence& rhs) const;  ///< less operator
@@ -494,7 +501,7 @@ namespace OpenMS
     */
     static NASequence fromString(const char* s);
 
-    std::string toString() const;
+    String toString() const;
 
   private:
     // TODO: query RNA / DNA depending on type
@@ -519,3 +526,4 @@ namespace OpenMS
   };
 
 } // namespace OpenMS
+

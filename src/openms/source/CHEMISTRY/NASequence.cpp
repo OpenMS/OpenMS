@@ -28,6 +28,16 @@ namespace OpenMS
     three_prime_ = three_prime;
   }
 
+  NASequence::NASequence(const String& s)
+  {
+    parseString_(s, *this);
+  }
+
+  NASequence::NASequence(const char* s)
+  {
+    parseString_(s, *this);
+  }
+
   bool NASequence::operator==(const NASequence& rhs) const
   {
     return (tie(seq_, five_prime_, three_prime_) == tie(rhs.seq_, rhs.five_prime_, rhs.three_prime_));
@@ -293,7 +303,7 @@ namespace OpenMS
     return nas;
   }
 
-  string NASequence::toString() const
+  String NASequence::toString() const
   {
     string s;
     if (five_prime_)

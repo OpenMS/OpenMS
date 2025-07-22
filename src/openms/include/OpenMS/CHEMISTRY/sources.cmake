@@ -32,6 +32,7 @@ RNaseDB.h
 RNaseDigestion.h
 Ribonucleotide.h
 RibonucleotideDB.h
+SequenceBase.h
 SimpleTSGXLMS.h
 SpectrumAnnotator.h
 Tagger.h

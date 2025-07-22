@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <OpenMS/CHEMISTRY/SequenceBase.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -82,7 +83,7 @@ namespace OpenMS
 
       @ingroup Chemistry
   */
-  class OPENMS_DLLAPI AASequence final
+  class OPENMS_DLLAPI AASequence final : public SequenceBase<AASequence>
   {
 public:
 

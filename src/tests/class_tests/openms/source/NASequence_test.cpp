@@ -62,6 +62,15 @@ START_SECTION((NASequence(NASequence&&) = default))
 }
 END_SECTION
 
+START_SECTION((NASequence(const String& s)))
+{
+  // test String Constructor
+  NASequence aaa = NASequence::fromString("AAA");
+  TEST_EQUAL(aaa.size(), 3);
+  TEST_EQUAL(aaa.toString(), "AAA");
+}
+END_SECTION
+
 START_SECTION((NASequence& operator=(const NASequence&)& = default))
 {
   // test Copy Assignment
