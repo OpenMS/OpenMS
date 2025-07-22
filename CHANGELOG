@@ -40,6 +40,8 @@ Library:
 - Remove ranke member in PeptideHit and store ranks as meta value (for backwards compatibility). (#7997)
 - std::vector<PeptideIdentification> now is encapsulated in a class PeptideIdentificationList
 - Add SequenceBase, a parent class of NASequence and AASequence to expose common functions
+- Added `EnzymaticDigestion.semiSpecificDigestion_()`
+- ProteaseDigestion: add support for semi-specific digestion (#8130)
 
 Added tools:
 - OpenNuXL - A peptide-RNA/DNA cross-linking search engine
