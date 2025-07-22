@@ -15,7 +15,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  NucleicAcidSpectrumGenerator::NucleicAcidSpectrumGenerator() : DefaultParamHandler("NucleicAcidSpectrumGenerator")
+  NucleicAcidSpectrumGenerator::NucleicAcidSpectrumGenerator() : PolymerSpectrumGenerator<NucleicAcidSpectrumGenerator>("NucleicAcidSpectrumGenerator")
   {
     defaults_.setValue("add_metainfo", "false", "Adds the type of peaks as meta information to the peaks, e.g. c1, y2, a3-B");
     defaults_.setValidStrings("add_metainfo", {"true", "false"});
@@ -74,14 +74,14 @@ namespace OpenMS
   }
 
 
-  NucleicAcidSpectrumGenerator::NucleicAcidSpectrumGenerator(const NucleicAcidSpectrumGenerator& source) : DefaultParamHandler(source)
+  NucleicAcidSpectrumGenerator::NucleicAcidSpectrumGenerator(const NucleicAcidSpectrumGenerator& source) : PolymerSpectrumGenerator<NucleicAcidSpectrumGenerator>(source)
   {
   }
 
 
   NucleicAcidSpectrumGenerator& NucleicAcidSpectrumGenerator::operator=(const NucleicAcidSpectrumGenerator& source)
   {
-    DefaultParamHandler::operator=(source);
+    PolymerSpectrumGenerator<NucleicAcidSpectrumGenerator>::operator=(source);
     return *this;
   }
 
@@ -513,6 +513,17 @@ namespace OpenMS
     z_intensity_ = (double)param_.getValue("z_intensity");
     aB_intensity_ = (double)param_.getValue("a-B_intensity");
     precursor_intensity_ = (double)param_.getValue("precursor_intensity");
+  }
+
+  void NucleicAcidSpectrumGenerator::generateSpectrumImpl(MSSpectrum& spectrum, const NASequence& oligo, Int min_charge, Int max_charge) const
+  {
+    // Delegate to existing method
+    getSpectrum(spectrum, oligo, min_charge, max_charge);
+  }
+
+  String NucleicAcidSpectrumGenerator::getSequenceType() const
+  {
+    return "NASequence";
   }
 
 } // end namespace OpenMS

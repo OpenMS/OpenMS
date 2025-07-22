@@ -9,7 +9,7 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/CHEMISTRY/PolymerSpectrumGenerator.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/DataArrays.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -41,7 +41,7 @@ namespace OpenMS
       @ingroup Chemistry
   */
   class OPENMS_DLLAPI TheoreticalSpectrumGenerator :
-    public DefaultParamHandler
+    public PolymerSpectrumGenerator<TheoreticalSpectrumGenerator>
   {
     public:
 
@@ -67,7 +67,14 @@ namespace OpenMS
     /// Generates a spectrum for a peptide sequence, with the ion types that are set in the tool parameters
     /// If precursor_charge is set to 0 max_charge + 1 will be used.
     /// @throw Exception::InvalidParameter   if precursor_charge < max_charge
+    /// Legacy method for AASequence (for backward compatibility)
     virtual void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int min_charge, Int max_charge, Int precursor_charge = 0) const;
+
+    /// Implementation method for CRTP base class
+    void generateSpectrumImpl(MSSpectrum& spectrum, const AASequence& peptide, Int min_charge, Int max_charge) const;
+
+    /// Get the sequence type that this generator works with
+    String getSequenceType() const override;
 
     /// Generates a spectrum for a peptide sequence based on activation method and precursor charge.
     /// Activation method 'CID' or 'HCID' will generate only b- and y-ions.

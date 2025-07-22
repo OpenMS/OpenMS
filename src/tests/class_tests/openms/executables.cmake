@@ -401,6 +401,7 @@ set(chemistry_executables_list
   ModifiedNASequenceGenerator_test
   NASequence_test
   NucleicAcidSpectrumGenerator_test
+  PolymerSpectrumGenerator_test
   ProteaseDB_test
   ProteaseDigestion_test
   RNaseDigestion_test
