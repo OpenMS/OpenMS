@@ -255,7 +255,13 @@ public:
       /// Destructor
       ~StringManager();
 
-      /// Calculates the length of a XMLCh* string using SIMDe 
+      /// Calculates the length of a XMLCh* string using SIMDe
+      // https://github.com/OpenMS/OpenMS/issues/8122
+      #if defined(__GNUC__)
+      __attribute__((no_sanitize("address")))
+      #elif defined(_MSC_VER)
+      __declspec(no_sanitize_address) 
+      #endif
       static XMLSize_t strLength(const XMLCh* input_ptr);
 
       /// Transcode the supplied C string to a xerces string

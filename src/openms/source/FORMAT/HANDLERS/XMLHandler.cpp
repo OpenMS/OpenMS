@@ -419,6 +419,12 @@ namespace OpenMS::Internal
       }
     }
 
+    // https://github.com/OpenMS/OpenMS/issues/8122
+    #if defined(__GNUC__)
+    __attribute__((no_sanitize("address")))
+    #elif defined(_MSC_VER)
+    __declspec(no_sanitize_address)
+    #endif
     size_t StringManager::strLength(const XMLCh* input_ptr)
     {
       if (input_ptr == nullptr) {
