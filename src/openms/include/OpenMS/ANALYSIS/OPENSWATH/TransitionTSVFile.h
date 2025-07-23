@@ -376,7 +376,6 @@ public:
 
     /// Validate a TargetedExperiment (check that all ids are unique)
     void validateTargetedExperiment(const OpenMS::TargetedExperiment& targeted_exp);
-
   };
 }
 
