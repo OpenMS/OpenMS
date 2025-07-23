@@ -42,6 +42,7 @@ Library:
 - Add SequenceBase, a parent class of NASequence and AASequence to expose common functions
 - Added `EnzymaticDigestion.semiSpecificDigestion_()`
 - ProteaseDigestion: add support for semi-specific digestion (#8130)
+- added library support for storing and processing nucleotide data in OpenSWATH
 
 Added tools:
 - OpenNuXL - A peptide-RNA/DNA cross-linking search engine
