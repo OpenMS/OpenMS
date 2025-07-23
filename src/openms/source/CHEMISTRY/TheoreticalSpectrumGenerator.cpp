@@ -23,7 +23,7 @@ namespace OpenMS
 {
 
   TheoreticalSpectrumGenerator::TheoreticalSpectrumGenerator() :
-    PolymerSpectrumGenerator<TheoreticalSpectrumGenerator>("TheoreticalSpectrumGenerator")
+    DefaultParamHandler("TheoreticalSpectrumGenerator")
   {
     defaults_.setValue("isotope_model", "none", "Model to use for isotopic peaks ('none' means no isotopic peaks are added, 'coarse' adds isotopic peaks in unit mass distance, 'fine' uses the hyperfine isotopic generator to add accurate isotopic peaks. Note that adding isotopic peaks is very slow.");
     defaults_.setValidStrings("isotope_model", {"none","coarse","fine"});
@@ -113,14 +113,14 @@ namespace OpenMS
 
 
   TheoreticalSpectrumGenerator::TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& rhs) :
-    PolymerSpectrumGenerator<TheoreticalSpectrumGenerator>(rhs)
+    DefaultParamHandler(rhs)
   {
   }
 
 
   TheoreticalSpectrumGenerator& TheoreticalSpectrumGenerator::operator=(const TheoreticalSpectrumGenerator& rhs)
   {
-    PolymerSpectrumGenerator<TheoreticalSpectrumGenerator>::operator=(rhs);
+    DefaultParamHandler::operator=(rhs);
     return *this;
   }
 
@@ -1190,17 +1190,6 @@ namespace OpenMS
     pre_int_ = (double)param_.getValue("precursor_intensity");
     pre_int_H2O_ = (double)param_.getValue("precursor_H2O_intensity");
     pre_int_NH3_ = (double)param_.getValue("precursor_NH3_intensity");
-  }
-
-  void TheoreticalSpectrumGenerator::generateSpectrumImpl(MSSpectrum& spectrum, const AASequence& peptide, Int min_charge, Int max_charge) const
-  {
-    // Convert MSSpectrum to PeakSpectrum and delegate to existing method
-    getSpectrum(spectrum, peptide, min_charge, max_charge, 0);
-  }
-
-  String TheoreticalSpectrumGenerator::getSequenceType() const
-  {
-    return "AASequence";
   }
 
 } // end namespace OpenMS

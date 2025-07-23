@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <OpenMS/CHEMISTRY/PolymerSpectrumGenerator.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/DataArrays.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
@@ -25,7 +25,7 @@ namespace OpenMS
       @ingroup Chemistry
   */
   class OPENMS_DLLAPI NucleicAcidSpectrumGenerator :
-    public PolymerSpectrumGenerator<NucleicAcidSpectrumGenerator>
+    public DefaultParamHandler
   {
     public:
 
@@ -48,14 +48,8 @@ namespace OpenMS
     /** @name Acessors
      */
     //@{
-    /// Legacy method for NASequence (for backward compatibility)
+    /// Generates a spectrum for an oligonucleotide sequence, with the ion types that are set in the tool parameters
     void getSpectrum(MSSpectrum& spectrum, const NASequence& oligo, Int min_charge, Int max_charge) const;
-
-    /// Implementation method for CRTP base class
-    void generateSpectrumImpl(MSSpectrum& spectrum, const NASequence& oligo, Int min_charge, Int max_charge) const;
-
-    /// Get the sequence type that this generator works with
-    String getSequenceType() const override;
 
     /**
        @brief Generates spectra in multiple charge states for an oligonucleotide sequence
