@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include <OpenMS/CHEMISTRY/SequenceBase.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -31,7 +30,7 @@ namespace OpenMS
    */
 
 
-  class OPENMS_DLLAPI NASequence : public SequenceBase<NASequence>
+  class OPENMS_DLLAPI NASequence
   {
     /**
       @brief an enum of all possible fragment ion types
@@ -332,7 +331,7 @@ namespace OpenMS
     NASequence(std::vector<const Ribonucleotide*> s, const RibonucleotideChainEnd* five_prime, const RibonucleotideChainEnd* three_prime);
 
     virtual ~NASequence() = default; /// destructor
-
+    
     /// constructor from a string, e.g. "AAA" or "A[mod1]G[mod2]C"
     NASequence(const String& s);
 
@@ -526,4 +525,3 @@ namespace OpenMS
   };
 
 } // namespace OpenMS
-

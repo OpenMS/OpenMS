@@ -410,7 +410,6 @@ set(chemistry_executables_list
   Residue_test
   RibonucleotideDB_test
   Ribonucleotide_test
-  SequenceBase_test
   SimpleTSGXLMS_test
   SpectrumAnnotator_test
   Tagger_test
