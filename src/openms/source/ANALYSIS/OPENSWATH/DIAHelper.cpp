@@ -439,7 +439,6 @@ namespace OpenMS::DIAHelpers
       CoarseIsotopePatternGenerator solver(nr_isotopes);
       TheoreticalIsotopePattern isotopes;
       //Note: this is a rough estimate of the weight, usually the protons should be deducted first, left for backwards compatibility.
-      //SPWTODO: this needs to get changed to be dependent on the polymer type
       auto d = solver.estimateFromPeptideWeight(product_mz * charge);
 
       double mass = product_mz;

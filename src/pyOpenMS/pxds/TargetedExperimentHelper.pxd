@@ -141,6 +141,34 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         RTType getRetentionTimeType() except + nogil  # wrap-doc:Get compound or peptide retentiontime type
         RTUnit getRetentionTimeUnit() except + nogil  # wrap-doc:Get compound or peptide retentiontime unit (minute/seconds)
 
+    cdef cppclass Nuctide(CVTermList):
+        # wrap-inherits:
+        #   CVTermList
+
+        Nuctide() except + nogil
+        Nuctide(Nuctide &) except + nogil
+
+        bool operator==(Nuctide & rhs) except + nogil
+        bool operator!=(Nuctide & rhs) except + nogil
+
+        # members
+        libcpp_vector[RetentionTime] rts
+        String id
+        libcpp_vector[String] oligo_refs
+        CVTermList evidence
+        String sequence
+
+        void setNuctideGroupLabel(String label) except + nogil  # wrap-doc:Sets the nuctide group label
+        String getNuctideGroupLabel() except + nogil  # wrap-doc:Get the nuctide group label
+
+        void setChargeState(int charge) except + nogil  # wrap-doc:Sets the nuctide or compound charge states
+        int getChargeState() except + nogil  # wrap-doc:Returns the nuctide charge state
+        bool hasCharge() except + nogil  # wrap-doc:Whether product has set charge state
+        double getRetentionTime() except + nogil  # wrap-doc:Gets nuctide retention time
+        bool hasRetentionTime() except + nogil  # wrap-doc:Gets nuctide retention time
+        RTType getRetentionTimeType() except + nogil  # wrap-doc:Get nuctide retentiontime type
+        RTUnit getRetentionTimeUnit() except + nogil  # wrap-doc:Get nuctide retentiontime unit (minute/seconds)
+
     cdef cppclass Contact(CVTermList):
         # wrap-inherits:
         #   CVTermList

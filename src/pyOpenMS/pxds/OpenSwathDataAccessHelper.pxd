@@ -33,5 +33,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>" nam
 
         void convertPeptideToAASequence(LightCompound & peptide, AASequence & aa_sequence) except + nogil  # wrap-doc:Converts from the LightCompound to an OpenMS AASequence (with correct modifications)
         
-        void convertTargetedCompound(Peptide pep, LightCompound & p) except + nogil  # wrap-doc:Converts from the OpenMS TargetedExperiment Peptide to the LightTargetedExperiment Peptide
+        void convertTargetedPeptide(Peptide pep, LightCompound & p) except + nogil  # wrap-doc:Converts from the OpenMS TargetedExperiment Peptide to the LightTargetedExperiment Peptide
 
+        void convertTargetedNuctide(Nuctide pep, LightCompound & p) except + nogil  # wrap-doc:Converts from the OpenMS TargetedExperiment Nuctide to the LightTargetedExperiment Nuctide

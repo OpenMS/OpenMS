@@ -305,7 +305,7 @@ namespace OpenMS
 
   String NASequence::toString() const
   {
-    string s;
+    String s;
     if (five_prime_)
     {
       const String& code = five_prime_->getCode();
