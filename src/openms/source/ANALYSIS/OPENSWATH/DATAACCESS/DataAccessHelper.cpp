@@ -114,7 +114,7 @@ namespace OpenMS
     for (Size i = 0; i < transition_exp_.getPeptides().size(); i++)
     {
       OpenSwath::LightCompound p;
-      OpenSwathDataAccessHelper::convertTargetedCompound(transition_exp_.getPeptides()[i], p);
+      OpenSwathDataAccessHelper::convertTargetedPeptide(transition_exp_.getPeptides()[i], p);
       transition_exp.compounds.push_back(p);
     }
 
@@ -195,7 +195,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Peptide& pep, OpenSwath::LightCompound & p)
+  void OpenSwathDataAccessHelper::convertTargetedPeptide(const TargetedExperiment::Peptide& pep, OpenSwath::LightCompound & p)
   {
     OpenSwath::LightModification light_mod;
 
@@ -273,6 +273,44 @@ namespace OpenMS
     }
   }
 
+  void OpenSwathDataAccessHelper::convertTargetedNuctide(const TargetedExperiment::Nuctide& nuc, OpenSwath::LightCompound & n)
+  {
+    n.id = nuc.id;
+    if (nuc.hasRetentionTime())
+    {
+      n.rt = nuc.getRetentionTime();
+      if (nuc.getRetentionTimeUnit() == TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE)
+      {
+        n.rt = 60 * nuc.getRetentionTime();
+      }
+    }
+    n.setDriftTime(nuc.getDriftTime());
+
+    if (nuc.hasCharge())
+    {
+      n.charge = nuc.getChargeState();
+    }
+
+    n.sequence = nuc.sequence;
+    n.nuctide_group_label = nuc.getNuctideGroupLabel();
+
+    // Is it potentially a metabolomics compound
+    if (nuc.metaValueExists("SumFormula"))
+    {
+      n.sum_formula = (std::string)nuc.getMetaValue("SumFormula");
+    }
+    if (nuc.metaValueExists("CompoundName"))
+    {
+      n.compound_name = (std::string)nuc.getMetaValue("CompoundName");
+    }
+
+    n.protein_refs.clear();
+    if (!nuc.oligo_refs.empty())
+    {
+      n.oligo_refs.insert( n.oligo_refs.begin(), nuc.oligo_refs.begin(), nuc.oligo_refs.end() );
+    }
+  }
+
   void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Compound& compound, OpenSwath::LightCompound & comp)
   {
     comp.id = compound.id;
@@ -313,5 +351,13 @@ namespace OpenMS
       }
     }
   }
+
+  void OpenSwathDataAccessHelper::convertNuctideToNASequence(const OpenSwath::LightCompound & nuctide, NASequence & na_sequence)
+  {
+    OPENMS_PRECONDITION(nuctide.isNuctide(), "Function needs nuctide, not metabolite")
+
+    na_sequence = NASequence::fromString(nuctide.sequence);
+  }
+
 
 }

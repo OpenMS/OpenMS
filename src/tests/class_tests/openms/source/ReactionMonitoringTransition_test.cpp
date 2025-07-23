@@ -171,6 +171,21 @@ START_SECTION((const String& getPeptideRef() const ))
 }
 END_SECTION
 
+START_SECTION((void setNuctideRef(const String &nuctide_ref)))
+{
+  OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
+  tr.setNuctideRef("test_ref");
+
+  TEST_EQUAL(tr.getNuctideRef(), "test_ref")
+}
+END_SECTION
+
+START_SECTION((const String& getNuctideRef() const ))
+{
+  TEST_EQUAL(transition.getNuctideRef(), "")
+}
+END_SECTION
+
 START_SECTION((void setCompoundRef(const String &compound_ref)))
 {
   OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();

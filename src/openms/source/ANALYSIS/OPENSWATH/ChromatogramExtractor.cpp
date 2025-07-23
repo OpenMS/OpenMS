@@ -64,7 +64,7 @@ namespace OpenMS
   }
 
 
-  const TargetedExperimentHelper::PeptideCompound* getPeptideHelperMS2_(const OpenMS::TargetedExperiment& transition_exp_used,
+  const TargetedExperimentHelper::PeptideNuctideCompound* getPeptideHelperMS2_(const OpenMS::TargetedExperiment& transition_exp_used,
                                                                         const OpenMS::ReactionMonitoringTransition& transition,
                                                                         bool do_peptides)
   {
@@ -81,7 +81,7 @@ namespace OpenMS
     }
   }
 
-  const TargetedExperimentHelper::PeptideCompound* getPeptideHelperMS1_(const OpenMS::TargetedExperiment & transition_exp_used,
+  const TargetedExperimentHelper::PeptideNuctideCompound* getPeptideHelperMS1_(const OpenMS::TargetedExperiment & transition_exp_used,
                                                                         Size i,
                                                                         bool do_peptides)
   {
@@ -199,10 +199,6 @@ namespace OpenMS
       pep2tr[ref].push_back(&transition_exp_used.getTransitions()[i]);
     }
 
-    // std::map<String, const TargetedExperimentHelper::PeptideCompound* > tr2pep;
-    // for (const auto & p : transition_exp_used.getPeptides()) {tr2pep[p.id] = &p;}
-    // for (const auto & c : transition_exp_used.getCompounds()) {tr2pep[c.id] = &c;}
-
     bool have_peptides = (!transition_exp_used.getPeptides().empty());
 
     // Determine iteration size (nr peptides or nr transitions)
@@ -229,7 +225,7 @@ namespace OpenMS
       output_chromatograms.push_back(s);
 
       ChromatogramExtractor::ExtractionCoordinates coord;
-      const TargetedExperimentHelper::PeptideCompound* pep;
+      const TargetedExperimentHelper::PeptideNuctideCompound* pep;
       OpenMS::ReactionMonitoringTransition transition;
 
       if (ms1) 

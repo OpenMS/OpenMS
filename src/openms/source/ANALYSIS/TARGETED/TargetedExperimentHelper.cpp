@@ -10,6 +10,7 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS::TargetedExperimentHelper
@@ -79,6 +80,11 @@ namespace OpenMS::TargetedExperimentHelper
         }
       }
       return aas;
+    }
+
+    OpenMS::NASequence getNASequence(const OpenMS::TargetedExperiment::Nuctide& nuctide)
+    {
+      return NASequence::fromString(nuctide.sequence);
     }
 
   }

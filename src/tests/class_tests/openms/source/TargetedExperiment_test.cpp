@@ -227,6 +227,45 @@ START_SECTION((void addProtein(const Protein &protein)))
 }
 END_SECTION
 
+START_SECTION((void setOligos(const std::vector< Oligo > &oligos)))
+{
+  TargetedExperiment t; 
+  TargetedExperiment::Oligo o;
+
+  std::vector<TargetedExperiment::Oligo> oligos;
+  oligos.push_back(o);
+  t.setOligos(oligos);
+    
+  TEST_EQUAL(t.getOligos().size(), 1)
+}
+END_SECTION
+
+START_SECTION((const std::vector<Oligo>& getOligos() const ))
+{
+  TEST_EQUAL(te.getOligos().size(), 0)
+}
+END_SECTION
+
+START_SECTION((bool hasOligo(const String & ref) const))
+{
+  TargetedExperiment t; 
+  TargetedExperiment::Oligo o;
+  o.id = "myOligo";
+  t.addOligo(o);
+  TEST_EQUAL(t.hasOligo("myOligo"), true)
+}
+END_SECTION
+
+START_SECTION((void addProtein(const Protein &protein)))
+{
+  TargetedExperiment t; 
+  TargetedExperiment::Protein p;
+  t.addProtein(p);
+  TEST_EQUAL(t.getProteins().size(), 1)
+}
+END_SECTION
+
+
 START_SECTION((void setCompounds(const std::vector< Compound > &rhs)))
 {
   TargetedExperiment t; 
@@ -264,6 +303,46 @@ START_SECTION((void addCompound(const Compound &rhs)))
   TEST_EQUAL(t.getCompounds().size(), 1)
 }
 END_SECTION
+
+START_SECTION((void setNuctides(const std::vector< Nuctide > &rhs)))
+{
+  TargetedExperiment t; 
+  TargetedExperiment::Nuctide p;
+
+  std::vector<TargetedExperiment::Nuctide> nuctides;
+  nuctides.push_back(p);
+  t.setNuctides(nuctides);
+
+  TEST_EQUAL(t.getNuctides().size(), 1)
+}
+END_SECTION
+
+START_SECTION((const std::vector<Nuctide>& getNuctides() const ))
+{
+  TEST_EQUAL(te.getNuctides().size(), 0)
+}
+END_SECTION
+
+START_SECTION((void addNuctide(const Nuctide &rhs)))
+{
+  TargetedExperiment t; 
+  TargetedExperiment::Nuctide p;
+  t.addNuctide(p);
+
+  TEST_EQUAL(t.getNuctides().size(), 1)
+}
+END_SECTION
+
+START_SECTION((bool hasNuctide(const String & ref) const))
+{
+  TargetedExperiment t; 
+  TargetedExperiment::Nuctide p;
+  p.id = "myNuctide";
+  t.addNuctide(p);
+  TEST_EQUAL(t.hasNuctide("myNuctide"), true)
+}
+END_SECTION
+
 
 START_SECTION((void setPeptides(const std::vector< Peptide > &rhs)))
 {

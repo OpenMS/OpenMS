@@ -146,10 +146,21 @@ namespace OpenSwath
     std::string sum_formula;
     std::string compound_name;
 
+    // for oligos
+    //TODO: Strictly speaking we should be able to use the same structure as for peptides, but we keep this separate for now
+    std::vector<std::string> oligo_refs;
+    std::string nuctide_group_label;
+    
+
     // By convention, if there is no (metabolic) compound name, it is a peptide 
     bool isPeptide() const
     {
-      return compound_name.empty();
+      return (compound_name.empty() && oligo_refs.empty());
+    }
+
+    bool isNuctide() const
+    {
+      return !oligo_refs.empty();
     }
 
     void setChargeState(int ch)
@@ -181,18 +192,26 @@ namespace OpenSwath
     std::string sequence;
   };
 
+  struct LightOligo
+  {
+    std::string id;
+    std::string sequence;
+  };
+
   struct LightTargetedExperiment
   {
     LightTargetedExperiment() : compound_reference_map_dirty_(true) {}
 
     typedef LightTransition Transition;
     typedef LightCompound Peptide;
+    typedef LightOligo Oligo;
     typedef LightCompound Compound;
     typedef LightProtein Protein;
 
     std::vector<LightTransition> transitions;
     std::vector<LightCompound> compounds;
     std::vector<LightProtein> proteins;
+    std::vector<LightOligo> oligos;
     std::vector<LightTransition> & getTransitions()
     {
       return transitions;
@@ -223,6 +242,16 @@ namespace OpenSwath
       return proteins;
     }
 
+    std::vector<LightOligo> & getOligos()
+    {
+      return oligos;
+    }
+
+    const std::vector<LightOligo> & getOligos() const
+    {
+      return oligos;
+    }
+
     // legacy
     const LightCompound& getPeptideByRef(const std::string& ref)
     {
@@ -233,14 +262,14 @@ namespace OpenSwath
     {
       if (compound_reference_map_dirty_)
       {
-        createPeptideReferenceMap_();
+        createReferenceMap_();
       }
       return *(compound_reference_map_[ref]);
     }
 
   private:
 
-    void createPeptideReferenceMap_()
+    void createReferenceMap_()
     {
       for (size_t i = 0; i < getCompounds().size(); i++)
       {

@@ -43,6 +43,8 @@ public:
     {
       Size protein_count;
       Size peptide_count;
+      Size oligo_count;
+      Size nuctide_count;
       Size compound_count;
       Size transition_count;
       std::map<ReactionMonitoringTransition::DecoyTransitionType, size_t> decoy_counts; ///< # target/decoy transitions
@@ -52,9 +54,11 @@ public:
 
     typedef TargetedExperimentHelper::CV CV;
     typedef TargetedExperimentHelper::Protein Protein;
+    typedef TargetedExperimentHelper::Oligo Oligo;
     typedef TargetedExperimentHelper::RetentionTime RetentionTime;
     typedef TargetedExperimentHelper::Compound Compound;
     typedef TargetedExperimentHelper::Peptide Peptide;
+    typedef TargetedExperimentHelper::Nuctide Nuctide;
     typedef TargetedExperimentHelper::Contact Contact;
     typedef TargetedExperimentHelper::Publication Publication;
     typedef TargetedExperimentHelper::Instrument Instrument;
@@ -66,6 +70,8 @@ public:
     typedef std::map<String, const Protein *> ProteinReferenceMapType;
     typedef std::map<String, const Peptide *> PeptideReferenceMapType;
     typedef std::map<String, const Compound *> CompoundReferenceMapType;
+    typedef std::map<String, const Oligo *> OligoReferenceMapType;
+    typedef std::map<String, const Nuctide *> NuctideReferenceMapType;
 
     /** @name Constructors and destructors
     */
@@ -100,7 +106,7 @@ public:
     /**
       @brief Joins two targeted experiments.
 
-      Proteins, peptides and transitions are merged (see operator+= for details).
+      Proteins, oligos, peptides and transitions are merged (see operator+= for details).
     */
     TargetedExperiment operator+(const TargetedExperiment & rhs) const;
 
@@ -171,6 +177,7 @@ public:
 
     // protein list
     void setProteins(const std::vector<Protein> & proteins);
+
     void setProteins(std::vector<Protein> && proteins);
 
     const std::vector<Protein> & getProteins() const;
@@ -181,14 +188,37 @@ public:
 
     void addProtein(const Protein & protein);
 
+    // oligo list
+    void setOligos(const std::vector<Oligo> & oligos);
+
+    void setOligos(std::vector<Oligo> && oligos);
+
+    const std::vector<Oligo> & getOligos() const;
+
+    const Oligo & getOligoByRef(const String & ref) const;
+
+    bool hasOligo(const String & ref) const;
+
+    void addOligo(const Oligo & oligo);
+
+
     // compound list
     void setCompounds(const std::vector<Compound> & rhs);
 
+    void setCompounds(std::vector<Compound> && rhs);
+
     const std::vector<Compound> & getCompounds() const;
+
+    const Compound & getCompoundByRef(const String & ref) const;
+
+    bool hasCompound(const String & ref) const;
 
     void addCompound(const Compound & rhs);
 
+
+    // peptide list
     void setPeptides(const std::vector<Peptide> & rhs);
+
     void setPeptides(std::vector<Peptide> && rhs);
 
     const std::vector<Peptide> & getPeptides() const;
@@ -197,14 +227,24 @@ public:
 
     const Peptide & getPeptideByRef(const String & ref) const;
 
-    bool hasCompound(const String & ref) const;
-
-    const Compound & getCompoundByRef(const String & ref) const;
-
     void addPeptide(const Peptide & rhs);
+
+    // nuctide list
+    void setNuctides(const std::vector<Nuctide> & rhs);
+
+    void setNuctides(std::vector<Nuctide> && rhs);
+
+    const std::vector<Nuctide> & getNuctides() const;
+
+    bool hasNuctide(const String & ref) const;
+
+    const Nuctide & getNuctideByRef(const String & ref) const;
+
+    void addNuctide(const Nuctide & rhs);
 
     /// set transition list
     void setTransitions(const std::vector<ReactionMonitoringTransition> & transitions);
+
     void setTransitions(std::vector<ReactionMonitoringTransition> && transitions);
 
     /// returns the transition list
@@ -270,6 +310,11 @@ protected:
 
     void createCompoundReferenceMap_() const;
 
+    void createOligoReferenceMap_() const;
+
+    void createNuctideReferenceMap_() const;
+
+
     std::vector<CV> cvs_;
 
     std::vector<Contact> contacts_;
@@ -284,9 +329,13 @@ protected:
 
     std::vector<Protein> proteins_;
 
+    std::vector<Oligo> oligos_;
+
     std::vector<Compound> compounds_;
 
     std::vector<Peptide> peptides_;
+
+    std::vector<Nuctide> nuctides_;
 
     std::vector<ReactionMonitoringTransition> transitions_;
 
@@ -298,11 +347,17 @@ protected:
 
     mutable ProteinReferenceMapType protein_reference_map_;
 
+    mutable OligoReferenceMapType oligo_reference_map_;
+
     mutable bool protein_reference_map_dirty_;
 
     mutable PeptideReferenceMapType peptide_reference_map_;
 
+    mutable NuctideReferenceMapType nuctide_reference_map_;
+
     mutable bool peptide_reference_map_dirty_;
+
+    mutable bool nuctide_reference_map_dirty_;
 
     mutable CompoundReferenceMapType compound_reference_map_;
 

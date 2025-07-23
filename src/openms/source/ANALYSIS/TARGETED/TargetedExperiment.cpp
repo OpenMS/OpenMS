@@ -49,6 +49,7 @@ namespace OpenMS
   TargetedExperiment::TargetedExperiment() :
     protein_reference_map_dirty_(true),
     peptide_reference_map_dirty_(true),
+    nuctide_reference_map_dirty_(true),
     compound_reference_map_dirty_(true)
   {
   }
@@ -61,14 +62,17 @@ namespace OpenMS
     targets_(rhs.targets_),
     software_(rhs.software_),
     proteins_(rhs.proteins_),
+    oligos_(rhs.oligos_),
     compounds_(rhs.compounds_),
     peptides_(rhs.peptides_),
+    nuctides_(rhs.nuctides_),
     transitions_(rhs.transitions_),
     include_targets_(rhs.include_targets_),
     exclude_targets_(rhs.exclude_targets_),
     source_files_(rhs.source_files_),
     protein_reference_map_dirty_(true),
     peptide_reference_map_dirty_(true),
+    nuctide_reference_map_dirty_(true),
     compound_reference_map_dirty_(true)
   {
   }
@@ -81,14 +85,17 @@ namespace OpenMS
     targets_(std::move(rhs.targets_)),
     software_(std::move(rhs.software_)),
     proteins_(std::move(rhs.proteins_)),
+    oligos_(std::move(rhs.oligos_)),
     compounds_(std::move(rhs.compounds_)),
     peptides_(std::move(rhs.peptides_)),
+    nuctides_(std::move(rhs.nuctides_)),
     transitions_(std::move(rhs.transitions_)),
     include_targets_(std::move(rhs.include_targets_)),
     exclude_targets_(std::move(rhs.exclude_targets_)),
     source_files_(std::move(rhs.source_files_)),
     protein_reference_map_dirty_(true),
     peptide_reference_map_dirty_(true),
+    nuctide_reference_map_dirty_(true),
     compound_reference_map_dirty_(true)
   {
   }
@@ -106,14 +113,17 @@ namespace OpenMS
       targets_ = rhs.targets_;
       software_ = rhs.software_;
       proteins_ = rhs.proteins_;
+      oligos_ = rhs.oligos_;
       compounds_ = rhs.compounds_;
       peptides_ = rhs.peptides_;
+      nuctides_ = rhs.nuctides_;
       transitions_ = rhs.transitions_;
       include_targets_ = rhs.include_targets_;
       exclude_targets_ = rhs.exclude_targets_;
       source_files_ = rhs.source_files_;
       protein_reference_map_dirty_ = true;
       peptide_reference_map_dirty_ = true;
+      nuctide_reference_map_dirty_ = true;
       compound_reference_map_dirty_ = true;
     }
     return *this;
@@ -130,14 +140,17 @@ namespace OpenMS
       targets_ = std::move(rhs.targets_);
       software_ = std::move(rhs.software_);
       proteins_ = std::move(rhs.proteins_);
+      oligos_ = std::move(rhs.oligos_);
       compounds_ = std::move(rhs.compounds_);
       peptides_ = std::move(rhs.peptides_);
+      nuctides_ = std::move(rhs.nuctides_);
       transitions_ = std::move(rhs.transitions_);
       include_targets_ = std::move(rhs.include_targets_);
       exclude_targets_ = std::move(rhs.exclude_targets_);
       source_files_ = std::move(rhs.source_files_);
       protein_reference_map_dirty_ = true;
       peptide_reference_map_dirty_ = true;
+      nuctide_reference_map_dirty_ = true;
       compound_reference_map_dirty_ = true;
     }
     return *this;
@@ -154,6 +167,7 @@ namespace OpenMS
   {
     protein_reference_map_dirty_ = true;
     peptide_reference_map_dirty_ = true;
+    nuctide_reference_map_dirty_ = true;
     compound_reference_map_dirty_ = true;
 
     // merge these:
@@ -163,8 +177,10 @@ namespace OpenMS
     instruments_.insert(instruments_.end(), rhs.instruments_.begin(), rhs.instruments_.end());
     software_.insert(software_.end(), rhs.software_.begin(), rhs.software_.end());
     proteins_.insert(proteins_.end(), rhs.proteins_.begin(), rhs.proteins_.end());
+    oligos_.insert(oligos_.end(), rhs.oligos_.begin(), rhs.oligos_.end());
     compounds_.insert(compounds_.end(), rhs.compounds_.begin(), rhs.compounds_.end());
     peptides_.insert(peptides_.end(), rhs.peptides_.begin(), rhs.peptides_.end());
+    nuctides_.insert(nuctides_.end(), rhs.nuctides_.begin(), rhs.nuctides_.end());
     transitions_.insert(transitions_.end(), rhs.transitions_.begin(), rhs.transitions_.end());
     include_targets_.insert(include_targets_.end(), rhs.include_targets_.begin(), rhs.include_targets_.end());
     exclude_targets_.insert(exclude_targets_.end(), rhs.exclude_targets_.begin(), rhs.exclude_targets_.end());
@@ -188,6 +204,7 @@ namespace OpenMS
   {
     protein_reference_map_dirty_ = true;
     peptide_reference_map_dirty_ = true;
+    nuctide_reference_map_dirty_ = true;
     compound_reference_map_dirty_ = true;
 
     // merge these:
@@ -198,8 +215,10 @@ namespace OpenMS
     appendRVector(std::move(rhs.software_), software_);
 
     appendRVector(std::move(rhs.proteins_), proteins_);
+    appendRVector(std::move(rhs.oligos_), oligos_);
     appendRVector(std::move(rhs.compounds_), compounds_);
     appendRVector(std::move(rhs.peptides_), peptides_);
+    appendRVector(std::move(rhs.nuctides_), nuctides_);
     appendRVector(std::move(rhs.transitions_), transitions_);
     appendRVector(std::move(rhs.include_targets_), include_targets_);
     appendRVector(std::move(rhs.exclude_targets_), exclude_targets_);
@@ -228,8 +247,10 @@ namespace OpenMS
            targets_ == rhs.targets_ &&
            software_ == rhs.software_ &&
            proteins_ == rhs.proteins_ &&
+           oligos_ == rhs.oligos_ &&
            compounds_ == rhs.compounds_ &&
            peptides_ == rhs.peptides_ &&
+           nuctides_ == rhs.nuctides_ &&
            transitions_ == rhs.transitions_ &&
            include_targets_ == rhs.include_targets_ &&
            exclude_targets_ == rhs.exclude_targets_ &&
@@ -246,6 +267,8 @@ namespace OpenMS
     SummaryStatistics s;
     s.protein_count = proteins_.size();
     s.peptide_count = peptides_.size();
+    s.oligo_count = oligos_.size();
+    s.nuctide_count = nuctides_.size();
     s.compound_count = compounds_.size();
     s.transition_count = transitions_.size();
     for (const auto& tr : transitions_)
@@ -269,18 +292,23 @@ namespace OpenMS
       targets_ = CVTermList();
       software_.clear();
       proteins_.clear();
+      oligos_.clear();
       compounds_.clear();
       peptides_.clear();
+      nuctides_.clear();
 
       include_targets_.clear();
       exclude_targets_.clear();
       source_files_.clear();
       protein_reference_map_.clear();
+      oligo_reference_map_.clear();
       peptide_reference_map_.clear();
+      nuctide_reference_map_.clear();
       compound_reference_map_.clear();
 
       protein_reference_map_dirty_ = true;
       peptide_reference_map_dirty_ = true;
+      nuctide_reference_map_dirty_ = true;
       compound_reference_map_dirty_ = true;
     }
   }
@@ -422,6 +450,45 @@ namespace OpenMS
     proteins_.push_back(protein);
   }
 
+  void TargetedExperiment::setOligos(const std::vector<Oligo> & oligos)
+  {
+    oligos_ = oligos;
+  }
+
+  void TargetedExperiment::setOligos(std::vector<Oligo> && oligos)
+  {
+    oligos_ = std::move(oligos);
+  }
+
+  const std::vector<TargetedExperiment::Oligo> & TargetedExperiment::getOligos() const
+  {
+    return oligos_;
+  }
+
+  const TargetedExperiment::Oligo & TargetedExperiment::getOligoByRef(const String & ref) const
+  {
+    if (oligo_reference_map_.find(ref) == oligo_reference_map_.end())
+    {
+      createOligoReferenceMap_();
+    }
+    OPENMS_PRECONDITION(oligo_reference_map_.find(ref) != oligo_reference_map_.end(), "Could not find oligo in map")
+    return *(oligo_reference_map_[ref]);
+  }
+
+  bool TargetedExperiment::hasOligo(const String & ref) const
+  {
+    if (oligo_reference_map_.find(ref) == oligo_reference_map_.end())
+    {
+      createOligoReferenceMap_();
+    }
+    return oligo_reference_map_.find(ref) != oligo_reference_map_.end();
+  }
+
+  void TargetedExperiment::addOligo(const Oligo & oligo)
+  {
+    oligos_.push_back(oligo);
+  }
+
   void TargetedExperiment::setCompounds(const std::vector<Compound> & compounds)
   {
     compounds_ = compounds;
@@ -496,6 +563,48 @@ namespace OpenMS
   {
     peptide_reference_map_dirty_ = true;
     peptides_.push_back(rhs);
+  }
+
+  void TargetedExperiment::setNuctides(const std::vector<Nuctide> & nuctides)
+  {
+    nuctide_reference_map_dirty_ = true;
+    nuctides_ = nuctides;
+  }
+
+  void TargetedExperiment::setNuctides(std::vector<Nuctide> && nuctides)
+  {
+    nuctide_reference_map_dirty_ = true;
+    nuctides_ = std::move(nuctides);
+  }
+
+  const std::vector<TargetedExperiment::Nuctide> & TargetedExperiment::getNuctides() const
+  {
+    return nuctides_;
+  }
+
+  bool TargetedExperiment::hasNuctide(const String & ref) const
+  {
+    if (nuctide_reference_map_dirty_)
+    {
+      createNuctideReferenceMap_();
+    }
+    return nuctide_reference_map_.find(ref) != nuctide_reference_map_.end();
+  }
+
+  const TargetedExperiment::Nuctide & TargetedExperiment::getNuctideByRef(const String & ref) const
+  {
+    if (nuctide_reference_map_dirty_)
+    {
+      createNuctideReferenceMap_();
+    }
+    OPENMS_PRECONDITION(hasNuctide(ref), "Cannot return nuctide that does not exist, check with hasNuctide() first")
+    return *(nuctide_reference_map_[ref]);
+  }
+
+  void TargetedExperiment::addNuctide(const Nuctide & rhs)
+  {
+    nuctide_reference_map_dirty_ = true;
+    nuctides_.push_back(rhs);
   }
 
   void TargetedExperiment::setTransitions(const std::vector<ReactionMonitoringTransition> & transitions)
@@ -576,7 +685,9 @@ namespace OpenMS
   bool TargetedExperiment::containsInvalidReferences() const
   {
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
+    typedef std::vector<OpenMS::TargetedExperiment::Oligo> OligoVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
+    typedef std::vector<OpenMS::TargetedExperiment::Nuctide> NuctideVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Compound> CompoundVectorType;
     typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
 
@@ -593,6 +704,19 @@ namespace OpenMS
       unique_protein_map[prot_it->id] = 0;
     }
 
+    // check that all oligo ids are unique
+    std::map<String, int> unique_oligo_map;
+    for (OligoVectorType::const_iterator oligo_it = getOligos().begin(); oligo_it != getOligos().end(); ++oligo_it)
+    {
+      // Create new transition group if it does not yet exist
+      if (unique_oligo_map.find(oligo_it->id) != unique_oligo_map.end())
+      {
+        OPENMS_LOG_ERROR << "Found duplicate oligo id (must be unique): " + String(oligo_it->id) << std::endl;
+        return true;
+      }
+      unique_oligo_map[oligo_it->id] = 0;
+    }
+
     // check that all peptide ids are unique
     std::map<String, int> unique_peptide_map;
     for (PeptideVectorType::const_iterator pep_it = getPeptides().begin(); pep_it != getPeptides().end(); ++pep_it)
@@ -604,6 +728,19 @@ namespace OpenMS
         return true;
       }
       unique_peptide_map[pep_it->id] = 0;
+    }
+
+    // check that all nuctide ids are unique
+    std::map<String, int> unique_nuctide_map;
+    for (NuctideVectorType::const_iterator nuc_it = getNuctides().begin(); nuc_it != getNuctides().end(); ++nuc_it)
+    {
+      // Create new transition group if it does not yet exist
+      if (unique_nuctide_map.find(nuc_it->id) != unique_nuctide_map.end())
+      {
+        OPENMS_LOG_ERROR << "Found duplicate nuctide id (must be unique): " + String(nuc_it->id) << std::endl;
+        return true;
+      }
+      unique_nuctide_map[nuc_it->id] = 0;
     }
 
     // check that all compound ids are unique
@@ -645,6 +782,19 @@ namespace OpenMS
       }
     }
 
+    // Check that each nuctide has only valid proteins
+    for (Size i = 0; i < getNuctides().size(); i++)
+    {
+      for (std::vector<String>::const_iterator prot_it = getNuctides()[i].oligo_refs.begin(); prot_it != getNuctides()[i].oligo_refs.end(); ++prot_it)
+      {
+        if (unique_oligo_map.find(*prot_it) == unique_oligo_map.end()) 
+        {
+          OPENMS_LOG_ERROR << "Oligo " << *prot_it << " is not present in the provided data structure." << std::endl;
+          return true;
+        }
+      }
+    }
+
     // Check that each peptide has only valid references to peptides and compounds
     for (Size i = 0; i < getTransitions().size(); i++)
     {
@@ -657,11 +807,19 @@ namespace OpenMS
           return true;
         }
       }
+      else if (!tr.getNuctideRef().empty())
+      {
+        if (unique_nuctide_map.find(tr.getNuctideRef()) == unique_nuctide_map.end()) 
+        {
+          OPENMS_LOG_ERROR << "Nuctide " << tr.getNuctideRef() << " is not present in the provided data structure." << std::endl;
+          return true;
+        }
+      }
       else if (!tr.getCompoundRef().empty())
       {
         if (unique_compounds_map.find(tr.getCompoundRef()) == unique_compounds_map.end()) 
         {
-          OPENMS_LOG_ERROR << "Compound " << tr.getPeptideRef() << " is not present in the provided data structure." << std::endl;
+          OPENMS_LOG_ERROR << "Compound " << tr.getCompoundRef() << " is not present in the provided data structure." << std::endl;
           return true;
         }
       }
@@ -702,6 +860,23 @@ namespace OpenMS
     compound_reference_map_dirty_ = false;
   }
 
+  void TargetedExperiment::createOligoReferenceMap_() const
+  {
+    for (Size i = 0; i < getOligos().size(); i++)
+    {
+      oligo_reference_map_[getOligos()[i].id] = &getOligos()[i];
+    }
+  }
+
+  void TargetedExperiment::createNuctideReferenceMap_() const
+  {
+    for (Size i = 0; i < getNuctides().size(); i++)
+    {
+      nuctide_reference_map_[getNuctides()[i].id] = &getNuctides()[i];
+    }
+    nuctide_reference_map_dirty_ = false;
+  }
+
   bool formatCount(const size_t count, const size_t all, const String& name, StringList& sink)
   {
     if (count == 0) return false; // nothing to report... 0%....
@@ -724,6 +899,8 @@ namespace OpenMS
 
     os << "# Proteins: " << s.protein_count << '\n'
        << "# Peptides: " << s.peptide_count << '\n'
+       << "# Oligos: " << s.oligo_count << '\n'
+       << "# Nuctides: " << s.nuctide_count << '\n'
        << "# Compounds: " << s.compound_count << '\n'
        << "# Transitions: " << s.transition_count << '\n'
        << "Transition Type: " + ListUtils::concatenate(counts, ", ") + "\n"

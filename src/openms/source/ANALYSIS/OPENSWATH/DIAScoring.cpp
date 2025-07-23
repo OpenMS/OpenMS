@@ -19,6 +19,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/MATH/MathFunctions.h> // getPPM
 
 #include <numeric>
@@ -61,14 +63,17 @@ namespace OpenMS
 
     // for void getBYSeries
     {
-      generator = new TheoreticalSpectrumGenerator();
+      AAgenerator = new TheoreticalSpectrumGenerator();
+      NAgenerator = new NucleicAcidSpectrumGenerator();
+
       Param p;
       p.setValue("add_metainfo", "true",
           "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-      generator->setParameters(p);
+      AAgenerator->setParameters(p);
+      NAgenerator->setParameters(p);
   }
 
-    // for simulateSpectrumFromAASequence
+    // for simulateSpectrumFromSequence
     //  Param p;
     //  p.setValue("add_metainfo", "false",
     //      "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
@@ -78,7 +83,8 @@ namespace OpenMS
 
   DIAScoring::~DIAScoring()
   {
-    delete generator;
+    delete AAgenerator;
+    delete NAgenerator;
   }
 
   void DIAScoring::updateMembers_()
@@ -226,36 +232,76 @@ namespace OpenMS
   }
 
   void DIAScoring::dia_by_ion_score(const SpectrumSequence& spectrum,
-                                    AASequence& sequence, int charge, const RangeMobility& im_range, double& bseries_score,
-                                    double& yseries_score) const
+                                    const AASequence& sequence, int charge, const RangeMobility& im_range, double& prefix_score,
+                                    double& suffix_score) const
   {
-    bseries_score = 0;
-    yseries_score = 0;
+    prefix_score = 0;
+    suffix_score = 0;
+
     OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer"); // for peptides, charge should be positive
 
+
     double mz, intensity, im;
-    std::vector<double> yseries, bseries;
-    OpenMS::DIAHelpers::getBYSeries(sequence, bseries, yseries, generator, charge);
-    for (const auto& b_ion_mz : bseries)
+    std::vector<double> prefix_series, suffix_series;
+    
+    OpenMS::DIAHelpers::getPrefixSuffixSeries(sequence, suffix_series, prefix_series, AAgenerator, charge);
+   
+    for (const auto& prefix_ion_mz : suffix_series)
     {
-      RangeMZ mz_range = DIAHelpers::createMZRangePPM(b_ion_mz, dia_extract_window_, dia_extraction_ppm_);
+      RangeMZ mz_range = DIAHelpers::createMZRangePPM(prefix_ion_mz, dia_extract_window_, dia_extraction_ppm_);
 
       bool signalFound = DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
-      double ppmdiff = Math::getPPMAbs(mz, b_ion_mz);
+      double ppmdiff = Math::getPPMAbs(mz, prefix_ion_mz);
       if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
       {
-        bseries_score++;
+        prefix_score++;
       }
     }
-    for (const auto& y_ion_mz : yseries)
+    for (const auto& suffix_ion_mz : prefix_series)
     {
-      RangeMZ mz_range = DIAHelpers::createMZRangePPM(y_ion_mz, dia_extract_window_, dia_extraction_ppm_);
+      RangeMZ mz_range = DIAHelpers::createMZRangePPM(suffix_ion_mz, dia_extract_window_, dia_extraction_ppm_);
 
       bool signalFound = DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
-      double ppmdiff = Math::getPPMAbs(mz, y_ion_mz);
+      double ppmdiff = Math::getPPMAbs(mz, suffix_ion_mz);
       if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
       {
-        yseries_score++;
+        suffix_score++;
+      }
+    }
+  }
+
+   void DIAScoring::dia_by_ion_score(const SpectrumSequence& spectrum,
+                                    const NASequence& sequence, int charge, const RangeMobility& im_range, double& prefix_score,
+                                    double& suffix_score) const
+  {
+    prefix_score = 0;
+    suffix_score = 0;
+
+    double mz, intensity, im;
+    std::vector<double> prefix_series, suffix_series;
+    
+    OpenMS::DIAHelpers::getPrefixSuffixSeries(sequence, suffix_series, prefix_series, NAgenerator, charge);
+
+    for (const auto& prefix_ion_mz : suffix_series)
+    {
+      RangeMZ mz_range = DIAHelpers::createMZRangePPM(prefix_ion_mz, dia_extract_window_, dia_extraction_ppm_);
+
+      bool signalFound = DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
+      double ppmdiff = Math::getPPMAbs(mz, prefix_ion_mz);
+      if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
+      {
+        prefix_score++;
+      }
+    }
+    for (const auto& suffix_ion_mz : prefix_series)
+    {
+      RangeMZ mz_range = DIAHelpers::createMZRangePPM(suffix_ion_mz, dia_extract_window_, dia_extraction_ppm_);
+
+      bool signalFound = DIAHelpers::integrateWindow(spectrum, mz, im, intensity, mz_range, im_range, dia_centroided_);
+      double ppmdiff = Math::getPPMAbs(mz, suffix_ion_mz);
+      if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
+      {
+        suffix_score++;
       }
     }
   }

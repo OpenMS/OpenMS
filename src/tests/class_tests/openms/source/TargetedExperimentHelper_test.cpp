@@ -69,13 +69,13 @@ START_SECTION(TargetedExperimentHelper::RetentionTime())
 }
 END_SECTION
 
-START_SECTION(TargetedExperimentHelper::PeptideCompound())
+START_SECTION(TargetedExperimentHelper::PeptideNuctideCompound())
 {
   // Ensure that PeptideCompound has a no-except move constructor (otherwise
   // std::vector is inefficient and will copy instead of move).
-  TEST_EQUAL(noexcept(TargetedExperimentHelper::PeptideCompound(std::declval<TargetedExperimentHelper::PeptideCompound&&>())), true)
+  TEST_EQUAL(noexcept(TargetedExperimentHelper::PeptideNuctideCompound(std::declval<TargetedExperimentHelper::PeptideNuctideCompound&&>())), true)
 
-  auto ptr = new TargetedExperimentHelper::PeptideCompound();
+  auto ptr = new TargetedExperimentHelper::PeptideNuctideCompound();
   TEST_FALSE(ptr == nullptr)
   delete ptr;
 }
@@ -285,6 +285,101 @@ START_SECTION((TargetedExperiment::Compound))
   TEST_EQUAL(p.getChargeState(), -1)
   p.setChargeState(2);
   TEST_EQUAL(p.getChargeState(), 2)
+}
+END_SECTION
+
+START_SECTION(TargetedExperimentHelper::Nuctide())
+{
+  // Ensure that Nuctide has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  TEST_EQUAL(noexcept(TargetedExperimentHelper::Nuctide(std::declval<TargetedExperimentHelper::Nuctide&&>())), true)
+
+  auto ptr = new TargetedExperimentHelper::Nuctide();
+  TEST_FALSE(ptr == nullptr)
+  delete ptr;
+}
+END_SECTION
+
+START_SECTION(TargetedExperimentHelper::Oligo())
+{
+  // Ensure that Oligo has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  TEST_EQUAL(noexcept(TargetedExperimentHelper::Oligo(std::declval<TargetedExperimentHelper::Oligo&&>())), true)
+
+  auto ptr = new TargetedExperimentHelper::Oligo();
+  TEST_FALSE(ptr == nullptr)
+  delete ptr;
+}
+END_SECTION
+
+START_SECTION((TargetedExperiment::Nuctide))
+{
+  TargetedExperimentHelper::Nuctide n;
+    
+  TEST_EQUAL(n.hasRetentionTime(), false)
+  TEST_EQUAL(n.rts.size(), 0)
+
+  // add a RT
+  TargetedExperimentHelper::RetentionTime rt;
+  rt.setRT(15.0);
+  rt.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::SECOND;
+  rt.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::PREDICTED;
+  n.rts.push_back(rt);
+
+  // test the RT methods
+  TEST_EQUAL(n.rts.size(), 1)
+  TEST_EQUAL(n.rts[0] == rt, true)
+  TEST_EQUAL(n.rts[0].retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::SECOND, true)
+  TEST_EQUAL(n.rts[0].retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::PREDICTED, true)
+  TEST_REAL_SIMILAR(n.rts[0].getRT(), 15.0)
+
+  // test the Nuctide methods
+  TEST_EQUAL(n.hasRetentionTime(), true)
+  TEST_REAL_SIMILAR(n.getRetentionTime(), 15.0)
+  TEST_EQUAL(n.getRetentionTimeUnit() == TargetedExperimentHelper::RetentionTime::RTUnit::SECOND, true)
+  TEST_EQUAL(n.getRetentionTimeType() == TargetedExperimentHelper::RetentionTime::RTType::PREDICTED, true)
+
+  TEST_EQUAL(n.getNuctideGroupLabel(), "")
+  n.setNuctideGroupLabel("nuc_test1");
+  TEST_EQUAL(n.getNuctideGroupLabel(), "nuc_test1")
+
+  TEST_EQUAL(n.hasCharge(), false)
+  n.setChargeState(-1);
+  TEST_EQUAL(n.getChargeState(), -1)
+  n.setChargeState(3);
+  TEST_EQUAL(n.getChargeState(), 3)
+  
+  // Test nucleotide-specific properties
+  TEST_EQUAL(n.id, "")
+  n.id = "nuctide_test_id";
+  TEST_EQUAL(n.id, "nuctide_test_id")
+  
+  TEST_EQUAL(n.sequence, "")
+  n.sequence = "AUGCGAUU";
+  TEST_EQUAL(n.sequence, "AUGCGAUU")
+  
+  // Test oligo references
+  TEST_EQUAL(n.oligo_refs.size(), 0)
+  n.oligo_refs.push_back("oligo1");
+  n.oligo_refs.push_back("oligo2");
+  TEST_EQUAL(n.oligo_refs.size(), 2)
+  TEST_EQUAL(n.oligo_refs[0], "oligo1")
+  TEST_EQUAL(n.oligo_refs[1], "oligo2")
+}
+END_SECTION
+
+START_SECTION((TargetedExperiment::Oligo))
+{
+  TargetedExperimentHelper::Oligo o;
+  
+  // Test basic oligo properties
+  TEST_EQUAL(o.id, "")
+  o.id = "oligo_test_id";
+  TEST_EQUAL(o.id, "oligo_test_id")
+  
+  TEST_EQUAL(o.sequence, "")
+  o.sequence = "AUGCGAUU";
+  TEST_EQUAL(o.sequence, "AUGCGAUU")
 }
 END_SECTION
 

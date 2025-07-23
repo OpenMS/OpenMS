@@ -121,6 +121,14 @@ Remarks:
   {
 
 protected:
+
+    enum class TransType
+    {
+      PEPTIDE, ///< Transition is a peptide transition
+      NUCTIDE, ///< Transition is a nucleotide transition
+      COMPOUND ///< Transition is a metabolomics compound transition
+    };
+
     /**
       @brief Internal structure to represent a transition
 
@@ -138,16 +146,20 @@ protected:
       String group_id = ""; ///< Transition group identifier (grouping transitions of the same analyte)
       bool decoy = false; ///< Whether the transition is a decoy transition
       String PeptideSequence; ///< Peptide sequence (only AA sequence)
+      String NuctideSequence; ///< Nucleotide sequence with modomics modifications
       std::vector<String> ProteinName; ///< List of protein identifiers
+      std::vector<String> OligoName; ///< List of Oligo identifiers (for nucleic acids)
       String GeneName; ///< Gene identifier
       String Annotation; ///< Fragment ion annotation
       String FullPeptideName; ///< Full peptide sequence with UniMod modifications
       String CompoundName; ///< Compound name (for metabolomics)
+      String FullNuctideName; ///< Full nucleotide sequence with Modomics modifications
       String SMILES; ///< SMILES identifier (for metabolomics)
       String SumFormula; ///< Molecular formula (for metabolomics)
       String Adducts; ///< Adducts (for metabolomics)
       String precursor_charge; ///< Precursor charge state
       String peptide_group_label; ///< Peptide group identifier (grouping isotopically labelled peptides)
+      String nuctide_group_label; ///< Nucleotide group identifier (grouping isotopically labelled nucleotides)
       String label_type; ///< Type of label that was used (e.g. "heavy" or "light")
       String fragment_charge = "NA"; ///< Fragment ion charge state
       int fragment_nr = -1; ///< Fragment number (e.g. "7" for a y7 ion)
@@ -161,11 +173,24 @@ protected:
       bool quantifying_transition = true; ///< Whether to use transition to quantify peak group
       std::vector<String> peptidoforms; ///< List of peptidoforms
 
-      /// Whether the transition represents a peptide (by convention, if the
-      /// (metabolic) compound name field is empty, it is a peptide.)
-      bool isPeptide() const
+      TransType getType() const
       {
-        return CompoundName.empty() || CompoundName == "NA";
+        if ((CompoundName.empty() || CompoundName == "NA") && (FullNuctideName.empty() || FullNuctideName == "NA")) // SPWTODO:Can FullPeptideName be empty?  &&!FullPeptideName.empty();
+        {
+          return TransType::PEPTIDE;
+        }
+        else if (!FullNuctideName.empty() && FullNuctideName != "NA")
+        {
+          return TransType::NUCTIDE;
+        }
+        else if (!CompoundName.empty() && CompoundName != "NA")
+        {
+          return TransType::COMPOUND;
+        }
+        else
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Transition type could not be determined. Please check the input file.", "");
+        }
       }
     };
 
@@ -212,6 +237,8 @@ private:
     // Typedefs
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
+    typedef std::vector<OpenMS::TargetedExperiment::Nuctide> NuctideVectorType;
+    typedef std::vector<OpenMS::TargetedExperiment::Oligo> OligoVectorType;
     typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
 
     static const char* strarray_[];
@@ -278,6 +305,10 @@ private:
     /// Populate a new TargetedExperiment::Protein object from a row in the csv
     void createProtein_(String protein_name, const String& uniprot_id,
                         OpenMS::TargetedExperiment::Protein& protein);
+    
+    /// Populate a new TargetedExperiment::Oligo object from a row in the csv
+    void createOligo_(String oligo_name,
+                      OpenMS::TargetedExperiment::Oligo& oligo);
 
     /// Helper function to assign retention times to compounds and peptides
     void interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retention_times,
@@ -286,6 +317,9 @@ private:
     /// Populate a new TargetedExperiment::Peptide object from a row in the csv
     void createPeptide_(std::vector<TSVTransition>::const_iterator tr_it,
                         OpenMS::TargetedExperiment::Peptide& peptide);
+
+    void createNuctide_(std::vector<TSVTransition>::const_iterator tr_it,
+                        OpenMS::TargetedExperiment::Nuctide& nuctide);
 
     /// Populate a new TargetedExperiment::Compound object (a metabolite) from a row in the csv
     void createCompound_(std::vector<TSVTransition>::const_iterator tr_it,

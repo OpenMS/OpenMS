@@ -39,6 +39,7 @@ namespace OpenMS
     name_(rhs.name_),
     peptide_ref_(rhs.peptide_ref_),
     compound_ref_(rhs.compound_ref_),
+    nuctide_ref_(rhs.nuctide_ref_),
     library_intensity_(rhs.library_intensity_),
     decoy_type_(rhs.decoy_type_),
     precursor_mz_(rhs.precursor_mz_),
@@ -65,6 +66,7 @@ namespace OpenMS
     name_(std::move(rhs.name_)),
     peptide_ref_(std::move(rhs.peptide_ref_)),
     compound_ref_(std::move(rhs.compound_ref_)),
+    nuctide_ref_(std::move(rhs.nuctide_ref_)),
     library_intensity_(std::move(rhs.library_intensity_)),
     decoy_type_(std::move(rhs.decoy_type_)),
     precursor_mz_(std::move(rhs.precursor_mz_)),
@@ -93,6 +95,7 @@ namespace OpenMS
       name_ = rhs.name_;
       peptide_ref_ = rhs.peptide_ref_;
       compound_ref_ = rhs.compound_ref_;
+      nuctide_ref_ = rhs.nuctide_ref_;
       precursor_mz_ = rhs.precursor_mz_;
       intermediate_products_ = rhs.intermediate_products_;
       product_ = rhs.product_;
@@ -128,6 +131,7 @@ namespace OpenMS
       name_ = std::move(rhs.name_);
       peptide_ref_ = std::move(rhs.peptide_ref_);
       compound_ref_ = std::move(rhs.compound_ref_);
+      nuctide_ref_ = std::move(rhs.nuctide_ref_);
       precursor_mz_ = std::move(rhs.precursor_mz_);
       intermediate_products_ = std::move(rhs.intermediate_products_);
       product_ = std::move(rhs.product_);
@@ -154,6 +158,7 @@ namespace OpenMS
            name_ == rhs.name_ &&
            peptide_ref_ == rhs.peptide_ref_ &&
            compound_ref_ == rhs.compound_ref_ &&
+           nuctide_ref_ == rhs.nuctide_ref_ &&
            precursor_mz_ == rhs.precursor_mz_ &&
            OpenMS::Helpers::cmpPtrSafe< CVTermList* >(precursor_cv_terms_, rhs.precursor_cv_terms_) &&
            product_ == rhs.product_ &&
@@ -208,6 +213,16 @@ namespace OpenMS
   const String & ReactionMonitoringTransition::getCompoundRef() const
   {
     return compound_ref_;
+  }
+
+  void ReactionMonitoringTransition::setNuctideRef(const String & nucleotide_ref)
+  {
+    nuctide_ref_ = nucleotide_ref;
+  }
+
+  const String & ReactionMonitoringTransition::getNuctideRef() const
+  {
+    return nuctide_ref_;
   }
 
   void ReactionMonitoringTransition::setPrecursorMZ(double mz)

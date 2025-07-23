@@ -249,7 +249,7 @@ START_SECTION((static void convertTargetedCompound(const TargetedExperiment::Pep
   m.unimod_id = 5;
   pep.mods.push_back(m);
 
-  OpenSwathDataAccessHelper::convertTargetedCompound(pep, comp);
+  OpenSwathDataAccessHelper::convertTargetedPeptide(pep, comp);
 
   TEST_REAL_SIMILAR(comp.getDriftTime(), 0.6);
   TEST_EQUAL(comp.getChargeState(), 8);

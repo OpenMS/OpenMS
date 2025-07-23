@@ -8,9 +8,11 @@
 
 #pragma once
 
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
+
 #include <vector>
 namespace OpenMS
 {
@@ -92,17 +94,29 @@ namespace OpenMS
     */
     OPENMS_DLLAPI void adjustExtractionWindow(double& right, double& left, const double& mz_extract_window, const bool& mz_extraction_ppm);
 
-    /// compute the b and y series masses for a given AASequence
-    OPENMS_DLLAPI void getBYSeries(const AASequence& a,
-                                   std::vector<double>& bseries,
-                                   std::vector<double>& yseries,
+    /// compute the prefix and suffix series masses for a given AASequence
+    OPENMS_DLLAPI void getPrefixSuffixSeries(const AASequence& a,
+                                   std::vector<double>& prefixSeries,
+                                   std::vector<double>& suffixSeries,
                                    TheoreticalSpectrumGenerator const * g,
                                    int charge = 1);
 
-    /// for SWATH -- get the theoretical b and y series masses for a sequence
+    /// compute the prefix and suffix series masses for a given AASequence
+    OPENMS_DLLAPI void getPrefixSuffixSeries(const NASequence& a,
+                                   std::vector<double>& prefixSeries,
+                                   std::vector<double>& suffixSeries,
+                                   NucleicAcidSpectrumGenerator const * g,
+                                   int charge = 1);
+
+    /// for SWATH -- get the theoretical prefix and suffix series masses for a sequence
     OPENMS_DLLAPI void getTheorMasses(const AASequence& a,
                                       std::vector<double>& masses,
                                       TheoreticalSpectrumGenerator const * g,
+                                      int charge = 1);
+
+    OPENMS_DLLAPI void getTheorMasses(const NASequence& a,
+                                      std::vector<double>& masses,
+                                      NucleicAcidSpectrumGenerator const * g,
                                       int charge = 1);
 
     /// get averagine distribution given mass
@@ -112,11 +126,24 @@ namespace OpenMS
                                          const int nr_isotopes = 4,
                                          const double mannmass = 1.00048);
 
-    /// simulate spectrum from AASequence
-    OPENMS_DLLAPI void simulateSpectrumFromAASequence(const AASequence& aa,
+    /// get averagine distribution of an RNA at a given mass
+    OPENMS_DLLAPI void getAveragosineIsotopeDistribution(const double product_mz,
+                                         std::vector<std::pair<double, double> >& isotopes_spec,
+                                         const int charge = 1,
+                                         const int nr_isotopes = 4,
+                                         const double mannmass = 1.00048);
+
+    /// simulate spectrum from Sequence
+    OPENMS_DLLAPI void simulateSpectrumFromSequence(const AASequence& aa,
                                         std::vector<double>& first_isotope_masses, //[out]
                                         std::vector<std::pair<double, double> >& isotope_masses, //[out]
                                         TheoreticalSpectrumGenerator const * g,
+                                        int charge = 1);
+
+    OPENMS_DLLAPI void simulateSpectrumFromSequence(const NASequence& na,
+                                        std::vector<double>& first_isotope_masses, //[out]
+                                        std::vector<std::pair<double, double> >& isotope_masses, //[out]
+                                        NucleicAcidSpectrumGenerator const * g,
                                         int charge = 1);
 
     /// add (potentially negative) pre-isotope weights to spectrum

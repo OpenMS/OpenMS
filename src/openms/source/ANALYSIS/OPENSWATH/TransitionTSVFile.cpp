@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
@@ -30,7 +31,7 @@ namespace OpenMS
       value = tmp_line[ tmp->second ];
       // perform cleanup
       value = value.remove('"');
-      value = value.remove('\'');
+      value = value.remove('\''); //SPWFIXME is this gonna be an issue with modomics IDs that have single quotes?
       value = value.remove(',');
       return true;
     }
@@ -138,7 +139,11 @@ namespace OpenMS
     "DetectingTransition",
     "IdentifyingTransition",
     "QuantifyingTransition",
-    "Peptidoforms"
+    "Peptidoforms",
+    "OligoName",
+    "NuctideSequence",
+    "FullNuctideName",
+//    "Nucleoforms"
   };
 
 
@@ -239,7 +244,7 @@ namespace OpenMS
       }
       cnt++;
 
-#ifdef TRANSITIONTSVREADER_TESTING
+      #ifdef TRANSITIONTSVREADER_TESTING
       for (Size i = 0; i < tmp_line.size(); i++)
       {
         std::cout << "line " << i << " " << tmp_line[i] << std::endl;
@@ -249,7 +254,7 @@ namespace OpenMS
       {
         std::cout << "header " << iter.first << " " << iter.second << std::endl;
       }
-#endif
+      #endif
 
       if (tmp_line.size() != header_dict.size())
       {
@@ -257,6 +262,26 @@ namespace OpenMS
                                          "Error reading the file on line " + String(cnt) + ": length of the header and length of the line" +
                                          " do not match: " + String(tmp_line.size()) + " != " + String(header_dict.size()));
       }
+
+
+      // Check for ambiguous entity type: more than one of ProteinId, OligoName, CompoundName not empty
+      // isPeptide treats both empty and "NA" as not set.
+      /*
+      int non_empty_count = 0;
+      String protein_id, oligo_id, compound_name;
+      extractName(protein_id, "FullPeptideName", tmp_line, header_dict);
+      extractName(oligo_id, "FullNuctideName", tmp_line, header_dict);
+      extractName(compound_name, "CompoundName", tmp_line, header_dict);
+
+      if (!protein_id.empty() || !(protein_id == "NA")) non_empty_count++;
+      if (!oligo_id.empty() || !(oligo_id == "NA")) non_empty_count++;
+      if (!compound_name.empty() || !(compound_name == "NA")) non_empty_count++;
+      if (non_empty_count > 1)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Ambiguous entity type: more than one of ProteinId, OligoName, and CompoundName is not empty in the same row: " + String(cnt));
+      }
+      */
 
       TSVTransition mytransition;
       bool skip_transition = false; // skip unannotated transitions in SpectraST MRM files
@@ -342,6 +367,26 @@ namespace OpenMS
       !extractName(mytransition.FullPeptideName, "FullPeptideName", tmp_line, header_dict) &&
       !extractName(mytransition.FullPeptideName, "ModifiedSequence", tmp_line, header_dict) && // Spectronaut
       !extractName(mytransition.FullPeptideName, "ModifiedPeptideSequence", tmp_line, header_dict));
+
+      //// Nucleotides
+
+      void(!extractName(mytransition.NuctideSequence, "NuctideSequence", tmp_line, header_dict));
+      void(!extractName(mytransition.FullNuctideName, "FullNuctideName", tmp_line, header_dict));
+
+      String oligos;
+      void(!extractName(oligos, "OligoName", tmp_line, header_dict));
+      if (oligos != "NA" && !oligos.empty())
+      {
+        oligos.split(';', mytransition.OligoName);
+      }
+
+      void(!extractName(proteins, "ProteinName", tmp_line, header_dict) &&
+      !extractName(proteins, "ProteinId", tmp_line, header_dict)); // Spectronaut
+      if (proteins != "NA" && !proteins.empty())
+      {
+        proteins.split(';', mytransition.ProteinName);
+      }
+
 
       //// IPF
       String peptidoforms;
@@ -581,10 +626,14 @@ namespace OpenMS
     CompoundVectorType compounds;
     PeptideVectorType peptides;
     ProteinVectorType proteins;
+    NuctideVectorType nuctides;
+    OligoVectorType oligos;
 
-    std::map<String, int> peptide_map;
     std::map<String, int> compound_map;
+    std::map<String, int> peptide_map;
     std::map<String, int> protein_map;
+    std::map<String, int> nuctide_map;
+    std::map<String, int> oligo_map;
 
     resolveMixedSequenceGroups_(transition_list);
 
@@ -598,15 +647,24 @@ namespace OpenMS
 
       // check whether we need a new peptide
       if (peptide_map.find(tr_it->group_id) == peptide_map.end() &&
-          compound_map.find(tr_it->group_id) == compound_map.end() )
+          compound_map.find(tr_it->group_id) == compound_map.end() &&
+          nuctide_map.find(tr_it->group_id) == nuctide_map.end())
       {
-        // should we make a peptide or a compound ?
-        if (tr_it->isPeptide())
+        // should we make a peptide a nuctide or a compound ?
+        TransType type = tr_it->getType();
+        if (type == TransType::PEPTIDE)
         {
           OpenMS::TargetedExperiment::Peptide peptide;
           createPeptide_(tr_it, peptide);
           peptides.push_back(peptide);
           peptide_map[peptide.id] = 0;
+        }
+        else if (type == TransType::NUCTIDE)
+        {
+          OpenMS::TargetedExperiment::Nuctide nuctide;
+          createNuctide_(tr_it, nuctide);
+          nuctides.push_back(nuctide);
+          nuctide_map[nuctide.id] = 0;
         }
         else
         {
@@ -618,30 +676,49 @@ namespace OpenMS
       }
 
       // check whether we need new proteins
-      for (size_t i = 0; i < tr_it->ProteinName.size(); ++i)
+      if (tr_it->getType() == TransType::PEPTIDE)
       {
-        if (tr_it->isPeptide() && protein_map.find(tr_it->ProteinName[i]) == protein_map.end())
+        for (size_t i = 0; i < tr_it->ProteinName.size(); ++i)
         {
-          OpenMS::TargetedExperiment::Protein protein;
-          String protein_name = tr_it->ProteinName[i];
-          String uniprot_id = "";
-          if (tr_it->uniprot_id.size() == tr_it->ProteinName.size())
+          if (protein_map.find(tr_it->ProteinName[i]) == protein_map.end())
           {
-            uniprot_id = tr_it->uniprot_id[i];
+            OpenMS::TargetedExperiment::Protein protein;
+            String protein_name = tr_it->ProteinName[i];
+            String uniprot_id = "";
+            if (tr_it->uniprot_id.size() == tr_it->ProteinName.size())
+            {
+              uniprot_id = tr_it->uniprot_id[i];
+            }
+            createProtein_(protein_name, uniprot_id, protein);
+            proteins.push_back(protein);
+            protein_map[tr_it->ProteinName[i]] = 0;
           }
-          createProtein_(protein_name, uniprot_id, protein);
-          proteins.push_back(protein);
-          protein_map[tr_it->ProteinName[i]] = 0;
+        }
+      }
+      if ((tr_it->getType() == TransType::NUCTIDE))
+      {
+        for (size_t i = 0; i < tr_it->OligoName.size(); ++i)
+        {
+          if (oligo_map.find(tr_it->OligoName[i]) == oligo_map.end())
+          {
+            OpenMS::TargetedExperiment::Oligo oligo;
+            String oligo_name = tr_it->OligoName[i];
+            createOligo_(oligo_name, oligo);
+            oligos.push_back(oligo);
+            oligo_map[tr_it->OligoName[i]] = 0;
+          }
         }
       }
 
-      setProgress(progress++);
-    }
+    setProgress(progress++);
+  }
     endProgress();
 
     exp.setCompounds(compounds);
     exp.setPeptides(peptides);
     exp.setProteins(proteins);
+    exp.setNuctides(nuctides);
+    exp.setOligos(oligos);
 
     OPENMS_POSTCONDITION(exp.getTransitions().size() == transition_list.size(), "Input and output list need to have equal size.")
   }
@@ -650,6 +727,7 @@ namespace OpenMS
   {
     std::map<String, int> compound_map;
     std::map<String, int> protein_map;
+    std::map<String, int> oligo_map;
 
     resolveMixedSequenceGroups_(transition_list);
 
@@ -681,11 +759,17 @@ namespace OpenMS
       if (compound_map.find(tr_it->group_id) == compound_map.end())
       {
         OpenSwath::LightCompound compound;
-        if (tr_it->isPeptide())
+        if (tr_it->getType()==TransType::PEPTIDE)
         {
           OpenMS::TargetedExperiment::Peptide tramlpeptide;
           createPeptide_(tr_it, tramlpeptide);
-          OpenSwathDataAccessHelper::convertTargetedCompound(tramlpeptide, compound);
+          OpenSwathDataAccessHelper::convertTargetedPeptide(tramlpeptide, compound);
+        }
+        else if (tr_it->getType()==TransType::NUCTIDE)
+        {
+          OpenMS::TargetedExperiment::Nuctide tramlnuctide;
+          createNuctide_(tr_it, tramlnuctide);
+          OpenSwathDataAccessHelper::convertTargetedNuctide(tramlnuctide, compound);
         }
         else
         {
@@ -700,13 +784,21 @@ namespace OpenMS
       // check whether we need new proteins
       for (Size i = 0; i < tr_it->ProteinName.size(); ++i)
       {
-        if (tr_it->isPeptide() && protein_map.find(tr_it->ProteinName[i]) == protein_map.end())
+        if (tr_it->getType()==TransType::PEPTIDE && protein_map.find(tr_it->ProteinName[i]) == protein_map.end())
         {
           OpenSwath::LightProtein protein;
           protein.id = tr_it->ProteinName[i];
           protein.sequence = "";
           exp.proteins.push_back(protein);
           protein_map[tr_it->ProteinName[i]] = 0;
+        }
+        else if ((tr_it->getType()==TransType::NUCTIDE) && oligo_map.find(tr_it->OligoName[i]) == oligo_map.end())
+        {
+          OpenSwath::LightOligo oligo;
+          oligo.id = tr_it->OligoName[i];
+          oligo.sequence = "";
+          exp.oligos.push_back(oligo);
+          oligo_map[tr_it->OligoName[i]] = 0;
         }
       }
 
@@ -788,9 +880,13 @@ namespace OpenMS
     rm_trans.setNativeID(tr_it->transition_name);
     rm_trans.setPrecursorMZ(tr_it->precursor);
     rm_trans.setProductMZ(tr_it->product);
-    if (tr_it->isPeptide())
+    if (tr_it->getType() == TransType::PEPTIDE)
     {
       rm_trans.setPeptideRef(tr_it->group_id);
+    }
+    else if (tr_it->getType() == TransType::NUCTIDE)
+    {
+      rm_trans.setNuctideRef(tr_it->group_id);
     }
     else
     {
@@ -976,6 +1072,13 @@ namespace OpenMS
     }
   }
 
+  void TransitionTSVFile::createOligo_(String oligo_name, OpenMS::TargetedExperiment::Oligo& oligo)
+  {
+    // the following attributes will be stored as attributes:
+    // - id
+    oligo.id = std::move(oligo_name);
+  }
+
   void TransitionTSVFile::interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retention_times, const OpenMS::DataValue& rt_value)
   {
     TargetedExperiment::RetentionTime retention_time;
@@ -1126,6 +1229,77 @@ namespace OpenMS
                           + aa_sequence.toUnmodifiedString() + " != " + peptide.sequence).c_str())
   }
 
+    void TransitionTSVFile::createNuctide_(std::vector<TSVTransition>::const_iterator tr_it, OpenMS::TargetedExperiment::Nuctide& nuctide)
+  {
+    // the following attributes will be stored as meta values (userParam):
+    //  - full_nuctide_name
+    // the following attributes will be stored as CV values (CV):
+    // - retention time
+    // - charge state
+    // - group label
+    // the following attributes will be stored as attributes:
+    // - id
+    // - sequence
+
+    nuctide.id = tr_it->group_id;
+    nuctide.sequence = tr_it->NuctideSequence;
+
+    // per nuctide user params
+    nuctide.setMetaValue("full_nuctide_name", tr_it->FullNuctideName);
+    if (!tr_it->label_type.empty())
+    {
+      nuctide.setMetaValue("LabelType", tr_it->label_type);
+    }
+    if (!tr_it->SumFormula.empty())
+    {
+      nuctide.setMetaValue("SumFormula", tr_it->SumFormula);
+    }
+
+    // per peptide CV terms
+    nuctide.setNuctideGroupLabel(tr_it->nuctide_group_label);
+    if (!tr_it->precursor_charge.empty() && tr_it->precursor_charge != "NA")
+    {
+      nuctide.setChargeState(tr_it->precursor_charge.toInt());
+    }
+
+    // add retention time for the nuctide
+    std::vector<TargetedExperiment::RetentionTime> retention_times;
+    OpenMS::DataValue rt_value(tr_it->rt_calibrated);
+    interpretRetentionTime_(retention_times, rt_value);
+    nuctide.rts = retention_times;
+
+    // add ion mobility drift time
+    if (tr_it->drift_time >= 0.0)
+    {
+      nuctide.setDriftTime(tr_it->drift_time);
+    }
+
+    NASequence na_sequence;
+    String sequence = tr_it->FullPeptideName;
+    if (sequence.empty()) sequence = tr_it->PeptideSequence;
+    try
+    {
+      na_sequence = NASequence::fromString(sequence);
+    } catch (Exception::InvalidValue & e)
+    {
+      if (force_invalid_mods_)
+      {
+        // fallback: parse the "naked" peptide sequence which should always work
+        OPENMS_LOG_DEBUG << "Invalid sequence when parsing '" << tr_it->FullNuctideName << "'" << std::endl;
+        na_sequence = NASequence::fromString(tr_it->NuctideSequence);
+      }
+      else
+      {
+        OPENMS_LOG_DEBUG << "Invalid sequence when parsing '" << tr_it->FullNuctideName << "'" << std::endl;
+        std::cerr << "Error while reading file (use 'force_invalid_mods' parameter to override): " << e.what() << std::endl;
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Invalid input, cannot parse: " + tr_it->FullNuctideName);
+      }
+    }
+
+    nuctide.oligo_refs = tr_it->OligoName;
+  }
+
   void TransitionTSVFile::createCompound_(std::vector<TSVTransition>::const_iterator tr_it, OpenMS::TargetedExperiment::Compound& compound)
   {
     // the following attributes will be stored as meta values (userParam):
@@ -1197,10 +1371,10 @@ namespace OpenMS
       const OpenMS::TargetedExperiment::Peptide& pep = targeted_exp.getPeptideByRef(it->getPeptideRef());
       mytransition.group_id = it->getPeptideRef();
 
-#ifdef TRANSITIONTSVREADER_TESTING
+      #ifdef TRANSITIONTSVREADER_TESTING
       OPENMS_LOG_DEBUG << "Peptide rts empty " <<
       pep.rts.empty()  << " or no cv term " << pep.getRetentionTime() << std::endl;
-#endif
+      #endif
 
       if (pep.hasRetentionTime())
       {
@@ -1248,6 +1422,57 @@ namespace OpenMS
         mytransition.GeneName = pep.getMetaValue("GeneName").toString();
       }
     }
+    else if (!it->getNuctideRef().empty())
+    {
+      const OpenMS::TargetedExperiment::Nuctide& nuc = targeted_exp.getNuctideByRef(it->getNuctideRef());
+      mytransition.group_id = it->getNuctideRef();
+
+      #ifdef TRANSITIONTSVREADER_TESTING
+      OPENMS_LOG_DEBUG << "Nucleotide rts empty " <<
+      nuc.rts.empty()  << " or no cv term " << nuc.getRetentionTime() << std::endl;
+      #endif
+
+      if (nuc.hasRetentionTime())
+      {
+        mytransition.rt_calibrated = nuc.getRetentionTime();
+      }
+
+      mytransition.NuctideSequence = nuc.sequence;
+      if (!nuc.oligo_refs.empty())
+      {
+        for (auto & oligo_ref : nuc.oligo_refs)
+        {
+          const OpenMS::TargetedExperiment::Oligo& oligo = targeted_exp.getOligoByRef(oligo_ref);
+          mytransition.OligoName.push_back(oligo.id);
+          if (oligo.hasCVTerm("MS:1000885"))
+          {
+            mytransition.uniprot_id.push_back(oligo.getCVTerms().at("MS:1000885")[0].getValue().toString());
+          }
+        }
+      }
+
+      mytransition.FullNuctideName = TargetedExperimentHelper::getNASequence(nuc).toString();
+
+      mytransition.drift_time = -1;
+      if (nuc.getDriftTime() >= 0.0)
+      {
+        mytransition.drift_time = nuc.getDriftTime();
+      }
+      mytransition.precursor_charge = "NA";
+      if (nuc.hasCharge())
+      {
+        mytransition.precursor_charge = String(nuc.getChargeState());
+      }
+      mytransition.nuctide_group_label = "NA";
+      if (!nuc.getNuctideGroupLabel().empty())
+      {
+        mytransition.nuctide_group_label = nuc.getNuctideGroupLabel();
+      }
+      if (nuc.metaValueExists("LabelType"))
+      {
+        mytransition.label_type = nuc.getMetaValue("LabelType").toString();
+      }
+    }
     else if (!it->getCompoundRef().empty())
     {
       const OpenMS::TargetedExperiment::Compound& compound = targeted_exp.getCompoundByRef(it->getCompoundRef());
@@ -1283,14 +1508,15 @@ namespace OpenMS
     }
     else
     {
-      // Error?
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "ReactionMonitoringTransition has neither peptide nor compound reference set.");
     }
 
     if (it->isProductChargeStateSet())
     {
       mytransition.fragment_charge = String(it->getProductChargeState());
     }
-
+    //SPWFIXME these should be dependent on the type nuc v pep
     const auto & product = it->getProduct();
     for (const auto& int_it : product.getInterpretationList())
     {
@@ -1452,7 +1678,11 @@ namespace OpenMS
         + (String)it.detecting_transition     + "\t"
         + (String)it.identifying_transition   + "\t"
         + (String)it.quantifying_transition   + "\t"
-        + ListUtils::concatenate(it.peptidoforms, "|");
+        + ListUtils::concatenate(it.peptidoforms, "|") + "\t"
+        + ListUtils::concatenate(it.OligoName, "|") + "\t"
+        + (String)it.NuctideSequence + "\t"
+        + (String)it.FullNuctideName
+        ;
 
       os << line << std::endl;
     }

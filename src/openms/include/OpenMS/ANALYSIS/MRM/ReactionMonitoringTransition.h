@@ -86,6 +86,10 @@ public:
 
     const String & getCompoundRef() const;
 
+    void setNuctideRef(const String & nucltide_ref);
+
+    const String & getNuctideRef() const;
+
     /// sets the precursor mz (Q1 value)
     void setPrecursorMZ(double mz);
 
@@ -291,6 +295,7 @@ protected:
     // attributes to a peptide / compound (optional)
     String peptide_ref_; ///< Reference to a specific peptide
     String compound_ref_; ///< Reference to a specific compound
+    String nuctide_ref_; ///< Reference to a specific oligo (nucleotide)
 
     /// Intensity of the product (q3) ion (stored in CV Term 1001226 inside the \<Transition\> tag)
     double library_intensity_;

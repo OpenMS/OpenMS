@@ -487,7 +487,7 @@ START_SECTION([EXTRA] void adjustExtractionWindow(double& right, double& left, c
 }
 END_SECTION
 
-START_SECTION([EXTRA] getBYSeries_test)
+START_SECTION([EXTRA] getPrefixSuffixSeries_test)
 {
   TheoreticalSpectrumGenerator generator;
   Param p;
@@ -498,10 +498,19 @@ START_SECTION([EXTRA] getBYSeries_test)
   String sequence = "SYVAWDR";
   std::vector<double> bseries, yseries;
   OpenMS::AASequence a = OpenMS::AASequence::fromString(sequence);
-  OpenMS::DIAHelpers::getBYSeries(a, bseries, yseries, &generator);
+  OpenMS::DIAHelpers::getPrefixSuffixSeries(a, bseries, yseries, &generator);
   bseries.clear();
   OpenMS::DIAHelpers::getTheorMasses(a, bseries, &generator);
 
+  NucleicAcidSpectrumGenerator na_generator;
+  na_generator.setParameters(p);
+
+  String seq_na = "AUCG[Cm]";
+  std::vector<double> bseries_na, yseries_na;
+  OpenMS::NASequence na = OpenMS::NASequence::fromString(seq_na);
+  OpenMS::DIAHelpers::getPrefixSuffixSeries(na, bseries_na, yseries_na, &na_generator);
+  bseries_na.clear();
+  OpenMS::DIAHelpers::getTheorMasses(na, bseries_na, &na_generator);
 }
 END_SECTION
 

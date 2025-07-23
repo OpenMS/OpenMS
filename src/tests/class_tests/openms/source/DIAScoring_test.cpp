@@ -220,7 +220,7 @@ START_SECTION(~DIAScoring())
 }
 END_SECTION
 
-START_SECTION(([EXTRA] void MRMFeatureScoring::getBYSeries(AASequence& a, int charge, std::vector<double>& bseries, std::vector<double>& yseries)))
+START_SECTION(([EXTRA] void MRMFeatureScoring::getPrefixSuffixSeries(AASequence& a, int charge, std::vector<double>& bseries, std::vector<double>& yseries)))
 {
   OpenMS::DIAScoring diascoring;
   String sequence = "SYVAWDR";
@@ -233,7 +233,7 @@ START_SECTION(([EXTRA] void MRMFeatureScoring::getBYSeries(AASequence& a, int ch
       "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
   generator.setParameters(p);
 
-  OpenMS::DIAHelpers::getBYSeries(a,  bseries, yseries, &generator, 1);
+  OpenMS::DIAHelpers::getPrefixSuffixSeries(a,  bseries, yseries, &generator, 1);
 
   TEST_EQUAL(bseries.size(), 5)
   TEST_EQUAL(yseries.size(), 6)
@@ -258,18 +258,16 @@ START_SECTION(([EXTRA] void MRMFeatureScoring::getBYSeries(AASequence& a, int ch
   bseries.clear();
   yseries.clear();
   a.setModification(1, "Phospho" ); // modify the Y
-  OpenMS::DIAHelpers::getBYSeries(a,  bseries, yseries, &generator, 1);
+  OpenMS::DIAHelpers::getPrefixSuffixSeries(a,  bseries, yseries, &generator, 1);
 
   TEST_EQUAL(bseries.size(), 5)
   TEST_EQUAL(yseries.size(), 6)
 
-  //TEST_REAL_SIMILAR (bseries[0],  88.03990 );
   TEST_REAL_SIMILAR (bseries[0], 251.10323 + 79.9657 );
   TEST_REAL_SIMILAR (bseries[1], 350.17164 + 79.9657 );
   TEST_REAL_SIMILAR (bseries[2], 421.20875 + 79.9657 );
   TEST_REAL_SIMILAR (bseries[3], 607.28807 + 79.9657 );
   TEST_REAL_SIMILAR (bseries[4], 722.31501 + 79.9657 );
-  //TEST_REAL_SIMILAR (bseries[5], 878.41612 );
 
   TEST_REAL_SIMILAR (yseries[0], 175.11955  );
   TEST_REAL_SIMILAR (yseries[1], 290.14649  );
@@ -277,7 +275,40 @@ START_SECTION(([EXTRA] void MRMFeatureScoring::getBYSeries(AASequence& a, int ch
   TEST_REAL_SIMILAR (yseries[3], 547.26291  );
   TEST_REAL_SIMILAR (yseries[4], 646.33133  );
   TEST_REAL_SIMILAR (yseries[5], 809.39466 + 79.9657);
-  //TEST_REAL_SIMILAR (yseries[6], 896.42668  );
+}
+END_SECTION
+
+START_SECTION(([EXTRA] void MRMFeatureScoring::getPrefixSuffixSeries(NASequence& a, int charge, std::vector<double>& bseries, std::vector<double>& yseries)))
+{
+  OpenMS::DIAScoring diascoring;
+  String sequence = "CUG[Cm]AUU";
+  std::vector<double> bseries, yseries;
+  OpenMS::NASequence a = OpenMS::NASequence::fromString(sequence);
+
+  NucleicAcidSpectrumGenerator generator;
+  Param p;
+  p.setValue("add_metainfo", "true",
+      "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+  p.setValue("add_first_prefix_ion", "true");
+  generator.setParameters(p);
+
+  OpenMS::DIAHelpers::getPrefixSuffixSeries(a,  bseries, yseries, &generator, -1);
+
+  TEST_EQUAL(bseries.size(), 6)
+  TEST_EQUAL(yseries.size(), 6)
+
+  TEST_REAL_SIMILAR (bseries[0], 242.07822 );
+  TEST_REAL_SIMILAR (bseries[1], 548.10349 );
+  TEST_REAL_SIMILAR (bseries[2], 893.15096 );
+  TEST_REAL_SIMILAR (bseries[3], 1212.2079 );
+  TEST_REAL_SIMILAR (bseries[4], 1541.2605 );
+
+  TEST_REAL_SIMILAR (yseries[0], 243.06222  );
+  TEST_REAL_SIMILAR (yseries[1], 549.08749  );
+  TEST_REAL_SIMILAR (yseries[2], 878.14006  );
+  TEST_REAL_SIMILAR (yseries[3], 1197.1970  );
+  TEST_REAL_SIMILAR (yseries[4], 1542.2445  );
+  TEST_REAL_SIMILAR (yseries[5], 1848.2698  );
 }
 END_SECTION
 
@@ -800,6 +831,47 @@ START_SECTION ( void dia_by_ion_score(std::vector<SpectrumType> spectrum, AASequ
   diascoring.dia_by_ion_score(sptrArr, a, 1, empty_imRange, bseries_score, yseries_score);
 
   TEST_REAL_SIMILAR (bseries_score, 1);
+  TEST_REAL_SIMILAR (yseries_score, 3);
+}
+END_SECTION
+
+START_SECTION ( void dia_by_ion_score(std::vector<SpectrumType> spectrum, NASequence &sequence, int charge, RangeMobility& im_range, double &bseries_score, double &yseries_score) )
+{
+  OpenSwath::SpectrumPtr sptr = (OpenSwath::SpectrumPtr)(new OpenSwath::Spectrum);
+  std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
+  OpenSwath::BinaryDataArrayPtr data1 = (OpenSwath::BinaryDataArrayPtr)(new OpenSwath::BinaryDataArray);
+  OpenSwath::BinaryDataArrayPtr data2 = (OpenSwath::BinaryDataArrayPtr)(new OpenSwath::BinaryDataArray);
+
+  OpenMS::RangeMobility empty_imRange;
+  std::vector<double> intensity(6, 100);
+  std::vector<double> mz {
+    // four of the naked b/y ions
+    242.07822, // b
+    548.10349, // b
+    893.15096, // b
+    1197.19702, // y
+    1542.24448, // y
+    1848.26975 // y
+  };
+
+  data1->data = mz;
+  data2->data = intensity;
+
+  sptr->setMZArray(data1);
+  sptr->setIntensityArray( data2 );
+
+  DIAScoring diascoring;
+  diascoring.setParameters(p_dia);
+  String sequence = "CUG[Cm]AUU";
+  std::vector<double> bseries, yseries;
+  NASequence n = NASequence::fromString(sequence);
+
+  double bseries_score = 0, yseries_score = 0;
+  SpectrumSequence sptrArr;
+  sptrArr.push_back(sptr);
+  diascoring.dia_by_ion_score(sptrArr, n, -1, empty_imRange, bseries_score, yseries_score);
+
+  TEST_REAL_SIMILAR (bseries_score, 2);
   TEST_REAL_SIMILAR (yseries_score, 3);
 }
 END_SECTION

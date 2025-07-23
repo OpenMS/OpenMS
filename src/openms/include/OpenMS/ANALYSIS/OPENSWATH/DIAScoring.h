@@ -9,6 +9,9 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/SequenceBase.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
@@ -20,7 +23,6 @@
 
 namespace OpenMS
 {
-  class TheoreticalSpectrumGenerator;
 
   /**
     @brief Scoring of an spectrum at the peak apex of an chromatographic elution peak.
@@ -120,9 +122,13 @@ public:
     void dia_ms1_isotope_scores(double precursor_mz, const std::vector<SpectrumPtrType>& spectrum, RangeMobility& im_range,
                                 double& isotope_corr, double& isotope_overlap, const EmpiricalFormula& sum_formula) const;
 
-    /// b/y ion scores
-    void dia_by_ion_score(const SpectrumSequence& spectrum, AASequence& sequence,
+    /// b/y ion scores (original AASequence version)
+    void dia_by_ion_score(const SpectrumSequence& spectrum, const AASequence& sequence,
                           int charge, const RangeMobility& im_range, double& bseries_score, double& yseries_score) const;
+
+    /// prefix/suffix ion scores for nucleic acids
+    void dia_by_ion_score(const SpectrumSequence& spectrum, const NASequence& sequence,
+                          int charge, const RangeMobility& im_range, double& prefix_score, double& suffix_score) const;
 
     /// Dotproduct / Manhattan score with theoretical spectrum
     void score_with_isotopes(SpectrumSequence& spectrum,
@@ -224,6 +230,7 @@ private:
     bool dia_extraction_ppm_;
     bool dia_centroided_;
 
-    TheoreticalSpectrumGenerator * generator;
+    TheoreticalSpectrumGenerator * AAgenerator;
+    NucleicAcidSpectrumGenerator * NAgenerator;
   };
 }

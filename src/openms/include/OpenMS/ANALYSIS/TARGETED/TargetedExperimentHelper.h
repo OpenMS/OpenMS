@@ -15,6 +15,7 @@
 #include <OpenMS/CONCEPT/Macros.h>
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/METADATA/CVTerm.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/METADATA/CVTermListInterface.h>
@@ -84,6 +85,23 @@ namespace OpenMS
 
     };
 
+    /// @brief This class stores the nucleic acid equivalent of a protein, compare with nuctide, which is the nucleic acid peptide
+    struct Oligo :
+      public CVTermList
+    {
+      Oligo() = default;
+      bool operator==(const Oligo& rhs) const
+      {
+        return CVTermList::operator==(rhs) &&
+          id == rhs.id &&
+          sequence == rhs.sequence;
+      }
+
+      String id;
+      String sequence;
+
+    };
+
     /**
       @brief This class stores a retention time structure that is used in TargetedExperiment (representing a TraML file)
 
@@ -125,9 +143,6 @@ public:
         retention_time_type(RTType::SIZE_OF_RTTYPE),
         retention_time_set_(false),
         retention_time_(0.0)
-        // retention_time_width(0.0),
-        // retention_time_lower(0.0),
-        // retention_time_upper(0.0)
       {
       }
 
@@ -170,9 +185,6 @@ private:
 
       bool retention_time_set_;
       double retention_time_;
-      // double retention_time_width;
-      // double retention_time_lower;
-      // double retention_time_upper;
     };
 
     /**
@@ -180,17 +192,17 @@ private:
 
       Stores retention time, identifiers, charge and precursor ion mobility drift time.
     */
-    class OPENMS_DLLAPI PeptideCompound :
+    class OPENMS_DLLAPI PeptideNuctideCompound :
       public CVTermList
     {
 public:
-      PeptideCompound() = default;
-      PeptideCompound(const PeptideCompound &) = default;
-      PeptideCompound(PeptideCompound &&) noexcept = default;
-      PeptideCompound & operator=(const PeptideCompound &) & = default;
-      PeptideCompound & operator=(PeptideCompound &&) & = default;
+      PeptideNuctideCompound() = default;
+      PeptideNuctideCompound(const PeptideNuctideCompound &) = default;
+      PeptideNuctideCompound(PeptideNuctideCompound &&) noexcept = default;
+      PeptideNuctideCompound & operator=(const PeptideNuctideCompound &) & = default;
+      PeptideNuctideCompound & operator=(PeptideNuctideCompound &&) & = default;
 
-      bool operator==(const PeptideCompound & rhs) const
+      bool operator==(const PeptideNuctideCompound & rhs) const
       {
         return CVTermList::operator==(rhs) &&
                rts == rhs.rts &&
@@ -292,7 +304,7 @@ protected:
 
     */
     class OPENMS_DLLAPI Compound :
-      public PeptideCompound
+      public PeptideNuctideCompound
     {
 public:
 
@@ -308,7 +320,7 @@ public:
 
       bool operator==(const Compound & rhs) const
       {
-        return PeptideCompound::operator==(rhs) &&
+        return PeptideNuctideCompound::operator==(rhs) &&
                molecular_formula == rhs.molecular_formula &&
                smiles_string == rhs.smiles_string &&
                theoretical_mass == rhs.theoretical_mass;
@@ -329,7 +341,7 @@ protected:
 
     */
     class OPENMS_DLLAPI Peptide :
-      public PeptideCompound
+      public PeptideNuctideCompound
     {
 public:
       struct Modification :
@@ -357,7 +369,7 @@ public:
 
       bool operator==(const Peptide & rhs) const
       {
-        return PeptideCompound::operator==(rhs) &&
+        return PeptideNuctideCompound::operator==(rhs) &&
                protein_refs == rhs.protein_refs &&
                evidence == rhs.evidence &&
                sequence == rhs.sequence &&
@@ -395,6 +407,79 @@ public:
 
 protected:
       String peptide_group_label_;
+    };
+
+
+
+        /**
+      @brief Represents a nuctide (nucleic acid sequence)
+
+      Also stores information about the sequence, and linked oligo.
+      Lots of overlap with Peptide, but modifications are stored differently
+      and the sequence is a nucleic acid sequence.
+
+    */
+    class OPENMS_DLLAPI Nuctide :
+      public PeptideNuctideCompound
+    {
+public:
+      struct Modification :
+        public CVTermListInterface
+      {
+        double avg_mass_delta;
+        double mono_mass_delta;
+        Int32 location;
+        Int32 unimod_id;
+
+        Modification() :
+          CVTermListInterface(),
+          location(-1),
+          unimod_id(-1)
+        {
+        }
+
+      };
+
+      Nuctide() = default;
+      Nuctide(const Nuctide &) = default;
+      Nuctide(Nuctide &&) noexcept = default;
+      Nuctide & operator=(const Nuctide &) & = default;
+      Nuctide & operator=(Nuctide &&) & = default;
+
+      bool operator==(const Nuctide & rhs) const
+      {
+        return PeptideNuctideCompound::operator==(rhs) &&
+               oligo_refs == rhs.oligo_refs &&
+               evidence == rhs.evidence &&
+               sequence == rhs.sequence &&
+               nuctide_group_label_ == rhs.nuctide_group_label_;
+      }
+
+      /** @name The nuctide group label specifies to non-labeled nuctide group to which the nuctide belongs
+       *
+       * Equivalent to the peptide group label, but for nuctides.
+       *
+     */
+      //@{
+      /// Set the nuctide group label
+      void setNuctideGroupLabel(const String & label)
+      {
+        nuctide_group_label_ = label;
+      }
+
+      /// Get the nuctide group label
+      String getNuctideGroupLabel() const
+      {
+        return nuctide_group_label_;
+      }
+      //@}
+
+      std::vector<String> oligo_refs;
+      CVTermList evidence;
+      String sequence;
+
+protected:
+      String nuctide_group_label_;
     };
 
     struct OPENMS_DLLAPI Contact :
@@ -618,6 +703,9 @@ private:
 
     /// helper function that converts a Peptide object to a AASequence object
     OPENMS_DLLAPI OpenMS::AASequence getAASequence(const Peptide& peptide);
+
+    /// helper function that converts a Nucleotide object to a NASequence object
+    OPENMS_DLLAPI OpenMS::NASequence getNASequence(const Nuctide& nuctide);
 
     /// helper function that sets a modification on a AASequence object
     OPENMS_DLLAPI void setModification(int location, int max_size, const String& modification, OpenMS::AASequence & aas);

@@ -8,7 +8,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 
@@ -78,7 +78,6 @@ namespace OpenMS::DIAHelpers
       {
         if (spectrum->getDriftTimeArray() == nullptr)
         {
-            //throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot integrate with drift time if no drift time is available");
             throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot integrate with drift time if no drift time is available");
         }
       }
@@ -328,36 +327,68 @@ namespace OpenMS::DIAHelpers
       }
     }
 
-    // for SWATH -- get the theoretical b and y series masses for a sequence
-    void getBYSeries(const AASequence& a, //
-                     std::vector<double>& bseries, //
-                     std::vector<double>& yseries, //
+    // for SWATH -- get the theoretical prefix and suffix series masses for a sequence
+    void getPrefixSuffixSeries(const AASequence& a, //
+                     std::vector<double>& prefix_series, //
+                     std::vector<double>& suffix_series, //
                      TheoreticalSpectrumGenerator const * generator,
                      int charge)
     {
       // Note: We pass TheoreticalSpectrumGenerator ptr, as constructing it each time is too slow.
-      OPENMS_PRECONDITION(charge > 0, "For constructing b/y series we require charge being a positive integer");
+      OPENMS_PRECONDITION(charge > 0, "For constructing prefix/suffix series we require charge being a positive integer");
 
       if (a.empty()) return;
 
       PeakSpectrum spec;
       generator->getSpectrum(spec, a, charge, charge);
 
-      // Data array is present if AASequence is not empty
+      // Data array is present if Sequence is not empty
       const PeakSpectrum::StringDataArray& ion_name = spec.getStringDataArrays()[0];
-
+      // TODO is it faster to just pass two generators, one for prefix and one for suffix?
       for (Size i = 0; i != spec.size(); ++i)
       {
         if (ion_name[i][0] == 'y')
         {
-          yseries.push_back(spec[i].getMZ());
+          suffix_series.push_back(spec[i].getMZ());
         }
         else if (ion_name[i][0] == 'b')
         {
-          bseries.push_back(spec[i].getMZ());
+          prefix_series.push_back(spec[i].getMZ());
         }
       }
-    } // end getBYSeries
+    } // end getPrefixSuffixSeries
+
+
+        // for SWATH -- get the theoretical prefix and suffix series masses for a sequence
+    void getPrefixSuffixSeries(const NASequence& a, //
+                     std::vector<double>& prefix_series, //
+                     std::vector<double>& suffix_series, //
+                     NucleicAcidSpectrumGenerator const * generator,
+                     int charge)
+    {
+      // Note: We pass TheoreticalSpectrumGenerator ptr, as constructing it each time is too slow.
+
+      if (a.empty()) return;
+
+      PeakSpectrum spec;
+      generator->getSpectrum(spec, a, charge, charge);
+
+      // Data array is present if Sequence is not empty
+      const PeakSpectrum::StringDataArray& ion_name = spec.getStringDataArrays()[0];
+
+      for (Size i = 0; i != spec.size(); ++i)
+      {
+        if (ion_name[i][0] == 'w' || ion_name[i][0] == 'x' || ion_name[i][0] == 'y' || ion_name[i][0] == 'z')
+        {
+          suffix_series.push_back(spec[i].getMZ());
+        }
+        // NB: this also grabs a-B ions
+        else if (ion_name[i][0] == 'a' || ion_name[i][0] == 'b' || ion_name[i][0] == 'c' || ion_name[i][0] == 'd')
+        {
+          prefix_series.push_back(spec[i].getMZ());
+        }
+      }
+    } // end getPrefixSuffixSeries
 
     // for SWATH -- get the theoretical b and y series masses for a sequence
     void getTheorMasses(const AASequence& a,
@@ -366,7 +397,7 @@ namespace OpenMS::DIAHelpers
                         int charge)
     {
       // Note: We pass TheoreticalSpectrumGenerator ptr, as constructing it each time is too slow.
-      OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
+      OPENMS_PRECONDITION(charge > 0, "For peptides Charge is a positive integer");
 
       PeakSpectrum spec;
       generator->getSpectrum(spec, a, charge, charge);
@@ -375,7 +406,26 @@ namespace OpenMS::DIAHelpers
       {
         masses.push_back(it->getMZ());
       }
-    } // end getBYSeries
+    } // end getTheorMasses
+
+        // for SWATH -- get the theoretical b and y series masses for a sequence
+    void getTheorMasses(const NASequence& a,
+                        std::vector<double>& masses,
+                        NucleicAcidSpectrumGenerator const * generator,
+                        int charge)
+    {
+      // Note: We pass TheoreticalSpectrumGenerator ptr, as constructing it each time is too slow.
+      OPENMS_PRECONDITION(charge > 0, "For peptides Charge is a positive integer");
+
+      PeakSpectrum spec;
+      generator->getSpectrum(spec, a, charge, charge);
+      for (PeakSpectrum::iterator it = spec.begin();
+           it != spec.end(); ++it)
+      {
+        masses.push_back(it->getMZ());
+      }
+    } // end getTheorMasses
+
 
     void  getAveragineIsotopeDistribution(const double product_mz,
                                          std::vector<std::pair<double, double> >& isotopes_spec,
@@ -389,6 +439,7 @@ namespace OpenMS::DIAHelpers
       CoarseIsotopePatternGenerator solver(nr_isotopes);
       TheoreticalIsotopePattern isotopes;
       //Note: this is a rough estimate of the weight, usually the protons should be deducted first, left for backwards compatibility.
+      //SPWTODO: this needs to get changed to be dependent on the polymer type
       auto d = solver.estimateFromPeptideWeight(product_mz * charge);
 
       double mass = product_mz;
@@ -399,8 +450,31 @@ namespace OpenMS::DIAHelpers
       }
     } //end of dia_isotope_corr_sub
 
-    //simulate spectrum from AASequence
-    void simulateSpectrumFromAASequence(const AASequence& aa,
+
+    void  getAveragosineIsotopeDistribution(const double product_mz,
+                                         std::vector<std::pair<double, double> >& isotopes_spec,
+                                         int charge,
+                                         const int nr_isotopes,
+                                         const double mannmass)
+    {
+      charge = std::abs(charge);
+      typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
+      // create the theoretical distribution
+      CoarseIsotopePatternGenerator solver(nr_isotopes);
+      TheoreticalIsotopePattern isotopes;
+      //Note: this is a rough estimate of the weight, usually the protons should be deducted first, left for backwards compatibility.
+      auto d = solver.estimateFromRNAWeight(product_mz * charge);
+
+      double mass = product_mz;
+      for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
+      {
+        isotopes_spec.emplace_back(mass, it->getIntensity());
+        mass += mannmass / charge;
+      }
+    }
+
+    //simulate spectrum from Sequence
+    void simulateSpectrumFromSequence(const AASequence& aa,
                                         std::vector<double>& first_isotope_masses, //[out]
                                         std::vector<std::pair<double, double> >& isotope_masses, //[out]
                                         TheoreticalSpectrumGenerator const * generator, int charge)
@@ -409,6 +483,19 @@ namespace OpenMS::DIAHelpers
       for (std::size_t i = 0; i < first_isotope_masses.size(); ++i)
       {
         getAveragineIsotopeDistribution(first_isotope_masses[i], isotope_masses,
+                                        charge);
+      }
+    }
+
+    void simulateSpectrumFromSequence(const NASequence& na,
+                                        std::vector<double>& first_isotope_masses, //[out]
+                                        std::vector<std::pair<double, double> >& isotope_masses, //[out]
+                                        NucleicAcidSpectrumGenerator const * generator, int charge)
+    {
+      getTheorMasses(na, first_isotope_masses, generator, charge);
+      for (std::size_t i = 0; i < first_isotope_masses.size(); ++i)
+      {
+      getAveragosineIsotopeDistribution(first_isotope_masses[i], isotope_masses,
                                         charge);
       }
     }
@@ -525,5 +612,4 @@ namespace OpenMS::DIAHelpers
       }
       return rangeMZ;
     }
-
   }
