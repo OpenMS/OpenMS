@@ -39,7 +39,6 @@ Library:
 - Removed `assignRanks` and `sortByRanks` in PeptideIdentifications and sort and filter by score instead. Also removed `updateHitRanks` in IDFilter (#7991)
 - Remove ranke member in PeptideHit and store ranks as meta value (for backwards compatibility). (#7997)
 - std::vector<PeptideIdentification> now is encapsulated in a class PeptideIdentificationList
-- Add SequenceBase, a parent class of NASequence and AASequence to expose common functions
 - Added `EnzymaticDigestion.semiSpecificDigestion_()`
 - ProteaseDigestion: add support for semi-specific digestion (#8130)
 - added library support for storing and processing nucleotide data in OpenSWATH
