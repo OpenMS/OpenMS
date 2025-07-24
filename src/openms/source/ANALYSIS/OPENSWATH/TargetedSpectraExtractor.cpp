@@ -376,27 +376,40 @@ namespace OpenMS
 
       for (Size j = 0; j < transitions.size(); ++j)
       {
-        const TargetedExperimentHelper::Peptide& peptide = targeted_exp.getPeptideByRef(transitions[j].getPeptideRef());
-        double target_rt = peptide.getRetentionTime();
-        if (peptide.getRetentionTimeUnit() == TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE)
+        double target_rt = -1.0;
+        if (transitions[j].getTransType() == OpenSwath::TransType::PEPTIDE)
         {
-          target_rt *= 60.0;
+          const TargetedExperimentHelper::Peptide& peptide = targeted_exp.getPeptideByRef(transitions[j].getTransRef());
+          target_rt = peptide.getRetentionTime();
+          if (peptide.getRetentionTimeUnit() == TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE)
+          {
+            target_rt *= 60.0;
+          }
+        }
+        else if (transitions[j].getTransType() == OpenSwath::TransType::NUCTIDE)
+        {
+          const TargetedExperimentHelper::Nuctide& nuctide = targeted_exp.getNuctideByRef(transitions[j].getTransRef());
+          target_rt = nuctide.getRetentionTime();
+          if (nuctide.getRetentionTimeUnit() == TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE)
+          {
+            target_rt *= 60.0;
+          }
         }
         const double target_mz = transitions[j].getPrecursorMZ();
         if (target_rt >= rt_left_lim && target_rt <= rt_right_lim &&
             target_mz >= mz_left_lim && target_mz <= mz_right_lim)
         {
-          OPENMS_LOG_DEBUG << "annotateSpectra(): [" << j << "][" << transitions[j].getPeptideRef() << "]";
+          OPENMS_LOG_DEBUG << "annotateSpectra(): [" << j << "][" << transitions[j].getTransRef() << "]";
           OPENMS_LOG_DEBUG << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << std::endl << std::endl;
           MSSpectrum annotated_spectrum = spectrum;
-          annotated_spectrum.setName(transitions[j].getPeptideRef());
+          annotated_spectrum.setName(transitions[j].getTransRef());
           annotated_spectra.push_back(annotated_spectrum);
           if (compute_features)
           {
             Feature feature;
             feature.setRT(spectrum_rt);
             feature.setMZ(spectrum_mz);
-            feature.setMetaValue("transition_name", transitions[j].getPeptideRef());
+            feature.setMetaValue("transition_name", transitions[j].getTransRef());
             features.push_back(feature);
           }
         }
@@ -854,7 +867,7 @@ namespace OpenMS
 
     targetedMatching(picked, cmp, features);
   }
-
+//SPWTODO add nuc version
   void TargetedSpectraExtractor::constructTransitionsList(const OpenMS::FeatureMap& ms1_features, const OpenMS::FeatureMap& ms2_features, TargetedExperiment& t_exp) const
   { 
     // Create a map based on PeptideRef between MS1 and MS2 features
@@ -911,7 +924,7 @@ namespace OpenMS
           std::ostringstream os;
           os << peptide_ref << "_" << ms2_feature->getMetaValue("native_id") << "_" << ms2_feature->getRT();
           rmt.setNativeID(os.str());
-          rmt.setPeptideRef(peptide_ref);
+          rmt.setTransRef(peptide_ref, OpenSwath::TransType::PEPTIDE);
           rmt.setPrecursorMZ(ms1_feature.getMZ());
           rmt.setProductMZ(ms2_feature->getMZ());
           rmt.addMetaValues(*ms2_feature);

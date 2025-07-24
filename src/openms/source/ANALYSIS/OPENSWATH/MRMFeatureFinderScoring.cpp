@@ -1114,12 +1114,12 @@ namespace OpenMS
       if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
       {
         OPENMS_LOG_DEBUG << "Error: Transition " + transition->getNativeID() + " from group " +
-          transition->getPeptideRef() + " does not have a corresponding chromatogram" << std::endl;
+          transition->getTransRef() + " does not have a corresponding chromatogram" << std::endl;
         if (strict_)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                            "Error: Transition " + transition->getNativeID() + " from group " +
-                                           transition->getPeptideRef() + " does not have a corresponding chromatogram");
+                                           transition->getTransRef() + " does not have a corresponding chromatogram");
         }
         continue;
       }
@@ -1137,7 +1137,7 @@ namespace OpenMS
       // other way round.
       if (rt_extraction_window > 0)
       {
-        expected_rt = PeptideRefMap_[transition->getPeptideRef()]->rt;
+        expected_rt = PeptideRefMap_[transition->getTransRef()]->rt;
         double de_normalized_experimental_rt = trafo.apply(expected_rt);
         rt_max = de_normalized_experimental_rt + rt_extraction_window;
         rt_min = de_normalized_experimental_rt - rt_extraction_window;
@@ -1169,15 +1169,15 @@ namespace OpenMS
       chromatogram.setNativeID(transition->getNativeID());
 
       // Create new transition group if there is none for this peptide
-      if (transition_group_map.find(transition->getPeptideRef()) == transition_group_map.end())
+      if (transition_group_map.find(transition->getTransRef()) == transition_group_map.end())
       {
         MRMTransitionGroupType transition_group;
-        transition_group.setTransitionGroupID(transition->getPeptideRef());
-        transition_group_map[transition->getPeptideRef()] = transition_group;
+        transition_group.setTransitionGroupID(transition->getTransRef());
+        transition_group_map[transition->getTransRef()] = transition_group;
       }
 
       // Now add the transition and the chromatogram to the group
-      MRMTransitionGroupType& transition_group = transition_group_map[transition->getPeptideRef()];
+      MRMTransitionGroupType& transition_group = transition_group_map[transition->getTransRef()];
       transition_group.addTransition(*transition, transition->getNativeID());
       transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
 

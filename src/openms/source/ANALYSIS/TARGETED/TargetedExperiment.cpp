@@ -799,27 +799,27 @@ namespace OpenMS
     for (Size i = 0; i < getTransitions().size(); i++)
     {
       const ReactionMonitoringTransition& tr = getTransitions()[i];
-      if (!tr.getPeptideRef().empty())
+      if (tr.getTransType() == OpenSwath::TransType::PEPTIDE && !tr.getTransRef().empty())
       {
-        if (unique_peptide_map.find(tr.getPeptideRef()) == unique_peptide_map.end()) 
+        if (unique_peptide_map.find(tr.getTransRef()) == unique_peptide_map.end())
         {
-          OPENMS_LOG_ERROR << "Peptide " << tr.getPeptideRef() << " is not present in the provided data structure." << std::endl;
+          OPENMS_LOG_ERROR << "Peptide " << tr.getTransRef() << " is not present in the provided data structure." << std::endl;
           return true;
         }
       }
-      else if (!tr.getNuctideRef().empty())
+      else if (tr.getTransType() == OpenSwath::TransType::NUCTIDE && !tr.getTransRef().empty())
       {
-        if (unique_nuctide_map.find(tr.getNuctideRef()) == unique_nuctide_map.end()) 
+        if (unique_nuctide_map.find(tr.getTransRef()) == unique_nuctide_map.end())
         {
-          OPENMS_LOG_ERROR << "Nuctide " << tr.getNuctideRef() << " is not present in the provided data structure." << std::endl;
+          OPENMS_LOG_ERROR << "Nuctide " << tr.getTransRef() << " is not present in the provided data structure." << std::endl;
           return true;
         }
       }
-      else if (!tr.getCompoundRef().empty())
+      else if (tr.getTransType() == OpenSwath::TransType::COMPOUND && !tr.getTransRef().empty())
       {
-        if (unique_compounds_map.find(tr.getCompoundRef()) == unique_compounds_map.end()) 
+        if (unique_compounds_map.find(tr.getTransRef()) == unique_compounds_map.end())
         {
-          OPENMS_LOG_ERROR << "Compound " << tr.getCompoundRef() << " is not present in the provided data structure." << std::endl;
+          OPENMS_LOG_ERROR << "Compound " << tr.getTransRef() << " is not present in the provided data structure." << std::endl;
           return true;
         }
       }

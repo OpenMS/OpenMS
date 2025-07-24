@@ -330,7 +330,7 @@ namespace OpenMS
             {
                const OpenSwath::LightTransition& tr = irt_transitions.transitions[k];
                transition_exp_used.transitions.push_back(tr);
-               matching_compounds.insert(tr.getPeptideRef());
+               matching_compounds.insert(tr.getTransRef());
                OPENMS_LOG_DEBUG << "Adding Precursor with m/z " << tr.getPrecursorMZ() << " and IM of " << tr.getPrecursorIM() <<  " to swath with mz lower of " << swath_maps[map_idx].lower << " m/z upper of " << swath_maps[map_idx].upper << " im lower of " << swath_maps[map_idx].imLower << " and im upper of " << swath_maps[map_idx].imUpper << std::endl;
             }
           }
@@ -628,7 +628,7 @@ namespace OpenMS
             {
                const OpenSwath::LightTransition& tr = transition_exp.transitions[k];
                transition_exp_used_all.transitions.push_back(tr);
-               matching_compounds.insert(tr.getPeptideRef());
+               matching_compounds.insert(tr.getTransRef());
                OPENMS_LOG_DEBUG << "Adding Precursor with m/z " << tr.getPrecursorMZ() << " and IM of " << tr.getPrecursorIM() <<  " to swath with mz upper of " << swath_maps[i].upper << " im lower of " << swath_maps[i].imLower << " and im upper of " << swath_maps[i].imUpper << std::endl;
             }
           }
@@ -928,7 +928,7 @@ namespace OpenMS
     }
     for (Size i = 0; i < transition_exp.getTransitions().size(); i++)
     {
-      assay_map[transition_exp.getTransitions()[i].getPeptideRef()].push_back(&transition_exp.getTransitions()[i]);
+      assay_map[transition_exp.getTransitions()[i].getTransRef()].push_back(&transition_exp.getTransitions()[i]);
     }
 
     std::vector<String> to_osw_output;
@@ -1064,7 +1064,7 @@ namespace OpenMS
 
     for (Size i = 0; i < all_transitions.size(); i++)
     {
-      if (selected_compounds.find(all_transitions[i].peptide_ref) != selected_compounds.end())
+      if (selected_compounds.find(all_transitions[i].transition_ref) != selected_compounds.end())
       {
         output.push_back(all_transitions[i]);
       }

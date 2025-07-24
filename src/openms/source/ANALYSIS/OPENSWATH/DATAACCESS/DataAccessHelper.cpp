@@ -134,19 +134,15 @@ namespace OpenMS
       t.product_mz = transition.getProductMZ();
       t.precursor_mz = transition.getPrecursorMZ();
       t.library_intensity = transition.getLibraryIntensity();
-      t.peptide_ref = transition.getPeptideRef();
+      t.transition_ref = transition.getTransRef();
 
       // If compound is a peptide, get the ion mobility information from the compound
-      if (!t.peptide_ref.empty())
+      if (!t.transition_ref.empty())
       {
-        OpenSwath::LightCompound p = transition_exp.getPeptideByRef(t.peptide_ref);
-        t.precursor_im = p.getDriftTime();
+        OpenSwath::LightCompound c = transition_exp.getCompoundByRef(t.transition_ref);
+        t.precursor_im = c.getDriftTime();
       }
-      // try compound ref
-      else  // (t.peptide_ref.empty())
-      {
-        t.peptide_ref = transition.getCompoundRef();
-      }
+
 
       if (transition.isProductChargeStateSet())
       {

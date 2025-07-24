@@ -10,7 +10,7 @@ class TestLightTargetedExperiment(unittest.TestCase):
         lt = pyopenms.LightTransition()
         lt.fragment_charge = 2
         lt.transition_name = b"X"
-        lt.peptide_ref = b"Y"
+        lt.transition_ref = b"Y"
         lt.library_intensity = 12.0
         lt.product_mz = 22.0
         self.lt = lt
@@ -50,7 +50,7 @@ class TestLightTargetedExperiment(unittest.TestCase):
         assert lt.fragment_charge == 2
         assert lt.getProductChargeState() == lt.fragment_charge
         assert lt.transition_name == b"X"
-        assert lt.peptide_ref == b"Y"
+        assert lt.transition_ref == b"Y"
         assert lt.library_intensity == 12.0
         assert lt.product_mz == 22.0
 

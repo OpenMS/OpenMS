@@ -59,6 +59,10 @@ public:
 
     const String & getPeptideRef() const;
 
+    void setNuctideRef(const String & nuctide_ref);
+
+    const String & getNuctideRef() const;
+
     void setCompoundRef(const String & compound_ref);
 
     const String & getCompoundRef() const;
@@ -136,6 +140,8 @@ protected:
     String peptide_ref_;
 
     String compound_ref_;
+
+    String nuctide_ref_;
 
     std::vector<Configuration> configurations_;
 

@@ -24,7 +24,7 @@ class TestTraMLFile(unittest.TestCase):
         self.assertAlmostEqual(targeted.getTransitions()[0].getProductMZ(), 628.45, places=4)
         self.assertEqual(targeted.getTransitions()[0].getName(), "tr1" )
         self.assertEqual(targeted.getTransitions()[0].getNativeID(), "tr1" )
-        self.assertEqual(targeted.getTransitions()[0].getPeptideRef(), "tr_gr1")
+        self.assertEqual(targeted.getTransitions()[0].getTransRef(), "tr_gr1")
 
     def test_TargetedExperiment(self):
         targeted = pyopenms.TargetedExperiment();
@@ -43,7 +43,7 @@ class TestTraMLFile(unittest.TestCase):
         targeted.addTransition(first_transition)
         targeted.addPeptide(first_peptide)
 
-        self.assertTrue( targeted.getPeptideByRef(first_transition.getPeptideRef()) is not None)
+        self.assertTrue( targeted.getPeptideByRef(first_transition.getTransRef()) is not None)
         self.assertTrue( targeted.getProteinByRef(first_peptide.protein_refs[0]) is not None)
 
 

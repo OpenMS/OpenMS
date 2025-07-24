@@ -211,12 +211,17 @@ namespace OpenMS::Internal
         String peptide_ref;
         if (optionalAttributeAsString_(peptide_ref, attributes, "peptideRef"))
         {
-          actual_transition_.setPeptideRef(peptide_ref);
+          actual_transition_.setTransRef(peptide_ref, OpenSwath::TransType::PEPTIDE);
         }
         String compound_ref;
         if (optionalAttributeAsString_(compound_ref, attributes, "compoundRef"))
         {
-          actual_transition_.setCompoundRef(compound_ref);
+          actual_transition_.setTransRef(compound_ref, OpenSwath::TransType::COMPOUND);
+        }
+        String nuctide_ref;
+        if (optionalAttributeAsString_(nuctide_ref, attributes, "nuctideRef"))
+        {
+          actual_transition_.setTransRef(nuctide_ref, OpenSwath::TransType::NUCTIDE);
         }
       }
       else if (tag_ == "Interpretation")
@@ -263,6 +268,11 @@ namespace OpenMS::Internal
         if (optionalAttributeAsString_(compound_ref, attributes, "compoundRef"))
         {
           actual_target_.setCompoundRef(compound_ref);
+        }
+        String nuctide_ref;
+        if (optionalAttributeAsString_(nuctide_ref, attributes, "nuctideRef"))
+        {
+          actual_target_.setNuctideRef(nuctide_ref);
         }
       }
       else
@@ -744,15 +754,24 @@ namespace OpenMS::Internal
           os << "    <Transition";
           os << " id=\"" << writeXMLEscape(it->getName()) << "\"";
 
-          if (!it->getPeptideRef().empty())
+          if (!it->getTransRef().empty())
           {
-            os << " peptideRef=\"" << writeXMLEscape(it->getPeptideRef()) << "\"";
+            if (it->getTransType() == OpenSwath::TransType::PEPTIDE)
+            {
+              os << " peptideRef=\"" << writeXMLEscape(it->getTransRef()) << "\"";
+            }
+            else if (it->getTransType() == OpenSwath::TransType::NUCTIDE)
+            {
+              os << " nuctideRef=\"" << writeXMLEscape(it->getTransRef()) << "\"";
+            }
+            else if (it->getTransType() == OpenSwath::TransType::COMPOUND)
+            {
+              os << " compoundRef=\"" << writeXMLEscape(it->getTransRef()) << "\"";
+            }
+            else throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+              "Can't write Unknown Type reference in TraMLHandler");
           }
-
-          if (!it->getCompoundRef().empty())
-          {
-            os << " compoundRef=\"" << writeXMLEscape(it->getCompoundRef()) << "\"";
-          }
+         
           os << ">" << "\n";
 
           // Precursor occurs exactly once (is required according to schema).
@@ -937,10 +956,14 @@ namespace OpenMS::Internal
     void TraMLHandler::writeTarget_(std::ostream& os, const std::vector<IncludeExcludeTarget>::const_iterator& it) const
     {
       os << "      <Target id=\"" << writeXMLEscape(it->getName()) << "\"";
+      if (!it->getNuctideRef().empty())
+      {
+        os << " nuctideRef=\"" << writeXMLEscape(it->getNuctideRef()) << "\"";
+      }
       if (!it->getPeptideRef().empty())
       {
         os << " peptideRef=\"" << writeXMLEscape(it->getPeptideRef()) << "\"";
-      }
+      }      
       if (!it->getCompoundRef().empty())
       {
         os << " compoundRef=\"" << writeXMLEscape(it->getCompoundRef()) << "\"";

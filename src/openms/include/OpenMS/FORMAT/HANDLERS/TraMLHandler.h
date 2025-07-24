@@ -91,9 +91,13 @@ protected:
 
       TargetedExperiment::Protein actual_protein_;
 
+      TargetedExperiment::Oligo actual_oligo_;
+
       TargetedExperiment::RetentionTime actual_rt_;
 
       TargetedExperiment::Peptide actual_peptide_;
+
+      TargetedExperiment::Nuctide actual_Nuctide_;
 
       TargetedExperiment::Compound actual_compound_;
 

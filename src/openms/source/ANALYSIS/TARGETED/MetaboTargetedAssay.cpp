@@ -389,8 +389,8 @@ namespace OpenMS
           rmt.setProduct(product);
           rmt.setLibraryIntensity(rel_int);
           description = ListUtils::concatenate(v_description, ",");
-          rmt.setCompoundRef (String(transition_group_counter) + "_" + description + "_" + file_counter);
-          rmt.setNativeID (String(transition_group_counter)+ "_" + String(transition_counter)+ "_" + description + "_" + file_counter);
+          rmt.setTransRef(String(transition_group_counter) + "_" + description + "_" + file_counter, OpenSwath::TransType::COMPOUND);
+          rmt.setNativeID(String(transition_group_counter)+ "_" + String(transition_counter)+ "_" + description + "_" + file_counter);
           rmt.setDecoyTransitionType(ReactionMonitoringTransition::DecoyTransitionType::TARGET); // no decoys are generated without SIRIUS
 
           v_rmt.push_back(std::move(rmt));
@@ -601,7 +601,7 @@ namespace OpenMS
 
           // write row for each transition
           // current int has to be higher than transition threshold and should not be smaller than threshold noise
-          // current_mz has to be higher than min_fragment_mz and lower than max_fragment_mz
+        // current_mz has to be higher than min_fragment_mz and lower than max_fragment_mz
           if (current_int > threshold_transition && current_int > threshold_noise && current_mz > min_fragment_mz && current_mz < max_fragment_mz)
           {
             float rel_int = current_int / max_int;
@@ -616,7 +616,7 @@ namespace OpenMS
             }
             rmt.setProduct(product);
             rmt.setLibraryIntensity(rel_int);
-            rmt.setCompoundRef(cmp.id);
+            rmt.setTransRef(cmp.id, OpenSwath::TransType::COMPOUND);
             rmt.setNativeID(String(entry_counter) + "_" + String(transition_counter) + "_" + description + "_" + identifier_suffix);
             rmt.setMetaValue("annotation", DataValue(current_explanation));
             if (!csp.compound_info.native_ids_id.empty())

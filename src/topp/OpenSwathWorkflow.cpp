@@ -787,7 +787,7 @@ protected:
     // Load the transitions
     ///////////////////////////////////
     OpenSwath::LightTargetedExperiment transition_exp = loadTransitionList(tr_type, tr_file, tsv_reader_param);
-    OPENMS_LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, " <<
+    OPENMS_LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, " << transition_exp.getOligos().size() << " oligos, " <<
       transition_exp.getCompounds().size() << " compounds with " << transition_exp.getTransitions().size() << " transitions." << std::endl;
 
     if (out_features_type == FileTypes::OSW)
@@ -825,10 +825,10 @@ protected:
         for (auto & tr : transition_exp.getTransitions())
         {
           // convert transition tramlID peptide reference in transitionExp to PQP ID 
-          auto pep = precursor_traml_to_pqp.find(tr.getPeptideRef());
-          if (pep != precursor_traml_to_pqp.end())
+          auto cpd = precursor_traml_to_pqp.find(tr.getTransRef());
+          if (cpd != precursor_traml_to_pqp.end())
           {
-            tr.peptide_ref = pep->second;
+            tr.transition_ref = cpd->second;
           }
 
           // Update transition id

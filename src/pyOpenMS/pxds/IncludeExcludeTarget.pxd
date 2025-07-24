@@ -14,6 +14,8 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/IncludeExcludeTarget.h>" namespace "
         String  getName() except + nogil  # TODO
         void setPeptideRef(const String & peptide_ref) except + nogil  # TODO
         String  getPeptideRef() except + nogil  # TODO
+        void setNuctideRef(const String & nuctide_ref) except + nogil  # TODO
+        String  getNuctideRef() except + nogil  # TODO
         void setCompoundRef(const String & compound_ref) except + nogil  # TODO
         String  getCompoundRef() except + nogil  # TODO
         void setPrecursorMZ(double mz) except + nogil  # TODO

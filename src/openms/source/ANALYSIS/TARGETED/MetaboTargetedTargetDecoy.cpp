@@ -19,7 +19,7 @@ namespace OpenMS
     std::map<String, std::vector<OpenMS::ReactionMonitoringTransition> > TransitionsMap;
     for (const auto& tr_it : t_exp.getTransitions())
     {
-      auto pair_it_success = TransitionsMap.emplace(tr_it.getCompoundRef(), std::vector<OpenMS::ReactionMonitoringTransition>());
+      auto pair_it_success = TransitionsMap.emplace(tr_it.getTransRef(), std::vector<OpenMS::ReactionMonitoringTransition>());
       pair_it_success.first->second.push_back(tr_it);
     }
     return TransitionsMap;
@@ -53,7 +53,7 @@ namespace OpenMS
                                   })) != rmts.end())
       {
         mapping.target_product_masses.emplace_back(it_target->getProductMZ());
-        mapping.target_compound_ref = it_target->getCompoundRef();
+        mapping.target_compound_ref = it_target->getTransRef();
         ++it_target;
       }
       auto it_decoy = rmts.begin();
@@ -66,7 +66,7 @@ namespace OpenMS
                                  })) != rmts.end())
       {
         mapping.decoy_product_masses.emplace_back(it_decoy->getProductMZ());
-        mapping.decoy_compound_ref = it_decoy->getCompoundRef();
+        mapping.decoy_compound_ref = it_decoy->getTransRef();
         ++it_decoy;
       }
       mappings.emplace_back(mapping);
@@ -114,7 +114,7 @@ namespace OpenMS
     // Iterate over each transition in the experiment.
     for (const auto& tr : t_exp.getTransitions()) {
         // Look for the current transition's compound reference in the map.
-        auto found = match_compound_refs_decoy_mz.find(tr.getCompoundRef());
+        auto found = match_compound_refs_decoy_mz.find(tr.getTransRef());
 
         // Check if the compound reference is found and if the product m/z matches any in the set.
         if (found != match_compound_refs_decoy_mz.end() && found->second.count(tr.getProductMZ()) > 0) {
@@ -223,7 +223,7 @@ namespace OpenMS
                 .setDecoyTransitionType(ReactionMonitoringTransition::DecoyTransitionType::DECOY);
             potential_decoy_transitions[i].setMetaValue("annotation", "NA");
             potential_decoy_transitions[i].setProductMZ(it.decoy_product_masses[i]);
-            potential_decoy_transitions[i].setCompoundRef(it.decoy_compound_ref);
+            potential_decoy_transitions[i].setTransRef(it.decoy_compound_ref, OpenSwath::TransType::COMPOUND);
           }
         }
         else

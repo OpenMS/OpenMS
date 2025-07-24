@@ -39,7 +39,7 @@ OpenSwath::LightTargetedExperiment addTransitions( OpenMS::MRMFeatureFinderScori
     TransitionType tr;
     tr.product_mz = 500.00;
     tr.precursor_mz = 412;
-    tr.peptide_ref = "pep1";
+    tr.transition_ref = "pep1";
     tr.precursor_im = 11;
     tr.transition_name = native_id;
     transition_group.addTransition(tr, native_id );
@@ -51,7 +51,7 @@ OpenSwath::LightTargetedExperiment addTransitions( OpenMS::MRMFeatureFinderScori
     TransitionType tr;
     tr.product_mz = 600.00;
     tr.precursor_mz = 412;
-    tr.peptide_ref = "pep1";
+    tr.transition_ref = "pep1";
     tr.precursor_im = 11;
     tr.transition_name = native_id;
     transition_group.addTransition(tr, native_id );
@@ -63,7 +63,7 @@ OpenSwath::LightTargetedExperiment addTransitions( OpenMS::MRMFeatureFinderScori
     TransitionType tr;
     tr.product_mz = 700.00;
     tr.precursor_mz = 412;
-    tr.peptide_ref = "pep1";
+    tr.transition_ref = "pep1";
     tr.precursor_im = 11;
     tr.transition_name = native_id;
     transition_group.addTransition(tr, native_id );
@@ -75,7 +75,7 @@ OpenSwath::LightTargetedExperiment addTransitions( OpenMS::MRMFeatureFinderScori
     TransitionType tr;
     tr.product_mz = 800.00;
     tr.precursor_mz = 412;
-    tr.peptide_ref = "pep1";
+    tr.transition_ref = "pep1";
     tr.precursor_im = 11;
     tr.transition_name = native_id;
     transition_group.addTransition(tr, native_id );
@@ -96,7 +96,7 @@ void addTransitionsPep2( OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType
   tr.product_mz = 900.00;
   tr.precursor_mz = 500.0;
   tr.precursor_im = 15;
-  tr.peptide_ref = "pep2";
+  tr.transition_ref = "pep2";
   tr.transition_name = native_id;
   transition_group.addTransition(tr, native_id );
   exp.transitions.push_back(tr);
@@ -113,7 +113,7 @@ void addTransitionsPep3( OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType
   tr.product_mz = 950.00;
   tr.precursor_mz = 600.0;
   tr.precursor_im = 20;
-  tr.peptide_ref = "pep3";
+  tr.transition_ref = "pep3";
   tr.transition_name = native_id;
   transition_group.addTransition(tr, native_id );
   exp.transitions.push_back(tr);

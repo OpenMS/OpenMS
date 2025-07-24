@@ -164,7 +164,7 @@ START_SECTION((void OpenSwathDataAccessHelper::convertTargetedExp(const OpenMS::
     ReactionMonitoringTransition transition;
     transition.setName("tr1");
     transition.setNativeID("tr1_nid");
-    transition.setPeptideRef("my_id");
+    transition.setTransRef("my_id", OpenSwath::TransType::PEPTIDE);
     transition.setLibraryIntensity(400.2);
     transition.setPrecursorMZ(501.2);
     transition.setProductMZ(301.2);
@@ -208,7 +208,7 @@ START_SECTION((void OpenSwathDataAccessHelper::convertTargetedExp(const OpenMS::
   auto tr = transition_exp.getTransitions()[0];
 
   TEST_EQUAL(tr.transition_name, "tr1_nid")
-  TEST_EQUAL(tr.peptide_ref, "my_id")
+  TEST_EQUAL(tr.transition_ref, "my_id")
   TEST_REAL_SIMILAR(tr.library_intensity, 400.2)
   TEST_REAL_SIMILAR(tr.precursor_mz, 501.2)
   TEST_REAL_SIMILAR(tr.product_mz, 301.2)

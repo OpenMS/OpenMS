@@ -652,15 +652,15 @@ namespace OpenMS
           nuctide_map.find(tr_it->group_id) == nuctide_map.end())
       {
         // should we make a peptide a nuctide or a compound ?
-        TransType type = tr_it->getType();
-        if (type == TransType::PEPTIDE)
+        OpenSwath::TransType type = tr_it->getType();
+        if (type == OpenSwath::TransType::PEPTIDE)
         {
           OpenMS::TargetedExperiment::Peptide peptide;
           createPeptide_(tr_it, peptide);
           peptides.push_back(peptide);
           peptide_map[peptide.id] = 0;
         }
-        else if (type == TransType::NUCTIDE)
+        else if (type == OpenSwath::TransType::NUCTIDE)
         {
           OpenMS::TargetedExperiment::Nuctide nuctide;
           createNuctide_(tr_it, nuctide);
@@ -677,7 +677,7 @@ namespace OpenMS
       }
 
       // check whether we need new proteins
-      if (tr_it->getType() == TransType::PEPTIDE)
+      if (tr_it->getType() == OpenSwath::TransType::PEPTIDE)
       {
         for (size_t i = 0; i < tr_it->ProteinName.size(); ++i)
         {
@@ -696,7 +696,7 @@ namespace OpenMS
           }
         }
       }
-      else if ((tr_it->getType() == TransType::NUCTIDE))
+      else if ((tr_it->getType() == OpenSwath::TransType::NUCTIDE))
       {
         for (size_t i = 0; i < tr_it->OligoName.size(); ++i)
         {
@@ -738,7 +738,7 @@ namespace OpenMS
     {
       OpenSwath::LightTransition transition;
       transition.transition_name  = tr_it->transition_name;
-      transition.peptide_ref  = tr_it->group_id;
+      transition.transition_ref  = tr_it->group_id;
       transition.library_intensity  = tr_it->library_intensity;
       transition.precursor_mz  = tr_it->precursor;
       transition.product_mz  = tr_it->product;
@@ -760,13 +760,13 @@ namespace OpenMS
       if (compound_map.find(tr_it->group_id) == compound_map.end())
       {
         OpenSwath::LightCompound compound;
-        if (tr_it->getType()==TransType::PEPTIDE)
+        if (tr_it->getType()==OpenSwath::TransType::PEPTIDE)
         {
           OpenMS::TargetedExperiment::Peptide tramlpeptide;
           createPeptide_(tr_it, tramlpeptide);
           OpenSwathDataAccessHelper::convertTargetedPeptide(tramlpeptide, compound);
         }
-        else if (tr_it->getType()==TransType::NUCTIDE)
+        else if (tr_it->getType()==OpenSwath::TransType::NUCTIDE)
         {
           OpenMS::TargetedExperiment::Nuctide tramlnuctide;
           createNuctide_(tr_it, tramlnuctide);
@@ -785,7 +785,7 @@ namespace OpenMS
       // check whether we need new proteins
       for (Size i = 0; i < tr_it->ProteinName.size(); ++i)
       {
-        if (tr_it->getType()==TransType::PEPTIDE && protein_map.find(tr_it->ProteinName[i]) == protein_map.end())
+        if (tr_it->getType()==OpenSwath::TransType::PEPTIDE && protein_map.find(tr_it->ProteinName[i]) == protein_map.end())
         {
           OpenSwath::LightProtein protein;
           protein.id = tr_it->ProteinName[i];
@@ -793,7 +793,7 @@ namespace OpenMS
           exp.proteins.push_back(protein);
           protein_map[tr_it->ProteinName[i]] = 0;
         }
-        else if ((tr_it->getType()==TransType::NUCTIDE) && oligo_map.find(tr_it->OligoName[i]) == oligo_map.end())
+        else if ((tr_it->getType()==OpenSwath::TransType::NUCTIDE) && oligo_map.find(tr_it->OligoName[i]) == oligo_map.end())
         {
           OpenSwath::LightOligo oligo;
           oligo.id = tr_it->OligoName[i];
@@ -881,18 +881,9 @@ namespace OpenMS
     rm_trans.setNativeID(tr_it->transition_name);
     rm_trans.setPrecursorMZ(tr_it->precursor);
     rm_trans.setProductMZ(tr_it->product);
-    if (tr_it->getType() == TransType::PEPTIDE)
-    {
-      rm_trans.setPeptideRef(tr_it->group_id);
-    }
-    else if (tr_it->getType() == TransType::NUCTIDE)
-    {
-      rm_trans.setNuctideRef(tr_it->group_id);
-    }
-    else
-    {
-      rm_trans.setCompoundRef(tr_it->group_id);
-    }
+
+    rm_trans.setTransRef(tr_it->group_id,
+                         tr_it->getType());
 
     rm_trans.setLibraryIntensity(tr_it->library_intensity);
     if (!tr_it->fragment_charge.empty() && tr_it->fragment_charge != "NA")
@@ -1367,10 +1358,13 @@ namespace OpenMS
     mytransition.fragment_nr = -1;
     mytransition.fragment_charge = "NA";
 
-    if (!it->getPeptideRef().empty())
+    if (!it->getTransRef().empty())
     {
-      const OpenMS::TargetedExperiment::Peptide& pep = targeted_exp.getPeptideByRef(it->getPeptideRef());
-      mytransition.group_id = it->getPeptideRef();
+
+    if (it->getTransType() == OpenSwath::TransType::PEPTIDE)
+    {
+      const OpenMS::TargetedExperiment::Peptide& pep = targeted_exp.getPeptideByRef(it->getTransRef());
+      mytransition.group_id = it->getTransRef();
 
       #ifdef TRANSITIONTSVREADER_TESTING
       OPENMS_LOG_DEBUG << "Peptide rts empty " <<
@@ -1423,10 +1417,10 @@ namespace OpenMS
         mytransition.GeneName = pep.getMetaValue("GeneName").toString();
       }
     }
-    else if (!it->getNuctideRef().empty())
+    else if (it->getTransType() == OpenSwath::TransType::NUCTIDE)
     {
-      const OpenMS::TargetedExperiment::Nuctide& nuc = targeted_exp.getNuctideByRef(it->getNuctideRef());
-      mytransition.group_id = it->getNuctideRef();
+      const OpenMS::TargetedExperiment::Nuctide& nuc = targeted_exp.getNuctideByRef(it->getTransRef());
+      mytransition.group_id = it->getTransRef();
 
       #ifdef TRANSITIONTSVREADER_TESTING
       OPENMS_LOG_DEBUG << "Nucleotide rts empty " <<
@@ -1450,8 +1444,28 @@ namespace OpenMS
             mytransition.uniprot_id.push_back(oligo.getCVTerms().at("MS:1000885")[0].getValue().toString());
           }
         }
-      }
+        mytransition.FullNuctideName = TargetedExperimentHelper::getNASequence(nuc).toString();
 
+        mytransition.drift_time = -1;
+        if (nuc.getDriftTime() >= 0.0)
+        {
+          mytransition.drift_time = nuc.getDriftTime();
+        }
+        mytransition.precursor_charge = "NA";
+        if (nuc.hasCharge())
+        {
+          mytransition.precursor_charge = String(nuc.getChargeState());
+        }
+        mytransition.peptide_group_label = "NA";
+        if (!nuc.getNuctideGroupLabel().empty())
+        {
+          mytransition.nuctide_group_label = nuc.getNuctideGroupLabel();
+        }
+        if (nuc.metaValueExists("LabelType"))
+        {
+          mytransition.label_type = nuc.getMetaValue("LabelType").toString();
+        }
+      }
       mytransition.FullNuctideName = TargetedExperimentHelper::getNASequence(nuc).toString();
 
       mytransition.drift_time = -1;
@@ -1474,10 +1488,10 @@ namespace OpenMS
         mytransition.label_type = nuc.getMetaValue("LabelType").toString();
       }
     }
-    else if (!it->getCompoundRef().empty())
+    else if ((it->getTransType() == OpenSwath::TransType::COMPOUND))
     {
-      const OpenMS::TargetedExperiment::Compound& compound = targeted_exp.getCompoundByRef(it->getCompoundRef());
-      mytransition.group_id = it->getCompoundRef();
+      const OpenMS::TargetedExperiment::Compound& compound = targeted_exp.getCompoundByRef(it->getTransRef());
+      mytransition.group_id = it->getTransRef();
 
       if (compound.hasRetentionTime())
       {
@@ -1512,7 +1526,7 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "ReactionMonitoringTransition has neither peptide nor compound reference set.");
     }
-
+    }
     if (it->isProductChargeStateSet())
     {
       mytransition.fragment_charge = String(it->getProductChargeState());

@@ -26,7 +26,7 @@ namespace OpenSwath
     std::vector<LightTransition>::iterator ltrend = ltrans.end();
     for (; ltrit != ltrend; ++ltrit)
     {
-      std::string pepref = ltrit->getPeptideRef();
+      std::string pepref = ltrit->getTransRef();
 
       Mmap::iterator it = transmap.find(pepref);
       if (it == transmap.end())
@@ -42,16 +42,16 @@ namespace OpenSwath
     }
   } //end convert
 
-  bool TransitionHelper::findPeptide(const LightTargetedExperiment& lte,
-                                     const std::string& peptideRef,
+  bool TransitionHelper::findCompound(const LightTargetedExperiment& lte,
+                                     const std::string& compoundRef,
                                      LightCompound& pep)
   {
     std::vector<LightCompound>::const_iterator beg = lte.compounds.begin();
     std::vector<LightCompound>::const_iterator end = lte.compounds.end();
     for (; beg != end; ++beg)
     {
-      //std::cout << beg->id << " " << peptideRef << std::endl;
-      if (beg->id.compare(peptideRef) == 0)
+      //std::cout << beg->id << " " << compoundRef << std::endl;
+      if (beg->id.compare(compoundRef) == 0)
       {
         pep = *beg;
         return true;
@@ -59,5 +59,6 @@ namespace OpenSwath
     }
     return false;
   }
+  
 
 } // namespace OpenSwath

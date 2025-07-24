@@ -9,6 +9,7 @@
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
 
 #include <OpenMS/CONCEPT/Helpers.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <utility>
 
@@ -25,7 +26,8 @@ namespace OpenMS
     decoy_type_(UNKNOWN),
     precursor_mz_(0.0),
     precursor_cv_terms_(nullptr),
-    prediction_(nullptr)
+    prediction_(nullptr),
+    trans_type_(OpenSwath::TransType::UNKNOWN)
   {
     // Default is: true, false, true
     // NOTE: do not change that, the same default is implicitly assumed in TraMLHandler
@@ -37,9 +39,8 @@ namespace OpenMS
   ReactionMonitoringTransition::ReactionMonitoringTransition(const ReactionMonitoringTransition & rhs) :
     CVTermList(rhs),
     name_(rhs.name_),
-    peptide_ref_(rhs.peptide_ref_),
-    compound_ref_(rhs.compound_ref_),
-    nuctide_ref_(rhs.nuctide_ref_),
+    transition_ref_(rhs.transition_ref_),
+    trans_type_(rhs.trans_type_),
     library_intensity_(rhs.library_intensity_),
     decoy_type_(rhs.decoy_type_),
     precursor_mz_(rhs.precursor_mz_),
@@ -64,9 +65,8 @@ namespace OpenMS
   ReactionMonitoringTransition::ReactionMonitoringTransition(ReactionMonitoringTransition && rhs) noexcept :
     CVTermList(std::move(rhs)),
     name_(std::move(rhs.name_)),
-    peptide_ref_(std::move(rhs.peptide_ref_)),
-    compound_ref_(std::move(rhs.compound_ref_)),
-    nuctide_ref_(std::move(rhs.nuctide_ref_)),
+    transition_ref_(std::move(rhs.transition_ref_)),
+    trans_type_(std::move(rhs.trans_type_)),
     library_intensity_(std::move(rhs.library_intensity_)),
     decoy_type_(std::move(rhs.decoy_type_)),
     precursor_mz_(std::move(rhs.precursor_mz_)),
@@ -93,9 +93,8 @@ namespace OpenMS
     {
       CVTermList::operator=(rhs);
       name_ = rhs.name_;
-      peptide_ref_ = rhs.peptide_ref_;
-      compound_ref_ = rhs.compound_ref_;
-      nuctide_ref_ = rhs.nuctide_ref_;
+      transition_ref_ = rhs.transition_ref_;
+      trans_type_ = rhs.trans_type_;
       precursor_mz_ = rhs.precursor_mz_;
       intermediate_products_ = rhs.intermediate_products_;
       product_ = rhs.product_;
@@ -129,9 +128,8 @@ namespace OpenMS
     {
       CVTermList::operator=(std::move(rhs));
       name_ = std::move(rhs.name_);
-      peptide_ref_ = std::move(rhs.peptide_ref_);
-      compound_ref_ = std::move(rhs.compound_ref_);
-      nuctide_ref_ = std::move(rhs.nuctide_ref_);
+      transition_ref_ = std::move(rhs.transition_ref_);
+      trans_type_ = std::move(rhs.trans_type_);
       precursor_mz_ = std::move(rhs.precursor_mz_);
       intermediate_products_ = std::move(rhs.intermediate_products_);
       product_ = std::move(rhs.product_);
@@ -156,9 +154,8 @@ namespace OpenMS
   {
     return CVTermList::operator==(rhs) &&
            name_ == rhs.name_ &&
-           peptide_ref_ == rhs.peptide_ref_ &&
-           compound_ref_ == rhs.compound_ref_ &&
-           nuctide_ref_ == rhs.nuctide_ref_ &&
+          transition_ref_ == rhs.transition_ref_ &&
+           trans_type_ == rhs.trans_type_ &&
            precursor_mz_ == rhs.precursor_mz_ &&
            OpenMS::Helpers::cmpPtrSafe< CVTermList* >(precursor_cv_terms_, rhs.precursor_cv_terms_) &&
            product_ == rhs.product_ &&
@@ -195,34 +192,25 @@ namespace OpenMS
     return name_;
   }
 
-  void ReactionMonitoringTransition::setPeptideRef(const String & peptide_ref)
+  void ReactionMonitoringTransition::setTransRef(const String & transition_ref, OpenSwath::TransType type)
   {
-    peptide_ref_ = peptide_ref;
+    trans_type_ = type;
+    transition_ref_ = transition_ref;
   }
 
-  const String & ReactionMonitoringTransition::getPeptideRef() const
+  const String & ReactionMonitoringTransition::getTransRef() const
   {
-    return peptide_ref_;
+    return transition_ref_;
   }
 
-  void ReactionMonitoringTransition::setCompoundRef(const String & compound_ref)
+  void ReactionMonitoringTransition::setTransType(OpenSwath::TransType type)
   {
-    compound_ref_ = compound_ref;
+    trans_type_ = type;
   }
 
-  const String & ReactionMonitoringTransition::getCompoundRef() const
+  OpenSwath::TransType ReactionMonitoringTransition::getTransType() const
   {
-    return compound_ref_;
-  }
-
-  void ReactionMonitoringTransition::setNuctideRef(const String & nucleotide_ref)
-  {
-    nuctide_ref_ = nucleotide_ref;
-  }
-
-  const String & ReactionMonitoringTransition::getNuctideRef() const
-  {
-    return nuctide_ref_;
+    return trans_type_;
   }
 
   void ReactionMonitoringTransition::setPrecursorMZ(double mz)

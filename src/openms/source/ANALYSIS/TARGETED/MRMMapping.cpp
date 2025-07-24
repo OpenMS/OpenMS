@@ -87,19 +87,39 @@ namespace OpenMS
           // Create precursor and set the peptide sequence
           MSChromatogram c = chromatogram_map.getChromatograms()[i];
           Precursor precursor = c.getPrecursor();
-          String pepref = targeted_exp.getTransitions()[j].getPeptideRef();
-          precursor.setMetaValue("peptide_sequence", pepref);
+          String transref = targeted_exp.getTransitions()[j].getTransRef();
           precursor.setMetaValue("description", targeted_exp.getTransitions()[j].getNativeID());
-          for (Size pep_idx = 0; pep_idx < targeted_exp.getPeptides().size(); pep_idx++)
+          if (targeted_exp.getTransitions()[j].getTransType() == OpenSwath::TransType::PEPTIDE)
           {
-            const OpenMS::TargetedExperiment::Peptide * pep = &targeted_exp.getPeptides()[pep_idx];
-            if (pep->id == pepref)
+            precursor.setMetaValue("peptide_sequence", transref);
+            for (Size pep_idx = 0; pep_idx < targeted_exp.getPeptides().size(); pep_idx++)
             {
-              if (!pep->sequence.empty())
+              const OpenMS::TargetedExperiment::Peptide * pep = &targeted_exp.getPeptides()[pep_idx];
+              if (pep->id == transref)
               {
-                precursor.setMetaValue("peptide_sequence", pep->sequence);
+                if (!pep->sequence.empty())
+                {
+                  precursor.setMetaValue("peptide_sequence", pep->sequence);
+                }
+                break;
               }
-              break;
+            }
+          }
+          else if (targeted_exp.getTransitions()[j].getTransType() == OpenSwath::TransType::NUCTIDE)
+          {
+            precursor.setMetaValue("nuctide_sequence", transref);
+            for (Size nuc_idx = 0; nuc_idx < targeted_exp.getNuctides().size(); nuc_idx++)
+            {
+              const OpenMS::TargetedExperiment::Nuctide * nuc = &targeted_exp.getNuctides()[nuc_idx];
+
+               if (nuc->id == transref)
+              {
+                if (!nuc->sequence.empty())
+                {
+                  precursor.setMetaValue("nuctide_sequence", nuc->sequence);
+                }
+                break;
+              }
             }
           }
           // add precursor to chromatogram

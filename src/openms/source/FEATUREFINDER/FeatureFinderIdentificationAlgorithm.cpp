@@ -1076,7 +1076,7 @@ namespace OpenMS
     te_rt.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::NORMALIZED;
     peptide.rts.push_back(te_rt);
   }
-
+//SPWTODO add nucs
   /// generate transitions (isotopic traces) for a peptide ion and add them to the library:
   void FeatureFinderIdentificationAlgorithm::generateTransitions_(
     const String& peptide_id, 
@@ -1097,7 +1097,7 @@ namespace OpenMS
       transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U * float(counter) / charge);
       transition.setLibraryIntensity(iso.getIntensity());
       transition.setMetaValue("annotation", annotation);
-      transition.setPeptideRef(peptide_id);
+      transition.setTransRef(peptide_id, OpenSwath::TransType::PEPTIDE);
 
       //TODO what about transition charge? A lot of DIA scores depend on it and default to charge 1 otherwise.
       library_.addTransition(transition);

@@ -21,10 +21,11 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
         ReactionMonitoringTransition(ReactionMonitoringTransition &)   except + nogil 
         String getName() except + nogil 
         String getNativeID() except + nogil 
-        String getPeptideRef() except + nogil 
+        String getTransRef() except + nogil 
         void setName(String name) except + nogil 
         void setNativeID(String name) except + nogil 
-        void setPeptideRef(String peptide_ref) except + nogil 
+        void setTransRef(String trans_ref, TransType type) except + nogil
+        TransType getTransType() except + nogil
 
         double getProductMZ() except + nogil 
         void setProductMZ(double) except + nogil 
@@ -33,9 +34,6 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
         void setPrecursorMZ(double) except + nogil  # wrap-doc:Sets the precursor mz (Q1 value)
       
         DecoyTransitionType getDecoyTransitionType() except + nogil  # wrap-doc:Returns the type of transition (target or decoy)
-
-        void setCompoundRef(const String & compound_ref) except + nogil 
-        String  getCompoundRef() except + nogil 
 
         bool hasPrecursorCVTerms() except + nogil  # wrap-doc:Returns true if precursor CV Terms exist (means it is safe to call getPrecursorCVTermList)
         void setPrecursorCVTermList(CVTermList & list_) except + nogil  # wrap-doc:Sets a list of precursor CV Terms
@@ -83,3 +81,9 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
     cdef enum DecoyTransitionType:
 
         UNKNOWN, TARGET, DECOY
+
+cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" namespace "OpenSwath":
+
+    cdef enum TransType:
+
+        PEPTIDE, NUCTIDE, COMPOUND, UNKNOWN

@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/CVTermList.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <vector>
 #include <bitset>
@@ -78,17 +79,17 @@ public:
 
     const String & getNativeID() const;
 
-    void setPeptideRef(const String & peptide_ref);
+    /// Sets the transition reference (unified method)
+    void setTransRef(const String & transition_ref, OpenSwath::TransType type);
 
-    const String & getPeptideRef() const;
+    /// Gets the transition reference (unified method)
+    const String & getTransRef() const;
 
-    void setCompoundRef(const String & compound_ref);
+    /// Sets the transition type
+    void setTransType(OpenSwath::TransType type);
 
-    const String & getCompoundRef() const;
-
-    void setNuctideRef(const String & nucltide_ref);
-
-    const String & getNuctideRef() const;
+    /// Gets the transition type
+    OpenSwath::TransType getTransType() const;
 
     /// sets the precursor mz (Q1 value)
     void setPrecursorMZ(double mz);
@@ -292,10 +293,9 @@ protected:
 
     String name_; ///< id, required attribute
 
-    // attributes to a peptide / compound (optional)
-    String peptide_ref_; ///< Reference to a specific peptide
-    String compound_ref_; ///< Reference to a specific compound
-    String nuctide_ref_; ///< Reference to a specific oligo (nucleotide)
+    // unified transition reference and type
+    String transition_ref_; ///< Unified reference to peptide/compound/nucleotide
+    OpenSwath::TransType trans_type_; ///< Type of transition reference
 
     /// Intensity of the product (q3) ion (stored in CV Term 1001226 inside the \<Transition\> tag)
     double library_intensity_;

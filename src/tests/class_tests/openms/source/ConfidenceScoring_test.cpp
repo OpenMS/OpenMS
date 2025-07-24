@@ -89,7 +89,7 @@ START_SECTION((void scoreMap(FeatureMap & features)))
     rm_trans.setNativeID("tr_10");
     rm_trans.setPrecursorMZ(400.0);
     rm_trans.setProductMZ(500.0);
-    rm_trans.setPeptideRef(p.id);
+    rm_trans.setTransRef(p.id, OpenSwath::TransType::PEPTIDE);
     rm_trans.setLibraryIntensity(500.0);
     library.addTransition(rm_trans);
   }
@@ -104,7 +104,7 @@ START_SECTION((void scoreMap(FeatureMap & features)))
     rm_trans.setNativeID("tr_20");
     rm_trans.setPrecursorMZ(400.0);
     rm_trans.setProductMZ(500.0);
-    rm_trans.setPeptideRef(p.id);
+    rm_trans.setTransRef(p.id, OpenSwath::TransType::PEPTIDE);
     rm_trans.setLibraryIntensity(500.0);
     library.addTransition(rm_trans);
 
@@ -179,7 +179,7 @@ START_SECTION(([EXTRA] test exceptions))
     rm_trans.setNativeID("tr_10");
     rm_trans.setPrecursorMZ(400.0);
     rm_trans.setProductMZ(500.0);
-    rm_trans.setPeptideRef(p.id);
+    rm_trans.setTransRef(p.id, OpenSwath::TransType::PEPTIDE);
     rm_trans.setLibraryIntensity(500.0);
     library.addTransition(rm_trans);
   }
@@ -193,7 +193,7 @@ START_SECTION(([EXTRA] test exceptions))
     rm_trans.setNativeID("tr_20");
     rm_trans.setPrecursorMZ(400.0);
     rm_trans.setProductMZ(500.0);
-    rm_trans.setPeptideRef(p.id);
+    rm_trans.setTransRef(p.id, OpenSwath::TransType::PEPTIDE);
     rm_trans.setLibraryIntensity(500.0);
     library.addTransition(rm_trans);
 

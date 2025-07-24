@@ -63,24 +63,24 @@ namespace OpenMS
     coord.id = transition.getNativeID();
   }
 
-
+//SPWTODO add Nuc
   const TargetedExperimentHelper::PeptideNuctideCompound* getPeptideHelperMS2_(const OpenMS::TargetedExperiment& transition_exp_used,
                                                                         const OpenMS::ReactionMonitoringTransition& transition,
                                                                         bool do_peptides)
   {
-    OPENMS_PRECONDITION(IMPLIES(do_peptides, !transition.getPeptideRef().empty()), "PeptideRef cannot be empty for peptides")
-    OPENMS_PRECONDITION(IMPLIES(!do_peptides, !transition.getCompoundRef().empty()), "CompoundRef cannot be empty for compounds")
+    OPENMS_PRECONDITION(IMPLIES(do_peptides, transition.getTransType() == OpenSwath::TransType::PEPTIDE && !transition.getTransRef().empty()), "PeptideRef cannot be empty for peptides")
+    OPENMS_PRECONDITION(IMPLIES(!do_peptides, transition.getTransType() == OpenSwath::TransType::COMPOUND && !transition.getTransRef().empty()), "CompoundRef cannot be empty for compounds")
 
     if (do_peptides)
     {
-      return &transition_exp_used.getPeptideByRef(transition.getPeptideRef()); 
+      return &transition_exp_used.getPeptideByRef(transition.getTransRef());
     }
     else
     {
-      return &transition_exp_used.getCompoundByRef(transition.getCompoundRef()); 
+      return &transition_exp_used.getCompoundByRef(transition.getTransRef());
     }
   }
-
+//SPWTODO add Nuc
   const TargetedExperimentHelper::PeptideNuctideCompound* getPeptideHelperMS1_(const OpenMS::TargetedExperiment & transition_exp_used,
                                                                         Size i,
                                                                         bool do_peptides)
@@ -105,15 +105,15 @@ namespace OpenMS
                                                   const bool ms1,
                                                   const int ms1_isotopes)
   {
-    // hash of the peptide reference containing all transitions
-    std::map<String, std::vector<const OpenSwath::LightTransition*> > pep2tr;
+    // hash of the compound reference containing all transitions
+    std::map<String, std::vector<const OpenSwath::LightTransition*> > compound2tr;
     for (Size i = 0; i < transition_exp_used.getTransitions().size(); i++)
     {
-      String ref = transition_exp_used.getTransitions()[i].getPeptideRef();
-      pep2tr[ref].push_back(&transition_exp_used.getTransitions()[i]);
+      String ref = transition_exp_used.getTransitions()[i].getTransRef();
+      compound2tr[ref].push_back(&transition_exp_used.getTransitions()[i]);
     }
-    std::map<String, const OpenSwath::LightCompound*> tr2pep;
-    for (const auto & p : transition_exp_used.getCompounds()) {tr2pep[p.id] = &p;}
+    std::map<String, const OpenSwath::LightCompound*> tr2compound;
+    for (const auto & p : transition_exp_used.getCompounds()) {tr2compound[p.id] = &p;}
 
     // Determine iteration size:
     // When extracting MS1/precursor transitions, we iterate over compounds.
@@ -134,13 +134,13 @@ namespace OpenMS
       output_chromatograms.push_back(s);
 
       ChromatogramExtractor::ExtractionCoordinates coord;
-      OpenSwath::LightCompound pep;
+      OpenSwath::LightCompound compound;
       OpenSwath::LightTransition transition;
 
       if (ms1)
       {
-        pep = transition_exp_used.getCompounds()[i];
-        if (!populateMS1Transition(pep2tr, pep, coord))
+        compound = transition_exp_used.getCompounds()[i];
+        if (!populateMS1Transition(compound2tr, compound, coord))
         {
           // Catch cases where a compound has no transitions
           coordinates.push_back(coord);
@@ -150,18 +150,18 @@ namespace OpenMS
       else
       {
         transition = transition_exp_used.getTransitions()[i];
-        pep = (*tr2pep[transition.getPeptideRef()]);
+        compound = (*tr2compound[transition.getTransRef()]);
         populateMS2Transition(transition, coord);
       }
 
       if (rt_extraction_window >= 0)
       {
         // if 'rt_extraction_window' is non-zero, just use the (first) RT value
-        double rt = pep.rt;
+        double rt = compound.rt;
         coord.rt_start = rt - rt_extraction_window / 2.0;
         coord.rt_end = rt + rt_extraction_window / 2.0;
       }
-      coord.ion_mobility = pep.getDriftTime();
+      coord.ion_mobility = compound.getDriftTime();
       coordinates.push_back(coord);
 
       if (ms1 && ms1_isotopes > 0)
@@ -171,7 +171,7 @@ namespace OpenMS
           OpenSwath::ChromatogramPtr s(new OpenSwath::Chromatogram);
           output_chromatograms.push_back(s);
           ChromatogramExtractor::ExtractionCoordinates coord_new = coord;
-          coord_new.id = OpenSwathHelper::computePrecursorId(pep.id, k);
+          coord_new.id = OpenSwathHelper::computePrecursorId(compound.id, k);
           coord_new.mz = coord.mz + k * Constants::C13C12_MASSDIFF_U;
           coordinates.push_back(coord_new);
         }
@@ -189,13 +189,12 @@ namespace OpenMS
                                                   const bool ms1,
                                                   const int ms1_isotopes)
   {
-    // hash of the peptide reference containing all transitions
+    // hash of the compound reference containing all transitions
     typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
     PeptideTransitionMapType pep2tr;
     for (Size i = 0; i < transition_exp_used.getTransitions().size(); i++)
     {
-      String ref = transition_exp_used.getTransitions()[i].getPeptideRef();
-      if (ref.empty()) ref = transition_exp_used.getTransitions()[i].getCompoundRef();
+      String ref = transition_exp_used.getTransitions()[i].getTransRef();
       pep2tr[ref].push_back(&transition_exp_used.getTransitions()[i]);
     }
 
@@ -294,67 +293,4 @@ namespace OpenMS
     // sort result, use stable_sort to ensure that ordering is preserved 
     std::stable_sort(coordinates.begin(), coordinates.end(), ChromatogramExtractor::ExtractionCoordinates::SortExtractionCoordinatesByMZ);
   }
-
-  bool ChromatogramExtractor::outsideExtractionWindow_(const ReactionMonitoringTransition& transition, double current_rt,
-                                 const TransformationDescription& trafo, double rt_extraction_window)
-  {
-    if (rt_extraction_window < 0)
-    {
-      return false;
-    }
-
-    // Get the expected retention time, apply the RT-transformation
-    // (which describes the normalization) and then take the difference.
-    // Note that we inverted the transformation in the beginning because
-    // we want to transform from normalized to real RTs here and not the
-    // other way round.
-    double expected_rt = PeptideRTMap_[transition.getPeptideRef()];
-    double de_normalized_experimental_rt = trafo.apply(expected_rt);
-    if (current_rt < de_normalized_experimental_rt - rt_extraction_window / 2.0 ||
-        current_rt > de_normalized_experimental_rt + rt_extraction_window / 2.0 )
-    {
-      return true;
-    }
-    return false;
-  }
-
-  int ChromatogramExtractor::getFilterNr_(const String& filter)
-  {
-    if (filter == "tophat")
-    {
-      return 1;
-    }
-    else if (filter == "bartlett")
-    {
-      return 2;
-    }
-    else
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "Filter either needs to be tophat or bartlett");
-    }
-  }
-
-  void ChromatogramExtractor::populatePeptideRTMap_(OpenMS::TargetedExperiment& transition_exp, double rt_extraction_window)
-  {
-      // Store the peptide retention times in an intermediate map
-      PeptideRTMap_.clear();
-      for (Size i = 0; i < transition_exp.getPeptides().size(); i++)
-      {
-        const TargetedExperiment::Peptide& pep = transition_exp.getPeptides()[i];
-        if (!pep.hasRetentionTime())
-        {
-          // we don't have retention times -> this is only a problem if we actually
-          // wanted to use the RT limit feature.
-          if (rt_extraction_window >= 0)
-          {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                             "Error: Peptide " + pep.id + " does not have retention time information which is necessary to perform an RT-limited extraction");
-          }
-          continue;
-        }
-        PeptideRTMap_[pep.id] = pep.getRetentionTime();
-      }
-  }
-
 }

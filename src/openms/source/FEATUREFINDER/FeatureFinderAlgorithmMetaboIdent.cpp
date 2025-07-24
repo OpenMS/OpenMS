@@ -500,7 +500,7 @@ namespace OpenMS
                                        float(counter) / charge));
       transition.setLibraryIntensity(iso.getIntensity());
       // transition.setMetaValue("annotation", annotation); // ???
-      transition.setCompoundRef(target_id);
+      transition.setTransRef(target_id, OpenSwath::TransType::COMPOUND);
       library_.addTransition(transition);
       isotope_probs_[transition_name] = iso.getIntensity();
       

@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
         LightTransition() except + nogil 
         LightTransition(LightTransition &) except + nogil 
         libcpp_string transition_name
-        libcpp_string peptide_ref
+        libcpp_string transition_ref
         double library_intensity
         double product_mz
         double precursor_mz
@@ -22,13 +22,11 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
         int getProductChargeState() except + nogil 
         bool isProductChargeStateSet() except + nogil 
         libcpp_string getNativeID() except + nogil 
-        libcpp_string getPeptideRef() except + nogil 
+        libcpp_string getTransRef() except + nogil 
         double getLibraryIntensity() except + nogil 
         void setLibraryIntensity(double l) except + nogil 
         double getProductMZ() except + nogil 
         double getPrecursorMZ() except + nogil 
-
-        libcpp_string getCompoundRef() except + nogil 
 
         # Detecting / quantifying / identifying transitions
         void setDetectingTransition (bool d) except + nogil 

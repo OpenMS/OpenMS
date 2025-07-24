@@ -392,10 +392,7 @@ protected:
     {
       setProgress(i);
       const ReactionMonitoringTransition *transition = &transition_exp.getTransitions()[i];
-
-      {
-        peptide_transition_map[transition->getPeptideRef()].push_back(&transition_exp.getTransitions()[i]);
-      }
+      peptide_transition_map[transition->getTransRef()].push_back(&transition_exp.getTransitions()[i]);
     }
     endProgress();
 

@@ -84,6 +84,16 @@ namespace OpenMS
     return peptide_ref_;
   }
 
+  void IncludeExcludeTarget::setNuctideRef(const String & Nuctide_ref)
+  {
+    nuctide_ref_ = Nuctide_ref;
+  }
+
+  const String & IncludeExcludeTarget::getNuctideRef() const
+  {
+    return nuctide_ref_;
+  }
+
   void IncludeExcludeTarget::setCompoundRef(const String & compound_ref)
   {
     compound_ref_ = compound_ref;

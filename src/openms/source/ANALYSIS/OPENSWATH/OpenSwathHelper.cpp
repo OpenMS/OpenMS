@@ -16,6 +16,8 @@ namespace OpenMS
   {
     transition_exp_used.setPeptides(targeted_exp.getPeptides());
     transition_exp_used.setProteins(targeted_exp.getProteins());
+    transition_exp_used.setOligos(targeted_exp.getOligos());
+    transition_exp_used.setNuctides(targeted_exp.getNuctides());
     for (Size i = 0; i < targeted_exp.getTransitions().size(); i++)
     {
       ReactionMonitoringTransition tr = targeted_exp.getTransitions()[i];
@@ -121,7 +123,7 @@ namespace OpenMS
           std::fabs(upper - tr.getPrecursorMZ()) >= min_upper_edge_dist)
       {
         transition_exp_used.transitions.push_back(tr);
-        matching_compounds.insert(tr.getPeptideRef());
+        matching_compounds.insert(tr.getTransRef());
       }
     }
     std::set<std::string> matching_proteins;
@@ -133,6 +135,17 @@ namespace OpenMS
         for (Size j = 0; j < targeted_exp.compounds[i].protein_refs.size(); j++)
         {
           matching_proteins.insert(targeted_exp.compounds[i].protein_refs[j]);
+        }
+      }
+    }
+    for (Size i = 0; i < targeted_exp.oligos.size(); i++)
+    {
+      if (matching_compounds.find(targeted_exp.oligos[i].id) != matching_compounds.end())
+      {
+        transition_exp_used.oligos.push_back( targeted_exp.oligos[i] );
+        for (Size j = 0; j < targeted_exp.compounds[i].oligo_refs.size(); j++)
+        {
+          matching_proteins.insert(targeted_exp.compounds[i].oligo_refs[j]);
         }
       }
     }
@@ -181,8 +194,8 @@ namespace OpenMS
       }
 
       // If we have a found a best feature, add it to the vector
-      String pepref = trgroup_it.second.getTransitions()[0].getPeptideRef();
-      result[ pepref ] = bestf.getRT();
+      String cpdref = trgroup_it.second.getTransitions()[0].getTransRef();
+      result[ cpdref ] = bestf.getRT();
     }
     return result;
   }

@@ -1173,7 +1173,7 @@ START_SECTION(constructTransitionsList(const String& filename, const OpenMS::Fea
 
   TEST_EQUAL(t_exp.getTransitions().size(), 1)
   const auto& transition = t_exp.getTransitions()[0];
-  TEST_EQUAL(transition.getPeptideRef(), "ident1");
+  TEST_EQUAL(transition.getTransRef(), "ident1");
   TEST_EQUAL(transition.getMetaValue("PeptideRef"), "ident1");
   TEST_EQUAL(transition.getMetaValue("native_id"), "ms2_f1_sub1");
 }

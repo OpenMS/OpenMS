@@ -233,8 +233,8 @@ namespace OpenMS
 
         // get drift time upper/lower offset (this assumes that all chromatograms
         // are derived from the same precursor with the same drift time)
-        auto pepref = tr.getPeptideRef();
-        double drift_target = pep_im_map[pepref];
+        auto cpdref = tr.getTransRef();
+        double drift_target = pep_im_map[cpdref];
         RangeMobility im_range;
         if (im_extraction_win != -1 ) // im_extraction_win is set
         {
@@ -245,7 +245,7 @@ namespace OpenMS
         // Check that the spectrum really has a drift time array
         if (sp_ms2->getDriftTimeArray() == nullptr)
         {
-          OPENMS_LOG_DEBUG << "Did not find a drift time array for peptide " << pepref << " at RT " << bestRT  << std::endl;
+          OPENMS_LOG_DEBUG << "Did not find a drift time array for peptide " << cpdref << " at RT " << bestRT  << std::endl;
           for (const auto& m : used_maps)
           {
             OPENMS_LOG_DEBUG << " -- Used maps " << m.lower << " to " << m.upper << " MS1 : " << m.ms1 << true << std::endl;
@@ -286,8 +286,8 @@ namespace OpenMS
 
         // get drift time upper/lower offset (this assumes that all chromatograms
         // are derived from the same precursor with the same drift time)
-        auto pepref = tr.getPeptideRef();
-        double drift_target = pep_im_map[pepref];
+        auto cpdref = tr.getTransRef();
+        double drift_target = pep_im_map[cpdref];
 
         // do not need to check for IM because we are correcting IM
         RangeMobility im_range(drift_target);
@@ -296,7 +296,7 @@ namespace OpenMS
         // Check that the spectrum really has a drift time array
         if (sp_ms1->getDriftTimeArray() == nullptr)
         {
-          OPENMS_LOG_DEBUG << "Did not find a drift time array for peptide " << pepref << " at RT " << bestRT  << std::endl;
+          OPENMS_LOG_DEBUG << "Did not find a drift time array for peptide " << cpdref << " at RT " << bestRT  << std::endl;
           for (const auto& m : used_maps)
           {
             OPENMS_LOG_DEBUG << " -- Used maps " << m.lower << " to " << m.upper << " MS1 : " << m.ms1 << true << std::endl;
@@ -407,8 +407,8 @@ namespace OpenMS
       auto transition_group = trgroup_it.second;
 
       const auto& tr = transition_group->getTransitions()[0];
-      auto pepref = tr.getPeptideRef();
-      double drift_target = pep_im_map[pepref];
+      auto cpdref = tr.getTransRef();
+      double drift_target = pep_im_map[cpdref];
 
       if (transition_group->getFeatures().empty()) continue;
 

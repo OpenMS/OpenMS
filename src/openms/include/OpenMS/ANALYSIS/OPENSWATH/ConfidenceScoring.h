@@ -151,7 +151,7 @@ namespace OpenMS
         OPENMS_LOG_DEBUG << "Building transition map..." << std::endl;
         for (Size i = 0; i < library_.getTransitions().size(); ++i)
         {
-          const String& ref = library_.getTransitions()[i].getPeptideRef();
+          const String& ref = library_.getTransitions()[i].getTransRef();
           transition_map_[ref].push_back(boost::numeric_cast<Int>(i));
         }
         // find min./max. RT in the library:

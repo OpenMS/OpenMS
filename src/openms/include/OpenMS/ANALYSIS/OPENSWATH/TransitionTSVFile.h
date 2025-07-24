@@ -122,13 +122,6 @@ Remarks:
 
 protected:
 
-    enum class TransType
-    {
-      PEPTIDE, ///< Transition is a peptide transition
-      NUCTIDE, ///< Transition is a nucleotide transition
-      COMPOUND ///< Transition is a metabolomics compound transition
-    };
-
     /**
       @brief Internal structure to represent a transition
 
@@ -173,19 +166,19 @@ protected:
       bool quantifying_transition = true; ///< Whether to use transition to quantify peak group
       std::vector<String> peptidoforms; ///< List of peptidoforms
 
-      TransType getType() const
+      OpenSwath::TransType getType() const
       {
         if ((CompoundName.empty() || CompoundName == "NA") && (FullNuctideName.empty() || FullNuctideName == "NA")) // SPWTODO:Can FullPeptideName be empty?  &&!FullPeptideName.empty();
         {
-          return TransType::PEPTIDE;
+          return OpenSwath::TransType::PEPTIDE;
         }
         else if (!FullNuctideName.empty() && FullNuctideName != "NA")
         {
-          return TransType::NUCTIDE;
+          return OpenSwath::TransType::NUCTIDE;
         }
         else if (!CompoundName.empty() && CompoundName != "NA")
         {
-          return TransType::COMPOUND;
+          return OpenSwath::TransType::COMPOUND;
         }
         else
         {

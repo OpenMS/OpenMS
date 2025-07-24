@@ -16,10 +16,18 @@
 
 namespace OpenSwath
 {
+  enum class TransType
+  {
+    PEPTIDE, ///< Transition is a peptide transition
+    NUCTIDE, ///< Transition is a nucleotide transition
+    COMPOUND, ///< Transition is a metabolomics compound transition
+    UNKNOWN ///< Transition type is unknown
+  };
+
   struct LightTransition
   {
     std::string transition_name;
-    std::string peptide_ref;
+    std::string transition_ref;
     double library_intensity{};
     double product_mz{};
     double precursor_mz{};
@@ -29,6 +37,7 @@ namespace OpenSwath
     bool detecting_transition{};
     bool quantifying_transition{};
     bool identifying_transition{};
+    TransType transition_type;
 
     int getProductChargeState() const
     {
@@ -50,14 +59,9 @@ namespace OpenSwath
       return transition_name;
     }
 
-    std::string getPeptideRef() const
+    std::string getTransRef() const
     {
-      return peptide_ref;
-    }
-
-    std::string getCompoundRef() const
-    {
-      return peptide_ref;
+      return transition_ref;
     }
 
     double getLibraryIntensity() const
@@ -114,6 +118,11 @@ namespace OpenSwath
     {
       return identifying_transition;
     }
+
+    TransType getType() const
+    {
+      return transition_type;
+    }
   };
 
   struct LightModification
@@ -122,7 +131,7 @@ namespace OpenSwath
     int unimod_id;
   };
 
-  // A compound is either a peptide or a metabolite
+  // A compound is either a peptide a nuctide or a metabolite
   struct LightCompound
   {
 
@@ -204,6 +213,7 @@ namespace OpenSwath
 
     typedef LightTransition Transition;
     typedef LightCompound Peptide;
+    typedef LightCompound Nuctide;
     typedef LightOligo Oligo;
     typedef LightCompound Compound;
     typedef LightProtein Protein;
@@ -278,7 +288,7 @@ namespace OpenSwath
       compound_reference_map_dirty_ = false;
     }
 
-    // Map of compounds (peptides or metabolites)
+    // Map of compounds (peptides, nuctides, or metabolites)
     bool compound_reference_map_dirty_;
     std::map<std::string, LightCompound*> compound_reference_map_;
 

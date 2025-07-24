@@ -84,7 +84,7 @@ START_SECTION((ReactionMonitoringTransition(ReactionMonitoringTransition &&rhs))
   tr1.setPrediction(pred);
   tr1.addPrecursorCVTerm(charge_cv);
   tr1.setPrecursorMZ(42.0);
-  tr1.setCompoundRef("test_ref");
+  tr1.setTransRef("test_ref", OpenSwath::TransType::PEPTIDE);
 
   auto orig = tr1;
 	tr2 = ReactionMonitoringTransition(std::move(tr1));
@@ -94,11 +94,11 @@ START_SECTION((ReactionMonitoringTransition(ReactionMonitoringTransition &&rhs))
   TEST_EQUAL(tr2.hasPrediction(), true);
   TEST_EQUAL(tr2.getPrediction().contact_ref, "dummy");
   TEST_EQUAL(tr2.getPrecursorCVTermList().hasCVTerm(charge_cv_acc), true)
-  TEST_EQUAL(tr2.getCompoundRef(), "test_ref")
+  TEST_EQUAL(tr2.getTransRef(), "test_ref")
 
   TEST_EQUAL(tr1.hasPrecursorCVTerms(), false); // its gone
   TEST_EQUAL(tr1.hasPrediction(), false); // its gone
-  TEST_EQUAL(tr1.getCompoundRef(), "") // its gone
+  TEST_EQUAL(tr1.getTransRef(), "") // its gone
 
   ReactionMonitoringTransition::Prediction p;
   p.contact_ref = "dummy";
@@ -156,50 +156,38 @@ START_SECTION((const String& getName() const ))
 }
 END_SECTION
 
-START_SECTION((void setPeptideRef(const String &peptide_ref)))
+START_SECTION(OpenSwath::TransType getTransType() const)
+{
+  // Should be UNKNOWN at construction 
+  TEST_EQUAL(transition.getTransType(), OpenSwath::TransType::UNKNOWN)
+}
+END_SECTION
+
+START_SECTION((void setTransType(OpenSwath::TransType type)))
 {
   OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
-  tr.setPeptideRef("test_ref");
+  tr.setTransType(OpenSwath::TransType::NUCTIDE);
 
-  TEST_EQUAL(tr.getPeptideRef(), "test_ref")
+  TEST_EQUAL(tr.getTransType(), OpenSwath::TransType::NUCTIDE)
 }
 END_SECTION
 
-START_SECTION((const String& getPeptideRef() const ))
-{
-  TEST_EQUAL(transition.getPeptideRef(), "")
-}
-END_SECTION
-
-START_SECTION((void setNuctideRef(const String &nuctide_ref)))
+START_SECTION((void setTransRef(const String &trans_ref, OpenSwath::TransType type)))
 {
   OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
-  tr.setNuctideRef("test_ref");
+  tr.setTransRef("test_ref", OpenSwath::TransType::PEPTIDE);
 
-  TEST_EQUAL(tr.getNuctideRef(), "test_ref")
+  TEST_EQUAL(tr.getTransRef(), "test_ref")
+  TEST_EQUAL(tr.getTransType(), OpenSwath::TransType::PEPTIDE)
 }
 END_SECTION
 
-START_SECTION((const String& getNuctideRef() const ))
+START_SECTION((const String& getTransRef() const ))
 {
-  TEST_EQUAL(transition.getNuctideRef(), "")
+  TEST_EQUAL(transition.getTransRef(), "")
 }
 END_SECTION
 
-START_SECTION((void setCompoundRef(const String &compound_ref)))
-{
-  OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
-  tr.setCompoundRef("test_ref");
-
-  TEST_EQUAL(tr.getCompoundRef(), "test_ref")
-}
-END_SECTION
-
-START_SECTION((const String& getCompoundRef() const ))
-{
-  TEST_EQUAL(transition.getCompoundRef(), "")
-}
-END_SECTION
 
 START_SECTION((void setPrecursorMZ(double mz)))
 {
