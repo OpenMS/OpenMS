@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="PARAMETERS">
+		<xs:annotation>
+			<xs:documentation>Main parameters node.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:group ref="ITEMS" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>A group that encapsulates items and item lists</xs:documentation>
+					</xs:annotation>
+				</xs:group>
+				<xs:element ref="NODE" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Sections used to bundle related parameters.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="version" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Schema version, e.g. '1.1'. If it is missing, version 1.0 is assumed.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="NODE">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="ITEM" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Actual parameters enty.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element ref="NODE" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Sections used to bundle related parameters.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="name" use="required">
+				<xs:annotation>
+					<xs:documentation>Name of the section.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:minLength value="1"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="description" type="xs:string" default=""/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="ITEM">
+		<xs:complexType>
+			<xs:attribute name="name" use="required">
+				<xs:annotation>
+					<xs:documentation>Name of the parameter.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:minLength value="1"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="type" use="required">
+				<xs:annotation>
+					<xs:documentation>Type of the parameter: 'string', 'int', 'float' or 'double'.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="int"/>
+						<xs:enumeration value="float"/>
+						<xs:enumeration value="double"/>
+						<xs:enumeration value="string"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="value" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>Value that must be compatible with the type.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="description" type="xs:string" default="">
+				<xs:annotation>
+					<xs:documentation>Parameter desription. It should contain unit and valid range where applicable.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="advanced" type="xs:boolean" default="false">
+				<xs:annotation>
+					<xs:documentation>Flag that determines if the parameter is always shown, or in 'advanced  mode' only. This attribute is only used for displaying purposes.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="restrictions" type="xs:string" default="">
+				<xs:annotation>
+					<xs:documentation>Restrictions for the value field. For numeric values the lower and upper boundary is given, e.g '[min]:[max]'. For string values a comma-separated list can be given, e.g. 'one,two,three'</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="ITEMLIST">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="LISTITEM" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Entry in the list</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="value" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>Value that must be compatible with the type.</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="name" use="required">
+				<xs:annotation>
+					<xs:documentation>Name of the parameter.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:minLength value="1"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="type" use="required">
+				<xs:annotation>
+					<xs:documentation>Type of the parameter: 'string'.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="string"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="description" type="xs:string" default="">
+				<xs:annotation>
+					<xs:documentation>Parameter desription. It should contain unit and valid range where applicable.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="advanced" type="xs:boolean" default="false">
+				<xs:annotation>
+					<xs:documentation>Flag that determines if the parameter is always shown, or in 'advanced  mode' only. This attribute is only used for displaying purposes.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="restrictions" type="xs:string" default="">
+				<xs:annotation>
+					<xs:documentation>Restrictions for the value field. For numeric values the lower and upper boundary is given, e.g '[min]:[max]'. For string values a comma-separated list can be given, e.g. 'one,two,three'</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:group name="ITEMS">
+		<xs:choice>
+			<xs:element ref="ITEM">
+				<xs:annotation>
+					<xs:documentation>A single-value item</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element ref="ITEMLIST">
+				<xs:annotation>
+					<xs:documentation>A list of values of a certain type</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:choice>
+	</xs:group>
+</xs:schema>

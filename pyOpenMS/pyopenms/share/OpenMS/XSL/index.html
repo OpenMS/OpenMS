@@ -1,0 +1,97 @@
+<html>
+<body>
+
+<div>
+
+This script allows you to apply an XSL-Transformation to an XML-File, without manually entering the XSL definition into the XML-File.
+<br>
+With new browser generations this script works only when used on a webserver. Using it locally from your harddrive will NOT work, since the browser will not allow it for security reasons (there is workaround for Chrome though).
+<p></p>
+
+<script type="text/javascript">
+
+function reformat()
+{
+	
+	xmlfile = document.getElementById ('xmlfile').value;
+	xsltfile = document.getElementById ('xslfile').value;
+	
+	document.getElementById('status').innerHTML = "parsing ... please wait..";
+	// allow the above message to be displayed by delaying the transformation
+	setTimeout('rf(xmlfile,xsltfile)',100);
+}
+
+function rf (xmlfile, xsltfile)
+{
+var xslStylesheet;
+var xsltProcessor = new XSLTProcessor();
+var myDOM;
+
+var xmlDoc;
+
+  try 
+  {
+// load the xslt file
+  var myXMLHTTPRequest = new XMLHttpRequest();
+  myXMLHTTPRequest.open("GET", xsltfile, false);
+  myXMLHTTPRequest.send(null);
+
+  xslStylesheet = myXMLHTTPRequest.responseXML;
+  xsltProcessor.importStylesheet(xslStylesheet);
+
+  // load the xml file, example1.xml
+  myXMLHTTPRequest = new XMLHttpRequest();
+  myXMLHTTPRequest.open("GET", xmlfile, false);
+  myXMLHTTPRequest.send(null);
+
+  textDoc = myXMLHTTPRequest.responseText;
+  // the APML file has a nasty <apml ...> tag whose xmlns-attribute leads to a parsing error -- remove it!
+	textDoc = textDoc.replace(/<apml.*>/g,'<apml>')
+
+  var xmlobject = (new DOMParser()).parseFromString(textDoc, "text/xml");
+  textDoc = null;
+  var fragment = xsltProcessor.transformToFragment(xmlobject, document);
+  //var fragment = xsltProcessor.transformToDocument(xmlobject);
+
+  //document.getElementById("data").appendChild(fragment);
+  newWindow=window.open('','output',
+   'width=1024,height=550'
+   +',menubar=0'
+   +',toolbar=1'
+   +',status=0'
+   +',scrollbars=1'
+   +',resizable=1');
+  newWindow.document.writeln('<html><body><div id="data"></div></body></html>');
+  newWindow.document.getElementById("data").appendChild(fragment);
+  newWindow.document.close();
+  //newWindow.document = fragment;
+  }
+  catch (e)
+  {
+  	alert('An error occurred during the transformation' + e);
+  }
+	
+	
+  document.getElementById('status').innerHTML = "done!";
+  
+}
+
+
+</script>
+
+<form action="javascript:reformat()">
+
+<label>XML file</label><input id="xmlfile" type="file" size=40 value=""/><br>
+<label>XSLT file</label><input id="xslfile" type="file" size=40 value=""/><br>
+
+<input type="submit">
+
+</form>
+
+</div>
+
+<div id="status">
+</div>
+
+</body>
+</html>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool ctdVersion="1.8" version="3.5.0-pre-nuc-dia-2025-07-24" name="ConsensusID" docurl="http://www.openms.de/doxygen/nightly/html/TOPP_ConsensusID.html" category="Identification Processing" >
+<description><![CDATA[Computes a consensus of peptide identifications of several identification engines.]]></description>
+<manual><![CDATA[Computes a consensus of peptide identifications of several identification engines.]]></manual>
+<citations>
+  <citation doi="10.1038/s41592-024-02197-7" url="" />
+</citations>
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="ConsensusID" description="Computes a consensus of peptide identifications of several identification engines.">
+    <ITEM name="version" value="3.5.0-pre-nuc-dia-2025-07-24" type="string" description="Version of the tool that generated this parameters file." required="false" advanced="true" />
+    <NODE name="1" description="Instance &apos;1&apos; section for &apos;ConsensusID&apos;">
+      <ITEMLIST name="in" type="input-file" description="input file" required="true" advanced="false" supported_formats="*.idXML,*.featureXML,*.consensusXML" >
+      </ITEMLIST>
+      <ITEM name="out" value="" type="output-file" description="output file" required="true" advanced="false" supported_formats="*.idXML,*.featureXML,*.consensusXML" />
+      <ITEM name="rt_delta" value="0.1" type="double" description="[idXML input only] Maximum allowed retention time deviation between identifications belonging to the same spectrum." required="false" advanced="false" restrictions="0.000000:" />
+      <ITEM name="mz_delta" value="0.1" type="double" description="[idXML input only] Maximum allowed precursor m/z deviation between identifications belonging to the same spectrum." required="false" advanced="false" restrictions="0.000000:" />
+      <ITEM name="per_spectrum" value="false" type="bool" description="(only idXML) if set, mapping will be done based on exact matching of originating mzml file and spectrum_ref" required="false" advanced="false" />
+      <ITEM name="algorithm" value="PEPMatrix" type="string" description="Algorithm used for consensus scoring.#br#* PEPMatrix: Scoring based on posterior error probabilities (PEPs) and peptide sequence similarities (scored by a substitution matrix). Requires PEPs as scores.#br#* PEPIons: Scoring based on posterior error probabilities (PEPs) and fragment ion similarities (&apos;shared peak count&apos;). Requires PEPs as scores.#br#* best: For each peptide ID, use the best score of any search engine as the consensus score. Requires the same score type in all ID runs.#br#* worst: For each peptide ID, use the worst score of any search engine as the consensus score. Requires the same score type in all ID runs.#br#* average:  For each peptide ID, use the average score of all search engines as the consensus. Requires the same score type in all ID runs.#br#* ranks: Calculates a consensus score based on the ranks of peptide IDs in the results of different search engines. The final score is in the range (0, 1], with 1 being the best score. No requirements about score types." required="false" advanced="false" restrictions="PEPMatrix,PEPIons,best,worst,average,ranks" />
+      <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
+      <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
+      <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+      <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
+      <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
+      <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
+      <NODE name="filter" description="Options for filtering peptide hits">
+        <ITEM name="considered_hits" value="0" type="int" description="The number of top hits in each ID run that are considered for consensus scoring (&apos;0&apos; for all hits)." required="false" advanced="false" restrictions="0:" />
+        <ITEM name="min_support" value="0.0" type="double" description="For each peptide hit from an ID run, the fraction of other ID runs that must support that hit (otherwise it is removed)." required="false" advanced="false" restrictions="0.000000:1.000000" />
+        <ITEM name="count_empty" value="false" type="bool" description="Count empty ID runs (i.e. those containing no peptide hit for the current spectrum) when calculating &apos;min_support&apos;?" required="false" advanced="false" />
+        <ITEM name="keep_old_scores" value="false" type="bool" description="if set, keeps the original scores as user params" required="false" advanced="false" />
+      </NODE>
+      <NODE name="PEPIons" description="PEPIons algorithm parameters">
+        <ITEM name="mass_tolerance" value="0.5" type="double" description="Maximum difference between fragment masses (in Da) for fragments to be considered &apos;shared&apos; between peptides ." required="false" advanced="false" restrictions="0.000000:" />
+        <ITEM name="min_shared" value="2" type="int" description="The minimal number of &apos;shared&apos; fragments (between two suggested peptides) that is necessary to evaluate the similarity based on shared peak count (SPC)." required="false" advanced="false" restrictions="1:" />
+      </NODE>
+      <NODE name="PEPMatrix" description="PEPMatrix algorithm parameters">
+        <ITEM name="matrix" value="PAM30MS" type="string" description="Substitution matrix to use for alignment-based similarity scoring" required="false" advanced="false" restrictions="identity,PAM30MS" />
+        <ITEM name="penalty" value="5" type="int" description="Alignment gap penalty (the same value is used for gap opening and extension)" required="false" advanced="false" restrictions="1:" />
+      </NODE>
+    </NODE>
+  </NODE>
+</PARAMETERS>
+</tool>

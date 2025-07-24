@@ -1,0 +1,2555 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" id="fm_15547199569403338019" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="stringList" name="spectra_data" value="[file:///E5025_HCV_LAB_fu48_1.raw]"/>
+	<dataProcessing completion_time="2018-03-20T15:28:11">
+		<software name="IDMapper" version="2.3.0" />
+		<processingAction name="Identification mapping" />
+		<UserParam type="string" name="parameter: id" value="/Users/lars/Projects/2017/20170611_CPRO_Braunschweig/20180320_SecondFusionMeasurement/20180320_Harvoni_PeptideQuantID/2018-02-28_PeptideID/TOPPAS_out/all_identified_PSMs__idXML/E5025_HCV_LAB_fu48_1.idXML"/>
+		<UserParam type="string" name="parameter: in" value="/Users/lars/Projects/2017/20170611_CPRO_Braunschweig/20180320_SecondFusionMeasurement/20180320_Harvoni_PeptideQuantID/2018-02-28_PeptideQuant/TOPPAS_out/all_quantified_peptides__fXML/E5025_HCV_LAB_fu48_1.featureXML"/>
+		<UserParam type="string" name="parameter: out" value="/private/var/folders/bf/8phydss51y155wc4d3nmsr3h0000gn/T/knime_LFQ_Fusion_Mapp43002/knime_fs-ZipLoopStart_0_5-43015/000/000/12_2_IDMapper_0/E5025_HCV_LAB_fu48_1.featureXML"/>
+		<UserParam type="float" name="parameter: rt_tolerance" value="30.0"/>
+		<UserParam type="float" name="parameter: mz_tolerance" value="10.0"/>
+		<UserParam type="string" name="parameter: mz_measure" value="ppm"/>
+		<UserParam type="string" name="parameter: mz_reference" value="precursor"/>
+		<UserParam type="string" name="parameter: ignore_charge" value="false"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+		<UserParam type="int" name="parameter: threads" value="1"/>
+		<UserParam type="string" name="parameter: no_progress" value="false"/>
+		<UserParam type="string" name="parameter: force" value="false"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
+		<UserParam type="string" name="parameter: feature:use_centroid_rt" value="false"/>
+		<UserParam type="string" name="parameter: feature:use_centroid_mz" value="true"/>
+		<UserParam type="string" name="parameter: consensus:use_subelements" value="false"/>
+		<UserParam type="string" name="parameter: consensus:annotate_ids_with_subelements" value="false"/>
+		<UserParam type="string" name="parameter: spectra:in" value=""/>
+	</dataProcessing>
+	<dataProcessing completion_time="2018-03-20T15:28:40">
+		<software name="IDConflictResolver" version="2.3.0" />
+		<processingAction name="Data filtering" />
+		<UserParam type="string" name="parameter: in" value="/private/var/folders/bf/8phydss51y155wc4d3nmsr3h0000gn/T/knime_LFQ_Fusion_Mapp43002/knime_fs-ZipLoopStart_0_5-43015/000/000/12_2_IDMapper_0/E5025_HCV_LAB_fu48_1.featureXML"/>
+		<UserParam type="string" name="parameter: out" value="/private/var/folders/bf/8phydss51y155wc4d3nmsr3h0000gn/T/knime_LFQ_Fusion_Mapp43002/knime_fs-ZipLoopStart_0_5-43015/000/000/13_2_IDConflictResolver_0/E5025_HCV_LAB_fu48_1.featureXML"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+		<UserParam type="int" name="parameter: threads" value="1"/>
+		<UserParam type="string" name="parameter: no_progress" value="false"/>
+		<UserParam type="string" name="parameter: force" value="false"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
+	</dataProcessing>
+	<dataProcessing completion_time="2018-05-11T16:18:20">
+		<software name="FileFilter" version="2.4.0-alpha" />
+		<processingAction name="Data filtering" />
+		<UserParam type="string" name="parameter: in" value="/home/admin/whitelist/E5025_HCV_LAB_fu48_1.featureXML"/>
+		<UserParam type="string" name="parameter: out" value="../OpenMS/src/tests/topp/FileFilter_47_input.featureXML"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+		<UserParam type="int" name="parameter: threads" value="1"/>
+		<UserParam type="string" name="parameter: no_progress" value="false"/>
+		<UserParam type="string" name="parameter: force" value="false"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
+		<UserParam type="string" name="parameter: in_type" value=""/>
+		<UserParam type="string" name="parameter: out_type" value=""/>
+		<UserParam type="string" name="parameter: rt" value="6380:6390"/>
+		<UserParam type="string" name="parameter: mz" value=":"/>
+		<UserParam type="string" name="parameter: int" value=":"/>
+		<UserParam type="string" name="parameter: sort" value="false"/>
+		<UserParam type="float" name="parameter: peak_options:sn" value="0.0"/>
+		<UserParam type="intList" name="parameter: peak_options:rm_pc_charge" value="[]"/>
+		<UserParam type="string" name="parameter: peak_options:pc_mz_range" value=":"/>
+		<UserParam type="floatList" name="parameter: peak_options:pc_mz_list" value="[]"/>
+		<UserParam type="intList" name="parameter: peak_options:level" value="[1, 2, 3]"/>
+		<UserParam type="string" name="parameter: peak_options:sort_peaks" value="false"/>
+		<UserParam type="string" name="parameter: peak_options:no_chromatograms" value="false"/>
+		<UserParam type="string" name="parameter: peak_options:remove_chromatograms" value="false"/>
+		<UserParam type="string" name="parameter: peak_options:mz_precision" value="64"/>
+		<UserParam type="string" name="parameter: peak_options:int_precision" value="32"/>
+		<UserParam type="string" name="parameter: peak_options:indexed_file" value="false"/>
+		<UserParam type="string" name="parameter: peak_options:zlib_compression" value="false"/>
+		<UserParam type="string" name="parameter: peak_options:numpress:masstime" value="none"/>
+		<UserParam type="float" name="parameter: peak_options:numpress:masstime_error" value="1.0e-04"/>
+		<UserParam type="string" name="parameter: peak_options:numpress:intensity" value="none"/>
+		<UserParam type="float" name="parameter: peak_options:numpress:intensity_error" value="1.0e-04"/>
+		<UserParam type="string" name="parameter: spectra:remove_zoom" value="false"/>
+		<UserParam type="string" name="parameter: spectra:remove_mode" value=""/>
+		<UserParam type="string" name="parameter: spectra:remove_activation" value=""/>
+		<UserParam type="string" name="parameter: spectra:remove_collision_energy" value=":"/>
+		<UserParam type="string" name="parameter: spectra:remove_isolation_window_width" value=":"/>
+		<UserParam type="string" name="parameter: spectra:select_zoom" value="false"/>
+		<UserParam type="string" name="parameter: spectra:select_mode" value=""/>
+		<UserParam type="string" name="parameter: spectra:select_activation" value=""/>
+		<UserParam type="string" name="parameter: spectra:select_collision_energy" value=":"/>
+		<UserParam type="string" name="parameter: spectra:select_isolation_window_width" value=":"/>
+		<UserParam type="string" name="parameter: spectra:select_polarity" value=""/>
+		<UserParam type="string" name="parameter: feature:q" value=":"/>
+		<UserParam type="intList" name="parameter: consensus:map" value="[]"/>
+		<UserParam type="string" name="parameter: consensus:map_and" value="false"/>
+		<UserParam type="string" name="parameter: consensus:blackorwhitelist:blacklist" value="true"/>
+		<UserParam type="string" name="parameter: consensus:blackorwhitelist:file" value=""/>
+		<UserParam type="intList" name="parameter: consensus:blackorwhitelist:maps" value="[]"/>
+		<UserParam type="float" name="parameter: consensus:blackorwhitelist:rt" value="60.0"/>
+		<UserParam type="float" name="parameter: consensus:blackorwhitelist:mz" value="0.01"/>
+		<UserParam type="string" name="parameter: consensus:blackorwhitelist:use_ppm_tolerance" value="false"/>
+		<UserParam type="string" name="parameter: f_and_c:charge" value=":"/>
+		<UserParam type="string" name="parameter: f_and_c:size" value=":"/>
+		<UserParam type="stringList" name="parameter: f_and_c:remove_meta" value="[]"/>
+		<UserParam type="string" name="parameter: f_and_c:make_unique" value="false"/>
+		<UserParam type="string" name="parameter: id:remove_clashes" value="false"/>
+		<UserParam type="string" name="parameter: id:keep_best_score_id" value="false"/>
+		<UserParam type="stringList" name="parameter: id:sequences_whitelist" value="[]"/>
+		<UserParam type="string" name="parameter: id:sequence_comparison_method" value="substring"/>
+		<UserParam type="stringList" name="parameter: id:accessions_whitelist" value="[]"/>
+		<UserParam type="string" name="parameter: id:remove_annotated_features" value="false"/>
+		<UserParam type="string" name="parameter: id:remove_unannotated_features" value="false"/>
+		<UserParam type="string" name="parameter: id:remove_unassigned_ids" value="true"/>
+		<UserParam type="string" name="parameter: id:blacklist" value=""/>
+		<UserParam type="float" name="parameter: id:rt" value="0.1"/>
+		<UserParam type="float" name="parameter: id:mz" value="1.0e-03"/>
+		<UserParam type="string" name="parameter: id:blacklist_imperfect" value="false"/>
+		<UserParam type="int" name="parameter: algorithm:SignalToNoise:max_intensity" value="-1"/>
+		<UserParam type="float" name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" value="3.0"/>
+		<UserParam type="int" name="parameter: algorithm:SignalToNoise:auto_max_percentile" value="95"/>
+		<UserParam type="int" name="parameter: algorithm:SignalToNoise:auto_mode" value="0"/>
+		<UserParam type="float" name="parameter: algorithm:SignalToNoise:win_len" value="200.0"/>
+		<UserParam type="int" name="parameter: algorithm:SignalToNoise:bin_count" value="30"/>
+		<UserParam type="int" name="parameter: algorithm:SignalToNoise:min_required_elements" value="10"/>
+		<UserParam type="float" name="parameter: algorithm:SignalToNoise:noise_for_empty_window" value="1.0e20"/>
+		<UserParam type="string" name="parameter: algorithm:SignalToNoise:write_log_messages" value="true"/>
+	</dataProcessing>
+	<dataProcessing completion_time="2018-05-18T11:42:43">
+		<software name="IDSplitter" version="2.4.0-alpha" />
+		<processingAction name="Data filtering" />
+		<UserParam type="string" name="parameter: in" value="/home/admin/Code/OpenMS-MFreidank/OpenMS/src/tests/topp/FileFilter_47_input.featureXML"/>
+		<UserParam type="string" name="parameter: out" value="/tmp/20180518_113538_4792_1/Untitled_workflow/002_IDSplitter/out/FileFilter_47_input.unknown"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+		<UserParam type="int" name="parameter: threads" value="1"/>
+		<UserParam type="string" name="parameter: no_progress" value="true"/>
+		<UserParam type="string" name="parameter: force" value="false"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
+		<UserParam type="string" name="parameter: id_out" value="/tmp/20180518_113538_4792_1/Untitled_workflow/002_IDSplitter/id_out/FileFilter_47_input.idXML"/>
+	</dataProcessing>
+	<dataProcessing completion_time="2018-05-18T11:42:48">
+		<software name="IDMapper" version="2.4.0-alpha" />
+		<processingAction name="Identification mapping" />
+		<UserParam type="string" name="parameter: id" value="/tmp/20180518_113538_4792_1/Untitled_workflow/003_IDFilter/out/FileFilter_47_input.idXML"/>
+		<UserParam type="string" name="parameter: in" value="/tmp/20180518_113538_4792_1/Untitled_workflow/002_IDSplitter/out/FileFilter_47_input.featureXML"/>
+		<UserParam type="string" name="parameter: out" value="/tmp/20180518_113538_4792_1/Untitled_workflow/004_IDMapper/out/FileFilter_47_input.unknown"/>
+		<UserParam type="float" name="parameter: rt_tolerance" value="5.0"/>
+		<UserParam type="float" name="parameter: mz_tolerance" value="20.0"/>
+		<UserParam type="string" name="parameter: mz_measure" value="ppm"/>
+		<UserParam type="string" name="parameter: mz_reference" value="precursor"/>
+		<UserParam type="string" name="parameter: ignore_charge" value="false"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+		<UserParam type="int" name="parameter: threads" value="1"/>
+		<UserParam type="string" name="parameter: no_progress" value="true"/>
+		<UserParam type="string" name="parameter: force" value="false"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
+		<UserParam type="string" name="parameter: feature:use_centroid_rt" value="false"/>
+		<UserParam type="string" name="parameter: feature:use_centroid_mz" value="false"/>
+		<UserParam type="string" name="parameter: consensus:use_subelements" value="false"/>
+		<UserParam type="string" name="parameter: consensus:annotate_ids_with_subelements" value="false"/>
+		<UserParam type="string" name="parameter: spectra:in" value=""/>
+	</dataProcessing>
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="IDConflictResolver" version="version_string" />
+		<processingAction name="Data filtering" />
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="2018-03-06T18:41:25" search_engine="MS-GF+" search_engine_version="Release (v2017.01.27)">
+		<SearchParameters db="C:\Users\masse\Dropbox\FusionWorkflows\database\uniprot-taxonomy_Homo__2015-12-01-plus-shuffled.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1000" precursor_peak_tolerance="20" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+			<FixedModification name="Methylthio (C)" />
+			<VariableModification name="Oxidation (M)" />
+			<VariableModification name="Acetyl (N-term)" />
+			<UserParam type="string" name="MS:1001211" value=""/>
+			<UserParam type="string" name="MS:1001256" value=""/>
+			<UserParam type="string" name="ChargeCarrierMass" value="1.00727649"/>
+			<UserParam type="string" name="FragmentMethod" value="As written in the spectrum or CID if no info"/>
+			<UserParam type="string" name="Instrument" value="QExactive"/>
+			<UserParam type="string" name="MaxCharge" value="4"/>
+			<UserParam type="string" name="MaxIsotopeError" value="2"/>
+			<UserParam type="string" name="MaxNumModifications" value="3"/>
+			<UserParam type="string" name="MaxPepLength" value="40"/>
+			<UserParam type="string" name="MinCharge" value="2"/>
+			<UserParam type="string" name="MinIsotopeError" value="-1"/>
+			<UserParam type="string" name="MinPepLength" value="7"/>
+			<UserParam type="string" name="NumMatchesPerSpec" value="1"/>
+			<UserParam type="string" name="NumTolerableTermini" value="2"/>
+			<UserParam type="string" name="Protocol" value="Standard"/>
+			<UserParam type="string" name="TargetDecoyApproach" value="false"/>
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="sp|A0FGR8|ESYT2_HUMAN" score="0.72122460603714" coverage="33.9847991313789" sequence="MTANRDAALSSHRHPGCAQRPRTPTFASSSQRRSAFGFDDGNFPGLGERSHAPGSRLGARRRAKTARGLRGHRQRGAGAGLSRPGSARAPSPPRPGGPENPGGVLSVELPGLLAQLARSFALLLPVYALGYLGLSFSWVLLALALLAWCRRSRGLKALRLCRALALLEDEERVVRLGVRACDLPAWVHFPDTERAEWLNKTVKHMWPFICQFIEKLFRETIEPAVRGANTHLSTFSFTKVDVGQQPLRINGVKVYTENVDKRQIILDLQISFVGNCEIDLEIKRYFCRAGVKSIQIHGTMRVILEPLIGDMPLVGALSIFFLRKPLLEINWTGLTNLLDVPGLNGLSDTIILDIISNYLVLPNRITVPLVSEVQIAQLRFPVPKGVLRIHFIEAQDLQGKDTYLKGLVKGKSDPYGIIRVGNQIFQSRVIKENLSPKWNEVYEALVYEHPGQELEIELFDEDPDKDDFLGSLMIDLIEVEKERLLDEWFTLDEVPKGKLHLRLEWLTLMPNASNLDKVLTDIKADKDQANDGLSSALLILYLDSARNLPSGKKISSNPNPVVQMSVGHKAQESKIRYKTNEPVWEENFTFFIHNPKRQDLEVEVRDEQHQCSLGNLKVPLSQLLTSEDMTVSQRFQLSNSGPNSTIKMKIALRVLHLEKRERPPDHQHSAQVKRPSVSKEGRKTSIKSHMSGSPGPGGSNTAPSTPVIGGSDKPGMEEKAQPPEAGPQGLHDLGRSSSSLLASPGHISVKEPTPSIASDISLPIATQELRQRLRQLENGTTLGQSPLGQIQLTIRHSSQRNKLIVVVHACRNLIAFSEDGSDPYVRMYLLPDKRRSGRRKTHVSKKTLNPVFDQSFDFSVSLPEVQRRTLDVAVKNSGGFLSKDKGLLGKVLVALASEELAKGWTQWYDLTEDGTRPQAMT">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Extended synaptotagmin-2 OS=Homo sapiens GN=ESYT2 PE=1 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="sp|O60814|H2B1K_HUMAN" score="0.72122460603714" coverage="96.031746031746" sequence="MPEPAKSAPAPKKGSKKAVTKAQKKDGKKRKRSRKESYSVYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSAK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B type 1-K OS=Homo sapiens GN=HIST1H2BK PE=1 SV=3"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="sp|P06899|H2B1J_HUMAN" score="0.72122460603714" coverage="95.2380952380952" sequence="MPEPAKSAPAPKKGSKKAVTKAQKKDGKKRKRSRKESYSIYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSAK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B type 1-J OS=Homo sapiens GN=HIST1H2BJ PE=1 SV=3"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="sp|P08670|VIME_HUMAN" score="0.72122460603714" coverage="96.3519313304721" sequence="MSTRSVSSSSYRRMFGGPGTASRPSSSRSYVTTSTRTYSLGSALRPSTSRSLYASSPGGVYATRSSAVRLRSSVPGVRLLQDSVDFSLADAINTEFKNTRTNEKVELQELNDRFANYIDKVRFLEQQNKILLAELEQLKGQGKSRLGDLYEEEMRELRRQVDQLTNDKARVEVERDNLAEDIMRLREKLQEEMLQREEAENTLQSFRQDVDNASLARLDLERKVESLQEEIAFLKKLHEEEIQELQAQIQEQHVQIDVDVSKPDLTAALRDVRQQYESVAAKNLQEAEEWYKSKFADLSEAANRNNDALRQAKQESTEYRRQVQSLTCEVDALKGTNESLERQMREMEENFAVEAANYQDTIGRLQDEIQNMKEEMARHLREYQDLLNVKMALDIEIATYRKLLEGEESRISLPLPNFSSLNLRETNLDSLPLVDTHSKRTLLIKTVETRDGQVINETSQHHDDLE">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Vimentin OS=Homo sapiens GN=VIM PE=1 SV=4"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="sp|P10809|CH60_HUMAN" score="0.72122460603714" coverage="71.9022687609075" sequence="MLRLPTVFRQMRPVSRVLAPHLTRAYAKDVKFGADARALMLQGVDLLADAVAVTMGPKGRTVIIEQSWGSPKVTKDGVTVAKSIDLKDKYKNIGAKLVQDVANNTNEEAGDGTTTATVLARSIAKEGFEKISKGANPVEIRRGVMLAVDAVIAELKKQSKPVTTPEEIAQVATISANGDKEIGNIISDAMKKVGRKGVITVKDGKTLNDELEIIEGMKFDRGYISPYFINTSKGQKCEFQDAYVLLSEKKISSIQSIVPALEIANAHRKPLVIIAEDVDGEALSTLVLNRLKVGLQVVAVKAPGFGDNRKNQLKDMAIATGGAVFGEEGLTLNLEDVQPHDLGKVGEVIVTKDDAMLLKGKGDKAQIEKRIQEIIEQLDVTTSEYEKEKLNERLAKLSDGVAVLKVGGTSDVEVNEKKDRVTDALNATRAAVEEGIVLGGGCALLRCIPALDSLTPANEDQKIGIEIIKRTLKIPAMTIAKNAGVEGSLIVEKIMQSSSEVGYDAMAGDFVNMVEKGIIDPTKVVRTALLDAAGVASLLTTAEVVVTEIPKEEKDPGMGAMGGMGGGMGGGMF">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="60 kDa heat shock protein, mitochondrial OS=Homo sapiens GN=HSPD1 PE=1 SV=2"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="sp|P13667|PDIA4_HUMAN" score="0.72122460603714" coverage="39.3798449612403" sequence="MRPRKAFLLLLLLGLVQLLAVAGAEGPDEDSSNRENAIEDEEEEEEEDDDEEEDDLEVKEENGVLVLNDANFDNFVADKDTVLLEFYAPWCGHCKQFAPEYEKIANILKDKDPPIPVAKIDATSASVLASRFDVSGYPTIKILKKGQAVDYEGSRTQEEIVAKVREVSQPDWTPPPEVTLVLTKENFDEVVNDADIILVEFYAPWCGHCKKLAPEYEKAAKELSKRSPPIPLAKVDATAETDLAKRFDVSGYPTLKIFRKGRPYDYNGPREKYGIVDYMIEQSGPPSKEILTLKQVQEFLKDGDDVIIIGVFKGESDPAYQQYQDAANNLREDYKFHHTFSTEIAKFLKVSQGQLVVMQPEKFQSKYEPRSHMMDVQGSTQDSAIKDFVLKYALPLVGHRKVSNDAKRYTRRPLVVVYYSVDFSFDYRAATQFWRSKVLEVAKDFPEYTFAIADEEDYAGEVKDLGLSESGEDVNAAILDESGKKFAMEPEEFDSDTLREFVTAFKKGKLKPVIKSQPVPKNNKGPVKVVVGKTFDSIVMDPKKDVLIEFYAPWCGHCKQLEPVYNSLAKKYKGQKGLVIAKMDATANDVPSDRYKVEGFPTIYFAPSGDKKNPVKFEGGDRDLEHLSKFIEEHATKLSRTKEEL">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Protein disulfide-isomerase A4 OS=Homo sapiens GN=PDIA4 PE=1 SV=2"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="sp|P23396|RS3_HUMAN" score="0.72122460603714" coverage="70.7818930041152" sequence="MAVQISKKRKFVADGIFKAELNEFLTRELAEDGYSGVEVRVTPTRTEIIILATRTQNVLGEKGRRIRELTAVVQKRFGFPEGSVELYAEKVATRGLCAIAQAESLRYKLLGGLAVRRACYGVLRFIMESGAKGCEVVVSGKLRGQRAKSMKFVDGLMIHSGDPVNYYVDTAVRHVLLRQGVLGIKVKIMLPWDPTGKIGPKKPLPDHVSIVEPKDEILPTTPISEQKGGKPEPPAMPQPVPTA">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="40S ribosomal protein S3 OS=Homo sapiens GN=RPS3 PE=1 SV=2"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="sp|P23527|H2B1O_HUMAN" score="0.72122460603714" coverage="95.2380952380952" sequence="MPDPAKSAPAPKKGSKKAVTKAQKKDGKKRKRSRKESYSIYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSSK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B type 1-O OS=Homo sapiens GN=HIST1H2BO PE=1 SV=3"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="sp|P25705|ATPA_HUMAN" score="0.72122460603714" coverage="69.0777576853526" sequence="MLSVRVAAAVVRALPRRAGLVSRNALGSSFIAARNFHASNTHLQKTGTAEMSSILEERILGADTSVDLEETGRVLSIGDGIARVHGLRNVQAEEMVEFSSGLKGMSLNLEPDNVGVVVFGNDKLIKEGDIVKRTGAIVDVPVGEELLGRVVDALGNAIDGKGPIGSKTRRRVGLKAPGIIPRISVREPMQTGIKAVDSLVPIGRGQRELIIGDRQTGKTSIAIDTIINQKRFNDGSDEKKKLYCIYVAIGQKRSTVAQLVKRLTDADAMKYTIVVSATASDAAPLQYLAPYSGCSMGEYFRDNGKHALIIYDDLSKQAVAYRQMSLLLRRPPGREAYPGDVFYLHSRLLERAAKMNDAFGGGSLTALPVIETQAGDVSAYIPTNVISITDGQIFLETELFYKGIRPAINVGLSVSRVGSAAQTRAMKQVAGTMKLELAQYREVAAFAQFGSDLDAATQQLLSRGVRLTELLKQGQYSPMAIEEQVAVIYAGVRGYLDKLEPSKITKFENAFLSHVVSQHQALLGTIRADGKISEQSDAKLKEIVTNFLAGFEA">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="ATP synthase subunit alpha, mitochondrial OS=Homo sapiens GN=ATP5A1 PE=1 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="sp|P27824|CALX_HUMAN" score="0.72122460603714" coverage="26.8581081081081" sequence="MEGKWLLCMLLVLGTAIVEAHDGHDDDVIDIEDDLDDVIEEVEDSKPDTTAPPSSPKVTYKAPVPTGEVYFADSFDRGTLSGWILSKAKKDDTDDEIAKYDGKWEVEEMKESKLPGDKGLVLMSRAKHHAISAKLNKPFLFDTKPLIVQYEVNFQNGIECGGAYVKLLSKTPELNLDQFHDKTPYTIMFGPDKCGEDYKLHFIFRHKNPKTGIYEEKHAKRPDADLKTYFTDKKTHLYTLILNPDNSFEILVDQSVVNSGNLLNDMTPPVNPSREIEDPEDRKPEDWDERPKIPDPEAVKPDDWDEDAPAKIPDEEATKPEGWLDDEPEYVPDPDAEKPEDWDEDMDGEWEAPQIANPRCESAPGCGVWQRPVIDNPNYKGKWKPPMIDNPSYQGIWKPRKIPNPDFFEDLEPFRMTPFSAIGLELWSMTSDIFFDNFIICADRRIVDDWANDGWGLKKAADGAAEPGVVGQMIEAAEERPWLWVVYILTVALPVFLVILFCCSGKKQTSGMEYKKTDAPQPDVKEEEEEKEEEKDKGDEEEEGEEKLEEKQKSDAEEDGGTVSQEEEDRKPKAEEDEILNRSPRNRKPRRE">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Calnexin OS=Homo sapiens GN=CANX PE=1 SV=2"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_10" accession="sp|P28070|PSB4_HUMAN" score="0.72122460603714" coverage="49.2424242424242" sequence="MEAFLGSRSGLWAGGPAPGQFYRIPSTPDSFMDPASALYRGPITRTQNPMVTGTSVLGVKFEGGVVIAADMLGSYGSLARFRNISRIMRVNNSTMLGASGDYADFQYLKQVLGQMVIDEELLGDGHSYSPRAIHSWLTRAMYSRRSKMNPLWNTMVIGGYADGESFLGYVDMLGVAYEAPSLATGYGAYLAQPLLREVLEKQPVLSQTEARDLVERCMRVLYYRDARSYNRFQIATVTEKGVEIEGPLSTETNWDIAHMISGFE">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Proteasome subunit beta type-4 OS=Homo sapiens GN=PSMB4 PE=1 SV=4"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_11" accession="sp|P33778|H2B1B_HUMAN" score="0.72122460603714" coverage="84.1269841269841" sequence="MPEPSKSAPAPKKGSKKAITKAQKKDGKKRKRSRKESYSIYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSSK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B type 1-B OS=Homo sapiens GN=HIST1H2BB PE=1 SV=2"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_12" accession="sp|P35579|MYH9_HUMAN" score="0.72122460603714" coverage="80.7142857142857" sequence="MAQQAADKYLYVDKNFINNPLAQADWAAKKLVWVPSDKSGFEPASLKEEVGEEAIVELVENGKKVKVNKDDIQKMNPPKFSKVEDMAELTCLNEASVLHNLKERYYSGLIYTYSGLFCVVINPYKNLPIYSEEIVEMYKGKKRHEMPPHIYAITDTAYRSMMQDREDQSILCTGESGAGKTENTKKVIQYLAYVASSHKSKKDQGELERQLLQANPILEAFGNAKTVKNDNSSRFGKFIRINFDVNGYIVGANIETYLLEKSRAIRQAKEERTFHIFYYLLSGAGEHLKTDLLLEPYNKYRFLSNGHVTIPGQQDKDMFQETMEAMRIMGIPEEEQMGLLRVISGVLQLGNIVFKKERNTDQASMPDNTAAQKVSHLLGINVTDFTRGILTPRIKVGRDYVQKAQTKEQADFAIEALAKATYERMFRWLVLRINKALDKTKRQGASFIGILDIAGFEIFDLNSFEQLCINYTNEKLQQLFNHTMFILEQEEYQREGIEWNFIDFGLDLQPCIDLIEKPAGPPGILALLDEECWFPKATDKSFVEKVMQEQGTHPKFQKPKQLKDKADFCIIHYAGKVDYKADEWLMKNMDPLNDNIATLLHQSSDKFVSELWKDVDRIIGLDQVAGMSETALPGAFKTRKGMFRTVGQLYKEQLAKLMATLRNTNPNFVRCIIPNHEKKAGKLDPHLVLDQLRCNGVLEGIRICRQGFPNRVVFQEFRQRYEILTPNSIPKGFMDGKQACVLMIKALELDSNLYRIGQSKVFFRAGVLAHLEEERDLKITDVIIGFQACCRGYLARKAFAKRQQQLTAMKVLQRNCAAYLKLRNWQWWRLFTKVKPLLQVSRQEEEMMAKEEELVKVREKQLAAENRLTEMETLQSQLMAEKLQLQEQLQAETELCAEAEELRARLTAKKQELEEICHDLEARVEEEEERCQHLQAEKKKMQQNIQELEEQLEEEESARQKLQLEKVTTEAKLKKLEEEQIILEDQNCKLAKEKKLLEDRIAEFTTNLTEEEEKSKSLAKLKNKHEAMITDLEERLRREEKQRQELEKTRRKLEGDSTDLSDQIAELQAQIAELKMQLAKKEEELQAALARVEEEAAQKNMALKKIRELESQISELQEDLESERASRNKAEKQKRDLGEELEALKTELEDTLDSTAAQQELRSKREQEVNILKKTLEEEAKTHEAQIQEMRQKHSQAVEELAEQLEQTKRVKANLEKAKQTLENERGELANEVKVLLQGKGDSEHKRKKVEAQLQELQVKFNEGERVRTELADKVTKLQVELDNVTGLLSQSDSKSSKLTKDFSALESQLQDTQELLQEENRQKLSLSTKLKQVEDEKNSFREQLEEEEEAKHNLEKQIATLHAQVADMKKKMEDSVGCLETAEEVKRKLQKDLEGLSQRHEEKVAAYDKLEKTKTRLQQELDDLLVDLDHQRQSACNLEKKQKKFDQLLAEEKTISAKYAEERDRAEAEAREKETKALSLARALEEAMEQKAELERLNKQFRTEMEDLMSSKDDVGKSVHELEKSKRALEQQVEEMKTQLEELEDELQATEDAKLRLEVNLQAMKAQFERDLQGRDEQSEEKKKQLVRQVREMEAELEDERKQRSMAVAARKKLEMDLKDLEAHIDSANKNRDEAIKQLRKLQAQMKDCMRELDDTRASREEILAQAKENEKKLKSMEAEMIQLQEELAAAERAKRQAQQERDELADEIANSSGKGALALEEKRRLEARIAQLEEELEEEQGNTELINDRLKKANLQIDQINTDLNLERSHAQKNENARQQLERQNKELKVKLQEMEGTVKSKYKASITALEAKIAQLEEQLDNETKERQAACKQVRRTEKKLKDVLLQVDDERRNAEQYKDQADKASTRLKQLKRQLEEAEEEAQRANASRRKLQRELEDATETADAMNREVSSLKNKLRRGDLPFVVPRRMARKGAGDGSDEEVDGKADGAEAKPAE">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Myosin-9 OS=Homo sapiens GN=MYH9 PE=1 SV=4"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_13" accession="sp|P41219|PERI_HUMAN" score="0.72122460603714" coverage="6.80851063829787" sequence="MSHHPSGLRAGFSSTSYRRTFGPPPSLSPGAFSYSSSSRFSSSRLLGSASPSSSVRLGSFRSPRAGAGALLRLPSERLDFSMAEALNQEFLATRSNEKQELQELNDRFANFIEKVRFLEQQNAALRGELSQARGQEPARADQLCQQELRELRRELELLGRERDRVQVERDGLAEDLAALKQRLEEETRKREDAEHNLVLFRKDVDDATLSRLELERKIESLMDEIEFLKKLHEEELRDLQVSVESQQVQQVEVEATVKPELTAALRDIRAQYESIAAKNLQEAEEWYKSKYADLSDAANRNHEALRQAKQEMNESRRQIQSLTCEVDGLRGTNEALLRQLRELEEQFALEAGGYQAGAARLEEELRQLKEEMARHLREYQELLNVKMALDIEIATYRKLLEGEESRISVPVHSFASLNIKTTVPEVEPPQDSHSRKTVLIKTIETRNGEVVTESQKEQRSELDKSSAHSY">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Peripherin OS=Homo sapiens GN=PRPH PE=1 SV=2"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_14" accession="sp|P46940|IQGA1_HUMAN" score="0.72122460603714" coverage="55.7030778515389" sequence="MSAADEVDGLGVARPHYGSVLDNERLTAEEMDERRRQNVAYEYLCHLEEAKRWMEACLGEDLPPTTELEEGLRNGVYLAKLGNFFSPKVVSLKKIYDREQTRYKATGLHFRHTDNVIQWLNAMDEIGLPKIFYPETTDIYDRKNMPRCIYCIHALSLYLFKLGLAPQIQDLYGKVDFTEEEINNMKTELEKYGIQMPAFSKIGGILANELSVDEAALHAAVIAINEAIDRRIPADTFAALKNPNAMLVNLEEPLASTYQDILYQAKQDKMTNAKNRTENSERERDVYEELLTQAEIQGNINKVNTFSALANIDLALEQGDALALFRALQSPALGLRGLQQQNSDWYLKQLLSDKQQKRQSGQTDPLQKEELQSGVDAANSAAQQYQRRLAAVALINAAIQKGVAEKTVLELMNPEAQLPQVYPFAADLYQKELATLQRQSPEHNLTHPELSVAVEMLSSVALINRALESGDVNTVWKQLSSSVTGLTNIEEENCQRYLDELMKLKAQAHAENNEFITWNDIQACVDHVNLVVQEEHERILAIGLINEALDEGDAQKTLQALQIPAAKLEGVLAEVAQHYQDTLIRAKREKAQEIQDESAVLWLDEIQGGIWQSNKDTQEAQKFALGIFAINEAVESGDVGKTLSALRSPDVGLYGVIPECGETYHSDLAEAKKKKLAVGDNNSKWVKHWVKGGYYYYHNLETQEGGWDEPPNFVQNSMQLSREEIQSSISGVTAAYNREQLWLANEGLITRLQARCRGYLVRQEFRSRMNFLKKQIPAITCIQSQWRGYKQKKAYQDRLAYLRSHKDEVVKIQSLARMHQARKRYRDRLQYFRDHINDIIKIQAFIRANKARDDYKTLINAEDPPMVVVRKFVHLLDQSDQDFQEELDLMKMREEVITLIRSNQQLENDLNLMDIKIGLLVKNKITLQDVVSHSKKLTKKNKEQLSDMMMINKQKGGLKALSKEKREKLEAYQHLFYLLQTNPTYLAKLIFQMPQNKSTKFMDSVIFTLYNYASNQREEYLLLRLFKTALQEEIKSKVDQIQEIVTGNPTVIKMVVSFNRGARGQNALRQILAPVVKEIMDDKSLNIKTDPVDIYKSWVNQMESQTGEASKLPYDVTPEQALAHEEVKTRLDSSIRNMRAVTDKFLSAIVSSVDKIPYGMRFIAKVLKDSLHEKFPDAGEDELLKIIGNLLYYRYMNPAIVAPDAFDIIDLSAGGQLTTDQRRNLGSIAKMLQHAASNKMFLGDNAHLSIINEYLSQSYQKFRRFFQTACDVPELQDKFNVDEYSDLVTLTKPVIYISIGEIINTHTLLLDHQDAIAPEHNDPIHELLDDLGEVPTIESLIGESSGNLNDPNKEALAKTEVSLTLTNKFDVPGDENAEMDARTILLNTKRLIVDVIRFQPGETLTEILETPATSEQEAEHQRAMQRRAIRDAKTPDKMKKSKSVKEDSNLTLQEKKEKIQTGLKKLTELGTVDPKNKYQELINDIARDIRNQRRYRQRRKAELVKLQQTYAALNSKATFYGEQVDYYKSYIKTCLDNLASKGKVSKKPREMKGKKSKKISLKYTAARLHEKGVLLEIEDLQVNQFKNVIFEISPTEEVGDFEVKAKFMGVQMETFMLHYQDLLQLQYEGVAVMKLFDRAKVNVNLLIFLLNKKFYGK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Ras GTPase-activating-like protein IQGAP1 OS=Homo sapiens GN=IQGAP1 PE=1 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_15" accession="sp|P57053|H2BFS_HUMAN" score="0.72122460603714" coverage="84.9206349206349" sequence="MPEPAKSAPAPKKGSKKAVTKAQKKDGRKRKRSRKESYSVYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLPHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSAK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B type F-S OS=Homo sapiens GN=H2BFS PE=1 SV=2"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_16" accession="sp|P58876|H2B1D_HUMAN" score="0.72122460603714" coverage="96.031746031746" sequence="MPEPTKSAPAPKKGSKKAVTKAQKKDGKKRKRSRKESYSVYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSSK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B type 1-D OS=Homo sapiens GN=HIST1H2BD PE=1 SV=2"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_17" accession="sp|P62805|H4_HUMAN" score="0.72122460603714" coverage="80.5825242718447" sequence="MSGRGKGGKGLGKGGAKRHRKVLRDNIQGITKPAIRRLARRGGVKRISGLIYEETRGVLKVFLENVIRDAVTYTEHAKRKTVTAMDVVYALKRQGRTLYGFGG">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H4 OS=Homo sapiens GN=HIST1H4A PE=1 SV=2"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_18" accession="sp|P62807|H2B1C_HUMAN" score="0.72122460603714" coverage="96.031746031746" sequence="MPEPAKSAPAPKKGSKKAVTKAQKKDGKKRKRSRKESYSVYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSSK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B type 1-C/E/F/G/I OS=Homo sapiens GN=HIST1H2BC PE=1 SV=4"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_19" accession="sp|Q16778|H2B2E_HUMAN" score="0.72122460603714" coverage="95.2380952380952" sequence="MPEPAKSAPAPKKGSKKAVTKAQKKDGKKRKRSRKESYSIYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSSK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B type 2-E OS=Homo sapiens GN=HIST2H2BE PE=1 SV=3"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_20" accession="sp|Q5QNW6|H2B2F_HUMAN" score="0.72122460603714" coverage="84.9206349206349" sequence="MPDPAKSAPAPKKGSKKAVTKVQKKDGKKRKRSRKESYSVYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSSK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B type 2-F OS=Homo sapiens GN=HIST2H2BF PE=1 SV=3"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_21" accession="sp|Q8IYJ3|SYTL1_HUMAN" score="0.72122460603714" coverage="27.4021352313167" sequence="MPQRGHPSQEGLWALPSLPMAHGPKPETEGLLDLSFLTEEEQEAIAGVLQRDARLRQLEEGRVSKLRASVADPGQLKILTGDWFQEARSQRHHNAHFGSDLVRASMRRKKSTRGDQAPGHDREAEAAVKEKEEGPEPRLTIDEAPQERLRETEGPDFPSPSVPLKASDPEEASQAQEDPGQGDQQVCAEEADPELEPASGGEQEPRPQQAQTKAASQILENGEEAPGPDPSLDRMLSSSSSVSSLNSSTLSGSQMSLSGDAEAVQVRGSVHFALHYEPGAAELRVHVIQCQGLAAARRRRSDPYVKSYLLPDKQSKRKTAVKKRNLNPVFNETLRYSVPQAELQGRVLSLSVWHRESLGRNIFLGEVEVPLDTWDWGSEPTWLPLQPRVPPSPDDLPSRGLLALSLKYVPAGSEGAGLPPSGELHFWVKEARDLLPLRAGSLDTYVQCFVLPDDSQASRQRTRVVRRSLSPVFNHTMVYDGFGPADLRQACAELSLWDHGALANRQLGGTRLSLGTGSSYGLQVPWMDSTPEEKQLWQALLEQPCEWVDGLLPLRTNLAPRT">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Synaptotagmin-like protein 1 OS=Homo sapiens GN=SYTL1 PE=1 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_22" accession="sp|Q8N257|H2B3B_HUMAN" score="0.72122460603714" coverage="84.1269841269841" sequence="MPDPSKSAPAPKKGSKKAVTKAQKKDGKKRKRGRKESYSIYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIASEASRLAHYNKRSTITSREVQTAVRLLLPGELAKHAVSEGTKAVTKYTSSK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B type 3-B OS=Homo sapiens GN=HIST3H2BB PE=1 SV=3"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_23" accession="sp|Q93079|H2B1H_HUMAN" score="0.72122460603714" coverage="96.031746031746" sequence="MPDPAKSAPAPKKGSKKAVTKAQKKDGKKRKRSRKESYSVYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSSK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B type 1-H OS=Homo sapiens GN=HIST1H2BH PE=1 SV=3"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_24" accession="sp|Q96A08|H2B1A_HUMAN" score="0.72122460603714" coverage="50.3937007874016" sequence="MPEVSSKGATISKKGFKKAVVKTQKKEGKKRKRTRKESYSIYIYKVLKQVHPDTGISSKAMSIMNSFVTDIFERIASEASRLAHYSKRSTISSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSSK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B type 1-A OS=Homo sapiens GN=HIST1H2BA PE=1 SV=3"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_25" accession="sp|Q99877|H2B1N_HUMAN" score="0.72122460603714" coverage="96.031746031746" sequence="MPEPSKSAPAPKKGSKKAVTKAQKKDGKKRKRSRKESYSVYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSSK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B type 1-N OS=Homo sapiens GN=HIST1H2BN PE=1 SV=3"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_26" accession="sp|Q99879|H2B1M_HUMAN" score="0.72122460603714" coverage="84.9206349206349" sequence="MPEPVKSAPVPKKGSKKAINKAQKKDGKKRKRSRKESYSVYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSSK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B type 1-M OS=Homo sapiens GN=HIST1H2BM PE=1 SV=3"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_27" accession="sp|Q99880|H2B1L_HUMAN" score="0.72122460603714" coverage="81.7460317460317" sequence="MPELAKSAPAPKKGSKKAVTKAQKKDGKKRKRSRKESYSVYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIASEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSSK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B type 1-L OS=Homo sapiens GN=HIST1H2BL PE=1 SV=3"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_28" accession="sp|Q9Y3Z3|SAMH1_HUMAN" score="0.72122460603714" coverage="66.1341853035144" sequence="MQRADSEQPSKRPRCDDSPRTPSNTPSAEADWSPGLELHPDYKTWGPEQVCSFLRRGGFEEPVLLKNIRENEITGALLPCLDESRFENLGVSSLGERKKLLSYIQRLVQIHVDTMKVINDPIHGHIELHPLLVRIIDTPQFQRLRYIKQLGGGYYVFPGASHNRFEHSLGVGYLAGCLVHALGEKQPELQISERDVLCVQIAGLCHDLGHGPFSHMFDGRFIPLARPEVKWTHEQGSVMMFEHLINSNGIKPVMEQYGLIPEEDICFIKEQIVGPLESPVEDSLWPYKGRPENKSFLYEIVSNKRNGIDVDKWDYFARDCHHLGIQNNFDYKRFIKFARVCEVDNELRICARDKEVGNLYDMFHTRNSLHRRAYQHKVGNIIDTMITDAFLKADDYIEITGAGGKKYRISTAIDDMEAYTKLTDNIFLEILYSTDPKLKDAREILKQIEYRNLFKYVGETQPTGQIKIKREDYESLPKEVASAKPKVLLDVKLKAEDFIVDVINMDYGMQEKNPIDHVSFYCKTAPNRAIRITKNQVSQLLPEKFAEQLIRVYCKKVDRKSLYAARQYFVQWCADRNFTKPQDGDVIAPLITPQKKEWNDSTSVQNPTRLREASKSRVQLFKDDPM">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Deoxynucleoside triphosphate triphosphohydrolase SAMHD1 OS=Homo sapiens GN=SAMHD1 PE=1 SV=2"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_29" accession="tr|A0A024QZZ7|A0A024QZZ7_HUMAN" score="0.72122460603714" coverage="96.031746031746" sequence="MPEPTKSAPAPKKGSKKAVTKAQKKDGKKRKRSRKESYSVYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSSK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B OS=Homo sapiens GN=HIST1H2BD PE=3 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_30" accession="tr|A0A024R1N1|A0A024R1N1_HUMAN" score="0.72122460603714" coverage="80.7142857142857" sequence="MAQQAADKYLYVDKNFINNPLAQADWAAKKLVWVPSDKSGFEPASLKEEVGEEAIVELVENGKKVKVNKDDIQKMNPPKFSKVEDMAELTCLNEASVLHNLKERYYSGLIYTYSGLFCVVINPYKNLPIYSEEIVEMYKGKKRHEMPPHIYAITDTAYRSMMQDREDQSILCTGESGAGKTENTKKVIQYLAYVASSHKSKKDQGELERQLLQANPILEAFGNAKTVKNDNSSRFGKFIRINFDVNGYIVGANIETYLLEKSRAIRQAKEERTFHIFYYLLSGAGEHLKTDLLLEPYNKYRFLSNGHVTIPGQQDKDMFQETMEAMRIMGIPEEEQMGLLRVISGVLQLGNIVFKKERNTDQASMPDNTAAQKVSHLLGINVTDFTRGILTPRIKVGRDYVQKAQTKEQADFAIEALAKATYERMFRWLVLRINKALDKTKRQGASFIGILDIAGFEIFDLNSFEQLCINYTNEKLQQLFNHTMFILEQEEYQREGIEWNFIDFGLDLQPCIDLIEKPAGPPGILALLDEECWFPKATDKSFVEKVMQEQGTHPKFQKPKQLKDKADFCIIHYAGKVDYKADEWLMKNMDPLNDNIATLLHQSSDKFVSELWKDVDRIIGLDQVAGMSETALPGAFKTRKGMFRTVGQLYKEQLAKLMATLRNTNPNFVRCIIPNHEKKAGKLDPHLVLDQLRCNGVLEGIRICRQGFPNRVVFQEFRQRYEILTPNSIPKGFMDGKQACVLMIKALELDSNLYRIGQSKVFFRAGVLAHLEEERDLKITDVIIGFQACCRGYLARKAFAKRQQQLTAMKVLQRNCAAYLKLRNWQWWRLFTKVKPLLQVSRQEEEMMAKEEELVKVREKQLAAENRLTEMETLQSQLMAEKLQLQEQLQAETELCAEAEELRARLTAKKQELEEICHDLEARVEEEEERCQHLQAEKKKMQQNIQELEEQLEEEESARQKLQLEKVTTEAKLKKLEEEQIILEDQNCKLAKEKKLLEDRIAEFTTNLTEEEEKSKSLAKLKNKHEAMITDLEERLRREEKQRQELEKTRRKLEGDSTDLSDQIAELQAQIAELKMQLAKKEEELQAALARVEEEAAQKNMALKKIRELESQISELQEDLESERASRNKAEKQKRDLGEELEALKTELEDTLDSTAAQQELRSKREQEVNILKKTLEEEAKTHEAQIQEMRQKHSQAVEELAEQLEQTKRVKANLEKAKQTLENERGELANEVKVLLQGKGDSEHKRKKVEAQLQELQVKFNEGERVRTELADKVTKLQVELDNVTGLLSQSDSKSSKLTKDFSALESQLQDTQELLQEENRQKLSLSTKLKQVEDEKNSFREQLEEEEEAKHNLEKQIATLHAQVADMKKKMEDSVGCLETAEEVKRKLQKDLEGLSQRHEEKVAAYDKLEKTKTRLQQELDDLLVDLDHQRQSACNLEKKQKKFDQLLAEEKTISAKYAEERDRAEAEAREKETKALSLARALEEAMEQKAELERLNKQFRTEMEDLMSSKDDVGKSVHELEKSKRALEQQVEEMKTQLEELEDELQATEDAKLRLEVNLQAMKAQFERDLQGRDEQSEEKKKQLVRQVREMEAELEDERKQRSMAVAARKKLEMDLKDLEAHIDSANKNRDEAIKQLRKLQAQMKDCMRELDDTRASREEILAQAKENEKKLKSMEAEMIQLQEELAAAERAKRQAQQERDELADEIANSSGKGALALEEKRRLEARIAQLEEELEEEQGNTELINDRLKKANLQIDQINTDLNLERSHAQKNENARQQLERQNKELKVKLQEMEGTVKSKYKASITALEAKIAQLEEQLDNETKERQAACKQVRRTEKKLKDVLLQVDDERRNAEQYKDQADKASTRLKQLKRQLEEAEEEAQRANASRRKLQRELEDATETADAMNREVSSLKNKLRRGDLPFVVPRRMARKGAGDGSDEEVDGKADGAEAKPAE">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Myosin, heavy polypeptide 9, non-muscle, isoform CRA_a OS=Homo sapiens GN=MYH9 PE=4 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_31" accession="tr|A0A024R3X4|A0A024R3X4_HUMAN" score="0.72122460603714" coverage="71.9022687609075" sequence="MLRLPTVFRQMRPVSRVLAPHLTRAYAKDVKFGADARALMLQGVDLLADAVAVTMGPKGRTVIIEQSWGSPKVTKDGVTVAKSIDLKDKYKNIGAKLVQDVANNTNEEAGDGTTTATVLARSIAKEGFEKISKGANPVEIRRGVMLAVDAVIAELKKQSKPVTTPEEIAQVATISANGDKEIGNIISDAMKKVGRKGVITVKDGKTLNDELEIIEGMKFDRGYISPYFINTSKGQKCEFQDAYVLLSEKKISSIQSIVPALEIANAHRKPLVIIAEDVDGEALSTLVLNRLKVGLQVVAVKAPGFGDNRKNQLKDMAIATGGAVFGEEGLTLNLEDVQPHDLGKVGEVIVTKDDAMLLKGKGDKAQIEKRIQEIIEQLDVTTSEYEKEKLNERLAKLSDGVAVLKVGGTSDVEVNEKKDRVTDALNATRAAVEEGIVLGGGCALLRCIPALDSLTPANEDQKIGIEIIKRTLKIPAMTIAKNAGVEGSLIVEKIMQSSSEVGYDAMAGDFVNMVEKGIIDPTKVVRTALLDAAGVASLLTTAEVVVTEIPKEEKDPGMGAMGGMGGGMGGGMF">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Heat shock 60kDa protein 1 (Chaperonin), isoform CRA_a OS=Homo sapiens GN=HSPD1 PE=3 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_32" accession="tr|A0A024RC65|A0A024RC65_HUMAN" score="0.72122460603714" coverage="55.7030778515389" sequence="MSAADEVDGLGVARPHYGSVLDNERLTAEEMDERRRQNVAYEYLCHLEEAKRWMEACLGEDLPPTTELEEGLRNGVYLAKLGNFFSPKVVSLKKIYDREQTRYKATGLHFRHTDNVIQWLNAMDEIGLPKIFYPETTDIYDRKNMPRCIYCIHALSLYLFKLGLAPQIQDLYGKVDFTEEEINNMKTELEKYGIQMPAFSKIGGILANELSVDEAALHAAVIAINEAIDRRIPADTFAALKNPNAMLVNLEEPLASTYQDILYQAKQDKMTNAKNRTENSERERDVYEELLTQAEIQGNINKVNTFSALANIDLALEQGDALALFRALQSPALGLRGLQQQNSDWYLKQLLSDKQQKRQSGQTDPLQKEELQSGVDAANSAAQQYQRRLAAVALINAAIQKGVAEKTVLELMNPEAQLPQVYPFAADLYQKELATLQRQSPEHNLTHPELSVAVEMLSSVALINRALESGDVNTVWKQLSSSVTGLTNIEEENCQRYLDELMKLKAQAHAENNEFITWNDIQACVDHVNLVVQEEHERILAIGLINEALDEGDAQKTLQALQIPAAKLEGVLAEVAQHYQDTLIRAKREKAQEIQDESAVLWLDEIQGGIWQSNKDTQEAQKFALGIFAINEAVESGDVGKTLSALRSPDVGLYGVIPECGETYHSDLAEAKKKKLAVGDNNSKWVKHWVKGGYYYYHNLETQEGGWDEPPNFVQNSMQLSREEIQSSISGVTAAYNREQLWLANEGLITRLQARCRGYLVRQEFRSRMNFLKKQIPAITCIQSQWRGYKQKKAYQDRLAYLRSHKDEVVKIQSLARMHQARKRYRDRLQYFRDHINDIIKIQAFIRANKARDDYKTLINAEDPPMVVVRKFVHLLDQSDQDFQEELDLMKMREEVITLIRSNQQLENDLNLMDIKIGLLVKNKITLQDVVSHSKKLTKKNKEQLSDMMMINKQKGGLKALSKEKREKLEAYQHLFYLLQTNPTYLAKLIFQMPQNKSTKFMDSVIFTLYNYASNQREEYLLLRLFKTALQEEIKSKVDQIQEIVTGNPTVIKMVVSFNRGARGQNALRQILAPVVKEIMDDKSLNIKTDPVDIYKSWVNQMESQTGEASKLPYDVTPEQALAHEEVKTRLDSSIRNMRAVTDKFLSAIVSSVDKIPYGMRFIAKVLKDSLHEKFPDAGEDELLKIIGNLLYYRYMNPAIVAPDAFDIIDLSAGGQLTTDQRRNLGSIAKMLQHAASNKMFLGDNAHLSIINEYLSQSYQKFRRFFQTACDVPELQDKFNVDEYSDLVTLTKPVIYISIGEIINTHTLLLDHQDAIAPEHNDPIHELLDDLGEVPTIESLIGESSGNLNDPNKEALAKTEVSLTLTNKFDVPGDENAEMDARTILLNTKRLIVDVIRFQPGETLTEILETPATSEQEAEHQRAMQRRAIRDAKTPDKMKKSKSVKEDSNLTLQEKKEKIQTGLKKLTELGTVDPKNKYQELINDIARDIRNQRRYRQRRKAELVKLQQTYAALNSKATFYGEQVDYYKSYIKTCLDNLASKGKVSKKPREMKGKKSKKISLKYTAARLHEKGVLLEIEDLQVNQFKNVIFEISPTEEVGDFEVKAKFMGVQMETFMLHYQDLLQLQYEGVAVMKLFDRAKVNVNLLIFLLNKKFYGK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="HCG1991735, isoform CRA_a OS=Homo sapiens GN=hCG_1991735 PE=4 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_33" accession="tr|A0A024RCJ2|A0A024RCJ2_HUMAN" score="0.72122460603714" coverage="95.2380952380952" sequence="MPEPAKSAPAPKKGSKKAVTKAQKKDGKKRKRSRKESYSIYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSAK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B OS=Homo sapiens GN=HIST1H2BJ PE=3 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_34" accession="tr|A0A024RCJ9|A0A024RCJ9_HUMAN" score="0.72122460603714" coverage="96.031746031746" sequence="MPEPSKSAPAPKKGSKKAVTKAQKKDGKKRKRSRKESYSVYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSSK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B OS=Homo sapiens GN=HIST1H2BN PE=3 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_35" accession="tr|A0A024RCL8|A0A024RCL8_HUMAN" score="0.72122460603714" coverage="96.031746031746" sequence="MPEPAKSAPAPKKGSKKAVTKAQKKDGKKRKRSRKESYSVYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSAK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B OS=Homo sapiens GN=HIST1H2BK PE=3 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_36" accession="tr|A0A087WXU3|A0A087WXU3_HUMAN" score="0.72122460603714" coverage="33.9847991313789" sequence="MTANRDAALSSHRHPGCAQRPRTPTFASSSQRRSAFGFDDGNFPGLGERSHAPGSRLGARRRAKTARGLRGHRQRGAGAGLSRPGSARAPSPPRPGAPENPGGVLSVELPGLLAQLARSFALLLPVYALGYLGLSFSWVLLALALLAWCRRSRGLKALRLCRALALLEDEERVVRLGVRACDLPAWVHFPDTERAEWLNKTVKHMWPFICQFIEKLFRETIEPAVRGANTHLSTFSFTKVDVGQQPLRINGVKVYTENVDKRQIILDLQISFVGNCEIDLEIKRYFCRAGVKSIQIHGTMRVILEPLIGDMPLVGALSIFFLRKPLLEINWTGLTNLLDVPGLNGLSDTIILDIISNYLVLPNRITVPLVSEVQIAQLRFPVPKGVLRIHFIEAQDLQGKDTYLKGLVKGKSDPYGIIRVGNQIFQSRVIKENLSPKWNEVYEALVYEHPGQELEIELFDEDPDKDDFLGSLMIDLIEVEKERLLDEWFTLDEVPKGKLHLRLEWLTLMPNASNLDKVLTDIKADKDQANDGLSSALLILYLDSARNLPSGKKISSNPNPVVQMSVGHKAQESKIRYKTNEPVWEENFTFFIHNPKRQDLEVEVRDEQHQCSLGNLKVPLSQLLTSEDMTVSQRFQLSNSGPNSTIKMKIALRVLHLEKRERPPDHQHSAQVKRPSVSKEGRKTSIKSHMSGSPGPGGSNTAPSTPVIGGSDKPGMEEKAQPPEAGPQGLHDLGRSSSSLLASPGHISVKEPTPSIASDISLPIATQELRQRLRQLENGTTLGQSPLGQIQLTIRHSSQRNKLIVVVHACRNLIAFSEDGSDPYVRMYLLPDKRRSGRRKTHVSKKTLNPVFDQSFDFSVSLPEVQRRTLDVAVKNSGGFLSKDKGLLGKVLVALASEELAKGWTQWYDLTEDGTRPQAMT">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Extended synaptotagmin-2 OS=Homo sapiens GN=ESYT2 PE=1 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_37" accession="tr|A0A087X1N4|A0A087X1N4_HUMAN" score="0.72122460603714" coverage="29.1750503018109" sequence="MPQRGHPSQEGLWALPSLPMAHGPKPETEGLLDLSFLTEEEQEAIAGVLQRDARLRQLEEGRVSKLRASVADPGQLKILTGDWFQEARSQRHHNAHFGSDLVRASMRRKKSTRGDQAPGHDREAEAAVKEKEEGPEPRLTIDEAPQERLRETEASDPEEASQAQEDPGQGDQQVCAEEADPELEPASGGEQEPRPQQAQTKAASQILENGEEAPGPDPSLDRMLSSSSSVSSLNSSTLSGSQMSLSGDAEAVQVRGSVHFALHYEPGAAELRVHVIQCQGLAAARRRRSDPYVKSYLLPDKQSKRKTAVKKRNLNPVFNETLRVPPSPDDLPSRGLLALSLKYVPAGSEGAGLPPSGELHFWVKEARDLLPLRAGSLDTYVQCFVLPDDSQASRQRTRVVRRSLSPVFNHTMVYDGFGPADLRQACAELSLWDHGALANRQLGGTRLSLGTGSSYGLQVPWMDSTPEEKQLWQALLEQPCEWVDGLLPLRTNLAPRT">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Synaptotagmin-like protein 1 OS=Homo sapiens GN=SYTL1 PE=1 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_38" accession="tr|A0A090N8Y2|A0A090N8Y2_HUMAN" score="0.72122460603714" coverage="39.3798449612403" sequence="MRPRKAFLLLLLLGLVQLLAVAGAEGPDEDSSNRENAIEDEEEEEEEDDDEEEDDLEVKEENGVLVLNDANFDNFVADKDTVLLEFYAPWCGHCKQFAPEYEKIANILKDKDPPIPVAKIDATSASVLASRFDVSGYPTIKILKKGQAVDYEGSRTQEEIVAKVREVSQPDWTPPPEVTLVLTKENFDEVVNDADIILVEFYAPWCGHCKKLAPEYEKAAKELSKRSPPIPLAKVDATAETDLAKRFDVSGYPTLKIFRKGRPYDYNGPREKYGIVDYMIEQSGPPSKEILTLKQVQEFLKDGDDVIIIGVFKGESDPAYQQYQDAANNLREDYKFHHTFSTEIAKFLKVSQGQLVVMQPEKFQSKYEPRSHMMDVQGSTQDSAIKDFVLKYALPLVGHRKVSNDAKRYTRRPLVVVYYSVDFSFDYRAATQFWRSKVLEVAKDFPEYTFAIADEEDYAGEVKDLGLSESGEDVNAAILDESGKKFAMEPEEFDSDTLREFVTAFKKGKLKPVIKSQPVPKNNKGPVKVVVGKTFDSIVMDPKKDVLIEFYAPWCGHCKQLEPVYNSLAKKYKGQKGLVIAKMDATANDVPSDRYKVEGFPTIYFAPSGDKKNPVKFEGGDRDLEHLSKFIEEHATKLSRTKEEL">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Protein disulfide-isomerase A4 OS=Homo sapiens GN=ERP70 PE=3 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_39" accession="tr|A4QPB0|A4QPB0_HUMAN" score="0.72122460603714" coverage="55.7030778515389" sequence="MSAADEVDGLGVARPHYGSVLDNERLTAEEMDERRRQNVAYEYLCHLEEAKRWMEACLGEDLPPTTELEEGLRNGVYLAKLGNFFSPKVVSLKKIYDREQTRYKATGLHFRHTDNVIQWLNAMDEIGLPKIFYPETTDIYDRKNMPRCIYCIHALSLYLFKLGLAPQIQDLYGKVDFTEEEINNMKTELEKYGIQMPAFSKIGGILANELSVDEAALHAAVIAINEAIDRRIPADTFAALKNPNAMLVNLEEPLASTYQDILYQAKQDKMTNAKNRTENSERERDVYEELLTQAEIQGNINKVNTFSALANIDLALEQGDALALFRALQSPALGLRGLQQQNSDWYLKQLLSDKQQKRQSGQTDPLQKEELQSGVDAANSAAQQYQRRLAAVALINAAIQKGVAEKTVLELMNPEAQLPQVYPFAADLYQKELVTLQRQSPEHNLTHPELSVAVEMLSSVALINRALESGDVNTVWKQLSSSVTGLTNIEEENCQRYLDELMKLKAQAHAENNEFITWNDIQACVDHVNLVVQEEHERILAIGLINEALDEGDAQKTLQALQIPAAKLEGVLAEVAQHYQDTLIRAKREKAQEIQDESAVLWLDEIQGGIWQSNKDTQEAQKFALGIFAINEAVESGDVGKTLSALRSPDVGLYGVIPECGETYHSDLAEAKKKKLAVGDNNSKWVKHWVKGGYYYYHNLETQEGGWDEPPNFVQNSMQLSREEIQSSISGVTAAYNREQLWLANEGLITRLQARCRGYLVRQEFRSRMNFLKKQIPAITCIQSQWRGYKQKKAYQDRLAYLRSHKDEVVKIQSLARMHQARKRYRDRLQYFRDHINDIIKIQAFIRANKARDDYKTLINAEDPPMVVVRKFVHLLDQSDQDFQEELDLMKMREEVITLIRSNQQLENDLNLMDIKIGLLVKNKITLQDVVSHSKKLTKKNKEQLSDMMMINKQKGGLKALSKEKREKLEAYQHLFYLLQTNPTYLAKLIFQMPQNKSTKFMDSVIFTLYNYASNQREEYLLLRLFKTALQEEIKSKVDQIQEIVTGNPTVIKMVVSFNRGARGQNALRQILAPVVKEIMDDKSLNIKTDPVDIYKSWVNQMESQTGEASKLPYDVTPEQALAHEEVKTRLDSSIRNMRAVTDKFLSAIVSSVDKIPYGMRFIAKVLKDSLHEKFPDAGEDELLKIIGNLLYYRYMNPAIVAPDAFDIIDLSAGGQLTTDQRRNLGSIAKMLQHAASNKMFLGDNAHLSIINEYLSQSYQKFRRFFQTACDVPELQDKFNVDEYSDLVTLTKPVIYISIGEIINTHTLLLDHQDAIAPEHNDPIHELLDDLGEVPTIESLIGESSGNLNDPNKEALAKTEVSLTLTNKFDVPGDENAEMDARTILLNTKRLIVDVIRFQPGETLTEILETPATSEQEAEHQRAMQRRAIRDAKTPDKMKKSKSVKEDSNLTLQEKKEKIQTGLKKLTELGTVDPKNKYQELINDIARDIRNQRRYRQRRKAELVKLQQTYAALNSKATFYGEQVDYYKSYIKTCLDNLASKGKVSKKPREMKGKKSKKISLKYTAARLHEKGVLLEIEDLQVNQFKNVIFEISPTEEVGDFEVKAKFMGVQMETFMLHYQDLLQLQYEGVAVMKLFDRAKVNVNLLIFLLNKKFYGK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="IQ motif containing GTPase activating protein 1 OS=Homo sapiens GN=IQGAP1 PE=1 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_40" accession="tr|A6NDZ3|A6NDZ3_HUMAN" score="0.72122460603714" coverage="42.3529411764706" sequence="MFDGRFIPLARPEVKWTHEQGSVMMFEHLINSNGIKPVMEQYGLIPEEDICFIKEQIVGPLESPVEDSLWPYKGRPENKSFLYEIVSNKRNGIDVDKWDYFARDCHHLGIQNNFDYKRFIKFARVCEVDNELRICARDKEVGNLYDMFHTRNSLHRRAYQHKVGNIIDTM">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="cDNA FLJ51783, highly similar to SAM domain and HD domain-containing protein 1 OS=Homo sapiens PE=2 SV=2"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_41" accession="tr|A8K9J7|A8K9J7_HUMAN" score="0.72122460603714" coverage="91.2698412698413" sequence="MPEPTKSAPAPKKGSKKAVTKAQKKDGKKRKRSRKESYSVYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITFREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSSK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B OS=Homo sapiens PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_42" accession="tr|A8KAH3|A8KAH3_HUMAN" score="0.72122460603714" coverage="22.5978647686833" sequence="MPQRGHPSQEGLWALPSLPMAHGPKPETEGLLDLSFLTEEEQEAIAGVLQRDARLRQLEEGRVSKLRASVADPGQLKILTGDWFQEARSQRHHNAHFGSDLVRASMRRKKSTRGDQAPGHDREAEAAVKEKEEGPEPRLTIDEAPQERLRETEGPDFPSPSVPLKASDPEEASQAQEDPGQGDQQVCAEEADPELEPASGGEQEPRPQQAQTKAASQILENGEEAPGPDPSLDRMLSSSSSVSSLNSSTLSGSQMSLSGDAEAVQVRGSVHFALHYEPGAAELRVHVIQCQGLAAARRRRSDPYVKSYLLPDKQSKRKTAVKKRNLNPVFNETLRYSVPQAELQGRVLSLSVWHRESLGRNIFLGEVEVPLDTWDWGSEPTWLPLQPRVPPSPDDLPSRGLLALSLKYVPAGSEGAGLPPSGELHFWVKEARDLLPLRAGSLVTYVQCFVLPDDSRASRQRTRVVRRSLSPVFNHTMVYDGFGPADLRQACAELSLWDHGALANRQLGGTRLSLGTGSSYGLQVPWMDSTPEEKQLWQALLEQPCEWVDGLLPLRTNLAPRT">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="cDNA FLJ75170, highly similar to Homo sapiens synaptotagmin-like 1, mRNA OS=Homo sapiens PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_43" accession="tr|B0YJC4|B0YJC4_HUMAN" score="0.72122460603714" coverage="95.5916473317865" sequence="MSTRSVSSSSYRRMFGGPGTASRPSSSRSYVTTSTRTYSLGSALRPSTSRSLYASSPGGVYATRSSAVRLRSSVPGVRLLQDSVDFSLADAINTEFKNTRTNEKVELQELNDRFANYIDKVRFLEQQNKILLAELEQLKGQGKSRLGDLYEEEMRELRRQVDQLTNDKARVEVERDNLAEDIMRLREKLQEEMLQREEAENTLQSFRQDVDNASLARLDLERKVESLQEEIAFLKKLHEEEIQELQAQIQEQHVQIDVDVSKPDLTAALRDVRQQYESVAAKNLQEAEEWYKSKFADLSEAANRNNDALRQAKQESTEYRRQVQSLTCEVDALKGTNESLERQMREMEENFAVEAANYQDTIGRLQDEIQNMKEEMARHLREYQDLLNVKMALDIEIATYRKLLEGEESRISLPLPNFSSLNLRGKHFISL">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Vimentin OS=Homo sapiens GN=VIM PE=1 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_44" accession="tr|B0YJC5|B0YJC5_HUMAN" score="0.72122460603714" coverage="96.0526315789474" sequence="MRNCFRLQEEMLQREEAENTLQSFRQDVDNASLARLDLERKVESLQEEIAFLKKLHEEEIQELQAQIQEQHVQIDVDVSKPDLTAALRDVRQQYESVAAKNLQEAEEWYKSKFADLSEAANRNNDALRQAKQESTEYRRQVQSLTCEVDALKGTNESLERQMREMEENFAVEAANYQDTIGRLQDEIQNMKEEMARHLREYQDLLNVKMALDIEIATYRKLLEGEESR">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Vimentin OS=Homo sapiens GN=VIM PE=1 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_45" accession="tr|B2R4R0|B2R4R0_HUMAN" score="0.72122460603714" coverage="80.5825242718447" sequence="MSGRGKGGKGLGKGGAKRHRKVLRDNIQGITKPAIRRLARRGGVKRISGLIYEETRGVLKVFLENVIRDAVTYTEHAKRKTVTAMDVVYALKRQGRTLYGFGG">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H4 OS=Homo sapiens GN=HIST1H4L PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_46" accession="tr|B2R4S9|B2R4S9_HUMAN" score="0.72122460603714" coverage="96.031746031746" sequence="MPEPAKSAPAPKKGSKKAVTKAQKKDGKKRKRSRKESYSVYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSSK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B OS=Homo sapiens GN=HIST1H2BE PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_47" accession="tr|B3GQS7|B3GQS7_HUMAN" score="0.72122460603714" coverage="68.1898066783831" sequence="MLRLPTVFRQMRPVSRVLAPHLTRAYAKDVKFGADARALMLQGVDLLADAVAVTMGPKGRTVIIEQSWGSPKVTKDGVTVAKSIDLKDKYKNIGAKLVQDVANNTNEEAGDGTTTATVLARSIAKEGFEKISKGANPVEIRRGVMLAVDAVIAELKKQSKPVTTPEEIAQVATISANGDKEIGNIISDAMKKVGRKGVITVKDGKTLNDELEIIEGMKFDRGYISPYFINTSKGQKCEFQDAYVLLSEKKISSIQSIVPALEIANAHRKPLVIIAEDVDGEALSTLVLNRLKVGLQVVAVKAPGFGDNRKNQLKDMAIATGGAVFGEEGLTLNLEDVQPHDLGKVGEVIVTKDDAMLLKGKGDKAQIEKRIQEIIEQLDVTTSEYEKGKLNERLAKLSDGVAVLKVGGTSDVEVNEKKDRVTDALNATRAAVEEGIVLGGGCALLRCIPALDSLTPANEDQKIGIEIIKRTLKIPAMTIAKNAGVEGSLIVEKIMQSSSEVGYDAMAGDFVNMVEKGIIDPTKVVRTALLDAAGVASLLTTAEVVVTEIPKEEKDPGMGAMGGMGGGMF">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Mitochondrial heat shock 60kD protein 1 variant 1 OS=Homo sapiens GN=HSPD1 PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_48" accession="tr|B3KRK8|B3KRK8_HUMAN" score="0.72122460603714" coverage="95.5773955773956" sequence="MFGGPGTASRPSSSRSYVTTSTRTYSLGSALRPSTSRSLYASSPGGVYATRSSAVRLRSSVPGVRLLQDSVDFSLADAINTEFKNTRTNEKVELQELNDRFANYIDKVRFPEQQNKILLAELEQLKGQGKSRLGDLYEEEMRELRRQVDQLTNDKARVEVERDNLAEDIMRLREKLQEEMLQREEAENTLQSFRQDVDNASLARLDLERKVESLQEEIAFLKKLHEEEIQELQAQIQEQHVQIDVDVSKPDLTAALRDVRQQYESVAAKNLQEAEEWYKSKFADLSEAANRNNDALRQAKQESTEYRRQVQSLTCEVDALKGTNESLERQMREMEENFAVEAANYQDTIGRLQDEIQNMKEEMARHLREYQDLLNVKMALDIEIATYRKLLEGEESRILCLFQTFPP">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="cDNA FLJ34494 fis, clone HLUNG2005030, highly similar to VIMENTIN OS=Homo sapiens PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_49" accession="tr|B3KWQ6|B3KWQ6_HUMAN" score="0.72122460603714" coverage="6.80851063829787" sequence="MSHHPSGLRAGFSSTSYRRTFGPPPSLSPGAFSYSSSSRFSSSRLLGSASPSSSVRLGSFRSPRAGAGALLRLPSERLDFSMAEALNQEFLATRSNEKQELQELNDRFANFIEKVRFLEQQNAALRGELSQARGQEPARADQLCQQELRELRRELELLGRERDRVQVERDGLAEDLAALKQRLEEETRKREDAEHNLVLFRKDVDDATLSRLELERKIESLMDEIEFLKKLHEEELRDLQVSVESQQVQQVEVEATVKPELTAALRDIRAQYESIATKNLQEAEEWYKSKYADLSDAANRNHEALRQAKQEMNESRRQIQSLTCEVDGLRGTNEALLRQLRELEEQFALEAGGYQAGAARLEEELRQLKEEMARHLREYQELLNVKMALDIEIATYRKLLEGEESRISVPVHSFASLNIKTTVPEVEPPQDSHSRKTVLIKTIETRNGEVVTESQKEQRSELDKSSAHSY">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="cDNA FLJ43599 fis, clone SMINT2017781, highly similar to PERIPHERIN OS=Homo sapiens PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_50" accession="tr|B4DFL3|B4DFL3_HUMAN" score="0.72122460603714" coverage="38.9221556886228" sequence="MEAFLGSRSGLWAGGPAPGQFYRIPSTPDSFMDPASALYRGPITRTQNPMVTGTSVLGVKFEGGMVIAADMLGSYGSLARFRNISRIMRVNNSTMLGASGDYADFQYLKQVLGQMVIDEELLGDGHSYSPRAIHSWLTRAMYSRRSKMNPLWNTMVIGGYADGERFI">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="cDNA FLJ56661, highly similar to Proteasome subunit beta type 4 (EC 3.4.25.1) OS=Homo sapiens PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_51" accession="tr|B4DNP4|B4DNP4_HUMAN" score="0.72122460603714" coverage="42.8057553956835" sequence="MPPPSRFSTKRLIVDVIRFQPGETLTEILETPATSEQEAEHQRAMQRRAIRDAKTPDKMKKSKSVKEDSNLTLQEKKEKIQTGLKKLTELGTVDPKNKYQELINDIARDIRNQRRYRQRRKAELVKLQQTYAALNSKATFYGEQVDYYKSYIKTCLDNLASKGKVSKKPREMKGKKSKKISLKYTAARLHEKGVLLEIEDLQVNQFKNVIFEISPTEEVGDFEVKAKFMGVQMETFMLHYQDLLQLQYEGVAVMKLFDRAKVNVNLLIFLLNKKFYGK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="cDNA FLJ55816, highly similar to Ras GTPase-activating-like protein IQGAP1 OS=Homo sapiens PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_52" accession="tr|B4DR52|B4DR52_HUMAN" score="0.72122460603714" coverage="61.4457831325301" sequence="MPDPAKSAPAPKKGSKKAVTKVQKKDGKKRKRSRKESYSVYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSSNPRNLSPTKPGGSEDRQPPPSQLSAIPPFCLVLRAGIAGQV">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B OS=Homo sapiens PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_53" accession="tr|B4E2M0|B4E2M0_HUMAN" score="0.72122460603714" coverage="56.221198156682" sequence="MSAADEVDGLGVARPHYGSVLDNERLTAEEMDEIQGGIWQSNKDTQEAQKFALGIFAINEAVESGDVGKTLSALRSPDVGLYGVIPECGETYHSDLAEAKKKKLAVGDNNSKWVKHWVKGGYYYYHNLETQEGGWDEPPNFVQNSMQLSREEIQSSISGVTAAYNREQLWLANEGLITRLQARCRGYLVRQEFRSRMNFLKKQIPAITCIQSQWRGYKQKKAYQDRLAYLRSHKDEVVKIQSLARMHQARKRYRDRLQYFRDHINDIIKIQAFIRANKARDDYKTLINAEDPPMVVVRKFVHLLDQSDQDFQEELDLMKMREEVITLIRSNQQLENDLNLMDIKIGLLVKNKITLQDVVSHSKKLTKKNKEQLSDMMMINKQKGGLKALSKEKREKLEAYQHLFYLLQTNPTYLAKLIFQMPQNKSTKFMDSVIFTLYNYASNQREEYLLLRLFKTALQEEIKSKVDQIQEIVTGNPTVIKMVVSFNRGARGQNALRQILAPVVKEIMDDKSLNIKTDPVDIYKSWVNQMESQTGEASKLPYDVTPEQALAHEEVKTRLDSSIRNMRAVTDKFLSAIVSSVDKIPYGMRFIAKVLKDSLHEKFPDAGEDELLKIIGNLLYYRYMNPAIVAPDAFDIIDLSAGGQLTTDQRRNLGSIAKMLQHAASNKMFLGDNAHLSIINEYLSQSYQKFRRFFQTACDVPELQDKFNVDEYSDLVTLTKPVIYISIGEIINTHTLLLDHQDAIAPEHNDPIHELLDDLGEVPTIESLIGESSGNLNDPNKEALAKTEVSLTLTNKFDVPGDENAEMDARTILLNTKRLIVDVIRFQPGETLTEILETPATSEQEAEHQRAMQRRAIRDAKTPDKMKKSKSVKEDSNLTLQEEKEKIQTGLKKLTELGTVDPKNKYQELINDIARDIRNQRRYRQRRKAELVKLQQTYAALNSKATFYGEQVDYYKSYIKTCLDNLASKGKVSKKPREMKGKKSKKISLKYTAARLHEKGVLLEIEDLQVNQFKNVIFEISPTEEVGDFEVKAKFMGVQMETFMLHYQDLLQLQYEGVAVMKLFDRAKVNVNLLIFLLNKKFYGK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="cDNA FLJ55443, highly similar to Ras GTPase-activating-like protein IQGAP1 OS=Homo sapiens PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_54" accession="tr|B7Z4F6|B7Z4F6_HUMAN" score="0.72122460603714" coverage="60" sequence="MLRLPTVFRQMRPVSRVLAPHLTRAYAKDVKFGADARALMLQGVDLLAKVTKDGVTVAKSIDLKDKYKNIGAKLVQDVANNTNEEAGGGTTTATVLARSIAKEGFEKISKGANPVEIRRGVMLAVDAVIAELKKQSKPVTTPEEIAQVATISANGDKEIGNIISDAMKKVGRKGVITVKDGKTLNDELEIIEGMKFNRGYISPYFINTSKGQKCEFQDAYVLLSEKKISSIQSIVPALEIANAHRKPLVIIAEDVDGEALSTLVLNRLKVGLQVVAVKAPGFGDNRKNQLKDMAIATGGAVFGEEGLTLNLEDVQPHDLGKVGEVIVTKDDAMLLKGKGDKAQIEKLIQEIIEQLDVTTSEYEKEKLNERLAKLSDGVAVLKVGGTSDVEVNEKKDRVTDALNATRAAVEEGIVLGGGCALLRCIPALDSLTPANEDQKIGIEIIKRTLKIPAMTIAKNAGVEGSLIVEKIMQSSSEVGYDAMAGDFVNMVEKGIIDPTKVVRTALLDAAGVASLLTTAEVVVTEIPKEEKDPGMGAMGGMGGGMGGGMF">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="cDNA FLJ54912, highly similar to 60 kDa heat shock protein, mitochondrial OS=Homo sapiens PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_55" accession="tr|B7Z532|B7Z532_HUMAN" score="0.72122460603714" coverage="61.6326530612245" sequence="MLAVDAVIAELKKQSKPVTTPEEIAQVATISANGDKEIGNIISDAMKKVGRKGVITVKDGKTLNDELEIIEGMKFDRGYISPYFINTSKGQKCEFQDAYVLLNEKKISSIQSIVPALEIANAHRKPLVIIAEDVDGEALSTLVLNRLKVGLQVVAVKAPGFGDNRKNQLKDMAIATGGAVFGEEGLTLNLEDVQPHDLGKVGEVIVTKDDAMLLKGKGDKAQIEKRIQEIIEQLDVTTSEYEREN">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="cDNA FLJ51028, highly similar to 60 kDa heat shock protein, mitochondrial OS=Homo sapiens PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_56" accession="tr|B7Z5E7|B7Z5E7_HUMAN" score="0.72122460603714" coverage="67.8916827852998" sequence="MLRLPTVFRQMRPVSRVLAPHLTRAYAKDVKFGADARALMLQGVDLLADAVAVTMGPKGRTVIIEQSWGSPKVTKDGVTVAKSIDLKDKYKNIGAKLVQDVANNTNEEAGDGTTTATISANGDKEIGNIISDAMKKVGRKGVITVKDGKTLNDELEIIEGMKFDRGYISPYFINTSKGQKCEFQDAYVLLSEKKISSIQSIVPALEIANAHRKPLVIIAEDVDGEALSTLVLNRLKVGLQVVAVKAPGFGDNRKNQLKDMAIATGGAVFGEEGLTLNLEDVQPHDLGKVGEVIVTKDDAMLLKGKGDKAQIEKRIQEIIEQLDVTTSEYEKEKLNERLAKLSDGVAVLKVGGTSDVEVNEKKDRVTDALNATRAAVEEGIVLGGGCALLRCIPALDSLTPANEDQKIGIEIIKRTLKIPAMTIAKNAGVEGSLIVEKIMQSSSEVGYDAMAGDFVNMVEKGIIDPTKVVRTALLDAAGVASLLTTAEVVVTEIPKEEKDPGMGAMGGMGGGMGGGMF">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="cDNA FLJ51046, highly similar to 60 kDa heat shock protein, mitochondrial OS=Homo sapiens PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_57" accession="tr|E9PL09|E9PL09_HUMAN" score="0.72122460603714" coverage="66.6666666666667" sequence="MAVQISKKRKFVADGIFKAELNEFLTRELAEDGYSGVEVRVTPTRTEIIILATRTQNVLGEKGRRIRELTAVVQKRFGFPEGSLCAIAQAESLRYKLLGGLAVRRACYGVLRFIMESGAKGCEVVVSGKLRGQRAKSMKFVDGLMIHSGDPVNYYVDTAVRHVLLRQGVLGIKVKIMLPWDPTGKIGPKKPLPDHVSIVEPKDEILPTTPISEQKGGKPEPPAMPQPVPTA">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="40S ribosomal protein S3 OS=Homo sapiens GN=RPS3 PE=1 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_58" accession="tr|E9PPU1|E9PPU1_HUMAN" score="0.72122460603714" coverage="73.4177215189873" sequence="MAVQISKKRKFVADGIFKAELNEFLTRELAEDGYSGVEVRVTPTRTEIIILATRTQNVLGEKGRRIRELTAVVQKRFGFPEGSVELYAEKVATRGVLGIKVKIMLPWDPTGKIGPKKPLPDHVSIVEPKDEILPTTPISEQKGGKPEPPAMPQPVPTA">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="40S ribosomal protein S3 OS=Homo sapiens GN=RPS3 PE=1 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_59" accession="tr|E9PSF4|E9PSF4_HUMAN" score="0.72122460603714" coverage="71.8446601941748" sequence="MESGAKGCEVVVSGKLRGQRAKSMKFVDGLMIHSGDPVNYYVDTAVRHVLLRQGVLGIKVKIMLPWDPTGKIGPKKPLPDHVSIVEPKDEILPTTPISEQKGG">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="40S ribosomal protein S3 OS=Homo sapiens GN=RPS3 PE=1 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_60" accession="tr|H0YEU2|H0YEU2_HUMAN" score="0.72122460603714" coverage="63.1578947368421" sequence="XFVADGIFKAELNEFLTRELAEDGYSGVEVRVTPTRTEIIILATRACYGVLRFIMESGAKGCEVVVSGKLRGQRAKSMKFVDGLMIHSGDPVNYYVDTAVRHVLLRQGVLGIKVKIMLPWDPTGKIGPKKPLPDHVSIVEPKDEILPTTPISEQKGGKPEPPAMPQPVPTA">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="40S ribosomal protein S3 (Fragment) OS=Homo sapiens GN=RPS3 PE=1 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_61" accession="tr|H0YLE8|H0YLE8_HUMAN" score="0.72122460603714" coverage="58.7096774193548" sequence="MSAADEVDGLGVARPHYGSVLDNERLTAEEMDERRRGIWQSNKDTQEAQKFALGIFAINEAVESGDVGKTLSALRSPDVGLYGVIPECGETYHSDLAEAKKKKLAVGDNNSKWVKHWVKGGYYYYHNLETQEGGWDEPPNFVQNSMQLSREEIQSSISGVTAAYNREQLWLANEGLITRLQARCRGYLVRQEFRSRMNFLKKQIPAITCIQSQWRGYKQKKAYQDRLAYLRSHKDEVVKIQSLARMHQARKRYRDRLQYFRDHINDIIKIQAFIRANKARDDYKTLINAEDPPMVVVRKFVHLLDQSDQDFQEELDLMKMREEVITLIRSNQQLENDLNLMDIKIGLLVKNKITLQDVVSHSKKLTKKNKEQLSDMMMINKQKGGLKALSKEKREKLEAYQHLFYLLQTNPTYLAKLIFQMPQNKSTKFMDSVIFTLYNYASNQREEYLLLRLFKTALQEEIKSKVDQIQEIVTGNPTVIKMVVSFNRGARGQNALRQILAPVVKEIMDDKSLNIKTDPVDIYKSWVNQMESQTGEASKLPYDVTPEQALAHEEVKTRLDSSIRNMRAVTDKFLSAIVSSVDKIPYGMRFIAKVLKDSLHEKFPDAGEDELLKIIGNLLYYRYMNPAIVAPDAFDIIDLSAGGQLTTDQRRNLGSIAKMLQHAASNKMFLGDNAHLSIINEYLSQSYQKFRRFFQTACDVPELQDKFNVDEYSDLVTLTKPVIYISIGEIINTHTLLLDHQDAIAPEHNDPIHELLDDLGEVPTIESLIGESSGNLNDPNKEALAKTEVSLTLTNKFDVPGDENAEMDARTILLNTKRLIVDVIRFQPGETLTEILETPATSEQEAEHQRAMQRRAIRDAKTPDKMKKSKSVKEDSNLTLQEKKEKIQTGLKKLTELGTVDPKNKYQELINDIARDIRNQRRYRQRRKAELVKLQQTYAALNSKATFYGEQVDYYKSYIKTCLDNLASKGKVSKKPREMKGKKSKKISLKYTAARLHEKGVLLEIEDLQVNQFKNVIFEISPTEEVGDFEVKAKFMGVQMETFMLHYQDLLQLQYEGVAVMKLFDRAKVNVNLLIFLLNKKFYGK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Ras GTPase-activating-like protein IQGAP1 OS=Homo sapiens GN=IQGAP1 PE=1 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_62" accession="tr|H7BXI1|H7BXI1_HUMAN" score="0.72122460603714" coverage="39.8190045248869" sequence="SASTQPASAGRAARHCGAMSGARGEGPEAGAGGAGGRAAPENPGGVLSVELPGLLAQLARSFALLLPVYALGYLGLSFSWVLLALALLAWCRRSRGLKALRLCRALALLEDEERVVRLGVRACDLPAWVHFPDTERAEWLNKTVKHMWPFICQFIEKLFRETIEPAVRGANTHLSTFSFTKVDVGQQPLRINGVKVYTENVDKRQIILDLQISFVGNCEIDLEIKRYFCRAGVKSIQIHGTMRVILEPLIGDMPLVGALSIFFLRKPLLEINWTGLTNLLDVPGLNGLSDTIILDIISNYLVLPNRITVPLVSEVQIAQLRFPVPKGVLRIHFIEAQDLQGKDTYLKGLVKGKSDPYGIIRVGNQIFQSRVIKENLSPKWNEVYEALVYEHPGQELEIELFDEDPDKDDFLGSLMIDLIEVEKERLLDEWFTLDEVPKGKLHLRLEWLTLMPNASNLDKVLTDIKADKDQANDGLSSALLILYLDSARNLPSNPLEFNPDVLKKTAVQRALKSGKKISSNPNPVVQMSVGHKAQESKIRYKTNEPVWEENFTFFIHNPKRQDLEVEVRDEQHQCSLGNLKVPLSQLLTSEDMTVSQRFQLSNSGPNSTIKMKIALRVLHLEKRERPPDHQHSAQVKRPSVSKEGRKTSIKSHMSGSPGPGGSNTAPSTPVIGGSDKPGMEEKAQPPEAGPQGLHDLGRSSSSLLASPGHISVKEPTPSIASDISLPIATQELRQRLRQLENGTTLGQSPLGQIQLTIRHSSQRNKLIVVVHACRNLIAFSEDGSDPYVRMYLLPDKRRSGRRKTHVSKKTLNPVFDQSFDFSVSLPEVQRRTLDVAVKNSGGFLSKDKGLLGKVLVALASEELAKGWTQWYDLTEDGTRPQAMT">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Extended synaptotagmin-2 (Fragment) OS=Homo sapiens GN=ESYT2 PE=1 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_63" accession="tr|H7C5W5|H7C5W5_HUMAN" score="0.72122460603714" coverage="16" sequence="XESIAAKNLQEAEEWYKSKYADLSDAANRNHEALRQAKQEMNESRRQIQSLTCEVDGLRGTNEALLRQLRELEEQFALEAGGYQAGAARLEEELRQLKEEMARHLREYQELLNVKMALDIEIATYRKLLEGEESRISVPVHSFASLNIKTTVPEVEPPQDSHSRKTVLIKTIETRNGEQVVTESQKEQRSELDKSSAHSY">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Peripherin (Fragment) OS=Homo sapiens GN=PRPH PE=1 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_64" accession="tr|I6L9F7|I6L9F7_HUMAN" score="0.72122460603714" coverage="77.536231884058" sequence="MPEPVKSAPVPKKGSKKAINKAQKKDGKKRKRSRKESYSVYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSSKCASRCSNSSAVT">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B (Fragment) OS=Homo sapiens GN=HIST1H2BM PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_65" accession="tr|L0R4T3|L0R4T3_HUMAN" score="0.72122460603714" coverage="49.2537313432836" sequence="MSIMNSFVNDVFEQLACEAARLAQYSGRTTLTSREVQTAVRLLLPGELAKHAVSEGTKAVTKYTSSK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B OS=Homo sapiens GN=ABCF2 PE=3 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_66" accession="tr|Q0D2M2|Q0D2M2_HUMAN" score="0.72122460603714" coverage="89.6825396825397" sequence="MPEPAKSAPAPKKGSKKAVTKAQKKDGKKRKRSRKESYSVYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSGGTKAVTKYTSSK">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="HIST1H2BC protein OS=Homo sapiens GN=HIST1H2BC PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_67" accession="tr|Q0VAS5|Q0VAS5_HUMAN" score="0.72122460603714" coverage="78.6407766990291" sequence="MSGRGKGGKGLGKGGAKRHRKVLRDNIQGITKPAIRRLARRGGVKRISGLIYEETRGVLKVFLENVIRDAVTYTEHAKCKTVTAMDVVYALKRQGRTLYGFGG">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H4 OS=Homo sapiens GN=HIST1H4H PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_68" accession="tr|Q53G83|Q53G83_HUMAN" score="0.72122460603714" coverage="63.3744855967078" sequence="MAVQISKKRKFVADGIFKAELNEFLTRELAEDGYSGVEVRVTPTRTEIIILATRTQNVLGEKGRRIRELTAVVQKRFGFPEGSVELYAEEVATRGLCAIAQAESLRYKLLGGLAVRRACYGVLRFIMESGAKGCEVVVSGKLRGQRAKSMKFVDGLMIHSGDPVNYYVDTAVRHVLLRQGVLGIKVKIMLPWDPTGKIGPKKPLPDHVSIVEPKDEILPTTPISEQKGGKPEPPAMPQPVPTA">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Ribosomal protein S3 variant (Fragment) OS=Homo sapiens PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_69" accession="tr|Q53HU8|Q53HU8_HUMAN" score="0.72122460603714" coverage="92.274678111588" sequence="MSTRSVSSSSYRRMFGGPGTASRPSSSRSYVTTSTRTYSLGSALRPSTSRSLYASSPGGVYATRSSAVRLRSSVPGVRLLQDSVDFSLADAINTEFKNTRTNEKVELQELNDRFANYIDKVRFLEQQNKILLAELEQLKGQGKSRLGDLYEEEMRELRRQVDQLTNDKARVEVERDNLAEDIMRLREKLQEEMLQREEAENTLQSFRQDVDNASLARLDLERKMESLQEEIAFLKKLHEEEIQELQAQIQEQHVQIDVDVSKPDLTAALRDVRQQYESVAAKNLQEAEEWYKSKFADLSEAANRNNDALRQAKQESTEYRRQVQSLTCEVDALKGTNESLERQMREMEENFAVEAANYQDTIGRLQDEIQNMKEEMARHLREYQDLLNVKMALDIEIATYRKLLEGEESRISLPLPNFSSLNLRETNLDSLPLVDTHSKRTLLIKTVETRDGQVINETSQHHDDLE">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Vimentin variant (Fragment) OS=Homo sapiens PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_70" accession="tr|Q6B823|Q6B823_HUMAN" score="0.72122460603714" coverage="62.7906976744186" sequence="KPAIRRLARRGGVKRISGLIYEETRGVLKVFLENVIRDAVTYT">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H4 (Fragment) OS=Homo sapiens PE=3 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_71" accession="tr|Q6ZNL4|Q6ZNL4_HUMAN" score="0.72122460603714" coverage="76.1989342806394" sequence="ASGTRRRWPPTTSWRRPRRGCSRSWTTCWWTWTTSARARATWRRSRRSLTSSWRRRRPSLPSMQRSATGLRRRPERRRPRLCRWPGPLEEAMEQKAELERLNKQFRTEMEDLMSSKDDVGKSVHELEKSKRALEQQVEEMKTQLEELEDELQATEDAKLRLEVNLQAMKAQFERDLQGRDEQSEEKKKQLVRQVREMEAELEDERKQRSMAVAARKKLEMDLKDLEAHIDSANKNRDEAIKQLRKLQAQMKDCMRELDDTRASREEILAQAKENEKKLKSMEAEMIQLQEELAAAERAKRQAQQERDELADEIANSSGKGALALEEKRRLEARIAQLEEELEEEQGNTELINDRLKKANLQIDQINTDLNLERSHAQKNENARQQLERQNKELKVKLQEMEGTVKSKYKASITALEAKIAQLEEQLDNETKERQAACKQVRRTEKKLKDVLLQVDDERRNAEQYKDQADKASTRLKQLKRQLEEAEEEAQRANASRRKLQRELEDATETADAMNREVSSLKNKLRRGDLPFVVPRRMARKGAGDGSDEEVDGKADGAEAKPAE">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="FLJ00279 protein (Fragment) OS=Homo sapiens GN=FLJ00279 PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_72" accession="tr|Q9NQS8|Q9NQS8_HUMAN" score="0.72122460603714" coverage="58.2278481012658" sequence="LYAEKVATRGLCAIAQAESLRYKLLGGLAVRRACYGVLRFIMESGAKGCEVVVSGKLRGQRAKSMKFVDGLMIHSGDPVNYYVDTAVRHVLLRQGVLGIKVKIMLPWDPTGKIGPKKPLPDHVSIVEPKDEILPTTPISEQKGGKPEPPAMPQPVPTA">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Ribosomal protein S3 (Fragment) OS=Homo sapiens GN=RPS3 PE=3 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_73" accession="tr|U3KQK0|U3KQK0_HUMAN" score="0.72122460603714" coverage="72.8915662650602" sequence="MPEPSKSAPAPKKGSKKAVTKAQKKDGKKRKRSRKESYSVYVYKVLKQVHPDTGISSKAMGIMNSFVNDIFERIAGEASRLAHYNKRSTITSREIQTAVRLLLPGELAKHAVSEGTKAVTKYTSSKKRKRRFTESIKKAHGFRKLKIWLKLRVSNQSPDDIYIARD">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Histone H2B OS=Homo sapiens GN=HIST1H2BN PE=1 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_74" accession="tr|V9HW26|V9HW26_HUMAN" score="0.72122460603714" coverage="69.0777576853526" sequence="MLSVRVAAAVVRALPRRAGLVSRNALGSSFIAARNFHASNTHLQKTGTAEMSSILEERILGADTSVDLEETGRVLSIGDGIARVHGLRNVQAEEMVEFSSGLKGMSLNLEPDNVGVVVFGNDKLIKEGDIVKRTGAIVDVPVGEELLGRVVDALGNAIDGKGPIGSKTRRRVGLKAPGIIPRISVREPMQTGIKAVDSLVPIGRGQRELIIGDRQTGKTSIAIDTIINQKRFNDGSDEKKKLYCIYVAIGQKRSTVAQLVKRLTDADAMKYTIVVSATASDAAPLQYLAPYSGCSMGEYFRDNGKHALIIYDDLSKQAVAYRQMSLLLRRPPGREAYPGDVFYLHSRLLERAAKMNDAFGGGSLTALPVIETQAGDVSAYIPTNVISITDGQIFLETELFYKGIRPAINVGLSVSRVGSAAQTRAMKQVAGTMKLELAQYREVAAFAQFGSDLDAATQQLLSRGVRLTELLKQGQYSPMAIEEQVAVIYAGVRGYLDKLEPSKITKFENAFLSHVVSQHQALLGTIRADGKISEQSDAKLKEIVTNFLAGFEA">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="ATP synthase subunit alpha OS=Homo sapiens GN=HEL-S-123m PE=1 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_75" accession="tr|V9HWE1|V9HWE1_HUMAN" score="0.72122460603714" coverage="96.3519313304721" sequence="MSTRSVSSSSYRRMFGGPGTASRPSSSRSYVTTSTRTYSLGSALRPSTSRSLYASSPGGVYATRSSAVRLRSSVPGVRLLQDSVDFSLADAINTEFKNTRTNEKVELQELNDRFANYIDKVRFLEQQNKILLAELEQLKGQGKSRLGDLYEEEMRELRRQVDQLTNDKARVEVERDNLAEDIMRLREKLQEEMLQREEAENTLQSFRQDVDNASLARLDLERKVESLQEEIAFLKKLHEEEIQELQAQIQEQHVQIDVDVSKPDLTAALRDVRQQYESVAAKNLQEAEEWYKSKFADLSEAANRNNDALRQAKQESTEYRRQVQSLTCEVDALKGTNESLERQMREMEENFAVEAANYQDTIGRLQDEIQNMKEEMARHLREYQDLLNVKMALDIEIATYRKLLEGEESRISLPLPNFSSLNLRETNLDSLPLVDTHSKRTLLIKTVETRDGQVINETSQHHDDLE">
+				<UserParam type="string" name="isDecoy" value="false"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Epididymis luminal protein 113 OS=Homo sapiens GN=HEL113 PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0.0"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[D:\1A_Daten_User\Wenjie\2018-02-26 data conversion\E5025_HCV_LAB_fu48_1.mzML]"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="477.3056640625" RT="6348.1137" spectrum_reference="controllerType=0 controllerNumber=1 scan=86687" >
+		<PeptideHit score="0.00191542288557214" sequence="LLLPGELAK" charge="2" aa_before="R R R R R R R R R R R R R R R R R R R R R R R R R R" aa_after="H H H H H H H H H H H H H H H H H H H H H H H H H H" start="101 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 100 41 100 100 100" end="109 108 108 108 108 108 108 108 108 108 108 108 108 108 108 108 108 108 108 108 108 108 49 108 108 108" protein_refs="PH_24 PH_11 PH_18 PH_16 PH_23 PH_2 PH_1 PH_27 PH_26 PH_25 PH_7 PH_19 PH_20 PH_22 PH_15 PH_46 PH_34 PH_73 PH_29 PH_33 PH_41 PH_64 PH_65 PH_35 PH_52 PH_66">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="MS:1002049" value="90.0"/>
+			<UserParam type="float" name="MS:1002050" value="90.0"/>
+			<UserParam type="float" name="MS:1002052" value="7.208229e-11"/>
+			<UserParam type="float" name="MS:1002053" value="3.6673073e-03"/>
+			<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
+			<UserParam type="string" name="CTermIonCurrentRatio" value="0.008483601"/>
+			<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.00875963"/>
+			<UserParam type="string" name="isotope_error" value="0"/>
+			<UserParam type="string" name="MS2IonCurrent" value="1.12854624E8"/>
+			<UserParam type="string" name="MeanErrorAll" value="14.8119"/>
+			<UserParam type="string" name="MeanErrorTop7" value="14.8119"/>
+			<UserParam type="string" name="MeanRelErrorAll" value="4.9957924"/>
+			<UserParam type="string" name="MeanRelErrorTop7" value="4.9957924"/>
+			<UserParam type="string" name="NTermIonCurrentRatio" value="2.760292E-4"/>
+			<UserParam type="string" name="NumMatchedMainIons" value="3"/>
+			<UserParam type="string" name="StdevErrorAll" value="3.1386762"/>
+			<UserParam type="string" name="StdevErrorTop7" value="3.1386762"/>
+			<UserParam type="string" name="StdevRelErrorAll" value="14.292855"/>
+			<UserParam type="string" name="StdevRelErrorTop7" value="14.292855"/>
+			<UserParam type="float" name="calcMZ" value="477.305114746093977"/>
+			<UserParam type="int" name="pass_threshold" value="1"/>
+			<UserParam type="int" name="start" value="101"/>
+			<UserParam type="int" name="end" value="109"/>
+			<UserParam type="string" name="protein_references" value="non-unique"/>
+			<UserParam type="float" name="SpecEValue_score" value="7.208229e-11"/>
+		</PeptideHit>
+		<UserParam type="string" name="MS:1001115" value="86687"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+	</UnassignedPeptideIdentification>
+	<featureList count="38">
+		<feature id="f_17049752925170210293">
+			<position dim="0">6380.067123869140232</position>
+			<position dim="1">678.939516655553007</position>
+			<intensity>2.08971e09</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>5</charge>
+			<convexhull nr="0">
+				<pt x="6362.166762544019548" y="678.929400634766012" />
+				<pt x="6499.238075887979903" y="678.929400634766012" />
+				<pt x="6499.238075887979903" y="678.956908569335951" />
+				<pt x="6362.166762544019548" y="678.956908569335951" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6362.166762544019548" y="679.129873585701034" />
+				<pt x="6499.238075887979903" y="679.129873585701034" />
+				<pt x="6499.238075887979903" y="679.157396585345964" />
+				<pt x="6362.166762544019548" y="679.157396585345964" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6362.166762544019548" y="679.330723088979994" />
+				<pt x="6499.238075887979903" y="679.330723088979994" />
+				<pt x="6499.238075887979903" y="679.35771724641404" />
+				<pt x="6362.166762544019548" y="679.35771724641404" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6362.166762544019548" y="679.531115350127038" />
+				<pt x="6499.238075887979903" y="679.531115350127038" />
+				<pt x="6499.238075887979903" y="679.558441136628971" />
+				<pt x="6362.166762544019548" y="679.558441136628971" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6362.166762544019548" y="679.731793879270981" />
+				<pt x="6421.539855904020442" y="679.731793879270981" />
+				<pt x="6421.539855904020442" y="679.759425581097958" />
+				<pt x="6362.166762544019548" y="679.759425581097958" />
+			</convexhull>
+			<convexhull nr="5">
+				<pt x="6362.166762544019548" y="679.931770485098014" />
+				<pt x="6421.539855904020442" y="679.931770485098014" />
+				<pt x="6421.539855904020442" y="679.958715975880978" />
+				<pt x="6362.166762544019548" y="679.958715975880978" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="17049752925170210293"/>
+		</feature>
+		<feature id="f_14003466952778130036">
+			<position dim="0">6380.113862596609579</position>
+			<position dim="1">833.815735377587998</position>
+			<intensity>2.71093e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>3</charge>
+			<convexhull nr="0">
+				<pt x="6357.985235167980136" y="833.807476806641034" />
+				<pt x="6389.137934975999997" y="833.807476806641034" />
+				<pt x="6389.137934975999997" y="833.825073242187955" />
+				<pt x="6357.985235167980136" y="833.825073242187955" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6357.985235167980136" y="834.142234310508002" />
+				<pt x="6389.137934975999997" y="834.142234310508002" />
+				<pt x="6389.137934975999997" y="834.162312591075988" />
+				<pt x="6357.985235167980136" y="834.162312591075988" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6357.985235167980136" y="834.475076469778969" />
+				<pt x="6389.137934975999997" y="834.475076469778969" />
+				<pt x="6389.137934975999997" y="834.492170971632049" />
+				<pt x="6357.985235167980136" y="834.492170971632049" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="14003466952778130036"/>
+		</feature>
+		<feature id="f_12373809875215107408">
+			<position dim="0">6380.133297863450025</position>
+			<position dim="1">604.33734063220902</position>
+			<intensity>1.43552e08</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="6368.498718799980452" y="604.329946664664021" />
+				<pt x="6398.266743600000154" y="604.329946664664021" />
+				<pt x="6398.266743600000154" y="604.349077899639042" />
+				<pt x="6368.498718799980452" y="604.349077899639042" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6368.498718799980452" y="604.831297162671945" />
+				<pt x="6398.266743600000154" y="604.831297162671945" />
+				<pt x="6398.266743600000154" y="604.850585599127953" />
+				<pt x="6368.498718799980452" y="604.850585599127953" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6368.498718799980452" y="605.331791955729045" />
+				<pt x="6398.266743600000154" y="605.331791955729045" />
+				<pt x="6398.266743600000154" y="605.353786517564004" />
+				<pt x="6368.498718799980452" y="605.353786517564004" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6380.158500400019875" y="605.836400129894969" />
+				<pt x="6381.992916096000045" y="605.836400129894969" />
+				<pt x="6381.992916096000045" y="605.852151509577993" />
+				<pt x="6380.158500400019875" y="605.852151509577993" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6369.066067936019863" y="606.339633155394949" />
+				<pt x="6374.223688175999996" y="606.339633155394949" />
+				<pt x="6374.223688175999996" y="606.355364803854968" />
+				<pt x="6369.066067936019863" y="606.355364803854968" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="12373809875215107408"/>
+		</feature>
+		<feature id="f_4987273163553650653">
+			<position dim="0">6380.159948902640281</position>
+			<position dim="1">531.29292061382705</position>
+			<intensity>9.73334e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>3</charge>
+			<convexhull nr="0">
+				<pt x="6371.561695216019871" y="531.287636718750036" />
+				<pt x="6388.376110927980335" y="531.287636718750036" />
+				<pt x="6388.376110927980335" y="531.299664306641034" />
+				<pt x="6371.561695216019871" y="531.299664306641034" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6371.561695216019871" y="531.622486582994043" />
+				<pt x="6388.376110927980335" y="531.622486582994043" />
+				<pt x="6388.376110927980335" y="531.634106087685041" />
+				<pt x="6371.561695216019871" y="531.634106087685041" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6371.561695216019871" y="531.956903717518003" />
+				<pt x="6388.376110927980335" y="531.956903717518003" />
+				<pt x="6388.376110927980335" y="531.969502289593038" />
+				<pt x="6371.561695216019871" y="531.969502289593038" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6374.223688175999996" y="532.293178755045005" />
+				<pt x="6380.158500400019875" y="532.293178755045005" />
+				<pt x="6380.158500400019875" y="532.304714399576028" />
+				<pt x="6374.223688175999996" y="532.304714399576028" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="4987273163553650653"/>
+		</feature>
+		<feature id="f_8816816688849687473">
+			<position dim="0">6380.294851060310066</position>
+			<position dim="1">907.418660776967954</position>
+			<intensity>7.46597e09</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="6350.770219103999807" y="907.400699684837036" />
+				<pt x="6394.089707887979785" y="907.400699684837036" />
+				<pt x="6394.089707887979785" y="907.446170321377963" />
+				<pt x="6350.770219103999807" y="907.446170321377963" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6350.770219103999807" y="907.901915202358055" />
+				<pt x="6394.089707887979785" y="907.901915202358055" />
+				<pt x="6394.089707887979785" y="907.947393825921949" />
+				<pt x="6350.770219103999807" y="907.947393825921949" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6350.770219103999807" y="908.403442046114037" />
+				<pt x="6394.089707887979785" y="908.403442046114037" />
+				<pt x="6394.089707887979785" y="908.448914936456049" />
+				<pt x="6350.770219103999807" y="908.448914936456049" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6369.066067936019863" y="908.904218981483041" />
+				<pt x="6393.265852368000196" y="908.904218981483041" />
+				<pt x="6393.265852368000196" y="908.950326672468009" />
+				<pt x="6369.066067936019863" y="908.950326672468009" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6369.71528023997962" y="909.406059474497965" />
+				<pt x="6388.376110927980335" y="909.406059474497965" />
+				<pt x="6388.376110927980335" y="909.452999344739965" />
+				<pt x="6369.71528023997962" y="909.452999344739965" />
+			</convexhull>
+			<convexhull nr="5">
+				<pt x="6374.223688175999996" y="909.908821940421944" />
+				<pt x="6384.685914912000044" y="909.908821940421944" />
+				<pt x="6384.685914912000044" y="909.957265491309954" />
+				<pt x="6374.223688175999996" y="909.957265491309954" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="8816816688849687473"/>
+		</feature>
+		<feature id="f_15592951846198185801">
+			<position dim="0">6381.016034057030083</position>
+			<position dim="1">768.351176885878999</position>
+			<intensity>4.10202e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="6374.223688175999996" y="768.342278374566035" />
+				<pt x="6388.376110927980335" y="768.342278374566035" />
+				<pt x="6388.376110927980335" y="768.366491699218955" />
+				<pt x="6374.223688175999996" y="768.366491699218955" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6374.223688175999996" y="768.843615403606009" />
+				<pt x="6388.376110927980335" y="768.843615403606009" />
+				<pt x="6388.376110927980335" y="768.867050433158966" />
+				<pt x="6374.223688175999996" y="768.867050433158966" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6374.223688175999996" y="769.345269231332964" />
+				<pt x="6388.376110927980335" y="769.345269231332964" />
+				<pt x="6388.376110927980335" y="769.369393044710023" />
+				<pt x="6374.223688175999996" y="769.369393044710023" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6374.223688175999996" y="769.846389020068955" />
+				<pt x="6388.376110927980335" y="769.846389020068955" />
+				<pt x="6388.376110927980335" y="769.871255272626968" />
+				<pt x="6374.223688175999996" y="769.871255272626968" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6374.223688175999996" y="770.852683930992953" />
+				<pt x="6374.223688175999996" y="770.870679536462035" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="15592951846198185801"/>
+		</feature>
+		<feature id="f_7433407181495517471">
+			<position dim="0">6381.769854655950439</position>
+			<position dim="1">808.912751665479959</position>
+			<intensity>1.13241e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="6328.28844745601964" y="808.904979705811002" />
+				<pt x="6436.498201135979798" y="808.904979705811002" />
+				<pt x="6436.498201135979798" y="808.924365234375046" />
+				<pt x="6328.28844745601964" y="808.924365234375046" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6328.28844745601964" y="809.405042316765048" />
+				<pt x="6436.498201135979798" y="809.405042316765048" />
+				<pt x="6436.498201135979798" y="809.428394322097006" />
+				<pt x="6328.28844745601964" y="809.428394322097006" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6328.28844745601964" y="809.91063035651996" />
+				<pt x="6436.498201135979798" y="809.91063035651996" />
+				<pt x="6436.498201135979798" y="809.925837256760019" />
+				<pt x="6328.28844745601964" y="809.925837256760019" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6436.498201135979798" y="811.410293679683946" />
+				<pt x="6436.498201135979798" y="811.41461954638396" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="808.906982421875" RT="6433.4766" spectrum_reference="controllerType=0 controllerNumber=1 scan=87945" >
+				<PeptideHit score="0.000153383643168293" sequence="IVDDWANDGWGLKK" charge="2" aa_before="R" aa_after="A" start="445" end="458" protein_refs="PH_9">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="MS:1002049" value="66.0"/>
+					<UserParam type="float" name="MS:1002050" value="93.0"/>
+					<UserParam type="float" name="MS:1002052" value="5.2879355e-12"/>
+					<UserParam type="float" name="MS:1002053" value="2.7662783e-04"/>
+					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
+					<UserParam type="string" name="CTermIonCurrentRatio" value="0.018437373"/>
+					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.018437373"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
+					<UserParam type="string" name="MS2IonCurrent" value="160549.36"/>
+					<UserParam type="string" name="MeanErrorAll" value="8.457564"/>
+					<UserParam type="string" name="MeanErrorTop7" value="8.457564"/>
+					<UserParam type="string" name="MeanRelErrorAll" value="3.3177774"/>
+					<UserParam type="string" name="MeanRelErrorTop7" value="3.3177774"/>
+					<UserParam type="string" name="NTermIonCurrentRatio" value="0.0"/>
+					<UserParam type="string" name="NumMatchedMainIons" value="6"/>
+					<UserParam type="string" name="StdevErrorAll" value="5.630033"/>
+					<UserParam type="string" name="StdevErrorTop7" value="5.630033"/>
+					<UserParam type="string" name="StdevRelErrorAll" value="9.603126"/>
+					<UserParam type="string" name="StdevRelErrorTop7" value="9.603126"/>
+					<UserParam type="float" name="calcMZ" value="808.907043457031023"/>
+					<UserParam type="int" name="pass_threshold" value="1"/>
+					<UserParam type="int" name="start" value="446"/>
+					<UserParam type="int" name="end" value="459"/>
+					<UserParam type="string" name="protein_references" value="unique"/>
+					<UserParam type="float" name="SpecEValue_score" value="5.2879355e-12"/>
+				</PeptideHit>
+				<UserParam type="string" name="MS:1001115" value="87945"/>
+				<UserParam type="string" name="feature_id" value="7433407181495517471"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="7433407181495517471"/>
+		</feature>
+		<feature id="f_7699863398295665552">
+			<position dim="0">6382.057906063369956</position>
+			<position dim="1">648.819744574350011</position>
+			<intensity>5.99944e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="6374.223688175999996" y="648.812571885850957" />
+				<pt x="6389.137934975999997" y="648.812571885850957" />
+				<pt x="6389.137934975999997" y="648.830145263671966" />
+				<pt x="6374.223688175999996" y="648.830145263671966" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6374.223688175999996" y="649.313641673739994" />
+				<pt x="6389.137934975999997" y="649.313641673739994" />
+				<pt x="6389.137934975999997" y="649.332075649499984" />
+				<pt x="6374.223688175999996" y="649.332075649499984" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6374.223688175999996" y="649.813716654480004" />
+				<pt x="6389.137934975999997" y="649.813716654480004" />
+				<pt x="6389.137934975999997" y="649.833724664151987" />
+				<pt x="6374.223688175999996" y="649.833724664151987" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6380.158500400019875" y="650.322328553349053" />
+				<pt x="6380.158500400019875" y="650.330090190719034" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6374.223688175999996" y="650.828891546726027" />
+				<pt x="6374.223688175999996" y="650.83974786996896" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="7699863398295665552"/>
+		</feature>
+		<feature id="f_9117883386094098705">
+			<position dim="0">6382.336969581209814</position>
+			<position dim="1">658.851372977572055</position>
+			<intensity>1.68353e08</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="6374.223688175999996" y="658.844227183948988" />
+				<pt x="6391.170730543980426" y="658.844227183948988" />
+				<pt x="6391.170730543980426" y="658.866005859375036" />
+				<pt x="6374.223688175999996" y="658.866005859375036" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6374.223688175999996" y="659.34613941643704" />
+				<pt x="6391.170730543980426" y="659.34613941643704" />
+				<pt x="6391.170730543980426" y="659.367447483390947" />
+				<pt x="6374.223688175999996" y="659.367447483390947" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6374.223688175999996" y="659.847387771160015" />
+				<pt x="6391.170730543980426" y="659.847387771160015" />
+				<pt x="6391.170730543980426" y="659.869833095968033" />
+				<pt x="6374.223688175999996" y="659.869833095968033" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6374.223688175999996" y="660.347711029500033" />
+				<pt x="6382.449638911980401" y="660.347711029500033" />
+				<pt x="6382.449638911980401" y="660.37470462828901" />
+				<pt x="6374.223688175999996" y="660.37470462828901" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6374.223688175999996" y="660.856551544516947" />
+				<pt x="6374.223688175999996" y="660.870817291587969" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="658.851196289063" RT="6378.72576" spectrum_reference="controllerType=0 controllerNumber=1 scan=87118" >
+				<PeptideHit score="0.000737987208221724" sequence="NLNPVFNETLR" charge="2" aa_before="R R R" aa_after="Y V Y" start="324 312 324" end="334 322 334" protein_refs="PH_21 PH_37 PH_42">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="MS:1002049" value="73.0"/>
+					<UserParam type="float" name="MS:1002050" value="85.0"/>
+					<UserParam type="float" name="MS:1002052" value="2.1935296e-11"/>
+					<UserParam type="float" name="MS:1002053" value="1.129367e-03"/>
+					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
+					<UserParam type="string" name="CTermIonCurrentRatio" value="0.10506144"/>
+					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.10506144"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
+					<UserParam type="string" name="MS2IonCurrent" value="862883.3"/>
+					<UserParam type="string" name="MeanErrorAll" value="8.951585"/>
+					<UserParam type="string" name="MeanErrorTop7" value="8.951585"/>
+					<UserParam type="string" name="MeanRelErrorAll" value="-8.790968"/>
+					<UserParam type="string" name="MeanRelErrorTop7" value="-8.790968"/>
+					<UserParam type="string" name="NTermIonCurrentRatio" value="0.0"/>
+					<UserParam type="string" name="NumMatchedMainIons" value="6"/>
+					<UserParam type="string" name="StdevErrorAll" value="6.736882"/>
+					<UserParam type="string" name="StdevErrorTop7" value="6.736882"/>
+					<UserParam type="string" name="StdevRelErrorAll" value="6.9451656"/>
+					<UserParam type="string" name="StdevRelErrorTop7" value="6.9451656"/>
+					<UserParam type="float" name="calcMZ" value="658.851501464843977"/>
+					<UserParam type="int" name="pass_threshold" value="1"/>
+					<UserParam type="int" name="start" value="325"/>
+					<UserParam type="int" name="end" value="335"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="SpecEValue_score" value="2.1935296e-11"/>
+				</PeptideHit>
+				<UserParam type="string" name="MS:1001115" value="87118"/>
+				<UserParam type="string" name="feature_id" value="9117883386094098705"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="9117883386094098705"/>
+		</feature>
+		<feature id="f_5336199377620723861">
+			<position dim="0">6382.358928518199718</position>
+			<position dim="1">544.271601412869018</position>
+			<intensity>1.33178e08</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>3</charge>
+			<convexhull nr="0">
+				<pt x="6363.576837263999551" y="544.264985487195986" />
+				<pt x="6390.225762415980171" y="544.264985487195986" />
+				<pt x="6390.225762415980171" y="544.280990905761996" />
+				<pt x="6363.576837263999551" y="544.280990905761996" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6363.576837263999551" y="544.599646970960976" />
+				<pt x="6390.225762415980171" y="544.599646970960976" />
+				<pt x="6390.225762415980171" y="544.614965393840976" />
+				<pt x="6363.576837263999551" y="544.614965393840976" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6363.576837263999551" y="544.932818338606012" />
+				<pt x="6390.225762415980171" y="544.932818338606012" />
+				<pt x="6390.225762415980171" y="544.949230380057998" />
+				<pt x="6363.576837263999551" y="544.949230380057998" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6371.039965696019863" y="545.269113556543971" />
+				<pt x="6390.225762415980171" y="545.269113556543971" />
+				<pt x="6390.225762415980171" y="545.282668061256004" />
+				<pt x="6371.039965696019863" y="545.282668061256004" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6374.223688175999996" y="545.60837565422105" />
+				<pt x="6374.223688175999996" y="545.617997236251995" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="5336199377620723861"/>
+		</feature>
+		<feature id="f_3667291554646135834">
+			<position dim="0">6382.818508379010382</position>
+			<position dim="1">813.607865853604039</position>
+			<intensity>1.5864e08</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>3</charge>
+			<convexhull nr="0">
+				<pt x="6355.934474255999703" y="813.598596191406045" />
+				<pt x="6391.170730543980426" y="813.598596191406045" />
+				<pt x="6391.170730543980426" y="813.620587158202966" />
+				<pt x="6355.934474255999703" y="813.620587158202966" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6355.934474255999703" y="813.932955763488963" />
+				<pt x="6391.170730543980426" y="813.932955763488963" />
+				<pt x="6391.170730543980426" y="813.954745314269985" />
+				<pt x="6355.934474255999703" y="813.954745314269985" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6355.934474255999703" y="814.264474350213959" />
+				<pt x="6391.170730543980426" y="814.264474350213959" />
+				<pt x="6391.170730543980426" y="814.289253420382011" />
+				<pt x="6355.934474255999703" y="814.289253420382011" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6360.285735151979679" y="814.935705932974997" />
+				<pt x="6384.685914912000044" y="814.935705932974997" />
+				<pt x="6384.685914912000044" y="814.95749548375602" />
+				<pt x="6360.285735151979679" y="814.95749548375602" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="3667291554646135834"/>
+		</feature>
+		<feature id="f_18095376134310182954">
+			<position dim="0">6383.03024721446036</position>
+			<position dim="1">671.310772336883019</position>
+			<intensity>2.12344e08</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>4</charge>
+			<convexhull nr="0">
+				<pt x="6374.223688175999996" y="671.302343749999977" />
+				<pt x="6388.376110927980335" y="671.302343749999977" />
+				<pt x="6388.376110927980335" y="671.322448730467954" />
+				<pt x="6374.223688175999996" y="671.322448730467954" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6374.223688175999996" y="671.553182182461001" />
+				<pt x="6388.376110927980335" y="671.553182182461001" />
+				<pt x="6388.376110927980335" y="671.573104590176968" />
+				<pt x="6374.223688175999996" y="671.573104590176968" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6374.223688175999996" y="671.803569787741026" />
+				<pt x="6388.376110927980335" y="671.803569787741026" />
+				<pt x="6388.376110927980335" y="671.823846634477036" />
+				<pt x="6374.223688175999996" y="671.823846634477036" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6374.223688175999996" y="672.053463248501998" />
+				<pt x="6388.376110927980335" y="672.053463248501998" />
+				<pt x="6388.376110927980335" y="672.074488133191949" />
+				<pt x="6374.223688175999996" y="672.074488133191949" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6374.223688175999996" y="672.302647882699944" />
+				<pt x="6388.376110927980335" y="672.302647882699944" />
+				<pt x="6388.376110927980335" y="672.325379263608966" />
+				<pt x="6374.223688175999996" y="672.325379263608966" />
+			</convexhull>
+			<convexhull nr="5">
+				<pt x="6374.223688175999996" y="672.55511684969099" />
+				<pt x="6388.376110927980335" y="672.55511684969099" />
+				<pt x="6388.376110927980335" y="672.574612945317995" />
+				<pt x="6374.223688175999996" y="672.574612945317995" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="18095376134310182954"/>
+		</feature>
+		<feature id="f_17539296827346811185">
+			<position dim="0">6383.063456081889854</position>
+			<position dim="1">720.380520913894998</position>
+			<intensity>6.20829e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="6372.522732271980203" y="720.371583387586952" />
+				<pt x="6394.640563056000246" y="720.371583387586952" />
+				<pt x="6394.640563056000246" y="720.388726128471944" />
+				<pt x="6372.522732271980203" y="720.388726128471944" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6372.522732271980203" y="720.873311363492007" />
+				<pt x="6394.640563056000246" y="720.873311363492007" />
+				<pt x="6394.640563056000246" y="720.890352327376945" />
+				<pt x="6372.522732271980203" y="720.890352327376945" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6372.522732271980203" y="721.374144241544968" />
+				<pt x="6394.640563056000246" y="721.374144241544968" />
+				<pt x="6394.640563056000246" y="721.390969201921962" />
+				<pt x="6372.522732271980203" y="721.390969201921962" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6394.640563056000246" y="722.390447467565991" />
+				<pt x="6394.640563056000246" y="722.394079059361957" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="720.382080078125" RT="6378.3408" spectrum_reference="controllerType=0 controllerNumber=1 scan=87112" >
+				<PeptideHit score="0" sequence="M(Oxidation)ALDIEIATYRK" charge="2" aa_before="K K K K K K K K K" aa_after="L L L L L L L L L" start="386 390 390 208 390 390 377 386 115" end="397 401 401 219 401 401 388 397 126" protein_refs="PH_13 PH_3 PH_43 PH_44 PH_69 PH_75 PH_48 PH_49 PH_63">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="MS:1002049" value="103.0"/>
+					<UserParam type="float" name="MS:1002050" value="106.0"/>
+					<UserParam type="float" name="MS:1002052" value="2.9991901e-15"/>
+					<UserParam type="float" name="MS:1002053" value="1.5526997e-07"/>
+					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
+					<UserParam type="string" name="CTermIonCurrentRatio" value="0.082971536"/>
+					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.08864274"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
+					<UserParam type="string" name="MS2IonCurrent" value="594900.0"/>
+					<UserParam type="string" name="MeanErrorAll" value="10.372393"/>
+					<UserParam type="string" name="MeanErrorTop7" value="12.900443"/>
+					<UserParam type="string" name="MeanRelErrorAll" value="0.41357246"/>
+					<UserParam type="string" name="MeanRelErrorTop7" value="0.93494946"/>
+					<UserParam type="string" name="NTermIonCurrentRatio" value="0.005671201"/>
+					<UserParam type="string" name="NumMatchedMainIons" value="13"/>
+					<UserParam type="string" name="StdevErrorAll" value="5.7860637"/>
+					<UserParam type="string" name="StdevErrorTop7" value="2.5655084"/>
+					<UserParam type="string" name="StdevRelErrorAll" value="11.869879"/>
+					<UserParam type="string" name="StdevRelErrorTop7" value="13.1198"/>
+					<UserParam type="float" name="calcMZ" value="720.381774902343977"/>
+					<UserParam type="int" name="pass_threshold" value="1"/>
+					<UserParam type="int" name="start" value="116"/>
+					<UserParam type="int" name="end" value="127"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="SpecEValue_score" value="2.9991901e-15"/>
+				</PeptideHit>
+				<UserParam type="string" name="MS:1001115" value="87112"/>
+				<UserParam type="string" name="feature_id" value="17539296827346811185"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="17539296827346811185"/>
+		</feature>
+		<feature id="f_8085189772229487874">
+			<position dim="0">6383.650376061130373</position>
+			<position dim="1">613.100901621891012</position>
+			<intensity>1.67641e08</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>5</charge>
+			<convexhull nr="0">
+				<pt x="6379.132649167980162" y="613.095361328125023" />
+				<pt x="6390.225762415980171" y="613.095361328125023" />
+				<pt x="6390.225762415980171" y="613.109415690104015" />
+				<pt x="6379.132649167980162" y="613.109415690104015" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6379.132649167980162" y="613.295659987628028" />
+				<pt x="6390.225762415980171" y="613.295659987628028" />
+				<pt x="6390.225762415980171" y="613.309829133252947" />
+				<pt x="6379.132649167980162" y="613.309829133252947" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6379.132649167980162" y="613.49590639190501" />
+				<pt x="6390.225762415980171" y="613.49590639190501" />
+				<pt x="6390.225762415980171" y="613.509673210481992" />
+				<pt x="6379.132649167980162" y="613.509673210481992" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6383.845715551979993" y="613.696928983927023" />
+				<pt x="6390.225762415980171" y="613.696928983927023" />
+				<pt x="6390.225762415980171" y="613.710452124973017" />
+				<pt x="6383.845715551979993" y="613.710452124973017" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6383.845715551979993" y="613.896016283332983" />
+				<pt x="6390.225762415980171" y="613.896016283332983" />
+				<pt x="6390.225762415980171" y="613.907854661842976" />
+				<pt x="6383.845715551979993" y="613.907854661842976" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="8085189772229487874"/>
+		</feature>
+		<feature id="f_1982466394644165989">
+			<position dim="0">6383.751035638980284</position>
+			<position dim="1">594.268217100340053</position>
+			<intensity>1.41038e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>4</charge>
+			<convexhull nr="0">
+				<pt x="6378.261105055979897" y="594.261859130858966" />
+				<pt x="6390.225762415980171" y="594.261859130858966" />
+				<pt x="6390.225762415980171" y="594.271026611328011" />
+				<pt x="6378.261105055979897" y="594.271026611328011" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6378.261105055979897" y="594.512974415720009" />
+				<pt x="6390.225762415980171" y="594.512974415720009" />
+				<pt x="6390.225762415980171" y="594.521783828735011" />
+				<pt x="6378.261105055979897" y="594.521783828735011" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6378.261105055979897" y="594.761753273009958" />
+				<pt x="6390.225762415980171" y="594.761753273009958" />
+				<pt x="6390.225762415980171" y="594.77254772186302" />
+				<pt x="6378.261105055979897" y="594.77254772186302" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6390.225762415980171" y="595.015985488892056" />
+				<pt x="6390.225762415980171" y="595.021432876587028" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="1982466394644165989"/>
+		</feature>
+		<feature id="f_8321876697493295261">
+			<position dim="0">6384.144036338459955</position>
+			<position dim="1">563.792106041639954</position>
+			<intensity>3.66114e08</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="6374.223688175999996" y="563.785057237412957" />
+				<pt x="6391.766053792020102" y="563.785057237412957" />
+				<pt x="6391.766053792020102" y="563.804501065341015" />
+				<pt x="6374.223688175999996" y="563.804501065341015" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6374.223688175999996" y="564.286440556909952" />
+				<pt x="6391.766053792020102" y="564.286440556909952" />
+				<pt x="6391.766053792020102" y="564.305283465711" />
+				<pt x="6374.223688175999996" y="564.305283465711" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6374.223688175999996" y="564.788257679011963" />
+				<pt x="6391.766053792020102" y="564.788257679011963" />
+				<pt x="6391.766053792020102" y="564.805408680168966" />
+				<pt x="6374.223688175999996" y="564.805408680168966" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6380.158500400019875" y="565.791404985387999" />
+				<pt x="6383.845715551979993" y="565.791404985387999" />
+				<pt x="6383.845715551979993" y="565.807684945463961" />
+				<pt x="6380.158500400019875" y="565.807684945463961" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6374.223688175999996" y="566.304707886955953" />
+				<pt x="6374.223688175999996" y="566.316103705492992" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="563.792236328125" RT="6387.45984" spectrum_reference="controllerType=0 controllerNumber=1 scan=87255" >
+				<PeptideHit score="0" sequence="FDVSGYPTIK" charge="2" aa_before="R R" aa_after="I I" start="131 131" end="140 140" protein_refs="PH_5 PH_38">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="MS:1002049" value="67.0"/>
+					<UserParam type="float" name="MS:1002050" value="68.0"/>
+					<UserParam type="float" name="MS:1002052" value="1.1768004e-13"/>
+					<UserParam type="float" name="MS:1002053" value="6.023926299999999e-06"/>
+					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
+					<UserParam type="string" name="CTermIonCurrentRatio" value="0.015385298"/>
+					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.015385298"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
+					<UserParam type="string" name="MS2IonCurrent" value="1070942.4"/>
+					<UserParam type="string" name="MeanErrorAll" value="6.100949"/>
+					<UserParam type="string" name="MeanErrorTop7" value="6.100949"/>
+					<UserParam type="string" name="MeanRelErrorAll" value="0.35856596"/>
+					<UserParam type="string" name="MeanRelErrorTop7" value="0.35856596"/>
+					<UserParam type="string" name="NTermIonCurrentRatio" value="0.0"/>
+					<UserParam type="string" name="NumMatchedMainIons" value="3"/>
+					<UserParam type="string" name="StdevErrorAll" value="1.831595"/>
+					<UserParam type="string" name="StdevErrorTop7" value="1.831595"/>
+					<UserParam type="string" name="StdevRelErrorAll" value="6.359854"/>
+					<UserParam type="string" name="StdevRelErrorTop7" value="6.359854"/>
+					<UserParam type="float" name="calcMZ" value="563.792602539062955"/>
+					<UserParam type="int" name="pass_threshold" value="1"/>
+					<UserParam type="int" name="start" value="132"/>
+					<UserParam type="int" name="end" value="141"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="SpecEValue_score" value="1.1768004e-13"/>
+				</PeptideHit>
+				<UserParam type="string" name="MS:1001115" value="87255"/>
+				<UserParam type="string" name="feature_id" value="8321876697493295261"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="8321876697493295261"/>
+		</feature>
+		<feature id="f_5293318051743321761">
+			<position dim="0">6384.251516013279797</position>
+			<position dim="1">804.898625149137956</position>
+			<intensity>4.68418e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="6374.223688175999996" y="804.890036010742051" />
+				<pt x="6384.685914912000044" y="804.890036010742051" />
+				<pt x="6384.685914912000044" y="804.915354003907055" />
+				<pt x="6374.223688175999996" y="804.915354003907055" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6374.223688175999996" y="805.390570515393961" />
+				<pt x="6384.685914912000044" y="805.390570515393961" />
+				<pt x="6384.685914912000044" y="805.416050882786976" />
+				<pt x="6374.223688175999996" y="805.416050882786976" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6374.223688175999996" y="805.889299964160045" />
+				<pt x="6384.685914912000044" y="805.889299964160045" />
+				<pt x="6384.685914912000044" y="805.921888144463992" />
+				<pt x="6374.223688175999996" y="805.921888144463992" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6374.223688175999996" y="806.405108024179981" />
+				<pt x="6374.223688175999996" y="806.418130485118013" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6374.223688175999996" y="806.90482354611197" />
+				<pt x="6374.223688175999996" y="806.917846007048979" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="5293318051743321761"/>
+		</feature>
+		<feature id="f_12873204612001070545">
+			<position dim="0">6384.472805920970131</position>
+			<position dim="1">477.304871567860005</position>
+			<intensity>1.03161e11</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="6357.338657743979638" y="477.297158109224995" />
+				<pt x="6533.771499311999833" y="477.297158109224995" />
+				<pt x="6533.771499311999833" y="477.316182556152" />
+				<pt x="6357.338657743979638" y="477.316182556152" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6357.338657743979638" y="477.797586978856998" />
+				<pt x="6533.771499311999833" y="477.797586978856998" />
+				<pt x="6533.771499311999833" y="477.817417713403984" />
+				<pt x="6357.338657743979638" y="477.817417713403984" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6357.338657743979638" y="478.298587085192025" />
+				<pt x="6533.771499311999833" y="478.298587085192025" />
+				<pt x="6533.771499311999833" y="478.318898680209998" />
+				<pt x="6357.338657743979638" y="478.318898680209998" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6357.338657743979638" y="478.800176439320012" />
+				<pt x="6533.771499311999833" y="478.800176439320012" />
+				<pt x="6533.771499311999833" y="478.82031175732601" />
+				<pt x="6357.338657743979638" y="478.82031175732601" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6357.338657743979638" y="479.301939250414023" />
+				<pt x="6526.571638176000306" y="479.301939250414023" />
+				<pt x="6526.571638176000306" y="479.321546676159016" />
+				<pt x="6357.338657743979638" y="479.321546676159016" />
+			</convexhull>
+			<convexhull nr="5">
+				<pt x="6357.338657743979638" y="479.803416368996011" />
+				<pt x="6522.796038864000366" y="479.803416368996011" />
+				<pt x="6522.796038864000366" y="479.822588356732979" />
+				<pt x="6357.338657743979638" y="479.822588356732979" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="12873204612001070545"/>
+		</feature>
+		<feature id="f_17186166932511060920">
+			<position dim="0">6384.927646249750069</position>
+			<position dim="1">504.950439089916984</position>
+			<intensity>9.29937e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>3</charge>
+			<convexhull nr="0">
+				<pt x="6381.006991552019826" y="504.944677456942998" />
+				<pt x="6391.766053792020102" y="504.944677456942998" />
+				<pt x="6391.766053792020102" y="504.955418226454015" />
+				<pt x="6381.006991552019826" y="504.955418226454015" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6381.006991552019826" y="505.279495436426998" />
+				<pt x="6391.766053792020102" y="505.279495436426998" />
+				<pt x="6391.766053792020102" y="505.290269491408026" />
+				<pt x="6381.006991552019826" y="505.290269491408026" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6381.006991552019826" y="505.613870013234021" />
+				<pt x="6391.766053792020102" y="505.613870013234021" />
+				<pt x="6391.766053792020102" y="505.624870804284001" />
+				<pt x="6381.006991552019826" y="505.624870804284001" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6383.845715551979993" y="505.946619638204993" />
+				<pt x="6384.685914912000044" y="505.946619638204993" />
+				<pt x="6384.685914912000044" y="505.955147470236" />
+				<pt x="6383.845715551979993" y="505.955147470236" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6383.035859327999788" y="506.281999450922001" />
+				<pt x="6383.035859327999788" y="506.28977532982799" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="504.951263427734" RT="6386.766" spectrum_reference="controllerType=0 controllerNumber=1 scan=87245" >
+				<PeptideHit score="0.00553114970523297" sequence="ALALLEDEERVVR" charge="3" aa_before="R R R" aa_after="L L L" start="162 104 162" end="174 116 174" protein_refs="PH_0 PH_62 PH_36">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="MS:1002049" value="73.0"/>
+					<UserParam type="float" name="MS:1002050" value="106.0"/>
+					<UserParam type="float" name="MS:1002052" value="2.3300445e-10"/>
+					<UserParam type="float" name="MS:1002053" value="0.0121269245"/>
+					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
+					<UserParam type="string" name="CTermIonCurrentRatio" value="0.043317284"/>
+					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.044184253"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
+					<UserParam type="string" name="MS2IonCurrent" value="1052053.0"/>
+					<UserParam type="string" name="MeanErrorAll" value="13.560098"/>
+					<UserParam type="string" name="MeanErrorTop7" value="13.09368"/>
+					<UserParam type="string" name="MeanRelErrorAll" value="3.1717927"/>
+					<UserParam type="string" name="MeanRelErrorTop7" value="1.2213315"/>
+					<UserParam type="string" name="NTermIonCurrentRatio" value="8.669696E-4"/>
+					<UserParam type="string" name="NumMatchedMainIons" value="8"/>
+					<UserParam type="string" name="StdevErrorAll" value="4.8644624"/>
+					<UserParam type="string" name="StdevErrorTop7" value="5.030213"/>
+					<UserParam type="string" name="StdevRelErrorAll" value="14.052721"/>
+					<UserParam type="string" name="StdevRelErrorTop7" value="13.973398"/>
+					<UserParam type="float" name="calcMZ" value="504.950866699218977"/>
+					<UserParam type="int" name="pass_threshold" value="1"/>
+					<UserParam type="int" name="start" value="163"/>
+					<UserParam type="int" name="end" value="175"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="SpecEValue_score" value="2.3300445e-10"/>
+				</PeptideHit>
+				<UserParam type="string" name="MS:1001115" value="87245"/>
+				<UserParam type="string" name="feature_id" value="17186166932511060920"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="17186166932511060920"/>
+		</feature>
+		<feature id="f_3467630753021486832">
+			<position dim="0">6384.971459145380322</position>
+			<position dim="1">639.072498926685967</position>
+			<intensity>5.87991e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>4</charge>
+			<convexhull nr="0">
+				<pt x="6344.710029823980221" y="639.065000406901049" />
+				<pt x="6441.664072415999726" y="639.065000406901049" />
+				<pt x="6441.664072415999726" y="639.080004882811977" />
+				<pt x="6344.710029823980221" y="639.080004882811977" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6344.710029823980221" y="639.314427412550003" />
+				<pt x="6441.664072415999726" y="639.314427412550003" />
+				<pt x="6441.664072415999726" y="639.333683416992017" />
+				<pt x="6344.710029823980221" y="639.333683416992017" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6344.710029823980221" y="639.56300493280105" />
+				<pt x="6441.664072415999726" y="639.56300493280105" />
+				<pt x="6441.664072415999726" y="639.584525887667951" />
+				<pt x="6344.710029823980221" y="639.584525887667951" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6441.664072415999726" y="640.069741978745014" />
+				<pt x="6441.664072415999726" y="640.078885045150969" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="3467630753021486832"/>
+		</feature>
+		<feature id="f_12854890460404709463">
+			<position dim="0">6385.145422204530405</position>
+			<position dim="1">789.448060354931044</position>
+			<intensity>1.02416e11</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="6358.910197840020373" y="789.432566694780007" />
+				<pt x="6546.11577825600034" y="789.432566694780007" />
+				<pt x="6546.11577825600034" y="789.471599232065955" />
+				<pt x="6358.910197840020373" y="789.471599232065955" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6358.910197840020373" y="789.933899335428009" />
+				<pt x="6546.11577825600034" y="789.933899335428009" />
+				<pt x="6546.11577825600034" y="789.972491886127045" />
+				<pt x="6358.910197840020373" y="789.972491886127045" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6358.910197840020373" y="790.43557263152195" />
+				<pt x="6546.11577825600034" y="790.43557263152195" />
+				<pt x="6546.11577825600034" y="790.473494898188051" />
+				<pt x="6358.910197840020373" y="790.473494898188051" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6358.910197840020373" y="790.937152735752989" />
+				<pt x="6542.563692367980366" y="790.937152735752989" />
+				<pt x="6542.563692367980366" y="790.975074108351009" />
+				<pt x="6358.910197840020373" y="790.975074108351009" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6360.285735151979679" y="791.438128965576993" />
+				<pt x="6546.11577825600034" y="791.438128965576993" />
+				<pt x="6546.11577825600034" y="791.476585056292947" />
+				<pt x="6360.285735151979679" y="791.476585056292947" />
+			</convexhull>
+			<convexhull nr="5">
+				<pt x="6362.166762544019548" y="791.938082247972034" />
+				<pt x="6542.563692367980366" y="791.938082247972034" />
+				<pt x="6542.563692367980366" y="791.978899847376965" />
+				<pt x="6362.166762544019548" y="791.978899847376965" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="789.447875976563" RT="6424.07916" spectrum_reference="controllerType=0 controllerNumber=1 scan=87806" >
+				<PeptideHit score="0" sequence="ISGLIYEETRGVLK" charge="2" aa_before="R R R R" aa_after="V V V V" start="46 15 46 46" end="59 28 59 59" protein_refs="PH_17 PH_70 PH_45 PH_67">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="MS:1002049" value="133.0"/>
+					<UserParam type="float" name="MS:1002050" value="133.0"/>
+					<UserParam type="float" name="MS:1002052" value="3.629643e-17"/>
+					<UserParam type="float" name="MS:1002053" value="1.8987756e-09"/>
+					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
+					<UserParam type="string" name="CTermIonCurrentRatio" value="0.18437183"/>
+					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.18437183"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
+					<UserParam type="string" name="MS2IonCurrent" value="1028323.06"/>
+					<UserParam type="string" name="MeanErrorAll" value="12.4489975"/>
+					<UserParam type="string" name="MeanErrorTop7" value="12.4489975"/>
+					<UserParam type="string" name="MeanRelErrorAll" value="6.135142"/>
+					<UserParam type="string" name="MeanRelErrorTop7" value="6.135142"/>
+					<UserParam type="string" name="NTermIonCurrentRatio" value="0.0"/>
+					<UserParam type="string" name="NumMatchedMainIons" value="7"/>
+					<UserParam type="string" name="StdevErrorAll" value="5.5039506"/>
+					<UserParam type="string" name="StdevErrorTop7" value="5.5039506"/>
+					<UserParam type="string" name="StdevRelErrorAll" value="12.150352"/>
+					<UserParam type="string" name="StdevRelErrorTop7" value="12.150352"/>
+					<UserParam type="float" name="calcMZ" value="789.448547363281023"/>
+					<UserParam type="int" name="pass_threshold" value="1"/>
+					<UserParam type="int" name="start" value="47"/>
+					<UserParam type="int" name="end" value="60"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="SpecEValue_score" value="3.629643e-17"/>
+				</PeptideHit>
+				<UserParam type="string" name="MS:1001115" value="87806"/>
+				<UserParam type="string" name="feature_id" value="12854890460404709463"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="12854890460404709463"/>
+		</feature>
+		<feature id="f_10948415719828720478">
+			<position dim="0">6385.21468574517985</position>
+			<position dim="1">492.931469497247974</position>
+			<intensity>8.191879e08</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>3</charge>
+			<convexhull nr="0">
+				<pt x="6374.223688175999996" y="492.924295876242979" />
+				<pt x="6395.500860991979607" y="492.924295876242979" />
+				<pt x="6395.500860991979607" y="492.937836608886983" />
+				<pt x="6374.223688175999996" y="492.937836608886983" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6374.223688175999996" y="493.258906338431984" />
+				<pt x="6395.500860991979607" y="493.258906338431984" />
+				<pt x="6395.500860991979607" y="493.273406828790996" />
+				<pt x="6374.223688175999996" y="493.273406828790996" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6374.223688175999996" y="493.592127256392985" />
+				<pt x="6395.500860991979607" y="493.592127256392985" />
+				<pt x="6395.500860991979607" y="493.607122319788005" />
+				<pt x="6374.223688175999996" y="493.607122319788005" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6374.223688175999996" y="493.926560811996012" />
+				<pt x="6395.500860991979607" y="493.926560811996012" />
+				<pt x="6395.500860991979607" y="493.943401298522986" />
+				<pt x="6374.223688175999996" y="493.943401298522986" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6374.223688175999996" y="494.261460477113985" />
+				<pt x="6390.225762415980171" y="494.261460477113985" />
+				<pt x="6390.225762415980171" y="494.274984892932025" />
+				<pt x="6374.223688175999996" y="494.274984892932025" />
+			</convexhull>
+			<convexhull nr="5">
+				<pt x="6383.845715551979993" y="494.602460316974998" />
+				<pt x="6383.845715551979993" y="494.610694514418015" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="492.932006835938" RT="6379.1556" spectrum_reference="controllerType=0 controllerNumber=1 scan=87124" >
+				<PeptideHit score="0.000153383643168293" sequence="NKYQELINDIAR" charge="3" aa_before="K K K K K K" aa_after="D D D D D D" start="1475 903 1475 903 1475 96" end="1486 914 1486 914 1486 107" protein_refs="PH_14 PH_61 PH_39 PH_53 PH_32 PH_51">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="MS:1002049" value="80.0"/>
+					<UserParam type="float" name="MS:1002050" value="101.0"/>
+					<UserParam type="float" name="MS:1002052" value="4.758065e-12"/>
+					<UserParam type="float" name="MS:1002053" value="2.4632804e-04"/>
+					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
+					<UserParam type="string" name="CTermIonCurrentRatio" value="0.06313431"/>
+					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.077875786"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
+					<UserParam type="string" name="MS2IonCurrent" value="1648792.8"/>
+					<UserParam type="string" name="MeanErrorAll" value="9.680351"/>
+					<UserParam type="string" name="MeanErrorTop7" value="9.680351"/>
+					<UserParam type="string" name="MeanRelErrorAll" value="-0.5057294"/>
+					<UserParam type="string" name="MeanRelErrorTop7" value="-0.5057294"/>
+					<UserParam type="string" name="NTermIonCurrentRatio" value="0.014741474"/>
+					<UserParam type="string" name="NumMatchedMainIons" value="7"/>
+					<UserParam type="string" name="StdevErrorAll" value="6.9427066"/>
+					<UserParam type="string" name="StdevErrorTop7" value="6.9427066"/>
+					<UserParam type="string" name="StdevRelErrorAll" value="11.901874"/>
+					<UserParam type="string" name="StdevRelErrorTop7" value="11.901874"/>
+					<UserParam type="float" name="calcMZ" value="492.931701660156023"/>
+					<UserParam type="int" name="pass_threshold" value="1"/>
+					<UserParam type="int" name="start" value="97"/>
+					<UserParam type="int" name="end" value="108"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="SpecEValue_score" value="4.758065e-12"/>
+				</PeptideHit>
+				<UserParam type="string" name="MS:1001115" value="87124"/>
+				<UserParam type="string" name="feature_id" value="10948415719828720478"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="10948415719828720478"/>
+		</feature>
+		<feature id="f_12030658400591860491">
+			<position dim="0">6385.220337268820003</position>
+			<position dim="1">575.607269767108051</position>
+			<intensity>6.13128e09</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>3</charge>
+			<convexhull nr="0">
+				<pt x="6367.52788063998014" y="575.597671786222009" />
+				<pt x="6536.153645327999584" y="575.597671786222009" />
+				<pt x="6536.153645327999584" y="575.623513183592991" />
+				<pt x="6367.52788063998014" y="575.623513183592991" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6367.52788063998014" y="575.932172441752982" />
+				<pt x="6536.153645327999584" y="575.932172441752982" />
+				<pt x="6536.153645327999584" y="575.95790009856205" />
+				<pt x="6367.52788063998014" y="575.95790009856205" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6367.52788063998014" y="576.264958917687977" />
+				<pt x="6536.153645327999584" y="576.264958917687977" />
+				<pt x="6536.153645327999584" y="576.291897467374042" />
+				<pt x="6367.52788063998014" y="576.291897467374042" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6367.52788063998014" y="576.598982268842974" />
+				<pt x="6477.57604412801993" y="576.598982268842974" />
+				<pt x="6477.57604412801993" y="576.627433549861962" />
+				<pt x="6367.52788063998014" y="576.627433549861962" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6368.498718799980452" y="576.933501521024027" />
+				<pt x="6536.153645327999584" y="576.933501521024027" />
+				<pt x="6536.153645327999584" y="576.96122059226002" />
+				<pt x="6368.498718799980452" y="576.96122059226002" />
+			</convexhull>
+			<convexhull nr="5">
+				<pt x="6369.71528023997962" y="577.267884752561031" />
+				<pt x="6466.93067948802036" y="577.267884752561031" />
+				<pt x="6466.93067948802036" y="577.294377152123957" />
+				<pt x="6369.71528023997962" y="577.294377152123957" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="575.606384277344" RT="6383.8686" spectrum_reference="controllerType=0 controllerNumber=1 scan=87200" >
+				<PeptideHit score="0" sequence="DKEVGNLYDMFHTR" charge="3" aa_before="R R" aa_after="N N" start="352 137" end="365 150" protein_refs="PH_28 PH_40">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="MS:1002049" value="79.0"/>
+					<UserParam type="float" name="MS:1002050" value="92.0"/>
+					<UserParam type="float" name="MS:1002052" value="4.600332e-16"/>
+					<UserParam type="float" name="MS:1002053" value="2.4065722e-08"/>
+					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
+					<UserParam type="string" name="CTermIonCurrentRatio" value="0.07181577"/>
+					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.07181577"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
+					<UserParam type="string" name="MS2IonCurrent" value="2104602.5"/>
+					<UserParam type="string" name="MeanErrorAll" value="11.658926"/>
+					<UserParam type="string" name="MeanErrorTop7" value="11.658926"/>
+					<UserParam type="string" name="MeanRelErrorAll" value="3.1789193"/>
+					<UserParam type="string" name="MeanRelErrorTop7" value="3.1789193"/>
+					<UserParam type="string" name="NTermIonCurrentRatio" value="0.0"/>
+					<UserParam type="string" name="NumMatchedMainIons" value="5"/>
+					<UserParam type="string" name="StdevErrorAll" value="3.8032053"/>
+					<UserParam type="string" name="StdevErrorTop7" value="3.8032053"/>
+					<UserParam type="string" name="StdevRelErrorAll" value="11.844382"/>
+					<UserParam type="string" name="StdevRelErrorTop7" value="11.844382"/>
+					<UserParam type="float" name="calcMZ" value="575.606872558593977"/>
+					<UserParam type="int" name="pass_threshold" value="1"/>
+					<UserParam type="int" name="start" value="138"/>
+					<UserParam type="int" name="end" value="151"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="SpecEValue_score" value="4.600332e-16"/>
+				</PeptideHit>
+				<UserParam type="string" name="MS:1001115" value="87200"/>
+				<UserParam type="string" name="feature_id" value="12030658400591860491"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="12030658400591860491"/>
+		</feature>
+		<feature id="f_5925799628306906893">
+			<position dim="0">6385.346511444679891</position>
+			<position dim="1">738.893459736754039</position>
+			<intensity>3.79166e09</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="6372.522732271980203" y="738.880659367487965" />
+				<pt x="6399.159067456020239" y="738.880659367487965" />
+				<pt x="6399.159067456020239" y="738.911149902343027" />
+				<pt x="6372.522732271980203" y="738.911149902343027" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6372.522732271980203" y="739.381989962951025" />
+				<pt x="6399.159067456020239" y="739.381989962951025" />
+				<pt x="6399.159067456020239" y="739.413116851896007" />
+				<pt x="6372.522732271980203" y="739.413116851896007" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6372.522732271980203" y="739.883260733977977" />
+				<pt x="6399.159067456020239" y="739.883260733977977" />
+				<pt x="6399.159067456020239" y="739.914481444357989" />
+				<pt x="6372.522732271980203" y="739.914481444357989" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6374.223688175999996" y="740.383248156445006" />
+				<pt x="6398.266743600000154" y="740.383248156445006" />
+				<pt x="6398.266743600000154" y="740.415304021983957" />
+				<pt x="6374.223688175999996" y="740.415304021983957" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6374.223688175999996" y="740.885549868145972" />
+				<pt x="6393.265852368000196" y="740.885549868145972" />
+				<pt x="6393.265852368000196" y="740.918570140451038" />
+				<pt x="6374.223688175999996" y="740.918570140451038" />
+			</convexhull>
+			<convexhull nr="5">
+				<pt x="6381.992916096000045" y="741.390747818102" />
+				<pt x="6381.992916096000045" y="741.415417719632956" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="738.893920898438" RT="6392.67516" spectrum_reference="controllerType=0 controllerNumber=1 scan=87337" >
+				<PeptideHit score="0.000128106584678452" sequence="NKYQELINDIAR" charge="2" aa_before="K K K K K K" aa_after="D D D D D D" start="1475 903 1475 903 1475 96" end="1486 914 1486 914 1486 107" protein_refs="PH_14 PH_61 PH_39 PH_53 PH_32 PH_51">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="MS:1002049" value="87.0"/>
+					<UserParam type="float" name="MS:1002050" value="98.0"/>
+					<UserParam type="float" name="MS:1002052" value="2.2828395e-12"/>
+					<UserParam type="float" name="MS:1002053" value="1.18184034e-04"/>
+					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
+					<UserParam type="string" name="CTermIonCurrentRatio" value="0.1715437"/>
+					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.17218985"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
+					<UserParam type="string" name="MS2IonCurrent" value="1478531.2"/>
+					<UserParam type="string" name="MeanErrorAll" value="10.11589"/>
+					<UserParam type="string" name="MeanErrorTop7" value="10.11589"/>
+					<UserParam type="string" name="MeanRelErrorAll" value="-2.071718"/>
+					<UserParam type="string" name="MeanRelErrorTop7" value="-2.071718"/>
+					<UserParam type="string" name="NTermIonCurrentRatio" value="6.461386E-4"/>
+					<UserParam type="string" name="NumMatchedMainIons" value="6"/>
+					<UserParam type="string" name="StdevErrorAll" value="6.3253274"/>
+					<UserParam type="string" name="StdevErrorTop7" value="6.3253274"/>
+					<UserParam type="string" name="StdevRelErrorAll" value="11.749424"/>
+					<UserParam type="string" name="StdevRelErrorTop7" value="11.749424"/>
+					<UserParam type="float" name="calcMZ" value="738.893920898437955"/>
+					<UserParam type="int" name="pass_threshold" value="1"/>
+					<UserParam type="int" name="start" value="97"/>
+					<UserParam type="int" name="end" value="108"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="SpecEValue_score" value="2.2828395e-12"/>
+				</PeptideHit>
+				<UserParam type="string" name="MS:1001115" value="87337"/>
+				<UserParam type="string" name="feature_id" value="5925799628306906893"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="5925799628306906893"/>
+		</feature>
+		<feature id="f_831604082216676837">
+			<position dim="0">6385.386883428100191</position>
+			<position dim="1">609.813974230998952</position>
+			<intensity>1.15235e08</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="6378.261105055979897" y="609.807210693359025" />
+				<pt x="6391.170730543980426" y="609.807210693359025" />
+				<pt x="6391.170730543980426" y="609.820915527344027" />
+				<pt x="6378.261105055979897" y="609.820915527344027" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6378.261105055979897" y="610.308389252424036" />
+				<pt x="6391.170730543980426" y="610.308389252424036" />
+				<pt x="6391.170730543980426" y="610.323027312457953" />
+				<pt x="6378.261105055979897" y="610.323027312457953" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6378.261105055979897" y="610.809132466315987" />
+				<pt x="6391.170730543980426" y="610.809132466315987" />
+				<pt x="6391.170730543980426" y="610.824517592489997" />
+				<pt x="6378.261105055979897" y="610.824517592489997" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="831604082216676837"/>
+		</feature>
+		<feature id="f_6945407378501939569">
+			<position dim="0">6385.511554147169591</position>
+			<position dim="1">827.891452379693988</position>
+			<intensity>1.10824e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="6380.158500400019875" y="827.883172607422011" />
+				<pt x="6391.170730543980426" y="827.883172607422011" />
+				<pt x="6391.170730543980426" y="827.899411773680981" />
+				<pt x="6380.158500400019875" y="827.899411773680981" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6380.158500400019875" y="828.382804895937056" />
+				<pt x="6391.170730543980426" y="828.382804895937056" />
+				<pt x="6391.170730543980426" y="828.402844858665958" />
+				<pt x="6380.158500400019875" y="828.402844858665958" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6380.158500400019875" y="828.884823884069988" />
+				<pt x="6391.170730543980426" y="828.884823884069988" />
+				<pt x="6391.170730543980426" y="828.905480143924024" />
+				<pt x="6380.158500400019875" y="828.905480143924024" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6380.158500400019875" y="830.395806188136021" />
+				<pt x="6380.158500400019875" y="830.411457636703972" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="6945407378501939569"/>
+		</feature>
+		<feature id="f_870913166103333183">
+			<position dim="0">6385.902408168810325</position>
+			<position dim="1">712.046499624972967</position>
+			<intensity>2.17667e09</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>3</charge>
+			<convexhull nr="0">
+				<pt x="6378.694679503980296" y="712.033895041726055" />
+				<pt x="6399.975259600019854" y="712.033895041726055" />
+				<pt x="6399.975259600019854" y="712.057687100496992" />
+				<pt x="6378.694679503980296" y="712.057687100496992" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6378.694679503980296" y="712.368205841563054" />
+				<pt x="6399.975259600019854" y="712.368205841563054" />
+				<pt x="6399.975259600019854" y="712.392444722829055" />
+				<pt x="6378.694679503980296" y="712.392444722829055" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6378.694679503980296" y="712.702511604808024" />
+				<pt x="6399.975259600019854" y="712.702511604808024" />
+				<pt x="6399.975259600019854" y="712.726204537329977" />
+				<pt x="6378.694679503980296" y="712.726204537329977" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6378.694679503980296" y="713.036523967914036" />
+				<pt x="6399.159067456020239" y="713.036523967914036" />
+				<pt x="6399.159067456020239" y="713.060347639499014" />
+				<pt x="6378.694679503980296" y="713.060347639499014" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6378.694679503980296" y="713.370224038104993" />
+				<pt x="6399.975259600019854" y="713.370224038104993" />
+				<pt x="6399.975259600019854" y="713.396600826582016" />
+				<pt x="6378.694679503980296" y="713.396600826582016" />
+			</convexhull>
+			<convexhull nr="5">
+				<pt x="6383.035859327999788" y="713.706042858687056" />
+				<pt x="6390.225762415980171" y="713.706042858687056" />
+				<pt x="6390.225762415980171" y="713.727469390629949" />
+				<pt x="6383.035859327999788" y="713.727469390629949" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="870913166103333183"/>
+		</feature>
+		<feature id="f_8282591427799951443">
+			<position dim="0">6386.144933401459639</position>
+			<position dim="1">676.630719466665028</position>
+			<intensity>5.01655e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>3</charge>
+			<convexhull nr="0">
+				<pt x="6360.285735151979679" y="676.622951931424041" />
+				<pt x="6397.22366380800031" y="676.622951931424041" />
+				<pt x="6397.22366380800031" y="676.64070638020803" />
+				<pt x="6360.285735151979679" y="676.64070638020803" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6360.285735151979679" y="676.957761875456981" />
+				<pt x="6397.22366380800031" y="676.957761875456981" />
+				<pt x="6397.22366380800031" y="676.975516324241994" />
+				<pt x="6360.285735151979679" y="676.975516324241994" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6360.285735151979679" y="677.291891864604054" />
+				<pt x="6397.22366380800031" y="677.291891864604054" />
+				<pt x="6397.22366380800031" y="677.309646313388953" />
+				<pt x="6360.285735151979679" y="677.309646313388953" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6391.766053792020102" y="677.626141009331036" />
+				<pt x="6397.22366380800031" y="677.626141009331036" />
+				<pt x="6397.22366380800031" y="677.643643332438046" />
+				<pt x="6391.766053792020102" y="677.643643332438046" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6395.500860991979607" y="677.964799878497956" />
+				<pt x="6395.500860991979607" y="677.971407951413994" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="8282591427799951443"/>
+		</feature>
+		<feature id="f_352788369799116720">
+			<position dim="0">6386.653322992819994</position>
+			<position dim="1">547.795959300281993</position>
+			<intensity>1.63882e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="6374.223688175999996" y="547.79116058349598" />
+				<pt x="6398.266743600000154" y="547.79116058349598" />
+				<pt x="6398.266743600000154" y="547.804098510742051" />
+				<pt x="6374.223688175999996" y="547.804098510742051" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6374.223688175999996" y="548.29258275031998" />
+				<pt x="6398.266743600000154" y="548.29258275031998" />
+				<pt x="6398.266743600000154" y="548.307180666923955" />
+				<pt x="6374.223688175999996" y="548.307180666923955" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6374.223688175999996" y="548.793319463729972" />
+				<pt x="6398.266743600000154" y="548.793319463729972" />
+				<pt x="6398.266743600000154" y="548.804439814388957" />
+				<pt x="6374.223688175999996" y="548.804439814388957" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6374.223688175999996" y="549.301628272235007" />
+				<pt x="6374.223688175999996" y="549.309007422625996" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="352788369799116720"/>
+		</feature>
+		<feature id="f_11807265794816140001">
+			<position dim="0">6387.12912769696959</position>
+			<position dim="1">697.854934314476964</position>
+			<intensity>7.08593e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="6374.223688175999996" y="697.84999050564204" />
+				<pt x="6387.423648736020368" y="697.84999050564204" />
+				<pt x="6387.423648736020368" y="697.860358344183965" />
+				<pt x="6374.223688175999996" y="697.860358344183965" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6374.223688175999996" y="698.352657619780985" />
+				<pt x="6387.423648736020368" y="698.352657619780985" />
+				<pt x="6387.423648736020368" y="698.364867653697957" />
+				<pt x="6374.223688175999996" y="698.364867653697957" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6374.223688175999996" y="698.853174265390976" />
+				<pt x="6387.423648736020368" y="698.853174265390976" />
+				<pt x="6387.423648736020368" y="698.867675065994035" />
+				<pt x="6374.223688175999996" y="698.867675065994035" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="11807265794816140001"/>
+		</feature>
+		<feature id="f_10689079502476637467">
+			<position dim="0">6387.140309911330405</position>
+			<position dim="1">817.726643482594</position>
+			<intensity>1.96187e08</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>3</charge>
+			<convexhull nr="0">
+				<pt x="6379.609174015979988" y="817.713295288085988" />
+				<pt x="6398.266743600000154" y="817.713295288085988" />
+				<pt x="6398.266743600000154" y="817.737216796876055" />
+				<pt x="6379.609174015979988" y="817.737216796876055" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6379.609174015979988" y="818.048158108889993" />
+				<pt x="6398.266743600000154" y="818.048158108889993" />
+				<pt x="6398.266743600000154" y="818.072079617679947" />
+				<pt x="6379.609174015979988" y="818.072079617679947" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6379.609174015979988" y="818.382155574559988" />
+				<pt x="6398.266743600000154" y="818.382155574559988" />
+				<pt x="6398.266743600000154" y="818.406077083350056" />
+				<pt x="6379.609174015979988" y="818.406077083350056" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6383.845715551979993" y="818.714312776624979" />
+				<pt x="6387.423648736020368" y="818.714312776624979" />
+				<pt x="6387.423648736020368" y="818.738234285415047" />
+				<pt x="6383.845715551979993" y="818.738234285415047" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6384.685914912000044" y="819.052470756172966" />
+				<pt x="6398.266743600000154" y="819.052470756172966" />
+				<pt x="6398.266743600000154" y="819.072428766638041" />
+				<pt x="6384.685914912000044" y="819.072428766638041" />
+			</convexhull>
+			<convexhull nr="5">
+				<pt x="6384.685914912000044" y="819.389974085092035" />
+				<pt x="6384.685914912000044" y="819.409623132944034" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="817.727966308594" RT="6382.0278" spectrum_reference="controllerType=0 controllerNumber=1 scan=87173" >
+				<PeptideHit score="0.000539374325782093" sequence="ELEDATETADAMNREVSSLKNK" charge="3" aa_before="R R R" aa_after="L L L" start="1898 1898 501" end="1919 1919 522" protein_refs="PH_12 PH_30 PH_71">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="MS:1002049" value="62.0"/>
+					<UserParam type="float" name="MS:1002050" value="125.0"/>
+					<UserParam type="float" name="MS:1002052" value="1.4429917e-11"/>
+					<UserParam type="float" name="MS:1002053" value="7.8329915e-04"/>
+					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
+					<UserParam type="string" name="CTermIonCurrentRatio" value="0.015528469"/>
+					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.017406216"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
+					<UserParam type="string" name="MS2IonCurrent" value="342967.84"/>
+					<UserParam type="string" name="MeanErrorAll" value="7.3925905"/>
+					<UserParam type="string" name="MeanErrorTop7" value="6.057341"/>
+					<UserParam type="string" name="MeanRelErrorAll" value="-4.4418097"/>
+					<UserParam type="string" name="MeanRelErrorTop7" value="-4.2526593"/>
+					<UserParam type="string" name="NTermIonCurrentRatio" value="0.0018777464"/>
+					<UserParam type="string" name="NumMatchedMainIons" value="10"/>
+					<UserParam type="string" name="StdevErrorAll" value="5.4913173"/>
+					<UserParam type="string" name="StdevErrorTop7" value="5.9963093"/>
+					<UserParam type="string" name="StdevRelErrorAll" value="8.066925"/>
+					<UserParam type="string" name="StdevRelErrorTop7" value="7.3866086"/>
+					<UserParam type="float" name="calcMZ" value="817.72705078125"/>
+					<UserParam type="int" name="pass_threshold" value="1"/>
+					<UserParam type="int" name="start" value="502"/>
+					<UserParam type="int" name="end" value="523"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="SpecEValue_score" value="1.4429917e-11"/>
+				</PeptideHit>
+				<UserParam type="string" name="MS:1001115" value="87173"/>
+				<UserParam type="string" name="feature_id" value="10689079502476637467"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="10689079502476637467"/>
+		</feature>
+		<feature id="f_16373016338390321506">
+			<position dim="0">6387.741030768490418</position>
+			<position dim="1">728.399131384500038</position>
+			<intensity>3.2107e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>4</charge>
+			<convexhull nr="0">
+				<pt x="6367.52788063998014" y="728.397033691406023" />
+				<pt x="6410.006938816020011" y="728.397033691406023" />
+				<pt x="6410.006938816020011" y="728.406512451171011" />
+				<pt x="6367.52788063998014" y="728.406512451171011" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6367.52788063998014" y="728.648719709367015" />
+				<pt x="6410.006938816020011" y="728.648719709367015" />
+				<pt x="6410.006938816020011" y="728.658574678747982" />
+				<pt x="6367.52788063998014" y="728.658574678747982" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6367.52788063998014" y="728.898294642567976" />
+				<pt x="6410.006938816020011" y="728.898294642567976" />
+				<pt x="6410.006938816020011" y="728.909984537213973" />
+				<pt x="6367.52788063998014" y="728.909984537213973" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6410.006938816020011" y="729.151913363486983" />
+				<pt x="6410.006938816020011" y="729.155616162965998" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6382.449638911980401" y="729.401254195719957" />
+				<pt x="6382.449638911980401" y="729.408659794679011" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="728.400085449219" RT="6399.2988" spectrum_reference="controllerType=0 controllerNumber=1 scan=87434" >
+				<PeptideHit score="0.000100156912496244" sequence="KPLPDHVSIVEPKDEILPTTPISEQK" charge="4" aa_before="K K K K K K K" aa_after="G G G G G G G" start="201 189 116 116 75 201 129" end="226 214 141 141 100 226 154" protein_refs="PH_6 PH_57 PH_72 PH_58 PH_59 PH_68 PH_60">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="MS:1002049" value="60.0"/>
+					<UserParam type="float" name="MS:1002050" value="119.0"/>
+					<UserParam type="float" name="MS:1002052" value="1.7433637e-12"/>
+					<UserParam type="float" name="MS:1002053" value="9.6250325e-05"/>
+					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
+					<UserParam type="string" name="CTermIonCurrentRatio" value="0.014198913"/>
+					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.026651885"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
+					<UserParam type="string" name="MS2IonCurrent" value="1159124.1"/>
+					<UserParam type="string" name="MeanErrorAll" value="9.123063"/>
+					<UserParam type="string" name="MeanErrorTop7" value="7.243789"/>
+					<UserParam type="string" name="MeanRelErrorAll" value="-3.8906586"/>
+					<UserParam type="string" name="MeanRelErrorTop7" value="-6.466595"/>
+					<UserParam type="string" name="NTermIonCurrentRatio" value="0.012452971"/>
+					<UserParam type="string" name="NumMatchedMainIons" value="10"/>
+					<UserParam type="string" name="StdevErrorAll" value="5.5432363"/>
+					<UserParam type="string" name="StdevErrorTop7" value="5.3668466"/>
+					<UserParam type="string" name="StdevRelErrorAll" value="9.940851"/>
+					<UserParam type="string" name="StdevRelErrorTop7" value="6.2816133"/>
+					<UserParam type="float" name="calcMZ" value="728.401000976562955"/>
+					<UserParam type="int" name="pass_threshold" value="1"/>
+					<UserParam type="int" name="start" value="130"/>
+					<UserParam type="int" name="end" value="155"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="SpecEValue_score" value="1.7433637e-12"/>
+				</PeptideHit>
+				<UserParam type="string" name="MS:1001115" value="87434"/>
+				<UserParam type="string" name="feature_id" value="16373016338390321506"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="16373016338390321506"/>
+		</feature>
+		<feature id="f_2920438506904684115">
+			<position dim="0">6387.855227740389637</position>
+			<position dim="1">766.410577040663043</position>
+			<intensity>3.79237e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="6378.694679503980296" y="766.402218967014051" />
+				<pt x="6400.702745503979713" y="766.402218967014051" />
+				<pt x="6400.702745503979713" y="766.418321397569002" />
+				<pt x="6378.694679503980296" y="766.418321397569002" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6378.694679503980296" y="766.903092137724002" />
+				<pt x="6400.702745503979713" y="766.903092137724002" />
+				<pt x="6400.702745503979713" y="766.920087080862004" />
+				<pt x="6378.694679503980296" y="766.920087080862004" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6378.694679503980296" y="767.403232292234975" />
+				<pt x="6400.702745503979713" y="767.403232292234975" />
+				<pt x="6400.702745503979713" y="767.421458490606028" />
+				<pt x="6378.694679503980296" y="767.421458490606028" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="766.410522460938" RT="6390.4776" spectrum_reference="controllerType=0 controllerNumber=1 scan=87302" >
+				<PeptideHit score="0" sequence="TQNPMVTGTSVLGVK" charge="2" aa_before="R R" aa_after="F F" start="45 45" end="59 59" protein_refs="PH_10 PH_50">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="MS:1002049" value="78.0"/>
+					<UserParam type="float" name="MS:1002050" value="90.0"/>
+					<UserParam type="float" name="MS:1002052" value="2.966257e-14"/>
+					<UserParam type="float" name="MS:1002053" value="1.559451e-06"/>
+					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
+					<UserParam type="string" name="CTermIonCurrentRatio" value="0.043934997"/>
+					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.046672396"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
+					<UserParam type="string" name="MS2IonCurrent" value="600056.1"/>
+					<UserParam type="string" name="MeanErrorAll" value="9.453442"/>
+					<UserParam type="string" name="MeanErrorTop7" value="8.294648"/>
+					<UserParam type="string" name="MeanRelErrorAll" value="-3.6629615"/>
+					<UserParam type="string" name="MeanRelErrorTop7" value="-6.6955266"/>
+					<UserParam type="string" name="NTermIonCurrentRatio" value="0.0027374004"/>
+					<UserParam type="string" name="NumMatchedMainIons" value="8"/>
+					<UserParam type="string" name="StdevErrorAll" value="5.350553"/>
+					<UserParam type="string" name="StdevErrorTop7" value="4.687834"/>
+					<UserParam type="string" name="StdevRelErrorAll" value="10.226373"/>
+					<UserParam type="string" name="StdevRelErrorTop7" value="6.778414"/>
+					<UserParam type="float" name="calcMZ" value="766.411071777343977"/>
+					<UserParam type="int" name="pass_threshold" value="1"/>
+					<UserParam type="int" name="start" value="46"/>
+					<UserParam type="int" name="end" value="60"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="SpecEValue_score" value="2.966257e-14"/>
+				</PeptideHit>
+				<UserParam type="string" name="MS:1001115" value="87302"/>
+				<UserParam type="string" name="feature_id" value="2920438506904684115"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="2920438506904684115"/>
+		</feature>
+		<feature id="f_7435061434488025309">
+			<position dim="0">6388.229017503929754</position>
+			<position dim="1">544.306903160799038</position>
+			<intensity>9.612659e08</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>3</charge>
+			<convexhull nr="0">
+				<pt x="6379.132649167980162" y="544.299295043944994" />
+				<pt x="6395.500860991979607" y="544.299295043944994" />
+				<pt x="6395.500860991979607" y="544.314179021662994" />
+				<pt x="6379.132649167980162" y="544.314179021662994" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6379.132649167980162" y="544.633590890466962" />
+				<pt x="6395.500860991979607" y="544.633590890466962" />
+				<pt x="6395.500860991979607" y="544.64837123060795" />
+				<pt x="6379.132649167980162" y="544.64837123060795" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6379.132649167980162" y="544.967728562652951" />
+				<pt x="6395.500860991979607" y="544.967728562652951" />
+				<pt x="6395.500860991979607" y="544.982403065941981" />
+				<pt x="6379.132649167980162" y="544.982403065941981" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6381.992916096000045" y="545.301140284537951" />
+				<pt x="6395.500860991979607" y="545.301140284537951" />
+				<pt x="6395.500860991979607" y="545.317533332652033" />
+				<pt x="6381.992916096000045" y="545.317533332652033" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6382.449638911980401" y="545.634589977561973" />
+				<pt x="6391.766053792020102" y="545.634589977561973" />
+				<pt x="6391.766053792020102" y="545.650461342117978" />
+				<pt x="6382.449638911980401" y="545.650461342117978" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="544.306945800781" RT="6385.4166" spectrum_reference="controllerType=0 controllerNumber=1 scan=87226" >
+				<PeptideHit score="0.000128106584678452" sequence="VGEVIVTKDDAMLLK" charge="3" aa_before="K K K K K K" aa_after="G G G G G G" start="344 344 321 344 200 288" end="358 358 335 358 214 302" protein_refs="PH_4 PH_31 PH_54 PH_47 PH_55 PH_56">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="MS:1002049" value="63.0"/>
+					<UserParam type="float" name="MS:1002050" value="82.0"/>
+					<UserParam type="float" name="MS:1002052" value="3.3814813e-12"/>
+					<UserParam type="float" name="MS:1002053" value="1.777747e-04"/>
+					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
+					<UserParam type="string" name="CTermIonCurrentRatio" value="0.0011663509"/>
+					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.009149219"/>
+					<UserParam type="string" name="isotope_error" value="0"/>
+					<UserParam type="string" name="MS2IonCurrent" value="1947549.8"/>
+					<UserParam type="string" name="MeanErrorAll" value="11.597982"/>
+					<UserParam type="string" name="MeanErrorTop7" value="11.597982"/>
+					<UserParam type="string" name="MeanRelErrorAll" value="-8.891057"/>
+					<UserParam type="string" name="MeanRelErrorTop7" value="-8.891057"/>
+					<UserParam type="string" name="NTermIonCurrentRatio" value="0.007982868"/>
+					<UserParam type="string" name="NumMatchedMainIons" value="5"/>
+					<UserParam type="string" name="StdevErrorAll" value="4.937886"/>
+					<UserParam type="string" name="StdevErrorTop7" value="4.937886"/>
+					<UserParam type="string" name="StdevRelErrorAll" value="8.935604"/>
+					<UserParam type="string" name="StdevRelErrorTop7" value="8.935604"/>
+					<UserParam type="float" name="calcMZ" value="544.307678222656023"/>
+					<UserParam type="int" name="pass_threshold" value="1"/>
+					<UserParam type="int" name="start" value="289"/>
+					<UserParam type="int" name="end" value="303"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="SpecEValue_score" value="3.3814813e-12"/>
+				</PeptideHit>
+				<UserParam type="string" name="MS:1001115" value="87226"/>
+				<UserParam type="string" name="feature_id" value="7435061434488025309"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="7435061434488025309"/>
+		</feature>
+		<feature id="f_10645295567144056026">
+			<position dim="0">6388.573254970299786</position>
+			<position dim="1">568.292381489478998</position>
+			<intensity>5.09958e08</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>3</charge>
+			<convexhull nr="0">
+				<pt x="6358.910197840020373" y="568.281889343262037" />
+				<pt x="6398.266743600000154" y="568.281889343262037" />
+				<pt x="6398.266743600000154" y="568.299998779295947" />
+				<pt x="6358.910197840020373" y="568.299998779295947" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6358.910197840020373" y="568.616561198233967" />
+				<pt x="6398.266743600000154" y="568.616561198233967" />
+				<pt x="6398.266743600000154" y="568.634517375826022" />
+				<pt x="6358.910197840020373" y="568.634517375826022" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6358.910197840020373" y="568.949701571463947" />
+				<pt x="6398.266743600000154" y="568.949701571463947" />
+				<pt x="6398.266743600000154" y="568.968933659386039" />
+				<pt x="6358.910197840020373" y="568.968933659386039" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6380.158500400019875" y="569.286272396689014" />
+				<pt x="6398.266743600000154" y="569.286272396689014" />
+				<pt x="6398.266743600000154" y="569.303717475831036" />
+				<pt x="6380.158500400019875" y="569.303717475831036" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6384.685914912000044" y="569.621325084160958" />
+				<pt x="6394.640563056000246" y="569.621325084160958" />
+				<pt x="6394.640563056000246" y="569.635559630393004" />
+				<pt x="6384.685914912000044" y="569.635559630393004" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="568.291931152344" RT="6394.6716" spectrum_reference="controllerType=0 controllerNumber=1 scan=87367" >
+				<PeptideHit score="0.00309716453386473" sequence="DNGKHALIIYDDLSK" charge="3" aa_before="R R" aa_after="Q Q" start="301 301" end="315 315" protein_refs="PH_8 PH_74">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="MS:1002049" value="65.0"/>
+					<UserParam type="float" name="MS:1002050" value="99.0"/>
+					<UserParam type="float" name="MS:1002052" value="1.1543669e-10"/>
+					<UserParam type="float" name="MS:1002053" value="6.0688555e-03"/>
+					<UserParam type="string" name="AssumedDissociationMethod" value="HCD"/>
+					<UserParam type="string" name="CTermIonCurrentRatio" value="0.028336924"/>
+					<UserParam type="string" name="ExplainedIonCurrentRatio" value="0.030324776"/>
+					<UserParam type="string" name="isotope_error" value="1"/>
+					<UserParam type="string" name="MS2IonCurrent" value="1223018.4"/>
+					<UserParam type="string" name="MeanErrorAll" value="11.688016"/>
+					<UserParam type="string" name="MeanErrorTop7" value="11.688016"/>
+					<UserParam type="string" name="MeanRelErrorAll" value="1.2841886"/>
+					<UserParam type="string" name="MeanRelErrorTop7" value="1.2841886"/>
+					<UserParam type="string" name="NTermIonCurrentRatio" value="0.0019878522"/>
+					<UserParam type="string" name="NumMatchedMainIons" value="6"/>
+					<UserParam type="string" name="StdevErrorAll" value="5.1530457"/>
+					<UserParam type="string" name="StdevErrorTop7" value="5.1530457"/>
+					<UserParam type="string" name="StdevRelErrorAll" value="12.708834"/>
+					<UserParam type="string" name="StdevRelErrorTop7" value="12.708834"/>
+					<UserParam type="float" name="calcMZ" value="567.965087890625"/>
+					<UserParam type="int" name="pass_threshold" value="1"/>
+					<UserParam type="int" name="start" value="302"/>
+					<UserParam type="int" name="end" value="316"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="SpecEValue_score" value="1.1543669e-10"/>
+				</PeptideHit>
+				<UserParam type="string" name="MS:1001115" value="87367"/>
+				<UserParam type="string" name="feature_id" value="10645295567144056026"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="10645295567144056026"/>
+		</feature>
+		<feature id="f_9382292684830183863">
+			<position dim="0">6388.843650848910329</position>
+			<position dim="1">630.644308796853011</position>
+			<intensity>6.88162e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>3</charge>
+			<convexhull nr="0">
+				<pt x="6360.285735151979679" y="630.633273925781055" />
+				<pt x="6405.754206031980175" y="630.633273925781055" />
+				<pt x="6405.754206031980175" y="630.646885986328016" />
+				<pt x="6360.285735151979679" y="630.646885986328016" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6360.285735151979679" y="630.967809017897025" />
+				<pt x="6405.754206031980175" y="630.967809017897025" />
+				<pt x="6405.754206031980175" y="630.981421078442963" />
+				<pt x="6360.285735151979679" y="630.981421078442963" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6360.285735151979679" y="631.303742464780953" />
+				<pt x="6405.754206031980175" y="631.303742464780953" />
+				<pt x="6405.754206031980175" y="631.317354525327005" />
+				<pt x="6360.285735151979679" y="631.317354525327005" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6360.285735151979679" y="631.637895371914055" />
+				<pt x="6360.285735151979679" y="631.651507432459994" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6360.285735151979679" y="632.302083756924048" />
+				<pt x="6360.285735151979679" y="632.315695817469987" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="9382292684830183863"/>
+		</feature>
+		<feature id="f_5313620399622732264">
+			<position dim="0">6389.728416571039816</position>
+			<position dim="1">506.946822795415983</position>
+			<intensity>7.34001e06</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>3</charge>
+			<convexhull nr="0">
+				<pt x="6360.285735151979679" y="506.940814208984023" />
+				<pt x="6419.420361904019956" y="506.940814208984023" />
+				<pt x="6419.420361904019956" y="506.954026963975991" />
+				<pt x="6360.285735151979679" y="506.954026963975991" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6360.285735151979679" y="507.275323317199991" />
+				<pt x="6419.420361904019956" y="507.275323317199991" />
+				<pt x="6419.420361904019956" y="507.289685585019015" />
+				<pt x="6360.285735151979679" y="507.289685585019015" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6360.285735151979679" y="507.609574989228975" />
+				<pt x="6419.420361904019956" y="507.609574989228975" />
+				<pt x="6419.420361904019956" y="507.623938762064995" />
+				<pt x="6360.285735151979679" y="507.623938762064995" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6360.285735151979679" y="508.283742567648005" />
+				<pt x="6360.285735151979679" y="508.290953532275012" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="5313620399622732264"/>
+		</feature>
+		<feature id="f_7284193868554994883">
+			<position dim="0">6389.749971582209582</position>
+			<position dim="1">589.981953264319031</position>
+			<intensity>2.49506e07</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>3</charge>
+			<convexhull nr="0">
+				<pt x="6385.393259680019582" y="589.976357693141949" />
+				<pt x="6397.22366380800031" y="589.976357693141949" />
+				<pt x="6397.22366380800031" y="589.985894775389966" />
+				<pt x="6385.393259680019582" y="589.985894775389966" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="6385.393259680019582" y="590.309071170290054" />
+				<pt x="6397.22366380800031" y="590.309071170290054" />
+				<pt x="6397.22366380800031" y="590.319442367553052" />
+				<pt x="6385.393259680019582" y="590.319442367553052" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="6385.393259680019582" y="590.645007671912026" />
+				<pt x="6397.22366380800031" y="590.645007671912026" />
+				<pt x="6397.22366380800031" y="590.65483058094901" />
+				<pt x="6385.393259680019582" y="590.65483058094901" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="6385.393259680019582" y="590.979730675286987" />
+				<pt x="6397.22366380800031" y="590.979730675286987" />
+				<pt x="6397.22366380800031" y="590.989267757535004" />
+				<pt x="6385.393259680019582" y="590.989267757535004" />
+			</convexhull>
+			<convexhull nr="4">
+				<pt x="6386.742685744019582" y="591.310951003928949" />
+				<pt x="6386.742685744019582" y="591.31716980818203" />
+			</convexhull>
+			<convexhull nr="5">
+				<pt x="6397.22366380800031" y="591.649587685531969" />
+				<pt x="6397.22366380800031" y="591.659124767779986" />
+			</convexhull>
+			<UserParam type="string" name="feature_id" value="7284193868554994883"/>
+		</feature>
+	</featureList>
+</featureMap>

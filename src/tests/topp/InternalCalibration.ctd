@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool ctdVersion="1.8" version="3.5.0-pre-nuc-dia-2025-07-24" name="InternalCalibration" docurl="http://www.openms.de/doxygen/nightly/html/TOPP_InternalCalibration.html" category="Mass Correction and Calibration" >
+<description><![CDATA[Applies an internal mass recalibration.]]></description>
+<manual><![CDATA[Applies an internal mass recalibration.]]></manual>
+<citations>
+  <citation doi="10.1038/s41592-024-02197-7" url="" />
+</citations>
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="InternalCalibration" description="Applies an internal mass recalibration.">
+    <ITEM name="version" value="3.5.0-pre-nuc-dia-2025-07-24" type="string" description="Version of the tool that generated this parameters file." required="false" advanced="true" />
+    <NODE name="1" description="Instance &apos;1&apos; section for &apos;InternalCalibration&apos;">
+      <ITEM name="in" value="" type="input-file" description="Input peak file" required="true" advanced="false" supported_formats="*.mzML" />
+      <ITEM name="out" value="" type="output-file" description="Output file " required="true" advanced="false" supported_formats="*.mzML" />
+      <ITEM name="rscript_executable" value="Rscript" type="input-file" description="Path to the Rscript executable (default: &apos;Rscript&apos;)." required="false" advanced="false" tags="is_executable" />
+      <ITEM name="ppm_match_tolerance" value="25.0" type="double" description="Finding calibrants in raw data uses this tolerance (for lock masses and ID&apos;s)." required="false" advanced="false" />
+      <ITEMLIST name="ms_level" type="int" description="Target MS levels to apply the transformation onto. Does not affect calibrant collection." required="false" advanced="false" >
+        <LISTITEM value="1"/>
+        <LISTITEM value="2"/>
+        <LISTITEM value="3"/>
+      </ITEMLIST>
+      <ITEM name="RT_chunking" value="300.0" type="double" description="RT window (one-sided, i.e. left-&gt;center, or center-&gt;right) around an MS scan in which calibrants are collected to build a model. Set to -1 to use ALL calibrants for all scans, i.e. a global model." required="false" advanced="false" />
+      <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
+      <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
+      <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+      <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
+      <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
+      <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
+      <NODE name="cal" description="Chose one of two optional input files (&apos;id_in&apos; or &apos;lock_in&apos;) to define the calibration masses/function">
+        <ITEM name="id_in" value="" type="input-file" description="Identifications or features whose peptide ID&apos;s serve as calibration masses." required="false" advanced="false" supported_formats="*.idXML,*.featureXML" />
+        <ITEM name="lock_in" value="" type="input-file" description="Input file containing reference m/z values (text file with each line as: m/z ms-level charge) which occur in all scans." required="false" advanced="false" supported_formats="*.csv" />
+        <ITEM name="lock_out" value="" type="output-file" description="Optional output file containing peaks from &apos;in&apos; which were matched to reference m/z values. Useful to see which peaks were used for calibration." required="false" advanced="false" supported_formats="*.mzML" />
+        <ITEM name="lock_fail_out" value="" type="output-file" description="Optional output file containing lock masses which were NOT found or accepted(!) in data from &apos;in&apos;. Useful to see which peaks were used for calibration." required="false" advanced="false" supported_formats="*.mzML" />
+        <ITEM name="lock_require_mono" value="false" type="bool" description="Require all lock masses to be monoisotopic, i.e. not the iso1, iso2 etc (&apos;charge&apos; column is used to determine the spacing). Peaks which are not mono-isotopic are not used." required="false" advanced="false" />
+        <ITEM name="lock_require_iso" value="false" type="bool" description="Require all lock masses to have at least the +1 isotope. Peaks without isotope pattern are not used." required="false" advanced="false" />
+        <ITEM name="model_type" value="linear_weighted" type="string" description="Type of function to be fitted to the calibration points." required="false" advanced="false" restrictions="linear,linear_weighted,quadratic,quadratic_weighted" />
+      </NODE>
+      <NODE name="RANSAC" description="Robust outlier removal using RANSAC">
+        <ITEM name="enabled" value="false" type="bool" description="Apply RANSAC to calibration points to remove outliers before fitting a model." required="false" advanced="false" />
+        <ITEM name="threshold" value="10.0" type="double" description="Threshold for accepting inliers (instrument precision (not accuracy!) as ppm^2 distance)" required="false" advanced="false" />
+        <ITEM name="pc_inliers" value="30" type="int" description="Minimum percentage (of available data) of inliers (&lt;threshold away from model) to accept the model." required="false" advanced="false" restrictions="1:99" />
+        <ITEM name="iter" value="70" type="int" description="Maximal # iterations." required="false" advanced="false" />
+      </NODE>
+      <NODE name="goodness" description="Thresholds for accepting calibration success">
+        <ITEM name="median" value="4.0" type="double" description="The median ppm error of calibrated masses must be smaller than this threshold." required="false" advanced="false" />
+        <ITEM name="MAD" value="2.0" type="double" description="The median absolute deviation of the ppm error of calibrated masses must be smaller than this threshold." required="false" advanced="false" />
+      </NODE>
+      <NODE name="quality_control" description="Tables and plots to verify calibration performance">
+        <ITEM name="models" value="" type="output-file" description="Table of model parameters for each spectrum." required="false" advanced="false" supported_formats="*.csv" />
+        <ITEM name="models_plot" value="" type="output-file" description="Plot image of model parameters for each spectrum." required="false" advanced="false" supported_formats="*.png" />
+        <ITEM name="residuals" value="" type="output-file" description="Table of pre- and post calibration errors." required="false" advanced="false" supported_formats="*.csv" />
+        <ITEM name="residuals_plot" value="" type="output-file" description="Plot image of pre- and post calibration errors." required="false" advanced="false" supported_formats="*.png" />
+      </NODE>
+    </NODE>
+  </NODE>
+</PARAMETERS>
+</tool>

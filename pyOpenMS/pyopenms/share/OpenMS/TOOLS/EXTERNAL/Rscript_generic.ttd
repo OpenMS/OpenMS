@@ -1,0 +1,42 @@
+<ttd>
+	<tool status="external">
+		<category>does not really matter</category>
+		<type>Rscript_generic</type>
+		<external>
+				<text>
+					<onstartup>Calling Rscript with up to 4 input and 4 output files and 2 output lists</onstartup>
+					<onfail>Something went wrong. Is the 'Rscript' executable in your PATH?</onfail>
+					<onfinish>Tool finished successfully.</onfinish>
+				</text>
+			<e_category>Postprocessing</e_category>
+			<cloptions>--vanilla "%1" -in1 %2 -in2 %3 -in3 %4 -in4 %5 -out1 "%6" -out2 "%7" -out3 "%8" -out4 "%9" -outlist1 %10 -outlist2 %11</cloptions>
+			<path>Rscript</path>
+			<mappings>
+				<mapping id="1" cl="%%file_script" />
+				<mapping id="2" cl="%%in1" />
+				<mapping id="3" cl="%%in2" />
+				<mapping id="4" cl="%%in3" />
+				<mapping id="5" cl="%%in4" />
+				<mapping id="6" cl="%%out1" />
+				<mapping id="7" cl="%%out2" />
+				<mapping id="8" cl="%%out3" />
+				<mapping id="9" cl="%%out4" />
+				<mapping id="10" cl="%%outlist1" />
+				<mapping id="11" cl="%%outlist2" />
+			</mappings>
+			<ini_param>
+				<ITEM name="file_script" value="" type="string" description="input R script; an example is provided in share/OpenMS/SCRIPTS/Rscript_generic_example.R" tags="input file"/>
+				<ITEMLIST name="in1" type="input-file" description="Input file(s) separated by blanks" required="false" advanced="false"></ITEMLIST>
+				<ITEMLIST name="in2" type="input-file" description="Input file(s) separated by blanks" required="false" advanced="false"></ITEMLIST>
+				<ITEMLIST name="in3" type="input-file" description="Input file(s) separated by blanks" required="false" advanced="false"></ITEMLIST>
+				<ITEMLIST name="in4" type="input-file" description="Input file(s) separated by blanks" required="false" advanced="false"></ITEMLIST>
+				<ITEM name="out1" value="" type="output-file" description="Output file which your R script writes to" required="false" advanced="false" />
+				<ITEM name="out2" value="" type="output-file" description="Output file which your R script writes to" required="false" advanced="false" />
+				<ITEM name="out3" value="" type="output-file" description="Output file which your R script writes to" required="false" advanced="false" />
+				<ITEM name="out4" value="" type="output-file" description="Output file which your R script writes to" required="false" advanced="false" />
+				<ITEMLIST name="outlist1" type="output-file" description="Output file(s) separated by blanks" required="false" advanced="false"></ITEMLIST>
+				<ITEMLIST name="outlist2" type="output-file" description="Output file(s) separated by blanks" required="false" advanced="false"></ITEMLIST>
+			</ini_param>
+		</external>
+	</tool>
+</ttd>

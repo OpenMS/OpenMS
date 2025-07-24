@@ -1,0 +1,220 @@
+<!-- edited with XMLSpy v2007 sp2 (http://www.altova.com) by Oliver Kohlbacher (Universität Tübingen) -->
+<!-- mzQualML version 0.0.3
+Distributed under the Creative Commons license http://creativecommons.org/licenses/by/2.0/.
+-->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="0.0.5">
+	<xsd:element name="MzQualityML" type="MzQualityMLType">
+		<xsd:annotation>
+			<xsd:documentation>The Quality file XML root element containing several QualityAssessments to runs and an optional QualityAssessment to the whole set</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+	<xsd:complexType name="MzQualityMLType">
+		<xsd:annotation>
+			<xsd:documentation>The type of the root element</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="RunQuality" type="RunQualityAssessmentType" maxOccurs="unbounded"/>
+			<xsd:element name="SetQuality" type="SetQualityAssessmentType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="cvList" type="CVListType">
+				<xsd:annotation>
+					<xsd:documentation>the list of cvParams referenced by the QualityParameters</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="CVListType">
+		<xsd:annotation>
+			<xsd:documentation>The list of controlled vocabularies used in the file.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="cv" type="cvType" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>these are describing the QualityParameters with a given semantic. (FWHM, TIC, TICsetlimit, ..., jpeg, ...) </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="QualityAssessmentType" abstract="true">
+		<xsd:annotation>
+			<xsd:documentation>The abstract base Type for QualityParameter  container</xsd:documentation>
+		</xsd:annotation>
+		<xsd:choice>
+			<xsd:sequence>
+				<xsd:element name="QualityParameter" type="QualityParameterType" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>the value modelling a QualityParameter is a pair of keyref to a cvType and value to the actual value</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:sequence>
+				<xsd:element name="Attachment" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>the element for the binary data of a QualityParameter reference with the MIME type as additional cvParam</xsd:documentation>
+					</xsd:annotation>
+					<xsd:complexType>
+						<xsd:complexContent>
+							<xsd:extension base="AttachmentType"/>
+						</xsd:complexContent>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:choice>
+	</xsd:complexType>
+	<xsd:complexType name="RunQualityAssessmentType">
+		<xsd:annotation>
+			<xsd:documentation>The derived Type for QualityParameter  container of a run</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="QualityAssessmentType"/>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="SetQualityAssessmentType">
+		<xsd:annotation>
+			<xsd:documentation>The derived Type for QualityParameter  container of a Set</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="QualityAssessmentType"/>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:simpleType name="listOfStrings">
+		<xsd:list itemType="xsd:string"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="listOfDoubles">
+		<xsd:list itemType="xsd:double"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="listOfDoublesOrNulls">
+		<xsd:list itemType="doubleOrNullType"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="doubleOrNullType">
+		<xsd:union memberTypes="xsd:double">
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:token">
+					<xsd:enumeration value="null"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:union>
+	</xsd:simpleType>
+	<xsd:simpleType name="versionRegex">
+		<xsd:restriction base="xsd:string">
+			<xsd:pattern value="(1\.1\.\d+)"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:complexType name="AbstractParamType" abstract="true">
+		<xsd:annotation>
+			<xsd:documentation>Abstract entity allowing either cvParam or userParam to be referenced in other schemas. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="name" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>The name of the parameter.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="value" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>The user-entered value of the parameter, e.g. ppm value of accuracy or the file name if CV is a mime type</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="unitAccession" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>An accession number identifying the unit within the OBO foundry Unit CV. </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="unitName" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>The name of the unit.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="unitCvRef" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>If a unit term is referenced, this attribute must refer to the CV 'id' attribute defined in the cvList in this file. </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="AttachmentType">
+		<xsd:annotation>
+			<xsd:documentation>A single attachment containing binary data or a table. The cvParam contains the description fitting to rhe referenced quality parameter. The MIME type is given in unit of the cv.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="CVParamType">
+				<xsd:choice>
+					<xsd:element name="binary" type="xsd:base64Binary"/>
+					<xsd:sequence>
+						<xsd:element name="TableColumnTypes" type="listOfStrings">
+							<xsd:annotation>
+								<xsd:documentation>List (space separated) of cvRefs determining the type of the respective column</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="TableRowValues" type="listOfDoublesOrNulls" maxOccurs="unbounded"/>
+					</xsd:sequence>
+				</xsd:choice>
+				<xsd:attribute name="qualityParameterRef"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="QualityParameterType">
+		<xsd:annotation>
+			<xsd:documentation>A quality parameter contains a value and a cv, as well as a optional threshold element</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="CVParamType">
+				<xsd:sequence minOccurs="0">
+					<xsd:element name="threshold">
+						<xsd:complexType>
+							<xsd:complexContent>
+								<xsd:extension base="CVParamType">
+									<xsd:attribute name="threshold_filename" type="xsd:string"/>
+								</xsd:extension>
+							</xsd:complexContent>
+						</xsd:complexType>
+					</xsd:element>
+				</xsd:sequence>
+				<xsd:attribute name="ID" type="xsd:ID" use="required"/>
+				<xsd:attribute name="flag" type="xsd:boolean"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="CVParamType">
+		<xsd:annotation>
+			<xsd:documentation>A single entry from an ontology or a controlled
+vocabulary.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="AbstractParamType">
+				<xsd:attribute name="cvRef" type="xsd:IDREF" use="required">
+					<xsd:annotation>
+						<xsd:documentation>A reference to the cv element from which this term originates. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="accession" type="xsd:string" use="required">
+					<xsd:annotation>
+						<xsd:documentation>The accession or ID number of this CV term in the source CV. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="cvType">
+		<xsd:annotation>
+			<xsd:documentation>A source controlled vocabulary from which cvParams will be obtained.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="fullName" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>The full name of the CV.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="version" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>The version of the CV.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="uri" type="xsd:anyURI" use="required">
+			<xsd:annotation>
+				<xsd:documentation>The URI of the source CV.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="id" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>The unique identifier of this cv within the document to be referenced by cvParam elements. </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+</xsd:schema>

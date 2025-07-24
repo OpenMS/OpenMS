@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2006 rel. 3 U (http://www.altova.com) by Samuel Kerrien (EBI) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	<xs:element name="CvMapping">
+		<xs:annotation>
+			<xs:documentation>Document related to a given data exchange schema or model, it describes all the associations between the specific schema section and the appropriate CV terms. </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="CvReferenceList">
+					<xs:annotation>
+						<xs:documentation>Comprehensive list of CVs that are required by a schema or model. </xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element ref="CvReference" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Description of a CV or ontology resource.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="cvSourceVersion" use="optional"/>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="CvMappingRuleList">
+					<xs:annotation>
+						<xs:documentation>Comprehensive list of associations between a model and CVs.</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element ref="CvMappingRule" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Single mapping rule between a specific elements of the model and to controlled vocabularies listed on the CvTerm element.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="modelName" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>Name of the PSI data exchange schema, e.g. mzData, GelML, MIF.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="modelURI" type="xs:anyURI" use="required">
+				<xs:annotation>
+					<xs:documentation>URI of the data exchange schema</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="modelVersion" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>Version number of the model supported by the CvMapping file. </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="CvMappingRule">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="CvTerm" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>One or more terms from a CVsource that are allowed to be associated with the given element of the model. </xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="scopePath" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>Element scope in the schema within which the non repeatable (isRepeatable = FALSE) condition applies.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="cvElementPath" type="xs:string" use="required"/>
+			<xs:attribute name="cvTermsCombinationLogic" use="required">
+				<xs:annotation>
+					<xs:documentation>Boolean operator describing the combination logic of multiple CvTerm elements associated with the same CvMappingRule. </xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:NMTOKEN">
+						<xs:enumeration value="OR"/>
+						<xs:enumeration value="AND"/>
+						<xs:enumeration value="XOR"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="requirementLevel" use="required">
+				<xs:annotation>
+					<xs:documentation>The requirement level indicated, when the XML element exists in the instance data file, if the association with CV terms is optional (MAY), recommended (SHOULD) or mandatory (MUST). </xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:NMTOKEN">
+						<xs:enumeration value="MUST"/>
+						<xs:enumeration value="SHOULD"/>
+						<xs:enumeration value="MAY"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="name" type="xs:string" use="optional">
+				<xs:annotation>
+					<xs:documentation>Name of this rule (can be used for reporting of errors)</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="id" type="xs:ID" use="required">
+				<xs:annotation>
+					<xs:documentation>Unique identifier of the rule in this mapping file.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="CvTerm">
+		<xs:complexType>
+			<xs:attribute name="cvIdentifierRef" type="xs:IDREF" use="required">
+				<xs:annotation>
+					<xs:documentation>Internal reference (e.g. namespace abbreviation) to a term source file as defined in a CvReference element.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="termAccession" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>CV term accession number as in the CV file.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="termName" type="xs:string" use="required"/>
+			<xs:attribute name="useTermName" type="xs:boolean" use="optional" default="false">
+				<xs:annotation>
+					<xs:documentation>Boolean to set whether the check is done on the termName (TRUE) or on the termAccession (FALSE and default). </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="useTerm" type="xs:boolean" use="required">
+				<xs:annotation>
+					<xs:documentation>This attribute indicates whether the term itself can be used to annotate data (TRUE) or not (FALSE). This latter case may happen when a term, parent of valid terms for annotation, is mentioned to keep the mapping concise.  </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="allowChildren" type="xs:boolean" use="required">
+				<xs:annotation>
+					<xs:documentation>This attribute indicates whether the children of the described term are allowed to annotate data (TRUE) or not (FALSE). </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="isRepeatable" type="xs:boolean" use="optional" default="true">
+				<xs:annotation>
+					<xs:documentation>Value is 'True' when a term can be repeated in the same instance of the associated XML element.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="CvReference">
+		<xs:complexType>
+			<xs:attribute name="cvIdentifier" type="xs:ID" use="required">
+				<xs:annotation>
+					<xs:documentation>Short label for the CV or namespace, this should correspond to a cvIdentifier attribute of CvTerm</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="cvName" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>Full descriptive name for the CV.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

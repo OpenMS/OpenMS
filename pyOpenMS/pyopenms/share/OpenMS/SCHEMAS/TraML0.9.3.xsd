@@ -1,0 +1,552 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://psi.hupo.org/ms/traml" xmlns:traml="http://psi.hupo.org/ms/traml" elementFormDefault="qualified" targetNamespace="http://psi.hupo.org/ms/traml" version="0.9.3">
+	<xs:complexType name="TraMLType">
+		<xs:annotation>
+			<xs:documentation>Container for the HUPO PSI TraML format for encoding selected reaction monitoring transitions and other target lists</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvList" type="cvListType"/>
+			<xs:element name="SourceFileList" type="SourceFileListType" minOccurs="0"/>
+			<xs:element name="ContactList" type="ContactListType" minOccurs="0"/>
+			<xs:element name="PublicationList" type="PublicationListType" minOccurs="0"/>
+			<xs:element name="InstrumentList" type="InstrumentListType" minOccurs="0"/>
+			<xs:element name="SoftwareList" type="SoftwareListType" minOccurs="0"/>
+			<xs:element name="ProteinList" type="ProteinListType" minOccurs="0"/>
+			<xs:element name="CompoundList" type="CompoundListType" minOccurs="0"/>
+			<xs:element name="TransitionList" type="TransitionListType" minOccurs="0"/>
+			<xs:element name="TargetList" type="TargetListType" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>An optional id for the TraML document used for referencing from external files. It is recommended to use LSIDs when possible.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="version" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>Version of the TraML format used by this document</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:element name="TraML" type="TraMLType">
+		<xs:key name="PK_PEPTIDE">
+			<xs:selector xpath=".//traml:CompoundList/traml:Peptide"/>
+			<xs:field xpath="@id"/>
+		</xs:key>
+		<xs:key name="PK_COMPOUND">
+			<xs:selector xpath=".//traml:CompoundList/traml:Compound"/>
+			<xs:field xpath="@id"/>
+		</xs:key>
+		<xs:keyref name="FK_TRANSITION_PEPTIDE" refer="PK_PEPTIDE">
+			<xs:selector xpath=".//traml:TransitionList/traml:Transition"/>
+			<xs:field xpath="@peptideRef"/>
+		</xs:keyref>
+		<xs:keyref name="FK_TRANSITION_COMPOUND" refer="PK_COMPOUND">
+			<xs:selector xpath=".//traml:TransitionList/traml:Transition"/>
+			<xs:field xpath="@compoundRef"/>
+		</xs:keyref>
+		<xs:key name="PK_TRANSITION">
+			<xs:selector xpath=".//traml:TransitionList/traml:Transition"/>
+			<xs:field xpath="@id"/>
+		</xs:key>
+	</xs:element>
+	<xs:complexType name="CompoundType">
+		<xs:annotation>
+			<xs:documentation>Chemical compound other than a peptide for which one or more transitions </xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvParam" type="cvParamType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="RetentionTimeList" type="RetentionTimeListType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:ID" use="required">
+			<xs:annotation>
+				<xs:documentation>Identifier for the compound to be used for referencing within a document</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="CompoundListType">
+		<xs:annotation>
+			<xs:documentation>List of compounds (including peptides) for which one or more transitions are intended to identify</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvParam" type="cvParamType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Peptide" type="PeptideType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Compound" type="CompoundType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ConfigurationType">
+		<xs:annotation>
+			<xs:documentation>Instrument configuration used in the validation or optimization of the transitions</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvParam" type="cvParamType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Validation" type="ValidationType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="contactRef" type="xs:IDREF" use="optional">
+			<xs:annotation>
+				<xs:documentation>Reference to a contact person originating this information</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="instrumentRef" type="xs:IDREF" use="required">
+			<xs:annotation>
+				<xs:documentation>Reference to an instrument for which this configuration information is appropriate</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="ConfigurationListType">
+		<xs:annotation>
+			<xs:documentation>List of insutrument configurations used in the validation or optimization of the transitions</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Configuration" type="ConfigurationType"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ContactType">
+		<xs:annotation>
+			<xs:documentation>Contact person referenced in the generation or validation of transitions</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvParam" type="cvParamType" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:ID" use="required">
+			<xs:annotation>
+				<xs:documentation>Identifier for the contact to be used for referencing within a document</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="ContactListType">
+		<xs:annotation>
+			<xs:documentation>List of contacts referenced in the generation or validation of transitions</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Contact" type="ContactType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="cvType">
+		<xs:annotation>
+			<xs:documentation>Controlled vocabulary used in a TraML document</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="version" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>Version of controlled vocabulary in use when the document was created</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="URI" type="xs:anyURI" use="required">
+			<xs:annotation>
+				<xs:documentation>Uniform Resource Identifier for the controlled vocabulary</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="fullName" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>Full name of the controlled vocabulary</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="id" type="xs:ID" use="required">
+			<xs:annotation>
+				<xs:documentation>Identifier for the controlled vocabulary to be used for referencing within a document</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="cvListType">
+		<xs:annotation>
+			<xs:documentation>List of controlled vocabularies used in a TraML document</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cv" type="cvType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="cvParamType">
+		<xs:annotation>
+			<xs:documentation>Controlled vocabulary term adding information to the parent term</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="cvRef" type="xs:IDREF" use="required">
+			<xs:annotation>
+				<xs:documentation>Reference to a controlled vocabulary for which this cvParam is </xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="name" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>Name of the controlled vocabulary term referenced</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="accession" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>Accession number of the controlled vocabulary term referenced</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="value" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>Scalar value qualifying the controlled vocabulary term referenced</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="unitAccession" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>An optional CV accession number for the unit term associated with the value, if any (e.g., 'UO:0000266' for 'electron volt').</xs:documentation>
+				</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="unitName" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>An optional CV name for the unit accession number, if any (e.g., 'electron volt' for 'UO:0000266' ).</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="unitCvRef" type="xs:IDREF" use="optional">
+			<xs:annotation>
+				<xs:documentation>If a unit term is referenced, this attribute must refer to the CV 'id' attribute defined in the cvList in this mzML file.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="EvidenceType">
+		<xs:annotation>
+			<xs:documentation>Information about empirical mass spectrometer observations of the peptide</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvParam" type="cvParamType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="InstrumentType">
+		<xs:annotation>
+			<xs:documentation>Instrument on which transitions are validated</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvParam" type="cvParamType"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:ID" use="required">
+			<xs:annotation>
+				<xs:documentation>Identifier for the instrument to be used for referencing within a document</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="InstrumentListType">
+		<xs:annotation>
+			<xs:documentation>List of instruments on which transitions are validated</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Instrument" type="InstrumentType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="InterpretationType">
+		<xs:annotation>
+			<xs:documentation>A possible interpration of the product ion for a transition</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvParam" type="cvParamType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="InterpretationListType">
+		<xs:annotation>
+			<xs:documentation>List of possible interprations of fragment ions for a transition</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Interpretation" type="InterpretationType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ModificationType">
+		<xs:annotation>
+			<xs:documentation>A molecule modification specification. If n modifications are present on the peptide, there should be n instances of the modification element. If multiple modifications are provided as cvParams, it is assumed the modification is ambiguous, i.e. one modification or the other. If no cvParams are provided it is assumed that the delta has not been matched to a known modification.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvParam" type="cvParamType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="location" type="xs:int" use="required">
+			<xs:annotation>
+				<xs:documentation>Location of the modification within the peptide sequence, counted from the N-terminus, starting at position 1. Specific modifications to the N-terminus should be given the location 0. Modification to the C-terminus should be given as peptide length + 1.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="monoisotopicMassDelta" type="xs:double" use="optional">
+			<xs:annotation>
+				<xs:documentation>Atomic mass delta when assuming only the most common isotope of elements in Daltons.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="averageMassDelta" type="xs:double" use="optional">
+			<xs:annotation>
+				<xs:documentation>Atomic mass delta when considering the natural distribution of isotopes in Daltons.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="PeptideType">
+		<xs:annotation>
+			<xs:documentation>Peptide for which one or more transitions are intended to identify</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvParam" type="cvParamType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="ProteinRef" type="ProteinRefType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Modification" type="ModificationType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="RetentionTimeList" type="RetentionTimeListType" minOccurs="0"/>
+			<xs:element name="Evidence" type="EvidenceType" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:ID" use="required">
+			<xs:annotation>
+				<xs:documentation>Identifier for the peptide to be used for referencing within a document</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="sequence" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>Amino acid sequence of the peptide being described</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="PrecursorType">
+		<xs:annotation>
+			<xs:documentation>Precursor (Q1) of the transition or target</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvParam" type="cvParamType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ProductType">
+		<xs:annotation>
+			<xs:documentation>Product (Q3) of the transition</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvParam" type="cvParamType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="PredictionType">
+		<xs:annotation>
+			<xs:documentation>Information about a prediction for a suitable transition using some software</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvParam" type="cvParamType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="softwareRef" type="xs:IDREF" use="required">
+			<xs:annotation>
+				<xs:documentation>Reference to a software package from which this prediction is derived</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="contactRef" type="xs:IDREF" use="optional">
+			<xs:annotation>
+				<xs:documentation>Reference to a contact person that generated this prediction</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="ProteinType">
+		<xs:annotation>
+			<xs:documentation>Protein for which one or more transitions are intended to identify</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvParam" type="cvParamType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Sequence" type="SequenceType" minOccurs="0" maxOccurs="1"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:ID" use="required">
+			<xs:annotation>
+				<xs:documentation>Identifier for the protein to be used for referencing within a document</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="ProteinListType">
+		<xs:annotation>
+			<xs:documentation>List of proteins for which one or more transitions are intended to identify</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Protein" type="ProteinType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ProteinRefType">
+		<xs:annotation>
+			<xs:documentation>Reference to a protein which this peptide is intended to identify</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="ref" type="xs:IDREF" use="optional">
+			<xs:annotation>
+				<xs:documentation>Reference to a protein which this peptide is intended to identify</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="PublicationType">
+		<xs:annotation>
+			<xs:documentation>Reference to a publication in which one or more transitions were published</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvParam" type="cvParamType"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:ID" use="required">
+			<xs:annotation>
+				<xs:documentation>Identifier for the publication to be used for referencing within a document</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="PublicationListType">
+		<xs:annotation>
+			<xs:documentation>List of publications from which the transitions were collected or wherein they are published</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Publication" type="PublicationType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="RetentionTimeType">
+		<xs:annotation>
+			<xs:documentation>Information about predicted or calibrated retention time</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvParam" type="cvParamType" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="softwareRef" type="xs:IDREF" use="optional">
+			<xs:annotation>
+				<xs:documentation>Software used to determine the retention time</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="RetentionTimeListType">
+		<xs:annotation>
+			<xs:documentation>List of retention time information entries</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="RetentionTime" type="RetentionTimeType" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="SequenceType" mixed="true">
+		<xs:annotation>
+			<xs:documentation>Amino acid sequence of the protein</xs:documentation>
+		</xs:annotation>
+	</xs:complexType>
+	<xs:complexType name="SoftwareType">
+		<xs:annotation>
+			<xs:documentation>Description of a software package used in the generation of one or more transitions described in the document</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvParam" type="cvParamType"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:ID" use="required">
+			<xs:annotation>
+				<xs:documentation>Identifier for the software to be used for referencing within a document</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="version" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>Version of the software program described</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="SoftwareListType">
+		<xs:annotation>
+			<xs:documentation>List of software packages used in the generation of one of more transitions described in the document</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Software" type="SoftwareType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="SourceFileType">
+		<xs:annotation>
+			<xs:documentation>Description of the source file, including location and type.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvParam" type="cvParamType" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:ID" use="required">
+			<xs:annotation>
+				<xs:documentation>Identifier for the sourceFile to be used for referencing within a document.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="name" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>Name of the source file, without reference to location (either URI or local path).</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="location" type="xs:anyURI" use="required">
+			<xs:annotation>
+				<xs:documentation>URI-formatted location where the file was retrieved.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="SourceFileListType">
+		<xs:annotation>
+			<xs:documentation>List and descriptions of the source files this TraML document was generated or derived from</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="SourceFile" type="SourceFileType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="TargetType">
+		<xs:annotation>
+			<xs:documentation>A peptide or compound that is to be included or excluded from a target list of precursor m/z values.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Precursor" type="PrecursorType"/>
+			<xs:element name="ConfigurationList" type="ConfigurationListType" minOccurs="0"/>
+			<xs:element name="cvParam" type="cvParamType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>String label for this target</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="peptideRef" type="xs:IDREF" use="optional">
+			<xs:annotation>
+				<xs:documentation>Reference to a peptide for which this target is the trigger</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="compoundRef" type="xs:IDREF" use="optional">
+			<xs:annotation>
+				<xs:documentation>Reference to a compound for which this target is the trigger</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="TargetExcludeListType">
+		<xs:annotation>
+			<xs:documentation>List of precursor m/z targets to exclude</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Target" type="TargetType" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="TargetIncludeListType">
+		<xs:annotation>
+			<xs:documentation>List of precursor m/z targets to include</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Target" type="TargetType" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="TargetListType">
+		<xs:annotation>
+			<xs:documentation>List of precursor m/z targets to include or exclude</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvParam" type="cvParamType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="TargetIncludeList" type="TargetIncludeListType" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="TargetExcludeList" type="TargetExcludeListType" minOccurs="0" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="TransitionType">
+		<xs:annotation>
+			<xs:documentation>Information about a single transition for a peptide or other compound</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Precursor" type="PrecursorType"/>
+			<xs:element name="Product" type="ProductType"/>
+			<xs:element name="InterpretationList" type="InterpretationListType" minOccurs="0"/>
+			<xs:element name="Prediction" type="PredictionType" minOccurs="0"/>
+			<xs:element name="ConfigurationList" type="ConfigurationListType" minOccurs="0"/>
+			<xs:element name="cvParam" type="cvParamType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="peptideRef" type="xs:IDREF" use="optional">
+			<xs:annotation>
+				<xs:documentation>Reference to a peptide which this transition is intended to identify</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="compoundRef" type="xs:IDREF" use="optional">
+			<xs:annotation>
+				<xs:documentation>Reference to a compound for this transition</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="id" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>String label for this transition</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="TransitionListType">
+		<xs:annotation>
+			<xs:documentation>List of transitions</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Transition" type="TransitionType" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="ValidationType">
+		<xs:annotation>
+			<xs:documentation>Information about the state of validation of a transition on a given instrument model</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="cvParam" type="cvParamType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

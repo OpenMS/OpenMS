@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool ctdVersion="1.8" version="3.5.0-pre-nuc-dia-2025-07-24" name="MSFraggerAdapter" docurl="http://www.openms.de/doxygen/nightly/html/TOPP_MSFraggerAdapter.html" category="" >
+<description><![CDATA[Peptide Identification with MSFragger.
+Important note:
+The Regents of the University of Michigan ("Michigan") grants us permission to redistribute    
+the MS Fragger application developed by Michigan within the OpenMS Pipeline and make available 
+for use on related service offerings supported by the University of Tubingen and the Center for
+Integrative Bioinformatics.                                                                    
+Per the license agreement the use of the pipeline and associated materials is for academic     
+research, non-commercial or educational purposes. Any commercial use inquiries                 
+must be directed to the University of Michigan Technology Transfer Office at                   
+techtransfer@umich.edu. All right title and interest in MS Fragger shall remain with the       
+University of Michigan.
+
+For details, please see the supplied license file or                                           
+https://raw.githubusercontent.com/OpenMS/THIRDPARTY/master/All/MSFragger/License.txt           
+]]></description>
+<manual><![CDATA[Peptide Identification with MSFragger.
+Important note:
+The Regents of the University of Michigan ("Michigan") grants us permission to redistribute    
+the MS Fragger application developed by Michigan within the OpenMS Pipeline and make available 
+for use on related service offerings supported by the University of Tubingen and the Center for
+Integrative Bioinformatics.                                                                    
+Per the license agreement the use of the pipeline and associated materials is for academic     
+research, non-commercial or educational purposes. Any commercial use inquiries                 
+must be directed to the University of Michigan Technology Transfer Office at                   
+techtransfer@umich.edu. All right title and interest in MS Fragger shall remain with the       
+University of Michigan.
+
+For details, please see the supplied license file or                                           
+https://raw.githubusercontent.com/OpenMS/THIRDPARTY/master/All/MSFragger/License.txt           
+]]></manual>
+<citations>
+  <citation doi="10.1038/s41592-024-02197-7" url="" />
+  <citation doi="doi:10.1038/nmeth.4256" url="" />
+</citations>
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="MSFraggerAdapter" description="Peptide Identification with MSFragger.#br#Important note:#br#The Regents of the University of Michigan (&quot;Michigan&quot;) grants us permission to redistribute    #br#the MS Fragger application developed by Michigan within the OpenMS Pipeline and make available #br#for use on related service offerings supported by the University of Tubingen and the Center for#br#Integrative Bioinformatics.                                                                    #br#Per the license agreement the use of the pipeline and associated materials is for academic     #br#research, non-commercial or educational purposes. Any commercial use inquiries                 #br#must be directed to the University of Michigan Technology Transfer Office at                   #br#techtransfer@umich.edu. All right title and interest in MS Fragger shall remain with the       #br#University of Michigan.#br#
+For details, please see the supplied license file or                                           #br#https://raw.githubusercontent.com/OpenMS/THIRDPARTY/master/All/MSFragger/License.txt           #br#">
+    <ITEM name="version" value="3.5.0-pre-nuc-dia-2025-07-24" type="string" description="Version of the tool that generated this parameters file." required="false" advanced="true" />
+    <NODE name="1" description="Instance &apos;1&apos; section for &apos;MSFraggerAdapter&apos;">
+      <ITEM name="license" value="" type="string" description="Set to yes, if you have read and agreed to the MSFragger license terms." required="true" advanced="false" restrictions="yes,no" />
+      <ITEM name="java_executable" value="java" type="input-file" description="The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java" required="false" advanced="false" />
+      <ITEM name="java_heapmemory" value="3500" type="int" description="Maximum Java heap size (in MB)" required="false" advanced="false" />
+      <ITEM name="executable" value="MSFragger.jar" type="input-file" description="Path to the MSFragger executable to use; may be empty if the executable is globally available." required="true" advanced="false" tags="is_executable" />
+      <ITEM name="in" value="" type="input-file" description="Input File with specta for MSFragger" required="true" advanced="false" supported_formats="*.mzML,*.mzXML" />
+      <ITEM name="out" value="" type="output-file" description="MSFragger output file" required="true" advanced="false" supported_formats="*.idXML" />
+      <ITEM name="opt_out" value="" type="output-file" description="MSFragger optional output file" required="false" advanced="false" supported_formats="*.pepXML" />
+      <ITEM name="database" value="" type="input-file" description="Protein FASTA database file path" required="true" advanced="false" supported_formats="*.FASTA,*.fasta,*.fa,*.fas" />
+      <ITEM name="reindex" value="true" type="string" description="Recalculate peptide to protein association using OpenMS. Annotates target-decoy information." required="false" advanced="false" restrictions="true,false" />
+      <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
+      <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
+      <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+      <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
+      <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
+      <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
+      <NODE name="tolerance" description="Search Tolerances">
+        <ITEM name="precursor_mass_tolerance_lower" value="20.0" type="double" description="Lower precursor mass tolerance" required="false" advanced="false" restrictions="0.000000:" />
+        <ITEM name="precursor_mass_tolerance_upper" value="20.0" type="double" description="Upper precursor mass tolerance" required="false" advanced="false" restrictions="0.000000:" />
+        <ITEM name="precursor_mass_unit" value="ppm" type="string" description="Unit of precursor mass tolerance" required="false" advanced="false" restrictions="Da,ppm" />
+        <ITEM name="precursor_true_tolerance" value="0.0" type="double" description="True precursor mass tolerance (window is +/- this value). Used for tie breaker of results (in spectrally ambiguous cases) and zero bin boosting in open searches (0 disables these features). This option is STRONGLY recommended for open searches." required="false" advanced="false" restrictions="0.000000:" />
+        <ITEM name="precursor_true_unit" value="ppm" type="string" description="Unit of precursor true tolerance" required="false" advanced="false" restrictions="Da,ppm" />
+        <ITEM name="fragment_mass_tolerance" value="20.0" type="double" description="Fragment mass tolerance (window is +/- this value)" required="false" advanced="false" restrictions="0.000000:" />
+        <ITEM name="fragment_mass_unit" value="ppm" type="string" description="Unit of fragment mass tolerance" required="false" advanced="false" restrictions="Da,ppm" />
+        <ITEM name="isotope_error" value="0" type="string" description="Isotope correction for MS/MS events triggered on isotopic peaks. Should be set to 0 (disabled) for open search or 0/1/2 for correction of narrow window searches. Shifts the precursor mass window to multiples of this value multiplied by the mass of C13-C12." required="false" advanced="false" restrictions="0,1,2,0/1/2" />
+      </NODE>
+      <NODE name="digest" description="In-Silico Digestion Parameters">
+        <ITEM name="search_enzyme_name" value="Trypsin" type="string" description="Name of the enzyme to be written to the pepXML file" required="false" advanced="false" restrictions="Arg-C/P,Asp-N,Asp-N/B,Asp-N_ambic,Chymotrypsin,2-iodobenzoate,iodosobenzoate,Trypsin,Arg-C,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,glutamyl endopeptidase,Alpha-lytic protease,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P" />
+        <ITEM name="search_enzyme_cutafter" value="KR" type="string" description="Residues after which the enzyme cuts (specified as a string of amino acids)" required="false" advanced="false" />
+        <ITEM name="search_enzyme_nocutbefore" value="P" type="string" description="Residues that the enzyme will not cut before" required="false" advanced="false" />
+        <ITEM name="num_enzyme_termini" value="fully" type="string" description="Number of enzyme termini (non-enzymatic (0), semi (1), fully (2)" required="false" advanced="false" restrictions="non-enzymatic,semi,fully" />
+        <ITEM name="allowed_missed_cleavage" value="2" type="string" description="Allowed number of missed cleavages" required="false" advanced="false" restrictions="0,1,2,3,4,5" />
+        <ITEM name="min_length" value="7" type="int" description="Minimum length of peptides to be generated during in-silico digestion" required="false" advanced="false" restrictions="0:" />
+        <ITEM name="max_length" value="64" type="int" description="Maximum length of peptides to be generated during in-silico digestion" required="false" advanced="false" restrictions="0:" />
+        <ITEM name="mass_range_min" value="500.0" type="double" description="Min mass of peptides to be generated (Da)" required="false" advanced="false" restrictions="0.000000:" />
+        <ITEM name="mass_range_max" value="5000.0" type="double" description="Max mass of peptides to be generated (Da)" required="false" advanced="false" restrictions="0.000000:" />
+      </NODE>
+      <NODE name="varmod" description="Variable Modification Parameters">
+        <ITEM name="clip_nterm_m" value="false" type="bool" description="Specifies the trimming of a protein N-terminal methionine as a variable modification" required="false" advanced="false" />
+        <ITEMLIST name="masses" type="double" description="Masses for variable modifications" required="false" advanced="false" >
+        </ITEMLIST>
+        <ITEMLIST name="syntaxes" type="string" description="Syntax Strings for variable modifications" required="false" advanced="false" >
+        </ITEMLIST>
+        <ITEMLIST name="unimod" type="string" description="Variable modifications in unimod syntax, is added to mass+syntax varmod list" required="false" advanced="false" >
+        </ITEMLIST>
+        <ITEM name="enable_common" value="false" type="bool" description="Enable common variable modifications (15.9949 M and 42.0106 [^)" required="false" advanced="false" />
+        <ITEM name="not_allow_multiple_variable_mods_on_residue" value="false" type="bool" description="Do not allow any one amino acid to be modified by multiple variable modifications" required="false" advanced="false" />
+        <ITEM name="max_variable_mods_per_peptide" value="2" type="string" description="Maximum total number of variable modifications per peptide" required="false" advanced="false" restrictions="0,1,2,3,4,5" />
+        <ITEM name="max_variable_mods_combinations" value="5000" type="int" description="Maximum allowed number of modified variably modified peptides from each peptide sequence, (maximum of 65534). If a greater number than the maximum is generated, only the unmodified peptide is considered" required="false" advanced="false" restrictions="0:65534" />
+      </NODE>
+      <NODE name="spectrum" description="Spectrum Processing Parameters">
+        <ITEM name="minimum_peaks" value="10" type="int" description="Minimum number of peaks in experimental spectrum for matching" required="false" advanced="false" restrictions="0:" />
+        <ITEM name="use_topn_peaks" value="50" type="int" description="Pre-process experimental spectrum to only use top N peaks" required="false" advanced="false" restrictions="0:" />
+        <ITEM name="minimum_ratio" value="0.0" type="double" description="Filters out all peaks in experimental spectrum less intense than this multiple of the base peak intensity" required="false" advanced="false" restrictions="0.000000:1.000000" />
+        <ITEM name="clear_mz_range_min" value="0.0" type="double" description="Removes peaks in this m/z range prior to matching (minimum value). Useful for iTRAQ/TMT experiments (i.e. 0.0 150.0)" required="false" advanced="false" restrictions="0.000000:" />
+        <ITEM name="clear_mz_range_max" value="0.0" type="double" description="Removes peaks in this m/z range prior to matching (maximum value). Useful for iTRAQ/TMT experiments (i.e. 0.0 150.0)" required="false" advanced="false" restrictions="0.000000:" />
+        <ITEM name="max_fragment_charge" value="2" type="string" description="Maximum charge state for theoretical fragments to match" required="false" advanced="false" restrictions="1,2,3,4" />
+        <ITEM name="override_charge" value="false" type="bool" description="Ignores precursor charge and uses charge state specified in precursor_charge range (parameters: spectrum:precursor_charge_min and spectrum:precursor_charge_max)" required="false" advanced="false" />
+        <ITEM name="precursor_charge_min" value="1" type="int" description="Min charge of precursor charge range to consider. If specified, also spectrum:override_charge must be set)" required="false" advanced="false" restrictions="0:" />
+        <ITEM name="precursor_charge_max" value="4" type="int" description="Max charge of precursor charge range to consider. If specified, also spectrum:override_charge must be set)" required="false" advanced="false" restrictions="0:" />
+      </NODE>
+      <NODE name="search" description="Open Search Features">
+        <ITEM name="track_zero_topn" value="0" type="int" description="Track top N unmodified peptide results separately from main results internally for boosting features. Should be set to a number greater than search:output_report_topN if zero bin boosting is desired" required="false" advanced="false" restrictions="0:" />
+        <ITEM name="zero_bin_accept_expect" value="0.0" type="double" description="Ranks a zero-bin hit above all non-zero-bin hit if it has expectation less than this value" required="false" advanced="false" restrictions="0.000000:" />
+        <ITEM name="zero_bin_mult_expect" value="1.0" type="double" description="Multiplies expect value of PSMs in the zero-bin during results ordering (set to less than 1 for boosting)" required="false" advanced="false" restrictions="0.000000:" />
+        <ITEM name="add_topn_complementary" value="0" type="int" description="Inserts complementary ions corresponding to the top N most intense fragments in each experimental spectrum. Useful for recovery of modified peptides near C-terminus in open search. 0 disables this option" required="false" advanced="false" restrictions="0:" />
+        <ITEM name="min_fragments_modeling" value="3" type="int" description="Minimum number of matched peaks in PSM for inclusion in statistical modeling" required="false" advanced="false" restrictions="0:" />
+        <ITEM name="min_matched_fragments" value="4" type="int" description="Minimum number of matched peaks for PSM to be reported. MSFragger recommends a minimum of 4 for narrow window searching and 6 for open searches" required="false" advanced="false" restrictions="0:" />
+        <ITEM name="output_report_topn" value="1" type="int" description="Reports top N PSMs per input spectrum" required="false" advanced="false" restrictions="0:" />
+        <ITEM name="output_max_expect" value="50.0" type="double" description="Suppresses reporting of PSM if top hit has expectation greater than this threshold" required="false" advanced="false" restrictions="0.000000:" />
+        <ITEM name="localize_delta_mass" value="0" type="int" description="Include fragment ions mass-shifted by unknown modifications (recommended for open and mass offset searches) (0 for OFF, 1 for ON)" required="false" advanced="false" restrictions="0:" />
+      </NODE>
+      <NODE name="statmod" description="Static Modification Parameters">
+        <ITEM name="add_cterm_peptide" value="0.0" type="double" description="Statically add mass in Da to C-terminal of peptide" required="false" advanced="false" restrictions="0.000000:" />
+        <ITEM name="add_nterm_peptide" value="0.0" type="double" description="Statically add mass in Da to N-terminal of peptide" required="false" advanced="false" restrictions="0.000000:" />
+        <ITEM name="add_cterm_protein" value="0.0" type="double" description="Statically add mass in Da to C-terminal of protein" required="false" advanced="false" restrictions="0.000000:" />
+        <ITEM name="add_nterm_protein" value="0.0" type="double" description="Statically add mass in Da to N-terminal of protein" required="false" advanced="false" restrictions="0.000000:" />
+        <ITEM name="add_G_glycine" value="0.0" type="double" description="Statically add mass to glycine" required="false" advanced="true" restrictions="0.000000:" />
+        <ITEM name="add_A_alanine" value="0.0" type="double" description="Statically add mass to alanine" required="false" advanced="true" restrictions="0.000000:" />
+        <ITEM name="add_S_serine" value="0.0" type="double" description="Statically add mass to serine" required="false" advanced="true" restrictions="0.000000:" />
+        <ITEM name="add_P_proline" value="0.0" type="double" description="Statically add mass to proline" required="false" advanced="true" restrictions="0.000000:" />
+        <ITEM name="add_V_valine" value="0.0" type="double" description="Statically add mass to valine" required="false" advanced="true" restrictions="0.000000:" />
+        <ITEM name="add_T_threonine" value="0.0" type="double" description="Statically add mass to threonine" required="false" advanced="true" restrictions="0.000000:" />
+        <ITEM name="add_C_cysteine" value="57.021464000000002" type="double" description="Statically add mass to cysteine" required="false" advanced="true" restrictions="0.000000:" />
+        <ITEM name="add_L_leucine" value="0.0" type="double" description="Statically add mass to leucine" required="false" advanced="true" restrictions="0.000000:" />
+        <ITEM name="add_I_isoleucine" value="0.0" type="double" description="Statically add mass to isoleucine" required="false" advanced="true" restrictions="0.000000:" />
+        <ITEM name="add_N_asparagine" value="0.0" type="double" description="Statically add mass to asparagine" required="false" advanced="true" restrictions="0.000000:" />
+        <ITEM name="add_D_aspartic_acid" value="0.0" type="double" description="Statically add mass to aspartic_acid" required="false" advanced="true" restrictions="0.000000:" />
+        <ITEM name="add_Q_glutamine" value="0.0" type="double" description="Statically add mass to glutamine" required="false" advanced="true" restrictions="0.000000:" />
+        <ITEM name="add_K_lysine" value="0.0" type="double" description="Statically add mass to lysine" required="false" advanced="true" restrictions="0.000000:" />
+        <ITEM name="add_E_glutamic_acid" value="0.0" type="double" description="Statically add mass to glutamic_acid" required="false" advanced="true" restrictions="0.000000:" />
+        <ITEM name="add_M_methionine" value="0.0" type="double" description="Statically add mass to methionine" required="false" advanced="true" restrictions="0.000000:" />
+        <ITEM name="add_H_histidine" value="0.0" type="double" description="Statically add mass to histidine" required="false" advanced="true" restrictions="0.000000:" />
+        <ITEM name="add_F_phenylalanine" value="0.0" type="double" description="Statically add mass to phenylalanine" required="false" advanced="true" restrictions="0.000000:" />
+        <ITEM name="add_R_arginine" value="0.0" type="double" description="Statically add mass to arginine" required="false" advanced="true" restrictions="0.000000:" />
+        <ITEM name="add_Y_tyrosine" value="0.0" type="double" description="Statically add mass to tyrosine" required="false" advanced="true" restrictions="0.000000:" />
+        <ITEM name="add_W_tryptophan" value="0.0" type="double" description="Statically add mass to tryptophan" required="false" advanced="true" restrictions="0.000000:" />
+        <ITEMLIST name="unimod" type="string" description="Fixed modifications in unimod syntax if specific mass is unknown, e.g. Carbamidomethylation (C). When multiple different masses are given for one aminoacid this parameter (unimod) will have priority." required="false" advanced="false" >
+        </ITEMLIST>
+      </NODE>
+      <NODE name="PeptideIndexing" description="">
+        <ITEM name="decoy_string" value="" type="string" description="String that was appended (or prefixed - see &apos;decoy_string_position&apos; flag below) to the accessions in the protein database to indicate decoy proteins. If empty (default), it&apos;s determined automatically (checking for common terms, both as prefix and suffix)." required="false" advanced="true" />
+        <ITEM name="decoy_string_position" value="prefix" type="string" description="Is the &apos;decoy_string&apos; prepended (prefix) or appended (suffix) to the protein accession? (ignored if decoy_string is empty)" required="false" advanced="true" restrictions="prefix,suffix" />
+        <ITEM name="missing_decoy_action" value="warn" type="string" description="Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): &apos;error&apos; (exit with error, no output), &apos;warn&apos; (exit with success, warning message), &apos;silent&apos; (no action is taken, not even a warning)" required="false" advanced="true" restrictions="error,warn,silent" />
+        <ITEM name="write_protein_sequence" value="false" type="bool" description="If set, the protein sequences are stored as well." required="false" advanced="true" />
+        <ITEM name="write_protein_description" value="false" type="bool" description="If set, the protein description is stored as well." required="false" advanced="true" />
+        <ITEM name="keep_unreferenced_proteins" value="false" type="bool" description="If set, protein hits which are not referenced by any peptide are kept." required="false" advanced="true" />
+        <ITEM name="unmatched_action" value="error" type="string" description="If peptide sequences cannot be matched to any protein: 1) raise an error; 2) warn (unmatched PepHits will miss target/decoy annotation with downstream problems); 3) remove the hit." required="false" advanced="true" restrictions="error,warn,remove" />
+        <ITEM name="aaa_max" value="3" type="int" description="Maximal number of ambiguous amino acids (AAAs) allowed when matching to a protein database with AAAs. AAAs are &apos;B&apos;, &apos;J&apos;, &apos;Z&apos; and &apos;X&apos;." required="false" advanced="true" restrictions="0:10" />
+        <ITEM name="mismatches_max" value="0" type="int" description="Maximal number of mismatched (mm) amino acids allowed when matching to a protein database. The required runtime is exponential in the number of mm&apos;s; apply with care. MM&apos;s are allowed in addition to AAA&apos;s." required="false" advanced="true" restrictions="0:10" />
+        <ITEM name="IL_equivalent" value="false" type="bool" description="Treat the isobaric amino acids isoleucine (&apos;I&apos;) and leucine (&apos;L&apos;) as equivalent (indistinguishable). Also occurrences of &apos;J&apos; will be treated as &apos;I&apos; thus avoiding ambiguous matching." required="false" advanced="true" />
+        <ITEM name="allow_nterm_protein_cleavage" value="true" type="string" description="Allow the protein N-terminus amino acid to clip." required="false" advanced="false" restrictions="true,false" />
+        <NODE name="enzyme" description="">
+          <ITEM name="name" value="auto" type="string" description="Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P). Default: deduce from input" required="false" advanced="true" restrictions="auto,Lys-C/P,PepsinA,Arg-C/P,Asp-N,Asp-N/B,Formic_acid,Lys-C,Lys-N,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,TrypChymo,Trypsin/P,glutamyl endopeptidase,Alpha-lytic protease,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,no cleavage,unspecific cleavage,Trypsin,Arg-C,V8-DE,V8-E,leukocyte elastase,proline endopeptidase" />
+          <ITEM name="specificity" value="auto" type="string" description="Specificity of the enzyme. Default: deduce from input.#br#  &apos;full&apos;: both internal cleavage sites must match.#br#  &apos;semi&apos;: one of two internal cleavage sites must match.#br#  &apos;none&apos;: allow all peptide hits no matter their context (enzyme is irrelevant)." required="false" advanced="true" restrictions="auto,full,semi,none" />
+        </NODE>
+      </NODE>
+    </NODE>
+  </NODE>
+</PARAMETERS>
+</tool>

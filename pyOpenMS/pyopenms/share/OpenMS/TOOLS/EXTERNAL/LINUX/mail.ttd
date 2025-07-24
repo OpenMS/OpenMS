@@ -1,0 +1,22 @@
+<ttd>
+	<tool status="external">
+		<category></category>
+		<type>mail</type>
+		<external>
+		  <e_category>MailNotify</e_category>
+		  <cloptions>-c "echo """%2""" | mail -s """%1""" %3"</cloptions>
+		  <path>sh</path>
+		  <mappings>
+			<mapping id="1" cl="%%subject" />
+			<mapping id="2" cl="%%body The filename is '%%in'." />
+			<mapping id="3" cl="%%mailadress" />
+		  </mappings>
+		  <ini_param>
+			<ITEM name="in" value="" type="string" description="input file which just finished and for which you want the notify-mail" tags="input file" />
+			<ITEM name="subject" value="TOPPAS notification" type="string" description="Message subject" tags="" />
+			<ITEM name="body" value="Emailing to tell you that a file just got generated." type="string" description="The body of your message" tags="" />
+			<ITEM name="mailadress" value="...@..." type="string" description="Your mail address" tags="" />
+		  </ini_param>
+		</external>
+	</tool>
+</ttd>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool ctdVersion="1.8" version="3.5.0-pre-nuc-dia-2025-07-24" name="ClusterMassTracesByPrecursor" docurl="http://www.openms.de/doxygen/nightly/html/TOPP_ClusterMassTracesByPrecursor.html" category="Targeted Experiments and OpenSWATH" >
+<description><![CDATA[Correlate precursor masstraces with fragment ion masstraces in SWATH maps based on their elution profile.]]></description>
+<manual><![CDATA[Correlate precursor masstraces with fragment ion masstraces in SWATH maps based on their elution profile.]]></manual>
+<citations>
+  <citation doi="10.1038/s41592-024-02197-7" url="" />
+</citations>
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="ClusterMassTracesByPrecursor" description="Correlate precursor masstraces with fragment ion masstraces in SWATH maps based on their elution profile.">
+    <ITEM name="version" value="3.5.0-pre-nuc-dia-2025-07-24" type="string" description="Version of the tool that generated this parameters file." required="false" advanced="true" />
+    <NODE name="1" description="Instance &apos;1&apos; section for &apos;ClusterMassTracesByPrecursor&apos;">
+      <ITEM name="in_ms1" value="" type="input-file" description="MS1 mass traces" required="true" advanced="false" supported_formats="*.consensusXML" />
+      <ITEM name="in_swath" value="" type="input-file" description="MS2 / SWATH mass traces" required="true" advanced="false" supported_formats="*.consensusXML" />
+      <ITEM name="out" value="" type="output-file" description="output file" required="true" advanced="false" supported_formats="*.mzML" />
+      <ITEM name="assign_unassigned_to_all" value="false" type="bool" description="Assign unassigned MS2 fragments to all precursors (only for ms1_centrif)" required="false" advanced="false" />
+      <ITEM name="min_pearson_correlation" value="0.7" type="double" description="Minimal pearson correlation score to match elution profiles to each other." required="false" advanced="false" />
+      <ITEM name="max_lag" value="1" type="int" description="Maximal lag (e.g. by how many spectra the peak may be shifted at most). This parameter will depend on your chromatographic setup but a number between 1 and 3 is usually sensible." required="false" advanced="false" />
+      <ITEM name="min_nr_ions" value="3" type="int" description="Minimal number of ions to report a spectrum." required="false" advanced="false" />
+      <ITEM name="max_rt_apex_difference" value="5.0" type="double" description="Maximal difference of the apex in retention time (in seconds). This is a hard parameter, all profiles further away will not be considered at all." required="false" advanced="false" />
+      <ITEM name="swath_lower" value="0.0" type="double" description="Swath lower isolation window" required="false" advanced="false" />
+      <ITEM name="swath_upper" value="0.0" type="double" description="Swath upper isolation window" required="false" advanced="false" />
+      <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
+      <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
+      <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+      <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
+      <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
+      <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
+    </NODE>
+  </NODE>
+</PARAMETERS>
+</tool>

@@ -1,0 +1,51 @@
+<ttd>
+	<tool status="external">
+		<category>does not really matter</category>
+		<type>QCMLExport</type>
+		<external>
+				<text>
+					<onstartup>Calling python QCExporter ...</onstartup>
+					<onfail>Something went wrong. Is 'python' in your PATH?</onfail>
+					<onfinish>Tool finished successfully.</onfinish>
+				</text>
+			<e_category>FileConversion</e_category>
+			<cloptions> "%1"/QCExporter.py "%2" "%3" "%4" "%5" "%6" "%7" "%8" "%9" "%10"</cloptions>
+			<path>python</path>
+			<mappings>
+				<mapping id="1" cl="%%scriptpath" />
+				<mapping id="2" cl="%TMP" />
+				<mapping id="3" cl="%%inML" />
+				<mapping id="4" cl="%%inID" />
+				<mapping id="5" cl="%%inTSVspec" />
+				<mapping id="6" cl="%%inTSVtic" />
+				<mapping id="7" cl="%%inTSVacc" />
+				<mapping id="8" cl="%%inFIGspec" />
+				<mapping id="9" cl="%%inFIGtic" />
+				<mapping id="10" cl="%%inFIGacc" />
+				<file_post location="%TMP/genericwrapper.qcML" target="out" />
+			</mappings>
+			<ini_param>
+				<ITEM name="scriptpath" value="." type="string" description="input script path, this should point
+to share/OpenMS/SCRIPTS of your OpenMS installation"/>
+				<ITEM name="inML" value="" type="string" description="input file in mzML format(valid formats:
+&apos;mzML&apos;)" tags="input file" />
+				<ITEM name="inID" value="" type="string" description="input file in id format(valid formats:
+&apos;idXML&apos;)" tags="input file" />
+				<ITEM name="inTSVspec" value="" type="string" description="tabular input data for precursor stats(valid formats:
+&apos;unknown,tsv&apos;)" tags="input file" />
+				<ITEM name="inTSVtic" value="" type="string" description="tabular input data for tic stats(valid formats:
+&apos;unknown,tsv&apos;)" tags="input file" />
+				<ITEM name="inTSVacc" value="" type="string" description="tabular input data for accuracy stats(valid formats:
+&apos;unknown,tsv&apos;)" tags="input file" />
+				<ITEM name="inFIGspec" value="" type="string" description="R figure for precursor stats(valid formats:
+&apos;unknown,tsv&apos;)" tags="input file" />
+				<ITEM name="inFIGtic" value="" type="string" description="R figure for tic stats(valid formats:
+&apos;unknown,tsv&apos;)" tags="input file" />
+				<ITEM name="inFIGacc" value="" type="string" description="R figure for accuracy stats(valid formats:
+&apos;unknown,tsv&apos;)" tags="input file" />
+				<ITEM name="out" value="" type="string" description="output file in qcML format(valid formats:
+&apos;qcML&apos;)" tags="output file" />
+			</ini_param>
+		</external>
+	</tool>
+</ttd>

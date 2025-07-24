@@ -1,0 +1,30 @@
+<ttd>
+	<tool status="external">
+		<category>Identification</category>
+		<type>XTandemToPercolator</type>
+		<external>
+      <text>
+        <onstartup>Running "tandem2pin" converter...</onstartup>
+        <onfail>Something went wrong. Is the tandem2pin executable globally accessible?</onfail>
+        <onfinish>tandem2pin finished successfully.</onfinish>
+      </text>    
+		  <e_category>Identification</e_category>
+		  <cloptions>--pattern "%4" --outputTab "%3" "%1" "%2"</cloptions>
+		  <path>tandem2pin</path>
+		  <workingdirectory>.</workingdirectory>
+		  <mappings>
+			<mapping id="1" cl="%%in" />
+			<mapping id="2" cl="%%in_decoy" />
+			<mapping id="3" cl="%%out" />
+            <mapping id="4" cl="%%decoy_pattern" />
+		  </mappings>
+		  <ini_param>
+			<ITEM name="in" value="" type="string" description="Input file: X! Tandem search results; either from a combined target/decoy search (then set 'decoy_pattern') or from a target-only search (then set 'in_decoy') (valid formats: 'xml')" tags="input file" />
+			<ITEM name="in_decoy" value="" type="string" description="Input file: X! Tandem search results; from a decoy-only search (valid formats: 'xml')" tags="input file" />
+			<ITEM name="out" value="" type="string" description="Output file: Percolator tab-delimited input (valid formats: 'csv')" tags="output file" />
+            <ITEM name="decoy_pattern" value="DECOY_" type="string" description="Pattern identifying decoy matches. Ignored if 'in_decoy' is set, but must not be empty!" />
+            <ITEM name="enzyme" value="trypsin" type="string" description="Enzyme used for digestion" restrictions="no_enzyme,elastase,pepsin,proteinasek,thermolysin,chymotrypsin,lys-n,lys-c,arg-c,asp-n,glu-c,trypsin" />
+		  </ini_param>
+		</external>
+	</tool>
+</ttd>

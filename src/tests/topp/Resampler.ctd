@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool ctdVersion="1.8" version="3.5.0-pre-nuc-dia-2025-07-24" name="Resampler" docurl="http://www.openms.de/doxygen/nightly/html/TOPP_Resampler.html" category="Spectrum processing: Misc" >
+<description><![CDATA[Transforms an LC/MS map into a resampled map or a PNG image.]]></description>
+<manual><![CDATA[Transforms an LC/MS map into a resampled map or a PNG image.]]></manual>
+<citations>
+  <citation doi="10.1038/s41592-024-02197-7" url="" />
+</citations>
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="Resampler" description="Transforms an LC/MS map into a resampled map or a PNG image.">
+    <ITEM name="version" value="3.5.0-pre-nuc-dia-2025-07-24" type="string" description="Version of the tool that generated this parameters file." required="false" advanced="true" />
+    <NODE name="1" description="Instance &apos;1&apos; section for &apos;Resampler&apos;">
+      <ITEM name="in" value="" type="input-file" description="input file " required="true" advanced="false" supported_formats="*.mzML" />
+      <ITEM name="out" value="" type="output-file" description="output file in mzML format" required="true" advanced="false" supported_formats="*.mzML" />
+      <ITEM name="sampling_rate" value="0.1" type="double" description="New sampling rate in m/z dimension (in Th unless ppm flag is set)" required="false" advanced="false" restrictions="0.000000:" />
+      <ITEM name="ppm" value="false" type="bool" description="sampling_rate is given in ppm" required="false" advanced="false" />
+      <ITEM name="align_sampling" value="false" type="bool" description="Ensures that sampling is performed equally across the map (same raster is used for all spectra)" required="false" advanced="false" />
+      <ITEM name="min_int_cutoff" value="-1.0" type="double" description="Intensity cutoff for peaks to be stored in output spectrum (only peaks above this cutoff will be stored, -1 means store all data)" required="false" advanced="false" />
+      <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
+      <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
+      <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+      <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
+      <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
+      <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
+    </NODE>
+  </NODE>
+</PARAMETERS>
+</tool>

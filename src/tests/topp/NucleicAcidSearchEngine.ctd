@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool ctdVersion="1.8" version="3.5.0-pre-nuc-dia-2025-07-24" name="NucleicAcidSearchEngine" docurl="http://www.openms.de/doxygen/nightly/html/TOPP_NucleicAcidSearchEngine.html" category="RNA" >
+<description><![CDATA[Annotate nucleic acid identifications to MS/MS spectra.]]></description>
+<manual><![CDATA[Annotate nucleic acid identifications to MS/MS spectra.]]></manual>
+<citations>
+  <citation doi="10.1038/s41592-024-02197-7" url="" />
+</citations>
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="NucleicAcidSearchEngine" description="Annotate nucleic acid identifications to MS/MS spectra.">
+    <ITEM name="version" value="3.5.0-pre-nuc-dia-2025-07-24" type="string" description="Version of the tool that generated this parameters file." required="false" advanced="true" />
+    <NODE name="1" description="Instance &apos;1&apos; section for &apos;NucleicAcidSearchEngine&apos;">
+      <ITEM name="in" value="" type="input-file" description="Input file: spectra" required="true" advanced="false" supported_formats="*.mzML" />
+      <ITEM name="database" value="" type="input-file" description="Input file: sequence database. Required unless &apos;digest&apos; is set." required="false" advanced="false" supported_formats="*.fasta" />
+      <ITEM name="digest" value="" type="input-file" description="Input file: pre-digested sequence database. Can be used instead of &apos;database&apos;. Sets all &apos;oligo:...&apos; parameters." required="false" advanced="false" supported_formats="*.oms" />
+      <ITEM name="out" value="" type="output-file" description="Output file: mzTab" required="true" advanced="false" supported_formats="*.mzTab" />
+      <ITEM name="id_out" value="" type="output-file" description="Output file: idXML (for visualization in TOPPView)" required="false" advanced="false" supported_formats="*.idXML" />
+      <ITEM name="db_out" value="" type="output-file" description="Output file: oms (SQLite database)" required="false" advanced="false" supported_formats="*.oms" />
+      <ITEM name="digest_out" value="" type="output-file" description="Output file: sequence database digest. Ignored if &apos;digest&apos; input is used." required="false" advanced="false" supported_formats="*.oms" />
+      <ITEM name="lfq_out" value="" type="output-file" description="Output file: targets for label-free quantification using FeatureFinderMetaboIdent (&apos;id&apos; input)" required="false" advanced="false" supported_formats="*.tsv" />
+      <ITEM name="theo_ms2_out" value="" type="output-file" description="Output file: theoretical MS2 spectra for precursor mass matches" required="false" advanced="true" supported_formats="*.mzML" />
+      <ITEM name="exp_ms2_out" value="" type="output-file" description="Output file: experimental MS2 spectra for precursor mass matches" required="false" advanced="true" supported_formats="*.mzML" />
+      <ITEM name="decharge_ms2" value="false" type="bool" description="Decharge the MS2 spectra for scoring" required="false" advanced="true" />
+      <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
+      <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
+      <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+      <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
+      <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
+      <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
+      <NODE name="precursor" description="Precursor (parent ion) options">
+        <ITEM name="mass_tolerance" value="10.0" type="double" description="Precursor mass tolerance (+/- around uncharged precursor mass)" required="false" advanced="false" />
+        <ITEM name="mass_tolerance_unit" value="ppm" type="string" description="Unit of precursor mass tolerance" required="false" advanced="false" restrictions="Da,ppm" />
+        <ITEM name="min_charge" value="-1" type="int" description="Minimum precursor charge to be considered" required="false" advanced="false" />
+        <ITEM name="max_charge" value="-20" type="int" description="Maximum precursor charge to be considered" required="false" advanced="false" />
+        <ITEM name="include_unknown_charge" value="false" type="bool" description="Include MS2 spectra with unknown precursor charge - try to match them in any possible charge between &apos;min_charge&apos; and &apos;max_charge&apos;, at the risk of a higher error rate" required="false" advanced="false" />
+        <ITEM name="use_avg_mass" value="false" type="bool" description="Use average instead of monoisotopic precursor masses (appropriate for low-resolution instruments)" required="false" advanced="false" />
+        <ITEM name="use_adducts" value="false" type="bool" description="Consider possible salt adducts (see &apos;precursor:potential_adducts&apos;) when matching precursor masses" required="false" advanced="false" />
+        <ITEMLIST name="potential_adducts" type="string" description="Adducts considered to explain mass differences. Format: &apos;Element:Charge(+/-)&apos;, i.e. the number of &apos;+&apos; or &apos;-&apos; indicates the charge, e.g. &apos;Ca:++&apos; indicates +2. Only used if &apos;precursor:use_adducts&apos; is set." required="false" advanced="false" >
+          <LISTITEM value="Na:+"/>
+        </ITEMLIST>
+        <ITEMLIST name="isotopes" type="int" description="Correct for mono-isotopic peak misassignments. E.g.: 1 = precursor may be misassigned to the first isotopic peak. Ignored if &apos;use_avg_mass&apos; is set." required="false" advanced="false" >
+          <LISTITEM value="0"/>
+          <LISTITEM value="1"/>
+          <LISTITEM value="2"/>
+          <LISTITEM value="3"/>
+          <LISTITEM value="4"/>
+        </ITEMLIST>
+      </NODE>
+      <NODE name="fragment" description="Fragment (Product Ion) Options">
+        <ITEM name="mass_tolerance" value="10.0" type="double" description="Fragment mass tolerance (+/- around fragment m/z)" required="false" advanced="false" />
+        <ITEM name="mass_tolerance_unit" value="ppm" type="string" description="Unit of fragment mass tolerance" required="false" advanced="false" restrictions="Da,ppm" />
+        <ITEMLIST name="ions" type="string" description="Fragment ions to include in theoretical spectra" required="false" advanced="false" restrictions="a-B,a,b,c,d,w,x,y,z" >
+          <LISTITEM value="a-B"/>
+          <LISTITEM value="a"/>
+          <LISTITEM value="b"/>
+          <LISTITEM value="c"/>
+          <LISTITEM value="d"/>
+          <LISTITEM value="w"/>
+          <LISTITEM value="x"/>
+          <LISTITEM value="y"/>
+          <LISTITEM value="z"/>
+        </ITEMLIST>
+      </NODE>
+      <NODE name="modifications" description="Modification options">
+        <ITEMLIST name="fixed" type="string" description="Fixed modifications, specified using modomics (https://genesilico.pl/modomics/modifications) terms." required="false" advanced="false" restrictions="io6A,s2U,k2C,m2Gm,Ym,f5Cm,Qbase,ac4Cm,imG-14,cm5s2U,mnm5s2U,m227G,yW-58,I,g6A,nm5U,m7G,s2Um,Y,hm5C,m5U,preQ0,o2yW,m5Um,preQ1,m66Am,ac6A,ms2io6A,Am,Im,mnm5U,m22G,t6A,m8A,m7GpppN,m27GpppN,m227GpppN,mpppN,m28A,acp3D,acp3Y,imG,D,N,C+,m27Gm,ho5C,inm5U,inm5Um,inm5s2U,pppN,GpppN,CoApN,m44C,acCoApN,malonyl-CoApN,succinyl-CoApN,ppN,NADpN,m6t6A,OHyWy,pG(pN),ncm5s2U,nchm5U,mchm5Um,pN,ges2U,cmnm5ges2U,mnm5ges2U,nm5ges2U,m5D,mmpN,mpN,5&apos;-OH-N,N2&apos;3&apos;cp,ct6A,hm6A,f6A,cnm5U,mcmo5Um,m5C,ms2ct6A,ht6A,msms2i6A,hm5Cm,pY,pm5C,ps2U,hn6A,pD,pm2G,pm66A,pGm,pm5U,pm22G,pm3U,m5Cm,Ar(p),pac4C,pCm,pppG,pm7G,pm1A,pUm,pAm,pm4Cm,pC2&apos;3&apos;cp,tm5U,pm6A,pyW,pm1G,pA2&apos;3&apos;cp,ps4U,pI,ppG,pm2A,m1G,pmcm5s2U,cmnm5Um,pse2U,pt6A,pf5C,pppA,pG,pG2&apos;3&apos;cp,pms2i6A,pcmo5U,pyW,Xm,pm44C,pi6A,phm5C,pU,pAr(p),pac4Cm,pGp,m1I,pU2&apos;3&apos;cp,mcm5U,Gm,pm4C,ncm5Um,pm5Um,pmnm5U,pm3C,m5s2U,yW,pC,pm6t6A,f5C,pAp,m1Am,m1Im,ApppN,AppppN,ApppppN,m6ApppN,m6AppppN,m6ApppppN,m7GppppN,Gr(p),pm1Am,pm1Gm,pm1Im,pm1acp3Y,pm1I,pm1Y,pk2C,ps2C,pm1acp3Y,pm3Y,nm5s2U,pm5Cm,pmchm5U,pinm5Um,pinm5s2U,pinm5U,pnm5U,pncm5U,pchm5U,pcmnm5U,pcm5U,m2G,pho5U,pmcm5Um,pmcm5U,pmo5U,pm5D,pmimG,phm5Cm,pIm,pYm,pmcmo5Um,m2A,pGr(p),pm28A,pmsms2i6A,pges2U,pms2ct6A,pms2io6A,pms2hn6A,pms2m6A,pms2t6A,ps2Um,pm3Um,pacp3D,pacp3U,pimG-14,pmchm5Um,pnm5ges2U,pnm5se2U,pnm5s2U,pnchm5U,pncm5Um,m4Cm,pncm5s2U,pcm5s2U,pcmnm5Um,pcmnm5ges2U,pcmnm5se2U,pcmnm5s2U,pcnm5U,pf5Cm,pho5C,pm5s2U,m27G,m22Gm,pmnm5ges2U,pmnm5se2U,pmnm5s2U,ptm5s2U,ptm5U,pyW-86,pyW-72,pyW-58,ppreQ1,ppreQ0,m66A,pm8A,pC+,pG+,pct6A,poQ,pgalQ,pgluQ,pht6A,pOHyW,pimG2,gluQ,pmanQ,pOHyWy,pm27Gm,pQ,pOHyWx,pmcmo5U,pimG,pm44Cm,pm2Gm,pm22Gm,ncm5U,pm6Am,pm66Am,pio6A,pac6A,pf6A,pg6A,phm6A,phn6A,cm5U,pm27G,pm227G,pm27Gm,pA,cmnm5s2U,cmo5U,m3Y,m3U,ms2m6A,Um,ms2i6A,m3C,cmnm5se2U,ms2t6A,i6A,m3Um,mcmo5U,mimG,oQ,preQ1base,nm5se2U,m1Gm,ho5U,Q,xG,mcm5s2U,m44Cm,s4U,xC,yW-86,xA,chm5U,mo5U,acp3U,xU,yW-72,mnm5se2U,ms2hn6A,m1acp3Y,mcm5Um,ac4C,m6Am,m1A,Cm,mchm5U,galQ,cmnm5U,m1Y,imG2,m4C,manQ,tm5s2U,s2C,OHyWx,se2U,preQ0base,m6A,OHyW,xX,G+,3&apos;-p,5&apos;-p,5&apos;-p*,3&apos;-c,mA,mC,mG,mU,sU,mmA,mAm,mCm,mGm,mUm,cmo5U/chm5U,mchm5U/mcmo5U,mchm5Um/mcmo5Um,m6t6A/hn6A,galQ/manQ,mA?,mC?,mG?,mU?,mI?,msU?,mmA?,mmC?,mmG?,mmmG?,ac4C/f5Cm?,acp3U/cmnm5Um?,dA,dC,dG,dU,dT,A*,C*,G*,U*,dA*,dC*,dG*,dU*,dT*" >
+        </ITEMLIST>
+        <ITEMLIST name="variable" type="string" description="Variable modifications" required="false" advanced="false" restrictions="io6A,s2U,k2C,m2Gm,Ym,f5Cm,Qbase,ac4Cm,imG-14,cm5s2U,mnm5s2U,m227G,yW-58,I,g6A,nm5U,m7G,s2Um,Y,hm5C,m5U,preQ0,o2yW,m5Um,preQ1,m66Am,ac6A,ms2io6A,Am,Im,mnm5U,m22G,t6A,m8A,m7GpppN,m27GpppN,m227GpppN,mpppN,m28A,acp3D,acp3Y,imG,D,N,C+,m27Gm,ho5C,inm5U,inm5Um,inm5s2U,pppN,GpppN,CoApN,m44C,acCoApN,malonyl-CoApN,succinyl-CoApN,ppN,NADpN,m6t6A,OHyWy,pG(pN),ncm5s2U,nchm5U,mchm5Um,pN,ges2U,cmnm5ges2U,mnm5ges2U,nm5ges2U,m5D,mmpN,mpN,5&apos;-OH-N,N2&apos;3&apos;cp,ct6A,hm6A,f6A,cnm5U,mcmo5Um,m5C,ms2ct6A,ht6A,msms2i6A,hm5Cm,pY,pm5C,ps2U,hn6A,pD,pm2G,pm66A,pGm,pm5U,pm22G,pm3U,m5Cm,Ar(p),pac4C,pCm,pppG,pm7G,pm1A,pUm,pAm,pm4Cm,pC2&apos;3&apos;cp,tm5U,pm6A,pyW,pm1G,pA2&apos;3&apos;cp,ps4U,pI,ppG,pm2A,m1G,pmcm5s2U,cmnm5Um,pse2U,pt6A,pf5C,pppA,pG,pG2&apos;3&apos;cp,pms2i6A,pcmo5U,pyW,Xm,pm44C,pi6A,phm5C,pU,pAr(p),pac4Cm,pGp,m1I,pU2&apos;3&apos;cp,mcm5U,Gm,pm4C,ncm5Um,pm5Um,pmnm5U,pm3C,m5s2U,yW,pC,pm6t6A,f5C,pAp,m1Am,m1Im,ApppN,AppppN,ApppppN,m6ApppN,m6AppppN,m6ApppppN,m7GppppN,Gr(p),pm1Am,pm1Gm,pm1Im,pm1acp3Y,pm1I,pm1Y,pk2C,ps2C,pm1acp3Y,pm3Y,nm5s2U,pm5Cm,pmchm5U,pinm5Um,pinm5s2U,pinm5U,pnm5U,pncm5U,pchm5U,pcmnm5U,pcm5U,m2G,pho5U,pmcm5Um,pmcm5U,pmo5U,pm5D,pmimG,phm5Cm,pIm,pYm,pmcmo5Um,m2A,pGr(p),pm28A,pmsms2i6A,pges2U,pms2ct6A,pms2io6A,pms2hn6A,pms2m6A,pms2t6A,ps2Um,pm3Um,pacp3D,pacp3U,pimG-14,pmchm5Um,pnm5ges2U,pnm5se2U,pnm5s2U,pnchm5U,pncm5Um,m4Cm,pncm5s2U,pcm5s2U,pcmnm5Um,pcmnm5ges2U,pcmnm5se2U,pcmnm5s2U,pcnm5U,pf5Cm,pho5C,pm5s2U,m27G,m22Gm,pmnm5ges2U,pmnm5se2U,pmnm5s2U,ptm5s2U,ptm5U,pyW-86,pyW-72,pyW-58,ppreQ1,ppreQ0,m66A,pm8A,pC+,pG+,pct6A,poQ,pgalQ,pgluQ,pht6A,pOHyW,pimG2,gluQ,pmanQ,pOHyWy,pm27Gm,pQ,pOHyWx,pmcmo5U,pimG,pm44Cm,pm2Gm,pm22Gm,ncm5U,pm6Am,pm66Am,pio6A,pac6A,pf6A,pg6A,phm6A,phn6A,cm5U,pm27G,pm227G,pm27Gm,pA,cmnm5s2U,cmo5U,m3Y,m3U,ms2m6A,Um,ms2i6A,m3C,cmnm5se2U,ms2t6A,i6A,m3Um,mcmo5U,mimG,oQ,preQ1base,nm5se2U,m1Gm,ho5U,Q,xG,mcm5s2U,m44Cm,s4U,xC,yW-86,xA,chm5U,mo5U,acp3U,xU,yW-72,mnm5se2U,ms2hn6A,m1acp3Y,mcm5Um,ac4C,m6Am,m1A,Cm,mchm5U,galQ,cmnm5U,m1Y,imG2,m4C,manQ,tm5s2U,s2C,OHyWx,se2U,preQ0base,m6A,OHyW,xX,G+,3&apos;-p,5&apos;-p,5&apos;-p*,3&apos;-c,mA,mC,mG,mU,sU,mmA,mAm,mCm,mGm,mUm,cmo5U/chm5U,mchm5U/mcmo5U,mchm5Um/mcmo5Um,m6t6A/hn6A,galQ/manQ,mA?,mC?,mG?,mU?,mI?,msU?,mmA?,mmC?,mmG?,mmmG?,ac4C/f5Cm?,acp3U/cmnm5Um?,dA,dC,dG,dU,dT,A*,C*,G*,U*,dA*,dC*,dG*,dU*,dT*" >
+        </ITEMLIST>
+        <ITEM name="variable_max_per_oligo" value="2" type="int" description="Maximum number of residues carrying a variable modification per candidate oligonucleotide" required="false" advanced="false" />
+        <ITEM name="resolve_ambiguities" value="false" type="bool" description="Attempt to resolve ambiguous modifications (e.g. &apos;mA?&apos; for &apos;mA&apos;/&apos;Am&apos;) based on a-B ions.#br#This incurs a performance cost because two modifications have to be considered for each case.#br#Requires a-B ions to be enabled in parameter &apos;fragment:ions&apos;." required="false" advanced="false" />
+      </NODE>
+      <NODE name="oligo" description="Oligonucleotide (digestion) options (ignored if &apos;digest&apos; input is used)">
+        <ITEM name="min_size" value="5" type="int" description="Minimum size an oligonucleotide must have after digestion to be considered in the search" required="false" advanced="false" />
+        <ITEM name="max_size" value="0" type="int" description="Maximum size an oligonucleotide must have after digestion to be considered in the search, leave at 0 for no limit" required="false" advanced="false" />
+        <ITEM name="missed_cleavages" value="1" type="int" description="Number of missed cleavages" required="false" advanced="false" />
+        <ITEM name="enzyme" value="no cleavage" type="string" description="The enzyme used for RNA digestion" required="false" advanced="false" restrictions="RNase_T1,RNase_MC1,RNase_H,RNase_4,RNase_4p,RNase_4c,mazF,colicin_E5,no cleavage,unspecific cleavage,cusativin,RNase_U2,RNase_A,RNase_T1_Phosphatase" />
+      </NODE>
+      <NODE name="report" description="Reporting Options">
+        <ITEM name="top_hits" value="1" type="int" description="Maximum number of top-scoring hits per spectrum that are reported (&apos;0&apos; for all hits)" required="false" advanced="true" restrictions="0:" />
+      </NODE>
+      <NODE name="fdr" description="False Discovery Rate options">
+        <ITEM name="decoy_pattern" value="" type="string" description="String used as part of the accession to annotate decoy sequences (e.g. &apos;DECOY_&apos;). Leave empty to skip the FDR/q-value calculation." required="false" advanced="false" />
+        <ITEM name="cutoff" value="1.0" type="double" description="Cut-off for FDR filtering; search hits with higher q-values will be removed" required="false" advanced="false" restrictions="0.000000:1.000000" />
+        <ITEM name="remove_decoys" value="false" type="bool" description="Do not score hits to decoy sequences and remove them when filtering" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+  </NODE>
+</PARAMETERS>
+</tool>

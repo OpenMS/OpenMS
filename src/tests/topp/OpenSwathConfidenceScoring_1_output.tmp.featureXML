@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" id="fm_5545122449014130491" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="OpenSwathConfidenceScoring" version="version_string" />
+		<processingAction name="Data processing action" />
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="0000-00-00T00:00:00" search_engine="" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<featureList count="5">
+		<feature id="f_11965988948540676971">
+			<position dim="0">3119.091968219880073</position>
+			<position dim="1">0.0</position>
+			<intensity>3574.22998</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>0</charge>
+			<subordinate>
+				<feature id="f_11965988948540676971_4888325353065441190">
+					<position dim="0">3119.091968219880073</position>
+					<position dim="1">628.434999999999945</position>
+					<intensity>803.02301</intensity>
+					<quality dim="0">0.0</quality>
+					<quality dim="1">0.0</quality>
+					<overallquality>0.0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="628.434999999999945"/>
+					<UserParam type="string" name="native_id" value="tr1"/>
+				</feature>
+				<feature id="f_11965988948540676971_15492625032967968816">
+					<position dim="0">3119.091968219880073</position>
+					<position dim="1">654.379999999999995</position>
+					<intensity>2771.209961</intensity>
+					<quality dim="0">0.0</quality>
+					<quality dim="1">0.0</quality>
+					<overallquality>0.0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="654.379999999999995"/>
+					<UserParam type="string" name="native_id" value="tr2"/>
+				</feature>
+			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="-21994.8526298809" sequence="PEPTIDEA" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="string" name="PeptideRef" value="tr_gr1"/>
+			<UserParam type="float" name="leftWidth" value="3096.280029296880002"/>
+			<UserParam type="float" name="rightWidth" value="3147.679931640619998"/>
+			<UserParam type="float" name="total_xic" value="3680.16062933207013"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted " value="0.0"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.998183460545928"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.997577947394571"/>
+			<UserParam type="float" name="var_library_corr" value="1.0"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.108663236021716"/>
+			<UserParam type="float" name="delta_rt" value="3118.651968219880018"/>
+			<UserParam type="float" name="rt_score" value="3118.651968219880018"/>
+			<UserParam type="float" name="var_norm_rt_score" value="3118.651968219880018"/>
+			<UserParam type="float" name="var_intensity_score" value="0.971216417399615"/>
+			<UserParam type="float" name="nr_peaks" value="2.0"/>
+			<UserParam type="float" name="sn_ratio" value="86.004137999528197"/>
+			<UserParam type="float" name="var_log_sn_score" value="4.45439541136954"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.985403060913086"/>
+			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="-2.19948526298809e04"/>
+			<UserParam type="float" name="PrecursorMZ" value="500.0"/>
+			<UserParam type="float" name="GLM_score" value="0.872315146325553"/>
+			<UserParam type="float" name="local_FDR" value="0.0"/>
+		</feature>
+		<feature id="f_7884611628099393896">
+			<position dim="0">3119.06301134764999</position>
+			<position dim="1">0.0</position>
+			<intensity>1034.550049</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>0</charge>
+			<subordinate>
+				<feature id="f_7884611628099393896_17256259892624863903">
+					<position dim="0">3119.06301134764999</position>
+					<position dim="1">618.309999999999945</position>
+					<intensity>78.058601</intensity>
+					<quality dim="0">0.0</quality>
+					<quality dim="1">0.0</quality>
+					<overallquality>0.0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="618.309999999999945"/>
+					<UserParam type="string" name="native_id" value="tr3"/>
+				</feature>
+				<feature id="f_7884611628099393896_6956352337580832751">
+					<position dim="0">3119.06301134764999</position>
+					<position dim="1">628.434999999999945</position>
+					<intensity>803.02301</intensity>
+					<quality dim="0">0.0</quality>
+					<quality dim="1">0.0</quality>
+					<overallquality>0.0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="628.434999999999945"/>
+					<UserParam type="string" name="native_id" value="tr4"/>
+					<UserParam type="float" name="peak_apex_int" value="506.435000000000002"/>
+				</feature>
+				<feature id="f_7884611628099393896_9966137807867549783">
+					<position dim="0">3119.06301134764999</position>
+					<position dim="1">651.299999999999955</position>
+					<intensity>153.472</intensity>
+					<quality dim="0">0.0</quality>
+					<quality dim="1">0.0</quality>
+					<overallquality>0.0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="651.299999999999955"/>
+					<UserParam type="string" name="native_id" value="tr5"/>
+				</feature>
+			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="-22000.3232536088" sequence="PEPTIDEB" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="string" name="PeptideRef" value="tr_gr2"/>
+			<UserParam type="float" name="leftWidth" value="3099.699951171880002"/>
+			<UserParam type="float" name="rightWidth" value="3147.679931640619998"/>
+			<UserParam type="float" name="total_xic" value="1610.273965954779897"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="2.26491106406735"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted " value="0.904813880838571"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.724571355831169"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.643242628379923"/>
+			<UserParam type="float" name="var_library_corr" value="-0.784148433900811"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.435668770903728"/>
+			<UserParam type="float" name="delta_rt" value="3118.863011347650172"/>
+			<UserParam type="float" name="rt_score" value="3118.863011347650172"/>
+			<UserParam type="float" name="var_norm_rt_score" value="3118.863011347650172"/>
+			<UserParam type="float" name="var_intensity_score" value="0.642470542740079"/>
+			<UserParam type="float" name="nr_peaks" value="3.0"/>
+			<UserParam type="float" name="sn_ratio" value="30.180081980404999"/>
+			<UserParam type="float" name="var_log_sn_score" value="3.40718216971789"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.902421613534292"/>
+			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="-2.20003232536088e04"/>
+			<UserParam type="float" name="PrecursorMZ" value="501.0"/>
+			<UserParam type="float" name="GLM_score" value="1.04381975292481e-120"/>
+			<UserParam type="float" name="local_FDR" value="1.0"/>
+		</feature>
+		<feature id="f_10748767151299728218">
+			<position dim="0">3055.58404744804011</position>
+			<position dim="1">0.0</position>
+			<intensity>195.654007</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>0</charge>
+			<subordinate>
+				<feature id="f_10748767151299728218_4642252022992870905">
+					<position dim="0">3055.58404744804011</position>
+					<position dim="1">618.309999999999945</position>
+					<intensity>120.619003</intensity>
+					<quality dim="0">0.0</quality>
+					<quality dim="1">0.0</quality>
+					<overallquality>0.0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="618.309999999999945"/>
+					<UserParam type="string" name="native_id" value="tr3"/>
+				</feature>
+				<feature id="f_10748767151299728218_5265408596591775864">
+					<position dim="0">3055.58404744804011</position>
+					<position dim="1">628.434999999999945</position>
+					<intensity>0.472367</intensity>
+					<quality dim="0">0.0</quality>
+					<quality dim="1">0.0</quality>
+					<overallquality>0.0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="628.434999999999945"/>
+					<UserParam type="string" name="native_id" value="tr4"/>
+				</feature>
+				<feature id="f_10748767151299728218_9685841048582444526">
+					<position dim="0">3055.58404744804011</position>
+					<position dim="1">651.299999999999955</position>
+					<intensity>74.563103</intensity>
+					<quality dim="0">0.0</quality>
+					<quality dim="1">0.0</quality>
+					<overallquality>0.0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="651.299999999999955"/>
+					<UserParam type="string" name="native_id" value="tr5"/>
+				</feature>
+			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="-21551.916238951" sequence="PEPTIDEB" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="string" name="PeptideRef" value="tr_gr2"/>
+			<UserParam type="float" name="leftWidth" value="3044.8798828125"/>
+			<UserParam type="float" name="rightWidth" value="3065.43994140625"/>
+			<UserParam type="float" name="total_xic" value="1610.273965954779897"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="1.69946222565531"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted " value="0.430576988219353"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.801773648038466"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.827432023818302"/>
+			<UserParam type="float" name="var_library_corr" value="0.930678748454332"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.08019006258769"/>
+			<UserParam type="float" name="delta_rt" value="3055.384047448039837"/>
+			<UserParam type="float" name="rt_score" value="3055.384047448039837"/>
+			<UserParam type="float" name="var_norm_rt_score" value="3055.384047448039837"/>
+			<UserParam type="float" name="var_intensity_score" value="0.121503684911807"/>
+			<UserParam type="float" name="nr_peaks" value="3.0"/>
+			<UserParam type="float" name="sn_ratio" value="3.27205298324225"/>
+			<UserParam type="float" name="var_log_sn_score" value="1.18541761153185"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.88344677289327"/>
+			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="-2.1551916238951e04"/>
+			<UserParam type="float" name="PrecursorMZ" value="501.0"/>
+			<UserParam type="float" name="GLM_score" value="2.88582807255648e-165"/>
+			<UserParam type="float" name="local_FDR" value="0.0"/>
+		</feature>
+		<feature id="f_6301837921792215032">
+			<position dim="0">3093.863829060199805</position>
+			<position dim="1">0.0</position>
+			<intensity>59.022202</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>0</charge>
+			<subordinate>
+				<feature id="f_6301837921792215032_14587596823595581988">
+					<position dim="0">3093.863829060199805</position>
+					<position dim="1">618.309999999999945</position>
+					<intensity>37.057201</intensity>
+					<quality dim="0">0.0</quality>
+					<quality dim="1">0.0</quality>
+					<overallquality>0.0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="618.309999999999945"/>
+					<UserParam type="string" name="native_id" value="tr3"/>
+				</feature>
+				<feature id="f_6301837921792215032_17984643799999236595">
+					<position dim="0">3093.863829060199805</position>
+					<position dim="1">628.434999999999945</position>
+					<intensity>5.99905</intensity>
+					<quality dim="0">0.0</quality>
+					<quality dim="1">0.0</quality>
+					<overallquality>0.0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="628.434999999999945"/>
+					<UserParam type="string" name="native_id" value="tr4"/>
+				</feature>
+				<feature id="f_6301837921792215032_272435008563132199">
+					<position dim="0">3093.863829060199805</position>
+					<position dim="1">651.299999999999955</position>
+					<intensity>15.966</intensity>
+					<quality dim="0">0.0</quality>
+					<quality dim="1">0.0</quality>
+					<overallquality>0.0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="651.299999999999955"/>
+					<UserParam type="string" name="native_id" value="tr5"/>
+				</feature>
+			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="-21822.7123758505" sequence="PEPTIDEB" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="string" name="PeptideRef" value="tr_gr2"/>
+			<UserParam type="float" name="leftWidth" value="3086.0"/>
+			<UserParam type="float" name="rightWidth" value="3103.1298828125"/>
+			<UserParam type="float" name="total_xic" value="1610.273965954779897"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="2.26491106406735"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted " value="0.818999585983665"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.814670253005942"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.853277377387859"/>
+			<UserParam type="float" name="var_library_corr" value="0.999326561237188"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.014039156799858"/>
+			<UserParam type="float" name="delta_rt" value="3093.663829060199987"/>
+			<UserParam type="float" name="rt_score" value="3093.663829060199987"/>
+			<UserParam type="float" name="var_norm_rt_score" value="3093.663829060199987"/>
+			<UserParam type="float" name="var_intensity_score" value="0.036653515355749"/>
+			<UserParam type="float" name="nr_peaks" value="3.0"/>
+			<UserParam type="float" name="sn_ratio" value="1.06532881625779"/>
+			<UserParam type="float" name="var_log_sn_score" value="0.063283499168531"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.966414709885915"/>
+			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="-2.18227123758505e04"/>
+			<UserParam type="float" name="PrecursorMZ" value="501.0"/>
+			<UserParam type="float" name="GLM_score" value="0.280631793823101"/>
+			<UserParam type="float" name="local_FDR" value="0.0"/>
+		</feature>
+		<feature id="f_17643807565115098230">
+			<position dim="0">3148.628154388070016</position>
+			<position dim="1">0.0</position>
+			<intensity>39.749599</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>0</charge>
+			<subordinate>
+				<feature id="f_17643807565115098230_13794467173352966925">
+					<position dim="0">3148.628154388070016</position>
+					<position dim="1">618.309999999999945</position>
+					<intensity>26.216299</intensity>
+					<quality dim="0">0.0</quality>
+					<quality dim="1">0.0</quality>
+					<overallquality>0.0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="618.309999999999945"/>
+					<UserParam type="string" name="native_id" value="tr3"/>
+				</feature>
+				<feature id="f_17643807565115098230_5725247705380865030">
+					<position dim="0">3148.628154388070016</position>
+					<position dim="1">628.434999999999945</position>
+					<intensity>3.33018</intensity>
+					<quality dim="0">0.0</quality>
+					<quality dim="1">0.0</quality>
+					<overallquality>0.0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="628.434999999999945"/>
+					<UserParam type="string" name="native_id" value="tr4"/>
+				</feature>
+				<feature id="f_17643807565115098230_4339922180881684360">
+					<position dim="0">3148.628154388070016</position>
+					<position dim="1">651.299999999999955</position>
+					<intensity>10.2031</intensity>
+					<quality dim="0">0.0</quality>
+					<quality dim="1">0.0</quality>
+					<overallquality>0.0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="651.299999999999955"/>
+					<UserParam type="string" name="native_id" value="tr5"/>
+				</feature>
+			</subordinate>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="-22208.0561597968" sequence="PEPTIDEB" charge="0">
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="string" name="PeptideRef" value="tr_gr2"/>
+			<UserParam type="float" name="leftWidth" value="3144.25"/>
+			<UserParam type="float" name="rightWidth" value="3157.949951171880002"/>
+			<UserParam type="float" name="total_xic" value="1610.273965954779897"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="0.0"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted " value="0.0"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.966390121613798"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.960151427171794"/>
+			<UserParam type="float" name="var_library_corr" value="0.999902026101048"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.030693081113014"/>
+			<UserParam type="float" name="delta_rt" value="3148.428154388070197"/>
+			<UserParam type="float" name="rt_score" value="3148.428154388070197"/>
+			<UserParam type="float" name="var_norm_rt_score" value="3148.428154388070197"/>
+			<UserParam type="float" name="var_intensity_score" value="0.024685020110591"/>
+			<UserParam type="float" name="nr_peaks" value="3.0"/>
+			<UserParam type="float" name="sn_ratio" value="0.71838061935122"/>
+			<UserParam type="float" name="var_log_sn_score" value="0.0"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.950076858202616"/>
+			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="-2.22080561597968e04"/>
+			<UserParam type="float" name="PrecursorMZ" value="501.0"/>
+			<UserParam type="float" name="GLM_score" value="0.0"/>
+			<UserParam type="float" name="local_FDR" value="1.0"/>
+		</feature>
+	</featureList>
+</featureMap>

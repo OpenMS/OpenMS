@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" id="fm_5233264595117471314" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="FileConverter" version="version_string" />
+		<processingAction name="File format conversion" />
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<featureList count="35">
+		<feature id="f_4835329514588776807">
+			<position dim="0">2826.839999999999691</position>
+			<position dim="1">714.149199999999951</position>
+			<intensity>576.567993</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>4</charge>
+			<UserParam type="float" name="s/n" value="22.442"/>
+		</feature>
+		<feature id="f_17749660155506638460">
+			<position dim="0">2851.260000000000218</position>
+			<position dim="1">745.919999999999959</position>
+			<intensity>87.973999</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="float" name="s/n" value="6.732"/>
+		</feature>
+		<feature id="f_7804704400743266335">
+			<position dim="0">2879.820000000000164</position>
+			<position dim="1">706.065600000000018</position>
+			<intensity>3709.629883</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>3</charge>
+			<UserParam type="float" name="s/n" value="70.442999999999998"/>
+		</feature>
+		<feature id="f_15004869347769368353">
+			<position dim="0">2879.820000000000164</position>
+			<position dim="1">724.039999999999964</position>
+			<intensity>281.194</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>3</charge>
+			<UserParam type="float" name="s/n" value="6.559"/>
+		</feature>
+		<feature id="f_3332699010107892018">
+			<position dim="0">2941.019999999999982</position>
+			<position dim="1">715.705500000000029</position>
+			<intensity>198.559998</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>3</charge>
+			<UserParam type="float" name="s/n" value="10.866"/>
+		</feature>
+		<feature id="f_13440783915218733453">
+			<position dim="0">2963.460000000000036</position>
+			<position dim="1">712.32000000000005</position>
+			<intensity>235.981003</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="float" name="s/n" value="8.749000000000001"/>
+		</feature>
+		<feature id="f_15916652588957785155">
+			<position dim="0">2967.539999999999964</position>
+			<position dim="1">710.299999999999955</position>
+			<intensity>534.518982</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="float" name="s/n" value="18.364000000000001"/>
+		</feature>
+		<feature id="f_15157403601844400700">
+			<position dim="0">2971.619999999999891</position>
+			<position dim="1">753.879999999999996</position>
+			<intensity>113.351997</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="float" name="s/n" value="6.406"/>
+		</feature>
+		<feature id="f_6408859317243173796">
+			<position dim="0">3012.420000000000073</position>
+			<position dim="1">737.039999999999964</position>
+			<intensity>309.824005</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>3</charge>
+			<UserParam type="float" name="s/n" value="12.257"/>
+		</feature>
+		<feature id="f_474525871221756682">
+			<position dim="0">3016.5</position>
+			<position dim="1">735.705500000000029</position>
+			<intensity>804.872986</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>3</charge>
+			<UserParam type="float" name="s/n" value="29.838000000000001"/>
+		</feature>
+		<feature id="f_12999979801269632061">
+			<position dim="0">3018.480000000000018</position>
+			<position dim="1">729.745599999999968</position>
+			<intensity>428.649994</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>3</charge>
+			<UserParam type="float" name="s/n" value="9.76"/>
+		</feature>
+		<feature id="f_17413765565443951891">
+			<position dim="0">3077.639999999999873</position>
+			<position dim="1">748.940000000000055</position>
+			<intensity>250.201996</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="float" name="s/n" value="9.114000000000001"/>
+		</feature>
+		<feature id="f_2927519776102075938">
+			<position dim="0">3197.940000000000055</position>
+			<position dim="1">728.360000000000014</position>
+			<intensity>156.242004</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>3</charge>
+			<UserParam type="float" name="s/n" value="6.913"/>
+		</feature>
+		<feature id="f_16907355690727166316">
+			<position dim="0">3212.159999999999854</position>
+			<position dim="1">730.379999999999995</position>
+			<intensity>284.037994</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="float" name="s/n" value="8.914"/>
+		</feature>
+		<feature id="f_10306100746905639127">
+			<position dim="0">3216.239999999999782</position>
+			<position dim="1">714.899999999999977</position>
+			<intensity>202.449997</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="float" name="s/n" value="6.417"/>
+		</feature>
+		<feature id="f_12524258085768770586">
+			<position dim="0">3220.319999999999709</position>
+			<position dim="1">712.879999999999996</position>
+			<intensity>160.205994</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="float" name="s/n" value="6.466"/>
+		</feature>
+		<feature id="f_1755235105885170967">
+			<position dim="0">3244.799999999999727</position>
+			<position dim="1">716.879999999999996</position>
+			<intensity>225.520996</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="float" name="s/n" value="6.92"/>
+		</feature>
+		<feature id="f_14811341817612382122">
+			<position dim="0">3267.240000000000236</position>
+			<position dim="1">705.399999999999977</position>
+			<intensity>457.506989</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="float" name="s/n" value="12.855"/>
+		</feature>
+		<feature id="f_2684106197423007927">
+			<position dim="0">3358.980000000000018</position>
+			<position dim="1">752.399999999999977</position>
+			<intensity>290.347992</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="float" name="s/n" value="7.138"/>
+		</feature>
+		<feature id="f_8119044117483804262">
+			<position dim="0">3383.400000000000091</position>
+			<position dim="1">728.725500000000011</position>
+			<intensity>1820.928955</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>3</charge>
+			<UserParam type="float" name="s/n" value="28.530000000000001"/>
+		</feature>
+		<feature id="f_17314619952666245179">
+			<position dim="0">3426.239999999999782</position>
+			<position dim="1">709.005599999999959</position>
+			<intensity>454.622009</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>3</charge>
+			<UserParam type="float" name="s/n" value="12.614000000000001"/>
+		</feature>
+		<feature id="f_3023658190814908261">
+			<position dim="0">3444.599999999999909</position>
+			<position dim="1">721.385499999999979</position>
+			<intensity>1332.942017</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>3</charge>
+			<UserParam type="float" name="s/n" value="25.965"/>
+		</feature>
+		<feature id="f_7898004582401008768">
+			<position dim="0">3458.819999999999709</position>
+			<position dim="1">723.399999999999977</position>
+			<intensity>713.562988</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="float" name="s/n" value="13.069000000000001"/>
+		</feature>
+		<feature id="f_15050004366391181853">
+			<position dim="0">3487.379999999999654</position>
+			<position dim="1">716.919999999999959</position>
+			<intensity>283.296997</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="float" name="s/n" value="6.188"/>
+		</feature>
+		<feature id="f_17716858074023296841">
+			<position dim="0">3530.159999999999854</position>
+			<position dim="1">708.840000000000032</position>
+			<intensity>246.319</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="float" name="s/n" value="6.272"/>
+		</feature>
+		<feature id="f_16250062551099875712">
+			<position dim="0">3607.620000000000346</position>
+			<position dim="1">740.429200000000037</position>
+			<intensity>2153.832031</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>4</charge>
+			<UserParam type="float" name="s/n" value="28.895"/>
+		</feature>
+		<feature id="f_16177748921272733768">
+			<position dim="0">3666.779999999999745</position>
+			<position dim="1">736.340000000000032</position>
+			<intensity>464.364014</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="float" name="s/n" value="9.765000000000001"/>
+		</feature>
+		<feature id="f_7276556891837796968">
+			<position dim="0">3689.159999999999854</position>
+			<position dim="1">753.425600000000031</position>
+			<intensity>318.019012</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>3</charge>
+			<UserParam type="float" name="s/n" value="7.788"/>
+		</feature>
+		<feature id="f_1147219038608936718">
+			<position dim="0">3695.2800000000002</position>
+			<position dim="1">700.440000000000055</position>
+			<intensity>579.007019</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="float" name="s/n" value="11.435000000000001"/>
+		</feature>
+		<feature id="f_11115414975438642789">
+			<position dim="0">3799.259999999999764</position>
+			<position dim="1">708.705500000000029</position>
+			<intensity>2377.575928</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>3</charge>
+			<UserParam type="float" name="s/n" value="28.969999999999999"/>
+		</feature>
+		<feature id="f_14509930621887606273">
+			<position dim="0">3805.380000000000109</position>
+			<position dim="1">707.385499999999979</position>
+			<intensity>1495.899048</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>3</charge>
+			<UserParam type="float" name="s/n" value="20.248000000000001"/>
+		</feature>
+		<feature id="f_13424404046998308790">
+			<position dim="0">3837.960000000000036</position>
+			<position dim="1">726.725500000000011</position>
+			<intensity>1364.348999</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>3</charge>
+			<UserParam type="float" name="s/n" value="13.282"/>
+		</feature>
+		<feature id="f_12665713047548007769">
+			<position dim="0">3850.200000000000273</position>
+			<position dim="1">742.440000000000055</position>
+			<intensity>357.583008</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="float" name="s/n" value="6.799"/>
+		</feature>
+		<feature id="f_17092894204355333314">
+			<position dim="0">3856.320000000000164</position>
+			<position dim="1">740.440000000000055</position>
+			<intensity>1024.32898</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+			<UserParam type="float" name="s/n" value="16.638999999999999"/>
+		</feature>
+		<feature id="f_3491056946625602141">
+			<position dim="0">3882.840000000000146</position>
+			<position dim="1">719.399999999999977</position>
+			<intensity>447.372009</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>3</charge>
+			<UserParam type="float" name="s/n" value="7.86"/>
+		</feature>
+	</featureList>
+</featureMap>

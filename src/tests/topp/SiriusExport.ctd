@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool ctdVersion="1.8" version="3.5.0-pre-nuc-dia-2025-07-24" name="SiriusExport" docurl="http://www.openms.de/doxygen/nightly/html/TOPP_SiriusExport.html" category="Metabolite Identification" >
+<description><![CDATA[Metabolite identification using single and tandem mass spectrometry]]></description>
+<manual><![CDATA[Metabolite identification using single and tandem mass spectrometry]]></manual>
+<citations>
+  <citation doi="10.1038/s41592-024-02197-7" url="" />
+  <citation doi="10.1186/s13321-016-0116-8" url="" />
+  <citation doi="10.1073/pnas.1509788112" url="" />
+</citations>
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="SiriusExport" description="Metabolite identification using single and tandem mass spectrometry">
+    <ITEM name="version" value="3.5.0-pre-nuc-dia-2025-07-24" type="string" description="Version of the tool that generated this parameters file." required="false" advanced="true" />
+    <NODE name="1" description="Instance &apos;1&apos; section for &apos;SiriusExport&apos;">
+      <ITEMLIST name="in" type="input-file" description="MzML Input file(s)" required="true" advanced="false" supported_formats="*.mzML" >
+      </ITEMLIST>
+      <ITEMLIST name="in_featureinfo" type="input-file" description="FeatureXML input with feature and adduct information" required="false" advanced="false" supported_formats="*.featureXML" >
+      </ITEMLIST>
+      <ITEM name="out" value="" type="output-file" description="Internal SIRIUS .ms format after OpenMS preprocessing" required="true" advanced="false" supported_formats="*.ms" />
+      <ITEM name="out_compoundinfo" value="" type="output-file" description="File (.tsv) with information on processed compounds which are associated with a feature. Required for AssayGeneratorMetaboSirius tool." required="false" advanced="false" supported_formats="*.tsv" />
+      <ITEM name="filter_by_num_masstraces" value="1" type="int" description="Number of mass traces each feature has to have to be included. To use this parameter, setting the feature_only flag is necessary" required="false" advanced="false" restrictions="1:" />
+      <ITEM name="precursor_mz_tolerance" value="10.0" type="double" description="Tolerance window for precursor selection (Feature selection in regard to the precursor)" required="false" advanced="false" />
+      <ITEM name="precursor_mz_tolerance_unit" value="ppm" type="string" description="Unit of the preprocessing_precursor_mz_tolerance" required="false" advanced="false" restrictions="ppm,Da" />
+      <ITEM name="precursor_rt_tolerance" value="5.0" type="double" description="Tolerance window (left and right) for precursor selection [seconds]" required="false" advanced="false" />
+      <ITEM name="isotope_pattern_iterations" value="3" type="int" description="Number of iterations that should be performed to extract the C13 isotope pattern. If no peak is found (C13 distance) the function will abort. Be careful with noisy data - since this can lead to wrong isotope patterns" required="false" advanced="false" />
+      <ITEM name="feature_only" value="false" type="string" description="Uses the feature information from in_featureinfo to reduce the search space to MS2 associated with a feature" required="false" advanced="false" restrictions="false,true" />
+      <ITEM name="no_masstrace_info_isotope_pattern" value="false" type="string" description="Set to true if the masstrace information from a feature should be discarded and the isotope_pattern_iterations should be used instead" required="false" advanced="false" restrictions="false,true" />
+      <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
+      <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
+      <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+      <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
+      <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
+      <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
+    </NODE>
+  </NODE>
+</PARAMETERS>
+</tool>

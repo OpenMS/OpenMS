@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" id="fm_5233264595117471314" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="FileConverter" version="version_string" />
+		<processingAction name="File format conversion" />
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<featureList count="6">
+		<feature id="f_4835329514588776807">
+			<position dim="0">10.0</position>
+			<position dim="1">114.0</position>
+			<intensity>2342.0</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>1</charge>
+		</feature>
+		<feature id="f_17749660155506638460">
+			<position dim="0">10.0</position>
+			<position dim="1">115.0</position>
+			<intensity>232.0</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+		</feature>
+		<feature id="f_7804704400743266335">
+			<position dim="0">10.0</position>
+			<position dim="1">116.0</position>
+			<intensity>523.0</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+		</feature>
+		<feature id="f_15004869347769368353">
+			<position dim="0">14.0</position>
+			<position dim="1">220.0</position>
+			<intensity>343.0</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>1</charge>
+			<UserParam type="string" name="Meta2" value="value"/>
+		</feature>
+		<feature id="f_3332699010107892018">
+			<position dim="0">14.0</position>
+			<position dim="1">431.100000000000023</position>
+			<intensity>343.0</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>2</charge>
+		</feature>
+		<feature id="f_13440783915218733453">
+			<position dim="0">15.0</position>
+			<position dim="1">543.239299999999957</position>
+			<intensity>343.0</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>0.0</overallquality>
+			<charge>3</charge>
+			<UserParam type="string" name="Meta2" value="b"/>
+		</feature>
+	</featureList>
+</featureMap>

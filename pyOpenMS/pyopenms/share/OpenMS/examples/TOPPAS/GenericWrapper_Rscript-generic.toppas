@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<PARAMETERS version="1.6.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/Param_1_6_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="info" description="">
+    <ITEM name="version" value="2.0.1" type="string" description="" required="false" advanced="false" />
+    <ITEM name="num_vertices" value="7" type="int" description="" required="false" advanced="false" />
+    <ITEM name="num_edges" value="6" type="int" description="" required="false" advanced="false" />
+    <ITEM name="description" value="&lt;![CDATA[&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt; &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt; p, li { white-space: pre-wrap; } &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;Arial&apos;; font-size:12pt; font-weight:400; font-style:normal;&quot;&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt; &lt;/p&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Example workflow for downstream R analysis.&lt;/span&gt;&lt;/p&gt; &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#000000;&quot;&gt;&lt;br /&gt;&lt;/p&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;The R script used here is very minimal, but should get you started.&lt;/span&gt;&lt;/p&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Make a copy and modify to your needs.&lt;/span&gt;&lt;/p&gt; &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#000000;&quot;&gt;&lt;br /&gt;&lt;/p&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;The GenericWrapper node can deal with up to four input and six output nodes. &lt;/span&gt;&lt;/p&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;The inputs are designed as lists, but by definition can also be single files (lists of length 1).&lt;/span&gt;&lt;/p&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Outputs are up to four single files (out1 to out4) or lists (outlist1 and outlist2).&lt;/span&gt;&lt;/p&gt; &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#000000;&quot;&gt;&lt;br /&gt;&lt;/p&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;This is useful in TOPPAS since for output lists the number of files is deduced by TOPPAS from the length of the input list(s).&lt;/span&gt;&lt;/p&gt; &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;If your R script writes single files no matter how long the input lists are, then use out1 to out4.&lt;/span&gt;&lt;/p&gt; &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#000000;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;]]&gt;" type="string" description="" required="false" advanced="false" />
+  </NODE>
+  <NODE name="vertices" description="">
+    <NODE name="0" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="input file list" type="string" description="" required="false" advanced="false" />
+      <ITEMLIST name="file_names" type="string" description="" required="false" advanced="false">
+        <LISTITEM value="../BSA/BSA1_OMSSA.idXML"/>
+        <LISTITEM value="../BSA/BSA2_OMSSA.idXML"/>
+      </ITEMLIST>
+      <ITEM name="x_pos" value="-160" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="80" type="double" description="" required="false" advanced="false" />
+    </NODE>
+    <NODE name="6" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="output file list" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="440" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-60" type="double" description="" required="false" advanced="false" />
+      <ITEM name="output_folder_name" value="" type="string" description="" required="false" advanced="false" />
+    </NODE>
+    <NODE name="1" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="input file list" type="string" description="" required="false" advanced="false" />
+      <ITEMLIST name="file_names" type="string" description="" required="false" advanced="false">
+        <LISTITEM value="../../SCRIPTS/Rscript_generic_example.R"/>
+      </ITEMLIST>
+      <ITEM name="x_pos" value="-60" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-260" type="double" description="" required="false" advanced="false" />
+    </NODE>
+    <NODE name="2" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="input file list" type="string" description="" required="false" advanced="false" />
+      <ITEMLIST name="file_names" type="string" description="" required="false" advanced="false">
+        <LISTITEM value="data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta"/>
+      </ITEMLIST>
+      <ITEM name="x_pos" value="-160" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-60" type="double" description="" required="false" advanced="false" />
+    </NODE>
+    <NODE name="3" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="merger" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="0" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="20" type="double" description="" required="false" advanced="false" />
+      <ITEM name="round_based" value="false" type="string" description="" required="false" advanced="false" />
+    </NODE>
+    <NODE name="4" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_name" value="GenericWrapper" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_type" value="Rscript_generic" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="200" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-60" type="double" description="" required="false" advanced="false" />
+      <NODE name="parameters" description="">
+        <ITEM name="type" value="Rscript_generic" type="string" description="Which external tool configuration to load?! See &apos;C:/dev/oms/share/OpenMS/TOOLS/EXTERNAL&apos;." required="false" advanced="false" restrictions="hardklor,RAWFileConvert,QCMLExport,RAWDirConvert,Rscript_generic,Rscript_qcfigures_acc,Rscript_qcfigures_idmap,Rscript_qcfigures_setid,Rscript_qcfigures_tic,TPP_RefreshParser,TPP_ProteinProphet" />
+        <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
+        <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
+        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+        <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" required="false" advanced="true" restrictions="true,false" />
+        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" restrictions="true,false" />
+        <NODE name="ETool" description="tool specific parameters">
+          <ITEM name="file_script" value="" type="input-file" description="input R script; an example is provided in share/OpenMS/SCRIPTS/Rscript_generic_example.R" required="false" advanced="false" />
+          <ITEMLIST name="in1" type="input-file" description="Input file(s) separated by blanks" required="false" advanced="false">
+          </ITEMLIST>
+          <ITEMLIST name="in2" type="input-file" description="Input file(s) separated by blanks" required="false" advanced="false">
+          </ITEMLIST>
+          <ITEMLIST name="in3" type="input-file" description="Input file(s) separated by blanks" required="false" advanced="false">
+          </ITEMLIST>
+          <ITEMLIST name="in4" type="input-file" description="Input file(s) separated by blanks" required="false" advanced="false">
+          </ITEMLIST>
+          <ITEM name="out1" value="" type="output-file" description="Output file which your R script writes to" required="false" advanced="false" />
+          <ITEM name="out2" value="" type="output-file" description="Output file which your R script writes to" required="false" advanced="false" />
+          <ITEM name="out3" value="" type="output-file" description="Output file which your R script writes to" required="false" advanced="false" />
+          <ITEM name="out4" value="" type="output-file" description="Output file which your R script writes to" required="false" advanced="false" />
+          <ITEMLIST name="outlist1" type="output-file" description="Output file(s) separated by blanks" required="false" advanced="false">
+          </ITEMLIST>
+          <ITEMLIST name="outlist2" type="output-file" description="Output file(s) separated by blanks" required="false" advanced="false">
+          </ITEMLIST>
+        </NODE>
+      </NODE>
+    </NODE>
+    <NODE name="5" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="output file list" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="440" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="80" type="double" description="" required="false" advanced="false" />
+      <ITEM name="output_folder_name" value="" type="string" description="" required="false" advanced="false" />
+    </NODE>
+  </NODE>
+  <NODE name="edges" description="">
+    <NODE name="0" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="0/3" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+    <NODE name="1" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="4/6" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="ETool:out1" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+    <NODE name="2" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="1/4" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="ETool:file_script" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+    <NODE name="3" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="4/5" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="ETool:outlist1" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+    <NODE name="4" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="3/4" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="ETool:in2" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+    <NODE name="5" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="2/4" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="ETool:in1" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+  </NODE>
+</PARAMETERS>

@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="consensusXML">
+		<xs:annotation>
+			<xs:documentation> Schema for a  result of an multiple LC-MS map alignment. </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="mapList"/>
+				<xs:element ref="alignmentMethod" minOccurs="0"/>
+				<xs:element ref="alignmentNewickTree" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>The Newick Tree illustrates in which succession the maps were aligned.  Leaves represent the map ids and the weight of the edges indicates the id of the corresponding transformation (http://evolution.genetics.washington.edu/phylip/newicktree.html).</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element ref="transformationList" minOccurs="0"/>
+				<xs:element ref="consensusElementList"/>
+			</xs:sequence>
+			<xs:attribute name="version" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Schema version, e.g. '1.1'. If it is missing, version 1.0 is assumed.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="alignmentMethod">
+		<xs:annotation>
+			<xs:documentation>The type of the alignment method</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="matchingAlgorithm"/>
+				<xs:element ref="consensusAlgorithm"/>
+			</xs:sequence>
+			<xs:attribute name="name" use="optional">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="StarAlignmemt"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="mapList">
+		<xs:annotation>
+			<xs:documentation>This list contains the names of all LC-MS file which were aligned.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="mapType"/>
+				<xs:element ref="map" maxOccurs="unbounded"/>
+			</xs:sequence>
+			<xs:attribute name="count" type="xs:unsignedInt" use="required">
+				<xs:annotation>
+					<xs:documentation>Number of maps.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="mapType">
+		<xs:annotation>
+			<xs:documentation>The format of the aligned LC-MS maps. Use "feat_map" for feature maps which are stored in featureXML or "consensus_map" for consensus maps in ConsensusXML..</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:attribute name="name" use="required">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="feature_map"/>
+						<xs:enumeration value="peak_map"/>
+						<xs:enumeration value="consensus_map"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="map">
+		<xs:complexType>
+			<xs:attribute name="name" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>Name of the map.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="id" type="xs:unsignedInt" use="required">
+				<xs:annotation>
+					<xs:documentation>Id of the map.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="count" type="xs:unsignedInt" use="required">
+				<xs:annotation>
+					<xs:documentation>Number of elements.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="matchingAlgorithm">
+		<xs:annotation>
+			<xs:documentation>The type of the matching algorithm which is used to compute the transformations.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:attribute name="name" use="required">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="poseclustering_pairwise"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="transformationList">
+		<xs:annotation>
+			<xs:documentation>This list contains all  warping functions, which were determined during pairwise alignmnets.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="transformation" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="transformation">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="cell" minOccurs="0"/>
+			</xs:sequence>
+			<xs:attribute name="name" use="required">
+				<xs:annotation>
+					<xs:documentation>Type of the transformation.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="AffineTransformation"/>
+						<xs:enumeration value="IdentityTransformation"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="id" type="xs:unsignedInt" use="required">
+				<xs:annotation>
+					<xs:documentation>Id of the transformation.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="cell">
+		<xs:annotation>
+			<xs:documentation>The domain of a continuous transformation can be defined by only one cell. Wheras a piecewise  transformation is defined by several cells.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="range"/>
+				<xs:element ref="mappinglist"/>
+			</xs:sequence>
+			<xs:attribute name="nr" type="xs:unsignedInt" use="required">
+				<xs:annotation>
+					<xs:documentation>Number of grid cells.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="mappinglist">
+		<xs:annotation>
+			<xs:documentation>Here all information about the transformations of the RT and m/z dimension are stored.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="rtMapping"/>
+				<xs:element ref="mzMapping"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="rtMapping">
+		<xs:annotation>
+			<xs:documentation>The transformation parameters in RT dimension.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="param" maxOccurs="unbounded"/>
+			</xs:sequence>
+			<xs:attribute name="name" use="required">
+				<xs:annotation>
+					<xs:documentation>Name of the class used to compute the transformation.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="LinearMapping"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="range">
+		<xs:annotation>
+			<xs:documentation>The domain of a transformation.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:attribute name="rtMin" type="xs:double" use="required">
+				<xs:annotation>
+					<xs:documentation>The minimal retention time defined by the range.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="rtMax" type="xs:double" use="required">
+				<xs:annotation>
+					<xs:documentation>The maximal retention time defined by the range.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="mzMin" type="xs:double" use="required">
+				<xs:annotation>
+					<xs:documentation>The minimal m/z defined by the range.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="mzMax" type="xs:double" use="required">
+				<xs:annotation>
+					<xs:documentation>The maximal m/z defined by the range.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="itMin" type="xs:double">
+				<xs:annotation>
+					<xs:documentation>The minimal intensity defined by the range.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="itMax" type="xs:double">
+				<xs:annotation>
+					<xs:documentation>The minimal intensity defined by the range.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="param">
+		<xs:annotation>
+			<xs:documentation>The parameters of a transformation.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:attribute name="value" type="xs:double" use="required">
+				<xs:annotation>
+					<xs:documentation>Value of the transformation parameter.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="name" use="required">
+				<xs:annotation>
+					<xs:documentation>Transformation parameter.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string"/>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="mzMapping">
+		<xs:annotation>
+			<xs:documentation>The transformation parameters in MZ dimension.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="param" maxOccurs="unbounded"/>
+			</xs:sequence>
+			<xs:attribute name="name" use="required">
+				<xs:annotation>
+					<xs:documentation>Name of the class used to compute the transformation.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="LinearMapping"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="alignmentNewickTree">
+		<xs:annotation>
+			<xs:documentation>The Newick Tree illustrates in which succession the maps were aligned.  Leaves represent the map ids and the weight of the edges indicates the id of the corresponding transformation. ADD LINK</xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+			<xs:restriction base="xs:string"/>
+		</xs:simpleType>
+	</xs:element>
+	<xs:element name="consensusAlgorithm">
+		<xs:annotation>
+			<xs:documentation>The type of the consensus algorithm which searches for corresponding elements in all maps.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:attribute name="name" use="required">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="delaunay"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="consensusElementList">
+		<xs:annotation>
+			<xs:documentation>The list of consensus elements.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="consensusElement" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>The consensus element combines corresponding elements of the maps. </xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="consensusElement">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="centroid"/>
+				<xs:element ref="range"/>
+				<xs:element ref="groupedElementList"/>
+			</xs:sequence>
+			<xs:attribute name="id" type="xs:unsignedInt" use="required">
+				<xs:annotation>
+					<xs:documentation>Id of the consensus element.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="centroid">
+		<xs:annotation>
+			<xs:documentation>The centroid coordinates of the consensus element.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:attribute name="rt" type="xs:double" use="required">
+				<xs:annotation>
+					<xs:documentation>Retention time.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="mz" type="xs:double" use="required">
+				<xs:annotation>
+					<xs:documentation>M/Z value.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="it" type="xs:double" use="required">
+				<xs:annotation>
+					<xs:documentation>Intensity.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="groupedElementList">
+		<xs:annotation>
+			<xs:documentation>The list of elements which are grouped together and define this consensus element.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="element" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>The combined elements.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="element">
+		<xs:complexType>
+			<xs:attribute name="rt" type="xs:double" use="required">
+				<xs:annotation>
+					<xs:documentation>Retention time of the element.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="mz" type="xs:double" use="required">
+				<xs:annotation>
+					<xs:documentation>M/Z of the element.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="map" type="xs:double" use="required">
+				<xs:annotation>
+					<xs:documentation>The element's original map.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="it" type="xs:double" use="required">
+				<xs:annotation>
+					<xs:documentation>The intensity of the element.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="id" type="xs:unsignedInt" use="required">
+				<xs:annotation>
+					<xs:documentation>The element's index in its original map.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

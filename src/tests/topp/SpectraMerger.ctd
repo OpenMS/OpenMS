@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool ctdVersion="1.8" version="3.5.0-pre-nuc-dia-2025-07-24" name="SpectraMerger" docurl="http://www.openms.de/doxygen/nightly/html/TOPP_SpectraMerger.html" category="Spectrum processing: Misc" >
+<description><![CDATA[Merges spectra (each MS level separately), increasing S/N ratios.]]></description>
+<manual><![CDATA[Merges spectra (each MS level separately), increasing S/N ratios.]]></manual>
+<citations>
+  <citation doi="10.1038/s41592-024-02197-7" url="" />
+</citations>
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="SpectraMerger" description="Merges spectra (each MS level separately), increasing S/N ratios.">
+    <ITEM name="version" value="3.5.0-pre-nuc-dia-2025-07-24" type="string" description="Version of the tool that generated this parameters file." required="false" advanced="true" />
+    <NODE name="1" description="Instance &apos;1&apos; section for &apos;SpectraMerger&apos;">
+      <ITEM name="in" value="" type="input-file" description="Input mzML file." required="true" advanced="false" supported_formats="*.mzML" />
+      <ITEM name="out" value="" type="output-file" description="Output mzML file with merged spectra." required="true" advanced="false" supported_formats="*.mzML" />
+      <ITEM name="merging_method" value="average_gaussian" type="string" description="Method of merging which should be used." required="false" advanced="false" restrictions="average_gaussian,average_tophat,precursor_method,block_method" />
+      <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
+      <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
+      <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+      <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
+      <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
+      <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
+      <NODE name="algorithm" description="Algorithm section for merging spectra">
+        <ITEM name="mz_binning_width" value="5.0" type="double" description="minimum m/z distance for two data points (profile data) or peaks (centroided data) to be considered distinct. Closer data points or peaks will be merged." required="false" advanced="true" restrictions="0.000000:" />
+        <ITEM name="mz_binning_width_unit" value="ppm" type="string" description="Unit in which the distance between two data points or peaks is given." required="false" advanced="true" restrictions="Da,ppm" />
+        <ITEM name="sort_blocks" value="RT_ascending" type="string" description="Sort blocks by &lt;?&gt; before merging them (useful for precursor order)" required="false" advanced="true" restrictions="RT_ascending,RT_descending" />
+        <NODE name="average_gaussian" description="">
+          <ITEM name="spectrum_type" value="automatic" type="string" description="Spectrum type of the MS level to be averaged" required="false" advanced="false" restrictions="profile,centroid,automatic" />
+          <ITEM name="ms_level" value="1" type="int" description="If set to be 0, each MS level will be merged from 1 to max. Otherwise, average spectra of this level. All other spectra remain unchanged." required="false" advanced="false" restrictions="0:" />
+          <ITEM name="rt_FWHM" value="5.0" type="double" description="FWHM of Gauss curve in seconds to be averaged over." required="false" advanced="false" restrictions="0.000000:100000000000.000000" />
+          <ITEM name="cutoff" value="0.01" type="double" description="Intensity cutoff for Gaussian. The Gaussian RT profile decreases from 1 at its apex to 0 at infinity. Spectra for which the intensity of the Gaussian drops below the cutoff do not contribute to the average." required="false" advanced="true" restrictions="0.000000:1.000000" />
+          <ITEM name="precursor_mass_tol" value="0.0" type="double" description="PPM mass tolerance for precursor mass. If set, MSn (n&gt;2) spectra of precursor masses within the tolerance are averaged." required="false" advanced="false" restrictions="0.000000:" />
+          <ITEM name="precursor_max_charge" value="1" type="int" description="Possible maximum precursor ion charge. Effective only when average_gaussian:precursor_mass_tol option is active." required="false" advanced="false" restrictions="1:" />
+        </NODE>
+        <NODE name="average_tophat" description="">
+          <ITEM name="spectrum_type" value="automatic" type="string" description="Spectrum type of the MS level to be averaged" required="false" advanced="false" restrictions="profile,centroid,automatic" />
+          <ITEM name="ms_level" value="1" type="int" description="If set to be 0, each MS level will be merged from 1 to max. Otherwise, average spectra of this level. All other spectra remain unchanged." required="false" advanced="false" restrictions="0:" />
+          <ITEM name="rt_range" value="5.0" type="double" description="RT range to be averaged over, i.e. +/-(RT range)/2 from each spectrum." required="false" advanced="false" restrictions="0.000000:100000000000.000000" />
+          <ITEM name="rt_unit" value="scans" type="string" description="Unit for RT range." required="false" advanced="false" restrictions="scans,seconds" />
+        </NODE>
+        <NODE name="block_method" description="">
+          <ITEMLIST name="ms_levels" type="int" description="Merge spectra of this level. All spectra with other MS levels remain untouched." required="false" advanced="false" restrictions="1:" >
+            <LISTITEM value="1"/>
+          </ITEMLIST>
+          <ITEM name="rt_block_size" value="5" type="int" description="Maximum number of scans to be summed up." required="false" advanced="false" restrictions="1:" />
+          <ITEM name="rt_max_length" value="0.0" type="double" description="Maximum RT size of the block in seconds (0.0 = no size restriction)." required="false" advanced="false" restrictions="0.000000:100000000000.000000" />
+        </NODE>
+        <NODE name="precursor_method" description="">
+          <ITEM name="mz_tolerance" value="1.0e-04" type="double" description="Max m/z distance of the precursor entries of two spectra to be merged in [Da]." required="false" advanced="false" restrictions="0.000000:" />
+          <ITEM name="mass_tolerance" value="0.0" type="double" description="Max mass distance of the precursor entries of two spectra to be merged in [Da]. Active when set to a positive value." required="false" advanced="false" restrictions="0.000000:" />
+          <ITEM name="rt_tolerance" value="5.0" type="double" description="Max RT distance of the precursor entries of two spectra to be merged in [s]." required="false" advanced="false" restrictions="0.000000:" />
+        </NODE>
+      </NODE>
+    </NODE>
+  </NODE>
+</PARAMETERS>
+</tool>

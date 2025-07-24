@@ -417,7 +417,6 @@ namespace OpenMS
     }
     OPENMS_LOG_DEBUG << "annotateSpectra(): (input size: " << spectra.size() << ") (annotated spectra: " << annotated_spectra.size() << ")\n" << std::endl;
   }
-
   void TargetedSpectraExtractor::annotateSpectra(
     const std::vector<MSSpectrum>& spectra,
     const TargetedExperiment& targeted_exp,

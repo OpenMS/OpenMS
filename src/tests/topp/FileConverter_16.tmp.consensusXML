@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" id="cm_5233264595117471314" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="FileConverter" version="version_string" />
+		<processingAction name="File format conversion" />
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<mapList count="3">
+		<map id="0" name="FileConverter_16_input.edta" label="EDTA_Map 0" size="6">
+		</map>
+		<map id="1" name="FileConverter_16_input.edta" label="EDTA_Map 1" size="6">
+		</map>
+		<map id="2" name="FileConverter_16_input.edta" label="EDTA_Map 2" size="6">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_2927519776102075938" quality="0.0" charge="1">
+			<centroid rt="698.639999999999986" mz="1131.50240000000008" it="1.1824e05"/>
+			<groupedElementList>
+				<element map="0" id="16907355690727166316" rt="699.0" mz="1132.0" it="1.2e05" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_1755235105885170967" quality="0.0" charge="1">
+			<centroid rt="2120.2199999999998" mz="1144.620899999999892" it="1.0181e05"/>
+			<groupedElementList>
+				<element map="0" id="14811341817612382122" rt="2120.0" mz="1145.0" it="1.0e05" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_17314619952666245179" quality="0.0" charge="1">
+			<centroid rt="3673.019999999999982" mz="1005.474199999999996" it="7.3612e04"/>
+			<groupedElementList>
+				<element map="0" id="3023658190814908261" rt="3673.0" mz="1005.0" it="7.0e04" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_6408859317243173796" quality="0.0" charge="1">
+			<centroid rt="5213.819999999999709" mz="901.457120000000032" it="5.9424e04"/>
+			<groupedElementList>
+				<element map="0" id="474525871221756682" rt="5213.0" mz="901.0" it="6.0e04" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_4835329514588776807" quality="0.0" charge="1">
+			<centroid rt="5558.699999999999818" mz="1101.529800000000023" it="3.6976e04"/>
+			<groupedElementList>
+				<element map="0" id="17749660155506638460" rt="5559.0" mz="1102.0" it="4.0e04" charge="1"/>
+				<element map="1" id="7804704400743266335" rt="5560.0" mz="1103.0" it="2.0e04" charge="1"/>
+				<element map="2" id="15004869347769368353" rt="5561.0" mz="1102.0" it="1.0e04" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_3332699010107892018" quality="0.0" charge="1">
+			<centroid rt="6048.0" mz="1088.792500000000018" it="3.2667e04"/>
+			<groupedElementList>
+				<element map="0" id="13440783915218733453" rt="6048.0" mz="1089.0" it="3.0e04" charge="1"/>
+				<element map="1" id="15916652588957785155" rt="6049.0" mz="1100.0" it="1.0e04" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

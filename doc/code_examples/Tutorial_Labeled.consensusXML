@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<mapList count="2">
+		<map id="0" name="data/Tutorial_Labeled.mzML" label="light" size="6">
+		</map>
+		<map id="1" name="data/Tutorial_Labeled.mzML" label="heavy" size="6">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_5354354861794526795" quality="0.207712" charge="1">
+			<centroid rt="4789.625" mz="734.230000000000018" it="1.087219e05"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="4789.659999999999855" mz="734.230000000000018" it="7.89554e04" charge="1"/>
+				<element map="1" id="3" rt="4789.590000000000146" mz="738.259999999999991" it="1.384884e05" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

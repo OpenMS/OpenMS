@@ -1,0 +1,109 @@
+<ttd>
+	<tool status="external">
+		<category>FeatureFinding</category>
+		<type>hardklor</type>
+		<external>
+      <text>
+        <onstartup>Calling Hardklor ... Wrapper was tested with "Hardklor" v1.34, report issues to the OpenMS team at www.OpenMS.de</onstartup>
+        <onfail>Please check everything ... this is still work in progress.</onfail>
+        <onfinish>Hardklor finished successfully.</onfinish>
+      </text>    
+		  <e_category>FeatureFinding</e_category>
+      <!-- ignored following options
+       -m %8
+       -s %14
+       -sc %15 %16
+       -w %20 %21 
+       %28 is an additional parameter for user specified input to hardklor (see ignored parameters)
+       
+       NOTE: Input and output need to be the first parameters to avoid 
+             runtime problems
+       -->
+		  <cloptions> "%23" "%24" -a %1 -cdm %2 -chMin %3 -chMax %4 -corr %5 -d %6 -hdat "%7" -mdat "%9" %10 -p %11 -res %12 %13 -sl %17 -sn %18 -snWin %19 -win %22 %26 %25 %28</cloptions>
+		  <path>hardklor</path>
+      <workingdirectory>.</workingdirectory>
+		  <mappings>
+			<mapping id="1" cl="%%algorithm" />
+			<mapping id="2" cl="%%charge_state_determination" />
+      <mapping id="3" cl="%%chMin" />
+      <mapping id="4" cl="%%chMax" />
+      <mapping id="5" cl="%%correlation" />
+      <mapping id="6" cl="%%depth" />
+      <mapping id="7" cl="%%hdat" />
+      <!-- <mapping id="8" cl="%%modification" /> -->
+      <mapping id="9" cl="%%mdat" />
+      <mapping id="10" cl="%%mF" />
+      <mapping id="11" cl="%%p" />
+      <mapping id="12" cl="%%resolution" />
+      <mapping id="13" cl="%%resolution_type" />
+      <!-- <mapping id="14" cl="%%s" /> -->
+      <!-- <mapping id="15" cl="%%scan_min" /> -->
+      <!-- <mapping id="16" cl="%%scan_max" /> -->
+      <mapping id="17" cl="%%sl" />
+      <mapping id="18" cl="%%sn" />
+      <mapping id="19" cl="%%snWin" />
+      <!--
+      <mapping id="20" cl="%%window_min_mz" />
+      <mapping id="21" cl="%%window_max_mz" />
+      -->
+      <mapping id="22" cl="%%win" />
+      <mapping id="23" cl="%%in" />
+      <mapping id="24" cl="%%out" />    
+      <mapping id="25" cl="%%peak_detection_mode" />    
+      <mapping id="26" cl="%%flag_no_base_averagin" />        
+      <mapping id="28" cl="%%additional_parameters" />    
+		  </mappings>
+		  <ini_param>
+			<ITEM name="in" value="" type="string" description="input file in mzXML format(valid formats: &apos;mzXML&apos;)" tags="input file" />
+			<ITEM name="out" value="" type="string" description="output file in txt format(valid formats: &apos;txt&apos;)" tags="output file" />
+
+			<ITEM name="algorithm" type="string" value="Basic" description="Chooses the algorithm for analyzing combinations of multiple peptide/protein isotope distributions. There are five algorithms to choose from: &lt;br&gt;&lt;br&gt;&lt;em&gt;Basic&lt;/em&gt; - Computes all combinatorial possibilities and returns the combination with the highest score. &lt;br&gt;&lt;em&gt;FewestPeptides&lt;/em&gt; - Computes increasing depths of combinations until the score threshold is exceeded. The smallest combination exceeding the threshold is returned, preventing &apos;over-fitting&apos; of the data. &lt;br&gt; &lt;em&gt;FastFewestPeptides&lt;/em&gt; - Same as the &lt;em&gt;FewestPeptides&lt;/em&gt; algorithm, but trades memory usage for speed. Use this method if there is sufficient memory on the system.&lt;br&gt; &lt;em&gt;FewestPeptidesChoice&lt;/em&gt; - Same as the &lt;em&gt;FewestPeptides&lt;/em&gt; algorithm, but adds a heuristic to evaluate if further combinatorial analysis would produce a better score. This method can dramatically improve speed, but may not be as accurate. &lt;br&gt; &lt;em&gt;FastFewestPeptidesChoice&lt;/em&gt; - Same as the &lt;em&gt;FewestPeptidesChoice&lt;/em&gt; algorithm, but trades memory usage for speed. Use this method if there is sufficient memory on the system. &lt;br&gt; The default setting is Basic." restrictions="Basic,FewestPeptides,FastFewestPeptides,FewestPeptidesChoice,FastFewestPeptidesChoice" />
+			
+      <ITEM name="charge_state_determination" type="string" value="B" description="Chooses the charge state determination method. There are five methods to choose from: &lt;br&gt; &lt;em&gt;B&lt;/em&gt; - Basic method, assume all charge states are possible.&lt;br&gt; &lt;em&gt;F&lt;/em&gt; - Fast Fourier Transform.&lt;br&gt; &lt;em&gt;P&lt;/em&gt; - Patterson algorithm.&lt;br&gt; &lt;em&gt;Q&lt;/em&gt; - QuickCharge method, uses inverse peak distances.&lt;br&gt; &lt;em&gt;S&lt;/em&gt; - Senko method, or combined Fast Fourier Transform and Patterson algorithm.&lt;br&gt; The default setting is B." restrictions="B,F,P,Q,S" />
+      
+      <ITEM name="chMin" type="int" value="1" description="Sets the minimum charge state to look for when analyzing a spectrum. The default value is 1." restrictions="0:" />
+      <ITEM name="chMax" type="int" value="3" description="Sets the maximum charge state to look for when analyzing a spectrum. The default value is 3." restrictions="0:" />
+      <ITEM name="correlation" type="float" value="0.90" description="Sets the correlation threshold to accept a predicted isotope distribution. Valid values are any decimal value between 0.0 and 1.0, inclusive. The default value is 0.90." restrictions="0.0:1.0" />
+      
+      <ITEM name="depth" type="int" value="3" description="Sets the depth of combinatorial analysis. This is the maximum number of protein/peptide distributions that can be combined to estimate the observed data at any given spectrum segment. The default value is 3" restrictions="0:"/>
+      <ITEM name="hdat" type="string" value="" description="Gives the full path and file name of the Hardklör data file (typically Hardklor.dat) to be used in the analysis." tags="input file,required" />
+      
+      <!--
+      <ITEM name="modification" value="" type="string" description="Includes alternative averagine models in the analysis that incorporate additional atoms and/or isotopic enrichments. Modifications are represented as text strings. Inclusion of additional atoms in the model is done using by entering an atomic formula,such as: PO2 or Cl. Inclusion of isotopic enrichment to the model is done by specifying the percent enrichment (as a decimal) followed by the atom being enriched and an index of the isotope. For example, 0.75H1 specifies 75% enrichment of the first heavy isotope of hydrogen. In other words, 75% deuterium enrichment. Two or more modifications can be combined into the same model, and separated by spaces: B2 0.5B1 This parameter can also be used redundantly to include multiple alternative averagine models in a single analysis."/>
+      -->
+      
+      <ITEM name="mdat" type="string" value="" description="Gives the full path and file name of the Mercury data file (typically ISOTOPE.DAT) to be used in the analysis." tags="input file,required" />
+      <ITEM name="mF" type="string"  value="" description="Sets a filter for mzXML files. If you want to analyze only the MS2 scans in your mzXML file, specify -mF MS2. Valid values are MS1, MS2, MS3." restrictions="-mF MS1,-mF MS2,-mF MS3" />
+      
+      <ITEM name="p" type="int" value="10" description="Sets the maximum number of peptides or proteins that are estimated from the peaks found in a spectrum segment. The default value is 10." restrictions="0:" />
+      <ITEM name="resolution"  value="100000" type="float" description="Sets the resolution of the observed spectra at m/z 400. The default setting is 100000." restrictions="0.0:" />
+      <ITEM name="resolution_type" value="FTICR" type="string" description="The user must specify a mass spectrometer code. Valid codes are FTICR, OrbiTrap, TOF, and QIT. The default settings is FTICR." restrictions="FTICR,OrbiTrap,TOF,QIT" />
+      
+      <!--
+      <ITEM name="s" type="int" description="Applies polynomial Savitsky-Golay smoothing of the mass spectra prior to analysis. The integer supplied with the flag sets the width of the smoothing window. A larger width makes smoother peaks, but has more alteration of peak intensity. By default there is no smoothing."/>
+      <ITEM name="scan_min" type="int" description="Performs analysis on a specific spectrum or set of spectra in the input file. The user specifies the specta by scan number. The user may specify a single spectrum, ex: -s 523, or a range of spectra, ex: -s 300 500."/>      
+      <ITEM name="scan_max" type="int" description=""/>
+      -->
+      
+      <ITEM name="sl" type="int" value="1" description="Sets the sensitivity level. There are four levels, 0 (low), 1 (moderate), 2 (high), and 3 (max). Increasing the sensitivity may increase computation time. The default value is 1." restrictions="0:3" />
+      
+      <ITEM name="sn" type="float" value="3.0" description="Sets the signal-over-noise threshold. Any integer or decimal value greater than or equal to 0.0 is valid. The default value is 3.0." restrictions="0.0:" />
+      
+      <ITEM name="snWin" type="float" value="50.0" description="Sets the signal-over-noise window length (in m/z). Because noise may be non-uniform across a spectra, this value adjusts the segment size considered when calculating a signal-over-noise ratio. The default value is 50.0." restrictions="0.0:" />
+      
+      <!--
+      <ITEM name="window_min_mz" type="float" description="Narrows analysis to only a small window in each segment (in m/z). The user must specify the starting and ending m/z values between which the analysis will be performed. By default the whole spectrum is analyzed."/>
+      <ITEM name="window_max_mz" type="float" description=""/>
+      -->
+      
+      <ITEM name="win" type="float" value="5.0" description="Sets the maximum width of any set of peaks in a spectrum when computing the results (in m/z). Thus, if the value was 5.0, then sets of peaks greater than 5 m/z are divided into smaller sets prior to analysis. The default value is 5.0." restrictions="0.0:" />
+
+      <ITEM name="peak_detection_mode" value="-i" type="string" description="Sets peak detection. Available modes are &apos;intersection mode&apos; (-i, default) and &apos;union mode&apos; (-u). Spectra are analyzed for peaks in overlapping segments. When intersection mode is set, peaks are only accepted if they appear in two overlapping segments. When union mode is set, peaks are accepted regardless of whether they appear in one segment or two overlapping segments. Intersection is turned on by default." restrictions="-u,-i" />
+      <ITEM name="flag_no_base_averagin" value="" type="string" description="Specifies &apos;no base&apos; averagine. Only modified averagine models will be used in the analysis." restrictions=",-nb" />    
+      
+      <ITEM name="additional_parameters" value="" type="string" description="Some of the &apos;hardkloer&apos; parameters could not be translated to an appropriate representation in ttd-Format and are therefore collected in this single parameter. These parameter will be given directly to &apos;hardklor&apos; any checks or prefix. Options collected here are: &lt;br&gt;&lt;br&gt; &lt;b&gt;-w [double] [double]&lt;/b&gt; Narrows analysis to only a small window in each segment (in m/z). The user must specify the starting and ending m/z values between which the analysis will be performed. By default the whole spectrum is analyzed.&apos; &lt;br&gt;&lt;br&gt; &lt;b&gt;-s [int] &lt;/b&gt; Applies polynomial Savitsky-Golay smoothing of the mass spectra prior to analysis. The integer supplied with the flag sets the width of the smoothing window. A larger width makes smoother peaks, but has more alteration of peak intensity. By default there is no smoothing. &lt;br&gt;&lt;br&gt; &lt;b&gt;-sc [int] [int]&lt;/b&gt; Performs analysis on a specific spectrum or set of spectra in the input file. The user specifies the specta by scan number. The user may specify a single spectrum, ex: -sc 523, or a range of spectra, ex: -sc 300 500 &lt;br&gt;&lt;br&gt; &lt;b&gt;-m [modification]&lt;/b&gt; Includes alternative averagine models in the analysis that incorporate additional atoms and/or isotopic enrichments. Modifications are represented as text strings. Inclusion of additional atoms in the model is done using by entering an atomic formula,such as: PO2 or Cl. Inclusion of isotopic enrichment to the model is done by specifying the percent enrichment (as a decimal) followed by the atom being enriched and an index of the isotope. For example, 0.75H1 specifies 75% enrichment of the first heavy isotope of hydrogen. In other words, 75% deuterium enrichment. Two or more modifications can be combined into the same model, and separated by spaces: B2 0.5B1 This parameter can also be used redundantly to include multiple alternative averagine models in a single analysis." tags="advanced" />    
+     
+		  </ini_param>
+		</external>
+	</tool>
+</ttd>

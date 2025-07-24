@@ -1,0 +1,52 @@
+general: file name	/workspaces/OpenMS/src/tests/toppas/ExecutePipeline_1.mzML
+general: file type	mzML
+number of spectra	4
+total number of peaks	65
+general: combined ranges: retention time: min	0.00
+general: combined ranges: retention time: max	14.00
+general: combined ranges: mass-to-charge: min	0.00
+general: combined ranges: mass-to-charge: max	18.00
+general: combined ranges: intensity: min	1.00
+general: combined ranges: intensity: max	20.00
+general: spectrum ranges: retention time: min	5.10
+general: spectrum ranges: retention time: max	5.40
+general: spectrum ranges: mass-to-charge: min	0.00
+general: spectrum ranges: mass-to-charge: max	18.00
+general: spectrum ranges: intensity: min	1.00
+general: spectrum ranges: intensity: max	20.00
+general: MS1 ranges: retention time: min	5.10
+general: MS1 ranges: retention time: max	5.40
+general: MS1 ranges: mass-to-charge: min	0.00
+general: MS1 ranges: mass-to-charge: max	14.00
+general: MS1 ranges: intensity: min	1.00
+general: MS1 ranges: intensity: max	15.00
+general: MS2 ranges: retention time: min	5.20
+general: MS2 ranges: retention time: max	5.20
+general: MS2 ranges: mass-to-charge: min	0.00
+general: MS2 ranges: mass-to-charge: max	18.00
+general: MS2 ranges: intensity: min	2.00
+general: MS2 ranges: intensity: max	20.00
+general: chromatogram ranges: retention time: min	0.00
+general: chromatogram ranges: retention time: max	14.00
+general: chromatogram ranges: mass-to-charge: min	0.00
+general: chromatogram ranges: mass-to-charge: max	0.00
+general: chromatogram ranges: intensity: min	1.00
+general: chromatogram ranges: intensity: max	15.00
+number of MS1 spectra	3
+number of MS2 spectra	1
+peak type metadata [annotation, estimate]	Centroid	Centroid
+peak type metadata [annotation, estimate]	Centroid	Unknown
+activation methods (mslevel, method, count)	2	CID	1
+activation methods (mslevel, method, count)	2	PD	1
+activation methods (mslevel, method, count)	2	ETD	1
+general: charge distribution: charge: 2	1
+number of chromatograms	2
+number of chromatographic peaks	25
+document id	document_accession
+date	2007-06-27 15:23:45
+sample name	Sample1
+sample organism	
+sample comment	
+instrument name	LCQ Deca
+instrument model	
+instrument vendor	

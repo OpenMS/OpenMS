@@ -1,0 +1,30 @@
+<ttd>
+	<tool status="external">
+		<category>does not really matter</category>
+		<type>Rscript_qcfigures_tic</type>
+		<external>
+				<text>
+					<onstartup>Calling Rscript tic ...</onstartup>
+					<onfail>Something went wrong. Is 'R' in your PATH?</onfail>
+					<onfinish>Tool finished successfully.</onfinish>
+				</text>
+			<e_category>FileConversion</e_category>
+			<cloptions>--vanilla "%1/ProduceQCFigures_tic.R" "%2" "%3"</cloptions>
+			<path>Rscript</path>
+			<mappings>
+				<mapping id="1" cl="%%scriptpath" />
+				<mapping id="2" cl="%%inTSVtic" />
+				<mapping id="3" cl="%TMP/%BASENAME[%%inTSVtic]_tic.png" />
+				<file_post location="%TMP/%BASENAME[%%inTSVtic]_tic.png" target="out" />
+			</mappings>
+			<ini_param>
+				<ITEM name="scriptpath" value="." type="string" description="input script path, this should point
+to share/OpenMS/SCRIPTS of your OpenMS installation"/>
+				<ITEM name="inTSVtic" value="" type="string" description="tabular input data for tic stats(valid formats:
+&apos;unknown,tsv&apos;)" tags="input file" />
+				<ITEM name="out" value="" type="string" description="output figure from R(valid formats:
+&apos;png&apos;)" tags="output file" />
+			</ini_param>
+		</external>
+	</tool>
+</ttd>

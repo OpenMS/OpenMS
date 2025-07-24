@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+	</SearchParameters>
+	<IdentificationRun date="2006-03-09T11:31:52" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
+			<ProteinHit id="PH_0" accession="ABCDE" score="0.0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="FGHIJ" score="0.0" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="31.862100000000002" MZ="1005.0" RT="90.0" >
+			<PeptideHit score="35.0" sequence="G" charge="3" protein_refs="PH_1" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="31.862100000000002" MZ="995.0" RT="90.0" >
+			<PeptideHit score="35.0" sequence="L" charge="3" protein_refs="PH_1" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="31.862100000000002" MZ="1001.0" RT="90.0" >
+			<PeptideHit score="35.0" sequence="A" charge="3" protein_refs="PH_0" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="31.862100000000002" MZ="999.0" RT="90.0" >
+			<PeptideHit score="35.0" sequence="K" charge="3" protein_refs="PH_0" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="31.862100000000002" MZ="1000.0" RT="85.0" >
+			<PeptideHit score="35.0" sequence="C" charge="3" protein_refs="PH_0" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="31.862100000000002" MZ="1000.0" RT="95.0" >
+			<PeptideHit score="35.0" sequence="D" charge="3" protein_refs="PH_0" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="31.862100000000002" MZ="1100.0" RT="90.0" >
+			<PeptideHit score="35.0" sequence="E" charge="3" protein_refs="PH_0" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="31.862100000000002" MZ="1002.0" RT="81.0" >
+			<PeptideHit score="35.0" sequence="F" charge="3" protein_refs="PH_1" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="31.862100000000002" MZ="1000.0" RT="101.0" >
+			<PeptideHit score="35.0" sequence="H" charge="3" protein_refs="PH_1" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="" higher_score_better="true" significance_threshold="31.862100000000002" MZ="999.0" RT="81.0" >
+			<PeptideHit score="35.0" sequence="I" charge="3" protein_refs="PH_1" >
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

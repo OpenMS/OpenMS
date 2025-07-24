@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool ctdVersion="1.8" version="3.5.0-pre-nuc-dia-2025-07-24" name="PSMFeatureExtractor" docurl="http://www.openms.de/doxygen/nightly/html/TOPP_PSMFeatureExtractor.html" category="Identification Processing" >
+<description><![CDATA[Computes extra features for each input PSM.]]></description>
+<manual><![CDATA[Computes extra features for each input PSM.]]></manual>
+<citations>
+  <citation doi="10.1038/s41592-024-02197-7" url="" />
+</citations>
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="PSMFeatureExtractor" description="Computes extra features for each input PSM.">
+    <ITEM name="version" value="3.5.0-pre-nuc-dia-2025-07-24" type="string" description="Version of the tool that generated this parameters file." required="false" advanced="true" />
+    <NODE name="1" description="Instance &apos;1&apos; section for &apos;PSMFeatureExtractor&apos;">
+      <ITEMLIST name="in" type="input-file" description="Input file(s)" required="true" advanced="false" supported_formats="*.idXML,*.mzid" >
+      </ITEMLIST>
+      <ITEM name="out" value="" type="output-file" description="Output file in mzid or idXML format" required="true" advanced="false" supported_formats="*.idXML,*.mzid" />
+      <ITEM name="out_type" value="" type="string" description="Output file type -- default: determined from file extension or content." required="false" advanced="false" restrictions="idXML,mzid" />
+      <ITEMLIST name="extra" type="string" description="List of the MetaData parameters to be included in a feature set for precolator." required="false" advanced="false" >
+      </ITEMLIST>
+      <ITEM name="multiple_search_engines" value="false" type="bool" description="Combine PSMs from different search engines by merging on scan level." required="false" advanced="false" />
+      <ITEM name="skip_db_check" value="false" type="bool" description="Manual override to skip the check if same settings for multiple search engines were applied. Only valid together with -multiple_search_engines flag." required="false" advanced="true" />
+      <ITEM name="concat" value="false" type="bool" description="Naive merging of PSMs from different search engines: concatenate multiple search results instead of merging on scan level. Only valid together with -multiple_search_engines flag." required="false" advanced="true" />
+      <ITEM name="impute" value="false" type="bool" description="Will instead of discarding all PSM not unanimously detected by all SE, impute missing values by their respective scores min/max observed. Only valid together with -multiple_search_engines flag." required="false" advanced="true" />
+      <ITEM name="limit_imputation" value="false" type="bool" description="Will impute missing scores with the worst numerical limit (instead of min/max observed) of the respective score. Only valid together with -multiple_search_engines flag." required="false" advanced="true" />
+      <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
+      <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
+      <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+      <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
+      <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
+      <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
+    </NODE>
+  </NODE>
+</PARAMETERS>
+</tool>

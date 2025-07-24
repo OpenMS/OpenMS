@@ -1,0 +1,5 @@
+# Protein abundances computed from file '/workspaces/OpenMS/src/tests/topp/ProteinQuantifier_input.consensusXML'
+# Parameters (relevant only): method=top, top:N=3, top:aggregate=sum, top:include_all=true, consensus:fix_peptides=true
+# Files/samples associated with abundance values below: 1: 'sample1', 2: 'sample2', 3: 'sample3'
+"protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance_sample1[unknown]"	"abundance_sample2[unknown]"	"abundance_sample3[unknown]"
+"Protein"	1	0.9097144245	4	1230.0	230.0	1030.0

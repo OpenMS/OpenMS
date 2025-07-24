@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="/workspaces/OpenMS/src/tests/topp/OpenNuXL_1_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin/p" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
+		<VariableModification name="Oxidation (M)" />
+				<UserParam type="string" name="extra_features" value="missed_cleavages,NuXL:mass_error_p,NuXL:err,NuXL:total_loss_score,NuXL:modds,NuXL:immonium_score,NuXL:precursor_score,NuXL:MIC,NuXL:Morph,NuXL:total_MIC,NuXL:ladder_score,NuXL:sequence_score,NuXL:total_Morph,NuXL:total_HS,NuXL:tag_XLed,NuXL:tag_unshifted,NuXL:tag_shifted,NuXL:aminoacid_max_tag,NuXL:aminoacid_id_to_max_tag_ratio,nr_candidates,-ln(poisson),NuXL:explained_peak_fraction,NuXL:theo_peak_fraction,NuXL:wTop50,NuXL:marker_ions_score,NuXL:partial_loss_score,NuXL:pl_MIC,NuXL:pl_err,NuXL:pl_Morph,NuXL:pl_modds,NuXL:pl_pc_MIC,NuXL:pl_im_MIC,NuXL:isPhospho,NuXL:isXL,NuXL:score,isotope_error,variable_modifications,precursor_intensity_log10,NuXL:NA_MASS_z0,NuXL:NA_length,nucleotide_mass_tags,n_theoretical_peaks,NuXL:XL_U"/>
+				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
+	</SearchParameters>
+	<IdentificationRun date="2025-07-24T13:58:10" search_engine="OpenNuXL" search_engine_version="3.5.0-pre-nuc-dia-2025-07-24" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
+			<UserParam type="stringList" name="spectra_data" value="[file://OpenNuXL_1_input.mzML]"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+</IdXML>

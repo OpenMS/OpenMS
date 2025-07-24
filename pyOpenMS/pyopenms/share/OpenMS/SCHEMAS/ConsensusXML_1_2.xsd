@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="consensusXML">
+		<xs:annotation>
+			<xs:documentation> Schema for a  result of an multiple LC-MS map alignment. </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="mapList"/>
+				<xs:element ref="consensusElementList"/>
+			</xs:sequence>
+			<xs:attribute name="version" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>Schema version, e.g. '1.1'. If it is missing, version 1.0 is assumed.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="mapList">
+		<xs:annotation>
+			<xs:documentation>This list contains the names of all LC-MS file which were aligned.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="map" maxOccurs="unbounded"/>
+			</xs:sequence>
+			<xs:attribute name="count" type="xs:unsignedInt" use="required">
+				<xs:annotation>
+					<xs:documentation>Number of maps.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:simpleType name="UserParamType">
+		<xs:annotation>
+			<xs:documentation>Enumeration of types</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="int"/>
+			<xs:enumeration value="float"/>
+			<xs:enumeration value="string"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="userParam">
+		<xs:annotation>
+			<xs:documentation>Type-Name-Value type for annotations</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="type" type="UserParamType" use="required">
+			<xs:annotation>
+				<xs:documentation>value type ('int', 'float' or 'string')</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="name" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>name of the annotation</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="value" type="xs:anySimpleType" use="required">
+			<xs:annotation>
+				<xs:documentation>actual value of the annotation</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:element name="map">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="userParam" type="userParam" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>user parameters</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="name" type="xs:string" use="required">
+				<xs:annotation>
+					<xs:documentation>Name of the map.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="id" type="xs:unsignedInt" use="required">
+				<xs:annotation>
+					<xs:documentation>Id of the map.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="label" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>label, e.g. 'heavy' and 'light' in ICAT</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="size" type="xs:unsignedInt" use="optional">
+				<xs:annotation>
+					<xs:documentation>Number of elements.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="consensusElementList">
+		<xs:annotation>
+			<xs:documentation>The list of consensus elements.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="consensusElement" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>The consensus element combines corresponding elements of the maps. </xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="consensusElement">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="centroid"/>
+				<xs:element ref="groupedElementList"/>
+			</xs:sequence>
+			<xs:attribute name="id" type="xs:ID" use="required">
+				<xs:annotation>
+					<xs:documentation>File-wide unique identifier for the consensus element. It is only used to reference inside the file. It should start at 0 and contain consecutive numbers. As an xs:id cannot be an integer number, the values are typically prefixed with 'e_'.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="quality" type="xs:double">
+				<xs:annotation>
+					<xs:documentation>Quality value assigned to this consensus element.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="charge" type="xs:integer">
+				<xs:annotation>
+					<xs:documentation>Charge assigned to the  consensus element. A missing change attribute is equal to charge 0.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="centroid">
+		<xs:annotation>
+			<xs:documentation>The centroid coordinates of the consensus element.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:attribute name="rt" type="xs:double" use="required">
+				<xs:annotation>
+					<xs:documentation>Retention time.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="mz" type="xs:double" use="required">
+				<xs:annotation>
+					<xs:documentation>M/Z value.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="it" type="xs:double" use="required">
+				<xs:annotation>
+					<xs:documentation>Intensity.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="groupedElementList">
+		<xs:annotation>
+			<xs:documentation>The list of elements which are grouped together and define this consensus element.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="element" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>The combined elements.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="element">
+		<xs:complexType>
+			<xs:attribute name="map" type="xs:unsignedInt" use="required">
+				<xs:annotation>
+					<xs:documentation>The element's original map index.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="id" type="xs:unsignedInt" use="required">
+				<xs:annotation>
+					<xs:documentation>The element's index in its original map.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="rt" type="xs:double" use="required">
+				<xs:annotation>
+					<xs:documentation>Retention time of the element.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="mz" type="xs:double" use="required">
+				<xs:annotation>
+					<xs:documentation>M/Z of the element.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="it" type="xs:double" use="required">
+				<xs:annotation>
+					<xs:documentation>The intensity of the element.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="charge" type="xs:integer">
+				<xs:annotation>
+					<xs:documentation>The charge of the element. A missing change attribute is equal to charge 0.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

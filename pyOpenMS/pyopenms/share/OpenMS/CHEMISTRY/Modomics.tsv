@@ -1,0 +1,177 @@
+# Table of modified RNA bases from the Modomics database (http://modomics.genesilico.pl/).
+# Reference:
+# Pietro Boccaletto, Magdalena A. Machnicka, Elzbieta Purta, Paweł Piątkowski, Błażej Bagiński, Tomasz K. Wirecki, Valérie de Crécy-Lagard, Robert Ross, Patrick A. Limbach, Annika Kotter, Mark Helm: "MODOMICS: a database of RNA modification pathways. 2017 update". Nucleic Acids Research 2017, 02 November, gkx1030, https://doi.org/10.1093/nar/gkx1030
+# Data used with permission.
+name	short_name	new_nomenclature	originating_base	rnamods_abbrev	html_abbrev	formula	monoisotopic_mass	average_mass
+1,2′-O-dimethyladenosine	m1Am	01A	A	œ	&oelig;	C12O4N5H17	295.1281	295.2989
+1,2′-O-dimethylguanosine	m1Gm	01G	G	ε	&epsilon;	C12O5N5H17	311.123	311.2977
+1,2′-O-dimethylinosine	m1Im	019A	A	ξ	&xi;	C12O5N4H16	296.1121	296.2835
+1-methyl-3-(3-amino-3-carboxypropyl)pseudouridine	m1acp3Y	1309U	U	α	&alpha;	C14O8N3H21	359.1329	359.3366
+1-methyladenosine	m1A	1A	A	"	&quot;	C11O4N5H15	281.1124	281.2719
+1-methylguanosine	m1G	1G	G	K	K	C11O5N5H15	297.1073	297.2712
+1-methylinosine	m1I	19A	A	O	O	C11O5N4H14	282.0964	282.2565
+1-methylpseudouridine	m1Y	19U	U	]	]	C10O6N2H14	258.0852	258.2313
+2,8-dimethyladenosine	m2,8A	28A	A	±	&plusmn;	C12H17N5O4	295.1281	295.2983
+2-methylthiomethylenethio-N6-isopentenyl-adenosine	msms2i6A		A	£	&pound;	C17H25N5O4S2	427.1347	427.54
+2-geranylthiouridine	ges2U	21U	U	Γ	&Gamma;	C19H28N2O5S	396.1719	396.5078
+2-lysidine	k2C	21C	C	}	}	C15O6N5H25	371.1805	371.3944
+2-methyladenosine	m2A	2A	A	/	/	C11O4N5H15	281.1124	281.2719
+2-methylthio cyclic N6-threonylcarbamoyladenosine	ms2ct6A	2164A	A	ÿ	&#255;	C17H21N5O7S	439.1162	439.4429
+2-methylthio-N6-(cis-hydroxyisopentenyl) adenosine	ms2io6A	2160A	A	≠	&ne;	C16O5N5H23S1	397.142	397.4546
+2-methylthio-N6-hydroxynorvalylcarbamoyladenosine	ms2hn6A	2163A	A	≈	&asymp;	C17O8N6H24S1	472.1376	472.4782
+2-methylthio-N6-isopentenyladenosine	ms2i6A	2161A	A	*	*	C16O4N5H23S1	381.1471	381.4553
+2-methylthio-N6-methyladenosine	ms2m6A	621A	A	∞	&infin;	C12O4N5H17S1	327.1001	327.3633
+2-methylthio-N6-threonylcarbamoyladenosine	ms2t6A	2162A	A	[	[	C16O8N6H22S1	458.122	458.4512
+2-selenouridine	se2U	20U	U	ω	&omega;	C9O5N2H12Se1	305.9919	306.1221
+2-thio-2′-O-methyluridine	s2Um	02U	U	∏	&prod;	C10O5N2H14S1	274.0623	274.2964
+2-thiocytidine	s2C	2C	C	%	%	C9O4N3H13S1	259.0627	259.2848
+2-thiouridine	s2U	2U	U	2	2	C9O5N2H12S1	260.0467	260.2694
+2′-O-methyladenosine	Am	0A	A	:	:	C11O4N5H15	281.1124	281.2719
+2′-O-methylcytidine	Cm	0C	C	B	B	C10O5N3H15	257.1012	257.2467
+2′-O-methylguanosine	Gm	0G	G	#	#	C11O5N5H15	297.1073	297.2712
+2′-O-methylinosine	Im	09A	A	≤	&le;	C11O5N4H14	282.0964	282.2565
+2′-O-methylpseudouridine	Ym	09U	U	Z	Z	C10O6N2H14	258.0852	258.2313
+2′-O-methyluridine	Um	0U	U	J	J	C10O6N2H14	258.0852	258.2313
+2′-O-methyluridine 5-oxyacetic acid methyl ester	mcmo5Um	0503U	U	Ͽ	&#1023;	C13H18N2O9	346.292	346.1012
+2′-O-ribosyladenosine (phosphate)	Ar(p)	00A	A	^	&circ;	C15O11N5H22P1	479.1053	479.3408
+2′-O-ribosylguanosine (phosphate)	Gr(p)	00G	G	ℑ	&image;	C15O12N5H22P1	495.1003	495.3401
+2′3′-cyclic phosphate end	(pN)2′3′>p	3377N	pppN				None	None
+2′-O-Methyl-5-hydroxymethylcytidine	hm5Cm		C	¡	&#161;	C11H17N3O6	287.1117	287.272
+3,2′-O-dimethyluridine	m3Um	03U	U	σ	&sigma;	C11O6N2H16	272.1008	272.2583
+3-(3-amino-3-carboxypropyl)-5,6-dihydrouridine	acp3D	308U	U	Ð	&ETH;	C13H21N3O8	347.1329	347.3252
+3-(3-amino-3-carboxypropyl)pseudouridine	acp3Y	309U	U	Þ	&THORN;	C13H19N3O8	345.1172	345.3093
+3-(3-amino-3-carboxypropyl)uridine	acp3U	30U	U	X	X	C13O8N3H19	345.1172	345.3096
+3-methylcytidine	m3C	3C	C	'	'	C10O5N3H15	257.1012	257.2467
+3-methylpseudouridine	m3Y	39U	U	κ	&kappa;	C10O6N2H14	258.0852	258.2313
+3-methyluridine	m3U	3U	U	δ	&delta;	C10O6N2H14	258.0852	258.2313
+4-demethylwyosine	imG-14	4G	G	†	&dagger;	C13O5N5H15	321.1073	321.2933
+4-thiouridine	s4U	74U	U	4	4	C9O5N2H12S1	260.0467	260.2694
+5,2′-O-dimethylcytidine	m5Cm	05C	C	τ	&tau;	C11O5N3H17	271.1168	271.2737
+5,2′-O-dimethyluridine	m5Um	05U	U	\	\	C11O6N2H16	272.1008	272.2583
+5-(carboxyhydroxymethyl)-2′-O-methyluridine methyl ester	mchm5Um	0522U	U	b	b	C13H18N2O9	346.1012	346.294
+5-(carboxyhydroxymethyl)uridine methyl ester	mchm5U	522U	U	,	,	C12O9N2H16	332.0856	332.2672
+5-(isopentenylaminomethyl)-2-thiouridine	inm5s2U	2583U	U	½	&frac12;	C15H23N3O5S	357.1358	357.4308
+5-(isopentenylaminomethyl)-2′-O-methyluridine	inm5Um	0583U	U	¼	&frac14;	C16H25N3O6	355.1743	355.3911
+5-(isopentenylaminomethyl)uridine	inm5U	583U	U	¾	&frac34;	C15H23N3O6	341.1587	341.3642
+5-aminomethyl-2-geranylthiouridine	nm5ges2U	21510U	U	Δ	&Delta;	C20H31N3O5S	425.1984	425.5494
+5-aminomethyl-2-selenouridine	nm5se2U	20510U	U	π	&pi;	C10O5N3H15Se1	337.0176	336.2032
+5-aminomethyl-2-thiouridine	nm5s2U	2510U	U	∫	&int;	C10O5N3H15S1	289.0732	289.3111
+5-aminomethyluridine	nm5U	510U	U	∪	&cup;	C10O6N3H15	273.0961	273.246
+5-carbamoylhydroxymethyluridine	nchm5U	531U	U	r	r	C11H15N3O8	317.0859	317.2555
+5-carbamoylmethyl-2-thiouridine	ncm5s2U	253U	U	l	l	C11H15N3O6S	317.0681	317.3227
+5-carbamoylmethyl-2′-O-methyluridine	ncm5Um	053U	U	~	&sim;	C12O7N3H17	315.1066	315.2833
+5-carbamoylmethyluridine	ncm5U	53U	U	&	&amp;	C11O7N3H15	301.091	301.2563
+5-carboxyhydroxymethyluridine	chm5U	520U	U	≥	&ge;	C11O9N2H14	318.0699	318.2403
+5-carboxymethyl-2-thiouridine	cm5s2U	2540U	U	℘	&weierp;	C11O7N2H14S1	318.0522	318.306
+5-carboxymethylaminomethyl-2-geranylthiouridine	cmnm5ges2U	2151U	U	f	f	C22H33N3O7S	483.2039	483.586
+5-carboxymethylaminomethyl-2-selenouridine	cmnm5se2U	2051U	U	⊥	&perp;	C12O7N3H17Se1	393.0239	393.2003
+5-carboxymethylaminomethyl-2-thiouridine	cmnm5s2U	251U	U	$	$	C12O7N3H17S1	347.0787	347.3477
+5-carboxymethylaminomethyl-2′-O-methyluridine	cmnm5Um	051U	U	)	)	C13O8N3H19	345.1172	345.3096
+5-carboxymethylaminomethyluridine	cmnm5U	51U	U	!	!	C12O8N3H17	331.1016	331.2826
+5-carboxymethyluridine	cm5U	52U	U	◊	&loz;	C11O8N2H14	302.075	302.241
+5-cyanomethyluridine	cnm5U	55U	U	Ѷ	&#1142;	C11H13N3O6	283.0804	283.2408
+5-formyl-2′-O-methylcytidine	f5Cm	071C	C	°	&deg;	C11O6N3H15	285.0961	285.257
+5-formylcytidine	f5C	71C	C	>	&gt;	C10O6N3H13	271.0804	271.2301
+5-hydroxycytidine	ho5C	50C	C	Ç	&Ccedil;	C9H13N3O6	259.0804	259.2188
+5-hydroxymethylcytidine	hm5C	51C	C	∅	&empty;	C10O6N3H15	273.0961	273.246
+5-hydroxyuridine	ho5U	50U	U	∝	&prop;	C9O7N2H12	260.0645	260.2036
+5-methoxycarbonylmethyl-2-thiouridine	mcm5s2U	2521U	U	3	3	C12O7N2H16S1	332.0678	332.333
+5-methoxycarbonylmethyl-2′-O-methyluridine	mcm5Um	0521U	U	∩	&cap;	C13O8N2H18	330.1063	330.2949
+5-methoxycarbonylmethyluridine	mcm5U	521U	U	1	1	C12O8N2H16	316.0907	316.2679
+5-methoxyuridine	mo5U	501U	U	5	5	C10O7N2H14	274.0801	274.2306
+5-methyl-2-thiouridine	m5s2U	25U	U	F	F	C10O5N2H14S1	274.0623	274.2964
+5-methylaminomethyl-2-geranylthiouridine	mnm5ges2U	21511U	U	h	h	C21H33N3O5S	439.2141	439.5762
+5-methylaminomethyl-2-selenouridine	mnm5se2U	20511U	U	≅	&cong;	C11O5N3H17Se1	349.0341	349.1905
+5-methylaminomethyl-2-thiouridine	mnm5s2U	2511U	U	S	S	C11O5N3H17S1	303.0889	303.3381
+5-methylaminomethyluridine	mnm5U	511U	U	{	{	C11O6N3H17	287.1117	287.273
+5-methylcytidine	m5C	5C	C	?	?	C10O5N3H15	257.1012	257.2467
+5-methyldihydrouridine	m5D	58U	U	ρ	&rho;	C10O6N2H16	260.1008	260.2473
+5-methyluridine	m5U	5U	U	T	T	C10O6N2H14	258.0852	258.2313
+5-taurinomethyl-2-thiouridine	tm5s2U	254U	U	∃	&exist;	C12O8N3H19S2	397.0614	397.4274
+5-taurinomethyluridine	tm5U	54U	U	Ê	&Ecirc;	C12O9N3H19S1	381.0842	381.3623
+5′ (3′ -dephospho-CoA)	CoA(pN)	455N	pppN	♠	&spades;	C21H32N7O13P2S	684.1254	684.538
+5′ (3′ -dephosphoacetyl-CoA)	acCoA(pN)	4155N	pppN	♣	&clubs;	C22H40N7O15P2S	736.1778	736.6113
+5′ (3′ -dephosphomalonyl-CoA)	malonyl-CoA(pN)	4255N	pppN	♥	&hearts;	C23H40N7O17P2S	780.1676	780.6211
+5′ (3′ -dephosphosuccinyl-CoA)	succinyl-CoA(pN)	4355N	pppN	♦	&diams;	C24H41N7O17P2S	793.1755	793.6316
+5′ diphosphate end	p(pN)	552N	pppN	ϒ	&upsih;	PO3	78.9585	78.972
+5′ hydroxyl end	5′-OH-N	550N	pppN				None	None
+5′ monophosphate end	(pN)	N	pppN	m	m	C5H7O10P2	288.9514	289.0521
+5′ nicotinamide adenine dinucleotide	NAD(pN)	255N	pppN	Ξ	&Xi;	C21H25N7O14P2	661.0935	661.4158
+5′ triphosphate end	pp(pN)	553N	pppN	ϖ	&piv;	P2O6	157.917	157.9439
+7-aminocarboxypropyl-demethylwyosine	yW-86	47G	G	¥	&yen;	C17O7N6H22	422.155	422.3986
+7-aminocarboxypropylwyosine	yW-72	347G	G	Ω	&Omega;	C18O7N6H24	436.1706	436.4256
+7-aminocarboxypropylwyosine methyl ester	yW-58	348G	G	⇑	&uArr;	C19O7N6H26	450.1863	450.4525
+7-aminomethyl-7-deazaguanosine	preQ1tRNA	101G	preQ0base	∉	&notin;	C12O5N5H17	311.123	311.2982
+7-cyano-7-deazaguanosine	preQ0tRNA	100G	preQ0base	φ	&phi;	C12O5N5H13	307.0917	307.2663
+7-methylguanosine	m7G	7G	G	7	7	C11O5N5H17	299.123	299.2867
+7-methylguanosine cap (cap 0)	m7Gpp(pN)	79553N	pppN	©	&copy;	C11H15N5O11P2	455.0243	455.2147
+8-methyladenosine	m8A	8A	A	â	&acirc;	C11O4N5H15	281.1124	281.2719
+N2,2′-O-dimethylguanosine	m2Gm	02G	G	γ	&gamma;	C12O5N5H17	311.123	311.2982
+N2,7,2′-O-trimethylguanosine	m2,7Gm	027G	G	æ	&aelig;	C13H21N5O5	327.1543	327.3404
+N2,7-dimethylguanosine	m2,7G	27G	G	∨	&or;	C12O5N5H19	313.1386	313.3136
+N2,7-dimethylguanosine cap (cap DMG)	m2,7Gpp(pN)	279553N	pppN	®	&reg;	C12H17N5O11P2	469.04	469.2416
+N2,N2,2′-O-trimethylguanosine	m2,2Gm	022G	G	|	|	C13O5N5H19	325.1386	325.3252
+N2,N2,7-trimethylguanosine	m2,2,7G	227G	G	∠	&ang;	C13O5N5H21	327.1543	327.3404
+N2,N2,7-trimethylguanosine cap (cap TMG)	m2,2,7Gpp(pN)	2279553N	pppN	¶	&para;	C13H19N5O11P2	483.0556	483.2685
+N2,N2-dimethylguanosine	m2,2G	22G	G	R	R	C12O5N5H17	311.123	311.2982
+N2-methylguanosine	m2G	2G	G	L	L	C11O5N5H15	297.1073	297.2712
+N4,2′-O-dimethylcytidine	m4Cm	04C	C	λ	&lambda;	C11O5N3H17	271.1168	271.2737
+N4,N4,2′-O-trimethylcytidine	m4,4Cm	044C	C	β	&beta;	C12O5N3H19	285.1325	285.3007
+N4,N4-dimethylcytidine	m4,4C	44C	C	μ	&mu;	C11O5N3H17	271.1168	271.2737
+N4-acetyl-2′-O-methylcytidine	ac4Cm	042C	C	ℵ	&alefsym;	C12O6N3H17	299.1117	299.284
+N4-acetylcytidine	ac4C	42C	C	M	M	C11O6N3H15	285.0961	285.257
+N4-methylcytidine	m4C	4C	C	ν	&nu;	C10O5N3H15	257.1012	257.2467
+N6,2′-O-dimethyladenosine	m6Am	06A	A	χ	&chi;	C12O4N5H17	295.1281	295.2989
+N6,N6,2′-O-trimethyladenosine	m6,6Am	066A	A	η	&eta;	C13O4N5H19	309.1437	309.3259
+N6,N6-dimethyladenosine	m6,6A	66A	A	ζ	&zeta;	C12O4N5H17	295.1281	295.2989
+N6-(cis-hydroxyisopentenyl)adenosine	io6A	60A	A	`	`	C15O5N5H21	351.1543	351.3632
+N6-acetyladenosine	ac6A	64A	A	⇓	&dArr;	C12O5N5H15	309.1073	309.2822
+N6-formyladenosine	f6A	67A	A	Ϩ	&#1000;	C11H13N5O5	295.0917	295.2549
+N6-glycinylcarbamoyladenosine	g6A	65A	A	≡	&equiv;	C13O7N6H16	368.108	368.3066
+N6-hydroxymethyladenosine	hm6A	68A	A	Ϫ	&#1002;	C11H15N5O5	297.1073	297.2708
+N6-hydroxynorvalylcarbamoyladenosine	hn6A	63A	A	√	&radic;	C16O8N6H22	426.1499	426.3868
+N6-isopentenyladenosine	i6A	61A	A	+	+	C15O4N5H21	335.1594	335.3639
+N6-methyl-N6-threonylcarbamoyladenosine	m6t6A	662A	A	E	E	C16O8N6H22	426.1499	426.3868
+N6-methyladenosine	m6A	6A	A	=	=	C11O4N5H15	281.1124	281.2719
+N6-threonylcarbamoyladenosine	t6A	62A	A	6	6	C15O8N6H20	412.1343	412.3598
+Qbase	Qbase	10G (base)	preQ0base	∴	&there4;	C12O3N5H15	277.1175	277.2836
+adenosine	A	A	A	A	A	C10O4N5H13	267.0968	267.2449
+agmatidine	C+	20C	C	¿	&iquest;	C14H25N7O4	355.1968	355.3973
+alpha-dimethylmonophosphate cap	mm(pN)	2551N	pppN			C7H14O10P2	320.0062	320.1297
+alpha-methylmonophosphate cap	m(pN)	1551N	pppN			C6H12O10P2	305.9906	306.1028
+archaeosine	G+	103G	preQ0base	(	(	C12H16N6O5	324.1182	324.2965
+cyclic N6-threonylcarbamoyladenosine	ct6A	69A	A	e	e	C15O7N6H18	394.1237	394.3442
+cytidine	C	C	C	C	C	C9O5N3H13	243.0855	243.2197
+dihydrouridine	D	8U	U	D	D	C9O6N2H14	246.0852	246.2203
+epoxyqueuosine	oQtRNA	102G	preQ0base	ς	&sigmaf;	C17O8N5H23	425.1547	425.3991
+galactosyl-queuosine	galQtRNA	104G	preQ0base	9	9	C23O12N5H33	571.2126	571.5423
+gamma-methyltriphosphate cap	mpp(pN)	1553N	pppN	§	&sect;	CH3O6P2	172.9405	172.9787
+glutamyl-queuosine	gluQtRNA	105G	preQ0base	⊄	&nsub;	C22O10N6H30	538.2023	538.5155
+guanosine	G	G	G	G	G	C10O5N5H13	283.0917	283.2442
+guanosine added to any nucleotide	pG(pN)	GN	pppN	none	none	C10H13N5O8P	362.0502	362.2159
+guanylylated 5′ end (cap G)	Gpp(pN)	9553N	pppN	ϑ	&thetasym;	C10H12N5O11P2	440.0008	440.1799
+hydroxy-N6-threonylcarbamoyladenosine	ht6A	2165A	A	«	&#171;	C15H20N6O9	428.1292	428.3541
+hydroxywybutosine	OHyW	34830G	G	⊆	&sube;	C21O10N6H28	524.1867	524.4885
+inosine	I	9A	A	I	I	C10O5N4H12	268.0808	268.2295
+isowyosine	imG2	42G	G	⊇	&supe;	C14O5N5H17	335.123	335.3202
+mannosyl-queuosine	manQtRNA	106G	preQ0base	8	8	C23O12N5H33	571.2126	571.5423
+methylated undermodified hydroxywybutosine	OHyWy	3480G	G	y	y	C19H26N6O8	466.1812	466.4511
+methylwyosine	mimG	342G	G	∑	&sum;	C15O5N5H19	349.1386	349.3472
+peroxywybutosine	o2yW	34832G	G	W	W	C21O11N6H28	540.1816	540.4878
+preQ0base	preQ0base	100G (base)	preQ0base	ψ	&psi;	C7O1N5H5	175.0494	175.1501
+preQ1base	preQ1base	101G (base)	preQ0base	∇	&nabla;	C7O1N5H9	179.0807	179.182
+pseudouridine	Y	9U	U	P	P	C9O6N2H12	244.0695	244.2043
+queuosine	QtRNA	10G	preQ0base	Q	Q	C17O7N5H23	409.1597	409.3998
+undermodified hydroxywybutosine	OHyWx	3470G	G	š	&scaron;	C18O8N6H24	452.1655	452.4242
+unknown methylated base	Xm	0X		Î	&Icirc;	-	0.0	0.0
+unknown modification	xX	X		@	@	-	0.0	0.0
+unknown modified adenosine	xA	?A	A	H	H	-	0.0	0.0
+unknown modified cytidine	xC	?C	C	<	&lt;	-	0.0	0.0
+unknown modified guanosine	xG	?G	G	;	;	-	0.0	0.0
+unknown modified uridine	xU	?U	U	N	N	-	0.0	0.0
+unknown nucleotide residue	N			.	.	-	0.0	0.0
+uridine	U	U	U	U	U	C9O6N2H12	244.0695	244.2043
+uridine 5-oxyacetic acid	cmo5U	502U	U	V	V	C11O9N2H14	318.0699	318.2403
+uridine 5-oxyacetic acid methyl ester	mcmo5U	503U	U	υ	&upsilon;	C12O9N2H16	332.0856	332.2672
+wybutosine	yW	3483G	G	Y	Y	C21O9N6H28	508.1918	508.4892
+wyosine	imG	34G	G	€	&euro;	C14H17N5O5	335.123	335.3202

@@ -1,0 +1,30 @@
+general: file name	/workspaces/OpenMS/src/tests/toppas/ExecutePipeline_2.mzML
+general: file type	mzML
+number of spectra	0
+total number of peaks	0
+general: combined ranges: retention time: min	<none>
+general: combined ranges: retention time: max	<none>
+general: combined ranges: mass-to-charge: min	<none>
+general: combined ranges: mass-to-charge: max	<none>
+general: combined ranges: intensity: min	<none>
+general: combined ranges: intensity: max	<none>
+general: spectrum ranges: retention time: min	<none>
+general: spectrum ranges: retention time: max	<none>
+general: spectrum ranges: mass-to-charge: min	<none>
+general: spectrum ranges: mass-to-charge: max	<none>
+general: spectrum ranges: intensity: min	<none>
+general: spectrum ranges: intensity: max	<none>
+general: chromatogram ranges: retention time: min	<none>
+general: chromatogram ranges: retention time: max	<none>
+general: chromatogram ranges: mass-to-charge: min	<none>
+general: chromatogram ranges: mass-to-charge: max	<none>
+general: chromatogram ranges: intensity: min	<none>
+general: chromatogram ranges: intensity: max	<none>
+document id	
+date	0000-00-00 00:00:00
+sample name	
+sample organism	
+sample comment	
+instrument name	
+instrument model	
+instrument vendor	

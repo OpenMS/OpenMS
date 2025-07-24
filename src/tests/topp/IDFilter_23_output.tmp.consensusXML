@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" experiment_type="labeled_MS2" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="IDMapper" version="version_string" />
+		<processingAction name="Identification mapping" />
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="2008-10-29T10:17:55" search_engine="InsPecT" search_engine_version="20080404">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="average" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="2" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.5" peak_mass_tolerance_ppm="false" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="Q9HP81" score="0" sequence="MTIAWARRRYGVKLGLGYIATAGLLVGVGVTTNDVPSTIVAGIAGLLTLGSINAAETVASIKEIAAQTERVANGNLEQEVTSTRTDEFGSLADSIEQMRQSLRGRLNEMERTRADLEETQAEAETAREEAEQAKQEAQAAEREARELAATYQDTAKRYGETMEAAATGDLTQRVDVDTDHEAMETVGTAFNQMMDDLQATVRTVTTVADEIEAKTERMSETSADIEASAGDTVEAVSKIESQANDQRTELDSAADDVQQVSASAEEIAATIDDLASRSEDVATASDAARDSSKSALDEMSSIETEVDDAVGQVEQLRDQVAEITDIVDVITDIGEQTNMLALNASIEAARAGGNADGDGFSVVADEVKDLAEETQDRANEIAAVVEKVTAQTEDVTASIQQTRTRVESGSETVESTLRDIRTIADSIAEVSNSIDEIQRTTSEQAETVQSTATSVERVAGLSDDTTALASDAESAVIGQRESAEEIAASLEQFQNTAVEQLQSRVASFTVATEDSETAGGSVEQPVMRAGADGGGA">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<mapList count="4">
+		<map id="0" name="" label="iTRAQ_114_myReference" size="31">
+			<UserParam type="int" name="channel_name" value="114"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value="myReference"/>
+			<UserParam type="float" name="channel_center" value="114.099999999999994"/>
+			<UserParam type="string" name="channel_active" value="true"/>
+		</map>
+		<map id="1" name="" label="iTRAQ_115_" size="31">
+			<UserParam type="int" name="channel_name" value="115"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="115.099999999999994"/>
+			<UserParam type="string" name="channel_active" value="false"/>
+		</map>
+		<map id="2" name="" label="iTRAQ_116_" size="31">
+			<UserParam type="int" name="channel_name" value="116"/>
+			<UserParam type="int" name="channel_id" value="2"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="116.099999999999994"/>
+			<UserParam type="string" name="channel_active" value="false"/>
+		</map>
+		<map id="3" name="" label="iTRAQ_117_" size="31">
+			<UserParam type="int" name="channel_name" value="117"/>
+			<UserParam type="int" name="channel_id" value="3"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="117.099999999999994"/>
+			<UserParam type="string" name="channel_active" value="false"/>
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_0" quality="0.0">
+			<centroid rt="306.579999999999984" mz="426.84899999999999" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="306.579999999999984" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="0" rt="306.579999999999984" mz="115.099999999999994" it="0.923077"/>
+				<element map="2" id="0" rt="306.579999999999984" mz="116.099999999999994" it="0.0"/>
+				<element map="3" id="0" rt="306.579999999999984" mz="117.099999999999994" it="0.6"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_1" quality="0.0">
+			<centroid rt="306.579999999999984" mz="405.850000000000023" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="306.579999999999984" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="1" rt="306.579999999999984" mz="115.099999999999994" it="2.46154"/>
+				<element map="2" id="1" rt="306.579999999999984" mz="116.099999999999994" it="4.8"/>
+				<element map="3" id="1" rt="306.579999999999984" mz="117.099999999999994" it="6.2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="405.85" RT="306.58" >
+				<PeptideHit score="-1.65100002288818" sequence="AATY" charge="1" aa_before="L" aa_after="Q" protein_refs="PH_0">
+				</PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_2" quality="0.0">
+			<centroid rt="312.738" mz="506.814999999999998" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="312.738" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="2" rt="312.738" mz="115.099999999999994" it="4.61538"/>
+				<element map="2" id="2" rt="312.738" mz="116.099999999999994" it="8.4"/>
+				<element map="3" id="2" rt="312.738" mz="117.099999999999994" it="2.0"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_3" quality="0.0">
+			<centroid rt="312.738" mz="484.829999999999984" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="3" rt="312.738" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="3" rt="312.738" mz="115.099999999999994" it="5.23077"/>
+				<element map="2" id="3" rt="312.738" mz="116.099999999999994" it="8.4"/>
+				<element map="3" id="3" rt="312.738" mz="117.099999999999994" it="1.6"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_4" quality="0.0">
+			<centroid rt="3112.5300000000002" mz="496.244000000000028" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="4" rt="3112.5300000000002" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="4" rt="3112.5300000000002" mz="115.099999999999994" it="0.307692"/>
+				<element map="2" id="4" rt="3112.5300000000002" mz="116.099999999999994" it="13.2"/>
+				<element map="3" id="4" rt="3112.5300000000002" mz="117.099999999999994" it="7.0"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_5" quality="0.0">
+			<centroid rt="3840.949999999999818" mz="430.211999999999989" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="5" rt="3840.949999999999818" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="5" rt="3840.949999999999818" mz="115.099999999999994" it="4.30769"/>
+				<element map="2" id="5" rt="3840.949999999999818" mz="116.099999999999994" it="2.4"/>
+				<element map="3" id="5" rt="3840.949999999999818" mz="117.099999999999994" it="2.4"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_6" quality="0.0">
+			<centroid rt="3849.2199999999998" mz="446.081000000000017" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="6" rt="3849.2199999999998" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="6" rt="3849.2199999999998" mz="115.099999999999994" it="3.69231"/>
+				<element map="2" id="6" rt="3849.2199999999998" mz="116.099999999999994" it="2.4"/>
+				<element map="3" id="6" rt="3849.2199999999998" mz="117.099999999999994" it="3.2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_7" quality="0.0">
+			<centroid rt="3870.670000000000073" mz="453.233000000000004" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="7" rt="3870.670000000000073" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="7" rt="3870.670000000000073" mz="115.099999999999994" it="3.07692"/>
+				<element map="2" id="7" rt="3870.670000000000073" mz="116.099999999999994" it="16.799999"/>
+				<element map="3" id="7" rt="3870.670000000000073" mz="117.099999999999994" it="4.8"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_8" quality="0.0">
+			<centroid rt="3880.900000000000091" mz="400.172000000000025" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="8" rt="3880.900000000000091" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="8" rt="3880.900000000000091" mz="115.099999999999994" it="6.76923"/>
+				<element map="2" id="8" rt="3880.900000000000091" mz="116.099999999999994" it="1.2"/>
+				<element map="3" id="8" rt="3880.900000000000091" mz="117.099999999999994" it="7.0"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_9" quality="0.0">
+			<centroid rt="3892.260000000000218" mz="437.226999999999975" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="9" rt="3892.260000000000218" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="9" rt="3892.260000000000218" mz="115.099999999999994" it="7.38462"/>
+				<element map="2" id="9" rt="3892.260000000000218" mz="116.099999999999994" it="4.8"/>
+				<element map="3" id="9" rt="3892.260000000000218" mz="117.099999999999994" it="6.0"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_10" quality="0.0">
+			<centroid rt="3892.260000000000218" mz="526.26400000000001" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="10" rt="3892.260000000000218" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="10" rt="3892.260000000000218" mz="115.099999999999994" it="4.30769"/>
+				<element map="2" id="10" rt="3892.260000000000218" mz="116.099999999999994" it="3.6"/>
+				<element map="3" id="10" rt="3892.260000000000218" mz="117.099999999999994" it="3.4"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_11" quality="0.0">
+			<centroid rt="3896.369999999999891" mz="416.173000000000002" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="11" rt="3896.369999999999891" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="11" rt="3896.369999999999891" mz="115.099999999999994" it="7.38462"/>
+				<element map="2" id="11" rt="3896.369999999999891" mz="116.099999999999994" it="3.6"/>
+				<element map="3" id="11" rt="3896.369999999999891" mz="117.099999999999994" it="7.0"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_12" quality="0.0">
+			<centroid rt="3900.4699999999998" mz="414.206000000000017" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="12" rt="3900.4699999999998" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="12" rt="3900.4699999999998" mz="115.099999999999994" it="8.0"/>
+				<element map="2" id="12" rt="3900.4699999999998" mz="116.099999999999994" it="6.0"/>
+				<element map="3" id="12" rt="3900.4699999999998" mz="117.099999999999994" it="6.0"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_13" quality="0.0">
+			<centroid rt="3903.9699999999998" mz="809.894000000000006" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="13" rt="3903.9699999999998" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="13" rt="3903.9699999999998" mz="115.099999999999994" it="1.84615"/>
+				<element map="2" id="13" rt="3903.9699999999998" mz="116.099999999999994" it="2.4"/>
+				<element map="3" id="13" rt="3903.9699999999998" mz="117.099999999999994" it="0.4"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_14" quality="0.0">
+			<centroid rt="3912.2199999999998" mz="523.229000000000042" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="14" rt="3912.2199999999998" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="14" rt="3912.2199999999998" mz="115.099999999999994" it="4.0"/>
+				<element map="2" id="14" rt="3912.2199999999998" mz="116.099999999999994" it="4.8"/>
+				<element map="3" id="14" rt="3912.2199999999998" mz="117.099999999999994" it="3.2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_15" quality="0.0">
+			<centroid rt="3940.0300000000002" mz="569.239000000000033" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="15" rt="3940.0300000000002" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="15" rt="3940.0300000000002" mz="115.099999999999994" it="5.23077"/>
+				<element map="2" id="15" rt="3940.0300000000002" mz="116.099999999999994" it="7.2"/>
+				<element map="3" id="15" rt="3940.0300000000002" mz="117.099999999999994" it="5.0"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_16" quality="0.0">
+			<centroid rt="3945.150000000000091" mz="534.232999999999947" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="16" rt="3945.150000000000091" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="16" rt="3945.150000000000091" mz="115.099999999999994" it="6.46154"/>
+				<element map="2" id="16" rt="3945.150000000000091" mz="116.099999999999994" it="6.0"/>
+				<element map="3" id="16" rt="3945.150000000000091" mz="117.099999999999994" it="12.4"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_17" quality="0.0">
+			<centroid rt="3949.25" mz="583.243000000000052" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="17" rt="3949.25" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="17" rt="3949.25" mz="115.099999999999994" it="3.38462"/>
+				<element map="2" id="17" rt="3949.25" mz="116.099999999999994" it="2.4"/>
+				<element map="3" id="17" rt="3949.25" mz="117.099999999999994" it="5.8"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_18" quality="0.0">
+			<centroid rt="3954.380000000000109" mz="493.182000000000016" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="18" rt="3954.380000000000109" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="18" rt="3954.380000000000109" mz="115.099999999999994" it="8.61539"/>
+				<element map="2" id="18" rt="3954.380000000000109" mz="116.099999999999994" it="9.6"/>
+				<element map="3" id="18" rt="3954.380000000000109" mz="117.099999999999994" it="7.0"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_19" quality="0.0">
+			<centroid rt="3960.519999999999982" mz="479.240999999999985" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="19" rt="3960.519999999999982" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="19" rt="3960.519999999999982" mz="115.099999999999994" it="6.46154"/>
+				<element map="2" id="19" rt="3960.519999999999982" mz="116.099999999999994" it="3.6"/>
+				<element map="3" id="19" rt="3960.519999999999982" mz="117.099999999999994" it="10.4"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_20" quality="0.0">
+			<centroid rt="3965.650000000000091" mz="477.237000000000023" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="20" rt="3965.650000000000091" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="20" rt="3965.650000000000091" mz="115.099999999999994" it="6.76923"/>
+				<element map="2" id="20" rt="3965.650000000000091" mz="116.099999999999994" it="7.2"/>
+				<element map="3" id="20" rt="3965.650000000000091" mz="117.099999999999994" it="9.8"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_21" quality="0.0">
+			<centroid rt="3976.170000000000073" mz="430.225000000000023" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="21" rt="3976.170000000000073" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="21" rt="3976.170000000000073" mz="115.099999999999994" it="8.0"/>
+				<element map="2" id="21" rt="3976.170000000000073" mz="116.099999999999994" it="7.2"/>
+				<element map="3" id="21" rt="3976.170000000000073" mz="117.099999999999994" it="4.8"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_22" quality="0.0">
+			<centroid rt="3984.409999999999855" mz="607.283000000000015" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="22" rt="3984.409999999999855" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="22" rt="3984.409999999999855" mz="115.099999999999994" it="11.3846"/>
+				<element map="2" id="22" rt="3984.409999999999855" mz="116.099999999999994" it="7.2"/>
+				<element map="3" id="22" rt="3984.409999999999855" mz="117.099999999999994" it="24.0"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_23" quality="0.0">
+			<centroid rt="4002.809999999999945" mz="662.30499999999995" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="23" rt="4002.809999999999945" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="23" rt="4002.809999999999945" mz="115.099999999999994" it="5.23077"/>
+				<element map="2" id="23" rt="4002.809999999999945" mz="116.099999999999994" it="6.0"/>
+				<element map="3" id="23" rt="4002.809999999999945" mz="117.099999999999994" it="4.2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_24" quality="0.0">
+			<centroid rt="4046.769999999999982" mz="643.34699999999998" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="24" rt="4046.769999999999982" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="24" rt="4046.769999999999982" mz="115.099999999999994" it="6.15385"/>
+				<element map="2" id="24" rt="4046.769999999999982" mz="116.099999999999994" it="6.0"/>
+				<element map="3" id="24" rt="4046.769999999999982" mz="117.099999999999994" it="5.0"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_25" quality="0.0">
+			<centroid rt="4070.269999999999982" mz="624.34699999999998" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="25" rt="4070.269999999999982" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="25" rt="4070.269999999999982" mz="115.099999999999994" it="3.38462"/>
+				<element map="2" id="25" rt="4070.269999999999982" mz="116.099999999999994" it="46.799999"/>
+				<element map="3" id="25" rt="4070.269999999999982" mz="117.099999999999994" it="7.4"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_26" quality="0.0">
+			<centroid rt="4073.349999999999909" mz="563.299999999999955" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="26" rt="4073.349999999999909" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="26" rt="4073.349999999999909" mz="115.099999999999994" it="2.76923"/>
+				<element map="2" id="26" rt="4073.349999999999909" mz="116.099999999999994" it="1.2"/>
+				<element map="3" id="26" rt="4073.349999999999909" mz="117.099999999999994" it="4.2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_27" quality="0.0">
+			<centroid rt="4084.980000000000018" mz="428.22199999999998" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="27" rt="4084.980000000000018" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="27" rt="4084.980000000000018" mz="115.099999999999994" it="2.76923"/>
+				<element map="2" id="27" rt="4084.980000000000018" mz="116.099999999999994" it="4.8"/>
+				<element map="3" id="27" rt="4084.980000000000018" mz="117.099999999999994" it="2.6"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_28" quality="0.0">
+			<centroid rt="4088.050000000000182" mz="432.838000000000022" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="28" rt="4088.050000000000182" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="28" rt="4088.050000000000182" mz="115.099999999999994" it="13.8462"/>
+				<element map="2" id="28" rt="4088.050000000000182" mz="116.099999999999994" it="4.8"/>
+				<element map="3" id="28" rt="4088.050000000000182" mz="117.099999999999994" it="6.2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_29" quality="0.0">
+			<centroid rt="4101.479999999999563" mz="432.27800000000002" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="29" rt="4101.479999999999563" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="29" rt="4101.479999999999563" mz="115.099999999999994" it="11.0769"/>
+				<element map="2" id="29" rt="4101.479999999999563" mz="116.099999999999994" it="3.6"/>
+				<element map="3" id="29" rt="4101.479999999999563" mz="117.099999999999994" it="5.6"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_30" quality="0.0">
+			<centroid rt="4149.489999999999782" mz="450.259999999999991" it="0.0"/>
+			<groupedElementList>
+				<element map="0" id="30" rt="4149.489999999999782" mz="114.099999999999994" it="1.0"/>
+				<element map="1" id="30" rt="4149.489999999999782" mz="115.099999999999994" it="4.0"/>
+				<element map="2" id="30" rt="4149.489999999999782" mz="116.099999999999994" it="3.6"/>
+				<element map="3" id="30" rt="4149.489999999999782" mz="117.099999999999994" it="4.0"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

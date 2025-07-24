@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="TrafoXML">
+		<xs:annotation>
+			<xs:documentation>Main node.</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Transformation">
+					<xs:annotation>
+						<xs:documentation>Transformation description</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Param" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Transformation parameters</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="name" use="required">
+										<xs:annotation>
+											<xs:documentation>Name of the parameter.</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="type" use="required">
+										<xs:annotation>
+											<xs:documentation>Type of the parameter: 'string', 'int', 'float'.</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="int"/>
+												<xs:enumeration value="float"/>
+												<xs:enumeration value="string"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="value" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>Value that must be compatible with the type.</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="Pairs" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Mapped coordinate pairs</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="Pair" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>A pair of matched coordinates</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="from" type="xs:float" use="required">
+													<xs:annotation>
+														<xs:documentation>coordinate before transformation</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="to" type="xs:float" use="required">
+													<xs:annotation>
+														<xs:documentation>coordinate after transformation</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="note" type="xs:string">
+													<xs:annotation>
+														<xs:documentation>optional annotation or description for this pair</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="count" type="xs:nonNegativeInteger" use="required">
+										<xs:annotation>
+											<xs:documentation>number of pairs contained</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="name" use="required">
+							<xs:annotation>
+								<xs:documentation>Transformation name</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="version" type="xs:float" use="required">
+				<xs:annotation>
+					<xs:documentation>Schema version, e.g. '1.0'. </xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

@@ -1,0 +1,26 @@
+<ttd>
+	<tool status="external">
+		<category>does not really matter</category>
+		<type>Rscript_mzTab2tsv_PRT</type>
+		<external>
+				<text>
+					<onstartup>Calling Rscript mzTab2tsv_PRT ...</onstartup>
+					<onfail>Something went wrong. Is 'R' in your PATH?</onfail>
+					<onfinish>Tool finished successfully.</onfinish>
+				</text>
+			<e_category>FileConversion</e_category>
+			<cloptions>--vanilla "%1/mzTab2tsv_PRT.R" "%2" "%3"</cloptions>
+			<path>Rscript</path>
+			<mappings>
+				<mapping id="1" cl="%%scriptpath" />
+				<mapping id="2" cl="%%in" />
+				<mapping id="3" cl="%%out" />
+			</mappings>
+			<ini_param>
+				<ITEM name="scriptpath" value="." type="string" description="input script path, this should point to share/OpenMS/SCRIPTS of your OpenMS installation"/>
+				<ITEM name="in" value="" type="input-file" description="tabular input data" required="true" advanced="false" supported_formats="*.tsv" />
+				<ITEM name="out" value="" type="output-file" description="output tsv file" required="true" advanced="false" supported_formats="*.tsv" />
+			</ini_param>
+		</external>
+	</tool>
+</ttd>

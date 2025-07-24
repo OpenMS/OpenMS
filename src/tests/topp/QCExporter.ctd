@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool ctdVersion="1.8" version="3.5.0-pre-nuc-dia-2025-07-24" name="QCExporter" docurl="http://www.openms.de/doxygen/nightly/html/TOPP_QCExporter.html" category="Quality Control" >
+<description><![CDATA[Will extract several qp from several run/sets in a tabular format.]]></description>
+<manual><![CDATA[Will extract several qp from several run/sets in a tabular format.]]></manual>
+<citations>
+  <citation doi="10.1038/s41592-024-02197-7" url="" />
+  <citation doi="10.1074/mcp.M113.035907" url="" />
+</citations>
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="QCExporter" description="Will extract several qp from several run/sets in a tabular format.">
+    <ITEM name="version" value="3.5.0-pre-nuc-dia-2025-07-24" type="string" description="Version of the tool that generated this parameters file." required="false" advanced="true" />
+    <NODE name="1" description="Instance &apos;1&apos; section for &apos;QCExporter&apos;">
+      <ITEM name="in" value="" type="input-file" description="Input qcml file" required="true" advanced="false" supported_formats="*.qcML" />
+      <ITEMLIST name="names" type="string" description="The name of the target runs or sets to be exported from. If empty, from all will be exported." required="false" advanced="false" >
+      </ITEMLIST>
+      <ITEM name="mapping" value="" type="input-file" description="The mapping of the exported table&apos;s headers to the according qp cvs. The first row is considered containing the headers as for the exported the table. The second row is considered the according qp cv accessions of the qp to be exported." required="true" advanced="false" supported_formats="*.csv" />
+      <ITEM name="out_csv" value="" type="output-file" description="Output csv formatted quality parameter." required="true" advanced="false" supported_formats="*.csv" />
+      <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
+      <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
+      <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+      <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
+      <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
+      <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
+    </NODE>
+  </NODE>
+</PARAMETERS>
+</tool>

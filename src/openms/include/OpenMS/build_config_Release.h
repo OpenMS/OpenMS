@@ -1,0 +1,7 @@
+
+#ifndef OPENMS_BUILD_CONFIG_H
+#define OPENMS_BUILD_CONFIG_H
+
+#define OPENMS_BUILD_TYPE "Release"
+
+#endif // OPENMS_BUILD_CONFIG_H

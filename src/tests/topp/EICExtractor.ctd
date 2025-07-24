@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool ctdVersion="1.8" version="3.5.0-pre-nuc-dia-2025-07-24" name="EICExtractor" docurl="http://www.openms.de/doxygen/nightly/html/TOPP_EICExtractor.html" category="Quantitation" >
+<description><![CDATA[Extracts intensities from dedicates positions in a LC/MS map]]></description>
+<manual><![CDATA[Extracts intensities from dedicates positions in a LC/MS map]]></manual>
+<citations>
+  <citation doi="10.1038/s41592-024-02197-7" url="" />
+</citations>
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="EICExtractor" description="Extracts intensities from dedicates positions in a LC/MS map">
+    <ITEM name="version" value="3.5.0-pre-nuc-dia-2025-07-24" type="string" description="Version of the tool that generated this parameters file." required="false" advanced="true" />
+    <NODE name="1" description="Instance &apos;1&apos; section for &apos;EICExtractor&apos;">
+      <ITEMLIST name="in" type="input-file" description="Input raw data file" required="true" advanced="false" supported_formats="*.mzML" >
+      </ITEMLIST>
+      <ITEMLIST name="in_header" type="input-file" description="[for Waters data only] Read additional information from _HEADER.TXT. Provide one for each raw input file." required="false" advanced="false" supported_formats="*.txt" >
+      </ITEMLIST>
+      <ITEM name="pos" value="" type="input-file" description="Input config file stating where to find signal" required="true" advanced="false" supported_formats="*.edta" />
+      <ITEM name="rt_tol" value="3.0" type="double" description="RT tolerance in [s] for finding max peak (whole RT range around RT middle)" required="false" advanced="false" />
+      <ITEM name="mz_tol" value="10.0" type="double" description="m/z tolerance in [ppm] for finding a peak" required="false" advanced="false" />
+      <ITEM name="rt_collect" value="1" type="int" description="# of scans up &amp; down in RT from highest point for ppm estimation in result" required="false" advanced="false" />
+      <ITEM name="out_separator" value="," type="string" description="Separator character for output CSV file." required="false" advanced="true" />
+      <ITEM name="out" value="" type="output-file" description="Output quantitation file (multiple columns for each input compound)" required="true" advanced="false" supported_formats="*.csv" />
+      <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
+      <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
+      <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+      <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
+      <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
+      <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
+      <NODE name="auto_rt" description="Parameters for automatic detection of injection RT peaks (no need to specify them in &apos;pos&apos; input file)">
+        <ITEM name="enabled" value="false" type="bool" description="Automatically detect injection peaks from TIC and quantify all m/z x RT combinations." required="false" advanced="false" />
+        <ITEM name="FHWM" value="5.0" type="double" description="Expected full width at half-maximum of each raw RT peak in [s]. Gaussian smoothing filter with this width is applied to TIC." required="false" advanced="true" />
+        <ITEM name="SNThreshold" value="5.0" type="double" description="S/N threshold for a smoothed raw peak to pass peak picking. Higher thesholds will result in less peaks." required="false" advanced="true" />
+        <ITEM name="out_debug_TIC" value="" type="output-file" description="Optional output file (for first input) containing the smoothed TIC, S/N levels and picked RT positions" required="false" advanced="true" supported_formats="*.mzML" />
+      </NODE>
+    </NODE>
+  </NODE>
+</PARAMETERS>
+</tool>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool ctdVersion="1.8" version="3.5.0-pre-nuc-dia-2025-07-24" name="OpenSwathFeatureXMLToTSV" docurl="http://www.openms.de/doxygen/nightly/html/TOPP_OpenSwathFeatureXMLToTSV.html" category="Targeted Experiments and OpenSWATH" >
+<description><![CDATA[Converts a featureXML to a mProphet tsv.]]></description>
+<manual><![CDATA[Converts a featureXML to a mProphet tsv.]]></manual>
+<citations>
+  <citation doi="10.1038/s41592-024-02197-7" url="" />
+</citations>
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="OpenSwathFeatureXMLToTSV" description="Converts a featureXML to a mProphet tsv.">
+    <ITEM name="version" value="3.5.0-pre-nuc-dia-2025-07-24" type="string" description="Version of the tool that generated this parameters file." required="false" advanced="true" />
+    <NODE name="1" description="Instance &apos;1&apos; section for &apos;OpenSwathFeatureXMLToTSV&apos;">
+      <ITEMLIST name="in" type="input-file" description="Input files separated by blank" required="true" advanced="false" supported_formats="*.featureXML" >
+      </ITEMLIST>
+      <ITEM name="tr" value="" type="input-file" description="TraML transition file" required="true" advanced="false" supported_formats="*.traML" />
+      <ITEM name="out" value="" type="output-file" description="tsv output file (mProphet compatible)" required="true" advanced="false" supported_formats="*.csv" />
+      <ITEM name="short_format" value="false" type="bool" description="Whether to write short (one peptide per line) or long format (one transition per line)." required="false" advanced="false" />
+      <ITEM name="best_scoring_peptide" value="" type="string" description="If only the best scoring feature per peptide should be printed, give the variable name" required="false" advanced="false" />
+      <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
+      <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
+      <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+      <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
+      <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
+      <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
+    </NODE>
+  </NODE>
+</PARAMETERS>
+</tool>

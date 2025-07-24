@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool ctdVersion="1.8" version="3.5.0-pre-nuc-dia-2025-07-24" name="DigestorMotif" docurl="http://www.openms.de/doxygen/nightly/html/TOPP_DigestorMotif.html" category="Identification Processing" >
+<description><![CDATA[Digests a protein database in-silico]]></description>
+<manual><![CDATA[Digests a protein database in-silico]]></manual>
+<citations>
+  <citation doi="10.1038/s41592-024-02197-7" url="" />
+</citations>
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="DigestorMotif" description="Digests a protein database in-silico">
+    <ITEM name="version" value="3.5.0-pre-nuc-dia-2025-07-24" type="string" description="Version of the tool that generated this parameters file." required="false" advanced="true" />
+    <NODE name="1" description="Instance &apos;1&apos; section for &apos;DigestorMotif&apos;">
+      <ITEM name="in" value="" type="input-file" description="FASTA input file" required="true" advanced="false" supported_formats="*.fasta" />
+      <ITEM name="out" value="" type="output-file" description="output file (peptides)#br#" required="true" advanced="false" supported_formats="*.idXML" />
+      <ITEM name="missed_cleavages" value="1" type="int" description="the number of allowed missed cleavages" required="false" advanced="false" restrictions="0:" />
+      <ITEM name="mass_accuracy" value="1000" type="int" description="give your mass accuracy in ppb" required="false" advanced="false" />
+      <ITEM name="min_length" value="6" type="int" description="minimum length of peptide" required="false" advanced="false" />
+      <ITEM name="out_option" value="1" type="int" description="indicate 1 (peptide table only), 2 (statistics only) or (both peptide table + statistics)" required="false" advanced="false" />
+      <ITEM name="enzyme" value="Trypsin" type="string" description="The enzyme used for peptide digestion." required="false" advanced="false" restrictions="glutamyl endopeptidase,Alpha-lytic protease,no cleavage,unspecific cleavage,Trypsin,Arg-C,Arg-C/P,Asp-N,Asp-N/B,Glu-C+P,PepsinA + P,cyanogen-bromide,Clostripain/P,elastase-trypsin-chymotrypsin,Asp-N_ambic,Chymotrypsin,Chymotrypsin/P,CNBr,Formic_acid,Lys-C,Lys-N,Lys-C/P,PepsinA,TrypChymo,Trypsin/P,V8-DE,V8-E,leukocyte elastase,proline endopeptidase,2-iodobenzoate,iodosobenzoate,staphylococcal protease/D,proline-endopeptidase/HKR" />
+      <ITEM name="motif" value="M" type="string" description="the motif for the restricted peptidome" required="false" advanced="false" />
+      <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
+      <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
+      <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+      <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
+      <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
+      <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
+    </NODE>
+  </NODE>
+</PARAMETERS>
+</tool>

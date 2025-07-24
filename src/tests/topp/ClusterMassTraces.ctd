@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool ctdVersion="1.8" version="3.5.0-pre-nuc-dia-2025-07-24" name="ClusterMassTraces" docurl="http://www.openms.de/doxygen/nightly/html/TOPP_ClusterMassTraces.html" category="Misc" >
+<description><![CDATA[Creates pseudo spectra.]]></description>
+<manual><![CDATA[Creates pseudo spectra.]]></manual>
+<citations>
+  <citation doi="10.1038/s41592-024-02197-7" url="" />
+</citations>
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="ClusterMassTraces" description="Creates pseudo spectra.">
+    <ITEM name="version" value="3.5.0-pre-nuc-dia-2025-07-24" type="string" description="Version of the tool that generated this parameters file." required="false" advanced="true" />
+    <NODE name="1" description="Instance &apos;1&apos; section for &apos;ClusterMassTraces&apos;">
+      <ITEM name="in" value="" type="input-file" description="Mass traces" required="true" advanced="false" supported_formats="*.consensusXML" />
+      <ITEM name="out" value="" type="output-file" description="output file" required="true" advanced="false" supported_formats="*.mzML" />
+      <ITEM name="min_pearson_correlation" value="0.7" type="double" description="Minimal pearson correlation score" required="false" advanced="false" />
+      <ITEM name="min_peak_nr" value="1" type="int" description="Minimal peak nr to output pseudo spectra" required="false" advanced="false" />
+      <ITEM name="max_lag" value="1" type="int" description="Maximal lag" required="false" advanced="false" />
+      <ITEM name="max_rt_apex_difference" value="5.0" type="double" description="Maximal difference of the apex in retention time" required="false" advanced="false" />
+      <ITEM name="max_intensity_cutoff" value="0.0" type="double" description="Maximal intensity to be added to a spectrum" required="false" advanced="false" />
+      <ITEM name="add_precursor" value="0.0" type="double" description="Add a precursor mass" required="false" advanced="false" />
+      <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
+      <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
+      <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+      <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
+      <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
+      <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
+    </NODE>
+  </NODE>
+</PARAMETERS>
+</tool>

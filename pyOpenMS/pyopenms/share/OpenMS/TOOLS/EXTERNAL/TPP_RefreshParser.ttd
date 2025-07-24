@@ -1,0 +1,28 @@
+<ttd>
+	<tool status="external">
+		<category>does not really matter</category>
+		<type>TPP_RefreshParser</type>
+		<external>
+      <text>
+        <onstartup>Calling TPP's RefreshParser ...  Wrapper tested with TPP v4.4.1 (VUVUZELA), report issues to the OpenMS team at www.OpenMS.de</onstartup>
+        <onfail>Something went wrong. Is 'RefreshParser' in your PATH?</onfail>
+        <onfinish>Tool finished successfully.</onfinish>
+      </text>    
+		  <e_category>FileConversion</e_category>
+		  <cloptions>"%1" "%2"</cloptions>
+		  <path>RefreshParser</path>
+      <workingdirectory>.</workingdirectory>
+		  <mappings>
+			<mapping id="1" cl="%%in" />
+			<mapping id="2" cl="%%database" />
+      <file_pre location="%TMP/%RND_%BASENAME[%%in]" target="in" />
+			<file_post location="%%in" target="out" />
+		  </mappings>
+		  <ini_param>
+			<ITEM name="in" value="" type="string" description="input file in pepXML format(valid formats: &apos;pepXML&apos;)" tags="input file,required" />
+      <ITEM name="database" value="" type="string" description="FASTA database to find matching proteins." tags="input file,required" />
+			<ITEM name="out" value="" type="string" description="output file in pepXML format(valid formats: &apos;pepXML&apos;)" tags="output file,required" />
+		  </ini_param>
+		</external>
+	</tool>
+</ttd>

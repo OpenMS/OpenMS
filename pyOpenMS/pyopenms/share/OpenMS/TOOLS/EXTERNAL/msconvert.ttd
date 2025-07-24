@@ -1,0 +1,25 @@
+<ttd>
+	<tool status="external">
+		<category>does not really matter</category>
+		<type>RAWFileConvert</type>
+		<external>
+      <text>
+        <onstartup>Calling PWiz' msconvert ...</onstartup>
+        <onfail>Something went wrong. Is 'msconvert' in your PATH?</onfail>
+        <onfinish>Tool finished successfully.</onfinish>
+      </text>    
+		  <e_category>FileConversion</e_category>
+		  <cloptions>-o "%1" --mzML "%2"</cloptions>
+		  <path>msconvert</path>
+		  <mappings>
+			<mapping id="1" cl="%TMP/GenericWrapper_%RND" />
+			<mapping id="2" cl="%%in" />
+			<file_post location="%1/%BASENAME[%%in].mzML" target="out" />
+		  </mappings>
+		  <ini_param>
+			<ITEM name="in" value="" type="string" description="input file in RAW format(valid formats: &apos;RAW&apos;)" tags="input file" />
+			<ITEM name="out" value="" type="string" description="output file in mzML format(valid formats: &apos;mzML&apos;)" tags="output file" />
+		  </ini_param>
+		</external>
+	</tool>
+</ttd>

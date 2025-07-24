@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool ctdVersion="1.8" version="3.5.0-pre-nuc-dia-2025-07-24" name="FeatureFinderCentroided" docurl="http://www.openms.de/doxygen/nightly/html/TOPP_FeatureFinderCentroided.html" category="Quantitation" >
+<description><![CDATA[Detects two-dimensional features in LC-MS data.]]></description>
+<manual><![CDATA[Detects two-dimensional features in LC-MS data.]]></manual>
+<citations>
+  <citation doi="10.1038/s41592-024-02197-7" url="" />
+  <citation doi="https://publikationen.uni-tuebingen.de/xmlui/bitstream/handle/10900/49453/pdf/Dissertation_Marc_Sturm.pdf" url="" />
+  <citation doi="https://doi.org/10.1021/pr300992u" url="" />
+</citations>
+<PARAMETERS version="1.8.0" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/Param_1_8_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="FeatureFinderCentroided" description="Detects two-dimensional features in LC-MS data.">
+    <ITEM name="version" value="3.5.0-pre-nuc-dia-2025-07-24" type="string" description="Version of the tool that generated this parameters file." required="false" advanced="true" />
+    <NODE name="1" description="Instance &apos;1&apos; section for &apos;FeatureFinderCentroided&apos;">
+      <ITEM name="in" value="" type="input-file" description="input file" required="true" advanced="false" supported_formats="*.mzML" />
+      <ITEM name="out" value="" type="output-file" description="output file" required="true" advanced="false" supported_formats="*.featureXML" />
+      <ITEM name="seeds" value="" type="input-file" description="User specified seed list" required="false" advanced="false" supported_formats="*.featureXML" />
+      <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
+      <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
+      <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+      <ITEM name="no_progress" value="false" type="bool" description="Disables progress logging to command line" required="false" advanced="true" />
+      <ITEM name="force" value="false" type="bool" description="Overrides tool-specific checks" required="false" advanced="true" />
+      <ITEM name="test" value="false" type="bool" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" />
+      <NODE name="algorithm" description="Algorithm section">
+        <ITEM name="write_debug" value="false" type="bool" description="When debug mode is activated, several files with intermediate results are written to the folder &apos;debug&apos; (do not use in parallel mode)." required="false" advanced="false" />
+        <NODE name="intensity" description="Settings for the calculation of a score indicating if a peak&apos;s intensity is significant in the local environment (between 0 and 1)">
+          <ITEM name="bins" value="10" type="int" description="Number of bins per dimension (RT and m/z). The higher this value, the more local the intensity significance score is.#br#This parameter should be decreased, if the algorithm is used on small regions of a map." required="false" advanced="false" restrictions="1:" />
+        </NODE>
+        <NODE name="mass_trace" description="Settings for the calculation of a score indicating if a peak is part of a mass trace (between 0 and 1).">
+          <ITEM name="mz_tolerance" value="0.03" type="double" description="Tolerated m/z deviation of peaks belonging to the same mass trace.#br#It should be larger than the m/z resolution of the instrument.#br#This value must be smaller than that 1/charge_high!" required="false" advanced="false" restrictions="0.000000:" />
+          <ITEM name="min_spectra" value="10" type="int" description="Number of spectra that have to show a similar peak mass in a mass trace." required="false" advanced="false" restrictions="1:" />
+          <ITEM name="max_missing" value="1" type="int" description="Number of consecutive spectra where a high mass deviation or missing peak is acceptable.#br#This parameter should be well below &apos;min_spectra&apos;!" required="false" advanced="false" restrictions="0:" />
+          <ITEM name="slope_bound" value="0.1" type="double" description="The maximum slope of mass trace intensities when extending from the highest peak.#br#This parameter is important to separate overlapping elution peaks.#br#It should be increased if feature elution profiles fluctuate a lot." required="false" advanced="false" restrictions="0.000000:" />
+        </NODE>
+        <NODE name="isotopic_pattern" description="Settings for the calculation of a score indicating if a peak is part of a isotopic pattern (between 0 and 1).">
+          <ITEM name="charge_low" value="1" type="int" description="Lowest charge to search for." required="false" advanced="false" restrictions="1:" />
+          <ITEM name="charge_high" value="4" type="int" description="Highest charge to search for." required="false" advanced="false" restrictions="1:" />
+          <ITEM name="mz_tolerance" value="0.03" type="double" description="Tolerated m/z deviation from the theoretical isotopic pattern.#br#It should be larger than the m/z resolution of the instrument.#br#This value must be smaller than that 1/charge_high!" required="false" advanced="false" restrictions="0.000000:" />
+          <ITEM name="intensity_percentage" value="10.0" type="double" description="Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present." required="false" advanced="true" restrictions="0.000000:100.000000" />
+          <ITEM name="intensity_percentage_optional" value="0.1" type="double" description="Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing." required="false" advanced="true" restrictions="0.000000:100.000000" />
+          <ITEM name="optional_fit_improvement" value="2.0" type="double" description="Minimal percental improvement of isotope fit to allow leaving out an optional peak." required="false" advanced="true" restrictions="0.000000:100.000000" />
+          <ITEM name="mass_window_width" value="25.0" type="double" description="Window width in Dalton for precalculation of estimated isotope distributions." required="false" advanced="true" restrictions="1.000000:200.000000" />
+          <ITEM name="abundance_12C" value="98.930000000000007" type="double" description="Rel. abundance of the light carbon. Modify if labeled." required="false" advanced="true" restrictions="0.000000:100.000000" />
+          <ITEM name="abundance_14N" value="99.632000000000005" type="double" description="Rel. abundance of the light nitrogen. Modify if labeled." required="false" advanced="true" restrictions="0.000000:100.000000" />
+        </NODE>
+        <NODE name="seed" description="Settings that determine which peaks are considered a seed">
+          <ITEM name="min_score" value="0.8" type="double" description="Minimum seed score a peak has to reach to be used as seed.#br#The seed score is the geometric mean of intensity score, mass trace score and isotope pattern score.#br#If your features show a large deviation from the averagene isotope distribution or from an gaussian elution profile, lower this score." required="false" advanced="false" restrictions="0.000000:1.000000" />
+        </NODE>
+        <NODE name="fit" description="Settings for the model fitting">
+          <ITEM name="max_iterations" value="500" type="int" description="Maximum number of iterations of the fit." required="false" advanced="true" restrictions="1:" />
+        </NODE>
+        <NODE name="feature" description="Settings for the features (intensity, quality assessment, ...)">
+          <ITEM name="min_score" value="0.7" type="double" description="Feature score threshold for a feature to be reported.#br#The feature score is the geometric mean of the average relative deviation and the correlation between the model and the observed peaks." required="false" advanced="false" restrictions="0.000000:1.000000" />
+          <ITEM name="min_isotope_fit" value="0.8" type="double" description="Minimum isotope fit of the feature before model fitting." required="false" advanced="true" restrictions="0.000000:1.000000" />
+          <ITEM name="min_trace_score" value="0.5" type="double" description="Trace score threshold.#br#Traces below this threshold are removed after the model fitting.#br#This parameter is important for features that overlap in m/z dimension." required="false" advanced="true" restrictions="0.000000:1.000000" />
+          <ITEM name="min_rt_span" value="0.333" type="double" description="Minimum RT span in relation to extended area that has to remain after model fitting." required="false" advanced="true" restrictions="0.000000:1.000000" />
+          <ITEM name="max_rt_span" value="2.5" type="double" description="Maximum RT span in relation to extended area that the model is allowed to have." required="false" advanced="true" restrictions="0.500000:" />
+          <ITEM name="rt_shape" value="symmetric" type="string" description="Choose model used for RT profile fitting. If set to symmetric a gauss shape is used, in case of asymmetric an EGH shape is used." required="false" advanced="true" restrictions="symmetric,asymmetric" />
+          <ITEM name="max_intersection" value="0.35" type="double" description="Maximum allowed intersection of features." required="false" advanced="true" restrictions="0.000000:1.000000" />
+          <ITEM name="reported_mz" value="monoisotopic" type="string" description="The mass type that is reported for features.#br#&apos;maximum&apos; returns the m/z value of the highest mass trace.#br#&apos;average&apos; returns the intensity-weighted average m/z value of all contained peaks.#br#&apos;monoisotopic&apos; returns the monoisotopic m/z value derived from the fitted isotope model." required="false" advanced="false" restrictions="maximum,average,monoisotopic" />
+        </NODE>
+        <NODE name="user-seed" description="Settings for user-specified seeds.">
+          <ITEM name="rt_tolerance" value="5.0" type="double" description="Allowed RT deviation of seeds from the user-specified seed position." required="false" advanced="false" restrictions="0.000000:" />
+          <ITEM name="mz_tolerance" value="1.1" type="double" description="Allowed m/z deviation of seeds from the user-specified seed position." required="false" advanced="false" restrictions="0.000000:" />
+          <ITEM name="min_score" value="0.5" type="double" description="Overwrites &apos;seed:min_score&apos; for user-specified seeds. The cutoff is typically a bit lower in this case." required="false" advanced="false" restrictions="0.000000:1.000000" />
+        </NODE>
+        <NODE name="advanced" description="">
+          <ITEM name="pseudo_rt_shift" value="500.0" type="double" description="Pseudo RT shift used when ." required="false" advanced="true" restrictions="1.000000:" />
+        </NODE>
+      </NODE>
+    </NODE>
+  </NODE>
+</PARAMETERS>
+</tool>

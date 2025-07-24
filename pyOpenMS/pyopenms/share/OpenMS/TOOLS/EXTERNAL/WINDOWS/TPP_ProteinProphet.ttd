@@ -1,0 +1,46 @@
+<ttd>
+	<tool status="external">
+		<category>does not really matter</category>
+		<type>TPP_ProteinProphet</type>
+		<external>
+      <text>
+        <onstartup>Calling TPP's ProteinProphet... Wrapper tested with TPP v4.4.1 (VUVUZELA), report issues to the OpenMS team at www.OpenMS.de</onstartup>
+        <onfail>Something went wrong. Possible cause: You forgot to call TPP's 'RefreshParser' prior to calling this?</onfail>
+        <onfinish>Tool finished successfully.</onfinish>
+      </text>
+		  <e_category>Protein/Peptide Identification</e_category>
+		  <cloptions>"%1" %2 EXCELPEPS %4 %6 %7 %8 %9 %10 %11</cloptions>
+		  <path>ProteinProphet</path>
+      <workingdirectory>c:/Inetpub/wwwroot/ISB</workingdirectory>
+		  <mappings>
+			<mapping id="1" cl="%%in" />
+			<mapping id="2" cl="MINPROB %%min_prob" />
+			<mapping id="4" cl="EXCEL%%excel_minprob" />
+			<mapping id="6" cl="%%flag_delude" />
+			<mapping id="7" cl="%%flag_normprotlen" />
+			<mapping id="8" cl="%%flag_logprobs" />
+			<mapping id="9" cl="%%flag_confem" />
+			<mapping id="10" cl="%%flag_allpeps" />
+			<mapping id="11" cl="%%flag_noplot" />
+			<file_post location="%WORKINGDIR/0.prot.xml" target="out" />
+			<file_post location="%WORKINGDIR/0.prot.xls" target="out_xls" />
+		  </mappings>
+		  <ini_param>
+			<ITEM name="in" value="" type="string" description="Input file in pepXML format(valid formats: &apos;pepXML&apos;)" tags="input file,required" />
+			<ITEM name="out" value="" type="string" description="Output file in protXML format(valid formats: &apos;protXML&apos;)" tags="output file" />
+			<ITEM name="out_xls" value="" type="string" description="Output file in XLS format(valid formats: &apos;xls&apos;)." tags="output file" />
+
+			<ITEM name="min_prob" value="0.05" type="float" description="PeptideProphet (or any other) probabilty threshold"/>
+			<ITEM name="excel_minprob" value="0.0" type="float" description="Write output tab delim xls file including all protein (group)s with minimum probability (only meaningful when 'flag_excel' is set)." restrictions="0:1" tags=""/>
+
+			<ITEM name="flag_occam" value="" type="string" description="Do not use Occam's Razor to derive the simplest protein list to explain observed peptides" tags="" restrictions=",NOOCCAM" />
+			<ITEM name="flag_delude" value="" type="string" description="Do NOT use peptide degeneracy information when assessing proteins" tags="" restrictions=",DELUDE" />
+			<ITEM name="flag_normprotlen" value="" type="string" description="Normalize NSP using protein length" tags="" restrictions=",NORMPROTLEN" />
+			<ITEM name="flag_logprobs" value="" type="string" description="Use the log of the probabilities in the confidence calculations" tags="" restrictions=",LOGPROBS" />
+			<ITEM name="flag_confem" value="" type="string" description="Use the EM to compute probability given the confidence" tags="" restrictions=",CONFEM" />
+			<ITEM name="flag_allpeps" value="" type="string" description="Consider all possible peptides in the database in the confidence model" tags="" restrictions=",ALLPEPS" />
+			<ITEM name="flag_noplot" value="" type="string" description="do not generate plot png file" tags="" restrictions=",NOPLOT" />
+		  </ini_param>
+		</external>
+	</tool>
+</ttd>

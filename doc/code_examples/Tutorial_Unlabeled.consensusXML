@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<mapList count="2">
+		<map id="0" name="/data/Tutorial_Unlabeled_1.mzML" label="" size="3">
+		</map>
+		<map id="1" name="/data/Tutorial_Unlabeled_2.mzML" label="" size="5">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_0" quality="0.928514">
+			<centroid rt="915.675999999999931" mz="941.448999999999955" it="1.707565e08"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="922.639999999999986" mz="941.448999999999955" it="2.15944e08"/>
+				<element map="1" id="0" rt="908.711999999999989" mz="941.448999999999955" it="1.25569e08"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_0" quality="0.792166">
+			<centroid rt="984.708499999999958" mz="1014.610000000000014" it="3.03195e08"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="963.927000000000021" mz="1014.610000000000014" it="3.71373e08"/>
+				<element map="1" id="1" rt="1005.490000000000009" mz="1014.610000000000014" it="2.35017e08"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_0" quality="0.9799">
+			<centroid rt="1035.529999999999973" mz="1163.619999999999891" it="2.140775e08"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="1037.539999999999964" mz="1163.619999999999891" it="1.34898e08"/>
+				<element map="1" id="2" rt="1033.519999999999982" mz="1163.619999999999891" it="2.93257e08"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_3" quality="0.0">
+			<centroid rt="1192.410000000000082" mz="954.948999999999955" it="1.93777e08"/>
+			<groupedElementList>
+				<element map="1" id="3" rt="1192.410000000000082" mz="954.948999999999955" it="1.93777e08"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_4" quality="0.0">
+			<centroid rt="1297.920000000000073" mz="944.960000000000036" it="3.20176e08"/>
+			<groupedElementList>
+				<element map="1" id="4" rt="1297.920000000000073" mz="944.960000000000036" it="3.20176e08"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

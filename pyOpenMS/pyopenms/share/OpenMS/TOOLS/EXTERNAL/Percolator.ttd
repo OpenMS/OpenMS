@@ -1,0 +1,29 @@
+<ttd>
+	<tool status="external">
+		<category>Identification</category>
+		<type>Percolator</type>
+		<external>
+      <text>
+        <onstartup>Running Percolator...</onstartup>
+        <onfail>Something went wrong. Is the Percolator executable globally accessible?</onfail>
+        <onfinish>Percolator finished successfully.</onfinish>
+      </text>    
+		  <e_category>Identification</e_category>
+		  <cloptions>--only-psms --results-psms "%2" --decoy-results-psms "%3" "%1"</cloptions>
+		  <path>percolator</path>
+		  <workingdirectory>.</workingdirectory>
+		  <mappings>
+			<mapping id="1" cl="%%in" />
+			<mapping id="2" cl="%TMP/%BASENAME[%%in].psms" />
+			<mapping id="3" cl="%TMP/%BASENAME[%%in]_decoy.psms" />
+			<file_post location="%TMP/%BASENAME[%%in].psms" target="out" />
+			<file_post location="%TMP/%BASENAME[%%in]_decoy.psms" target="out_decoy" />
+		  </mappings>
+		  <ini_param>
+			<ITEM name="in" value="" type="string" description="Input file: Percolator tab-delimited input (valid formats: 'csv')" tags="input file" />
+			<ITEM name="out" value="" type="string" description="Output file: Percolator tab-delimited output, target hits (valid formats: 'psms')" tags="output file" />
+			<ITEM name="out_decoy" value="" type="string" description="Output file: Percolator tab-delimited output, decoy hits (valid formats: 'psms')" tags="output file" />
+		  </ini_param>
+		</external>
+	</tool>
+</ttd>

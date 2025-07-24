@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" id="cm_5233264595117471314" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="FeatureLinkerUnlabeled" version="version_string" />
+		<processingAction name="Feature grouping" />
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<mapList count="3">
+		<map id="0" name="UNKNOWN" label="" size="3">
+		</map>
+		<map id="1" name="UNKNOWN" label="" size="5">
+		</map>
+		<map id="2" name="UNKNOWN" label="" size="6">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_4835329514588776807" quality="0.0" charge="1">
+			<centroid rt="817.265999999999963" mz="922.480999999999995" it="2.63046e08"/>
+			<groupedElementList>
+				<element map="2" id="98" rt="817.265999999999963" mz="922.480999999999995" it="2.63046e08" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="sequence" value="AEFVEVTK"/>
+		</consensusElement>
+		<consensusElement id="e_17749660155506638460" quality="0.850443" charge="2">
+			<centroid rt="924.713000000000079" mz="941.448999999999955" it="2.063567e08"/>
+			<groupedElementList>
+				<element map="0" id="21" rt="922.639999999999986" mz="941.448999999999955" it="2.15944e08" charge="2"/>
+				<element map="1" id="44" rt="908.711999999999989" mz="941.448999999999955" it="1.25569e08" charge="2"/>
+				<element map="2" id="99" rt="942.787000000000035" mz="941.448999999999955" it="2.77557e08" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_7804704400743266335" quality="0.919416" charge="2">
+			<centroid rt="1300.965000000000146" mz="944.960000000000036" it="2.754385e08"/>
+			<groupedElementList>
+				<element map="1" id="48" rt="1297.920000000000073" mz="944.960000000000036" it="3.20176e08" charge="2"/>
+				<element map="2" id="102" rt="1304.009999999999991" mz="944.960000000000036" it="2.30701e08" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_15004869347769368353" quality="0.559158" charge="2">
+			<centroid rt="1241.715000000000146" mz="954.948999999999955" it="2.3003e08"/>
+			<groupedElementList>
+				<element map="1" id="47" rt="1192.410000000000082" mz="954.948999999999955" it="1.93777e08" charge="2"/>
+				<element map="2" id="101" rt="1291.019999999999982" mz="954.948999999999955" it="2.66283e08" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_3332699010107892018" quality="0.791642" charge="1">
+			<centroid rt="1004.225666666666598" mz="1014.610000000000014" it="3.161777e08"/>
+			<groupedElementList>
+				<element map="0" id="22" rt="963.927000000000021" mz="1014.610000000000014" it="3.71373e08" charge="1"/>
+				<element map="1" id="45" rt="1005.490000000000009" mz="1014.610000000000014" it="2.35017e08" charge="1"/>
+				<element map="2" id="100" rt="1043.259999999999991" mz="1014.610000000000014" it="3.42143e08" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_13440783915218733453" quality="0.0" charge="1">
+			<centroid rt="796.474000000000046" mz="1108.490000000000009" it="6.838769e07"/>
+			<groupedElementList>
+				<element map="2" id="97" rt="796.474000000000046" mz="1108.490000000000009" it="6.838769e07" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="sequence" value="EACFAVEGPK"/>
+		</consensusElement>
+		<consensusElement id="e_15916652588957785155" quality="0.885" charge="1">
+			<centroid rt="1035.529999999999973" mz="1163.619999999999891" it="2.140775e08"/>
+			<groupedElementList>
+				<element map="0" id="23" rt="1037.539999999999964" mz="1163.619999999999891" it="1.34898e08" charge="1"/>
+				<element map="1" id="46" rt="1033.519999999999982" mz="1163.619999999999891" it="2.93257e08" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

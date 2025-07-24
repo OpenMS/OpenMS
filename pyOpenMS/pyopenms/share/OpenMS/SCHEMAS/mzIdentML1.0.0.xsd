@@ -1,0 +1,1339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+mzIdentML version 1.0.0
+Distributed under the Creative Commons license http://creativecommons.org/licenses/by/2.0/. 
+-->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://psidev.info/psi/pi/mzIdentML/1.0" xmlns:psi-pi="http://psidev.info/psi/pi/mzIdentML/1.0" targetNamespace="http://psidev.info/psi/pi/mzIdentML/1.0" elementFormDefault="qualified" version="1.0.0">
+	<xsd:include schemaLocation="FuGElightv1.0.0.xsd"/>
+	<xsd:element name="mzIdentML" type="PSI-PI.Main.mzIdentMLType" abstract="false">
+		<xsd:unique name="PK_SEQ">
+			<xsd:selector xpath="./psi-pi:SequenceCollection/*"/>
+			<xsd:field xpath="@id"/>
+		</xsd:unique>
+		<xsd:unique name="PK_ANA">
+			<xsd:selector xpath="./psi-pi:AnalysisCollection/*"/>
+			<xsd:field xpath="@id"/>
+		</xsd:unique>
+		<xsd:unique name="PK_ANAPROTO">
+			<xsd:selector xpath="./psi-pi:AnalysisProtocolCollection/*"/>
+			<xsd:field xpath="@id"/>
+		</xsd:unique>
+		<xsd:unique name="PK_DATAIN">
+			<xsd:selector xpath="./psi-pi:DataCollection/psi-pi:Inputs/*"/>
+			<xsd:field xpath="@id"/>
+		</xsd:unique>
+		<xsd:unique name="PK_DATAAD">
+			<xsd:selector xpath="./psi-pi:DataCollection/psi-pi:AnalysisData/*"/>
+			<xsd:field xpath="@id"/>
+		</xsd:unique>
+		<xsd:unique name="PK_DATAADSIL">
+			<xsd:selector xpath="./psi-pi:DataCollection/psi-pi:AnalysisData/psi-pi:SpectrumIdentificationList/*"/>
+			<xsd:field xpath="@id"/>
+		</xsd:unique>
+		<xsd:unique name="PK_DATAADSILSIR">
+			<xsd:selector xpath="./psi-pi:DataCollection/psi-pi:AnalysisData/psi-pi:SpectrumIdentificationList/psi-pi:SpectrumIdentificationResult/*"/>
+			<xsd:field xpath="@id"/>
+		</xsd:unique>
+		<xsd:unique name="PK_DATAADSILSIRPE">
+			<xsd:selector xpath="./psi-pi:DataCollection/psi-pi:AnalysisData/psi-pi:SpectrumIdentificationList/psi-pi:SpectrumIdentificationResult/psi-pi:SpectrumIdentificationItem/*"/>
+			<xsd:field xpath="@id"/>
+		</xsd:unique>
+		<xsd:unique name="PK_DATAADPDL">
+			<xsd:selector xpath="./psi-pi:DataCollection/psi-pi:AnalysisData/psi-pi:ProteinDetectionList/*"/>
+			<xsd:field xpath="@id"/>
+		</xsd:unique>
+		<xsd:unique name="PK_DATAADPDLPAG">
+			<xsd:selector xpath="./psi-pi:DataCollection/psi-pi:AnalysisData/psi-pi:ProteinDetectionList/psi-pi:ProteinAmbiguityGroup/*"/>
+			<xsd:field xpath="@id"/>
+		</xsd:unique>
+		<xsd:unique name="PK_ANASW">
+			<xsd:selector xpath="./psi-pi:AnalysisSoftwareList/*"/>
+			<xsd:field xpath="@id"/>
+		</xsd:unique>
+		<xsd:unique name="PK_PROV">
+			<xsd:selector xpath="./psi-pi:Provider/*"/>
+			<xsd:field xpath="@id"/>
+		</xsd:unique>
+		<xsd:unique name="PK_AUDIT">
+			<xsd:selector xpath="./psi-pi:AuditCollection/*"/>
+			<xsd:field xpath="@id"/>
+		</xsd:unique>
+		<xsd:unique name="PK_SAMPLE">
+			<xsd:selector xpath="./psi-pi:AnalysisSampleCollection/*"/>
+			<xsd:field xpath="@id"/>
+		</xsd:unique>
+		<xsd:unique name="PK_CV">
+			<xsd:selector xpath="./psi-pi:cvList/*"/>
+			<xsd:field xpath="@id"/>
+		</xsd:unique>
+		<xsd:unique name="PK_FragMeasure">
+			<xsd:selector xpath="./psi-pi:DataCollection/psi-pi:AnalysisData/psi-pi:SpectrumIdentificationList/psi-pi:FragmentationTable/psi-pi:Measure"/>
+			<xsd:field xpath="@id"/>
+		</xsd:unique>
+		<xsd:unique name="PK_MassTable">
+			<xsd:selector xpath="./psi-pi:AnalysisProtocolCollection/psi-pi:SpectrumIdentificationProtocol/psi-pi:MassTable"/>
+			<xsd:field xpath="@id"/>
+		</xsd:unique>
+		<xsd:unique name="PF_Bibref">
+			<xsd:selector xpath="./psi-pi:BibliographicReference"/>
+			<xsd:field xpath="@id"/>
+		</xsd:unique>
+		<xsd:keyref name="FK_SII_PEP" refer="psi-pi:PK_SEQ">
+			<xsd:selector xpath="./psi-pi:DataCollection/psi-pi:AnalysisData/psi-pi:SpectrumIdentificationList/psi-pi:SpectrumIdentificationResult/SpectrumIdentificationItem"/>
+			<xsd:field xpath="@Peptide_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_SIIPEV_DBSEQ" refer="psi-pi:PK_SEQ">
+			<xsd:selector xpath="./psi-pi:DataCollection/psi-pi:AnalysisData/psi-pi:SpectrumIdentificationList/psi-pi:SpectrumIdentificationResult/psi-pi:SpectrumIdentificationItem/psi-pi:PeptideEvidence"/>
+			<xsd:field xpath="@DBSequence_Ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_DBSEQ_SDB" refer="psi-pi:PK_DATAIN">
+			<xsd:selector xpath="./psi-pi:SequenceCollection/psi-pi:DBSequence"/>
+			<xsd:field xpath="@SearchDatabase_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_SI_SIP" refer="psi-pi:PK_ANAPROTO">
+			<xsd:selector xpath="./psi-pi:AnalysisCollection/psi-pi:SpectrumIdentification"/>
+			<xsd:field xpath="@SpectrumIdentificationProtocol_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_SI_SIL" refer="psi-pi:PK_DATAAD">
+			<xsd:selector xpath="./psi-pi:AnalysisCollection/psi-pi:SpectrumIdentification"/>
+			<xsd:field xpath="@SpectrumIdentificationList_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_SISDB_SDB" refer="psi-pi:PK_DATAIN">
+			<xsd:selector xpath="./psi-pi:AnalysisCollection/psi-pi:SpectrumIdentification/psi-pi:SearchDatabase"/>
+			<xsd:field xpath="@SearchDatabase_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_SISDB_SD" refer="psi-pi:PK_DATAIN">
+			<xsd:selector xpath="./psi-pi:AnalysisCollection/psi-pi:SpectrumIdentification/psi-pi:SpectraData_ref"/>
+			<xsd:field xpath="@ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_PD_PDP" refer="psi-pi:PK_ANAPROTO">
+			<xsd:selector xpath="./psi-pi:AnalysisCollection/psi-pi:ProteinDetection"/>
+			<xsd:field xpath="@ProteinDetectionProtocol_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_PD_PDL" refer="psi-pi:PK_DATAAD">
+			<xsd:selector xpath="./psi-pi:AnalysisCollection/psi-pi:ProteinDetection"/>
+			<xsd:field xpath="@ProteinDetectionList_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_PDSIL_SIL" refer="psi-pi:PK_DATAAD">
+			<xsd:selector xpath="./psi-pi:AnalysisCollection/psi-pi:ProteinDetection/psi-pi:SpectrumIdentificationList_ref"/>
+			<xsd:field xpath="@ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_APSIP_ASW" refer="psi-pi:PK_ANASW">
+			<xsd:selector xpath="./psi-pi:AnalysisProtocolCollection/psi-pi:SpectrumIdentificationProtocol"/>
+			<xsd:field xpath="@AnalysisSoftware_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_APPDP_ASW" refer="psi-pi:PK_ANASW">
+			<xsd:selector xpath="./psi-pi:AnalysisProtocolCollection/psi-pi:ProteinDetectionProtocol"/>
+			<xsd:field xpath="@AnalysisSoftware_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_DATAADSILSIR_SD" refer="psi-pi:PK_DATAIN">
+			<xsd:selector xpath="./psi-pi:DataCollection/psi-pi:AnalysisData/psi-pi:SpectrumIdentificationList/psi-pi:SpectrumIdentificationResult/psi-pi:SpectrumElement"/>
+			<xsd:field xpath="@SpectraData_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_DATAADSILSIRSII_PEP" refer="psi-pi:PK_SEQ">
+			<xsd:selector xpath="./psi-pi:DataCollection/psi-pi:AnalysisData/psi-pi:SpectrumIdentificationList/psi-pi:SpectrumIdentificationResult/psi-pi:SpectrumIdentificationItem"/>
+			<xsd:field xpath="@Peptide_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_DATAADSILSIRSIIPEV_DBSEQ" refer="psi-pi:PK_SEQ">
+			<xsd:selector xpath="./psi-pi:DataCollection/psi-pi:AnalysisData/psi-pi:SpectrumIdentificationList/psi-pi:SpectrumIdentificationResult/psi-pi:SpectrumIdentificationItem/psi-pi:PeptideEvidence"/>
+			<xsd:field xpath="@DBSequence_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_DATAADPDLPAGPDHPH_PEPEV" refer="psi-pi:PK_DATAADSILSIRPE">
+			<xsd:selector xpath="./psi-pi:DataCollection/psi-pi:AnalysisData/psi-pi:ProteinDetectionList/psi-pi:ProteinAmbiguityGroup/psi-pi:ProteinDetectionHypothesis/psi-pi:PeptideHypothesis"/>
+			<xsd:field xpath="@PeptideEvidence_Ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_SoftwareContact" refer="psi-pi:PK_AUDIT">
+			<xsd:selector xpath="./psi-pi:AnalysisSoftwareList/psi-pi:AnalysisSoftware/psi-pi:ContactRole"/>
+			<xsd:field xpath="@Contact_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_ProviderContact" refer="psi-pi:PK_AUDIT">
+			<xsd:selector xpath="./psi-pi:Provider/psi-pi:ContactRole"/>
+			<xsd:field xpath="@Contact_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_ProviderSoftware" refer="psi-pi:PK_ANASW">
+			<xsd:selector xpath="./psi-pi:Provider"/>
+			<xsd:field xpath="@Software_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_SampleContact" refer="psi-pi:PK_AUDIT">
+			<xsd:selector xpath="./psi-pi:AnalysisSampleCollection/psi-pi:Sample/psi-pi:ContactRole"/>
+			<xsd:field xpath="@Contact_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_subSamples" refer="psi-pi:PK_SAMPLE">
+			<xsd:selector xpath="./psi-pi:AnalysisSampleCollection/psi-pi:Sample/psi-pi:subSample"/>
+			<xsd:field xpath="@Sample_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_PDH_DBSeq" refer="psi-pi:PK_SEQ">
+			<xsd:selector xpath="./psi-pi:DataCollection/psi-pi:AnalysisData/psi-pi:ProteinDetectionList/psi-pi:ProteinAmbiguityGroup/psi-pi:ProteinDetectionHypothesis"/>
+			<xsd:field xpath="@DBSequence_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_FRAG_MEASURE" refer="psi-pi:PK_FragMeasure">
+			<xsd:selector xpath="./psi-pi:DataCollection/psi-pi:AnalysisData/psi-pi:SpectrumIdentificationList/psi-pi:SpectrumIdentificationResult/psi-pi:SpectrumIdentificationItem/psi-pi:Fragmentation/psi-pi:IonType/psi-pi:FragmentArray"/>
+			<xsd:field xpath="@Measure_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_Sample" refer="psi-pi:PK_SAMPLE">
+			<xsd:selector xpath="./psi-pi:DataCollection/psi-pi:AnalysisData/psi-pi:SpectrumIdentificationList/psi-pi:SpectrumIdentificationResult/psi-pi:SpectrumIdentificationItem"/>
+			<xsd:field xpath="@Sample_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_MassTable" refer="psi-pi:PK_MassTable">
+			<xsd:selector xpath="./psi-pi:DataCollection/psi-pi:AnalysisData/psi-pi:SpectrumIdentificationList/psi-pi:SpectrumIdentificationResult/SpectrumIdentificationItem"/>
+			<xsd:field xpath="@MassTable_ref"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_UnitCVlist1" refer="psi-pi:PK_CV">
+			<xsd:selector xpath="*"/>
+			<xsd:field xpath="@unitCvRef"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_UnitCVlist2" refer="psi-pi:PK_CV">
+			<xsd:selector xpath="*/*"/>
+			<xsd:field xpath="@unitCvRef"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_UnitCVlist3" refer="psi-pi:PK_CV">
+			<xsd:selector xpath="*/*/*"/>
+			<xsd:field xpath="@unitCvRef"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_UnitCVlist4" refer="psi-pi:PK_CV">
+			<xsd:selector xpath="*/*/*/*"/>
+			<xsd:field xpath="@unitCvRef"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_UnitCVlist5" refer="psi-pi:PK_CV">
+			<xsd:selector xpath="*/*/*/*/*"/>
+			<xsd:field xpath="@unitCvRef"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_UnitCVlist6" refer="psi-pi:PK_CV">
+			<xsd:selector xpath="*/*/*/*/*/*"/>
+			<xsd:field xpath="@unitCvRef"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_UnitCVlist7" refer="psi-pi:PK_CV">
+			<xsd:selector xpath="*/*/*/*/*/*/*"/>
+			<xsd:field xpath="@unitCvRef"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_UnitCVlist8" refer="psi-pi:PK_CV">
+			<xsd:selector xpath="*/*/*/*/*/*/*/*"/>
+			<xsd:field xpath="@unitCvRef"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_CVlist1" refer="psi-pi:PK_CV">
+			<xsd:selector xpath="*"/>
+			<xsd:field xpath="@cvRef"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_CVlist2" refer="psi-pi:PK_CV">
+			<xsd:selector xpath="*/*"/>
+			<xsd:field xpath="@cvRef"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_CVlist3" refer="psi-pi:PK_CV">
+			<xsd:selector xpath="*/*/*"/>
+			<xsd:field xpath="@cvRef"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_CVlist4" refer="psi-pi:PK_CV">
+			<xsd:selector xpath="*/*/*/*"/>
+			<xsd:field xpath="@cvRef"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_CVlist5" refer="psi-pi:PK_CV">
+			<xsd:selector xpath="*/*/*/*/*"/>
+			<xsd:field xpath="@cvRef"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_CVlist6" refer="psi-pi:PK_CV">
+			<xsd:selector xpath="*/*/*/*/*/*"/>
+			<xsd:field xpath="@cvRef"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_CVlist7" refer="psi-pi:PK_CV">
+			<xsd:selector xpath="*/*/*/*/*/*/*"/>
+			<xsd:field xpath="@cvRef"/>
+		</xsd:keyref>
+		<xsd:keyref name="FK_CVlist8" refer="psi-pi:PK_CV">
+			<xsd:selector xpath="*/*/*/*/*/*/*/*"/>
+			<xsd:field xpath="@cvRef"/>
+		</xsd:keyref>
+	</xsd:element>
+	<xsd:complexType name="cvListType">
+		<xsd:sequence>
+			<xsd:element ref="cv" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="AnalysisSoftwareListType">
+		<xsd:sequence>
+			<xsd:element name="AnalysisSoftware" type="PSI-PI.analysis.search.AnalysisSoftwareType" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="AnalysisSampleCollectionType">
+		<xsd:sequence>
+			<xsd:element name="Sample" type="SampleType" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="SequenceCollectionType">
+		<xsd:sequence>
+			<xsd:element name="DBSequence" type="PSI-PI.analysis.search.DBSequenceType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="Peptide" type="PSI-PI.polypeptide.PeptideType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="AnalysisCollectionType">
+		<xsd:sequence>
+			<xsd:element name="SpectrumIdentification" type="PSI-PI.analysis.search.SpectrumIdentificationType" maxOccurs="unbounded"/>
+			<xsd:element name="ProteinDetection" type="PSI-PI.analysis.process.ProteinDetectionType" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="AnalysisProtocolCollectionType">
+		<xsd:sequence>
+			<xsd:element name="SpectrumIdentificationProtocol" type="PSI-PI.analysis.search.SpectrumIdentificationProtocolType" maxOccurs="unbounded"/>
+			<xsd:element name="ProteinDetectionProtocol" type="PSI-PI.analysis.process.ProteinDetectionProtocolType" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="InputsType">
+		<xsd:sequence>
+			<xsd:element name="SourceFile" type="PSI-PI.analysis.search.SourceFileType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="SearchDatabase" type="PSI-PI.analysis.search.SearchDatabaseType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="SpectraData" type="PSI-PI.spectra.SpectraDataType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="AnalysisDataType">
+		<xsd:sequence>
+			<xsd:element name="SpectrumIdentificationList" type="PSI-PI.analysis.search.SpectrumIdentificationListType" maxOccurs="unbounded"/>
+			<xsd:element name="ProteinDetectionList" type="PSI-PI.analysis.process.ProteinDetectionListType" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="DataCollectionType">
+		<xsd:sequence>
+			<xsd:element name="Inputs" type="InputsType">
+				<xsd:annotation>
+					<xsd:documentation>The inputs to the analyses including the databases searched, the spectral data and the source file converted to mzIdentML.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="AnalysisData" type="AnalysisDataType">
+				<xsd:annotation>
+					<xsd:documentation>Data sets generated by the analyses, including peptide and protein lists.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.Main.mzIdentMLType" abstract="false">
+		<xsd:annotation>
+			<xsd:documentation> The upper-most hierarchy level of mzIdentML with sub-containers for example describing software, protocols and search results (spectrum identifications or protein detection results). </xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Common.IdentifiableType">
+				<xsd:sequence>
+					<xsd:element name="cvList" type="cvListType">
+						<xsd:annotation>
+							<xsd:documentation> The list of CVs used within the file</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="AnalysisSoftwareList" type="AnalysisSoftwareListType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation> The software used to perform the analyses (specify at least name, manufacturer, version, URL). </xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element ref="Provider" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>The Provider of the mzIdentML record in terms of the contact and software.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element ref="AuditCollection" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>The complete set of Contacts (people and organisations) for this file.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="AnalysisSampleCollection" type="AnalysisSampleCollectionType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>The samples analysed can optionally be recorded using CV terms for descriptions. If a composite...</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="SequenceCollection" type="SequenceCollectionType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>The collection of sequences (DBSequence or Peptide) identified to be referenced in the results.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="AnalysisCollection" type="AnalysisCollectionType">
+						<xsd:annotation>
+							<xsd:documentation> The analyses performed to get the results, which map the input and output data sets. Analyses are for example: SpectrumIdentification (resulting in peptides) or ProteinDetection (assemble proteins from peptides).</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="AnalysisProtocolCollection" type="AnalysisProtocolCollectionType">
+						<xsd:annotation>
+							<xsd:documentation> The collection of protocols which include the parameters and settings of the performed analyses. </xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="DataCollection" type="DataCollectionType">
+						<xsd:annotation>
+							<xsd:documentation>The collection of input and output data sets of the analyses.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element ref="BibliographicReference" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>Any bibliographic references associated with the file</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+				<xsd:attribute name="creationDate" type="xsd:dateTime">
+					<xsd:annotation>
+						<xsd:documentation>The date on which the file was produced.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="version" type="psi-pi:versionRegex" use="required">
+					<xsd:annotation>
+						<xsd:documentation>The version of the schema this instance document refers to, in the format x.y.z. Changes to z should not affect prevent instance documents from validating. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.analysis.search.SearchDatabaseType" abstract="false">
+		<xsd:annotation>
+			<xsd:documentation> A database for searching mass spectra. Examples include a set of amino acid sequence entries, or annotated spectra libraries. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Bio.Data.ExternalDataType">
+				<xsd:sequence>
+					<xsd:element name="DatabaseName" type="ParamType">
+						<xsd:annotation>
+							<xsd:documentation>The database name may be given as a cvParam if it maps exactly to one of the release databases listed in the CV, otherwise a userParam should be used.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element ref="cvParam" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:sequence>
+				<xsd:attribute name="version" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>The version of the database.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="releaseDate" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>The release date of the database.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="numDatabaseSequences" type="xsd:long">
+					<xsd:annotation>
+						<xsd:documentation>The total number of sequences in the database.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="numResidues" type="xsd:long">
+					<xsd:annotation>
+						<xsd:documentation>The number of residues in the database.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.analysis.search.SourceFileType" abstract="false">
+		<xsd:annotation>
+			<xsd:documentation> A file from which this mzIdentML instance was created. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Bio.Data.ExternalDataType">
+				<xsd:sequence>
+					<xsd:group ref="ParamGroup" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="ModificationParamsType">
+		<xsd:sequence>
+			<xsd:element name="SearchModification" type="PSI-PI.analysis.search.SearchModificationType" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="FilterType">
+		<xsd:sequence>
+			<xsd:element name="FilterType" type="ParamType">
+				<xsd:annotation>
+					<xsd:documentation>The type of filter e.g. database taxonomy filter, pi filter, mw filter </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Include" type="ParamListType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>All sequences fulfilling the specifed criteria are included.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Exclude" type="ParamListType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>All sequences fulfilling the specifed criteria are excluded.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="DatabaseFiltersType">
+		<xsd:sequence>
+			<xsd:element name="Filter" type="FilterType" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>The filter must include at least one of Include and Exclude. If both are used, it is assumed that inclusion is performed first.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="TranslationTableType">
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Common.IdentifiableType">
+				<xsd:sequence>
+					<xsd:element ref="cvParam" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="DatabaseTranslationType">
+		<xsd:sequence>
+			<xsd:element name="TranslationTable" type="TranslationTableType" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>The table used to translate codons into nucleic acids e.g. by reference to the NCBI translation table.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="frames" type="listOfAllowedFrames">
+			<xsd:annotation>
+				<xsd:documentation>The frames in which the nucleic acid sequence has been translated as a space separated list</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.analysis.search.SpectrumIdentificationProtocolType" abstract="false">
+		<xsd:annotation>
+			<xsd:documentation> The parameters and settings of a SpectrumIdentification analysis. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Common.Protocol.ProtocolType">
+				<xsd:sequence>
+					<xsd:element name="SearchType" type="ParamType">
+						<xsd:annotation>
+							<xsd:documentation>The type of search performed e.g. PMF, Tag searches, MS-MS</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="AdditionalSearchParams" type="ParamListType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>The search parameters other than the modifications searched.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="ModificationParams" type="ModificationParamsType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation> The specification of static/variable modifications (e.g. Oxidation of Methionine) that are to be considered in the spectra search. </xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Enzymes" type="PSI-PI.analysis.search.EnzymesType" minOccurs="0"/>
+					<xsd:element name="MassTable" type="PSI-PI.analysis.search.MassTableType" minOccurs="0" maxOccurs="unbounded"/>
+					<xsd:element name="FragmentTolerance" type="ToleranceType" minOccurs="0"/>
+					<xsd:element name="ParentTolerance" type="ToleranceType" minOccurs="0"/>
+					<xsd:element name="Threshold" type="ParamListType">
+						<xsd:annotation>
+							<xsd:documentation>The threshold(s) applied to determine that a result is significant. If multiple terms are used it is assumed that all conditions are satisfied by the passing results.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="DatabaseFilters" type="DatabaseFiltersType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>The specification of filters applied to the database searched.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="DatabaseTranslation" type="DatabaseTranslationType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>A specification of how a nucleic acid sequence database was translated for searching.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+				<xsd:attribute name="AnalysisSoftware_ref" type="xsd:string" use="required">
+					<xsd:annotation>
+						<xsd:documentation> The search algorithm used, given as a reference to the SoftwareCollection section. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="InputSpectraType">
+		<xsd:annotation>
+			<xsd:documentation> The attribute referencing an identifier within the SpectraData section. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="SpectraData_ref" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>A reference to the SpectraData element which locates the input spectra to an external file.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="SearchDatabaseType">
+		<xsd:attribute name="SearchDatabase_ref" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>A reference to the database searched.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.analysis.search.SpectrumIdentificationType" abstract="false">
+		<xsd:annotation>
+			<xsd:documentation> An Analysis which tries to identify peptides in input spectra, referencing the database searched, the input spectra, the output results and the protocol that is run. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Common.Protocol.ProtocolApplicationType">
+				<xsd:sequence>
+					<xsd:element name="InputSpectra" type="InputSpectraType" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation> One of the spectra data sets used (can be several).</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="SearchDatabase" type="SearchDatabaseType" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation> One of the search databases used (can be several).</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+				<xsd:attribute name="SpectrumIdentificationProtocol_ref" type="xsd:string" use="required">
+					<xsd:annotation>
+						<xsd:documentation> A reference to the search protocol used for this SpectrumIdentification. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="SpectrumIdentificationList_ref" type="xsd:string" use="required">
+					<xsd:annotation>
+						<xsd:documentation> A reference to the SpectrumIdentificationList produced by this analysis in the DataCollection section. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="MeasureType">
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Common.IdentifiableType">
+				<xsd:sequence>
+					<xsd:element ref="cvParam" maxOccurs="unbounded"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="FragmentationTableType">
+		<xsd:sequence>
+			<xsd:element name="Measure" type="MeasureType" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>References to CV terms defining the measures about product ions to be reported in SpectrumIdentificationItem</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.analysis.search.SpectrumIdentificationListType" abstract="false">
+		<xsd:annotation>
+			<xsd:documentation> Represents the set of all search results from SpectrumIdentification. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Bio.Data.InternalDataType">
+				<xsd:sequence>
+					<xsd:group ref="ParamGroup" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>Scores or output parameters associated with the SpectrumIdentificationList</xsd:documentation>
+						</xsd:annotation>
+					</xsd:group>
+					<xsd:element name="FragmentationTable" type="FragmentationTableType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>Contains the types of measures that will be reported in generic arrays for each SpectrumIdentificationItem e.g. product ion m/z, product ion intensity, product ion m/z error</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="SpectrumIdentificationResult" type="PSI-PI.analysis.search.SpectrumIdentificationResultType" maxOccurs="unbounded"/>
+				</xsd:sequence>
+				<xsd:attribute name="numSequencesSearched" type="xsd:long">
+					<xsd:annotation>
+						<xsd:documentation>This value should be provided unless a de novo search has been performed.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="SpecificityRulesType">
+		<xsd:sequence>
+			<xsd:element ref="cvParam" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.analysis.search.SearchModificationType" abstract="false">
+		<xsd:annotation>
+			<xsd:documentation> Specification of a search modification as parameter for a spectra search. Contains the name of the modification, the mass, the specificity and whether it is a static modification. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="ModParam" type="PSI-PI.polypeptide.ModParamType"/>
+			<xsd:element name="SpecificityRules" type="SpecificityRulesType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The specificity rules of the searched modification including for example the probability of a modification's presence or peptide or protein termini. Standard fixed or variable status should be provided by the attribute fixedMod.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="fixedMod" type="xsd:boolean" use="required">
+			<xsd:annotation>
+				<xsd:documentation> True, if the modification is static (i.e. occurs always). </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="FragmentArrayType">
+		<xsd:attribute name="values" type="listOfFloats" use="required">
+			<xsd:annotation>
+				<xsd:documentation>The values of this particular measure, corresponding to the index defined in ion type</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="Measure_ref" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>A reference to the Measure defined in the FragmentationTable</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="IonTypeType">
+		<xsd:sequence>
+			<xsd:element ref="cvParam">
+				<xsd:annotation>
+					<xsd:documentation>The type of ion identified.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="FragmentArray" type="FragmentArrayType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>An array of values for a given type of measure and for a particular ion type, in parallel to the index of ions identified.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="index" type="listOfIntegers">
+			<xsd:annotation>
+				<xsd:documentation>The index of ions identified as integers, following standard notation for a-c, x-z e.g. if b3 b5 and b6 have been identified, the index would store "3 5 6". For internal ions, the index contains pairs defining the start and end point - see specification document for examples. For immonium ions, the index is the position of the identified ion within the peptide sequence - if the peptide contains the same amino acid in multiple positions that cannot be distinguished, all positions should be given. </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="charge" type="xsd:int" use="required">
+			<xsd:annotation>
+				<xsd:documentation>The charge of the identified fragmentation ions.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="FragmentationType">
+		<xsd:sequence>
+			<xsd:element name="IonType" type="IonTypeType" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>IonType defines the index of fragmentation ions being reported, importing a CV term for the type of ion e.g. b ion. Example: if b3 b7 b8 and b10 have been identified, the index attribute will contain 3 7 8 10, and the corresponding values will be reported in parallel arrays below</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.analysis.search.SpectrumIdentificationItemType" abstract="false">
+		<xsd:annotation>
+			<xsd:documentation> An identification of a single (poly)peptide, resulting from querying an input spectra, along with the set of confidence values for that identification. PeptideEvidence elements should be given for all mappings of the corresponding Peptide sequence within protein sequences.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Common.IdentifiableType">
+				<xsd:sequence>
+					<xsd:element name="PeptideEvidence" type="PSI-PI.analysis.process.PeptideEvidenceType" minOccurs="0" maxOccurs="unbounded"/>
+					<xsd:group ref="ParamGroup" minOccurs="0" maxOccurs="unbounded"/>
+					<xsd:element name="Fragmentation" type="FragmentationType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>The product ions identified in this result.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+				<xsd:attribute name="chargeState" type="xsd:int" use="required">
+					<xsd:annotation>
+						<xsd:documentation> The charge state of the identified peptide. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="experimentalMassToCharge" type="xsd:double" use="required">
+					<xsd:annotation>
+						<xsd:documentation> The mass-to-charge value measured in the experiment in Daltons / charge. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="calculatedMassToCharge" type="xsd:double">
+					<xsd:annotation>
+						<xsd:documentation> The theoretical mass-to-charge value calculated for the peptide in Daltons / charge. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="calculatedPI" type="xsd:float">
+					<xsd:annotation>
+						<xsd:documentation> The calculated isoelectric point of the (poly)peptide, with relevant modifications included. Do not supply this value if the PI cannot be calcuated properly. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="Peptide_ref" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation> A reference to the identified (poly)peptide sequence in the Peptide element. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="rank" type="xsd:int" use="required">
+					<xsd:annotation>
+						<xsd:documentation>For an MS/MS result set, this is the rank of the identification quality as scored by the search engine. 1 is the top rank. If multiple identifications have the same top score, they should all be assigned rank =1. For PMF data, the rank attribute may be meaningless and values of rank = 0 should be given. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="passThreshold" type="xsd:boolean" use="required">
+					<xsd:annotation>
+						<xsd:documentation>Set to true if the producers of the file has deemed that the identification has passed a given threshold or been validated as correct. If no such threshold has been set, value of true should be given for all results. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="MassTable_ref" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>A reference should be given to the MassTable used to calculate the sequenceMass only if more than one MassTable has been given</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="Sample_ref" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>A reference should be provided to link the SpectrumIdentificationItem to a Sample if more than one sample has been described in the AnalysisSampleCollection. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.analysis.search.SpectrumIdentificationResultType" abstract="false">
+		<xsd:annotation>
+			<xsd:documentation> All identifications made from searching one spectrum. For PMF data, all peptide identifications will be listed underneath as SpectrumIdentificationItems. For MS/MS data, there will be ranked SpectrumIdentificationItems corresponding to possible different peptide IDs.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Common.IdentifiableType">
+				<xsd:sequence>
+					<xsd:element name="SpectrumIdentificationItem" type="PSI-PI.analysis.search.SpectrumIdentificationItemType" maxOccurs="unbounded"/>
+					<xsd:group ref="ParamGroup" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:sequence>
+				<xsd:attribute name="spectrumID" type="xsd:string" use="required">
+					<xsd:annotation>
+						<xsd:documentation> The locally unique id for the spectrum in the spectra data set specified by SpectraData_ref. External guidelines are provided on the use of consistent identifiers for spectra in different external formats.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="SpectraData_ref" type="xsd:string" use="required">
+					<xsd:annotation>
+						<xsd:documentation> A reference to a spectra data set (e.g. a spectra file). </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="InputSpectrumIdentificationsType">
+		<xsd:attribute name="SpectrumIdentificationList_ref" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>A reference to the list of spectrum identifications that were input to the process.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.analysis.process.ProteinDetectionType" abstract="false">
+		<xsd:annotation>
+			<xsd:documentation> An Analysis which assembles a set of peptides (e.g. from a spectra search analysis) to proteins. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Common.Protocol.ProtocolApplicationType">
+				<xsd:sequence>
+					<xsd:element name="InputSpectrumIdentifications" type="InputSpectrumIdentificationsType" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>The lists of spectrum identifications that are input to the protein detection process.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+				<xsd:attribute name="ProteinDetectionList_ref" type="xsd:string" use="required">
+					<xsd:annotation>
+						<xsd:documentation> A reference to the ProteinDetectionList in the DataCollection section. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="ProteinDetectionProtocol_ref" type="xsd:string" use="required">
+					<xsd:annotation>
+						<xsd:documentation> A reference to the detection protocol used for this ProteinDetection. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.analysis.process.ProteinDetectionProtocolType" abstract="false">
+		<xsd:annotation>
+			<xsd:documentation> The parameters and settings of a ProteinDetection process. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Common.Protocol.ProtocolType">
+				<xsd:sequence>
+					<xsd:element name="AnalysisParams" type="ParamListType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>The parameters and settings for the protein detection given as CV terms. </xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Threshold" type="ParamListType">
+						<xsd:annotation>
+							<xsd:documentation>The threshold(s) applied to determine that a result is significant. If multiple terms are used it is assumed that all conditions are satisfied by the passing results.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+				<xsd:attribute name="AnalysisSoftware_ref" type="xsd:string" use="required">
+					<xsd:annotation>
+						<xsd:documentation> The protein detection software used, given as a reference to the SoftwareCollection section. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.analysis.process.ProteinDetectionListType" abstract="false">
+		<xsd:annotation>
+			<xsd:documentation> The protein list resulting from a protein detection process. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Bio.Data.InternalDataType">
+				<xsd:sequence>
+					<xsd:group ref="ParamGroup" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>Scores or output parameters associated with the ProteinDetectionList</xsd:documentation>
+						</xsd:annotation>
+					</xsd:group>
+					<xsd:element name="ProteinAmbiguityGroup" type="PSI-PI.analysis.process.ProteinAmbiguityGroupType" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="PeptideHypothesisType">
+		<xsd:attribute name="PeptideEvidence_Ref" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>A reference to the PeptideEvidence element on which this hypothesis is based.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.analysis.process.ProteinDetectionHypothesisType" abstract="false">
+		<xsd:annotation>
+			<xsd:documentation> A single result of the ProteinDetection analysis (i.e. a protein).</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Common.IdentifiableType">
+				<xsd:sequence>
+					<xsd:element name="PeptideHypothesis" type="PeptideHypothesisType" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>Peptide evidence on which this ProteinHypothesis is based by reference to a PeptideEvidence element in a SpectrumIdentificationItem. </xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:group ref="ParamGroup" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:sequence>
+				<xsd:attribute name="DBSequence_ref" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>A reference to the corresponding DBSequence entry. This is optional and redundant, because the PeptideEvidence elements referenced from here also map to the DBSequence.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="passThreshold" type="xsd:boolean" use="required">
+					<xsd:annotation>
+						<xsd:documentation>Set to true if the producers of the file has deemed that the ProteinDetectionHypothesis has passed a given threshold or been validated as correct. If no such threshold has been set, value of true should be given for all results. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.analysis.process.ProteinAmbiguityGroupType" abstract="false">
+		<xsd:annotation>
+			<xsd:documentation>A set of logically related results from a protein detection, for example to represent conflicting assignments of peptides to proteins.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Common.IdentifiableType">
+				<xsd:sequence>
+					<xsd:element name="ProteinDetectionHypothesis" type="PSI-PI.analysis.process.ProteinDetectionHypothesisType" maxOccurs="unbounded"/>
+					<xsd:group ref="ParamGroup" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.polypeptide.ModificationType" abstract="false">
+		<xsd:annotation>
+			<xsd:documentation>A molecule modification specification. If n modifications have been found on a peptide, there should be n instances of Modification. If multiple modifications are provided as cvParams, it is assumed that the modification is ambiguous i.e. one modification or another. If no CVParams are provided it is assumed that the delta has not been matched to a known modification. A neutral loss should be defined as an additional CVParam within Modification. If more complex information should be given about neutral losses (such as presence/absence on particular product ions), this can additionally be encoded within the FragmentationArray.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:group ref="ParamGroup" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="location" type="xsd:int">
+			<xsd:annotation>
+				<xsd:documentation>Location of the modification within the peptide - position in peptide sequence, counted from the N-terminus residue, starting at position 1. Specific modifications to the N-terminus should be given the location 0. Modification to the C-terminus should be given as peptide length + 1.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="residues" type="listOfChars">
+			<xsd:annotation>
+				<xsd:documentation>Specification of the residue (amino acid) on which the modification occurs. If multiple values are given, it is assumed that the exact residue modified is unknown i.e. the modification is to ONE of the residues listed. Multiple residues would usually only be specified for PMF data.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="avgMassDelta" type="xsd:double">
+			<xsd:annotation>
+				<xsd:documentation> Atomic mass delta considering the natural distribution of isotopes in Daltons. </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="monoisotopicMassDelta" type="xsd:double">
+			<xsd:annotation>
+				<xsd:documentation> Atomic mass delta when assuming only the most common isotope of elements in Daltons. </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.polypeptide.ModParamType" abstract="false">
+		<xsd:annotation>
+			<xsd:documentation>The modification searched for, sourced from e.g. UniMod and the mass delta</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element ref="cvParam">
+				<xsd:annotation>
+					<xsd:documentation>The name of the modification imported from a relevant CV</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="massDelta" type="xsd:float" use="required">
+			<xsd:annotation>
+				<xsd:documentation>The mass delta of the searched modification in Daltons</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="residues" type="listOfChars" use="required">
+			<xsd:annotation>
+				<xsd:documentation>The residue(s) searched with the specified modification</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.polypeptide.PeptideType" abstract="false">
+		<xsd:annotation>
+			<xsd:documentation> One (poly)peptide (a sequence with modifications).</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Bio.ConceptualMolecule.ConceptualMoleculeType">
+				<xsd:sequence>
+					<xsd:element name="peptideSequence" type="sequence">
+						<xsd:annotation>
+							<xsd:documentation> The amino acid sequence of the (poly)peptide. If a substitution modification has been found, the original sequence should be reported. </xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Modification" type="PSI-PI.polypeptide.ModificationType" minOccurs="0" maxOccurs="unbounded"/>
+					<xsd:element name="SubstitutionModification" type="PSI-PI.polypeptide.SubstitutionModificationType" minOccurs="0" maxOccurs="unbounded"/>
+					<xsd:group ref="ParamGroup" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.polypeptide.SubstitutionModificationType" abstract="false">
+		<xsd:annotation>
+			<xsd:documentation> A modification where one residue is substituted by another (amino acid change). </xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="originalResidue" use="required">
+			<xsd:annotation>
+				<xsd:documentation> The original residue before replacement. </xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:pattern value="[ABCDEFGHIJKLMNOPQRSTUVWXYZ?\-]{1}"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="replacementResidue" use="required">
+			<xsd:annotation>
+				<xsd:documentation> The residue that replaced the originalResidue. </xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:pattern value="[ABCDEFGHIJKLMNOPQRSTUVWXYZ?\-]{1}"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="location" type="xsd:int">
+			<xsd:annotation>
+				<xsd:documentation>Location of the modification within the peptide - position in peptide sequence, counted from the N-terminus residue, starting at position 1. Specific modifications to the N-terminus should be given the location 0. Modification to the C-terminus should be given as peptide length + 1.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="avgMassDelta" type="xsd:double">
+			<xsd:annotation>
+				<xsd:documentation> Atomic mass delta considering the natural distribution of isotopes in Daltons. This should only be reported if the original amino acid is known i.e. it is not "X" </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="monoisotopicMassDelta" type="xsd:double">
+			<xsd:annotation>
+				<xsd:documentation> Atomic mass delta when assuming only the most common isotope of elements in Daltons. This should only be reported if the original amino acid is known i.e. it is not "X" </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.spectra.SpectraDataType" abstract="false">
+		<xsd:annotation>
+			<xsd:documentation> A data set containing spectra data (consisting of one or more spectra). </xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Bio.Data.ExternalDataType">
+				<xsd:sequence>
+					<xsd:element name="spectrumIDFormat" type="spectrumIDFormatType"/>					
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.analysis.search.AnalysisSoftwareType" abstract="false">
+		<xsd:annotation>
+			<xsd:documentation> The software used for performing the analyses. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Common.Protocol.SoftwareType">
+				<xsd:sequence>
+					<xsd:element name="SoftwareName" type="ParamType">
+						<xsd:annotation>
+							<xsd:documentation>The name of the analysis software package, sourced from a CV if available.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="Customizations" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>Any customizations to the software, such as alternative scoring mechanisms implemented, should be documented here as free text.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+				<xsd:attribute name="URI" type="xsd:anyURI">
+					<xsd:annotation>
+						<xsd:documentation>URI of the analysis software e.g. manufacturer's website</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.analysis.search.EnzymeType">
+		<xsd:annotation>
+			<xsd:documentation>The details of an individual cleavage enzyme should be provided by giving a regular expression or a CV term if a "standard" enzyme cleavage has been performed.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="SiteRegexp" type="PSI-PI.analysis.search.SiteRegexpType" minOccurs="0"/>
+			<xsd:element name="EnzymeName" type="ParamListType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The name of the enzyme from a CV.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:string" use="required"/>
+		<xsd:attribute name="NTermGain" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>Element formula gained at NTerm.</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:pattern value="[A-Za-z0-9 ]+"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="CTermGain" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>Element formula gained at CTerm.</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:pattern value="[A-Za-z0-9 ]+"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="semiSpecific" type="xsd:boolean" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>Set to true if the enzyme cleaves semi-specifically (i.e. one terminus must cleave according to the rules, the other can cleave at any residue), false if the enzyme cleavage is assumed to be specific to both termini (accepting for any missed cleavages).</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="missedCleavages" type="xsd:int" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>The number of missed cleavage sites allowed by the search. The attribute must be provided if an enzyme has been used.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="minDistance" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>Minimal distance for another cleavage (minimum: 1).</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:int">
+					<xsd:minInclusive value="1"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.analysis.search.EnzymesType">
+		<xsd:annotation>
+			<xsd:documentation>The list of enzymes used in experiment</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Enzyme" type="PSI-PI.analysis.search.EnzymeType" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="independent" type="xsd:boolean">
+			<xsd:annotation>
+				<xsd:documentation>If there are multiple enzymes specified, this attribute is set to true if cleavage with different enzymes is performed independently</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="ResidueType">
+		<xsd:attribute name="Code" type="chars" use="required">
+			<xsd:annotation>
+				<xsd:documentation>The single letter code for the residue.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="Mass" type="xsd:float" use="required">
+			<xsd:annotation>
+				<xsd:documentation>The residue mass in Daltons (not including any fixed modifications). </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="AmbiguousResidueType">
+		<xsd:sequence>
+			<xsd:group ref="ParamGroup" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="Code" type="chars" use="required">
+			<xsd:annotation>
+				<xsd:documentation>The single letter code of the ambiguous residue e.g. X.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.analysis.search.MassTableType">
+		<xsd:annotation>
+			<xsd:documentation>The masses of residues used in the search.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Common.IdentifiableType">
+				<xsd:sequence>
+					<xsd:group ref="ParamGroup" minOccurs="0" maxOccurs="unbounded"/>
+					<xsd:element name="Residue" type="ResidueType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>The specification of a single residue within the mass table.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="AmbiguousResidue" type="AmbiguousResidueType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>Ambiguous residues e.g. X can be specified by the Code attribute and a set of parameters for example giving the different masses that will be used in the search.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+				<xsd:attribute name="msLevel" type="listOfIntegers" use="required">
+					<xsd:annotation>
+						<xsd:documentation>The MS spectrum that the MassTable refers to e.g. "1" for MS1 "2" for MS2 or "1 2" for MS1 or MS2</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="PSI-PI.analysis.process.PeptideEvidenceType">
+		<xsd:annotation>
+			<xsd:documentation>PeptideEvidence maps a spectrum identification to DBSequence in which such a peptide is located. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Common.IdentifiableType">
+				<xsd:sequence>
+					<xsd:group ref="ParamGroup" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:sequence>
+				<xsd:attribute name="DBSequence_Ref" type="xsd:string" use="required">
+					<xsd:annotation>
+						<xsd:documentation>A reference to the sequence from which this identification has been made.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="start" type="xsd:int">
+					<xsd:annotation>
+						<xsd:documentation> Start position of the peptide inside the protein sequence, where the first amino acid of the protein sequence is position 1.  </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="end" type="xsd:int">
+					<xsd:annotation>
+						<xsd:documentation> The index position of the last amino acid of the peptide inside the protein sequence, where the first amino acid of the protein sequence is position 1. </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="pre">
+					<xsd:annotation>
+						<xsd:documentation> Previous flanking residue. If the peptide is N-terminal, pre="-" and not pre="". If for any reason it is unknown (e.g. denovo), pre="?" should be used. </xsd:documentation>
+					</xsd:annotation>
+					<xsd:simpleType>
+						<xsd:restriction base="xsd:string">
+							<xsd:pattern value="[ABCDEFGHIJKLMNOPQRSTUVWXYZ?\-]{1}"/>
+						</xsd:restriction>
+					</xsd:simpleType>
+				</xsd:attribute>
+				<xsd:attribute name="post">
+					<xsd:annotation>
+						<xsd:documentation> Post flanking residue.  If the peptide is C-terminal, post="-" and not post="". If for any reason it is unknown (e.g. denovo), post="?" should be used.  </xsd:documentation>
+					</xsd:annotation>
+					<xsd:simpleType>
+						<xsd:restriction base="xsd:string">
+							<xsd:pattern value="[ABCDEFGHIJKLMNOPQRSTUVWXYZ?\-]{1}"/>
+						</xsd:restriction>
+					</xsd:simpleType>
+				</xsd:attribute>
+				<xsd:attribute name="TranslationTable_ref" type="xsd:string" use="optional">
+					<xsd:annotation>
+						<xsd:documentation>A reference to the translation table used if this is PeptideEvidence derived from nucleic acid sequence</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="frame" type="psi-pi:allowed_frames" use="optional">
+					<xsd:annotation>
+						<xsd:documentation>The translation frame of this sequence if this is PeptideEvidence derived from nucleic acid sequence</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="isDecoy" type="xsd:boolean" default="false">
+					<xsd:annotation>
+						<xsd:documentation>Set to true if the peptide is matched to a decoy sequence.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="missedCleavages" type="xsd:int" use="optional">
+					<xsd:annotation>
+						<xsd:documentation>Number of missed cleavage sites (not required if no enzyme has been used).</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="ToleranceType">
+		<xsd:annotation>
+			<xsd:documentation>The tolerance of the search given as a plus and minus value with units.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element ref="cvParam" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="spectrumIDFormatType">
+		<xsd:annotation><xsd:documentation>The format of the spectrum identifier within the source file</xsd:documentation></xsd:annotation>
+		<xsd:sequence>
+			<xsd:element ref="cvParam"/>
+		</xsd:sequence>
+	</xsd:complexType>	
+	<xsd:complexType name="PSI-PI.analysis.search.DBSequenceType">
+		<xsd:annotation>
+			<xsd:documentation>A database sequence from the specified SearchDatabase (nucleic acid or amino acid). If the sequence is nucleic acid, the source nucleic acid sequence should be given in the seq attribute rather than a translated sequence.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Bio.ConceptualMolecule.ConceptualMoleculeType">
+				<xsd:sequence>
+					<xsd:element name="seq" type="sequence" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>The actual sequence of amino acids or nucleic acid.</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:group ref="ParamGroup" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:sequence>
+				<xsd:attribute name="length" type="xsd:int">
+					<xsd:annotation>
+						<xsd:documentation>The length of the sequence as a number of bases or residues.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="SearchDatabase_ref" type="xsd:string" use="required">
+					<xsd:annotation>
+						<xsd:documentation>The source database of this sequence.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="accession" type="xsd:string" use="required">
+					<xsd:annotation>
+						<xsd:documentation>The unique accession of this sequence.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="SampleType">
+		<xsd:annotation>
+			<xsd:documentation>A description of the sample analysed by mass spectrometry using CVParams or UserParams. If a composite sample has been analysed, a parent sample should be defined, which references subsamples. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="FuGE.Bio.Material.MaterialType">
+				<xsd:sequence>
+					<xsd:element name="subSample" type="subSampleType" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="subSampleType">
+		<xsd:annotation>
+			<xsd:documentation>References to the individual component samples within a mixed parent sample.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="Sample_ref" type="xsd:string" use="required"/>
+	</xsd:complexType>
+	<xsd:simpleType name="PSI-PI.analysis.search.SiteRegexpType">
+		<xsd:annotation>
+			<xsd:documentation>Regular expression for specifying the enzyme cleavage site.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="listOfIntegers">
+		<xsd:list itemType="xsd:integer"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="listOfFloats">
+		<xsd:list itemType="xsd:float"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="listOfChars">
+		<xsd:list itemType="chars"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="chars">
+		<xsd:restriction base="xsd:string">
+			<xsd:pattern value="[ABCDEFGHIJKLMNOPQRSTUVWXYZ]{1}"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="sequence">
+		<xsd:restriction base="xsd:string">
+			<xsd:pattern value="[ABCDEFGHIJKLMNOPQRSTUVWXYZ]*"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="allowed_frames">
+		<xsd:restriction base="xsd:int">
+			<xsd:enumeration value="3"/>
+			<xsd:enumeration value="2"/>
+			<xsd:enumeration value="1"/>
+			<xsd:enumeration value="-3"/>
+			<xsd:enumeration value="-2"/>
+			<xsd:enumeration value="-1"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="listOfAllowedFrames">
+		<xsd:list itemType="psi-pi:allowed_frames"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="versionRegex">
+		<xsd:restriction base="xsd:string">
+			<xsd:pattern value="(1\.0\.\d+)"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+</xsd:schema>
