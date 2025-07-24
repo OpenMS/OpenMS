@@ -1387,33 +1387,46 @@ namespace OpenMS
 
     if (!it->getTransRef().empty())
     {
+      const String& trans_ref = it->getTransRef();
+      mytransition.group_id = trans_ref;
 
-    if (it->getTransType() == OpenSwath::TransType::PEPTIDE)
-    {
-      const OpenMS::TargetedExperiment::Peptide& pep = targeted_exp.getPeptideByRef(it->getTransRef());
-      mytransition.group_id = it->getTransRef();
-
-      #ifdef TRANSITIONTSVREADER_TESTING
-      OPENMS_LOG_DEBUG << "Peptide rts empty " <<
-      pep.rts.empty()  << " or no cv term " << pep.getRetentionTime() << std::endl;
-      #endif
-
-      if (pep.hasRetentionTime())
+      try
       {
-        mytransition.rt_calibrated = pep.getRetentionTime();
-      }
-
-      mytransition.PeptideSequence = pep.sequence;
-      mytransition.GeneName = "NA";
-      if (!pep.protein_refs.empty())
-      {
-        for (auto & prot_ref : pep.protein_refs)
+        if (it->getTransType() == OpenSwath::TransType::PEPTIDE)
         {
-          const OpenMS::TargetedExperiment::Protein& prot = targeted_exp.getProteinByRef(prot_ref);
-          mytransition.ProteinName.push_back(prot.id);
-          if (prot.hasCVTerm("MS:1000885"))
+          const OpenMS::TargetedExperiment::Peptide& pep = targeted_exp.getPeptideByRef(trans_ref);
+
+          #ifdef TRANSITIONTSVREADER_TESTING
+          OPENMS_LOG_DEBUG << "Peptide rts empty " << pep.rts.empty()
+                           << " or no cv term " << pep.getRetentionTime() << std::endl;
+          #endif
+
+          // Set retention time
+          if (pep.hasRetentionTime())
           {
-            mytransition.uniprot_id.push_back(prot.getCVTerms().at("MS:1000885")[0].getValue().toString());
+            mytransition.rt_calibrated = pep.getRetentionTime();
+          }
+          
+          // Set sequences and names
+          mytransition.PeptideSequence = pep.sequence;
+          mytransition.FullPeptideName = TargetedExperimentHelper::getAASequence(pep).toUniModString();
+          mytransition.GeneName = NA_VALUE;
+          
+          // Process protein references efficiently
+          if (!pep.protein_refs.empty())
+          {
+            mytransition.ProteinName.reserve(pep.protein_refs.size());
+            mytransition.uniprot_id.reserve(pep.protein_refs.size());
+            
+            for (const auto& prot_ref : pep.protein_refs)
+            {
+              const OpenMS::TargetedExperiment::Protein& prot = targeted_exp.getProteinByRef(prot_ref);
+              mytransition.ProteinName.push_back(prot.id);
+              if (prot.hasCVTerm(CV_PROTEIN_ACCESSION))
+              {
+                mytransition.uniprot_id.push_back(prot.getCVTerms().at(CV_PROTEIN_ACCESSION)[0].getValue().toString());
+              }
+            }
           }
           
           // Set common properties using ternary operators for cleaner code
@@ -1431,136 +1444,92 @@ namespace OpenMS
             mytransition.GeneName = pep.getMetaValue("GeneName").toString();
           }
         }
-      }
-
-      mytransition.FullPeptideName = TargetedExperimentHelper::getAASequence(pep).toUniModString();
-
-      mytransition.drift_time = -1;
-      if (pep.getDriftTime() >= 0.0)
-      {
-        mytransition.drift_time = pep.getDriftTime();
-      }
-      mytransition.precursor_charge = "NA";
-      if (pep.hasCharge())
-      {
-        mytransition.precursor_charge = String(pep.getChargeState());
-      }
-      mytransition.peptide_group_label = "NA";
-      if (!pep.getPeptideGroupLabel().empty())
-      {
-        mytransition.peptide_group_label = pep.getPeptideGroupLabel();
-      }
-      if (pep.metaValueExists("LabelType"))
-      {
-        mytransition.label_type = pep.getMetaValue("LabelType").toString();
-      }
-      if (pep.metaValueExists("GeneName"))
-      {
-        mytransition.GeneName = pep.getMetaValue("GeneName").toString();
-      }
-    }
-    else if (it->getTransType() == OpenSwath::TransType::NUCTIDE)
-    {
-      const OpenMS::TargetedExperiment::Nuctide& nuc = targeted_exp.getNuctideByRef(it->getTransRef());
-      mytransition.group_id = it->getTransRef();
-
-      #ifdef TRANSITIONTSVREADER_TESTING
-      OPENMS_LOG_DEBUG << "Nucleotide rts empty " <<
-      nuc.rts.empty()  << " or no cv term " << nuc.getRetentionTime() << std::endl;
-      #endif
-
-      if (nuc.hasRetentionTime())
-      {
-        mytransition.rt_calibrated = nuc.getRetentionTime();
-      }
-
-      mytransition.NuctideSequence = nuc.sequence;
-      if (!nuc.oligo_refs.empty())
-      {
-        for (auto & oligo_ref : nuc.oligo_refs)
+        else if (it->getTransType() == OpenSwath::TransType::NUCTIDE)
         {
-          const OpenMS::TargetedExperiment::Oligo& oligo = targeted_exp.getOligoByRef(oligo_ref);
-          mytransition.OligoName.push_back(oligo.id);
-          if (oligo.hasCVTerm("MS:1000885"))
+          const OpenMS::TargetedExperiment::Nuctide& nuc = targeted_exp.getNuctideByRef(trans_ref);
+
+          #ifdef TRANSITIONTSVREADER_TESTING
+          OPENMS_LOG_DEBUG << "Nucleotide rts empty " << nuc.rts.empty()
+                           << " or no cv term " << nuc.getRetentionTime() << std::endl;
+          #endif
+
+          // Set retention time
+          if (nuc.hasRetentionTime())
           {
-            mytransition.uniprot_id.push_back(oligo.getCVTerms().at("MS:1000885")[0].getValue().toString());
+            mytransition.rt_calibrated = nuc.getRetentionTime();
+          }
+          
+          // Set sequences
+          mytransition.NuctideSequence = nuc.sequence;
+          mytransition.FullNuctideName = TargetedExperimentHelper::getNASequence(nuc).toString();
+          
+          // Process oligo references efficiently
+          if (!nuc.oligo_refs.empty())
+          {
+            mytransition.OligoName.reserve(nuc.oligo_refs.size());
+            mytransition.uniprot_id.reserve(nuc.oligo_refs.size());
+            
+            for (const auto& oligo_ref : nuc.oligo_refs)
+            {
+              const OpenMS::TargetedExperiment::Oligo& oligo = targeted_exp.getOligoByRef(oligo_ref);
+              mytransition.OligoName.push_back(oligo.id);
+              if (oligo.hasCVTerm(CV_PROTEIN_ACCESSION))
+              {
+                mytransition.uniprot_id.push_back(oligo.getCVTerms().at(CV_PROTEIN_ACCESSION)[0].getValue().toString());
+              }
+            }
+          }
+          
+          // Set common properties - eliminates the duplication from original code
+          mytransition.drift_time = (nuc.getDriftTime() >= 0.0) ? nuc.getDriftTime() : INVALID_TIME;
+          mytransition.precursor_charge = nuc.hasCharge() ? String(nuc.getChargeState()) : NA_VALUE;
+          mytransition.nuctide_group_label = !nuc.getNuctideGroupLabel().empty() ? nuc.getNuctideGroupLabel() : NA_VALUE;
+          
+          if (nuc.metaValueExists("LabelType"))
+          {
+            mytransition.label_type = nuc.getMetaValue("LabelType").toString();
           }
         }
         else if (it->getTransType() == OpenSwath::TransType::COMPOUND)
         {
-          mytransition.precursor_charge = String(nuc.getChargeState());
+          const OpenMS::TargetedExperiment::Compound& compound = targeted_exp.getCompoundByRef(trans_ref);
+
+          if (compound.hasRetentionTime())
+          {
+            mytransition.rt_calibrated = compound.getRetentionTime();
+          }
+
+          // Set common properties
+          mytransition.drift_time = (compound.getDriftTime() >= 0.0) ? compound.getDriftTime() : INVALID_TIME;
+          mytransition.precursor_charge = compound.hasCharge() ? String(compound.getChargeState()) : NA_VALUE;
+
+          // Set metabolomics specific terms
+          mytransition.SumFormula = compound.molecular_formula;
+          mytransition.SMILES = compound.smiles_string;
+          
+          if (compound.metaValueExists("CompoundName"))
+          {
+            mytransition.CompoundName = compound.getMetaValue("CompoundName");
+          }
+          if (compound.metaValueExists("Adducts"))
+          {
+            mytransition.Adducts = compound.getMetaValue("Adducts");
+          }
         }
-        mytransition.peptide_group_label = "NA";
-        if (!nuc.getNuctideGroupLabel().empty())
+        else
         {
-          mytransition.nuctide_group_label = nuc.getNuctideGroupLabel();
-        }
-        if (nuc.metaValueExists("LabelType"))
-        {
-          mytransition.label_type = nuc.getMetaValue("LabelType").toString();
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "ReactionMonitoringTransition has unsupported transition type.");
         }
       }
-      mytransition.FullNuctideName = TargetedExperimentHelper::getNASequence(nuc).toString();
-
-      mytransition.drift_time = -1;
-      if (nuc.getDriftTime() >= 0.0)
+      catch (const Exception::InvalidValue& e)
       {
-        mytransition.drift_time = nuc.getDriftTime();
-      }
-      mytransition.precursor_charge = "NA";
-      if (nuc.hasCharge())
-      {
-        mytransition.precursor_charge = String(nuc.getChargeState());
-      }
-      mytransition.nuctide_group_label = "NA";
-      if (!nuc.getNuctideGroupLabel().empty())
-      {
-        mytransition.nuctide_group_label = nuc.getNuctideGroupLabel();
-      }
-      if (nuc.metaValueExists("LabelType"))
-      {
-        mytransition.label_type = nuc.getMetaValue("LabelType").toString();
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Referenced entity '" + trans_ref + "' not found in targeted experiment: " + e.what());
       }
     }
-    else if ((it->getTransType() == OpenSwath::TransType::COMPOUND))
-    {
-      const OpenMS::TargetedExperiment::Compound& compound = targeted_exp.getCompoundByRef(it->getTransRef());
-      mytransition.group_id = it->getTransRef();
 
-      if (compound.hasRetentionTime())
-      {
-        mytransition.rt_calibrated = compound.getRetentionTime();
-      }
-
-      mytransition.drift_time = -1;
-      if (compound.getDriftTime() >= 0.0)
-      {
-        mytransition.drift_time = compound.getDriftTime();
-      }
-      mytransition.precursor_charge = "NA";
-      if (compound.hasCharge())
-      {
-        mytransition.precursor_charge = String(compound.getChargeState());
-      }
-
-      // get metabolomics specific terms
-      mytransition.SumFormula = compound.molecular_formula;
-      mytransition.SMILES = compound.smiles_string;
-      if (compound.metaValueExists("CompoundName"))
-      {
-        mytransition.CompoundName = compound.getMetaValue("CompoundName");
-      }
-      if (compound.metaValueExists("Adducts"))
-      {
-        mytransition.Adducts = compound.getMetaValue("Adducts");
-      }
-    }
-    else
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "ReactionMonitoringTransition has neither peptide nor compound reference set.");
-    }
-    }
+    // Set fragment charge if available
     if (it->isProductChargeStateSet())
     {
       mytransition.fragment_charge = String(it->getProductChargeState());
