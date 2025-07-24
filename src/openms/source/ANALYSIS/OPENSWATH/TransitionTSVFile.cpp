@@ -266,6 +266,7 @@ namespace OpenMS
 
       // Check for ambiguous entity type: more than one of ProteinId, OligoName, CompoundName not empty
       // isPeptide treats both empty and "NA" as not set.
+      // TODO: This breaks a number of tests right now.
       /*
       int non_empty_count = 0;
       String protein_id, oligo_id, compound_name;
@@ -695,7 +696,7 @@ namespace OpenMS
           }
         }
       }
-      if ((tr_it->getType() == TransType::NUCTIDE))
+      else if ((tr_it->getType() == TransType::NUCTIDE))
       {
         for (size_t i = 0; i < tr_it->OligoName.size(); ++i)
         {
