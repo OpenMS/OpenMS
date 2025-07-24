@@ -10,6 +10,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/PROCESSING/DEISOTOPING/Deisotoper.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
@@ -81,11 +82,13 @@ namespace OpenSwath
       }
       else
       {
+        OPENMS_LOG_WARN << "SwathQC: Spectrum type is unknown, cannot process spectrum." << std::endl;
         return; // unknown: too dangerous to analyse
       }
 
       if (tmp.empty())
       {
+        OPENMS_LOG_WARN << "SwathQC: something went wrong with the spectrum after peak picking. Returned empty spectrum)." << std::endl;
         return; // something went wrong with the spectrum after peak picking (e.g. returned empty spectrum)
       }
 
