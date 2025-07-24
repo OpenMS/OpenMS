@@ -121,7 +121,7 @@ public:
     void dia_ms1_isotope_scores(double precursor_mz, const std::vector<SpectrumPtrType>& spectrum, RangeMobility& im_range,
                                 double& isotope_corr, double& isotope_overlap, const EmpiricalFormula& sum_formula) const;
 
-    /// b/y ion scores (original AASequence version)
+    /// b/y ion scores (AASequence)
     void dia_by_ion_score(const SpectrumSequence& spectrum, const AASequence& sequence,
                           int charge, const RangeMobility& im_range, double& bseries_score, double& yseries_score) const;
 
