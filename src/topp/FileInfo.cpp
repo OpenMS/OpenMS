@@ -865,6 +865,11 @@ protected:
       SHashmap m_headers;
       SHashmap m_seqs;
 
+      // lambda to count ambiguous amino acids in frequency table
+      auto count_AAAs = [](auto& aacids) { return aacids['B'] + aacids['Z'] + aacids['X'] + aacids['b'] + aacids['z'] + aacids['x']; };
+
+      size_t protein_has_ambiguous_aas = 0;
+
       std::hash<string> s_hash;
       for (auto loopiter = entries.begin(); loopiter != entries.end(); ++loopiter)
       {
@@ -902,18 +907,27 @@ protected:
           m_seqs[id_seq] = { std::distance(entries.begin(), loopiter) };
         }
 
+        const auto count_AAA_before = count_AAAs(aacids);
+        // count AAs
         for (char a : loopiter->sequence)
         {
           ++aacids[a];
         }
+        // did this protein contain ambiguous amino acids?
+        if (count_AAA_before != count_AAAs(aacids))
+        {
+          ++protein_has_ambiguous_aas;
+        }
+
         number_of_aacids += loopiter->sequence.size();
       }
 
       os << '\n';
       os << "Number of sequences   : " << entries.size() << '\n';
-      os << "# duplicated headers  : " << dup_header << " (" << (entries.empty() ? 0 :
-                                                                 static_cast<Size>(dup_header * 1000 / entries.size()) / 10.0) << "%)\n";
-      os << "# duplicated sequences: " << dup_seq << " (" << (entries.empty() ? 0 : static_cast<Size>(dup_seq * 1000 / entries.size()) / 10.0) << "%) [by exact string matching]\n";
+      os << "Number of sequences with ambiguous amino acids: " << protein_has_ambiguous_aas << " ("
+         << Math::percentOf(protein_has_ambiguous_aas, entries.size(), 2) << "%)\n";
+      os << "# duplicated headers  : " << dup_header << " (" << Math::percentOf(dup_header, entries.size(), 2) << "%)\n";
+      os << "# duplicated sequences: " << dup_seq << " (" << Math::percentOf(dup_seq, entries.size(), 2) << "%) [by exact string matching]\n";
       os << "Total amino acids     : " << number_of_aacids << "\n\n";
       os << "Amino acid counts: \n";
 
@@ -923,8 +937,8 @@ protected:
       }
       size_t amb = aacids['B'] + aacids['Z'] + aacids['X'] + aacids['b'] + aacids['z'] + aacids['x'];
       size_t amb_J = amb + aacids['J'] + aacids['j'];
-      os << "Ambiguous amino acids (B/Z/X)  : " << amb   << " (" << (amb   > 0 ? (static_cast<Size>(amb   * 10000 / number_of_aacids) / 100.0) : 0) << "%)\n";
-      os << "                      (B/Z/X/J): " << amb_J << " (" << (amb_J > 0 ? (static_cast<Size>(amb_J * 10000 / number_of_aacids) / 100.0) : 0) << "%)\n\n";
+      os << "Ambiguous amino acids (B/Z/X)  : " << amb   << " (" << Math::percentOf(amb  , number_of_aacids, 2) << "%)\n";
+      os << "                      (B/Z/X/J): " << amb_J << " (" << Math::percentOf(amb_J, number_of_aacids, 2) << "%)\n\n";
     }
     else if (in_type == FileTypes::FEATUREXML) //features
     {

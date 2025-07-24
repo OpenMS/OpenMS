@@ -218,8 +218,67 @@ namespace Math
   template<typename T>
   T round(T x)
   {
-    if (x >= T(0)) { return T(floor(x + T(0.5))); }
-    else { return T(ceil(x - T(0.5))); }
+    return std::round(x);
+  }
+
+  /**
+  * 
+    Rounds to the i'th digit after the decimal point, also works for negative digits.
+    
+    e.g.
+    \code
+     round_to(3.14159265,  2)  // 3.14
+     round_to(1234.9    , -2)  // 1200
+    \endcode
+
+    @param value The value to round
+    @param digits The number of digits to round to (can be negative)
+    @return The rounded value
+  */
+  template<typename T>
+  T roundTo(const T value, int digits)
+  {
+    T factor = 1.0;
+    if (digits > 0)
+    {
+      for (int i = 0; i < digits; ++i)
+        factor *= 10.0;
+    }
+    else if (digits < 0)
+    {
+      for (int i = 0; i < -digits; ++i)
+        factor /= 10.0;
+    }
+
+    return std::round(value * factor) / factor;
+  }
+
+  /**
+    Computes the percentage of @p value in relation to @p total, rounded to @p digits.
+
+    @note If @p total is zero, the function returns 0.0 to avoid division by zero.
+
+    @param value The value to compute the percentage for
+    @param total The total value to compute the percentage against
+    @param digits The number of digits to round the result to
+    @return The percentage of @p value in relation to @p total, rounded to @p digits
+    @throw OpenMS::Exception::InvalidValue if @p value or @p total is negative.
+
+
+    \code
+      auto one_third = 1.0/3;
+      percentOf(one_third, 1.0, 2) // returns 33.33
+  */
+  template<typename T>
+  double percentOf(T value, T total, int digits)
+  {
+    if (value < 0) { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value must be non-negative", String(value)); }
+    if (total < 0) { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Total must be non-negative", String(total)); }
+    if (total <= 0) // avoid float equality compare
+    {
+      return 0.0; // avoid division by zero
+    }
+    return roundTo(value * 100.0 / total, digits);
   }
 
   /**
