@@ -1350,279 +1350,236 @@ namespace OpenMS
 
   TransitionTSVFile::TSVTransition TransitionTSVFile::convertTransition_(const ReactionMonitoringTransition* it, OpenMS::TargetedExperiment& targeted_exp)
   {
+    // Constants for better maintainability and readability
+    static const String NA_VALUE = "NA";
+    static const double INVALID_TIME = -1.0;
+    static const double INVALID_CE = -1.0;
+    static const int INVALID_FRAGMENT_NR = -1;
+    static const double MIN_LIBRARY_INTENSITY = -100.0;
+    static const String CV_COLLISION_ENERGY = "MS:1000045";
+    static const String CV_PROTEIN_ACCESSION = "MS:1000885";
+    
+    // Fragment type mapping for O(1) lookup performance instead of switch statement
+    static const std::unordered_map<Residue::ResidueType, String> FRAGMENT_TYPE_MAP = {
+      {Residue::AIon, "a"}, {Residue::BIon, "b"}, {Residue::CIon, "c"},
+      {Residue::XIon, "x"}, {Residue::YIon, "y"}, {Residue::ZIon, "z"},
+      {Residue::Zp1Ion, "z."}, {Residue::Zp2Ion, "z'"}, {Residue::Precursor, "prec"},
+      {Residue::BIonMinusH20, "b-H20"}, {Residue::YIonMinusH20, "y-H20"},
+      {Residue::BIonMinusNH3, "b-NH3"}, {Residue::YIonMinusNH3, "y-NH3"},
+      {Residue::NonIdentified, "unknown"}, {Residue::Unannotated, ""}
+    };
+
+    // Input validation
+    if (!it)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "Invalid transition pointer provided");
+    }
+
+    // Initialize transition with safe default values
     TSVTransition mytransition;
     mytransition.precursor = it->getPrecursorMZ();
     mytransition.product = it->getProductMZ();
-    mytransition.rt_calibrated = -1;
+    mytransition.rt_calibrated = INVALID_TIME;
     mytransition.fragment_type = "";
-    mytransition.fragment_nr = -1;
-    mytransition.fragment_charge = "NA";
+    mytransition.fragment_nr = INVALID_FRAGMENT_NR;
+    mytransition.fragment_charge = NA_VALUE;
 
     if (!it->getTransRef().empty())
     {
-      if (it->getTransType() == OpenSwath::TransType::PEPTIDE)
+      const String& trans_ref = it->getTransRef();
+      mytransition.group_id = trans_ref;
+
+      try
       {
-        const OpenMS::TargetedExperiment::Peptide& pep = targeted_exp.getPeptideByRef(it->getTransRef());
-        mytransition.group_id = it->getTransRef();
-
-        #ifdef TRANSITIONTSVREADER_TESTING
-        OPENMS_LOG_DEBUG << "Peptide rts empty " <<
-        pep.rts.empty()  << " or no cv term " << pep.getRetentionTime() << std::endl;
-        #endif
-
-        if (pep.hasRetentionTime())
+        if (it->getTransType() == OpenSwath::TransType::PEPTIDE)
         {
-          mytransition.rt_calibrated = pep.getRetentionTime();
-        }
-        mytransition.PeptideSequence = pep.sequence;
-        mytransition.GeneName = "NA";
-        if (!pep.protein_refs.empty())
-        {
-          for (auto & prot_ref : pep.protein_refs)
+          const OpenMS::TargetedExperiment::Peptide& pep = targeted_exp.getPeptideByRef(trans_ref);
+
+          #ifdef TRANSITIONTSVREADER_TESTING
+          OPENMS_LOG_DEBUG << "Peptide rts empty " << pep.rts.empty()
+                           << " or no cv term " << pep.getRetentionTime() << std::endl;
+          #endif
+
+          // Set retention time
+          if (pep.hasRetentionTime())
           {
-            const OpenMS::TargetedExperiment::Protein& prot = targeted_exp.getProteinByRef(prot_ref);
-            mytransition.ProteinName.push_back(prot.id);
-            if (prot.hasCVTerm("MS:1000885"))
+            mytransition.rt_calibrated = pep.getRetentionTime();
+          }
+          
+          // Set sequences and names
+          mytransition.PeptideSequence = pep.sequence;
+          mytransition.FullPeptideName = TargetedExperimentHelper::getAASequence(pep).toUniModString();
+          mytransition.GeneName = NA_VALUE;
+          
+          // Process protein references efficiently
+          if (!pep.protein_refs.empty())
+          {
+            mytransition.ProteinName.reserve(pep.protein_refs.size());
+            mytransition.uniprot_id.reserve(pep.protein_refs.size());
+            
+            for (const auto& prot_ref : pep.protein_refs)
             {
-              mytransition.uniprot_id.push_back(prot.getCVTerms().at("MS:1000885")[0].getValue().toString());
+              const OpenMS::TargetedExperiment::Protein& prot = targeted_exp.getProteinByRef(prot_ref);
+              mytransition.ProteinName.push_back(prot.id);
+              if (prot.hasCVTerm(CV_PROTEIN_ACCESSION))
+              {
+                mytransition.uniprot_id.push_back(prot.getCVTerms().at(CV_PROTEIN_ACCESSION)[0].getValue().toString());
+              }
             }
           }
-        }
-        mytransition.FullPeptideName = TargetedExperimentHelper::getAASequence(pep).toUniModString();
-        mytransition.drift_time = -1;
-        if (pep.getDriftTime() >= 0.0)
-        {
-          mytransition.drift_time = pep.getDriftTime();
-        }
-        mytransition.precursor_charge = "NA";
-        if (pep.hasCharge())
-        {
-          mytransition.precursor_charge = String(pep.getChargeState());
-        }
-        mytransition.peptide_group_label = "NA";
-        if (!pep.getPeptideGroupLabel().empty())
-        {
-          mytransition.peptide_group_label = pep.getPeptideGroupLabel();
-        }
-        if (pep.metaValueExists("LabelType"))
-        {
-          mytransition.label_type = pep.getMetaValue("LabelType").toString();
-        }
-        if (pep.metaValueExists("GeneName"))
-        {
-          mytransition.GeneName = pep.getMetaValue("GeneName").toString();
-        }
-      }
-      else if (it->getTransType() == OpenSwath::TransType::NUCTIDE)
-      {
-        const OpenMS::TargetedExperiment::Nuctide& nuc = targeted_exp.getNuctideByRef(it->getTransRef());
-        mytransition.group_id = it->getTransRef();
-
-        #ifdef TRANSITIONTSVREADER_TESTING
-        OPENMS_LOG_DEBUG << "Nucleotide rts empty " <<
-        nuc.rts.empty()  << " or no cv term " << nuc.getRetentionTime() << std::endl;
-        #endif
-
-        if (nuc.hasRetentionTime())
-        {
-          mytransition.rt_calibrated = nuc.getRetentionTime();
-        }
-        mytransition.NuctideSequence = nuc.sequence;
-        if (!nuc.oligo_refs.empty())
-        {
-          for (auto & oligo_ref : nuc.oligo_refs)
+          
+          // Set common properties using ternary operators for cleaner code
+          mytransition.drift_time = (pep.getDriftTime() >= 0.0) ? pep.getDriftTime() : INVALID_TIME;
+          mytransition.precursor_charge = pep.hasCharge() ? String(pep.getChargeState()) : NA_VALUE;
+          mytransition.peptide_group_label = !pep.getPeptideGroupLabel().empty() ? pep.getPeptideGroupLabel() : NA_VALUE;
+          
+          // Set meta values
+          if (pep.metaValueExists("LabelType"))
           {
-            const OpenMS::TargetedExperiment::Oligo& oligo = targeted_exp.getOligoByRef(oligo_ref);
-            mytransition.OligoName.push_back(oligo.id);
-            if (oligo.hasCVTerm("MS:1000885"))
-            {
-              mytransition.uniprot_id.push_back(oligo.getCVTerms().at("MS:1000885")[0].getValue().toString());
-            }
+            mytransition.label_type = pep.getMetaValue("LabelType").toString();
           }
+          if (pep.metaValueExists("GeneName"))
+          {
+            mytransition.GeneName = pep.getMetaValue("GeneName").toString();
+          }
+        }
+        else if (it->getTransType() == OpenSwath::TransType::NUCTIDE)
+        {
+          const OpenMS::TargetedExperiment::Nuctide& nuc = targeted_exp.getNuctideByRef(trans_ref);
+
+          #ifdef TRANSITIONTSVREADER_TESTING
+          OPENMS_LOG_DEBUG << "Nucleotide rts empty " << nuc.rts.empty()
+                           << " or no cv term " << nuc.getRetentionTime() << std::endl;
+          #endif
+
+          // Set retention time
+          if (nuc.hasRetentionTime())
+          {
+            mytransition.rt_calibrated = nuc.getRetentionTime();
+          }
+          
+          // Set sequences
+          mytransition.NuctideSequence = nuc.sequence;
           mytransition.FullNuctideName = TargetedExperimentHelper::getNASequence(nuc).toString();
-
-          mytransition.drift_time = -1;
-          if (nuc.getDriftTime() >= 0.0)
+          
+          // Process oligo references efficiently
+          if (!nuc.oligo_refs.empty())
           {
-            mytransition.drift_time = nuc.getDriftTime();
+            mytransition.OligoName.reserve(nuc.oligo_refs.size());
+            mytransition.uniprot_id.reserve(nuc.oligo_refs.size());
+            
+            for (const auto& oligo_ref : nuc.oligo_refs)
+            {
+              const OpenMS::TargetedExperiment::Oligo& oligo = targeted_exp.getOligoByRef(oligo_ref);
+              mytransition.OligoName.push_back(oligo.id);
+              if (oligo.hasCVTerm(CV_PROTEIN_ACCESSION))
+              {
+                mytransition.uniprot_id.push_back(oligo.getCVTerms().at(CV_PROTEIN_ACCESSION)[0].getValue().toString());
+              }
+            }
           }
-          mytransition.precursor_charge = "NA";
-          if (nuc.hasCharge())
-          {
-            mytransition.precursor_charge = String(nuc.getChargeState());
-          }
-          mytransition.peptide_group_label = "NA";
-          if (!nuc.getNuctideGroupLabel().empty())
-          {
-            mytransition.nuctide_group_label = nuc.getNuctideGroupLabel();
-          }
+          
+          // Set common properties - eliminates the duplication from original code
+          mytransition.drift_time = (nuc.getDriftTime() >= 0.0) ? nuc.getDriftTime() : INVALID_TIME;
+          mytransition.precursor_charge = nuc.hasCharge() ? String(nuc.getChargeState()) : NA_VALUE;
+          mytransition.nuctide_group_label = !nuc.getNuctideGroupLabel().empty() ? nuc.getNuctideGroupLabel() : NA_VALUE;
+          
           if (nuc.metaValueExists("LabelType"))
           {
             mytransition.label_type = nuc.getMetaValue("LabelType").toString();
           }
         }
-        mytransition.FullNuctideName = TargetedExperimentHelper::getNASequence(nuc).toString();
+        else if (it->getTransType() == OpenSwath::TransType::COMPOUND)
+        {
+          const OpenMS::TargetedExperiment::Compound& compound = targeted_exp.getCompoundByRef(trans_ref);
 
-        mytransition.drift_time = -1;
-        if (nuc.getDriftTime() >= 0.0)
-        {
-          mytransition.drift_time = nuc.getDriftTime();
+          if (compound.hasRetentionTime())
+          {
+            mytransition.rt_calibrated = compound.getRetentionTime();
+          }
+
+          // Set common properties
+          mytransition.drift_time = (compound.getDriftTime() >= 0.0) ? compound.getDriftTime() : INVALID_TIME;
+          mytransition.precursor_charge = compound.hasCharge() ? String(compound.getChargeState()) : NA_VALUE;
+
+          // Set metabolomics specific terms
+          mytransition.SumFormula = compound.molecular_formula;
+          mytransition.SMILES = compound.smiles_string;
+          
+          if (compound.metaValueExists("CompoundName"))
+          {
+            mytransition.CompoundName = compound.getMetaValue("CompoundName");
+          }
+          if (compound.metaValueExists("Adducts"))
+          {
+            mytransition.Adducts = compound.getMetaValue("Adducts");
+          }
         }
-        mytransition.precursor_charge = "NA";
-        if (nuc.hasCharge())
+        else
         {
-          mytransition.precursor_charge = String(nuc.getChargeState());
-        }
-        mytransition.nuctide_group_label = "NA";
-        if (!nuc.getNuctideGroupLabel().empty())
-        {
-          mytransition.nuctide_group_label = nuc.getNuctideGroupLabel();
-        }
-        if (nuc.metaValueExists("LabelType"))
-        {
-          mytransition.label_type = nuc.getMetaValue("LabelType").toString();
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "ReactionMonitoringTransition has unsupported transition type.");
         }
       }
-      else if ((it->getTransType() == OpenSwath::TransType::COMPOUND))
-      {
-        const OpenMS::TargetedExperiment::Compound& compound = targeted_exp.getCompoundByRef(it->getTransRef());
-        mytransition.group_id = it->getTransRef();
-
-        if (compound.hasRetentionTime())
-        {
-          mytransition.rt_calibrated = compound.getRetentionTime();
-        }
-
-        mytransition.drift_time = -1;
-        if (compound.getDriftTime() >= 0.0)
-        {
-          mytransition.drift_time = compound.getDriftTime();
-        }
-        mytransition.precursor_charge = "NA";
-        if (compound.hasCharge())
-        {
-          mytransition.precursor_charge = String(compound.getChargeState());
-        }
-
-        // get metabolomics specific terms
-        mytransition.SumFormula = compound.molecular_formula;
-        mytransition.SMILES = compound.smiles_string;
-        if (compound.metaValueExists("CompoundName"))
-        {
-          mytransition.CompoundName = compound.getMetaValue("CompoundName");
-        }
-        if (compound.metaValueExists("Adducts"))
-        {
-          mytransition.Adducts = compound.getMetaValue("Adducts");
-        }
-      }
-      else
+      catch (const Exception::InvalidValue& e)
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "ReactionMonitoringTransition has neither peptide nor compound reference set.");
+                                          "Referenced entity '" + trans_ref + "' not found in targeted experiment: " + e.what());
       }
     }
+
+    // Set fragment charge if available
     if (it->isProductChargeStateSet())
     {
       mytransition.fragment_charge = String(it->getProductChargeState());
     }
-    //SPWFIXME these should be dependent on the type nuc v pep
-    const auto & product = it->getProduct();
-    for (const auto& int_it : product.getInterpretationList())
+
+    // Process fragment interpretation with efficient lookup table
+    const auto& product = it->getProduct();
+    for (const auto& interpretation : product.getInterpretationList())
     {
-      // only report first / best interpretation
-      if (int_it.rank == 1 || product.getInterpretationList().size() == 1)
+      // Only report first/best interpretation
+      if (interpretation.rank == 1 || product.getInterpretationList().size() == 1)
       {
-        if (int_it.ordinal != 0) mytransition.fragment_nr = int_it.ordinal;
-
-        switch (int_it.iontype)
+        if (interpretation.ordinal != 0)
         {
-          case Residue::AIon:
-            mytransition.fragment_type = "a";
-            break;
-          case Residue::BIon:
-            mytransition.fragment_type = "b";
-            break;
-          case Residue::CIon:
-            mytransition.fragment_type = "c";
-            break;
-          case Residue::XIon:
-            mytransition.fragment_type = "x";
-            break;
-          case Residue::YIon:
-            mytransition.fragment_type = "y";
-            break;
-          case Residue::ZIon:
-            mytransition.fragment_type = "z";
-            break;
-          case Residue::Zp1Ion: 
-            mytransition.fragment_type = "z.";
-            break;
-          case Residue::Zp2Ion: 
-            mytransition.fragment_type = "z'";
-            break;
-          case Residue::Precursor:
-            mytransition.fragment_type = "prec";
-            break;
-          case Residue::BIonMinusH20:
-            mytransition.fragment_type = "b-H20";
-            break;
-          case Residue::YIonMinusH20:
-            mytransition.fragment_type = "y-H20";
-            break;
-          case Residue::BIonMinusNH3:
-            mytransition.fragment_type = "b-NH3";
-            break;
-          case Residue::YIonMinusNH3:
-            mytransition.fragment_type = "y-NH3";
-            break;
-          case Residue::NonIdentified:
-            mytransition.fragment_type = "unknown";
-            break;
-          case Residue::Unannotated:
-            // means no annotation and no input cvParam - to write out a cvParam, use Residue::NonIdentified
-            mytransition.fragment_type = "";
-            break;
-
-          // invalid values
-          case Residue::Full: break;
-          case Residue::Internal: break;
-          case Residue::NTerminal: break;
-          case Residue::CTerminal: break;
-          case Residue::SizeOfResidueType: break;
+          mytransition.fragment_nr = interpretation.ordinal;
         }
+
+        // Use O(1) lookup instead of large switch statement
+        auto fragment_type_it = FRAGMENT_TYPE_MAP.find(interpretation.iontype);
+        if (fragment_type_it != FRAGMENT_TYPE_MAP.end())
+        {
+          mytransition.fragment_type = fragment_type_it->second;
+        }
+        break; // Only process first valid interpretation
       }
     }
 
+    // Set remaining properties efficiently
     mytransition.transition_name = it->getNativeID();
-    mytransition.CE = -1;
-    if (it->hasCVTerm("MS:1000045"))
+    
+    mytransition.CE = INVALID_CE;
+    if (it->hasCVTerm(CV_COLLISION_ENERGY))
     {
-      mytransition.CE = it->getCVTerms().at("MS:1000045")[0].getValue().toString().toDouble();
+      mytransition.CE = it->getCVTerms().at(CV_COLLISION_ENERGY)[0].getValue().toString().toDouble();
     }
-    mytransition.library_intensity = -1;
-    if (it->getLibraryIntensity() > -100)
-    {
-      mytransition.library_intensity = it->getLibraryIntensity();
-    }
-    mytransition.decoy = false;
-    if (it->getDecoyTransitionType() == ReactionMonitoringTransition::TARGET)
-    {
-      mytransition.decoy = false;
-    }
-    else if (it->getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
-    {
-      mytransition.decoy = true;
-    }
-    mytransition.Annotation = "NA";
-    if (it->metaValueExists("annotation"))
-    {
-      mytransition.Annotation = it->getMetaValue("annotation").toString();
-    }
+    
+    mytransition.library_intensity = (it->getLibraryIntensity() > MIN_LIBRARY_INTENSITY) ?
+      it->getLibraryIntensity() : INVALID_TIME;
+    
+    // Simplified decoy logic
+    mytransition.decoy = (it->getDecoyTransitionType() == ReactionMonitoringTransition::DECOY);
+    
+    mytransition.Annotation = it->metaValueExists("annotation") ?
+      it->getMetaValue("annotation").toString() : NA_VALUE;
+      
     if (it->metaValueExists("Peptidoforms"))
     {
       String(it->getMetaValue("Peptidoforms")).split('|', mytransition.peptidoforms);
     }
+    
     mytransition.detecting_transition = it->isDetectingTransition();
     mytransition.identifying_transition = it->isIdentifyingTransition();
     mytransition.quantifying_transition = it->isQuantifyingTransition();
