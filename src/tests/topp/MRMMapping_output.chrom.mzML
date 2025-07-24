@@ -92,8 +92,8 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
 							<userParam name="description" type="xsd:string" value="B2MG.VNHVTLSQPK.3.y5.1.light"/>
+							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
 						</activation>
 					</precursor>
 					<product>
@@ -129,8 +129,8 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
 							<userParam name="description" type="xsd:string" value="B2MG.VNHVTLSQPK.3.y6.1.light"/>
+							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
 						</activation>
 					</precursor>
 					<product>
@@ -166,8 +166,8 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
 							<userParam name="description" type="xsd:string" value="B2MG.VNHVTLSQPK.3.y7.1.light"/>
+							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
 						</activation>
 					</precursor>
 					<product>
@@ -203,8 +203,8 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
 							<userParam name="description" type="xsd:string" value="B2MG.VNHVTLSQPK.3.y5.1.heavy"/>
+							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
 						</activation>
 					</precursor>
 					<product>
@@ -240,8 +240,8 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
 							<userParam name="description" type="xsd:string" value="B2MG.VNHVTLSQPK.3.y6.1.heavy"/>
+							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
 						</activation>
 					</precursor>
 					<product>
@@ -277,8 +277,8 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
 							<userParam name="description" type="xsd:string" value="B2MG.VNHVTLSQPK.3.y7.1.heavy"/>
+							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
 						</activation>
 					</precursor>
 					<product>

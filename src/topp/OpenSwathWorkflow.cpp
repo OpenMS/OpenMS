@@ -702,12 +702,12 @@ protected:
     bool is_sqmass_input  = (FileHandler::getTypeByFileName(file_list[0]) == FileTypes::SQMASS);
     if (is_sqmass_input && !load_into_memory)
     {
-      std::cout << "When using sqMass input files, it is highly recommended to use the workingInMemory option as otherwise data access will be very slow." << std::endl;
+      OPENMS_LOG_WARN << "When using sqMass input files, it is highly recommended to use the workingInMemory option as otherwise data access will be very slow." << std::endl;
     }
 
     if (trafo_in.empty() && irt_tr_file.empty())
     {
-      std::cout << "Since neither rt_norm nor tr_irt is set, OpenSWATH will " <<
+      OPENMS_LOG_INFO << "Since neither rt_norm nor tr_irt is set, OpenSWATH will " <<
         "not use RT-transformation (rather a null transformation will be applied)" << std::endl;
     }
 
@@ -795,8 +795,8 @@ protected:
       if (tr_type == FileTypes::PQP)
       {
          // copy the PQP file and name it OSW file
-          std::ifstream  src(tr_file.c_str(), std::ios::binary);
-          std::ofstream  dst(out_features.c_str(), std::ios::binary | std::ios::trunc);
+          std::ifstream src(tr_file.c_str(), std::ios::binary);
+          std::ofstream dst(out_features.c_str(), std::ios::binary | std::ios::trunc);
           dst << src.rdbuf();
       }
       else if (tr_type == FileTypes::TSV)
