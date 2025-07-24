@@ -1,7 +1,0 @@
-
-#ifndef OPENMS_BUILD_CONFIG_H
-#define OPENMS_BUILD_CONFIG_H
-
-#define OPENMS_BUILD_TYPE "Debug"
-
-#endif // OPENMS_BUILD_CONFIG_H

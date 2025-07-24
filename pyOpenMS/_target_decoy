@@ -1,6 +1,0 @@
-set terminal pdf color solid linewidth 2.0 rounded
-set xlabel "discriminant score"
-set ylabel "density"
-set key off
-set output '_target_decoy.pdf'
-plot '_target_decoy_scores.txt'   using 1:3  with boxes fill solid 0.8 noborder, "_target_decoy_scores.txt"  using 1:2  with boxes, (1/1.59411) * exp(( 2.1381- x)/1.59411) * exp(-exp((2.1381 - x)/1.59411))* 0.508784100351534 , 0.258222 * exp(-(x - 6.9491) ** 2 / 2 / (1.54496) ** 2)* (1 - 0.508784100351534)
