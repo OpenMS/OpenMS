@@ -917,14 +917,14 @@ protected:
       os << "Total amino acids     : " << number_of_aacids << "\n\n";
       os << "Amino acid counts: \n";
 
-      for (auto it = aacids.begin(); it != aacids.end(); ++it)
+      for (const auto& [AA, count] : aacids)
       {
-        os << it->first << '\t' << it->second << '\n';
+        os << "  " << AA << ":\t" << count << '\n';
       }
       size_t amb = aacids['B'] + aacids['Z'] + aacids['X'] + aacids['b'] + aacids['z'] + aacids['x'];
-      size_t amb_I = amb + aacids['I'] + aacids['i'];
-      os << "Ambiguous amino acids (B/Z/X)  : " << amb   << " (" << (amb > 0 ? (static_cast<Size>(amb * 10000 / number_of_aacids) / 100.0) : 0) << "%)\n";
-      os << "                      (B/Z/X/I): " << amb_I << " (" << (amb_I > 0 ? (static_cast<Size>(amb_I * 10000 / number_of_aacids) / 100.0) : 0) << "%)\n\n";
+      size_t amb_J = amb + aacids['J'] + aacids['j'];
+      os << "Ambiguous amino acids (B/Z/X)  : " << amb   << " (" << (amb   > 0 ? (static_cast<Size>(amb   * 10000 / number_of_aacids) / 100.0) : 0) << "%)\n";
+      os << "                      (B/Z/X/J): " << amb_J << " (" << (amb_J > 0 ? (static_cast<Size>(amb_J * 10000 / number_of_aacids) / 100.0) : 0) << "%)\n\n";
     }
     else if (in_type == FileTypes::FEATUREXML) //features
     {
