@@ -28,6 +28,10 @@
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 
+// targeted experiment support
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+
 // digestion enzymes
 #include <OpenMS/CHEMISTRY/RNaseDigestion.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
@@ -154,6 +158,9 @@ protected:
 
     registerOutputFile_("lfq_out", "<file>", "", "Output file: targets for label-free quantification using FeatureFinderMetaboIdent ('id' input)", false);
     setValidFormats_("lfq_out", vector<String>(1, "tsv"));
+
+    registerOutputFile_("transition_tsv_out", "<file>", "", "Output file: transition list in TSV format for targeted experiments", false);
+    setValidFormats_("transition_tsv_out", vector<String>(1, "tsv"));
 
     registerOutputFile_("theo_ms2_out", "<file>", "", "Output file: theoretical MS2 spectra for precursor mass matches", false, true);
     setValidFormats_("theo_ms2_out", ListUtils::create<String>("mzML"));
@@ -856,6 +863,205 @@ protected:
   }
 
 
+  void generateTargetedExperiment_(const vector<HitsByScore>& annotated_hits,
+                                   const PeakMap& exp,
+                                   bool negative_mode,
+                                   TargetedExperiment& targeted_exp)
+  {
+    // Clear any existing data
+    targeted_exp.clear(true);
+    
+    // Keep track of unique oligos and nuctides to avoid duplicates
+    set<String> oligo_ids;
+    set<String> nuctide_ids;
+    
+    Size transition_counter = 0;
+    
+    for (Size scan_index = 0; scan_index < annotated_hits.size(); ++scan_index)
+    {
+      if (annotated_hits[scan_index].empty()) continue;
+      
+      const MSSpectrum& spectrum = exp[scan_index];
+      if (spectrum.getPrecursors().empty()) continue;
+      
+      const Precursor& precursor = spectrum.getPrecursors()[0];
+      
+      for (const auto& hit_pair : annotated_hits[scan_index])
+      {
+        const AnnotatedHit& hit = hit_pair.second;
+        // Create oligo if not exists - use accession as oligo ID
+        String accession = "";
+        if (!hit.oligo_ref->parent_matches.empty())
+        {
+          accession = hit.oligo_ref->parent_matches.begin()->first->accession;
+        }
+        String oligo_id = accession.empty() ? hit.oligo_ref->sequence.toString() : accession;
+        if (oligo_ids.find(oligo_id) == oligo_ids.end())
+        {
+          TargetedExperiment::Oligo oligo;
+          oligo.id = oligo_id;
+          oligo.sequence = hit.oligo_ref->sequence.toString();
+          targeted_exp.addOligo(oligo);
+          oligo_ids.insert(oligo_id);
+        }
+
+        // Create nuctide (modified sequence) if not exists
+        String nuctide_id = hit.sequence.toString();
+        if (nuctide_ids.find(nuctide_id) == nuctide_ids.end())
+        {
+          TargetedExperiment::Nuctide nuctide;
+          nuctide.id = nuctide_id;
+          nuctide.sequence = nuctide_id;
+          Int actualCharge = negative_mode ? -hit.precursor_ref->charge : hit.precursor_ref->charge;
+          nuctide.setChargeState(actualCharge);
+
+          // Set retention time if available
+          if (spectrum.getRT() > 0)
+          {
+            TargetedExperiment::RetentionTime rt;
+            rt.setRT(spectrum.getRT());
+            // This is defined in the getRT method of the spectrum
+            rt.retention_time_unit = TargetedExperiment::RetentionTime::RTUnit::SECOND;
+            rt.retention_time_type = TargetedExperiment::RetentionTime::RTType::LOCAL;
+            nuctide.rts.push_back(rt);
+          }
+          
+          // Link to parent oligo
+          //SPWTODO handle multiple oligos per nuctide
+          nuctide.oligo_refs.push_back(oligo_id);
+
+          targeted_exp.addNuctide(nuctide);
+          nuctide_ids.insert(nuctide_id);
+        }
+        else
+        {
+          //SPWFIXME handle duplicates
+          OPENMS_LOG_WARN << "Nuctide with ID '" << nuctide_id
+                          << "' already exists. Skipping duplicate." << endl;
+          //TargetedExperiment::Nuctide& existing_nuctide = targeted_exp.getNuctideByRef(nuctide_id);
+        }
+        
+        // Create transitions for each fragment annotation
+        for (const auto& annotation : hit.annotations)
+        {
+          ReactionMonitoringTransition transition;
+          
+          // Set unique transition ID
+          transition.setNativeID("transition_" + String(transition_counter++));
+          
+          // Set precursor information
+          transition.setPrecursorMZ(precursor.getMZ());
+          
+          // Set annotation information
+          transition.setMetaValue("annotation", annotation.annotation);
+          TargetedExperiment::IonType frag_type = TargetedExperiment::IonType::Unannotated;
+          Int frag_num = 0;
+          if (!annotation.annotation.empty())
+          {
+            // Try to parse fragment type and number from annotation
+            // Check for known fragment types (including multi-character ones like "a-B")
+            String frag_num_str = "";
+
+            if (annotation.annotation.hasPrefix("a-B"))
+            {
+              frag_type = TargetedExperiment::IonType::AminusB;
+              frag_num_str = annotation.annotation.suffix('B');
+            }
+            else
+            {
+              if (annotation.annotation.hasPrefix("b"))
+              {
+                frag_type = TargetedExperiment::IonType::BIon;
+              }
+              else if (annotation.annotation.hasPrefix("y"))
+              {
+                frag_type = TargetedExperiment::IonType::YIon;
+              }
+              else if (annotation.annotation.hasPrefix("c"))
+              {
+                frag_type = TargetedExperiment::IonType::CIon;
+              }
+              else if (annotation.annotation.hasPrefix("z"))
+              {
+                frag_type = TargetedExperiment::IonType::ZIon;
+              }
+              else if (annotation.annotation.hasPrefix("x"))
+              {
+                frag_type = TargetedExperiment::IonType::XIon;
+              }
+              else if (annotation.annotation.hasPrefix("a"))
+              {
+                frag_type = TargetedExperiment::IonType::AIon;
+              }
+              else if (annotation.annotation.hasPrefix("d"))
+              {
+                frag_type = TargetedExperiment::IonType::DIon;
+              }
+              else if (annotation.annotation.hasPrefix("w"))
+              {
+                frag_type = TargetedExperiment::IonType::WIon;
+              }
+              frag_num_str = annotation.annotation.substr(1);
+            }
+          }
+
+
+          // Set product information
+          ReactionMonitoringTransition::Product theProd;
+          theProd.setMZ(annotation.mz);
+          theProd.setChargeState(annotation.charge);
+          TargetedExperiment::Interpretation interpretation;
+          interpretation.transition_type = OpenSwath::TransType::NUCTIDE;
+          interpretation.iontype = frag_type;
+          interpretation.ordinal = frag_num;
+          interpretation.rank = 1;
+          theProd.addInterpretation(interpretation);
+
+          //theProd.setIonType(annotation.ion_type);
+          theProd.setMetaValue("annotation", annotation.annotation);
+          transition.setProduct(theProd);
+
+          if (hit.oligo_ref->allParentsAreDecoys())
+          {
+            transition.setDecoyTransitionType(OpenMS::ReactionMonitoringTransition::DecoyTransitionType::DECOY);
+          }
+          else
+          {
+            transition.setDecoyTransitionType(OpenMS::ReactionMonitoringTransition::DecoyTransitionType::TARGET);
+          }
+
+          // Set library intensity (normalized peak annotation intensity)
+          if (annotation.intensity > 0)
+          {
+            transition.setLibraryIntensity(annotation.intensity);
+          }
+          
+          // Set retention time
+          TargetedExperiment::RetentionTime rt;
+          rt.setRT(spectrum.getRT());
+          rt.retention_time_unit =TargetedExperiment::RetentionTime::RTUnit::SECOND;
+          rt.retention_time_type = TargetedExperiment::RetentionTime::RTType::LOCAL;
+          transition.setRetentionTime(rt);
+            
+          // Link to nuctide
+          transition.setTransGroupRef(nuctide_id, OpenSwath::TransType::NUCTIDE);
+          
+          // Set as detecting and quantifying transition by default
+          transition.setDetectingTransition(true);
+          transition.setQuantifyingTransition(true);
+          
+          targeted_exp.addTransition(transition);
+        }
+      }
+    }
+    
+    OPENMS_LOG_INFO << "Generated TargetedExperiment with "
+                    << targeted_exp.getOligos().size() << " oligos, "
+                    << targeted_exp.getNuctides().size() << " nuctides, and "
+                    << targeted_exp.getTransitions().size() << " transitions." << endl;
+  }
+
+
   ExitCodes main_(int, const char**) override
   {
     ProgressLogger progresslogger;
@@ -887,6 +1093,7 @@ protected:
     String lfq_out = getStringOption_("lfq_out");
     String theo_ms2_out = getStringOption_("theo_ms2_out");
     String exp_ms2_out = getStringOption_("exp_ms2_out");
+    String transition_tsv_out = getStringOption_("transition_tsv_out");
     bool use_avg_mass = getFlag_("precursor:use_avg_mass");
     Int min_charge = getIntOption_("precursor:min_charge");
     Int max_charge = getIntOption_("precursor:max_charge");
@@ -1422,6 +1629,18 @@ protected:
     if (!lfq_out.empty())
     {
       generateLFQInput_(id_data, lfq_out);
+    }
+
+    // Generate TargetedExperiment and write TransitionTSV output if requested
+    if (!transition_tsv_out.empty())
+    {
+      TargetedExperiment targeted_exp;
+      generateTargetedExperiment_(annotated_hits, spectra, negative_mode, targeted_exp);
+      
+      TransitionTSVFile tsv_file;
+      tsv_file.convertTargetedExperimentToTSV(transition_tsv_out.c_str(), targeted_exp);
+      
+      OPENMS_LOG_INFO << "Transition list written to: " << transition_tsv_out << endl;
     }
 
     return EXECUTION_OK;
