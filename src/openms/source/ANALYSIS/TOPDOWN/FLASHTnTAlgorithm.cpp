@@ -150,6 +150,39 @@ void FLASHTnTAlgorithm::markRepresentativeProteoformHits_(double tol)
 }
 
 
+void FLASHTnTAlgorithm::vectorizeProteinSequence_(const std::vector<std::string>& cleaned_protein_seqs,
+                                                     std::vector<std::unordered_set<int>>& vec_pro,
+                                                     std::vector<std::unordered_set<int>>& rev_vec_pro)
+{
+  vec_pro.reserve(cleaned_protein_seqs.size());
+  rev_vec_pro.reserve(cleaned_protein_seqs.size());
+  for (const auto& seq : cleaned_protein_seqs)
+  { //ignore X
+    std::unordered_set<int> vec, rev_vec;
+    double mass = 0;
+    vec.insert(0);
+    rev_vec.insert(0);
+
+    for (Size j = 0; j < seq.size(); j++)
+    {
+      Size index = j;
+      mass += ResidueDB::getInstance()->getResidue(seq[index])->getMonoWeight(Residue::Internal);
+      int vindex = int(round(mass));
+      vec.insert(vindex);
+    }
+    mass = 0;
+    for (Size j = 0; j < seq.size(); j++)
+    {
+      Size index = seq.size() - j - 1;
+      mass += ResidueDB::getInstance()->getResidue(seq[index])->getMonoWeight(Residue::Internal);
+      int vindex = int(round(mass));
+      rev_vec.insert(vindex);
+    }
+    vec_pro.push_back(vec);
+    rev_vec_pro.push_back(rev_vec);
+  }
+}
+
 void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile::FASTAEntry>& original_fasta_entry)
 {
   setLogType(CMD);
@@ -160,8 +193,10 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
   const auto inst = ModificationsDB::getInstance();             // give this from outside ...
   std::map<String, std::vector<Size>> tag_to_protein_indices;   // tag to protein index in fasta
   std::map<String, std::vector<Size>> tag_to_protein_positions; // tag to protein position
+  std::map<String, std::vector<double>> tag_to_n_flanking_masses, tag_to_c_flanking_masses; // tag to protein flanking masses
+
   std::map<int, std::vector<Size>> scan_to_tag_indices;         // scan number to tag indices
-  std::vector<std::string> tag_seqs, protein_seqs;
+  std::vector<std::string> tag_seqs, protein_seqs, cleaned_protein_seqs;
   std::vector<DeconvolvedSpectrum> dspecs;
 
   std::vector<FASTAFile::FASTAEntry> fasta_entry;
@@ -175,6 +210,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
 
   {
     protein_seqs.reserve(fasta_entry.size());
+    cleaned_protein_seqs.reserve(fasta_entry.size());
     double taget_count = 0;
     double decoy_count = 0;
     for (const auto& fe : fasta_entry)
@@ -182,6 +218,10 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
       if (fe.identifier.hasPrefix("DECOY")) { decoy_count++; }
       else { taget_count++; }
       protein_seqs.push_back(fe.sequence);
+      String cleaned_seq;
+      std::remove_copy(fe.sequence.begin(), fe.sequence.end(),
+                       std::back_inserter(cleaned_seq), 'X');
+      cleaned_protein_seqs.push_back(cleaned_seq);
     }
 
     decoy_factor_ = decoy_count / taget_count;
@@ -320,6 +360,9 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
     if (tag_to_protein_indices.find(seq) != tag_to_protein_indices.end()) continue;
     tag_to_protein_indices[seq] = std::vector<Size>();
     tag_to_protein_positions[seq] = std::vector<Size>();
+    tag_to_n_flanking_masses[seq] = std::vector<double>();
+    tag_to_c_flanking_masses[seq] = std::vector<double>();
+
     tag_seqs.push_back(seq);
   } // now we have all the tags
 
@@ -330,11 +373,13 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
   OpenMS::ACTrieState ac_state;
 
   startProgress(0, (SignedSize)protein_seqs.size(), "Searching tags against database ...");
-  // #pragma omp parallel for default(none) shared(protein_seqs, ac_state, ac_trie)
+
   for (int i = 0; i < protein_seqs.size(); i++) // // Natural19WithoutI
   {
     nextProgress();
-    ac_state.setQuery(protein_seqs[i]);
+    const String& pseq = protein_seqs[i];
+    const String& cleanseq = cleaned_protein_seqs[i];
+    ac_state.setQuery(pseq);
     ac_trie.getAllHits(ac_state);
 
     for (const auto& h : ac_state.hits)
@@ -342,22 +387,31 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
       String seq = tag_seqs[h.needle_index];
       tag_to_protein_indices[seq].push_back(i);
       tag_to_protein_positions[seq].push_back(h.query_pos);
+
+      double nmass = h.query_pos <= 0 ? .0 : AASequence::fromString(cleanseq.substr(0, h.query_pos)).getMonoWeight(Residue::Internal);
+      double cmass = cleanseq.length() - seq.length() <= h.query_pos ? .0 :
+         AASequence::fromString(cleanseq.substr(h.query_pos + seq.length(), cleanseq.length() - h.query_pos - seq.length())).getMonoWeight(Residue::Internal);
+
+      tag_to_n_flanking_masses[seq].push_back(nmass);
+      tag_to_c_flanking_masses[seq].push_back(cmass);
     }
   }
 
   endProgress();
   startProgress(0, (SignedSize)dspecs.size(), "Running candidate protein filtration and extension algorithm ...");
 
+  std::vector<std::unordered_set<int>> vec_pro, rev_vec_pro;
+  vectorizeProteinSequence_(cleaned_protein_seqs, vec_pro, rev_vec_pro);
+
   for (const auto& dspec : dspecs)
   {
     nextProgress();
-    //if (dspec.getScanNumber() > 993)break;
     if (scan_to_tag_indices.find(dspec.getScanNumber()) == scan_to_tag_indices.end()) continue;
     const auto& tag_indices = scan_to_tag_indices[dspec.getScanNumber()];
     std::vector<ProteinHit> hits;
-    std::map<Size, std::map<Size, int>> pi_to_pos;         // protein index to covered positions
+    std::map<Size, std::set<Size>> pi_to_pos;         // protein index to covered positions
     std::map<Size, std::set<Size>> pi_to_tag_indices; // protein index to tag indices
-
+    std::map<Size, std::set<int>> pi_to_n_flanking_masses, pi_to_c_flanking_masses;
     for (const auto& tag_index : tag_indices)
     {
       const auto& tag = tags_[tag_index];
@@ -365,33 +419,48 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
 
       const auto& pis = tag_to_protein_indices[seq];
       const auto& pps = tag_to_protein_positions[seq];
+
       for (Size i = 0; i < pis.size(); i++)
       {
-        pi_to_tag_indices[pis[i]].insert(tag_index);
-        for (int j = 0; j <= seq.length(); j++) //
+        const auto& pseq = cleaned_protein_seqs[pis[i]];
+
+        if (tag.getNtermMass() >= 0 && pps[i] > 0 && pps[i] <= pseq.length() + seq.length())
         {
-          pi_to_pos[pis[i]][pps[i] + j] = 1;//tag.getScore(j);
+          double nmass = tag_to_n_flanking_masses[seq][i];
+          if (tag.getNtermMass() > nmass + max_mod_mass + 200) continue;
+          pi_to_n_flanking_masses[pis[i]].insert((int)round(nmass - tag.getNtermMass()));
         }
+        if (tag.getCtermMass() >= 0 && pps[i] + seq.length() >= 0 && pseq.length() > pps[i] + seq.length())
+        {
+          double cmass = tag_to_c_flanking_masses[seq][i];
+          if (tag.getCtermMass() > cmass + max_mod_mass + 200) continue;
+          pi_to_c_flanking_masses[pis[i]].insert((int)round(cmass - tag.getCtermMass()));
+        }
+
+        pi_to_tag_indices[pis[i]].insert(tag_index);
+        pi_to_pos[pis[i]].insert(pps[i]);
       }
     }
 
     for (const auto& [pi, pp] : pi_to_pos)
     {
       const auto& fe = fasta_entry[pi];
-      double covered_pos = (double)pp.size();
-      double coverage = (double)covered_pos / (double)fe.sequence.length();
+      Size covered_pos = pp.size();
+      if (covered_pos < min_tag_count) continue;
 
-      std::vector<int> positions;
-      std::transform(pp.begin(), pp.end(), std::back_inserter(positions),
-                     [](const std::pair<const Size, int>& p) {
-                       return p.first;
-                     });
+      // check flanking masses ...
+      double coverage = (double)covered_pos / (double)fe.sequence.length();
+      std::vector<int> positions(pp.begin(), pp.end());
+
       //if (positions.size() < min_tag_count) continue;
       ProteinHit hit(coverage, 0, fe.identifier, fe.sequence); //
       hit.setDescription(fe.description);
       hit.setMetaValue("Scan", dspec.getScanNumber());
       hit.setMetaValue("MatchedAA", covered_pos);
       hit.setCoverage(coverage);
+      hit.setMetaValue("NtermFlankingMasses", std::vector<int>(pi_to_n_flanking_masses[pi].begin(), pi_to_n_flanking_masses[pi].end()));
+      hit.setMetaValue("CtermFlankingMasses", std::vector<int>(pi_to_c_flanking_masses[pi].begin(), pi_to_c_flanking_masses[pi].end()));
+
       hit.setMetaValue("TagIndices", std::vector<int>(pi_to_tag_indices[pi].begin(), pi_to_tag_indices[pi].end()));
       hit.setMetaValue("TagPositions", positions);
       hit.setMetaValue("FastaIndex", pi);
@@ -400,16 +469,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
 
     if (hits.empty()) continue;
 
-        std::sort(hits.begin(), hits.end(), [](const ProteinHit& left, const ProteinHit& right) {
-          return left.getScore() == right.getScore() ? (left.getCoverage() == right.getCoverage() ? (left.getDescription() > right.getDescription())
-                                                                                                  : (left.getCoverage() > right.getCoverage()))
-                                                     : (left.getScore() > right.getScore());
-        });
-   // std::cout<<hits.size()<<std::endl; // 예전 runmathcing 으로 좀 돌아갈 듯.. tag 매칭도 필요함. 그래도 빠르긴 하다만....
-    //if (hits.size() > 5 * max_hit_count) { hits.resize(5 * max_hit_count); }
-        if (hits.size() > 100*max_hit_count) { hits.resize(100*max_hit_count); }
-
-    FLASHTaggerAlgorithm::runMatching(hits, dspec, max_mod_mass);
+    FLASHTaggerAlgorithm::runMatching(hits, vec_pro, rev_vec_pro, dspec, max_mod_mass);
 
     std::sort(hits.begin(), hits.end(), [](const ProteinHit& left, const ProteinHit& right) {
       return left.getScore() == right.getScore() ? (left.getCoverage() == right.getCoverage() ? (left.getDescription() > right.getDescription())

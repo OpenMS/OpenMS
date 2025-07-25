@@ -59,10 +59,14 @@ public:
    * The maximum modification mass is used to skip protein sequences that do not match with
    * tag flanking masses.
    * @param hits protein hits to search against
+   * @param vec_pro vector of protein prefix masses
+   * @param rev_vec_pro vector of protein suffix masses
    * @param deconvolved_spectrum deconvolved spectrum from FLASHDeconv
    * @param max_mod_mass maximum modification mass (a positive number)
    */
-  static void runMatching(std::vector<ProteinHit> hits,
+  static void runMatching(std::vector<ProteinHit>& hits,
+                          const std::vector<std::unordered_set<int>>& vec_pro,
+                          const std::vector<std::unordered_set<int>>& rev_vec_pro,
                    const DeconvolvedSpectrum& deconvolved_spectrum,
                    double max_mod_mass = 0);
 
@@ -125,11 +129,11 @@ private:
   Size getVertex_(int index, int path_score, int level, int iso_level, int gap_level) const;
   int getIndex_(Size vertex) const;
 
-  static void getScoreAndMatchCount_(const std::vector<Size>& spec_vec,
-                              const std::unordered_set<Size>& pro_vec,
-                              const std::set<int>& spec_pro_diffs,
+  static void getScoreAndMatchCount_(const std::vector<int>& spec_vec,
+                              const std::unordered_set<int>& pro_vec,
+                              const std::vector<int>& spec_pro_diffs,
                               const std::vector<int>& spec_scores,
-                              int& max_score, int& match_cntr);
+                              int& max_score);
 
 
   void updateTagSet_(std::set<FLASHHelperClasses::Tag>& tag_set,
@@ -139,10 +143,6 @@ private:
                      const std::vector<int>& scores,
                      int scan,
                      double ppm, int mode);
-
-  static void vectorizeProteinSequence_(const std::vector<ProteinHit>& hits,
-                                        std::vector<std::unordered_set<Size>>& vec_pro,
-                                        std::vector<std::unordered_set<Size>>& rev_vec_pro);
 
   static Size find_with_X_(const std::string_view& A, const String& B, Size pos = 0);
 
@@ -159,7 +159,7 @@ private:
 
   std::map<String, std::set<Size>> indexed_fasta_;
   bool consider_diff_ion_jumps_ = false;
-  std::vector<Size> max_tag_counts_ {0, 0, 0, 100, 500, 1000}; // tag count for length 0, 1, 2, 3, 4, 5
+  std::vector<Size> max_tag_counts_ {0, 0, 0, 50, 100, 200}; // tag count for length 0, 1, 2, 3, 4, 5
 
   int min_tag_length_ = 0;
   int max_tag_length_ = 0;
