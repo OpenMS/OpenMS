@@ -866,9 +866,20 @@ protected:
       SHashmap m_seqs;
 
       // lambda to count ambiguous amino acids in frequency table
-      auto count_AAAs = [](const auto& aacids) { return aacids.at('B') + aacids.at('Z') + aacids.at('X') + aacids.at('b') + aacids.at('z') + aacids.at('x'); };
+      auto count_AAAs = [](const auto& aacids, std::string_view which) {
+        size_t count = 0;
+        for (char a : which)
+        {
+          auto it = aacids.find(a);
+          if (it != aacids.end()) { count += it->second; }
+        }
+        return count;
+      };
 
       size_t protein_has_ambiguous_aas = 0;
+      
+      const std::string_view& AAA_BXZJ = "BZXbzxJj"; // ambiguous amino acids
+      const std::string_view& AAA_BXZ = "BZXbzx"; // ambiguous amino acids
 
       std::hash<string> s_hash;
       for (auto loopiter = entries.begin(); loopiter != entries.end(); ++loopiter)
@@ -907,14 +918,14 @@ protected:
           m_seqs[id_seq] = { std::distance(entries.begin(), loopiter) };
         }
 
-        const auto count_AAA_before = count_AAAs(aacids);
+        const auto count_AAA_before = count_AAAs(aacids, AAA_BXZJ);
         // count AAs
         for (char a : loopiter->sequence)
         {
           ++aacids[a];
         }
         // did this protein contain ambiguous amino acids?
-        if (count_AAA_before != count_AAAs(aacids))
+        if (count_AAA_before != count_AAAs(aacids, AAA_BXZJ))
         {
           ++protein_has_ambiguous_aas;
         }
@@ -935,8 +946,8 @@ protected:
       {
         os << "  " << AA << ":\t" << count << '\n';
       }
-      size_t amb = aacids['B'] + aacids['Z'] + aacids['X'] + aacids['b'] + aacids['z'] + aacids['x'];
-      size_t amb_J = amb + aacids['J'] + aacids['j'];
+      size_t amb = count_AAAs(aacids, AAA_BXZ);
+      size_t amb_J = count_AAAs(aacids, AAA_BXZJ);
       os << "Ambiguous amino acids (B/Z/X)  : " << amb   << " (" << Math::percentOf(amb  , number_of_aacids, 2) << "%)\n";
       os << "                      (B/Z/X/J): " << amb_J << " (" << Math::percentOf(amb_J, number_of_aacids, 2) << "%)\n\n";
     }
