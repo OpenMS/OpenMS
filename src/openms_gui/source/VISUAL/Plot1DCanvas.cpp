@@ -80,10 +80,10 @@ namespace OpenMS
     }
     chrom_exp_sptr->getMSExperiment().addSpectrum(std::move(spectrum));
 
-    // store peptide_sequence if available
-    if (current_chrom.getPrecursor().metaValueExists("peptide_sequence"))
+    // store transition_group_name (previously peptide_sequence) if available
+    if (current_chrom.getPrecursor().metaValueExists("transition_group_name"))
     {
-      chrom_exp_sptr->getMSExperiment().setMetaValue("peptide_sequence", current_chrom.getPrecursor().getMetaValue("peptide_sequence"));
+      chrom_exp_sptr->getMSExperiment().setMetaValue("transition_group_name", current_chrom.getPrecursor().getMetaValue("transition_group_name"));
     }
 
     return chrom_exp_sptr;

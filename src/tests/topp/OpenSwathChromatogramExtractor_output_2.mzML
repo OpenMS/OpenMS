@@ -246,7 +246,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEB"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDEB"/>
 						</activation>
 					</precursor>
 					<product>
@@ -284,7 +284,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEA"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDEA"/>
 						</activation>
 					</precursor>
 					<product>
@@ -322,7 +322,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEA"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDEA"/>
 						</activation>
 					</precursor>
 					<product>
@@ -351,10 +351,10 @@
 <indexList count="1">
 	<index name="chromatogram">
 		<offset idRef="tr3">16981</offset>
-		<offset idRef="tr1">19361</offset>
-		<offset idRef="tr2">21851</offset>
+		<offset idRef="tr1">19366</offset>
+		<offset idRef="tr2">21861</offset>
 	</index>
 </indexList>
-<indexListOffset>24375</indexListOffset>
+<indexListOffset>24390</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

@@ -630,7 +630,7 @@ namespace OpenMS::Internal
         {
           precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 6));
         }
-        if (Sql::extractValue(&tmp, stmt, 7)) precursor.setMetaValue("peptide_sequence", tmp);
+        if (Sql::extractValue(&tmp, stmt, 7)) precursor.setMetaValue("transition_group_name", tmp);
         // if (sqlite3_column_type(stmt, 8) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, 8));
         if (sqlite3_column_type(stmt, 9) != SQLITE_NULL)
         {
@@ -744,7 +744,7 @@ namespace OpenMS::Internal
         }
         if (Sql::extractValue(&tmp, stmt, 9))
         {
-          precursor.setMetaValue("peptide_sequence", tmp);
+          precursor.setMetaValue("transition_group_name", tmp);
         }
         // if (sqlite3_column_type(stmt, 10) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, 10));
         if (sqlite3_column_type(stmt, 11) != SQLITE_NULL)
@@ -1090,9 +1090,9 @@ namespace OpenMS::Internal
             activation_method = *prec.getActivationMethods().begin();
           }
           String pepseq;
-          if (prec.metaValueExists("peptide_sequence"))
+          if (prec.metaValueExists("transition_group_name"))
           {
-            pepseq = prec.getMetaValue("peptide_sequence");
+            pepseq = prec.getMetaValue("transition_group_name");
             insert_precursor_sql << "INSERT INTO PRECURSOR (SPECTRUM_ID, CHARGE, ISOLATION_TARGET, " <<
                 "ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, " <<
                 "ACTIVATION_METHOD, PEPTIDE_SEQUENCE) VALUES (" << 
@@ -1301,9 +1301,9 @@ namespace OpenMS::Internal
           activation_method = *prec.getActivationMethods().begin();
         }
         String pepseq;
-        if (prec.metaValueExists("peptide_sequence"))
+        if (prec.metaValueExists("transition_group_name"))
         {
-          pepseq = prec.getMetaValue("peptide_sequence");
+          pepseq = prec.getMetaValue("transition_group_name");
           insert_precursor_sql << "INSERT INTO PRECURSOR (CHROMATOGRAM_ID, CHARGE, ISOLATION_TARGET, " <<
             "ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, " << 
             "ACTIVATION_METHOD, PEPTIDE_SEQUENCE) VALUES (" << 

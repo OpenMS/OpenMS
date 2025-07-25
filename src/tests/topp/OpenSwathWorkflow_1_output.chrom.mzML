@@ -113,7 +113,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEA"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDEA"/>
 						</activation>
 					</precursor>
 					<product>
@@ -150,7 +150,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEA"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDEA"/>
 						</activation>
 					</precursor>
 					<product>
@@ -187,7 +187,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEA"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDEA"/>
 						</activation>
 					</precursor>
 					<product>
@@ -224,7 +224,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEB"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDEB"/>
 						</activation>
 					</precursor>
 					<product>
@@ -261,7 +261,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEB"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDEB"/>
 						</activation>
 					</precursor>
 					<product>
@@ -298,7 +298,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEB"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDEB"/>
 						</activation>
 					</precursor>
 					<product>
@@ -335,7 +335,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEC"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDEC"/>
 						</activation>
 					</precursor>
 					<product>
@@ -372,7 +372,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEC"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDEC"/>
 						</activation>
 					</precursor>
 					<product>
@@ -409,7 +409,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEC"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDEC"/>
 						</activation>
 					</precursor>
 					<product>
@@ -446,7 +446,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDED"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDED"/>
 						</activation>
 					</precursor>
 					<product>
@@ -483,7 +483,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDED"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDED"/>
 						</activation>
 					</precursor>
 					<product>
@@ -520,7 +520,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDED"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDED"/>
 						</activation>
 					</precursor>
 					<product>
@@ -557,7 +557,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEE"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDEE"/>
 						</activation>
 					</precursor>
 					<product>
@@ -594,7 +594,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEF"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDEF"/>
 						</activation>
 					</precursor>
 					<product>
@@ -631,7 +631,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEE"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDEE"/>
 						</activation>
 					</precursor>
 					<product>
@@ -668,7 +668,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEF"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDEF"/>
 						</activation>
 					</precursor>
 					<product>
@@ -705,7 +705,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEE"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDEE"/>
 						</activation>
 					</precursor>
 					<product>
@@ -742,7 +742,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEF"/>
+							<userParam name="transition_group_name" type="xsd:string" value="PEPTIDEF"/>
 						</activation>
 					</precursor>
 					<product>
@@ -771,25 +771,25 @@
 <indexList count="1">
 	<index name="chromatogram">
 		<offset idRef="1">6874</offset>
-		<offset idRef="2">9102</offset>
-		<offset idRef="3">11330</offset>
-		<offset idRef="4">13558</offset>
-		<offset idRef="5">15786</offset>
-		<offset idRef="6">18010</offset>
-		<offset idRef="7">20238</offset>
-		<offset idRef="8">22466</offset>
-		<offset idRef="9">24690</offset>
-		<offset idRef="10">26918</offset>
-		<offset idRef="11">29147</offset>
-		<offset idRef="12">31373</offset>
-		<offset idRef="13">33603</offset>
-		<offset idRef="16">35835</offset>
-		<offset idRef="14">38067</offset>
-		<offset idRef="17">40295</offset>
-		<offset idRef="15">42523</offset>
-		<offset idRef="18">44755</offset>
+		<offset idRef="2">9107</offset>
+		<offset idRef="3">11340</offset>
+		<offset idRef="4">13573</offset>
+		<offset idRef="5">15806</offset>
+		<offset idRef="6">18035</offset>
+		<offset idRef="7">20268</offset>
+		<offset idRef="8">22501</offset>
+		<offset idRef="9">24730</offset>
+		<offset idRef="10">26963</offset>
+		<offset idRef="11">29197</offset>
+		<offset idRef="12">31428</offset>
+		<offset idRef="13">33663</offset>
+		<offset idRef="16">35900</offset>
+		<offset idRef="14">38137</offset>
+		<offset idRef="17">40370</offset>
+		<offset idRef="15">42603</offset>
+		<offset idRef="18">44840</offset>
 	</index>
 </indexList>
-<indexListOffset>47021</indexListOffset>
+<indexListOffset>47111</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

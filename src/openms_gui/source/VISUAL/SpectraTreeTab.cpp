@@ -509,9 +509,9 @@ namespace OpenMS
         toplevel_item->setData(ClmnChrom::MZ, Qt::DisplayRole, pc.getMZ());
         // Show the peptide sequence if available, otherwise show the m/z and charge only
         QString description;
-        if (pc.metaValueExists("peptide_sequence"))
+        if (pc.metaValueExists("transition_group_name"))
         {
-          description = String(pc.getMetaValue("peptide_sequence")).toQString();
+          description = String(pc.getMetaValue("transition_group_name")).toQString();
         }
         else if (pc.metaValueExists("description"))
         {

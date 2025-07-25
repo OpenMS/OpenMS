@@ -410,11 +410,11 @@
 																	</xs:complexType>
 																</xs:element>
 															</xs:sequence>
-															<xs:attribute name="peptide_sequence" type="xs:string" use="required"/>
+															<xs:attribute name="transition_group_name" type="xs:string" use="required"/>
 														</xs:complexType>
 													</xs:element>
 												</xs:sequence>
-												<xs:attribute name="peptide_sequence" type="xs:string" use="required">
+												<xs:attribute name="transition_group_name" type="xs:string" use="required">
 													<xs:annotation>
 														<xs:documentation>unmodified aa sequence</xs:documentation>
 													</xs:annotation>

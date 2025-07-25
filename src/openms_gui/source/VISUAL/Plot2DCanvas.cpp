@@ -1122,9 +1122,9 @@ namespace OpenMS
         {
           // Show the peptide sequence if available, otherwise show the m/z and charge only
           QString precursor_string = QString("Precursor m/z: (")  + String(mit->first.getCharge()).toQString() + ") " + QString::number(mit->first.getMZ());
-          if (mit->first.metaValueExists("peptide_sequence"))
+          if (mit->first.metaValueExists("transition_group_name"))
           {
-            precursor_string = QString::number(mit->first.getMZ()) + " : " + String(mit->first.getMetaValue("peptide_sequence")).toQString() + " (" + QString::number(mit->first.getCharge()) + "+)";
+            precursor_string = QString::number(mit->first.getMZ()) + " : " + String(mit->first.getMetaValue("transition_group_name")).toQString() + " (" + QString::number(mit->first.getCharge()) + "+)";
           }
           QMenu * msn_precursor = msn_chromatogram->addMenu(precursor_string);  // new entry for every precursor
 

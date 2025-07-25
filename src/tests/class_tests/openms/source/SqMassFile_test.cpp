@@ -252,7 +252,7 @@ START_SECTION([EXTRA_LOSSY] void store(const String& filename, MapType& map))
     p.setIsolationWindowLowerOffset(14);
     p.setDriftTime(0.5);
     p.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
-    p.setMetaValue("peptide_sequence", "PEPTIDEK");
+    p.setMetaValue("transition_group_name", "PEPTIDEK");
 
     std::vector<Precursor> prec;
     prec.push_back(p);
@@ -305,8 +305,8 @@ START_SECTION([EXTRA_LOSSY] void store(const String& filename, MapType& map))
     TEST_REAL_SIMILAR(exp.getSpectrum(0).getPrecursors()[0].getMZ(), 600)
     TEST_REAL_SIMILAR(exp.getSpectrum(0).getPrecursors()[0].getIsolationWindowUpperOffset(), 7)
     TEST_REAL_SIMILAR(exp.getSpectrum(0).getPrecursors()[0].getIsolationWindowLowerOffset(), 14)
-    TEST_EQUAL(exp.getSpectrum(0).getPrecursors()[0].metaValueExists("peptide_sequence"), true)
-    TEST_EQUAL(exp.getSpectrum(0).getPrecursors()[0].getMetaValue("peptide_sequence"), "PEPTIDEK")
+    TEST_EQUAL(exp.getSpectrum(0).getPrecursors()[0].metaValueExists("transition_group_name"), true)
+    TEST_EQUAL(exp.getSpectrum(0).getPrecursors()[0].getMetaValue("transition_group_name"), "PEPTIDEK")
   }
   {
     TEST_EQUAL(exp.getChromatogram(0).getNativeID(), exp_orig.getChromatogram(0).getNativeID())
@@ -321,8 +321,8 @@ START_SECTION([EXTRA_LOSSY] void store(const String& filename, MapType& map))
     TEST_REAL_SIMILAR(exp.getChromatogram(0).getPrecursor().getMZ(), 600)
     TEST_REAL_SIMILAR(exp.getChromatogram(0).getPrecursor().getIsolationWindowUpperOffset(), 7)
     TEST_REAL_SIMILAR(exp.getChromatogram(0).getPrecursor().getIsolationWindowLowerOffset(), 14)
-    TEST_EQUAL(exp.getChromatogram(0).getPrecursor().metaValueExists("peptide_sequence"), true)
-    TEST_EQUAL(exp.getChromatogram(0).getPrecursor().getMetaValue("peptide_sequence"), "PEPTIDEK")
+    TEST_EQUAL(exp.getChromatogram(0).getPrecursor().metaValueExists("transition_group_name"), true)
+    TEST_EQUAL(exp.getChromatogram(0).getPrecursor().getMetaValue("transition_group_name"), "PEPTIDEK")
   }
 
   MSExperiment exp2 = exp_orig;
@@ -367,7 +367,7 @@ START_SECTION([EXTRA_FULL_META] void store(const String& filename, MapType& map)
     p.setIsolationWindowLowerOffset(14);
     p.setDriftTime(0.5);
     p.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
-    p.setMetaValue("peptide_sequence", "PEPTIDEK");
+    p.setMetaValue("transition_group_name", "PEPTIDEK");
 
     std::vector<Precursor> prec;
     prec.push_back(p);
@@ -420,8 +420,8 @@ START_SECTION([EXTRA_FULL_META] void store(const String& filename, MapType& map)
     TEST_REAL_SIMILAR(exp.getSpectrum(0).getPrecursors()[0].getMZ(), 600)
     TEST_REAL_SIMILAR(exp.getSpectrum(0).getPrecursors()[0].getIsolationWindowUpperOffset(), 7)
     TEST_REAL_SIMILAR(exp.getSpectrum(0).getPrecursors()[0].getIsolationWindowLowerOffset(), 14)
-    TEST_EQUAL(exp.getSpectrum(0).getPrecursors()[0].metaValueExists("peptide_sequence"), true)
-    TEST_EQUAL(exp.getSpectrum(0).getPrecursors()[0].getMetaValue("peptide_sequence"), "PEPTIDEK")
+    TEST_EQUAL(exp.getSpectrum(0).getPrecursors()[0].metaValueExists("transition_group_name"), true)
+    TEST_EQUAL(exp.getSpectrum(0).getPrecursors()[0].getMetaValue("transition_group_name"), "PEPTIDEK")
   }
   {
     TEST_EQUAL(exp.getChromatogram(0).getNativeID(), exp_orig.getChromatogram(0).getNativeID())
@@ -436,8 +436,8 @@ START_SECTION([EXTRA_FULL_META] void store(const String& filename, MapType& map)
     TEST_REAL_SIMILAR(exp.getChromatogram(0).getPrecursor().getMZ(), 600)
     TEST_REAL_SIMILAR(exp.getChromatogram(0).getPrecursor().getIsolationWindowUpperOffset(), 7)
     TEST_REAL_SIMILAR(exp.getChromatogram(0).getPrecursor().getIsolationWindowLowerOffset(), 14)
-    TEST_EQUAL(exp.getChromatogram(0).getPrecursor().metaValueExists("peptide_sequence"), true)
-    TEST_EQUAL(exp.getChromatogram(0).getPrecursor().getMetaValue("peptide_sequence"), "PEPTIDEK")
+    TEST_EQUAL(exp.getChromatogram(0).getPrecursor().metaValueExists("transition_group_name"), true)
+    TEST_EQUAL(exp.getChromatogram(0).getPrecursor().getMetaValue("transition_group_name"), "PEPTIDEK")
   }
 
   MSExperiment exp2 = exp_orig;

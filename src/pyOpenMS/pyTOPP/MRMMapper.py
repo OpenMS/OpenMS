@@ -22,16 +22,35 @@ def algorithm(chromatogram_map, targeted, precursor_tolerance, product_tolerance
             if (abs(chrom.getPrecursor().getMZ() - transition.getPrecursorMZ()) < precursor_tolerance and
                 abs(chrom.getProduct().getMZ()  -  transition.getProductMZ()) < product_tolerance):
                 if mapped_already:
-                    this_peptide = targeted.getPeptideByRef(transition.getPeptideRef() ).sequence
-                    other_peptide = chrom.getPrecursor().getMetaValue("peptide_sequence")
+                    # Handle both peptides and nucleotides
+                    if targeted.hasPeptide(transition.getTransGroupRef()):
+                        this_sequence = targeted.getCompoundByRef(transition.getTransGroupRef()).sequence
+                        sequence_type = "peptide"
+                    elif targeted.hasNucleotide(transition.getTransGroupRef()):
+                        this_sequence = targeted.getCompoundByRef(transition.getTransGroupRef()).sequence
+                        sequence_type = "nucleotide"
+                    else:
+                        this_sequence = "unknown"
+                        sequence_type = "unknown"
+                    
+                    other_sequence = chrom.getPrecursor().getMetaValue("transition_group_name")
                     print("Found mapping of", chrom.getPrecursor().getMZ(), "/", chrom.getProduct().getMZ(), "to", transition.getPrecursorMZ(), "/",transition.getProductMZ())
-                    print("Of peptide", this_peptide)
-                    print("But the chromatogram is already mapped to", other_peptide)
+                    print("Of", sequence_type, this_sequence)
+                    print("But the chromatogram is already mapped to", other_sequence)
                     if not allow_double_mappings: raise Exception("Cannot map twice")
                 mapped_already = True
                 precursor = chrom.getPrecursor()
-                peptide = targeted.getPeptideByRef(transition.getPeptideRef() )
-                precursor.setMetaValue("peptide_sequence", peptide.sequence)
+                
+                # Handle both peptides and nucleotides
+                if targeted.hasPeptide(transition.getTransGroupRef()):
+                    sequence_entity = targeted.getCompoundByRef(transition.getTransGroupRef())
+                elif targeted.hasNucleotide(transition.getTransGroupRef()):
+                    sequence_entity = targeted.getCompoundByRef(transition.getTransGroupRef())
+                else:
+                    sequence_entity = None
+                
+                if sequence_entity:
+                    precursor.setMetaValue("transition_group_name", sequence_entity.sequence)
                 chrom.setPrecursor(precursor)
                 chrom.setNativeID(transition.getNativeID())
         if not mapped_already:

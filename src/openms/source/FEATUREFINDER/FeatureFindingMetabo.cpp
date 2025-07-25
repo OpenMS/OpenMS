@@ -104,7 +104,7 @@ namespace OpenMS
     Precursor prec;
     prec.setMZ(mz);
     prec.setCharge(charge_);
-    prec.setMetaValue("peptide_sequence", String(feature_id));
+    prec.setMetaValue("transition_group_name", String(feature_id));
 
     std::vector< OpenMS::MSChromatogram > tmp_chromatograms;
     for (Size mt_idx = 0; mt_idx < iso_pattern_.size(); ++mt_idx)

@@ -210,7 +210,7 @@ public:
             int prec_charge = 0;
             String r = extract_id_(transition_exp_used, transition_group_id, prec_charge);
             prec.setCharge(prec_charge);
-            prec.setMetaValue("peptide_sequence", r);
+            prec.setMetaValue("transition_group_name", r);
           }
         }
         else 
@@ -237,7 +237,7 @@ public:
             int prec_charge = 0;
             String r = extract_id_(transition_exp_used, transition.getTransGroupRef(), prec_charge);
             prec.setCharge(prec_charge);
-            prec.setMetaValue("peptide_sequence", r);
+            prec.setMetaValue("transition_group_name", r);
           }
         }
 

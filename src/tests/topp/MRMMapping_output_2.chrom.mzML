@@ -93,7 +93,7 @@
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="description" type="xsd:string" value="B2MG.VNHVTLSQPK.3.y5.1.heavy"/>
-							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
+							<userParam name="transition_group_name" type="xsd:string" value="VNHVTLSQPK"/>
 						</activation>
 					</precursor>
 					<product>
@@ -130,7 +130,7 @@
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="description" type="xsd:string" value="B2MG.VNHVTLSQPK.3.y6.1.heavy"/>
-							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
+							<userParam name="transition_group_name" type="xsd:string" value="VNHVTLSQPK"/>
 						</activation>
 					</precursor>
 					<product>
@@ -167,7 +167,7 @@
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="description" type="xsd:string" value="B2MG.VNHVTLSQPK.3.y7.1.heavy"/>
-							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
+							<userParam name="transition_group_name" type="xsd:string" value="VNHVTLSQPK"/>
 						</activation>
 					</precursor>
 					<product>
@@ -196,10 +196,10 @@
 <indexList count="1">
 	<index name="chromatogram">
 		<offset idRef="B2MG.VNHVTLSQPK.3.y5.1.heavy">5241</offset>
-		<offset idRef="B2MG.VNHVTLSQPK.3.y6.1.heavy">9095</offset>
-		<offset idRef="B2MG.VNHVTLSQPK.3.y7.1.heavy">12215</offset>
+		<offset idRef="B2MG.VNHVTLSQPK.3.y6.1.heavy">9100</offset>
+		<offset idRef="B2MG.VNHVTLSQPK.3.y7.1.heavy">12225</offset>
 	</index>
 </indexList>
-<indexListOffset>14584</indexListOffset>
+<indexListOffset>14599</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

@@ -91,7 +91,7 @@ namespace OpenMS
           precursor.setMetaValue("description", targeted_exp.getTransitions()[j].getNativeID());
           if (targeted_exp.getTransitions()[j].getTransGroupType() == OpenSwath::TransType::PEPTIDE)
           {
-            precursor.setMetaValue("peptide_sequence", transref);
+            precursor.setMetaValue("transition_group_name", transref);
             for (Size pep_idx = 0; pep_idx < targeted_exp.getPeptides().size(); pep_idx++)
             {
               const OpenMS::TargetedExperiment::Peptide * pep = &targeted_exp.getPeptides()[pep_idx];
@@ -99,7 +99,7 @@ namespace OpenMS
               {
                 if (!pep->sequence.empty())
                 {
-                  precursor.setMetaValue("peptide_sequence", pep->sequence);
+                  precursor.setMetaValue("transition_group_name", pep->sequence);
                 }
                 break;
               }

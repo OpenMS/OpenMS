@@ -346,7 +346,7 @@ def testDatastructuresTutorial():
     p.setCharge(2) # 2+ ion
     p.setMetaValue("description", "test_description")
     p.setMetaValue("description", chromatogram.getNativeID())
-    p.setMetaValue("peptide_sequence", chromatogram.getNativeID())
+    p.setMetaValue("transition_group_name", chromatogram.getNativeID())
     chromatogram.setPrecursor(p)
     p = Product()
     p.setMZ(603.4) # transition from 405.2 -> 603.4

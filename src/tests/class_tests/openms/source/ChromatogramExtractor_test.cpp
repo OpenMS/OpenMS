@@ -140,7 +140,7 @@ START_SECTION((template < typename TransitionExpT > static void return_chromatog
   TEST_EQUAL(chromatograms.size(), 3)
   TEST_EQUAL(chromatograms[0].getChromatogramType(), ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
   TEST_REAL_SIMILAR(chromatograms[0].getProduct().getMZ(), 618.31)
-  TEST_EQUAL(chromatograms[0].getPrecursor().metaValueExists("peptide_sequence"), true)
+  TEST_EQUAL(chromatograms[0].getPrecursor().metaValueExists("transition_group_name"), true)
 }
 END_SECTION
 
