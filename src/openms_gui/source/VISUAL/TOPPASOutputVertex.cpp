@@ -70,15 +70,18 @@ namespace OpenMS
     String dir = "TOPPAS_out/";
     if (output_folder_name_.isEmpty())
     {
-      TOPPASEdge* e = *inEdgesBegin();
-      if (e == nullptr)
+      if (incomingEdgesCount() != 0)
+      {
+        TOPPASEdge* e = *inEdgesBegin();
+        const TOPPASVertex* tv = e->getSourceVertex();
+        // create meaningful output name using vertex + TOPP name + output parameter, e.g. "010-FileConverter-out"
+        dir += get3CharsNumber_(topo_nr_) + "-" + tv->getName() + "-" + e->getSourceOutParamName().remove(':');
+      }
+      else
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "To open the output folder, an input edge is required to knit a folder name.");
+                                            "Can't open output folder, an input edge is required first.");
       }
-      const TOPPASVertex* tv = e->getSourceVertex();
-      // create meaningful output name using vertex + TOPP name + output parameter, e.g. "010-FileConverter-out"
-      dir += get3CharsNumber_(topo_nr_) + "-" + tv->getName() + "-" + e->getSourceOutParamName().remove(':');
     }
     else { 
       dir += output_folder_name_;

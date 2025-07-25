@@ -190,9 +190,9 @@ public:
     /// Returns end() iterator of incoming edges
     ConstEdgeIterator inEdgesEnd() const;
     /// Returns the number of incoming edges
-    Size incomingEdgesCount();
+    Size incomingEdgesCount() const;
     /// Returns the number of outgoing edges
-    Size outgoingEdgesCount();
+    Size outgoingEdgesCount() const;
     /// Adds an incoming edge
     void addInEdge(TOPPASEdge * edge);
     /// Adds an outgoing edge

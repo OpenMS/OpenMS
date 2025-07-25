@@ -508,12 +508,12 @@ namespace OpenMS
     dfs_color_ = color;
   }
 
-  Size TOPPASVertex::incomingEdgesCount()
+  Size TOPPASVertex::incomingEdgesCount() const
   {
     return in_edges_.size();
   }
 
-  Size TOPPASVertex::outgoingEdgesCount()
+  Size TOPPASVertex::outgoingEdgesCount() const
   {
     return out_edges_.size();
   }
