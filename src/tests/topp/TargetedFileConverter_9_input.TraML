@@ -15,7 +15,7 @@
   <CompoundList>
     <Peptide id="1" sequence="KSQSDFLGSR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="NA"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="NA"/>
       <userParam name="full_peptide_name" type="xsd:string" value="KS(UniMod:21)QSDFLGSR(UniMod:267)"/>
       <ProteinRef ref="DECOY_KLDSGQSSFR"/>
       <Modification location="2" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
@@ -32,7 +32,7 @@
     </Peptide>
     <Peptide id="0" sequence="KLDSGQSSFR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="NA"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="NA"/>
       <userParam name="full_peptide_name" type="xsd:string" value="KLDSGQS(UniMod:21)SFR(UniMod:267)"/>
       <ProteinRef ref="KLDSGQSSFR"/>
       <Modification location="7" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">

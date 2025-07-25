@@ -13,7 +13,7 @@
   <CompoundList>
     <Peptide id="DECOY_test_gr" sequence="AATAATTAATTPATAAAAPAAAAAAAAAC">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_pepgr"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="DECOY_pepgr"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAAAAAAAAPAAAATAPTTAATTAATAAQ"/>
       <ProteinRef ref="DECOY_SRP14_HUMAN"/>
       <RetentionTimeList>
@@ -26,7 +26,7 @@
   <TransitionList>
     <Transition id="DECOY_tr1" peptideRef="DECOY_test_gr">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1172.08409493162" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1172.084094931621848" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
@@ -45,7 +45,7 @@
     </Transition>
     <Transition id="DECOY_tr2" peptideRef="DECOY_test_gr">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1172.08409493162" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1172.084094931621848" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
@@ -64,7 +64,7 @@
     </Transition>
     <Transition id="DECOY_tr3" peptideRef="DECOY_test_gr">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1172.08409493162" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1172.084094931621848" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
@@ -83,7 +83,7 @@
     </Transition>
     <Transition id="DECOY_tr4" peptideRef="DECOY_test_gr">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1172.08409493162" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1172.084094931621848" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
@@ -102,7 +102,7 @@
     </Transition>
     <Transition id="DECOY_tr5" peptideRef="DECOY_test_gr">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1172.08409493162" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1172.084094931621848" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>

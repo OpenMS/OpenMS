@@ -30,7 +30,7 @@
   <CompoundList>
     <Peptide id="AAVEQEKR_2" sequence="AAVEQEKR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="AAVEQEKR_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="AAVEQEKR_2"/>
       <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.838920544625305" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
       <userParam name="full_peptide_name" type="xsd:string" value="AAVEQEKR"/>
       <userParam name="GeneName" type="xsd:string" value="EEA1"/>
@@ -43,7 +43,7 @@
     </Peptide>
     <Peptide id="EKLQEELR_2" sequence="EKLQEELR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="EKLQEELR_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="EKLQEELR_2"/>
       <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.857037302929722" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
       <userParam name="full_peptide_name" type="xsd:string" value="EKLQEELR"/>
       <userParam name="GeneName" type="xsd:string" value="BTN2A1"/>
@@ -56,7 +56,7 @@
     </Peptide>
     <Peptide id="LEEQLKEK_2" sequence="LEEQLKER">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="LEEQLKEK_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="LEEQLKEK_2"/>
       <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.849558031417467" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
       <userParam name="full_peptide_name" type="xsd:string" value="LEEQLKER"/>
       <userParam name="GeneName" type="xsd:string" value="EEA1"/>
@@ -69,7 +69,7 @@
     </Peptide>
     <Peptide id="QRIDEFEAM(Oxidation)_2" sequence="QRIDEFEAM">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="QRIDEFEAM(Oxidation)_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="QRIDEFEAM(Oxidation)_2"/>
       <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.861850331595122" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
       <userParam name="full_peptide_name" type="xsd:string" value="QRIDEFEAM(UniMod:35)"/>
       <userParam name="GeneName" type="xsd:string" value="RDX"/>
@@ -85,7 +85,7 @@
     </Peptide>
     <Peptide id="QRIDEFEAM_2" sequence="QRIDEFEAM">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="QRIDEFEAM_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="QRIDEFEAM_2"/>
       <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.860080798094116" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
       <userParam name="full_peptide_name" type="xsd:string" value="QRIDEFEAM"/>
       <userParam name="GeneName" type="xsd:string" value="RDX"/>
@@ -98,7 +98,7 @@
     </Peptide>
     <Peptide id="QRIDEFEAM_2_DUP" sequence="QRIDEFEAM">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="QRIDEFEAM_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="QRIDEFEAM_2"/>
       <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.860080798094116" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
       <userParam name="full_peptide_name" type="xsd:string" value="QRIDEFEAM"/>
       <userParam name="GeneName" type="xsd:string" value="GENE"/>
@@ -111,7 +111,7 @@
     </Peptide>
     <Peptide id="YYSSHYMTLVVQSK_2" sequence="YYSSHYMTLVVQSK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="YYSSHYMTLVVQSK_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="YYSSHYMTLVVQSK_2"/>
       <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="1.10410356521606" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
       <userParam name="full_peptide_name" type="xsd:string" value="YYSSHYMTLVVQSK"/>
       <userParam name="GeneName" type="xsd:string" value="NRDC"/>
@@ -124,7 +124,7 @@
     </Peptide>
     <Peptide id="YYSSHYMTLVVQSK_3" sequence="YYSSHYMTLVVQSK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="YYSSHYMTLVVQSK_3"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="YYSSHYMTLVVQSK_3"/>
       <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.853971380379878" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
       <userParam name="full_peptide_name" type="xsd:string" value="YYSSHYMTLVVQSK"/>
       <userParam name="GeneName" type="xsd:string" value="NRDC"/>
@@ -137,7 +137,7 @@
     </Peptide>
     <Peptide id="DECOY_AAVEQEKR_2" sequence="KEQEVAAR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_AAVEQEKR_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="DECOY_AAVEQEKR_2"/>
       <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.838920544625305" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
       <userParam name="full_peptide_name" type="xsd:string" value="AAVEQEKR"/>
       <userParam name="GeneName" type="xsd:string" value="EEA1"/>
@@ -150,7 +150,7 @@
     </Peptide>
     <Peptide id="DECOY_QRIDEFEAM(Oxidation)_2" sequence="AEFEDIRQM">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_QRIDEFEAM(Oxidation)_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="DECOY_QRIDEFEAM(Oxidation)_2"/>
       <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.861850331595122" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
       <userParam name="full_peptide_name" type="xsd:string" value="QRIDEFEAM(UniMod:35)"/>
       <userParam name="GeneName" type="xsd:string" value="RDX"/>
@@ -166,7 +166,7 @@
     </Peptide>
     <Peptide id="DECOY_QRIDEFEAM_2" sequence="AEFEDIRQM">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_QRIDEFEAM_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="DECOY_QRIDEFEAM_2"/>
       <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.860080798094116" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
       <userParam name="full_peptide_name" type="xsd:string" value="QRIDEFEAM"/>
       <userParam name="GeneName" type="xsd:string" value="RDX"/>
@@ -179,7 +179,7 @@
     </Peptide>
     <Peptide id="DECOY_YYSSHYMTLVVQSK_2" sequence="SQVVLTMYHSSYYK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_YYSSHYMTLVVQSK_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="DECOY_YYSSHYMTLVVQSK_2"/>
       <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="1.10410356521606" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
       <userParam name="full_peptide_name" type="xsd:string" value="YYSSHYMTLVVQSK"/>
       <userParam name="GeneName" type="xsd:string" value="NRDC"/>
@@ -192,7 +192,7 @@
     </Peptide>
     <Peptide id="DECOY_YYSSHYMTLVVQSK_3" sequence="SQVVLTMYHSSYYK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_YYSSHYMTLVVQSK_3"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="DECOY_YYSSHYMTLVVQSK_3"/>
       <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.853971380379878" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
       <userParam name="full_peptide_name" type="xsd:string" value="YYSSHYMTLVVQSK"/>
       <userParam name="GeneName" type="xsd:string" value="NRDC"/>

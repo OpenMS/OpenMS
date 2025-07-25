@@ -609,7 +609,7 @@ protected:
         ordinal(0),
         rank(0),
         iontype(Unannotated), // Unannotated does not imply any MS OBO term
-        transition_type(OpenSwath::TransType::UNKNOWN)
+        transition_type(OpenSwath::TransType::PEPTIDE) // Default to peptide transition type for backwards compatibility
       {
       }
 

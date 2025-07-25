@@ -30,7 +30,7 @@
   <CompoundList>
     <Peptide id="AALIGSLGSIFK_AALIGS(Phospho)LGSIFK(Label:13C(6)15N(2))_2" sequence="AALIGSLGSIFK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="NA"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="NA"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AALIGS(UniMod:21)LGSIFK(UniMod:259)"/>
       <ProteinRef ref="AALIGSLGSIFK"/>
       <Modification location="6" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
@@ -47,7 +47,7 @@
     </Peptide>
     <Peptide id="AALIGSLGSIFK_AALIGSLGS(Phospho)IFK(Label:13C(6)15N(2))_2" sequence="AALIGSLGSIFK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="NA"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="NA"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AALIGSLGS(UniMod:21)IFK(UniMod:259)"/>
       <ProteinRef ref="AALIGSLGSIFK"/>
       <Modification location="9" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
@@ -64,7 +64,7 @@
     </Peptide>
     <Peptide id="ADDEEDLSDENIQPELR_ADDEEDLS(Phospho)DENIQPELR(Label:13C(6)15N(4))_2" sequence="ADDEEDLSDENIQPELR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="ADDEEDLSDENIQPELR_ADDEEDLS(Phospho)DENIQPELR(Label:13C(6)15N(4))_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="ADDEEDLSDENIQPELR_ADDEEDLS(Phospho)DENIQPELR(Label:13C(6)15N(4))_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="ADDEEDLS(UniMod:21)DENIQPELR(UniMod:267)"/>
       <ProteinRef ref="ADDEEDLSDENIQPELR"/>
       <Modification location="8" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
@@ -81,7 +81,7 @@
     </Peptide>
     <Peptide id="ADDEEDLSDENIQPELR_ADDEEDLS(Phospho)DENIQPELR(Label:13C(6)15N(4))_3" sequence="ADDEEDLSDENIQPELR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="ADDEEDLSDENIQPELR_ADDEEDLS(Phospho)DENIQPELR(Label:13C(6)15N(4))_3"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="ADDEEDLSDENIQPELR_ADDEEDLS(Phospho)DENIQPELR(Label:13C(6)15N(4))_3"/>
       <userParam name="full_peptide_name" type="xsd:string" value="ADDEEDLS(UniMod:21)DENIQPELR(UniMod:267)"/>
       <ProteinRef ref="ADDEEDLSDENIQPELR"/>
       <Modification location="8" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
@@ -98,7 +98,7 @@
     </Peptide>
     <Peptide id="AFIDEQFPQGISEPIPLGFTFSFPASQNK_AFIDEQFPQGIS(Phospho)EPIPLGFTFSFPASQNK(Label:13C(6)15N(2))_3" sequence="AFIDEQFPQGISEPIPLGFTFSFPASQNK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="AFIDEQFPQGISEPIPLGFTFSFPASQNK_AFIDEQFPQGIS(Phospho)EPIPLGFTFSFPASQNK(Label:13C(6)15N(2))_3"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="AFIDEQFPQGISEPIPLGFTFSFPASQNK_AFIDEQFPQGIS(Phospho)EPIPLGFTFSFPASQNK(Label:13C(6)15N(2))_3"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AFIDEQFPQGIS(UniMod:21)EPIPLGFTFSFPASQNK(UniMod:259)"/>
       <ProteinRef ref="AFIDEQFPQGISEPIPLGFTFSFPASQNK"/>
       <Modification location="12" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
@@ -115,7 +115,7 @@
     </Peptide>
     <Peptide id="AFIDEQFPQGISEPIPLGFTFSFPASQNK_AFIDEQFPQGISEPIPLGFT(Phospho)FSFPASQNK(Label:13C(6)15N(2))_3" sequence="AFIDEQFPQGISEPIPLGFTFSFPASQNK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="AFIDEQFPQGISEPIPLGFTFSFPASQNK_AFIDEQFPQGISEPIPLGFT(Phospho)FSFPASQNK(Label:13C(6)15N(2))_3"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="AFIDEQFPQGISEPIPLGFTFSFPASQNK_AFIDEQFPQGISEPIPLGFT(Phospho)FSFPASQNK(Label:13C(6)15N(2))_3"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AFIDEQFPQGISEPIPLGFT(UniMod:21)FSFPASQNK(UniMod:259)"/>
       <ProteinRef ref="AFIDEQFPQGISEPIPLGFTFSFPASQNK"/>
       <Modification location="20" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
@@ -132,7 +132,7 @@
     </Peptide>
     <Peptide id="AFIDEQFPQGISEPIPLGFTFSFPASQNK_AFIDEQFPQGISEPIPLGFTFS(Phospho)FPASQNK(Label:13C(6)15N(2))_3" sequence="AFIDEQFPQGISEPIPLGFTFSFPASQNK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="AFIDEQFPQGISEPIPLGFTFSFPASQNK_AFIDEQFPQGISEPIPLGFTFS(Phospho)FPASQNK(Label:13C(6)15N(2))_3"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="AFIDEQFPQGISEPIPLGFTFSFPASQNK_AFIDEQFPQGISEPIPLGFTFS(Phospho)FPASQNK(Label:13C(6)15N(2))_3"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AFIDEQFPQGISEPIPLGFTFS(UniMod:21)FPASQNK(UniMod:259)"/>
       <ProteinRef ref="AFIDEQFPQGISEPIPLGFTFSFPASQNK"/>
       <Modification location="22" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
@@ -149,7 +149,7 @@
     </Peptide>
     <Peptide id="AGLDNVDAESK_AGLDNVDAES(Phospho)K(Label:13C(6)15N(2))_2" sequence="AGLDNVDAESK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="AGLDNVDAESK_AGLDNVDAES(Phospho)K(Label:13C(6)15N(2))_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="AGLDNVDAESK_AGLDNVDAES(Phospho)K(Label:13C(6)15N(2))_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AGLDNVDAES(UniMod:21)K(UniMod:259)"/>
       <ProteinRef ref="AGLDNVDAESK"/>
       <Modification location="10" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
@@ -166,7 +166,7 @@
     </Peptide>
     <Peptide id="AIIVLSTSGTTPR_AIIVLSTSGTT(Phospho)PR(Label:13C(6)15N(4))_2" sequence="AIIVLSTSGTTPR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="AIIVLSTSGTTPR_AIIVLSTSGTT(Phospho)PR(Label:13C(6)15N(4))_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="AIIVLSTSGTTPR_AIIVLSTSGTT(Phospho)PR(Label:13C(6)15N(4))_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AIIVLSTSGTT(UniMod:21)PR(UniMod:267)"/>
       <ProteinRef ref="AIIVLSTSGTTPR"/>
       <Modification location="11" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
@@ -183,7 +183,7 @@
     </Peptide>
     <Peptide id="AIIVLSTSGTTPR_AIIVLST(Phospho)SGTTPR(Label:13C(6)15N(4))_2" sequence="AIIVLSTSGTTPR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="AIIVLSTSGTTPR_AIIVLST(Phospho)SGTTPR(Label:13C(6)15N(4))_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="AIIVLSTSGTTPR_AIIVLST(Phospho)SGTTPR(Label:13C(6)15N(4))_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AIIVLST(UniMod:21)SGTTPR(UniMod:267)"/>
       <ProteinRef ref="AIIVLSTSGTTPR"/>
       <Modification location="7" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
@@ -200,7 +200,7 @@
     </Peptide>
     <Peptide id="AIIVLSTSGTTPR_AIIVLSTS(Phospho)GTTPR(Label:13C(6)15N(4))_2" sequence="AIIVLSTSGTTPR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="AIIVLSTSGTTPR_AIIVLSTS(Phospho)GTTPR(Label:13C(6)15N(4))_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="AIIVLSTSGTTPR_AIIVLSTS(Phospho)GTTPR(Label:13C(6)15N(4))_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AIIVLSTS(UniMod:21)GTTPR(UniMod:267)"/>
       <ProteinRef ref="AIIVLSTSGTTPR"/>
       <Modification location="8" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
@@ -217,7 +217,7 @@
     </Peptide>
     <Peptide id="AIIVLSTSGTTPR_AIIVLSTSGT(Phospho)TPR(Label:13C(6)15N(4))_2" sequence="AIIVLSTSGTTPR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="AIIVLSTSGTTPR_AIIVLSTSGT(Phospho)TPR(Label:13C(6)15N(4))_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="AIIVLSTSGTTPR_AIIVLSTSGT(Phospho)TPR(Label:13C(6)15N(4))_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AIIVLSTSGT(UniMod:21)TPR(UniMod:267)"/>
       <ProteinRef ref="AIIVLSTSGTTPR"/>
       <Modification location="10" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
@@ -234,7 +234,7 @@
     </Peptide>
     <Peptide id="AIIVLSTSGTTPR_AIIVLSTSGTT(Phospho)PR(Label:13C(6)15N(4))_3" sequence="AIIVLSTSGTTPR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="AIIVLSTSGTTPR_AIIVLSTSGTT(Phospho)PR(Label:13C(6)15N(4))_3"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="AIIVLSTSGTTPR_AIIVLSTSGTT(Phospho)PR(Label:13C(6)15N(4))_3"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AIIVLSTSGTT(UniMod:21)PR(UniMod:267)"/>
       <ProteinRef ref="AIIVLSTSGTTPR"/>
       <Modification location="11" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
@@ -251,7 +251,7 @@
     </Peptide>
     <Peptide id="AIIVLSTSGTTPR_AIIVLSTSGT(Phospho)TPR(Label:13C(6)15N(4))_3" sequence="AIIVLSTSGTTPR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="AIIVLSTSGTTPR_AIIVLSTSGT(Phospho)TPR(Label:13C(6)15N(4))_3"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="AIIVLSTSGTTPR_AIIVLSTSGT(Phospho)TPR(Label:13C(6)15N(4))_3"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AIIVLSTSGT(UniMod:21)TPR(UniMod:267)"/>
       <ProteinRef ref="AIIVLSTSGTTPR"/>
       <Modification location="10" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
@@ -268,7 +268,7 @@
     </Peptide>
     <Peptide id="AIPAPHEILTSNVVTR_AIPAPHEILT(Phospho)SNVVTR(Label:13C(6)15N(4))_2" sequence="AIPAPHEILTSNVVTR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="AIPAPHEILTSNVVTR_AIPAPHEILT(Phospho)SNVVTR(Label:13C(6)15N(4))_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="AIPAPHEILTSNVVTR_AIPAPHEILT(Phospho)SNVVTR(Label:13C(6)15N(4))_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AIPAPHEILT(UniMod:21)SNVVTR(UniMod:267)"/>
       <ProteinRef ref="AIPAPHEILTSNVVTR"/>
       <Modification location="10" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
@@ -285,7 +285,7 @@
     </Peptide>
     <Peptide id="AIPAPHEILTSNVVTR_AIPAPHEILTS(Phospho)NVVTR(Label:13C(6)15N(4))_3" sequence="AIPAPHEILTSNVVTR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="AIPAPHEILTSNVVTR_AIPAPHEILTS(Phospho)NVVTR(Label:13C(6)15N(4))_3"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="AIPAPHEILTSNVVTR_AIPAPHEILTS(Phospho)NVVTR(Label:13C(6)15N(4))_3"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AIPAPHEILTS(UniMod:21)NVVTR(UniMod:267)"/>
       <ProteinRef ref="AIPAPHEILTSNVVTR"/>
       <Modification location="11" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
@@ -302,7 +302,7 @@
     </Peptide>
     <Peptide id="AIPAPHEILTSNVVTR_AIPAPHEILT(Phospho)SNVVTR(Label:13C(6)15N(4))_3" sequence="AIPAPHEILTSNVVTR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="AIPAPHEILTSNVVTR_AIPAPHEILT(Phospho)SNVVTR(Label:13C(6)15N(4))_3"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="AIPAPHEILTSNVVTR_AIPAPHEILT(Phospho)SNVVTR(Label:13C(6)15N(4))_3"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AIPAPHEILT(UniMod:21)SNVVTR(UniMod:267)"/>
       <ProteinRef ref="AIPAPHEILTSNVVTR"/>
       <Modification location="10" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
@@ -319,7 +319,7 @@
     </Peptide>
     <Peptide id="AKNSPEPNEFLR_AKNS(Phospho)PEPNEFLR(Label:13C(6)15N(4))_2" sequence="AKNSPEPNEFLR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="AKNSPEPNEFLR_AKNS(Phospho)PEPNEFLR(Label:13C(6)15N(4))_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="AKNSPEPNEFLR_AKNS(Phospho)PEPNEFLR(Label:13C(6)15N(4))_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AKNS(UniMod:21)PEPNEFLR(UniMod:267)"/>
       <ProteinRef ref="AKNSPEPNEFLR"/>
       <Modification location="4" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
@@ -336,7 +336,7 @@
     </Peptide>
     <Peptide id="AKNSPEPNEFLR_AKNS(Phospho)PEPNEFLR(Label:13C(6)15N(4))_3" sequence="AKNSPEPNEFLR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="AKNSPEPNEFLR_AKNS(Phospho)PEPNEFLR(Label:13C(6)15N(4))_3"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="AKNSPEPNEFLR_AKNS(Phospho)PEPNEFLR(Label:13C(6)15N(4))_3"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AKNS(UniMod:21)PEPNEFLR(UniMod:267)"/>
       <ProteinRef ref="AKNSPEPNEFLR"/>
       <Modification location="4" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
