@@ -268,6 +268,7 @@ namespace Math
     \code
       auto one_third = 1.0/3;
       percentOf(one_third, 1.0, 2) // returns 33.33
+    \endcode
   */
   template<typename T>
   double percentOf(T value, T total, int digits)
