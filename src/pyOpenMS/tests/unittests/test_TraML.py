@@ -10,26 +10,26 @@ class TestTraMLFile(unittest.TestCase):
         self.filename = os.path.join(dirname, "test.TraML").encode()
 
     def test_readfile(self):
-        targeted = pyopenms.TargetedExperiment();
-        tramlfile = pyopenms.TraMLFile();
-        tramlfile.load(self.filename, targeted);
+        targeted = pyopenms.TargetedExperiment()
+        tramlfile = pyopenms.TraMLFile()
+        tramlfile.load(self.filename, targeted)
 
     def test_readfile_content(self):
-        targeted = pyopenms.TargetedExperiment();
-        tramlfile = pyopenms.TraMLFile();
-        tramlfile.load(self.filename, targeted);
+        targeted = pyopenms.TargetedExperiment()
+        tramlfile = pyopenms.TraMLFile()
+        tramlfile.load(self.filename, targeted)
         self.assertEqual(len( targeted.getTransitions() ), 3 )
 
         self.assertAlmostEqual(targeted.getTransitions()[0].getPrecursorMZ(), 500.0)
         self.assertAlmostEqual(targeted.getTransitions()[0].getProductMZ(), 628.45, places=4)
         self.assertEqual(targeted.getTransitions()[0].getName(), "tr1" )
         self.assertEqual(targeted.getTransitions()[0].getNativeID(), "tr1" )
-        self.assertEqual(targeted.getTransitions()[0].getTransRef(), "tr_gr1")
+        self.assertEqual(targeted.getTransitions()[0].getTransGroupRef(), "tr_gr1")
 
     def test_TargetedExperiment(self):
-        targeted = pyopenms.TargetedExperiment();
-        tramlfile = pyopenms.TraMLFile();
-        tramlfile.load(self.filename, targeted);
+        targeted = pyopenms.TargetedExperiment()
+        tramlfile = pyopenms.TraMLFile()
+        tramlfile.load(self.filename, targeted)
         self.assertEqual(len( targeted.getTransitions() ), 3 )
 
         targeted.setCVs(targeted.getCVs())
@@ -43,7 +43,7 @@ class TestTraMLFile(unittest.TestCase):
         targeted.addTransition(first_transition)
         targeted.addPeptide(first_peptide)
 
-        self.assertTrue( targeted.getPeptideByRef(first_transition.getTransRef()) is not None)
+        self.assertTrue( targeted.getPeptideByRef(first_transition.getTransGroupRef()) is not None)
         self.assertTrue( targeted.getProteinByRef(first_peptide.protein_refs[0]) is not None)
 
 

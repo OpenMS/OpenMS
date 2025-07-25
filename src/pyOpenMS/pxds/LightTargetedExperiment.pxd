@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
         int getProductChargeState() except + nogil 
         bool isProductChargeStateSet() except + nogil 
         libcpp_string getNativeID() except + nogil 
-        libcpp_string getTransRef() except + nogil 
+        libcpp_string getTransGroupRef() except + nogil 
         double getLibraryIntensity() except + nogil 
         void setLibraryIntensity(double l) except + nogil 
         double getProductMZ() except + nogil 

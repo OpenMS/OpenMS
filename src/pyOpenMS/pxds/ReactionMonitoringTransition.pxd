@@ -21,11 +21,11 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
         ReactionMonitoringTransition(ReactionMonitoringTransition &)   except + nogil 
         String getName() except + nogil 
         String getNativeID() except + nogil 
-        String getTransRef() except + nogil 
+        String getTransGroupRef() except + nogil 
         void setName(String name) except + nogil 
         void setNativeID(String name) except + nogil 
-        void setTransRef(String trans_ref, TransType type) except + nogil
-        TransType getTransType() except + nogil
+        void setTransGroupRef(String trans_ref, TransType type) except + nogil
+        TransType getTransGroupType() except + nogil
 
         double getProductMZ() except + nogil 
         void setProductMZ(double) except + nogil 

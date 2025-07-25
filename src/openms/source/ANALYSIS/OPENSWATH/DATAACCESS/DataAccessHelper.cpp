@@ -134,7 +134,7 @@ namespace OpenMS
       t.product_mz = transition.getProductMZ();
       t.precursor_mz = transition.getPrecursorMZ();
       t.library_intensity = transition.getLibraryIntensity();
-      t.transition_ref = transition.getTransRef();
+      t.transition_ref = transition.getTransGroupRef();
 
       // If compound is a peptide, get the ion mobility information from the compound
       if (!t.transition_ref.empty())

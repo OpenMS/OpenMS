@@ -1097,7 +1097,7 @@ namespace OpenMS
       transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U * float(counter) / charge);
       transition.setLibraryIntensity(iso.getIntensity());
       transition.setMetaValue("annotation", annotation);
-      transition.setTransRef(peptide_id, OpenSwath::TransType::PEPTIDE);
+      transition.setTransGroupRef(peptide_id, OpenSwath::TransType::PEPTIDE);
 
       //TODO what about transition charge? A lot of DIA scores depend on it and default to charge 1 otherwise.
       library_.addTransition(transition);

@@ -389,7 +389,7 @@ namespace OpenMS
           rmt.setProduct(product);
           rmt.setLibraryIntensity(rel_int);
           description = ListUtils::concatenate(v_description, ",");
-          rmt.setTransRef(String(transition_group_counter) + "_" + description + "_" + file_counter, OpenSwath::TransType::COMPOUND);
+          rmt.setTransGroupRef(String(transition_group_counter) + "_" + description + "_" + file_counter, OpenSwath::TransType::COMPOUND);
           rmt.setNativeID(String(transition_group_counter)+ "_" + String(transition_counter)+ "_" + description + "_" + file_counter);
           rmt.setDecoyTransitionType(ReactionMonitoringTransition::DecoyTransitionType::TARGET); // no decoys are generated without SIRIUS
 
@@ -616,7 +616,7 @@ namespace OpenMS
             }
             rmt.setProduct(product);
             rmt.setLibraryIntensity(rel_int);
-            rmt.setTransRef(cmp.id, OpenSwath::TransType::COMPOUND);
+            rmt.setTransGroupRef(cmp.id, OpenSwath::TransType::COMPOUND);
             rmt.setNativeID(String(entry_counter) + "_" + String(transition_counter) + "_" + description + "_" + identifier_suffix);
             rmt.setMetaValue("annotation", DataValue(current_explanation));
             if (!csp.compound_info.native_ids_id.empty())

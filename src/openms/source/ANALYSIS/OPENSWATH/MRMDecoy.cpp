@@ -510,7 +510,7 @@ namespace OpenMS
     MRMDecoy::PeptideTransitionMapType peptide_trans_map;
     for (Size i = 0; i < exp.getTransitions().size(); i++)
     {
-      peptide_trans_map[exp.getTransitions()[i].getTransRef()].push_back(&exp.getTransitions()[i]);
+      peptide_trans_map[exp.getTransitions()[i].getTransGroupRef()].push_back(&exp.getTransitions()[i]);
     }
 
     progress = 0;
@@ -573,7 +573,7 @@ namespace OpenMS
         {
           decoy_tr.setProductMZ(decoyion.second);
         }
-        decoy_tr.setTransRef(decoy_tag + tr.getTransRef(), tr.getTransType());
+        decoy_tr.setTransGroupRef(decoy_tag + tr.getTransGroupRef(), tr.getTransGroupType());
 
         if (decoyion.second > 0)
         {
@@ -582,8 +582,8 @@ namespace OpenMS
         else
         {
           // transition could not be annotated, remove whole peptide
-          exclusion_peptides.insert(decoy_tr.getTransRef());
-          OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_tr.getTransRef() << " due to missing annotation" << std::endl;
+          exclusion_peptides.insert(decoy_tr.getTransGroupRef());
+          OPENMS_LOG_DEBUG << "[peptide] Skipping " << decoy_tr.getTransGroupRef() << " due to missing annotation" << std::endl;
         }
       } // end loop over transitions
 
@@ -594,7 +594,7 @@ namespace OpenMS
                             decoy_transitions.begin(), decoy_transitions.end(),
                             [&exclusion_peptides](const OpenMS::ReactionMonitoringTransition& tr)
     {
-      return exclusion_peptides.find(tr.getTransRef()) != exclusion_peptides.end();
+      return exclusion_peptides.find(tr.getTransGroupRef()) != exclusion_peptides.end();
     }), decoy_transitions.end());
     dec.setTransitions(std::move(decoy_transitions));
 

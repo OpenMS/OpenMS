@@ -22,12 +22,12 @@ namespace OpenMS
 
   ReactionMonitoringTransition::ReactionMonitoringTransition() :
     CVTermList(),
+    trans_type_(OpenSwath::TransType::UNKNOWN),
     library_intensity_(-101),
     decoy_type_(UNKNOWN),
     precursor_mz_(0.0),
     precursor_cv_terms_(nullptr),
-    prediction_(nullptr),
-    trans_type_(OpenSwath::TransType::UNKNOWN)
+    prediction_(nullptr)
   {
     // Default is: true, false, true
     // NOTE: do not change that, the same default is implicitly assumed in TraMLHandler
@@ -192,23 +192,23 @@ namespace OpenMS
     return name_;
   }
 
-  void ReactionMonitoringTransition::setTransRef(const String & transition_ref, OpenSwath::TransType type)
+  void ReactionMonitoringTransition::setTransGroupRef(const String & transition_ref, OpenSwath::TransType type)
   {
     trans_type_ = type;
     transition_ref_ = transition_ref;
   }
 
-  const String & ReactionMonitoringTransition::getTransRef() const
+  const String & ReactionMonitoringTransition::getTransGroupRef() const
   {
     return transition_ref_;
   }
 
-  void ReactionMonitoringTransition::setTransType(OpenSwath::TransType type)
+  void ReactionMonitoringTransition::setTransGroupType(OpenSwath::TransType type)
   {
     trans_type_ = type;
   }
 
-  OpenSwath::TransType ReactionMonitoringTransition::getTransType() const
+  OpenSwath::TransType ReactionMonitoringTransition::getTransGroupType() const
   {
     return trans_type_;
   }

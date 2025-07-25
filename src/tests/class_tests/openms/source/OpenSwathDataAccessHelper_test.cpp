@@ -164,7 +164,7 @@ START_SECTION((void OpenSwathDataAccessHelper::convertTargetedExp(const OpenMS::
     ReactionMonitoringTransition transition;
     transition.setName("tr1");
     transition.setNativeID("tr1_nid");
-    transition.setTransRef("my_id", OpenSwath::TransType::PEPTIDE);
+    transition.setTransGroupRef("my_id", OpenSwath::TransType::PEPTIDE);
     transition.setLibraryIntensity(400.2);
     transition.setPrecursorMZ(501.2);
     transition.setProductMZ(301.2);

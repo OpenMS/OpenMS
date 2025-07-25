@@ -882,7 +882,7 @@ namespace OpenMS
     rm_trans.setPrecursorMZ(tr_it->precursor);
     rm_trans.setProductMZ(tr_it->product);
 
-    rm_trans.setTransRef(tr_it->group_id,
+    rm_trans.setTransGroupRef(tr_it->group_id,
                          tr_it->getType());
 
     rm_trans.setLibraryIntensity(tr_it->library_intensity);
@@ -1385,14 +1385,14 @@ namespace OpenMS
     mytransition.fragment_nr = INVALID_FRAGMENT_NR;
     mytransition.fragment_charge = NA_VALUE;
 
-    if (!it->getTransRef().empty())
+    if (!it->getTransGroupRef().empty())
     {
-      const String& trans_ref = it->getTransRef();
+      const String& trans_ref = it->getTransGroupRef();
       mytransition.group_id = trans_ref;
 
       try
       {
-        if (it->getTransType() == OpenSwath::TransType::PEPTIDE)
+        if (it->getTransGroupType() == OpenSwath::TransType::PEPTIDE)
         {
           const OpenMS::TargetedExperiment::Peptide& pep = targeted_exp.getPeptideByRef(trans_ref);
 
@@ -1444,7 +1444,7 @@ namespace OpenMS
             mytransition.GeneName = pep.getMetaValue("GeneName").toString();
           }
         }
-        else if (it->getTransType() == OpenSwath::TransType::NUCTIDE)
+        else if (it->getTransGroupType() == OpenSwath::TransType::NUCTIDE)
         {
           const OpenMS::TargetedExperiment::Nuctide& nuc = targeted_exp.getNuctideByRef(trans_ref);
 
@@ -1490,7 +1490,7 @@ namespace OpenMS
             mytransition.label_type = nuc.getMetaValue("LabelType").toString();
           }
         }
-        else if (it->getTransType() == OpenSwath::TransType::COMPOUND)
+        else if (it->getTransGroupType() == OpenSwath::TransType::COMPOUND)
         {
           const OpenMS::TargetedExperiment::Compound& compound = targeted_exp.getCompoundByRef(trans_ref);
 

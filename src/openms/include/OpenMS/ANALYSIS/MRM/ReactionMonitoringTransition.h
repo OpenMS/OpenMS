@@ -80,16 +80,16 @@ public:
     const String & getNativeID() const;
 
     /// Sets the transition reference (unified method)
-    void setTransRef(const String & transition_ref, OpenSwath::TransType type);
+    void setTransGroupRef(const String & transition_ref, OpenSwath::TransType type);
 
     /// Gets the transition reference (unified method)
-    const String & getTransRef() const;
+    const String & getTransGroupRef() const;
 
     /// Sets the transition type
-    void setTransType(OpenSwath::TransType type);
+    void setTransGroupType(OpenSwath::TransType type);
 
     /// Gets the transition type
-    OpenSwath::TransType getTransType() const;
+    OpenSwath::TransType getTransGroupType() const;
 
     /// sets the precursor mz (Q1 value)
     void setPrecursorMZ(double mz);

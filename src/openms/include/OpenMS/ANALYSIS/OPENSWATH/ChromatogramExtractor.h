@@ -232,10 +232,10 @@ public:
 
           // extract compound / nuctide / peptide id from transition and store in
           // more-or-less default field
-          if (!transition.getTransRef().empty())
+          if (!transition.getTransGroupRef().empty())
           {
             int prec_charge = 0;
-            String r = extract_id_(transition_exp_used, transition.getTransRef(), prec_charge);
+            String r = extract_id_(transition_exp_used, transition.getTransGroupRef(), prec_charge);
             prec.setCharge(prec_charge);
             prec.setMetaValue("peptide_sequence", r);
           }
@@ -275,111 +275,6 @@ private:
      */
     template <typename TransitionExpT>
     static String extract_id_(TransitionExpT& transition_exp_used, const String& id, int& prec_charge);
-
-    /**
-     * @brief This populates the chromatograms vector with empty chromatograms
-     * (but sets their meta-information)
-     *
-     * It extracts
-     * 1) the target m/z
-     * 2) the isolation window (upper/lower)
-     * 3) the peptide sequence
-     * 4) the fragment m/z
-     * 5) Copy the meta-data, e.g. InstrumentSettings, AcquisitionInfo, 
-     *     sourceFile and DataProcessing
-     * 6) the native ID from the transition
-     *
-     */
-    //TODO: is this deprecated? It doesn't look to be used
-    template <class SpectrumSettingsT, class ChromatogramT>
-    void prepareSpectra_(SpectrumSettingsT& settings,
-                         std::vector<ChromatogramT>& chromatograms,
-                         OpenMS::TargetedExperiment& transition_exp)
-    {
-      // first prepare all the spectra (but leave them empty)
-      for (Size i = 0; i < transition_exp.getTransitions().size(); i++)
-      {
-        const ReactionMonitoringTransition* transition = &transition_exp.getTransitions()[i];
-
-        // 1) and 2) Extract precursor m/z and isolation window
-        ChromatogramT chrom;
-        Precursor prec;
-        prec.setMZ(transition->getPrecursorMZ());
-        if (settings.getPrecursors().size() > 0)
-        {
-          prec.setIsolationWindowLowerOffset(settings.getPrecursors()[0].getIsolationWindowLowerOffset());
-          prec.setIsolationWindowUpperOffset(settings.getPrecursors()[0].getIsolationWindowUpperOffset());
-        }
-
-        if (transition->getTransType() == OpenSwath::TransType::PEPTIDE)
-        {
-          // 3) set precursor peptide sequence / compound id in more-or-less default field
-          String pepref = transition->getTransRef();
-          for (Size pep_idx = 0; pep_idx < transition_exp.getPeptides().size(); pep_idx++)
-          {
-            const OpenMS::TargetedExperiment::Peptide* pep = &transition_exp.getPeptides()[pep_idx];
-            if (pep->id == pepref)
-            {
-              prec.setMetaValue("peptide_sequence", pep->sequence);
-              break;
-            }
-          }
-        }
-        else if (transition->getTransType() == OpenSwath::TransType::NUCTIDE)
-        {
-          // 3) set precursor nuctide sequence / compound id in more-or-less default field
-          String nucref = transition->getTransRef();
-          for (Size nuc_idx = 0; nuc_idx < transition_exp.getNuctides().size(); nuc_idx++)
-          {
-            const OpenMS::TargetedExperiment::Nuctide* nuc = &transition_exp.getNuctides()[nuc_idx];
-            if (nuc->id == nucref)
-            {
-              prec.setMetaValue("peptide_sequence", nuc->id);
-              break;
-            }
-          }
-        }
-        else if (transition->getTransType() == OpenSwath::TransType::COMPOUND)
-        {
-            // 3) set precursor compound id in more-or-less default field
-          String compref = transition->getTransRef();
-          for (Size comp_idx = 0; comp_idx < transition_exp.getCompounds().size(); comp_idx++)
-          {
-            const OpenMS::TargetedExperiment::Compound* comp = &transition_exp.getCompounds()[comp_idx];
-            if (comp->id == compref)
-            {
-              prec.setMetaValue("peptide_sequence", String(comp->id) );
-              break;
-            }
-          }
-        }
-
-        // add precursor to spectrum
-        chrom.setPrecursor(prec);
-
-        // 4) Create product and set its m/z
-        Product prod;
-        prod.setMZ(transition->getProductMZ());
-        chrom.setProduct(prod);
-
-        // 5) Set the rest of the meta-data
-        chrom.setInstrumentSettings(settings.getInstrumentSettings());
-        chrom.setAcquisitionInfo(settings.getAcquisitionInfo());
-        chrom.setSourceFile(settings.getSourceFile());
-
-        for (Size j = 0; j < settings.getDataProcessing().size(); ++j)
-        {
-          settings.getDataProcessing()[j]->setMetaValue("performed_on_spectra", "true");
-          chrom.getDataProcessing().push_back(settings.getDataProcessing()[j]);
-        }
-
-        // Set the id of the chromatogram, using the id of the transition (this gives directly the mapping of the two)
-        chrom.setNativeID(transition->getNativeID());
-        chrom.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
-        chromatograms.push_back(chrom);
-      }
-
-    }
 
     std::map<OpenMS::String, double> PeptideRTMap_;
 

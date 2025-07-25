@@ -587,7 +587,7 @@ namespace OpenMS
           trn.setMetaValue("insilico_transition", "true");
           trn.setPrecursorMZ(Math::roundDecimal(peptide_sequence.getMZ(precursor_charge), round_decPow));
           trn.setProductMZ(tr_it->second);
-          trn.setTransRef(peptide.id, OpenSwath::TransType::PEPTIDE);
+          trn.setTransGroupRef(peptide.id, OpenSwath::TransType::PEPTIDE);
           mrmis.annotateTransitionCV(trn, tr_it->first);
           trn.setIdentifyingTransition(true);
           trn.setQuantifyingTransition(false);
@@ -667,7 +667,7 @@ namespace OpenMS
           trn.setMetaValue("insilico_transition", "true");
           trn.setPrecursorMZ(Math::roundDecimal(target_peptide_sequence.getMZ(precursor_charge), round_decPow));
           trn.setProductMZ(decoy_tr_it->second);
-          trn.setTransRef(decoy_peptide.id, OpenSwath::TransType::PEPTIDE);
+          trn.setTransGroupRef(decoy_peptide.id, OpenSwath::TransType::PEPTIDE);
           mrmis.annotateTransitionCV(trn, decoy_tr_it->first);
           trn.setIdentifyingTransition(true);
           trn.setQuantifyingTransition(false);
@@ -723,7 +723,7 @@ namespace OpenMS
     MRMAssay::PeptideTransitionMapType peptide_trans_map;
     for (Size i = 0; i < exp.getTransitions().size(); i++)
     {
-      peptide_trans_map[exp.getTransitions()[i].getTransRef()].push_back(&exp.getTransitions()[i]);
+      peptide_trans_map[exp.getTransitions()[i].getTransGroupRef()].push_back(&exp.getTransitions()[i]);
     }
 
     Size progress = 0;
@@ -785,7 +785,7 @@ namespace OpenMS
         mrmis.annotateTransitionCV(tr, targetion.first);
 
         // Add reference to parent precursor
-        tr.setTransRef(target_peptide.id, OpenSwath::TransType::PEPTIDE);
+        tr.setTransGroupRef(target_peptide.id, OpenSwath::TransType::PEPTIDE);
 
         // Append transition
         transitions.push_back(tr);
@@ -810,7 +810,7 @@ namespace OpenMS
       setProgress(++progress);
       ReactionMonitoringTransition tr = exp.getTransitions()[i];
 
-      const TargetedExperiment::Peptide& target_peptide = exp.getPeptideByRef(tr.getTransRef());
+      const TargetedExperiment::Peptide& target_peptide = exp.getPeptideByRef(tr.getTransGroupRef());
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
 
       // Check annotation for unannotated interpretations
@@ -867,12 +867,12 @@ namespace OpenMS
     {
       ReactionMonitoringTransition tr = exp.getTransitions()[i];
 
-      if (TransitionsMap.find(tr.getTransRef()) == TransitionsMap.end())
+      if (TransitionsMap.find(tr.getTransGroupRef()) == TransitionsMap.end())
       {
-        TransitionsMap[tr.getTransRef()];
+        TransitionsMap[tr.getTransGroupRef()];
       }
 
-      TransitionsMap[tr.getTransRef()].push_back(tr);
+      TransitionsMap[tr.getTransGroupRef()].push_back(tr);
     }
 
     Size progress = 0;
@@ -926,7 +926,7 @@ namespace OpenMS
           transitions.push_back(tr);
 
           // Append transition_group_id to index
-          peptide_ids.insert(tr.getTransRef());
+          peptide_ids.insert(tr.getTransGroupRef());
         }
       }
     }
@@ -1033,12 +1033,12 @@ namespace OpenMS
     {
       ReactionMonitoringTransition tr = exp.getTransitions()[i];
 
-      if (TransitionsMap.find(tr.getTransRef()) == TransitionsMap.end())
+      if (TransitionsMap.find(tr.getTransGroupRef()) == TransitionsMap.end())
       {
-        TransitionsMap[tr.getTransRef()];
+        TransitionsMap[tr.getTransGroupRef()];
       }
 
-      TransitionsMap[tr.getTransRef()].push_back(tr);
+      TransitionsMap[tr.getTransGroupRef()].push_back(tr);
     }
 
     for (std::map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
@@ -1082,9 +1082,9 @@ namespace OpenMS
           transitions.push_back(tr);
 
           // Append transition_group_id to index
-          if (std::find(compound_ids.begin(), compound_ids.end(), tr.getTransRef()) == compound_ids.end())
+          if (std::find(compound_ids.begin(), compound_ids.end(), tr.getTransGroupRef()) == compound_ids.end())
           {
-            compound_ids.push_back(tr.getTransRef());
+            compound_ids.push_back(tr.getTransGroupRef());
           }
         }
       }
@@ -1177,9 +1177,9 @@ namespace OpenMS
     for (const auto& it : exp.getTransitions())
     {
       // Check if compound has any transitions left
-      if (std::find(single_decoy_id.begin(), single_decoy_id.end(), it.getTransRef()) != single_decoy_id.end())
+      if (std::find(single_decoy_id.begin(), single_decoy_id.end(), it.getTransGroupRef()) != single_decoy_id.end())
       {
-        OPENMS_LOG_DEBUG << "The decoy " << it.getTransRef()
+        OPENMS_LOG_DEBUG << "The decoy " << it.getTransGroupRef()
                          << " was filtered due to missing a respective target." << std::endl;
       }
       else

@@ -799,27 +799,27 @@ namespace OpenMS
     for (Size i = 0; i < getTransitions().size(); i++)
     {
       const ReactionMonitoringTransition& tr = getTransitions()[i];
-      if (tr.getTransType() == OpenSwath::TransType::PEPTIDE && !tr.getTransRef().empty())
+      if (tr.getTransGroupType() == OpenSwath::TransType::PEPTIDE && !tr.getTransGroupRef().empty())
       {
-        if (unique_peptide_map.find(tr.getTransRef()) == unique_peptide_map.end())
+        if (unique_peptide_map.find(tr.getTransGroupRef()) == unique_peptide_map.end())
         {
-          OPENMS_LOG_ERROR << "Peptide " << tr.getTransRef() << " is not present in the provided data structure." << std::endl;
+          OPENMS_LOG_ERROR << "Peptide " << tr.getTransGroupRef() << " is not present in the provided data structure." << std::endl;
           return true;
         }
       }
-      else if (tr.getTransType() == OpenSwath::TransType::NUCTIDE && !tr.getTransRef().empty())
+      else if (tr.getTransGroupType() == OpenSwath::TransType::NUCTIDE && !tr.getTransGroupRef().empty())
       {
-        if (unique_nuctide_map.find(tr.getTransRef()) == unique_nuctide_map.end())
+        if (unique_nuctide_map.find(tr.getTransGroupRef()) == unique_nuctide_map.end())
         {
-          OPENMS_LOG_ERROR << "Nuctide " << tr.getTransRef() << " is not present in the provided data structure." << std::endl;
+          OPENMS_LOG_ERROR << "Nuctide " << tr.getTransGroupRef() << " is not present in the provided data structure." << std::endl;
           return true;
         }
       }
-      else if (tr.getTransType() == OpenSwath::TransType::COMPOUND && !tr.getTransRef().empty())
+      else if (tr.getTransGroupType() == OpenSwath::TransType::COMPOUND && !tr.getTransGroupRef().empty())
       {
-        if (unique_compounds_map.find(tr.getTransRef()) == unique_compounds_map.end())
+        if (unique_compounds_map.find(tr.getTransGroupRef()) == unique_compounds_map.end())
         {
-          OPENMS_LOG_ERROR << "Compound " << tr.getTransRef() << " is not present in the provided data structure." << std::endl;
+          OPENMS_LOG_ERROR << "Compound " << tr.getTransGroupRef() << " is not present in the provided data structure." << std::endl;
           return true;
         }
       }

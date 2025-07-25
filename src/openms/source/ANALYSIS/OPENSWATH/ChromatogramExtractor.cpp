@@ -68,16 +68,16 @@ namespace OpenMS
                                                                         const OpenMS::ReactionMonitoringTransition& transition,
                                                                         bool do_peptides)
   {
-    OPENMS_PRECONDITION(IMPLIES(do_peptides, transition.getTransType() == OpenSwath::TransType::PEPTIDE && !transition.getTransRef().empty()), "PeptideRef cannot be empty for peptides")
-    OPENMS_PRECONDITION(IMPLIES(!do_peptides, transition.getTransType() == OpenSwath::TransType::COMPOUND && !transition.getTransRef().empty()), "CompoundRef cannot be empty for compounds")
+    OPENMS_PRECONDITION(IMPLIES(do_peptides, transition.getTransGroupType() == OpenSwath::TransType::PEPTIDE && !transition.getTransGroupRef().empty()), "PeptideRef cannot be empty for peptides")
+    OPENMS_PRECONDITION(IMPLIES(!do_peptides, transition.getTransGroupType() == OpenSwath::TransType::COMPOUND && !transition.getTransGroupRef().empty()), "CompoundRef cannot be empty for compounds")
 
     if (do_peptides)
     {
-      return &transition_exp_used.getPeptideByRef(transition.getTransRef());
+      return &transition_exp_used.getPeptideByRef(transition.getTransGroupRef());
     }
     else
     {
-      return &transition_exp_used.getCompoundByRef(transition.getTransRef());
+      return &transition_exp_used.getCompoundByRef(transition.getTransGroupRef());
     }
   }
 //SPWTODO add Nuc
@@ -109,7 +109,7 @@ namespace OpenMS
     std::map<String, std::vector<const OpenSwath::LightTransition*> > compound2tr;
     for (Size i = 0; i < transition_exp_used.getTransitions().size(); i++)
     {
-      String ref = transition_exp_used.getTransitions()[i].getTransRef();
+      String ref = transition_exp_used.getTransitions()[i].getTransGroupRef();
       compound2tr[ref].push_back(&transition_exp_used.getTransitions()[i]);
     }
     std::map<String, const OpenSwath::LightCompound*> tr2compound;
@@ -150,7 +150,7 @@ namespace OpenMS
       else
       {
         transition = transition_exp_used.getTransitions()[i];
-        compound = (*tr2compound[transition.getTransRef()]);
+        compound = (*tr2compound[transition.getTransGroupRef()]);
         populateMS2Transition(transition, coord);
       }
 
@@ -194,7 +194,7 @@ namespace OpenMS
     PeptideTransitionMapType pep2tr;
     for (Size i = 0; i < transition_exp_used.getTransitions().size(); i++)
     {
-      String ref = transition_exp_used.getTransitions()[i].getTransRef();
+      String ref = transition_exp_used.getTransitions()[i].getTransGroupRef();
       pep2tr[ref].push_back(&transition_exp_used.getTransitions()[i]);
     }
 

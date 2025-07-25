@@ -84,7 +84,7 @@ START_SECTION((ReactionMonitoringTransition(ReactionMonitoringTransition &&rhs))
   tr1.setPrediction(pred);
   tr1.addPrecursorCVTerm(charge_cv);
   tr1.setPrecursorMZ(42.0);
-  tr1.setTransRef("test_ref", OpenSwath::TransType::PEPTIDE);
+  tr1.setTransGroupRef("test_ref", OpenSwath::TransType::PEPTIDE);
 
   auto orig = tr1;
 	tr2 = ReactionMonitoringTransition(std::move(tr1));
@@ -94,11 +94,11 @@ START_SECTION((ReactionMonitoringTransition(ReactionMonitoringTransition &&rhs))
   TEST_EQUAL(tr2.hasPrediction(), true);
   TEST_EQUAL(tr2.getPrediction().contact_ref, "dummy");
   TEST_EQUAL(tr2.getPrecursorCVTermList().hasCVTerm(charge_cv_acc), true)
-  TEST_EQUAL(tr2.getTransRef(), "test_ref")
+  TEST_EQUAL(tr2.getTransGroupRef(), "test_ref")
 
   TEST_EQUAL(tr1.hasPrecursorCVTerms(), false); // its gone
   TEST_EQUAL(tr1.hasPrediction(), false); // its gone
-  TEST_EQUAL(tr1.getTransRef(), "") // its gone
+  TEST_EQUAL(tr1.getTransGroupRef(), "") // its gone
 
   ReactionMonitoringTransition::Prediction p;
   p.contact_ref = "dummy";
@@ -156,35 +156,35 @@ START_SECTION((const String& getName() const ))
 }
 END_SECTION
 
-START_SECTION(OpenSwath::TransType getTransType() const)
+START_SECTION(OpenSwath::TransType getTransGroupType() const)
 {
   // Should be UNKNOWN at construction 
-  TEST_EQUAL(transition.getTransType(), OpenSwath::TransType::UNKNOWN)
+  TEST_EQUAL(transition.getTransGroupType(), OpenSwath::TransType::UNKNOWN)
 }
 END_SECTION
 
 START_SECTION((void setTransType(OpenSwath::TransType type)))
 {
   OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
-  tr.setTransType(OpenSwath::TransType::NUCTIDE);
+  tr.setTransGroupType(OpenSwath::TransType::NUCTIDE);
 
-  TEST_EQUAL(tr.getTransType(), OpenSwath::TransType::NUCTIDE)
+  TEST_EQUAL(tr.getTransGroupType(), OpenSwath::TransType::NUCTIDE)
 }
 END_SECTION
 
-START_SECTION((void setTransRef(const String &trans_ref, OpenSwath::TransType type)))
+START_SECTION((void setTransGroupRef(const String &trans_ref, OpenSwath::TransType type)))
 {
   OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
-  tr.setTransRef("test_ref", OpenSwath::TransType::PEPTIDE);
+  tr.setTransGroupRef("test_ref", OpenSwath::TransType::PEPTIDE);
 
-  TEST_EQUAL(tr.getTransRef(), "test_ref")
-  TEST_EQUAL(tr.getTransType(), OpenSwath::TransType::PEPTIDE)
+  TEST_EQUAL(tr.getTransGroupRef(), "test_ref")
+  TEST_EQUAL(tr.getTransGroupType(), OpenSwath::TransType::PEPTIDE)
 }
 END_SECTION
 
-START_SECTION((const String& getTransRef() const ))
+START_SECTION((const String& getTransGroupRef() const ))
 {
-  TEST_EQUAL(transition.getTransRef(), "")
+  TEST_EQUAL(transition.getTransGroupRef(), "")
 }
 END_SECTION
 

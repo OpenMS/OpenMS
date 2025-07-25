@@ -143,7 +143,7 @@ protected:
       }
       for (Size i = 0; i < transition_exp.getTransitions().size(); i++)
       {
-        assay_map[transition_exp.getTransitions()[i].getTransRef()].push_back(&transition_exp.getTransitions()[i]);
+        assay_map[transition_exp.getTransitions()[i].getTransGroupRef()].push_back(&transition_exp.getTransitions()[i]);
       }
     }
 

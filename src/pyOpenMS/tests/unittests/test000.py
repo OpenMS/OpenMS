@@ -3700,9 +3700,9 @@ def testReactionMonitoringTransition():
      ReactionMonitoringTransition.setName
      ReactionMonitoringTransition.getNativeID
      ReactionMonitoringTransition.setNativeID
-     ReactionMonitoringTransition.getTransRef
-     ReactionMonitoringTransition.setTransRef
-     ReactionMonitoringTransition.getTransType
+     ReactionMonitoringTransition.getTransGroupRef
+     ReactionMonitoringTransition.setTransGroupRef
+     ReactionMonitoringTransition.getTransGroupType
      ReactionMonitoringTransition.getProductMZ
      ReactionMonitoringTransition.setProductMZ
      ReactionMonitoringTransition.getPrecursorMZ
@@ -3756,9 +3756,9 @@ def testReactionMonitoringTransition():
     assert tr.getNativeID() == "tr1"
     
     # Test peptide reference methods
-    tr.setTransRef("peptide1", pyopenms.TransType.PEPTIDE)
-    assert tr.getTransRef() == "peptide1"
-    assert tr.getTransType() == pyopenms.TransType.PEPTIDE
+    tr.setTransGroupRef("peptide1", pyopenms.TransType.PEPTIDE)
+    assert tr.getTransGroupRef() == "peptide1"
+    assert tr.getTransGroupType() == pyopenms.TransType.PEPTIDE
 
     # Test product m/z methods
     tr.setProductMZ(200.5)

@@ -211,17 +211,17 @@ namespace OpenMS::Internal
         String peptide_ref;
         if (optionalAttributeAsString_(peptide_ref, attributes, "peptideRef"))
         {
-          actual_transition_.setTransRef(peptide_ref, OpenSwath::TransType::PEPTIDE);
+          actual_transition_.setTransGroupRef(peptide_ref, OpenSwath::TransType::PEPTIDE);
         }
         String compound_ref;
         if (optionalAttributeAsString_(compound_ref, attributes, "compoundRef"))
         {
-          actual_transition_.setTransRef(compound_ref, OpenSwath::TransType::COMPOUND);
+          actual_transition_.setTransGroupRef(compound_ref, OpenSwath::TransType::COMPOUND);
         }
         String nuctide_ref;
         if (optionalAttributeAsString_(nuctide_ref, attributes, "nuctideRef"))
         {
-          actual_transition_.setTransRef(nuctide_ref, OpenSwath::TransType::NUCTIDE);
+          actual_transition_.setTransGroupRef(nuctide_ref, OpenSwath::TransType::NUCTIDE);
         }
       }
       else if (tag_ == "Interpretation")
@@ -754,19 +754,19 @@ namespace OpenMS::Internal
           os << "    <Transition";
           os << " id=\"" << writeXMLEscape(it->getName()) << "\"";
 
-          if (!it->getTransRef().empty())
+          if (!it->getTransGroupRef().empty())
           {
-            if (it->getTransType() == OpenSwath::TransType::PEPTIDE)
+            if (it->getTransGroupType() == OpenSwath::TransType::PEPTIDE)
             {
-              os << " peptideRef=\"" << writeXMLEscape(it->getTransRef()) << "\"";
+              os << " peptideRef=\"" << writeXMLEscape(it->getTransGroupRef()) << "\"";
             }
-            else if (it->getTransType() == OpenSwath::TransType::NUCTIDE)
+            else if (it->getTransGroupType() == OpenSwath::TransType::NUCTIDE)
             {
-              os << " nuctideRef=\"" << writeXMLEscape(it->getTransRef()) << "\"";
+              os << " nuctideRef=\"" << writeXMLEscape(it->getTransGroupRef()) << "\"";
             }
-            else if (it->getTransType() == OpenSwath::TransType::COMPOUND)
+            else if (it->getTransGroupType() == OpenSwath::TransType::COMPOUND)
             {
-              os << " compoundRef=\"" << writeXMLEscape(it->getTransRef()) << "\"";
+              os << " compoundRef=\"" << writeXMLEscape(it->getTransGroupRef()) << "\"";
             }
             else throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
               "Can't write Unknown Type reference in TraMLHandler");

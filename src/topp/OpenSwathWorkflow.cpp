@@ -825,7 +825,7 @@ protected:
         for (auto & tr : transition_exp.getTransitions())
         {
           // convert transition tramlID peptide reference in transitionExp to PQP ID 
-          auto cpd = precursor_traml_to_pqp.find(tr.getTransRef());
+          auto cpd = precursor_traml_to_pqp.find(tr.getTransGroupRef());
           if (cpd != precursor_traml_to_pqp.end())
           {
             tr.transition_ref = cpd->second;

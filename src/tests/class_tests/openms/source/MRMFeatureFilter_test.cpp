@@ -323,21 +323,21 @@ START_SECTION(countLabelsAndTransitionTypes(const Feature & component_group, con
   // transition group 1
   // transition 1
   transition.setNativeID("component1.1.Heavy");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
   // transition 2
   transition.setNativeID("component1.1.Light");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
   // transition 3
   transition.setNativeID("component1.2.Light");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(false);
@@ -345,14 +345,14 @@ START_SECTION(countLabelsAndTransitionTypes(const Feature & component_group, con
   // transition group 2
   // transition 1
   transition.setNativeID("component2.1.Heavy");
-  transition.setTransRef("component_group2", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group2", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
   // transition 2
   transition.setNativeID("component2.1.Light");
-  transition.setTransRef("component_group2", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group2", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
@@ -437,21 +437,21 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   // transition group 1
   // transition 1
   transition.setNativeID("component1.1.Heavy");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
   // transition 2
   transition.setNativeID("component1.1.Light");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
   // transition 3
   transition.setNativeID("component1.2.Light");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(false);
@@ -459,14 +459,14 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   // transition group 2
   // transition 1
   transition.setNativeID("component2.1.Heavy");
-  transition.setTransRef("component_group2", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group2", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
   // transition 2
   transition.setNativeID("component2.1.Light");
-  transition.setTransRef("component_group2", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group2", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
@@ -647,21 +647,21 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   // transition group 1
   // transition 1
   transition.setNativeID("component1.1.Heavy");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
   // transition 2
   transition.setNativeID("component1.1.Light");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
   // transition 3
   transition.setNativeID("component1.2.Light");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(false);
@@ -1191,21 +1191,21 @@ START_SECTION(void EstimateDefaultMRMFeatureQCValues(const std::vector<FeatureMa
   // transition group 1
   // transition 1
   transition.setNativeID("component1.1.Heavy");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
   // transition 2
   transition.setNativeID("component1.1.Light");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
   // transition 3
   transition.setNativeID("component1.2.Light");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(false);
@@ -1395,21 +1395,21 @@ START_SECTION(void EstimatePercRSD(const std::vector<FeatureMap>& samples, MRMFe
   // transition group 1
   // transition 1
   transition.setNativeID("component1.1.Heavy");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
   // transition 2
   transition.setNativeID("component1.1.Light");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
   // transition 3
   transition.setNativeID("component1.2.Light");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(false);
@@ -1417,14 +1417,14 @@ START_SECTION(void EstimatePercRSD(const std::vector<FeatureMap>& samples, MRMFe
   // transition group 2
   // transition 1
   transition.setNativeID("component2.1.Heavy");
-  transition.setTransRef("component_group2", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group2", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
   // transition 2
   transition.setNativeID("component2.1.Light");
-  transition.setTransRef("component_group2", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group2", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
@@ -1621,21 +1621,21 @@ START_SECTION(void EstimateBackgroundInterferences(const std::vector<FeatureMap>
   // transition group 1
   // transition 1
   transition.setNativeID("component1.1.Heavy");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
   // transition 2
   transition.setNativeID("component1.1.Light");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
   // transition 3
   transition.setNativeID("component1.2.Light");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(false);
@@ -1643,14 +1643,14 @@ START_SECTION(void EstimateBackgroundInterferences(const std::vector<FeatureMap>
   // transition group 2
   // transition 1
   transition.setNativeID("component2.1.Heavy");
-  transition.setTransRef("component_group2", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group2", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
   // transition 2
   transition.setNativeID("component2.1.Light");
-  transition.setTransRef("component_group2", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group2", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
@@ -1894,21 +1894,21 @@ START_SECTION(void accumulateFilterValues(std::vector<MRMFeatureQC>& filter_valu
   // transition group 1
   // transition 1
   transition.setNativeID("component1.1.Heavy");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
   // transition 2
   transition.setNativeID("component1.1.Light");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
   // transition 3
   transition.setNativeID("component1.2.Light");
-  transition.setTransRef("component_group1", OpenSwath::TransType::PEPTIDE);
+  transition.setTransGroupRef("component_group1", OpenSwath::TransType::PEPTIDE);
   transition.setDetectingTransition(true);
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(false);

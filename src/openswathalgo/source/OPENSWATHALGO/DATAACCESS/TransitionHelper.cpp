@@ -26,7 +26,7 @@ namespace OpenSwath
     std::vector<LightTransition>::iterator ltrend = ltrans.end();
     for (; ltrit != ltrend; ++ltrit)
     {
-      std::string pepref = ltrit->getTransRef();
+      std::string pepref = ltrit->getTransGroupRef();
 
       Mmap::iterator it = transmap.find(pepref);
       if (it == transmap.end())

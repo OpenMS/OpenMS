@@ -123,7 +123,7 @@ namespace OpenMS
           std::fabs(upper - tr.getPrecursorMZ()) >= min_upper_edge_dist)
       {
         transition_exp_used.transitions.push_back(tr);
-        matching_compounds.insert(tr.getTransRef());
+        matching_compounds.insert(tr.getTransGroupRef());
       }
     }
     std::set<std::string> matching_proteins;
@@ -194,7 +194,7 @@ namespace OpenMS
       }
 
       // If we have a found a best feature, add it to the vector
-      String cpdref = trgroup_it.second.getTransitions()[0].getTransRef();
+      String cpdref = trgroup_it.second.getTransitions()[0].getTransGroupRef();
       result[ cpdref ] = bestf.getRT();
     }
     return result;

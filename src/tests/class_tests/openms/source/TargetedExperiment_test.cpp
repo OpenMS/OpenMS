@@ -468,12 +468,12 @@ START_SECTION( bool TargetedExperiment::containsInvalidReferences() )
 
     OpenMS::ReactionMonitoringTransition t;
     t.setNativeID("tr1");
-    t.setTransRef("peptide1", OpenSwath::TransType::PEPTIDE);
+    t.setTransGroupRef("peptide1", OpenSwath::TransType::PEPTIDE);
     tr.addTransition(t);
     TEST_EQUAL(tr.containsInvalidReferences(), false)
     OpenMS::ReactionMonitoringTransition t2;
     t2.setNativeID("tr2");
-    t2.setTransRef("compound1", OpenSwath::TransType::COMPOUND);
+    t2.setTransGroupRef("compound1", OpenSwath::TransType::COMPOUND);
     tr.addTransition(t2);
     TEST_EQUAL(tr.containsInvalidReferences(), true)
 

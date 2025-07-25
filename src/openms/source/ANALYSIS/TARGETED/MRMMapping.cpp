@@ -87,9 +87,9 @@ namespace OpenMS
           // Create precursor and set the peptide sequence
           MSChromatogram c = chromatogram_map.getChromatograms()[i];
           Precursor precursor = c.getPrecursor();
-          String transref = targeted_exp.getTransitions()[j].getTransRef();
+          String transref = targeted_exp.getTransitions()[j].getTransGroupRef();
           precursor.setMetaValue("description", targeted_exp.getTransitions()[j].getNativeID());
-          if (targeted_exp.getTransitions()[j].getTransType() == OpenSwath::TransType::PEPTIDE)
+          if (targeted_exp.getTransitions()[j].getTransGroupType() == OpenSwath::TransType::PEPTIDE)
           {
             precursor.setMetaValue("peptide_sequence", transref);
             for (Size pep_idx = 0; pep_idx < targeted_exp.getPeptides().size(); pep_idx++)
@@ -105,7 +105,7 @@ namespace OpenMS
               }
             }
           }
-          else if (targeted_exp.getTransitions()[j].getTransType() == OpenSwath::TransType::NUCTIDE)
+          else if (targeted_exp.getTransitions()[j].getTransGroupType() == OpenSwath::TransType::NUCTIDE)
           {
             precursor.setMetaValue("nuctide_sequence", transref);
             for (Size nuc_idx = 0; nuc_idx < targeted_exp.getNuctides().size(); nuc_idx++)

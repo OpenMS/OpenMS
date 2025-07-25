@@ -108,7 +108,7 @@ START_SECTION( (nucleotide TSV reading functionality))
   const ReactionMonitoringTransition& transition = exp.getTransitions()[0];
   TEST_REAL_SIMILAR(transition.getPrecursorMZ(), 500.25)
   TEST_REAL_SIMILAR(transition.getProductMZ(), 400.15)
-  TEST_EQUAL(transition.getTransRef(), "nuc_group_1")
+  TEST_EQUAL(transition.getTransGroupRef(), "nuc_group_1")
   
   // Clean up
   File::remove(temp_filename);
@@ -145,7 +145,7 @@ START_SECTION( (nucleotide TSV writing functionality))
   transition.setPrecursorMZ(500.25);
   transition.setProductMZ(400.15);
   transition.setLibraryIntensity(1500.0);
-  transition.setTransRef("nuc_group_test", OpenSwath::TransType::NUCTIDE);
+  transition.setTransGroupRef("nuc_group_test", OpenSwath::TransType::NUCTIDE);
   
   exp.addTransition(transition);
   
@@ -204,11 +204,11 @@ START_SECTION( (mixed peptide and nucleotide functionality))
   
   // Test peptide transition
   const ReactionMonitoringTransition& pep_transition = exp.getTransitions()[0];
-  TEST_EQUAL(pep_transition.getTransRef(), "pep_group_1")
+  TEST_EQUAL(pep_transition.getTransGroupRef(), "pep_group_1")
 
   // Test nucleotide transition
   const ReactionMonitoringTransition& nuc_transition = exp.getTransitions()[1];
-  TEST_EQUAL(nuc_transition.getTransRef(), "nuc_group_1")
+  TEST_EQUAL(nuc_transition.getTransGroupRef(), "nuc_group_1")
   
   File::remove(temp_filename);
 }

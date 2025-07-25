@@ -59,7 +59,7 @@ namespace OpenSwath
       return transition_name;
     }
 
-    std::string getTransRef() const
+    std::string getTransGroupRef() const
     {
       return transition_ref;
     }

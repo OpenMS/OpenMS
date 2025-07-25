@@ -233,7 +233,7 @@ namespace OpenMS
 
         // get drift time upper/lower offset (this assumes that all chromatograms
         // are derived from the same precursor with the same drift time)
-        auto cpdref = tr.getTransRef();
+        auto cpdref = tr.getTransGroupRef();
         double drift_target = pep_im_map[cpdref];
         RangeMobility im_range;
         if (im_extraction_win != -1 ) // im_extraction_win is set
@@ -286,7 +286,7 @@ namespace OpenMS
 
         // get drift time upper/lower offset (this assumes that all chromatograms
         // are derived from the same precursor with the same drift time)
-        auto cpdref = tr.getTransRef();
+        auto cpdref = tr.getTransGroupRef();
         double drift_target = pep_im_map[cpdref];
 
         // do not need to check for IM because we are correcting IM
@@ -407,7 +407,7 @@ namespace OpenMS
       auto transition_group = trgroup_it.second;
 
       const auto& tr = transition_group->getTransitions()[0];
-      auto cpdref = tr.getTransRef();
+      auto cpdref = tr.getTransGroupRef();
       double drift_target = pep_im_map[cpdref];
 
       if (transition_group->getFeatures().empty()) continue;
