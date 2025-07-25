@@ -110,6 +110,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -129,6 +130,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-18"/>
           </Interpretation>
@@ -149,6 +151,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -168,6 +171,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-91"/>
           </Interpretation>
@@ -188,6 +192,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -207,6 +212,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -226,6 +232,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -245,6 +252,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -264,6 +272,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -283,6 +292,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17"/>
           </Interpretation>
@@ -303,6 +313,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -322,6 +333,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -341,6 +353,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -360,6 +373,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-91"/>
           </Interpretation>
@@ -380,6 +394,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -399,6 +414,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-46"/>
           </Interpretation>
@@ -419,6 +435,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17"/>
           </Interpretation>
@@ -439,6 +456,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="12"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -458,6 +476,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -477,6 +496,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17"/>
           </Interpretation>
@@ -497,6 +517,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -516,6 +537,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -535,6 +557,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -554,6 +577,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="12"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -573,6 +597,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -592,6 +617,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -611,6 +637,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-35"/>
           </Interpretation>
@@ -631,6 +658,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-18"/>
           </Interpretation>
@@ -651,6 +679,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="17"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-44"/>
           </Interpretation>
@@ -671,6 +700,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001229" name="frag: a ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -690,6 +720,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17"/>
           </Interpretation>
@@ -710,6 +741,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17"/>
           </Interpretation>
@@ -730,6 +762,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="16"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-91"/>
           </Interpretation>
@@ -750,6 +783,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17"/>
           </Interpretation>
@@ -770,6 +804,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="12"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17"/>
           </Interpretation>
@@ -790,6 +825,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -809,6 +845,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-18"/>
           </Interpretation>
@@ -829,6 +866,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -848,6 +886,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -867,6 +906,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="11"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -886,6 +926,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17"/>
           </Interpretation>
@@ -906,6 +947,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -925,6 +967,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -944,6 +987,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -963,6 +1007,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -982,6 +1027,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001229" name="frag: a ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1001,6 +1047,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1020,6 +1067,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1039,6 +1087,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-18"/>
           </Interpretation>
@@ -1059,6 +1108,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1078,6 +1128,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-36"/>
           </Interpretation>
@@ -1098,6 +1149,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-91"/>
           </Interpretation>
@@ -1118,6 +1170,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1137,6 +1190,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1156,6 +1210,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1175,6 +1230,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1194,6 +1250,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-18"/>
           </Interpretation>
@@ -1214,6 +1271,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-91"/>
           </Interpretation>
@@ -1234,6 +1292,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1253,6 +1312,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1272,6 +1332,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1291,6 +1352,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001229" name="frag: a ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1310,6 +1372,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="12"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1329,6 +1392,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="11"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1348,6 +1412,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1367,6 +1432,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-36"/>
           </Interpretation>
@@ -1387,6 +1453,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="11"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1406,6 +1473,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1425,6 +1493,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001229" name="frag: a ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1444,6 +1513,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001229" name="frag: a ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1463,6 +1533,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="11"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17"/>
           </Interpretation>
@@ -1483,6 +1554,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-18"/>
           </Interpretation>
@@ -1503,6 +1575,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-18"/>
           </Interpretation>
@@ -1523,6 +1596,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="11"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-46"/>
           </Interpretation>
@@ -1543,6 +1617,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-91"/>
           </Interpretation>
@@ -1563,6 +1638,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-91"/>
           </Interpretation>
@@ -1583,6 +1659,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="11"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1602,6 +1679,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001229" name="frag: a ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1621,6 +1699,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1640,6 +1719,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1659,6 +1739,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1678,6 +1759,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1697,6 +1779,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1716,6 +1799,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001229" name="frag: a ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1735,6 +1819,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1754,6 +1839,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1773,6 +1859,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1792,6 +1879,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1811,6 +1899,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1830,6 +1919,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1849,6 +1939,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1868,6 +1959,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-18"/>
           </Interpretation>
@@ -1888,6 +1980,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-18"/>
           </Interpretation>
@@ -1908,6 +2001,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1927,6 +2021,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1946,6 +2041,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -1965,6 +2061,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="1"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17"/>
           </Interpretation>
@@ -1985,6 +2082,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-91"/>
           </Interpretation>
@@ -2005,6 +2103,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-91"/>
           </Interpretation>
@@ -2025,6 +2124,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001229" name="frag: a ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2044,6 +2144,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-35"/>
           </Interpretation>
@@ -2064,6 +2165,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17"/>
           </Interpretation>
@@ -2084,6 +2186,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17"/>
           </Interpretation>
@@ -2104,6 +2207,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2123,6 +2227,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-18"/>
           </Interpretation>
@@ -2143,6 +2248,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="11"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2162,6 +2268,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2181,6 +2288,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="14"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2200,6 +2308,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2219,6 +2328,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2238,6 +2348,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2257,6 +2368,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="12"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2276,6 +2388,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2295,6 +2408,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2314,6 +2428,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-18"/>
           </Interpretation>
@@ -2334,6 +2449,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="13"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2353,6 +2469,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-91"/>
           </Interpretation>
@@ -2373,6 +2490,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2392,6 +2510,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-91"/>
           </Interpretation>
@@ -2412,6 +2531,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="2"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001229" name="frag: a ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2431,6 +2551,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2450,6 +2571,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="14"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2469,6 +2591,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2488,6 +2611,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2507,6 +2631,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2526,6 +2651,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="15"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2545,6 +2671,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="11"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-18"/>
           </Interpretation>
@@ -2565,6 +2692,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2584,6 +2712,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001229" name="frag: a ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2603,6 +2732,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2622,6 +2752,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001229" name="frag: a ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2641,6 +2772,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="13"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
@@ -2660,6 +2792,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="14"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0.0"/>
           </Interpretation>
         </InterpretationList>
