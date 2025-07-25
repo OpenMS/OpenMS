@@ -866,7 +866,7 @@ protected:
       SHashmap m_seqs;
 
       // lambda to count ambiguous amino acids in frequency table
-      auto count_AAAs = [](auto& aacids) { return aacids['B'] + aacids['Z'] + aacids['X'] + aacids['b'] + aacids['z'] + aacids['x']; };
+      auto count_AAAs = [](const auto& aacids) { return aacids.at('B') + aacids.at('Z') + aacids.at('X') + aacids.at('b') + aacids.at('z') + aacids.at('x'); };
 
       size_t protein_has_ambiguous_aas = 0;
 
