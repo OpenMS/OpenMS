@@ -264,6 +264,11 @@ namespace OpenMS
     return product_.getChargeState();
   }
 
+  void ReactionMonitoringTransition::setProductChargeState(int charge)
+  {
+    product_.setChargeState(charge);
+  }
+
   bool ReactionMonitoringTransition::isProductChargeStateSet() const
   { 
     return product_.hasCharge();
