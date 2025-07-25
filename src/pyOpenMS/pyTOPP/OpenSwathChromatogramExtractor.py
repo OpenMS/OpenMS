@@ -13,20 +13,20 @@ python pyTOPP/OpenSwathChromatogramExtractor.py --in ../source/TEST/TOPP/OpenSwa
 def main(options):
 
     # load TraML file
-    targeted = pyopenms.TargetedExperiment();
-    pyopenms.TraMLFile().load(options.traml_in, targeted);
+    targeted = pyopenms.TargetedExperiment()
+    pyopenms.TraMLFile().load(options.traml_in, targeted)
 
     # Create empty files as input and finally as output
     empty_swath = pyopenms.MSExperiment()
     trafo = pyopenms.TransformationDescription()
-    output = pyopenms.MSExperiment();
+    output = pyopenms.MSExperiment()
 
     # load input
     for infile in options.infiles:
         exp = pyopenms.MSExperiment()
         pyopenms.FileHandler().loadExperiment(infile, exp)
 
-        transition_exp_used = pyopenms.TargetedExperiment();
+        transition_exp_used = pyopenms.TargetedExperiment()
 
         do_continue = True
         if options.is_swath:
@@ -36,7 +36,7 @@ def main(options):
 
         if do_continue:
             # set up extractor and run
-            tmp_out = pyopenms.MSExperiment();
+            tmp_out = pyopenms.MSExperiment()
             extractor = pyopenms.ChromatogramExtractor()
             extractor.extractChromatograms(exp, tmp_out, targeted, options.extraction_window, options.ppm, trafo, options.rt_extraction_window, options.extraction_function)
             # add all chromatograms to the output
@@ -47,15 +47,15 @@ def main(options):
     pa = pyopenms.DataProcessing().ProcessingAction().SMOOTHING
     dp.setProcessingActions(set([pa]))
 
-    chromatograms = output.getChromatograms();
+    chromatograms = output.getChromatograms()
     for chrom in chromatograms:
         this_dp = chrom.getDataProcessing()
         this_dp.append(dp)
         chrom.setDataProcessing(this_dp)
 
-    output.setChromatograms(chromatograms);
+    output.setChromatograms(chromatograms)
 
-    pyopenms.MzMLFile().store(options.outfile, output);
+    pyopenms.MzMLFile().store(options.outfile, output)
 
 def handle_args():
     import argparse

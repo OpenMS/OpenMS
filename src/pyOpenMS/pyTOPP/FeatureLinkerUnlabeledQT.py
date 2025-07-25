@@ -68,10 +68,10 @@ def link(in_files, out_file, keep_subelements, params):
         sizes.append(feat.size())
 
     c = Counter(sizes)
-    print "Number of consensus features:"
+    print("Number of consensus features:")
     for size, count in c.most_common():
-        print "   of size %2d : %6d" % (size, count)
-    print "        total : %6d" % out_map.size()
+        print("   of size %2d : %6d" % (size, count))
+    print("        total : %6d" % out_map.size())
 
 
 def main():

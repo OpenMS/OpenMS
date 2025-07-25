@@ -31,10 +31,10 @@ def algorithm(exp, targeted, picker):
         tmp.append( i )
         trmap[ tr.getPeptideRef() ] = tmp
 
-    for key, value in trmap.iteritems():
-        print key, value
+    for key, value in trmap.items():
+        print(key, value)
         transition_group = getTransitionGroup(exp, targeted, key, value, chrom_map)
-        picker.pickTransitionGroup(transition_group);
+        picker.pickTransitionGroup(transition_group)
         for mrmfeature in transition_group.getFeatures():
             features = mrmfeature.getFeatures()
             for f in features:
@@ -54,21 +54,21 @@ def main(options):
 
     pp = pyopenms.MRMTransitionGroupPicker()
 
-    pp_params = pp.getDefaults();
+    pp_params = pp.getDefaults()
     pp_params.setValue("PeakPickerChromatogram:remove_overlapping_peaks", options.remove_overlapping_peaks, '')
     pp_params.setValue("PeakPickerChromatogram:method", options.method, '')
-    pp.setParameters(pp_params);
+    pp.setParameters(pp_params)
 
     chromatograms = pyopenms.MSExperiment()
     fh = pyopenms.FileHandler()
     fh.loadExperiment(chromat_in, chromatograms)
-    targeted = pyopenms.TargetedExperiment();
-    tramlfile = pyopenms.TraMLFile();
-    tramlfile.load(traml_in, targeted);
+    targeted = pyopenms.TargetedExperiment()
+    tramlfile = pyopenms.TraMLFile()
+    tramlfile.load(traml_in, targeted)
 
     output = algorithm(chromatograms, targeted, pp)
 
-    pyopenms.FeatureXMLFile().store(out, output);
+    pyopenms.FeatureXMLFile().store(out, output)
 
 def handle_args():
     import argparse

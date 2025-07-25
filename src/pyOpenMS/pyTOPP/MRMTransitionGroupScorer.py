@@ -35,14 +35,14 @@ def algorithm(exp, targeted, picker, scorer, trafo):
         trmap[ tr.getPeptideRef() ] = tmp
 
     swath_maps_dummy = []
-    for key, value in trmap.iteritems():
+    for key, value in trmap.items():
         try:
             transition_group = getTransitionGroup(exp, targeted, key, value, chrom_map)
         except Exception:
-            print "Skip ", key, value
+            print("Skip ", key, value)
             continue
-        picker.pickTransitionGroup(transition_group);
-        scorer.scorePeakgroups(transition_group, trafo, swath_maps_dummy, output, False);
+        picker.pickTransitionGroup(transition_group)
+        scorer.scorePeakgroups(transition_group, trafo, swath_maps_dummy, output, False)
 
     return output
 
@@ -61,7 +61,7 @@ def main(options):
     # the RT space (e.g. for 100 second RT space, set it to 100)
     rt_normalization_factor = 100.0
 
-    pp_params = pp.getDefaults();
+    pp_params = pp.getDefaults()
     pp_params.setValue("PeakPickerChromatogram:remove_overlapping_peaks", options.remove_overlapping_peaks, '')
     pp_params.setValue("PeakPickerChromatogram:method", options.method, '')
     if (metabolomics):
@@ -74,18 +74,18 @@ def main(options):
     pp.setParameters(pp_params)
 
     scorer = pyopenms.MRMFeatureFinderScoring()
-    scoring_params = scorer.getDefaults();
+    scoring_params = scorer.getDefaults()
     # Only report the top 5 features
     scoring_params.setValue("stop_report_after_feature", 5, '')
     scoring_params.setValue("rt_normalization_factor", rt_normalization_factor, '')
-    scorer.setParameters(scoring_params);
+    scorer.setParameters(scoring_params)
 
     chromatograms = pyopenms.MSExperiment()
     fh = pyopenms.FileHandler()
     fh.loadExperiment(chromat_in, chromatograms)
-    targeted = pyopenms.TargetedExperiment();
-    tramlfile = pyopenms.TraMLFile();
-    tramlfile.load(traml_in, targeted);
+    targeted = pyopenms.TargetedExperiment()
+    tramlfile = pyopenms.TraMLFile()
+    tramlfile.load(traml_in, targeted)
 
     trafoxml = pyopenms.TransformationXMLFile()
     trafo = pyopenms.TransformationDescription()
@@ -94,14 +94,14 @@ def main(options):
         model_params.setValue("symmetric_regression", "false", "", [])
         model_type = "linear"
         trafoxml.load(trafo_in, trafo, True)
-        trafo.fitModel(model_type, model_params);
+        trafo.fitModel(model_type, model_params)
 
 
-    light_targeted = pyopenms.LightTargetedExperiment();
+    light_targeted = pyopenms.LightTargetedExperiment()
     pyopenms.OpenSwathDataAccessHelper().convertTargetedExp(targeted, light_targeted)
     output = algorithm(chromatograms, light_targeted, pp, scorer, trafo)
 
-    pyopenms.FeatureXMLFile().store(out, output);
+    pyopenms.FeatureXMLFile().store(out, output)
 
 def handle_args():
     import argparse

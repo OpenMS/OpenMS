@@ -48,7 +48,7 @@ def main():
     # parse command line
     # if -write_ini is provided, store model in CTD file, exit with error code 0
     # if -ini is provided, load CTD file into defaults Param object and return new model with paraneters set as defaults
-    arg_dict, openms_params = parseCTDCommandLine(sys.argv, model, defaults);
+    arg_dict, openms_params = parseCTDCommandLine(sys.argv, model, defaults)
 
     # data processing
     fh = pms.MzMLFile()

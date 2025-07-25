@@ -13,7 +13,7 @@ def simple_find_best_feature(output, pairs, targeted):
   f_map = {}
   for f in output:
     key = f.getMetaValue("PeptideRef")
-    if f_map.has_key(key):
+    if key in f_map:
       f_map[key].append(f)
     else:
       f_map[key] = [f]
@@ -34,14 +34,14 @@ def algorithm(chromatograms, targeted):
     # Create empty files as input and finally as output
     empty_swath = pyopenms.MSExperiment()
     trafo = pyopenms.TransformationDescription()
-    output = pyopenms.FeatureMap();
+    output = pyopenms.FeatureMap()
 
     # set up featurefinder and run
     featurefinder = pyopenms.MRMFeatureFinderScoring()
     # set the correct rt use values
-    scoring_params = pyopenms.MRMFeatureFinderScoring().getDefaults();
+    scoring_params = pyopenms.MRMFeatureFinderScoring().getDefaults()
     scoring_params.setValue("Scores:use_rt_score",'false', '')
-    featurefinder.setParameters(scoring_params);
+    featurefinder.setParameters(scoring_params)
     featurefinder.pickExperiment(chromatograms, output, targeted, trafo, empty_swath)
 
     # get the pairs
@@ -52,11 +52,11 @@ def algorithm(chromatograms, targeted):
 
     # // store transformation, using a linear model as default
     trafo_out = pyopenms.TransformationDescription()
-    trafo_out.setDataPoints(pairs_corrected);
+    trafo_out.setDataPoints(pairs_corrected)
     model_params = pyopenms.Param()
-    model_params.setValue("symmetric_regression", 'false', '');
-    model_type = "linear";
-    trafo_out.fitModel(model_type, model_params);
+    model_params.setValue("symmetric_regression", 'false', '')
+    model_type = "linear"
+    trafo_out.fitModel(model_type, model_params)
     return trafo_out
 
 def main(options):
@@ -67,13 +67,13 @@ def main(options):
     fh.loadExperiment(options.infile, chromatograms)
 
     # load TraML file
-    targeted = pyopenms.TargetedExperiment();
-    tramlfile = pyopenms.TraMLFile();
-    tramlfile.load(options.traml_in, targeted);
+    targeted = pyopenms.TargetedExperiment()
+    tramlfile = pyopenms.TraMLFile()
+    tramlfile.load(options.traml_in, targeted)
 
     trafo_out = algorithm(chromatograms, targeted)
 
-    pyopenms.TransformationXMLFile().store(options.outfile, trafo_out);
+    pyopenms.TransformationXMLFile().store(options.outfile, trafo_out)
 
 def handle_args():
     import argparse
