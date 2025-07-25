@@ -20,6 +20,7 @@
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/METADATA/CVTermListInterface.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <boost/numeric/conversion/cast.hpp>
 
@@ -34,6 +35,42 @@ namespace OpenMS
 
   namespace TargetedExperimentHelper
   {
+
+    /// Ion type enum that supports both peptide and nucleic acid fragment types
+    /// The terminology for ion fragments substantially overlaps between peptides and nucleic acids, but there are some differences.
+    /// Interpretation of these should always be done in the context of the molecule type (peptide or nucleic acid).
+    enum IonType
+    {
+      // Peptide-specific ion types (from Residue::ResidueType)
+      Full = 0,       ///< with N-terminus and C-terminus
+      Internal,       ///< internal residue, without any termini
+      NTerminal,      ///< only N-terminus
+      CTerminal,      ///< only C-terminus
+      AIon,           ///< MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
+      BIon,           ///< MS:1001224 N-terminus up to the peptide bond
+      CIon,           ///< MS:1001231 N-terminus up to the amide/C-alpha bond
+      XIon,           ///< MS:1001228 amide/C-alpha bond up to the C-terminus
+      YIon,           ///< MS:1001220 peptide bond up to the C-terminus
+      ZIon,           ///< MS:1001230 C-alpha/carbonyl carbon bond [CID fragment]
+      Zp1Ion,         ///< MS:1001230 C-alpha/carbonyl carbon bond (free radical, z+1 "ion") [main EAD fragment]
+      Zp2Ion,         ///< MS:1001230 C-alpha/carbonyl carbon bond (free radical, z+2 "ion" with additional abstracted hydrogen) [EAD fragment at higher precursor charges]
+      Precursor,      ///< MS:1001523 Precursor ion
+      BIonMinusH20,   ///< MS:1001222 b ion without water
+      YIonMinusH20,   ///< MS:1001223 y ion without water
+      BIonMinusNH3,   ///< MS:1001232 b ion without ammonia
+      YIonMinusNH3,   ///< MS:1001233 y ion without ammonia
+      NonIdentified,  ///< MS:1001240 Non-identified ion
+      Unannotated,    ///< no stored annotation
+      
+      // Nucleic acid-specific ion types (from NASequence::NASFragmentType)
+      FivePrime,      ///< only 5' terminus
+      ThreePrime,     ///< only 3' terminus
+      WIon,           ///< W ion, nucleic acid support
+      AminusB,        ///< A ion with base loss, nucleic acid support
+      DIon,           ///< D ion, nucleic acid support
+      
+      SizeOfIonType
+    };
 
     struct Configuration :
       public CVTermList
@@ -561,18 +598,18 @@ protected:
     struct OPENMS_DLLAPI Interpretation :
       public CVTermListInterface
     {
-      typedef Residue::ResidueType IonType; ///< Interpretation IonType
 
       unsigned char ordinal; ///< MS:1000903 : product ion series ordinal (e.g. 8 for a y8 ion)
       unsigned char rank; ///< MS:1000926 : product interpretation rank (e.g. 1 for the most likely rank)
-      IonType iontype; ///< which type of ion (b/y/z/ ...), see Residue::ResidueType
-
+      IonType iontype; ///< which type of ion (b/y/z/ ...), see above
+      OpenSwath::TransType transition_type; ///< type of transition (peptide, nuctide, compound, unknown)
       // Constructor
       Interpretation() :
         CVTermListInterface(),
         ordinal(0),
         rank(0),
-        iontype(Residue::Unannotated) // Unannotated does not imply any MS OBO term
+        iontype(Unannotated), // Unannotated does not imply any MS OBO term
+        transition_type(OpenSwath::TransType::UNKNOWN)
       {
       }
 
@@ -583,7 +620,8 @@ protected:
         return CVTermListInterface::operator==(rhs) &&
                ordinal == rhs.ordinal &&
                rank == rhs.rank &&
-               iontype == rhs.iontype;
+               iontype == rhs.iontype &&
+               transition_type == rhs.transition_type;
       }
 
       bool operator!=(const Interpretation & rhs) const

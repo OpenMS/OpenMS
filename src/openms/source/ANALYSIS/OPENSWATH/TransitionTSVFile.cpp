@@ -1360,13 +1360,13 @@ namespace OpenMS
     static const String CV_PROTEIN_ACCESSION = "MS:1000885";
     
     // Fragment type mapping for O(1) lookup performance instead of switch statement
-    static const std::unordered_map<Residue::ResidueType, String> FRAGMENT_TYPE_MAP = {
-      {Residue::AIon, "a"}, {Residue::BIon, "b"}, {Residue::CIon, "c"},
-      {Residue::XIon, "x"}, {Residue::YIon, "y"}, {Residue::ZIon, "z"},
-      {Residue::Zp1Ion, "z."}, {Residue::Zp2Ion, "z'"}, {Residue::Precursor, "prec"},
-      {Residue::BIonMinusH20, "b-H20"}, {Residue::YIonMinusH20, "y-H20"},
-      {Residue::BIonMinusNH3, "b-NH3"}, {Residue::YIonMinusNH3, "y-NH3"},
-      {Residue::NonIdentified, "unknown"}, {Residue::Unannotated, ""}
+    static const std::unordered_map<TargetedExperiment::IonType, String> FRAGMENT_TYPE_MAP = {
+      {TargetedExperiment::IonType::AIon, "a"}, {TargetedExperiment::IonType::BIon, "b"}, {TargetedExperiment::IonType::CIon, "c"},
+      {TargetedExperiment::IonType::XIon, "x"}, {TargetedExperiment::IonType::YIon, "y"}, {TargetedExperiment::IonType::ZIon, "z"},
+      {TargetedExperiment::IonType::Zp1Ion, "z."}, {TargetedExperiment::IonType::Zp2Ion, "z'"}, {TargetedExperiment::IonType::Precursor, "prec"},
+      {TargetedExperiment::IonType::BIonMinusH20, "b-H20"}, {TargetedExperiment::IonType::YIonMinusH20, "y-H20"},
+      {TargetedExperiment::IonType::BIonMinusNH3, "b-NH3"}, {TargetedExperiment::IonType::YIonMinusNH3, "y-NH3"},
+      {TargetedExperiment::IonType::NonIdentified, "unknown"}, {TargetedExperiment::IonType::Unannotated, ""}
     };
 
     // Input validation

@@ -98,7 +98,7 @@ namespace OpenMS
         <tr> <th BGCOLOR="#EBEBEB" colspan=3>PRECURSOR</th> </tr>
         <tr> <td BGCOLOR="#EBEBEB">ID</td> <td>INT</td> <td> Primary Key (precursor id)</td> </tr>
         <tr> <td BGCOLOR="#EBEBEB">TRAML_ID</td> <td>TEXT</td> <td> TraML identifiers (maps to the "id=" attribute in TraML)</td> </tr>
-        <tr> <td BGCOLOR="#EBEBEB">GROUP_LABEL</td> <td>TEXT</td> <td> designates to which peptide label group (as defined in MS:1000893) the peptide belongs to<sup>2</sup></td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">GROUP_LABEL</td> <td>TEXT</td> <td> designates to which peptidoform group (as defined in MS:1000893) the peptide belongs to<sup>2</sup></td> </tr>
         <tr> <td BGCOLOR="#EBEBEB">PRECURSOR_MZ</td> <td>REAL</td> <td> %Precursor m/z </td> </tr>
         <tr> <td BGCOLOR="#EBEBEB">CHARGE</td> <td>TEXT</td> <td> %Precursor charge state </td> </tr>
         <tr> <td BGCOLOR="#EBEBEB">LIBRARY_INTENSITY</td> <td>TEXT</td> <td> %Precursor library intensity </td> </tr>

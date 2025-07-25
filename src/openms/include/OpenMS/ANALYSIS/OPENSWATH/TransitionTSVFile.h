@@ -57,7 +57,7 @@ namespace OpenMS
           <tr> <td BGCOLOR="#EBEBEB">TransitionGroupId**</td> <td>free text; synomys: TransitionGroupName, transition_group_id</td><td> designates the transition group [e.g. peptide] to which this transition belongs</td> </tr>
           <tr> <td BGCOLOR="#EBEBEB">TransitionId**</td> <td>free text; synonyms: TransitionName, transition_name </td> <td> needs to be unique for each transition [in this file]</td> </tr>
           <tr> <td BGCOLOR="#EBEBEB">Decoy</td> <td>1: decoy, 0: target; synomys: decoy, IsDecoy </td> <td> determines whether the transition is a decoy transition or not</td> </tr>
-          <tr> <td BGCOLOR="#EBEBEB">PeptideGroupLabel</td> <td>free text </td> <td> designates to which peptide label group (as defined in MS:1000893) the peptide belongs to<sup>2</sup></td> </tr>
+          <tr> <td BGCOLOR="#EBEBEB">PeptideGroupLabel</td> <td>free text </td> <td> designates to which peptidoform group (as defined in MS:1000893) the peptide belongs to<sup>2</sup></td> </tr>
           <tr> <td BGCOLOR="#EBEBEB">DetectingTransition</td> <td> 0 or 1; synonyms: detecting_transition</td> <td>1: use transition to detect peak group, 0: don't use transition for detection</td> </tr>
           <tr> <td BGCOLOR="#EBEBEB">IdentifyingTransition</td> <td> 0 or 1; synonyms: identifying_transition</td> <td>1: use transition for peptidoform inference in the <a href="http://openswath.org/en/latest/docs/ipf.html">IPF Workflow</a>, 0: don't use transition for identification</td> </tr>
           <tr> <td BGCOLOR="#EBEBEB">QuantifyingTransition</td> <td> 0 or 1; synonyms: quantifying_transition</td> <td>1: use transition to quantify peak group, 0: don't use transition for quantification</td> </tr>
@@ -277,9 +277,9 @@ private:
     */
     //@{
 
-    /** @brief Resolve cases where the same peptide label group has different sequences.
+    /** @brief Resolve cases where the same peptidoform label group has different sequences.
      *
-     * Since members in a peptide label group (MS:1000893) should only be
+     * Since members in a peptidoform label group (MS:1000893) should only be
      * isotopically modified forms of the same peptide, having different
      * peptide sequences (different AA sequences) within the same group most likely
      * constitutes an error. This function will fix the error by erasing the

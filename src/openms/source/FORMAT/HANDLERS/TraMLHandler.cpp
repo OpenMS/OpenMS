@@ -616,7 +616,7 @@ namespace OpenMS::Internal
           }
           if (!it->getPeptideGroupLabel().empty())
           {
-            os << R"(      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value=")" <<  it->getPeptideGroupLabel() << "\"/>\n";
+            os << R"(      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value=")" <<  it->getPeptideGroupLabel() << "\"/>\n";
           }
           if (it->getDriftTime() >= 0.0)
           {
@@ -1028,57 +1028,68 @@ namespace OpenMS::Internal
           }
 
           // Ion Type
-          switch (inter_it->iontype)
-          {
-            case Residue::AIon:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001229\" name=\"frag: a ion\"/>\n";
-              break;
-            case Residue::BIon:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001224\" name=\"frag: b ion\"/>\n";
-              break;
-            case Residue::CIon:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001231\" name=\"frag: c ion\"/>\n";
-              break;
-            case Residue::XIon:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001228\" name=\"frag: x ion\"/>\n";
-              break;
-            case Residue::YIon:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001220\" name=\"frag: y ion\"/>\n";
-              break;
-            case Residue::ZIon:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001230\" name=\"frag: z ion\"/>\n";
-              break;
-            case Residue::Precursor:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001523\" name=\"frag: precursor ion\"/>\n";
-              break;
-            case Residue::BIonMinusH20:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001222\" name=\"frag: b ion - H2O\"/>\n";
-              break;
-            case Residue::YIonMinusH20:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001223\" name=\"frag: y ion - H2O\"/>\n";
-              break;
-            case Residue::BIonMinusNH3:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001232\" name=\"frag: b ion - NH3\"/>\n";
-              break;
-            case Residue::YIonMinusNH3:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001233\" name=\"frag: y ion - NH3\"/>\n";
-              break;
-            case Residue::NonIdentified:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001240\" name=\"non-identified ion\"/>\n";
-              break;
-            case Residue::Unannotated:
-              // means no annotation and no input cvParam - to write out a cvParam, use Residue::NonIdentified
-              break;
-            // invalid values
-            case Residue::Zp1Ion: OPENMS_LOG_ERROR << "Zp1 ions not supported. Ignoring." << std::endl; break;
-            case Residue::Zp2Ion: OPENMS_LOG_ERROR << "Zp2 ions not supported. Ignoring." << std::endl; break;
-            case Residue::Full: break;
-            case Residue::Internal: break;
-            case Residue::NTerminal: break;
-            case Residue::CTerminal: break;
-            case Residue::SizeOfResidueType:
-              break;
+          if (inter_it->transition_type == OpenSwath::TransType::PEPTIDE){
+            switch (inter_it->iontype)
+            {
+              case TargetedExperiment::IonType::AIon:
+                os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001229\" name=\"frag: a ion\"/>\n";
+                break;
+              case TargetedExperiment::IonType::BIon:
+                os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001224\" name=\"frag: b ion\"/>\n";
+                break;
+              case TargetedExperiment::IonType::CIon:
+                os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001231\" name=\"frag: c ion\"/>\n";
+                break;
+              case TargetedExperiment::IonType::XIon:
+                os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001228\" name=\"frag: x ion\"/>\n";
+                break;
+              case TargetedExperiment::IonType::YIon:
+                os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001220\" name=\"frag: y ion\"/>\n";
+                break;
+              case TargetedExperiment::IonType::ZIon:
+                os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001230\" name=\"frag: z ion\"/>\n";
+                break;
+              case TargetedExperiment::IonType::Precursor:
+                os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001523\" name=\"frag: precursor ion\"/>\n";
+                break;
+              case TargetedExperiment::IonType::BIonMinusH20:
+                os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001222\" name=\"frag: b ion - H2O\"/>\n";
+                break;
+              case TargetedExperiment::IonType::YIonMinusH20:
+                os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001223\" name=\"frag: y ion - H2O\"/>\n";
+                break;
+              case TargetedExperiment::IonType::BIonMinusNH3:
+                os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001232\" name=\"frag: b ion - NH3\"/>\n";
+                break;
+              case TargetedExperiment::IonType::YIonMinusNH3:
+                os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001233\" name=\"frag: y ion - NH3\"/>\n";
+                break;
+              case TargetedExperiment::IonType::NonIdentified:
+                os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001240\" name=\"non-identified ion\"/>\n";
+                break;
+              case TargetedExperiment::IonType::Unannotated:
+                // means no annotation and no input cvParam - to write out a cvParam, use Residue::NonIdentified
+                break;
+              // invalid values
+              case TargetedExperiment::IonType::Zp1Ion: OPENMS_LOG_ERROR << "Zp1 ions not supported. Ignoring." << std::endl; break;
+              case TargetedExperiment::IonType::Zp2Ion: OPENMS_LOG_ERROR << "Zp2 ions not supported. Ignoring." << std::endl; break;
+              case TargetedExperiment::IonType::DIon: OPENMS_LOG_ERROR << "D ions not valid for peptides. Ignoring." << std::endl; break;
+              case TargetedExperiment::IonType::AminusB: OPENMS_LOG_ERROR << "A-b ions not valid for peptides. Ignoring." << std::endl; break;
+              case TargetedExperiment::IonType::WIon: OPENMS_LOG_ERROR << "W ions not valid for peptides. Ignoring." << std::endl; break;
+              case TargetedExperiment::IonType::FivePrime: OPENMS_LOG_ERROR << "5' ions not valid for peptides. Ignoring." << std::endl; break;
+              case TargetedExperiment::IonType::ThreePrime: OPENMS_LOG_ERROR << "3' ions not valid for peptides. Ignoring." << std::endl; break;
+              case TargetedExperiment::IonType::Full: break;
+              case TargetedExperiment::IonType::Internal: break;
+              case TargetedExperiment::IonType::NTerminal: break;
+              case TargetedExperiment::IonType::CTerminal: break;
+              case TargetedExperiment::IonType::SizeOfIonType:
+                break;
+            }
           }
+          else if (inter_it->transition_type == OpenSwath::TransType::NUCTIDE)
+            {
+              OPENMS_LOG_WARN << "No CV params for Nucleotide ions yet. Ignoring." << std::endl;
+            }
           writeCVParams_(os, *inter_it, 6);
           writeUserParam_(os, (MetaInfoInterface) * inter_it, 6);
           os << "          </Interpretation>" << "\n";

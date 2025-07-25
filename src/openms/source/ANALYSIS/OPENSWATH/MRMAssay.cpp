@@ -809,9 +809,25 @@ namespace OpenMS
     {
       setProgress(++progress);
       ReactionMonitoringTransition tr = exp.getTransitions()[i];
+      String target_sequence;
 
-      const TargetedExperiment::Peptide& target_peptide = exp.getPeptideByRef(tr.getTransGroupRef());
-      OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
+      if (exp.hasPeptide(tr.getTransGroupRef()))
+      {
+        const TargetedExperiment::Peptide& target_peptide = exp.getPeptideByRef(tr.getTransGroupRef());
+target_sequence = TargetedExperimentHelper::getAASequence(target_peptide).toString();
+      }
+      else if (exp.hasNuctide(tr.getTransGroupRef()))
+      {
+        const TargetedExperiment::Nuctide& target_nucleotide = exp.getNuctideByRef(tr.getTransGroupRef());
+        target_sequence = TargetedExperimentHelper::getNASequence(target_nucleotide).toString();
+      }
+      else
+      {
+        String target_sequence = tr.getTransGroupRef();
+        OPENMS_LOG_WARN << "[unannotated] Skipping transition " << tr.getNativeID() << " without valid peptide or nucleotide reference." << std::endl;
+        continue;
+      }
+
 
       // Check annotation for unannotated interpretations
       if (!tr.getProduct().getInterpretationList().empty())
@@ -819,7 +835,7 @@ namespace OpenMS
         // Check if transition is unannotated at primary annotation and if yes, skip
         if (tr.getProduct().getInterpretationList()[0].iontype == TargetedExperiment::IonType::NonIdentified)
         {
-          OPENMS_LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence 
+          OPENMS_LOG_DEBUG << "[unannotated] Skipping " << target_sequence 
             << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() 
             << " " << tr.getMetaValue("annotation") << std::endl;
           continue;
@@ -831,7 +847,7 @@ namespace OpenMS
       {
         if (MRMAssay::isInSwath_(swathes, tr.getPrecursorMZ(), tr.getProductMZ()))
         {
-          OPENMS_LOG_DEBUG << "[swath] Skipping " << target_peptide_sequence << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << std::endl;
+          OPENMS_LOG_DEBUG << "[swath] Skipping " << target_sequence << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << std::endl;
           continue;
         }
       }
@@ -839,7 +855,7 @@ namespace OpenMS
       // Check if product m/z is outside of m/z boundaries and if yes, skip
       if (tr.getProductMZ() < lower_mz_limit || tr.getProductMZ() > upper_mz_limit)
       {
-        OPENMS_LOG_DEBUG << "[mz_limit] Skipping " << target_peptide_sequence << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << std::endl;
+        OPENMS_LOG_DEBUG << "[mz_limit] Skipping " << target_sequence << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << std::endl;
         continue;
       }
 

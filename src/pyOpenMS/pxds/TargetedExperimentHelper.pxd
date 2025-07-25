@@ -6,6 +6,36 @@ from Residue cimport *
 from DataValue cimport *
 from CVTermList cimport *
 
+cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespace "OpenMS::TargetedExperimentHelper::IonType":
+
+    ctypedef enum IonType "OpenMS::TargetedExperimentHelper::IonType":
+            Full,       # with N-terminus and C-terminus
+            Internal,       # internal residue, without any termini
+            NTerminal,      # only N-terminus
+            CTerminal,      # only C-terminus
+            AIon,           # MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
+            BIon,           # MS:1001224 N-terminus up to the peptide bond
+            CIon,           # MS:1001231 N-terminus up to the amide/C-alpha bond
+            XIon,           # MS:1001228 amide/C-alpha bond up to the C-terminus
+            YIon,           # MS:1001220 peptide bond up to the C-terminus
+            ZIon,           # MS:1001230 C-alpha/carbonyl carbon bond [CID fragment]
+            Zp1Ion,         # MS:1001230 C-alpha/carbonyl carbon bond (free radical, z+1 "ion") [main EAD fragment]
+            Zp2Ion,         # MS:1001230 C-alpha/carbonyl carbon bond (free radical, z+2 "ion" with additional abstracted hydrogen) [EAD fragment at higher precursor charges]
+            Precursor,      # MS:1001523 Precursor ion
+            BIonMinusH20,   # MS:1001222 b ion without water
+            YIonMinusH20,   # MS:1001223 y ion without water
+            BIonMinusNH3,   # MS:1001232 b ion without ammonia
+            YIonMinusNH3,   # MS:1001233 y ion without ammonia
+            NonIdentified,  # MS:1001240 Non-identified ion
+            Unannotated,    # no stored annotation
+            # Nucleic acid-specific ion types (from NASequence::NASFragmentType)
+            FivePrime,      # only 5' terminus
+            ThreePrime,     # only 3' terminus
+            WIon,           # W ion, nucleic acid support
+            AminusB,        # A ion with base loss, nucleic acid support
+            DIon,           # D ion, nucleic acid support
+            SizeOfIonType
+
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespace "OpenMS::TargetedExperimentHelper::RetentionTime::RTUnit":
 
     ctypedef enum RTUnit "OpenMS::TargetedExperimentHelper::RetentionTime::RTUnit":
@@ -246,7 +276,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
         unsigned char ordinal
         unsigned char rank
-        ResidueType iontype
+        IonType iontype
 
         # CVTermList:
         void setCVTerms(libcpp_vector[CVTerm] & terms)  except + nogil 

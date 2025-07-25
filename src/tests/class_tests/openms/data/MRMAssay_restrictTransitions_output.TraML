@@ -27,7 +27,7 @@
   <CompoundList>
     <Peptide id="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01" sequence="AAAAAAVSGSAAAEAK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="NA"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="NA"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAAAAAVSGSAAAEAK"/>
       <ProteinRef ref="1_sp|O75882|ATRN_HUMAN"/>
       <RetentionTimeList>
@@ -38,7 +38,7 @@
     </Peptide>
     <Peptide id="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74" sequence="AAAATGTIFTFR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAAATGTIFTFR"/>
       <ProteinRef ref="1_sp|P05154|IPSP_HUMAN"/>
       <RetentionTimeList>
@@ -49,7 +49,7 @@
     </Peptide>
     <Peptide id="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57" sequence="AAADPHECYAK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAADPHEC(UniMod:4)YAK"/>
       <ProteinRef ref="1_sp|P02768|ALBU_HUMAN"/>
       <Modification location="8" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
@@ -63,7 +63,7 @@
     </Peptide>
     <Peptide id="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57" sequence="AAADPHECYAK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAADPHEC(UniMod:4)YAK"/>
       <ProteinRef ref="1_sp|P02768|ALBU_HUMAN"/>
       <Modification location="8" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
@@ -77,7 +77,7 @@
     </Peptide>
     <Peptide id="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29" sequence="AAAITAYALTLTK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="1_sp|P0C0L4|CO4A_HUMAN,_AAAITAYALTLTK_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="1_sp|P0C0L4|CO4A_HUMAN,_AAAITAYALTLTK_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAAITAYALTLTK"/>
       <ProteinRef ref="1_sp|P0C0L4|CO4A_HUMAN"/>
       <RetentionTimeList>
@@ -88,7 +88,7 @@
     </Peptide>
     <Peptide id="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36" sequence="AAAITSDILEALGR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAAITSDILEALGR"/>
       <ProteinRef ref="1_sp|Q15063|POSTN_HUMAN"/>
       <RetentionTimeList>
@@ -99,7 +99,7 @@
     </Peptide>
     <Peptide id="1_sp|P0C0L4|CO4A_HUMAN_AAANQMR_2_-41.85" sequence="AAANQMR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="1_sp|P0C0L4|CO4A_HUMAN,_AAANQMR_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="1_sp|P0C0L4|CO4A_HUMAN,_AAANQMR_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAANQMR"/>
       <ProteinRef ref="1_sp|P0C0L4|CO4A_HUMAN"/>
       <RetentionTimeList>
@@ -110,7 +110,7 @@
     </Peptide>
     <Peptide id="1_sp|P0C0L4|CO4A_HUMAN_AAAN(Deamidated)QMR_2_-39.95" sequence="AAANQMR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="1_sp|P0C0L4|CO4A_HUMAN,_AAAN(Deamidated)QMR_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="1_sp|P0C0L4|CO4A_HUMAN,_AAAN(Deamidated)QMR_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAAN(UniMod:7)QMR"/>
       <ProteinRef ref="1_sp|P0C0L4|CO4A_HUMAN"/>
       <Modification location="4" monoisotopicMassDelta="0.984016" averageMassDelta="0.9848">
@@ -124,7 +124,7 @@
     </Peptide>
     <Peptide id="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2_-35.92" sequence="AAAPNTPK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptidoform group label" value="1_sp|Q92954|PRG4_HUMAN_AAAPNTPK_2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAAPNTPK"/>
       <ProteinRef ref="1_sp|Q92954|PRG4_HUMAN"/>
       <RetentionTimeList>
@@ -137,7 +137,7 @@
   <TransitionList>
     <Transition id="8_1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_658.8439_481.2511" peptideRef="1_sp|O75882|ATRN_HUMAN_AAAAAAVSGSAAAEAK_2_50.01">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="658.8439" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="658.843899999999962" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -146,7 +146,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="11"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
@@ -157,7 +156,7 @@
     </Transition>
     <Transition id="12_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_534.2797" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.830000000000041" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -166,7 +165,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17"/>
           </Interpretation>
@@ -178,7 +176,7 @@
     </Transition>
     <Transition id="14_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_463.2425" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.830000000000041" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -187,7 +185,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17"/>
           </Interpretation>
@@ -199,7 +196,7 @@
     </Transition>
     <Transition id="15_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_498.7611" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.830000000000041" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -208,7 +205,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17"/>
           </Interpretation>
@@ -220,7 +216,7 @@
     </Transition>
     <Transition id="16_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_498.2691" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.830000000000041" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -229,7 +225,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-18"/>
           </Interpretation>
@@ -241,7 +236,7 @@
     </Transition>
     <Transition id="18_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_507.2744" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.830000000000041" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -250,7 +245,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
@@ -261,7 +255,7 @@
     </Transition>
     <Transition id="19_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_542.7929" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.830000000000041" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -270,7 +264,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
@@ -281,7 +274,7 @@
     </Transition>
     <Transition id="20_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_533.7876" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.830000000000041" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -290,7 +283,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-18"/>
           </Interpretation>
@@ -302,7 +294,7 @@
     </Transition>
     <Transition id="21_1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_613.83_471.7558" peptideRef="1_sp|P05154|IPSP_HUMAN_AAAATGTIFTFR_2_54.74">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.83" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="613.830000000000041" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -311,7 +303,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
@@ -322,7 +313,7 @@
     </Transition>
     <Transition id="26_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_616.7719_501.7029" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_2_-24.57">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.7719" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.77189999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -331,7 +322,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17"/>
           </Interpretation>
@@ -343,7 +333,7 @@
     </Transition>
     <Transition id="27_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_452.7027" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -352,7 +342,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
@@ -363,7 +352,7 @@
     </Transition>
     <Transition id="28_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_545.7348" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -372,7 +361,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
@@ -383,7 +371,7 @@
     </Transition>
     <Transition id="29_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_581.2533" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -392,7 +380,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
@@ -403,7 +390,7 @@
     </Transition>
     <Transition id="34_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_510.2162" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -412,7 +399,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
@@ -423,7 +409,7 @@
     </Transition>
     <Transition id="35_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_426.6689" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -432,7 +418,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
@@ -443,7 +428,7 @@
     </Transition>
     <Transition id="37_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_444.1894" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -452,7 +437,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17"/>
           </Interpretation>
@@ -464,7 +448,7 @@
     </Transition>
     <Transition id="47_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_501.7029" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -473,7 +457,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17"/>
           </Interpretation>
@@ -485,7 +468,7 @@
     </Transition>
     <Transition id="48_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_572.74" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -494,7 +477,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17"/>
           </Interpretation>
@@ -506,7 +488,7 @@
     </Transition>
     <Transition id="51_1_sp|P02768|ALBU_HUMAN_AAADPHECYAK_411.517_543.7191" peptideRef="1_sp|P02768|ALBU_HUMAN_AAADPHEC(Carbamidomethyl)YAK_3_-24.57">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.517" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="411.516999999999996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -515,7 +497,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
@@ -526,7 +507,7 @@
     </Transition>
     <Transition id="53_1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_482.2791" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.382100000000037" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -535,7 +516,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-18"/>
           </Interpretation>
@@ -547,7 +527,7 @@
     </Transition>
     <Transition id="54_1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_574.3397" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.382100000000037" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -556,7 +536,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="11"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-18"/>
           </Interpretation>
@@ -568,7 +547,7 @@
     </Transition>
     <Transition id="57_1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_431.7553" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.382100000000037" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -577,7 +556,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-18"/>
           </Interpretation>
@@ -589,7 +567,7 @@
     </Transition>
     <Transition id="58_1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_574.3397" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.382100000000037" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -598,7 +576,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="11"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-18"/>
           </Interpretation>
@@ -610,7 +587,7 @@
     </Transition>
     <Transition id="59_1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_618.8635" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.382100000000037" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -619,7 +596,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="12"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
@@ -630,7 +606,7 @@
     </Transition>
     <Transition id="60_1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_491.2844" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.382100000000037" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -639,7 +615,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
@@ -650,7 +625,7 @@
     </Transition>
     <Transition id="61_1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_474.2635" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.382100000000037" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -659,7 +634,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
@@ -670,7 +644,7 @@
     </Transition>
     <Transition id="63_1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_539.3132" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.382100000000037" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -679,7 +653,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="10"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17"/>
           </Interpretation>
@@ -691,7 +664,7 @@
     </Transition>
     <Transition id="64_1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_405.242" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.382100000000037" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -700,7 +673,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
@@ -711,7 +683,7 @@
     </Transition>
     <Transition id="65_1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_654.3821_530.8055" peptideRef="1_sp|P0C0L4|CO4A_HUMAN_AAAITAYALTLTK_2_66.29">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.3821" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="654.382100000000037" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -720,7 +692,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="11"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
           </Interpretation>
         </InterpretationList>
@@ -731,7 +702,7 @@
     </Transition>
     <Transition id="69_1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_700.8908_607.8469" peptideRef="1_sp|Q15063|POSTN_HUMAN_AAAITSDILEALGR_2_100.36">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="700.8908" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="700.890800000000013" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
@@ -740,7 +711,6 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="12"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
-            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
             <cvParam cvRef="MS" accession="MS:1000904" name="product ion m/z delta" value="0"/>
             <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-44"/>
           </Interpretation>
