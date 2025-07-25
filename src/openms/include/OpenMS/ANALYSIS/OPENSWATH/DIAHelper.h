@@ -95,13 +95,17 @@ namespace OpenMS
     OPENMS_DLLAPI void adjustExtractionWindow(double& right, double& left, const double& mz_extract_window, const bool& mz_extraction_ppm);
 
     /// compute the prefix and suffix series masses for a given AASequence
+    /// currently these are the b and y ions,
+    /// but this is renamed to capture possible future Electron dissociation SWATH
+    /// and for consistency with how we handle NucleicAcids
     OPENMS_DLLAPI void getPrefixSuffixSeries(const AASequence& a,
                                    std::vector<double>& prefixSeries,
                                    std::vector<double>& suffixSeries,
                                    TheoreticalSpectrumGenerator const * g,
                                    int charge = 1);
 
-    /// compute the prefix and suffix series masses for a given AASequence
+    /// compute the prefix and suffix series masses for a given NASequence
+    /// currently this generates all of the ion types.
     OPENMS_DLLAPI void getPrefixSuffixSeries(const NASequence& a,
                                    std::vector<double>& prefixSeries,
                                    std::vector<double>& suffixSeries,
