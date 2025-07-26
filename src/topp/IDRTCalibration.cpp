@@ -134,7 +134,7 @@ protected:
     //-------------------------------------------------------------
     FileHandler file;
     vector<ProteinIdentification> protein_identifications;
-    vector<PeptideIdentification> identifications;
+    PeptideIdentificationList identifications;
     file.loadIdentifications(in_file, protein_identifications, identifications, {FileTypes::IDXML});
 
     for (Size i = 0; i < identifications.size(); ++i)

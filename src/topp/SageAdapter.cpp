@@ -248,7 +248,7 @@ static DeltaMassHistogram findPeaksInDeltaMassHistogram(const DeltaMassHistogram
 }
 
 // Returns the maxima of a histogram from the delta masses of each peptide.
-std::pair<DeltaMassHistogram, DeltaMasstoCharge> getDeltaClusterCenter(const std::vector<PeptideIdentification>& pips, bool smoothing = false, bool /*debug*/ = false)
+std::pair<DeltaMassHistogram, DeltaMasstoCharge> getDeltaClusterCenter(const PeptideIdentificationList& pips, bool smoothing = false, bool /*debug*/ = false)
 {
     // Constants
     constexpr double deltamass_tolerance = 0.0005;
@@ -317,9 +317,9 @@ std::pair<DeltaMassHistogram, DeltaMasstoCharge> getDeltaClusterCenter(const std
 }
 
 //Fucntion that maps a selection of masses to certain PTMs and returns a summary of said PTMs. Also adds PTM for each petide without in-peptide localization. 
-vector<PeptideIdentification> mapDifftoMods(DeltaMassHistogram hist, DeltaMasstoCharge charge_hist, vector<PeptideIdentification>& pips, double precursor_mass_tolerance_ = 5, bool precursor_mass_tolerance_unit_ppm = true, String outfile = "")
+PeptideIdentificationList mapDifftoMods(DeltaMassHistogram hist, DeltaMasstoCharge charge_hist, PeptideIdentificationList& pips, double precursor_mass_tolerance_ = 5, bool precursor_mass_tolerance_unit_ppm = true, String outfile = "")
 {
-  vector<vector<PeptideIdentification>> clusters(hist.size(), vector<PeptideIdentification>());
+  vector<PeptideIdentificationList> clusters(hist.size(), PeptideIdentificationList());
   map<double, String, FuzzyDoubleComparator> mass_of_mods(FuzzyDoubleComparator(1e-9));
   vector<pair<double, String>> mass_of_mods_vec;
 
@@ -1082,7 +1082,7 @@ protected:
       "longest_y_pct", "matched_peaks", "scored_candidates"}; 
     double FDR_threshhold = getDoubleOption_("q_value_threshold"); 
 
-    vector<PeptideIdentification> peptide_identifications = PercolatorInfile::load(
+    PeptideIdentificationList peptide_identifications = PercolatorInfile::load(
       output_folder + "/results.sage.pin",
       true,
       "ln(hyperscore)", //TODO can we get sage's "sage_discriminant_score" out of the pin? Probably not. Suboptimal!
@@ -1112,7 +1112,7 @@ protected:
     bool smoothing = !(smoothing_string.compare("true")); 
 
     const  pair<DeltaMassHistogram, DeltaMasstoCharge> resultsClus =  getDeltaClusterCenter(peptide_identifications, smoothing, false); 
-    vector<PeptideIdentification> mapD = mapDifftoMods(resultsClus.first, resultsClus.second, peptide_identifications, 0.01, false, output_file); //peptide_identifications; 
+    PeptideIdentificationList mapD = mapDifftoMods(resultsClus.first, resultsClus.second, peptide_identifications, 0.01, false, output_file); //peptide_identifications; 
     // remove hits without charge state assigned or charge outside of default range (fix for downstream bugs). TODO: remove if all charges annotated in sage
     IDFilter::filterPeptidesByCharge(peptide_identifications, 2, numeric_limits<int>::max());
     

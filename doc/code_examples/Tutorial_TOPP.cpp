@@ -73,7 +73,7 @@ protected:
   //! [doxygen_snippet_Functionality_1]
 
   void filterByProteinAccessions_(const vector<FASTAFile::FASTAEntry>& db,
-                                  const vector<PeptideIdentification>& peptide_identifications,
+                                  const PeptideIdentificationList& peptide_identifications,
                                   bool whitelist,
                                   vector<FASTAFile::FASTAEntry>& db_new)
   {
@@ -137,7 +137,7 @@ protected:
     //! [doxygen_snippet_InputRead]
 
     vector<ProteinIdentification> protein_identifications;
-    vector<PeptideIdentification> peptide_identifications;
+    PeptideIdentificationList peptide_identifications;
 
     FileHandler().loadIdentifications(ids, protein_identifications, peptide_identifications);
 

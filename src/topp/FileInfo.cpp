@@ -120,7 +120,7 @@ namespace OpenMS
   {
     String identifier;
     vector<ProteinIdentification> proteins;
-    vector<PeptideIdentification> peptides;
+    PeptideIdentificationList peptides;
   };
 
   /// Write SomeStatistics to a stream.
@@ -955,7 +955,7 @@ protected:
       {
         ++charges[feat[i].getCharge()];
         tic += feat[i].getIntensity();
-        const vector<PeptideIdentification> &peptide_ids = feat[i].getPeptideIdentifications();
+        const PeptideIdentificationList &peptide_ids = feat[i].getPeptideIdentifications();
         ++numberofids[peptide_ids.size()];
       }
 
@@ -1206,6 +1206,7 @@ protected:
         // collect all search engines which generated the data
         search_engines.emplace(id_data.proteins[i].getSearchEngine(), id_data.proteins[i].getSearchEngineVersion());
       }
+
       if (peptide_length.empty())
       { // avoid invalid-range exception when computing mean()
         peptide_length.push_back(0);

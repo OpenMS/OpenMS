@@ -19,18 +19,31 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 General:
  - speed improvements:
     - loading .gz files is about 7% faster (#8069)
-    - loading of mzML files with more than than mz/intensity (e.g. ion mobility) is 20-40% faster (#8074)
-  
+    - loading of mzML files with more than than m/z+intensity (e.g. ion mobility) is 20-40% faster (#8074)
+    - loading of mzML files is 7-25% faster in general (SIMD ASCII conversion) (#8105)
+    
 Dependencies:
+    - PyOpenMS now depends on Autowrap 0.23.0
+    - PyOpenMS now supports Cython 3.1
+
+NucleicAcidSearchEngine:
+    - add support for global fixed modifications as a search parameter
 
 Misc:
  - show load/store progress for files in all TOPP tools (#8041)
  
 Fixes:
+ - fix TOPPAS crash when using TOPP tools with multiple output formats (#8120)
 
 Library:
 - Removed `assignRanks` and `sortByRanks` in PeptideIdentifications and sort and filter by score instead. Also removed `updateHitRanks` in IDFilter (#7991)
 - Remove ranke member in PeptideHit and store ranks as meta value (for backwards compatibility). (#7997)
+- std::vector<PeptideIdentification> now is encapsulated in a class PeptideIdentificationList
+- Added `EnzymaticDigestion.semiSpecificDigestion_()`
+- ProteaseDigestion: add support for semi-specific digestion (#8130)
+
+Added tools:
+- OpenNuXL - A peptide-RNA/DNA cross-linking search engine
 
 Removed tools:
 

@@ -98,7 +98,7 @@ class SimpleSearchEngine :
       progresslogger.setLogType(log_type_);
 
       vector<ProteinIdentification> protein_ids;
-      vector<PeptideIdentification> peptide_ids;
+      PeptideIdentificationList peptide_ids;
 
       SimpleSearchEngineAlgorithm sse;
       sse.setParameters(getParam_().copy("Search:", true));

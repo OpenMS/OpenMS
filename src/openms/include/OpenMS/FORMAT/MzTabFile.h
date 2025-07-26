@@ -12,6 +12,7 @@
 
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
@@ -43,7 +44,7 @@ namespace OpenMS
     void store(
           const String& filename,
           const std::vector<ProteinIdentification>& protein_identifications,
-          const std::vector<PeptideIdentification>& peptide_identifications,
+          const PeptideIdentificationList& peptide_identifications,
           bool first_run_inference_only,
           bool export_empty_pep_ids = false,
           bool export_all_psms = false,
@@ -148,20 +149,20 @@ namespace OpenMS
     // extract two integers from string (e.g. search_engine_score[1]_ms_run[2] -> 1,2)
     static std::pair<int, int> extractIndexPairsFromBrackets_(const String& s);
 
-    static void sortPSM_(std::vector<PeptideIdentification>::iterator begin, std::vector<PeptideIdentification>::iterator end);
+    static void sortPSM_(PeptideIdentificationList::iterator begin, PeptideIdentificationList::iterator end);
 
-    static void keepFirstPSM_(std::vector<PeptideIdentification>::iterator begin, std::vector<PeptideIdentification>::iterator end);
+    static void keepFirstPSM_(PeptideIdentificationList::iterator begin, PeptideIdentificationList::iterator end);
 
     /// Extract protein and peptide identifications for each run. maps are assumed empty.
-    static void partitionIntoRuns_(const std::vector<PeptideIdentification>& pep_ids,
+    static void partitionIntoRuns_(const PeptideIdentificationList& pep_ids,
                                    const std::vector<ProteinIdentification>& pro_ids,
-                                   std::map<String, std::vector<PeptideIdentification> >& map_run_to_pepids,
+                                   std::map<String, PeptideIdentificationList >& map_run_to_pepids,
                                    std::map<String, std::vector<ProteinIdentification> >& map_run_to_proids
                                    );
 
 
     /// create links from protein to peptides
-    static void createProteinToPeptideLinks_(const std::map<String, std::vector<PeptideIdentification> >& map_run_to_pepids, MapAccPepType& map_run_accession_to_pephits);
+    static void createProteinToPeptideLinks_(const std::map<String, PeptideIdentificationList >& map_run_to_pepids, MapAccPepType& map_run_accession_to_pephits);
 
     /// Extracts, if possible a unique protein accession for a peptide hit in mzTab format. Otherwise NA is returned
     static String extractProteinAccession_(const PeptideHit& peptide_hit);

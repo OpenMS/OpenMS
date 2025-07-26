@@ -116,3 +116,14 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         SpectrumRangeManager spectrumRanges() except + nogil  # wrap-doc:Returns a reference to the spectrum range manager
         ChromatogramRangeManager chromatogramRanges() except + nogil  # wrap-doc:Returns a reference to the chromatogram range manager
         # TODO: not working yet RangeManagerRtMzIntMob combinedRanges() except + nogil  # wrap-doc:Returns a reference to the combined range manager (for backward compatibility)
+        
+        # Range convenience methods (delegate to combined_ranges_)
+        double getMinRT() except + nogil  # wrap-doc:Get the minimum RT value from the combined ranges
+        double getMaxRT() except + nogil  # wrap-doc:Get the maximum RT value from the combined ranges
+        double getMinMZ() except + nogil  # wrap-doc:Get the minimum m/z value from the combined ranges
+        double getMaxMZ() except + nogil  # wrap-doc:Get the maximum m/z value from the combined ranges
+        double getMinIntensity() except + nogil  # wrap-doc:Get the minimum intensity value from the combined ranges
+        double getMaxIntensity() except + nogil  # wrap-doc:Get the maximum intensity value from the combined ranges
+        double getMinMobility() except + nogil  # wrap-doc:Get the minimum mobility value from the combined ranges
+        double getMaxMobility() except + nogil  # wrap-doc:Get the maximum mobility value from the combined ranges
+        void clearRanges() except + nogil  # wrap-doc:Clear all ranges in all range managers

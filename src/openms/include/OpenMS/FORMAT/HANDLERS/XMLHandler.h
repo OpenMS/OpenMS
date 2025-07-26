@@ -11,7 +11,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h> // StringList
+ 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -210,30 +210,43 @@ namespace OpenMS
 
       typedef std::basic_string<XMLCh> XercesString;
 
-      // Converts from a narrow-character string to a wide-character string.
+      /// Converts from a narrow-character string to a wide-character string.
       inline static unique_xerces_ptr<XMLCh> fromNative_(const char* str)
       {
         return unique_xerces_ptr<XMLCh>(xercesc::XMLString::transcode(str));
       }
 
-      // Converts from a narrow-character string to a wide-character string.
+      /// Converts from a narrow-character string to a wide-character string.
       inline static unique_xerces_ptr<XMLCh> fromNative_(const String& str)
       {
         return fromNative_(str.c_str());
       }
 
-      // Converts from a wide-character string to a narrow-character string.
+      /// Converts from a wide-character string to a narrow-character string.
       inline static String toNative_(const XMLCh* str)
-      {
-        return String(unique_xerces_ptr<char>(xercesc::XMLString::transcode(str)).get());
+      { 
+        String r;
+        XMLSize_t l = strLength(str);
+        if(isASCII(str, l))
+        {
+          appendASCII(str,l,r);
+        }
+        else
+        {
+          r = (unique_xerces_ptr<char>(xercesc::XMLString::transcode(str)).get());
+        }
+        return r;
       }
 
-      // Converts from a wide-character string to a narrow-character string.
+      /// Converts from a wide-character string to a narrow-character string.
       inline static String toNative_(const unique_xerces_ptr<XMLCh>& str)
       {
         return toNative_(str.get());
       }
 
+protected:
+      /// Compresses eight 8x16bit Chars in XMLCh* to 8x8bit Chars by cutting upper byte
+      static void compress64_ (const XMLCh * input_it, char* output_it);
 
 public:
       /// Constructor
@@ -241,6 +254,15 @@ public:
 
       /// Destructor
       ~StringManager();
+
+      /// Calculates the length of a XMLCh* string using SIMDe
+      // https://github.com/OpenMS/OpenMS/issues/8122
+      #if defined(__GNUC__)
+      __attribute__((no_sanitize("address")))
+      #elif defined(_MSC_VER)
+      __declspec(no_sanitize_address) 
+      #endif
+      static XMLSize_t strLength(const XMLCh* input_ptr);
 
       /// Transcode the supplied C string to a xerces string
       inline static XercesString convert(const char * str)
@@ -283,7 +305,11 @@ public:
       {
         return toNative_(str);
       }
+      /// Checks if supplied chars in XMLCh* can be encoded with ASCII (i.e. the upper byte of each char is 0)
+      static bool isASCII(const XMLCh * chars, const XMLSize_t length);
 
+      
+      
       /**
        * @brief Transcodes the supplied XMLCh* and appends it to the OpenMS String
        *

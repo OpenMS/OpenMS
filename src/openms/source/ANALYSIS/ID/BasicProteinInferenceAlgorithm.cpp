@@ -64,7 +64,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void BasicProteinInferenceAlgorithm::run(std::vector<PeptideIdentification> &pep_ids,
+  void BasicProteinInferenceAlgorithm::run(PeptideIdentificationList &pep_ids,
                                            ProteinIdentification &prot_id) const
   {
     Size min_peptides_per_protein = static_cast<Size>(param_.getValue("min_peptides_per_protein"));
@@ -235,7 +235,7 @@ namespace OpenMS
     IDScoreSwitcherAlgorithm::switchBackScoreType(cmap, isr, include_unassigned); // NOP if no switch was performed
   }
 
-  void BasicProteinInferenceAlgorithm::run(std::vector<PeptideIdentification> &pep_ids,
+  void BasicProteinInferenceAlgorithm::run(PeptideIdentificationList &pep_ids,
                                            std::vector<ProteinIdentification> &prot_ids) const
   {
     Size min_peptides_per_protein = static_cast<Size>(param_.getValue("min_peptides_per_protein"));
@@ -267,7 +267,7 @@ namespace OpenMS
 
   void BasicProteinInferenceAlgorithm::aggregatePeptideScores_(
       std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
-      std::vector<PeptideIdentification>& pep_ids,
+      PeptideIdentificationList& pep_ids,
       const String& overall_score_type,
       bool higher_better,
       const std::string& run_id) const
@@ -529,7 +529,7 @@ namespace OpenMS
       std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,
       std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
       ProteinIdentification& prot_run,
-      std::vector<PeptideIdentification>& pep_ids) const
+      PeptideIdentificationList& pep_ids) const
   {
     // TODO actually clearing the scores should be enough, since this algorithm does not change the grouping
     prot_run.getProteinGroups().clear();

@@ -476,7 +476,7 @@ protected:
     FileHandler fh;
     FileTypes::Type in_type = fh.getType(id);
 
-    vector<PeptideIdentification> pep_ids;
+    PeptideIdentificationList pep_ids;
     vector<ProteinIdentification> prot_ids;
 
     PeakMap exp;
@@ -586,7 +586,7 @@ protected:
     //-------------------------------------------------------------
     // writing output - merge LuciPHOr2 result to idXML
     //-------------------------------------------------------------
-    vector<PeptideIdentification> pep_out;
+    PeptideIdentificationList pep_out;
     map<String, String> target_mods_conv;
     ret = convertTargetModification_(target_mods, target_mods_conv);
     if (ret != EXECUTION_OK)

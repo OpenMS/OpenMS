@@ -26,7 +26,7 @@ namespace OpenMS
 
   XTandemXMLFile::~XTandemXMLFile() = default;
 
-  void XTandemXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_ids, ModificationDefinitionsSet& mod_def_set)
+  void XTandemXMLFile::load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& peptide_ids, ModificationDefinitionsSet& mod_def_set)
   {
     // File name for error message in XMLHandler
     file_ = filename;

@@ -265,7 +265,7 @@ public:
     /// returns the PSM rank
     UInt getRank() const;
 
-    /// sets the PSM rank
+    /// sets the PSM rank (0 = top hit)
     void setRank(UInt newrank);
 
     /// returns the fragment annotations

@@ -31,10 +31,12 @@ MetaInfoRegistry.cpp
 PeptideEvidence.cpp
 PeptideHit.cpp
 PeptideIdentification.cpp
+PeptideIdentificationList.cpp
 Precursor.cpp
 Product.cpp
 ProteinHit.cpp
 ProteinIdentification.cpp
+ProteinModificationSummary.cpp
 Sample.cpp
 ScanWindow.cpp
 Software.cpp

@@ -64,7 +64,7 @@ protected:
   }
 
   void filterByProteinAccessions_(const vector<FASTAFile::FASTAEntry>& db,
-                                  const vector<PeptideIdentification>& peptide_identifications,
+                                  const PeptideIdentificationList& peptide_identifications,
                                   bool whitelist,
                                   vector<FASTAFile::FASTAEntry>& db_new)
   {
@@ -128,7 +128,7 @@ protected:
       FileHandler fh;
       FileTypes::Type ids_type = fh.getType(ids);
       vector<ProteinIdentification> protein_identifications;
-      vector<PeptideIdentification> peptide_identifications;
+      PeptideIdentificationList peptide_identifications;
 
       if (ids_type == FileTypes::IDXML || ids_type == FileTypes::MZIDENTML)
       {
