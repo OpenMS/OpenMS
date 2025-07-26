@@ -41,7 +41,7 @@ END_SECTION
 PeptideIdentification temp;
 temp.setScoreType("Posterior Error Probability");
 temp.setHigherScoreBetter(false);
-vector<PeptideIdentification> ids(3, temp);
+PeptideIdentificationList ids(3, temp);
 vector<PeptideHit> hits;
 // the first ID has 5 hits
 hits.resize(5);
@@ -89,7 +89,7 @@ hits[9].setSequence(AASequence::fromString("K"));
 hits[9].setScore(0.9);
 ids[2].setHits(hits);
 
-START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
+START_SECTION(void apply(PeptideIdentificationList& ids))
 {
   TOLERANCE_ABSOLUTE(0.01)
 
@@ -99,7 +99,7 @@ START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
   param.setValue("filter:considered_hits", 0);
   consensus.setParameters(param);
   // apply:
-  vector<PeptideIdentification> f = ids;
+  PeptideIdentificationList f = ids;
   map<String,String> empty;
   consensus.apply(f, empty);
 

@@ -632,7 +632,7 @@ protected:
       }
 
       vector<ProteinIdentification> protein_ids;
-      vector<PeptideIdentification> peptide_ids;
+      PeptideIdentificationList peptide_ids;
 
       if (getFlag_("legacy_conversion"))
       {

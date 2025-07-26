@@ -175,7 +175,7 @@ namespace OpenMS
   };
 
 
-  void IDFilter::extractPeptideSequences(const vector<PeptideIdentification>& peptides, set<String>& sequences, bool ignore_mods)
+  void IDFilter::extractPeptideSequences(const PeptideIdentificationList& peptides, set<String>& sequences, bool ignore_mods)
   {
     for (const PeptideIdentification& pep : peptides)
     {
@@ -253,7 +253,7 @@ namespace OpenMS
     }
   }
 
-  void IDFilter::removeUnreferencedProteins(ProteinIdentification& proteins, const vector<PeptideIdentification>& peptides)
+  void IDFilter::removeUnreferencedProteins(ProteinIdentification& proteins, const PeptideIdentificationList& peptides)
   {
     // collect accessions that are referenced by peptides for each ID run:
     map<String, unordered_set<String>> run_to_accessions;
@@ -274,7 +274,7 @@ namespace OpenMS
     keepMatchingItems(proteins.getHits(), acc_filter);
   }
 
-  void IDFilter::removeUnreferencedProteins(vector<ProteinIdentification>& proteins, const vector<PeptideIdentification>& peptides)
+  void IDFilter::removeUnreferencedProteins(vector<ProteinIdentification>& proteins, const PeptideIdentificationList& peptides)
   {
     // collect accessions that are referenced by peptides for each ID run:
     map<String, unordered_set<String>> run_to_accessions;
@@ -369,7 +369,7 @@ namespace OpenMS
     cmap.applyFunctionOnPeptideIDs(check_prots_avail);
   }
 
-  void IDFilter::updateProteinReferences(vector<PeptideIdentification>& peptides, const vector<ProteinIdentification>& proteins, bool remove_peptides_without_reference)
+  void IDFilter::updateProteinReferences(PeptideIdentificationList& peptides, const vector<ProteinIdentification>& proteins, bool remove_peptides_without_reference)
   {
     // collect valid protein accessions for each ID run:
     map<String, unordered_set<String>> run_to_accessions;
@@ -460,7 +460,7 @@ namespace OpenMS
     hits.erase(std::remove_if(hits.begin(), hits.end(), std::not_fn(HasMatchingAccessionUnordered<ProteinHit>(valid_accessions))), hits.end());
   }
 
-  void IDFilter::keepBestPeptideHits(vector<PeptideIdentification>& peptides, bool strict)
+  void IDFilter::keepBestPeptideHits(PeptideIdentificationList& peptides, bool strict)
   {
     for (PeptideIdentification& pep : peptides)
     {
@@ -508,7 +508,7 @@ namespace OpenMS
     grps.erase(std::remove_if(grps.begin(), grps.end(), pred), grps.end());
   }
 
-  void IDFilter::filterPeptidesByLength(vector<PeptideIdentification>& peptides, Size min_length, Size max_length)
+  void IDFilter::filterPeptidesByLength(PeptideIdentificationList& peptides, Size min_length, Size max_length)
   {
     if (min_length > 0)
     {
@@ -532,7 +532,7 @@ namespace OpenMS
     }
   }
 
-  void IDFilter::filterPeptidesByCharge(vector<PeptideIdentification>& peptides, Int min_charge, Int max_charge)
+  void IDFilter::filterPeptidesByCharge(PeptideIdentificationList& peptides, Int min_charge, Int max_charge)
   {
     struct HasMinCharge charge_filter(min_charge);
     
@@ -555,21 +555,21 @@ namespace OpenMS
   }
 
 
-  void IDFilter::filterPeptidesByRT(vector<PeptideIdentification>& peptides, double min_rt, double max_rt)
+  void IDFilter::filterPeptidesByRT(PeptideIdentificationList& peptides, double min_rt, double max_rt)
   {
     struct HasRTInRange rt_filter(min_rt, max_rt);
     keepMatchingItems(peptides, rt_filter);
   }
 
 
-  void IDFilter::filterPeptidesByMZ(vector<PeptideIdentification>& peptides, double min_mz, double max_mz)
+  void IDFilter::filterPeptidesByMZ(PeptideIdentificationList& peptides, double min_mz, double max_mz)
   {
     struct HasMZInRange mz_filter(min_mz, max_mz);
     keepMatchingItems(peptides, mz_filter);
   }
 
 
-  void IDFilter::filterPeptidesByMZError(vector<PeptideIdentification>& peptides, double mass_error, bool unit_ppm)
+  void IDFilter::filterPeptidesByMZError(PeptideIdentificationList& peptides, double mass_error, bool unit_ppm)
   {
     for (PeptideIdentification& pep : peptides)
     {
@@ -579,7 +579,7 @@ namespace OpenMS
   }
 
 
-  void IDFilter::filterPeptidesByRTPredictPValue(vector<PeptideIdentification>& peptides, const String& metavalue_key, double threshold)
+  void IDFilter::filterPeptidesByRTPredictPValue(PeptideIdentificationList& peptides, const String& metavalue_key, double threshold)
   {
     Size n_initial = 0, n_metavalue = 0; // keep track of numbers of hits
     struct HasMetaValue<PeptideHit> present_filter(metavalue_key, DataValue());
@@ -602,7 +602,7 @@ namespace OpenMS
   }
 
 
-  void IDFilter::removePeptidesWithMatchingModifications(vector<PeptideIdentification>& peptides, const set<String>& modifications)
+  void IDFilter::removePeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const set<String>& modifications)
   {
     struct HasMatchingModification mod_filter(modifications);
     for (PeptideIdentification& pep : peptides)
@@ -611,7 +611,7 @@ namespace OpenMS
     }
   }
 
-  void IDFilter::removePeptidesWithMatchingRegEx(vector<PeptideIdentification>& peptides, const String& regex)
+  void IDFilter::removePeptidesWithMatchingRegEx(PeptideIdentificationList& peptides, const String& regex)
   {
     const std::regex re(regex);
 
@@ -624,7 +624,7 @@ namespace OpenMS
     }
   }
 
-  void IDFilter::keepPeptidesWithMatchingModifications(vector<PeptideIdentification>& peptides, const set<String>& modifications)
+  void IDFilter::keepPeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const set<String>& modifications)
   {
     struct HasMatchingModification mod_filter(modifications);
     for (PeptideIdentification& pep : peptides)
@@ -634,7 +634,7 @@ namespace OpenMS
   }
 
 
-  void IDFilter::removePeptidesWithMatchingSequences(vector<PeptideIdentification>& peptides, const vector<PeptideIdentification>& bad_peptides, bool ignore_mods)
+  void IDFilter::removePeptidesWithMatchingSequences(PeptideIdentificationList& peptides, const PeptideIdentificationList& bad_peptides, bool ignore_mods)
   {
     set<String> bad_seqs;
     extractPeptideSequences(bad_peptides, bad_seqs, ignore_mods);
@@ -646,7 +646,7 @@ namespace OpenMS
   }
 
 
-  void IDFilter::keepPeptidesWithMatchingSequences(vector<PeptideIdentification>& peptides, const vector<PeptideIdentification>& good_peptides, bool ignore_mods)
+  void IDFilter::keepPeptidesWithMatchingSequences(PeptideIdentificationList& peptides, const PeptideIdentificationList& good_peptides, bool ignore_mods)
   {
     set<String> good_seqs;
     extractPeptideSequences(good_peptides, good_seqs, ignore_mods);
@@ -658,7 +658,7 @@ namespace OpenMS
   }
 
 
-  void IDFilter::keepUniquePeptidesPerProtein(vector<PeptideIdentification>& peptides)
+  void IDFilter::keepUniquePeptidesPerProtein(PeptideIdentificationList& peptides)
   {
     Size n_initial = 0, n_metavalue = 0; // keep track of numbers of hits
     struct HasMetaValue<PeptideHit> present_filter("protein_references", DataValue());
@@ -681,7 +681,7 @@ namespace OpenMS
 
 
   // @TODO: generalize this to protein hits?
-  void IDFilter::removeDuplicatePeptideHits(vector<PeptideIdentification>& peptides, bool seq_only)
+  void IDFilter::removeDuplicatePeptideHits(PeptideIdentificationList& peptides, bool seq_only)
   {
     for (PeptideIdentification& pep : peptides)
     {
@@ -713,7 +713,7 @@ namespace OpenMS
     }
   }
 
-  void IDFilter::keepNBestSpectra(std::vector<PeptideIdentification>& peptides, Size n)
+  void IDFilter::keepNBestSpectra(PeptideIdentificationList& peptides, Size n)
   {
     String score_type;
     for (PeptideIdentification& p : peptides)

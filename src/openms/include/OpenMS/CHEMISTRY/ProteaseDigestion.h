@@ -37,7 +37,8 @@ namespace OpenMS
     void setEnzyme(const String& name);
 
     /** 
-       @brief Performs the enzymatic digestion of a protein represented as AASequence
+       @brief Performs the enzymatic digestion of a protein represented as AASequence.
+       Digestion logic is implemented by overloaded function @p digest .
 
        @param protein Sequence to digest
        @param output Digestion products (peptides)
@@ -49,13 +50,20 @@ namespace OpenMS
     Size digest(const AASequence& protein, std::vector<AASequence>& output, Size min_length = 1, Size max_length = 0) const;
 
     /** 
-       @brief Performs the enzymatic digestion of a protein represented as AASequence
+       @brief Performs the enzymatic digestion of a protein represented as AASequence.
+       Digestion takes into account the value of
+       - the **missed cleavages** member, see @p setMissedCleavages()
+       - the **specificity** member, see @p setSpecificity()
+
+       Currently, Specificity::SPEC_SEMI and Specificity::SPEC_FULL are supported.
+       Others raise an exception
 
        @param protein Sequence to digest
        @param output Digestion products (start and end indices of peptides)
        @param min_length Minimal length of reported products
        @param max_length Maximal length of reported products (0 = no restriction)
        @return Number of discarded digestion products (which are not matching length restrictions)
+       @throw Exception::InvalidValue If object's specificity_ value is not supported.
 
     */
     Size digest(const AASequence& protein, std::vector<std::pair<size_t,size_t>>& output, Size min_length = 1, Size max_length = 0) const;

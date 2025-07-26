@@ -70,7 +70,7 @@ cdef extern from "<OpenMS/PROCESSING/CALIBRATION/InternalCalibration.h>" namespa
                 #  :param tol_ppm: Only accept ID's whose theoretical mass deviates at most this much from annotated
                 #  :return: Number of calibration masses found
 
-        Size fillCalibrants(libcpp_vector[PeptideIdentification], double) except + nogil 
+        Size fillCalibrants(PeptideIdentificationList, double) except + nogil 
             # wrap-doc:
                 #  Extract calibrants from identifications\n
                 #  

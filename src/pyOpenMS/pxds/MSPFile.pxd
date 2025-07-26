@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/FORMAT/MSPFile.h>" namespace "OpenMS":
         MSPFile(MSPFile &) except + nogil 
 
         void store(String filename, AnnotatedMSRun & exp) except + nogil  # wrap-doc:Stores a map in a MSPFile file
-        void load(String filename, libcpp_vector[PeptideIdentification] & ids, MSExperiment & exp) except + nogil 
+        void load(String filename, PeptideIdentificationList & ids, MSExperiment & exp) except + nogil 
             # wrap-doc:
                 #  Loads a map from a MSPFile file
                 #  

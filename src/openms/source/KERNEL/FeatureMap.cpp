@@ -351,17 +351,17 @@ namespace OpenMS
     protein_identifications_ = protein_identifications;
   }
 
-  const std::vector<PeptideIdentification>& FeatureMap::getUnassignedPeptideIdentifications() const
+  const PeptideIdentificationList& FeatureMap::getUnassignedPeptideIdentifications() const
   {
     return unassigned_peptide_identifications_;
   }
 
-  std::vector<PeptideIdentification>& FeatureMap::getUnassignedPeptideIdentifications()
+  PeptideIdentificationList& FeatureMap::getUnassignedPeptideIdentifications()
   {
     return unassigned_peptide_identifications_;
   }
 
-  void FeatureMap::setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications)
+  void FeatureMap::setUnassignedPeptideIdentifications(const PeptideIdentificationList& unassigned_peptide_identifications)
   {
     unassigned_peptide_identifications_ = unassigned_peptide_identifications;
   }

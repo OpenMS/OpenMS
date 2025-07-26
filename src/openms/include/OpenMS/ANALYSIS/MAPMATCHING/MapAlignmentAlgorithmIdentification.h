@@ -17,6 +17,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <cmath> // for "abs"
@@ -82,7 +83,7 @@ public:
     /**
       @brief Align feature maps, consensus maps, or peptide identifications.
 
-      @param data Vector of input data (FeatureMap, ConsensusMap, or @p vector<PeptideIdentification>) that should be aligned.
+      @param data Vector of input data (FeatureMap, ConsensusMap, or @p PeptideIdentificationList) that should be aligned.
       @param transformations Vector of RT transformations that will be computed.
       @param reference_index Index in @p data of the reference to align to, if any
 
@@ -185,7 +186,7 @@ protected:
 
       @return Are the RTs already sorted? (Here: false)
     */
-    bool getRetentionTimes_(const std::vector<PeptideIdentification>& peptides,
+    bool getRetentionTimes_(const PeptideIdentificationList& peptides,
                             SeqToList& rt_data);
 
     /**
@@ -240,7 +241,7 @@ protected:
           String sequence;
           double rt_distance = std::numeric_limits<double>::max();
           bool any_hit = false;
-          for (std::vector<PeptideIdentification>::const_iterator pep_it =
+          for (PeptideIdentificationList::const_iterator pep_it =
                  feat_it->getPeptideIdentifications().begin(); pep_it !=
                  feat_it->getPeptideIdentifications().end(); ++pep_it)
           {

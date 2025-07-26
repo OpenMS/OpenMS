@@ -17,6 +17,7 @@
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
 #include <map>
@@ -246,10 +247,10 @@ public:
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler for internal identification structures
-      MzIdentMLHandler(const std::vector<ProteinIdentification>& pro_id, const std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger);
+      MzIdentMLHandler(const std::vector<ProteinIdentification>& pro_id, const PeptideIdentificationList& pep_id, const String& filename, const String& version, const ProgressLogger& logger);
 
       /// Constructor for a read-only handler for internal identification structures
-      MzIdentMLHandler(std::vector<ProteinIdentification>& pro_id, std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger);
+      MzIdentMLHandler(std::vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const String& filename, const String& version, const ProgressLogger& logger);
 
       /// Destructor
       ~MzIdentMLHandler() override;
@@ -287,11 +288,11 @@ protected:
       ///internal Identification Item for proteins
       std::vector<ProteinIdentification>* pro_id_;
       ///Identification Item for peptides
-      std::vector<PeptideIdentification>* pep_id_;
+      PeptideIdentificationList* pep_id_;
 
       const Identification* cid_;
       const std::vector<ProteinIdentification>* cpro_id_;
-      const std::vector<PeptideIdentification>* cpep_id_;
+      const PeptideIdentificationList* cpep_id_;
 
       ///SpectrumIdentification Item
       SpectrumIdentification current_spectrum_id_;
@@ -328,7 +329,7 @@ protected:
 
       /// Abstraction of PeptideHit loop for most PeptideHits
       void writePeptideHit(const PeptideHit& hit,
-                                std::vector<PeptideIdentification>::const_iterator& it,
+                                PeptideIdentificationList::const_iterator& it,
                                 std::map<String, String>& pep_ids,
                                 const String& cv_ns, std::set<String>& sen_set,
                                 std::map<String, String>& sen_ids,
@@ -338,7 +339,7 @@ protected:
 
       /// Abstraction of PeptideHit loop for XL-MS data from OpenPepXL
       void writeXLMSPeptideHit(const PeptideHit& hit,
-                                std::vector<PeptideIdentification>::const_iterator& it,
+                                PeptideIdentificationList::const_iterator& it,
                                 const String& ppxl_linkid, std::map<String, String>& pep_ids,
                                 const String& cv_ns, std::set<String>& sen_set,
                                 std::map<String, String>& sen_ids,

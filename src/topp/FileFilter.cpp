@@ -216,7 +216,7 @@ private:
           }
         }
       }
-      feature.setPeptideIdentifications(vector<PeptideIdentification>(1, temp));
+      feature.setPeptideIdentifications(PeptideIdentificationList(1, temp));
       // not filtering sequences or accessions
       if (sequences.empty() && accessions.empty())
       {
@@ -1229,7 +1229,7 @@ protected:
   ExitCodes filterByBlackList(MapType& exp, const String& id_blacklist, bool blacklist_imperfect, double rt_tol, double mz_tol)
   {
     vector<ProteinIdentification> protein_ids;
-    vector<PeptideIdentification> peptide_ids;
+    PeptideIdentificationList peptide_ids;
     FileHandler().loadIdentifications(id_blacklist, protein_ids, peptide_ids);
 
     // translate idXML entries into something more handy

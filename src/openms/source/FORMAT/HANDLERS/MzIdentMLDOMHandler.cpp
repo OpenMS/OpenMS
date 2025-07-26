@@ -30,7 +30,7 @@ namespace OpenMS::Internal
     //TODO remodel CVTermList
     //TODO extend CVTermlist with CVCollection functionality for complete replacement??
     //TODO general id openms struct for overall parameter for one id run
-    MzIdentMLDOMHandler::MzIdentMLDOMHandler(const vector<ProteinIdentification>& pro_id, const vector<PeptideIdentification>& pep_id, const String& version, const ProgressLogger& logger) :
+    MzIdentMLDOMHandler::MzIdentMLDOMHandler(const vector<ProteinIdentification>& pro_id, const PeptideIdentificationList& pep_id, const String& version, const ProgressLogger& logger) :
       logger_(logger),
       cv_(ControlledVocabulary::getPSIMSCV()),
       //~ ms_exp_(0),
@@ -61,7 +61,7 @@ namespace OpenMS::Internal
 
     }
 
-    MzIdentMLDOMHandler::MzIdentMLDOMHandler(vector<ProteinIdentification>& pro_id, vector<PeptideIdentification>& pep_id, const String& version, const ProgressLogger& logger) :
+    MzIdentMLDOMHandler::MzIdentMLDOMHandler(vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const String& version, const ProgressLogger& logger) :
       logger_(logger),
       cv_(ControlledVocabulary::getPSIMSCV()),
       //~ ms_exp_(0),
@@ -356,7 +356,7 @@ namespace OpenMS::Internal
           }
 
           set<AASequence> pepset;
-          for (vector<PeptideIdentification>::const_iterator pi = cpep_id_->begin(); pi != cpep_id_->end(); ++pi)
+          for (PeptideIdentificationList::const_iterator pi = cpep_id_->begin(); pi != cpep_id_->end(); ++pi)
           {
             for (vector<PeptideHit>::const_iterator ph = pi->getHits().begin(); ph != pi->getHits().end(); ++ph)
             {
@@ -2934,7 +2934,7 @@ namespace OpenMS::Internal
       current_sil->setAttribute(CONST_XMLCH("numSequencesSearched"), CONST_XMLCH("TBA"));
       // for now no FragmentationTable
 
-      for (vector<PeptideIdentification>::iterator pi = pep_id_->begin(); pi != pep_id_->end(); ++pi)
+      for (PeptideIdentificationList::iterator pi = pep_id_->begin(); pi != pep_id_->end(); ++pi)
       {
         DOMElement* current_sr = current_sil->getOwnerDocument()->createElement(CONST_XMLCH("SpectrumIdentificationResult"));
         current_sr->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr(String(UniqueIdGenerator::getUniqueId())).get());
