@@ -29,7 +29,7 @@ namespace OpenMS{
                                                                                         "134N","134C","134ND","134CD",
                                                                                         "135N","135ND","135CD"};
 
-    static const int interaction_vector[35][14] = {  { -1, -1, -1, -1, -1, -1, -1,  1,  2,  3,  4,  6,  5,  7 },
+    static const std::array<std::array<int, 14>, 35> interaction_vector {  { -1, -1, -1, -1, -1, -1, -1,  1,  2,  3,  4,  6,  5,  7 },
                                         { -1, -1, -1, -1, -1, -1,  0, -1,  4,  6, -1, -1,  8, 10 },
                                         { -1, -1, -1, -1, -1,  0, -1,  4,  5,  7,  8, 10,  9, 11 },
                                         { -1, -1, -1, -1,  0, -1, -1,  6,  7, -1, 10,  9, 11, -1 },
@@ -90,7 +90,7 @@ namespace OpenMS{
                                                                                 // 
 
         auto make_channel = [&](const std::string& name, int idx, double mass, int vec_idx){
-            return IsobaricChannelInformation(name, idx, "", mass, std::vector<int>(interaction_vector[vec_idx], interaction_vector[vec_idx]+14));
+            return IsobaricChannelInformation(name, idx, "", mass, std::vector<int>(interaction_vector[vec_idx].begin(), interaction_vector[vec_idx].end()));
         };
         for(int i =0; i<35; i++){
             channels_.push_back(make_channel(channel_names_[i],i,o_mass35[i],i));
