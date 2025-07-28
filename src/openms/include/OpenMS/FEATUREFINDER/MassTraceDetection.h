@@ -14,9 +14,28 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
+#include <boost/accumulators/statistics/mean.hpp>
+#include <boost/accumulators/statistics/variance.hpp>
+#include <boost/accumulators/statistics/weighted_mean.hpp>
+#include <boost/accumulators/statistics/weighted_variance.hpp>
+#include <boost/accumulators/statistics/sum_kahan.hpp>
+
 namespace OpenMS
 {
-
+    // Type definitions for boost accumulators
+    namespace ba = boost::accumulators;
+    
+    // Accumulator for weighted mean and variance calculations with numerical stability
+    typedef ba::accumulator_set<double,
+        ba::stats<
+            ba::tag::weighted_mean,
+            ba::tag::weighted_variance,
+            ba::tag::weighted_sum_kahan,
+            ba::tag::sum_of_weights_kahan
+        >, double> WeightedStatsAccumulator;
+    
     /**
       @brief A mass trace extraction method that gathers peaks similar in m/z and moving along retention time.
 
@@ -75,12 +94,6 @@ namespace OpenMS
         */
     protected:
         void updateMembers_() override;
-        /// allows for the iterative computation of intensity weighted of a mass trace's centroid m/z or ion mobility
-        static void updateIterativeWeightedMean_(const double& added_value,
-                                                const double& added_intensity,
-                                                double& centroid_value,
-                                                double& prev_counter,
-                                                double& prev_denom);
 
     private:
 

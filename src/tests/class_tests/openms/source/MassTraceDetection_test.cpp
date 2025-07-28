@@ -14,15 +14,13 @@
 #include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
 ///////////////////////////
 
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
+#include <boost/accumulators/statistics/weighted_mean.hpp>
+#include <boost/accumulators/statistics/weighted_sum_kahan.hpp>
+
 using namespace OpenMS;
 using namespace std;
-
-/// provide access to private functions
-class MassTraceDetectionAccess : public OpenMS::MassTraceDetection
-{
-public:
-  using OpenMS::MassTraceDetection::updateIterativeWeightedMean_;
-};
 
 START_TEST(MassTraceDetection, "$Id$")
 
@@ -46,8 +44,9 @@ END_SECTION
 
 MassTraceDetection test_mtd;
 
-START_SECTION((void updateIterativeWeightedMean_(const double &, const double &, double &, double &, double &)))
+START_SECTION((boost::accumulators weighted mean test))
 {
+    // Test that boost::accumulators produces the same weighted mean results
     double centroid_mz(150.22), centroid_int(25000000);
     double new_mz1(150.34), new_int1(23043030);
     double new_mz2(150.11), new_int2(1932392);
@@ -66,18 +65,29 @@ START_SECTION((void updateIterativeWeightedMean_(const double &, const double &,
     double wmean1((centroid_mz * centroid_int + new_mz1 * new_int1)/total_weight1);
     double wmean2((centroid_mz * centroid_int + new_mz1 * new_int1 + new_mz2 * new_int2)/total_weight2);
 
-    double prev_count(centroid_mz * centroid_int);
-    double prev_denom(centroid_int);
-
-    MassTraceDetectionAccess::updateIterativeWeightedMean_(new_mz1, new_int1, centroid_mz, prev_count, prev_denom);
-
-
-    TEST_REAL_SIMILAR(centroid_mz, wmean1);
-
-    MassTraceDetectionAccess::updateIterativeWeightedMean_(new_mz2, new_int2, centroid_mz, prev_count, prev_denom);
-
-    TEST_REAL_SIMILAR(centroid_mz, wmean2);
-
+    // Test using boost::accumulators directly with Kahan summation for numerical stability
+    namespace ba = boost::accumulators;
+    typedef ba::accumulator_set<double,
+        ba::stats<
+            ba::tag::weighted_mean,
+            ba::tag::weighted_sum_kahan,
+            ba::tag::sum_of_weights_kahan
+        >, double> WeightedMeanAccumulator;
+    
+    WeightedMeanAccumulator acc;
+    
+    // Add first two values
+    acc(centroid_mz, ba::weight = centroid_int);
+    acc(new_mz1, ba::weight = new_int1);
+    
+    double acc_mean1 = ba::weighted_mean(acc);
+    TEST_REAL_SIMILAR(acc_mean1, wmean1);
+    
+    // Add third value
+    acc(new_mz2, ba::weight = new_int2);
+    
+    double acc_mean2 = ba::weighted_mean(acc);
+    TEST_REAL_SIMILAR(acc_mean2, wmean2);
 }
 END_SECTION
 
@@ -85,10 +95,10 @@ END_SECTION
 PeakMap input;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_input1.mzML"),input);
 
-Size exp_mt_lengths[3] = {86, 31, 16};
-double exp_mt_rts[3] = {348.667, 347.107, 346.888}; // centroid RTs should be reasonably similar (isotopic traces)
+Size exp_mt_lengths[3] = {85, 31, 16};
+double exp_mt_rts[3] = {348.673, 347.107, 346.888}; // centroid RTs should be reasonably similar (isotopic traces)
 double exp_mt_mzs[3] = {437.26675, 438.27241, 439.27594};
-double exp_mt_ints[3] = {3381.72226139326, 664.763828332733, 109.490108620676};
+double exp_mt_ints[3] = {3382.20934, 664.763828332733, 109.490108620676};
 
 std::vector<MassTrace> output_mt;
 

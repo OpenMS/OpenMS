@@ -67,6 +67,28 @@ namespace OpenMS
   public:
     EXPOSED_VECTOR_INTERFACE(PeptideIdentification)
     
+    //@{
+    typedef iterator Iterator;
+    typedef const_iterator ConstIterator;
+    typedef reverse_iterator ReverseIterator;
+    typedef const_reverse_iterator ConstReverseIterator;
+    //@}
+
+    /// Default constructor
+    PeptideIdentificationList() = default;
+
+    /// @name Copy semantics
+    //@{
+    /// Copy constructor
+    PeptideIdentificationList(const PeptideIdentificationList& other) = default;
+    
+    /// Copy assignment operator
+    PeptideIdentificationList& operator=(const PeptideIdentificationList& other) = default;
+
+    /// Move constructor
+    PeptideIdentificationList(PeptideIdentificationList&& other) noexcept = default;
+    //@}    
+
     /// @name Additional constructors for std::vector compatibility
     //@{
     /// Constructor from std::vector
@@ -74,10 +96,11 @@ namespace OpenMS
       : ExposedVector<PeptideIdentification>(vec.begin(), vec.end()) {}
     
     /// Move constructor from std::vector
-    PeptideIdentificationList(std::vector<PeptideIdentification>&& vec) 
-      : ExposedVector<PeptideIdentification>(std::make_move_iterator(vec.begin()), 
-                                            std::make_move_iterator(vec.end())) {}
-    
+    PeptideIdentificationList(std::vector<PeptideIdentification>&& vec) noexcept
+    {
+      data_ = std::move(vec);
+    }
+        
     /// Constructor from initializer list
     PeptideIdentificationList(std::initializer_list<PeptideIdentification> init) 
       : ExposedVector<PeptideIdentification>(init.begin(), init.end()) {}
