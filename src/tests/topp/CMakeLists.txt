@@ -3119,10 +3119,11 @@ set_tests_properties("TOPP_ProteomicsLFQ_9_out_4" PROPERTIES DEPENDS "TOPP_Prote
 
 #------------------------------------------------------------------------------
 # NucleicAcidSearchEngine:
-add_test("TOPP_NucleicAcidSearchEngine_1" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out NucleicAcidSearchEngine_11_out.tmp.idXML -out NucleicAcidSearchEngine_12_out.tmp.mzTab -db_out NucleicAcidSearchEngine_13_out.tmp.oms -digest_out NucleicAcidSearchEngine_1_digest.oms -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta)
+add_test("TOPP_NucleicAcidSearchEngine_1" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out NucleicAcidSearchEngine_11_out.tmp.idXML -out NucleicAcidSearchEngine_12_out.tmp.mzTab -db_out NucleicAcidSearchEngine_13_out.tmp.oms -digest_out NucleicAcidSearchEngine_1_digest.oms -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta -transition_tsv_out NucleicAcidSearchEngine_14_out.tmp.tsv)
 add_test("TOPP_NucleicAcidSearchEngine_11_out" ${DIFF} -in1 NucleicAcidSearchEngine_11_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_11_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
 add_test("TOPP_NucleicAcidSearchEngine_12_out" ${DIFF} -in1 NucleicAcidSearchEngine_12_out.tmp.mzTab -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_12_out.mzTab -whitelist "ms_run[1]-location")
 # don't compare binary .oms (SQLite) output file (NucleicAcidSearchEngine_13_out.tmp.oms)
+add_test("TOPP_NucleicAcidSearchEngine_14_out" ${DIFF} -in1 NucleicAcidSearchEngine_14_out.tmp.tsv -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_14_out.tsv -whitelist "ms_run[1]-location")
 set_tests_properties("TOPP_NucleicAcidSearchEngine_11_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_1")
 set_tests_properties("TOPP_NucleicAcidSearchEngine_12_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_1")
 # use pre-digested sequence data:

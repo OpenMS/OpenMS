@@ -968,48 +968,47 @@ protected:
           {
             // Try to parse fragment type and number from annotation
             // Check for known fragment types (including multi-character ones like "a-B")
-            String frag_num_str = "";
 
             if (annotation.annotation.hasSuffix("-B"))
             {
               frag_type = TargetedExperiment::IonType::AminusB;
-              frag_num_str = annotation.annotation.suffix('a').prefix('-');
+              frag_num_str = annotation.annotation.suffix('a').prefix('-').toInt();
             }
             else
             {
-              switch (annotation.annotation[0])
+              if (annotation.annotation.hasPrefix("b"))
               {
-                case 'b':
-                  frag_type = TargetedExperiment::IonType::BIon;
-                  break;
-                case 'y':
-                  frag_type = TargetedExperiment::IonType::YIon;
-                  break;
-                case 'c':
-                  frag_type = TargetedExperiment::IonType::CIon;
-                  break;
-                case 'z':
-                  frag_type = TargetedExperiment::IonType::ZIon;
-                  break;
-                case 'x':
-                  frag_type = TargetedExperiment::IonType::XIon;
-                  break;
-                case 'a':
-                  frag_type = TargetedExperiment::IonType::AIon;
-                  break;
-                case 'd':
-                  frag_type = TargetedExperiment::IonType::DIon;
-                  break;
-                case 'w':
-                  frag_type = TargetedExperiment::IonType::WIon;
-                  break;
-                default:
-                  throw Exception::InvalidValue(
-                      __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "Unknown fragment type in annotation: " + annotation.annotation,
-                      annotation.annotation);
-                  break;
+                frag_type = TargetedExperiment::IonType::BIon;
               }
+              else if (annotation.annotation.hasPrefix("y"))
+              {
+                frag_type = TargetedExperiment::IonType::YIon;
+              }
+              else if (annotation.annotation.hasPrefix("c"))
+              {
+                frag_type = TargetedExperiment::IonType::CIon;
+              }
+              else if (annotation.annotation.hasPrefix("z"))
+              {
+                frag_type = TargetedExperiment::IonType::ZIon;
+              }
+              else if (annotation.annotation.hasPrefix("x"))
+              {
+                frag_type = TargetedExperiment::IonType::XIon;
+              }
+              else if (annotation.annotation.hasPrefix("a"))
+              {
+                frag_type = TargetedExperiment::IonType::AIon;
+              }
+              else if (annotation.annotation.hasPrefix("d"))
+              {
+                frag_type = TargetedExperiment::IonType::DIon;
+              }
+              else if (annotation.annotation.hasPrefix("w"))
+              {
+                frag_type = TargetedExperiment::IonType::WIon;
+              }
+              frag_num_str = annotation.annotation.substr(1).toInt(); // Extract number after the first character
             }
           }
 

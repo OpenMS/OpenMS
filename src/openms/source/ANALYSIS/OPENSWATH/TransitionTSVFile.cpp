@@ -1361,9 +1361,9 @@ namespace OpenMS
     
     // Fragment type mapping for O(1) lookup performance instead of switch statement
     static const std::unordered_map<TargetedExperiment::IonType, String> FRAGMENT_TYPE_MAP = {
-      {TargetedExperiment::IonType::AIon, "a"}, {TargetedExperiment::IonType::BIon, "b"}, {TargetedExperiment::IonType::CIon, "c"},
-      {TargetedExperiment::IonType::XIon, "x"}, {TargetedExperiment::IonType::YIon, "y"}, {TargetedExperiment::IonType::ZIon, "z"},
-      {TargetedExperiment::IonType::Zp1Ion, "z."}, {TargetedExperiment::IonType::Zp2Ion, "z'"}, {TargetedExperiment::IonType::Precursor, "prec"},
+      {TargetedExperiment::IonType::AIon, "a"}, {TargetedExperiment::IonType::BIon, "b"}, {TargetedExperiment::IonType::CIon, "c"}, {TargetedExperiment::IonType::DIon, "d"},
+      {TargetedExperiment::IonType::WIon, "w"}, {TargetedExperiment::IonType::XIon, "x"}, {TargetedExperiment::IonType::YIon, "y"}, {TargetedExperiment::IonType::ZIon, "z"},
+      {TargetedExperiment::IonType::Zp1Ion, "z."}, {TargetedExperiment::IonType::Zp2Ion, "z'"}, {TargetedExperiment::IonType::Precursor, "prec"}, {TargetedExperiment::IonType::AminusB, "a-B"},
       {TargetedExperiment::IonType::BIonMinusH20, "b-H20"}, {TargetedExperiment::IonType::YIonMinusH20, "y-H20"},
       {TargetedExperiment::IonType::BIonMinusNH3, "b-NH3"}, {TargetedExperiment::IonType::YIonMinusNH3, "y-NH3"},
       {TargetedExperiment::IonType::NonIdentified, "unknown"}, {TargetedExperiment::IonType::Unannotated, ""}
