@@ -73,15 +73,6 @@ namespace OpenMS::DIAHelpers
         return;
       }
 
-      // if im_range is set, than integrate across dirft time
-      if (!im_range.isEmpty()) // if imRange supplied, integrate across IM
-      {
-        if (spectrum->getDriftTimeArray() == nullptr)
-        {
-            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot integrate with drift time if no drift time is available");
-        }
-      }
-
       if (!centroided)
       {
         // get the weighted average for noncentroided data.
@@ -241,14 +232,17 @@ namespace OpenMS::DIAHelpers
                                               const RangeMobility & range_im,
                                               bool centroided)
     {
-
       // initiate the values
       mz = 0;
       im = 0;
       intensity = 0;
-
+      if (!range_im.isEmpty() && spectrum->getDriftTimeArray() == nullptr)
+      {
+        OPENMS_LOG_WARN << "Warning: Trying to integrate where range is not empty but drift time is missing." << std::endl;
+        // TODO: Fix handling so we can throw an exception
+        //throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot integrate with drift time if no drift time is available");
+      }
       integrateWindow_(spectrum, mz, im, intensity, range_mz, range_im, centroided);
-
       // Post processing get the weighted average mz and im by dividing my intensity
       if (intensity > 0.)
       {
@@ -264,13 +258,9 @@ namespace OpenMS::DIAHelpers
         }
         return true;
       }
-      else
-      {
-        im = -1;
-        mz = -1;
-        intensity = 0;
-        return false;
-      }
+      mz = -1;
+      im = -1;
+      return false;
     }
 
     bool integrateWindow(const SpectrumSequence& spectra,
@@ -290,6 +280,12 @@ namespace OpenMS::DIAHelpers
       {
         for (const auto& s : spectra)
         {
+          if (!range_im.isEmpty() && s->getDriftTimeArray() == nullptr)
+          {
+            OPENMS_LOG_WARN << "Warning: Trying to integrate where range is not empty but drift time is missing." << std::endl;
+            // TODO: Fix handling so we can throw an exception
+            //throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot integrate with drift time if no drift time is available");
+          }
           integrateWindow_(s, mz, im, intensity, range_mz, range_im, centroided);
         }
 
@@ -307,24 +303,16 @@ namespace OpenMS::DIAHelpers
           }
           return true;
         }
-        else
-        {
-          // if (intensity <= 0)
-          im = -1;
-          mz = -1;
-          intensity = 0;
-          return false;
-        }
       }
       else
       {
         // if (all_spectra.empty())
         OPENMS_LOG_WARN << "Warning: no spectra provided" << std::endl;
-        im = -1;
-        mz = -1;
-        intensity = 0;
-        return false;
       }
+      im = -1;
+      mz = -1;
+      intensity = 0;
+      return false;
     }
 
     // for SWATH -- get the theoretical prefix and suffix series masses for a sequence

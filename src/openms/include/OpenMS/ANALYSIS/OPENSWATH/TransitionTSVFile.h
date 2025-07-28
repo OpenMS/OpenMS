@@ -296,11 +296,11 @@ private:
                            OpenMS::ReactionMonitoringTransition& rm_trans);
 
     /// Populate a new TargetedExperiment::Protein object from a row in the csv
-    void createProtein_(String protein_name, const String& uniprot_id,
+    void createProtein_(const String& protein_name, const String& uniprot_id,
                         OpenMS::TargetedExperiment::Protein& protein);
     
     /// Populate a new TargetedExperiment::Oligo object from a row in the csv
-    void createOligo_(String oligo_name,
+    void createOligo_(const String& oligo_name,
                       OpenMS::TargetedExperiment::Oligo& oligo);
 
     /// Helper function to assign retention times to compounds and peptides
