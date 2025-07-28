@@ -904,16 +904,24 @@ protected:
           targeted_exp.addOligo(oligo);
           oligo_ids.insert(oligo_id);
         }
+        else
+        {
+          // Oligo already exists, skip creating a new one.
+          OPENMS_LOG_DEBUG << "Oligo with ID '" << oligo_id
+                          << "' already exists. Skipping duplicate." << endl;
+        }
 
         // Create nuctide (modified sequence) if not exists
         String nuctide_id = hit.sequence.toString();
-        if (nuctide_ids.find(nuctide_id) == nuctide_ids.end())
+        auto it = nuctide_ids.find(nuctide_id);
+        if (it == nuctide_ids.end())
         {
           TargetedExperiment::Nuctide nuctide;
           nuctide.id = nuctide_id;
           nuctide.sequence = nuctide_id;
           Int actualCharge = negative_mode ? -hit.precursor_ref->charge : hit.precursor_ref->charge;
           nuctide.setChargeState(actualCharge);
+          nuctide.setDriftTime(precursor.getDriftTime());
 
           // Set retention time if available
           if (spectrum.getRT() > 0)
@@ -926,8 +934,6 @@ protected:
             nuctide.rts.push_back(rt);
           }
           
-          // Link to parent oligo
-          //SPWTODO handle multiple oligos per nuctide
           nuctide.oligo_refs.push_back(oligo_id);
 
           targeted_exp.addNuctide(nuctide);
@@ -935,73 +941,75 @@ protected:
         }
         else
         {
-          //SPWFIXME handle duplicates
-          OPENMS_LOG_WARN << "Nuctide with ID '" << nuctide_id
+          OPENMS_LOG_DEBUG << "Nuctide with ID '" << nuctide_id
                           << "' already exists. Skipping duplicate." << endl;
-          //TargetedExperiment::Nuctide& existing_nuctide = targeted_exp.getNuctideByRef(nuctide_id);
         }
         
         // Create transitions for each fragment annotation
         for (const auto& annotation : hit.annotations)
         {
           ReactionMonitoringTransition transition;
-          
+
+          // Set Collision Energy
+          transition.addCVTerm(CVTerm("MS:1000045", "collision energy", "MS", precursor.getActivationEnergy()));
+
+
           // Set unique transition ID
           transition.setNativeID("transition_" + String(transition_counter++));
           
           // Set precursor information
           transition.setPrecursorMZ(precursor.getMZ());
-          
+
           // Set annotation information
           transition.setMetaValue("annotation", annotation.annotation);
           TargetedExperiment::IonType frag_type = TargetedExperiment::IonType::Unannotated;
-          Int frag_num = 0;
+          Int frag_num_str = 0;
           if (!annotation.annotation.empty())
           {
             // Try to parse fragment type and number from annotation
             // Check for known fragment types (including multi-character ones like "a-B")
             String frag_num_str = "";
 
-            if (annotation.annotation.hasPrefix("a-B"))
+            if (annotation.annotation.hasSuffix("-B"))
             {
               frag_type = TargetedExperiment::IonType::AminusB;
-              frag_num_str = annotation.annotation.suffix('B');
+              frag_num_str = annotation.annotation.suffix('a').prefix('-');
             }
             else
             {
-              if (annotation.annotation.hasPrefix("b"))
+              switch (annotation.annotation[0])
               {
-                frag_type = TargetedExperiment::IonType::BIon;
+                case 'b':
+                  frag_type = TargetedExperiment::IonType::BIon;
+                  break;
+                case 'y':
+                  frag_type = TargetedExperiment::IonType::YIon;
+                  break;
+                case 'c':
+                  frag_type = TargetedExperiment::IonType::CIon;
+                  break;
+                case 'z':
+                  frag_type = TargetedExperiment::IonType::ZIon;
+                  break;
+                case 'x':
+                  frag_type = TargetedExperiment::IonType::XIon;
+                  break;
+                case 'a':
+                  frag_type = TargetedExperiment::IonType::AIon;
+                  break;
+                case 'd':
+                  frag_type = TargetedExperiment::IonType::DIon;
+                  break;
+                case 'w':
+                  frag_type = TargetedExperiment::IonType::WIon;
+                  break;
+                default:
+                  throw Exception::InvalidValue(
+                      __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                      "Unknown fragment type in annotation: " + annotation.annotation,
+                      annotation.annotation);
+                  break;
               }
-              else if (annotation.annotation.hasPrefix("y"))
-              {
-                frag_type = TargetedExperiment::IonType::YIon;
-              }
-              else if (annotation.annotation.hasPrefix("c"))
-              {
-                frag_type = TargetedExperiment::IonType::CIon;
-              }
-              else if (annotation.annotation.hasPrefix("z"))
-              {
-                frag_type = TargetedExperiment::IonType::ZIon;
-              }
-              else if (annotation.annotation.hasPrefix("x"))
-              {
-                frag_type = TargetedExperiment::IonType::XIon;
-              }
-              else if (annotation.annotation.hasPrefix("a"))
-              {
-                frag_type = TargetedExperiment::IonType::AIon;
-              }
-              else if (annotation.annotation.hasPrefix("d"))
-              {
-                frag_type = TargetedExperiment::IonType::DIon;
-              }
-              else if (annotation.annotation.hasPrefix("w"))
-              {
-                frag_type = TargetedExperiment::IonType::WIon;
-              }
-              frag_num_str = annotation.annotation.substr(1);
             }
           }
 
@@ -1013,7 +1021,7 @@ protected:
           TargetedExperiment::Interpretation interpretation;
           interpretation.transition_type = OpenSwath::TransType::NUCTIDE;
           interpretation.iontype = frag_type;
-          interpretation.ordinal = frag_num;
+          interpretation.ordinal = frag_num_str;
           interpretation.rank = 1;
           theProd.addInterpretation(interpretation);
 
