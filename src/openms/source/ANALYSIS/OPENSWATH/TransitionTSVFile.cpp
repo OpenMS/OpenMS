@@ -1043,7 +1043,7 @@ namespace OpenMS
     }
   }
 
-  void TransitionTSVFile::createProtein_(String protein_name, const String& uniprot_id, OpenMS::TargetedExperiment::Protein& protein)
+  void TransitionTSVFile::createProtein_(const String& protein_name, const String& uniprot_id, OpenMS::TargetedExperiment::Protein& protein)
   {
     // the following attributes will be stored as CV values (CV):
     // - uniprot accession number (if available)
@@ -1064,7 +1064,7 @@ namespace OpenMS
     }
   }
 
-  void TransitionTSVFile::createOligo_(String oligo_name, OpenMS::TargetedExperiment::Oligo& oligo)
+  void TransitionTSVFile::createOligo_(const String& oligo_name, OpenMS::TargetedExperiment::Oligo& oligo)
   {
     // the following attributes will be stored as attributes:
     // - id
