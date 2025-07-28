@@ -238,11 +238,12 @@ namespace OpenMS::DIAHelpers
       intensity = 0;
       if (!range_im.isEmpty() && spectrum->getDriftTimeArray() == nullptr)
       {
-        OPENMS_LOG_WARN << "Warning: Trying to integrate where range is not empty but drift time is missing." << std::endl;
-        // TODO: Fix handling so we can throw an exception
-        //throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot integrate with drift time if no drift time is available");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot integrate with drift time if no drift time is available");
       }
-      integrateWindow_(spectrum, mz, im, intensity, range_mz, range_im, centroided);
+      else
+      {
+        integrateWindow_(spectrum, mz, im, intensity, range_mz, range_im, centroided);
+      }
       // Post processing get the weighted average mz and im by dividing my intensity
       if (intensity > 0.)
       {
@@ -286,7 +287,10 @@ namespace OpenMS::DIAHelpers
             // TODO: Fix handling so we can throw an exception
             //throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot integrate with drift time if no drift time is available");
           }
-          integrateWindow_(s, mz, im, intensity, range_mz, range_im, centroided);
+          else
+          {
+            integrateWindow_(s, mz, im, intensity, range_mz, range_im, centroided);
+          }
         }
 
         // Post processing get the weighted average mz and im by dividing my intensity

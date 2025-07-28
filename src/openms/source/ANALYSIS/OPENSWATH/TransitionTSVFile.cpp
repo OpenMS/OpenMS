@@ -267,22 +267,21 @@ namespace OpenMS
       // Check for ambiguous entity type: more than one of ProteinId, OligoName, CompoundName not empty
       // isPeptide treats both empty and "NA" as not set.
       // TODO: This breaks a number of tests right now.
-      /*
+      
       int non_empty_count = 0;
       String protein_id, oligo_id, compound_name;
       extractName(protein_id, "FullPeptideName", tmp_line, header_dict);
       extractName(oligo_id, "FullNuctideName", tmp_line, header_dict);
       extractName(compound_name, "CompoundName", tmp_line, header_dict);
 
-      if (!protein_id.empty() || !(protein_id == "NA")) non_empty_count++;
-      if (!oligo_id.empty() || !(oligo_id == "NA")) non_empty_count++;
-      if (!compound_name.empty() || !(compound_name == "NA")) non_empty_count++;
+      if (!protein_id.empty() && !(protein_id == "NA")) non_empty_count++;
+      if (!oligo_id.empty() && !(oligo_id == "NA")) non_empty_count++;
+      if (!compound_name.empty() && !(compound_name == "NA")) non_empty_count++;
       if (non_empty_count > 1)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Ambiguous entity type: more than one of ProteinId, OligoName, and CompoundName is not empty in the same row: " + String(cnt));
+          "Ambiguous entity type: more than one of ProteinId, OligoName, and CompoundName is not empty in the same row: " + String(cnt) + " protein_id: " + protein_id + " oligo_id: " + oligo_id + " compound_name: " + compound_name);
       }
-      */
 
       TSVTransition mytransition;
       bool skip_transition = false; // skip unannotated transitions in SpectraST MRM files
