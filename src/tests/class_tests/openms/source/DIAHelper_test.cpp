@@ -489,28 +489,28 @@ END_SECTION
 
 START_SECTION([EXTRA] getPrefixSuffixSeries_test)
 {
-  TheoreticalSpectrumGenerator generator;
+  auto generator = std::make_unique<TheoreticalSpectrumGenerator>();
   Param p;
   p.setValue("add_metainfo", "true",
       "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-  generator.setParameters(p);
+  generator->setParameters(p);
 
   String sequence = "SYVAWDR";
   std::vector<double> bseries, yseries;
   OpenMS::AASequence a = OpenMS::AASequence::fromString(sequence);
-  OpenMS::DIAHelpers::getPrefixSuffixSeries(a, bseries, yseries, &generator);
+  OpenMS::DIAHelpers::getPrefixSuffixSeries(a, bseries, yseries, generator);
   bseries.clear();
-  OpenMS::DIAHelpers::getTheorMasses(a, bseries, &generator);
+  OpenMS::DIAHelpers::getTheorMasses(a, bseries, generator.get());
 
-  NucleicAcidSpectrumGenerator na_generator;
-  na_generator.setParameters(p);
+  auto na_generator = std::make_unique<NucleicAcidSpectrumGenerator>();
+  na_generator->setParameters(p);
 
   String seq_na = "AUCG[Cm]";
   std::vector<double> bseries_na, yseries_na;
   OpenMS::NASequence na = OpenMS::NASequence::fromString(seq_na);
-  OpenMS::DIAHelpers::getPrefixSuffixSeries(na, bseries_na, yseries_na, &na_generator);
+  OpenMS::DIAHelpers::getPrefixSuffixSeries(na, bseries_na, yseries_na, na_generator);
   bseries_na.clear();
-  OpenMS::DIAHelpers::getTheorMasses(na, bseries_na, &na_generator);
+  OpenMS::DIAHelpers::getTheorMasses(na, bseries_na, na_generator.get());
 }
 END_SECTION
 
