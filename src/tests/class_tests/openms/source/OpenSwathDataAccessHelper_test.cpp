@@ -148,16 +148,16 @@ START_SECTION((void OpenSwathDataAccessHelper::convertTargetedExp(const OpenMS::
     pep.id = "my_id";
 
     pep.setPeptideGroupLabel("group1");
-    pep.protein_refs.push_back("pr1");
-    pep.protein_refs.push_back("pr2");
-    pep.sequence = "PEPTIDE";
+    pep.addProteinRef("pr1");
+    pep.addProteinRef("pr2");
+    pep.setSequence("PEPTIDE");
 
     // add a modification
     TargetedExperimentHelper::Peptide::Modification m;
     m.mono_mass_delta = 123;
     m.location = 3;
     m.unimod_id = 5;
-    pep.mods.push_back(m);
+    pep.addMod(m);
 
     transition_exp_.addPeptide(pep);
 
@@ -238,16 +238,16 @@ START_SECTION((static void convertTargetedCompound(const TargetedExperiment::Pep
   pep.id = "my_id";
 
   pep.setPeptideGroupLabel("group1");
-  pep.protein_refs.push_back("pr1");
-  pep.protein_refs.push_back("pr2");
-  pep.sequence = "PEPTIDE";
+  pep.addProteinRef("pr1");
+  pep.addProteinRef("pr2");
+  pep.setSequence("PEPTIDE");
 
   // add a modification
   TargetedExperimentHelper::Peptide::Modification m;
   m.mono_mass_delta = 123;
   m.location = 3;
   m.unimod_id = 5;
-  pep.mods.push_back(m);
+  pep.addMod(m);
 
   OpenSwathDataAccessHelper::convertTargetedPeptide(pep, comp);
 

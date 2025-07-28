@@ -211,7 +211,7 @@ namespace OpenMS
       p.charge = pep.getChargeState();
     }
 
-    p.sequence = pep.sequence;
+    p.sequence = pep.getSequence();
     p.peptide_group_label = pep.getPeptideGroupLabel();
 
     if (pep.metaValueExists("GeneName"))
@@ -230,9 +230,9 @@ namespace OpenMS
     }
 
     p.protein_refs.clear();
-    if (!pep.protein_refs.empty())
+    if (!pep.getProteinRefs().empty())
     {
-      p.protein_refs.insert( p.protein_refs.begin(), pep.protein_refs.begin(), pep.protein_refs.end() );
+      p.protein_refs.insert( p.protein_refs.begin(), pep.getProteinRefs().begin(), pep.getProteinRefs().end() );
     }
 
     // Mapping of peptide modifications (don't do this for metabolites...)
@@ -287,7 +287,7 @@ namespace OpenMS
       n.charge = nuc.getChargeState();
     }
 
-    n.sequence = nuc.sequence;
+    n.sequence = nuc.getSequence();
     n.nuctide_group_label = nuc.getNuctideGroupLabel();
 
     // Is it potentially a metabolomics compound
@@ -301,9 +301,9 @@ namespace OpenMS
     }
 
     n.protein_refs.clear();
-    if (!nuc.oligo_refs.empty())
+    if (!nuc.getOligoRefs().empty())
     {
-      n.oligo_refs.insert( n.oligo_refs.begin(), nuc.oligo_refs.begin(), nuc.oligo_refs.end() );
+      n.oligo_refs.insert( n.oligo_refs.begin(), nuc.getOligoRefs().begin(), nuc.getOligoRefs().end() );
     }
   }
 

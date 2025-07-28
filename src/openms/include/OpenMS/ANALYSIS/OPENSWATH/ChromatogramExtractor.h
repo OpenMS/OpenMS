@@ -309,7 +309,7 @@ private:
     {
       const TargetedExperiment::Peptide p = transition_exp_used.getPeptideByRef(id);
       if (p.hasCharge()) {prec_charge = p.getChargeState();}
-      return p.sequence;
+      return p.getSequence();
     }
     else if (transition_exp_used.hasCompound(id))
     {

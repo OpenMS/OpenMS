@@ -772,7 +772,7 @@ namespace OpenMS
     // Check that each peptide has only valid proteins
     for (Size i = 0; i < getPeptides().size(); i++)
     {
-      for (std::vector<String>::const_iterator prot_it = getPeptides()[i].protein_refs.begin(); prot_it != getPeptides()[i].protein_refs.end(); ++prot_it)
+      for (std::vector<String>::const_iterator prot_it = getPeptides()[i].getProteinRefs().begin(); prot_it != getPeptides()[i].getProteinRefs().end(); ++prot_it)
       {
         if (unique_protein_map.find(*prot_it) == unique_protein_map.end()) 
         {
@@ -785,7 +785,7 @@ namespace OpenMS
     // Check that each nuctide has only valid proteins
     for (Size i = 0; i < getNuctides().size(); i++)
     {
-      for (std::vector<String>::const_iterator prot_it = getNuctides()[i].oligo_refs.begin(); prot_it != getNuctides()[i].oligo_refs.end(); ++prot_it)
+      for (std::vector<String>::const_iterator prot_it = getNuctides()[i].getOligoRefs().begin(); prot_it != getNuctides()[i].getOligoRefs().end(); ++prot_it)
       {
         if (unique_oligo_map.find(*prot_it) == unique_oligo_map.end()) 
         {

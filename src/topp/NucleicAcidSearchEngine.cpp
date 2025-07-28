@@ -918,7 +918,7 @@ protected:
         {
           TargetedExperiment::Nuctide nuctide;
           nuctide.id = nuctide_id;
-          nuctide.sequence = nuctide_id;
+          nuctide.setSequence(nuctide_id);
           Int actualCharge = negative_mode ? -hit.precursor_ref->charge : hit.precursor_ref->charge;
           nuctide.setChargeState(actualCharge);
           nuctide.setDriftTime(precursor.getDriftTime());
@@ -933,8 +933,8 @@ protected:
             rt.retention_time_type = TargetedExperiment::RetentionTime::RTType::LOCAL;
             nuctide.rts.push_back(rt);
           }
-          
-          nuctide.oligo_refs.push_back(oligo_id);
+
+          nuctide.addOligoRef(oligo_id);
 
           targeted_exp.addNuctide(nuctide);
           nuctide_ids.insert(nuctide_id);

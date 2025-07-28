@@ -1108,7 +1108,7 @@ namespace OpenMS
     // - sequence
 
     peptide.id = tr_it->group_id;
-    peptide.sequence = tr_it->PeptideSequence;
+    peptide.setSequence(tr_it->PeptideSequence);
 
     // per peptide user params
     peptide.setMetaValue("full_peptide_name", tr_it->FullPeptideName);
@@ -1173,17 +1173,17 @@ namespace OpenMS
       }
     }
 
-    peptide.protein_refs = tr_it->ProteinName;
+    peptide.setProteinRefs(tr_it->ProteinName);
 
     // check if the naked peptide sequence is equal to the unmodified AASequence
-    if (peptide.sequence != aa_sequence.toUnmodifiedString())
+    if (peptide.getSequence() != aa_sequence.toUnmodifiedString())
     {
       if (force_invalid_mods_)
       {
         // something is wrong, return and do not try and add any modifications
         return;
       }
-      OPENMS_LOG_WARN << "Warning: The peptide sequence " << peptide.sequence << " and the full peptide name " << aa_sequence << 
+      OPENMS_LOG_WARN << "Warning: The peptide sequence " << peptide.getSequence() << " and the full peptide name " << aa_sequence << 
         " are not equal. Please check your input." << std::endl;
       OPENMS_LOG_WARN << "(use force_invalid_mods to override)" << std::endl;
     }
@@ -1214,11 +1214,11 @@ namespace OpenMS
       }
     }
 
-    peptide.mods = mods;
+    peptide.setMods(mods);
 
-    OPENMS_POSTCONDITION(aa_sequence.toUnmodifiedString() == peptide.sequence,
+    OPENMS_POSTCONDITION(aa_sequence.toUnmodifiedString() == peptide.getSequence(),
                          (String("Internal error: the sequences of the naked and modified peptide sequence are unequal(")
-                          + aa_sequence.toUnmodifiedString() + " != " + peptide.sequence).c_str())
+                          + aa_sequence.toUnmodifiedString() + " != " + peptide.getSequence()).c_str())
   }
 
     void TransitionTSVFile::createNuctide_(std::vector<TSVTransition>::const_iterator tr_it, OpenMS::TargetedExperiment::Nuctide& nuctide)
@@ -1234,7 +1234,7 @@ namespace OpenMS
     // - sequence
 
     nuctide.id = tr_it->group_id;
-    nuctide.sequence = tr_it->NuctideSequence;
+    nuctide.setSequence(tr_it->NuctideSequence);
 
     // per nuctide user params
     nuctide.setMetaValue("full_nuctide_name", tr_it->FullNuctideName);
@@ -1289,7 +1289,7 @@ namespace OpenMS
       }
     }
 
-    nuctide.oligo_refs = tr_it->OligoName;
+    nuctide.setOligoRefs(tr_it->OligoName);
   }
 
   void TransitionTSVFile::createCompound_(std::vector<TSVTransition>::const_iterator tr_it, OpenMS::TargetedExperiment::Compound& compound)
@@ -1408,17 +1408,18 @@ namespace OpenMS
           }
           
           // Set sequences and names
-          mytransition.PeptideSequence = pep.sequence;
+          mytransition.PeptideSequence = pep.getSequence();
           mytransition.FullPeptideName = TargetedExperimentHelper::getAASequence(pep).toUniModString();
           mytransition.GeneName = NA_VALUE;
           
           // Process protein references efficiently
-          if (!pep.protein_refs.empty())
+          auto pRefs = pep.getProteinRefs();
+          if (!pRefs.empty())
           {
-            mytransition.ProteinName.reserve(pep.protein_refs.size());
-            mytransition.uniprot_id.reserve(pep.protein_refs.size());
-            
-            for (const auto& prot_ref : pep.protein_refs)
+            mytransition.ProteinName.reserve(pRefs.size());
+            mytransition.uniprot_id.reserve(pRefs.size());
+
+            for (const auto& prot_ref : pRefs)
             {
               const OpenMS::TargetedExperiment::Protein& prot = targeted_exp.getProteinByRef(prot_ref);
               mytransition.ProteinName.push_back(prot.id);
@@ -1460,16 +1461,16 @@ namespace OpenMS
           }
           
           // Set sequences
-          mytransition.NuctideSequence = nuc.sequence;
+          mytransition.NuctideSequence = nuc.getSequence();
           mytransition.FullNuctideName = TargetedExperimentHelper::getNASequence(nuc).toString();
           
           // Process oligo references efficiently
-          if (!nuc.oligo_refs.empty())
+          auto oRefs = nuc.getOligoRefs();
+          if (!oRefs.empty())
           {
-            mytransition.OligoName.reserve(nuc.oligo_refs.size());
-            mytransition.uniprot_id.reserve(nuc.oligo_refs.size());
-            
-            for (const auto& oligo_ref : nuc.oligo_refs)
+            mytransition.OligoName.reserve(oRefs.size());
+            mytransition.uniprot_id.reserve(oRefs.size());
+            for (const auto& oligo_ref : oRefs)
             {
               const OpenMS::TargetedExperiment::Oligo& oligo = targeted_exp.getOligoByRef(oligo_ref);
               mytransition.OligoName.push_back(oligo.id);

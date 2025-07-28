@@ -898,7 +898,7 @@ namespace OpenMS
       peptide.id = peptide_ref;
       peptide.setChargeState(ms1_feature.getCharge());
       peptide.addMetaValues(ms1_feature);
-      peptide.protein_refs.emplace_back(peptide_ref);
+      peptide.addProteinRef(peptide_ref);
       peptide.rts.push_back(rt_f);
       auto found_peptide = peptides_map.emplace(peptide_ref, peptide);
       if (!found_peptide.second)

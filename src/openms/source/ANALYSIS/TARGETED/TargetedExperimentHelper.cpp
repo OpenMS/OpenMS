@@ -42,22 +42,23 @@ namespace OpenMS::TargetedExperimentHelper
       // modifications on it, therefore we have to populate the AASequence with
       // the correct modifications afterwards.
       OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
-      OpenMS::AASequence aas = AASequence::fromString(peptide.sequence);
+      OpenMS::AASequence aas = AASequence::fromString(peptide.getSequence());
 
       // Populate the AASequence with the correct modifications derived from
       // the Peptide::Modification objects.
-      for (std::vector<Peptide::Modification>::const_iterator it = peptide.mods.begin(); 
-          it != peptide.mods.end(); ++it)
+      const auto& mods = peptide.getMods();
+      for (std::vector<Peptide::Modification>::const_iterator it = mods.begin();
+          it != mods.end(); ++it)
       {
         // Step 1: First look whether the UniMod ID is set (we don't use a CVTerm any more but a member)
         if (it->unimod_id != -1)
         {
-          setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), 
+          setModification(it->location, boost::numeric_cast<int>(peptide.getSequence().size()),
               "UniMod:" + String(it->unimod_id), aas);
           continue;
         }
 
-        OPENMS_LOG_WARN << "Warning: No UniMod id set for modification on peptide " << peptide.sequence << 
+        OPENMS_LOG_WARN << "Warning: No UniMod id set for modification on peptide " << peptide.getSequence() <<
           ". Will try to infer modification id by mass next." << std::endl;
 
         // compare with code in source/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.cpp
@@ -65,16 +66,16 @@ namespace OpenMS::TargetedExperimentHelper
         // Step 2: If the above step fails, try to find the correct
         // modification by using the mass difference
         const ResidueModification* mod = mod_db->getBestModificationByDiffMonoMass(
-          it->mono_mass_delta, 1.0, peptide.sequence[it->location]);
+          it->mono_mass_delta, 1.0, peptide.getSequence()[it->location]);
         if (mod != nullptr)
         {
-          setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), mod->getId(), aas);
+          setModification(it->location, boost::numeric_cast<int>(peptide.getSequence().size()), mod->getId(), aas);
         }
         else
         {
           // could not find any modification ...
           std::cerr << "Warning: Could not determine modification with delta mass " <<
-            it->mono_mass_delta << " for peptide " << peptide.sequence <<
+            it->mono_mass_delta << " for peptide " << peptide.getSequence() <<
             " at position " << it->location << std::endl;
           std::cerr << "Skipping this modification" << std::endl;
         }
@@ -84,7 +85,7 @@ namespace OpenMS::TargetedExperimentHelper
 
     OpenMS::NASequence getNASequence(const OpenMS::TargetedExperiment::Nuctide& nuctide)
     {
-      return NASequence::fromString(nuctide.sequence);
+      return NASequence::fromString(nuctide.getSequence());
     }
 
   }

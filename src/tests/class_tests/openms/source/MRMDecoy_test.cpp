@@ -92,97 +92,97 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide shufflePeptide(OpenMS::Targete
 {
   MRMDecoy gen;
   OpenMS::TargetedExperiment::Peptide peptide;
-  peptide.sequence = "TESTPEPTIDE";
+  peptide.setSequence("TESTPEPTIDE");
   OpenMS::TargetedExperiment::Peptide::Modification modification;
   modification.avg_mass_delta = 79.9799;
   modification.location = 2;
   modification.mono_mass_delta = 79.966331;
-  peptide.mods.push_back(modification);
+  peptide.addMod(modification);
 
   OpenMS::String expected_sequence = "TIDEPEPSTTE";
   OpenMS::Size expected_location = 7;
 
   OpenMS::TargetedExperiment::Peptide shuffled = gen.shufflePeptide(peptide, 0.7, 43);
 
-  TEST_EQUAL(shuffled.sequence, expected_sequence)
-  TEST_EQUAL(shuffled.mods.size(), 1)
-  TEST_EQUAL(shuffled.mods[0].location, expected_location)
+  TEST_EQUAL(shuffled.getSequence(), expected_sequence)
+  TEST_EQUAL(shuffled.getMods().size(), 1)
+  TEST_EQUAL(shuffled.getMods()[0].location, expected_location)
 
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_target_sequence_11;
-  shuffleAASequence_target_sequence_11.sequence = "TESTPEPTIDE";
+  shuffleAASequence_target_sequence_11.setSequence("TESTPEPTIDE");
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_expected_11;
-  shuffleAASequence_expected_11.sequence = "TESTPEPTIDE";
+  shuffleAASequence_expected_11.setSequence("TESTPEPTIDE");
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_11;
   shuffleAASequence_result_11 = gen.shufflePeptide(shuffleAASequence_target_sequence_11, 1.1, 42);
-  TEST_EQUAL(shuffleAASequence_result_11.sequence, shuffleAASequence_expected_11.sequence)
+  TEST_EQUAL(shuffleAASequence_result_11.getSequence(), shuffleAASequence_expected_11.getSequence())
 
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_target_sequence_07;
-  shuffleAASequence_target_sequence_07.sequence = "TESTPEPTIDE";
+  shuffleAASequence_target_sequence_07.setSequence("TESTPEPTIDE");
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_expected_07;
-  shuffleAASequence_expected_07.sequence = "TTETPEPIDSE";
+  shuffleAASequence_expected_07.setSequence("TTETPEPIDSE");
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_07;
   shuffleAASequence_result_07 = gen.shufflePeptide(shuffleAASequence_target_sequence_07, 0.7, 42);
-  TEST_EQUAL(shuffleAASequence_result_07.sequence, shuffleAASequence_expected_07.sequence)
+  TEST_EQUAL(shuffleAASequence_result_07.getSequence(), shuffleAASequence_expected_07.getSequence())
 
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_target_sequence_09;
-  shuffleAASequence_target_sequence_09.sequence = "TESTPEPTIDE";
+  shuffleAASequence_target_sequence_09.setSequence("TESTPEPTIDE");
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_expected_09;
-  shuffleAASequence_expected_09.sequence = "TTETPEPIDSE";
+  shuffleAASequence_expected_09.setSequence("TTETPEPIDSE");
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_09;
   shuffleAASequence_result_09 = gen.shufflePeptide(shuffleAASequence_target_sequence_09, 0.9, 42);
-  TEST_EQUAL(shuffleAASequence_result_09.sequence, shuffleAASequence_expected_09.sequence)
+  TEST_EQUAL(shuffleAASequence_result_09.getSequence(), shuffleAASequence_expected_09.getSequence())
 
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_target_sequence_01;
-  shuffleAASequence_target_sequence_01.sequence = "TESTPEPTIDE";
+  shuffleAASequence_target_sequence_01.setSequence("TESTPEPTIDE");
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_expected_01;
-  shuffleAASequence_expected_01.sequence = "TNGCADQQEAE";
+  shuffleAASequence_expected_01.setSequence("TNGCADQQEAE");
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_01;
   shuffleAASequence_result_01 = gen.shufflePeptide(shuffleAASequence_target_sequence_01, 0.2, 42, 10000);
-  TEST_EQUAL(shuffleAASequence_result_01.sequence, shuffleAASequence_expected_01.sequence)
+  TEST_EQUAL(shuffleAASequence_result_01.getSequence(), shuffleAASequence_expected_01.getSequence())
 
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_target_sequence_00;
-  shuffleAASequence_target_sequence_00.sequence = "TESTPEPTIDE";
+  shuffleAASequence_target_sequence_00.setSequence("TESTPEPTIDE");
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_expected_00;
-  shuffleAASequence_expected_00.sequence = "TEIEPAPTQTE";
+  shuffleAASequence_expected_00.setSequence("TEIEPAPTQTE");
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_00;
   shuffleAASequence_result_00 = gen.shufflePeptide(shuffleAASequence_target_sequence_00, 0.0, 42, 20);
-  TEST_EQUAL(shuffleAASequence_result_00.sequence, shuffleAASequence_expected_00.sequence)
+  TEST_EQUAL(shuffleAASequence_result_00.getSequence(), shuffleAASequence_expected_00.getSequence())
 
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_target_sequence_01b;
-  shuffleAASequence_target_sequence_01b.sequence = "TESTPEPTIDE";
+  shuffleAASequence_target_sequence_01b.setSequence("TESTPEPTIDE");
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_expected_01b;
-  shuffleAASequence_expected_01b.sequence = "TNGCADQQEAE";
+  shuffleAASequence_expected_01b.setSequence("TNGCADQQEAE");
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_01b;
   shuffleAASequence_result_01b = gen.shufflePeptide(shuffleAASequence_target_sequence_01b, 0.2, 42, 10000);
-  TEST_EQUAL(shuffleAASequence_result_01b.sequence, shuffleAASequence_expected_01b.sequence)
+  TEST_EQUAL(shuffleAASequence_result_01b.getSequence(), shuffleAASequence_expected_01b.getSequence())
 
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_target_sequence_00b;
-  shuffleAASequence_target_sequence_00b.sequence = "TESTPEPTIDE";
+  shuffleAASequence_target_sequence_00b.setSequence("TESTPEPTIDE");
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_expected_00b;
-  shuffleAASequence_expected_00b.sequence = "TNDQIADNNEE";
+  shuffleAASequence_expected_00b.setSequence("TNDQIADNNEE");
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_00b;
   shuffleAASequence_result_00b = gen.shufflePeptide(shuffleAASequence_target_sequence_00b, 0.0, 42, 2000);
-  TEST_EQUAL(shuffleAASequence_result_00b.sequence, shuffleAASequence_expected_00b.sequence)
+  TEST_EQUAL(shuffleAASequence_result_00b.getSequence(), shuffleAASequence_expected_00b.getSequence())
   // ensure that C-terminal K and R are preserved
   {
     OpenMS::TargetedExperiment::Peptide original_input;
-    original_input.sequence = "TESTPEPTIDEK";
+    original_input.setSequence("TESTPEPTIDEK");
     expected_sequence = "TTETPEPEDSIK";
     OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_00;
     shuffled = gen.shufflePeptide(original_input, 0.7, 42, 20);
-    TEST_EQUAL(shuffled.sequence[shuffled.sequence.size() - 1], 'K')
-    TEST_EQUAL(shuffled.sequence, expected_sequence)
+    TEST_EQUAL(shuffled.getSequence()[shuffled.getSequence().size() - 1], 'K')
+    TEST_EQUAL(shuffled.getSequence(), expected_sequence)
   }
 
   // ensure that C-terminal K and R are preserved
   {
     OpenMS::TargetedExperiment::Peptide original_input;
-    original_input.sequence = "TESTPEPTIDER";
+    original_input.setSequence("TESTPEPTIDER");
     expected_sequence = "TTETPEPEDSIR";
     OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_00;
     shuffled = gen.shufflePeptide(original_input, 0.7, 42, 20);
-    TEST_EQUAL(shuffled.sequence[shuffled.sequence.size() - 1], 'R')
-    TEST_EQUAL(shuffled.sequence, expected_sequence)
+    TEST_EQUAL(shuffled.getSequence()[shuffled.getSequence().size() - 1], 'R')
+    TEST_EQUAL(shuffled.getSequence(), expected_sequence)
   }
 
   {
@@ -191,18 +191,18 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide shufflePeptide(OpenMS::Targete
     // std::vector<TargetedExperiment::Peptide::Modification> mods;
     std::vector<TargetedExperiment::Peptide::Modification> mods;
     // original_input.sequence = "EPAHLMSLFGGKPM(UniMod:35)";
-    original_input.sequence = "EPAHLMSLFGGKPM";
+    original_input.setSequence("EPAHLMSLFGGKPM");
     mod.location = 13; // non-C terminal
     mod.unimod_id = 35;
     mods.push_back(mod);
-    original_input.mods = mods;
+    original_input.setMods(mods);
     expected_sequence = "EPSALMGGHLFKPM";
     OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_00;
     shuffled = gen.shufflePeptide(original_input, 0.7, 42, 20);
-    TEST_EQUAL(shuffled.sequence[shuffled.sequence.size() - 1], 'M')
-    TEST_EQUAL(shuffled.sequence, expected_sequence)
-    TEST_EQUAL(shuffled.mods.size(), 1)
-    TEST_EQUAL(shuffled.mods[0].location, 13) // the second M remained at position 13
+    TEST_EQUAL(shuffled.getSequence()[shuffled.getSequence().size() - 1], 'M')
+    TEST_EQUAL(shuffled.getSequence(), expected_sequence)
+    TEST_EQUAL(shuffled.getMods().size(), 1)
+    TEST_EQUAL(shuffled.getMods()[0].location, 13) // the second M remained at position 13
   }
 
   {
@@ -211,18 +211,18 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide shufflePeptide(OpenMS::Targete
     // std::vector<TargetedExperiment::Peptide::Modification> mods;
     std::vector<TargetedExperiment::Peptide::Modification> mods;
     // original_input.sequence = "EPAHLMSLFGGKPM(UniMod:35)";
-    original_input.sequence = "EPAHLMSLFGGKPM";
+    original_input.setSequence("EPAHLMSLFGGKPM");
     mod.location = 14; // C terminal
     mod.unimod_id = 35;
     mods.push_back(mod);
-    original_input.mods = mods;
+    original_input.setMods(mods);
     expected_sequence = "EPSALMGGHLFKPM";
     OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_00;
     shuffled = gen.shufflePeptide(original_input, 0.7, 42, 20);
-    TEST_EQUAL(shuffled.sequence[shuffled.sequence.size() - 1], 'M')
-    TEST_EQUAL(shuffled.sequence, expected_sequence)
-    TEST_EQUAL(shuffled.mods.size(), 1)
-    TEST_EQUAL(shuffled.mods[0].location, 14) // Problem: this modification cannot be C terminal any more for F!
+    TEST_EQUAL(shuffled.getSequence()[shuffled.getSequence().size() - 1], 'M')
+    TEST_EQUAL(shuffled.getSequence(), expected_sequence)
+    TEST_EQUAL(shuffled.getMods().size(), 1)
+    TEST_EQUAL(shuffled.getMods()[0].location, 14) // Problem: this modification cannot be C terminal any more for F!
     // TODO: report and fix this
   }
 
@@ -237,20 +237,20 @@ START_SECTION([EXTRA] shuffle_peptide_with_modifications_and2attempts)
   // modifications shuffled as well.
   MRMDecoy gen;
   OpenMS::TargetedExperiment::Peptide peptide;
-  peptide.sequence = "GPPSEDGPGVPPPSPR";
+  peptide.setSequence("GPPSEDGPGVPPPSPR");
   OpenMS::TargetedExperiment::Peptide::Modification modification;
 
   // modification on the fourth S (counting starts at zero)
   modification.avg_mass_delta = 79.9799;
   modification.location = 3;
   modification.mono_mass_delta = 79.966331;
-  peptide.mods.push_back(modification);
+  peptide.addMod(modification);
 
   // modification on the second to last S
   modification.avg_mass_delta = 79.9799;
   modification.location = 13;
   modification.mono_mass_delta = 79.966331;
-  peptide.mods.push_back(modification);
+  peptide.addMod(modification);
 
   OpenMS::String expected_sequence = "GPPGDSEPGSPPPVPR";
   OpenMS::Size expected_location_1 = 9;
@@ -259,10 +259,10 @@ START_SECTION([EXTRA] shuffle_peptide_with_modifications_and2attempts)
   OpenMS::TargetedExperiment::Peptide shuffled = gen.shufflePeptide(peptide, 0.7, 130);
 
   // the two modifications get switched (the first S now comes after the second S)
-  TEST_EQUAL(shuffled.sequence, expected_sequence)
-  TEST_EQUAL(shuffled.mods.size(), 2)
-  TEST_EQUAL(shuffled.mods[1].location, expected_location_1)
-  TEST_EQUAL(shuffled.mods[0].location, expected_location_2)
+  TEST_EQUAL(shuffled.getSequence(), expected_sequence)
+  TEST_EQUAL(shuffled.getMods().size(), 2)
+  TEST_EQUAL(shuffled.getMods()[1].location, expected_location_1)
+  TEST_EQUAL(shuffled.getMods()[0].location, expected_location_2)
 }
 
 END_SECTION
@@ -277,28 +277,28 @@ START_SECTION([EXTRA] shuffle_peptide_with_terminal_modifications)
 
   OpenMS::TargetedExperiment::Peptide peptide;
   OpenMS::TargetedExperiment::Peptide::Modification modification;
-  peptide.sequence = original_sequence.toUnmodifiedString();
+  peptide.setSequence(original_sequence.toUnmodifiedString());
 
   // "sulfonation of N-terminus"
   modification.avg_mass_delta = 136.1265;
   modification.location = -1;
   modification.mono_mass_delta = 135.983029;
-  peptide.mods.push_back(modification);
+  peptide.addMod(modification);
 
   //O18 label at both C-terminal oxygens
   modification.avg_mass_delta = 3.9995;
-  modification.location = peptide.sequence.size();
+  modification.location = peptide.getSequence().size();
   modification.mono_mass_delta = 4.008491;
-  peptide.mods.push_back(modification);
+  peptide.addMod(modification);
 
   OpenMS::String expected_sequence = "TIDEPEPSTTE";
 
   OpenMS::TargetedExperiment::Peptide shuffled = gen.shufflePeptide(peptide, 0.7, 43);
 
-  TEST_EQUAL(shuffled.sequence, expected_sequence)
-  TEST_EQUAL(shuffled.mods.size(), 2)
-  TEST_EQUAL(shuffled.mods[0].location, -1)
-  TEST_EQUAL(shuffled.mods[1].location, shuffled.sequence.size())
+  TEST_EQUAL(shuffled.getSequence(), expected_sequence)
+  TEST_EQUAL(shuffled.getMods().size(), 2)
+  TEST_EQUAL(shuffled.getMods()[0].location, -1)
+  TEST_EQUAL(shuffled.getMods()[1].location, shuffled.getSequence().size())
 }
 
 END_SECTION
@@ -307,10 +307,10 @@ START_SECTION([EXTRA] shuffle_peptide_with_KPR)
 {
   MRMDecoy gen;
   OpenMS::TargetedExperiment::Peptide peptide;
-  peptide.sequence = "KPRKPRPK";
+  peptide.setSequence("KPRKPRPK");
   OpenMS::String expected_sequence = "KNRKPRPK";
   OpenMS::TargetedExperiment::Peptide shuffled = gen.shufflePeptide(peptide, 0.7, 130, 17);
-  TEST_EQUAL(shuffled.sequence, expected_sequence)
+  TEST_EQUAL(shuffled.getSequence(), expected_sequence)
 }
 
 END_SECTION
@@ -335,39 +335,39 @@ START_SECTION((OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide(
   MRMDecoy gen;
 
   OpenMS::TargetedExperiment::Peptide peptide;
-  peptide.sequence = "TESTPEPTIDE";
+  peptide.setSequence("TESTPEPTIDE");
   OpenMS::TargetedExperiment::Peptide::Modification modification;
   modification.avg_mass_delta = 79.9799;
   modification.location = 2;
   modification.mono_mass_delta = 79.966331;
-  peptide.mods.push_back(modification);
+  peptide.addMod(modification);
 
   {
     OpenMS::String expected_sequence = "DITPEPTSETE";
     OpenMS::Size expected_location = 7;
 
     OpenMS::TargetedExperiment::Peptide pseudoreverse = MRMDecoy::reversePeptide(peptide, false, true);
-    TEST_EQUAL(pseudoreverse.sequence, expected_sequence)
-    TEST_EQUAL(pseudoreverse.mods.size(), 1)
-    TEST_EQUAL(pseudoreverse.mods[0].location, expected_location)
+    TEST_EQUAL(pseudoreverse.getSequence(), expected_sequence)
+    TEST_EQUAL(pseudoreverse.getMods().size(), 1)
+    TEST_EQUAL(pseudoreverse.getMods()[0].location, expected_location)
   }
 
   {
     modification.avg_mass_delta = 49.9799;
     modification.mono_mass_delta = 49.966331;
     modification.location = 0;
-    peptide.mods.push_back(modification);
+    peptide.addMod(modification);
 
     OpenMS::String expected_sequence = "TDITPEPTSEE";
 
     OpenMS::TargetedExperiment::Peptide pseudoreverse = MRMDecoy::reversePeptide(peptide, true, true);
-    TEST_EQUAL(pseudoreverse.sequence, expected_sequence)
-    TEST_EQUAL(pseudoreverse.mods.size(), 2)
-    TEST_EQUAL(pseudoreverse.mods[0].location, 8)
-    TEST_REAL_SIMILAR(pseudoreverse.mods[0].mono_mass_delta, 79.966331)
+    TEST_EQUAL(pseudoreverse.getSequence(), expected_sequence)
+    TEST_EQUAL(pseudoreverse.getMods().size(), 2)
+    TEST_EQUAL(pseudoreverse.getMods()[0].location, 8)
+    TEST_REAL_SIMILAR(pseudoreverse.getMods()[0].mono_mass_delta, 79.966331)
 
-    TEST_EQUAL(pseudoreverse.mods[1].location, 0)
-    TEST_REAL_SIMILAR(pseudoreverse.mods[1].mono_mass_delta, 49.966331)
+    TEST_EQUAL(pseudoreverse.getMods()[1].location, 0)
+    TEST_REAL_SIMILAR(pseudoreverse.getMods()[1].mono_mass_delta, 49.966331)
   }
 
   {
@@ -375,13 +375,13 @@ START_SECTION((OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide(
     OpenMS::String expected_sequence = "TDTPEPTSIEE"; // "I" stays in place
 
     OpenMS::TargetedExperiment::Peptide pseudoreverse = MRMDecoy::reversePeptide(peptide, true, true, const_pattern);
-    TEST_EQUAL(pseudoreverse.sequence, expected_sequence)
-    TEST_EQUAL(pseudoreverse.mods.size(), 2)
-    TEST_EQUAL(pseudoreverse.mods[0].location, 7)
-    TEST_REAL_SIMILAR(pseudoreverse.mods[0].mono_mass_delta, 79.966331)
+    TEST_EQUAL(pseudoreverse.getSequence(), expected_sequence)
+    TEST_EQUAL(pseudoreverse.getMods().size(), 2)
+    TEST_EQUAL(pseudoreverse.getMods()[0].location, 7)
+    TEST_REAL_SIMILAR(pseudoreverse.getMods()[0].mono_mass_delta, 79.966331)
 
-    TEST_EQUAL(pseudoreverse.mods[1].location, 0)
-    TEST_REAL_SIMILAR(pseudoreverse.mods[1].mono_mass_delta, 49.966331)
+    TEST_EQUAL(pseudoreverse.getMods()[1].location, 0)
+    TEST_REAL_SIMILAR(pseudoreverse.getMods()[1].mono_mass_delta, 49.966331)
   }
 
 }
@@ -392,28 +392,28 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide pseudoreversePeptide(OpenMS::T
   MRMDecoyHelper gen;
 
   OpenMS::TargetedExperiment::Peptide peptide;
-  peptide.sequence = "TESTPEPTIDE";
+  peptide.setSequence("TESTPEPTIDE");
   OpenMS::TargetedExperiment::Peptide::Modification modification;
   modification.avg_mass_delta = 79.9799;
   modification.location = 2;
   modification.mono_mass_delta = 79.966331;
-  peptide.mods.push_back(modification);
+  peptide.addMod(modification);
 
   OpenMS::String expected_sequence = "DITPEPTSETE";
   OpenMS::Size expected_location = 7;
 
   OpenMS::TargetedExperiment::Peptide pseudoreverse = gen.pseudoreversePeptide_helper(peptide);
-  TEST_EQUAL(pseudoreverse.sequence, expected_sequence)
-  TEST_EQUAL(pseudoreverse.mods.size(), 1)
-  TEST_EQUAL(pseudoreverse.mods[0].location, expected_location)
+  TEST_EQUAL(pseudoreverse.getSequence(), expected_sequence)
+  TEST_EQUAL(pseudoreverse.getMods().size(), 1)
+  TEST_EQUAL(pseudoreverse.getMods()[0].location, expected_location)
 
   OpenMS::TargetedExperiment::Peptide pseudoreverseAASequence_target_sequence;
-  pseudoreverseAASequence_target_sequence.sequence = "TESTPEPTIDE";
+  pseudoreverseAASequence_target_sequence.setSequence("TESTPEPTIDE");
   OpenMS::TargetedExperiment::Peptide pseudoreverseAASequence_expected;
-  pseudoreverseAASequence_expected.sequence = "DITPEPTSETE";
+  pseudoreverseAASequence_expected.setSequence("DITPEPTSETE");
   OpenMS::TargetedExperiment::Peptide pseudoreverseAASequence_result;
   pseudoreverseAASequence_result = gen.pseudoreversePeptide_helper(pseudoreverseAASequence_target_sequence);
-  TEST_EQUAL(pseudoreverseAASequence_result.sequence, pseudoreverseAASequence_expected.sequence)
+  TEST_EQUAL(pseudoreverseAASequence_result.getSequence(), pseudoreverseAASequence_expected.getSequence())
 }
 END_SECTION
 
@@ -422,28 +422,28 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide reversePeptide(OpenMS::Targete
   MRMDecoyHelper gen;
 
   OpenMS::TargetedExperiment::Peptide peptide;
-  peptide.sequence = "TESTPEPTIDE";
+  peptide.setSequence("TESTPEPTIDE");
   OpenMS::TargetedExperiment::Peptide::Modification modification;
   modification.avg_mass_delta = 79.9799;
   modification.location = 2;
   modification.mono_mass_delta = 79.966331;
-  peptide.mods.push_back(modification);
+  peptide.addMod(modification);
 
   OpenMS::String expected_sequence = "EDITPEPTSET";
   OpenMS::Size expected_location = 8;
 
   OpenMS::TargetedExperiment::Peptide reverse = gen.reversePeptide_helper(peptide);
-  TEST_EQUAL(reverse.sequence, expected_sequence)
-  TEST_EQUAL(reverse.mods.size(), 1)
-  TEST_EQUAL(reverse.mods[0].location, expected_location)
+  TEST_EQUAL(reverse.getSequence(), expected_sequence)
+  TEST_EQUAL(reverse.getMods().size(), 1)
+  TEST_EQUAL(reverse.getMods()[0].location, expected_location)
 
   OpenMS::TargetedExperiment::Peptide reverseAASequence_target_sequence;
-  reverseAASequence_target_sequence.sequence = "TESTPEPTIDE";
+  reverseAASequence_target_sequence.setSequence("TESTPEPTIDE");
   OpenMS::TargetedExperiment::Peptide reverseAASequence_expected;
-  reverseAASequence_expected.sequence = "EDITPEPTSET";
+  reverseAASequence_expected.setSequence("EDITPEPTSET");
   OpenMS::TargetedExperiment::Peptide reverseAASequence_result;
   reverseAASequence_result = gen.reversePeptide_helper(reverseAASequence_target_sequence);
-  TEST_EQUAL(reverseAASequence_result.sequence, reverseAASequence_expected.sequence)
+  TEST_EQUAL(reverseAASequence_result.getSequence(), reverseAASequence_expected.getSequence())
 }
 
 END_SECTION

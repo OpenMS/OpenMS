@@ -433,12 +433,12 @@ protected:
             String new_sequence = "";
             for (auto const& peptide : peptides)
             {
-              p.sequence = peptide.toString();
+              p.setSequence(peptide.toString());
               // TODO why are the functions from TargetedExperiment and MRMDecoy not anywhere more general?
               //  No soul would look there.
               auto decoy_p = shuffle ? m.shufflePeptide(p, identity_threshold, seed, max_attempts) 
                                      : MRMDecoy::reversePeptide(p, keepN, keepC, keep_const_pattern);
-              new_sequence += decoy_p.sequence;
+              new_sequence += decoy_p.getSequence();
             }
             entry.sequence = new_sequence;
           }

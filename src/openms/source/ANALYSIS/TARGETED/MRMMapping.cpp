@@ -97,9 +97,9 @@ namespace OpenMS
               const OpenMS::TargetedExperiment::Peptide * pep = &targeted_exp.getPeptides()[pep_idx];
               if (pep->id == transref)
               {
-                if (!pep->sequence.empty())
+                if (!pep->getSequence().empty())
                 {
-                  precursor.setMetaValue("transition_group_name", pep->sequence);
+                  precursor.setMetaValue("transition_group_name", pep->getSequence());
                 }
                 break;
               }
@@ -114,9 +114,9 @@ namespace OpenMS
 
                if (nuc->id == transref)
               {
-                if (!nuc->sequence.empty())
+                if (!nuc->getSequence().empty())
                 {
-                  precursor.setMetaValue("nuctide_sequence", nuc->sequence);
+                  precursor.setMetaValue("nuctide_sequence", nuc->getSequence());
                 }
                 break;
               }

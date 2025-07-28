@@ -98,7 +98,7 @@ START_SECTION( (nucleotide TSV reading functionality))
   // Test nucleotide properties
   const TargetedExperiment::Nuctide& nuctide = exp.getNuctides()[0];
   TEST_EQUAL(nuctide.id, "nuc_group_1")
-  TEST_EQUAL(nuctide.sequence, "AUGCGAUU")
+  TEST_EQUAL(nuctide.getSequence(), "AUGCGAUU")
   
   // Test oligo properties
   const TargetedExperiment::Oligo& oligo = exp.getOligos()[0];
@@ -123,7 +123,7 @@ START_SECTION( (nucleotide TSV writing functionality))
   // Create nucleotide
   TargetedExperiment::Nuctide nuctide;
   nuctide.id = "nuc_group_test";
-  nuctide.sequence = "AUGCGAUU";
+  nuctide.setSequence("AUGCGAUU");
   nuctide.setMetaValue("full_nuctide_name", "AUG[mod]CGAUU");
   
   // Add retention time

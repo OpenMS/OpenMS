@@ -543,9 +543,9 @@ namespace OpenMS
       for (auto const& peptide : peptides)
       {
         OpenMS::TargetedExperiment::Peptide p;
-        p.sequence = peptide.toString();
+        p.setSequence(peptide.toString());
         OpenMS::TargetedExperiment::Peptide decoy_p = MRMDecoy::reversePeptide(p, true, true, "");
-        new_sequence += decoy_p.sequence;
+        new_sequence += decoy_p.getSequence();
       }
       FASTAFile::FASTAEntry decoy_entry;
       decoy_entry.sequence = new_sequence;

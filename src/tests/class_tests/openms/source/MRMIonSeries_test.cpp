@@ -235,7 +235,7 @@ START_SECTION((void MRMIonSeries::annotateTransition(ReactionMonitoringTransitio
   MRMIonSeries mrmis;
   ReactionMonitoringTransition tr, tr2, tr3;
   TargetedExperiment::Peptide peptide;
-  peptide.sequence = "PEPTIDEK";
+  peptide.setSequence("PEPTIDEK");
   peptide.setChargeState(3);
 
   std::vector<String> fragment_types;

@@ -3937,10 +3937,17 @@ def testTargetedExperimentHelper():
     p = pyopenms.Peptide()
     assert p.rts is not None
     assert p.id is not None
-    assert p.protein_refs is not None
-    assert p.evidence is not None
-    assert p.sequence is not None
-    assert p.mods is not None
+    assert p.getProteinRefs() is not None
+    assert p.getEvidence() is not None
+    assert p.getSequence() is not None
+    assert p.getMods() is not None
+
+    p = pyopenms.Nuctide()
+    assert p.rts is not None
+    assert p.id is not None
+    assert p.getOligoRefs() is not None
+    assert p.getEvidence() is not None
+    assert p.getSequence() is not None
 
     assert not p.hasCharge()
     p.setChargeState(5)

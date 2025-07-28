@@ -163,7 +163,7 @@ namespace OpenMS::Internal
       {
         actual_peptide_ = TargetedExperiment::Peptide();
         actual_peptide_.id = attributeAsString_(attributes, s_id);
-        actual_peptide_.sequence = attributeAsString_(attributes, s_sequence);
+        actual_peptide_.setSequence(attributeAsString_(attributes, s_sequence));
       }
       else if (tag_ == "Modification")
       {
@@ -175,7 +175,7 @@ namespace OpenMS::Internal
         mod.mono_mass_delta = mono_mass_delta;
 
         mod.location = attributeAsInt_(attributes, "location") - 1; // TraML stores location starting with 1
-        actual_peptide_.mods.push_back(mod);
+        actual_peptide_.addMod(mod);
       }
       else if (tag_ == "Compound")
       {
@@ -249,7 +249,7 @@ namespace OpenMS::Internal
       }
       else if (tag_ == "ProteinRef")
       {
-        actual_peptide_.protein_refs.push_back(attributeAsString_(attributes, "ref"));
+        actual_peptide_.addProteinRef(attributeAsString_(attributes, "ref"));
       }
       else if (tag_ == "Target")
       {
@@ -609,7 +609,7 @@ namespace OpenMS::Internal
         // 1. do peptides
         for (std::vector<TargetedExperiment::Peptide>::const_iterator it = exp_peptides.begin(); it != exp_peptides.end(); ++it)
         {
-          os << "    <Peptide id=\"" << writeXMLEscape(it->id) << "\" sequence=\"" << it->sequence << "\">" << "\n";
+          os << "    <Peptide id=\"" << writeXMLEscape(it->id) << "\" sequence=\"" << it->getSequence() << "\">" << "\n";
           if (it->hasCharge())
           {
             os << R"(      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value=")" <<  it->getChargeState() << "\"/>\n";
@@ -625,15 +625,15 @@ namespace OpenMS::Internal
           writeCVParams_(os,  *it, 3);
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
 
-          for (std::vector<String>::const_iterator rit = it->protein_refs.begin(); rit != it->protein_refs.end(); ++rit)
+          for (std::vector<String>::const_iterator rit = it->getProteinRefs().begin(); rit != it->getProteinRefs().end(); ++rit)
           {
             os << "      <ProteinRef ref=\"" << writeXMLEscape(*rit) << "\"/>" << "\n";
           }
 
-          if (!it->mods.empty())
+          if (!it->getMods().empty())
           {
-            for (std::vector<TargetedExperiment::Peptide::Modification>::const_iterator 
-                mit = it->mods.begin(); mit != it->mods.end(); ++mit)
+            for (std::vector<TargetedExperiment::Peptide::Modification>::const_iterator
+                mit = it->getMods().begin(); mit != it->getMods().end(); ++mit)
             {
               os << "      <Modification";
               os << " location=\"" << mit->location + 1 << "\""; // TraML stores locations starting with 1
@@ -654,16 +654,16 @@ namespace OpenMS::Internal
                 if (mit->location < 0)
                 {
                   term_spec = ResidueModification::N_TERM;
-                  if (!it->sequence.empty()) residue = it->sequence[0];
+                  if (!it->getSequence().empty()) residue = it->getSequence()[0];
                 }
-                else if (Size(mit->location) >= it->sequence.size())
+                else if (Size(mit->location) >= it->getSequence().size())
                 {
                   term_spec = ResidueModification::C_TERM;
-                  if (!it->sequence.empty()) residue = it->sequence[it->sequence.size() - 1];
+                  if (!it->getSequence().empty()) residue = it->getSequence()[it->getSequence().size() - 1];
                 }
-                else if (!it->sequence.empty())
+                else if (!it->getSequence().empty())
                 {
-                  residue = it->sequence[mit->location];
+                  residue = it->getSequence()[mit->location];
                 }
                 const ResidueModification* rmod = mod_db->getModification("UniMod:" + String(mit->unimod_id), residue, term_spec);
                 const String& modname = rmod->getId();
@@ -687,11 +687,11 @@ namespace OpenMS::Internal
             os << "      </RetentionTimeList>\n";
           }
 
-          if (!it->evidence.empty())
+          if (!it->getEvidence().empty())
           {
             os << "      <Evidence>" << "\n";
-            writeCVParams_(os, it->evidence, 4);
-            writeUserParam_(os, (MetaInfoInterface)it->evidence, 4);
+            writeCVParams_(os, it->getEvidence(), 4);
+            writeUserParam_(os, (MetaInfoInterface)it->getEvidence(), 4);
             os << "      </Evidence>" << "\n";
           }
           os << "    </Peptide>" << "\n";
@@ -1332,7 +1332,7 @@ namespace OpenMS::Internal
       }
       else if (parent_tag == "Evidence")
       {
-        actual_peptide_.evidence.addCVTerm(cv_term);
+        actual_peptide_.getMutableEvidence().addCVTerm(cv_term);
       }
       else if (parent_tag == "Peptide")
       {
@@ -1360,11 +1360,11 @@ namespace OpenMS::Internal
         if (cv_term.getAccession().size() > 7 && cv_term.getAccession().prefix(7).toLower() == String("unimod:"))
         {
           // check for Exception::ConversionError ?
-          actual_peptide_.mods.back().unimod_id = cv_term.getAccession().substr(7).toInt();
+          actual_peptide_.getMutableMods().back().unimod_id = cv_term.getAccession().substr(7).toInt();
         }
         else
         {
-          actual_peptide_.mods.back().addCVTerm(cv_term);
+          actual_peptide_.getMutableMods().back().addCVTerm(cv_term);
         }
 
       }
@@ -1628,7 +1628,7 @@ namespace OpenMS::Internal
       }
       else if (parent_tag == "Evidence")
       {
-        actual_peptide_.evidence.setMetaValue(name, data_value);
+        actual_peptide_.getMutableEvidence().setMetaValue(name, data_value);
       }
       else if (parent_tag == "Peptide")
       {
@@ -1636,7 +1636,7 @@ namespace OpenMS::Internal
       }
       else if (parent_tag == "Modification")
       {
-        actual_peptide_.mods.back().setMetaValue(name, data_value);
+        actual_peptide_.getMutableMods().back().setMetaValue(name, data_value);
       }
       else if (parent_tag == "Compound")
       {

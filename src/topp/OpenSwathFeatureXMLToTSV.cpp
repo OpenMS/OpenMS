@@ -129,11 +129,11 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
 
   const OpenMS::TargetedExperiment::Peptide &pep = transition_exp.getPeptideByRef(peptide_ref);
 
-  sequence = pep.sequence;
-  if (!pep.protein_refs.empty())
+  sequence = pep.getSequence();
+  if (!pep.getProteinRefs().empty())
   {
     // For now just take the first one, assuming the protein name is the id
-    protein_name = pep.protein_refs[0];
+    protein_name = pep.getProteinRefs()[0];
   }
 
   // handle charge

@@ -44,7 +44,7 @@ class TestTraMLFile(unittest.TestCase):
         targeted.addPeptide(first_peptide)
 
         self.assertTrue( targeted.getPeptideByRef(first_transition.getTransGroupRef()) is not None)
-        self.assertTrue( targeted.getProteinByRef(first_peptide.protein_refs[0]) is not None)
+        self.assertTrue( targeted.getProteinByRef(first_peptide.getProteinRefs()[0]) is not None)
 
 
 if __name__ == '__main__':

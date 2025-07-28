@@ -354,17 +354,17 @@ START_SECTION((TargetedExperiment::Nuctide))
   n.id = "nuctide_test_id";
   TEST_EQUAL(n.id, "nuctide_test_id")
   
-  TEST_EQUAL(n.sequence, "")
-  n.sequence = "AUGCGAUU";
-  TEST_EQUAL(n.sequence, "AUGCGAUU")
-  
+  TEST_EQUAL(n.getSequence(), "")
+  n.setSequence("AUGCGAUU");
+  TEST_EQUAL(n.getSequence(), "AUGCGAUU")
+
   // Test oligo references
-  TEST_EQUAL(n.oligo_refs.size(), 0)
-  n.oligo_refs.push_back("oligo1");
-  n.oligo_refs.push_back("oligo2");
-  TEST_EQUAL(n.oligo_refs.size(), 2)
-  TEST_EQUAL(n.oligo_refs[0], "oligo1")
-  TEST_EQUAL(n.oligo_refs[1], "oligo2")
+  TEST_EQUAL(n.getOligoRefs().size(), 0)
+  n.addOligoRef("oligo1");
+  n.addOligoRef("oligo2");
+  TEST_EQUAL(n.getOligoRefs().size(), 2)
+  TEST_EQUAL(n.getOligoRefs()[0], "oligo1")
+  TEST_EQUAL(n.getOligoRefs()[1], "oligo2")
 }
 END_SECTION
 

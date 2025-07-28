@@ -498,7 +498,7 @@ namespace OpenMS
       int group_set_index = group_map[peptide.id];
       int peptide_set_index = peptide_map[peptide_sequence];
 
-      for (const auto& it : peptide.protein_refs)
+      for (const auto& it : peptide.getProteinRefs())
       {
         peptide_protein_map.emplace_back(peptide_set_index, protein_map[it]);
       }

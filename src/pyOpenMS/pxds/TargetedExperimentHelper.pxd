@@ -155,10 +155,10 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         # members
         libcpp_vector[RetentionTime] rts
         String id
-        libcpp_vector[String] protein_refs
-        CVTermList evidence
-        String sequence
-        libcpp_vector[TargetedExperiment_Modification] mods
+        # libcpp_vector[String] protein_refs
+        # CVTermList evidence
+        # String sequence
+        # libcpp_vector[TargetedExperiment_Modification] mods
 
         void setPeptideGroupLabel(String label) except + nogil  # wrap-doc:Sets the peptide group label
         String getPeptideGroupLabel() except + nogil  # wrap-doc:Get the peptide group label
@@ -166,10 +166,26 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         void setChargeState(int charge) except + nogil  # wrap-doc:Sets the peptide or compound charge states
         int getChargeState() except + nogil  # wrap-doc:Returns the peptide or compound charge state
         bool hasCharge() except + nogil  # wrap-doc:Whether product has set charge state
+
         double getRetentionTime() except + nogil  # wrap-doc:Gets compound or peptide retention time
         bool hasRetentionTime() except + nogil  # wrap-doc:Gets compound or peptide retention time
+
         RTType getRetentionTimeType() except + nogil  # wrap-doc:Get compound or peptide retentiontime type
         RTUnit getRetentionTimeUnit() except + nogil  # wrap-doc:Get compound or peptide retentiontime unit (minute/seconds)
+
+        void setProteinRefs(libcpp_vector[String]) except + nogil
+        libcpp_vector[String] getProteinRefs() except + nogil
+        void addProteinRef(String) except + nogil
+        
+        void setEvidence(CVTermList) except + nogil
+        CVTermList getEvidence() except + nogil
+
+        void setSequence(String sequence) except + nogil
+        String getSequence() except + nogil
+
+        void setMods(libcpp_vector[TargetedExperiment_Modification]) except + nogil
+        libcpp_vector[TargetedExperiment_Modification] getMods() except + nogil
+        void addMod(TargetedExperiment_Modification) except + nogil
 
     cdef cppclass Nuctide(CVTermList):
         # wrap-inherits:
@@ -184,9 +200,9 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         # members
         libcpp_vector[RetentionTime] rts
         String id
-        libcpp_vector[String] oligo_refs
-        CVTermList evidence
-        String sequence
+        # libcpp_vector[String] oligo_refs
+        # CVTermList evidence
+        # String sequence
 
         void setNuctideGroupLabel(String label) except + nogil  # wrap-doc:Sets the nuctide group label
         String getNuctideGroupLabel() except + nogil  # wrap-doc:Get the nuctide group label
@@ -198,6 +214,16 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         bool hasRetentionTime() except + nogil  # wrap-doc:Gets nuctide retention time
         RTType getRetentionTimeType() except + nogil  # wrap-doc:Get nuctide retentiontime type
         RTUnit getRetentionTimeUnit() except + nogil  # wrap-doc:Get nuctide retentiontime unit (minute/seconds)
+
+        void setOligoRefs(libcpp_vector[String]) except + nogil
+        libcpp_vector[String] getOligoRefs() except + nogil
+        void addOligoRef(String) except + nogil
+        
+        void setEvidence(CVTermList) except + nogil
+        CVTermList getEvidence() except + nogil
+
+        void setSequence(String sequence) except + nogil
+        String getSequence() except + nogil
 
     cdef cppclass Contact(CVTermList):
         # wrap-inherits:

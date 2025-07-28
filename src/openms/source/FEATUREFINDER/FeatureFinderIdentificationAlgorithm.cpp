@@ -852,7 +852,7 @@ namespace OpenMS
       if (seq.toUnmodifiedString().hasPrefix("XXX")) // seed
       {
         // This will force the SWATH scores to consider it like an unidentified peptide and e.g. use averagine isotopes
-        peptide.sequence = "";
+        peptide.setSequence("");
         // we do not have to aggregate their retention times, therefore just
         // iterate over the entries
         const ChargeMap& cm = pm_it->second;
@@ -871,10 +871,10 @@ namespace OpenMS
             String uid = rt_pep.second->getMetaValue("SeedFeatureID");
 
             // UID should be enough, but let's add the seed count to be sure.
-            String peptide_id = peptide.sequence + "[" + uid + "][" + String(seedcount) + "]/" + String(charge);
+            String peptide_id = peptide.getSequence() + "[" + uid + "][" + String(seedcount) + "]/" + String(charge);
             peptide.setChargeState(charge);
             peptide.id = peptide_id;
-            peptide.protein_refs = {"not_available"};
+            peptide.setProteinRefs({"not_available"});
             peptide.setPeptideGroupLabel(peptide_id);
 
             //create an entry in the "output" ref_rt_map for internals
@@ -907,7 +907,7 @@ namespace OpenMS
       }
       else
       {
-        peptide.sequence = seq.toString();
+        peptide.setSequence(seq.toString());
         // keep track of protein accessions:
         set<String> current_accessions;
         // internal/external pair
@@ -926,8 +926,8 @@ namespace OpenMS
           current_accessions.insert("not_available");
         }
 
-        peptide.protein_refs = vector<String>(current_accessions.begin(),
-                                              current_accessions.end());
+        peptide.setProteinRefs(vector<String>(current_accessions.begin(),
+                                               current_accessions.end()));
         // get regions in which peptide eludes (ideally only one):
         std::vector<RTRegion> rt_regions;
         getRTRegions_(pm_it->second, rt_regions, clear_IDs);
@@ -950,9 +950,9 @@ namespace OpenMS
           Int charge = cm_it->first;
 
           double mz = seq.getMZ(charge);
-          OPENMS_LOG_DEBUG << "\nPeptide " << peptide.sequence << "/" << charge << " (m/z: " << mz << "):" << endl;
+          OPENMS_LOG_DEBUG << "\nPeptide " << peptide.getSequence() << "/" << charge << " (m/z: " << mz << "):" << endl;
           peptide.setChargeState(charge);
-          String peptide_id = peptide.sequence + "/" + String(charge);
+          String peptide_id = peptide.getSequence() + "/" + String(charge);
 
           // we want to detect one feature per peptide and charge state - if there
           // are multiple RT regions, group them together:

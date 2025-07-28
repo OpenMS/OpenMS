@@ -109,34 +109,16 @@ namespace OpenMS
     struct Protein :
       public CVTermList
     {
-      Protein() = default;
-      bool operator==(const Protein& rhs) const
-      {
-        return CVTermList::operator==(rhs) &&
-          id == rhs.id &&
-          sequence == rhs.sequence;
-      }
-
       String id;
       String sequence;
-
     };
 
     /// @brief This class stores the nucleic acid equivalent of a protein, compare with nuctide, which is the nucleic acid peptide
     struct Oligo :
       public CVTermList
     {
-      Oligo() = default;
-      bool operator==(const Oligo& rhs) const
-      {
-        return CVTermList::operator==(rhs) &&
-          id == rhs.id &&
-          sequence == rhs.sequence;
-      }
-
       String id;
       String sequence;
-
     };
 
     /**
@@ -407,10 +389,10 @@ public:
       bool operator==(const Peptide & rhs) const
       {
         return PeptideNuctideCompound::operator==(rhs) &&
-               protein_refs == rhs.protein_refs &&
-               evidence == rhs.evidence &&
-               sequence == rhs.sequence &&
-               mods == rhs.mods &&
+               protein_refs_ == rhs.protein_refs_ &&
+               evidence_ == rhs.evidence_ &&
+               sequence_ == rhs.sequence_ &&
+               mods_ == rhs.mods_ &&
                peptide_group_label_ == rhs.peptide_group_label_;
       }
 
@@ -437,13 +419,86 @@ public:
       }
       //@}
 
-      std::vector<String> protein_refs;
-      CVTermList evidence;
-      String sequence;
-      std::vector<Modification> mods;
+      //@{
+      /// Get the protein references
+      const std::vector<String>& getProteinRefs() const
+      {
+        return protein_refs_;
+      }
+
+      /// Set the protein references
+      void setProteinRefs(const std::vector<String>& protein_refs)
+      {
+        protein_refs_ = protein_refs;
+      }
+
+      /// Add a protein reference
+      void addProteinRef(const String& protein_ref)
+      {
+        protein_refs_.push_back(protein_ref);
+      }
+
+      /// Get the evidence CV terms
+      const CVTermList& getEvidence() const
+      {
+        return evidence_;
+      }
+
+      /// Set the evidence CV terms
+      void setEvidence(const CVTermList& evidence)
+      {
+        evidence_ = evidence;
+      }
+
+      /// Get the peptide sequence
+      const String& getSequence() const
+      {
+        return sequence_;
+      }
+
+      /// Set the peptide sequence
+      void setSequence(const String& sequence)
+      {
+        sequence_ = sequence;
+      }
+
+      /// Get the modifications
+      const std::vector<Modification>& getMods() const
+      {
+        return mods_;
+      }
+
+      /// Set the modifications
+      void setMods(const std::vector<Modification>& mods)
+      {
+        mods_ = mods;
+      }
+
+      /// Add a modification
+      void addMod(const Modification& mod)
+      {
+        mods_.push_back(mod);
+      }
+
+      /// Get mutable access to modifications (for back() access)
+      std::vector<Modification>& getMutableMods()
+      {
+        return mods_;
+      }
+
+      /// Get mutable access to evidence (for addCVTerm, setMetaValue)
+      CVTermList& getMutableEvidence()
+      {
+        return evidence_;
+      }
+      //@}
 
 protected:
       String peptide_group_label_;
+      std::vector<String> protein_refs_;
+      CVTermList evidence_;
+      String sequence_;
+      std::vector<Modification> mods_;
     };
 
 
@@ -486,9 +541,9 @@ public:
       bool operator==(const Nuctide & rhs) const
       {
         return PeptideNuctideCompound::operator==(rhs) &&
-               oligo_refs == rhs.oligo_refs &&
-               evidence == rhs.evidence &&
-               sequence == rhs.sequence &&
+               oligo_refs_ == rhs.oligo_refs_ &&
+               evidence_ == rhs.evidence_ &&
+               sequence_ == rhs.sequence_ &&
                nuctide_group_label_ == rhs.nuctide_group_label_;
       }
 
@@ -496,7 +551,7 @@ public:
        *
        * Equivalent to the peptide group label, but for nuctides.
        *
-     */
+      */
       //@{
       /// Set the nuctide group label
       void setNuctideGroupLabel(const String & label)
@@ -511,12 +566,55 @@ public:
       }
       //@}
 
-      std::vector<String> oligo_refs;
-      CVTermList evidence;
-      String sequence;
+      //@{
+      /// Get the oligo references
+      const std::vector<String>& getOligoRefs() const
+      {
+        return oligo_refs_;
+      }
+
+      /// Set the oligo references
+      void setOligoRefs(const std::vector<String>& oligo_refs)
+      {
+        oligo_refs_ = oligo_refs;
+      }
+
+      /// Get the evidence CV terms
+      const CVTermList& getEvidence() const
+      {
+        return evidence_;
+      }
+
+      /// Set the evidence CV terms
+      void setEvidence(const CVTermList& evidence)
+      {
+        evidence_ = evidence;
+      }
+
+      /// Get the nuctide sequence
+      const String& getSequence() const
+      {
+        return sequence_;
+      }
+
+      /// Set the nuctide sequence
+      void setSequence(const String& sequence)
+      {
+        sequence_ = sequence;
+      }
+      //@}
+
+      /// Add a oligo reference
+      void addOligoRef(const String& oligo_ref)
+      {
+        oligo_refs_.push_back(oligo_ref);
+      }
 
 protected:
       String nuctide_group_label_;
+      std::vector<String> oligo_refs_;
+      CVTermList evidence_;
+      String sequence_;
     };
 
     struct OPENMS_DLLAPI Contact :

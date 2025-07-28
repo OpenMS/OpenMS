@@ -501,7 +501,7 @@ namespace OpenMS
 
       // Copy properties of target peptide to decoy and get sequence from map
       TargetedExperiment::Peptide decoy_peptide = peptide;
-      decoy_peptide.sequence = DecoySequenceMap[peptide.sequence];
+      decoy_peptide.setSequence(DecoySequenceMap[peptide.getSequence()]);
 
       TargetDecoyMap[peptide.id] = decoy_peptide;
       OpenMS::AASequence decoy_peptide_sequence = TargetedExperimentHelper::getAASequence(decoy_peptide);
@@ -955,7 +955,7 @@ target_sequence = TargetedExperimentHelper::getAASequence(target_peptide).toStri
       if (peptide_ids.find(peptide.id) != peptide_ids.end())
       {
         peptides.push_back(peptide);
-        for (const auto& protein_ref : peptide.protein_refs)
+        for (const auto& protein_ref : peptide.getProteinRefs())
         {
           ProteinList.insert(protein_ref);
         }
