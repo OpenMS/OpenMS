@@ -101,7 +101,7 @@ namespace OpenMS
     OPENMS_DLLAPI void getPrefixSuffixSeries(const AASequence& a,
                                    std::vector<double>& prefixSeries,
                                    std::vector<double>& suffixSeries,
-                                   TheoreticalSpectrumGenerator const * g,
+                                   const std::unique_ptr<TheoreticalSpectrumGenerator>& g,
                                    int charge = 1);
 
     /// compute the prefix and suffix series masses for a given NASequence
@@ -109,7 +109,7 @@ namespace OpenMS
     OPENMS_DLLAPI void getPrefixSuffixSeries(const NASequence& a,
                                    std::vector<double>& prefixSeries,
                                    std::vector<double>& suffixSeries,
-                                   NucleicAcidSpectrumGenerator const * g,
+                                   const std::unique_ptr<NucleicAcidSpectrumGenerator>& g,
                                    int charge = 1);
 
     /// for SWATH -- get the theoretical prefix and suffix series masses for a sequence

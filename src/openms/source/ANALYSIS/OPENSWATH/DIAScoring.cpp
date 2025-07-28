@@ -63,8 +63,8 @@ namespace OpenMS
 
     // for void getBYSeries
     {
-      AAgenerator = new TheoreticalSpectrumGenerator();
-      NAgenerator = new NucleicAcidSpectrumGenerator();
+      AAgenerator = std::make_unique<TheoreticalSpectrumGenerator>();
+      NAgenerator = std::make_unique<NucleicAcidSpectrumGenerator>();
 
       Param p;
       p.setValue("add_metainfo", "true",
@@ -72,19 +72,10 @@ namespace OpenMS
       AAgenerator->setParameters(p);
       NAgenerator->setParameters(p);
   }
-
-    // for simulateSpectrumFromSequence
-    //  Param p;
-    //  p.setValue("add_metainfo", "false",
-    //      "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-    //  p.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
-    //  generator->setParameters(p);
   }
 
   DIAScoring::~DIAScoring()
   {
-    delete AAgenerator;
-    delete NAgenerator;
   }
 
   void DIAScoring::updateMembers_()

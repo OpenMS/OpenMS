@@ -229,7 +229,7 @@ private:
     bool dia_extraction_ppm_;
     bool dia_centroided_;
 
-    TheoreticalSpectrumGenerator * AAgenerator;
-    NucleicAcidSpectrumGenerator * NAgenerator;
+    std::unique_ptr<TheoreticalSpectrumGenerator> AAgenerator;
+    std::unique_ptr<NucleicAcidSpectrumGenerator> NAgenerator;
   };
 }

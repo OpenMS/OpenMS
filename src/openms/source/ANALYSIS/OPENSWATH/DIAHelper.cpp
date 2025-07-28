@@ -323,7 +323,7 @@ namespace OpenMS::DIAHelpers
     void getPrefixSuffixSeries(const AASequence& a, //
                      std::vector<double>& prefix_series, //
                      std::vector<double>& suffix_series, //
-                     TheoreticalSpectrumGenerator const * generator,
+                     const std::unique_ptr<TheoreticalSpectrumGenerator>& generator,
                      int charge)
     {
       // Note: We pass TheoreticalSpectrumGenerator ptr, as constructing it each time is too slow.
@@ -355,7 +355,7 @@ namespace OpenMS::DIAHelpers
     void getPrefixSuffixSeries(const NASequence& a, //
                      std::vector<double>& prefix_series, //
                      std::vector<double>& suffix_series, //
-                     NucleicAcidSpectrumGenerator const * generator,
+                     const std::unique_ptr<NucleicAcidSpectrumGenerator>& generator,
                      int charge)
     {
       // Note: We pass TheoreticalSpectrumGenerator ptr, as constructing it each time is too slow.
