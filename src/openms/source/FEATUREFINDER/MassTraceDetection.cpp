@@ -103,12 +103,19 @@ namespace OpenMS
       run(map, found_masstraces);
     }
 
-    void updateWeightedSDEstimateRobust(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
+    void updateIterativeWeightedSD(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum, double& weights_sum_c)
     {
       double denom1 = std::log(last_weights_sum) + 2 * std::log(sd_t);
       double denom2 = std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1));
+      
       double denom = std::sqrt(std::exp(denom1) + std::exp(denom2));
-      double weights_sum = last_weights_sum + p.getIntensity();
+      
+      // Kahan summation for weights accumulation
+      double weight_y = p.getIntensity() - weights_sum_c;
+      double weight_t = last_weights_sum + weight_y;
+      weights_sum_c = (weight_t - last_weights_sum) - weight_y;
+      double weights_sum = weight_t;
+      
       double tmp_sd = denom / std::sqrt(weights_sum);
 
       if (tmp_sd > std::numeric_limits<double>::epsilon())
@@ -287,6 +294,7 @@ namespace OpenMS
         // double ftl_mean(centroid_mz);
         double ftl_sd((centroid_mz / 1e6) * mass_error_ppm_);
         double intensity_so_far(apex_peak.getIntensity());
+        double intensity_so_far_c(0.0);  // Kahan summation compensation for intensity_so_far
 
         while (((trace_down_idx > 0) && toggle_down) ||
                ((trace_up_idx < work_exp.size() - 1) && toggle_up)
@@ -332,7 +340,7 @@ namespace OpenMS
                 {
                   // if (ftl_t > min_fwhm_scans)
                   {
-                    updateWeightedSDEstimateRobust(next_peak, centroid_mz, ftl_sd, intensity_so_far);
+                    updateIterativeWeightedSDRobust(next_peak, centroid_mz, ftl_sd, intensity_so_far, intensity_so_far_c);
                   }
                 }
 
@@ -408,7 +416,7 @@ namespace OpenMS
                 {
                   // if (ftl_t > min_fwhm_scans)
                   {
-                    updateWeightedSDEstimateRobust(next_peak, centroid_mz, ftl_sd, intensity_so_far);
+                    updateIterativeWeightedSDRobust(next_peak, centroid_mz, ftl_sd, intensity_so_far, intensity_so_far_c);
                   }
                 }
 
