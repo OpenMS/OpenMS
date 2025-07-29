@@ -171,23 +171,29 @@ START_SECTION( void convertTargetedExperimentToTSV(const char * filename, OpenMS
   
   // Clean up
   File::remove(temp_filename);
+}
+END_SECTION
 
+START_SECTION( void convertTSVToTargetedExperiment(const char * filename, FileTypes::Type filetype, OpenMS::TargetedExperiment & targeted_exp))
+{
   // Create TSV with both peptide and nucleotide data
+
+  TargetedExperiment exp;
+
   String tsv_content =
     "PrecursorMz\tProductMz\tLibraryIntensity\tNormalizedRetentionTime\tPeptideSequence\tFullPeptideName\tProteinId\tNuctideSequence\tFullNuctideName\tOligoName\tTransitionGroupId\tTransitionId\tCompoundName\n"
     "500.25\t400.15\t1000.0\t25.5\tPEPTIDE\tPEPTIDE\ttest_protein\t\t\t\tpep_group_1\ttransition_1\t\n"
     "600.35\t500.25\t1200.0\t30.5\t\t\t\tAUGCGAUU\tAUG[Cm]CGAUU\ttest_oligo\tnuc_group_1\ttransition_2\t\n";
   
-  temp_filename = File::getTemporaryFile();
+  String temp_filename = File::getTemporaryFile();
   std::ofstream temp_out_file(temp_filename.c_str());
   temp_out_file << tsv_content;
   temp_out_file.close();
 
-  TransitionTSVFile tsv_file;
-  TargetedExperiment exp;
-  
-  tsv_file.convertTSVToTargetedExperiment(temp_filename.c_str(), FileTypes::TSV, exp);
-  
+  TransitionTSVFile tsv_out_file;
+
+  tsv_out_file.convertTSVToTargetedExperiment(temp_filename.c_str(), FileTypes::TSV, exp);
+
   // Verify mixed content
   TEST_EQUAL(exp.getTransitions().size(), 2)
   TEST_EQUAL(exp.getPeptides().size(), 1)
