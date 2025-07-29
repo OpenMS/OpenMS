@@ -1,100 +1,105 @@
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+// 
+// --------------------------------------------------------------------------
+// $Maintainer: Timo Sachsenberg $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/PROCESSING/SMOOTHING/ModifiedSincSmoother.h>
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/test_config.h>
+
+///////////////////////////
 #include <vector>
-#include <cassert>
-#include <iostream>
+#include <numeric>
+
+///////////////////////////
+
+START_TEST(ModifiedSincSmoother<D>, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
 
-void testSmoothData_basic()
+ModifiedSincSmoother* ms_ptr = nullptr;
+ModifiedSincSmoother* ms_nullPointer = nullptr;
+START_SECTION((ModifiedSincSmoother(bool, int, int)))
+  ms_ptr = new ModifiedSincSmoother(false, 6, 7);
+  TEST_NOT_EQUAL(ms_ptr, ms_nullPointer)
+END_SECTION
+
+START_SECTION((virtual ~ModifiedSincSmoother()))
+  delete ms_ptr;
+END_SECTION
+
+START_SECTION((std::vector<double> smooth(const std::vector<double>&)))
 {
-  ModifiedSincSmoother smoother;
+  int degree = 6;
+  int m = 7;
+  std::vector<double> data = {0, 1, -2, 3, -4, 5, -6, 7, -8, 9, 10, 6, 3, 1, 0};
+  std::vector<double> expected = {
+    0.15835885, 0.11657466, -0.09224721, 0.03165689, -0.05481473,
+   -0.05436219, 0.51054827, -0.59067866, -1.21928695, 5.28610520,
+   10.46161952, 6.82674246, 2.49236743, 1.04220381, 0.03264660
+  };
 
-  std::vector<double> input{1.0, 1.0, 1.0, 1.0, 1.0};
-  std::vector<double> output;
-
-  smoother.smoothData(input, output, 3, 0.5);
-
-  assert(output.size() == input.size());
-
-  for (size_t i = 0; i < output.size(); ++i)
-  {
-    assert(std::abs(output[i] - 1.0) < 1e-10);
-  }
-}
-
-void testSmooth_inplace()
-{
-  ModifiedSincSmoother smoother;
-  std::vector<double> data{1.0, 2.0, 3.0, 4.0, 5.0};
-
-  smoother.smooth(data, 2, 1); // degree = 2, half_kernel_size = 1
+  ModifiedSincSmoother smoother(false, degree, m);
+  std::vector<double> output = smoother.smooth(data);
 
   for (size_t i = 0; i < data.size(); ++i)
   {
-    std::cout << "smoothed[" << i << "] = " << data[i] << std::endl;
+    TEST_REAL_SIMILAR(output[i], expected[i])
   }
 }
+END_SECTION
 
-void testInvalidWindowSize()
+START_SECTION((smooth MS1 variant))
 {
-  ModifiedSincSmoother smoother;
-  std::vector<double> input{1.0, 2.0, 3.0};
-  std::vector<double> output;
+  int degree = 6;
+  int m = 7;
+  std::vector<double> data = {0, 1, -2, 3, -4, 5, -6, 7, -8, 9, 10, 6, 3, 1, 0};
 
-  try
-  {
-    smoother.smoothData(input, output, 2, 0.5); // even window size
-    assert(false); // should not reach here
-  }
-  catch (const std::invalid_argument& e)
-  {
-    std::cout << "Caught expected exception: " << e.what() << std::endl;
-  }
+  ModifiedSincSmoother smoother(true, degree, m); // MS1 variant
+  std::vector<double> output = smoother.smooth(data);
+
+  double sum_input = std::accumulate(data.begin(), data.end(), 0.0);
+  double sum_output = std::accumulate(output.begin(), output.end(), 0.0);
+  TEST_REAL_SIMILAR(sum_input, sum_output)
+
+  TEST_EQUAL(data.size(), output.size())
 }
+END_SECTION
 
-void testInvalidCutoff()
+START_SECTION((short input, expect safe behavior))
 {
-  ModifiedSincSmoother smoother;
-  std::vector<double> input{1.0, 2.0, 3.0};
-  std::vector<double> output;
+  int degree = 4;
+  int m = 3;
+  std::vector<double> data = {1.0, 2.0, 3.0};
 
-  try
-  {
-    smoother.smoothData(input, output, 3, -1.0); // invalid cutoff
-    assert(false);
-  }
-  catch (const std::invalid_argument& e)
-  {
-    std::cout << "Caught expected exception: " << e.what() << std::endl;
-  }
-  try
-  {
-    smoother.smoothData(input, output, 3, 1.5); // invalid cutoff
-    assert(false);
-  }
-  catch (const std::invalid_argument& e)
-  {
-    std::cout << "Caught expected exception: " << e.what() << std::endl;
-  }
-  try
-  {
-    smoother.smoothData(input, output, 3, 0.0); // invalid cutoff
-    assert(false);
-  }
-  catch (const std::invalid_argument& e)
-  {
-    std::cout << "Caught expected exception: " << e.what() << std::endl;
-  }
+  ModifiedSincSmoother smoother(false, degree, m);
+  std::vector<double> output = smoother.smooth(data);
+
+  TEST_EQUAL(output.size(), data.size())
 }
+END_SECTION
 
-int main()
+START_SECTION((constant input stays constant))
 {
-  std::cout << "Running ModifiedSincSmoother tests..." << std::endl;
-  testSmoothData_basic();
-  testSmooth_inplace();
-  testInvalidWindowSize();
-  testInvalidCutoff();
-  std::cout << "All tests completed." << std::endl;
-  return 0;
+  int degree = 6;
+  int m = 7;
+  std::vector<double> data(21, 5.0);
+
+  ModifiedSincSmoother smoother(false, degree, m);
+  std::vector<double> output = smoother.smooth(data);
+
+  for (double val : output)
+  {
+    TEST_REAL_SIMILAR(val, 5.0)
+  }
 }
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
