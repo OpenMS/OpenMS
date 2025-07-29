@@ -25,10 +25,6 @@ namespace OpenMS
 
   IncludeExcludeTarget & IncludeExcludeTarget::operator=(const IncludeExcludeTarget & rhs) = default;
 
-  bool IncludeExcludeTarget::operator==(const IncludeExcludeTarget & rhs) const = default;
-
-  bool IncludeExcludeTarget::operator!=(const IncludeExcludeTarget & rhs) const = default;
-
   void IncludeExcludeTarget::setName(const String & name)
   {
     name_ = name;

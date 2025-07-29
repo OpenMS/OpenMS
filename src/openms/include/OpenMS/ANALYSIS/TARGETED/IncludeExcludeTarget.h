@@ -115,10 +115,10 @@ public:
     */
     //@{
     /// equality operator
-    bool operator==(const IncludeExcludeTarget & rhs) const;
+    bool operator==(const IncludeExcludeTarget & rhs) const = default;
 
     /// inequality operator
-    bool operator!=(const IncludeExcludeTarget & rhs) const;
+    bool operator!=(const IncludeExcludeTarget & rhs) const = default;
     //@}
 
 protected:
