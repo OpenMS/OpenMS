@@ -60,7 +60,7 @@ public:
     /// convert from the LightPeptideNuctideCompound to an OpenMS AASequence (with correct modifications)
     static void convertPeptideToAASequence(const OpenSwath::LightPeptideNuctideCompound& peptide, AASequence & aa_sequence);
 
-    /// convert from the OpenMS TargetedExperiment Oligo to the LightTargetedExperiment Oligo
+    /// convert from the LightPeptideNuctideCompound (nucleotide) to an OpenMS NASequence
     static void convertNuctideToNASequence(const OpenSwath::LightPeptideNuctideCompound& nuctide, NASequence & na_sequence);
 
   };
