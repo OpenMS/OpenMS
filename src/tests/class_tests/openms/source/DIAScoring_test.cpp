@@ -227,13 +227,13 @@ START_SECTION(([EXTRA] void MRMFeatureScoring::getPrefixSuffixSeries(AASequence&
   std::vector<double> bseries, yseries;
   OpenMS::AASequence a = OpenMS::AASequence::fromString(sequence);
 
-  TheoreticalSpectrumGenerator generator;
+  unique_ptr<TheoreticalSpectrumGenerator> generator = make_unique<TheoreticalSpectrumGenerator>();
   Param p;
   p.setValue("add_metainfo", "true",
       "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-  generator.setParameters(p);
+  generator->setParameters(p);
 
-  OpenMS::DIAHelpers::getPrefixSuffixSeries(a,  bseries, yseries, &generator, 1);
+  OpenMS::DIAHelpers::getPrefixSuffixSeries(a,  bseries, yseries, generator, 1);
 
   TEST_EQUAL(bseries.size(), 5)
   TEST_EQUAL(yseries.size(), 6)
@@ -258,7 +258,7 @@ START_SECTION(([EXTRA] void MRMFeatureScoring::getPrefixSuffixSeries(AASequence&
   bseries.clear();
   yseries.clear();
   a.setModification(1, "Phospho" ); // modify the Y
-  OpenMS::DIAHelpers::getPrefixSuffixSeries(a,  bseries, yseries, &generator, 1);
+  OpenMS::DIAHelpers::getPrefixSuffixSeries(a,  bseries, yseries, generator, 1);
 
   TEST_EQUAL(bseries.size(), 5)
   TEST_EQUAL(yseries.size(), 6)
@@ -285,14 +285,14 @@ START_SECTION(([EXTRA] void MRMFeatureScoring::getPrefixSuffixSeries(NASequence&
   std::vector<double> bseries, yseries;
   OpenMS::NASequence a = OpenMS::NASequence::fromString(sequence);
 
-  NucleicAcidSpectrumGenerator generator;
+  unique_ptr<NucleicAcidSpectrumGenerator> generator = make_unique<NucleicAcidSpectrumGenerator>();
   Param p;
   p.setValue("add_metainfo", "true",
       "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
   p.setValue("add_first_prefix_ion", "true");
-  generator.setParameters(p);
+  generator->setParameters(p);
 
-  OpenMS::DIAHelpers::getPrefixSuffixSeries(a,  bseries, yseries, &generator, -1);
+  OpenMS::DIAHelpers::getPrefixSuffixSeries(a,  bseries, yseries, generator, -1);
 
   TEST_EQUAL(bseries.size(), 6)
   TEST_EQUAL(yseries.size(), 6)
