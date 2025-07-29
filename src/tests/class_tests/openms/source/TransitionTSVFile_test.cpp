@@ -178,7 +178,7 @@ START_SECTION( void convertTargetedExperimentToTSV(const char * filename, OpenMS
     "500.25\t400.15\t1000.0\t25.5\tPEPTIDE\tPEPTIDE\ttest_protein\t\t\t\tpep_group_1\ttransition_1\t\n"
     "600.35\t500.25\t1200.0\t30.5\t\t\t\tAUGCGAUU\tAUG[Cm]CGAUU\ttest_oligo\tnuc_group_1\ttransition_2\t\n";
   
-  String temp_filename = File::getTemporaryFile();
+  temp_filename = File::getTemporaryFile();
   std::ofstream temp_out_file(temp_filename.c_str());
   temp_out_file << tsv_content;
   temp_out_file.close();
