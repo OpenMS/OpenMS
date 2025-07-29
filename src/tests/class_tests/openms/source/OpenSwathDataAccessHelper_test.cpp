@@ -134,7 +134,7 @@ START_SECTION((void OpenSwathDataAccessHelper::convertTargetedExp(const OpenMS::
 
   {
     TargetedExperiment::Peptide pep;
-    OpenSwath::LightCompound comp;
+    OpenSwath::LightPeptideNuctideCompound comp;
 
     pep.setChargeState(8);
     pep.setDriftTime(0.6);
@@ -181,7 +181,7 @@ START_SECTION((void OpenSwathDataAccessHelper::convertTargetedExp(const OpenMS::
 
   {
     TargetedExperiment::Compound pep;
-    OpenSwath::LightCompound comp;
+    OpenSwath::LightPeptideNuctideCompound comp;
 
     pep.setChargeState(8);
     pep.setDriftTime(0.6);
@@ -224,7 +224,7 @@ END_SECTION
 START_SECTION((static void convertTargetedCompound(const TargetedExperiment::Peptide& pep, OpenSwath::LightCompound& comp)))
 {
   TargetedExperiment::Peptide pep;
-  OpenSwath::LightCompound comp;
+  OpenSwath::LightPeptideNuctideCompound comp;
 
   pep.setChargeState(8);
   pep.setDriftTime(0.6);
@@ -268,7 +268,7 @@ END_SECTION
 START_SECTION((static void convertTargetedCompound(const TargetedExperiment::Compound& compound, OpenSwath::LightCompound& comp)))
 {
   TargetedExperiment::Compound pep;
-  OpenSwath::LightCompound comp;
+  OpenSwath::LightPeptideNuctideCompound comp;
 
   pep.setChargeState(8);
   pep.setDriftTime(0.6);

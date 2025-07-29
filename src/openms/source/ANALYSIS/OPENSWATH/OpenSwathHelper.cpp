@@ -127,14 +127,14 @@ namespace OpenMS
       }
     }
     std::set<std::string> matching_proteins;
-    for (Size i = 0; i < targeted_exp.compounds.size(); i++)
+    for (Size i = 0; i < targeted_exp.peptideNuctideCompounds.size(); i++)
     {
-      if (matching_compounds.find(targeted_exp.compounds[i].id) != matching_compounds.end())
+      if (matching_compounds.find(targeted_exp.peptideNuctideCompounds[i].id) != matching_compounds.end())
       {
-        transition_exp_used.compounds.push_back( targeted_exp.compounds[i] );
-        for (Size j = 0; j < targeted_exp.compounds[i].protein_refs.size(); j++)
+        transition_exp_used.peptideNuctideCompounds.push_back( targeted_exp.peptideNuctideCompounds[i] );
+        for (Size j = 0; j < targeted_exp.peptideNuctideCompounds[i].protein_refs.size(); j++)
         {
-          matching_proteins.insert(targeted_exp.compounds[i].protein_refs[j]);
+          matching_proteins.insert(targeted_exp.peptideNuctideCompounds[i].protein_refs[j]);
         }
       }
     }
@@ -143,9 +143,9 @@ namespace OpenMS
       if (matching_compounds.find(targeted_exp.oligos[i].id) != matching_compounds.end())
       {
         transition_exp_used.oligos.push_back( targeted_exp.oligos[i] );
-        for (Size j = 0; j < targeted_exp.compounds[i].oligo_refs.size(); j++)
+        for (Size j = 0; j < targeted_exp.peptideNuctideCompounds[i].oligo_refs.size(); j++)
         {
-          matching_proteins.insert(targeted_exp.compounds[i].oligo_refs[j]);
+          matching_proteins.insert(targeted_exp.peptideNuctideCompounds[i].oligo_refs[j]);
         }
       }
     }

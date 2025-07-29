@@ -550,7 +550,7 @@ protected:
      * @param output Output vector containing matching transitions (taken from all_transitions)
      *
     */
-    void copyBatchTransitions_(const std::vector<OpenSwath::LightCompound>& used_compounds,
+    void copyBatchTransitions_(const std::vector<OpenSwath::LightPeptideNuctideCompound>& used_compounds,
       const std::vector<OpenSwath::LightTransition>& all_transitions,
       std::vector<OpenSwath::LightTransition>& output);
   };

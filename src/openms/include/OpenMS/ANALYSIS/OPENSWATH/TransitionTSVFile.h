@@ -168,7 +168,7 @@ protected:
 
       OpenSwath::TransType getType() const
       {
-        if ((CompoundName.empty() || CompoundName == "NA") && (FullNuctideName.empty() || FullNuctideName == "NA")) // SPWTODO:Can FullPeptideName be empty?  &&!FullPeptideName.empty();
+        if (((CompoundName.empty() || CompoundName == "NA") && (FullNuctideName.empty() || FullNuctideName == "NA")) && (!FullPeptideName.empty() || !ProteinName.empty()))
         {
           return OpenSwath::TransType::PEPTIDE;
         }

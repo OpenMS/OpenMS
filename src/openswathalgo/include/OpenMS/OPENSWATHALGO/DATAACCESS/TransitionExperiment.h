@@ -132,10 +132,10 @@ namespace OpenSwath
   };
 
   // A compound is either a peptide a nuctide or a metabolite
-  struct LightCompound
+  struct LightPeptideNuctideCompound
   {
 
-    LightCompound() :
+    LightPeptideNuctideCompound() :
       drift_time(-1),
       charge(0)
     {
@@ -212,14 +212,14 @@ namespace OpenSwath
     LightTargetedExperiment() : compound_reference_map_dirty_(true) {}
 
     typedef LightTransition Transition;
-    typedef LightCompound Peptide;
-    typedef LightCompound Nuctide;
+    typedef LightPeptideNuctideCompound Peptide;
+    typedef LightPeptideNuctideCompound Nuctide;
     typedef LightOligo Oligo;
-    typedef LightCompound Compound;
+    typedef LightPeptideNuctideCompound Compound;
     typedef LightProtein Protein;
 
     std::vector<LightTransition> transitions;
-    std::vector<LightCompound> compounds;
+    std::vector<LightPeptideNuctideCompound> peptideNuctideCompounds;
     std::vector<LightProtein> proteins;
     std::vector<LightOligo> oligos;
     std::vector<LightTransition> & getTransitions()
@@ -232,14 +232,14 @@ namespace OpenSwath
       return transitions;
     }
 
-    std::vector<LightCompound> & getCompounds()
+    std::vector<LightPeptideNuctideCompound> & getPeptideNuctideCompounds()
     {
-      return compounds;
+      return peptideNuctideCompounds;
     }
 
-    const std::vector<LightCompound> & getCompounds() const
+    const std::vector<LightPeptideNuctideCompound> & getCompounds() const
     {
-      return compounds;
+      return peptideNuctideCompounds;
     }
 
     std::vector<LightProtein> & getProteins()
@@ -262,13 +262,7 @@ namespace OpenSwath
       return oligos;
     }
 
-    // legacy
-    const LightCompound& getPeptideByRef(const std::string& ref)
-    {
-      return getCompoundByRef(ref);
-    }
-
-    const LightCompound& getCompoundByRef(const std::string& ref)
+    const LightPeptideNuctideCompound& getCompoundByRef(const std::string& ref)
     {
       if (compound_reference_map_dirty_)
       {
@@ -281,16 +275,16 @@ namespace OpenSwath
 
     void createReferenceMap_()
     {
-      for (size_t i = 0; i < getCompounds().size(); i++)
+      for (size_t i = 0; i < getPeptideNuctideCompounds().size(); i++)
       {
-        compound_reference_map_[getCompounds()[i].id] = &getCompounds()[i];
+        compound_reference_map_[getPeptideNuctideCompounds()[i].id] = &getPeptideNuctideCompounds()[i];
       }
       compound_reference_map_dirty_ = false;
     }
 
     // Map of compounds (peptides, nuctides, or metabolites)
     bool compound_reference_map_dirty_;
-    std::map<std::string, LightCompound*> compound_reference_map_;
+    std::map<std::string, LightPeptideNuctideCompound*> compound_reference_map_;
 
   };
 

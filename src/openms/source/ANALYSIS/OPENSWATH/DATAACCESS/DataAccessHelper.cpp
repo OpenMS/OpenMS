@@ -113,17 +113,17 @@ namespace OpenMS
     //copy peptides and store as compounds
     for (Size i = 0; i < transition_exp_.getPeptides().size(); i++)
     {
-      OpenSwath::LightCompound p;
+      OpenSwath::LightPeptideNuctideCompound p;
       OpenSwathDataAccessHelper::convertTargetedPeptide(transition_exp_.getPeptides()[i], p);
-      transition_exp.compounds.push_back(p);
+      transition_exp.peptideNuctideCompounds.push_back(p);
     }
 
     //copy compounds and store as compounds
     for (Size i = 0; i < transition_exp_.getCompounds().size(); i++)
     {
-      OpenSwath::LightCompound c;
+      OpenSwath::LightPeptideNuctideCompound c;
       OpenSwathDataAccessHelper::convertTargetedCompound(transition_exp_.getCompounds()[i], c);
-      transition_exp.compounds.push_back(c);
+      transition_exp.peptideNuctideCompounds.push_back(c);
     }
 
     //mapping of transitions
@@ -139,7 +139,7 @@ namespace OpenMS
       // If compound is a peptide, get the ion mobility information from the compound
       if (!t.transition_ref.empty())
       {
-        OpenSwath::LightCompound c = transition_exp.getCompoundByRef(t.transition_ref);
+        OpenSwath::LightPeptideNuctideCompound c = transition_exp.getCompoundByRef(t.transition_ref);
         t.precursor_im = c.getDriftTime();
       }
 
@@ -191,7 +191,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathDataAccessHelper::convertTargetedPeptide(const TargetedExperiment::Peptide& pep, OpenSwath::LightCompound & p)
+  void OpenSwathDataAccessHelper::convertTargetedPeptide(const TargetedExperiment::Peptide& pep, OpenSwath::LightPeptideNuctideCompound & p)
   {
     OpenSwath::LightModification light_mod;
 
@@ -269,7 +269,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathDataAccessHelper::convertTargetedNuctide(const TargetedExperiment::Nuctide& nuc, OpenSwath::LightCompound & n)
+  void OpenSwathDataAccessHelper::convertTargetedNuctide(const TargetedExperiment::Nuctide& nuc, OpenSwath::LightPeptideNuctideCompound & n)
   {
     n.id = nuc.id;
     if (nuc.hasRetentionTime())
@@ -307,7 +307,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Compound& compound, OpenSwath::LightCompound & comp)
+  void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Compound& compound, OpenSwath::LightPeptideNuctideCompound & comp)
   {
     comp.id = compound.id;
     if (compound.hasRetentionTime())
@@ -332,7 +332,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathDataAccessHelper::convertPeptideToAASequence(const OpenSwath::LightCompound & peptide, AASequence & aa_sequence)
+  void OpenSwathDataAccessHelper::convertPeptideToAASequence(const OpenSwath::LightPeptideNuctideCompound & peptide, AASequence & aa_sequence)
   {
     OPENMS_PRECONDITION(peptide.isPeptide(), "Function needs peptide, not metabolite")
 
@@ -348,7 +348,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathDataAccessHelper::convertNuctideToNASequence(const OpenSwath::LightCompound & nuctide, NASequence & na_sequence)
+  void OpenSwathDataAccessHelper::convertNuctideToNASequence(const OpenSwath::LightPeptideNuctideCompound & nuctide, NASequence & na_sequence)
   {
     OPENMS_PRECONDITION(nuctide.isNuctide(), "Function needs nuctide, not metabolite")
 

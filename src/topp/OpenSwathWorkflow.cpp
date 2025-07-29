@@ -788,7 +788,7 @@ protected:
     ///////////////////////////////////
     OpenSwath::LightTargetedExperiment transition_exp = loadTransitionList(tr_type, tr_file, tsv_reader_param);
     OPENMS_LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, " << transition_exp.getOligos().size() << " oligos, " <<
-      transition_exp.getCompounds().size() << " compounds with " << transition_exp.getTransitions().size() << " transitions." << std::endl;
+      transition_exp.getPeptideNuctideCompounds().size() << " compounds with " << transition_exp.getTransitions().size() << " transitions." << std::endl;
 
     if (out_features_type == FileTypes::OSW)
     {
@@ -814,7 +814,7 @@ protected:
         auto transition_traml_to_pqp = TransitionPQPFile().getPQPIDToTraMLIDMap(out_features.c_str(), "TRANSITION");
 
         // convert tramlID in transitionExp to PQP ID
-        for (auto & prec : transition_exp.getCompounds())
+        for (auto & prec : transition_exp.getPeptideNuctideCompounds())
         {
           if (auto id = precursor_traml_to_pqp.find(prec.id); id != precursor_traml_to_pqp.end())
           {
@@ -957,7 +957,7 @@ protected:
       im_trafo_inv.invert(); // theoretical -> experimental
 
       // We now modify the library as this is the easiest thing to do
-      for (auto & p : transition_exp.getCompounds())
+      for (auto & p : transition_exp.getPeptideNuctideCompounds())
       {
         p.drift_time = im_trafo_inv.apply(p.drift_time);
       }

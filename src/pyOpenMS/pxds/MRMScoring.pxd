@@ -54,7 +54,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>" namespace "OpenSwath
         double calcXcorrPrecursorContrastShapeScore() except + nogil  # wrap-doc:Calculate the precursor cross-correlation shape score against the transitions
 
         # NAMESPACE # # POINTER # void calcLibraryScore(OpenSwath::IMRMFeature * mrmfeature, libcpp_vector[ TransitionType ] & transitions, double & correlation, double & rmsd, double & manhattan, double & dotprod) except + nogil 
-        double calcRTScore(LightCompound & peptide, double normalized_experimental_rt) except + nogil 
+        double calcRTScore(LightPeptideNuctideCompound & peptide, double normalized_experimental_rt) except + nogil 
         # NAMESPACE # # POINTER # double calcSNScore(OpenSwath::IMRMFeature * mrmfeature, libcpp_vector[ OpenSwath::ISignalToNoisePtr ] & signal_noise_estimators) except + nogil 
 
         double calcMIScore() except + nogil 

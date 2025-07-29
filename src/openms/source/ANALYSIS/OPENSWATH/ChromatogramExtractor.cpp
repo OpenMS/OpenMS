@@ -112,7 +112,7 @@ namespace OpenMS
       String ref = transition_exp_used.getTransitions()[i].getTransGroupRef();
       compound2tr[ref].push_back(&transition_exp_used.getTransitions()[i]);
     }
-    std::map<String, const OpenSwath::LightCompound*> tr2compound;
+    std::map<String, const OpenSwath::LightPeptideNuctideCompound*> tr2compound;
     for (const auto & p : transition_exp_used.getCompounds()) {tr2compound[p.id] = &p;}
 
     // Determine iteration size:
@@ -134,7 +134,7 @@ namespace OpenMS
       output_chromatograms.push_back(s);
 
       ChromatogramExtractor::ExtractionCoordinates coord;
-      OpenSwath::LightCompound compound;
+      OpenSwath::LightPeptideNuctideCompound compound;
       OpenSwath::LightTransition transition;
 
       if (ms1)

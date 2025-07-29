@@ -82,10 +82,10 @@ OpenSwath::LightTargetedExperiment addTransitions( OpenMS::MRMFeatureFinderScori
     exp.transitions.push_back(tr);
   }
 
-  OpenSwath::LightCompound cmp;
+  OpenSwath::LightPeptideNuctideCompound cmp;
   cmp.id = "pep1";
   cmp.drift_time = 11;
-  exp.compounds.push_back(cmp);
+  exp.peptideNuctideCompounds.push_back(cmp);
   return exp;
 }
 
@@ -101,10 +101,10 @@ void addTransitionsPep2( OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType
   transition_group.addTransition(tr, native_id );
   exp.transitions.push_back(tr);
 
-  OpenSwath::LightCompound cmp;
+  OpenSwath::LightPeptideNuctideCompound cmp;
   cmp.id = "pep2";
   cmp.drift_time = 15;
-  exp.compounds.push_back(cmp);
+  exp.peptideNuctideCompounds.push_back(cmp);
 }
 void addTransitionsPep3( OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType & transition_group, OpenSwath::LightTargetedExperiment& exp)
 {
@@ -118,10 +118,10 @@ void addTransitionsPep3( OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType
   transition_group.addTransition(tr, native_id );
   exp.transitions.push_back(tr);
 
-  OpenSwath::LightCompound cmp;
+  OpenSwath::LightPeptideNuctideCompound cmp;
   cmp.id = "pep3";
   cmp.drift_time = 20;
-  exp.compounds.push_back(cmp);
+  exp.peptideNuctideCompounds.push_back(cmp);
 }
 
 START_TEST(SwathMapMassCorrection, "$Id$")

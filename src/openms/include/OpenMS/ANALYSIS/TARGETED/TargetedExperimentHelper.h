@@ -550,6 +550,7 @@ public:
       /** @name The nuctide group label specifies to non-labeled nuctide group to which the nuctide belongs
        *
        * Equivalent to the peptide group label, but for nuctides.
+       * NB: NASequence has modifications on the indiviual monomers, so no modifications are stored here.
        *
       */
       //@{

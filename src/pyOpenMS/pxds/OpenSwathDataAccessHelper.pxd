@@ -2,7 +2,7 @@ from smart_ptr cimport shared_ptr
 from TargetedExperiment cimport *
 from TargetedExperimentHelper cimport *
 from OpenSwathDataStructures cimport *
-from LightTargetedExperiment cimport LightTargetedExperiment, LightCompound
+from LightTargetedExperiment cimport LightTargetedExperiment, LightPeptideNuctideCompound
 
 from MSSpectrum cimport *
 from Peak1D cimport *
@@ -31,8 +31,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>" nam
 
         void convertTargetedExp(TargetedExperiment & transition_exp_, LightTargetedExperiment & transition_exp) except + nogil  # wrap-doc:Converts from the OpenMS TargetedExperiment to the OpenMs LightTargetedExperiment
 
-        void convertPeptideToAASequence(LightCompound & peptide, AASequence & aa_sequence) except + nogil  # wrap-doc:Converts from the LightCompound to an OpenMS AASequence (with correct modifications)
+        void convertPeptideToAASequence(LightPeptideNuctideCompound & peptide, AASequence & aa_sequence) except + nogil  # wrap-doc:Converts from the LightPeptideNuctideCompound to an OpenMS AASequence (with correct modifications)
         
-        void convertTargetedPeptide(Peptide pep, LightCompound & p) except + nogil  # wrap-doc:Converts from the OpenMS TargetedExperiment Peptide to the LightTargetedExperiment Peptide
+        void convertTargetedPeptide(Peptide pep, LightPeptideNuctideCompound & p) except + nogil  # wrap-doc:Converts from the OpenMS TargetedExperiment Peptide to the LightTargetedExperiment Peptide
 
-        void convertTargetedNuctide(Nuctide pep, LightCompound & p) except + nogil  # wrap-doc:Converts from the OpenMS TargetedExperiment Nuctide to the LightTargetedExperiment Nuctide
+        void convertTargetedNuctide(Nuctide pep, LightPeptideNuctideCompound & p) except + nogil  # wrap-doc:Converts from the OpenMS TargetedExperiment Nuctide to the LightTargetedExperiment Nuctide

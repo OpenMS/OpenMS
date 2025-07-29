@@ -21,7 +21,7 @@ class TestLightTargetedExperiment(unittest.TestCase):
 
         self.lm = lm
 
-        lpep = pyopenms.LightCompound()
+        lpep = pyopenms.LightPeptideNuctideCompound()
         lpep.rt = 12.0
         lpep.charge =  2
         lpep.sequence =  b"SEQ"
@@ -38,7 +38,7 @@ class TestLightTargetedExperiment(unittest.TestCase):
         self.lprot = lprot
 
         lte = pyopenms.LightTargetedExperiment()
-        lte.compounds = [self.lpep]
+        lte.peptideNuctideCompounds = [self.lpep]
         lte.proteins = [self.lprot]
         lte.transitions = [self.lt]
 
@@ -92,7 +92,7 @@ class TestLightTargetedExperiment(unittest.TestCase):
 
     def test_light_targeted_experiment(self):
         lprot, = self.lte.proteins
-        lpep, = self.lte.compounds
+        lpep, = self.lte.peptideNuctideCompounds
         ltrans, = self.lte.transitions
 
         TestLightTargetedExperiment._test_light_protein(lprot)

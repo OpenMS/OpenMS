@@ -235,9 +235,9 @@ namespace OpenMS
     double mz, intensity, im;
     std::vector<double> prefix_series, suffix_series;
     
-    OpenMS::DIAHelpers::getPrefixSuffixSeries(sequence, suffix_series, prefix_series, AAgenerator, charge);
+    OpenMS::DIAHelpers::getPrefixSuffixSeries(sequence, prefix_series, suffix_series, AAgenerator, charge);
    
-    for (const auto& prefix_ion_mz : suffix_series)
+    for (const auto& prefix_ion_mz : prefix_series)
     {
       RangeMZ mz_range = DIAHelpers::createMZRangePPM(prefix_ion_mz, dia_extract_window_, dia_extraction_ppm_);
 
@@ -248,7 +248,7 @@ namespace OpenMS
         prefix_score++;
       }
     }
-    for (const auto& suffix_ion_mz : prefix_series)
+    for (const auto& suffix_ion_mz : suffix_series)
     {
       RangeMZ mz_range = DIAHelpers::createMZRangePPM(suffix_ion_mz, dia_extract_window_, dia_extraction_ppm_);
 
@@ -271,9 +271,9 @@ namespace OpenMS
     double mz, intensity, im;
     std::vector<double> prefix_series, suffix_series;
     
-    OpenMS::DIAHelpers::getPrefixSuffixSeries(sequence, suffix_series, prefix_series, NAgenerator, charge);
+    OpenMS::DIAHelpers::getPrefixSuffixSeries(sequence, prefix_series, suffix_series, NAgenerator, charge);
 
-    for (const auto& prefix_ion_mz : suffix_series)
+    for (const auto& prefix_ion_mz : prefix_series)
     {
       RangeMZ mz_range = DIAHelpers::createMZRangePPM(prefix_ion_mz, dia_extract_window_, dia_extraction_ppm_);
 
@@ -284,7 +284,7 @@ namespace OpenMS
         prefix_score++;
       }
     }
-    for (const auto& suffix_ion_mz : prefix_series)
+    for (const auto& suffix_ion_mz : suffix_series)
     {
       RangeMZ mz_range = DIAHelpers::createMZRangePPM(suffix_ion_mz, dia_extract_window_, dia_extraction_ppm_);
 

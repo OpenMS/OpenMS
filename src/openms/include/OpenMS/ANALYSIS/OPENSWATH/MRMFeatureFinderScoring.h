@@ -69,7 +69,7 @@ public:
     //@{
     typedef OpenSwath::LightTransition TransitionType;
     typedef OpenSwath::LightTargetedExperiment TargetedExpType;
-    typedef OpenSwath::LightCompound PeptideType;
+    typedef OpenSwath::LightPeptideNuctideCompound PeptideType;
     typedef OpenSwath::LightProtein ProteinType;
     typedef OpenSwath::LightModification ModificationType;
     // a transition group holds the chromatographic data and peaks across

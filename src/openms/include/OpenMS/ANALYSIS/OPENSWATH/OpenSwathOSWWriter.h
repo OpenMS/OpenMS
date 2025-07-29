@@ -149,7 +149,7 @@ namespace OpenMS
      * @returns A string to be written using writeLines
      *
      */
-    String prepareLine(const OpenSwath::LightCompound& pep,
+    String prepareLine(const OpenSwath::LightPeptideNuctideCompound& pep,
         const OpenSwath::LightTransition* transition,
         const FeatureMap& output, const String& id) const;
 

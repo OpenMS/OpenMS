@@ -43,9 +43,9 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
         int location
         int unimod_id
 
-    cdef cppclass LightCompound:
-        LightCompound() except + nogil 
-        LightCompound(LightCompound &) except + nogil 
+    cdef cppclass LightPeptideNuctideCompound:
+        LightPeptideNuctideCompound() except + nogil 
+        LightPeptideNuctideCompound(LightPeptideNuctideCompound &) except + nogil 
 
         double rt
         double drift_time
@@ -78,13 +78,12 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
         LightTargetedExperiment(LightTargetedExperiment &) except + nogil 
 
         libcpp_vector[LightTransition] transitions
-        libcpp_vector[LightCompound] compounds
+        libcpp_vector[LightPeptideNuctideCompound] peptideNuctideCompounds
         libcpp_vector[LightProtein] proteins
         libcpp_vector[LightTransition] getTransitions()  except + nogil 
 
-        libcpp_vector[LightCompound] getCompounds() except + nogil 
+        libcpp_vector[LightPeptideNuctideCompound] getCompounds() except + nogil 
         libcpp_vector[LightProtein] getProteins() except + nogil 
 
-        LightCompound getCompoundByRef(libcpp_string & ref) except + nogil 
-        LightCompound getPeptideByRef(libcpp_string & ref) except + nogil 
+        LightPeptideNuctideCompound getCompoundByRef(libcpp_string & ref) except + nogil 
 

@@ -758,7 +758,7 @@ namespace OpenMS
       // check whether we need a new compound
       if (compound_map.find(tr_it->group_id) == compound_map.end())
       {
-        OpenSwath::LightCompound compound;
+        OpenSwath::LightPeptideNuctideCompound compound;
         if (tr_it->getType()==OpenSwath::TransType::PEPTIDE)
         {
           OpenMS::TargetedExperiment::Peptide tramlpeptide;
@@ -777,7 +777,7 @@ namespace OpenMS
           createCompound_(tr_it, tramlcompound);
           OpenSwathDataAccessHelper::convertTargetedCompound(tramlcompound, compound);
         }
-        exp.compounds.push_back(compound);
+        exp.peptideNuctideCompounds.push_back(compound);
         compound_map[compound.id] = 0;
       }
 

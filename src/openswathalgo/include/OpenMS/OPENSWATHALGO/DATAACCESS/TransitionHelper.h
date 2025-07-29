@@ -16,7 +16,7 @@
 namespace OpenSwath
 {
 
-  struct LightCompound;
+  struct LightPeptideNuctideCompound;
   struct LightTargetedExperiment;
   struct LightTransition;
 
@@ -31,7 +31,7 @@ namespace OpenSwath
     // mirror
     static bool findCompound(const LightTargetedExperiment& lte,
                             const std::string& compoundRef,
-                            LightCompound& cpd);
+                            LightPeptideNuctideCompound& cpd);
   };
 
 } //end namespace

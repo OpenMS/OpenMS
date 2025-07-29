@@ -629,7 +629,7 @@ END_SECTION*/
     BOOST_AUTO_TEST_CASE(test_RT_score)
         {
           MRMScoring mrmscore;
-          OpenSwath::LightCompound pep;
+          OpenSwath::LightPeptideNuctideCompound pep;
           pep.rt = 100;
           TEST_REAL_SIMILAR(mrmscore.calcRTScore(pep, 100), 0)
           TEST_REAL_SIMILAR(mrmscore.calcRTScore(pep, 0), 100)

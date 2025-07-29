@@ -44,10 +44,10 @@ namespace OpenSwath
 
   bool TransitionHelper::findCompound(const LightTargetedExperiment& lte,
                                      const std::string& compoundRef,
-                                     LightCompound& pep)
+                                     LightPeptideNuctideCompound& pep)
   {
-    std::vector<LightCompound>::const_iterator beg = lte.compounds.begin();
-    std::vector<LightCompound>::const_iterator end = lte.compounds.end();
+    std::vector<LightPeptideNuctideCompound>::const_iterator beg = lte.peptideNuctideCompounds.begin();
+    std::vector<LightPeptideNuctideCompound>::const_iterator end = lte.peptideNuctideCompounds.end();
     for (; beg != end; ++beg)
     {
       //std::cout << beg->id << " " << compoundRef << std::endl;

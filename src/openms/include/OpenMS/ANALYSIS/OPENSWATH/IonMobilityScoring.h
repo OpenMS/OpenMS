@@ -45,7 +45,7 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI IonMobilityScoring
   {
-    typedef OpenSwath::LightCompound CompoundType;
+    typedef OpenSwath::LightPeptideNuctideCompound CompoundType;
     typedef OpenSwath::LightTransition TransitionType;
     typedef MRMTransitionGroup< MSChromatogram, TransitionType> MRMTransitionGroupType;
 

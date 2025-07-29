@@ -336,14 +336,14 @@ namespace OpenMS
           }
 
           std::set<std::string> matching_proteins;
-          for (Size i = 0; i < irt_transitions.compounds.size(); i++)
+          for (Size i = 0; i < irt_transitions.peptideNuctideCompounds.size(); i++)
           {
-            if (matching_compounds.find(irt_transitions.compounds[i].id) != matching_compounds.end())
+            if (matching_compounds.find(irt_transitions.peptideNuctideCompounds[i].id) != matching_compounds.end())
             {
-              transition_exp_used.compounds.push_back( irt_transitions.compounds[i] );
-              for (Size j = 0; j < irt_transitions.compounds[i].protein_refs.size(); j++)
+              transition_exp_used.peptideNuctideCompounds.push_back( irt_transitions.peptideNuctideCompounds[i] );
+              for (Size j = 0; j < irt_transitions.peptideNuctideCompounds[i].protein_refs.size(); j++)
               {
-                matching_proteins.insert(irt_transitions.compounds[i].protein_refs[j]);
+                matching_proteins.insert(irt_transitions.peptideNuctideCompounds[i].protein_refs[j]);
               }
             }
           }
@@ -634,14 +634,14 @@ namespace OpenMS
           }
 
           std::set<std::string> matching_proteins;
-          for (Size i = 0; i < transition_exp.compounds.size(); i++)
+          for (Size i = 0; i < transition_exp.peptideNuctideCompounds.size(); i++)
           {
-            if (matching_compounds.find(transition_exp.compounds[i].id) != matching_compounds.end())
+            if (matching_compounds.find(transition_exp.peptideNuctideCompounds[i].id) != matching_compounds.end())
             {
-              transition_exp_used_all.compounds.push_back( transition_exp.compounds[i] );
-              for (Size j = 0; j < transition_exp.compounds[i].protein_refs.size(); j++)
+              transition_exp_used_all.peptideNuctideCompounds.push_back( transition_exp.peptideNuctideCompounds[i] );
+              for (Size j = 0; j < transition_exp.peptideNuctideCompounds[i].protein_refs.size(); j++)
               {
-                matching_proteins.insert(transition_exp.compounds[i].protein_refs[j]);
+                matching_proteins.insert(transition_exp.peptideNuctideCompounds[i].protein_refs[j]);
               }
             }
           }
@@ -665,16 +665,16 @@ namespace OpenMS
           }
 
           int batch_size;
-          if (batchSize <= 0 || batchSize >= (int)transition_exp_used_all.getCompounds().size())
+          if (batchSize <= 0 || batchSize >= (int)transition_exp_used_all.getPeptideNuctideCompounds().size())
           {
-            batch_size = transition_exp_used_all.getCompounds().size();
+            batch_size = transition_exp_used_all.getPeptideNuctideCompounds().size();
           }
           else
           {
             batch_size = batchSize;
           }
 
-          SignedSize nr_batches = (transition_exp_used_all.getCompounds().size() / batch_size);
+          SignedSize nr_batches = (transition_exp_used_all.getPeptideNuctideCompounds().size() / batch_size);
 
 #ifdef _OPENMP
 #ifdef MT_ENABLE_NESTED_OPENMP
@@ -718,7 +718,7 @@ namespace OpenMS
 #else
               "0" <<
 #endif
-              "will analyze " << transition_exp_used_all.getCompounds().size() <<  " compounds and "
+              "will analyze " << transition_exp_used_all.getPeptideNuctideCompounds().size() <<  " compounds and "
               << transition_exp_used_all.getTransitions().size() <<  " transitions "
               "from SWATH " << i << " (batch " << pep_idx << " out of " << nr_batches << ")" << std::endl;
             }
@@ -1013,8 +1013,8 @@ namespace OpenMS
       // 5. Add to the output osw if given
       if (osw_writer.isActive() && !output.empty()) // implies that detection_assay_it was set
       {
-        const OpenSwath::LightCompound pep;
-        to_osw_output.push_back(osw_writer.prepareLine(OpenSwath::LightCompound(), // not used currently: transition_exp.getCompounds()[ assay_peptide_map[id] ],
+        const OpenSwath::LightPeptideNuctideCompound pep;
+        to_osw_output.push_back(osw_writer.prepareLine(OpenSwath::LightPeptideNuctideCompound(), // not used currently: transition_exp.getPeptideNuctideCompounds()[ assay_peptide_map[id] ],
                                                        nullptr, // not used currently: detection_assay_it,
                                                        output,
                                                        id));
@@ -1040,19 +1040,19 @@ namespace OpenMS
     // compute batch start/end
     size_t start = j * batch_size;
     size_t end = j * batch_size + batch_size;
-    if (end > transition_exp_used_all.compounds.size())
+    if (end > transition_exp_used_all.peptideNuctideCompounds.size())
     {
-      end = transition_exp_used_all.compounds.size();
+      end = transition_exp_used_all.peptideNuctideCompounds.size();
     }
 
     // Create the new, batch-size transition experiment
     transition_exp_used.proteins = transition_exp_used_all.proteins;
-    transition_exp_used.compounds.insert(transition_exp_used.compounds.end(),
-        transition_exp_used_all.compounds.begin() + start, transition_exp_used_all.compounds.begin() + end);
-    copyBatchTransitions_(transition_exp_used.compounds, transition_exp_used_all.transitions, transition_exp_used.transitions);
+    transition_exp_used.peptideNuctideCompounds.insert(transition_exp_used.peptideNuctideCompounds.end(),
+        transition_exp_used_all.peptideNuctideCompounds.begin() + start, transition_exp_used_all.peptideNuctideCompounds.begin() + end);
+    copyBatchTransitions_(transition_exp_used.peptideNuctideCompounds, transition_exp_used_all.transitions, transition_exp_used.transitions);
   }
 
-  void OpenSwathWorkflow::copyBatchTransitions_(const std::vector<OpenSwath::LightCompound>& used_compounds,
+  void OpenSwathWorkflow::copyBatchTransitions_(const std::vector<OpenSwath::LightPeptideNuctideCompound>& used_compounds,
     const std::vector<OpenSwath::LightTransition>& all_transitions,
     std::vector<OpenSwath::LightTransition>& output)
   {

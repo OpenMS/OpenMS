@@ -223,7 +223,7 @@ namespace OpenMS
     return separated_scores;
   }
 
-  String OpenSwathOSWWriter::prepareLine(const OpenSwath::LightCompound& /* pep */,
+  String OpenSwathOSWWriter::prepareLine(const OpenSwath::LightPeptideNuctideCompound& /* pep */,
                                          const OpenSwath::LightTransition* /* transition */,
                                          const FeatureMap& output,
                                          const String& id) const

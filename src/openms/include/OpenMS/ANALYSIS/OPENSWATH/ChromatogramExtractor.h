@@ -286,7 +286,7 @@ private:
                                                                                        const String& id,
                                                                                        int & prec_charge)
   {
-    const OpenSwath::LightCompound comp = transition_exp_used.getCompoundByRef(id);
+    const OpenSwath::LightPeptideNuctideCompound comp = transition_exp_used.getCompoundByRef(id);
     prec_charge = comp.charge;
     if (!comp.sequence.empty())
     {

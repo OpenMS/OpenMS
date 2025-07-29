@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>" namespace "O
 
         bool isActive() except + nogil 
         void writeHeader() except + nogil  # wrap-doc:Initializes file by generating SQLite tables
-        String prepareLine(LightCompound & compound, LightTransition * tr, FeatureMap & output, String id_) except + nogil 
+        String prepareLine(LightPeptideNuctideCompound & compound, LightTransition * tr, FeatureMap & output, String id_) except + nogil 
             # wrap-doc:
                 #  Prepare a single line (feature) for output
                 #  
