@@ -54,28 +54,6 @@ namespace OpenMS
       peak_idx(peak_idx)
     {}
 
-    void MassTraceDetection::updateIterativeWeightedMeanMZ(double& centroid_mz,
-                                                           double& prev_counter, double& prev_counter_c,
-                                                           double& prev_denom, double& prev_denom_c,
-                                                           double new_weight, double new_mz)
-    {
-      // Kahan summation for weighted m/z sum
-      double weighted_mz = new_weight * new_mz;
-      double counter_y = weighted_mz - prev_counter_c;
-      double counter_t = prev_counter + counter_y;
-      prev_counter_c = (counter_t - prev_counter) - counter_y;
-      prev_counter = counter_t;
-      
-      // Kahan summation for weight sum
-      double denom_y = new_weight - prev_denom_c;
-      double denom_t = prev_denom + denom_y;
-      prev_denom_c = (denom_t - prev_denom) - denom_y;
-      prev_denom = denom_t;
-      
-      // Update centroid
-      centroid_mz = prev_counter / prev_denom;
-    }
-
     // detect presence of ion mobility data and locate all relevant meta array indices.
     void MassTraceDetection::getIMIndices_(
       const PeakMap& spectra,
@@ -198,22 +176,26 @@ namespace OpenMS
       last_weights_sum = weights_sum;
     }
 
-    void MassTraceDetection::updateIterativeWeightedMean_(const double& added_value,
-                                                         const double& added_intensity,
-                                                         double& centroid_value,
-                                                         double& prev_counter,
-                                                         double& prev_denom)
+    void MassTraceDetection::updateIterativeWeightedMean_(double& centroid_value,
+                                                         double& prev_counter, double& prev_counter_c,
+                                                         double& prev_denom, double& prev_denom_c,
+                                                         double added_intensity, double added_value)
     {
-      // Use the same algorithm as the original updateIterativeWeightedMeanMZ but without Kahan summation
-      // to maintain compatibility with existing code that doesn't provide compensation variables
-      double new_weight(added_intensity);
-      double new_value(added_value);
-
-      double counter_tmp(1 + (new_weight * new_value) / prev_counter);
-      double denom_tmp(1 + (new_weight) / prev_denom);
-      centroid_value *= (counter_tmp / denom_tmp);
-      prev_counter *= counter_tmp;
-      prev_denom *= denom_tmp;
+      // Kahan summation for weighted value sum
+      double weighted_value = added_intensity * added_value;
+      double counter_y = weighted_value - prev_counter_c;
+      double counter_t = prev_counter + counter_y;
+      prev_counter_c = (counter_t - prev_counter) - counter_y;
+      prev_counter = counter_t;
+      
+      // Kahan summation for weight sum
+      double denom_y = added_intensity - prev_denom_c;
+      double denom_t = prev_denom + denom_y;
+      prev_denom_c = (denom_t - prev_denom) - denom_y;
+      prev_denom = denom_t;
+      
+      // Update centroid
+      centroid_value = prev_counter / prev_denom;
     }
 
     void MassTraceDetection::run(const PeakMap& input_exp, std::vector<MassTrace>& found_masstraces, const Size max_traces)
@@ -346,19 +328,22 @@ namespace OpenMS
         double prev_counter_c(0.0);
         double prev_denom_c(0.0);
 
-        updateIterativeWeightedMeanMZ(centroid_mz, prev_counter, prev_counter_c, prev_denom, prev_denom_c, apex_peak.getIntensity(), apex_peak.getMZ());
+        updateIterativeWeightedMean_(centroid_mz, prev_counter, prev_counter_c, prev_denom, prev_denom_c, apex_peak.getIntensity(), apex_peak.getMZ());
 
         // Initialization for the iterative version of weighted ion mobility mean calculation
         double centroid_im(-1);
         double prev_counter_im(-1);
         double prev_denom_im(-1);
+        // Kahan summation compensation variables for ion mobility
+        double prev_counter_im_c(0.0);
+        double prev_denom_im_c(0.0);
         if (has_centroid_im_)
         {
           centroid_im = work_exp[apex_scan_idx].getFloatDataArrays()[Ion_Mobility_idx][apex_peak_idx];
           prev_counter_im = apex_peak.getIntensity() * centroid_im;
           prev_denom_im = apex_peak.getIntensity();
-          MassTraceDetection::updateIterativeWeightedMean_(work_exp[apex_scan_idx].getFloatDataArrays()[Ion_Mobility_idx][apex_peak_idx],
-                                                          apex_peak.getIntensity(), centroid_im, prev_counter_im, prev_denom_im);
+          MassTraceDetection::updateIterativeWeightedMean_(centroid_im, prev_counter_im, prev_counter_im_c, prev_denom_im, prev_denom_im_c,
+                                                          apex_peak.getIntensity(), work_exp[apex_scan_idx].getFloatDataArrays()[Ion_Mobility_idx][apex_peak_idx]);
         }
 
         std::vector<std::pair<Size, Size>> gathered_idx;
@@ -460,12 +445,12 @@ namespace OpenMS
                 current_trace.push_front(next_peak);
 
                 // Update the m/z mean of the current trace as we added a new peak
-                updateIterativeWeightedMeanMZ(centroid_mz, prev_counter, prev_counter_c, prev_denom, prev_denom_c, next_down_peak_int, next_down_peak_mz);
+                updateIterativeWeightedMean_(centroid_mz, prev_counter, prev_counter_c, prev_denom, prev_denom_c, next_down_peak_int, next_down_peak_mz);
                 gathered_idx.emplace_back(trace_down_idx - 1, next_down_peak_idx);
                 if (has_centroid_im_)
                 {
-                  MassTraceDetection::updateIterativeWeightedMean_(next_down_peak_im, next_down_peak_int, centroid_im, prev_counter_im,
-                                                                   prev_denom_im);
+                  MassTraceDetection::updateIterativeWeightedMean_(centroid_im, prev_counter_im, prev_counter_im_c, prev_denom_im, prev_denom_im_c,
+                                                                   next_down_peak_int, next_down_peak_im);
                 }
                 // FWHM average
                 if (has_fwhm_mz_) { fwhms_mz.push_back(spec_trace_down.getFloatDataArrays()[fwhm_meta_idx][next_down_peak_idx]); }
@@ -578,10 +563,11 @@ namespace OpenMS
                
                 if (has_centroid_im_)
                 {
-                  MassTraceDetection::updateIterativeWeightedMean_(next_up_peak_im, next_up_peak_int, centroid_im, prev_counter_im, prev_denom_im);
+                  MassTraceDetection::updateIterativeWeightedMean_(centroid_im, prev_counter_im, prev_counter_im_c, prev_denom_im, prev_denom_im_c,
+                                                                   next_up_peak_int, next_up_peak_im);
                 }
                 // Update the m/z mean of the current trace as we added a new peak
-                updateIterativeWeightedMeanMZ(centroid_mz, prev_counter, prev_counter_c, prev_denom, prev_denom_c, next_up_peak_int, next_up_peak_mz);
+                updateIterativeWeightedMean_(centroid_mz, prev_counter, prev_counter_c, prev_denom, prev_denom_c, next_up_peak_int, next_up_peak_mz);
                 gathered_idx.emplace_back(trace_up_idx + 1, next_up_peak_idx);
 
                 // Update the m/z variance dynamically
