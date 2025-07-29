@@ -49,20 +49,26 @@ namespace OpenMS
       peak_idx(peak_idx)
     {}
 
-    void MassTraceDetection::updateIterativeWeightedMeanMZ(const double& added_mz,
-                                                           const double& added_int, double& centroid_mz, double& prev_counter,
-                                                           double& prev_denom)
+    void MassTraceDetection::updateIterativeWeightedMeanMZ(double& centroid_mz,
+                                                           double& prev_counter, double& prev_counter_c,
+                                                           double& prev_denom, double& prev_denom_c,
+                                                           double new_weight, double new_mz)
     {
-      double new_weight(added_int);
-      double new_mz(added_mz);
-
-      double counter_tmp(1 + (new_weight * new_mz) / prev_counter);
-      double denom_tmp(1 + (new_weight) / prev_denom);
-      centroid_mz *= (counter_tmp / denom_tmp);
-      prev_counter *= counter_tmp;
-      prev_denom *= denom_tmp;
-
-      return;
+      // Kahan summation for weighted m/z sum
+      double weighted_mz = new_weight * new_mz;
+      double counter_y = weighted_mz - prev_counter_c;
+      double counter_t = prev_counter + counter_y;
+      prev_counter_c = (counter_t - prev_counter) - counter_y;
+      prev_counter = counter_t;
+      
+      // Kahan summation for weight sum
+      double denom_y = new_weight - prev_denom_c;
+      double denom_t = prev_denom + denom_y;
+      prev_denom_c = (denom_t - prev_denom) - denom_y;
+      prev_denom = denom_t;
+      
+      // Update centroid
+      centroid_mz = prev_counter / prev_denom;
     }
 
     void MassTraceDetection::run(PeakMap::ConstAreaIterator& begin,
@@ -97,23 +103,6 @@ namespace OpenMS
       run(map, found_masstraces);
     }
 
-// update function for FTL method
-/*
-    void updateWeightedSDEstimate(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
-    {
-      double denom = last_weights_sum * sd_t * sd_t + p.getIntensity() * (p.getMZ() - mean_t1) * (p.getMZ() - mean_t1);
-      double weights_sum = last_weights_sum + p.getIntensity();
-
-      double tmp_sd = std::sqrt(denom / weights_sum);
-
-      if (tmp_sd > std::numeric_limits<double>::epsilon())
-      {
-        sd_t = tmp_sd;
-      }
-
-      last_weights_sum = weights_sum;
-    }
-*/
     void updateWeightedSDEstimateRobust(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
     {
       double denom1 = std::log(last_weights_sum) + 2 * std::log(sd_t);
@@ -268,8 +257,11 @@ namespace OpenMS
         double centroid_mz(apex_peak.getMZ());
         double prev_counter(apex_peak.getIntensity() * apex_peak.getMZ());
         double prev_denom(apex_peak.getIntensity());
+        // Kahan summation compensation variables
+        double prev_counter_c(0.0);
+        double prev_denom_c(0.0);
 
-        updateIterativeWeightedMeanMZ(apex_peak.getMZ(), apex_peak.getIntensity(), centroid_mz, prev_counter, prev_denom);
+        updateIterativeWeightedMeanMZ(centroid_mz, prev_counter, prev_counter_c, prev_denom, prev_denom_c, apex_peak.getIntensity(), apex_peak.getMZ());
 
         std::vector<std::pair<Size, Size> > gathered_idx;
         gathered_idx.emplace_back(apex_scan_idx, apex_peak_idx);
@@ -332,7 +324,7 @@ namespace OpenMS
                   fwhms_mz.push_back(spec_trace_down.getFloatDataArrays()[fwhm_meta_idx][next_down_peak_idx]);
                 }
                 // Update the m/z mean of the current trace as we added a new peak
-                updateIterativeWeightedMeanMZ(next_down_peak_mz, next_down_peak_int, centroid_mz, prev_counter, prev_denom);
+                updateIterativeWeightedMeanMZ(centroid_mz, prev_counter, prev_counter_c, prev_denom, prev_denom_c, next_down_peak_int, next_down_peak_mz);
                 gathered_idx.emplace_back(trace_down_idx - 1, next_down_peak_idx);
 
                 // Update the m/z variance dynamically
@@ -408,7 +400,7 @@ namespace OpenMS
                   fwhms_mz.push_back(spec_trace_up.getFloatDataArrays()[fwhm_meta_idx][next_up_peak_idx]);
                 }
                 // Update the m/z mean of the current trace as we added a new peak
-                updateIterativeWeightedMeanMZ(next_up_peak_mz, next_up_peak_int, centroid_mz, prev_counter, prev_denom);
+                updateIterativeWeightedMeanMZ(centroid_mz, prev_counter, prev_counter_c, prev_denom, prev_denom_c, next_up_peak_int, next_up_peak_mz);
                 gathered_idx.emplace_back(trace_up_idx + 1, next_up_peak_idx);
 
                 // Update the m/z variance dynamically
