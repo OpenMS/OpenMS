@@ -340,7 +340,7 @@ namespace OpenMS
                 {
                   // if (ftl_t > min_fwhm_scans)
                   {
-                    updateIterativeWeightedSDRobust(next_peak, centroid_mz, ftl_sd, intensity_so_far, intensity_so_far_c);
+                    updateIterativeWeightedSD(next_peak, centroid_mz, ftl_sd, intensity_so_far, intensity_so_far_c);
                   }
                 }
 
@@ -416,7 +416,7 @@ namespace OpenMS
                 {
                   // if (ftl_t > min_fwhm_scans)
                   {
-                    updateIterativeWeightedSDRobust(next_peak, centroid_mz, ftl_sd, intensity_so_far, intensity_so_far_c);
+                    updateIterativeWeightedSD(next_peak, centroid_mz, ftl_sd, intensity_so_far, intensity_so_far_c);
                   }
                 }
 
