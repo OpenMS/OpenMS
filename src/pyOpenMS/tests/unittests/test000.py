@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8  -*-
+
+## ----------------------------------------------------------------------------
+## $Maintainer: $
+## $Authors: Hannes Roest, Timo Sachsenberg, axelwalter,
+##           Samuel Wein, Uwe Schmitt, Joshua Charkow,
+##           Nikos Patikas, Chris Bielow, Julianus Pfeuffer,
+##           Oliver Alka, Stephan Aiche $
+## ----------------------------------------------------------------------------
 from __future__ import print_function
 
 import pyopenms
@@ -1687,39 +1695,6 @@ def testTransitionTSVFile():
     assert pyopenms.TransitionTSVFile().convertTargetedExperimentToTSV is not None
     assert pyopenms.TransitionTSVFile().convertTSVToTargetedExperiment is not None
     assert pyopenms.TransitionTSVFile().validateTargetedExperiment is not None
-
-@report
-def testProteaseDigestion():
-    """
-    @tests: ProteaseDigestion
-     ProteaseDigestion.__init__
-     ProteaseDigestion.getMissedCleavages()
-     ProteaseDigestion.setMissedCleavages()
-     ProteaseDigestion.digest()
-     ProteaseDigestion.peptideCount()
-    """
-    # removed due to name clashes
-    # ProteaseDigestion.getEnzyme()
-    # ProteaseDigestion.setEnzyme()
-    # ProteaseDigestion.getEnzymeByName()
-
-    ff = pyopenms.ProteaseDigestion()
-    #enz = pyopenms.ProteaseDigestion().Enzyme()
-
-    assert pyopenms.ProteaseDigestion().getMissedCleavages is not None
-    assert pyopenms.ProteaseDigestion().setMissedCleavages is not None
-    #assert pyopenms.ProteaseDigestion().getEnzyme is not None
-    #assert pyopenms.ProteaseDigestion().setEnzyme is not None
-    #assert pyopenms.ProteaseDigestion().getEnzymeByName is not None
-
-    assert pyopenms.ProteaseDigestion().digest is not None
-    assert pyopenms.ProteaseDigestion().peptideCount is not None
-
-    ff.setMissedCleavages(5)
-    assert ff.getMissedCleavages() == 5
-
-    #ff.setEnzyme(enz.TRYPSIN)
-    #assert ff.getEnzyme() == enz.TRYPSIN
 
 @report
 def testIDDecoyProbability():

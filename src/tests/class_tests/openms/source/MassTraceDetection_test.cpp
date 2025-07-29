@@ -68,13 +68,15 @@ START_SECTION((void updateIterativeWeightedMean_(const double &, const double &,
 
     double prev_count(centroid_mz * centroid_int);
     double prev_denom(centroid_int);
+    // Kahan summation compensation variables
+    double prev_count_c(0.0);
+    double prev_denom_c(0.0);
 
-    MassTraceDetectionAccess::updateIterativeWeightedMean_(new_mz1, new_int1, centroid_mz, prev_count, prev_denom);
-
+    test_mtd.updateIterativeWeightedMeanMZ(centroid_mz, prev_count, prev_count_c, prev_denom, prev_denom_c, new_int1, new_mz1);
 
     TEST_REAL_SIMILAR(centroid_mz, wmean1);
 
-    MassTraceDetectionAccess::updateIterativeWeightedMean_(new_mz2, new_int2, centroid_mz, prev_count, prev_denom);
+    test_mtd.updateIterativeWeightedMeanMZ(centroid_mz, prev_count, prev_count_c, prev_denom, prev_denom_c, new_int2, new_mz2);
 
     TEST_REAL_SIMILAR(centroid_mz, wmean2);
 

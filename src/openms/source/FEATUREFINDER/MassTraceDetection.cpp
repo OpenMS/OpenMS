@@ -54,21 +54,26 @@ namespace OpenMS
       peak_idx(peak_idx)
     {}
 
-    void MassTraceDetection::updateIterativeWeightedMean_(const double& added_value,
-                                                         const double& added_intensity,
-                                                         double& centroid_value,
-                                                         double& prev_counter,
-                                                         double& prev_denom)
+    void MassTraceDetection::updateIterativeWeightedMeanMZ(double& centroid_mz,
+                                                           double& prev_counter, double& prev_counter_c,
+                                                           double& prev_denom, double& prev_denom_c,
+                                                           double new_weight, double new_mz)
     {
-      double new_weight = added_intensity;
-      double new_val = added_value;
-
-      double counter_tmp = 1.0 + (new_weight * new_val) / prev_counter;
-      double denom_tmp = 1.0 + (new_weight) / prev_denom;
-
-      centroid_value *= (counter_tmp / denom_tmp);
-      prev_counter *= counter_tmp;
-      prev_denom *= denom_tmp;
+      // Kahan summation for weighted m/z sum
+      double weighted_mz = new_weight * new_mz;
+      double counter_y = weighted_mz - prev_counter_c;
+      double counter_t = prev_counter + counter_y;
+      prev_counter_c = (counter_t - prev_counter) - counter_y;
+      prev_counter = counter_t;
+      
+      // Kahan summation for weight sum
+      double denom_y = new_weight - prev_denom_c;
+      double denom_t = prev_denom + denom_y;
+      prev_denom_c = (denom_t - prev_denom) - denom_y;
+      prev_denom = denom_t;
+      
+      // Update centroid
+      centroid_mz = prev_counter / prev_denom;
     }
 
     // detect presence of ion mobility data and locate all relevant meta array indices.
@@ -170,41 +175,19 @@ namespace OpenMS
       run(map, found_masstraces);
     }
 
-// update function for FTL method
-
-    void updateMeanEstimate(const double& x_t, double& mean_t, Size t)
-    {
-      mean_t +=  (1.0 / ((double)t + 1.0)) * (x_t - mean_t);
-    }
-
-    void updateSDEstimate(const double& x_t, const double& mean_t, double& sd_t, Size t)
-    {
-      double i(t);
-      sd_t = (i / (i + 1)) * sd_t + (i / (i + 1) * (i + 1)) * (x_t - mean_t) * (x_t - mean_t);
-      // std::cerr << "func:  " << tmp << " " << i << std::endl;
-    }
-
-    void updateWeightedSDEstimate(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
-    {
-      double denom = last_weights_sum * sd_t * sd_t + p.getIntensity() * (p.getMZ() - mean_t1) * (p.getMZ() - mean_t1);
-      double weights_sum = last_weights_sum + p.getIntensity();
-
-      double tmp_sd = std::sqrt(denom / weights_sum);
-
-      if (tmp_sd > std::numeric_limits<double>::epsilon())
-      {
-        sd_t = tmp_sd;
-      }
-
-      last_weights_sum = weights_sum;
-    }
-
-    void updateWeightedSDEstimateRobust(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
+    void updateIterativeWeightedSD(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum, double& weights_sum_c)
     {
       double denom1 = std::log(last_weights_sum) + 2 * std::log(sd_t);
       double denom2 = std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1));
+      
       double denom = std::sqrt(std::exp(denom1) + std::exp(denom2));
-      double weights_sum = last_weights_sum + p.getIntensity();
+      
+      // Kahan summation for weights accumulation
+      double weight_y = p.getIntensity() - weights_sum_c;
+      double weight_t = last_weights_sum + weight_y;
+      weights_sum_c = (weight_t - last_weights_sum) - weight_y;
+      double weights_sum = weight_t;
+      
       double tmp_sd = denom / std::sqrt(weights_sum);
 
       if (tmp_sd > std::numeric_limits<double>::epsilon())
@@ -215,28 +198,23 @@ namespace OpenMS
       last_weights_sum = weights_sum;
     }
 
-    void computeWeightedSDEstimate(std::list<PeakType> tmp, const double& mean_t, double& sd_t, const double& /* lower_sd_bound */)
+    void MassTraceDetection::updateIterativeWeightedMean_(const double& added_value,
+                                                         const double& added_intensity,
+                                                         double& centroid_value,
+                                                         double& prev_counter,
+                                                         double& prev_denom)
     {
-      double denom(0.0), weights_sum(0.0);
+      // Use the same algorithm as the original updateIterativeWeightedMeanMZ but without Kahan summation
+      // to maintain compatibility with existing code that doesn't provide compensation variables
+      double new_weight(added_intensity);
+      double new_value(added_value);
 
-      for (std::list<PeakType>::const_iterator l_it = tmp.begin(); l_it != tmp.end(); ++l_it)
-      {
-        denom += l_it->getIntensity() * (l_it->getMZ() - mean_t) * (l_it->getMZ() - mean_t);
-        weights_sum += l_it->getIntensity();
-      }
-
-      double tmp_sd = std::sqrt(denom / (weights_sum));
-
-      // std::cout << "tmp_sd" << tmp_sd << std::endl;
-
-      if (tmp_sd > std::numeric_limits<double>::epsilon())
-      {
-        sd_t = tmp_sd;
-      }
-
-      return;
+      double counter_tmp(1 + (new_weight * new_value) / prev_counter);
+      double denom_tmp(1 + (new_weight) / prev_denom);
+      centroid_value *= (counter_tmp / denom_tmp);
+      prev_counter *= counter_tmp;
+      prev_denom *= denom_tmp;
     }
-
 
     void MassTraceDetection::run(const PeakMap& input_exp, std::vector<MassTrace>& found_masstraces, const Size max_traces)
     {
@@ -364,8 +342,11 @@ namespace OpenMS
         double centroid_mz(apex_peak.getMZ());
         double prev_counter(apex_peak.getIntensity() * apex_peak.getMZ());
         double prev_denom(apex_peak.getIntensity());
+        // Kahan summation compensation variables
+        double prev_counter_c(0.0);
+        double prev_denom_c(0.0);
 
-        MassTraceDetection::updateIterativeWeightedMean_(apex_peak.getMZ(), apex_peak.getIntensity(), centroid_mz, prev_counter, prev_denom);
+        updateIterativeWeightedMeanMZ(centroid_mz, prev_counter, prev_counter_c, prev_denom, prev_denom_c, apex_peak.getIntensity(), apex_peak.getMZ());
 
         // Initialization for the iterative version of weighted ion mobility mean calculation
         double centroid_im(-1);
@@ -403,6 +384,7 @@ namespace OpenMS
         // double ftl_mean(centroid_mz);
         double ftl_sd((centroid_mz / 1e6) * mass_error_ppm_);
         double intensity_so_far(apex_peak.getIntensity());
+        double intensity_so_far_c(0.0);  // Kahan summation compensation for intensity_so_far
 
         while (((trace_down_idx > 0) && toggle_down) || ((trace_up_idx < work_exp.size() - 1) && toggle_up))
         {
@@ -477,8 +459,8 @@ namespace OpenMS
 
                 current_trace.push_front(next_peak);
 
-                // update centroid values and append meta data
-                MassTraceDetection::updateIterativeWeightedMean_(next_down_peak_mz, next_down_peak_int, centroid_mz, prev_counter, prev_denom);
+                // Update the m/z mean of the current trace as we added a new peak
+                updateIterativeWeightedMeanMZ(centroid_mz, prev_counter, prev_counter_c, prev_denom, prev_denom_c, next_down_peak_int, next_down_peak_mz);
                 gathered_idx.emplace_back(trace_down_idx - 1, next_down_peak_idx);
                 if (has_centroid_im_)
                 {
@@ -495,7 +477,7 @@ namespace OpenMS
                 {
                   // if (ftl_t > min_fwhm_scans)
                   {
-                    updateWeightedSDEstimateRobust(next_peak, centroid_mz, ftl_sd, intensity_so_far);
+                    updateIterativeWeightedSD(next_peak, centroid_mz, ftl_sd, intensity_so_far, intensity_so_far_c);
                   }
                 }
                 ++down_hitting_peak;
@@ -593,17 +575,23 @@ namespace OpenMS
                 if (has_fwhm_mz_) { fwhms_mz.push_back(spec_trace_up.getFloatDataArrays()[fwhm_meta_idx][next_up_peak_idx]); }
 
                 if (has_fwhm_im_) { fwhms_im.push_back(spec_trace_up.getFloatDataArrays()[IM_fwhm_idx][next_up_peak_idx]); }
-
-                MassTraceDetection::updateIterativeWeightedMean_(next_up_peak_mz, next_up_peak_int, centroid_mz, prev_counter, prev_denom);
-                
+               
                 if (has_centroid_im_)
                 {
                   MassTraceDetection::updateIterativeWeightedMean_(next_up_peak_im, next_up_peak_int, centroid_im, prev_counter_im, prev_denom_im);
                 }
-
+                // Update the m/z mean of the current trace as we added a new peak
+                updateIterativeWeightedMeanMZ(centroid_mz, prev_counter, prev_counter_c, prev_denom, prev_denom_c, next_up_peak_int, next_up_peak_mz);
                 gathered_idx.emplace_back(trace_up_idx + 1, next_up_peak_idx);
 
-                if (reestimate_mt_sd_) { updateWeightedSDEstimateRobust(next_peak, centroid_mz, ftl_sd, intensity_so_far); }
+                // Update the m/z variance dynamically
+                if (reestimate_mt_sd_)           //  && (up_hitting_peak+1 > min_flank_scans))
+                {
+                  // if (ftl_t > min_fwhm_scans)
+                  {
+                    updateIterativeWeightedSD(next_peak, centroid_mz, ftl_sd, intensity_so_far, intensity_so_far_c);
+                  }
+                }
 
                 ++up_hitting_peak;
                 conseq_missed_peak_up = 0;

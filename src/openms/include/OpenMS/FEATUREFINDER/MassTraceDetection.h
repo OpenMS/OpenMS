@@ -57,6 +57,9 @@ namespace OpenMS
         /** @name Helper methods
         */
 
+        /// Allows the iterative computation of the intensity-weighted mean of a mass trace's centroid m/z.
+        void updateIterativeWeightedMeanMZ(double& centroid_mz, double& prev_counter, double& prev_counter_c, double& prev_denom, double& prev_denom_c, double new_weight, double new_mz);
+
         /** @name Main computation methods
         */
 
