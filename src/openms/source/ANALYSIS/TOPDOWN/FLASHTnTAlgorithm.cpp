@@ -82,6 +82,7 @@ bool FLASHTnTAlgorithm::areConsistent_(const ProteinHit& a, const ProteinHit& b,
   double mass1 = a.getMetaValue("Mass");
   double mass2 = b.getMetaValue("Mass");
   if (mass1 * mass2 < 0) return false;
+
   if (mass1 > 0 && mass2 > 0 && std::abs(mass1 - mass2) > std::max(mass1, mass2) * tol / 1e6 * 2) return false;
 
   int sp1 = a.getMetaValue("StartPosition");
@@ -94,10 +95,10 @@ bool FLASHTnTAlgorithm::areConsistent_(const ProteinHit& a, const ProteinHit& b,
   // double rt2 = b.getMetaValue("RT");
   // if (std::abs(rt1 - rt2) < 30.0) return true; // if rts are within 30 sec, true
 
-  if (a.metaValueExists("mod_masses") && b.metaValueExists("mod_masses"))
+  if (a.metaValueExists("Modifications") && b.metaValueExists("Modifications"))
   {
-    std::vector<double> mod_masses1 = a.getMetaValue("mod_masses");
-    std::vector<double> mod_masses2 = b.getMetaValue("mod_masses");
+    std::vector<double> mod_masses1 = a.getMetaValue("Modifications");
+    std::vector<double> mod_masses2 = b.getMetaValue("Modifications");
     if (mod_masses1.size() != mod_masses2.size()) return false;
     else
     {
@@ -114,7 +115,7 @@ bool FLASHTnTAlgorithm::areConsistent_(const ProteinHit& a, const ProteinHit& b,
     }
     return true;
   }
-  else if (! a.metaValueExists("mod_masses") && ! a.metaValueExists("mod_masses"))
+  else if (! a.metaValueExists("Modifications") && ! a.metaValueExists("Modifications"))
   {
     if (sp1 == sp2 && ep1 == ep2) return true;
   }
@@ -406,6 +407,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
   for (const auto& dspec : dspecs)
   {
     nextProgress();
+    //if (dspec.getScanNumber() > 1000) break; //TODO
     if (scan_to_tag_indices.find(dspec.getScanNumber()) == scan_to_tag_indices.end()) continue;
     const auto& tag_indices = scan_to_tag_indices[dspec.getScanNumber()];
     std::vector<ProteinHit> hits;
