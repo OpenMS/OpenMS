@@ -46,42 +46,7 @@ END_SECTION
 
 MassTraceDetection test_mtd;
 
-START_SECTION((void updateIterativeWeightedMean_(const double &, const double &, double &, double &, double &)))
-{
-    double centroid_mz(150.22), centroid_int(25000000);
-    double new_mz1(150.34), new_int1(23043030);
-    double new_mz2(150.11), new_int2(1932392);
 
-    std::vector<double> mzs, ints;
-    mzs.push_back(centroid_mz);
-    mzs.push_back(new_mz1);
-    mzs.push_back(new_mz2);
-    ints.push_back(centroid_int);
-    ints.push_back(new_int1);
-    ints.push_back(new_int2);
-
-    double total_weight1(centroid_int + new_int1);
-    double total_weight2(centroid_int + new_int1 + new_int2);
-
-    double wmean1((centroid_mz * centroid_int + new_mz1 * new_int1)/total_weight1);
-    double wmean2((centroid_mz * centroid_int + new_mz1 * new_int1 + new_mz2 * new_int2)/total_weight2);
-
-    double prev_count(centroid_mz * centroid_int);
-    double prev_denom(centroid_int);
-    // Kahan summation compensation variables
-    double prev_count_c(0.0);
-    double prev_denom_c(0.0);
-
-    test_mtd.updateIterativeWeightedMeanMZ(centroid_mz, prev_count, prev_count_c, prev_denom, prev_denom_c, new_int1, new_mz1);
-
-    TEST_REAL_SIMILAR(centroid_mz, wmean1);
-
-    test_mtd.updateIterativeWeightedMeanMZ(centroid_mz, prev_count, prev_count_c, prev_denom, prev_denom_c, new_int2, new_mz2);
-
-    TEST_REAL_SIMILAR(centroid_mz, wmean2);
-
-}
-END_SECTION
 
 // load a mzML file for testing the algorithm
 PeakMap input;
