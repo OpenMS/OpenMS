@@ -563,24 +563,67 @@ namespace OpenMS::Internal
                                            const std::vector<int>& indices) const
     {
       sqlite3_stmt* stmt;
-      std::string select_sql = "SELECT " \
-                    "CHROMATOGRAM.ID as chrom_id," \
-                    "CHROMATOGRAM.NATIVE_ID as chrom_native_id," \
-                    "PRECURSOR.CHARGE as precursor_charge," \
-                    "PRECURSOR.DRIFT_TIME as precursor_dt," \
-                    "PRECURSOR.ISOLATION_TARGET as precursor_mz," \
-                    "PRECURSOR.ISOLATION_LOWER as precursor_mz_lower," \
-                    "PRECURSOR.ISOLATION_UPPER as precursor_mz_upper," \
-                    "PRECURSOR.PEPTIDE_SEQUENCE as precursor_seq," \
-                    "PRODUCT.CHARGE as product_charge," \
-                    "PRODUCT.ISOLATION_TARGET as product_mz," \
-                    "PRODUCT.ISOLATION_LOWER as product_mz_lower," \
-                    "PRODUCT.ISOLATION_UPPER as product_mz_upper, " \
-                    "PRECURSOR.ACTIVATION_METHOD as prec_activation, " \
-                    "PRECURSOR.ACTIVATION_ENERGY as prec_activation_en " \
-                    "FROM CHROMATOGRAM " \
-                    "INNER JOIN PRECURSOR ON CHROMATOGRAM.ID = PRECURSOR.CHROMATOGRAM_ID " \
-                    "INNER JOIN PRODUCT ON CHROMATOGRAM.ID = PRODUCT.CHROMATOGRAM_ID ";
+      // Check if TRANSITION_GROUP_NAME column exists
+      sqlite3_stmt* check_stmt;
+      std::string check_sql = "PRAGMA table_info(PRECURSOR);";
+      SqliteConnector::prepareStatement(db, &check_stmt, check_sql);
+      
+      bool has_transition_group_column = false;
+      while (sqlite3_step(check_stmt) == SQLITE_ROW)
+      {
+        const unsigned char* column_name = sqlite3_column_text(check_stmt, 1);
+        if (column_name && std::string(reinterpret_cast<const char*>(column_name)) == "TRANSITION_GROUP_NAME")
+        {
+          has_transition_group_column = true;
+          break;
+        }
+      }
+      sqlite3_finalize(check_stmt);
+      
+      std::string select_sql;
+      if (has_transition_group_column)
+      {
+        select_sql = "SELECT " \
+                      "CHROMATOGRAM.ID as chrom_id," \
+                      "CHROMATOGRAM.NATIVE_ID as chrom_native_id," \
+                      "PRECURSOR.CHARGE as precursor_charge," \
+                      "PRECURSOR.DRIFT_TIME as precursor_dt," \
+                      "PRECURSOR.ISOLATION_TARGET as precursor_mz," \
+                      "PRECURSOR.ISOLATION_LOWER as precursor_mz_lower," \
+                      "PRECURSOR.ISOLATION_UPPER as precursor_mz_upper," \
+                      "PRECURSOR.TRANSITION_GROUP_NAME as transition_group_name," \
+                      "PRECURSOR.PEPTIDE_SEQUENCE as precursor_seq," \
+                      "PRODUCT.CHARGE as product_charge," \
+                      "PRODUCT.ISOLATION_TARGET as product_mz," \
+                      "PRODUCT.ISOLATION_LOWER as product_mz_lower," \
+                      "PRODUCT.ISOLATION_UPPER as product_mz_upper, " \
+                      "PRECURSOR.ACTIVATION_METHOD as prec_activation, " \
+                      "PRECURSOR.ACTIVATION_ENERGY as prec_activation_en " \
+                      "FROM CHROMATOGRAM " \
+                      "INNER JOIN PRECURSOR ON CHROMATOGRAM.ID = PRECURSOR.CHROMATOGRAM_ID " \
+                      "INNER JOIN PRODUCT ON CHROMATOGRAM.ID = PRODUCT.CHROMATOGRAM_ID ";
+      }
+      else
+      {
+        select_sql = "SELECT " \
+                      "CHROMATOGRAM.ID as chrom_id," \
+                      "CHROMATOGRAM.NATIVE_ID as chrom_native_id," \
+                      "PRECURSOR.CHARGE as precursor_charge," \
+                      "PRECURSOR.DRIFT_TIME as precursor_dt," \
+                      "PRECURSOR.ISOLATION_TARGET as precursor_mz," \
+                      "PRECURSOR.ISOLATION_LOWER as precursor_mz_lower," \
+                      "PRECURSOR.ISOLATION_UPPER as precursor_mz_upper," \
+                      "PRECURSOR.PEPTIDE_SEQUENCE as precursor_seq," \
+                      "PRODUCT.CHARGE as product_charge," \
+                      "PRODUCT.ISOLATION_TARGET as product_mz," \
+                      "PRODUCT.ISOLATION_LOWER as product_mz_lower," \
+                      "PRODUCT.ISOLATION_UPPER as product_mz_upper, " \
+                      "PRECURSOR.ACTIVATION_METHOD as prec_activation, " \
+                      "PRECURSOR.ACTIVATION_ENERGY as prec_activation_en " \
+                      "FROM CHROMATOGRAM " \
+                      "INNER JOIN PRECURSOR ON CHROMATOGRAM.ID = PRECURSOR.CHROMATOGRAM_ID " \
+                      "INNER JOIN PRODUCT ON CHROMATOGRAM.ID = PRODUCT.CHROMATOGRAM_ID ";
+      }
 
       if (!indices.empty())
       {
@@ -630,28 +673,60 @@ namespace OpenMS::Internal
         {
           precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 6));
         }
-        if (Sql::extractValue(&tmp, stmt, 7)) precursor.setMetaValue("transition_group_name", tmp);
-        // if (sqlite3_column_type(stmt, 8) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, 8));
-        if (sqlite3_column_type(stmt, 9) != SQLITE_NULL)
+        // Handle transition_group_name based on column availability
+        if (has_transition_group_column)
         {
-          product.setMZ(sqlite3_column_double(stmt, 9));
+          // Try to extract transition_group_name from new column (index 7), fallback to old peptide_sequence column (index 8)
+          if (Sql::extractValue(&tmp, stmt, 7))
+          {
+            precursor.setMetaValue("transition_group_name", tmp);
+          }
+          else if (Sql::extractValue(&tmp, stmt, 8))
+          {
+            precursor.setMetaValue("transition_group_name", tmp);
+            OPENMS_LOG_WARN << "Warning: Using legacy 'peptide_sequence' column for transition_group_name. "
+                            << "Consider migrating your SQLite file to use the new 'transition_group_name' column." << std::endl;
+          }
+          // if (sqlite3_column_type(stmt, 9) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, 9));
         }
-        if (sqlite3_column_type(stmt, 10) != SQLITE_NULL)
+        else
         {
-          product.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 10));
+          // Old database format - use peptide_sequence column (index 7)
+          if (Sql::extractValue(&tmp, stmt, 7))
+          {
+            precursor.setMetaValue("transition_group_name", tmp);
+            OPENMS_LOG_WARN << "Warning: Using legacy 'peptide_sequence' column for transition_group_name. "
+                            << "Consider migrating your SQLite file to use the new 'transition_group_name' column." << std::endl;
+          }
+          // if (sqlite3_column_type(stmt, 8) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, 8));
         }
-        if (sqlite3_column_type(stmt, 11) != SQLITE_NULL)
+        // Adjust column indices based on whether transition_group_name column exists
+        int product_mz_idx = has_transition_group_column ? 10 : 9;
+        int product_lower_idx = has_transition_group_column ? 11 : 10;
+        int product_upper_idx = has_transition_group_column ? 12 : 11;
+        int activation_method_idx = has_transition_group_column ? 13 : 12;
+        int activation_energy_idx = has_transition_group_column ? 14 : 13;
+        
+        if (sqlite3_column_type(stmt, product_mz_idx) != SQLITE_NULL)
         {
-          product.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 11));
+          product.setMZ(sqlite3_column_double(stmt, product_mz_idx));
         }
-        if (sqlite3_column_type(stmt, 12) != SQLITE_NULL && sqlite3_column_int(stmt, 12) != -1
-            && sqlite3_column_int(stmt, 12) < static_cast<int>(OpenMS::Precursor::SIZE_OF_ACTIVATIONMETHOD))
+        if (sqlite3_column_type(stmt, product_lower_idx) != SQLITE_NULL)
         {
-          precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(sqlite3_column_int(stmt, 12)));
+          product.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, product_lower_idx));
         }
-        if (sqlite3_column_type(stmt, 13) != SQLITE_NULL)
+        if (sqlite3_column_type(stmt, product_upper_idx) != SQLITE_NULL)
         {
-          precursor.setActivationEnergy(sqlite3_column_double(stmt, 13));
+          product.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, product_upper_idx));
+        }
+        if (sqlite3_column_type(stmt, activation_method_idx) != SQLITE_NULL && sqlite3_column_int(stmt, activation_method_idx) != -1
+            && sqlite3_column_int(stmt, activation_method_idx) < static_cast<int>(OpenMS::Precursor::SIZE_OF_ACTIVATIONMETHOD))
+        {
+          precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(sqlite3_column_int(stmt, activation_method_idx)));
+        }
+        if (sqlite3_column_type(stmt, activation_energy_idx) != SQLITE_NULL)
+        {
+          precursor.setActivationEnergy(sqlite3_column_double(stmt, activation_energy_idx));
         }
         sqlite3_step( stmt );
       }
@@ -665,27 +740,73 @@ namespace OpenMS::Internal
                                             const std::vector<int> & indices) const
     {
       sqlite3_stmt * stmt;
-      std::string select_sql = "SELECT " \
-                    "SPECTRUM.ID as spec_id," \
-                    "SPECTRUM.NATIVE_ID as spec_native_id," \
-                    "SPECTRUM.MSLEVEL as spec_mslevel," \
-                    "SPECTRUM.RETENTION_TIME as spec_rt," \
-                    "PRECURSOR.CHARGE as precursor_charge," \
-                    "PRECURSOR.DRIFT_TIME as precursor_dt," \
-                    "PRECURSOR.ISOLATION_TARGET as precursor_mz," \
-                    "PRECURSOR.ISOLATION_LOWER as precursor_mz_lower," \
-                    "PRECURSOR.ISOLATION_UPPER as precursor_mz_upper," \
-                    "PRECURSOR.PEPTIDE_SEQUENCE as precursor_seq," \
-                    "PRODUCT.CHARGE as product_charge," \
-                    "PRODUCT.ISOLATION_TARGET as product_mz," \
-                    "PRODUCT.ISOLATION_LOWER as product_mz_lower," \
-                    "PRODUCT.ISOLATION_UPPER as product_mz_upper, " \
-                    "SPECTRUM.SCAN_POLARITY as spec_polarity, " \
-                    "PRECURSOR.ACTIVATION_METHOD as prec_activation, " \
-                    "PRECURSOR.ACTIVATION_ENERGY as prec_activation_en " \
-                    "FROM SPECTRUM " \
-                    "LEFT JOIN PRECURSOR ON SPECTRUM.ID = PRECURSOR.SPECTRUM_ID " \
-                    "LEFT JOIN PRODUCT ON SPECTRUM.ID = PRODUCT.SPECTRUM_ID ";
+      // Check if TRANSITION_GROUP_NAME column exists
+      sqlite3_stmt* check_stmt;
+      std::string check_sql = "PRAGMA table_info(PRECURSOR);";
+      SqliteConnector::prepareStatement(db, &check_stmt, check_sql);
+      
+      bool has_transition_group_column = false;
+      while (sqlite3_step(check_stmt) == SQLITE_ROW)
+      {
+        const unsigned char* column_name = sqlite3_column_text(check_stmt, 1);
+        if (column_name && std::string(reinterpret_cast<const char*>(column_name)) == "TRANSITION_GROUP_NAME")
+        {
+          has_transition_group_column = true;
+          break;
+        }
+      }
+      sqlite3_finalize(check_stmt);
+      
+      std::string select_sql;
+      if (has_transition_group_column)
+      {
+        select_sql = "SELECT " \
+                      "SPECTRUM.ID as spec_id," \
+                      "SPECTRUM.NATIVE_ID as spec_native_id," \
+                      "SPECTRUM.MSLEVEL as spec_mslevel," \
+                      "SPECTRUM.RETENTION_TIME as spec_rt," \
+                      "PRECURSOR.CHARGE as precursor_charge," \
+                      "PRECURSOR.DRIFT_TIME as precursor_dt," \
+                      "PRECURSOR.ISOLATION_TARGET as precursor_mz," \
+                      "PRECURSOR.ISOLATION_LOWER as precursor_mz_lower," \
+                      "PRECURSOR.ISOLATION_UPPER as precursor_mz_upper," \
+                      "PRECURSOR.TRANSITION_GROUP_NAME as transition_group_name," \
+                      "PRECURSOR.PEPTIDE_SEQUENCE as precursor_seq," \
+                      "PRODUCT.CHARGE as product_charge," \
+                      "PRODUCT.ISOLATION_TARGET as product_mz," \
+                      "PRODUCT.ISOLATION_LOWER as product_mz_lower," \
+                      "PRODUCT.ISOLATION_UPPER as product_mz_upper, " \
+                      "SPECTRUM.SCAN_POLARITY as spec_polarity, " \
+                      "PRECURSOR.ACTIVATION_METHOD as prec_activation, " \
+                      "PRECURSOR.ACTIVATION_ENERGY as prec_activation_en " \
+                      "FROM SPECTRUM " \
+                      "LEFT JOIN PRECURSOR ON SPECTRUM.ID = PRECURSOR.SPECTRUM_ID " \
+                      "LEFT JOIN PRODUCT ON SPECTRUM.ID = PRODUCT.SPECTRUM_ID ";
+      }
+      else
+      {
+        select_sql = "SELECT " \
+                      "SPECTRUM.ID as spec_id," \
+                      "SPECTRUM.NATIVE_ID as spec_native_id," \
+                      "SPECTRUM.MSLEVEL as spec_mslevel," \
+                      "SPECTRUM.RETENTION_TIME as spec_rt," \
+                      "PRECURSOR.CHARGE as precursor_charge," \
+                      "PRECURSOR.DRIFT_TIME as precursor_dt," \
+                      "PRECURSOR.ISOLATION_TARGET as precursor_mz," \
+                      "PRECURSOR.ISOLATION_LOWER as precursor_mz_lower," \
+                      "PRECURSOR.ISOLATION_UPPER as precursor_mz_upper," \
+                      "PRECURSOR.PEPTIDE_SEQUENCE as precursor_seq," \
+                      "PRODUCT.CHARGE as product_charge," \
+                      "PRODUCT.ISOLATION_TARGET as product_mz," \
+                      "PRODUCT.ISOLATION_LOWER as product_mz_lower," \
+                      "PRODUCT.ISOLATION_UPPER as product_mz_upper, " \
+                      "SPECTRUM.SCAN_POLARITY as spec_polarity, " \
+                      "PRECURSOR.ACTIVATION_METHOD as prec_activation, " \
+                      "PRECURSOR.ACTIVATION_ENERGY as prec_activation_en " \
+                      "FROM SPECTRUM " \
+                      "LEFT JOIN PRECURSOR ON SPECTRUM.ID = PRECURSOR.SPECTRUM_ID " \
+                      "LEFT JOIN PRODUCT ON SPECTRUM.ID = PRODUCT.SPECTRUM_ID ";
+      }
 
       if (!indices.empty())
       {
@@ -742,49 +863,79 @@ namespace OpenMS::Internal
         {
           precursor.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 8));
         }
-        if (Sql::extractValue(&tmp, stmt, 9))
+        // Handle transition_group_name based on column availability
+        if (has_transition_group_column)
         {
-          precursor.setMetaValue("transition_group_name", tmp);
+          // Try to extract transition_group_name from new column (index 9), fallback to old peptide_sequence column (index 10)
+          if (Sql::extractValue(&tmp, stmt, 9))
+          {
+            precursor.setMetaValue("transition_group_name", tmp);
+          }
+          else if (Sql::extractValue(&tmp, stmt, 10))
+          {
+            precursor.setMetaValue("transition_group_name", tmp);
+            OPENMS_LOG_WARN << "Warning: Using legacy 'peptide_sequence' column for transition_group_name. "
+                            << "Consider migrating your SQLite file to use the new 'transition_group_name' column." << std::endl;
+          }
         }
-        // if (sqlite3_column_type(stmt, 10) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, 10));
-        if (sqlite3_column_type(stmt, 11) != SQLITE_NULL)
+        else
         {
-          product.setMZ(sqlite3_column_double(stmt, 11));
+          // Old database format - use peptide_sequence column (index 9)
+          if (Sql::extractValue(&tmp, stmt, 9))
+          {
+            precursor.setMetaValue("transition_group_name", tmp);
+            OPENMS_LOG_WARN << "Warning: Using legacy 'peptide_sequence' column for transition_group_name. "
+                            << "Consider migrating your SQLite file to use the new 'transition_group_name' column." << std::endl;
+          }
         }
-        if (sqlite3_column_type(stmt, 12) != SQLITE_NULL)
+        
+        // Adjust column indices based on whether transition_group_name column exists
+        int product_mz_idx = has_transition_group_column ? 12 : 11;
+        int product_lower_idx = has_transition_group_column ? 13 : 12;
+        int product_upper_idx = has_transition_group_column ? 14 : 13;
+        int spec_polarity_idx = has_transition_group_column ? 15 : 14;
+        int activation_method_idx = has_transition_group_column ? 16 : 15;
+        int activation_energy_idx = has_transition_group_column ? 17 : 16;
+        
+        // if (sqlite3_column_type(stmt, product_charge_idx) != SQLITE_NULL) product.setCharge(sqlite3_column_int(stmt, product_charge_idx));
+        if (sqlite3_column_type(stmt, product_mz_idx) != SQLITE_NULL)
         {
-          product.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, 12));
+          product.setMZ(sqlite3_column_double(stmt, product_mz_idx));
         }
-        if (sqlite3_column_type(stmt, 13) != SQLITE_NULL)
+        if (sqlite3_column_type(stmt, product_lower_idx) != SQLITE_NULL)
         {
-          product.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, 13));
+          product.setIsolationWindowLowerOffset(sqlite3_column_double(stmt, product_lower_idx));
         }
-        if (sqlite3_column_type(stmt, 14) != SQLITE_NULL) 
+        if (sqlite3_column_type(stmt, product_upper_idx) != SQLITE_NULL)
         {
-          int pol = sqlite3_column_int(stmt, 14);
+          product.setIsolationWindowUpperOffset(sqlite3_column_double(stmt, product_upper_idx));
+        }
+        if (sqlite3_column_type(stmt, spec_polarity_idx) != SQLITE_NULL)
+        {
+          int pol = sqlite3_column_int(stmt, spec_polarity_idx);
           if (pol == 0)
           {
             spec.getInstrumentSettings().setPolarity(IonSource::NEGATIVE);
           }
-          else 
+          else
           {
             spec.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
           }
         }
-        if (sqlite3_column_type(stmt, 15) != SQLITE_NULL && sqlite3_column_int(stmt, 15) != -1
-            && sqlite3_column_int(stmt, 15) < static_cast<int>(OpenMS::Precursor::SIZE_OF_ACTIVATIONMETHOD))
+        if (sqlite3_column_type(stmt, activation_method_idx) != SQLITE_NULL && sqlite3_column_int(stmt, activation_method_idx) != -1
+            && sqlite3_column_int(stmt, activation_method_idx) < static_cast<int>(OpenMS::Precursor::SIZE_OF_ACTIVATIONMETHOD))
         {
-          precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(sqlite3_column_int(stmt, 15)));
+          precursor.getActivationMethods().insert(static_cast<OpenMS::Precursor::ActivationMethod>(sqlite3_column_int(stmt, activation_method_idx)));
         }
-        if (sqlite3_column_type(stmt, 16) != SQLITE_NULL)
+        if (sqlite3_column_type(stmt, activation_energy_idx) != SQLITE_NULL)
         {
-          precursor.setActivationEnergy(sqlite3_column_double(stmt, 16));
+          precursor.setActivationEnergy(sqlite3_column_double(stmt, activation_energy_idx));
         }
         if (sqlite3_column_type(stmt, 6) != SQLITE_NULL)
         {
           spec.getPrecursors().push_back(std::move(precursor));
         }
-        if (sqlite3_column_type(stmt, 11) != SQLITE_NULL)
+        if (sqlite3_column_type(stmt, product_mz_idx) != SQLITE_NULL)
         {
           spec.getProducts().push_back(std::move(product));
         }
@@ -923,6 +1074,7 @@ namespace OpenMS::Internal
         "CHROMATOGRAM_ID INT," \
         "CHARGE INT NULL," \
         "PEPTIDE_SEQUENCE TEXT NULL," \
+        "TRANSITION_GROUP_NAME TEXT NULL," \
         "DRIFT_TIME REAL NULL," \
         "ACTIVATION_METHOD INT NULL," \
         "ACTIVATION_ENERGY REAL NULL," \
@@ -1095,11 +1247,11 @@ namespace OpenMS::Internal
             pepseq = prec.getMetaValue("transition_group_name");
             insert_precursor_sql << "INSERT INTO PRECURSOR (SPECTRUM_ID, CHARGE, ISOLATION_TARGET, " <<
                 "ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, " <<
-                "ACTIVATION_METHOD, PEPTIDE_SEQUENCE) VALUES (" << 
+                "ACTIVATION_METHOD, TRANSITION_GROUP_NAME) VALUES (" <<
               spec_id_ << "," << prec.getCharge() << "," << prec.getMZ() <<
               "," << prec.getIsolationWindowLowerOffset() << "," << prec.getIsolationWindowUpperOffset() <<
-              "," << prec.getDriftTime() << 
-              "," << prec.getActivationEnergy() << 
+              "," << prec.getDriftTime() <<
+              "," << prec.getActivationEnergy() <<
               "," << activation_method << ",'" << pepseq << "'" << "); ";
           }
           else
@@ -1305,12 +1457,12 @@ namespace OpenMS::Internal
         {
           pepseq = prec.getMetaValue("transition_group_name");
           insert_precursor_sql << "INSERT INTO PRECURSOR (CHROMATOGRAM_ID, CHARGE, ISOLATION_TARGET, " <<
-            "ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, " << 
-            "ACTIVATION_METHOD, PEPTIDE_SEQUENCE) VALUES (" << 
-            chrom_id_ << "," << prec.getCharge() << "," << prec.getMZ() << 
+            "ISOLATION_LOWER, ISOLATION_UPPER, DRIFT_TIME, ACTIVATION_ENERGY, " <<
+            "ACTIVATION_METHOD, TRANSITION_GROUP_NAME) VALUES (" <<
+            chrom_id_ << "," << prec.getCharge() << "," << prec.getMZ() <<
             "," << prec.getIsolationWindowLowerOffset() << "," << prec.getIsolationWindowUpperOffset() <<
-            "," << prec.getDriftTime() << 
-            "," << prec.getActivationEnergy() << 
+            "," << prec.getDriftTime() <<
+            "," << prec.getActivationEnergy() <<
             "," << activation_method << ",'" << pepseq << "'" << "); ";
         }
         else

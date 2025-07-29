@@ -814,7 +814,7 @@ namespace OpenMS
       if (exp.hasPeptide(tr.getTransGroupRef()))
       {
         const TargetedExperiment::Peptide& target_peptide = exp.getPeptideByRef(tr.getTransGroupRef());
-target_sequence = TargetedExperimentHelper::getAASequence(target_peptide).toString();
+        target_sequence = TargetedExperimentHelper::getAASequence(target_peptide).toString();
       }
       else if (exp.hasNuctide(tr.getTransGroupRef()))
       {
@@ -823,7 +823,7 @@ target_sequence = TargetedExperimentHelper::getAASequence(target_peptide).toStri
       }
       else
       {
-        String target_sequence = tr.getTransGroupRef();
+        target_sequence = tr.getTransGroupRef();
         OPENMS_LOG_WARN << "[unannotated] Skipping transition " << tr.getNativeID() << " without valid peptide or nucleotide reference." << std::endl;
         continue;
       }

@@ -147,7 +147,7 @@
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
             <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
-            <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17.026549095699998"/>
+            <cvParam cvRef="MS" accession="MS:1001524" name="fragment neutral loss" value="-17.0265490957"/>
           </Interpretation>
         </InterpretationList>
       </Product>

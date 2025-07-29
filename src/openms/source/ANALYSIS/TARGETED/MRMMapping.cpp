@@ -111,8 +111,7 @@ namespace OpenMS
             for (Size nuc_idx = 0; nuc_idx < targeted_exp.getNuctides().size(); nuc_idx++)
             {
               const OpenMS::TargetedExperiment::Nuctide * nuc = &targeted_exp.getNuctides()[nuc_idx];
-
-               if (nuc->id == transref)
+              if (nuc->id == transref)
               {
                 if (!nuc->getSequence().empty())
                 {

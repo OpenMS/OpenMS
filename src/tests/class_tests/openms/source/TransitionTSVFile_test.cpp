@@ -62,21 +62,18 @@ START_SECTION( void validateTargetedExperiment(OpenMS::TargetedExperiment & targ
 }
 END_SECTION
 
-START_SECTION( (createOligo_ functionality - indirect test))
+START_SECTION( void createOligo_(const String & oligo_name, OpenMS::TargetedExperiment::Oligo & oligo))
 {
-  // Since createOligo_ is a protected method, we test it indirectly
-  // by verifying that oligo objects are properly created when reading TSV files
-  // This will be tested in the nucleotide TSV reading functionality section
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION( (nucleotide TSV reading functionality))
+START_SECTION( void convertTSVToTargetedExperiment(const char * filename, FileTypes::Type filetype, OpenSwath::LightTargetedExperiment & targeted_exp))
 {
   // Create a minimal nucleotide TSV content
   String tsv_content =
     "PrecursorMz\tProductMz\tLibraryIntensity\tNormalizedRetentionTime\tNuctideSequence\tFullNuctideName\tOligoName\tTransitionGroupId\tTransitionId\n"
-    "500.25\t400.15\t1000.0\t25.5\tAUGCGAUU\tAUG[mod]CGAUU\ttest_oligo\tnuc_group_1\ttransition_1\n";
+    "500.25\t400.15\t1000.0\t25.5\tAUGCGAUU\tAUG[Cm]CGAUU\ttest_oligo\tnuc_group_1\ttransition_1\n";
   
   // Write to temporary file
   String temp_filename = File::getTemporaryFile();
@@ -115,7 +112,7 @@ START_SECTION( (nucleotide TSV reading functionality))
 }
 END_SECTION
 
-START_SECTION( (nucleotide TSV writing functionality))
+START_SECTION( void convertTargetedExperimentToTSV(const char * filename, OpenMS::TargetedExperiment & targeted_exp))
 {
   // Create a TargetedExperiment with nucleotide data
   TargetedExperiment exp;
@@ -124,7 +121,7 @@ START_SECTION( (nucleotide TSV writing functionality))
   TargetedExperiment::Nuctide nuctide;
   nuctide.id = "nuc_group_test";
   nuctide.setSequence("AUGCGAUU");
-  nuctide.setMetaValue("full_nuctide_name", "AUG[mod]CGAUU");
+  nuctide.setMetaValue("full_nuctide_name", "AUG[Cm]CGAUU");
   
   // Add retention time
   TargetedExperimentHelper::RetentionTime rt;
@@ -174,22 +171,18 @@ START_SECTION( (nucleotide TSV writing functionality))
   
   // Clean up
   File::remove(temp_filename);
-}
-END_SECTION
 
-START_SECTION( (mixed peptide and nucleotide functionality))
-{
   // Create TSV with both peptide and nucleotide data
   String tsv_content =
     "PrecursorMz\tProductMz\tLibraryIntensity\tNormalizedRetentionTime\tPeptideSequence\tFullPeptideName\tProteinId\tNuctideSequence\tFullNuctideName\tOligoName\tTransitionGroupId\tTransitionId\tCompoundName\n"
     "500.25\t400.15\t1000.0\t25.5\tPEPTIDE\tPEPTIDE\ttest_protein\t\t\t\tpep_group_1\ttransition_1\t\n"
-    "600.35\t500.25\t1200.0\t30.5\t\t\t\tAUGCGAUU\tAUG[mod]CGAUU\ttest_oligo\tnuc_group_1\ttransition_2\t\n";
+    "600.35\t500.25\t1200.0\t30.5\t\t\t\tAUGCGAUU\tAUG[Cm]CGAUU\ttest_oligo\tnuc_group_1\ttransition_2\t\n";
   
   String temp_filename = File::getTemporaryFile();
-  std::ofstream temp_file(temp_filename.c_str());
-  temp_file << tsv_content;
-  temp_file.close();
-  
+  std::ofstream temp_out_file(temp_filename.c_str());
+  temp_out_file << tsv_content;
+  temp_out_file.close();
+
   TransitionTSVFile tsv_file;
   TargetedExperiment exp;
   

@@ -3126,6 +3126,7 @@ add_test("TOPP_NucleicAcidSearchEngine_12_out" ${DIFF} -in1 NucleicAcidSearchEng
 add_test("TOPP_NucleicAcidSearchEngine_14_out" ${DIFF} -in1 NucleicAcidSearchEngine_14_out.tmp.tsv -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_14_out.tsv -whitelist "ms_run[1]-location")
 set_tests_properties("TOPP_NucleicAcidSearchEngine_11_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_1")
 set_tests_properties("TOPP_NucleicAcidSearchEngine_12_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_1")
+set_tests_properties("TOPP_NucleicAcidSearchEngine_14_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_1")
 # use pre-digested sequence data:
 add_test("TOPP_NucleicAcidSearchEngine_2" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out NucleicAcidSearchEngine_21_out.tmp.idXML -out NucleicAcidSearchEngine_22_out.tmp.mzTab -db_out NucleicAcidSearchEngine_23_out.tmp.oms -digest NucleicAcidSearchEngine_1_digest.oms)
 set_tests_properties("TOPP_NucleicAcidSearchEngine_2" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_1")

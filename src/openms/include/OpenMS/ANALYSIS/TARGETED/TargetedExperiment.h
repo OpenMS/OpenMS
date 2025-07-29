@@ -349,6 +349,8 @@ protected:
 
     mutable OligoReferenceMapType oligo_reference_map_;
 
+    mutable bool oligo_reference_map_dirty_;
+
     mutable bool protein_reference_map_dirty_;
 
     mutable PeptideReferenceMapType peptide_reference_map_;

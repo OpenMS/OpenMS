@@ -31,7 +31,7 @@ namespace OpenMS
       value = tmp_line[ tmp->second ];
       // perform cleanup
       value = value.remove('"');
-      value = value.remove('\''); //SPWFIXME is this gonna be an issue with modomics IDs that have single quotes?
+      value = value.remove('\'');
       value = value.remove(',');
       return true;
     }
@@ -379,14 +379,6 @@ namespace OpenMS
       {
         oligos.split(';', mytransition.OligoName);
       }
-
-      void(!extractName(proteins, "ProteinName", tmp_line, header_dict) &&
-      !extractName(proteins, "ProteinId", tmp_line, header_dict)); // Spectronaut
-      if (proteins != "NA" && !proteins.empty())
-      {
-        proteins.split(';', mytransition.ProteinName);
-      }
-
 
       //// IPF
       String peptidoforms;
@@ -1266,8 +1258,8 @@ namespace OpenMS
     }
 
     NASequence na_sequence;
-    String sequence = tr_it->FullPeptideName;
-    if (sequence.empty()) sequence = tr_it->PeptideSequence;
+    String sequence = tr_it->FullNuctideName;
+    if (sequence.empty()) sequence = tr_it->NuctideSequence;
     try
     {
       na_sequence = NASequence::fromString(sequence);

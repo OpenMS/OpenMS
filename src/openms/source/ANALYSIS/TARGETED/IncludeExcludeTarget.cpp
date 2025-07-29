@@ -23,46 +23,11 @@ namespace OpenMS
 
   IncludeExcludeTarget::~IncludeExcludeTarget() = default;
 
-  IncludeExcludeTarget & IncludeExcludeTarget::operator=(const IncludeExcludeTarget & rhs)
-  {
-    if (&rhs != this)
-    {
-      CVTermList::operator=(rhs);
-      name_ = rhs.name_;
-      precursor_mz_ = rhs.precursor_mz_;
-      precursor_cv_terms_ = rhs.precursor_cv_terms_;
-      product_mz_ = rhs.product_mz_;
-      product_cv_terms_ = rhs.product_cv_terms_;
-      interpretation_list_ = rhs.interpretation_list_;
-      peptide_ref_ = rhs.peptide_ref_;
-      compound_ref_ = rhs.compound_ref_;
-      configurations_ = rhs.configurations_;
-      prediction_ = rhs.prediction_;
-      rts_ = rhs.rts_;
-    }
-    return *this;
-  }
+  IncludeExcludeTarget & IncludeExcludeTarget::operator=(const IncludeExcludeTarget & rhs) = default;
 
-  bool IncludeExcludeTarget::operator==(const IncludeExcludeTarget & rhs) const
-  {
-    return CVTermList::operator==(rhs) &&
-           name_ == rhs.name_ &&
-           precursor_mz_ == rhs.precursor_mz_ &&
-           precursor_cv_terms_ == rhs.precursor_cv_terms_ &&
-           product_mz_ == rhs.product_mz_ &&
-           product_cv_terms_ == rhs.product_cv_terms_ &&
-           interpretation_list_ == rhs.interpretation_list_ &&
-           peptide_ref_ == rhs.peptide_ref_ &&
-           compound_ref_ == rhs.compound_ref_ &&
-           configurations_ == rhs.configurations_ &&
-           prediction_ == rhs.prediction_ &&
-           rts_ == rhs.rts_;
-  }
+  bool IncludeExcludeTarget::operator==(const IncludeExcludeTarget & rhs) const = default;
 
-  bool IncludeExcludeTarget::operator!=(const IncludeExcludeTarget & rhs) const
-  {
-    return !(*this == rhs);
-  }
+  bool IncludeExcludeTarget::operator!=(const IncludeExcludeTarget & rhs) const = default;
 
   void IncludeExcludeTarget::setName(const String & name)
   {

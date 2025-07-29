@@ -47,6 +47,7 @@ typename std::vector<T>::iterator appendRVector(std::vector<T>&& src, std::vecto
 namespace OpenMS
 {
   TargetedExperiment::TargetedExperiment() :
+    oligo_reference_map_dirty_(true),
     protein_reference_map_dirty_(true),
     peptide_reference_map_dirty_(true),
     nuctide_reference_map_dirty_(true),
@@ -70,6 +71,7 @@ namespace OpenMS
     include_targets_(rhs.include_targets_),
     exclude_targets_(rhs.exclude_targets_),
     source_files_(rhs.source_files_),
+    oligo_reference_map_dirty_(true),
     protein_reference_map_dirty_(true),
     peptide_reference_map_dirty_(true),
     nuctide_reference_map_dirty_(true),
@@ -93,6 +95,7 @@ namespace OpenMS
     include_targets_(std::move(rhs.include_targets_)),
     exclude_targets_(std::move(rhs.exclude_targets_)),
     source_files_(std::move(rhs.source_files_)),
+    oligo_reference_map_dirty_(true),
     protein_reference_map_dirty_(true),
     peptide_reference_map_dirty_(true),
     nuctide_reference_map_dirty_(true),
@@ -125,6 +128,7 @@ namespace OpenMS
       peptide_reference_map_dirty_ = true;
       nuctide_reference_map_dirty_ = true;
       compound_reference_map_dirty_ = true;
+      oligo_reference_map_dirty_ = true;
     }
     return *this;
   }
@@ -152,6 +156,7 @@ namespace OpenMS
       peptide_reference_map_dirty_ = true;
       nuctide_reference_map_dirty_ = true;
       compound_reference_map_dirty_ = true;
+      oligo_reference_map_dirty_ = true;
     }
     return *this;
   }
@@ -169,6 +174,7 @@ namespace OpenMS
     peptide_reference_map_dirty_ = true;
     nuctide_reference_map_dirty_ = true;
     compound_reference_map_dirty_ = true;
+    oligo_reference_map_dirty_ = true;
 
     // merge these:
     cvs_.insert(cvs_.end(), rhs.cvs_.begin(), rhs.cvs_.end());
@@ -206,6 +212,7 @@ namespace OpenMS
     peptide_reference_map_dirty_ = true;
     nuctide_reference_map_dirty_ = true;
     compound_reference_map_dirty_ = true;
+    oligo_reference_map_dirty_ = true;
 
     // merge these:
     appendRVector(std::move(rhs.cvs_), cvs_);
@@ -310,6 +317,7 @@ namespace OpenMS
       peptide_reference_map_dirty_ = true;
       nuctide_reference_map_dirty_ = true;
       compound_reference_map_dirty_ = true;
+      oligo_reference_map_dirty_ = true;
     }
   }
 
@@ -452,11 +460,13 @@ namespace OpenMS
 
   void TargetedExperiment::setOligos(const std::vector<Oligo> & oligos)
   {
+    oligo_reference_map_dirty_ = true;
     oligos_ = oligos;
   }
 
   void TargetedExperiment::setOligos(std::vector<Oligo> && oligos)
   {
+    oligo_reference_map_dirty_ = true;
     oligos_ = std::move(oligos);
   }
 
@@ -467,7 +477,7 @@ namespace OpenMS
 
   const TargetedExperiment::Oligo & TargetedExperiment::getOligoByRef(const String & ref) const
   {
-    if (oligo_reference_map_.find(ref) == oligo_reference_map_.end())
+    if (oligo_reference_map_dirty_)
     {
       createOligoReferenceMap_();
     }
@@ -477,7 +487,7 @@ namespace OpenMS
 
   bool TargetedExperiment::hasOligo(const String & ref) const
   {
-    if (oligo_reference_map_.find(ref) == oligo_reference_map_.end())
+    if (oligo_reference_map_dirty_)
     {
       createOligoReferenceMap_();
     }
@@ -486,6 +496,7 @@ namespace OpenMS
 
   void TargetedExperiment::addOligo(const Oligo & oligo)
   {
+    oligo_reference_map_dirty_ = true;
     oligos_.push_back(oligo);
   }
 
@@ -866,6 +877,7 @@ namespace OpenMS
     {
       oligo_reference_map_[getOligos()[i].id] = &getOligos()[i];
     }
+    oligo_reference_map_dirty_ = false;
   }
 
   void TargetedExperiment::createNuctideReferenceMap_() const

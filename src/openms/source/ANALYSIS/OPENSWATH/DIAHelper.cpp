@@ -406,9 +406,7 @@ namespace OpenMS::DIAHelpers
                         NucleicAcidSpectrumGenerator const * generator,
                         int charge)
     {
-      // Note: We pass TheoreticalSpectrumGenerator ptr, as constructing it each time is too slow.
-      OPENMS_PRECONDITION(charge > 0, "For peptides Charge is a positive integer");
-
+      // Note: We pass NucleicAcidSpectrumGenerator ptr, as constructing it each time is too slow.
       PeakSpectrum spec;
       generator->getSpectrum(spec, a, charge, charge);
       for (PeakSpectrum::iterator it = spec.begin();

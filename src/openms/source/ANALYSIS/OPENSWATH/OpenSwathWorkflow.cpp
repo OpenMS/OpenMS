@@ -1064,7 +1064,7 @@ namespace OpenMS
 
     for (Size i = 0; i < all_transitions.size(); i++)
     {
-      if (selected_compounds.find(all_transitions[i].transition_ref) != selected_compounds.end())
+      if (selected_compounds.find(all_transitions[i].getTransGroupRef()) != selected_compounds.end())  
       {
         output.push_back(all_transitions[i]);
       }
