@@ -10,6 +10,10 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics/weighted_mean.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
+
 ///////////////////////////
 #include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
 ///////////////////////////
@@ -17,12 +21,13 @@
 using namespace OpenMS;
 using namespace std;
 
-/// provide access to private functions
-class MassTraceDetectionAccess : public OpenMS::MassTraceDetection
+// Test access class to access protected static methods
+class MassTraceDetectionAccess : public MassTraceDetection
 {
 public:
-  using OpenMS::MassTraceDetection::updateIterativeWeightedMean_;
+    using MassTraceDetection::updateIterativeWeightedMean_;
 };
+
 
 START_TEST(MassTraceDetection, "$Id$")
 
@@ -52,10 +57,10 @@ MassTraceDetection test_mtd;
 PeakMap input;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_input1.mzML"),input);
 
-Size exp_mt_lengths[3] = {86, 31, 16};
-double exp_mt_rts[3] = {348.667, 347.107, 346.888}; // centroid RTs should be reasonably similar (isotopic traces)
+Size exp_mt_lengths[3] = {85, 31, 16};
+double exp_mt_rts[3] = {348.673712773767, 347.107, 346.888}; // centroid RTs should be reasonably similar (isotopic traces)
 double exp_mt_mzs[3] = {437.26675, 438.27241, 439.27594};
-double exp_mt_ints[3] = {3381.72226139326, 664.763828332733, 109.490108620676};
+double exp_mt_ints[3] = {3382.20934460708, 664.763828332733, 109.490108620676};
 
 std::vector<MassTrace> output_mt;
 
@@ -182,6 +187,44 @@ START_SECTION((void run(PeakMap::ConstAreaIterator &begin, PeakMap::ConstAreaIte
 //    TEST_REAL_SIMILAR(found_mtraces[0].computePeakArea(), exp_mt_ints[2]);
 
 //    found_mtraces.clear();
+}
+END_SECTION
+
+// Test for updateIterativeWeightedMean_ function with boost accumulators
+START_SECTION((template<typename Accumulator> void updateIterativeWeightedMean_(double&, Accumulator&, double, double)))
+{
+    // Define accumulator type for weighted mean
+    namespace ba = boost::accumulators;
+    typedef ba::accumulator_set<double, ba::stats<ba::tag::weighted_mean>, double> accumulator_t;
+
+    double apex_mz(150.22), apex_int(25000000);
+    double new_mz1(150.34), new_int1(23043030);
+    double new_mz2(150.11), new_int2(1932392);
+
+    // Test the iterative weighted mean calculation using boost accumulators
+    double centroid_mz(0.0);
+    accumulator_t mz_accumulator;
+
+    // First call: add the apex peak
+    MassTraceDetectionAccess::updateIterativeWeightedMean_(centroid_mz, mz_accumulator, apex_int, apex_mz);
+    
+    // After first call, centroid should be the apex m/z since we only have one peak
+    TEST_REAL_SIMILAR(centroid_mz, apex_mz);
+
+    // Second call: add the first new peak
+    MassTraceDetectionAccess::updateIterativeWeightedMean_(centroid_mz, mz_accumulator, new_int1, new_mz1);
+    
+    // Expected weighted mean after two peaks
+    double wmean1 = (apex_mz * apex_int + new_mz1 * new_int1) / (apex_int + new_int1);
+    TEST_REAL_SIMILAR(centroid_mz, wmean1);
+
+    // Third call: add the second new peak
+    MassTraceDetectionAccess::updateIterativeWeightedMean_(centroid_mz, mz_accumulator, new_int2, new_mz2);
+    
+    // Expected weighted mean after three peaks
+    double wmean2 = (apex_mz * apex_int + new_mz1 * new_int1 + new_mz2 * new_int2) / (apex_int + new_int1 + new_int2);
+    TEST_REAL_SIMILAR(centroid_mz, wmean2);
+
 }
 END_SECTION
 

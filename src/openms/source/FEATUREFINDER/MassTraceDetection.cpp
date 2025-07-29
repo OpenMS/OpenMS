@@ -11,6 +11,9 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <boost/dynamic_bitset.hpp>
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics/weighted_mean.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
 
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 
@@ -176,28 +179,6 @@ namespace OpenMS
       last_weights_sum = weights_sum;
     }
 
-    void MassTraceDetection::updateIterativeWeightedMean_(double& centroid_value,
-                                                         double& prev_counter, double& prev_counter_c,
-                                                         double& prev_denom, double& prev_denom_c,
-                                                         double added_intensity, double added_value)
-    {
-      // Kahan summation for weighted value sum
-      double weighted_value = added_intensity * added_value;
-      double counter_y = weighted_value - prev_counter_c;
-      double counter_t = prev_counter + counter_y;
-      prev_counter_c = (counter_t - prev_counter) - counter_y;
-      prev_counter = counter_t;
-      
-      // Kahan summation for weight sum
-      double denom_y = added_intensity - prev_denom_c;
-      double denom_t = prev_denom + denom_y;
-      prev_denom_c = (denom_t - prev_denom) - denom_y;
-      prev_denom = denom_t;
-      
-      // Update centroid
-      centroid_value = prev_counter / prev_denom;
-    }
-
     void MassTraceDetection::run(const PeakMap& input_exp, std::vector<MassTrace>& found_masstraces, const Size max_traces)
     {
       // make sure the output vector is empty
@@ -320,29 +301,21 @@ namespace OpenMS
         std::vector<double> fwhms_mz; // peak-FWHM meta values of collected peaks
         std::vector<double> fwhms_im; // peak-FWHM ion mobility peak FWHM of collected peaks
 
-        // Initialization for the iterative version of weighted m/z mean calculation
+        // Initialization for the iterative version of weighted m/z mean calculation using boost accumulators
+        namespace ba = boost::accumulators;
+        using accumulator_t = ba::accumulator_set<double, ba::stats<ba::tag::weighted_mean>, double>;
+        accumulator_t mz_accumulator;
         double centroid_mz(apex_peak.getMZ());
-        double prev_counter(apex_peak.getIntensity() * apex_peak.getMZ());
-        double prev_denom(apex_peak.getIntensity());
-        // Kahan summation compensation variables
-        double prev_counter_c(0.0);
-        double prev_denom_c(0.0);
 
-        updateIterativeWeightedMean_(centroid_mz, prev_counter, prev_counter_c, prev_denom, prev_denom_c, apex_peak.getIntensity(), apex_peak.getMZ());
+        updateIterativeWeightedMean_(centroid_mz, mz_accumulator, apex_peak.getIntensity(), apex_peak.getMZ());
 
-        // Initialization for the iterative version of weighted ion mobility mean calculation
+        // Initialization for the iterative version of weighted ion mobility mean calculation using boost accumulators
+        accumulator_t im_accumulator;
         double centroid_im(-1);
-        double prev_counter_im(-1);
-        double prev_denom_im(-1);
-        // Kahan summation compensation variables for ion mobility
-        double prev_counter_im_c(0.0);
-        double prev_denom_im_c(0.0);
         if (has_centroid_im_)
         {
           centroid_im = work_exp[apex_scan_idx].getFloatDataArrays()[Ion_Mobility_idx][apex_peak_idx];
-          prev_counter_im = apex_peak.getIntensity() * centroid_im;
-          prev_denom_im = apex_peak.getIntensity();
-          MassTraceDetection::updateIterativeWeightedMean_(centroid_im, prev_counter_im, prev_counter_im_c, prev_denom_im, prev_denom_im_c,
+          MassTraceDetection::updateIterativeWeightedMean_(centroid_im, im_accumulator,
                                                           apex_peak.getIntensity(), work_exp[apex_scan_idx].getFloatDataArrays()[Ion_Mobility_idx][apex_peak_idx]);
         }
 
@@ -445,12 +418,11 @@ namespace OpenMS
                 current_trace.push_front(next_peak);
 
                 // Update the m/z mean of the current trace as we added a new peak
-                updateIterativeWeightedMean_(centroid_mz, prev_counter, prev_counter_c, prev_denom, prev_denom_c, next_down_peak_int, next_down_peak_mz);
+                updateIterativeWeightedMean_(centroid_mz, mz_accumulator, next_down_peak_int, next_down_peak_mz);
                 gathered_idx.emplace_back(trace_down_idx - 1, next_down_peak_idx);
                 if (has_centroid_im_)
                 {
-                  MassTraceDetection::updateIterativeWeightedMean_(centroid_im, prev_counter_im, prev_counter_im_c, prev_denom_im, prev_denom_im_c,
-                                                                   next_down_peak_int, next_down_peak_im);
+                  MassTraceDetection::updateIterativeWeightedMean_(centroid_im, im_accumulator, next_down_peak_int, next_down_peak_im);
                 }
                 // FWHM average
                 if (has_fwhm_mz_) { fwhms_mz.push_back(spec_trace_down.getFloatDataArrays()[fwhm_meta_idx][next_down_peak_idx]); }
@@ -563,11 +535,10 @@ namespace OpenMS
                
                 if (has_centroid_im_)
                 {
-                  MassTraceDetection::updateIterativeWeightedMean_(centroid_im, prev_counter_im, prev_counter_im_c, prev_denom_im, prev_denom_im_c,
-                                                                   next_up_peak_int, next_up_peak_im);
+                  MassTraceDetection::updateIterativeWeightedMean_(centroid_im, im_accumulator, next_up_peak_int, next_up_peak_im);
                 }
                 // Update the m/z mean of the current trace as we added a new peak
-                updateIterativeWeightedMean_(centroid_mz, prev_counter, prev_counter_c, prev_denom, prev_denom_c, next_up_peak_int, next_up_peak_mz);
+                updateIterativeWeightedMean_(centroid_mz, mz_accumulator, next_up_peak_int, next_up_peak_mz);
                 gathered_idx.emplace_back(trace_up_idx + 1, next_up_peak_idx);
 
                 // Update the m/z variance dynamically
