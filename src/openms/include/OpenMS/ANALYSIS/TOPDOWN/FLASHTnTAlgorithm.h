@@ -82,7 +82,7 @@ private:
   std::vector<ProteinHit> proteoform_hits_;
   std::vector<FLASHHelperClasses::Tag> tags_;
   std::map<int, std::vector<int>> matching_hits_indices_;
-  bool areConsistent_(const ProteinHit& a, const ProteinHit& b, double tol) const;
+  static bool areConsistent_(const ProteinHit& a, const ProteinHit& b, double tol) ;
   void markRepresentativeProteoformHits_(double tol);
   static void vectorizeProteinSequence_(const std::vector<std::string>& cleaned_protein_seqs,
                             std::vector<std::unordered_set<int>>& vec_pro,

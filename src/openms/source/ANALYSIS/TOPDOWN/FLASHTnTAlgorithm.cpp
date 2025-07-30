@@ -77,13 +77,11 @@ void FLASHTnTAlgorithm::updateMembers_()
   multiple_hits_per_spec_ = param_.getValue("only_single_hit").toString() == "false";
 }
 
-bool FLASHTnTAlgorithm::areConsistent_(const ProteinHit& a, const ProteinHit& b, double tol) const
+bool FLASHTnTAlgorithm::areConsistent_(const ProteinHit& a, const ProteinHit& b, double tol)
 {
   double mass1 = a.getMetaValue("Mass");
   double mass2 = b.getMetaValue("Mass");
   if (mass1 * mass2 < 0) return false;
-
-  if (mass1 > 0 && mass2 > 0 && std::abs(mass1 - mass2) > std::max(mass1, mass2) * tol / 1e6 * 2) return false;
 
   int sp1 = a.getMetaValue("StartPosition");
   int ep1 = a.getMetaValue("EndPosition");
@@ -91,34 +89,50 @@ bool FLASHTnTAlgorithm::areConsistent_(const ProteinHit& a, const ProteinHit& b,
   int sp2 = b.getMetaValue("StartPosition");
   int ep2 = b.getMetaValue("EndPosition");
 
-  // double rt1 = a.getMetaValue("RT");
-  // double rt2 = b.getMetaValue("RT");
-  // if (std::abs(rt1 - rt2) < 30.0) return true; // if rts are within 30 sec, true
+  std::vector<String> mod_accs1, mod_accs2;
 
-  if (a.metaValueExists("Modifications") && b.metaValueExists("Modifications"))
+  if (a.metaValueExists("Modifications"))
   {
-    std::vector<double> mod_masses1 = a.getMetaValue("Modifications");
-    std::vector<double> mod_masses2 = b.getMetaValue("Modifications");
-    if (mod_masses1.size() != mod_masses2.size()) return false;
-    else
-    {
-      std::vector<int> mod_starts1 = a.getMetaValue("ModificationStarts");
-      std::vector<int> mod_starts2 = b.getMetaValue("ModificationStarts");
-      std::vector<int> mod_ends1 = a.getMetaValue("ModificationEnds");
-      std::vector<int> mod_ends2 = b.getMetaValue("ModificationEnds");
+    mod_accs1 = a.getMetaValue("ModificationACCs");
+    std::sort(mod_accs1.begin(), mod_accs1.end());
+  }
 
-      for (Size i = 0; i < mod_masses1.size(); i++)
-      {
-        if (std::abs(mod_masses1[i] - mod_masses2[i]) > std::max(mod_masses1[i], mod_masses2[i]) * tol / 1e6 * 2) { return false; }
-        else if (mod_starts1[i] > mod_ends2[i] || mod_starts2[i] > mod_ends1[i]) { return false; }
-      }
+  if (b.metaValueExists("Modifications"))
+  {
+    mod_accs2 = b.getMetaValue("ModificationACCs");
+    std::sort(mod_accs2.begin(), mod_accs2.end());
+  }
+
+  if (mod_accs1.empty() && mod_accs2.empty()) return sp1 == sp2 && ep1 == ep2; // unmodified ones
+
+  // at least one is modified
+  bool mass_matched = std::abs(mass1 - mass2) < std::max(mass1, mass2) * tol / 1e6 * 2;
+  bool mod_matched = std::equal(mod_accs1.begin(), mod_accs1.end(), mod_accs2.begin(), mod_accs2.end());
+  bool mod_loc_matched = mod_matched;
+
+  if (mod_matched && mod_accs1.size() == mod_accs2.size())
+  {
+    std::vector<int> mod_starts1 = a.getMetaValue("ModificationStarts");
+    std::vector<int> mod_starts2 = b.getMetaValue("ModificationStarts");
+    std::vector<int> mod_ends1 = a.getMetaValue("ModificationEnds");
+    std::vector<int> mod_ends2 = b.getMetaValue("ModificationEnds");
+
+    for (Size i = 0; i < mod_starts1.size(); i++)
+    {
+      if (mod_starts1[i] > mod_ends2[i] || mod_starts2[i] > mod_ends1[i]) { mod_loc_matched = false; break; }
     }
+  }
+
+  if (mass1 > 0 && mass_matched)
+  {
+    //false if mods are different or mods are the same but mod locs are different
+    if (!mod_matched || !mod_loc_matched) return false;
     return true;
   }
-  else if (! a.metaValueExists("Modifications") && ! a.metaValueExists("Modifications"))
-  {
-    if (sp1 == sp2 && ep1 == ep2) return true;
-  }
+
+  // masses are underdetermined
+  if (sp1 == sp2 && ep1 == ep2 && mod_matched && mod_loc_matched)  return true;
+  // true if sp ep are the same and mod accs are the same and locs are consistent.
   return false;
 }
 
@@ -407,7 +421,6 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
   for (const auto& dspec : dspecs)
   {
     nextProgress();
-    //if (dspec.getScanNumber() > 1000) break; //TODO
     if (scan_to_tag_indices.find(dspec.getScanNumber()) == scan_to_tag_indices.end()) continue;
     const auto& tag_indices = scan_to_tag_indices[dspec.getScanNumber()];
     std::vector<ProteinHit> hits;
