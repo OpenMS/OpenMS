@@ -6,8 +6,8 @@ MTD	description	OpenMS export from consensusXML
 MTD	protein_search_engine_score[1]	[MS, MS:1003117, OpenMS:Target-decoy protein q-value, ]
 MTD	peptide_search_engine_score[1]	[MS, MS:1003114, OpenMS:Best PSM Score, ]
 MTD	psm_search_engine_score[1]	[MS, MS:1003115, OpenMS:Target-decoy PSM q-value, ]
-MTD	software[1]	[MS, MS:1000752, TOPP software, 3.0.0-pre-ffid-empty-id-or-missing-features-2023-04-11]
-MTD	software[2]	[MS, MS:1002203, TOPP ProteinInference, 3.0.0-pre-ffid-empty-id-or-missing-features-2023-04-11]
+MTD	software[1]	[MS, MS:1000752, TOPP software, 3.5.0-pre-test-fix-2025-07-30]
+MTD	software[2]	[MS, MS:1002203, TOPP ProteinInference, 3.5.0-pre-test-fix-2025-07-30]
 MTD	software[3]	[, , OMSSA, 2.1.4]
 MTD	software[3]-setting[1]	db:18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
 MTD	software[3]-setting[2]	db_version:null
@@ -31,10 +31,10 @@ MTD	quantification_method	[MS, MS:1001834, LC-MS label-free quantitation analysi
 MTD	protein-quantification_unit	[, , Abundance, ]
 MTD	peptide-quantification_unit	[, , Abundance, ]
 MTD	ms_run[1]-format	[MS, MS:1000584, mzML file, ]
-MTD	ms_run[1]-location	file:///workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML
+MTD	ms_run[1]-location	file:///home/sachsenb/Development/OpenMS/share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML
 MTD	ms_run[1]-id_format	[MS, MS:1000777, spectrum identifier nativeID format, ]
 MTD	ms_run[2]-format	[MS, MS:1000584, mzML file, ]
-MTD	ms_run[2]-location	file:///workspace/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML
+MTD	ms_run[2]-location	file:///home/sachsenb/Development/OpenMS/share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML
 MTD	ms_run[2]-id_format	[MS, MS:1000777, spectrum identifier nativeID format, ]
 MTD	assay[1]-quantification_reagent	[MS, MS:1002038, unlabeled sample, ]
 MTD	assay[1]-ms_run_ref	ms_run[1]
@@ -58,28 +58,27 @@ PRT	O76015|KRT38_HUMAN	Keratin, type I cuticular Ha8 - Homo sapiens (Human).	nul
 PRT	O76014|KRT37_HUMAN	Keratin, type I cuticular Ha7 - Homo sapiens (Human).	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.083333333333333	null	null	0.015590200445434	null	null	null	null	null	null	null	null	null	1	0	protein_details
 PRT	O76013|KRT36_HUMAN	Keratin, type I cuticular Ha6 - Homo sapiens (Human).	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.083333333333333	null	null	0.014989293361884	null	null	null	null	null	null	null	null	null	1	0	protein_details
 PRT	P02769|ALBU_BOVIN	Serum albumin - Bos taurus (Bovine).	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.166666666666667	P02769|ALBU_BOVIN	590-UNIMOD:4	0.121911037891269	1.5465968e08	0.0	1.5465968e08	null	null	0.0	null	null	null	null	null	single_protein
-PRT	P00761|TRYP_PIG	Trypsin - Sus scrofa (Pig).	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.166666666666667	P00761|TRYP_PIG	null	0.034632034632035	2.0622056e07	0.0	2.0622056e07	null	null	0.0	null	null	null	null	null	single_protein
+PRT	P00761|TRYP_PIG	Trypsin - Sus scrofa (Pig).	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.166666666666667	P00761|TRYP_PIG	null	0.034632034632035	2.0724788e07	0.0	2.0724788e07	null	null	0.0	null	null	null	null	null	single_protein
 PRT	tr|A9FUD7|A9FUD7_SORC5	Putative membrane protein OS=Sorangium cellulosum (strain So ce56) GN=sce8452 PE=4 SV=1	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.166666666666667	tr|A9FUD7|A9FUD7_SORC5	null	4.040404040404041e-03	null	null	null	null	null	null	null	null	null	null	null	single_protein
-PRT	tr|A9G0B6|A9G0B6_SORC5	Putative uncharacterized protein OS=Sorangium cellulosum (strain So ce56) GN=sce8672 PE=4 SV=1	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.166666666666667	tr|A9G0B6|A9G0B6_SORC5	null	0.112676056338028	7877.70849609375	0.0	7877.70849609375	null	null	0.0	null	null	null	null	null	single_protein
+PRT	tr|A9G0B6|A9G0B6_SORC5	Putative uncharacterized protein OS=Sorangium cellulosum (strain So ce56) GN=sce8672 PE=4 SV=1	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.166666666666667	tr|A9G0B6|A9G0B6_SORC5	null	0.112676056338028	null	null	null	null	null	null	null	null	null	null	null	single_protein
 PRT	Q92764|KRT35_HUMAN	Keratin, type I cuticular Ha5 - Homo sapiens (Human).	null	null	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	null	0.166666666666667	O76013|KRT36_HUMAN,O76014|KRT37_HUMAN,O76015|KRT38_HUMAN,Q14525|KT33B_HUMAN,Q14532|K1H2_HUMAN,Q15323|K1H1_HUMAN,Q92764|KRT35_HUMAN	null	0.016025659283684	null	null	null	null	null	null	null	null	null	null	null	indistinguishable_protein_group
 
 PEH	sequence	accession	unique	database	database_version	search_engine	best_search_engine_score[1]	search_engine_score[1]_ms_run[1]	search_engine_score[1]_ms_run[2]	modifications	retention_time	retention_time_window	charge	mass_to_charge	spectra_ref	peptide_abundance_study_variable[1]	peptide_abundance_stdev_study_variable[1]	peptide_abundance_std_error_study_variable[1]	peptide_abundance_study_variable[2]	peptide_abundance_stdev_study_variable[2]	peptide_abundance_std_error_study_variable[2]	opt_global_feature_id	opt_global_cv_MS:1002217_decoy_peptide	opt_global_cv_MS:1000889_peptidoform_sequence
-PEP	AEFVEVTK	P02769|ALBU_BOVIN	1	null	null	null	0.047619047619048	0.047619047619048	null	null	2023.952880356795049	null	2	461.747653035420967	ms_run[1]:spectrum=2950	1.5465968e08	null	null	null	null	null	10627069796380146481	0	AEFVEVTK
-PEP	AGAFSLPK	tr|A9G0B6|A9G0B6_SORC5	1	null	null	null	0.047619047619048	0.047619047619048	null	null	2072.094747027906124	null	2	395.726522907820936	ms_run[1]:spectrum=3077	7877.70849609375	null	null	null	null	null	10052793688680741109	0	AGAFSLPK
-PEP	EACFAVEGPK	P02769|ALBU_BOVIN	1	null	null	null	0.047619047619048	0.047619047619048	null	3-UNIMOD:4	2074.443092404270828	null	2	554.26060201207099	ms_run[1]:spectrum=3097	3.1740196e07	null	null	null	null	null	13424404046998308790	0	EAC(Carbamidomethyl)FAVEGPK
-PEP	VATVSLPR	P00761|TRYP_PIG	1	null	null	null	0.047619047619048	0.047619047619048	null	null	2089.596569519389959	null	2	421.758354535420949	ms_run[1]:spectrum=3087	2.0622056e07	null	null	null	null	null	3491056946625602141	0	VATVSLPR
-PEP	HLVDEPQNLIK	P02769|ALBU_BOVIN	1	null	null	null	0.047619047619048	0.047619047619048	null	null	2298.172555172493048	null	3	435.910228820904251	ms_run[1]:spectrum=3307	2.26054890625e05	null	null	null	null	null	17092894204355333314	0	HLVDEPQNLIK
-PEP	YLYEIAR	P02769|ALBU_BOVIN	1	null	null	null	0.047619047619048	0.047619047619048	null	null	2334.721364663681015	null	2	464.250362519471025	ms_run[1]:spectrum=3328	2.61021328e08	null	null	null	null	null	15166508592180818156	0	YLYEIAR
-PEP	LVVSTQTALA	P02769|ALBU_BOVIN	1	null	null	null	0.047619047619048	0.047619047619048	null	null	2391.725498473171683	null	2	501.795134726820947	ms_run[1]:spectrum=3482	7.7023216e07	null	null	null	null	null	12665713047548007769	0	LVVSTQTALA
+PEP	AEFVEVTK	P02769|ALBU_BOVIN	1	null	null	null	0.047619047619048	0.047619047619048	null	null	2023.686656268910156	null	2	461.747653035420967	ms_run[1]:spectrum=2950	1.5465968e08	null	null	null	null	null	13424404046998308790	0	AEFVEVTK
+PEP	EACFAVEGPK	P02769|ALBU_BOVIN	1	null	null	null	0.047619047619048	0.047619047619048	null	3-UNIMOD:4	2074.300128510792092	null	2	554.26060201207099	ms_run[1]:spectrum=3097	3.1740196e07	null	null	null	null	null	17092894204355333314	0	EAC(Carbamidomethyl)FAVEGPK
+PEP	VATVSLPR	P00761|TRYP_PIG	1	null	null	null	0.047619047619048	0.047619047619048	null	null	2089.387332257627349	null	2	421.758354535420949	ms_run[1]:spectrum=3087	2.0724788e07	null	null	null	null	null	11115414975438642789	0	VATVSLPR
+PEP	HLVDEPQNLIK	P02769|ALBU_BOVIN	1	null	null	null	0.047619047619048	0.047619047619048	null	null	2298.18072158508312	null	3	435.910228820904251	ms_run[1]:spectrum=3307	2.26065125e05	null	null	null	null	null	1147219038608936718	0	HLVDEPQNLIK
+PEP	YLYEIAR	P02769|ALBU_BOVIN	1	null	null	null	0.047619047619048	0.047619047619048	null	null	2334.154719941085204	null	2	464.250362519471025	ms_run[1]:spectrum=3328	2.61011984e08	null	null	null	null	null	14509930621887606273	0	YLYEIAR
+PEP	LVVSTQTALA	P02769|ALBU_BOVIN	1	null	null	null	0.047619047619048	0.047619047619048	null	null	2391.682800654076345	null	2	501.795134726820947	ms_run[1]:spectrum=3482	7.6982208e07	null	null	null	null	null	12665713047548007769	0	LVVSTQTALA
 
 PSH	sequence	PSM_ID	accession	unique	database	database_version	search_engine	search_engine_score[1]	modifications	retention_time	charge	exp_mass_to_charge	calc_mass_to_charge	spectra_ref	pre	post	start	end	opt_global_OMSSA_score	opt_global_Posterior_Error_Probability_score	opt_global_cv_MS:1002217_decoy_peptide	opt_global_cv_MS:1000889_peptidoform_sequence
 PSM	AEFVEVTK	0	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.047619047619048	null	2015.592651367190001	2	461.747497558593977	461.747653035420967	ms_run[1]:spectrum=2950	K	L	249	256	2.96258184030238e-04	0.0	0	AEFVEVTK
-PSM	AGAFSLPK	1	tr|A9G0B6|A9G0B6_SORC5	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.047619047619048	null	2085.739013671880002	2	395.700897216796989	395.726522907820936	ms_run[1]:spectrum=3077	R	D	10	17	0.06319601345927	0.045454545454546	0	AGAFSLPK
-PSM	EACFAVEGPK	2	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.047619047619048	3-UNIMOD:4	2098.175048828119998	2	554.260559082031023	554.26060201207099	ms_run[1]:spectrum=3097	K	L	588	597	4.91092752369064e-05	0.0	0	EAC(Carbamidomethyl)FAVEGPK
-PSM	VATVSLPR	3	P00761|TRYP_PIG	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.047619047619048	null	2091.08642578125	2	421.758056640625	421.758354535420949	ms_run[1]:spectrum=3087	R	S	108	115	3.02546175573277e-03	0.03448275862069	0	VATVSLPR
-PSM	HLVDEPQNLIK	4	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.047619047619048	null	2295.902099609380002	3	435.909851074218977	435.910228820904251	ms_run[1]:spectrum=3307	K	Q	402	412	0.013745856995003	0.03448275862069	0	HLVDEPQNLIK
-PSM	YLYEIAR	5	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.047619047619048	null	2321.499267578119998	2	464.250213623046989	464.250362519471025	ms_run[1]:spectrum=3328	K	R	161	167	5.28980302830806e-04	0.0	0	YLYEIAR
-PSM	LVVSTQTALA	6	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.047619047619048	null	2431.521728515619998	2	501.794891357421989	501.795134726820947	ms_run[1]:spectrum=3482	K	-	598	607	0.128894553541144	0.045454545454546	0	LVVSTQTALA
+PSM	EACFAVEGPK	1	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.047619047619048	3-UNIMOD:4	2098.175048828119998	2	554.260559082031023	554.26060201207099	ms_run[1]:spectrum=3097	K	L	588	597	4.91092752369064e-05	0.0	0	EAC(Carbamidomethyl)FAVEGPK
+PSM	VATVSLPR	2	P00761|TRYP_PIG	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.047619047619048	null	2091.08642578125	2	421.758056640625	421.758354535420949	ms_run[1]:spectrum=3087	R	S	108	115	3.02546175573277e-03	0.03448275862069	0	VATVSLPR
+PSM	HLVDEPQNLIK	3	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.047619047619048	null	2295.902099609380002	3	435.909851074218977	435.910228820904251	ms_run[1]:spectrum=3307	K	Q	402	412	0.013745856995003	0.03448275862069	0	HLVDEPQNLIK
+PSM	YLYEIAR	4	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.047619047619048	null	2321.499267578119998	2	464.250213623046989	464.250362519471025	ms_run[1]:spectrum=3328	K	R	161	167	5.28980302830806e-04	0.0	0	YLYEIAR
+PSM	LVVSTQTALA	5	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.047619047619048	null	2431.521728515619998	2	501.794891357421989	501.795134726820947	ms_run[1]:spectrum=3482	K	-	598	607	0.128894553541144	0.045454545454546	0	LVVSTQTALA
+PSM	AGAFSLPK	6	tr|A9G0B6|A9G0B6_SORC5	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.047619047619048	null	2085.739013671880002	2	395.700897216796989	395.726522907820936	ms_run[1]:spectrum=3077	R	D	10	17	0.06319601345927	0.045454545454546	0	AGAFSLPK
 PSM	AGDLLFFK	7	tr|A9FUD7|A9FUD7_SORC5	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.047619047619048	null	2155.638916015619998	2	455.713287353516023	455.75528053542098	ms_run[1]:spectrum=3173	K	G	1423	1430	0.067676940044902	0.045454545454546	0	AGDLLFFK
 PSM	DLGEEHFK	8	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.047619047619048	null	2013.363647460940001	2	487.732208251953011	487.732534471620966	ms_run[1]:spectrum=2946	K	G	37	44	0.212602001856198	0.045454545454546	0	DLGEEHFK
 PSM	GACLLPK	9	P02769|ALBU_BOVIN	1	18Protein_SoCe_Tr_detergents_trace_target_decoy	null	[, , OMSSA, 2.1.4]	0.047619047619048	3-UNIMOD:4	2010.879028320309999	2	379.71484375	379.715100772820961	ms_run[1]:spectrum=2941	K	I	198	204	1.67901373867858e-03	0.0	0	GAC(Carbamidomethyl)LLPK

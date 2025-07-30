@@ -11,9 +11,6 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <boost/dynamic_bitset.hpp>
-#include <boost/accumulators/accumulators.hpp>
-#include <boost/accumulators/statistics/weighted_mean.hpp>
-#include <boost/accumulators/statistics/stats.hpp>
 
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 
@@ -156,28 +153,44 @@ namespace OpenMS
       run(map, found_masstraces);
     }
 
-    void updateIterativeWeightedSD(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum, double& weights_sum_c)
-    {
-      double denom1 = std::log(last_weights_sum) + 2 * std::log(sd_t);
-      double denom2 = std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1));
-      
-      double denom = std::sqrt(std::exp(denom1) + std::exp(denom2));
-      
-      // Kahan summation for weights accumulation
-      double weight_y = p.getIntensity() - weights_sum_c;
-      double weight_t = last_weights_sum + weight_y;
-      weights_sum_c = (weight_t - last_weights_sum) - weight_y;
-      double weights_sum = weight_t;
-      
-      double tmp_sd = denom / std::sqrt(weights_sum);
+    class IncrementalWeightedStats {
+    public:
+        void add(double x, double w) {
+            if (w <= 0.0) return; // avoid division by zero or negative weights
 
-      if (tmp_sd > std::numeric_limits<double>::epsilon())
-      {
-        sd_t = tmp_sd;
-      }
+            // Update total weight
+            double W_new = W + w;
 
-      last_weights_sum = weights_sum;
-    }
+            // Update mean
+            double delta = x - mean;
+            double R = (w / W_new) * delta;
+            double mean_new = mean + R;
+
+            // Update variance accumulator
+            variance_acc += w * delta * (x - mean_new);
+
+            // Commit updates
+            W = W_new;
+            mean = mean_new;
+        }
+
+        double getMean() const {
+            return mean;
+        }
+
+        double getVariance() const {
+            return (W > 0.0) ? (variance_acc / W) : 0.0;
+        }
+
+        double getStandardDeviation() const {
+            return std::sqrt(getVariance());
+        }
+
+    private:
+        double W = 0.0;             // total weight
+        double mean = 0.0;          // current weighted mean
+        double variance_acc = 0.0;  // accumulated weighted squared differences
+    };
 
     void MassTraceDetection::run(const PeakMap& input_exp, std::vector<MassTrace>& found_masstraces, const Size max_traces)
     {
@@ -301,22 +314,16 @@ namespace OpenMS
         std::vector<double> fwhms_mz; // peak-FWHM meta values of collected peaks
         std::vector<double> fwhms_im; // peak-FWHM ion mobility peak FWHM of collected peaks
 
-        // Initialization for the iterative version of weighted m/z mean calculation using boost accumulators
-        namespace ba = boost::accumulators;
-        using accumulator_t = ba::accumulator_set<double, ba::stats<ba::tag::immediate_weighted_mean>, double>;
-        accumulator_t mz_accumulator;
+        // Initialization for the iterative version of weighted m/z mean calculation
         double centroid_mz(apex_peak.getMZ());
 
-        updateIterativeWeightedMean_(centroid_mz, mz_accumulator, apex_peak.getIntensity(), apex_peak.getMZ());
-
-        // Initialization for the iterative version of weighted ion mobility mean calculation using boost accumulators
-        accumulator_t im_accumulator;
+        // Initialization for the iterative version of weighted ion mobility mean calculation
+        IncrementalWeightedStats im_stats;
         double centroid_im(-1);
         if (has_centroid_im_)
         {
           centroid_im = work_exp[apex_scan_idx].getFloatDataArrays()[Ion_Mobility_idx][apex_peak_idx];
-          MassTraceDetection::updateIterativeWeightedMean_(centroid_im, im_accumulator,
-                                                          apex_peak.getIntensity(), work_exp[apex_scan_idx].getFloatDataArrays()[Ion_Mobility_idx][apex_peak_idx]);
+          im_stats.add(centroid_im, apex_peak.getIntensity());
         }
 
         std::vector<std::pair<Size, Size>> gathered_idx;
@@ -341,8 +348,8 @@ namespace OpenMS
 
         // double ftl_mean(centroid_mz);
         double ftl_sd((centroid_mz / 1e6) * mass_error_ppm_);
-        double intensity_so_far(apex_peak.getIntensity());
-        double intensity_so_far_c(0.0);  // Kahan summation compensation for intensity_so_far
+        IncrementalWeightedStats mz_stats;
+        mz_stats.add(apex_peak.getMZ(), apex_peak.getIntensity());
 
         while (((trace_down_idx > 0) && toggle_down) || ((trace_up_idx < work_exp.size() - 1) && toggle_up))
         {
@@ -418,11 +425,13 @@ namespace OpenMS
                 current_trace.push_front(next_peak);
 
                 // Update the m/z mean of the current trace as we added a new peak
-                updateIterativeWeightedMean_(centroid_mz, mz_accumulator, next_down_peak_int, next_down_peak_mz);
+                mz_stats.add(next_down_peak_mz, next_down_peak_int);
+                centroid_mz = mz_stats.getMean();
                 gathered_idx.emplace_back(trace_down_idx - 1, next_down_peak_idx);
                 if (has_centroid_im_)
                 {
-                  MassTraceDetection::updateIterativeWeightedMean_(centroid_im, im_accumulator, next_down_peak_int, next_down_peak_im);
+                  im_stats.add(next_down_peak_im, next_down_peak_int);
+                  centroid_im = im_stats.getMean();
                 }
                 // FWHM average
                 if (has_fwhm_mz_) { fwhms_mz.push_back(spec_trace_down.getFloatDataArrays()[fwhm_meta_idx][next_down_peak_idx]); }
@@ -434,7 +443,8 @@ namespace OpenMS
                 {
                   // if (ftl_t > min_fwhm_scans)
                   {
-                    updateIterativeWeightedSD(next_peak, centroid_mz, ftl_sd, intensity_so_far, intensity_so_far_c);
+                    mz_stats.add(next_peak.getMZ(), next_peak.getIntensity());
+                    ftl_sd = mz_stats.getStandardDeviation();
                   }
                 }
                 ++down_hitting_peak;
@@ -535,10 +545,12 @@ namespace OpenMS
                
                 if (has_centroid_im_)
                 {
-                  MassTraceDetection::updateIterativeWeightedMean_(centroid_im, im_accumulator, next_up_peak_int, next_up_peak_im);
+                  im_stats.add(next_up_peak_im, next_up_peak_int);
+                  centroid_im = im_stats.getMean();
                 }
                 // Update the m/z mean of the current trace as we added a new peak
-                updateIterativeWeightedMean_(centroid_mz, mz_accumulator, next_up_peak_int, next_up_peak_mz);
+                mz_stats.add(next_up_peak_mz, next_up_peak_int);
+                centroid_mz = mz_stats.getMean();
                 gathered_idx.emplace_back(trace_up_idx + 1, next_up_peak_idx);
 
                 // Update the m/z variance dynamically
@@ -546,7 +558,8 @@ namespace OpenMS
                 {
                   // if (ftl_t > min_fwhm_scans)
                   {
-                    updateIterativeWeightedSD(next_peak, centroid_mz, ftl_sd, intensity_so_far, intensity_so_far_c);
+                    mz_stats.add(next_peak.getMZ(), next_peak.getIntensity());
+                    ftl_sd = mz_stats.getStandardDeviation();
                   }
                 }
 

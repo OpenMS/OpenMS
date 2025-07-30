@@ -14,10 +14,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
-#include <boost/accumulators/accumulators.hpp>
-#include <boost/accumulators/statistics/weighted_mean.hpp>
-#include <boost/accumulators/statistics/stats.hpp>
-
 namespace OpenMS
 {
 
@@ -80,14 +76,6 @@ namespace OpenMS
         */
     protected:
         void updateMembers_() override;
-        /// allows for the iterative computation of intensity weighted of a mass trace's centroid m/z or ion mobility using boost accumulators
-        template<typename Accumulator>
-        static void updateIterativeWeightedMean_(double& centroid_value, Accumulator& accumulator, double added_intensity, double added_value)
-        {
-          namespace ba = boost::accumulators;
-          accumulator(added_value, ba::weight = added_intensity);
-          centroid_value = ba::weighted_mean(accumulator);
-        }
 
     private:
 

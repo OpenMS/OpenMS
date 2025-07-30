@@ -77,14 +77,14 @@ START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &, chromatograms 
   p.setValue("mz_scoring_13C", "true");
   test_ffm.setParameters(p);
   test_ffm.run(splitted_mt, test_fm, chromatograms);
-  TEST_EQUAL(test_fm.size(), 84);
+  TEST_EQUAL(test_fm.size(), 91);
 
   // run with default settings (from paper using charge+isotope# dependent distances)
   p.setValue("report_convex_hulls", "true");
   p.setValue("mz_scoring_13C", "false");
   test_ffm.setParameters(p);
   test_ffm.run(splitted_mt, test_fm, chromatograms);
-  TEST_EQUAL(test_fm.size(), 81);
+  TEST_EQUAL(test_fm.size(), 89);
   // --> this gives less features, i.e. more isotope clusters (but the input data is simulated and highly weird -- should be replaced at some point)
 
   // test annotation of input
@@ -98,7 +98,7 @@ START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &, chromatograms 
   p.setValue("mz_scoring_by_elements", "true");
   test_ffm.setParameters(p);
   test_ffm.run(splitted_mt, test_fm, chromatograms);
-  TEST_EQUAL(test_fm.size(), 80);
+  TEST_EQUAL(test_fm.size(), 89);
   // --> this gives less features, i.e. more isotope clusters (but the input data is simulated and highly weird -- should be replaced at some point)
 }
 END_SECTION
