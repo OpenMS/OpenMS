@@ -303,7 +303,7 @@ namespace OpenMS
 
         // Initialization for the iterative version of weighted m/z mean calculation using boost accumulators
         namespace ba = boost::accumulators;
-        using accumulator_t = ba::accumulator_set<double, ba::stats<ba::tag::weighted_mean>, double>;
+        using accumulator_t = ba::accumulator_set<double, ba::stats<ba::tag::immediate_weighted_mean>, double>;
         accumulator_t mz_accumulator;
         double centroid_mz(apex_peak.getMZ());
 

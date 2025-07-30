@@ -13,7 +13,7 @@
 			<intensity>1.462042e06</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.243302</overallquality>
+			<overallquality>0.243444</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="0.326874708" y="774.540169320654741" />
@@ -288,7 +288,7 @@
 			<intensity>6.520014e04</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.326457</overallquality>
+			<overallquality>0.326647</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="9.891688800000001" y="774.551360142782414" />
@@ -544,7 +544,7 @@
 			<intensity>7.642188e04</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.019447</overallquality>
+			<overallquality>0.019458</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="10.954695600000001" y="774.563318027752303" />
@@ -618,7 +618,7 @@
 			<intensity>6.676842e04</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>7.959582e-03</overallquality>
+			<overallquality>7.964209e-03</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="9.891688800000001" y="774.571075936193211" />
@@ -646,7 +646,7 @@
 			<intensity>2.125936e05</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.030938</overallquality>
+			<overallquality>0.030956</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="1.38960882" y="774.589473244559713" />
@@ -784,7 +784,7 @@
 			<intensity>9.458695e05</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.141214</overallquality>
+			<overallquality>0.141296</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="0.326874708" y="774.598588328793312" />
@@ -1092,7 +1092,7 @@
 			<intensity>7.720522e04</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.013596</overallquality>
+			<overallquality>0.013604</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="5.64058374" y="774.622823201888878" />
@@ -1146,7 +1146,7 @@
 			<intensity>1.982931e05</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.029289</overallquality>
+			<overallquality>0.029306</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="1.38960882" y="774.635391264341138" />
@@ -1278,35 +1278,33 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.003458460182856]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_6408859317243173796">
-			<position dim="0">31.13570040268802</position>
-			<position dim="1">774.64549084818259</position>
-			<intensity>8.164059e04</intensity>
+		<feature id="f_474525871221756682">
+			<position dim="0">30.735905522015923</position>
+			<position dim="1">774.644012125716017</position>
+			<intensity>7.676763e04</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>9.732519e-03</overallquality>
+			<overallquality>9.156923e-03</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="0.326874708" y="774.641968317287365" />
 				<pt x="14.143299600000001" y="774.645597924221079" />
 				<pt x="22.645976999999999" y="774.645081264854639" />
 				<pt x="25.834464600000001" y="774.643686614075477" />
-				<pt x="42.8399784" y="774.652008797091298" />
 				<pt x="49.217057400000002" y="774.643647493783874" />
 				<pt x="50.279944800000003" y="774.644098249098079" />
 				<pt x="49.217057400000002" y="774.643647493783874" />
-				<pt x="42.8399784" y="774.652008797091298" />
 				<pt x="25.834464600000001" y="774.643686614075477" />
 				<pt x="22.645976999999999" y="774.645081264854639" />
 				<pt x="14.143299600000001" y="774.645597924221079" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T19"/>
 			<UserParam type="float" name="FWHM" value="49.953071594238281"/>
-			<UserParam type="float" name="max_height" value="1.096398671875e05"/>
+			<UserParam type="float" name="max_height" value="1.09109703125e05"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="floatList" name="masstrace_intensity" value="[8.164058593749999e04]"/>
-			<UserParam type="floatList" name="masstrace_centroid_rt" value="[31.13570040268802]"/>
-			<UserParam type="floatList" name="masstrace_centroid_mz" value="[774.64549084818259]"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[7.6767625e04]"/>
+			<UserParam type="floatList" name="masstrace_centroid_rt" value="[30.735905522015923]"/>
+			<UserParam type="floatList" name="masstrace_centroid_mz" value="[774.644012125716017]"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
@@ -1316,7 +1314,7 @@
 			<intensity>1.97883e05</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.032329</overallquality>
+			<overallquality>0.032348</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="0.326874708" y="774.653069659637481" />
@@ -1476,13 +1474,13 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.003578798066428, 0.991086867387708]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_474525871221756682">
+		<feature id="f_6408859317243173796">
 			<position dim="0">36.221184425397063</position>
 			<position dim="1">776.520191386914689</position>
 			<intensity>7.742994e04</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>9.230559e-03</overallquality>
+			<overallquality>9.235925e-03</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="2.4523587" y="776.519139862516795" />
@@ -1506,7 +1504,7 @@
 			<intensity>7.256612e04</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>8.650735e-03</overallquality>
+			<overallquality>8.655764e-03</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="20.5203828" y="776.53618759923836" />
@@ -1530,7 +1528,7 @@
 			<intensity>9.979463e04</intensity>
 			<quality dim="0">0.0</quality>
 			<quality dim="1">0.0</quality>
-			<overallquality>0.011897</overallquality>
+			<overallquality>0.011904</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="0.326874708" y="776.673231214619932" />
