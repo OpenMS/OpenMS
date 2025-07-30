@@ -398,7 +398,7 @@ namespace OpenMS
                   // check if the ion mobility value is within bounds
                   double im_value = spec_trace_down.getFloatDataArrays()[Ion_Mobility_idx][i];
                   
-                  if (im_value >= left_bound_im && im_value <= right_bound_im) // iterate over peaks in IM bounds
+                  if (im_value >= left_bound_im - 1e-6 && im_value <= right_bound_im + 1e-6) // iterate over peaks in IM bounds
                   {
                     if (std::abs(spec_trace_down[i].getMZ() - centroid_mz) < std::abs(next_down_peak_mz - centroid_mz))
                     {
@@ -413,8 +413,8 @@ namespace OpenMS
               }
 
               // If the peak is within acceptable bounds and not visited, add peak to mass trace
-              if ((next_down_peak_mz <= right_bound) && (next_down_peak_mz >= left_bound)
-                  && (!has_centroid_im_ || (next_down_peak_im <= right_bound_im && next_down_peak_im >= left_bound_im))
+              if ((next_down_peak_mz <= right_bound + 1e-6) && (next_down_peak_mz >= left_bound - 1e-6)
+                  && (!has_centroid_im_ || (next_down_peak_im <= right_bound_im + 1e-6 && next_down_peak_im >= left_bound_im - 1e-6))
                   && ! peak_visited[spec_offsets[trace_down_idx - 1] + next_down_peak_idx])
               {
                 Peak2D next_peak;
@@ -513,7 +513,7 @@ namespace OpenMS
                   // check if the ion mobility value is within bounds
                   double im_value = spec_trace_up.getFloatDataArrays()[Ion_Mobility_idx][i];
                   
-                  if (im_value >= left_bound_im && im_value <= right_bound_im) // iterate over peaks in IM bounds
+                  if (im_value >= left_bound_im - 1e-6 && im_value <= right_bound_im + 1e-6) // iterate over peaks in IM bounds
                   {
                     if (std::abs(spec_trace_up[i].getMZ() - centroid_mz) < std::abs(next_up_peak_mz - centroid_mz))
                     {
@@ -528,8 +528,8 @@ namespace OpenMS
               }
 
               // Unified peak acceptance logic
-              if ((next_up_peak_mz <= right_bound) && (next_up_peak_mz >= left_bound)
-                  && (!has_centroid_im_ || (next_up_peak_im <= right_bound_im && next_up_peak_im >= left_bound_im))
+              if ((next_up_peak_mz <= right_bound + 1e-6) && (next_up_peak_mz >= left_bound - 1e-6)
+                  && (!has_centroid_im_ || (next_up_peak_im <= right_bound_im + 1e-6 && next_up_peak_im >= left_bound_im - 1e-6))
                   && ! peak_visited[spec_offsets[trace_up_idx + 1] + next_up_peak_idx])
               {
                 Peak2D next_peak;
@@ -595,7 +595,7 @@ namespace OpenMS
         // Step 2.3 check if minimum length and quality of mass trace criteria are met
         // *********************************************************** //
         bool max_trace_criteria = (max_trace_length_ < 0.0 || rt_range < max_trace_length_);
-        if (rt_range >= min_trace_length_ && max_trace_criteria && mt_quality >= min_sample_rate_)
+        if (rt_range >= min_trace_length_ - 1e-6 && max_trace_criteria && mt_quality >= min_sample_rate_ - 1e-6)
         {
           // std::cout << "T" << trace_number << "\t" << mt_quality << std::endl;
 
