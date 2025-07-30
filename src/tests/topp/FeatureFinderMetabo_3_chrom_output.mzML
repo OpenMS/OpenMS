@@ -192,15 +192,15 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="17749660155506638460_0" index="4" defaultArrayLength="25">
+			<chromatogram id="17749660155506638460_0" index="4" defaultArrayLength="26">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="109.022528942405" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="109.022528408118" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="109.022528942405" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="109.022528408118" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							</selectedIon>
 						</selectedIonList>
 						<activation>
@@ -214,17 +214,17 @@
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="268">
+					<binaryDataArray encodedLength="280">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>dAexM4UXhkCbG9MTlhyGQF9BmrHoIYZAdCSX/5AshkCwj05d+UOGQJ4pdF7jT4ZAXKyowTRVhkDZX3ZPnluGQNIdxM4UYYZAVFc+y3NnhkAk1uJTgG2GQDI9YYkHc4ZAjh6/t2l5hkC30QDeAn+GQOZ0WUxshYZA7nw/Nd6LhkA8FAX6RJGGQBsqxvmbl4ZAw9hCkAOehkDKMsSxLqSGQLyReeSPqoZAX+/+eK+whkA2PL1SFreGQIM0Y9F0vYZAOzYC8brWhkA=</binary>
+						<binary>dAexM4UXhkCbG9MTlhyGQF9BmrHoIYZAdCSX/5AshkCwj05d+UOGQJ4pdF7jT4ZAXKyowTRVhkDZX3ZPnluGQNIdxM4UYYZAVFc+y3NnhkAk1uJTgG2GQDI9YYkHc4ZAjh6/t2l5hkC30QDeAn+GQOZ0WUxshYZA7nw/Nd6LhkA8FAX6RJGGQBsqxvmbl4ZAw9hCkAOehkDKMsSxLqSGQLyReeSPqoZAX+/+eK+whkA2PL1SFreGQIM0Y9F0vYZAkgVM4NbDhkA7NgLxutaGQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="136">
+					<binaryDataArray encodedLength="140">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>bApvSw/MiUuHY5NLtyx+S1JuVktRvjhLXWM6S4oyGUtArwxLCeMBS6dV4UqSsLNKy+22Sn0+mEpFv5ZK+jGXSjuhdUo0t1NKQCsmSs8SE0qp7SJK/YzhSavct0mqJs9JDSu/SQ==</binary>
+						<binary>bApvSw/MiUuHY5NLtyx+S1JuVktRvjhLXWM6S4oyGUtArwxLCeMBS6dV4UqSsLNKy+22Sn0+mEpFv5ZK+jGXSjuhdUo0t1NKQCsmSs8SE0qp7SJK/YzhSavct0mqJs9JtQjESQ0rv0k=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -264,15 +264,15 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="15004869347769368353_0" index="6" defaultArrayLength="318">
+			<chromatogram id="15004869347769368353_0" index="6" defaultArrayLength="319">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="110.518577406946" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="110.518577583971" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="110.518577406946" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="110.518577583971" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							</selectedIon>
 						</selectedIonList>
 						<activation>
@@ -286,17 +286,17 @@
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="3392">
+					<binaryDataArray encodedLength="3404">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>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</binary>
+						<binary>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</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="1696">
+					<binaryDataArray encodedLength="1704">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>oPu2R7Ut2kfYFrpHJFrsRwMD1keKis1H2F4ISNiN9EcncchHKh8wSO2bykdaAhxIBlWnR3ih00djqv5HAg4SSLSiwkdxPktIF5AqSIpzyUcmaC5IP7LjR10xG0hefdtH0CQ8SDxOAkjJRhtIfRAVSNO4EUgdZRJIhaTuR7zrM0jqo7pHrIBDSMSIHEhXCu5HlfwZSP4wFEh89BpIGQMRSFhV9Ud0ecRH5gAVSPeAXEh/qk9IorIiSEZHM0hSiDdIJ6UcSCQXCEgJliJI1qwJSFmBLUjV6Q5IROAUSPzK20dBO/xHUbLxR6bFD0j6rEJIJNUbSBqcDkjgRLdHarwSSLwgxEfnh+lHWS7ZR3PTukckUhJI1hkBSEXKB0gEEA9IfAjIR6U210dqyBNIK5kASAaPDkjxhcxH1n65RxFL6EewbtVHTzyjRzmXq0cYRu5HKKv4R/z4CEjuBb9H7P7hRzV9/0dXzLdH6nHfR0lm4kfdBctHjjwXSIkqwUeaG9JHpugNSAFG20fQM59H8qfyR+XA1kcNtgxIveAbSKk+40da76pHDqDTR1fuvkc9lK9HMZO7R1gA6Ue8sAFII5jNRy/2vkeEGv9H6j3iR8H/pEeLbQ5IraTMR0fi10dkZ/BH+861RzCCv0cepbtHLdhXSO8NyUfdBvVHLZknSHPaCEgTD/JHwO4nSFteD0jtGxRIY7nxR6ppJkhb4PhHswscSABuCUj9AwpIa0gRSB2YG0jJIitIfWYSSOHtKUhWTTVIdj4hSGt1HUhydS5IdrwySEGtHkhbUS9IUi5ASIEtekibNENIM2SPSPBjc0hgY4RIu0wbSFoUO0h9OpBImg1kSKzyjUj1yXtIHP9NSGtgn0hTb31ILiyCSK1cd0jcmBVIoqdoSNvllkg26pJI2fJSSLb9Qkg9uXBINc9YSFKPbkhlTYVIH8OFSFYhgEiGMoVIcAuISIgbhkiB/6lI7PwdSOR6mUhQMVtIfnOGSPizMEjx/I5IrUtbSDH5p0ggeClIf2yOSK8AsEis6H9IMziFSBonVUi3NppIg+yESLD8W0iktFtIZU1sSEjZU0iZJhNI5QB1SMc5XEjxqX1INqqWSB7qgUiCQmJIcWWLSNqPM0hIknVI4HKCSKr4SUj37ihI+iZYSFd1O0j+64RI7RVcSKOmdUgKw4RIscRQSK8iX0iSBTRILvxWSKwAN0hiT5RIBewzSFp0dUjvXxhIkH6LSFScQEhDcn9I4ptESFOyTEjmBEFIPdwPSHFHa0gphz9I1VlpSE4YYUiiQUdIiLJnSE08PUiGHBdItDISSDgPLkjxUwdIqcx7SIqDDUgN2zhITH0MSBKYJUh2KA1IZYMNSFXEM0gYLS1I9f8TSLYeO0h3o4xIpe9VSEHLbkjWCGpIQw+aSOB8qUg+0qNI4nwASS6VIUkHvkNJUuOCSZzrbknm3RBJENwUSdtb4Uj1sh9JbAHTSOM7QUnykT5JMDmlSQ2v90mwgkpKTLNdStflQkqyfjBKcDpKSoykM0qDsUNKiPAMSpsjGkqVQghKPxIVSmQ2DEoiirpJyV6SSaLQhEmztotJIalLSVGmiUkWIQlJTHYWSb6YEEnm3gFJ+FCdSPSHpkivCJ5ItO6PSO12kUgivSVIdlR6SEVEgUjVVRVIH/UYSCEVGEjf/u9HtqQLSHZZBEgzXCNI</binary>
+						<binary>oPu2R7Ut2kfYFrpHJFrsRwMD1keKis1H2F4ISNiN9EcncchHKh8wSO2bykdaAhxIBlWnR3ih00djqv5HAg4SSLSiwkdxPktIF5AqSIpzyUcmaC5IP7LjR10xG0hefdtH0CQ8SDxOAkjJRhtIfRAVSNO4EUgdZRJIhaTuR7zrM0jqo7pHrIBDSMSIHEhXCu5HlfwZSP4wFEh89BpIGQMRSFhV9Ud0ecRH5gAVSPeAXEh/qk9IorIiSEZHM0hSiDdIJ6UcSCQXCEgJliJI1qwJSFmBLUjV6Q5IROAUSPzK20dBO/xHUbLxR6bFD0j6rEJIJNUbSBqcDkjgRLdHarwSSLwgxEfnh+lHWS7ZR3PTukckUhJI1hkBSEXKB0gEEA9IfAjIR6U210dqyBNIK5kASAaPDkjxhcxH1n65RxFL6EewbtVHTzyjRzmXq0cYRu5HKKv4R/z4CEjuBb9H7P7hRzV9/0dXzLdH6nHfR0lm4kfdBctHjjwXSIkqwUeaG9JHpugNSAFG20fQM59H8qfyR+XA1kcNtgxIveAbSKk+40da76pHDqDTR1fuvkc9lK9HMZO7R1gA6Ue8sAFII5jNRy/2vkeEGv9H6j3iR8H/pEeLbQ5IraTMR0fi10dkZ/BH+861RzCCv0cepbtHLdhXSO8NyUfdBvVHLZknSHPaCEgTD/JHwO4nSFteD0jtGxRIY7nxR6ppJkhb4PhHswscSABuCUj9AwpIa0gRSB2YG0jJIitIfWYSSOHtKUhWTTVIdj4hSGt1HUhydS5IdrwySEGtHkhbUS9IUi5ASIEtekibNENIM2SPSPBjc0hgY4RIu0wbSFoUO0h9OpBImg1kSKzyjUj1yXtIHP9NSGtgn0hTb31ILiyCSK1cd0jcmBVIoqdoSNvllkg26pJI2fJSSLb9Qkg9uXBINc9YSFKPbkhlTYVIH8OFSFYhgEiGMoVIcAuISIgbhkiB/6lI7PwdSOR6mUhQMVtIfnOGSPizMEjx/I5IrUtbSDH5p0ggeClIf2yOSK8AsEis6H9IMziFSBonVUi3NppIg+yESLD8W0iktFtIZU1sSEjZU0iZJhNI5QB1SMc5XEjxqX1INqqWSB7qgUiCQmJIcWWLSNqPM0hIknVI4HKCSKr4SUj37ihI+iZYSFd1O0j+64RI7RVcSKOmdUgKw4RIscRQSK8iX0iSBTRILvxWSKwAN0hiT5RIBewzSFp0dUjvXxhIkH6LSFScQEhDcn9I4ptESFOyTEjmBEFIPdwPSHFHa0gphz9I1VlpSE4YYUiiQUdIiLJnSE08PUiGHBdItDISSDgPLkjxUwdIqcx7SIqDDUgN2zhITH0MSBKYJUh2KA1IZYMNSFXEM0gYLS1I9f8TSLYeO0h3o4xIpe9VSEHLbkjWCGpIQw+aSOB8qUg+0qNI4nwASS6VIUkHvkNJUuOCSZzrbknm3RBJENwUSZ5A80jbW+FI9bIfSWwB00jjO0FJ8pE+STA5pUkNr/dJsIJKSkyzXUrX5UJKsn4wSnA6SkqMpDNKg7FDSojwDEqbIxpKlUIISj8SFUpkNgxKIoq6Sclekkmi0IRJs7aLSSGpS0lRpolJFiEJSUx2Fkm+mBBJ5t4BSfhQnUj0h6ZIrwieSLTuj0jtdpFIIr0lSHZUekhFRIFI1VUVSB/1GEghFRhI3/7vR7akC0h2WQRIM1wjSA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -372,15 +372,15 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="15916652588957785155_0" index="9" defaultArrayLength="339">
+			<chromatogram id="15916652588957785155_0" index="9" defaultArrayLength="346">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="109.07617196584" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="109.076172247093" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="109.07617196584" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="109.076172247093" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							</selectedIon>
 						</selectedIonList>
 						<activation>
@@ -394,17 +394,17 @@
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="3616">
+					<binaryDataArray encodedLength="3692">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>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</binary>
+						<binary>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</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="1808">
+					<binaryDataArray encodedLength="1848">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>d7nVR9XDukcOW7tHcFLVR87jqkeGf7RHWmW0Rw8WzUfLLqxHXsvPR6AbsEckeMtHK9PaR//btkfAm75Hp+/6R99LxEchHr5HUkvFR74Yt0eNHLhHntu1R6YnyUcFzM1HKVXSR/q/4Uc24rhHz/kASFsAwUdiSbVHiWXORwUfw0e4j7RH7RC3RxQjp0ecsKVH1ou2R8z+w0fEyKxHB1jxR15dp0fbAtJH2+fORylXzUdnIrlHWHHeR7itvkdsv7JHwCinR4QwuEeKnLlHzEzYR5GMoUcfDMdHQpb4RxdypUfoVLNH9PXuRxuxxEfTvKZHp0LAR+yKr0cFAL9HUNSfR30U40fFOeRHb5TYRzpzykd+WcRHtZHGR84Y2UdZzOFHCk67R8tuxUc15JxHWzu/RxDis0d8TvdH/V+0R+KE+UcPrMNH0+yuR+VKrUdZFr1H5xa6R/95EUg9WulHD77KR9oDxUc8NO9HCNywR7KvxkfFM9xH9hrYR0DGrkevIMtH+ZAKSDa2tUdpINpHue30R8PTlEdd7+dHtnn5R8p85kcJYO5HofKjR3PNyEf9/tBHFgu/R3Jzx0c8H8lHM4HDR/6swUcY7w1Io6LUR+AJB0gnY7NH8svRR/TdwkftCcxHpKnDR5HT8EcapflHcb8ISEip0kfA6MxH9izyR3KhnUcb6NxHq3HFR2vpsUeo3tZHkMYXSKR5+EcqeQlIzwbyR+IBvUcfu7pHkmifRwYI+UenftBH1V/1Rwf8C0gLCtlH3hTnR/YCvkcPcwBIqaziR4FYDkgA5OdH+2PqR+/svEdOGgRIZ/vXR7BOEUiRfdFHSBwCSMQk/EdmRfdHyxnxRzcnB0jYyNtHAzAASPDeFUhBHc9HGt8MSF+kB0gPP/pHTnjnR4NfFUixgiZIMCMMSDIRE0gruRJIH4MASFSeC0ggZgRI1SL8RzNSD0g5egxI298bSIR8DUilTShI1FkESPqjGUi4og5IqyUZSLuJAUjO0g1IxkEaSNjjJEhNuPNHrzVESPABKEjBtwlIYscVSKGfL0hehTlIQRZNSBUwNEiWWBZIPdoHSDP1MkiakTBIhApgSKo4I0j+TGJIMR99SKNDREiS8FBIRc94SNV4jUg+jz5I2uaASJevRUh8IHtIyfJ7SIV+lEi/uIZIfGeLSHvEcUimT4VIvHuTSOX0hEgz/rtItNirSFCBk0j/Ia1IXLSYSM8FmEgUcMFIM4eFSA89xUhMwpFID0WNSLqrn0i5JMpIImKTSBUZlUiMrZxIKC+JSKvxmUhG0axIv7KqSFclpEjtgnVIAMKuSGBhqUiVA5hIWf67SDstoEjAMpxI3S+MSAKioEj9wp9IWmCXSOiLnUglL71IqmacSDyZwEhJGZNI8VHESKYhyUgAZblIvg6cSK+dyUi+dbhIv7rDSBr5qkie1XdICt3TSNOEkUgwh5NIFvyoSLbJZUiRBrlICTupSL7ds0jBRIFIQJWfSKYFnUiVtaJI6ZK5SHTvm0iXRqJIRxmFSN5GhEjV/p1IJqqzSAX0cEhYXZRIEpy3SLuCrUhrjYBIdxRmSDqaU0hHXD1ITfNSSEWxjEga45tIsmxgSP4HY0j2c4hI4QSMSB59jkhJUKBIdzeASBiRhkjKRjxIvAuESIp2akj06HJIHqaJSNslkkhcNURICy9wSLcId0gFtQ9Ix65vSLKhNkgOPTZIkpFESK+wa0iEsUVIPa5BSPkcYUgofzBIOSsMSJ8JP0hdODlIiotaSFVbeUjv1URIu/mySEzZu0ghqOxIldbZSF4+hki3ATtI</binary>
+						<binary>d7nVR9XDukcOW7tHIcrMR3BS1UfO46pHhn+0R1pltEcPFs1Hyy6sR17Lz0egG7BHJHjLRyvT2kf/27ZHwJu+R6fv+kffS8RHIR6+R1JLxUe+GLdHjRy4R57btUemJ8lHBczNRylV0kf6v+FHNuK4R8/5AEhbAMFHYkm1R4llzkcFH8NHuI+0R+0Qt0cUI6dHnLClR9aLtkfM/sNHxMisRwdY8UdeXadH2wLSR9vnzkcpV81HZyK5R1hx3ke4rb5HbL+yR8Aop0eEMLhHipy5R8xM2EeRjKFHHwzHR0KW+EcXcqVH6FSzR/T17kcbscRH07ymR6dCwEfsiq9HBQC/R1DUn0d9FONHxTnkR2+U2Ec6c8pHflnER7WRxkfOGNlHWczhRwpOu0fLbsVHNeScR1s7v0cQ4rNHfE73R/1ftEfihPlHD6zDR9PsrkflSq1HWRa9R+cWukf/eRFIPVrpRw++ykfaA8VHPDTvRwjcsEeyr8ZHxTPcR/Ya2EdAxq5HryDLR/mQCkg2trVHaSDaR7nt9EfD05RHXe/nR7Z5+UfKfOZHCWDuR6Hyo0dzzchH/f7QRxYLv0dyc8dHPB/JRzOBw0f+rMFHGO8NSKOi1EfgCQdIJ2OzR/LL0Uf03cJH7QnMR6Spw0eR0/BHGqX5R3G/CEhIqdJHwOjMR/Ys8kdyoZ1HG+jcR6txxUdr6bFHqN7WR5DGF0ikefhHKnkJSM8G8kfiAb1HH7u6R5Jon0cGCPlHp37QR9Vf9UcH/AtICwrZR94U50f2Ar5HD3MASKms4keBWA5IAOTnR/tj6kfv7LxHThoESGf710ewThFIkX3RR0gcAkjEJPxHZkX3R8sZ8Uc3JwdI2MjbRwMwAEjw3hVIQR3PRxrfDEhfpAdIDz/6R05450eDXxVICnjLR7GCJkgwIwxIMhETSCu5EkgfgwBIVJ4LSCBmBEjVIvxHM1IPSDl6DEjb3xtIhHwNSKVNKEjUWQRI+qMZSLiiDkhZMyFIqyUZSLuJAUjO0g1IxkEaSNjjJEhNuPNHrzVESPABKEjBtwlIYscVSKGfL0hehTlIQRZNSBUwNEiWWBZIPdoHSDP1MkhF8xhImpEwSIQKYEiqOCNI/kxiSDEffUijQ0RIkvBQSEXPeEjVeI1IPo8+SNrmgEiXr0VIfCB7SMnye0iFfpRIv7iGSHxni0h7xHFIpk+FSLx7k0jl9IRIM/67SLTYq0hQgZNI/yGtSFy0mEjPBZhIFHDBSDOHhUgPPcVITMKRSA9FjUi6q59IuSTKSCJik0gVGZVIjK2cSCgviUir8ZlIRtGsSL+yqkhXJaRI7YJ1SADCrkhgYalIlQOYSFn+u0g7LaBIwDKcSN0vjEgCoqBI/cKfSFpgl0joi51IJS+9SKpmnEg8mcBISRmTSPFRxEimIclIAGW5SL4OnEivnclIvnW4SL+6w0ga+apIntV3SArd00jThJFIMIeTSIjqmEgW/KhItsllSJEGuUgJO6lIvt2zSMFEgUhAlZ9IpgWdSJW1okjpkrlIdO+bSJdGokhHGYVI3kaESNX+nUgmqrNIBfRwSFhdlEgSnLdIu4KtSGuNgEh3FGZIOppTSEdcPUhN81JIRbGMSFSWlEga45tIsmxgSP4HY0j2c4hI4QSMSB59jkhJUKBIdzeASBiRhkjKRjxIvAuESIp2akj06HJIHqaJSNslkkhcNURICy9wSLcId0gFtQ9Ix65vSLKhNkgOPTZIkpFESK+wa0iEsUVIPa5BSPkcYUgofzBIOSsMSCtwVEifCT9IXTg5SIqLWkhVW3lI79VESLv5skhM2btIIajsSJXW2UhePoZItwE7SA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -444,15 +444,15 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="6408859317243173796_0" index="11" defaultArrayLength="17">
+			<chromatogram id="6408859317243173796_0" index="11" defaultArrayLength="13">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="109.076167904338" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="109.076168072783" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="109.076167904338" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="109.076168072783" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							</selectedIon>
 						</selectedIonList>
 						<activation>
@@ -466,17 +466,17 @@
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="184">
+					<binaryDataArray encodedLength="140">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>WfrQBXUIhUDnUlxVdhuFQB7+mqxRKIVAqtTsgVZIhUDajxSR4WGFQHy45LhTaIVAY+5aQr5uhUAEHEKVmnuFQCO+E7NeiIVALexph7+OhUAZ4lgXN5uFQH7GhQOhoYVAghyUMFO0hUCR7Xw/tbqFQCtqMA1DzYVAYAK37mbThUC6g9iZwtmFQA==</binary>
+						<binary>2o8UkeFhhUB8uOS4U2iFQGPuWkK+boVABBxClZp7hUAjvhOzXoiFQC3saYe/joVAGeJYFzebhUB+xoUDoaGFQIIclDBTtIVAke18P7W6hUArajANQ82FQGACt+5m04VAuoPYmcLZhUA=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="92">
+					<binaryDataArray encodedLength="72">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>/8tASHDZNEgu43JIK3BUSJi2a0hu1mdIz1wMSFPJZEhIuaBIqsy5SIk1ikj2yKxI0hLpSNY2zEg2hEhINpkmSHkCHUg=</binary>
+						<binary>mLZrSG7WZ0jPXAxIU8lkSEi5oEiqzLlIiTWKSPbIrEjSEulI1jbMSDaESEg2mSZIeQIdSA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -516,7 +516,43 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="12999979801269632061_0" index="13" defaultArrayLength="21">
+			<chromatogram id="12999979801269632061_0" index="13" defaultArrayLength="7">
+				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="109.022420680646" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="109.022420680646" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							</selectedIon>
+						</selectedIonList>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+							<userParam name="peptide_sequence" type="xsd:string" value="12999979801269632061"/>
+						</activation>
+					</precursor>
+					<product>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+					</product>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="76">
+						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>qoJRSZ00h0DIBz2bVUGHQOeMKO0NTodAEY3uIHZah0B4tHHE2mCHQG/Tn/1IbYdA1/oioa1zh0A=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="40">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>SbXDSLi5vEjXTctIWNiwSIndn0j9RatILFCQSA==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</chromatogram>
+			<chromatogram id="17413765565443951891_0" index="14" defaultArrayLength="21">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -529,7 +565,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="12999979801269632061"/>
+							<userParam name="peptide_sequence" type="xsd:string" value="17413765565443951891"/>
 						</activation>
 					</precursor>
 					<product>
@@ -552,7 +588,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="17413765565443951891_0" index="14" defaultArrayLength="10">
+			<chromatogram id="2927519776102075938_0" index="15" defaultArrayLength="10">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -565,7 +601,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="17413765565443951891"/>
+							<userParam name="peptide_sequence" type="xsd:string" value="2927519776102075938"/>
 						</activation>
 					</precursor>
 					<product>
@@ -588,7 +624,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="2927519776102075938_0" index="15" defaultArrayLength="12">
+			<chromatogram id="16907355690727166316_0" index="16" defaultArrayLength="12">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -601,7 +637,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="2927519776102075938"/>
+							<userParam name="peptide_sequence" type="xsd:string" value="16907355690727166316"/>
 						</activation>
 					</precursor>
 					<product>
@@ -624,7 +660,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="16907355690727166316_0" index="16" defaultArrayLength="14">
+			<chromatogram id="10306100746905639127_0" index="17" defaultArrayLength="14">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -637,7 +673,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="16907355690727166316"/>
+							<userParam name="peptide_sequence" type="xsd:string" value="10306100746905639127"/>
 						</activation>
 					</precursor>
 					<product>
@@ -660,7 +696,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="10306100746905639127_0" index="17" defaultArrayLength="5">
+			<chromatogram id="12524258085768770586_0" index="18" defaultArrayLength="5">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -673,7 +709,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="10306100746905639127"/>
+							<userParam name="peptide_sequence" type="xsd:string" value="12524258085768770586"/>
 						</activation>
 					</precursor>
 					<product>
@@ -696,7 +732,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="12524258085768770586_0" index="18" defaultArrayLength="7">
+			<chromatogram id="1755235105885170967_0" index="19" defaultArrayLength="7">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -709,7 +745,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="12524258085768770586"/>
+							<userParam name="peptide_sequence" type="xsd:string" value="1755235105885170967"/>
 						</activation>
 					</precursor>
 					<product>
@@ -732,42 +768,6 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="1755235105885170967_0" index="19" defaultArrayLength="4">
-				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
-					<precursor>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="109.064772169752" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="109.064772169752" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
-						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="1755235105885170967"/>
-						</activation>
-					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
-				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="44">
-						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>y9qmeFzHc0DYnlkSIAd0QBGPxMvTE3RAH9sy4KwgdEA=</binary>
-					</binaryDataArray>
-					<binaryDataArray encodedLength="24">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>KqqpRxLftUeXta5HXwSyRw==</binary>
-					</binaryDataArray>
-				</binaryDataArrayList>
-			</chromatogram>
 		</chromatogramList>
 	</run>
 </mzML>
@@ -778,23 +778,23 @@
 		<offset idRef="4835329514588776807_0">10177</offset>
 		<offset idRef="4835329514588776807_1">21121</offset>
 		<offset idRef="17749660155506638460_0">31121</offset>
-		<offset idRef="7804704400743266335_0">33484</offset>
-		<offset idRef="15004869347769368353_0">44024</offset>
-		<offset idRef="3332699010107892018_0">51074</offset>
-		<offset idRef="13440783915218733453_0">53124</offset>
-		<offset idRef="15916652588957785155_0">57615</offset>
-		<offset idRef="15157403601844400700_0">64999</offset>
-		<offset idRef="6408859317243173796_0">67391</offset>
-		<offset idRef="474525871221756682_0">69624</offset>
-		<offset idRef="12999979801269632061_0">71916</offset>
-		<offset idRef="17413765565443951891_0">74212</offset>
-		<offset idRef="2927519776102075938_0">76335</offset>
-		<offset idRef="16907355690727166316_0">78484</offset>
-		<offset idRef="10306100746905639127_0">80671</offset>
-		<offset idRef="12524258085768770586_0">82712</offset>
-		<offset idRef="1755235105885170967_0">84783</offset>
+		<offset idRef="7804704400743266335_0">33500</offset>
+		<offset idRef="15004869347769368353_0">44040</offset>
+		<offset idRef="3332699010107892018_0">51110</offset>
+		<offset idRef="13440783915218733453_0">53160</offset>
+		<offset idRef="15916652588957785155_0">57651</offset>
+		<offset idRef="15157403601844400700_0">65153</offset>
+		<offset idRef="6408859317243173796_0">67545</offset>
+		<offset idRef="474525871221756682_0">69714</offset>
+		<offset idRef="12999979801269632061_0">72006</offset>
+		<offset idRef="17413765565443951891_0">74079</offset>
+		<offset idRef="2927519776102075938_0">76375</offset>
+		<offset idRef="16907355690727166316_0">78496</offset>
+		<offset idRef="10306100746905639127_0">80647</offset>
+		<offset idRef="12524258085768770586_0">82834</offset>
+		<offset idRef="1755235105885170967_0">84875</offset>
 	</index>
 </indexList>
-<indexListOffset>86840</indexListOffset>
+<indexListOffset>86978</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
