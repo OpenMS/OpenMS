@@ -63,20 +63,12 @@ public:
     /// Greater predicate for scores of hits
     class OPENMS_DLLAPI ScoreMore
     {
-public:
-      template <typename Arg>
-      bool operator()(const Arg & a, const Arg & b)
+    public:
+      template<typename Arg>
+      bool operator()(const Arg& a, const Arg& b) const
       {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
-        if (a.getScore() != b.getScore())
-#pragma clang diagnostic pop
-        {
-          return a.getScore() > b.getScore();
-        }
-        return a.getAccession() > b.getAccession();
+        return std::make_tuple(a.getScore(), a.getAccession()) > std::make_tuple(b.getScore(), b.getAccession());
       }
-
     };
 
     /// Lesser predicate for scores of hits
@@ -84,16 +76,9 @@ public:
     {
 public:
       template <typename Arg>
-      bool operator()(const Arg & a, const Arg & b)
+      bool operator()(const Arg & a, const Arg & b) const
       {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
-        if (a.getScore() != b.getScore())
-#pragma clang diagnostic pop
-        {
-          return a.getScore() < b.getScore();
-        }
-        return a.getAccession() < b.getAccession();
+        return std::make_tuple(a.getScore(), a.getAccession()) < std::make_tuple(b.getScore(), b.getAccession());
       }
 
     };

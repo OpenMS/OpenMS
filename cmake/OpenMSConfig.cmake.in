@@ -61,6 +61,7 @@ find_dependency(LIBSVM 2.91)
 #find_dependency(BZip2)
 #find_dependency(SQLite3 3.15.0)
 #find_dependency(HDF5)
+#find_dependency(ARROW)
 
 if (@OPENMP_FOUND@)
   find_dependency(Threads)

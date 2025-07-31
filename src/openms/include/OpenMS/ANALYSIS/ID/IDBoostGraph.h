@@ -17,6 +17,7 @@
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
 #include <unordered_map>
@@ -59,8 +60,10 @@ namespace OpenMS
   public:
 
     // boost has a weird extra semicolon in their strong typedef
+    #ifdef __clang__
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wextra-semi"
+    #endif
 
     /// placeholder for peptides with the same parent proteins or protein groups
     BOOST_STRONG_TYPEDEF(boost::blank, PeptideCluster);
@@ -82,7 +85,9 @@ namespace OpenMS
     /// in which charge state a PSM was observed
     BOOST_STRONG_TYPEDEF(int, Charge);
 
+    #ifdef __clang__
     #pragma clang diagnostic pop
+    #endif
 
     //typedefs
     //TODO rename ProteinGroup type since it collides with the actual OpenMS ProteinGroup
@@ -338,7 +343,7 @@ namespace OpenMS
 
     /// Constructors
     IDBoostGraph(ProteinIdentification& proteins,
-                std::vector<PeptideIdentification>& idedSpectra,
+                PeptideIdentificationList& idedSpectra,
                 Size use_top_psms,
                 bool use_run_info,
                 bool best_psms_annotated,
@@ -527,7 +532,7 @@ namespace OpenMS
     /// @todo we could include building the graph in important "main" functions like inferPosteriors
     /// to make the methods safer, but it is also nice to be able to reuse the graph
     void buildGraph_(ProteinIdentification& proteins,
-                    std::vector<PeptideIdentification>& idedSpectra,
+                    PeptideIdentificationList& idedSpectra,
                     Size use_top_psms,
                     bool best_psms_annotated = false);
 
@@ -567,7 +572,7 @@ namespace OpenMS
                                const ExperimentalDesign& ed);
 
     void buildGraphWithRunInfo_(ProteinIdentification& proteins,
-                               std::vector<PeptideIdentification>& idedSpectra,
+                               PeptideIdentificationList& idedSpectra,
                                Size use_top_psms,
                                const ExperimentalDesign& ed);
 

@@ -157,7 +157,7 @@ using namespace OpenMS;
     add_losses_ = param_.getValue("ions:neutral_losses").toString();
   }
 
-  OpenPepXLLFAlgorithm::ExitCodes OpenPepXLLFAlgorithm::run(PeakMap& unprocessed_spectra, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra)
+  OpenPepXLLFAlgorithm::ExitCodes OpenPepXLLFAlgorithm::run(PeakMap& unprocessed_spectra, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra)
   {
     ProgressLogger progresslogger;
     progresslogger.setLogType(this->getLogType());

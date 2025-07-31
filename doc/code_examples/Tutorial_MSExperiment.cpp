@@ -52,12 +52,23 @@ int main()
     }
   }
 
-  // update the data ranges for all dimensions (RT, m/z, int, IM) and print them:
+  // updateRanges provides a fast way to update the ranges of all spectra and chromatograms in the experiment.
+  // Once updated, the data ranges for all dimensions (RT, m/z, int, IM) can be printed.
   exp.updateRanges();
   std::cout << "Data ranges:\n";
-  exp.printRange(std::cout);
-  std::cout << "\nGet maximum intensity on its own: " << exp.getMinMobility() << '\n';
-  exp.getMinRT();
+  exp.spectrumRanges().printRange(std::cout);
+  std::cout << "\nGet maximum intensity on its own: " << exp.spectrumRanges().getMaxIntensity() << '\n';
+  std::cout << "Get minimum RT on its own: " << exp.spectrumRanges().getMinRT() << '\n';
+  std::cout << "Get maximum RT on its own: " << exp.spectrumRanges().getMaxRT() << '\n';
+  std::cout << "Get minimum m/z on its own: " << exp.spectrumRanges().getMinMZ() << '\n';
+  std::cout << "Get maximum m/z on its own: " << exp.spectrumRanges().getMaxMZ() << '\n';
+
+  // Printing the IM ranges is only possible if the spectra contain IM data (would throw an exception otherwise)  
+  if (!exp.spectrumRanges().RangeMobility::isEmpty())  
+  {  
+    std::cout << "Get minimum IM on its own: " << exp.spectrumRanges().getMinMobility() << '\n';  
+    std::cout << "Get maximum IM on its own: " << exp.spectrumRanges().getMaxMobility() << '\n';  
+  }  
 
   // Store the spectra to a mzML file with:
   FileHandler fh;

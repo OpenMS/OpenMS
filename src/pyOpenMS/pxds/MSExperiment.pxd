@@ -10,15 +10,16 @@ from ExperimentalSettings cimport *
 from DateTime cimport *
 from RangeManager cimport *
 from Matrix cimport *
+from SpectrumRangeManager cimport *
+from ChromatogramRangeManager cimport *
 
 # this class has addons, see the ./addons folder
 
 cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
-    cdef cppclass MSExperiment(ExperimentalSettings, RangeManagerRtMzInt):
+    cdef cppclass MSExperiment(ExperimentalSettings):
         # wrap-inherits:
         #  ExperimentalSettings
-        #  RangeManagerRtMzInt
         #
         # wrap-doc:
         #  In-Memory representation of a mass spectrometry experiment.
@@ -79,8 +80,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         MSChromatogram calculateTIC() except + nogil  # wrap-doc:Returns the total ion chromatogram
         void clear(bool clear_meta_data) except + nogil  # wrap-doc:Clear all spectra data and meta data (if called with True)
 
-        void updateRanges() except + nogil  # wrap-doc:Recalculate global RT and m/z ranges after changes to the data has been made.
-        void updateRanges(int msLevel) except + nogil  # wrap-doc:Recalculate RT and m/z ranges for a specific MS level
+        void updateRanges() except + nogil  # wrap-doc:Recalculate global ranges for both spectra and chromatrograms after changes to the data has been made.
 
         void reserveSpaceSpectra(Size s) except + nogil 
         void reserveSpaceChromatograms(Size s) except + nogil 
@@ -112,3 +112,18 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
         int getPrecursorSpectrum(int zero_based_index) except + nogil  # wrap-doc:Returns the index of the precursor spectrum for spectrum at index @p zero_based_index
         
+        # Range manager accessors
+        SpectrumRangeManager spectrumRanges() except + nogil  # wrap-doc:Returns a reference to the spectrum range manager
+        ChromatogramRangeManager chromatogramRanges() except + nogil  # wrap-doc:Returns a reference to the chromatogram range manager
+        # TODO: not working yet RangeManagerRtMzIntMob combinedRanges() except + nogil  # wrap-doc:Returns a reference to the combined range manager (for backward compatibility)
+        
+        # Range convenience methods (delegate to combined_ranges_)
+        double getMinRT() except + nogil  # wrap-doc:Get the minimum RT value from the combined ranges
+        double getMaxRT() except + nogil  # wrap-doc:Get the maximum RT value from the combined ranges
+        double getMinMZ() except + nogil  # wrap-doc:Get the minimum m/z value from the combined ranges
+        double getMaxMZ() except + nogil  # wrap-doc:Get the maximum m/z value from the combined ranges
+        double getMinIntensity() except + nogil  # wrap-doc:Get the minimum intensity value from the combined ranges
+        double getMaxIntensity() except + nogil  # wrap-doc:Get the maximum intensity value from the combined ranges
+        double getMinMobility() except + nogil  # wrap-doc:Get the minimum mobility value from the combined ranges
+        double getMaxMobility() except + nogil  # wrap-doc:Get the maximum mobility value from the combined ranges
+        void clearRanges() except + nogil  # wrap-doc:Clear all ranges in all range managers

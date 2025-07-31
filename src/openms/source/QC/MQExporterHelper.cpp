@@ -60,7 +60,7 @@ bool MQExporterHelper::hasValidPepID_(
   const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
   const ProteinIdentification::Mapping& mp_f)
 {
-  const std::vector<PeptideIdentification>& pep_ids_f = f.getPeptideIdentifications();
+  const PeptideIdentificationList& pep_ids_f = f.getPeptideIdentifications();
   if (pep_ids_f.empty())
   {
     return false;
@@ -81,7 +81,7 @@ bool MQExporterHelper::hasValidPepID_(
 
 bool MQExporterHelper::hasPeptideIdentifications_(const ConsensusFeature& cf)
 {
-  const std::vector<PeptideIdentification>& pep_ids_c = cf.getPeptideIdentifications();
+  const PeptideIdentificationList& pep_ids_c = cf.getPeptideIdentifications();
   if (!pep_ids_c.empty())
   {
     return !pep_ids_c[0].getHits().empty(); // checks if PeptideIdentification has at least one hit

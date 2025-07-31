@@ -16,12 +16,14 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <algorithm>
 #include <limits>
 
 namespace OpenMS
 {
+  class AnnotatedMSRun;
   /**
     @brief Annotates an MSExperiment, FeatureMap or ConsensusMap with peptide identifications
 
@@ -65,7 +67,7 @@ public:
 
       @exception Exception::MissingInformation is thrown if entries of @p peptide_ids do not contain 'MZ' and 'RT' information.
     */
-    void annotate(PeakMap& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool map_ms1 = false);
+    void annotate(AnnotatedMSRun& map, const PeptideIdentificationList& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool map_ms1 = false);
 
     /**
       @brief Mapping method for peak maps
@@ -82,7 +84,7 @@ public:
       @param clear_ids Reset peptide and protein identifications of each scan before annotating
       @param map_ms1 attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
     */
-    void annotate(PeakMap& map, FeatureMap fmap, const bool clear_ids = false, const bool map_ms1 = false);
+    void annotate(AnnotatedMSRun& map, const FeatureMap& fmap, const bool clear_ids = false, const bool map_ms1 = false);
 
     /**
       @brief Mapping method for feature maps
@@ -102,7 +104,7 @@ public:
 
       @exception Exception::MissingInformation is thrown if entries of @p ids do not contain 'MZ' and 'RT' information.
     */
-    void annotate(FeatureMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool use_centroid_rt = false, bool use_centroid_mz = false, const PeakMap& spectra = PeakMap());
+    void annotate(FeatureMap& map, const PeptideIdentificationList& ids, const std::vector<ProteinIdentification>& protein_ids, bool use_centroid_rt = false, bool use_centroid_mz = false, const PeakMap& spectra = PeakMap());
 
     /**
       @brief Mapping method for consensus maps
@@ -120,7 +122,7 @@ public:
 
       @exception Exception::MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'
     */
-    void annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, 
+    void annotate(ConsensusMap& map, const PeptideIdentificationList& ids, 
                   const std::vector<ProteinIdentification>& protein_ids, 
                   bool measure_from_subelements = false, 
                   bool annotate_ids_with_subelements = false, 
@@ -130,7 +132,7 @@ public:
     /**
       @brief Result of a partitioning by identification state with mapPrecursorsToIdentifications().
     */
-    struct SpectraIdentificationState
+    struct PeptideIdentificationListState
     {
       std::vector<Size> no_precursors;
       std::vector<Size> identified;
@@ -152,12 +154,12 @@ public:
 
       @return A struct of vectors holding spectra indices of the partitioning.
     */
-    static SpectraIdentificationState mapPrecursorsToIdentifications(const PeakMap& spectra, 
-                                                                     const std::vector<PeptideIdentification>& ids, 
+    static PeptideIdentificationListState mapPrecursorsToIdentifications(const PeakMap& spectra, 
+                                                                     const PeptideIdentificationList& ids, 
                                                                      double mz_tol = 0.001, 
                                                                      double rt_tol = 0.001)
     {
-      SpectraIdentificationState ret;
+      PeptideIdentificationListState ret;
       for (Size spectrum_index = 0; spectrum_index < spectra.size(); ++spectrum_index)
       {
         const MSSpectrum& spectrum = spectra[spectrum_index];
@@ -229,7 +231,7 @@ protected:
     bool isMatch_(const double rt_distance, const double mz_theoretical, const double mz_observed) const;
 
     /// helper function that checks if all peptide hits are annotated with RT and MZ meta values
-    void checkHits_(const std::vector<PeptideIdentification>& ids) const;
+    void checkHits_(const PeptideIdentificationList& ids) const;
 
     /// get RT, m/z and charge value(s) of a PeptideIdentification
     /// - multiple m/z values are returned if "mz_reference" is set to "peptide" (one for each PeptideHit)

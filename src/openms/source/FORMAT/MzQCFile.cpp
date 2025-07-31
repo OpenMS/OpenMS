@@ -34,7 +34,7 @@ namespace OpenMS
                        const String& label,
                        const FeatureMap& feature_map,
                        vector<ProteinIdentification>& prot_ids,
-                       vector<PeptideIdentification>& pep_ids) const
+                       PeptideIdentificationList& pep_ids) const
   {
     // --------------------------------------------------------------------
     // preparing output stream, quality metrics json object, CV, status
@@ -107,9 +107,9 @@ namespace OpenMS
     // Number of chromatograms"
     addMetric("QC:4000135", exp.getChromatograms().size());
     // Run time (RT duration)
-    addMetric("QC:4000053", UInt(exp.getMaxRT() - exp.getMinRT()));
+    addMetric("QC:4000053", UInt(exp.spectrumRanges().getMaxRT() - exp.spectrumRanges().getMinRT()));
     // MZ acquisition range
-    addMetric("QC:4000138", tuple<UInt,UInt>{exp.getMinMZ(), exp.getMaxMZ()});
+    addMetric("QC:4000138", tuple<UInt,UInt>{exp.spectrumRanges().getMinMZ(), exp.spectrumRanges().getMaxMZ()});
     // TICs
     if (tic.isRunnable(status))
     {

@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/FORMAT/OMSSACSVFile.h>" namespace "OpenMS":
 
         void load(const String & filename,
                   ProteinIdentification & protein_identification,
-                  libcpp_vector[ PeptideIdentification ] & id_data) except + nogil 
+                  PeptideIdentificationList & id_data) except + nogil 
             # wrap-doc:
                 #  Loads a OMSSA file
                 #  

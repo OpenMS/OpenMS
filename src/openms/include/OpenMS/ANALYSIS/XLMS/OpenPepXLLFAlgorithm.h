@@ -13,6 +13,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 namespace OpenMS
 {
@@ -103,7 +104,7 @@ public:
       @param all_top_csms A result vector containing cross-link spectrum matches as CrossLinkSpectrumMatches. Should be empty. This is only necessary for writing out xQuest type spectrum files.
       @param spectra A result vector containing the input spectra after preprocessing and filtering. Should be empty. This is only necessary for writing out xQuest type spectrum files.
      */
-    ExitCodes run(PeakMap& unprocessed_spectra, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, 
+    ExitCodes run(PeakMap& unprocessed_spectra, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, 
                  std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra);
 
 private:
