@@ -407,38 +407,16 @@ protected:
 
     // iRT calibration
     registerStringOption_("auto_irt", "<true|false>", "true",
-                          "Whether to sample iRTs on‐the‐fly (true) from the input targeted transition file (instead of passing specific iRT files).", false);
+                          "Whether to sample iRTs on‐the‐fly (true) from the input targeted transition file (instead of passing specific iRT files). This may be useful if standard iRTs (Biognosys iRT kit) were not spiked-in.", false, true);
     setValidStrings_("auto_irt", ListUtils::create<String>("true,false"));
-    registerIntOption_("irt_bins", "<int>", 10, "Number of RT bins for sampling", false);
-    setMinInt_("irt_bins", 1);
-    registerIntOption_("irt_peptides_per_bin", "<int>", 10, "Peptides sampled per bin", false);
-    setMinInt_("irt_peptides_per_bin", 1);
-    registerIntOption_("irt_seed", "<int>", 5489, "RNG seed (0 = non‐deterministic)", false);
-    setMinInt_("irt_seed", 0);
-
-    registerIntOption_("irt_bins_nonlinear", "<int>", 100, "Number of RT bins for sampling", false);
-    setMinInt_("irt_bins_nonlinear", 1);
-    registerIntOption_("irt_peptides_per_bin_nonlinear", "<int>", 1000, "Peptides sampled per bin for additional nonlinear calibration. If 0, nonlinear calibration will not be performed.", false);
-    setMinInt_("irt_peptides_per_bin_nonlinear", 0);
-
-    // one of the following two needs to be set
-    registerInputFile_("tr_irt", "<file>", "", "transition file ('TraML')", false);
-    setValidFormats_("tr_irt", ListUtils::create<String>("traML,tsv,pqp"));
-
-    // one of the following two needs to be set
-    registerInputFile_("tr_irt_nonlinear", "<file>", "", "additional nonlinear transition file ('TraML')", false);
-    setValidFormats_("tr_irt_nonlinear", ListUtils::create<String>("traML,tsv,pqp"));
-
-    registerInputFile_("rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.", false, true);
-    setValidFormats_("rt_norm", ListUtils::create<String>("trafoXML"));
 
     registerInputFile_("swath_windows_file", "<file>", "", "Optional, tab-separated file containing the SWATH windows for extraction: lower_offset upper_offset. Note that the first line is a header and will be skipped.", false);
     registerFlag_("sort_swath_maps", "Sort input SWATH files when matching to SWATH windows from swath_windows_file", true);
 
-    registerStringOption_("enable_ms1", "<name>", "true", "Extract the precursor ion trace(s) and use for scoring if present", false, true);
+    registerStringOption_("enable_ms1", "<true|false>", "true", "Extract the precursor ion trace(s) and use for scoring if present", false, true);
     setValidStrings_("enable_ms1", ListUtils::create<String>("true,false"));
 
-    registerStringOption_("enable_ipf", "<name>", "true", "Enable additional scoring of identification assays using IPF (see online documentation)", false, true);
+    registerStringOption_("enable_ipf", "<true|false>", "true", "Enable additional scoring of identification assays using IPF (see online documentation)", false, true);
     setValidStrings_("enable_ipf", ListUtils::create<String>("true,false"));
 
     registerOutputFile_("out_features", "<file>", "", "feature output file, either .osw (PyProphet-compatible SQLite file) or .featureXML", false);
@@ -520,6 +498,31 @@ protected:
 
     registerSubsection_("RTNormalization", "Parameters for the RTNormalization for iRT petides. This specifies how the RT alignment is performed and how outlier detection is applied. Outlier detection can be done iteratively (by default) which removes one outlier per iteration or using the RANSAC algorithm.");
     registerSubsection_("Calibration", "Parameters for the m/z and ion mobility calibration.");
+
+    registerTOPPSubsection_("Calibration", "Parameters for calibrant iRT peptides to use");
+    registerIntOption_("Calibration:irt_bins", "<int>", 10, "Number of RT bins for sampling. (When `auto_irt` is set to 'true')", false, true);
+    setMinInt_("Calibration:irt_bins", 5);
+    registerIntOption_("Calibration:irt_peptides_per_bin", "<int>", 5, "Peptides sampled per bin. (When `auto_irt` is set to 'true')", false, true);
+    setMinInt_("Calibration:irt_peptides_per_bin", 1);
+    registerIntOption_("Calibration:irt_seed", "<int>", 5489, "RNG seed (0 = non‐deterministic). (When `auto_irt` is set to 'true')", false, true);
+    setMinInt_("Calibration:irt_seed", 0);
+
+    registerIntOption_("Calibration:irt_bins_nonlinear", "<int>", 500, "Number of RT bins for sampling. (When `auto_irt` is set to 'true')", false, true);
+    setMinInt_("Calibration:irt_bins_nonlinear", 5);
+    registerIntOption_("Calibration:irt_peptides_per_bin_nonlinear", "<int>", 25, "Peptides sampled per bin for additional nonlinear calibration. If 0, nonlinear calibration will not be performed. (When `auto_irt` is set to 'true')", false, true);
+    setMinInt_("Calibration:irt_peptides_per_bin_nonlinear", 0);
+
+    // one of the following two needs to be set
+    registerInputFile_("Calibration:tr_irt", "<file>", "", "transition file ('TraML') for linear iRTs. Takes precedent even when `auto_rt` is set to 'true'", false, true);
+    setValidFormats_("Calibration:tr_irt", ListUtils::create<String>("traML,tsv,pqp"));
+
+    // one of the following two needs to be set
+    registerInputFile_("Calibration:tr_irt_nonlinear", "<file>", "", "additional nonlinear transition file ('TraML'). Takes precedent even when `auto_rt` is set to 'true'", false, true);
+    setValidFormats_("Calibration:tr_irt_nonlinear", ListUtils::create<String>("traML,tsv,pqp"));
+
+    registerInputFile_("Calibration:rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.", false, true);
+    setValidFormats_("Calibration:rt_norm", ListUtils::create<String>("trafoXML"));
+
     registerTOPPSubsection_("Debugging", "Debugging");
     registerOutputFile_("Debugging:irt_mzml", "<file>", "", "Chromatogram mzML containing the iRT peptides", false);
     setValidFormats_("Debugging:irt_mzml", ListUtils::create<String>("mzML"));
@@ -669,15 +672,17 @@ protected:
     String out_qc = getStringOption_("out_qc");
 
     bool auto_irt = (getStringOption_("auto_irt") == "true");
-    UInt irt_seed  = getIntOption_("irt_seed");
-    UInt irt_bins_lin = getIntOption_("irt_bins");
-    UInt irt_pep_lin  = getIntOption_("irt_peptides_per_bin");
-    UInt irt_bins_nl  = getIntOption_("irt_bins_nonlinear");
-    UInt irt_pep_nl   = getIntOption_("irt_peptides_per_bin_nonlinear");
 
-    String irt_tr_file = getStringOption_("tr_irt");
-    String nonlinear_irt_tr_file = getStringOption_("tr_irt_nonlinear");
-    String trafo_in = getStringOption_("rt_norm");
+    Param irt_calibration_params = getParam_().copy("Calibration:", true);
+    UInt irt_seed  = irt_calibration_params.getValue("irt_seed");
+    UInt irt_bins_lin = irt_calibration_params.getValue("irt_bins");
+    UInt irt_pep_lin  = irt_calibration_params.getValue("irt_peptides_per_bin");
+    UInt irt_bins_nl  = irt_calibration_params.getValue("irt_bins_nonlinear");
+    UInt irt_pep_nl   = irt_calibration_params.getValue("irt_peptides_per_bin_nonlinear");
+
+    String irt_tr_file = irt_calibration_params.getValue("tr_irt").toString();
+    String nonlinear_irt_tr_file = irt_calibration_params.getValue("tr_irt_nonlinear").toString();
+    String trafo_in = irt_calibration_params.getValue("rt_norm").toString();
     String swath_windows_file = getStringOption_("swath_windows_file");
 
     String out_chrom = getStringOption_("out_chrom");
@@ -956,7 +961,7 @@ protected:
     }
     else if (auto_irt)
     {
-      OPENMS_LOG_INFO << "Sampling input transition experiment for " << irt_pep_lin << " peptides with " << irt_bins_lin << " bins across the RT for linear iRT calibration" << std::endl;
+      OPENMS_LOG_INFO << "Linear iRT Calibration: Sampling input transition experiment for " << irt_bins_lin << " bins across the RT with " << irt_pep_lin << " peptides per bin" << std::endl;
       // sampled transtion_exp on‐the‐fly
       lin_irt_exp = OpenSwathHelper::sampleExperiment(
         transition_exp,
@@ -976,7 +981,7 @@ protected:
     }
     else if (auto_irt && irt_pep_nl > 0)
     {
-      OPENMS_LOG_INFO << "Sampling input transition experiment for " << irt_pep_nl << " peptides with " << irt_bins_nl << " bins across the RT for additional nonlinear iRT calibration" << std::endl;
+      OPENMS_LOG_INFO << "NonLinear iRT Calibration: Sampling input transition experiment for " << irt_bins_nl << " bins across the RT with " << irt_pep_nl << " peptides per bin" << std::endl;
       // sampled transtion_exp on‐the‐fly for nonlinear (only if >0)
       nl_irt_exp = OpenSwathHelper::sampleExperiment(
         transition_exp,
