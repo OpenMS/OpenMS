@@ -134,7 +134,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                       PeptideIdentificationList & ids,
                       libcpp_vector[ProteinIdentification] & protein_ids,
                       bool clear_ids,
-                      bool mapMS1) except + nogil
+                      bool map_ms1) except + nogil
             # wrap-doc:
                 #  Mapping method using PeptideIdentificationList\n
                 #  
@@ -142,7 +142,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #  corresponding spectrum
                 #  
                 #  
-                #  :param map: AnnotatedMSRun to receive the identifications
+                #  :param map_: AnnotatedMSRun to receive the identifications
                 #  :param ids: PeptideIdentificationList for the MSExperiment
                 #  :param protein_ids: ProteinIdentification for the MSExperiment
                 #  :param clear_ids: Reset peptide and protein identifications of each scan before annotating
@@ -157,12 +157,12 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
             # wrap-doc:
                 #  Mapping method using PeptideIdentificationList\n
                 #  
-                #  :param map: FeatureMap to receive the identifications
-                #  :param ids: PeptideIdentificationList for the MSExperiment
-                #  :param protein_ids: ProteinIdentification for the MSExperiment
+                #  :param map_: FeatureMap to receive the identifications
+                #  :param ids: PeptideIdentificationList for the FeatureMap
+                #  :param protein_ids: ProteinIdentification for the FeatureMap
                 #  :param use_centroid_rt: Whether to use the RT value of feature centroids even if convex hulls are present
                 #  :param use_centroid_mz: Whether to use the m/z value of feature centroids even if convex hulls are present
-                #  :param spectra: Whether precursors not contained in the identifications are annotated with an empty PeptideIdentification object containing the scan index
+                #  :param spectra: [Optional] Provide the underlying mass spectra, which allows add an empty PeptideIdentification object containing the MS2 scan index to each Feature that covers an MS/MS spectrum (irrespective if it already has an ID).
 
         void annotate(ConsensusMap & map_,
                       PeptideIdentificationList & ids,
@@ -173,12 +173,12 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
             # wrap-doc:
                 #  Mapping method using PeptideIdentificationList\n
                 #  
-                #  :param map: ConsensusMap to receive the identifications
-                #  :param ids: PeptideIdentificationList for the MSExperiment
-                #  :param protein_ids: ProteinIdentification for the MSExperiment
+                #  :param map_: ConsensusMap to receive the identifications
+                #  :param ids: PeptideIdentificationList for the ConsensusMap
+                #  :param protein_ids: ProteinIdentification for the ConsensusMap
                 #  :param measure_from_subelements: Boolean operator set to true if distance estimate from FeatureHandles instead of Centroid
                 #  :param annotate_ids_with_subelements: Boolean operator set to true if store map index of FeatureHandle in peptide identification
-                #  :param spectra: Whether precursors not contained in the identifications are annotated with an empty PeptideIdentification object containing the scan index
+                #  :param spectra: [Optional] Provide the underlying mass spectra, which allows add an empty PeptideIdentification object containing the MS2 scan index to each ConsensusFeature that covers an MS/MS spectrum (irrespective if it already has an ID).
 
         IDMapper_PeptideIdentificationListState mapPrecursorsToIdentifications(MSExperiment spectra,
                                                                            PeptideIdentificationList & ids, 
