@@ -25,7 +25,7 @@ void FLASHTnTFile::writeTagHeader(std::fstream& fs)
 /// write header line for PrSM file
 void FLASHTnTFile::writePrSMHeader(std::fstream& fs)
 {
-  fs << "ProteoformIndex\tScan\tRetentionTime\tNumMass\tProteinAccession\tProteinDescription\tPrecursorMass\tProteoformMass\tProteoformMassFromComplementaryFragmentIonPairs\tDatabaseSequence\tProteinSequence\tProf"
+  fs << "PrSMIndex\tScan\tRetentionTime\tNumMass\tProteinAccession\tProteinDescription\tPrecursorMass\tProteoformMass\tProteoformMassFromComplementaryFragmentIonPairs\tDatabaseSequence\tProteinSequence\tProf"
         "orma\tMatchingFragments\tCoverage(%)\tStartPosition\tEndPosition"
         "\tTagCount\tTagIndices\tModCount\tModMass\tModID\tModAccession\tModStart\tModEnd\tPrecursorQscore\tPrecursorSNR\tScore\tPrSMLevelQvalue\tProteoformLevelQvalue\n";
 }
@@ -33,7 +33,7 @@ void FLASHTnTFile::writePrSMHeader(std::fstream& fs)
 /// write header line for Proteoform file
 void FLASHTnTFile::writeProHeader(std::fstream& fs)
 {
-  fs << "ProteoformIndex\tScan\tRetentionTime\tNumMass\tProteinAccession\tProteinDescription\tPrecursorMass\tProteoformMass\tProteoformMassFromComplementaryFragmentIonPairs\tDatabaseSequence\tProteinSequence\tProf"
+  fs << "ProteoformIndex\tPrSMIndices\tScan\tRetentionTime\tNumMass\tProteinAccession\tProteinDescription\tPrecursorMass\tProteoformMass\tProteoformMassFromComplementaryFragmentIonPairs\tDatabaseSequence\tProteinSequence\tProf"
         "orma\tMatchingFragments\tCoverage(%)\tStartPosition\tEndPosition"
         "\tTagCount\tTagIndices\tModCount\tModMass\tModID\tModAccession\tModStart\tModEnd\tPrecursorQscore\tPrecursorSNR\tScore\tProteoformLevelQvalue\n";
 }
@@ -210,18 +210,19 @@ void OpenMS::FLASHTnTFile::writePrSMs(const std::vector<ProteinHit>& hits, std::
 void OpenMS::FLASHTnTFile::writeProteoforms(const std::vector<ProteinHit>& hits, std::fstream& fs, double pro_fdr)
 {
   std::stringstream ss;
+  int pro_index = 0;
   for (const auto& hit : hits)
   {
     if (! hit.metaValueExists("Index")) continue;
-    if (! hit.metaValueExists("Representative")) continue;
+    if ((int)hit.getMetaValue("Representative") == 0) continue;
     if (hit.metaValueExists("proqvalue") && (double)hit.getMetaValue("proqvalue") > pro_fdr) continue;
-    String tagindices = "", modmasses = "", modstarts = "", modends = "", modids = "", modaccs = "";
+    String prsmindices = "", tagindices = "", modmasses = "", modstarts = "", modends = "", modids = "", modaccs = "";
 
     int cntr = 0;
-    std::vector<FLASHHelperClasses::Tag> tags;
-    std::vector<int> indices;
-    if (hit.metaValueExists("TagIndices")) indices = (std::vector<int>)hit.getMetaValue("TagIndices").toIntList();
-    for (const int& index : indices)
+    //std::vector<FLASHHelperClasses::Tag> tags;
+    std::vector<int> tag_indices;
+    if (hit.metaValueExists("TagIndices")) tag_indices = (std::vector<int>)hit.getMetaValue("TagIndices").toIntList();
+    for (const int& index : tag_indices)
     {
       if (! tagindices.empty()) tagindices += ";";
       tagindices += std::to_string(index);
@@ -251,7 +252,15 @@ void OpenMS::FLASHTnTFile::writeProteoforms(const std::vector<ProteinHit>& hits,
       modids += mod_ids[i];
       modaccs += mod_accs[i];
     }
-
+    if (hit.metaValueExists("PrSMIndices"))
+    {
+      auto prsm_indices = hit.getMetaValue("PrSMIndices").toIntList();
+      for (const int& index : prsm_indices)
+      {
+        if (! prsmindices.empty()) prsmindices += ";";
+        prsmindices += std::to_string(index);
+      }
+    }
     int start = hit.getMetaValue("StartPosition");
     int end = hit.getMetaValue("EndPosition");
 
@@ -261,7 +270,7 @@ void OpenMS::FLASHTnTFile::writeProteoforms(const std::vector<ProteinHit>& hits,
     // Use ProForma to generate ProForma string
     String proformaStr = generateProFormaString_(hit.getSequence(), start_in_seq, end_in_seq, mod_masses, mod_starts, mod_ends, mod_ids);
 
-    ss << hit.getMetaValue("Index") << "\t" << hit.getMetaValue("Scan") << "\t" << hit.getMetaValue("RT") << "\t" << hit.getMetaValue("NumMass")
+    ss << pro_index++ << "\t" << prsmindices << "\t" << hit.getMetaValue("Scan") << "\t" << hit.getMetaValue("RT") << "\t" << hit.getMetaValue("NumMass")
        << "\t" << hit.getAccession() << "\t" << hit.getDescription() << "\t" << hit.getMetaValue("GivenMass") << "\t" << hit.getMetaValue("Mass") << "\t" << ((int)hit.getMetaValue("ProteoformMassByFragmentMass") > 0) << "\t" << hit.getSequence() << "\t"
        << hit.getSequence().substr(start_in_seq, end_in_seq - start_in_seq) << "\t" << proformaStr << "\t" << hit.getMetaValue("MatchedAA") << "\t"
        << 100.0 * hit.getCoverage() << "\t" << start << "\t" << end << "\t" << cntr << "\t" << tagindices << "\t" << mod_masses.size() << "\t"
