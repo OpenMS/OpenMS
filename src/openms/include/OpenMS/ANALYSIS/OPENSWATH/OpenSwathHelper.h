@@ -193,6 +193,7 @@ public:
      * @param[in] peptides_per_bin  How many peptides to draw per bin (i.e. 5 peptides for linear iRT, 25 - 50 for non-linear iRT)
      * @param[in] seed              If non‐zero, used to seed the RNG (deterministic).
      *                              If zero, will use std::random_device for non-deterministic.
+     * @param[in] filter_decoys     Whether to exclude decoys from the sampled targeted experiment. (You likely do not want to sample with decoys if you are using this method for generating iRTs)
      *
      * @return A new LightTargetedExperiment containing only the sampled
      *         compounds, their transitions, and associated proteins.
@@ -201,7 +202,8 @@ public:
       const OpenSwath::LightTargetedExperiment & exp,
       Size bins,
       Size peptides_per_bin,
-      unsigned int seed = 0);
+      unsigned int seed = 0,
+      bool filter_decoys = true);
 
     /**
       @brief Returns the feature with the highest score for each transition group.

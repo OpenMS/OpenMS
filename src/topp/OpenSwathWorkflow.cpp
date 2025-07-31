@@ -950,6 +950,16 @@ protected:
     calibration_param.setValue("mz_extraction_window_ppm", cp_irt.ppm ? "true" : "false");
     calibration_param.setValue("im_extraction_window", cp_irt.im_extraction_window);
     calibration_param.setValue("mz_correction_function", mz_correction_function);
+    // Remove iRT params grouped with TOPPsubsection Calibration params
+    calibration_param.remove("irt_seed");
+    calibration_param.remove("irt_bins");
+    calibration_param.remove("irt_peptides_per_bin");
+    calibration_param.remove("irt_bins_nonlinear");
+    calibration_param.remove("irt_peptides_per_bin_nonlinear");
+    calibration_param.remove("tr_irt");
+    calibration_param.remove("tr_irt_nonlinear");
+    calibration_param.remove("rt_norm");
+
     // 1) Prepare in‐memory iRT experiments for linear + nonlinear
     OpenSwath::LightTargetedExperiment lin_irt_exp;
     if (!irt_tr_file.empty())
@@ -967,7 +977,8 @@ protected:
         transition_exp,
         irt_bins_lin,
         irt_pep_lin,
-        irt_seed
+        irt_seed,
+        true
       );
     }
 
@@ -987,7 +998,8 @@ protected:
         transition_exp,
         irt_bins_nl,
         irt_pep_nl,
-        irt_seed
+        irt_seed,
+        true
       );
     }
 

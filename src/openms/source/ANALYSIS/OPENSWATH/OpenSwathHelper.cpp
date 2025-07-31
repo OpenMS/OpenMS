@@ -165,35 +165,63 @@ namespace OpenMS
     return std::make_pair(min,max);
   }
 
-  OpenSwath::LightTargetedExperiment OpenSwathHelper::sampleExperiment(
+  OpenSwath::LightTargetedExperiment
+  OpenSwathHelper::sampleExperiment(
     const OpenSwath::LightTargetedExperiment & exp,
     Size bins,
     Size peptides_per_bin,
-    unsigned int seed)
+    unsigned int seed,
+    bool filter_decoys)
   {
-    // 1) estimate RT range
-    auto [rt_min, rt_max] = estimateRTRange(exp);
-    double bin_width = (rt_max - rt_min) / static_cast<double>(bins);
-    // 2) collect compounds per bin
-    std::vector<OpenSwath::LightCompound> picked;
-    std::mt19937 rng;
-    if (seed == 0)
+    // 0) build list of candidate compounds (exclude decoys if requested)
+    std::vector<OpenSwath::LightCompound> candidates;
+    if (filter_decoys)
     {
-      // non‐deterministic
-      rng.seed(std::random_device{}());
+      // gather all peptide IDs with at least one non-decoy transition
+      std::unordered_set<std::string> good_ids;
+      for (auto & tr : exp.getTransitions())
+      {
+        if (!tr.decoy) // LightTransition::decoy == false ⇒ target
+        {
+          good_ids.insert(tr.getPeptideRef());
+        }
+      }
+      // pick only compounds whose ID is in good_ids
+      for (auto & cmp : exp.getCompounds())
+      {
+        if (good_ids.count(cmp.id))
+        {
+          candidates.push_back(cmp);
+        }
+      }
     }
     else
     {
-      // reproducible
-      rng.seed(seed);
+      // use all compounds
+      candidates = exp.getCompounds();
     }
+
+    // 1) estimate RT range using candidates only
+    double rt_min = std::numeric_limits<double>::max();
+    double rt_max = std::numeric_limits<double>::lowest();
+    for (auto & cmp : candidates)
+    {
+      rt_min = std::min(rt_min, cmp.rt);
+      rt_max = std::max(rt_max, cmp.rt);
+    }
+    double bin_width = (rt_max - rt_min) / static_cast<double>(bins);
+
+    // 2) sample uniformly across bins
+    std::vector<OpenSwath::LightCompound> picked;
+    std::mt19937 rng;
+    rng.seed(seed == 0 ? std::random_device{}() : seed);
 
     for (Size b = 0; b < bins; ++b)
     {
       double lo = rt_min + b * bin_width;
       double hi = (b + 1 == bins ? rt_max : lo + bin_width);
       std::vector<OpenSwath::LightCompound> bucket;
-      for (const auto & cmp : exp.getCompounds())
+      for (auto & cmp : candidates)
       {
         if (cmp.rt >= lo && cmp.rt < hi)
         {
@@ -207,19 +235,22 @@ namespace OpenMS
         picked.insert(picked.end(), bucket.begin(), bucket.begin() + take);
       }
     }
+
     // 3) assemble new experiment
     OpenSwath::LightTargetedExperiment out_exp;
     out_exp.compounds = picked;
-    // 3a) copy matching transitions
+
+    // 3a) copy matching transitions (and drop any decoys if filtering)
     std::unordered_set<String> pep_ids;
     for (auto & cmp : picked) pep_ids.insert(cmp.id);
     for (auto & tr : exp.getTransitions())
     {
-      if (pep_ids.count(tr.getPeptideRef()))
+      if (pep_ids.count(tr.getPeptideRef()) && (!filter_decoys || !tr.decoy))
       {
         out_exp.transitions.push_back(tr);
       }
     }
+
     // 3b) copy associated proteins
     std::unordered_set<String> prot_ids;
     for (auto & cmp : picked)
@@ -232,6 +263,7 @@ namespace OpenMS
         out_exp.proteins.push_back(prot);
       }
     }
+
     return out_exp;
   }
 
