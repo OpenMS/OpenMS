@@ -405,6 +405,22 @@ protected:
     registerStringOption_("tr_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
     setValidStrings_("tr_type", ListUtils::create<String>("traML,tsv,pqp"));
 
+    // iRT calibration
+    registerStringOption_("auto_irt", "<true|false>", "true",
+                          "Whether to sample iRTs on‐the‐fly (true) from the input targeted transition file (instead of passing specific iRT files).", false);
+    setValidStrings_("auto_irt", ListUtils::create<String>("true,false"));
+    registerIntOption_("irt_bins", "<int>", 10, "Number of RT bins for sampling", false);
+    setMinInt_("irt_bins", 1);
+    registerIntOption_("irt_peptides_per_bin", "<int>", 10, "Peptides sampled per bin", false);
+    setMinInt_("irt_peptides_per_bin", 1);
+    registerIntOption_("irt_seed", "<int>", 5489, "RNG seed (0 = non‐deterministic)", false);
+    setMinInt_("irt_seed", 0);
+
+    registerIntOption_("irt_bins_nonlinear", "<int>", 100, "Number of RT bins for sampling", false);
+    setMinInt_("irt_bins_nonlinear", 1);
+    registerIntOption_("irt_peptides_per_bin_nonlinear", "<int>", 1000, "Peptides sampled per bin for additional nonlinear calibration. If 0, nonlinear calibration will not be performed.", false);
+    setMinInt_("irt_peptides_per_bin_nonlinear", 0);
+
     // one of the following two needs to be set
     registerInputFile_("tr_irt", "<file>", "", "transition file ('TraML')", false);
     setValidFormats_("tr_irt", ListUtils::create<String>("traML,tsv,pqp"));
@@ -652,6 +668,12 @@ protected:
 
     String out_qc = getStringOption_("out_qc");
 
+    bool auto_irt = (getStringOption_("auto_irt") == "true");
+    UInt irt_seed  = getIntOption_("irt_seed");
+    UInt irt_bins_lin = getIntOption_("irt_bins");
+    UInt irt_pep_lin  = getIntOption_("irt_peptides_per_bin");
+    UInt irt_bins_nl  = getIntOption_("irt_bins_nonlinear");
+    UInt irt_pep_nl   = getIntOption_("irt_peptides_per_bin_nonlinear");
 
     String irt_tr_file = getStringOption_("tr_irt");
     String nonlinear_irt_tr_file = getStringOption_("tr_irt_nonlinear");
@@ -705,10 +727,28 @@ protected:
       std::cout << "When using sqMass input files, it is highly recommended to use the workingInMemory option as otherwise data access will be very slow." << std::endl;
     }
 
-    if (trafo_in.empty() && irt_tr_file.empty())
+    if (trafo_in.empty() && irt_tr_file.empty() && !auto_irt)
     {
-      std::cout << "Since neither rt_norm nor tr_irt is set, OpenSWATH will " <<
+      std::cout << "Since neither rt_norm nor tr_irt nor auto_irt is set, OpenSWATH will " <<
         "not use RT-transformation (rather a null transformation will be applied)" << std::endl;
+    }
+
+    // -----------------------------------------------------------------
+    // Validate auto_irt parameters
+    // -----------------------------------------------------------------
+    if (auto_irt)
+    {
+      // linear sampling must have at least one bin and one peptide per bin
+      if (irt_bins_lin == 0)
+      {
+        writeLogError_("Parameter error: --irt_bins must be > 0 when auto_irt is enabled.");
+        return PARSE_ERROR;
+      }
+      if (irt_pep_lin == 0)
+      {
+        writeLogError_("Parameter error: --irt_peptides_per_bin must be > 0 when auto_irt is enabled.");
+        return PARSE_ERROR;
+      }
     }
 
     // Check swath window input
@@ -905,63 +945,132 @@ protected:
     calibration_param.setValue("mz_extraction_window_ppm", cp_irt.ppm ? "true" : "false");
     calibration_param.setValue("im_extraction_window", cp_irt.im_extraction_window);
     calibration_param.setValue("mz_correction_function", mz_correction_function);
-    TransformationDescription trafo_rtnorm;
-    if (nonlinear_irt_tr_file.empty())
+    // 1) Prepare in‐memory iRT experiments for linear + nonlinear
+    OpenSwath::LightTargetedExperiment lin_irt_exp;
+    if (!irt_tr_file.empty())
     {
-      trafo_rtnorm = performCalibration(trafo_in, irt_tr_file, swath_maps,
-                                        min_rsq, min_coverage, feature_finder_param,
-                                        cp_irt, irt_detection_param, calibration_param,
-                                        debug_level, pasef, load_into_memory,
-                                        irt_trafo_out, irt_mzml_out);
+      // user‐supplied linear iRT file takes absolute precedence
+      FileTypes::Type irt_tr_type = FileHandler::getType(irt_tr_file);
+      Param irt_tsv_reader_param = TransitionTSVFile().getDefaults();
+      lin_irt_exp = loadTransitionList(irt_tr_type, irt_tr_file, irt_tsv_reader_param);
+    }
+    else if (auto_irt)
+    {
+      OPENMS_LOG_INFO << "Sampling input transition experiment for " << irt_pep_lin << " peptides with " << irt_bins_lin << " bins across the RT for linear iRT calibration" << std::endl;
+      // sampled transtion_exp on‐the‐fly
+      lin_irt_exp = OpenSwathHelper::sampleExperiment(
+        transition_exp,
+        irt_bins_lin,
+        irt_pep_lin,
+        irt_seed
+      );
+    }
+
+    OpenSwath::LightTargetedExperiment nl_irt_exp;
+    if (!nonlinear_irt_tr_file.empty())
+    {
+      // user‐supplied nonlinear iRT file
+      FileTypes::Type irt_nl_tr_type = FileHandler::getType(nonlinear_irt_tr_file);
+      Param irt_nl_tsv_reader_param = TransitionTSVFile().getDefaults();
+      nl_irt_exp = loadTransitionList(irt_nl_tr_type, nonlinear_irt_tr_file, irt_nl_tsv_reader_param);
+    }
+    else if (auto_irt && irt_pep_nl > 0)
+    {
+      OPENMS_LOG_INFO << "Sampling input transition experiment for " << irt_pep_nl << " peptides with " << irt_bins_nl << " bins across the RT for additional nonlinear iRT calibration" << std::endl;
+      // sampled transtion_exp on‐the‐fly for nonlinear (only if >0)
+      nl_irt_exp = OpenSwathHelper::sampleExperiment(
+        transition_exp,
+        irt_bins_nl,
+        irt_pep_nl,
+        irt_seed
+      );
+    }
+
+    // 2) Launch either just linear or linear+nonlinear
+    TransformationDescription trafo_rtnorm;
+    if (nl_irt_exp.getTransitions().empty())
+    {
+      // --- single, linear calibration ---
+      trafo_rtnorm = performCalibration(
+        trafo_in,
+        lin_irt_exp,
+        swath_maps,
+        min_rsq,
+        min_coverage,
+        feature_finder_param,
+        cp_irt,
+        irt_detection_param,
+        calibration_param,
+        debug_level,
+        pasef,
+        load_into_memory,
+        irt_trafo_out,
+        irt_mzml_out);
     }
     else
     {
-      ///////////////////////////////////
-      // First perform a simple linear transform, then do a second, nonlinear one
-      ///////////////////////////////////
+      // --- 1) linear pass ---
+      Param lin_param = irt_detection_param;
+      lin_param.setValue("alignmentMethod", "linear");
+      Param no_cal   = calibration_param;
+      no_cal.setValue("mz_correction_function", "none");
 
-      Param linear_irt = irt_detection_param;
-      linear_irt.setValue("alignmentMethod", "linear");
-      Param no_calibration = calibration_param;
-      no_calibration.setValue("mz_correction_function", "none");
-      trafo_rtnorm = performCalibration(trafo_in, irt_tr_file, swath_maps,
-                                        min_rsq, min_coverage, feature_finder_param,
-                                        cp_irt, linear_irt, no_calibration,
-                                        debug_level, pasef, load_into_memory,
-                                        irt_trafo_out, irt_mzml_out);
+      trafo_rtnorm = performCalibration(
+        trafo_in,
+        lin_irt_exp,
+        swath_maps,
+        min_rsq,
+        min_coverage,
+        feature_finder_param,
+        cp_irt,
+        lin_param,
+        no_cal,
+        debug_level,
+        pasef,
+        load_into_memory,
+        irt_trafo_out,
+        irt_mzml_out);
 
-      cp_irt.rt_extraction_window = getDoubleOption_("irt_nonlinear_rt_extraction_window"); // extract some substantial part of the RT range (should be covered by linear correction)
+      // adjust extraction window for non-linear step
+      cp_irt.rt_extraction_window =
+        getDoubleOption_("irt_nonlinear_rt_extraction_window");
 
-      ///////////////////////////////////
-      // Get the secondary transformation (nonlinear)
-      ///////////////////////////////////
-      OpenSwath::LightTargetedExperiment transition_exp_nl;
-      transition_exp_nl = loadTransitionList(FileHandler::getType(nonlinear_irt_tr_file), nonlinear_irt_tr_file, tsv_reader_param);
-
-      std::vector< OpenMS::MSChromatogram > chromatograms;
+      // --- 2) nonlinear pass ---
       OpenSwathCalibrationWorkflow wf;
       wf.setLogType(log_type_);
-      wf.simpleExtractChromatograms_(swath_maps, transition_exp_nl, chromatograms,
-                                    trafo_rtnorm, cp_irt, pasef, load_into_memory);
+      std::vector<OpenMS::MSChromatogram> chroms;
+      wf.simpleExtractChromatograms_(
+        swath_maps,
+        nl_irt_exp,
+        chroms,
+        trafo_rtnorm,
+        cp_irt,
+        pasef,
+        load_into_memory);
 
-      // always use estimateBestPeptides for the nonlinear approach
-      Param nonlinear_irt = irt_detection_param;
-      nonlinear_irt.setValue("estimateBestPeptides", "true");
+      Param nl_param = irt_detection_param;
+      nl_param.setValue("estimateBestPeptides", "true");
 
-      TransformationDescription im_trafo; // exp -> theoretical
-      trafo_rtnorm = wf.doDataNormalization_(transition_exp_nl, chromatograms, im_trafo, swath_maps,
-                                             min_rsq, min_coverage,
-                                             feature_finder_param, nonlinear_irt, calibration_param, pasef);
+      TransformationDescription im_trafo;
+      trafo_rtnorm = wf.doDataNormalization_(
+        nl_irt_exp,
+        chroms,
+        im_trafo,
+        swath_maps,
+        min_rsq,
+        min_coverage,
+        feature_finder_param,
+        nl_param,
+        calibration_param,
+        pasef);
 
+      // apply IM‐correction back to the library
       TransformationDescription im_trafo_inv = im_trafo;
-      im_trafo_inv.invert(); // theoretical -> experimental
-
-      // We now modify the library as this is the easiest thing to do
-      for (auto & p : transition_exp.getCompounds())
+      im_trafo_inv.invert();
+      for (auto & cmp : transition_exp.getCompounds())
       {
-        p.drift_time = im_trafo_inv.apply(p.drift_time);
+        cmp.drift_time = im_trafo_inv.apply(cmp.drift_time);
       }
-
     }
 
     ///////////////////////////////////
