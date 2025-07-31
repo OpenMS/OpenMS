@@ -7,6 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
+#include <random>
+#include <algorithm>
+#include <unordered_set>
 
 namespace OpenMS
 {
@@ -162,6 +165,76 @@ namespace OpenMS
     return std::make_pair(min,max);
   }
 
+  OpenSwath::LightTargetedExperiment OpenSwathHelper::sampleExperiment(
+    const OpenSwath::LightTargetedExperiment & exp,
+    Size bins,
+    Size peptides_per_bin,
+    unsigned int seed)
+  {
+    // 1) estimate RT range
+    auto [rt_min, rt_max] = estimateRTRange(exp);
+    double bin_width = (rt_max - rt_min) / static_cast<double>(bins);
+    // 2) collect compounds per bin
+    std::vector<OpenSwath::LightCompound> picked;
+    std::mt19937 rng;
+    if (seed == 0)
+    {
+      // non‐deterministic
+      rng.seed(std::random_device{}());
+    }
+    else
+    {
+      // reproducible
+      rng.seed(seed);
+    }
+
+    for (Size b = 0; b < bins; ++b)
+    {
+      double lo = rt_min + b * bin_width;
+      double hi = (b + 1 == bins ? rt_max : lo + bin_width);
+      std::vector<OpenSwath::LightCompound> bucket;
+      for (const auto & cmp : exp.getCompounds())
+      {
+        if (cmp.rt >= lo && cmp.rt < hi)
+        {
+          bucket.push_back(cmp);
+        }
+      }
+      if (!bucket.empty())
+      {
+        std::shuffle(bucket.begin(), bucket.end(), rng);
+        Size take = std::min(peptides_per_bin, bucket.size());
+        picked.insert(picked.end(), bucket.begin(), bucket.begin() + take);
+      }
+    }
+    // 3) assemble new experiment
+    OpenSwath::LightTargetedExperiment out_exp;
+    out_exp.compounds = picked;
+    // 3a) copy matching transitions
+    std::unordered_set<String> pep_ids;
+    for (auto & cmp : picked) pep_ids.insert(cmp.id);
+    for (auto & tr : exp.getTransitions())
+    {
+      if (pep_ids.count(tr.getPeptideRef()))
+      {
+        out_exp.transitions.push_back(tr);
+      }
+    }
+    // 3b) copy associated proteins
+    std::unordered_set<String> prot_ids;
+    for (auto & cmp : picked)
+      for (auto & pid : cmp.protein_refs)
+        prot_ids.insert(pid);
+    for (auto & prot : exp.getProteins())
+    {
+      if (prot_ids.count(prot.id))
+      {
+        out_exp.proteins.push_back(prot);
+      }
+    }
+    return out_exp;
+  }
+
   std::map<std::string, double> OpenSwathHelper::simpleFindBestFeature(
       const OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
       bool useQualCutoff, double qualCutoff)
@@ -186,5 +259,7 @@ namespace OpenMS
     }
     return result;
   }
+
+
 
 }

@@ -182,6 +182,28 @@ public:
     static std::pair<double,double> estimateRTRange(const OpenSwath::LightTargetedExperiment & exp);
 
     /**
+     * @brief Sample a subset of peptides uniformly across the RT range.
+     *
+     * Splits the RT span (min→max) into @p bins and randomly picks up to
+     * @p peptides_per_bin compounds from each bin. Useful for on-the-fly
+     * iRT calibration without external .irt files.
+     *
+     * @param[in] exp               Full LightTargetedExperiment (the input peptide query parameter assay list for targeted extraction)
+     * @param[in] bins              Number of retention‐time bins (i.e. 10 bins across the RT range)
+     * @param[in] peptides_per_bin  How many peptides to draw per bin (i.e. 10 peptides for linear iRT, 1000 - 2000 for non-linear iRT)
+     * @param[in] seed              If non‐zero, used to seed the RNG (deterministic).
+     *                              If zero, will use std::random_device for non-deterministic.
+     *
+     * @return A new LightTargetedExperiment containing only the sampled
+     *         compounds, their transitions, and associated proteins.
+     */
+    static OpenSwath::LightTargetedExperiment sampleExperiment(
+      const OpenSwath::LightTargetedExperiment & exp,
+      Size bins,
+      Size peptides_per_bin,
+      unsigned int seed = 0);
+
+    /**
       @brief Returns the feature with the highest score for each transition group.
       
       Simple method to extract the best feature for each transition group (e.g.
