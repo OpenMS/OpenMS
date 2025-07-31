@@ -42,7 +42,7 @@ AASequence DecoyGenerator::reversePeptides(const AASequence& protein, const Stri
   ProteaseDigestion ed;
   ed.setMissedCleavages(0); // important as we want to reverse between all cutting sites
   ed.setEnzyme(protease);
-  ed.setSpecificity(EnzymaticDigestion::SPEC_NONE);
+  ed.setSpecificity(EnzymaticDigestion::SPEC_FULL);
   ed.digest(protein, peptides);    
   String pseudo_reversed;
   for (int i = 0; i < static_cast<int>(peptides.size()) - 1; ++i)
@@ -70,7 +70,7 @@ AASequence DecoyGenerator::shufflePeptides(
   ProteaseDigestion ed;
   ed.setMissedCleavages(0); // important as we want to reverse between all cutting sites
   ed.setEnzyme(protease);
-  ed.setSpecificity(EnzymaticDigestion::SPEC_NONE);
+  ed.setSpecificity(EnzymaticDigestion::SPEC_FULL);
   ed.digest(protein, peptides);    
   String protein_shuffled;
   for (int i = 0; i < static_cast<int>(peptides.size()) - 1; ++i)

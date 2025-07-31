@@ -1,38 +1,40 @@
 
 -- General information --
 
-File name: FileInfo_18_input.fasta
+File name: C:/dev/openms/src/tests/topp/FileInfo_18_input.fasta
 File type: fasta
-Warning: Duplicate sequence, #28, ID: nr:gi|136429|sp|P00761.1|TRYP_PIG == #12, ID: sp:P00761
 
-Number of sequences   : 29
+Number of sequences   : 5
+Number of sequences with ambiguous amino acids: 3 (60%)
 # duplicated headers  : 0 (0%)
-# duplicated sequences: 1 (3.4%) [by exact string matching]
-Total amino acids     : 10842
+# duplicated sequences: 0 (0%) [by exact string matching]
+Total amino acids     : 2092
 
 Amino acid counts: 
-A	863
-C	184
-D	695
-E	909
-F	406
-G	698
-H	249
-I	557
-K	811
-L	971
-M	222
-N	499
-P	515
-Q	436
-R	493
-S	620
-T	561
-V	749
-W	107
-Y	297
-Ambiguous amino acids (B/Z/X)  : 0 (0%)
-                      (B/Z/X/I): 557 (5.13%)
+  A:	175
+  C:	15
+  D:	159
+  E:	241
+  F:	50
+  G:	131
+  H:	27
+  I:	113
+  J:	2
+  K:	205
+  L:	162
+  M:	54
+  N:	78
+  P:	73
+  Q:	81
+  R:	69
+  S:	114
+  T:	106
+  V:	161
+  W:	9
+  X:	32
+  Y:	35
+Ambiguous amino acids (B/Z/X)  : 32 (1.53%)
+                      (B/Z/X/J): 34 (1.63%)
 
 
 
