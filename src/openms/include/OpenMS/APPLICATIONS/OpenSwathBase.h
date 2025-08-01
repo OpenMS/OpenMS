@@ -380,9 +380,6 @@ protected:
     {
       // Loading iRT file
       std::cout << "Will load iRT transitions and try to find iRT peptides" << std::endl;
-//      FileTypes::Type tr_type = FileHandler::getType(irt_tr_file);
-//      Param tsv_reader_param = TransitionTSVFile().getDefaults();
-//      OpenSwath::LightTargetedExperiment irt_transitions = loadTransitionList(tr_type, irt_tr_file, tsv_reader_param);
 
       // If pasef flag is set, validate that IM is present
       if (pasef)
