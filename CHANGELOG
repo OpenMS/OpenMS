@@ -41,6 +41,8 @@ Library:
 - std::vector<PeptideIdentification> now is encapsulated in a class PeptideIdentificationList
 - Added `EnzymaticDigestion.semiSpecificDigestion_()`
 - ProteaseDigestion: add support for semi-specific digestion (#8130)
+- OpenSwath:
+  - Added automated iRT calibration using input transition list (#8146)
 
 Added tools:
 - OpenNuXL - A peptide-RNA/DNA cross-linking search engine
