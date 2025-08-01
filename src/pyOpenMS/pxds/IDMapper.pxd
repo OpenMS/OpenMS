@@ -162,7 +162,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #  :param protein_ids: ProteinIdentification for the FeatureMap
                 #  :param use_centroid_rt: Whether to use the RT value of feature centroids even if convex hulls are present
                 #  :param use_centroid_mz: Whether to use the m/z value of feature centroids even if convex hulls are present
-                #  :param spectra: [Optional] Provide the underlying mass spectra, which allows add an empty PeptideIdentification object containing the MS2 scan index to each Feature that covers an MS/MS spectrum (irrespective if it already has an ID).
+                #  :param spectra: [Optional] Provide the underlying mass spectra, which allows adding an empty PeptideIdentification object containing the MS2 scan index to each Feature that covers an MS/MS spectrum (irrespective if it already has an ID).
 
         void annotate(ConsensusMap & map_,
                       PeptideIdentificationList & ids,
@@ -178,7 +178,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #  :param protein_ids: ProteinIdentification for the ConsensusMap
                 #  :param measure_from_subelements: Boolean operator set to true if distance estimate from FeatureHandles instead of Centroid
                 #  :param annotate_ids_with_subelements: Boolean operator set to true if store map index of FeatureHandle in peptide identification
-                #  :param spectra: [Optional] Provide the underlying mass spectra, which allows add an empty PeptideIdentification object containing the MS2 scan index to each ConsensusFeature that covers an MS/MS spectrum (irrespective if it already has an ID).
+                #  :param spectra: [Optional] Provide the underlying mass spectra, which allows adding an empty PeptideIdentification object containing the MS2 scan index to each ConsensusFeature that covers an MS/MS spectrum (irrespective if it already has an ID).
 
         IDMapper_PeptideIdentificationListState mapPrecursorsToIdentifications(MSExperiment spectra,
                                                                            PeptideIdentificationList & ids, 
