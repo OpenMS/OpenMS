@@ -171,37 +171,55 @@ namespace OpenMS
     Size bins,
     Size peptides_per_bin,
     unsigned int seed,
-    bool filter_decoys)
+    bool filter_decoys,
+    bool sort_by_intensity,
+    double top_fraction)
   {
-    // 0) build list of candidate compounds (exclude decoys if requested)
+    // 0) initial candidate selection: exclude decoys if requested
     std::vector<OpenSwath::LightCompound> candidates;
     if (filter_decoys)
     {
-      // gather all peptide IDs with at least one non-decoy transition
-      std::unordered_set<std::string> good_ids;
+      std::unordered_set<String> good_ids;
       for (auto & tr : exp.getTransitions())
       {
-        if (!tr.decoy) // LightTransition::decoy == false ⇒ target
-        {
+        if (!tr.decoy)
           good_ids.insert(tr.getPeptideRef());
-        }
       }
-      // pick only compounds whose ID is in good_ids
       for (auto & cmp : exp.getCompounds())
       {
         if (good_ids.count(cmp.id))
-        {
           candidates.push_back(cmp);
-        }
       }
     }
     else
     {
-      // use all compounds
       candidates = exp.getCompounds();
     }
 
-    // 1) estimate RT range using candidates only
+    // 1) optionally sort by library intensities and trim to top fraction
+    if (sort_by_intensity && top_fraction > 0.0 && top_fraction <= 1.0)
+    {
+      // sum intensities per peptide across all transitions
+      std::unordered_map<String, double> intensity_sum;
+      for (auto & tr : exp.getTransitions())
+      {
+        if ((!filter_decoys || !tr.decoy) && intensity_sum.find(tr.getPeptideRef()) != intensity_sum.end())
+          continue;
+        if (!filter_decoys || !tr.decoy)
+          intensity_sum[tr.getPeptideRef()] += tr.library_intensity;
+      }
+
+      // sort candidates by descending sum
+      std::sort(candidates.begin(), candidates.end(), [&](auto & a, auto & b) {
+        return intensity_sum[a.id] > intensity_sum[b.id];
+      });
+
+      // trim to top N%
+      Size max_keep = std::max<Size>(1, static_cast<Size>(candidates.size() * top_fraction));
+      candidates.resize(std::min(max_keep, candidates.size()));
+    }
+
+    // 2) estimate RT range using filtered candidates
     double rt_min = std::numeric_limits<double>::max();
     double rt_max = std::numeric_limits<double>::lowest();
     for (auto & cmp : candidates)
@@ -211,11 +229,10 @@ namespace OpenMS
     }
     double bin_width = (rt_max - rt_min) / static_cast<double>(bins);
 
-    // 2) sample uniformly across bins
+    // 3) sample uniformly across RT bins
     std::vector<OpenSwath::LightCompound> picked;
     std::mt19937 rng;
     rng.seed(seed == 0 ? std::random_device{}() : seed);
-
     for (Size b = 0; b < bins; ++b)
     {
       double lo = rt_min + b * bin_width;
@@ -224,9 +241,7 @@ namespace OpenMS
       for (auto & cmp : candidates)
       {
         if (cmp.rt >= lo && cmp.rt < hi)
-        {
           bucket.push_back(cmp);
-        }
       }
       if (!bucket.empty())
       {
@@ -236,22 +251,21 @@ namespace OpenMS
       }
     }
 
-    // 3) assemble new experiment
+    // 4) assemble output experiment
     OpenSwath::LightTargetedExperiment out_exp;
     out_exp.compounds = picked;
 
-    // 3a) copy matching transitions (and drop any decoys if filtering)
+    // copy matching transitions, excluding decoys if requested
     std::unordered_set<String> pep_ids;
-    for (auto & cmp : picked) pep_ids.insert(cmp.id);
+    for (auto & cmp : picked)
+      pep_ids.insert(cmp.id);
     for (auto & tr : exp.getTransitions())
     {
       if (pep_ids.count(tr.getPeptideRef()) && (!filter_decoys || !tr.decoy))
-      {
         out_exp.transitions.push_back(tr);
-      }
     }
 
-    // 3b) copy associated proteins
+    // copy associated proteins
     std::unordered_set<String> prot_ids;
     for (auto & cmp : picked)
       for (auto & pid : cmp.protein_refs)
@@ -259,9 +273,7 @@ namespace OpenMS
     for (auto & prot : exp.getProteins())
     {
       if (prot_ids.count(prot.id))
-      {
         out_exp.proteins.push_back(prot);
-      }
     }
 
     return out_exp;

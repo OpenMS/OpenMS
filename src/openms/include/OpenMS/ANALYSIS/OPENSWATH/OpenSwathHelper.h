@@ -203,7 +203,9 @@ public:
       Size bins,
       Size peptides_per_bin,
       unsigned int seed = 0,
-      bool filter_decoys = true);
+      bool filter_decoys = true,
+      bool sort_by_intensity = false,
+      double top_fraction = 1.0);
 
     /**
       @brief Returns the feature with the highest score for each transition group.
