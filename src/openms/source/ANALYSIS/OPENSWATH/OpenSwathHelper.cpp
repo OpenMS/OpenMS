@@ -203,10 +203,10 @@ namespace OpenMS
       std::unordered_map<String, double> intensity_sum;
       for (auto & tr : exp.getTransitions())
       {
-        if ((!filter_decoys || !tr.decoy) && intensity_sum.find(tr.getPeptideRef()) != intensity_sum.end())
-          continue;
         if (!filter_decoys || !tr.decoy)
+        {
           intensity_sum[tr.getPeptideRef()] += tr.library_intensity;
+        }
       }
 
       // sort candidates by descending sum
