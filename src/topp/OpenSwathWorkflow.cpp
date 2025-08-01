@@ -978,7 +978,9 @@ protected:
         irt_bins_lin,
         irt_pep_lin,
         irt_seed,
-        true
+        true,
+        true,
+        0.4
       );
     }
 
@@ -999,7 +1001,9 @@ protected:
         irt_bins_nl,
         irt_pep_nl,
         irt_seed,
-        true
+        true,
+        true,
+        0.7
       );
     }
 
