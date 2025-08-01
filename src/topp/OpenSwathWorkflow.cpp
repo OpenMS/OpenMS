@@ -500,16 +500,16 @@ protected:
     registerSubsection_("Calibration", "Parameters for the m/z and ion mobility calibration.");
 
     registerTOPPSubsection_("Calibration", "Parameters for calibrant iRT peptides to use");
-    registerIntOption_("Calibration:irt_bins", "<int>", 10, "Number of RT bins for sampling. (When `auto_irt` is set to 'true')", false, true);
+    registerIntOption_("Calibration:irt_bins", "<int>", 100, "Number of RT bins for sampling. (When `auto_irt` is set to 'true')", false, true);
     setMinInt_("Calibration:irt_bins", 5);
     registerIntOption_("Calibration:irt_peptides_per_bin", "<int>", 5, "Peptides sampled per bin. (When `auto_irt` is set to 'true')", false, true);
     setMinInt_("Calibration:irt_peptides_per_bin", 1);
     registerIntOption_("Calibration:irt_seed", "<int>", 5489, "RNG seed (0 = non‐deterministic). (When `auto_irt` is set to 'true')", false, true);
     setMinInt_("Calibration:irt_seed", 0);
 
-    registerIntOption_("Calibration:irt_bins_nonlinear", "<int>", 500, "Number of RT bins for sampling. (When `auto_irt` is set to 'true')", false, true);
+    registerIntOption_("Calibration:irt_bins_nonlinear", "<int>", 2000, "Number of RT bins for sampling. (When `auto_irt` is set to 'true')", false, true);
     setMinInt_("Calibration:irt_bins_nonlinear", 5);
-    registerIntOption_("Calibration:irt_peptides_per_bin_nonlinear", "<int>", 25, "Peptides sampled per bin for additional nonlinear calibration. If 0, nonlinear calibration will not be performed. (When `auto_irt` is set to 'true')", false, true);
+    registerIntOption_("Calibration:irt_peptides_per_bin_nonlinear", "<int>", 50, "Peptides sampled per bin for additional nonlinear calibration. If 0, nonlinear calibration will not be performed. (When `auto_irt` is set to 'true')", false, true);
     setMinInt_("Calibration:irt_peptides_per_bin_nonlinear", 0);
 
     // one of the following two needs to be set
