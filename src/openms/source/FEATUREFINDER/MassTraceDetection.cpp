@@ -298,7 +298,7 @@ namespace OpenMS
       // discard last spectrum's offset
       spec_offsets.pop_back();
 
-      std::sort(chrom_apices.begin(), chrom_apices.end(),
+      std::stable_sort(chrom_apices.begin(), chrom_apices.end(),
                 [](const Apex & a,
                     const Apex & b) -> bool
       {
