@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Erhan Kenar, Holger Franken $
+// $Authors: Erhan Kenar, Holger Franken, Mohammed Alhigaylan $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -57,9 +57,6 @@ namespace OpenMS
         /** @name Helper methods
         */
 
-        /// Allows the iterative computation of the intensity-weighted mean of a mass trace's centroid m/z.
-        void updateIterativeWeightedMeanMZ(const double &, const double &, double &, double &, double &);
-
         /** @name Main computation methods
         */
 
@@ -69,10 +66,21 @@ namespace OpenMS
         /// Invokes the run method (see above) on merely a subregion of a @ref MSExperiment map.
         void run(PeakMap::ConstAreaIterator & begin, PeakMap::ConstAreaIterator & end, std::vector<MassTrace> & found_masstraces);
 
+        /// determine if meta array is available
+        bool hasFwhmMz() const { return has_fwhm_mz_; }
+        bool hasFwhmIm() const { return has_fwhm_im_; }
+        bool hasCentroidIm() const { return has_centroid_im_; }
+
         /** @name Private methods and members
         */
     protected:
         void updateMembers_() override;
+        /// allows for the iterative computation of intensity weighted of a mass trace's centroid m/z or ion mobility
+        static void updateIterativeWeightedMean_(const double& added_value,
+                                                const double& added_intensity,
+                                                double& centroid_value,
+                                                double& prev_counter,
+                                                double& prev_denom);
 
     private:
 
@@ -92,10 +100,23 @@ namespace OpenMS
                   std::vector<MassTrace> & found_masstraces,
                   const Size max_traces = 0);
 
+        /// Internal helper to extract and validate metadata float array indices
+        void getIMIndices_(const PeakMap& spectra,
+                           int& fwhm_meta_idx, bool& has_fwhm_mz,
+                           int& im_idx, bool& has_centroid_im,
+                           int& im_fwhm_idx, bool& has_fwhm_im) const;
+
+        // Metadata availability flags – set by getIMIndices_ and valid after run_()
+        bool has_fwhm_mz_ = false;
+        bool has_fwhm_im_ = false;
+        bool has_centroid_im_ = false;
+
         // parameter stuff
         double mass_error_ppm_;
+        double mass_error_da_;
         double noise_threshold_int_;
         double chrom_peak_snr_;
+        double ion_mobility_tolerance_;
         MassTrace::MT_QUANTMETHOD quant_method_;
 
         String trace_termination_criterion_;
