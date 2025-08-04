@@ -275,4 +275,31 @@ namespace OpenMS
     os << endl;
   }
 
+  double TransformationDescription::estimateWindow(double quantile,
+                                                   bool invert,
+                                                   bool full_window) const
+  {
+    // Copy self to avoid mutating original
+    TransformationDescription tmp(*this);
+    if (invert)
+    {
+      tmp.invert();
+    }
+
+    std::vector<double> diffs;
+    // compute deviations post-transform, sorted
+    tmp.getDeviations(diffs, /*do_apply=*/true, /*do_sort=*/true);
+    if (diffs.empty())
+    {
+      
+      return 0.0;
+    }
+
+    // compute index for requested quantile
+    Size idx = std::min<Size>(diffs.size() - 1,
+                              Size(diffs.size() * quantile));
+    double half = diffs[idx];
+    return full_window ? (half * 2.0) : half;
+  }
+
 } // end of namespace OpenMS

@@ -140,6 +140,23 @@ public:
     /// Print summary statistics for the transformation
     void printSummary(std::ostream& os) const;
 
+    /**
+      @brief Estimate a coordinate-transformation residual-based extraction window.
+
+      Computes the specified quantile of the absolute deviations between the
+      transformed coordinates and the original data points (or vice versa),
+      and returns either the half-width (quantile) or full window (2×quantile).
+
+      @param quantile The quantile to use (0 < quantile <= 1.0), e.g. 0.99 for 99%.
+      @param invert If true, invert the transformation before computing deviations
+                    (so that deviations are in the original coordinate units).
+      @param full_window If true, return 2 × quantile (full width), else return quantile (half-width).
+      @return The estimated extraction window based on residuals.
+    */
+    double estimateWindow(double quantile = 0.99,
+                          bool invert = true,
+                          bool full_window = true) const;
+
 protected:
     /// Data points
     DataPoints data_;
