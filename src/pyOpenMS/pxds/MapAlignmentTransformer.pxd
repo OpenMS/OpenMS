@@ -27,5 +27,5 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>" names
 
         void transformRetentionTimes(ConsensusMap&, TransformationDescription&, bool) except + nogil  # wrap-doc:Applies the given transformation to a consensus map
 
-        void transformRetentionTimes(libcpp_vector[PeptideIdentification]&, TransformationDescription&, bool) except + nogil  # wrap-doc:Applies the given transformation to peptide identifications
+        void transformRetentionTimes(PeptideIdentificationList&, TransformationDescription&, bool) except + nogil  # wrap-doc:Applies the given transformation to peptide identifications
 

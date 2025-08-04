@@ -25,13 +25,13 @@ namespace OpenMS
 
   MzIdentMLFile::~MzIdentMLFile() = default;
 
-  void MzIdentMLFile::load(const String& filename, std::vector<ProteinIdentification>& poid, std::vector<PeptideIdentification>& peid)
+  void MzIdentMLFile::load(const String& filename, std::vector<ProteinIdentification>& poid, PeptideIdentificationList& peid)
   {
     Internal::MzIdentMLDOMHandler handler(poid, peid, schema_version_, *this);
     handler.readMzIdentMLFile(filename);
   }
 
-  void MzIdentMLFile::store(const String& filename, const std::vector<ProteinIdentification>& poid, const std::vector<PeptideIdentification>& peid) const
+  void MzIdentMLFile::store(const String& filename, const std::vector<ProteinIdentification>& poid, const PeptideIdentificationList& peid) const
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::MZIDENTML))
     {

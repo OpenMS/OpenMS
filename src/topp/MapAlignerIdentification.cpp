@@ -227,7 +227,7 @@ private:
       case FileTypes::IDXML:
       {
         vector<ProteinIdentification> proteins;
-        vector<PeptideIdentification> peptides;
+        PeptideIdentificationList peptides;
         FileHandler().loadIdentifications(reference_file, proteins, peptides, {}, log_type_);
         algorithm.setReference(peptides);
       }
@@ -431,7 +431,7 @@ private:
     case FileTypes::IDXML:
     {
       vector<vector<ProteinIdentification>> protein_ids(input_files.size());
-      vector<vector<PeptideIdentification>> peptide_ids(input_files.size());
+      vector<PeptideIdentificationList> peptide_ids(input_files.size());
       FileHandler idxml_file;
       ProgressLogger progresslogger;
       progresslogger.setLogType(log_type_);

@@ -163,7 +163,7 @@ protected:
       else if (in_type == FileTypes::IDXML)
       {
         vector<ProteinIdentification> proteins;
-        vector<PeptideIdentification> peptides;
+        PeptideIdentificationList peptides;
         FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML}, log_type_);
         seed_gen.generateSeedList(peptides, seed_lists[0],
                                   getFlag_("use_peptide_mass"));

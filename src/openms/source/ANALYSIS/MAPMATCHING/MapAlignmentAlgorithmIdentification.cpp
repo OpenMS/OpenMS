@@ -92,7 +92,7 @@ namespace OpenMS
 
   // lists of peptide hits in "peptides" will be sorted
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-      const vector<PeptideIdentification>& peptides, SeqToList& rt_data)
+      const PeptideIdentificationList& peptides, SeqToList& rt_data)
   {
     for (auto pep_it = peptides.cbegin(); pep_it != peptides.cend(); ++pep_it)
     {

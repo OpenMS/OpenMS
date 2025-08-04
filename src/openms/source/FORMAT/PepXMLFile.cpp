@@ -347,7 +347,7 @@ namespace OpenMS
 
   PepXMLFile::~PepXMLFile() = default;
 
-  void PepXMLFile::store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file, const String& mz_name, bool peptideprophet_analyzed, double rt_tolerance)
+  void PepXMLFile::store(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const String& mz_file, const String& mz_name, bool peptideprophet_analyzed, double rt_tolerance)
   {
     ofstream f(filename.c_str());
     if (!f)
@@ -463,7 +463,7 @@ namespace OpenMS
     // register modifications
     set<String> aa_mods;
     set<String> n_term_mods, c_term_mods;
-    for (vector<PeptideIdentification>::const_iterator it = peptide_ids.begin();
+    for (PeptideIdentificationList::const_iterator it = peptide_ids.begin();
          it != peptide_ids.end(); ++it)
     {
       if (!it->getHits().empty())
@@ -967,7 +967,7 @@ namespace OpenMS
   }
 
   void PepXMLFile::load(const String& filename, vector<ProteinIdentification>&
-                        proteins, vector<PeptideIdentification>& peptides,
+                        proteins, PeptideIdentificationList& peptides,
                         const String& experiment_name
                         )
   {
@@ -976,7 +976,7 @@ namespace OpenMS
   }
 
   void PepXMLFile::load(const String& filename, vector<ProteinIdentification>&
-                        proteins, vector<PeptideIdentification>& peptides,
+                        proteins, PeptideIdentificationList& peptides,
                         const String& experiment_name,
                         const SpectrumMetaDataLookup& lookup)
   {

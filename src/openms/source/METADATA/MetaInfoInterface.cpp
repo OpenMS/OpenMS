@@ -247,15 +247,17 @@ namespace OpenMS
     }
   }
 
-  //TODO get a MetaValue list to copy only those that have been set
   void MetaInfoInterface::addMetaValues(const MetaInfoInterface& from)
   {
-    std::vector<String> keys;
-    from.getKeys(keys);
-    for (String& key : keys)
+    if (from.meta_ == nullptr)
     {
-      this->setMetaValue(key, from.getMetaValue(key));
+      return; // nothing to copy
     }
+    if (meta_ == nullptr)
+    {
+      meta_ = new MetaInfo();
+    }
+    *meta_ += *from.meta_;
   }
 
 } //namespace

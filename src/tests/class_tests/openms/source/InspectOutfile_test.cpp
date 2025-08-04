@@ -95,7 +95,7 @@ END_SECTION
 InspectOutfile file;
 
 START_SECTION(std::vector< Size > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const double p_value_threshold, const String& database_filename = ""))
-	vector< PeptideIdentification > peptide_identifications;
+	PeptideIdentificationList peptide_identifications;
 	ProteinIdentification protein_identification;
 
 	// test exceptions
@@ -330,7 +330,7 @@ END_SECTION
 
 START_SECTION(void getPrecursorRTandMZ(const vector< pair< String, vector< pair < Size, Size > > > >& files_and_peptide_identification_with_scan_number, std::vector< PeptideIdentification >& ids))
 	vector< pair< String, vector< pair< Size, Size > > > > files_and_peptide_identification_with_scan_number;
-	vector< PeptideIdentification > ids, ids_found;
+	PeptideIdentificationList ids, ids_found;
 
 	// test exceptions
 	files_and_peptide_identification_with_scan_number.push_back(make_pair(spectrum_file1, vector< pair< Size, Size > >(1, make_pair(0, 10))));

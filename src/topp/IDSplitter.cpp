@@ -51,17 +51,17 @@ public:
 
 protected:
 
-  void removeDuplicates_(vector<PeptideIdentification> & peptides)
+  void removeDuplicates_(PeptideIdentificationList & peptides)
   {
     // there is no "PeptideIdentification::operator<", so we can't use a set
     // or sort + unique to filter out duplicates...
     // just use the naive O(n²) algorithm
-    vector<PeptideIdentification> unique;
-    for (vector<PeptideIdentification>::iterator in_it = peptides.begin();
+    PeptideIdentificationList unique;
+    for (PeptideIdentificationList::iterator in_it = peptides.begin();
          in_it != peptides.end(); ++in_it)
     {
       bool duplicate = false;
-      for (vector<PeptideIdentification>::iterator out_it = unique.begin();
+      for (PeptideIdentificationList::iterator out_it = unique.begin();
            out_it != unique.end(); ++out_it)
       {
         if (*in_it == *out_it)
@@ -98,7 +98,7 @@ protected:
     }
 
     vector<ProteinIdentification> proteins;
-    vector<PeptideIdentification> peptides;
+    PeptideIdentificationList peptides;
 
     FileTypes::Type in_type = FileHandler::getType(in);
 

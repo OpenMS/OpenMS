@@ -41,6 +41,16 @@ sudo apt-get -qq install -y \
   coinor-libcoinmp-dev \
   libhdf5-dev
 
+  sudo apt update
+  sudo apt-get install -y -V ca-certificates lsb-release wget
+  wget https://packages.apache.org/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+  sudo apt update
+  sudo apt-get install -y -V ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+  sudo apt update
+  sudo apt-get install -y --no-install-recommends \
+        libarrow-dev \
+        libparquet-dev \
+
 # Optional dependencies:
 sudo apt-get -qq install -y \
   doxygen \

@@ -247,18 +247,18 @@ using namespace std;
     allow_nterm_protein_cleavage_ = param_.getValue("allow_nterm_protein_cleavage").toBool();
   }
 
-PeptideIndexing::ExitCodes PeptideIndexing::run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
+PeptideIndexing::ExitCodes PeptideIndexing::run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids)
 {
   FASTAContainer<TFI_Vector> protein_container(proteins);
   return run_<TFI_Vector>(protein_container, prot_ids, pep_ids);
 }
 
-PeptideIndexing::ExitCodes PeptideIndexing::run(FASTAContainer<TFI_File>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
+PeptideIndexing::ExitCodes PeptideIndexing::run(FASTAContainer<TFI_File>& proteins, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids)
 {
   return run_<TFI_File>(proteins, prot_ids, pep_ids);
 }
 
-PeptideIndexing::ExitCodes PeptideIndexing::run(FASTAContainer<TFI_Vector>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
+PeptideIndexing::ExitCodes PeptideIndexing::run(FASTAContainer<TFI_Vector>& proteins, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids)
 {
   return run_<TFI_Vector>(proteins, prot_ids, pep_ids);
 }
@@ -274,7 +274,7 @@ bool PeptideIndexing::isPrefix() const
 }
 
 template<typename T>
-PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
+PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids)
 {
   if ((enzyme_name_ == "Chymotrypsin" || enzyme_name_ == "Chymotrypsin/P" || enzyme_name_ == "TrypChymo")
     && IL_equivalent_)
@@ -630,7 +630,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
   Size pep_idx(0);
   Size func_hits_idx(0); ///< current position in func.pep_to_prot[] which has a stretch of matches for current pep_idx
   const Size func_hits_size = func.pep_to_prot.size(); 
-  for (std::vector<PeptideIdentification>::iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
+  for (PeptideIdentificationList::iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
   {
     // which ProteinIdentification does the peptide belong to?
     Size run_idx = runid_to_runidx[it1->getIdentifier()];

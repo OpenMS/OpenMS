@@ -59,7 +59,7 @@ END_SECTION
 
 START_SECTION(void load(const String &filename, std::vector< PeptideIdentification > &ids, PeakMap &exp))
 	MSPFile msp_file;
-	vector<PeptideIdentification> ids;
+	PeptideIdentificationList ids;
 	PeakMap exp;
 	msp_file.load(OPENMS_GET_TEST_DATA_PATH("MSPFile_test.msp"), ids, exp);
 	TEST_EQUAL(exp.size(), 7)
@@ -126,7 +126,7 @@ START_SECTION(void store(const String& filename, const AnnotatedMSRun& annot_exp
 	msp_file.store(filename, annot_exp);
 
 	PeakMap exp;
-	vector<PeptideIdentification> ids;
+	PeptideIdentificationList ids;
 	msp_file.load(filename, ids, exp);
 	TEST_EQUAL(ids.size(), 7)
 	TEST_EQUAL(exp.size(), 7)
