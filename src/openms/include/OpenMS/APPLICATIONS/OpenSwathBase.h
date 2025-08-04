@@ -323,7 +323,7 @@ protected:
    * This function will create the retention time transformation either by
    * loading a provided .trafoXML file or determine it from the data itself by
    * extracting the transitions specified in the irt_tr_file TraML file. It
-   * will also perform the m/z calibration.
+   * will also perform the m/z calibration (when an irt_fr_file is provided).
    *
    * @note Internally, the retention time and @p m/z calibration are performed
    * by OpenMS::OpenSwathCalibrationWorkflow::performRTNormalization
@@ -348,8 +348,12 @@ protected:
    * @param irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
    *        iRT chromatograms will be stored in this file)
    *
+   * @return tuple of\n
+   *   - TransformationDescription  : the RT‐normalization transformation,\n
+   *   - double                     : auto‐estimated MS2 m/z extraction window (full width, in ppm),\n
+   *   - double                     : auto‐estimated ion mobility window (full width; same units as library).
    */
-  TransformationDescription performCalibration(String trafo_in,
+  std::tuple<TransformationDescription,double,double> performCalibration(String trafo_in,
         String irt_tr_file,
         std::vector< OpenSwath::SwathMap > & swath_maps,
         double min_rsq,
@@ -365,6 +369,7 @@ protected:
         const String& irt_mzml_out)
   {
     TransformationDescription trafo_rtnorm;
+    double auto_mz_w; double auto_im_w;
 
     if (!trafo_in.empty())
     {
@@ -376,6 +381,11 @@ protected:
       model_params.setValue("num_nodes", irt_detection_param.getValue("b_spline:num_nodes"));
       String model_type = irt_detection_param.getValue("alignmentMethod").toString();
       trafo_rtnorm.fitModel(model_type, model_params);
+      // We don't calibrate for mz and IM if a user supplies a transformation function
+      // TODO: Should we deprecate and remove the option of providing a transformation function?
+      //  Not sure how often this is used in practice. @singjc, 2025-08-01
+      auto_mz_w  = -1.0;
+      auto_im_w  = -1.0;
     }
     else if (!irt_tr_file.empty())
     {
@@ -409,13 +419,22 @@ protected:
                                                cp_irt, irt_detection_param,
                                                calibration_param, irt_mzml_out, debug_level, pasef,
                                                load_into_memory);
-
+      double estimated_rt_extraction_window = trafo_rtnorm.estimateWindow(0.99, true, true);
+      std::cout
+        << "INNER Calibrated RT extraction window estimated: "
+        << estimated_rt_extraction_window
+        << std::endl;
+      // Retrieve estimated mz and IM extraction windows
+      auto_mz_w  = wf.getEstimatedMzWindow();
+      auto_im_w  = wf.getEstimatedImWindow();
       if (!irt_trafo_out.empty())
       {
         FileHandler().storeTransformations(irt_trafo_out, trafo_rtnorm, {FileTypes::TRANSFORMATIONXML});
       }
     }
-    return trafo_rtnorm;
+
+
+    return std::make_tuple(trafo_rtnorm, auto_mz_w, auto_im_w);
   }
 
 
