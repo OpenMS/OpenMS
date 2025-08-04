@@ -94,6 +94,31 @@ public:
     std::vector<OpenSwath::SwathMap> findSwathMapsPasef(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group,
                                                          const std::vector< OpenSwath::SwathMap > & swath_maps);
 
+    /** @brief Estimate an extraction window (full width) from a vector of absolute residuals.
+     *
+     * @param residuals  absolute errors (e.g. ppm)
+     * @param quantile   which quantile of the *half-width* distribution to use (default: 0.99)
+     * @param full_width if true, return twice the half-width (so you get the full window);
+     *                   if false, return just the half-width
+     */
+    static double estimateWindow(
+      std::vector<double> residuals,
+      double quantile = 0.99,
+      bool full_width = true
+    );
+
+    /// Retrieve the estimated fragment ion mobility extraction window
+    double getFragmentImWindow() const;
+
+    /// Set the estimated fragment ion mobility extraction window
+    void setFragmentImWindow(double fragmentImWindow);
+
+    /// Retrieve the estimated fragment m/z extraction window (ppm)
+    double getFragmentMzWindow() const;
+
+    /// Set the estimated fragment m/z extraction window (ppm_
+    void setFragmentMzWindow(double fragmentMzWindow);
+
   private:
     double mz_extraction_window_;
     bool mz_extraction_window_ppm_;
@@ -104,6 +129,9 @@ public:
     String debug_im_file_;
     String debug_mz_file_;
 
+    /// fragment‐ion m/z residuals used for estimating the MS2 extraction window
+    double fragment_mz_window_;
+    double fragment_im_window_;
   };
 }
 

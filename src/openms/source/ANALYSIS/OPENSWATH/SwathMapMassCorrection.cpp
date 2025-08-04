@@ -17,6 +17,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 #include <fstream>
+#include <algorithm>
 
 #define SWATHMAPMASSCORRECTION_DEBUG
 
@@ -355,6 +356,10 @@ namespace OpenMS
     String model_type = "linear";
     im_trafo.fitModel(model_type, model_params);
 
+    // Store
+    double fragment_im_window = im_trafo.estimateWindow(0.99, true, true);
+    setFragmentImWindow(fragment_im_window);
+
     OPENMS_LOG_DEBUG << "SwathMapMassCorrection::correctIM done." << std::endl;
   }
 
@@ -469,7 +474,6 @@ namespace OpenMS
         double diff_ppm = (mz - tr.product_mz) * 1000000 / mz;
         // y = target = delta-ppm
         delta_ppm.push_back(diff_ppm);
-
         if (!debug_mz_file_.empty())
         {
           os << mz << "\t" << tr.product_mz << "\t" << drift_target << "\t" << diff_ppm << "\t" << log(intensity) / log(2.0) << "\t" << bestRT << std::endl;
@@ -477,6 +481,10 @@ namespace OpenMS
         OPENMS_LOG_DEBUG << mz << "\t" << tr.product_mz << "\t" << diff_ppm << "\t" << log(intensity) / log(2.0) << "\t" << bestRT << std::endl;
       }
     }
+
+    // Estimate mz window
+    double fragment_mz_window = estimateWindow(delta_ppm, 0.99, true);
+    setFragmentMzWindow(fragment_mz_window);
 
     std::vector<double> regression_params;
     if (corr_type == "none" || data_all.size() < 3)
@@ -593,5 +601,41 @@ namespace OpenMS
     OPENMS_LOG_DEBUG << "SwathMapMassCorrection::correctMZ done." << std::endl;
   }
 
-}
+  double SwathMapMassCorrection::estimateWindow(std::vector<double> residuals, double quantile, bool full_width)
+  {
+    if (residuals.empty()) return 0.0;
+
+    // Ensure residuals are absolute errors
+    for (auto& d : residuals) d = std::abs(d);
+
+    std::sort(residuals.begin(), residuals.end());
+    size_t idx = std::min<size_t>(
+      residuals.size() - 1,
+      size_t(residuals.size() * quantile)
+    );
+    double half_width = residuals[idx];
+    return full_width ? (half_width * 2.0) : half_width;
+  }
+
+  double SwathMapMassCorrection::getFragmentMzWindow() const
+  {
+    return fragment_mz_window_;
+  }
+
+  void SwathMapMassCorrection::setFragmentMzWindow(double fragmentMzWindow)
+  {
+    fragment_mz_window_ = fragmentMzWindow;
+  }
+
+  double SwathMapMassCorrection::getFragmentImWindow() const
+  {
+    return fragment_im_window_;
+  }
+
+  void SwathMapMassCorrection::setFragmentImWindow(double fragmentImWindow)
+  {
+    fragment_im_window_ = fragmentImWindow;
+  }
+
+  }
 
