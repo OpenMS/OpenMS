@@ -33,6 +33,7 @@ Misc:
  - show load/store progress for files in all TOPP tools (#8041)
  
 Fixes:
+ - unify isotopic distributions (coarse vs. fine) for EmpiricalFormulas with charge (#8099)
  - fix TOPPAS crash when using TOPP tools with multiple output formats (#8120)
 
 Library:
