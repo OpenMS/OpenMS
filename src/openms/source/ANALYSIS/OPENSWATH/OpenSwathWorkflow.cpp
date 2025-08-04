@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
+#include <cmath>
 
 // OpenSwathCalibrationWorkflow
 namespace OpenMS
@@ -259,6 +260,10 @@ namespace OpenMS
     mc.correctMZ(trgrmap_final, targeted_exp, swath_maps, pasef);
     mc.correctIM(trgrmap_final, targeted_exp, swath_maps, pasef, im_trafo);
 
+    // FRAGMENT‐ION (MS2) m/z residuals in ppm
+    setEstimatedMzWindow(mc.getFragmentMzWindow());
+    setEstimatedImWindow(mc.getFragmentImWindow());
+
     // 9. store RT transformation, using the selected model
     TransformationDescription trafo_out;
     trafo_out.setDataPoints(pairs_corrected);
@@ -274,6 +279,13 @@ namespace OpenMS
     {
       OPENMS_LOG_DEBUG << pairs_corrected[i].first << " " <<  pairs_corrected[i].second << std::endl;
     }
+
+    double estimated_rt_extraction_window = trafo_out.estimateWindow(0.99, true, true);
+    std::cout
+      << "doDataNormalization_: Calibrated RT extraction window estimated: "
+      << estimated_rt_extraction_window
+      << std::endl;
+
     OPENMS_LOG_DEBUG << "End of doDataNormalization_ method" << std::endl;
 
     this->endProgress();
@@ -435,6 +447,26 @@ namespace OpenMS
 
     LinearResamplerAlign ls;
     ls.raster(newchrom.begin(), newchrom.end(), base_chrom.begin(), base_chrom.end());
+  }
+
+  double OpenSwathCalibrationWorkflow::getEstimatedMzWindow() const
+  {
+    return estimated_mz_window;
+  }
+
+  void OpenSwathCalibrationWorkflow::setEstimatedMzWindow(double estimatedMzWindow)
+  {
+    estimated_mz_window = estimatedMzWindow;
+  }
+
+  double OpenSwathCalibrationWorkflow::getEstimatedImWindow() const
+  {
+    return estimated_im_window;
+  }
+
+  void OpenSwathCalibrationWorkflow::setEstimatedImWindow(double estimatedImWindow)
+  {
+    estimated_im_window = estimatedImWindow;
   }
 
 }

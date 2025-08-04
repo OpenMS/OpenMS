@@ -352,6 +352,22 @@ protected:
     */
     static void addChromatograms(MSChromatogram& base_chrom, const MSChromatogram& newchrom);
 
+    /// Retrieve the estimated fragment m/z window (ppm)
+    double getEstimatedMzWindow() const;
+
+    /// Set the estimated fragment m/z window (ppm)
+    void setEstimatedMzWindow(double estimatedMzWindow);
+
+    /// Retrieve the estimated fragment ion mobility
+    double getEstimatedImWindow() const;
+
+    /// Set the estimated fragment ion mobility
+    void setEstimatedImWindow(double estimatedImWindow);
+
+  protected:
+    /// estimated extraction windows
+    double estimated_mz_window;
+    double estimated_im_window;
   };
 
   /**

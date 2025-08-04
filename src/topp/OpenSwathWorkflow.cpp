@@ -905,14 +905,32 @@ protected:
     calibration_param.setValue("mz_extraction_window_ppm", cp_irt.ppm ? "true" : "false");
     calibration_param.setValue("im_extraction_window", cp_irt.im_extraction_window);
     calibration_param.setValue("mz_correction_function", mz_correction_function);
-    TransformationDescription trafo_rtnorm;
+    TransformationDescription trafo_rtnorm; double estimated_rt_extraction_window; double estimated_mz_extraction_window; double estimated_im_extraction_window;
     if (nonlinear_irt_tr_file.empty())
     {
-      trafo_rtnorm = performCalibration(trafo_in, irt_tr_file, swath_maps,
+      std::tie(trafo_rtnorm, estimated_mz_extraction_window, estimated_im_extraction_window) = performCalibration(trafo_in, irt_tr_file, swath_maps,
                                         min_rsq, min_coverage, feature_finder_param,
                                         cp_irt, irt_detection_param, calibration_param,
                                         debug_level, pasef, load_into_memory,
                                         irt_trafo_out, irt_mzml_out);
+
+      estimated_rt_extraction_window = trafo_rtnorm.estimateWindow(0.99, true, true);
+      std::cout
+        << "Calibrated RT extraction window estimated: "
+        << estimated_rt_extraction_window
+        << " (originally set to: "
+        << cp.rt_extraction_window
+        << ")"
+        << std::endl;
+      std::cout
+        << "Calibrated MS2 m/z extraction window estimated: "
+        << estimated_mz_extraction_window
+        << " (originally set to: "
+        << cp.mz_extraction_window
+        << ")"
+        << std::endl;
+      cp.rt_extraction_window = estimated_rt_extraction_window;
+      cp.mz_extraction_window = estimated_mz_extraction_window;
     }
     else
     {
@@ -924,11 +942,21 @@ protected:
       linear_irt.setValue("alignmentMethod", "linear");
       Param no_calibration = calibration_param;
       no_calibration.setValue("mz_correction_function", "none");
-      trafo_rtnorm = performCalibration(trafo_in, irt_tr_file, swath_maps,
+      std::tie(trafo_rtnorm, estimated_mz_extraction_window, estimated_im_extraction_window)  = performCalibration(trafo_in, irt_tr_file, swath_maps,
                                         min_rsq, min_coverage, feature_finder_param,
                                         cp_irt, linear_irt, no_calibration,
                                         debug_level, pasef, load_into_memory,
                                         irt_trafo_out, irt_mzml_out);
+
+      std::cout
+        << "Calibrated (linear) MS2 m/z extraction window estimated: "
+        << estimated_mz_extraction_window
+        << " (originally set to: "
+        << cp.mz_extraction_window
+        << ")"
+        << std::endl;
+
+      estimated_rt_extraction_window = trafo_rtnorm.estimateWindow(0.99, true, true);
 
       cp_irt.rt_extraction_window = getDoubleOption_("irt_nonlinear_rt_extraction_window"); // extract some substantial part of the RT range (should be covered by linear correction)
 
@@ -962,6 +990,24 @@ protected:
         p.drift_time = im_trafo_inv.apply(p.drift_time);
       }
 
+      estimated_mz_extraction_window = wf.getEstimatedMzWindow();
+
+      std::cout
+        << "Calibrated RT extraction window estimated: "
+        << estimated_rt_extraction_window
+        << " (originally set to: "
+        << cp.rt_extraction_window
+        << ")"
+        << std::endl;
+      std::cout
+        << "Calibrated (non-linear) MS2 m/z extraction window estimated: "
+        << estimated_mz_extraction_window
+        << " (originally set to: "
+        << cp.mz_extraction_window
+        << ")"
+        << std::endl;
+      cp.rt_extraction_window = estimated_rt_extraction_window;
+      cp.mz_extraction_window = estimated_mz_extraction_window;
     }
 
     ///////////////////////////////////
