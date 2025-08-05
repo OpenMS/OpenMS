@@ -78,7 +78,7 @@ namespace OpenMS
       int& im_idx, bool& has_centroid_im,
       int& im_fwhm_idx, bool& has_fwhm_im
     ) const
-    {      
+    {
       for (const auto& spec : spectra)
       {
         const auto& fda = spec.getFloatDataArrays();
@@ -478,8 +478,8 @@ namespace OpenMS
 
         std::list<PeakType> current_trace;
         current_trace.push_back(apex_peak);
-        std::vector<double> fwhms_mz;
-        std::vector<double> fwhms_im;
+        std::vector<double> fwhms_mz; // peak-FWHM meta values of collected peaks
+        std::vector<double> fwhms_im; // peak-FWHM ion mobility peak FWHM of collected peaks
 
         // Initialization for the iterative version of weighted m/z mean calculation
         double centroid_mz(apex_peak.getMZ());
@@ -569,7 +569,6 @@ namespace OpenMS
               }
             }
           }
-
           // *********************************************************** //
           // Step 2.2 MOVE UP in RT dim
           // *********************************************************** //
@@ -661,6 +660,7 @@ namespace OpenMS
       }
       this->endProgress();
     }
+
 
     void MassTraceDetection::updateMembers_()
     {
