@@ -2,7 +2,7 @@
 
 ## Important Build Instructions
 
-**DO NOT attempt to build OpenMS** - The build process is extremely resource-intensive and costly. Building OpenMS requires significant computational resources and time.
+**DO NOT attempt to build OpenMS unless asked to do so** - The build process is extremely resource-intensive and costly. Building OpenMS requires significant computational resources and time.
 
 ## Project Overview
 
@@ -101,7 +101,6 @@ OpenMS/
 - **Class tests**: Unit tests in `src/tests/class_tests/openms/`
 - **TOPP tests**: Integration tests in `src/tests/topp/`
 - **Python tests**: pyOpenMS tests in `src/pyOpenMS/tests/`
-- Tests use the Google Test framework
 - Follow naming convention: `ClassNameTest.cpp` for `ClassName`
 
 ## Assistance Focus
