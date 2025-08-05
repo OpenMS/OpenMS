@@ -14,6 +14,8 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <boost/dynamic_bitset.hpp>
+
 namespace OpenMS
 {
 
@@ -92,6 +94,29 @@ namespace OpenMS
           Size peak_idx;
         };
 
+        /// Encapsulates peak finding logic for both up and down directions
+        struct PeakCandidate
+        {
+          Size idx;
+          double mz;
+          double intensity;
+          double im;
+          bool found;
+          
+          PeakCandidate() : idx(0), mz(-1.0), intensity(-1.0), im(-1.0), found(false) {}
+        };
+
+        /// Encapsulates trace extension state
+        struct TraceExtensionState
+        {
+          Size scan_counter;
+          Size hitting_peak_count;
+          Size consecutive_missed;
+          bool active;
+          
+          TraceExtensionState() : scan_counter(0), hitting_peak_count(0), consecutive_missed(0), active(true) {}
+        };
+
         /// The internal run method
         void run_(const std::vector<Apex>& chrom_apices,
                   const Size peak_count,
@@ -105,6 +130,46 @@ namespace OpenMS
                            int& fwhm_meta_idx, bool& has_fwhm_mz,
                            int& im_idx, bool& has_centroid_im,
                            int& im_fwhm_idx, bool& has_fwhm_im) const;
+
+        /// Find the best matching peak in a spectrum considering m/z and optionally ion mobility
+        PeakCandidate findBestPeak_(const MSSpectrum& spectrum,
+                                    double centroid_mz,
+                                    double ftl_sd,
+                                    double centroid_im = -1.0) const;
+
+        /// Check if peak candidate meets acceptance criteria
+        bool isPeakAcceptable_(const PeakCandidate& candidate,
+                              double centroid_mz,
+                              double ftl_sd,
+                              double centroid_im,
+                              Size spectrum_idx,
+                              const std::vector<Size>& spec_offsets,
+                              const boost::dynamic_bitset<>& peak_visited) const;
+
+        /// Process a single peak during trace extension
+        void processPeak_(const PeakCandidate& candidate,
+                         const MSSpectrum& spectrum,
+                         std::list<PeakType>& current_trace,
+                         std::vector<std::pair<Size, Size>>& gathered_idx,
+                         std::vector<double>& fwhms_mz,
+                         std::vector<double>& fwhms_im,
+                         double& centroid_mz,
+                         double& centroid_im,
+                         double& prev_counter,
+                         double& prev_denom,
+                         double& prev_counter_im,
+                         double& prev_denom_im,
+                         double& ftl_sd,
+                         double& intensity_so_far,
+                         Size spectrum_idx,
+                         bool is_upward_extension);
+
+
+        /// Check if a mass trace meets quality criteria
+        bool isTraceValid_(const std::list<PeakType>& trace,
+                          Size total_scans_visited,
+                          Size consecutive_missed_down,
+                          Size consecutive_missed_up) const;
 
         // Metadata availability flags – set by getIMIndices_ and valid after run_()
         bool has_fwhm_mz_ = false;
@@ -126,5 +191,10 @@ namespace OpenMS
         double max_trace_length_;
 
         bool reestimate_mt_sd_;
+
+        // Metadata array indices - set during run_()
+        mutable int fwhm_meta_idx_ = -1;
+        mutable int ion_mobility_idx_ = -1;
+        mutable int im_fwhm_idx_ = -1;
     };
 }
