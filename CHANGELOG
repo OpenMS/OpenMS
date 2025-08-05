@@ -27,7 +27,7 @@ Dependencies:
     - PyOpenMS now supports Cython 3.1
 
 MassTraceExtractor:
-    - Support for Bruker Ion Moblity (experimental). Note: requires IM peak picked data.
+    - Support for Bruker Ion Mobility (experimental). Note: requires IM peak picked data.
 
 NucleicAcidSearchEngine:
     - add support for global fixed modifications as a search parameter
