@@ -50,6 +50,13 @@ namespace OpenMS
             public ProgressLogger
     {
     public:
+        /// Trace termination criteria enum for performance optimization
+        enum TraceTerminationCriterion
+        {
+            OUTLIER,        ///< Terminate when consecutive outliers exceed threshold
+            SAMPLE_RATE     ///< Terminate when sample rate falls below threshold
+        };
+
         /// Default constructor
         MassTraceDetection();
 
@@ -184,7 +191,7 @@ namespace OpenMS
         double ion_mobility_tolerance_;
         MassTrace::MT_QUANTMETHOD quant_method_;
 
-        String trace_termination_criterion_;
+        TraceTerminationCriterion trace_termination_criterion_;
         Size trace_termination_outliers_;
         double min_sample_rate_;
         double min_trace_length_;

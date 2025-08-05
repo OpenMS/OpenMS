@@ -15,6 +15,7 @@
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 namespace OpenMS
 {
@@ -549,14 +550,14 @@ namespace OpenMS
             ++down_state.scan_counter;
             
             // Apply termination criteria based on user configuration
-            if (trace_termination_criterion_ == "outlier")
+            if (trace_termination_criterion_ == OUTLIER)
             {
               if (down_state.consecutive_missed > trace_termination_outliers_)
               {
                 down_state.active = false;
               }
             }
-            else if (trace_termination_criterion_ == "sample_rate")
+            else if (trace_termination_criterion_ == SAMPLE_RATE)
             {
               Size min_scans_to_consider = 5;
               Size total_hits = down_state.hitting_peak_count + up_state.hitting_peak_count + 1; // +1 for apex
@@ -602,14 +603,14 @@ namespace OpenMS
             ++up_state.scan_counter;
             
             // Apply termination criteria based on user configuration
-            if (trace_termination_criterion_ == "outlier")
+            if (trace_termination_criterion_ == OUTLIER)
             {
               if (up_state.consecutive_missed > trace_termination_outliers_)
               {
                 up_state.active = false;
               }
             }
-            else if (trace_termination_criterion_ == "sample_rate")
+            else if (trace_termination_criterion_ == SAMPLE_RATE)
             {
               Size min_scans_to_consider = 5;
               Size total_hits = down_state.hitting_peak_count + up_state.hitting_peak_count + 1; // +1 for apex
@@ -670,7 +671,20 @@ namespace OpenMS
       ion_mobility_tolerance_ = (double)param_.getValue("ion_mobility_tolerance");
       quant_method_ = MassTrace::getQuantMethod((String)param_.getValue("quant_method").toString());
 
-      trace_termination_criterion_ = (String)param_.getValue("trace_termination_criterion").toString();
+      String criterion_str = (String)param_.getValue("trace_termination_criterion").toString();
+      if (criterion_str == "outlier")
+      {
+        trace_termination_criterion_ = OUTLIER;
+      }
+      else if (criterion_str == "sample_rate")
+      {
+        trace_termination_criterion_ = SAMPLE_RATE;
+      }
+      else
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid trace_termination_criterion: " + criterion_str);
+      }
+      
       trace_termination_outliers_ = (Size)param_.getValue("trace_termination_outliers");
       min_sample_rate_ = (double)param_.getValue("min_sample_rate");
       min_trace_length_ = (double)param_.getValue("min_trace_length");
