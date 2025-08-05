@@ -59,34 +59,84 @@ namespace OpenMS
     compressed_data.remove(0, 4);
   }
 
-  void ZlibCompression::uncompressString(const void * tt, size_t blob_bytes, std::string& uncompressed)
+  void ZlibCompression::uncompressString(const void * compressed_data, size_t nr_bytes, std::string& raw_data)
   {
-    // take a leap of faith and assume the input is valid
-    QByteArray compressed_data = QByteArray::fromRawData((const char*)tt, (int)blob_bytes);
-    QByteArray raw_data;
+    // Use automatic size detection with streaming decompression
+    raw_data.clear();
+    
+    z_stream strm = {};
+    strm.next_in = (Bytef*)compressed_data;
+    strm.avail_in = nr_bytes;
 
-    ZlibCompression::uncompressString(compressed_data, raw_data);
+    // Initialize zlib for raw deflate format
+    if (inflateInit(&strm) != Z_OK)
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Failed to initialize zlib decompression");
+    }
 
-    // Note that we may have zero bytes in the string, so we cannot use QString
-    uncompressed.clear();
-    uncompressed = std::string(raw_data.data(), raw_data.size());
+    // Decompress in chunks
+    const size_t chunk_size = 16384;
+    std::vector<char> buffer(chunk_size);
+    int ret;
+
+    do
+    {
+      strm.avail_out = chunk_size;
+      strm.next_out = (Bytef*)buffer.data();
+
+      ret = inflate(&strm, Z_NO_FLUSH);
+      if (ret == Z_STREAM_ERROR || ret == Z_DATA_ERROR || ret == Z_MEM_ERROR)
+      {
+        inflateEnd(&strm);
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Zlib decompression error");
+      }
+
+      size_t have = chunk_size - strm.avail_out;
+      raw_data.append(buffer.data(), have);
+
+    } while (ret != Z_STREAM_END);
+
+    inflateEnd(&strm);
+  }
+
+  void ZlibCompression::uncompressString(const void * compressed_data, size_t nr_bytes, std::string& raw_data, size_t expected_size)
+  {
+    if (expected_size > 0)
+    {
+      // Use size hint for more efficient decompression
+      raw_data.resize(expected_size);
+      uLongf dest_len = expected_size;
+      
+      int ret = uncompress((Bytef*)raw_data.data(), &dest_len, (Bytef*)compressed_data, nr_bytes);
+      
+      if (ret == Z_OK)
+      {
+        raw_data.resize(dest_len);
+      }
+      else if (ret == Z_BUF_ERROR)
+      {
+        // Buffer too small, fall back to streaming method
+        uncompressString(compressed_data, nr_bytes, raw_data);
+      }
+      else
+      {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Zlib decompression error with size hint");
+      }
+    }
+    else
+    {
+      // No size hint, use streaming method
+      uncompressString(compressed_data, nr_bytes, raw_data);
+    }
   }
 
   void ZlibCompression::uncompressString(const QByteArray& compressed_data, QByteArray& raw_data)
   {
-    QByteArray czip;
-    czip.resize(4);
-    czip[0] = (compressed_data.size() & 0xff000000) >> 24;
-    czip[1] = (compressed_data.size() & 0x00ff0000) >> 16;
-    czip[2] = (compressed_data.size() & 0x0000ff00) >> 8;
-    czip[3] = (compressed_data.size() & 0x000000ff);
-    czip += compressed_data;
-    raw_data = qUncompress(czip);
-
-    if (raw_data.isEmpty())
-    {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decompression error?");
-    }
+    std::string uncompressed_std;
+    uncompressString(compressed_data.constData(), compressed_data.size(), uncompressed_std);
+    
+    raw_data.clear();
+    raw_data.append(uncompressed_std.data(), uncompressed_std.size());
   }
 
 }

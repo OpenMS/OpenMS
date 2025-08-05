@@ -273,19 +273,8 @@ namespace OpenMS
     base64_uncompressed = QByteArray::fromBase64(herewego);
     if (zlib_compression)
     {
-      QByteArray czip;
-      czip.resize(4);
-      czip[0] = (base64_uncompressed.size() & 0xff000000) >> 24;
-      czip[1] = (base64_uncompressed.size() & 0x00ff0000) >> 16;
-      czip[2] = (base64_uncompressed.size() & 0x0000ff00) >> 8;
-      czip[3] = (base64_uncompressed.size() & 0x000000ff);
-      czip += base64_uncompressed;
-      base64_uncompressed = qUncompress(czip);
-
-      if (base64_uncompressed.isEmpty())
-      {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decompression error?");
-      }
+      QByteArray compressed_data = base64_uncompressed;
+      ZlibCompression::uncompressString(compressed_data, base64_uncompressed);
     }
   }
 
