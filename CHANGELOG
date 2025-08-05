@@ -26,6 +26,9 @@ Dependencies:
     - PyOpenMS now depends on Autowrap 0.23.0
     - PyOpenMS now supports Cython 3.1
 
+MassTraceExtractor:
+    - Support for Bruker Ion Mobility (experimental). Note: requires IM peak picked data.
+
 NucleicAcidSearchEngine:
     - add support for global fixed modifications as a search parameter
 
@@ -39,7 +42,7 @@ Fixes:
 Library:
 - Removed `assignRanks` and `sortByRanks` in PeptideIdentifications and sort and filter by score instead. Also removed `updateHitRanks` in IDFilter (#7991)
 - Remove ranke member in PeptideHit and store ranks as meta value (for backwards compatibility). (#7997)
-- std::vector<PeptideIdentification> now is encapsulated in a class PeptideIdentificationList
+- std::vector<PeptideIdentification> now is encapsulated in a class PeptideIdentificationList.
 - Added `EnzymaticDigestion.semiSpecificDigestion_()`
 - ProteaseDigestion: add support for semi-specific digestion (#8130)
 
