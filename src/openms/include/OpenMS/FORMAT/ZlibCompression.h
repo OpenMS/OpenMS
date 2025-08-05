@@ -53,7 +53,7 @@ public:
 
 
     /**
-      * @brief Compresses data using Qt
+      * @brief Compresses data using zlib directly
       *
       * @param raw_data Data to be compressed
       * @param compressed_data Compressed result data

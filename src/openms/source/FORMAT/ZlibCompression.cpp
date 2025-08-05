@@ -55,8 +55,13 @@ namespace OpenMS
 
   void ZlibCompression::compressString(const QByteArray& raw_data, QByteArray& compressed_data)
   {
-    compressed_data = qCompress(raw_data);
-    compressed_data.remove(0, 4);
+    std::string raw_std(raw_data.constData(), raw_data.size());
+    std::string compressed_std;
+    
+    ZlibCompression::compressData(raw_std.data(), raw_std.size(), compressed_std);
+    
+    compressed_data.clear();
+    compressed_data.append(compressed_std.data(), compressed_std.size());
   }
 
   void ZlibCompression::uncompressString(const void * compressed_data, size_t nr_bytes, std::string& raw_data)
