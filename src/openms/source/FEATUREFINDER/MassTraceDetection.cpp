@@ -15,6 +15,7 @@
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 namespace OpenMS
 {
@@ -85,8 +86,8 @@ namespace OpenMS
         if (!fda.empty())
         {
           auto it_fwhm = getDataArrayByName(fda, Constants::UserParam::FWHM_MZ_ppm);
-          auto it_im   = getDataArrayByName(fda, Constants::UserParam::ION_MOBILITY);
-          auto it_imf  = getDataArrayByName(fda, Constants::UserParam::FWHM_IM);
+          auto it_im = getDataArrayByName(fda, Constants::UserParam::ION_MOBILITY);
+          auto it_imf = getDataArrayByName(fda, Constants::UserParam::FWHM_IM);
 
           if (it_fwhm != fda.end())
           {
@@ -103,11 +104,11 @@ namespace OpenMS
             im_fwhm_idx = std::distance(fda.begin(), it_imf);
             has_fwhm_im = true;
           }
-
           break;
         }
       }
 
+      // validate that all meta arrays are consistently present or absent across all spectra
       auto validate_meta_array = [&](const String& name, int idx) {
         if (idx == -1) return;
 
@@ -170,35 +171,6 @@ namespace OpenMS
       run(map, found_masstraces);
     }
 
-// update function for FTL method
-
-    void updateMeanEstimate(const double& x_t, double& mean_t, Size t)
-    {
-      mean_t +=  (1.0 / ((double)t + 1.0)) * (x_t - mean_t);
-    }
-
-    void updateSDEstimate(const double& x_t, const double& mean_t, double& sd_t, Size t)
-    {
-      double i(t);
-      sd_t = (i / (i + 1)) * sd_t + (i / (i + 1) * (i + 1)) * (x_t - mean_t) * (x_t - mean_t);
-      // std::cerr << "func:  " << tmp << " " << i << std::endl;
-    }
-
-    void updateWeightedSDEstimate(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
-    {
-      double denom = last_weights_sum * sd_t * sd_t + p.getIntensity() * (p.getMZ() - mean_t1) * (p.getMZ() - mean_t1);
-      double weights_sum = last_weights_sum + p.getIntensity();
-
-      double tmp_sd = std::sqrt(denom / weights_sum);
-
-      if (tmp_sd > std::numeric_limits<double>::epsilon())
-      {
-        sd_t = tmp_sd;
-      }
-
-      last_weights_sum = weights_sum;
-    }
-
     void updateWeightedSDEstimateRobust(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
     {
       double denom1 = std::log(last_weights_sum) + 2 * std::log(sd_t);
@@ -214,29 +186,6 @@ namespace OpenMS
 
       last_weights_sum = weights_sum;
     }
-
-    void computeWeightedSDEstimate(std::list<PeakType> tmp, const double& mean_t, double& sd_t, const double& /* lower_sd_bound */)
-    {
-      double denom(0.0), weights_sum(0.0);
-
-      for (std::list<PeakType>::const_iterator l_it = tmp.begin(); l_it != tmp.end(); ++l_it)
-      {
-        denom += l_it->getIntensity() * (l_it->getMZ() - mean_t) * (l_it->getMZ() - mean_t);
-        weights_sum += l_it->getIntensity();
-      }
-
-      double tmp_sd = std::sqrt(denom / (weights_sum));
-
-      // std::cout << "tmp_sd" << tmp_sd << std::endl;
-
-      if (tmp_sd > std::numeric_limits<double>::epsilon())
-      {
-        sd_t = tmp_sd;
-      }
-
-      return;
-    }
-
 
     void MassTraceDetection::run(const PeakMap& input_exp, std::vector<MassTrace>& found_masstraces, const Size max_traces)
     {
@@ -314,6 +263,189 @@ namespace OpenMS
       return;
     } // end of MassTraceDetection::run
 
+    MassTraceDetection::PeakCandidate MassTraceDetection::findBestPeak_(
+        const MSSpectrum& spectrum,
+        double centroid_mz,
+        double ftl_sd,
+        double centroid_im) const
+    {
+      PeakCandidate candidate;
+      
+      if (spectrum.empty())
+      {
+        return candidate;
+      }
+
+      double right_bound = centroid_mz + 3 * ftl_sd;
+      double left_bound = centroid_mz - 3 * ftl_sd;
+
+      if (!has_centroid_im_)
+      {
+        // Standard LC-MS data: find peak closest to target m/z
+        candidate.idx = spectrum.findNearest(centroid_mz);
+        candidate.mz = spectrum[candidate.idx].getMZ();
+        candidate.intensity = spectrum[candidate.idx].getIntensity();
+        candidate.found = true;
+      }
+      else
+      {
+        // LC-IMS-MS data: find best peak considering both m/z and ion mobility
+        double right_bound_im = centroid_im + ion_mobility_tolerance_;
+        double left_bound_im = centroid_im - ion_mobility_tolerance_;
+
+        auto left_bound_it = spectrum.MZBegin(left_bound);
+        Size idx_left = left_bound_it - spectrum.begin();
+        auto right_bound_it = spectrum.MZEnd(right_bound);
+        Size idx_right = right_bound_it - spectrum.begin();
+
+        // Search within m/z window for peak with closest ion mobility match
+        for (Size i = idx_left; i < idx_right; ++i)
+        {
+          double im_value = spectrum.getFloatDataArrays()[ion_mobility_idx_][i];
+          
+          if (im_value >= left_bound_im && im_value <= right_bound_im)
+          {
+            if (!candidate.found || std::abs(spectrum[i].getMZ() - centroid_mz) < std::abs(candidate.mz - centroid_mz))
+            {
+              candidate.idx = i;
+              candidate.mz = spectrum[i].getMZ();
+              candidate.intensity = spectrum[i].getIntensity();
+              candidate.im = im_value;
+              candidate.found = true;
+            }
+          }
+        }
+      }
+
+      return candidate;
+    }
+
+    bool MassTraceDetection::isPeakAcceptable_(
+        const PeakCandidate& candidate,
+        double centroid_mz,
+        double ftl_sd,
+        double centroid_im,
+        Size spectrum_idx,
+        const std::vector<Size>& spec_offsets,
+        const boost::dynamic_bitset<>& peak_visited) const
+    {
+      if (!candidate.found)
+      {
+        return false;
+      }
+
+      double right_bound = centroid_mz + 3 * ftl_sd;
+      double left_bound = centroid_mz - 3 * ftl_sd;
+
+      // Peak must fall within m/z tolerance window (±3 standard deviations)
+      if (!((candidate.mz <= right_bound) && (candidate.mz >= left_bound)))
+      {
+        return false;
+      }
+
+      // For ion mobility data, peak must also fall within IM tolerance window
+      if (has_centroid_im_)
+      {
+        double right_bound_im = centroid_im + ion_mobility_tolerance_;
+        double left_bound_im = centroid_im - ion_mobility_tolerance_;
+        
+        if (candidate.im < left_bound_im || candidate.im > right_bound_im)
+        {
+          return false;
+        }
+      }
+
+      // Peak must not have been used in another trace already
+      return !peak_visited[spec_offsets[spectrum_idx] + candidate.idx];
+    }
+
+    void MassTraceDetection::processPeak_(
+        const PeakCandidate& candidate,
+        const MSSpectrum& spectrum,
+        std::list<PeakType>& current_trace,
+        std::vector<std::pair<Size, Size>>& gathered_idx,
+        std::vector<double>& fwhms_mz,
+        std::vector<double>& fwhms_im,
+        double& centroid_mz,
+        double& centroid_im,
+        double& prev_counter,
+        double& prev_denom,
+        double& prev_counter_im,
+        double& prev_denom_im,
+        double& ftl_sd,
+        double& intensity_so_far,
+        Size spectrum_idx,
+        bool is_upward_extension)
+    {
+      Peak2D next_peak;
+      next_peak.setRT(spectrum.getRT());
+      next_peak.setMZ(candidate.mz);
+      next_peak.setIntensity(candidate.intensity);
+
+      // Add peak to the growing mass trace
+      if (is_upward_extension)
+      {
+        current_trace.push_back(next_peak);
+      }
+      else
+      {
+        current_trace.push_front(next_peak);
+      }
+
+      // Update trace centroid m/z with intensity-weighted average
+      updateIterativeWeightedMean_(candidate.mz, candidate.intensity, centroid_mz, prev_counter, prev_denom);
+      gathered_idx.emplace_back(spectrum_idx, candidate.idx);
+
+      // Update ion mobility centroid if available
+      if (has_centroid_im_)
+      {
+        updateIterativeWeightedMean_(candidate.im, candidate.intensity, centroid_im, prev_counter_im, prev_denom_im);
+      }
+
+      // Collect FWHM metadata for trace quality assessment
+      if (has_fwhm_mz_)
+      {
+        fwhms_mz.push_back(spectrum.getFloatDataArrays()[fwhm_meta_idx_][candidate.idx]);
+      }
+      if (has_fwhm_im_)
+      {
+        fwhms_im.push_back(spectrum.getFloatDataArrays()[im_fwhm_idx_][candidate.idx]);
+      }
+
+      // Dynamically adjust m/z tolerance based on observed variance
+      if (reestimate_mt_sd_)
+      {
+        updateWeightedSDEstimateRobust(next_peak, centroid_mz, ftl_sd, intensity_so_far);
+      }
+    }
+
+
+    bool MassTraceDetection::isTraceValid_(
+        const std::list<PeakType>& trace,
+        Size total_scans_visited,
+        Size consecutive_missed_down,
+        Size consecutive_missed_up) const
+    {
+      double rt_range = std::fabs(trace.rbegin()->getRT() - trace.begin()->getRT());
+      
+      // Check length criteria
+      if (rt_range < min_trace_length_)
+      {
+        return false;
+      }
+      
+      if (max_trace_length_ >= 0.0 && rt_range > max_trace_length_)
+      {
+        return false;
+      }
+
+      // Check quality (sample rate)
+      Size adjusted_scans = total_scans_visited - consecutive_missed_down - consecutive_missed_up;
+      double mt_quality = static_cast<double>(trace.size()) / static_cast<double>(adjusted_scans);
+      
+      return mt_quality >= min_sample_rate_;
+    }
+
     void MassTraceDetection::run_(const std::vector<Apex>& chrom_apices,
                                   const Size total_peak_count,
                                   const PeakMap& work_exp,
@@ -324,18 +456,11 @@ namespace OpenMS
       boost::dynamic_bitset<> peak_visited(total_peak_count);
       Size trace_number(1);
 
-      // check presence of m/z peak FWHM, ion mobility or IM peak FWHM meta array
-      // initialize index variable for each meta array and boolean check
-      int fwhm_meta_idx(-1);
-      int Ion_Mobility_idx(-1);
-      int IM_fwhm_idx(-1);
-
-      // locate Ion mobility data float array index & its associated information if present.
+      // Detect ion mobility and FWHM metadata arrays in the dataset
       getIMIndices_(work_exp,
-                    fwhm_meta_idx, has_fwhm_mz_,
-                    Ion_Mobility_idx, has_centroid_im_,
-                    IM_fwhm_idx, has_fwhm_im_);
-
+                    fwhm_meta_idx_, has_fwhm_mz_,
+                    ion_mobility_idx_, has_centroid_im_,
+                    im_fwhm_idx_, has_fwhm_im_);
 
       this->startProgress(0, total_peak_count, "mass trace detection");
       Size peaks_detected(0);
@@ -352,9 +477,6 @@ namespace OpenMS
         apex_peak.setMZ(work_exp[apex_scan_idx][apex_peak_idx].getMZ());
         apex_peak.setIntensity(work_exp[apex_scan_idx][apex_peak_idx].getIntensity());
 
-        Size trace_up_idx(apex_scan_idx);
-        Size trace_down_idx(apex_scan_idx);
-
         std::list<PeakType> current_trace;
         current_trace.push_back(apex_peak);
         std::vector<double> fwhms_mz; // peak-FWHM meta values of collected peaks
@@ -365,7 +487,7 @@ namespace OpenMS
         double prev_counter(apex_peak.getIntensity() * apex_peak.getMZ());
         double prev_denom(apex_peak.getIntensity());
 
-        MassTraceDetection::updateIterativeWeightedMean_(apex_peak.getMZ(), apex_peak.getIntensity(), centroid_mz, prev_counter, prev_denom);
+        updateIterativeWeightedMean_(apex_peak.getMZ(), apex_peak.getIntensity(), centroid_mz, prev_counter, prev_denom);
 
         // Initialization for the iterative version of weighted ion mobility mean calculation
         double centroid_im(-1);
@@ -373,274 +495,142 @@ namespace OpenMS
         double prev_denom_im(-1);
         if (has_centroid_im_)
         {
-          centroid_im = work_exp[apex_scan_idx].getFloatDataArrays()[Ion_Mobility_idx][apex_peak_idx];
+          centroid_im = work_exp[apex_scan_idx].getFloatDataArrays()[ion_mobility_idx_][apex_peak_idx];
           prev_counter_im = apex_peak.getIntensity() * centroid_im;
           prev_denom_im = apex_peak.getIntensity();
-          MassTraceDetection::updateIterativeWeightedMean_(work_exp[apex_scan_idx].getFloatDataArrays()[Ion_Mobility_idx][apex_peak_idx],
-                                                          apex_peak.getIntensity(), centroid_im, prev_counter_im, prev_denom_im);
+          updateIterativeWeightedMean_(work_exp[apex_scan_idx].getFloatDataArrays()[ion_mobility_idx_][apex_peak_idx],
+                                        apex_peak.getIntensity(), centroid_im, prev_counter_im, prev_denom_im);
         }
 
         std::vector<std::pair<Size, Size>> gathered_idx;
         gathered_idx.emplace_back(apex_scan_idx, apex_peak_idx);
-        if (has_fwhm_mz_) { fwhms_mz.push_back(work_exp[apex_scan_idx].getFloatDataArrays()[fwhm_meta_idx][apex_peak_idx]); }
-        // do the same for im FWHM peaks.
-        if (has_fwhm_im_) { fwhms_im.push_back(work_exp[apex_scan_idx].getFloatDataArrays()[IM_fwhm_idx][apex_peak_idx]); }
+        
+        if (has_fwhm_mz_) { fwhms_mz.push_back(work_exp[apex_scan_idx].getFloatDataArrays()[fwhm_meta_idx_][apex_peak_idx]); }
+        if (has_fwhm_im_) { fwhms_im.push_back(work_exp[apex_scan_idx].getFloatDataArrays()[im_fwhm_idx_][apex_peak_idx]); }
 
-        Size up_hitting_peak(0), down_hitting_peak(0);
-        Size up_scan_counter(0), down_scan_counter(0);
+        TraceExtensionState down_state, up_state;
+        Size trace_down_idx(apex_scan_idx);
+        Size trace_up_idx(apex_scan_idx);
 
-        bool toggle_up = true, toggle_down = true;
-
-        Size conseq_missed_peak_up(0), conseq_missed_peak_down(0);
-        Size max_consecutive_missing(trace_termination_outliers_);
-
-        double current_sample_rate(1.0);
-        // Size min_scans_to_consider(std::floor((min_sample_rate_ /2)*10));
-        Size min_scans_to_consider(5);
-
-        // double outlier_ratio(0.3);
-
-        // double ftl_mean(centroid_mz);
         double ftl_sd((centroid_mz / 1e6) * mass_error_ppm_);
         double intensity_so_far(apex_peak.getIntensity());
 
-        while (((trace_down_idx > 0) && toggle_down) || ((trace_up_idx < work_exp.size() - 1) && toggle_up))
+        while ((trace_down_idx > 0 && down_state.active) || (trace_up_idx < work_exp.size() - 1 && up_state.active))
         {
           // *********************************************************** //
           // Step 2.1 MOVE DOWN in RT dim
           // *********************************************************** //
-          if ((trace_down_idx > 0) && toggle_down)
+          if (trace_down_idx > 0 && down_state.active)
           {
             const MSSpectrum& spec_trace_down = work_exp[trace_down_idx - 1];
-            if (! spec_trace_down.empty())
+            
+            // Only process spectra that contain peaks
+            if (!spec_trace_down.empty())
             {
-              // initialize variables
-              Size next_down_peak_idx = 0;
-              double next_down_peak_mz = -1.0;
-              double next_down_peak_int = -1.0;
-
-              double next_down_peak_im = -1.0;
-              double right_bound_im = -1.0;
-              double left_bound_im = -1.0;
-
-              double right_bound = centroid_mz + 3 * ftl_sd;
-              double left_bound = centroid_mz - 3 * ftl_sd;
-              // if no ion mobility, simply find nearest m/z
-              if (!has_centroid_im_)
+              PeakCandidate candidate = findBestPeak_(spec_trace_down, centroid_mz, ftl_sd, centroid_im);
+              
+              if (isPeakAcceptable_(candidate, centroid_mz, ftl_sd, centroid_im, trace_down_idx - 1, spec_offsets, peak_visited))
               {
-                next_down_peak_idx = spec_trace_down.findNearest(centroid_mz);
-                next_down_peak_mz = spec_trace_down[next_down_peak_idx].getMZ();
-                next_down_peak_int = spec_trace_down[next_down_peak_idx].getIntensity();
+                processPeak_(candidate, spec_trace_down, current_trace, gathered_idx,
+                            fwhms_mz, fwhms_im, centroid_mz, centroid_im,
+                            prev_counter, prev_denom, prev_counter_im, prev_denom_im,
+                            ftl_sd, intensity_so_far, trace_down_idx - 1, false);
+                ++down_state.hitting_peak_count;
+                down_state.consecutive_missed = 0;
               }
               else
               {
-                // we will use right and left mz boundaries to expand our search and
-                // consider nearest ion mobility point.
-
-                right_bound_im = centroid_im + ion_mobility_tolerance_;
-                left_bound_im = centroid_im - ion_mobility_tolerance_;
-
-                auto left_bound_it = spec_trace_down.MZBegin(left_bound);
-                Size next_down_peak_idx_left = left_bound_it - spec_trace_down.begin();
-                auto right_bound_it = spec_trace_down.MZEnd(right_bound);
-                Size next_down_peak_idx_right = right_bound_it - spec_trace_down.begin();
+                ++down_state.consecutive_missed;
+              }
+            }
+            // Empty spectra don't affect termination counters
             
-                // iterate over all peaks in the m/z bounds
-                for (Size i = next_down_peak_idx_left; i < next_down_peak_idx_right; ++i)
-                {
-                  // check if the ion mobility value is within bounds
-                  double im_value = spec_trace_down.getFloatDataArrays()[Ion_Mobility_idx][i];
-                  
-                  if (im_value >= left_bound_im && im_value <= right_bound_im) // iterate over peaks in IM bounds
-                  {
-                    if (std::abs(spec_trace_down[i].getMZ() - centroid_mz) < std::abs(next_down_peak_mz - centroid_mz))
-                    {
-                      // update next down peak index, mz, intensity and ion mobility
-                      next_down_peak_idx = i;
-                      next_down_peak_mz = spec_trace_down[next_down_peak_idx].getMZ();
-                      next_down_peak_int = spec_trace_down[next_down_peak_idx].getIntensity();
-                      next_down_peak_im = im_value;
-                    }                    
-                  }
-                }                              
-              }
-
-              // If the peak is within acceptable bounds and not visited, add peak to mass trace
-              if ((next_down_peak_mz <= right_bound) && (next_down_peak_mz >= left_bound)
-                  && (!has_centroid_im_ || (next_down_peak_im <= right_bound_im && next_down_peak_im >= left_bound_im))
-                  && ! peak_visited[spec_offsets[trace_down_idx - 1] + next_down_peak_idx])
-              {
-                Peak2D next_peak;
-                next_peak.setRT(spec_trace_down.getRT());
-                next_peak.setMZ(next_down_peak_mz);
-                next_peak.setIntensity(next_down_peak_int);
-
-                current_trace.push_front(next_peak);
-
-                // update centroid values and append meta data
-                MassTraceDetection::updateIterativeWeightedMean_(next_down_peak_mz, next_down_peak_int, centroid_mz, prev_counter, prev_denom);
-                gathered_idx.emplace_back(trace_down_idx - 1, next_down_peak_idx);
-                if (has_centroid_im_)
-                {
-                  MassTraceDetection::updateIterativeWeightedMean_(next_down_peak_im, next_down_peak_int, centroid_im, prev_counter_im,
-                                                                   prev_denom_im);
-                }
-                // FWHM average
-                if (has_fwhm_mz_) { fwhms_mz.push_back(spec_trace_down.getFloatDataArrays()[fwhm_meta_idx][next_down_peak_idx]); }
-                // ion mobility FWHM average
-                if (has_fwhm_im_) { fwhms_im.push_back(spec_trace_down.getFloatDataArrays()[IM_fwhm_idx][next_down_peak_idx]); }
-
-                // Update the m/z variance dynamically
-                if (reestimate_mt_sd_) //  && (down_hitting_peak+1 > min_flank_scans))
-                {
-                  // if (ftl_t > min_fwhm_scans)
-                  {
-                    updateWeightedSDEstimateRobust(next_peak, centroid_mz, ftl_sd, intensity_so_far);
-                  }
-                }
-                ++down_hitting_peak;
-                conseq_missed_peak_down = 0;
-              }
-              else { ++conseq_missed_peak_down; }
-            }
-
+            // Move to next spectrum regardless of whether peak was found
             --trace_down_idx;
-            ++down_scan_counter;
-
-            // trace termination criterion: max allowed number of
-            // consecutive outliers reached OR cancel extension if
-            // sampling_rate falls below min_sample_rate_
-            if (trace_termination_criterion_ == "outlier")
+            ++down_state.scan_counter;
+            
+            // Apply termination criteria based on user configuration
+            if (trace_termination_criterion_ == OUTLIER)
             {
-              if (conseq_missed_peak_down > max_consecutive_missing) { toggle_down = false; }
+              if (down_state.consecutive_missed > trace_termination_outliers_)
+              {
+                down_state.active = false;
+              }
             }
-            else if (trace_termination_criterion_ == "sample_rate")
+            else if (trace_termination_criterion_ == SAMPLE_RATE)
             {
-              current_sample_rate = (double)(down_hitting_peak + up_hitting_peak + 1) / (double)(down_scan_counter + up_scan_counter + 1);
-              if (down_scan_counter > min_scans_to_consider && current_sample_rate < min_sample_rate_) { toggle_down = false; }
+              Size min_scans_to_consider = 5;
+              Size total_hits = down_state.hitting_peak_count + up_state.hitting_peak_count + 1; // +1 for apex
+              Size total_scans = down_state.scan_counter + up_state.scan_counter + 1;
+              double current_sample_rate = static_cast<double>(total_hits) / static_cast<double>(total_scans);
+              
+              if (down_state.scan_counter > min_scans_to_consider && current_sample_rate < min_sample_rate_)
+              {
+                down_state.active = false;
+              }
             }
           }
           // *********************************************************** //
           // Step 2.2 MOVE UP in RT dim
           // *********************************************************** //
-
-          if ((trace_up_idx < work_exp.size() - 1) && toggle_up)
+          if (trace_up_idx < work_exp.size() - 1 && up_state.active)
           {
             const MSSpectrum& spec_trace_up = work_exp[trace_up_idx + 1];
-            if (! spec_trace_up.empty())
+            
+            // Only process spectra that contain peaks
+            if (!spec_trace_up.empty())
             {
-              // Initialize shared variables
-              Size next_up_peak_idx = 0;
-              double next_up_peak_mz = -1.0;
-              double next_up_peak_int = -1.0;
-
-              double next_up_peak_im = -1.0;
-              double right_bound_im = -1.0;
-              double left_bound_im = -1.0;
-
-              double right_bound = centroid_mz + 3 * ftl_sd;
-              double left_bound = centroid_mz - 3 * ftl_sd;
-
-              if (!has_centroid_im_)
+              PeakCandidate candidate = findBestPeak_(spec_trace_up, centroid_mz, ftl_sd, centroid_im);
+              
+              if (isPeakAcceptable_(candidate, centroid_mz, ftl_sd, centroid_im, trace_up_idx + 1, spec_offsets, peak_visited))
               {
-                next_up_peak_idx = spec_trace_up.findNearest(centroid_mz);
-                next_up_peak_mz = spec_trace_up[next_up_peak_idx].getMZ();
-                next_up_peak_int = spec_trace_up[next_up_peak_idx].getIntensity();
+                processPeak_(candidate, spec_trace_up, current_trace, gathered_idx,
+                            fwhms_mz, fwhms_im, centroid_mz, centroid_im,
+                            prev_counter, prev_denom, prev_counter_im, prev_denom_im,
+                            ftl_sd, intensity_so_far, trace_up_idx + 1, true);
+                ++up_state.hitting_peak_count;
+                up_state.consecutive_missed = 0;
               }
               else
               {
-                right_bound_im = centroid_im + ion_mobility_tolerance_;
-                left_bound_im = centroid_im - ion_mobility_tolerance_;
-
-                auto left_bound_it = spec_trace_up.MZBegin(left_bound);
-                Size next_up_peak_idx_left = left_bound_it - spec_trace_up.begin();
-                auto right_bound_it = spec_trace_up.MZEnd(right_bound);
-                Size next_up_peak_idx_right = right_bound_it - spec_trace_up.begin();
-
-             
-                // iterate over all peaks in the m/z bounds
-                for (Size i = next_up_peak_idx_left; i < next_up_peak_idx_right; ++i)
-                {
-                  // check if the ion mobility value is within bounds
-                  double im_value = spec_trace_up.getFloatDataArrays()[Ion_Mobility_idx][i];
-                  
-                  if (im_value >= left_bound_im && im_value <= right_bound_im) // iterate over peaks in IM bounds
-                  {
-                    if (std::abs(spec_trace_up[i].getMZ() - centroid_mz) < std::abs(next_up_peak_mz - centroid_mz))
-                    {
-                      // update next up peak index, mz, intensity and ion mobility
-                      next_up_peak_idx = i;
-                      next_up_peak_mz = spec_trace_up[next_up_peak_idx].getMZ();
-                      next_up_peak_int = spec_trace_up[next_up_peak_idx].getIntensity();
-                      next_up_peak_im = im_value;
-                    }
-                  }
-                }                              
+                ++up_state.consecutive_missed;
               }
-
-              // Unified peak acceptance logic
-              if ((next_up_peak_mz <= right_bound) && (next_up_peak_mz >= left_bound)
-                  && (!has_centroid_im_ || (next_up_peak_im <= right_bound_im && next_up_peak_im >= left_bound_im))
-                  && ! peak_visited[spec_offsets[trace_up_idx + 1] + next_up_peak_idx])
-              {
-                Peak2D next_peak;
-                next_peak.setRT(spec_trace_up.getRT());
-                next_peak.setMZ(next_up_peak_mz);
-                next_peak.setIntensity(next_up_peak_int);
-
-                current_trace.push_back(next_peak);
-
-                if (has_fwhm_mz_) { fwhms_mz.push_back(spec_trace_up.getFloatDataArrays()[fwhm_meta_idx][next_up_peak_idx]); }
-
-                if (has_fwhm_im_) { fwhms_im.push_back(spec_trace_up.getFloatDataArrays()[IM_fwhm_idx][next_up_peak_idx]); }
-
-                MassTraceDetection::updateIterativeWeightedMean_(next_up_peak_mz, next_up_peak_int, centroid_mz, prev_counter, prev_denom);
-                
-                if (has_centroid_im_)
-                {
-                  MassTraceDetection::updateIterativeWeightedMean_(next_up_peak_im, next_up_peak_int, centroid_im, prev_counter_im, prev_denom_im);
-                }
-
-                gathered_idx.emplace_back(trace_up_idx + 1, next_up_peak_idx);
-
-                if (reestimate_mt_sd_) { updateWeightedSDEstimateRobust(next_peak, centroid_mz, ftl_sd, intensity_so_far); }
-
-                ++up_hitting_peak;
-                conseq_missed_peak_up = 0;
-              }
-              else { ++conseq_missed_peak_up; }
             }
-
+            // Empty spectra don't affect termination counters
+            
+            // Move to next spectrum regardless of whether peak was found
             ++trace_up_idx;
-            ++up_scan_counter;
-
-            if (trace_termination_criterion_ == "outlier")
+            ++up_state.scan_counter;
+            
+            // Apply termination criteria based on user configuration
+            if (trace_termination_criterion_ == OUTLIER)
             {
-              if (conseq_missed_peak_up > max_consecutive_missing) { toggle_up = false; }
+              if (up_state.consecutive_missed > trace_termination_outliers_)
+              {
+                up_state.active = false;
+              }
             }
-            else if (trace_termination_criterion_ == "sample_rate")
+            else if (trace_termination_criterion_ == SAMPLE_RATE)
             {
-              current_sample_rate = (double)(down_hitting_peak + up_hitting_peak + 1) / (double)(down_scan_counter + up_scan_counter + 1);
-              if (up_scan_counter > min_scans_to_consider && current_sample_rate < min_sample_rate_) { toggle_up = false; }
+              Size min_scans_to_consider = 5;
+              Size total_hits = down_state.hitting_peak_count + up_state.hitting_peak_count + 1; // +1 for apex
+              Size total_scans = down_state.scan_counter + up_state.scan_counter + 1;
+              double current_sample_rate = static_cast<double>(total_hits) / static_cast<double>(total_scans);
+              
+              if (up_state.scan_counter > min_scans_to_consider && current_sample_rate < min_sample_rate_)
+              {
+                up_state.active = false;
+              }
             }
           }
         }
 
-        // std::cout << "current sr: " << current_sample_rate << std::endl;
-        double num_scans(down_scan_counter + up_scan_counter + 1 - conseq_missed_peak_down - conseq_missed_peak_up);
-
-        double mt_quality((double)current_trace.size() / (double)num_scans);
-        // std::cout << "mt quality: " << mt_quality << std::endl;
-        double rt_range(std::fabs(current_trace.rbegin()->getRT() - current_trace.begin()->getRT()));
-
         // *********************************************************** //
         // Step 2.3 check if minimum length and quality of mass trace criteria are met
         // *********************************************************** //
-        bool max_trace_criteria = (max_trace_length_ < 0.0 || rt_range < max_trace_length_);
-        if (rt_range >= min_trace_length_ && max_trace_criteria && mt_quality >= min_sample_rate_)
+        Size total_scans = down_state.scan_counter + up_state.scan_counter + 1;
+        if (isTraceValid_(current_trace, total_scans, down_state.consecutive_missed, up_state.consecutive_missed))
         {
-          // std::cout << "T" << trace_number << "\t" << mt_quality << std::endl;
-
           // mark all peaks as visited
           for (Size i = 0; i < gathered_idx.size(); ++i)
           {
@@ -651,14 +641,11 @@ namespace OpenMS
           MassTrace new_trace(current_trace);
           new_trace.updateWeightedMeanRT();
           new_trace.updateWeightedMeanMZ();
-          if (! fwhms_mz.empty()) { new_trace.fwhm_mz_avg = Math::median(fwhms_mz.begin(), fwhms_mz.end()); }
-
-          if (! fwhms_im.empty()) { new_trace.fwhm_im_avg = Math::median(fwhms_im.begin(), fwhms_im.end()); }
-
+          if (!fwhms_mz.empty()) { new_trace.fwhm_mz_avg = Math::median(fwhms_mz.begin(), fwhms_mz.end()); }
+          if (!fwhms_im.empty()) { new_trace.fwhm_im_avg = Math::median(fwhms_im.begin(), fwhms_im.end()); }
           if (has_centroid_im_) { new_trace.setCentroidIM(centroid_im); }
 
           new_trace.setQuantMethod(quant_method_);
-          // new_trace.setCentroidSD(ftl_sd);
           new_trace.updateWeightedMZsd();
           new_trace.setLabel("T" + String(trace_number));
           ++trace_number;
@@ -684,7 +671,20 @@ namespace OpenMS
       ion_mobility_tolerance_ = (double)param_.getValue("ion_mobility_tolerance");
       quant_method_ = MassTrace::getQuantMethod((String)param_.getValue("quant_method").toString());
 
-      trace_termination_criterion_ = (String)param_.getValue("trace_termination_criterion").toString();
+      String criterion_str = (String)param_.getValue("trace_termination_criterion").toString();
+      if (criterion_str == "outlier")
+      {
+        trace_termination_criterion_ = OUTLIER;
+      }
+      else if (criterion_str == "sample_rate")
+      {
+        trace_termination_criterion_ = SAMPLE_RATE;
+      }
+      else
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid trace_termination_criterion: " + criterion_str);
+      }
+      
       trace_termination_outliers_ = (Size)param_.getValue("trace_termination_outliers");
       min_sample_rate_ = (double)param_.getValue("min_sample_rate");
       min_trace_length_ = (double)param_.getValue("min_trace_length");
