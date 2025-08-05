@@ -357,3 +357,30 @@ def testDatastructuresTutorial():
     exp.addChromatogram(chromatogram)
     MzMLFile().store("testfile3.mzML", exp)
 
+@report
+def testAASequenceLenMethod():
+    """Test the __len__ method for AASequence"""
+    
+    # Test with simple sequence
+    seq = AASequence.fromString("PEPTIDE")
+    assert len(seq) == 7, f"Expected length 7, got {len(seq)}"
+    assert len(seq) == seq.size(), f"len(seq) != seq.size(): {len(seq)} != {seq.size()}"
+    
+    # Test with empty sequence
+    empty_seq = AASequence()
+    assert len(empty_seq) == 0, f"Expected length 0 for empty sequence, got {len(empty_seq)}"
+    assert len(empty_seq) == empty_seq.size(), f"len(empty_seq) != empty_seq.size()"
+    
+    # Test with longer sequence
+    long_seq = AASequence.fromString("DFPIANGER")
+    assert len(long_seq) == 9, f"Expected length 9, got {len(long_seq)}"
+    assert len(long_seq) == long_seq.size(), f"len(long_seq) != long_seq.size()"
+    
+    # Test with modified sequence (modifications shouldn't affect length)
+    modified_seq = AASequence.fromString("PEPTIDESEKUEM(Oxidation)CER")
+    expected_length = len("PEPTIDESEKUEMCER")  # 16 amino acids
+    assert len(modified_seq) == expected_length, f"Expected length {expected_length}, got {len(modified_seq)}"
+    assert len(modified_seq) == modified_seq.size(), f"len(modified_seq) != modified_seq.size()"
+    
+    print("All __len__ tests passed!")
+
