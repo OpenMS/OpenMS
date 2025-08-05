@@ -72,6 +72,24 @@ from UniqueIdInterface cimport setUniqueId as _setUniqueId
         """Return the number of consensus features in the map."""
         return self.inst.get().size()
 
-    def append(self, consensus_feature):
-        """Add a consensus feature to the end of the map."""
-        self.inst.get().push_back(consensus_feature.inst.get()[0])
+    def append(self, item):
+        """
+        Add one or more consensus features to the end of the map.
+        
+        Args:
+            item: Can be:
+                - A single ConsensusFeature object
+                - A list/iterable of ConsensusFeature objects
+                - Another ConsensusMap object
+        """
+        if hasattr(item, '__iter__') and not hasattr(item, 'inst'):
+            # It's a list/iterable of items, but not a pyOpenMS object
+            for consensus_feature in item:
+                self.inst.get().push_back(deref(consensus_feature.inst.get()))
+        elif hasattr(item, 'inst') and hasattr(item, '__len__'):
+            # It's another ConsensusMap or similar container object
+            for consensus_feature in item:
+                self.inst.get().push_back(deref(consensus_feature.inst.get()))
+        else:
+            # It's a single ConsensusFeature object
+            self.inst.get().push_back(deref(item.inst.get()))

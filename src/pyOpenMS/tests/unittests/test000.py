@@ -804,13 +804,40 @@ def testConsensusMap():
     assert len(m) == 1
     assert len(m) == m.size()
     
-    # Test append method
+    # Test append method with single item
     f2 = pyopenms.ConsensusFeature()
     f2.setCharge(2)
     f2.setQuality(3.0)
     f2.setWidth(5.0)
     m.append(f2)
     assert len(m) == 2
+    assert len(m) == m.size()
+
+    # Test append method with list of items
+    f3 = pyopenms.ConsensusFeature()
+    f3.setCharge(3)
+    f3.setQuality(4.0)
+    f3.setWidth(6.0)
+    
+    f4 = pyopenms.ConsensusFeature()
+    f4.setCharge(4)
+    f4.setQuality(5.0)
+    f4.setWidth(7.0)
+    
+    m.append([f3, f4])
+    assert len(m) == 4
+    assert len(m) == m.size()
+
+    # Test append method with another ConsensusMap
+    m2 = pyopenms.ConsensusMap()
+    f5 = pyopenms.ConsensusFeature()
+    f5.setCharge(5)
+    f5.setQuality(6.0)
+    f5.setWidth(8.0)
+    m2.push_back(f5)
+    
+    m.append(m2)
+    assert len(m) == 5
     assert len(m) == m.size()
 
     m.updateRanges()
@@ -1822,13 +1849,34 @@ def testFeatureMap():
     assert fm.size() == 1
     assert fm[0] == f
 
-    # Test append method
+    # Test append method with single item
     f2 = pyopenms.Feature()
     f2.setRT(123.0)
     fm.append(f2)
     assert len(fm) == 2
     assert fm.size() == 2
     assert fm[1] == f2
+
+    # Test append method with list of items
+    f3 = pyopenms.Feature()
+    f3.setRT(200.0)
+    
+    f4 = pyopenms.Feature()
+    f4.setRT(300.0)
+    
+    fm.append([f3, f4])
+    assert len(fm) == 4
+    assert fm.size() == 4
+
+    # Test append method with another FeatureMap
+    fm2 = pyopenms.FeatureMap()
+    f5 = pyopenms.Feature()
+    f5.setRT(400.0)
+    fm2.push_back(f5)
+    
+    fm.append(fm2)
+    assert len(fm) == 5
+    assert fm.size() == 5
 
     fm.sortByIntensity()
     assert fm.size() == 2
@@ -4669,10 +4717,37 @@ def testPeptideIdentificationList():
     assert pil.size() == 1
     assert len(pil) == 1
     
-    # Test append method
+    # Test append method with single item
     pil.append(pi2)
     assert pil.size() == 2
     assert len(pil) == 2
+
+    # Test append method with list of items
+    pi3 = pyopenms.PeptideIdentification()
+    pi3.setRT(200.0)
+    pi3.setMZ(300.0)
+    pi3.setIdentifier("test3")
+    
+    pi4 = pyopenms.PeptideIdentification()
+    pi4.setRT(250.0)
+    pi4.setMZ(350.0)
+    pi4.setIdentifier("test4")
+    
+    pil.append([pi3, pi4])
+    assert pil.size() == 4
+    assert len(pil) == 4
+
+    # Test append method with another PeptideIdentificationList
+    pil2 = pyopenms.PeptideIdentificationList()
+    pi5 = pyopenms.PeptideIdentification()
+    pi5.setRT(300.0)
+    pi5.setMZ(400.0)
+    pi5.setIdentifier("test5")
+    pil2.push_back(pi5)
+    
+    pil.append(pil2)
+    assert pil.size() == 5
+    assert len(pil) == 5
 
     # Test element access
     first = pil[0]
@@ -4690,17 +4765,17 @@ def testPeptideIdentificationList():
     for pi in pil:
         assert isinstance(pi, pyopenms.PeptideIdentification)
         count += 1
-    assert count == 2
+    assert count == 5
 
     # Test constructor from vector
     import pyopenms
-    pil2 = pyopenms.PeptideIdentificationList()
-    pil2.push_back(pi1)
-    pil2.append(pi2)  # Mix push_back and append
-    assert pil2.size() == 2
-    assert len(pil2) == 2
-    assert pil2[0].getIdentifier() == "test1"
-    assert pil2[1].getIdentifier() == "test2"
+    pil_new = pyopenms.PeptideIdentificationList()
+    pil_new.push_back(pi1)
+    pil_new.append(pi2)  # Mix push_back and append
+    assert pil_new.size() == 2
+    assert len(pil_new) == 2
+    assert pil_new[0].getIdentifier() == "test1"
+    assert pil_new[1].getIdentifier() == "test2"
 
     # Test clear
     pil.clear()
