@@ -74,22 +74,29 @@ from UniqueIdInterface cimport setUniqueId as _setUniqueId
 
     def append(self, item):
         """
-        Add one or more consensus features to the end of the map.
+        Add a single consensus feature to the end of the map.
         
         Args:
-            item: Can be:
-                - A single ConsensusFeature object
+            item: A single ConsensusFeature object
+        """
+        self.inst.get().push_back(deref(item.inst.get()))
+
+    def extend(self, items):
+        """
+        Add multiple consensus features to the end of the map.
+        
+        Args:
+            items: Can be:
                 - A list/iterable of ConsensusFeature objects
                 - Another ConsensusMap object
         """
-        if hasattr(item, '__iter__') and not hasattr(item, 'inst'):
+        if hasattr(items, '__iter__') and not hasattr(items, 'inst'):
             # It's a list/iterable of items, but not a pyOpenMS object
-            for consensus_feature in item:
+            for consensus_feature in items:
                 self.inst.get().push_back(deref(consensus_feature.inst.get()))
-        elif hasattr(item, 'inst') and hasattr(item, '__len__'):
+        elif hasattr(items, 'inst') and hasattr(items, '__len__'):
             # It's another ConsensusMap or similar container object
-            for consensus_feature in item:
+            for consensus_feature in items:
                 self.inst.get().push_back(deref(consensus_feature.inst.get()))
         else:
-            # It's a single ConsensusFeature object
-            self.inst.get().push_back(deref(item.inst.get()))
+            raise TypeError("extend() argument must be iterable or another ConsensusMap")

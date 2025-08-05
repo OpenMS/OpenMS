@@ -10,22 +10,29 @@ from UniqueIdInterface cimport setUniqueId as _setUniqueId
 
     def append(self, item):
         """
-        Add one or more features to the end of the map.
+        Add a single feature to the end of the map.
         
         Args:
-            item: Can be:
-                - A single Feature object
+            item: A single Feature object
+        """
+        self.inst.get().push_back(deref(item.inst.get()))
+
+    def extend(self, items):
+        """
+        Add multiple features to the end of the map.
+        
+        Args:
+            items: Can be:
                 - A list/iterable of Feature objects
                 - Another FeatureMap object
         """
-        if hasattr(item, '__iter__') and not hasattr(item, 'inst'):
+        if hasattr(items, '__iter__') and not hasattr(items, 'inst'):
             # It's a list/iterable of items, but not a pyOpenMS object
-            for feature in item:
+            for feature in items:
                 self.inst.get().push_back(deref(feature.inst.get()))
-        elif hasattr(item, 'inst') and hasattr(item, '__len__'):
+        elif hasattr(items, 'inst') and hasattr(items, '__len__'):
             # It's another FeatureMap or similar container object
-            for feature in item:
+            for feature in items:
                 self.inst.get().push_back(deref(feature.inst.get()))
         else:
-            # It's a single Feature object
-            self.inst.get().push_back(deref(item.inst.get()))
+            raise TypeError("extend() argument must be iterable or another FeatureMap")

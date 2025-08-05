@@ -4,22 +4,29 @@
 
     def append(self, item):
         """
-        Add one or more peptide identifications to the end of the list.
+        Add a single peptide identification to the end of the list.
         
         Args:
-            item: Can be:
-                - A single PeptideIdentification object
+            item: A single PeptideIdentification object
+        """
+        self.inst.get().push_back(deref(item.inst.get()))
+
+    def extend(self, items):
+        """
+        Add multiple peptide identifications to the end of the list.
+        
+        Args:
+            items: Can be:
                 - A list/iterable of PeptideIdentification objects
                 - Another PeptideIdentificationList object
         """
-        if hasattr(item, '__iter__') and not hasattr(item, 'inst'):
+        if hasattr(items, '__iter__') and not hasattr(items, 'inst'):
             # It's a list/iterable of items, but not a pyOpenMS object
-            for peptide_identification in item:
+            for peptide_identification in items:
                 self.inst.get().push_back(deref(peptide_identification.inst.get()))
-        elif hasattr(item, 'inst') and hasattr(item, '__len__'):
+        elif hasattr(items, 'inst') and hasattr(items, '__len__'):
             # It's another PeptideIdentificationList or similar container object
-            for peptide_identification in item:
+            for peptide_identification in items:
                 self.inst.get().push_back(deref(peptide_identification.inst.get()))
         else:
-            # It's a single PeptideIdentification object
-            self.inst.get().push_back(deref(item.inst.get()))
+            raise TypeError("extend() argument must be iterable or another PeptideIdentificationList")
