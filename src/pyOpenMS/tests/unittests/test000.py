@@ -731,6 +731,8 @@ def testConsensusMap():
      ConsensusMap.__le__
      ConsensusMap.__lt__
      ConsensusMap.__ne__
+     ConsensusMap.__len__
+     ConsensusMap.append
      ConsensusMap.clear
      ConsensusMap.clearUniqueId
      ConsensusMap.ensureUniqueId
@@ -765,6 +767,10 @@ def testConsensusMap():
     m_ = pyopenms.ConsensusMap(m)
     assert m_ == m
 
+    # Test __len__ method on empty map
+    assert len(m) == 0
+    assert len(m) == m.size()
+
     m.clear()
     m.clearUniqueId()
     m.ensureUniqueId()
@@ -795,7 +801,17 @@ def testConsensusMap():
     f.setQuality(2.0)
     f.setWidth(4.0)
     m.push_back(f)
-    m.push_back(f)
+    assert len(m) == 1
+    assert len(m) == m.size()
+    
+    # Test append method
+    f2 = pyopenms.ConsensusFeature()
+    f2.setCharge(2)
+    f2.setQuality(3.0)
+    f2.setWidth(5.0)
+    m.append(f2)
+    assert len(m) == 2
+    assert len(m) == m.size()
 
     m.updateRanges()
 
@@ -1752,6 +1768,8 @@ def testFeatureMap():
      FeatureMap.__radd__
      FeatureMap.__getitem__
      FeatureMap.__iter__
+     FeatureMap.__len__
+     FeatureMap.append
      FeatureMap.clear
      FeatureMap.clearUniqueId
      FeatureMap.ensureUniqueId
@@ -1784,6 +1802,10 @@ def testFeatureMap():
     fm_ = pyopenms.FeatureMap(fm)
     assert fm_ == fm
 
+    # Test __len__ method on empty map
+    assert len(fm) == 0
+    assert len(fm) == fm.size()
+
     _testUniqueIdInterface(fm)
     fm.clear()
     fm.clearUniqueId()
@@ -1796,36 +1818,44 @@ def testFeatureMap():
     fm.push_back(f)
 
     assert len(list(fm)) == 1
-
-
+    assert len(fm) == 1
     assert fm.size() == 1
     assert fm[0] == f
+
+    # Test append method
+    f2 = pyopenms.Feature()
+    f2.setRT(123.0)
+    fm.append(f2)
+    assert len(fm) == 2
+    assert fm.size() == 2
+    assert fm[1] == f2
 
     fm.sortByIntensity()
-    assert fm.size() == 1
-    assert fm[0] == f
+    assert fm.size() == 2
+    assert len(fm) == 2
 
     fm.sortByIntensity(False)
-    assert fm.size() == 1
-    assert fm[0] == f
+    assert fm.size() == 2
+    assert len(fm) == 2
 
     fm.sortByPosition()
-    assert fm.size() == 1
-    assert fm[0] == f
+    assert fm.size() == 2
+    assert len(fm) == 2
 
     fm.sortByRT()
-    assert fm.size() == 1
-    assert fm[0] == f
+    assert fm.size() == 2
+    assert len(fm) == 2
 
     fm.sortByMZ()
-    assert fm.size() == 1
-    assert fm[0] == f
+    assert fm.size() == 2
+    assert len(fm) == 2
 
     fm.sortByOverallQuality()
-    assert fm.size() == 1
-    assert fm[0] == f
+    assert fm.size() == 2
+    assert len(fm) == 2
 
     fm2 = pyopenms.FeatureMap()
+    assert len(fm2) == 0
 
     fm.swap(fm2)
     assert fm2.size() == 1
@@ -4608,6 +4638,8 @@ def testPeptideIdentificationList():
      PeptideIdentificationList.push_back
      PeptideIdentificationList.__getitem__
      PeptideIdentificationList.__iter__
+     PeptideIdentificationList.__len__
+     PeptideIdentificationList.append
     """
     import pyopenms
 
@@ -4615,6 +4647,10 @@ def testPeptideIdentificationList():
     pil = pyopenms.PeptideIdentificationList()
     assert pil.empty()
     assert pil.size() == 0
+
+    # Test __len__ method
+    assert len(pil) == 0
+    assert len(pil) == pil.size()
 
     # Create some PeptideIdentification objects for testing
     pi1 = pyopenms.PeptideIdentification()
@@ -4631,9 +4667,12 @@ def testPeptideIdentificationList():
     pil.push_back(pi1)
     assert not pil.empty()
     assert pil.size() == 1
+    assert len(pil) == 1
     
-    pil.push_back(pi2)
+    # Test append method
+    pil.append(pi2)
     assert pil.size() == 2
+    assert len(pil) == 2
 
     # Test element access
     first = pil[0]
@@ -4657,8 +4696,9 @@ def testPeptideIdentificationList():
     import pyopenms
     pil2 = pyopenms.PeptideIdentificationList()
     pil2.push_back(pi1)
-    pil2.push_back(pi2)
+    pil2.append(pi2)  # Mix push_back and append
     assert pil2.size() == 2
+    assert len(pil2) == 2
     assert pil2[0].getIdentifier() == "test1"
     assert pil2[1].getIdentifier() == "test2"
 
@@ -4666,6 +4706,7 @@ def testPeptideIdentificationList():
     pil.clear()
     assert pil.empty()
     assert pil.size() == 0
+    assert len(pil) == 0
 
 
 @report

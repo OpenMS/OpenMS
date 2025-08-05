@@ -67,3 +67,11 @@ from UniqueIdInterface cimport setUniqueId as _setUniqueId
            inc(it_in_0)
         in_0.clear()
         in_0.update(replace_in_0)
+
+    def __len__(self):
+        """Return the number of consensus features in the map."""
+        return self.inst.get().size()
+
+    def append(self, consensus_feature):
+        """Add a consensus feature to the end of the map."""
+        self.inst.get().push_back(consensus_feature.inst.get()[0])
