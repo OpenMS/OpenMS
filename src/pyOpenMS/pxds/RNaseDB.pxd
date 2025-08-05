@@ -1,3 +1,4 @@
+from libcpp.vector cimport vector as libcpp_vector
 from Types cimport *
 from String cimport *
 from DigestionEnzymeRNA cimport *
