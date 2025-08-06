@@ -53,14 +53,14 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDRipper.h>" namespace "OpenMS::IDRipper":
 
         RipFileContent(
                 libcpp_vector[ProteinIdentification] & prot_idents,
-                libcpp_vector[PeptideIdentification] & pep_idents
+                PeptideIdentificationList & pep_idents
                 ) except + nogil 
 
         RipFileContent(RipFileContent) except + nogil    # wrap-ignore
 
         libcpp_vector[ProteinIdentification] getProteinIdentifications() except + nogil 
 
-        libcpp_vector[PeptideIdentification] getPeptideIdentifications() except + nogil 
+        PeptideIdentificationList getPeptideIdentifications() except + nogil 
 
 
 cdef extern from "<OpenMS/ANALYSIS/ID/IDRipper.h>" namespace "OpenMS":
@@ -78,7 +78,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDRipper.h>" namespace "OpenMS":
                 libcpp_vector[RipFileIdentifier] & rfis,
                 libcpp_vector[RipFileContent] & rfcs,
                 libcpp_vector[ProteinIdentification] & proteins,
-                libcpp_vector[PeptideIdentification] & peptides,
+                PeptideIdentificationList & peptides,
                 bool full_split,
                 bool split_ident_runs
                 ) except + nogil 

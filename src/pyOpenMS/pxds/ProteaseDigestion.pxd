@@ -17,6 +17,8 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDigestion.h>" namespace "OpenMS":
         #  due to enzyme malfunction/access restrictions. If n missed cleavages are allowed, all possible resulting
         #  peptides (cleaved and uncleaved) with up to n missed cleavages are returned.
         #  Thus no random selection of just n specific missed cleavage sites is performed.
+        #  If specificity is set to semi-specific, digestion also returns semi-specific products,
+        #  i.e. with only one end at actual cleavage sites.
         #    
         #  Usage:
         #  
@@ -45,6 +47,11 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDigestion.h>" namespace "OpenMS":
         #        print(len(result_digest)) # 57 peptides
         #        print(result_digest_min_max[4].toString()) # LVNELTEFAK
         #        print(len(result_digest_min_max)) # 42 peptides
+        #        #
+        #        # Semi-specific digestion
+        #        result_semispecific = []
+        #        dig.setSpecificity(EnzymaticDigestion.SPEC_SEMI)
+        #        dig.digest(bsa_aaseq, result_semispecific)
         #        #
         #        # Using digestUnmodified without the need for AASequence from the EnzymaticDigestion base class
         #        result_digest_unmodified = []

@@ -97,6 +97,14 @@ if (WITH_HDF5)
   target_link_libraries(HDF5_test HDF5::HDF5)
 endif()
 
+if (WITH_PARQUET)
+  target_link_libraries(Arrow_test 
+  Arrow::arrow_shared
+  Parquet::parquet_shared
+  )
+endif()
+
+
 #------------------------------------------------------------------------------
 # restore old compiler flags
 if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)

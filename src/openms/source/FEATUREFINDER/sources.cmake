@@ -20,6 +20,7 @@ FeatureFinderIdentificationAlgorithm.cpp
 FeatureFinderAlgorithmMetaboIdent.cpp
 FeatureFinderMultiplexAlgorithm.cpp
 FeatureFindingMetabo.cpp
+FFIDAlgoExternalIDHandler.cpp
 Fitter1D.cpp
 GaussFitter1D.cpp
 GaussModel.cpp

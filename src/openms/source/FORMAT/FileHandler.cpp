@@ -1136,7 +1136,7 @@ namespace OpenMS
     }
   }
 
-  void FileHandler::loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     
     //determine file type
@@ -1213,7 +1213,7 @@ namespace OpenMS
     }   
   }
 
-  void FileHandler::storeIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::storeIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     auto type = getTypeByFileName(filename);
     if (type == FileTypes::Type::UNKNOWN && (allowed_types.size() == 1))
@@ -1395,7 +1395,7 @@ namespace OpenMS
                const MSExperiment& exp,
                const FeatureMap& feature_map,
                std::vector<ProteinIdentification>& prot_ids,
-               std::vector<PeptideIdentification>& pep_ids,
+               PeptideIdentificationList& pep_ids,
                const ConsensusMap& consensus_map,
                const String& contact_name,
                const String& contact_address,

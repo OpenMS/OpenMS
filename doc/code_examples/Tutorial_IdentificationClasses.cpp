@@ -66,7 +66,7 @@ int main()
   }
 
   // Create new peptide identifications
-  vector<PeptideIdentification> peptide_ids;
+  PeptideIdentificationList peptide_ids;
   PeptideIdentification peptide_id;
 
   peptide_id.setRT(1243.56);

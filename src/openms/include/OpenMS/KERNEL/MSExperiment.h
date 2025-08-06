@@ -10,8 +10,10 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
+#include <OpenMS/KERNEL/ChromatogramRangeManager.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/SpectrumRangeManager.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 
@@ -43,8 +45,7 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI MSExperiment final : public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity, RangeMobility>,
-    public ExperimentalSettings
+  class OPENMS_DLLAPI MSExperiment final : public ExperimentalSettings
   {
 
 public:
@@ -61,10 +62,14 @@ public:
     typedef PeakType::CoordinateType CoordinateType;
     /// Intensity type of peaks
     typedef PeakType::IntensityType IntensityType;
-    /// RangeManager type
+    /// Combined RangeManager type to store the overall range of all spectra and chromatograms (for backward compatibility)
     typedef RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility> RangeManagerType;
-    /// RangeManager type
-    typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity, RangeMobility> RangeManagerContainerType;
+    
+    /// Spectrum range manager type for tracking ranges with MS level separation
+    typedef SpectrumRangeManager SpectrumRangeManagerType;
+    
+    /// Chromatogram range manager type for tracking chromatogram-specific ranges
+    typedef ChromatogramRangeManager ChromatogramRangeManagerType;
     /// Spectrum Type
     typedef MSSpectrum SpectrumType;
     /// Chromatogram type
@@ -1067,16 +1072,56 @@ std::vector<MSChromatogram> extractXICs(
       @note The range values (min, max, etc.) are not updated automatically. Call updateRanges() to update the values!
     */
     ///@{
-    // Docu in base class
-    void updateRanges() override;
-
+    /// Delegate methods for backward compatibility
+    
     /**
-      @brief Updates the m/z, intensity, and retention time ranges of all spectra with a certain ms level
+     * @brief Clear all ranges in all range managers
+     *
+     * This clears the ranges in the combined range manager, the spectrum range manager,
+     * and the chromatogram range manager.
+     */
+    void clearRanges()
+    {
+      combined_ranges_.clearRanges();
+      spectrum_ranges_.clearRanges();
+      chromatogram_ranges_.clearRanges();
+    }
+   
+    /// Get the minimum RT value from the combined ranges (includes both chromatogram and spectra ranges)
+    double getMinRT() const { return combined_ranges_.getMinRT(); }
+    
+    /// Get the maximum RT value from the combined ranges (includes both chromatogram and spectra ranges)
+    double getMaxRT() const { return combined_ranges_.getMaxRT(); }
+    
+    /// Get the minimum m/z value from the combined ranges (includes both chromatogram and spectra ranges)
+    double getMinMZ() const { return combined_ranges_.getMinMZ(); }
+    
+    /// Get the maximum m/z value from the combined ranges (includes both chromatogram and spectra ranges)
+    double getMaxMZ() const { return combined_ranges_.getMaxMZ(); }
+    
+    /// Get the minimum intensity value from the combined ranges (includes both chromatogram and spectra ranges)
+    double getMinIntensity() const { return combined_ranges_.getMinIntensity(); }
+    
+    /// Get the maximum intensity value from the combined ranges (includes both chromatogram and spectra ranges)
+    double getMaxIntensity() const { return combined_ranges_.getMaxIntensity(); }
+    
+    /// Get the minimum mobility value from the combined ranges (includes both chromatogram and spectra ranges)
+    double getMinMobility() const { return combined_ranges_.getMinMobility(); }
+    
+    /// Get the maximum mobility value from the combined ranges (includes both chromatogram and spectra ranges)
+    double getMaxMobility() const { return combined_ranges_.getMaxMobility(); }
+    
+    /**
+      @brief Updates the m/z, intensity, mobility, and retention time ranges of all spectra and chromatograms
       
-
-      @param ms_level MS level to consider for m/z range, RT range and intensity range (All MS levels if negative)
+      This method updates all three range managers:
+      - The spectrum range manager (for spectra ranges with MS level separation)
+      - The chromatogram range manager (for chromatogram ranges)
+      - The combined range manager (for overall ranges across both spectra and chromatograms)
+      
+      Call this method after modifying spectra or chromatograms to ensure that all range information is up-to-date.
     */
-    void updateRanges(Int ms_level);
+    void updateRanges();
 
     /// returns the total number of peaks (spectra and chromatograms included)
     UInt64 getSize() const;
@@ -1275,9 +1320,6 @@ std::vector<MSChromatogram> extractXICs(
     /// returns true if any MS spectra of trthe specified level contain at least one peak with intensity of 0.0
     bool hasZeroIntensities(size_t ms_level) const;
 
-    /// do any of the spectra have a PeptideID?
-    bool hasPeptideIdentifications() const;
-
     /// Are all MSSpectra in this experiment part of an IM Frame? I.e. they all have the same RT, but different drift times
     bool isIMFrame() const;
 
@@ -1286,8 +1328,49 @@ std::vector<MSChromatogram> extractXICs(
     std::vector<MSChromatogram > chromatograms_;
     /// spectra
     std::vector<SpectrumType> spectra_;
+    /// Spectrum range manager for tracking m/z, intensity, RT, and ion mobility ranges of spectra with MS level separation
+    SpectrumRangeManagerType spectrum_ranges_;
+    
+    /// Chromatogram range manager for tracking RT, intensity, and m/z ranges of chromatograms
+    ChromatogramRangeManagerType chromatogram_ranges_;
+    
+    /// Combined range manager that provides overall ranges across both spectra and chromatograms (maintained for backward compatibility)
+    RangeManagerType combined_ranges_;
 
-private:
+  public:
+    /**
+     * @brief Returns a const reference to the spectrum range manager
+     *
+     * The spectrum range manager provides access to m/z, intensity, retention time, and ion mobility
+     * ranges for spectra, with separate tracking for different MS levels.
+     *
+     * @return Const reference to the spectrum range manager
+     * @see SpectrumRangeManager
+     */
+    const SpectrumRangeManagerType& spectrumRanges() const { return spectrum_ranges_; }
+   
+    /**
+     * @brief Returns a const reference to the chromatogram range manager
+     *
+     * The chromatogram range manager provides access to retention time, m/z, and intensity
+     * ranges for chromatograms.
+     *
+     * @return Const reference to the chromatogram range manager
+     * @see ChromatogramRangeManager
+     */
+    const ChromatogramRangeManagerType& chromatogramRanges() const { return chromatogram_ranges_; }
+        
+    /**
+     * @brief Returns a const reference to the combined range manager
+     *
+     * The combined range manager provides access to the overall ranges across both spectra and chromatograms.
+     * This is maintained for backward compatibility with code that expects a single range manager.
+     *
+     * @return Const reference to the combined range manager
+     */
+    const RangeManagerType& combinedRanges() const { return combined_ranges_; }
+
+  private:
 
     /// Helper class to add either general data points in set2DData or use mass traces from meta values
     template<typename ContainerValueType, bool addMassTraces>
@@ -1347,6 +1430,7 @@ private:
         else ContainerAdd_<ContainerValueType, false>::addData_(spectrum, item);
       }
     };
+
 
     /*
       @brief Append a spectrum to current MSExperiment

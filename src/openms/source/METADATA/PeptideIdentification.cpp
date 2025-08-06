@@ -254,7 +254,7 @@ namespace OpenMS
     ProteinIdentification::Mapping mp_c(cmap.getProteinIdentifications());
     //Iterates of the vector of PeptideIdentification to build the UID
     //and the pep_index
-    auto lamda = [](const vector<PeptideIdentification> &cpep_ids,
+    auto lamda = [](const PeptideIdentificationList &cpep_ids,
                     const map<String, StringList> &identifier_to_msrunpath,
                     multimap<String, std::pair<Size, Size>> &customID_to_cpepID,
                     const Size &cf_index) {

@@ -49,7 +49,6 @@ set(CMAKE_AUTOMOC_COMPILER_PREDEFINES OFF)
 # General CMake definitions & helper
 #------------------------------------------------------------------------------
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
-
 #------------------------------------------------------------------------------
 ## CMake sanity check: sometimes CMAKE_SIZEOF_VOID_P just vanishes when
 ## updating CMake.
@@ -68,7 +67,7 @@ enable_testing()
 #------------------------------------------------------------------------------
 # entries meant to be configured using CMake cache
 # - do NOT hardcode them here!
-# - edit them within CMakeCache.txt using ccmake or cmake -D VAR=VALUE
+# - edit them within CMakeCache.txt using ccmake or cmake -DVAR=VALUE
 #------------------------------------------------------------------------------
 # CMAKE_PREFIX_PATH
 # CMAKE_BUILD_TYPE
@@ -83,7 +82,13 @@ option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
 option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." ON)
 option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript views in TOPPView." OFF)
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
-option(ENABLE_CWL "Build and validate the CWL description files for all TOPP tools." OFF)
+option(WITH_PARQUET "Build Parquet parts of OpenMS." OFF)
+option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." ON)
+option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
+
+if(ENABLE_CWL_GENERATION AND NOT ENABLE_TDL)
+    message(FATAL_ERROR "ENABLE_CWL_GENERATION requires ENABLE_TDL to be ON.")
+endif()
 
 if(MSVC)
   option(MT_ENABLE_NESTED_OPENMP "Enable nested parallelism." OFF)
@@ -269,6 +274,13 @@ if(ENABLE_UPDATE_CHECK)
   message(STATUS "    - Switch the build variable ENABLE_UPDATE_CHECK to OFF to remove the functionality at build time.")
   message(STATUS "    - Set the environment variable OPENMS_DISABLE_UPDATE_CHECK to disable the functionality at runtime.")
 endif()
+
+
+#------------------------------------------------------------------------------
+# Enable AddressSanitizer
+#------------------------------------------------------------------------------  
+option(ADDRESS_SANITIZER "Enable AddressSanitizer mode (quite slow)." OFF)
+include(${PROJECT_SOURCE_DIR}/cmake/AddressSanitizer.cmake)
 
 #------------------------------------------------------------------------------
 # we build shared libraries
@@ -476,7 +488,7 @@ endif()
 #------------------------------------------------------------------------------
 # CWL generation (updates openms/share/commonwl/*.cwl files for all TOPP tools)
 #------------------------------------------------------------------------------
-if (ENABLE_CWL)
+if (ENABLE_CWL_GENERATION)
   include(${OPENMS_HOST_DIRECTORY}/cmake/cwl_generation.cmake)
 endif()
 

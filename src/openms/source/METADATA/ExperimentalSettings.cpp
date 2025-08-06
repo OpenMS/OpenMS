@@ -25,7 +25,6 @@ namespace OpenMS
            instrument_ == rhs.instrument_ &&
            hplc_ == rhs.hplc_ &&
            datetime_ == rhs.datetime_ &&
-           protein_identifications_ == rhs.protein_identifications_ &&
            comment_ == rhs.comment_ &&
            fraction_identifier_ == rhs.fraction_identifier_ &&
            MetaInfoInterface::operator==(rhs) &&
@@ -127,21 +126,6 @@ namespace OpenMS
     os << "-- EXPERIMENTALSETTINGS BEGIN --\n";
     os << "-- EXPERIMENTALSETTINGS END --\n";
     return os;
-  }
-
-  const vector<ProteinIdentification> & ExperimentalSettings::getProteinIdentifications() const
-  {
-    return protein_identifications_;
-  }
-
-  vector<ProteinIdentification> & ExperimentalSettings::getProteinIdentifications()
-  {
-    return protein_identifications_;
-  }
-
-  void ExperimentalSettings::setProteinIdentifications(const vector<ProteinIdentification> & protein_identifications)
-  {
-    protein_identifications_ = protein_identifications;
   }
 
   const String & ExperimentalSettings::getComment() const

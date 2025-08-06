@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/FORMAT/SequestOutfile.h>" namespace "OpenMS":
 
         bool operator==(SequestOutfile &sequest_outfile) except + nogil 
         void load(const String &result_filename,
-                  libcpp_vector[ PeptideIdentification ] &peptide_identifications,
+                  PeptideIdentificationList &peptide_identifications,
                   ProteinIdentification &protein_identification,
                   double p_value_threshold,
                   libcpp_vector[ double ] &pvalues,

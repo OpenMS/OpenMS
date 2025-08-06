@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <map>
 #include <vector>
@@ -68,7 +69,7 @@ public:
        This class serves to read in a Sequest outfile. The information can be
        retrieved via the load function.
    */
-    void load(const String & result_filename, std::vector<PeptideIdentification> & peptide_identifications, ProteinIdentification & protein_identification, const double p_value_threshold, std::vector<double> & pvalues, const String & database = "", const bool ignore_proteins_per_peptide = false);
+    void load(const String & result_filename, PeptideIdentificationList & peptide_identifications, ProteinIdentification & protein_identification, const double p_value_threshold, std::vector<double> & pvalues, const String & database = "", const bool ignore_proteins_per_peptide = false);
 
 // /// retrieve the p-values from the out files
 //          void getPValuesFromOutFiles(vector< pair < String, vector< double > > >& filenames_and_pvalues) throw (Exception::FileNotFound&, Exception::ParseError);

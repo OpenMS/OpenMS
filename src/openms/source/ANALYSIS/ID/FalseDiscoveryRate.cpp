@@ -52,7 +52,7 @@ namespace OpenMS
     if (isHigherBetter) return first > second; else return first < second;
   }
 
-  void FalseDiscoveryRate::apply(vector<PeptideIdentification>& ids, bool annotate_peptide_fdr) const
+  void FalseDiscoveryRate::apply(PeptideIdentificationList& ids, bool annotate_peptide_fdr) const
   {
     bool q_value = !param_.getValue("no_qvalues").toBool();
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
@@ -356,7 +356,7 @@ namespace OpenMS
                 }
                 if (q_value)
                 {
-                  hit.setMetaValue("peptide q-value", peptide_fdr);
+                  hit.setMetaValue(Constants::UserParam::PEPTIDE_Q_VALUE, peptide_fdr);
                 }
                 else
                 {
@@ -378,7 +378,7 @@ namespace OpenMS
     }
 
     // higher-score-better can be set now, calculations are finished
-    for (vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
+    for (PeptideIdentificationList::iterator it = ids.begin(); it != ids.end(); ++it)
     {
       if (q_value)
       {
@@ -401,7 +401,7 @@ namespace OpenMS
     return;
   }
 
-  void FalseDiscoveryRate::apply(vector<PeptideIdentification>& fwd_ids, vector<PeptideIdentification>& rev_ids) const
+  void FalseDiscoveryRate::apply(PeptideIdentificationList& fwd_ids, PeptideIdentificationList& rev_ids) const
   {
     if (fwd_ids.empty() || rev_ids.empty())
     {
@@ -409,7 +409,7 @@ namespace OpenMS
     }
     vector<double> target_scores, decoy_scores;
     // get the scores of all peptide hits
-    for (vector<PeptideIdentification>::const_iterator it = fwd_ids.begin(); it != fwd_ids.end(); ++it)
+    for (PeptideIdentificationList::const_iterator it = fwd_ids.begin(); it != fwd_ids.end(); ++it)
     {
       for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
       {
@@ -417,7 +417,7 @@ namespace OpenMS
       }
     }
 
-    for (vector<PeptideIdentification>::const_iterator it = rev_ids.begin(); it != rev_ids.end(); ++it)
+    for (PeptideIdentificationList::const_iterator it = rev_ids.begin(); it != rev_ids.end(); ++it)
     {
       for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
       {
@@ -434,7 +434,7 @@ namespace OpenMS
 
     // annotate fdr
     String score_type = fwd_ids.begin()->getScoreType() + "_score";
-    for (vector<PeptideIdentification>::iterator it = fwd_ids.begin(); it != fwd_ids.end(); ++it)
+    for (PeptideIdentificationList::iterator it = fwd_ids.begin(); it != fwd_ids.end(); ++it)
     {
       if (q_value)
       {
@@ -461,7 +461,7 @@ namespace OpenMS
     if (add_decoy_peptides)
     {
       score_type = rev_ids.begin()->getScoreType() + "_score";
-      for (vector<PeptideIdentification>::iterator it = rev_ids.begin(); it != rev_ids.end(); ++it)
+      for (PeptideIdentificationList::iterator it = rev_ids.begin(); it != rev_ids.end(); ++it)
       {
         if (q_value)
         {
@@ -880,7 +880,7 @@ namespace OpenMS
   //TODO does not support "by run" and/or "by charge"
   //TODO could be done for a percentage of FalsePos instead of a number
   //TODO can be templated for proteins
-  double FalseDiscoveryRate::rocN(const vector<PeptideIdentification>& ids, Size fp_cutoff) const
+  double FalseDiscoveryRate::rocN(const PeptideIdentificationList& ids, Size fp_cutoff) const
   {
     bool higher_score_better(ids.begin()->isHigherScoreBetter());
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
@@ -905,7 +905,7 @@ namespace OpenMS
     return rocN(scores_labels, fp_cutoff == 0 ? scores_labels.size() : fp_cutoff);
   }
 
-  double FalseDiscoveryRate::rocN(const vector<PeptideIdentification>& ids, Size fp_cutoff, const String& identifier) const
+  double FalseDiscoveryRate::rocN(const PeptideIdentificationList& ids, Size fp_cutoff, const String& identifier) const
   {
     bool higher_score_better(ids.begin()->isHigherScoreBetter());
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
@@ -1125,7 +1125,7 @@ namespace OpenMS
     scores_to_FDR.clear();
   }
 
-  void FalseDiscoveryRate::applyBasic(const std::vector<ProteinIdentification> & run_info, std::vector<PeptideIdentification> & ids)
+  void FalseDiscoveryRate::applyBasic(const std::vector<ProteinIdentification> & run_info, PeptideIdentificationList & ids)
   {
     if (ids.empty()) return;
     bool treat_runs_separately = param_.getValue("treat_runs_separately").toBool();
@@ -1191,7 +1191,7 @@ namespace OpenMS
   {
     bool q_value = !param_.getValue("no_qvalues").toBool();
     //TODO Check naming conventions. Ontology?
-    const string& score_type = q_value ? "peptide q-value" : "peptide FDR";
+    const string& score_type = q_value ? Constants::UserParam::PEPTIDE_Q_VALUE : "peptide FDR";
     bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
     // since we do not support multiple runs here yet, we take the orientation of the first ID
     bool higher_better = true;
@@ -1231,11 +1231,11 @@ namespace OpenMS
     IDScoreGetterSetter::setPeptideScoresFromMap_(seq_to_score_labels, map, score_type, add_decoy_peptides, include_unassigned);
   }
 
-  void FalseDiscoveryRate::applyBasicPeptideLevel(std::vector<PeptideIdentification> & ids)
+  void FalseDiscoveryRate::applyBasicPeptideLevel(PeptideIdentificationList & ids)
   {
     bool q_value = !param_.getValue("no_qvalues").toBool();
     //TODO Check naming conventions. Ontology?
-    const string& score_type = q_value ? "peptide q-value" : "peptide FDR";
+    const string& score_type = q_value ? Constants::UserParam::PEPTIDE_Q_VALUE : "peptide FDR";
     bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
     // since we do not support multiple runs here yet, we take the orientation of the first ID
     bool higher_better = ids[0].isHigherScoreBetter();
@@ -1269,7 +1269,7 @@ namespace OpenMS
   }
 
   // TODO why again do we need higher_score_better here?
-  void FalseDiscoveryRate::applyBasic(std::vector<PeptideIdentification> & ids, bool higher_score_better, int charge, String identifier, bool only_best_per_pep)
+  void FalseDiscoveryRate::applyBasic(PeptideIdentificationList & ids, bool higher_score_better, int charge, String identifier, bool only_best_per_pep)
   {
     bool q_value = !param_.getValue("no_qvalues").toBool();
     //TODO Check naming conventions. Ontology?
@@ -1338,7 +1338,7 @@ namespace OpenMS
     }
     calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
     if (!scores_labels.empty())
-      IDScoreGetterSetter::setScores_<PeptideIdentification>(scores_to_FDR, ids, score_type, false, add_decoy_peptides);
+      IDScoreGetterSetter::setScores_<PeptideIdentification>(scores_to_FDR, ids.getData(), score_type, false, add_decoy_peptides);
     scores_to_FDR.clear();
   }
 

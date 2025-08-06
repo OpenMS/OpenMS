@@ -35,8 +35,8 @@ using namespace std;
 MascotXMLFile xml_file;
 MascotXMLFile* ptr;
 ProteinIdentification protein_identification;
-vector<PeptideIdentification> peptide_identifications;
-vector<PeptideIdentification> peptide_identifications2;
+PeptideIdentificationList peptide_identifications;
+PeptideIdentificationList peptide_identifications2;
 DateTime date;
 PeptideHit peptide_hit;
 vector<String> references;
@@ -60,7 +60,7 @@ START_SECTION((static void initializeLookup(SpectrumMetaDataLookup& lookup, Peak
 }
 END_SECTION
 
-START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, SpectrumMetaDataLookup& lookup)))
+START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, SpectrumMetaDataLookup& lookup)))
 {
   SpectrumMetaDataLookup lookup;
   xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_1.mascotXML"),
@@ -232,7 +232,7 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
 }
 END_SECTION
 
-START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, std::map<String, std::vector<AASequence> >& peptides, SpectrumMetaDataLookup& lookup)))
+START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& id_data, std::map<String, std::vector<AASequence> >& peptides, SpectrumMetaDataLookup& lookup)))
   std::map<String, vector<AASequence> > modified_peptides;
   AASequence aa_sequence_1;
   AASequence aa_sequence_2;

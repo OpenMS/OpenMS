@@ -80,7 +80,7 @@ namespace OpenMS
     return make_unique<LayerStatisticsConsensusMap>(*consensus_map_);
   }
 
-  bool LayerDataConsensus::annotate(const vector<PeptideIdentification>& identifications, const vector<ProteinIdentification>& protein_identifications)
+  bool LayerDataConsensus::annotate(const PeptideIdentificationList& identifications, const vector<ProteinIdentification>& protein_identifications)
   {
     IDMapper mapper;
     mapper.annotate(*getConsensusMap(), identifications, protein_identifications);

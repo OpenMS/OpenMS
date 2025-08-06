@@ -450,7 +450,7 @@ START_SECTION((void sort()))
 END_SECTION
 
 
-START_SECTION((Size computeCoverage(const std::vector<PeptideIdentification>& pep_ids)))
+START_SECTION((Size computeCoverage(const PeptideIdentificationList& pep_ids)))
 	ProteinIdentification id;
 
   // prep hit
@@ -465,7 +465,7 @@ START_SECTION((Size computeCoverage(const std::vector<PeptideIdentification>& pe
   id.insertHit(hit);
 
   // prep peptides
-  std::vector<PeptideIdentification> pep_ids;
+  PeptideIdentificationList pep_ids;
   PeptideIdentification pid;
   PeptideHit phit(0, 0, 1, AASequence::fromString(""));
   PeptideEvidence pe;

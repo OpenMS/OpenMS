@@ -76,7 +76,7 @@ namespace OpenMS
     void removeGraphicalPeakAnnotations_(int spectrum_index);
 
     /// Adds annotation (compound name, adducts, ppm error) to a peak in 1D spectra
-    void addPeakAnnotations_(const std::vector<PeptideIdentification>& ph);
+    void addPeakAnnotations_(const PeptideIdentificationList& ph);
 
     /// Helper function for text formatting
     String n_times(Size n, const String& input);

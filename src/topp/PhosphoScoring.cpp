@@ -266,9 +266,9 @@ protected:
     // loading input
     //-------------------------------------------------------------
     
-    vector<PeptideIdentification> pep_ids;
+    PeptideIdentificationList pep_ids;
     vector<ProteinIdentification> prot_ids;
-    vector<PeptideIdentification> pep_out;
+    PeptideIdentificationList pep_out;
     FileHandler().loadIdentifications(id, prot_ids, pep_ids, {FileTypes::IDXML});
 
     PeakMap exp;

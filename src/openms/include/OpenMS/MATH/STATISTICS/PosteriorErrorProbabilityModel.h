@@ -14,6 +14,7 @@
 #include <OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h>
 #include <OpenMS/MATH/STATISTICS/GumbelMaxLikelihoodFitter.h>
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
 #include <map>
@@ -25,6 +26,7 @@ namespace OpenMS
   class PeptideIdentification;
   class ProteinIdentification;
   class PeptideHit;
+  class PeptideIdentificationList;
   namespace Math
   {
 
@@ -69,7 +71,7 @@ public:
        */
       static std::map<String, std::vector<std::vector<double>>> extractAndTransformScores(
         const std::vector<ProteinIdentification> & protein_ids,
-        const std::vector<PeptideIdentification> & peptide_ids,
+        const PeptideIdentificationList & peptide_ids,
         const bool split_charge,
         const bool top_hits_only,
         const bool target_decoy_available,
@@ -95,7 +97,7 @@ public:
         const bool prob_correct,
         const bool split_charge,
         std::vector<ProteinIdentification> & protein_ids,
-        std::vector<PeptideIdentification> & peptide_ids,
+        PeptideIdentificationList & peptide_ids,
         bool & unable_to_fit_data,
         bool & data_might_not_be_well_fit);
 
