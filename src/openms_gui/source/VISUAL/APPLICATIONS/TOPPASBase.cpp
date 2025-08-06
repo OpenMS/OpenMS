@@ -1499,7 +1499,7 @@ namespace OpenMS
         tr("How do you want to open the output files?"),
         QMessageBox::Cancel);
       QPushButton* overlayButton = msgBox.addButton(tr("&Single Tab - Overlay"), QMessageBox::YesRole);
-      QPushButton* separateButton = msgBox.addButton(tr("&Separate tabs"), QMessageBox::NoRole);
+      msgBox.addButton(tr("&Separate tabs"), QMessageBox::NoRole);
       msgBox.exec();
       if (msgBox.clickedButton() == nullptr) return; // Escape was pressed
       if (msgBox.clickedButton() == overlayButton)
