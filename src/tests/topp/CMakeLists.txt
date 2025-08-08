@@ -384,7 +384,7 @@ set_tests_properties("TOPP_FeatureFinderMultiplex_11_out1" PROPERTIES DEPENDS "T
 # FeatureFinderMultiplex FAIMS test
 add_test("TOPP_FeatureFinderMultiplex_FAIMS" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_FAIMS_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_FAIMS_parameters.ini -out FeatureFinderMultiplex_FAIMS.tmp.featureXML -out_multiplets FeatureFinderMultiplex_FAIMS.tmp.consensusXML)
 add_test("TOPP_FeatureFinderMultiplex_FAIMS_out1" ${DIFF} -whitelist "id=" "href=" "spectra_data" -in1 FeatureFinderMultiplex_FAIMS.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_FAIMS_output.featureXML )
-add_test("TOPP_FeatureFinderMultiplex_FAIMS_out2" ${DIFF} -whitelist "id=" "href=" "spectra_data" -in1 FeatureFinderMultiplex_FAIMS.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_FAIMS_output.consensusXML )
+add_test("TOPP_FeatureFinderMultiplex_FAIMS_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_FAIMS.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_FAIMS_output.consensusXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_FAIMS_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_FAIMS")
 set_tests_properties("TOPP_FeatureFinderMultiplex_FAIMS_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_FAIMS")
 

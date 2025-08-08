@@ -100,7 +100,6 @@ protected:
   ConsensusMap consensus_map_;
   
   // blacklist of peaks that were associated with detected features (for FAIMS data, this is a combined blacklist from all compensation voltages)
-  // blacklist
   MSExperiment exp_blacklist_;
 
   /**
