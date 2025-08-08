@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
+//#include <OpenMS/MATH/MathFunctions.h>
 #include <random>
 #include <algorithm>
 #include <unordered_set>
@@ -231,8 +232,9 @@ namespace OpenMS
 
     // 3) sample uniformly across RT bins
     std::vector<OpenSwath::LightCompound> picked;
-    std::mt19937 rng;
-    rng.seed(seed == 0 ? std::random_device{}() : seed);
+    // Initialize OpenMS random shuffler
+    Math::RandomShuffler rshuffler;
+    rshuffler.seed(seed == 0 ? std::random_device{}() : seed);
     for (Size b = 0; b < bins; ++b)
     {
       double lo = rt_min + b * bin_width;
@@ -245,7 +247,7 @@ namespace OpenMS
       }
       if (!bucket.empty())
       {
-        std::shuffle(bucket.begin(), bucket.end(), rng);
+        rshuffler.portable_random_shuffle(bucket.begin(), bucket.end());
         Size take = std::min(peptides_per_bin, bucket.size());
         picked.insert(picked.end(), bucket.begin(), bucket.begin() + take);
       }
