@@ -496,32 +496,9 @@ protected:
     registerSubsection_("Scoring", "Scoring parameters section");
     registerSubsection_("Library", "Library parameters section");
 
-    registerSubsection_("RTNormalization", "Parameters for the RTNormalization for iRT petides. This specifies how the RT alignment is performed and how outlier detection is applied. Outlier detection can be done iteratively (by default) which removes one outlier per iteration or using the RANSAC algorithm.");
-    registerSubsection_("Calibration", "Parameters for the m/z and ion mobility calibration.");
-
-    registerTOPPSubsection_("Calibration", "Parameters for calibrant iRT peptides to use");
-    registerIntOption_("Calibration:irt_bins", "<int>", 100, "Number of RT bins for sampling. (When `auto_irt` is set to 'true')", false, true);
-    setMinInt_("Calibration:irt_bins", 5);
-    registerIntOption_("Calibration:irt_peptides_per_bin", "<int>", 5, "Peptides sampled per bin. (When `auto_irt` is set to 'true')", false, true);
-    setMinInt_("Calibration:irt_peptides_per_bin", 1);
-    registerIntOption_("Calibration:irt_seed", "<int>", 5489, "RNG seed (0 = non‐deterministic). (When `auto_irt` is set to 'true')", false, true);
-    setMinInt_("Calibration:irt_seed", 0);
-
-    registerIntOption_("Calibration:irt_bins_nonlinear", "<int>", 2000, "Number of RT bins for sampling. (When `auto_irt` is set to 'true')", false, true);
-    setMinInt_("Calibration:irt_bins_nonlinear", 5);
-    registerIntOption_("Calibration:irt_peptides_per_bin_nonlinear", "<int>", 50, "Peptides sampled per bin for additional nonlinear calibration. If 0, nonlinear calibration will not be performed. (When `auto_irt` is set to 'true')", false, true);
-    setMinInt_("Calibration:irt_peptides_per_bin_nonlinear", 0);
-
-    // one of the following two needs to be set
-    registerInputFile_("Calibration:tr_irt", "<file>", "", "transition file ('TraML') for linear iRTs. Takes precedent even when `auto_rt` is set to 'true'", false, true);
-    setValidFormats_("Calibration:tr_irt", ListUtils::create<String>("traML,tsv,pqp"));
-
-    // one of the following two needs to be set
-    registerInputFile_("Calibration:tr_irt_nonlinear", "<file>", "", "additional nonlinear transition file ('TraML'). Takes precedent even when `auto_rt` is set to 'true'", false, true);
-    setValidFormats_("Calibration:tr_irt_nonlinear", ListUtils::create<String>("traML,tsv,pqp"));
-
-    registerInputFile_("Calibration:rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.", false, true);
-    setValidFormats_("Calibration:rt_norm", ListUtils::create<String>("trafoXML"));
+    registerSubsection_("Calibration", "Parameters for calibrant iRT peptides for RT normalization and mass / ion mobility correction.");
+    registerSubsection_("Calibration:RTNormalization", "Parameters for the RTNormalization for iRT peptides. This specifies how the RT alignment is performed and how outlier detection is applied. Outlier detection can be done iteratively (by default) which removes one outlier per iteration or using the RANSAC algorithm.");
+    registerSubsection_("Calibration:MassIMCorrection", "Parameters for the m/z and ion mobility calibration.");
 
     registerTOPPSubsection_("Debugging", "Debugging");
     registerOutputFile_("Debugging:irt_mzml", "<file>", "", "Chromatogram mzML containing the iRT peptides", false);
@@ -581,7 +558,40 @@ protected:
       feature_finder_param.remove("EMGScoring:statistics:variance");
       return feature_finder_param;
     }
-    else if (name == "RTNormalization")
+    else if (name == "Library")
+    {
+      return TransitionTSVFile().getDefaults();
+    }
+    else if (name == "Calibration")
+    {
+      Param p;
+
+      p.setValue("irt_bins", 100, "Number of RT bins for sampling. (When `auto_irt` is set to 'true')");
+      p.setMinInt("irt_bins", 5);
+      p.setValue("irt_peptides_per_bin",  5, "Peptides sampled per bin. (When `auto_irt` is set to 'true')");
+      p.setMinInt("irt_peptides_per_bin", 1);
+      p.setValue("irt_seed",  5489, "RNG seed (0 = non‐deterministic). (When `auto_irt` is set to 'true')");
+      p.setMinInt("irt_seed", 0);
+
+      p.setValue("irt_bins_nonlinear",  2000, "Number of RT bins for sampling. (When `auto_irt` is set to 'true')");
+      p.setMinInt("irt_bins_nonlinear", 5);
+      p.setValue("irt_peptides_per_bin_nonlinear",  50, "Peptides sampled per bin for additional nonlinear calibration. If 0, nonlinear calibration will not be performed. (When `auto_irt` is set to 'true')");
+      p.setMinInt("irt_peptides_per_bin_nonlinear", 0);
+
+      // one of the following two needs to be set
+      p.setValue("tr_irt", "", "transition file ('TraML') for linear iRTs. Takes precedent even when `auto_rt` is set to 'true'");
+      p.setValidStrings("tr_irt", {"traML","tsv","pqp"});
+
+      // one of the following two needs to be set
+      p.setValue("tr_irt_nonlinear", "", "additional nonlinear transition file ('TraML'). Takes precedent even when `auto_rt` is set to 'true'");
+      p.setValidStrings("tr_irt_nonlinear", {"traML","tsv","pqp"});
+
+      p.setValue("rt_norm", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.");
+      p.setValidStrings("rt_norm", {"trafoXML"});
+
+      return p;
+    }
+    else if (name == "Calibration:RTNormalization")
     {
       Param p;
 
@@ -613,17 +623,9 @@ protected:
       p.setValue("MinBinsFilled", 8, "Minimal number of bins required to be covered");
       return p;
     }
-    else if (name == "Library")
-    {
-      return TransitionTSVFile().getDefaults();
-    }
-    else if (name == "Calibration")
+    else if (name == "Calibration:MassIMCorrection")
     {
       Param p = SwathMapMassCorrection().getDefaults();
-      p.remove("mz_extraction_window");
-      p.remove("mz_extraction_window_ppm");
-      p.remove("im_extraction_window");
-      p.remove("mz_correction_function");
       return p;
     }
     else
@@ -944,21 +946,12 @@ protected:
     ///////////////////////////////////
     String irt_trafo_out = debug_params.getValue("irt_trafo").toString();
     String irt_mzml_out = debug_params.getValue("irt_mzml").toString();
-    Param irt_detection_param = getParam_().copy("RTNormalization:", true);
-    Param calibration_param = getParam_().copy("Calibration:", true);
+    Param irt_detection_param = getParam_().copy("Calibration:RTNormalization:", true);
+    Param calibration_param = getParam_().copy("Calibration:MassIMCorrection", true);
     calibration_param.setValue("mz_extraction_window", cp_irt.mz_extraction_window);
     calibration_param.setValue("mz_extraction_window_ppm", cp_irt.ppm ? "true" : "false");
     calibration_param.setValue("im_extraction_window", cp_irt.im_extraction_window);
     calibration_param.setValue("mz_correction_function", mz_correction_function);
-    // Remove iRT params grouped with TOPPsubsection Calibration params
-    calibration_param.remove("irt_seed");
-    calibration_param.remove("irt_bins");
-    calibration_param.remove("irt_peptides_per_bin");
-    calibration_param.remove("irt_bins_nonlinear");
-    calibration_param.remove("irt_peptides_per_bin_nonlinear");
-    calibration_param.remove("tr_irt");
-    calibration_param.remove("tr_irt_nonlinear");
-    calibration_param.remove("rt_norm");
 
     // 1) Prepare in‐memory iRT experiments for linear + nonlinear
     OpenSwath::LightTargetedExperiment lin_irt_exp;
