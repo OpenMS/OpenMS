@@ -28,7 +28,7 @@ using namespace std;
       <th ALIGN = "center"> pot. successor tools </td>
     </tr>
     <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_CometAdapter (or other ID engines) </td>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeptideIndexer </td>
     </tr>
   </table>
@@ -266,9 +266,9 @@ protected:
     // loading input
     //-------------------------------------------------------------
     
-    vector<PeptideIdentification> pep_ids;
+    PeptideIdentificationList pep_ids;
     vector<ProteinIdentification> prot_ids;
-    vector<PeptideIdentification> pep_out;
+    PeptideIdentificationList pep_out;
     FileHandler().loadIdentifications(id, prot_ids, pep_ids, {FileTypes::IDXML});
 
     PeakMap exp;

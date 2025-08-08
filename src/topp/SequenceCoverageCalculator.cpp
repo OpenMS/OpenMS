@@ -96,7 +96,7 @@ protected:
   ExitCodes outputTo_(ostream& os, String out)
   {
     vector<ProteinIdentification> protein_identifications;
-    vector<PeptideIdentification> identifications;
+    PeptideIdentificationList identifications;
     vector<FASTAFile::FASTAEntry> proteins;
     vector<double> statistics;
     vector<Size> counts;

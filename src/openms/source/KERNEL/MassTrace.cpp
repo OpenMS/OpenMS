@@ -96,7 +96,6 @@ namespace OpenMS
       return peak_area;
     }
 
-
     double MassTrace::computeIntensitySum() const
     {
       return std::accumulate(trace_peaks_.begin(), trace_peaks_.end(), 0.0, 
@@ -404,6 +403,12 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace is empty... centroid RT undefined!", String(trace_peaks_.size()));
       }
 
+      // Handle single-peak traces: set centroid RT directly from the only peak
+      if (trace_peaks_.size() == 1)
+      {
+        centroid_rt_ = (*(trace_peaks_.begin())).getRT();
+        return;
+      }
 
 
 
@@ -441,6 +446,13 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace was not smoothed before! Aborting...", String(smoothed_intensities_.size()));
       }
 
+      // Handle single-peak traces: set centroid RT directly from the only peak
+      if (trace_peaks_.size() == 1)
+      {
+        centroid_rt_ = (*(trace_peaks_.begin())).getRT();
+        return;
+      }
+
       double trace_area(0.0), wmean_rt(0.0);
 
       for (Size i = 0; i < smoothed_intensities_.size(); ++i)
@@ -465,6 +477,12 @@ namespace OpenMS
       if (smoothed_intensities_.empty())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace was not smoothed before! Aborting...", String(smoothed_intensities_.size()));
+      }
+      // Handle single-peak traces: set centroid RT directly from the only peak
+      if (trace_peaks_.size() == 1)
+      {
+        centroid_rt_ = (*(trace_peaks_.begin())).getRT();
+        return;
       }
 
       double tmp_max(-1.0);
@@ -522,7 +540,6 @@ namespace OpenMS
         centroid_rt_ = temp_rt[mid];
       }
 
-
       return;
     }
 
@@ -533,6 +550,7 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace is empty... centroid MZ undefined!", String(trace_peaks_.size()));
       }
 
+      // Handle single-peak traces: set centroid MZ directly from the only peak
       if (trace_peaks_.size() == 1)
       {
         centroid_mz_ = (*(trace_peaks_.begin())).getMZ();
@@ -570,6 +588,12 @@ namespace OpenMS
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace is empty... centroid MZ undefined!", String(trace_peaks_.size()));
       }
+      // Handle single-peak traces: set centroid MZ directly from the only peak
+      if (trace_peaks_.size() == 1)
+      {
+        centroid_mz_ = (*(trace_peaks_.begin())).getMZ();
+        return;
+      }
 
       Size trace_size = trace_peaks_.size();
 
@@ -590,6 +614,12 @@ namespace OpenMS
       if (trace_peaks_.empty())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace is empty... centroid MZ undefined!", String(trace_peaks_.size()));
+      }
+      // Handle single-peak traces: set centroid MZ directly from the only peak
+      if (trace_peaks_.size() == 1)
+      {
+        centroid_mz_ = (*(trace_peaks_.begin())).getMZ();
+        return;
       }
 
       double weighted_sum(0.0);
@@ -616,6 +646,13 @@ namespace OpenMS
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace is empty... std of MZ undefined!", String(trace_peaks_.size()));
       }
+      // Handle single-peak traces: set centroid MZ directly from the only peak
+      if (trace_peaks_.size() == 1)
+      {
+        centroid_mz_ = (*(trace_peaks_.begin())).getMZ();
+        centroid_sd_ = 0.0; // For a single peak, standard deviation is 0
+        return;
+      }
 
       double weighted_sum(0.0);
       double total_weight(0.0);
@@ -637,3 +674,5 @@ namespace OpenMS
     }
 
 } // end of MassTrace.cpp
+
+

@@ -44,7 +44,6 @@ MSNumpressCoder.cpp
 MSPFile.cpp
 MSPGenericFile.cpp
 MSstatsFile.cpp
-MascotInfile.cpp
 MascotGenericFile.cpp
 MascotRemoteQuery.cpp
 MascotXMLFile.cpp

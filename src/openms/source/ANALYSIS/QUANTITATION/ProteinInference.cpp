@@ -55,7 +55,7 @@ namespace OpenMS
       for (size_t i_cm = 0; i_cm < consensus_map.size(); ++i_cm)
       {
         std::vector<PeptideHit> peptide_hits;
-        for (std::vector<PeptideIdentification>::iterator it_pepid = consensus_map[i_cm].getPeptideIdentifications().begin();
+        for (PeptideIdentificationList::iterator it_pepid = consensus_map[i_cm].getPeptideIdentifications().begin();
              it_pepid != consensus_map[i_cm].getPeptideIdentifications().end();
              ++it_pepid)
         {

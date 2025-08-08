@@ -33,14 +33,14 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
                 #  Parameters should be set before using this method, as setting parameters will clear all results
 
         void readQuantData(libcpp_vector[ProteinIdentification] & proteins,
-                           libcpp_vector[PeptideIdentification] & peptides,
+                           PeptideIdentificationList & peptides,
                            ExperimentalDesign & ed) except + nogil 
           # wrap-doc:
                 #  Read quantitative data from identification results (for quantification via spectral counting)
                 #  
                 #  Parameters should be set before using this method, as setting parameters will clear all results
 
-        void quantifyPeptides(libcpp_vector[PeptideIdentification] & peptides) except + nogil 
+        void quantifyPeptides(PeptideIdentificationList & peptides) except + nogil 
           # wrap-doc:
                 #  Compute peptide abundances
                 #  

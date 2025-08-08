@@ -24,11 +24,20 @@ namespace OpenMS
     std::streambuf* sb = infile_.rdbuf();
     bool keep_reading = true;
     bool description_exists = true;
+    
+  // Skip leading whitespace (including newlines, tabs, spaces)
+  int c;
+  while ((c = sb->sgetc()) != std::streambuf::traits_type::eof() && 
+         (c == ' ' || c == '\t' || c == '\n' || c == '\r')) 
+  {
+    sb->sbumpc(); 
+  }
 
-    if (sb->sbumpc() != '>')
-    {
-      return false;     // was in wrong position for reading ID
-    }
+  if (sb->sbumpc() != '>') 
+  {
+    return false;     
+  }
+
     while (keep_reading)// reading the ID
     {
       int c = sb->sbumpc();// get and advance to next char
@@ -105,12 +114,7 @@ namespace OpenMS
           break;
         case std::streambuf::traits_type::eof():
           infile_.setstate(std::ios::eofbit);
-          if (seq.empty())
-          {
-            infile_.setstate(std::ios::badbit);
-            return false;
-          }
-          return true;
+          return !seq.empty();
         default:
           seq += (char) c;
       }
@@ -139,11 +143,25 @@ namespace OpenMS
     infile_.seekg(0, infile_.beg);
 
     std::streambuf *sb = infile_.rdbuf();
-    while (sb->sgetc() == '#') // Skip the header of PEFF files (http://www.psidev.info/peff)
+   // Skip leading whitespace and PEFF headers
+    int c;
+    while ((c = sb->sgetc()) != 
+    std::streambuf::traits_type::eof())
+  {
+    if (c == '#') 
     {
       infile_.ignore(numeric_limits<streamsize>::max(), '\n');
     }
-    entries_read_ = 0;
+    else if (c == ' ' || c == '\t' || c == '\n' || c == '\r') 
+    {
+      sb->sbumpc(); 
+    }
+    else 
+    {
+      break;
+    }
+  }
+  entries_read_ = 0;
   }
 
   void FASTAFile::readStartWithProgress(const String& filename, const String& progress_label)
@@ -293,4 +311,4 @@ namespace OpenMS
     endProgress();
   }
 
-} // namespace OpenMS
+}// namespace OpenMS

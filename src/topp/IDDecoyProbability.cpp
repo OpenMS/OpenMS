@@ -27,7 +27,7 @@ using namespace std;
             <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_CometAdapter (or other ID engines) </td>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
         </tr>
         <tr>
@@ -134,7 +134,7 @@ protected:
 
     if (!combined)
     {
-      vector<PeptideIdentification> fwd_pep, rev_pep, out_pep;
+      PeptideIdentificationList fwd_pep, rev_pep, out_pep;
       vector<ProteinIdentification> fwd_prot, rev_prot;
       FileHandler().loadIdentifications(fwd_in, fwd_prot, fwd_pep, {FileTypes::IDXML});
       FileHandler().loadIdentifications(rev_in, rev_prot, rev_pep, {FileTypes::IDXML});
@@ -155,7 +155,7 @@ protected:
     else
     {
       vector<ProteinIdentification> prot_ids;
-      vector<PeptideIdentification> pep_ids;
+      PeptideIdentificationList pep_ids;
       String document_id;
       FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
 

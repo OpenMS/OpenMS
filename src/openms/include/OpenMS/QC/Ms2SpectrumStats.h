@@ -11,6 +11,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/QC/QCBase.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 
 namespace OpenMS
@@ -64,7 +65,7 @@ namespace OpenMS
       @throws MissingInformation If exp is empty
       @throws InvalidParameter PeptideID is missing meta value 'spectrum_reference'
     **/
-    std::vector<PeptideIdentification> compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum);
+    PeptideIdentificationList compute(const MSExperiment& exp, FeatureMap& features, const QCBase::SpectraMap& map_to_spectrum);
 
     /// returns the name of the metric
     const String& getName() const override;
@@ -85,7 +86,7 @@ namespace OpenMS
     void setPresenceAndScanEventNumber_(PeptideIdentification& peptide_ID, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum);
 
     /// return all unidentified MS2-Scans as unassignedPeptideIDs, these contain only Information about RT and "ScanEventNumber"
-    std::vector<PeptideIdentification> getUnassignedPeptideIdentifications_(const MSExperiment& exp);
+    PeptideIdentificationList getUnassignedPeptideIdentifications_(const MSExperiment& exp);
 
     /// calculate highest intensity (base peak intensity)
     static MSSpectrum::PeakType::IntensityType getBPI_(const MSSpectrum& spec);

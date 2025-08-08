@@ -89,7 +89,7 @@ namespace OpenMS
 
   private:
     /// peptide identifications
-    std::vector<PeptideIdentification> peptides_;
+    PeptideIdentificationList peptides_;
   };
 
 }// namespace OpenMS

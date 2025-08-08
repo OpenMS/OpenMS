@@ -2878,7 +2878,7 @@ namespace OpenMS
   void MzTabFile::store(
         const String& filename,
         const std::vector<ProteinIdentification>& protein_identifications,
-        const std::vector<PeptideIdentification>& peptide_identifications,
+        const PeptideIdentificationList& peptide_identifications,
         bool first_run_inference_only,
         bool export_empty_pep_ids,
         bool export_all_psms,
