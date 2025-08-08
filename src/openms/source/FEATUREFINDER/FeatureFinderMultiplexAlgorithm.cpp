@@ -30,6 +30,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/CONCEPT/CommonEnums.h>
+#include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 
 #include <vector>
 #include <numeric>
@@ -1181,6 +1182,10 @@ namespace OpenMS
         endProgress();
       }
       
+      // Merge overlapping features from different CVs
+      OPENMS_LOG_INFO << "Merging overlapping FAIMS features..." << std::endl;
+      mergeOverlappingFAIMSFeatures_(feature_map_, consensus_map_);
+      
       // Finalize combined maps
       feature_map_.sortByPosition();
       feature_map_.applyMemberFunction(&UniqueIdInterface::setUniqueId);
@@ -1442,5 +1447,130 @@ namespace OpenMS
   MSExperiment& FeatureFinderMultiplexAlgorithm::getBlacklist()
   {
     return exp_blacklist_;
+  }
+
+  void FeatureFinderMultiplexAlgorithm::mergeOverlappingFAIMSFeatures_(FeatureMap& feature_map, ConsensusMap& consensus_map)
+  {
+    // Define overlap criteria for centroid-based merging
+    const double MAX_RT_DIFF = 5.0;  // Maximum RT difference in seconds
+    const double MAX_MZ_DIFF = 0.05; // Maximum m/z difference in Da
+    
+    // Feature merging with centroid-based overlap detection
+    auto featureOverlapCallback = [](Feature& best_in_cluster, Feature& f) -> bool {
+      // Sum intensities
+      best_in_cluster.setIntensity(best_in_cluster.getIntensity() + f.getIntensity());
+      
+      // Collect centroid RT positions
+      std::vector<double> merged_rts;
+      if (best_in_cluster.metaValueExists("merged_centroid_rts")) {
+        merged_rts = best_in_cluster.getMetaValue("merged_centroid_rts");
+      } else {
+        merged_rts.push_back(best_in_cluster.getRT());
+      }
+      merged_rts.push_back(f.getRT());
+      best_in_cluster.setMetaValue("merged_centroid_rts", merged_rts);
+      
+      // Collect centroid m/z positions
+      std::vector<double> merged_mzs;
+      if (best_in_cluster.metaValueExists("merged_centroid_mzs")) {
+        merged_mzs = best_in_cluster.getMetaValue("merged_centroid_mzs");
+      } else {
+        merged_mzs.push_back(best_in_cluster.getMZ());
+      }
+      merged_mzs.push_back(f.getMZ());
+      best_in_cluster.setMetaValue("merged_centroid_mzs", merged_mzs);
+      
+      // Collect IM (FAIMS CV) values - using consistent naming
+      std::vector<double> merged_ims;
+      if (best_in_cluster.metaValueExists("merged_centroid_IMs")) {
+        merged_ims = best_in_cluster.getMetaValue("merged_centroid_IMs");
+      } else if (best_in_cluster.metaValueExists(std::string(DIM_NAMES[(int)DIM_UNIT::FAIMS_CV]))) {
+        merged_ims.push_back(best_in_cluster.getMetaValue(std::string(DIM_NAMES[(int)DIM_UNIT::FAIMS_CV])));
+        best_in_cluster.removeMetaValue(std::string(DIM_NAMES[(int)DIM_UNIT::FAIMS_CV]));
+      }
+      
+      if (f.metaValueExists(std::string(DIM_NAMES[(int)DIM_UNIT::FAIMS_CV]))) {
+        merged_ims.push_back(f.getMetaValue(std::string(DIM_NAMES[(int)DIM_UNIT::FAIMS_CV])));
+      }
+      
+      best_in_cluster.setMetaValue("merged_centroid_IMs", merged_ims);
+      best_in_cluster.setMetaValue("FAIMS_merge_count", (int)merged_ims.size());
+      
+      return true; // Remove the overlapping feature
+    };
+    
+    // Set up centroid-based tolerances
+    CentroidTolerances tolerances;
+    tolerances.rt_tolerance = MAX_RT_DIFF;
+    tolerances.mz_tolerance = MAX_MZ_DIFF;
+    tolerances.require_same_charge = true;
+    
+    // Apply overlap filter to feature map using centroid-based mode
+    FeatureOverlapFilter::filter(feature_map, 
+      [](const Feature& left, const Feature& right) { 
+        return left.getOverallQuality() > right.getOverallQuality(); 
+      },
+      featureOverlapCallback,
+      FeatureOverlapMode::CENTROID_BASED,
+      tolerances);
+      
+    // For ConsensusMap, we need manual merging since it has different structure
+    // Use same centroid-based criteria as for features
+    ConsensusMap merged_consensus;
+    std::vector<bool> merged_flags(consensus_map.size(), false);
+    
+    for (size_t i = 0; i < consensus_map.size(); ++i) {
+      if (merged_flags[i]) continue; // Skip already merged features
+      
+      ConsensusFeature merged = consensus_map[i];
+      std::vector<double> merged_rts = {merged.getRT()};
+      std::vector<double> merged_mzs = {merged.getMZ()};
+      std::vector<double> merged_ims;
+      
+      if (merged.metaValueExists(std::string(DIM_NAMES[(int)DIM_UNIT::FAIMS_CV]))) {
+        merged_ims.push_back(merged.getMetaValue(std::string(DIM_NAMES[(int)DIM_UNIT::FAIMS_CV])));
+      }
+      
+      // Look for overlapping features based on centroid criteria
+      for (size_t j = i + 1; j < consensus_map.size(); ++j) {
+        if (merged_flags[j]) continue;
+        
+        const ConsensusFeature& cf = consensus_map[j];
+        
+        // Check charge equality
+        if (merged.getCharge() != cf.getCharge()) continue;
+        
+        // Check centroid-based overlap criteria
+        double rt_diff = std::abs(merged.getRT() - cf.getRT());
+        double mz_diff = std::abs(merged.getMZ() - cf.getMZ());
+        
+        if (rt_diff <= MAX_RT_DIFF && mz_diff <= MAX_MZ_DIFF) {
+          // Merge this feature
+          merged_flags[j] = true;
+          merged.setIntensity(merged.getIntensity() + cf.getIntensity());
+          merged_rts.push_back(cf.getRT());
+          merged_mzs.push_back(cf.getMZ());
+          
+          if (cf.metaValueExists(std::string(DIM_NAMES[(int)DIM_UNIT::FAIMS_CV]))) {
+            merged_ims.push_back(cf.getMetaValue(std::string(DIM_NAMES[(int)DIM_UNIT::FAIMS_CV])));
+          }
+        }
+      }
+      
+      // Store merged information
+      if (merged_rts.size() > 1) {
+        merged.setMetaValue("merged_centroid_rts", merged_rts);
+        merged.setMetaValue("merged_centroid_mzs", merged_mzs);
+        merged.setMetaValue("merged_centroid_IMs", merged_ims);
+        merged.setMetaValue("FAIMS_merge_count", (int)merged_ims.size());
+        if (merged.metaValueExists(std::string(DIM_NAMES[(int)DIM_UNIT::FAIMS_CV]))) {
+          merged.removeMetaValue(std::string(DIM_NAMES[(int)DIM_UNIT::FAIMS_CV]));
+        }
+      }
+      
+      merged_consensus.push_back(merged);
+    }
+    
+    consensus_map = std::move(merged_consensus);
   }
 }

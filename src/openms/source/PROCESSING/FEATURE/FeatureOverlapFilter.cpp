@@ -123,32 +123,75 @@ namespace OpenMS
     std::function<bool(Feature&, Feature&)> FeatureOverlapCallback,
     bool check_overlap_at_trace_level)
   {
+    // Delegate to the new overload with appropriate mode
+    FeatureOverlapMode mode = check_overlap_at_trace_level ? FeatureOverlapMode::TRACE_LEVEL : FeatureOverlapMode::CONVEX_HULL;
+    CentroidTolerances tolerances; // Use default values
+    filter(fmap, FeatureComparator, FeatureOverlapCallback, mode, tolerances);
+  }
+  
+  void FeatureOverlapFilter::filter(FeatureMap& fmap,
+    std::function<bool(const Feature&, const Feature&)> FeatureComparator,
+    std::function<bool(Feature&, Feature&)> FeatureOverlapCallback,
+    FeatureOverlapMode mode,
+    const CentroidTolerances& tolerances)
+  {
     fmap.updateRanges();
     // Sort all features according to the comparator. After the sort, the "smallest" == best feature will be the first entry we will start processing with...
     std::stable_sort(fmap.begin(), fmap.end(), FeatureComparator);
 
-    const auto getBox = [](const Feature* f)
+    // Define getBox function based on mode
+    std::function<quadtree::Box<float>(const Feature*)> getBox;
+    
+    if (mode == FeatureOverlapMode::CENTROID_BASED)
     {
+      // For centroid-based mode, create tolerance boxes around centroids
+      getBox = [&tolerances](const Feature* f)
+      {
+        float rt = f->getRT();
+        float mz = f->getMZ();
+        return quadtree::Box<float>(
+          mz - tolerances.mz_tolerance, 
+          rt - tolerances.rt_tolerance, 
+          2 * tolerances.mz_tolerance, 
+          2 * tolerances.rt_tolerance
+        );
+      };
+    }
+    else
+    {
+      // For convex hull/trace modes, use full convex hull bounding boxes
+      getBox = [](const Feature* f)
+      {
         const auto& bb = f->getConvexHull().getBoundingBox();
         return quadtree::Box<float>(bb.minY(), bb.minX(), bb.maxY()-bb.minY(), bb.maxX()-bb.minX());
-    };
+      };
+    }
 
     float minMZ = fmap.getMinMZ();
     float maxMZ = fmap.getMaxMZ();
     float minRT = fmap.getMinRT();
     float maxRT = fmap.getMaxRT();
 
-    // build quadtree with all features
+    // Expand boundaries for centroid mode to accommodate tolerance boxes
+    if (mode == FeatureOverlapMode::CENTROID_BASED)
+    {
+      minMZ -= tolerances.mz_tolerance;
+      maxMZ += tolerances.mz_tolerance;
+      minRT -= tolerances.rt_tolerance;
+      maxRT += tolerances.rt_tolerance;
+    }
+
+    // Build quadtree with all features
     quadtree::Box<float> fullExp(minMZ-1, minRT-1, maxMZ-minMZ+2, maxRT-minRT+2);
     auto quadtree = quadtree::Quadtree<Feature*, decltype(getBox)>(fullExp, getBox);
     for (auto& f : fmap)
     {
-        quadtree.add(&f);
+      quadtree.add(&f);
     }        
 
-    // if we check for overlapping traces we need a faster lookup structure
+    // If we check for overlapping traces we need a faster lookup structure
     FeatureBoundsMap fbm;
-    if (check_overlap_at_trace_level)
+    if (mode == FeatureOverlapMode::TRACE_LEVEL)
     {
       fbm = getFeatureBounds(fmap);
     }
@@ -162,12 +205,28 @@ namespace OpenMS
         {
           if ((overlap != &f))
           {
-            // Because feature boundaries might be large and lead to many overlapps, we (optionally) also can check if the boundaries of traces overlap
             bool is_true_overlap = true;
-            if (check_overlap_at_trace_level)
+            
+            if (mode == FeatureOverlapMode::CENTROID_BASED)
+            {
+              // Check charge requirement
+              if (tolerances.require_same_charge && f.getCharge() != overlap->getCharge())
+              {
+                is_true_overlap = false;
+              }
+              else
+              {
+                // Check exact centroid distances within tolerance
+                double rt_diff = std::abs(f.getRT() - overlap->getRT());
+                double mz_diff = std::abs(f.getMZ() - overlap->getMZ());
+                is_true_overlap = (rt_diff <= tolerances.rt_tolerance && mz_diff <= tolerances.mz_tolerance);
+              }
+            }
+            else if (mode == FeatureOverlapMode::TRACE_LEVEL)
             {            
               is_true_overlap = tracesOverlap(f, *overlap, fbm);
             }
+            // For CONVEX_HULL mode, is_true_overlap remains true (quadtree query already handles overlap)
 
             if (is_true_overlap)
             {
@@ -185,7 +244,7 @@ namespace OpenMS
 
     const auto filtered = [&removed_uids](const Feature& f)
     {
-        return removed_uids.count(f.getUniqueId()) == 1;
+      return removed_uids.count(f.getUniqueId()) == 1;
     };
     fmap.erase(std::remove_if(fmap.begin(), fmap.end(), filtered), fmap.end());
   }

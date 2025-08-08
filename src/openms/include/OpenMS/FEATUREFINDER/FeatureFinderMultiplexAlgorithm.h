@@ -145,6 +145,14 @@ protected:
    */
   void processIndividualPeakmap_(PeakMap& peakmap, FeatureMap& feature_map_out, ConsensusMap& consensus_map_out, MSExperiment& blacklist_out, bool progress);
 
+  /**
+   * @brief Merge overlapping features from different FAIMS compensation voltages
+   *
+   * @param feature_map    Feature map to merge
+   * @param consensus_map    Consensus map to merge
+   */
+  void mergeOverlappingFAIMSFeatures_(FeatureMap& feature_map, ConsensusMap& consensus_map);
+
 };
 
 }

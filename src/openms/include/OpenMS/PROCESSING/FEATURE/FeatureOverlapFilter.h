@@ -12,9 +12,29 @@
 
 namespace OpenMS
 {
+  /// Enum to specify the overlap detection mode
+  enum class FeatureOverlapMode
+  {
+    CONVEX_HULL,     ///< Use convex hull bounding boxes (default)
+    TRACE_LEVEL,     ///< Check overlap at trace level
+    CENTROID_BASED   ///< Check overlap based on centroid distances
+  };
+  
+  /// Structure to hold centroid-based overlap tolerances
+  struct CentroidTolerances
+  {
+    double rt_tolerance = 5.0;        ///< Maximum RT difference in seconds
+    double mz_tolerance = 0.05;       ///< Maximum m/z difference in Da
+    bool require_same_charge = true;  ///< Whether to require identical charge states
+  };
+
   class OPENMS_DLLAPI FeatureOverlapFilter
   {
-    public:   
+    public:
+    
+    /// Enum to specify the overlap detection mode (alias for backward compatibility)
+    using OverlapMode = FeatureOverlapMode;
+    
     /*
         @brief Filter overlapping features using a spatial datastructure (quadtree). 
                Retains only the best feature in each cluster of overlapping features.
@@ -40,6 +60,24 @@ namespace OpenMS
       std::function<bool(const Feature&, const Feature&)> FeatureComparator = [](const Feature& left, const Feature& right){ return left.getOverallQuality() > right.getOverallQuality(); },
       std::function<bool(Feature&, Feature&)> FeatureOverlapCallback = [](Feature&, Feature&){ return true; },
       bool check_overlap_at_trace_level = true);
+      
+    /*
+        @brief Filter overlapping features with configurable overlap detection mode.
+               Extended version that allows choosing between different overlap detection strategies.
+
+        @param fmap The feature map to filter
+        @param FeatureComparator Comparator to determine the best feature in overlapping clusters
+        @param FeatureOverlapCallback Callback function called when features overlap
+        @param mode The overlap detection mode to use
+        @param tolerances Tolerances for centroid-based overlap detection (only used when mode == CENTROID_BASED)
+
+        @ingroup Datareduction
+    */
+    static void filter(FeatureMap& fmap,
+      std::function<bool(const Feature&, const Feature&)> FeatureComparator,
+      std::function<bool(Feature&, Feature&)> FeatureOverlapCallback,
+      FeatureOverlapMode mode,
+      const CentroidTolerances& tolerances = CentroidTolerances());
   };
 
 }
