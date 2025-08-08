@@ -973,6 +973,11 @@ protected:
     {
       OPENMS_LOG_INFO << "Linear iRT Calibration: Sampling input transition experiment for " << irt_bins_lin << " bins across the RT with " << irt_pep_lin << " peptides per bin" << std::endl;
       // sampled transtion_exp on‐the‐fly
+      // Note1: We sort the targetedExperiment peptides by the aggregated total intensity (i.e. sum of fragment library intensities per peptide),
+      //         in order to reduce the sampling space to the top N fraction of highly intense peptides
+      // Note2: For linear iRTs we set top fraction to 40%, that is, we reduce the space of peptides to sample for 40% of the highest intense peptides.
+      //          The reason for restricting the space a lot more for linear iRTs is to ensure that we sample the most intense peptides which
+      //          are going to be more likely detected.
       lin_irt_exp = OpenSwathHelper::sampleExperiment(
         transition_exp,
         irt_bins_lin,
@@ -996,6 +1001,11 @@ protected:
     {
       OPENMS_LOG_INFO << "NonLinear iRT Calibration: Sampling input transition experiment for " << irt_bins_nl << " bins across the RT with " << irt_pep_nl << " peptides per bin" << std::endl;
       // sampled transtion_exp on‐the‐fly for nonlinear (only if >0)
+      // Note1: We sort the targetedExperiment peptides by the aggregated total intensity (i.e. sum of fragment library intensities per peptide),
+      //         in order to reduce the sampling space to the top N fraction of highly intense peptides
+      // Note2: For the additional nonlinear iRTs we set top fraction to 80%, that is, we reduce the space of peptides to sample for 80% of the highest intense peptides.
+      //          The reason for being less restrictive of the sampling space for nonlinear iRTs, is because we can be more liberal with the quality of the
+      //          nonlinear iRTs.
       nl_irt_exp = OpenSwathHelper::sampleExperiment(
         transition_exp,
         irt_bins_nl,
