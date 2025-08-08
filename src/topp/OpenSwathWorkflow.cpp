@@ -580,14 +580,11 @@ protected:
 
       // one of the following two needs to be set
       p.setValue("tr_irt", "", "transition file ('TraML') for linear iRTs. Takes precedent even when `auto_rt` is set to 'true'");
-      p.setValidStrings("tr_irt", {"traML","tsv","pqp"});
 
       // one of the following two needs to be set
       p.setValue("tr_irt_nonlinear", "", "additional nonlinear transition file ('TraML'). Takes precedent even when `auto_rt` is set to 'true'");
-      p.setValidStrings("tr_irt_nonlinear", {"traML","tsv","pqp"});
 
       p.setValue("rt_norm", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.");
-      p.setValidStrings("rt_norm", {"trafoXML"});
 
       return p;
     }
