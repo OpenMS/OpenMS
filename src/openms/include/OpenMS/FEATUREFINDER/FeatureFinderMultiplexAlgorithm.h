@@ -161,7 +161,7 @@ protected:
    * @param filter_results    filter results for each of the patterns
    * @param cluster_results    clusters of filter results
    */
-  void generateMapsProfile_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, const std::vector<std::map<int, GridBasedCluster> >& cluster_results);
+  void generateMapsProfile_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, const std::vector<std::map<int, GridBasedCluster> >& cluster_results, bool start_progress = true);
 
   /**
    * @brief Process an individual peakmap and store results in the provided output parameters

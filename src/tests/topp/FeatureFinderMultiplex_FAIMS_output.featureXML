@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" id="fm_7804704400743266335" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="int" name="has_FAIMS_data" value="1"/>
+	<UserParam type="stringList" name="spectra_data" value="[/home/sachsenb/Development/OpenMS/src/tests/topp/FeatureFinderMultiplex_FAIMS_input.mzML]"/>
+	<featureList count="1">
+		<feature id="f_15004869347769368353">
+			<position dim="0">1854.486681735224238</position>
+			<position dim="1">620.42105543975174</position>
+			<intensity>8711.829102</intensity>
+			<quality dim="0">0.0</quality>
+			<quality dim="1">0.0</quality>
+			<overallquality>1.0</overallquality>
+			<charge>3</charge>
+			<convexhull nr="0">
+				<pt x="1851.8558349609375" y="620.40766437963282" />
+				<pt x="1857.077880859375" y="620.40766437963282" />
+				<pt x="1857.077880859375" y="620.439745310159083" />
+				<pt x="1851.8558349609375" y="620.439745310159083" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="1851.8558349609375" y="620.741692229725686" />
+				<pt x="1857.077880859375" y="620.741692229725686" />
+				<pt x="1857.077880859375" y="620.772634479348767" />
+				<pt x="1851.8558349609375" y="620.772634479348767" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="1855.322885742187509" y="621.072103601373215" />
+				<pt x="1855.342885742187491" y="621.072103601373215" />
+				<pt x="1855.342885742187491" y="621.122823616498522" />
+				<pt x="1855.322885742187509" y="621.122823616498522" />
+			</convexhull>
+			<UserParam type="float" name="FAIMS CV" value="-45.0"/>
+		</feature>
+	</featureList>
+</featureMap>

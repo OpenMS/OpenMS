@@ -715,16 +715,22 @@ namespace OpenMS
 
   }
 
-  void FeatureFinderMultiplexAlgorithm::generateMapsProfile_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, const std::vector<std::map<int, GridBasedCluster> >& cluster_results)
+  void FeatureFinderMultiplexAlgorithm::generateMapsProfile_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, const std::vector<std::map<int, GridBasedCluster> >& cluster_results, bool start_progress)
   {
     // progress logger
     unsigned progress = 0;
-    startProgress(0, patterns.size(), "constructing maps");
+    if (start_progress)
+    {
+      startProgress(0, patterns.size(), "constructing maps");
+    }
 
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
     {
-      setProgress(++progress);
+      if (start_progress)
+      {
+        setProgress(++progress);
+      }
 
       // loop over clusters
       for (std::map<int, GridBasedCluster>::const_iterator cluster_it = cluster_results[pattern].begin(); cluster_it != cluster_results[pattern].end(); ++cluster_it)
@@ -872,7 +878,10 @@ namespace OpenMS
 
     }
 
-    endProgress();
+    if (start_progress)
+    {
+      endProgress();
+    }
   }
 
   void FeatureFinderMultiplexAlgorithm::processIndividualPeakmap_(PeakMap& exp, FeatureMap& feature_map_out, ConsensusMap& consensus_map_out, MSExperiment& blacklist_out, bool progress) 
@@ -1036,7 +1045,7 @@ namespace OpenMS
        */
       filtering.getCentroidedExperiment().swap(exp_centroid_local);
       filtering.getPeakBoundaries().swap(boundaries_exp_s);
-      generateMapsProfile_(patterns, filter_results, cluster_results);
+      generateMapsProfile_(patterns, filter_results, cluster_results, false);
     }
 
     // finalize consensus map
@@ -1551,6 +1560,10 @@ namespace OpenMS
           // Merge this feature
           merged_flags[j] = true;
           merged.setIntensity(merged.getIntensity() + cf.getIntensity());
+          
+          // Merge FeatureHandles to preserve per-channel intensity information
+          merged.insert(cf);
+          
           merged_rts.push_back(cf.getRT());
           merged_mzs.push_back(cf.getMZ());
           

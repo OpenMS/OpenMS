@@ -32,6 +32,9 @@ MassTraceExtractor:
 NucleicAcidSearchEngine:
     - add support for global fixed modifications as a search parameter
 
+FeatureFinderMultiplex:
+    - Experimental support for FAIMS data (label-free only)
+
 Misc:
  - show load/store progress for files in all TOPP tools (#8041)
  

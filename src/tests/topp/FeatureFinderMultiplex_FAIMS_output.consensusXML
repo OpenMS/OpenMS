@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" id="cm_3332699010107892018" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="int" name="has_FAIMS_data" value="1"/>
+	<UserParam type="floatList" name="FAIMS CV_values" value="[-60.0, -45.0]"/>
+	<UserParam type="int" name="FAIMS CV_count" value="2"/>
+	<mapList count="1">
+		<map id="0" name="/home/sachsenb/Development/OpenMS/src/tests/topp/FeatureFinderMultiplex_FAIMS_input.mzML" label="" size="0">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_13440783915218733453" quality="1.0" charge="3">
+			<centroid rt="1854.486681735224238" mz="620.42105543975174" it="8711.829102"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="1854.486681735224238" mz="620.42105543975174" it="8711.829102" charge="3"/>
+			</groupedElementList>
+			<UserParam type="float" name="FAIMS CV" value="-45.0"/>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>
