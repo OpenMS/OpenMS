@@ -1750,7 +1750,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
 
   # Test iRT alignment, full workflow
   add_test("TOPP_OpenSwathWorkflow_21" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.tsv -Calibration:tr_irt ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML -out_features OpenSwathWorkflow_21.tmp.featureXML -Debugging:irt_trafo OpenSwathWorkflow_21.tmp.trafoXML -out_chrom OpenSwathWorkflow_21.tmp.mzML -auto_irt "false"
-    -RTNormalization:lowess:span 0.666666666666666666666666666
+    -Calibration:RTNormalization:lowess:span 0.666666666666666666666666666
     "-test" "-mz_extraction_window" "0.05" "-mz_extraction_window_unit" "Th" "-ms1_isotopes" "0"
     "-Scoring:Scores:use_total_mi_score"
     "-Scoring:Scores:use_ms1_mi" "false"
