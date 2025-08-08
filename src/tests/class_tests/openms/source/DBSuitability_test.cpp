@@ -120,10 +120,10 @@ no_xcorr_hit.setMetaValue("target_decoy", "decoy");
 no_xcorr_hit.setScore(1);
 
 // build identifications
-vector<PeptideIdentification> pep_ids;
-vector<PeptideIdentification> top_decoy;
-vector<PeptideIdentification> few_decoys;
-vector<PeptideIdentification> no_xcorr_ids;
+PeptideIdentificationList pep_ids;
+PeptideIdentificationList top_decoy;
+PeptideIdentificationList few_decoys;
+PeptideIdentificationList no_xcorr_ids;
 PeptideIdentification pep_id;
 pep_id.setScoreType("some_score");
 pep_id.setHigherScoreBetter(false);
@@ -154,10 +154,10 @@ top_decoy.push_back(pep_id);
 pep_id.setHits({ no_xcorr_hit });
 no_xcorr_ids.push_back(pep_id);
 
-vector<PeptideIdentification> pep_ids_2(pep_ids);
-vector<PeptideIdentification> pep_ids_3(pep_ids);
+PeptideIdentificationList pep_ids_2(pep_ids);
+PeptideIdentificationList pep_ids_3(pep_ids);
 
-vector<PeptideIdentification> FDR_id;
+PeptideIdentificationList FDR_id;
 pep_id.setScoreType("q-value");
 pep_id.setHits({ decoy1 });
 FDR_id.push_back(pep_id);
@@ -185,7 +185,7 @@ START_SECTION(~DBSuitability())
 }
 END_SECTION
 
-START_SECTION(void compute(std::vector<PeptideIdentification>&& pep_ids, const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params))
+START_SECTION(void compute(PeptideIdentificationList&& pep_ids, const MSExperiment& exp, const std::vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params))
 {
   // Test normal suitability (without correction)
   DBSuitability s;
@@ -321,7 +321,7 @@ START_SECTION(double calculateCorrectionFactor_(const DBSuitability::Suitability
 }
 END_SECTION
 
-START_SECTION(UInt numberOfUniqueProteins_(const std::vector<PeptideIdentification>& peps, UInt number_of_hits = 1) const)
+START_SECTION(UInt numberOfUniqueProteins_(const PeptideIdentificationList& peps, UInt number_of_hits = 1) const)
 {
   PeptideEvidence ev1("PROTEIN_1", 0, 0, '[', ']');
   PeptideEvidence ev2("PROTEIN_2", 0, 0, '[', ']');
@@ -353,7 +353,7 @@ START_SECTION(UInt numberOfUniqueProteins_(const std::vector<PeptideIdentificati
   PeptideIdentification id_hit_without_info;
   id_hit_without_info.setHits({empty_hit});
 
-  vector<PeptideIdentification> ids({id1, id2, empty_id, id3});
+  PeptideIdentificationList ids({id1, id2, empty_id, id3});
 
   TEST_EQUAL(private_suit.numberOfUniqueProteins(ids), 3);
   TEST_EQUAL(private_suit.numberOfUniqueProteins(ids, 5), 4);
@@ -378,7 +378,7 @@ START_SECTION(Size getIndexWithMedianNovoHits_(const std::vector<SuitabilityData
 }
 END_SECTION
 
-START_SECTION(double getScoreMatchingFDR_(const std::vector<PeptideIdentification>& pep_ids, double FDR, String score_name, bool higher_score_better) const)
+START_SECTION(double getScoreMatchingFDR_(const PeptideIdentificationList& pep_ids, double FDR, String score_name, bool higher_score_better) const)
 {
   PeptideHit hit1;
   hit1.setScore(0.01);

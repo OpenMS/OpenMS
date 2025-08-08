@@ -526,8 +526,9 @@ namespace OpenMS
         }
 
         const auto area = canvas_3d_.visible_area_.getAreaUnit();
-        auto begin_it = layer.getPeakData()->areaBeginConst(area.getMinRT(), area.getMaxRT(), area.getMinMZ(), area.getMaxMZ());
-        auto end_it = layer.getPeakData()->areaEndConst();
+        const MSExperiment& peak_data = layer.getPeakData()->getMSExperiment();
+        auto begin_it = peak_data.areaBeginConst(area.getMinRT(), area.getMaxRT(), area.getMinMZ(), area.getMaxMZ());
+        auto end_it = peak_data.areaEndConst();
 
         // count peaks in area
         int count = std::distance(begin_it, end_it);
@@ -555,7 +556,8 @@ namespace OpenMS
           }
 
           PeakIndex pi = it.getPeakIndex();
-          if (layer.filters.passes((*layer.getPeakData())[pi.spectrum], pi.peak))
+          const MSExperiment& peak_data = layer.getPeakData()->getMSExperiment();
+          if (layer.filters.passes(peak_data[pi.spectrum], pi.peak))
           {
             glBegin(GL_POINTS);
             double intensity = 0;
@@ -615,8 +617,9 @@ namespace OpenMS
         glLineWidth(layer.param.getValue("dot:line_width"));
 
         const auto area = canvas_3d_.visible_area_.getAreaUnit();
-        auto begin_it = layer.getPeakData()->areaBeginConst(area.getMinRT(), area.getMaxRT(), area.getMinMZ(), area.getMaxMZ());
-        auto end_it = layer.getPeakData()->areaEndConst();
+        const MSExperiment& peak_data = layer.getPeakData()->getMSExperiment();
+        auto begin_it = peak_data.areaBeginConst(area.getMinRT(), area.getMaxRT(), area.getMinMZ(), area.getMaxMZ());
+        auto end_it = peak_data.areaEndConst();
         // count peaks in area
         int count = std::distance(begin_it, end_it);
 
@@ -643,7 +646,8 @@ namespace OpenMS
           }
 
           PeakIndex pi = it.getPeakIndex();
-          if (layer.filters.passes((*layer.getPeakData())[pi.spectrum], pi.peak))
+          const MSExperiment& peak_data = layer.getPeakData()->getMSExperiment();
+          if (layer.filters.passes(peak_data[pi.spectrum], pi.peak))
           {
             glBegin(GL_LINES);
             double intensity = 0;
@@ -1016,11 +1020,11 @@ namespace OpenMS
       }
       else if (canvas_3d_.action_mode_ == PlotCanvas::AM_TRANSLATE)
       {
-        Int x_angle = xrot_ + 8 * (e->y() - mouse_move_end_.y());
+        Int x_angle = xrot_ + 8 * (e->position().y() - mouse_move_end_.y());
         normalizeAngle(&x_angle);
         xrot_ = x_angle;
 
-        Int y_angle = yrot_ + 8 * (e->x() - mouse_move_end_.x());
+        Int y_angle = yrot_ + 8 * (e->position().x() - mouse_move_end_.x());
         normalizeAngle(&y_angle);
         yrot_ = y_angle;
 
@@ -1087,8 +1091,9 @@ namespace OpenMS
     for (Size i = 0; i < canvas_3d_.getLayerCount(); i++)
     {
       const auto& layer = dynamic_cast<const LayerDataPeak&>(canvas_3d_.getLayer(i));
-      auto rt_begin_it = layer.getPeakData()->RTBegin(area.getMinRT());
-      auto rt_end_it = layer.getPeakData()->RTEnd(area.getMaxRT());
+      const MSExperiment& peak_data = layer.getPeakData()->getMSExperiment();
+      auto rt_begin_it = peak_data.RTBegin(area.getMinRT());
+      auto rt_end_it = peak_data.RTEnd(area.getMaxRT());
 
       for (auto spec_it = rt_begin_it; spec_it != rt_end_it; ++spec_it)
       {

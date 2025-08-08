@@ -16,6 +16,7 @@
 #include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
 
@@ -270,7 +271,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Stores proteins and peptides into an Identification File
@@ -283,7 +284,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    void storeIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void storeIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const PeptideIdentificationList& additional_peptides, const std::vector<FileTypes::Type> allowed_types = {}, ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Load transitions of a spectral library
@@ -360,7 +361,7 @@ public:
                const MSExperiment& exp,
                const FeatureMap& feature_map,
                std::vector<ProteinIdentification>& prot_ids,
-               std::vector<PeptideIdentification>& pep_ids,
+               PeptideIdentificationList& pep_ids,
                const ConsensusMap& consensus_map = ConsensusMap(),
                const String& contact_name = "",
                const String& contact_address = "",

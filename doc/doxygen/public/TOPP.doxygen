@@ -97,14 +97,12 @@
   <b>Identification of Proteins/Peptides (SearchEngines)</b>
   - @subpage TOPP_CometAdapter - Identifies MS/MS spectra using Comet (external).
   - @subpage TOPP_LuciphorAdapter - Scores potential phosphorylation sites in order to localize the most probable sites.
-  - @subpage TOPP_MascotAdapter - Identifies MS/MS spectra using Mascot (external).
   - @subpage TOPP_MascotAdapterOnline - Identifies MS/MS spectra using Mascot (external).
   - @subpage TOPP_MSFraggerAdapter - Peptide Identification with MSFragger.
   - @subpage TOPP_MSGFPlusAdapter - Identifies MS/MS spectra using MSGFPlus (external).
   - @subpage TOPP_NovorAdapter - De novo sequencing from tandem mass spectrometry data.
   - @subpage TOPP_SageAdapter - Identifies MS/MS spectra using Sage (external).
   - @subpage TOPP_SimpleSearchEngine - A simple database search engine for annotating MS/MS spectra.
-  - @subpage TOPP_SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
   - @subpage TOPP_SpectraSTSearchAdapter - An interface to the 'SEARCH' mode of the SpectraST program (external, beta).
 
 
@@ -118,7 +116,6 @@
   - @subpage TOPP_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy. WARNING: This utility is deprecated.
   - @subpage TOPP_IDExtractor - Extracts n peptides randomly or best n from idXML files.
   - @subpage TOPP_IDMapper - Assigns protein/peptide identifications to feature or consensus features.
-  - @subpage TOPP_IDMassAccuracy - Calculates a distribution of the mass error from given mass spectra and IDs.
   - @subpage TOPP_IDPosteriorErrorProbability - Estimates posterior error probabilities using a mixture model.
   - @subpage TOPP_IDScoreSwitcher - Switches between different scores of peptide or protein hits in identification data.
   - @subpage TOPP_PeptideIndexer - Refreshes the protein references for all peptide hits.
@@ -127,7 +124,6 @@
   - @subpage TOPP_ProteinInference - Infer proteins from a list of (high-confidence) peptides.
   - @subpage TOPP_PSMFeatureExtractor - Creates search engine specific features for PercolatorAdapter input.
   - @subpage TOPP_SequenceCoverageCalculator - Prints information about idXML files.
-  - @subpage TOPP_SpecLibCreator - Creates an MSP-formatted spectral library.
   - @subpage TOPP_StaticModification - Allows to attach a set of fixed modifications to an idXML file (MS/MS search results), e.g. to add 15N (N15) labeling post-hoc.
 
 

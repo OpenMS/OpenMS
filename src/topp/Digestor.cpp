@@ -98,7 +98,7 @@ protected:
   {
     vector<ProteinIdentification> protein_identifications;
 
-    vector<PeptideIdentification> identifications;
+    PeptideIdentificationList identifications;
     PeptideIdentification peptide_identification;
     DateTime date_time = DateTime::now();
     String date_time_string = date_time.get();

@@ -362,7 +362,7 @@ protected:
     // load raw file
 
     PeakMap ms_raw;
-    FileHandler().loadExperiment(mz_file, ms_raw, {FileTypes::MZML});
+    FileHandler().loadExperiment(mz_file, ms_raw, {FileTypes::MZML}, log_type_);
     ms_raw.clearMetaDataArrays();
     ms_raw.updateRanges();
 
@@ -429,7 +429,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  void recalibrateMasses_(MSExperiment & ms_centroided, vector<PeptideIdentification>& peptide_ids, const String & id_file_abs_path)
+  void recalibrateMasses_(MSExperiment & ms_centroided, PeptideIdentificationList& peptide_ids, const String & id_file_abs_path)
   {
     InternalCalibration ic;
     ic.setLogType(log_type_);
@@ -789,7 +789,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes switchScoreType_(vector<PeptideIdentification>& peptide_ids, const String& id_file_abs_path)
+  ExitCodes switchScoreType_(PeptideIdentificationList& peptide_ids, const String& id_file_abs_path)
   {
     // Check if score types are valid. TODO
     try
@@ -813,13 +813,13 @@ protected:
     const Size& fraction_group,
     const Size& fraction,
     vector<ProteinIdentification>& protein_ids, 
-    vector<PeptideIdentification>& peptide_ids,
+    PeptideIdentificationList& peptide_ids,
     set<String>& fixed_modifications,  // adds to
     set<String>& variable_modifications) // adds to
   {
 
     const String& mz_file_abs_path = File::absolutePath(mz_file);
-    FileHandler().loadIdentifications(id_file_abs_path, protein_ids, peptide_ids, {FileTypes::IDXML});
+    FileHandler().loadIdentifications(id_file_abs_path, protein_ids, peptide_ids, {FileTypes::IDXML}, log_type_);
 
     ExitCodes e = checkSingleRunPerID_(protein_ids, id_file_abs_path);
     if (e != EXECUTION_OK) return e;
@@ -1046,7 +1046,7 @@ protected:
 
       // load and clean identification data associated with MS run
       vector<ProteinIdentification> protein_ids;
-      vector<PeptideIdentification> peptide_ids;
+      PeptideIdentificationList peptide_ids;
       const String& mz_file_abs_path = File::absolutePath(mz_file);
       const String& id_file_abs_path = File::absolutePath(mzfile2idfile.at(mz_file_abs_path));
 
@@ -1068,7 +1068,7 @@ protected:
       }
 
       vector<ProteinIdentification> ext_protein_ids;
-      vector<PeptideIdentification> ext_peptide_ids;
+      PeptideIdentificationList ext_peptide_ids;
 
       //////////////////////////////////////////
       // Chromatographic parameter estimation
@@ -1092,7 +1092,7 @@ protected:
         calculateSeeds_(ms_centroided, seeds, median_fwhm);
         if (debug_level_ > 666)
         {
-          FileHandler().storeFeatures("debug_seeds_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", seeds, {FileTypes::FEATUREXML});
+          FileHandler().storeFeatures("debug_seeds_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", seeds, {FileTypes::FEATUREXML}, log_type_);
         }
       }
 
@@ -1309,12 +1309,12 @@ protected:
       
       if (debug_level_ > 666)
       {
-        FileHandler().storeFeatures("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", feature_maps.back(), {FileTypes::FEATUREXML});
+        FileHandler().storeFeatures("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", feature_maps.back(), {FileTypes::FEATUREXML}, log_type_);
       }
 
       if (debug_level_ > 10000)
       {
-        FileHandler().storeExperiment("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + "_chroms.mzML", ffi.getChromatograms(), {FileTypes::MZML});
+        FileHandler().storeExperiment("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + "_chroms.mzML", ffi.getChromatograms(), {FileTypes::MZML}, log_type_);
       }
 
       ++fraction_group;
@@ -1393,7 +1393,7 @@ protected:
 
     if (debug_level_ >= 666)
     {
-      FileHandler().storeConsensusFeatures("debug_fraction_" + String(ms_files.first) +  ".consensusXML", consensus_fraction, {FileTypes::CONSENSUSXML});
+      FileHandler().storeConsensusFeatures("debug_fraction_" + String(ms_files.first) +  ".consensusXML", consensus_fraction, {FileTypes::CONSENSUSXML}, log_type_);
       writeDebug_("to produce a consensus map with: " + String(consensus_fraction.getColumnHeaders().size()) + " columns.", 1);
     }
 
@@ -1784,7 +1784,7 @@ protected:
 
       if (debug_level_ >= 666)
       {
-        FileHandler().storeConsensusFeatures("debug_after_normalization.consensusXML", consensus, {FileTypes::CONSENSUSXML});
+        FileHandler().storeConsensusFeatures("debug_after_normalization.consensusXML", consensus, {FileTypes::CONSENSUSXML}, log_type_);
       }
     }
     else if (getStringOption_("quantification_method") == "spectral_counting")
@@ -1816,7 +1816,7 @@ protected:
         { 
           // load and clean identification data associated with MS run
           vector<ProteinIdentification> protein_ids;
-          vector<PeptideIdentification> peptide_ids;
+          PeptideIdentificationList peptide_ids;
           const String& mz_file_abs_path = File::absolutePath(mz_file);
           const String& id_file_abs_path = File::absolutePath(mzfile2idfile.at(mz_file_abs_path));
 
@@ -1939,7 +1939,7 @@ protected:
     {
       // Note: idXML and consensusXML doesn't support writing quantification at protein groups
       // (they are nevertheless stored and passed to mzTab for proper export)
-      FileHandler().storeConsensusFeatures(getStringOption_("out_cxml"), consensus, {FileTypes::CONSENSUSXML});
+      FileHandler().storeConsensusFeatures(getStringOption_("out_cxml"), consensus, {FileTypes::CONSENSUSXML}, log_type_);
     }
 
     // Fill MzTab with meta data and quants annotated in identification data structure

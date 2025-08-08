@@ -55,7 +55,10 @@ add_subdirectory(eol-bspline)
 add_subdirectory(IsoSpec)
 add_subdirectory(GTE)
 add_subdirectory(Quadtree)
-add_subdirectory(tool_description_lib)
+
+if(ENABLE_TDL)
+    add_subdirectory(tool_description_lib)
+endif()
 
 ##
 ## external packages (with fallback option to local version)
@@ -65,9 +68,11 @@ message(STATUS "Option USE_EXTERNAL_JSON: ${USE_EXTERNAL_JSON}")
 if(USE_EXTERNAL_JSON)
     find_package(nlohmann_json REQUIRED GLOBAL)  ## global propagates the target up to the parent project
     message(STATUS "External 'NLohmann::json' at: '${nlohmann_json_DIR}'")
+    target_compile_definitions(nlohmann_json::nlohmann_json INTERFACE JSON_USE_IMPLICIT_CONVERSIONS=0)
 else()
     set(JSON_BuildTests OFF CACHE INTERNAL "")
     add_subdirectory(nlohmann_json)
+    set(JSON_USE_IMPLICIT_CONVERSIONS=0)
 endif()
 
 option(USE_EXTERNAL_SQLITECPP "Use an external SQLiteCpp library" OFF)

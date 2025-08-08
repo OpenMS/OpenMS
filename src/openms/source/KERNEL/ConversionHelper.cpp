@@ -20,7 +20,7 @@ namespace OpenMS
     // see @todo above
     output_map.setUniqueId();
 
-    input_map.updateRanges(1);
+    input_map.updateRanges();
     if (n > input_map.getSize())
     {
       n = input_map.getSize();

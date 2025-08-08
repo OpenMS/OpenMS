@@ -68,6 +68,19 @@ START_SECTION((static ChargeDistribution getChargeDistribution(const std::vector
   auto cd = SwathQC::getChargeDistribution(swath_maps, 10, 0.04);
   SwathQC::ChargeDistribution cde = { {1,17}, {2,4}, {5,1}, {6,2}, {8,2}, {9,1}, {10,5} };
   TEST_EQUAL(cd.size(), cde.size());
+  if (cd != cde)
+  {
+    std::cout << "Expected:\n";
+    for (auto& c : cde)
+    {
+      std::cout << c.first << " " << c.second << "\n";
+    }
+    std::cout << "Got:\n";
+    for (auto& c : cd)
+    {
+      std::cout << c.first << " " << c.second << "\n";
+    }
+  }
   TEST_TRUE(cd == cde)
 }
 END_SECTION
@@ -169,7 +182,6 @@ START_SECTION((static void storeJSON(const OpenMS::String& filename)))
 })");
   tf.store(tmp_expected);
   TEST_EQUAL(FuzzyStringComparator().compareFiles(tmp_json, tmp_expected), true);
-
 }
 END_SECTION
 

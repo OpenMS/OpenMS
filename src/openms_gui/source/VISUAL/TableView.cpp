@@ -148,6 +148,10 @@ namespace OpenMS
           {
             str_list << ti->data(Qt::DisplayRole).toString();
           }
+          else if (ti->data(Qt::DisplayRole).isValid())
+          {
+            str_list << ti->data(Qt::DisplayRole).toString();
+          }
           else
           {
             str_list << "";

@@ -65,6 +65,7 @@ endif()
 foreach(_class_test ${TEST_executables})
   add_executable(${_class_test} source/${_class_test}.cpp)
   target_link_libraries(${_class_test} ${OpenMS_LIBRARIES})
+  openms_add_executable_compiler_flags(${_class_test})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
   # only add OPENMP flags to gcc linker (except Mac OS X, due to compiler bug
   # see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)
@@ -95,6 +96,14 @@ target_link_libraries(BinnedSpectrum_test Eigen3::Eigen)
 if (WITH_HDF5)
   target_link_libraries(HDF5_test HDF5::HDF5)
 endif()
+
+if (WITH_PARQUET)
+  target_link_libraries(Arrow_test 
+  Arrow::arrow_shared
+  Parquet::parquet_shared
+  )
+endif()
+
 
 #------------------------------------------------------------------------------
 # restore old compiler flags

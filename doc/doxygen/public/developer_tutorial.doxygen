@@ -160,8 +160,6 @@ The extensible %OpenMS library implements common mass spectrometric data process
         - Database search:
             - Peptides (Tool %SimpleSearchEngine and its classes - started simple but is, by now, rather complete peptide identification engine)
             - Protein-Protein cross-links (Tool OpenPepXL)
-        - Spectral library search:
-            - Tool SpecLibSearcher and its classes
         - DeNovo:
             - Tool CompNovoCID and its classes
     - Quantification:

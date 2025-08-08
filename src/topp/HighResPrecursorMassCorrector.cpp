@@ -40,7 +40,7 @@ using namespace std;
  </tr>
  <tr>
     <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
-    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_CometAdapter (or other ID engines) </td>
  </tr>
 </table>
 </CENTER>
@@ -135,7 +135,7 @@ class TOPPHiResPrecursorMassCorrector :
       const bool highest_intensity_peak_ppm = getStringOption_("highest_intensity_peak:mz_tolerance_unit") == "ppm" ? true : false;
 
       PeakMap exp;
-      FileHandler().loadExperiment(in_mzml, exp, {FileTypes::MZML});
+      FileHandler().loadExperiment(in_mzml, exp, {FileTypes::MZML}, log_type_);
 
       cout << setprecision(12);
 
@@ -170,7 +170,7 @@ class TOPPHiResPrecursorMassCorrector :
       if (!in_feature.empty())
       {
         FeatureMap features;
-        FileHandler().loadFeatures(in_feature, features);
+        FileHandler().loadFeatures(in_feature, features, {}, log_type_);
         corrected_to_nearest_feature = PrecursorCorrection::correctToNearestFeature(features, exp, rt_tolerance, mz_tolerance, mz_unit_ppm, believe_charge, keep_original, assign_all_matching, max_trace, debug_level_);
         corrected_precursors.insert(corrected_to_nearest_feature.begin(), corrected_to_nearest_feature.end());
       }

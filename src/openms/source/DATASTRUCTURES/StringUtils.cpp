@@ -10,8 +10,8 @@
 
 namespace OpenMS
 {
-
-    boost::spirit::qi::real_parser<double, StringUtilsHelper::real_policies_NANfixed_<double> > StringUtilsHelper::parse_double_ = boost::spirit::qi::real_parser<double, real_policies_NANfixed_<double> >();
-    boost::spirit::qi::real_parser<float, StringUtilsHelper::real_policies_NANfixed_<float> > StringUtilsHelper::parse_float_ = boost::spirit::qi::real_parser<float, real_policies_NANfixed_<float> >();
- 
+  boost::spirit::qi::real_parser<double, StringUtilsHelper::real_policies_NANfixed_<double> > StringUtilsHelper::parse_double_ = boost::spirit::qi::real_parser<double, real_policies_NANfixed_<double> >();
+  boost::spirit::qi::real_parser<float, StringUtilsHelper::real_policies_NANfixed_<float> > StringUtilsHelper::parse_float_ = boost::spirit::qi::real_parser<float, real_policies_NANfixed_<float> >();
+  
+  boost::spirit::qi::int_parser<> StringUtilsHelper::parse_int_ = boost::spirit::qi::int_parser<>();
 }
