@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
-<consensusXML version="1.7" id="cm_3332699010107892018" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<consensusXML version="1.7" id="cm_16907355690727166316" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<UserParam type="int" name="has_FAIMS_data" value="1"/>
 	<UserParam type="floatList" name="FAIMS CV_values" value="[-60.0, -45.0]"/>
 	<UserParam type="int" name="FAIMS CV_count" value="2"/>
@@ -9,10 +9,31 @@
 		</map>
 	</mapList>
 	<consensusElementList>
-		<consensusElement id="e_13440783915218733453" quality="1.0" charge="3">
-			<centroid rt="1854.486681735224238" mz="620.42105543975174" it="8711.829102"/>
+		<consensusElement id="e_10306100746905639127" quality="1.0" charge="6">
+			<centroid rt="1852.81008232091267" mz="620.421310795971522" it="1.164425e04"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="1854.486681735224238" mz="620.42105543975174" it="8711.829102" charge="3"/>
+				<element map="0" id="0" rt="1852.81008232091267" mz="620.421310795971522" it="1.164425e04" charge="6"/>
+			</groupedElementList>
+			<UserParam type="float" name="FAIMS CV" value="-45.0"/>
+		</consensusElement>
+		<consensusElement id="e_12524258085768770586" quality="1.0" charge="6">
+			<centroid rt="1855.0283524608069" mz="616.768374653468754" it="9.524947e04"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="1855.0283524608069" mz="616.768374653468754" it="9.524947e04" charge="6"/>
+			</groupedElementList>
+			<UserParam type="float" name="FAIMS CV" value="-45.0"/>
+		</consensusElement>
+		<consensusElement id="e_1755235105885170967" quality="1.0" charge="6">
+			<centroid rt="1855.251942868389733" mz="614.763351368651229" it="2.112677e04"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="1855.251942868389733" mz="614.763351368651229" it="2.112677e04" charge="6"/>
+			</groupedElementList>
+			<UserParam type="float" name="FAIMS CV" value="-45.0"/>
+		</consensusElement>
+		<consensusElement id="e_14811341817612382122" quality="1.0" charge="6">
+			<centroid rt="1856.500049274770845" mz="610.765925501853303" it="5.743052e05"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="1856.500049274770845" mz="610.765925501853303" it="5.743052e05" charge="6"/>
 			</groupedElementList>
 			<UserParam type="float" name="FAIMS CV" value="-45.0"/>
 		</consensusElement>
