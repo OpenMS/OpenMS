@@ -13,8 +13,6 @@
 #include <OpenMS/FORMAT/ZlibCompression.h>
 ///////////////////////////
 
-#include <QByteArray>
-
 #define MULTI_LINE_STRING(...) #__VA_ARGS__ 
 
 
@@ -84,56 +82,34 @@ START_SECTION((static void compressString(std::string& raw_data, std::string& co
 }
 END_SECTION
 
-START_SECTION((static void compressString(const QByteArray& raw_data, QByteArray& compressed_data)))
-{
-  QByteArray raw_data_q = QByteArray::fromRawData(&raw_data[0], raw_data.size());
-  QByteArray raw_data_q2 = QByteArray::fromRawData(&raw_data2[0], raw_data2.size());
-  QByteArray raw_data_q3 = QByteArray::fromRawData(&raw_data3[0], raw_data3.size());
-  QByteArray raw_data_q4 = QByteArray::fromRawData(&raw_data4[0], raw_data4.size());
-  QByteArray compressed_data;
-
-  ZlibCompression::compressString(raw_data_q, compressed_data);
-  TEST_TRUE(compressed_data.size() < raw_data_q.size())
-
-  ZlibCompression::compressString(raw_data_q2, compressed_data);
-  TEST_TRUE(compressed_data.size() >= raw_data_q2.size())
-
-  ZlibCompression::compressString(raw_data_q3, compressed_data);
-  TEST_TRUE(compressed_data.size() < raw_data_q3.size())
-
-  ZlibCompression::compressString(raw_data_q4, compressed_data);
-  TEST_TRUE(compressed_data.size() < raw_data_q4.size())
-}
-END_SECTION
-
 START_SECTION((static void uncompressString(const void* compressed_data, size_t nr_bytes, std::string& raw_data, size_t output_size)))
 {
   std::string compressed_data;
   std::string uncompressed_data;
 
   ZlibCompression::compressString(raw_data, compressed_data);
-  ZlibCompression::uncompressString(&compressed_data[0], compressed_data.size(), uncompressed_data, raw_data.size());
+  ZlibCompression::uncompressString(compressed_data, uncompressed_data, raw_data.size());
   TEST_EQUAL(raw_data.size(), 58)
   TEST_TRUE(compressed_data.size() < raw_data.size())
   TEST_EQUAL(uncompressed_data.size(), 58)
   TEST_TRUE(uncompressed_data == raw_data)
 
   ZlibCompression::compressString(raw_data2, compressed_data);
-  ZlibCompression::uncompressString(&compressed_data[0], compressed_data.size(), uncompressed_data, raw_data2.size());
+  ZlibCompression::uncompressString(compressed_data, uncompressed_data, raw_data2.size());
   TEST_EQUAL(raw_data2.size(), 64)
   TEST_TRUE(compressed_data.size() >= raw_data2.size())  // difficult to compress...
   TEST_EQUAL(uncompressed_data.size(), 64)
   TEST_TRUE(uncompressed_data == raw_data2)
 
   ZlibCompression::compressString(raw_data3, compressed_data);
-  ZlibCompression::uncompressString(&compressed_data[0], compressed_data.size(), uncompressed_data, raw_data3.size());
+  ZlibCompression::uncompressString(compressed_data, uncompressed_data, raw_data3.size());
   TEST_EQUAL(raw_data3.size(), 105)
   TEST_TRUE(compressed_data.size() < raw_data3.size())
   TEST_EQUAL(uncompressed_data.size(), 105)
   TEST_TRUE(uncompressed_data == raw_data3)
 
   ZlibCompression::compressString(raw_data4, compressed_data);
-  ZlibCompression::uncompressString(&compressed_data[0], compressed_data.size(), uncompressed_data, raw_data4.size());
+  ZlibCompression::uncompressString(compressed_data, uncompressed_data, raw_data4.size());
   TEST_EQUAL(raw_data4.size(), 1052)
   TEST_TRUE(compressed_data.size() < raw_data4.size())
   TEST_EQUAL(uncompressed_data.size(), 1052)
@@ -144,40 +120,40 @@ START_SECTION((static void uncompressString(const void* compressed_data, size_t 
   ////////////////
   ZlibCompression::compressString(raw_data, compressed_data);
   // Invalid output_size
-  TEST_EXCEPTION(Exception::InvalidValue, ZlibCompression::uncompressString(&compressed_data[0], compressed_data.size(), uncompressed_data, 10);)
+  TEST_EXCEPTION(Exception::InvalidValue, ZlibCompression::uncompressString(compressed_data, uncompressed_data, 10);)
   // Truncated data
-  TEST_EXCEPTION(Exception::InternalToolError, ZlibCompression::uncompressString(&compressed_data[0], compressed_data.size()-10, uncompressed_data, raw_data.size());)
+  TEST_EXCEPTION(Exception::InternalToolError, ZlibCompression::uncompressData(&compressed_data[0], compressed_data.size()-10, uncompressed_data, raw_data.size());)
 }
 END_SECTION
 
 START_SECTION((static void uncompressString(const void * compressed_data, size_t nr_bytes, std::string& raw_data)))
 {
-  std::string compressed_data;
-  std::string uncompressed_data;
+  String compressed_data;
+  String uncompressed_data;
 
   ZlibCompression::compressString(raw_data, compressed_data);
-  ZlibCompression::uncompressString(&compressed_data[0], compressed_data.size(), uncompressed_data);
+  ZlibCompression::uncompressString(compressed_data, uncompressed_data);
   TEST_EQUAL(raw_data.size(), 58)
   TEST_TRUE(compressed_data.size() < raw_data.size())  
   TEST_EQUAL(uncompressed_data.size(), 58)
   TEST_TRUE(uncompressed_data == raw_data)
 
   ZlibCompression::compressString(raw_data2, compressed_data);
-  ZlibCompression::uncompressString(&compressed_data[0], compressed_data.size(), uncompressed_data);
+  ZlibCompression::uncompressString(compressed_data, uncompressed_data);
   TEST_EQUAL(raw_data2.size(), 64)
   TEST_TRUE(compressed_data.size() >= raw_data2.size())  //  "ABCD..." string is difficult to compress
   TEST_EQUAL(uncompressed_data.size(), 64)
   TEST_TRUE(uncompressed_data == raw_data2)
 
   ZlibCompression::compressString(raw_data3, compressed_data);
-  ZlibCompression::uncompressString(&compressed_data[0], compressed_data.size(), uncompressed_data);
+  ZlibCompression::uncompressString(compressed_data, uncompressed_data);
   TEST_EQUAL(raw_data3.size(), 105)
   TEST_TRUE(compressed_data.size() < raw_data3.size())  
   TEST_EQUAL(uncompressed_data.size(), 105)
   TEST_TRUE(uncompressed_data == raw_data3)
 
   ZlibCompression::compressString(raw_data4, compressed_data);
-  ZlibCompression::uncompressString(&compressed_data[0], compressed_data.size(), uncompressed_data);
+  ZlibCompression::uncompressString(compressed_data, uncompressed_data);
   TEST_EQUAL(raw_data4.size(), 1052)
   TEST_TRUE(compressed_data.size() < raw_data4.size())  
   TEST_EQUAL(uncompressed_data.size(), 1052)

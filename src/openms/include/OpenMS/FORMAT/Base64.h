@@ -283,10 +283,8 @@ private:
 
     constexpr Size element_size = sizeof(ToType);
 
-    String s;
-    stringSimdDecoder_(in, s);
     String decompressed;
-    ZlibCompression::uncompressData((const void*)s.data(), s.size(), decompressed);
+    Base64::decodeSingleString(in, decompressed, true);
 
     if (decompressed.empty())
     {
