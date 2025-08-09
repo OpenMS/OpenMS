@@ -39,10 +39,11 @@ namespace OpenMS
     switch (zlib_error)
     {
       case Z_MEM_ERROR:
-      case Z_BUF_ERROR:
         throw Exception::OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, compressed_length);
-      case Z_OK: // ok
-        break;
+      case Z_BUF_ERROR:
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                      "Destination buffer too small for compressed output",
+                                      String(compressed_length));
     }
 
     if (zlib_error != Z_OK)
@@ -63,7 +64,7 @@ namespace OpenMS
       if (uncompressedSize != raw_data.size())
       {
         OPENMS_LOG_INFO << "ZlibCompression::uncompressString: Warning: decompressed data was smaller (" << std::to_string(uncompressedSize) << ") than anticipated: " << std::to_string(output_size) << std::endl;
-        raw_data.resize(output_size);
+        raw_data.resize(uncompressedSize);
       }
     }
     else if (ret == Z_BUF_ERROR)

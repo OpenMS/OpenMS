@@ -428,7 +428,7 @@ private:
     }
 
     void* byte_buffer = reinterpret_cast<void*>(&decompressed[0]);
-    Size buffer_size = buffer_size = decompressed.size();
+    Size buffer_size = decompressed.size();
 
     // change endianness if necessary
     if ((OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_LITTLEENDIAN) || (!OPENMS_IS_BIG_ENDIAN && from_byte_order == Base64::BYTEORDER_BIGENDIAN))
