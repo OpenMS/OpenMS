@@ -28,8 +28,7 @@ namespace OpenMS
     compressed.clear();
 
     const unsigned long sourceLen = (unsigned long)in_length;
-    unsigned long compressed_length =                         // compressBound((unsigned long)str.size());
-      sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + 11; // taken from zlib's compress.c, as we cannot use compressBound*
+    unsigned long compressed_length = compressBound(in_length);
     compressed.resize(compressed_length); // reserve enough space -- we may not need all of it
 
     int zlib_error = compress(reinterpret_cast<Bytef*>(&compressed[0]), &compressed_length, (Bytef*)raw_data, sourceLen);
