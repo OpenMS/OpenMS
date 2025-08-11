@@ -130,11 +130,11 @@ namespace OpenMS
     QMenu* file = new QMenu("&File", this);
     menuBar()->addMenu(file);
     file->addAction("&New", this, SLOT(newPipeline()), Qt::CTRL | Qt::Key_N);
-    file->addAction("&Open", this, SLOT(openFilesByDialog()), Qt::CTRL + Qt::Key_O);
-    file->addAction("Open &example file", this, SLOT(openExampleDialog()), Qt::CTRL + Qt::Key_E);
-    file->addAction("&Include", this, SLOT(includePipeline()), Qt::CTRL + Qt::Key_I);
-    //file->addAction("Online &Repository", this, SLOT(openOnlinePipelineRepository()), Qt::CTRL + Qt::Key_R);
-    file->addAction("&Save", this, SLOT(savePipeline()), Qt::CTRL + Qt::Key_S);
+    file->addAction("&Open", this, SLOT(openFilesByDialog()), Qt::CTRL | Qt::Key_O);
+    file->addAction("Open &example file", this, SLOT(openExampleDialog()), Qt::CTRL | Qt::Key_E);
+    file->addAction("&Include", this, SLOT(includePipeline()), Qt::CTRL | Qt::Key_I);
+    //file->addAction("Online &Repository", this, SLOT(openOnlinePipelineRepository()), Qt::CTRL | Qt::Key_R);
+    file->addAction("&Save", this, SLOT(savePipeline()), Qt::CTRL | Qt::Key_S);
     file->addAction("Save &As", this, SLOT(saveCurrentPipelineAs()), Qt::CTRL | Qt::SHIFT | Qt::Key_S);
     file->addAction("E&xport as image", this, SLOT(exportAsImage()));
     file->addAction("Refresh &parameters", this, SLOT(refreshParameters()), Qt::CTRL | Qt::SHIFT | Qt::Key_P);
@@ -1497,12 +1497,12 @@ namespace OpenMS
         QMessageBox::Question,
         tr("Open files with overlay?"),
         tr("How do you want to open the output files?"),
-        QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-      msgBox.setButtonText(QMessageBox::Yes, tr("&Single Tab - Overlay"));
-      msgBox.setButtonText(QMessageBox::No, tr("&Separate tabs"));
-      int ret = msgBox.exec();
-      if (ret == QMessageBox::Cancel) return; // Escape was pressed
-      if (ret == QMessageBox::Yes)
+        QMessageBox::Cancel);
+      QPushButton* overlayButton = msgBox.addButton(tr("&Single Tab - Overlay"), QMessageBox::YesRole);
+      msgBox.addButton(tr("&Separate tabs"), QMessageBox::NoRole);
+      msgBox.exec();
+      if (msgBox.clickedButton() == nullptr) return; // Escape was pressed
+      if (msgBox.clickedButton() == overlayButton)
       { // put a '+' in between the files (TOPPView's command line will interpret this as overlay)
         files = files.join("#SpLiT_sTrInG#+#SpLiT_sTrInG#").split("#SpLiT_sTrInG#", Qt::SkipEmptyParts);
       }

@@ -100,7 +100,8 @@ public:
       @param protein_ids ProteinIdentification for the ConsensusMap
       @param use_centroid_rt Whether to use the RT value of feature centroids even if convex hulls are present
       @param use_centroid_mz Whether to use the m/z value of feature centroids even if convex hulls are present
-      @param spectra Whether precursors not contained in the identifications are annotated with an empty PeptideIdentification object containing the scan index.
+      @param spectra [Optional] Provide the underlying mass spectra, which allows adding an empty PeptideIdentification object containing the MS2 scan index
+                     to each Feature that covers an MS/MS spectrum (irrespective if it already has an ID).
 
       @exception Exception::MissingInformation is thrown if entries of @p ids do not contain 'MZ' and 'RT' information.
     */
@@ -117,8 +118,8 @@ public:
       @param protein_ids ProteinIdentification for the ConsensusMap
       @param measure_from_subelements Do distance estimate from FeatureHandles instead of Centroid
       @param annotate_ids_with_subelements Store map index of FeatureHandle in peptide identification?
-      @param spectra Whether precursors not contained in the identifications are annotated with 
-                     an empty PeptideIdentification object containing the scan index.
+      @param spectra [Optional] Provide the underlying mass spectra, which allows adding an empty PeptideIdentification object containing the MS2 scan index
+                     to each ConsensusFeature that covers an MS/MS spectrum (irrespective if it already has an ID).
 
       @exception Exception::MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'
     */
