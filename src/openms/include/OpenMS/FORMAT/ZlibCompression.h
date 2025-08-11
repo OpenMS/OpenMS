@@ -59,15 +59,15 @@ public:
         @param[in] compressed_data The zlib compressed data
         @param[in] nr_bytes Number of bytes in @p compressed data
         @param[out] out Uncompressed result data
-        @param[in] output_size [optional] If known, provide the size of the uncompressed data
+        @param[in] output_size [optional] If known (!=0), provide the size of the uncompressed data
         
-        @throws Exception::InvalidValue if output_size specified turns out to be smaller than actual size of uncompressed data.
+        @throws Exception::InvalidValue if output_size was specified (>0) and turns out to be smaller than actual size of uncompressed data.
         @throws Exception::InternalToolError if zlib cannot decompress the data (e.g. due to data corruption or unsupported gzip format)
       * 
     */
     static void uncompressData(const void* compressed_data, size_t nr_bytes, std::string& out, size_t output_size = 0);
 
-    /// Convencience function calling @p uncompressData 
+    /// Convencience function calling @p uncompressData
     static void uncompressString(const String& in, std::string& out, size_t output_size = 0);
 
   };

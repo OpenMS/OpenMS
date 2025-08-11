@@ -117,11 +117,11 @@ public:
     static void decodeStrings(const String & in, std::vector<String> & out, bool zlib_compression = false);
 
     /**
-        @brief Decodes a Base64 string to a QByteArray
+        @brief Decodes a Base64 string
 
-        @param in A String containing the Base64 encoded data
-        @param out A String containing the decoded data
-        @param zlib_compression Whether the data should be decompressed with zlib after decoding in Base64
+        @param[in] in A String containing the Base64 encoded data
+        @param[out] out A String containing the decoded data
+        @param[in] zlib_compression Should the data be decompressed with zlib after decoding in Base64?
     */
     static void decodeSingleString(const String& in, String& out, bool zlib_compression);
 
@@ -273,7 +273,7 @@ private:
 
 
   template <typename ToType>
-  void Base64::decodeCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
+  void Base64::decodeCompressed_(const String& in, ByteOrder from_byte_order, std::vector<ToType>& out)
   {
     out.clear();
     if (in.empty())
@@ -281,19 +281,14 @@ private:
       return;
     }
 
-    constexpr Size element_size = sizeof(ToType);
-
     String decompressed;
     Base64::decodeSingleString(in, decompressed, true);
 
-    if (decompressed.empty())
-    {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decompression error?");
-    }
-    void* byte_buffer = reinterpret_cast<void *>(&decompressed[0]);
+    void* byte_buffer = reinterpret_cast<void*>(&decompressed[0]);
     Size buffer_size = decompressed.size();
 
     const ToType * float_buffer = reinterpret_cast<const ToType *>(byte_buffer);
+    constexpr Size element_size = sizeof(ToType);
     if (buffer_size % element_size != 0)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount?");

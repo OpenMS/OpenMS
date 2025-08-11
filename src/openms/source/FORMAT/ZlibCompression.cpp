@@ -30,31 +30,34 @@ namespace OpenMS
     const unsigned long sourceLen = (unsigned long)in_length;
     unsigned long compressed_length =                         // compressBound((unsigned long)str.size());
       sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + 11; // taken from zlib's compress.c, as we cannot use compressBound*
-
-    int zlib_error;
-
     compressed.resize(compressed_length); // reserve enough space -- we may not need all of it
-    zlib_error = compress(reinterpret_cast<Bytef*>(&compressed[0]), &compressed_length, (Bytef*)raw_data, sourceLen);
+
+    int zlib_error = compress(reinterpret_cast<Bytef*>(&compressed[0]), &compressed_length, (Bytef*)raw_data, sourceLen);
 
     switch (zlib_error)
     {
+      case Z_OK:         // Compression successful
+        break;
       case Z_MEM_ERROR:
         throw Exception::OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, compressed_length);
       case Z_BUF_ERROR:
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                                       "Destination buffer too small for compressed output",
                                       String(compressed_length));
+      default:
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compression error!");
     }
 
-    if (zlib_error != Z_OK)
-    {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compression error?");
-    }
     compressed.resize(compressed_length); // cut down to the actual data
   }
 
   void uncompressStringSingleShot___(const void* compressed_data, size_t nr_bytes, std::string& raw_data, size_t output_size)
   {
+    if (nr_bytes == 0)
+    {
+      raw_data.clear();
+      return;
+    }
     raw_data.resize(output_size);
     uLongf uncompressedSize = output_size;
     int ret = uncompress((Bytef*)raw_data.data(), &uncompressedSize, (Bytef*)compressed_data, nr_bytes);
@@ -80,40 +83,37 @@ namespace OpenMS
 
   void uncompressStringIterative___(const void* compressed_data, size_t nr_bytes, std::string& uncompressed)
   {
-    const size_t CHUNK_SIZE = 16384;
     uncompressed.clear();
-    z_stream strm = {};
 
     // Setup input
+    z_stream strm = {};
     strm.next_in = (Bytef*)(compressed_data);
     strm.avail_in = nr_bytes;
 
-    int ret;
-
     // Initialize zlib (use inflateInit2 for gzip or raw deflate)
-    ret = inflateInit(&strm);
+    int ret = inflateInit(&strm);
     if (ret != Z_OK)
     {
       throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "zlib::inflateInit failed with code " + std::to_string(ret) + " .");
     }
 
     // Decompress loop
+    const size_t CHUNK_SIZE = 16384;
     std::array<char, CHUNK_SIZE> buffer;
-
     do
     {
       strm.avail_out = CHUNK_SIZE;
       strm.next_out = (Bytef*)buffer.data();
 
       ret = inflate(&strm, Z_NO_FLUSH);
-      if (ret == Z_STREAM_ERROR || ret == Z_DATA_ERROR || ret == Z_MEM_ERROR)
+      if (ret == Z_STREAM_ERROR || ret == Z_DATA_ERROR || ret == Z_MEM_ERROR || ret == Z_BUF_ERROR)
       {
         inflateEnd(&strm);
         throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "zlib::inflate failed with code " + std::to_string(ret) + " .");
       }
 
-      size_t bytesDecompressed = CHUNK_SIZE - strm.avail_out;
-      uncompressed.insert(uncompressed.end(), buffer.begin(), buffer.begin() + bytesDecompressed);
+      size_t bytes_decompressed = CHUNK_SIZE - strm.avail_out;
+      uncompressed.insert(uncompressed.end(), buffer.begin(), buffer.begin() + bytes_decompressed);
 
     } while (ret != Z_STREAM_END);
 
