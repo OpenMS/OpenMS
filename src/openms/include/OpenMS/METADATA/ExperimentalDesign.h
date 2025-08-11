@@ -200,8 +200,8 @@ namespace OpenMS
     </tr>
     <tr>
         <td>...</td>
-        <td>...<br></td>
-        <td>...<br></td>
+        <td>...</td>
+        <td>...</td>
     </tr>
     <tr>
         <td>22</td>
