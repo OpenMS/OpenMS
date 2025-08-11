@@ -512,14 +512,19 @@ namespace OpenMS
           OPENMS_LOG_DEBUG << endl;
           
           String metabolite_name = "";
-          if (spec_db[search_idx].metaValueExists("Metabolite_Name")) {
-            metabolite_name = spec_db[search_idx].getMetaValue("Metabolite_Name").toString();
+          if (spec_db[search_idx].metaValueExists(Constants::UserParam::MSM_METABOLITE_NAME)) {
+            metabolite_name = spec_db[search_idx]
+                                .getMetaValue(Constants::UserParam::MSM_METABOLITE_NAME)
+                                .toString();
           } else if (spec_db[search_idx].metaValueExists("GNPS_Spectrum_ID")) {
-            metabolite_name = spec_db[search_idx].getMetaValue("GNPS_Spectrum_ID").toString();
+            metabolite_name = spec_db[search_idx]
+                                .getMetaValue("GNPS_Spectrum_ID")
+                                .toString();
           }
-          
-          OPENMS_LOG_DEBUG << "scanning " << spec_db[search_idx].getPrecursors()[0].getMZ() << " " << metabolite_name << endl;
 
+          OPENMS_LOG_DEBUG << "scanning "
+                           << spec_db[search_idx].getPrecursors()[0].getMZ()
+                           << " " << metabolite_name << endl;
           // check for charge state of precursor ions: do they match?
           if ( (ion_mode_ == "positive" && spec_db[search_idx].getPrecursors()[0].getCharge() < 0) || (ion_mode_ == "negative" && spec_db[search_idx].getPrecursors()[0].getCharge() > 0))
           {
