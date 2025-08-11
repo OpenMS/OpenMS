@@ -552,7 +552,7 @@ namespace OpenMS
             tmp_match.setMatchingSpectrumIndex(search_idx);
             tmp_match.setObservedSpectrumNativeID(msexp[spec_idx].getNativeID());
 
-            tmp_match.setPrimaryIdentifier(spec_db[search_idx].getMetaValue("GNPS_Spectrum_ID"));
+            tmp_match.setPrimaryIdentifier(spec_db[search_idx].getMetaValue("Metabolite_Name")); //FIXME revert to GNPS_Spectrum_ID
             tmp_match.setSecondaryIdentifier(spec_db[search_idx].getMetaValue("HMDB_ID"));
             tmp_match.setSumFormula(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_SUM_FORMULA));
             

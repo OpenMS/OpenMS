@@ -10,6 +10,7 @@
 
 #include <OpenMS/FORMAT/MzTabBase.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <set>
@@ -269,6 +270,13 @@ namespace OpenMS
   */
   static MzTabM exportFeatureMapToMzTabM(const FeatureMap& feature_map);
 
+  /**
+  * @brief Export ConsensusMap with Identifications to MzTabM
+  *
+  * @return MzTabM object
+  */
+  static MzTabM exportConsensusMapToMzTabM(const ConsensusMap& consensus_map);
+
   protected:
     MzTabMMetaData m_meta_data_;
     MzTabMSmallMoleculeSectionRows m_small_molecule_data_;
@@ -286,6 +294,11 @@ namespace OpenMS
                                          std::set<String>& feature_user_value_keys,
                                          std::set<String>& observationmatch_user_value_keys,
                                          std::set<String>& compound_user_value_keys);
+
+    static void getConsensusMapMetaValues_(const ConsensusMap& consensus_map,
+                                           std::set<String>& feature_user_value_keys,
+                                           std::set<String>& observationmatch_user_value_keys,
+                                           std::set<String>& compound_user_value_keys);
 
   };
 } // namespace OpenMS

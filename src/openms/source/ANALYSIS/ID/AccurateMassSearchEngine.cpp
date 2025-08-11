@@ -876,6 +876,233 @@ namespace OpenMS
     return;
   }
 
+  void AccurateMassSearchEngine::addMatchesToConsensusID_(
+    IdentificationData& id,
+    const std::vector<AccurateMassSearchResult>& amr,
+    const std::vector<IdentificationData::InputFileRef>& file_refs,
+    const IdentificationData::ScoreTypeRef& mass_error_ppm_score_ref,
+    const IdentificationData::ScoreTypeRef& mass_error_Da_score_ref,
+    const IdentificationData::ProcessingStepRef& step_ref,
+    BaseFeature& cf) const
+  {
+    // register consensus feature as search item associated with input files
+    IdentificationData::Observation obs(String(cf.getUniqueId()), file_refs[0], cf.getRT(), cf.getMZ());
+    auto obs_ref = id.registerObservation(obs);
+
+    for (const AccurateMassSearchResult& r : amr)
+    {
+      for (Size i = 0; i < r.getMatchingHMDBids().size(); ++i)
+      {
+        if (!hmdb_properties_mapping_.count(r.getMatchingHMDBids()[i]))
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + r.getMatchingHMDBids()[i] + "' not found in struct file!");
+        }
+        // get name from index 0 (2nd column in structMapping file)
+        HMDBPropsMapping::const_iterator entry = hmdb_properties_mapping_.find(r.getMatchingHMDBids()[i]);
+        if  (entry == hmdb_properties_mapping_.end())
+        {
+          throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("DB entry '") + r.getMatchingHMDBids()[i] + "' found in struct file but missing in mapping file!");
+        }
+
+        double mass_error_Da = r.getObservedMZ() - r.getCalculatedMZ();
+        double mass_error_ppm =  r.getMZErrorPPM();
+
+        std::map<IdentificationDataInternal::ScoreTypeRef, double> scores{{mass_error_ppm_score_ref, mass_error_ppm},
+                                                                          {mass_error_Da_score_ref, mass_error_Da}
+                                                                         };
+        IdentificationDataInternal::AppliedProcessingStep applied_processing_step(step_ref, scores);
+        IdentificationDataInternal::AppliedProcessingSteps applied_processing_steps;
+        applied_processing_steps.emplace_back(applied_processing_step);
+
+        // register compound
+        const String& name = entry->second[0];
+        const String& smiles = entry->second[1];
+        const String& inchi_key = entry->second[2];
+        std::vector<String> names = {name}; // to fit legacy format - MetaValue
+        std::vector<String> identifiers = {r.getMatchingHMDBids()[i]}; // to fit legacy format - MetaValue
+        IdentificationData::IdentifiedCompound compound(r.getMatchingHMDBids()[i],
+                                                        EmpiricalFormula(r.getFormulaString()),
+                                                        name,
+                                                        smiles,
+                                                        inchi_key,
+                                                        applied_processing_steps);
+
+        auto compound_ref = id.registerIdentifiedCompound(compound); // if already in DB -> NOP
+
+        // compound-consensus feature match
+        IdentificationData::ObservationMatch match(compound_ref, obs_ref, r.getCharge());
+        match.addScore(mass_error_ppm_score_ref, mass_error_ppm, step_ref);
+        match.addScore(mass_error_Da_score_ref, mass_error_Da, step_ref);
+        match.setMetaValue("identifier", identifiers);
+        match.setMetaValue("description", names);
+        match.setMetaValue("modifications", r.getFoundAdduct());
+        match.setMetaValue("chemical_formula", r.getFormulaString());
+        match.setMetaValue("mz_error_ppm", mass_error_ppm);
+        match.setMetaValue("mz_error_Da", mass_error_Da);
+
+        // add adduct to the ObservationMatch
+        String adduct = r.getFoundAdduct(); // M+Na;1+
+        if (!adduct.empty() && adduct != "null")
+        {
+          AdductInfo ainfo = AdductInfo::parseAdductString(adduct);
+          auto adduct_ref = id.registerAdduct(ainfo);
+          match.adduct_opt = adduct_ref;
+        }
+
+        // register ObservationMatch
+        auto obs_match_ref = id.registerObservationMatch(match);
+        IdentificationData::IdentifiedMolecule molecule(compound_ref);
+        // add to ConsensusFeature (set PrimaryID to add a reference to a specific molecule)
+        cf.setPrimaryID(molecule);
+        cf.addIDMatch(obs_match_ref);
+      }
+    }
+  }
+
+
+  void AccurateMassSearchEngine::run(ConsensusMap& cmap, MzTabM& mztabm_out) const
+  {
+    if (!is_initialized_)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AccurateMassSearchEngine::init() was not called!");
+    }
+
+    IdentificationData& id = cmap.getIdentificationData();
+    IdentificationData::InputFileRef file_ref;
+    IdentificationData::ScoreTypeRef mass_error_ppm_score_ref;
+    IdentificationData::ScoreTypeRef mass_error_Da_score_ref;
+    IdentificationData::ProcessingStepRef step_ref;
+
+    // Get MS run paths from column headers
+    StringList ms_run_paths;
+    const ConsensusMap::ColumnHeaders& column_headers = cmap.getColumnHeaders();
+    for (const auto& header_pair : column_headers)
+    {
+      ms_run_paths.push_back(header_pair.second.filename);
+    }
+
+    // set identifier for ConsensusMap if missing (mandatory for OMS output)
+    if (cmap.getIdentifier().empty())
+    {
+      if (!ms_run_paths.empty())
+      {
+        cmap.setIdentifier(File::basename(ms_run_paths[0]));
+      }
+      else
+      {
+        cmap.setIdentifier("consensus_map");
+      }
+    }
+
+    // check ion_mode
+    String ion_mode_internal(ion_mode_);
+    if (ion_mode_ == "auto")
+    {
+      ion_mode_internal = resolveAutoMode_(cmap);
+    }
+
+    // register input files
+    std::vector<IdentificationData::InputFileRef> file_refs;
+    for (const String& ms_run_path : ms_run_paths)
+    {
+      IdentificationData::InputFile file(ms_run_path);
+      file_ref = id.registerInputFile(file);
+      file_refs.emplace_back(file_ref);
+    }
+
+    // add previous DataProcessingStep(s) from ConsensusMap
+    auto data_processing = cmap.getDataProcessing();
+    for (const auto& it : data_processing)
+    {
+      // software
+      IdentificationData::ProcessingSoftware sw(it.getSoftware().getName(), it.getSoftware().getVersion());
+      // transfer previous metadata
+      sw.addMetaValues(it);
+      IdentificationDataInternal::ProcessingSoftwareRef sw_ref = id.registerProcessingSoftware(sw);
+      // ProcessingStep: software, input_file_refs, data_time, actions
+      IdentificationData::ProcessingStep step(sw_ref, file_refs, it.getCompletionTime(), it.getProcessingActions());
+      step_ref = id.registerProcessingStep(step);
+      id.setCurrentProcessingStep(step_ref);
+    }
+
+    // add information about current tool
+    // register a score type
+    IdentificationData::ScoreType mass_error_ppm_score("MassErrorPPMScore", false);
+    mass_error_ppm_score_ref = id.registerScoreType(mass_error_ppm_score);
+    IdentificationData::ScoreType mass_error_Da_score("MassErrorDaScore", false);
+    mass_error_Da_score_ref = id.registerScoreType(mass_error_Da_score);
+
+    // add the same score_refs to the ProcessingSoftware - to reference the Software with the
+    // ObservationMatch - the order is important - the most important score first.
+    std::vector<IdentificationDataInternal::ScoreTypeRef> assigned_scores{mass_error_ppm_score_ref, mass_error_Da_score_ref};
+
+    // register software (connected to score)
+    // CVTerm will be set in mztab-m based on the name
+    // if the name is not available in PSI-OBO "analysis software" will be used.
+    IdentificationData::ProcessingSoftware sw("AccurateMassSearch", VersionInfo::getVersion(), assigned_scores);
+    sw.setMetaValue("reliability", "2");
+    IdentificationData::ProcessingSoftwareRef sw_ref = id.registerProcessingSoftware(sw);
+
+    // all supported search settings
+    IdentificationData::DBSearchParam search_param;
+    search_param.database = database_name_;
+    search_param.database_version = database_version_;
+    search_param.setMetaValue("database_location", database_location_);
+
+    search_param.precursor_mass_tolerance = this->mass_error_value_;
+    search_param.precursor_tolerance_ppm = this->mass_error_unit_ == "ppm" ? true : false;
+    IdentificationData::SearchParamRef search_param_ref = id.registerDBSearchParam(search_param);
+
+    // file has been processed by software performing a specific processing action.
+    std::set<DataProcessing::ProcessingAction> actions;
+    actions.insert(DataProcessing::IDENTIFICATION);
+    IdentificationData::ProcessingStep step(sw_ref, file_refs, DateTime::now(), actions);
+    step_ref = id.registerProcessingStep(step, search_param_ref);
+    id.setCurrentProcessingStep(step_ref); // add the new step
+
+    // map for storing overall results
+    QueryResultsTable overall_results;
+    Size dummy_count(0);
+    const Size num_of_maps = column_headers.size();
+    for (Size i = 0; i < cmap.size(); ++i)
+    {
+      std::vector<AccurateMassSearchResult> query_results;
+      queryByConsensusFeature(cmap[i], i, num_of_maps, ion_mode_internal, query_results);
+      if (query_results.empty())
+      {
+        continue;
+      }
+      overall_results.push_back(query_results);
+
+      addMatchesToConsensusID_(id, query_results, file_refs, mass_error_ppm_score_ref, mass_error_Da_score_ref, step_ref, cmap[i]); // MztabM
+    }
+
+    // filter ConsensusMap to only have entries with an PrimaryID attached
+    if (!keep_unidentified_masses_)
+    {
+      cmap.erase(std::remove_if(cmap.begin(), cmap.end(), [](const ConsensusFeature& cf){ return !cf.hasPrimaryID(); }), cmap.end());
+    }
+
+    // add the identification data to the consensusXML
+    // to allow consensusXML export (without the use of legacy_ID)
+    // been transferred from the previous data stored within
+    // the consensus feature.
+    IdentificationDataConverter::exportConsensusIDs(cmap, false);
+
+    if (cmap.empty())
+    {
+      OPENMS_LOG_INFO << "ConsensusMap was empty! No hits found!" << std::endl;
+    }
+    else
+    { // division by 0 if used on empty cmap
+      OPENMS_LOG_INFO << "\nFound " << (overall_results.size() - dummy_count) << " matched masses (with at least one hit each)\nfrom " << cmap.size() << " consensus features\n  --> " << (overall_results.size()-dummy_count)*100/cmap.size() << "% explained" << std::endl;
+    }
+
+    mztabm_out = MzTabM::exportConsensusMapToMzTabM(cmap);
+
+    return;
+  }
+
   // FeatureMap with IdentificationData attached!
   void AccurateMassSearchEngine::exportMzTabM_(const FeatureMap& fmap, MzTabM& mztabm_out) const
   {

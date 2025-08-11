@@ -170,14 +170,6 @@ protected:
         OMSFile().store(file_ann, ms_feat_map);
       }
     }
-    else if (filetype == FileTypes::CONSENSUSXML && id_format)
-    {
-      throw Exception::InvalidValue(__FILE__,
-                                    __LINE__,
-                                    OPENMS_PRETTY_FUNCTION,
-                                    "FATAL: CONSENSUSXML is currently not supporting ID and its MzTabM (v2.0.0-M) output, please use legacy_id",
-                                    "");
-    }
     else if (filetype == FileTypes::CONSENSUSXML)
     {
       ConsensusMap ms_cons_map;
@@ -187,7 +179,14 @@ protected:
       //-------------------------------------------------------------
       // do the work
       //-------------------------------------------------------------
-      ams.run(ms_cons_map, mztab_output);
+      if (id_format)
+      {
+        ams.run(ms_cons_map, mztabm_output);
+      }
+      else
+      {
+        ams.run(ms_cons_map, mztab_output);
+      }
 
       //-------------------------------------------------------------
       // writing output

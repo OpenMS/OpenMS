@@ -92,6 +92,53 @@ namespace OpenMS
     }
   }
 
+  void MzTabM::getConsensusMapMetaValues_(const ConsensusMap& consensus_map,
+                                          std::set<String>& feature_user_value_keys,
+                                          std::set<String>& observationmatch_user_value_keys,
+                                          std::set<String>& compound_user_value_keys)
+  {
+    for (Size i = 0; i < consensus_map.size(); ++i)
+    {
+      // consensus feature section optional columns
+      const ConsensusFeature& cf = consensus_map[i];
+      std::vector<String> keys;
+      cf.getKeys(keys);
+      // replace whitespaces with underscore
+      std::transform(keys.begin(), keys.end(), keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
+      feature_user_value_keys.insert(keys.begin(), keys.end());
+
+      auto match_refs = cf.getIDMatches();
+      for (const IdentificationDataInternal::ObservationMatchRef& match_ref : match_refs)
+      {
+        // feature section optional columns
+        std::vector<String> obsm_keys;
+        match_ref->getKeys(obsm_keys);
+        // replace whitespaces with underscore
+        std::transform(obsm_keys.begin(), obsm_keys.end(), obsm_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
+
+        // remove "IDConverter_trace" metadata from the ObservationMatch
+        // introduced by the IdentificationDataConverter
+        // since it leads to convolution of IDConverter_trace_* optional columns
+        for (const auto& key : obsm_keys)
+        {
+          if (!key.hasSubstring("IDConverter_trace"))
+          {
+            observationmatch_user_value_keys.insert(key);
+          }
+        }
+
+        // evidence section optional columns
+        IdentificationData::IdentifiedMolecule molecule = match_ref->identified_molecule_var;
+        IdentificationData::IdentifiedCompoundRef compound_ref = molecule.getIdentifiedCompoundRef();
+        std::vector<String> compound_keys;
+        compound_ref->getKeys(compound_keys);
+        // replace whitespaces with underscore
+        std::transform(compound_keys.begin(), compound_keys.end(), compound_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
+        compound_user_value_keys.insert(compound_keys.begin(), compound_keys.end());
+      }
+    }
+  }
+
   void MzTabM::getFeatureMapMetaValues_(const FeatureMap& feature_map,
                                         std::set<String>& feature_user_value_keys,
                                         std::set<String>& observationmatch_user_value_keys,
@@ -729,5 +776,518 @@ namespace OpenMS
       adduct_name = "null";
     }
     return adduct_name;
+  }
+
+  // ConsensusMap with associated identification data
+  MzTabM MzTabM::exportConsensusMapToMzTabM(const ConsensusMap& consensus_map)
+  {
+    MzTabM mztabm;
+    MzTabMMetaData m_meta_data;
+
+    // extract identification data from ConsensusMap
+    const IdentificationData& id_data = consensus_map.getIdentificationData();
+
+    OPENMS_PRECONDITION(!id_data.empty(),
+                        "The ConsensusMap has to have a non empty IdentificationData object attached!")
+
+    // extract MetaValues from ConsensusMap
+    std::set<String> feature_user_value_keys;
+    std::set<String> observationmatch_user_value_keys;
+    std::set<String> compound_user_value_keys;
+    MzTabM::getConsensusMapMetaValues_(consensus_map, feature_user_value_keys, observationmatch_user_value_keys, compound_user_value_keys);
+
+    // ####################################################
+    // MzTabMetaData
+    // ####################################################
+
+    std::regex reg_backslash{R"(\\)"};
+    UInt64 local_id = consensus_map.getUniqueId();
+    // mz_tab_id (mandatory)
+    m_meta_data.mz_tab_id.set("local_id: " + String(local_id));
+
+    // software metadata
+    MzTabSoftwareMetaData meta_software;
+    ControlledVocabulary cv;
+    MzTabString reliability = MzTabString("2"); // initialize at 2 (should be valid for all tools - putatively annotated compound)
+    cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
+    for (const auto& software : id_data.getProcessingSoftwares())
+    {
+      if (software.metaValueExists("reliability"))
+      {
+        reliability = MzTabString(std::string(software.getMetaValue("reliability")));
+      }
+      MzTabParameter p_software;
+      ControlledVocabulary::CVTerm cvterm;
+      // add TOPP - all OpenMS Tools have TOPP attached in the PSI-OBO
+      std::string topp_tool = "TOPP " + software.getName();
+      if (cv.hasTermWithName(topp_tool)) // asses CV-term based on tool name
+      {
+        cvterm = cv.getTermByName(topp_tool);
+      }
+      else
+      {
+        // use "analysis software" instead
+        OPENMS_LOG_WARN << "The tool: " << topp_tool << " is currently not registered in the PSI-OBO.\n";
+        OPENMS_LOG_WARN << "'The general term 'analysis software' will be used instead.\n";
+        OPENMS_LOG_WARN << "Please register the tool as soon as possible in the psi-ms.obo (https://github.com/HUPO-PSI/psi-ms-CV)" << std::endl;
+        cvterm = cv.getTermByName("analysis software");
+      }
+      p_software.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", " + software.getVersion() + "]");
+      meta_software.software = p_software;
+      m_meta_data.software[m_meta_data.software.size() + 1] = meta_software; // starts at 1
+    }
+
+    // quantification_method (mandatory)
+    MzTabParameter quantification_method;
+    quantification_method.setNull(true);
+    std::map<String, std::vector<String>> action_software_name;
+    for (const auto& step : id_data.getProcessingSteps())
+    {
+      IdentificationDataInternal::ProcessingSoftwareRef s_ref = step.software_ref;
+      for (const auto& action : step.actions)
+      {
+        action_software_name[action].emplace_back(s_ref->getName());
+      }
+    };
+
+    // set quantification method based on OpenMS Tool(s)
+    for (const auto& quantification_software : action_software_name[DataProcessing::QUANTITATION])
+    {
+      if (quantification_software == "FeatureLinkerUnlabeled" || quantification_software == "FeatureLinker")
+      {
+        ControlledVocabulary::CVTerm cvterm;
+        cvterm = cv.getTermByName("LC-MS label-free quantitation analysis");
+        quantification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+      }
+    }
+    if (quantification_method.isNull())
+    {
+      OPENMS_LOG_WARN << "If the quantification of your computational analysis is not 'LC-MS label-free quantitation analysis'.\n"
+                      << "Please contact a OpenMS Developer to add the appropriate tool and description to MzTab-M." << std::endl;
+      
+      ControlledVocabulary::CVTerm cvterm = cv.getTermByName("LC-MS label-free quantitation analysis");
+      quantification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+    }
+    m_meta_data.quantification_method = quantification_method;
+
+    // Extract MS run information from ConsensusMap column headers
+    const ConsensusMap::ColumnHeaders& column_headers = consensus_map.getColumnHeaders();
+    Size ms_run_counter = 1;
+    std::map<UInt64, Size> map_id_to_ms_run;
+
+    for (const auto& header_pair : column_headers)
+    {
+      UInt64 map_id = header_pair.first;
+      const ConsensusMap::ColumnHeader& header = header_pair.second;
+      
+      MzTabMMSRunMetaData meta_ms_run;
+      std::string input_file_name = header.filename;
+      input_file_name = String(std::regex_replace(input_file_name, reg_backslash, "/"));
+      if (!String(input_file_name).hasPrefix("file://")) input_file_name = "file://" + input_file_name;
+      meta_ms_run.location.set(input_file_name);
+
+      // assess scan polarity based on the first adduct (same as FeatureMap version)
+      auto adducts = id_data.getAdducts();
+      if (!adducts.empty())
+      {
+        std::string_view first_adduct;
+        for (const auto& adduct : adducts)
+        {
+          first_adduct = adduct.getName();
+          break;
+        }
+        if (first_adduct.at(first_adduct.size() - 1) == '+')
+        {
+          ControlledVocabulary::CVTerm cvterm;
+          cvterm = cv.getTermByName("positive scan");
+          MzTabParameter spol;
+          spol.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+          meta_ms_run.scan_polarity[1] = spol;
+        }
+        else
+        {
+          ControlledVocabulary::CVTerm cvterm;
+          cvterm = cv.getTermByName("negative scan");
+          MzTabParameter spol;
+          spol.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+          meta_ms_run.scan_polarity[1] = spol;
+        }
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "No adduct information available: scan polarity will be assumed to be positive." << std::endl;
+        ControlledVocabulary::CVTerm cvterm;
+        cvterm = cv.getTermByName("positive scan");
+        MzTabParameter spol;
+        spol.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+        meta_ms_run.scan_polarity[1] = spol;
+      }
+
+      m_meta_data.ms_run[ms_run_counter] = meta_ms_run;
+      map_id_to_ms_run[map_id] = ms_run_counter;
+
+      // Create assay for each MS run
+      MzTabMAssayMetaData meta_ms_assay;
+      meta_ms_assay.name = MzTabString("assay_" + File::basename(input_file_name).prefix('.').trim());
+      meta_ms_assay.ms_run_ref = MzTabInteger(ms_run_counter);
+      m_meta_data.assay[ms_run_counter] = meta_ms_assay;
+
+      ++ms_run_counter;
+    }
+
+    // Create study variable for the entire consensus map
+    MzTabMStudyVariableMetaData meta_ms_study_variable;
+    meta_ms_study_variable.name = MzTabString("study_variable_consensus");
+    std::vector<int> assay_refs;
+    for (Size i = 1; i < ms_run_counter; ++i)
+    {
+      assay_refs.emplace_back(i);
+    }
+    meta_ms_study_variable.assay_refs = assay_refs;
+    meta_ms_study_variable.description = MzTabString("consensus features across multiple runs");
+    m_meta_data.study_variable[1] = meta_ms_study_variable;
+
+    // CV metadata
+    MzTabCVMetaData meta_cv;
+    meta_cv.label = MzTabString(cv.name());
+    meta_cv.full_name = MzTabString(cv.label());
+    meta_cv.version = MzTabString(cv.version());
+    meta_cv.url = MzTabString(cv.url());
+    m_meta_data.cv[1] = meta_cv;
+
+    // Database metadata
+    MzTabMDatabaseMetaData meta_db;
+    meta_db.prefix.setNull(true);
+    meta_db.version = MzTabString("Unknown");
+    meta_db.database.fromCellString("[,, no database , null]");
+    meta_db.uri = MzTabString("https://hmdb.ca/"); // default if not set
+
+    for (const auto& db : id_data.getDBSearchParams())
+    {
+      if (db.database.find("custom") != std::string::npos) // custom database
+      {
+        meta_db.prefix.setNull(true);
+        meta_db.version = MzTabString(db.database_version);
+        meta_db.database.fromCellString("[,, " + db.database + ", ]");
+      }
+      else // assumption that prefix is the same as database name
+      {
+        meta_db.prefix = MzTabString(db.database);
+        meta_db.version = MzTabString(db.database_version);
+        meta_db.database.fromCellString("[,," + db.database + ", ]");
+      }
+      if (db.metaValueExists("database_location"))
+      {
+        std::vector<std::string> db_loc = ListUtils::create<std::string>(db.getMetaValue("database_location"), '|');
+        for (auto& loc : db_loc)
+        {
+          loc = String(std::regex_replace(loc, reg_backslash, "/"));
+          if (!String(loc).hasPrefix("file://")) loc = "file://" + loc;
+        }
+        String db_location_uri = ListUtils::concatenate(db_loc, '|');
+        meta_db.uri = MzTabString(db_location_uri);
+      }
+      else
+      {
+        meta_db.uri.setNull(true);
+      }
+      m_meta_data.database[m_meta_data.database.size() + 1] = meta_db; // starts at 1
+    }
+
+    // Quantification unit
+    MzTabParameter quantification_unit;
+    quantification_unit.setNull(true);
+    for (const auto& software : id_data.getProcessingSoftwares())
+    {
+      if (software.getName() == "FeatureFinderMetabo")
+      {
+        if (software.metaValueExists("parameter: algorithm:mtd:quant_method"))
+        {
+          String quant_method = software.getMetaValue("parameter: algorithm:mtd:quant_method");
+          if (quant_method == "area")
+          {
+            ControlledVocabulary::CVTerm cvterm;
+            cvterm = cv.getTermByName("MS1 feature area");
+            quantification_unit.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+          }
+          else if (quant_method == "median")
+          {
+            ControlledVocabulary::CVTerm cvterm;
+            cvterm = cv.getTermByName("median");
+            quantification_unit.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+          }
+          else // max_height
+          {
+            ControlledVocabulary::CVTerm cvterm;
+            cvterm = cv.getTermByName("MS1 feature maximum intensity");
+            quantification_unit.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+          }
+        }
+      }
+    }
+    if (quantification_unit.isNull())
+    {
+      OPENMS_LOG_WARN << "It was not possible to assess the quantification_unit - MS1 feature area - will be used as default." << std::endl;
+      ControlledVocabulary::CVTerm cvterm;
+      cvterm = cv.getTermByName("MS1 feature area");
+      quantification_unit.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+    }
+    m_meta_data.small_molecule_quantification_unit = quantification_unit;
+    m_meta_data.small_molecule_feature_quantification_unit = quantification_unit;
+
+    // Identification reliability
+    MzTabParameter rel;
+    ControlledVocabulary::CVTerm cvterm_rel = cv.getTermByName("compound identification confidence level");
+    rel.fromCellString("[MS, " + cvterm_rel.id + ", " + cvterm_rel.name + ", ]");
+    m_meta_data.small_molecule_identification_reliability = rel;
+
+    // Score types
+    int software_score_counter = 0;
+    std::vector<String> identification_tools = action_software_name[DataProcessing::IDENTIFICATION];
+    std::vector<IdentificationDataInternal::ScoreTypeRef> id_score_refs;
+    for (const IdentificationDataInternal::ProcessingSoftware& software : id_data.getProcessingSoftwares())
+    {
+      if (std::find(identification_tools.begin(), identification_tools.end(), software.getName()) != identification_tools.end())
+      {
+        for (const IdentificationDataInternal::ScoreTypeRef& score_type_ref : software.assigned_scores)
+        {
+          ++software_score_counter;
+          m_meta_data.id_confidence_measure[software_score_counter].fromCellString("[,, " + score_type_ref->cv_term.getName() + ", ]");
+          id_score_refs.emplace_back(score_type_ref);
+        }
+      }
+    }
+
+    // Data sections
+    MzTabMSmallMoleculeSectionRows smls;
+    MzTabMSmallMoleculeFeatureSectionRows smfs;
+    MzTabMSmallMoleculeEvidenceSectionRows smes;
+
+    // Identification method
+    MzTabParameter identification_method;
+    identification_method.fromCellString("[, , OpenMS TOPP, ]");
+    MzTabParameter ms_level;
+    ms_level.setNull(true);
+    for (const auto& identification_software : action_software_name[DataProcessing::IDENTIFICATION])
+    {
+      int id_mslevel = 1;
+      ControlledVocabulary::CVTerm cvterm;
+      if (identification_software == "AccurateMassSearch")
+      {
+        cvterm = cv.getTermByName("accurate mass");
+        identification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+        id_mslevel = 1;
+      }
+      else if (identification_software == "SiriusAdapter")
+      {
+        cvterm = cv.getTermByName("de novo search");
+        identification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+        id_mslevel = 2;
+      }
+      else if (identification_software == "MetaboliteSpectralMatcher")
+      {
+        cvterm = cv.getTermByName("TOPP SpecLibSearcher");
+        identification_method.fromCellString("[MS, " + cvterm.id + ", " + cvterm.name + ", ]");
+        id_mslevel = 2;
+      }
+      else
+      {
+        id_mslevel = 1;
+      }
+      ControlledVocabulary::CVTerm cvterm_level = cv.getTermByName("ms level");
+      ms_level.fromCellString("[MS, " + cvterm_level.id + ", " + cvterm_level.name + ", " + String(id_mslevel) + "]");
+    }
+    if (identification_method.isNull())
+    {
+      OPENMS_LOG_WARN << "The identification method of your computational analysis can not be assessed'.\n"
+                      << "Please check if the ProcessingActions are set correctly!" << std::endl;
+    }
+
+    // Process consensus features
+    int feature_section_entry_counter = 1;
+    int evidence_section_entry_counter = 1;
+    for (auto& cf : consensus_map) // iterate over consensus features
+    {
+      auto match_refs = cf.getIDMatches();
+      if (match_refs.empty()) // consensus features without identification
+      {
+        MzTabMSmallMoleculeFeatureSectionRow smf;
+        smf.smf_identifier = MzTabString(feature_section_entry_counter);
+        smf.sme_id_refs.setNull(true);
+        if (cf.metaValueExists("adducts"))
+        {
+          StringList adducts = cf.getMetaValue("adducts");
+          smf.adduct = MzTabString(ListUtils::concatenate(adducts,'|'));
+        }
+        else
+        {
+          smf.adduct.setNull(true);
+        }
+        smf.sme_id_ref_ambiguity_code.setNull(true);
+        smf.isotopomer.setNull(true);
+        smf.exp_mass_to_charge = MzTabDouble(cf.getMZ());
+        smf.charge = MzTabInteger(cf.getCharge());
+        smf.retention_time = MzTabDouble(cf.getRT());
+        smf.rt_start.setNull(true);
+        smf.rt_end.setNull(true);
+
+        // For consensus features, use the consensus intensity for the study variable
+        smf.small_molecule_feature_abundance_assay[1] = MzTabDouble(cf.getIntensity());
+
+        addMetaInfoToOptionalColumns(feature_user_value_keys, smf.opt_, String("global"), cf);
+
+        smfs.emplace_back(smf);
+        ++feature_section_entry_counter;
+      }
+      else
+      {
+        // consensus feature with identifications
+        std::map<String, std::vector<int>> evidence_id_ref_per_adduct;
+
+        std::set<IdentificationDataInternal::ObservationMatchRef, CompareMzTabMMatchRef> sorted_match_refs(match_refs.begin(), match_refs.end());
+
+        for (const auto& ref : sorted_match_refs) // iterate over all identifications of a consensus feature
+        {
+          // evidence section
+          MzTabMSmallMoleculeEvidenceSectionRow sme;
+
+          IdentificationData::IdentifiedMolecule molecule = ref->identified_molecule_var;
+          IdentificationData::IdentifiedCompoundRef compound_ref = molecule.getIdentifiedCompoundRef();
+
+          sme.sme_identifier = MzTabString(evidence_section_entry_counter);
+          sme.evidence_input_id = MzTabString("mass=" + String(cf.getMZ()) + ",rt=" + String(cf.getRT()));
+          sme.database_identifier = MzTabString(compound_ref->identifier);
+          sme.chemical_formula = MzTabString(compound_ref->formula.toString());
+          sme.smiles = MzTabString(compound_ref->smile);
+          sme.inchi = MzTabString(compound_ref->inchi);
+          sme.chemical_name = MzTabString(compound_ref->name);
+          sme.uri.setNull(true);
+          sme.derivatized_form.setNull(true);
+          String adduct = getAdductString_(ref);
+          sme.adduct = MzTabString(adduct);
+          sme.exp_mass_to_charge = MzTabDouble(cf.getMZ());
+          sme.charge = MzTabInteger(cf.getCharge());
+          sme.calc_mass_to_charge = MzTabDouble(compound_ref->formula.getMonoWeight());
+
+          MzTabSpectraRef sp_ref;
+          sp_ref.setMSFile(1);
+          sp_ref.setSpecRef(ref->observation_ref->data_id);
+          sme.spectra_ref = sp_ref;
+          sme.identification_method = identification_method;
+          sme.ms_level = ms_level;
+          int score_counter = 0;
+          for (const auto& id_score_ref : id_score_refs)
+          {
+            ++score_counter;
+            sme.id_confidence_measure[score_counter] = MzTabDouble(ref->getScore(id_score_ref).first);
+          }
+          sme.rank = MzTabInteger(1);
+
+          addMetaInfoToOptionalColumns(observationmatch_user_value_keys, sme.opt_, String("global"), *ref);
+          addMetaInfoToOptionalColumns(compound_user_value_keys, sme.opt_, String("global"), *compound_ref);
+
+          evidence_id_ref_per_adduct[adduct].emplace_back(evidence_section_entry_counter);
+          evidence_section_entry_counter += 1;
+          smes.emplace_back(sme);
+        }
+
+        // feature section - one feature entry per adduct
+        for (const auto& epa : evidence_id_ref_per_adduct)
+        {
+          MzTabMSmallMoleculeFeatureSectionRow smf;
+          smf.smf_identifier = MzTabString(feature_section_entry_counter);
+          std::vector<MzTabString> corresponding_evidences;
+          for (const auto& evidence : epa.second)
+          {
+            corresponding_evidences.emplace_back(evidence);
+          }
+          smf.sme_id_refs.set(corresponding_evidences);
+          smf.adduct = MzTabString(epa.first);
+          if (epa.second.size() <= 1)
+          {
+            smf.sme_id_ref_ambiguity_code.setNull(true);
+          }
+          else
+          {
+            smf.sme_id_ref_ambiguity_code = MzTabInteger(1);
+          }
+          smf.isotopomer.setNull(true);
+          smf.exp_mass_to_charge = MzTabDouble(cf.getMZ());
+          smf.charge = MzTabInteger(cf.getCharge());
+          smf.retention_time = MzTabDouble(cf.getRT());
+          smf.rt_start.setNull(true);
+          smf.rt_end.setNull(true);
+
+          // For consensus features, use the consensus intensity for the study variable
+          smf.small_molecule_feature_abundance_assay[1] = MzTabDouble(cf.getIntensity());
+
+          addMetaInfoToOptionalColumns(feature_user_value_keys, smf.opt_, String("global"), cf);
+
+          smfs.emplace_back(smf);
+          ++feature_section_entry_counter;
+        }
+      }
+    }
+
+    // Summary section - based on available features and evidences
+    for (const auto& smf : smfs)
+    {
+      MzTabMSmallMoleculeSectionRow sml;
+
+      sml.sml_identifier = smf.smf_identifier;
+      sml.smf_id_refs.set({smf.smf_identifier});
+      std::vector<MzTabString> database_identifier;
+      std::vector<MzTabString> chemical_formula;
+      std::vector<MzTabString> smiles;
+      std::vector<MzTabString> inchi;
+      std::vector<MzTabString> chemical_name;
+      std::vector<MzTabString> uri;
+      std::vector<MzTabDouble> theoretical_neutral_mass;
+      std::vector<MzTabString> adducts;
+      for (const MzTabString & evidence : smf.sme_id_refs.get())
+      {
+        const auto& current_row_it = std::find_if(smes.begin(), smes.end(), [&evidence] (const MzTabMSmallMoleculeEvidenceSectionRow& sme) { return sme.sme_identifier.get() == evidence.get(); });
+        database_identifier.emplace_back(current_row_it->database_identifier);
+        chemical_formula.emplace_back(current_row_it->chemical_formula);
+        smiles.emplace_back(current_row_it->smiles);
+        inchi.emplace_back(current_row_it->inchi);
+        chemical_name.emplace_back(current_row_it->chemical_name);
+        uri.emplace_back(current_row_it->uri);
+        MzTabString cm = current_row_it->chemical_formula;
+        if (cm.toCellString() != "" && cm.toCellString() != "null" )
+        {
+          theoretical_neutral_mass.emplace_back(EmpiricalFormula(cm.toCellString()).getMonoWeight());
+        }
+        else
+        {
+          MzTabDouble dnull;
+          dnull.setNull(true);
+          theoretical_neutral_mass.emplace_back(dnull);
+        }
+        adducts.emplace_back(current_row_it->adduct);
+      }
+      sml.database_identifier.set(database_identifier);
+      sml.chemical_formula.set(chemical_formula);
+      sml.smiles.set(smiles);
+      sml.inchi.set(inchi);
+      sml.chemical_name.set(chemical_name);
+      sml.uri.set(uri);
+      sml.theoretical_neutral_mass.set(theoretical_neutral_mass);
+      sml.adducts.set(adducts);
+      sml.reliability = reliability;
+      sml.best_id_confidence_measure.setNull(true);
+      sml.best_id_confidence_value.setNull(true);
+      sml.small_molecule_abundance_assay = smf.small_molecule_feature_abundance_assay;
+      sml.small_molecule_abundance_study_variable[1].setNull(true);
+      sml.small_molecule_abundance_variation_study_variable[1].setNull(true);
+
+      smls.emplace_back(sml);
+    }
+
+    mztabm.setMetaData(m_meta_data);
+    mztabm.setMSmallMoleculeEvidenceSectionRows(smes);
+    mztabm.setMSmallMoleculeFeatureSectionRows(smfs);
+    mztabm.setMSmallMoleculeSectionRows(smls);
+    return mztabm;
   }
 }

@@ -212,6 +212,11 @@ public:
     /// @note Call init() before calling run!
     void run(ConsensusMap&, MzTab&) const;
 
+    /// main method of AccurateMassSearchEngine
+    /// input map is not const, since it will get annotated with results
+    /// @note Call init() before calling run!
+    void run(ConsensusMap&, MzTabM&) const;
+
     /// parse database and adduct files
     void init();
 
@@ -297,6 +302,16 @@ private:
     void exportMzTab_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTab& mztab_out, const std::vector<String>& file_locations) const;
 
     void exportMzTabM_(const FeatureMap& fmap, MzTabM& mztabm_out) const;
+
+    /// Add resulting matches to IdentificationData for ConsensusMap
+    void addMatchesToConsensusID_(
+      IdentificationData& id,
+      const std::vector<AccurateMassSearchResult>& amr,
+      const std::vector<IdentificationData::InputFileRef>& file_refs,
+      const IdentificationData::ScoreTypeRef& mass_error_ppm_score_ref,
+      const IdentificationData::ScoreTypeRef& mass_error_Da_score_ref,
+      const IdentificationData::ProcessingStepRef& step_ref,
+      BaseFeature& cf) const;
 
     /// private member variables
     typedef std::vector<std::vector<String> > MassIDMapping;
