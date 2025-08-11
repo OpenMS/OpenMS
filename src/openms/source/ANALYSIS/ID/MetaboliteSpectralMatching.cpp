@@ -489,7 +489,12 @@ namespace OpenMS
         Size start_idx(lower_it - mz_keys.begin());
         Size end_idx(upper_it - mz_keys.begin());
 
-        OPENMS_LOG_DEBUG << "identifying " << msexp[spec_idx].getMetaValue("GNPS_Spectrum_ID") << endl;
+        {
+          String id_to_log = msexp[spec_idx].metaValueExists("GNPS_Spectrum_ID")
+            ? msexp[spec_idx].getMetaValue("GNPS_Spectrum_ID").toString()
+            : msexp[spec_idx].getNativeID();
+          OPENMS_LOG_DEBUG << "identifying " << id_to_log << endl;
+        }
 
         vector<SpectralMatch> partial_results;
 
