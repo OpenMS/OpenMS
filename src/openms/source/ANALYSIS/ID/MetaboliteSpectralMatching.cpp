@@ -562,7 +562,24 @@ namespace OpenMS
             tmp_match.setMatchingSpectrumIndex(search_idx);
             tmp_match.setObservedSpectrumNativeID(msexp[spec_idx].getNativeID());
 
-            tmp_match.setPrimaryIdentifier(spec_db[search_idx].getMetaValue("GNPS_Spectrum_ID"));
+            String primary_id_value;
+            if (spec_db[search_idx].metaValueExists("GNPS_Spectrum_ID"))
+            {
+              primary_id_value = spec_db[search_idx].getMetaValue("GNPS_Spectrum_ID").toString();
+            }
+            else if (spec_db[search_idx].metaValueExists("Massbank_Accession_ID"))
+            {
+              primary_id_value = spec_db[search_idx].getMetaValue("Massbank_Accession_ID").toString();
+            }
+            else if (spec_db[search_idx].metaValueExists(Constants::UserParam::MSM_METABOLITE_NAME))
+            {
+              primary_id_value = spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_METABOLITE_NAME).toString();
+            }
+            else
+            {
+              primary_id_value = spec_db[search_idx].getNativeID();
+            }
+            tmp_match.setPrimaryIdentifier(primary_id_value);
             tmp_match.setSecondaryIdentifier(spec_db[search_idx].getMetaValue("HMDB_ID"));
             tmp_match.setSumFormula(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_SUM_FORMULA));
             
