@@ -582,16 +582,7 @@ namespace OpenMS
             tmp_match.setPrimaryIdentifier(primary_id_value);
             tmp_match.setSecondaryIdentifier(spec_db[search_idx].getMetaValue("HMDB_ID"));
             tmp_match.setSumFormula(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_SUM_FORMULA));
-            
-            // Use the same fallback logic that's already working for logging
-            String common_name_value = "";
-            if (spec_db[search_idx].metaValueExists("Metabolite_Name")) {
-              common_name_value = spec_db[search_idx].getMetaValue("Metabolite_Name").toString();
-            } else if (spec_db[search_idx].metaValueExists("GNPS_Spectrum_ID")) {
-              common_name_value = spec_db[search_idx].getMetaValue("GNPS_Spectrum_ID").toString();
-            }
-            tmp_match.setCommonName(common_name_value);
-            
+            tmp_match.setCommonName(metabolite_name);mp_match.setCommonName(common_name_value);            
             tmp_match.setInchiString(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_INCHI_STRING));
             tmp_match.setSMILESString(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_SMILES_STRING));
             tmp_match.setPrecursorAdduct(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT));
