@@ -26,6 +26,9 @@ Dependencies:
     - PyOpenMS now depends on Autowrap 0.23.0
     - PyOpenMS now supports Cython 3.1
 
+MassTraceExtractor:
+    - Support for Bruker Ion Mobility (experimental). Note: requires IM peak picked data.
+
 NucleicAcidSearchEngine:
     - add support for global fixed modifications as a search parameter
 
@@ -33,12 +36,13 @@ Misc:
  - show load/store progress for files in all TOPP tools (#8041)
  
 Fixes:
+ - unify isotopic distributions (coarse vs. fine) for EmpiricalFormulas with charge (#8099)
  - fix TOPPAS crash when using TOPP tools with multiple output formats (#8120)
 
 Library:
 - Removed `assignRanks` and `sortByRanks` in PeptideIdentifications and sort and filter by score instead. Also removed `updateHitRanks` in IDFilter (#7991)
 - Remove ranke member in PeptideHit and store ranks as meta value (for backwards compatibility). (#7997)
-- std::vector<PeptideIdentification> now is encapsulated in a class PeptideIdentificationList
+- std::vector<PeptideIdentification> now is encapsulated in a class PeptideIdentificationList.
 - Added `EnzymaticDigestion.semiSpecificDigestion_()`
 - ProteaseDigestion: add support for semi-specific digestion (#8130)
 

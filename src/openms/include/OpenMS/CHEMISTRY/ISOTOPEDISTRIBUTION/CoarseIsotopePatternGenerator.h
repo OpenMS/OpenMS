@@ -109,8 +109,13 @@ namespace OpenMS
       * Iterates through all elements, convolves them according to the number
       * of atoms from that element and sums up the result.
       *
+      * If the EmpiricalFormula has a charge 'q' > 0, then 'q' hydrogen atoms are added
+      * to the formula to match the result of EmpiricalFormula::getMonoWeight().
+      * Set `ef.charge = 0` to avoid this behavior.
+      *
+      *  @throw Exception::Precondition if the formula has a negative charge
       **/
-    IsotopeDistribution run(const EmpiricalFormula&) const override;
+    IsotopeDistribution run(const EmpiricalFormula& ef) const override;
 
     /**
        @brief Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported
@@ -355,7 +360,7 @@ namespace OpenMS
     /// convolves the distribution @p input with itself and stores the result in @p result
     IsotopeDistribution::ContainerType convolveSquare_(const IsotopeDistribution::ContainerType& input) const;
 
-    /// converts the masses of distribution @p input from atomic numbers to accurate masses
+    /// converts the masses of distribution @p input from atomic numbers to accurate masses (based on mass delta of C12 vs C13)
     IsotopeDistribution::ContainerType correctMass_(const IsotopeDistribution::ContainerType& input, const double mono_weight) const;
 
     /** @brief calculates the fragment distribution for a fragment molecule and stores it in @p result.

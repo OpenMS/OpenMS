@@ -185,12 +185,7 @@ namespace OpenMS
     // WARNING: This was spectrumWIso and therefore with 0 preIso weights in earlier versions! Was this a bug?
     // Otherwise, we don't need the second spectrum at all.
     DIAHelpers::extractSecond(spectrumWIsoNegPreIso, intTheorNeg);
-    std::cout << "intTheorNeg: ";
-    for (const auto& val : intTheorNeg)
-    {
-      std::cout << val << " ";
-    }
-    std::cout << std::endl;
+
     // Sqrt does not work if we actually have negative values
     //std::transform(intTheorNeg.begin(), intTheorNeg.end(), intTheorNeg.begin(), OpenSwath::mySqrt());
     double intTheorNegEuclidNorm = OpenSwath::norm(intTheorNeg.cbegin(), intTheorNeg.cend()); // use Euclidean norm since we have negative values

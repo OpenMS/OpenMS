@@ -366,7 +366,6 @@ namespace OpenMS
 
   void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTrace>& single_mtraces)
   {
-
     // *********************************************************************
     // Step 1: Smooth data
     // *********************************************************************
@@ -483,6 +482,11 @@ namespace OpenMS
         // Create new mass trace, copy smoothed intensities
         MassTrace new_mt(tmp_mt);
         new_mt.setSmoothedIntensities(smoothed_tmp);
+        // copy ion mobility centroid and peak fwhm to split traces
+//        new_mt.centroid_im_ = mt.centroid_im_;
+        new_mt.setCentroidIM(mt.getCentroidIM());
+        new_mt.fwhm_mz_avg = mt.fwhm_mz_avg;
+        new_mt.fwhm_im_avg = mt.fwhm_im_avg;
 
         // check filter criteria
         bool pw_ok = true;
