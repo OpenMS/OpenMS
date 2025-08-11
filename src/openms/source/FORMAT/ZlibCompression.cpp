@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Authors: Hannes Roest, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ZlibCompression.h>
@@ -77,7 +77,6 @@ namespace OpenMS
     {
       throw Exception::InternalToolError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "zlib::inflate failed with code " + std::to_string(ret) + " .");
     }
-
   }
 
   void uncompressStringIterative___(const void* compressed_data, size_t nr_bytes, std::string& uncompressed)
@@ -113,13 +112,11 @@ namespace OpenMS
 
       size_t bytes_decompressed = CHUNK_SIZE - strm.avail_out;
       uncompressed.insert(uncompressed.end(), buffer.begin(), buffer.begin() + bytes_decompressed);
-
     } while (ret != Z_STREAM_END);
 
     inflateEnd(&strm);
   }
 
-  
   void ZlibCompression::uncompressData(const void* compressed_data, size_t nr_bytes, std::string& raw_data, size_t output_size)
   {
     if (output_size == 0)
