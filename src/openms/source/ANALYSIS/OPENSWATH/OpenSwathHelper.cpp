@@ -172,29 +172,22 @@ namespace OpenMS
     Size bins,
     Size peptides_per_bin,
     unsigned int seed,
-    bool filter_decoys,
     bool sort_by_intensity,
     double top_fraction)
   {
-    // 0) initial candidate selection: exclude decoys if requested
+    // 0) initial candidate selection: exclude decoys 
     std::vector<OpenSwath::LightCompound> candidates;
-    if (filter_decoys)
+
+    std::unordered_set<String> good_ids;
+    for (auto & tr : exp.getTransitions())
     {
-      std::unordered_set<String> good_ids;
-      for (auto & tr : exp.getTransitions())
-      {
-        if (!tr.decoy)
-          good_ids.insert(tr.getPeptideRef());
-      }
-      for (auto & cmp : exp.getCompounds())
-      {
-        if (good_ids.count(cmp.id))
-          candidates.push_back(cmp);
-      }
+      if (!tr.decoy)
+        good_ids.insert(tr.getPeptideRef());
     }
-    else
+    for (auto & cmp : exp.getCompounds())
     {
-      candidates = exp.getCompounds();
+      if (good_ids.count(cmp.id))
+        candidates.push_back(cmp);
     }
 
     // 1) optionally sort by library intensities and trim to top fraction
