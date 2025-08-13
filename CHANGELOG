@@ -54,6 +54,8 @@ OpenMS Library:
   New Features:
     - added `EnzymaticDigestion.semiSpecificDigestion_()`
     - ProteaseDigestion: add support for semi-specific digestion (#8130)
+    - OpenSwath:
+      - Added automated iRT calibration using input transition list (#8146)
 
 
 
