@@ -10,6 +10,7 @@
 #include <vector>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <algorithm>
 #include <cmath>
@@ -253,6 +254,72 @@ namespace OpenMS
 
       Size size = std::distance(begin, end);
       return median(begin + (size/2)+1, end, true); //+1 to exclude median values
+    }
+
+    /**
+      @brief Calculates the q-quantile (0 <= q <= 1) of a range of values.
+
+      If @p sorted is false, the range [begin, end) is sorted in-place. Uses the common "Type 7" definition (linear interpolation):
+
+        pos = q * (n - 1)
+        idx = floor(pos), frac = pos - idx
+        quantile = (1 - frac) * x[idx] + frac * x[idx + 1]
+
+      Exact endpoints:
+        - q == 0 returns the first (minimum) element
+        - q == 1 returns the last (maximum) element
+
+      @param begin  Start of range
+      @param end    End of range (past-the-end iterator)
+      @param q      Quantile in [0, 1]
+      @param sorted Whether the input is already sorted; if false, it will be sorted in-place.
+
+      @exception Exception::InvalidRange is thrown if the range is NULL or empty.
+      @exception Exception::InvalidValue is thrown if q is outside [0, 1].
+
+      @ingroup MathFunctionsStatistics
+    */
+    template <typename IteratorType>
+    static double quantile(IteratorType begin, IteratorType end, double q, bool sorted = false)
+    {
+      checkIteratorsNotNULL(begin, end);
+      const Size n = std::distance(begin, end);
+      if (n == 0)
+      {
+        throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
+
+      if (q < 0.0 || q > 1.0)
+      {
+        throw Exception::InvalidValue(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "quantile(): q must be in [0,1]", String(q)
+        );
+      }
+
+      if (!sorted)
+      {
+        std::sort(begin, end);
+      }
+
+      if (q == 0.0) return static_cast<double>(*begin);
+      IteratorType last = end; --last;
+      if (q == 1.0) return static_cast<double>(*last);
+
+      const double pos  = q * static_cast<double>(n - 1);
+      const Size   idx  = static_cast<Size>(std::floor(pos));
+      const double frac = pos - static_cast<double>(idx);
+
+      IteratorType it = begin;
+      std::advance(it, static_cast<typename std::iterator_traits<IteratorType>::difference_type>(idx));
+      const double x0 = static_cast<double>(*it);
+
+      if (frac == 0.0 || (idx + 1) >= n) return x0;
+
+      IteratorType it1 = it; ++it1;
+      const double x1 = static_cast<double>(*it1);
+
+      return (1.0 - frac) * x0 + frac * x1;
     }
 
     /**
