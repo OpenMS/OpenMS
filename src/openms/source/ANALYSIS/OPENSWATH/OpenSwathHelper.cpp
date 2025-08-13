@@ -197,7 +197,7 @@ namespace OpenMS
       std::unordered_map<String, double> intensity_sum;
       for (auto & tr : exp.getTransitions())
       {
-        if (!filter_decoys || !tr.decoy)
+        if (!tr.decoy)
         {
           intensity_sum[tr.getPeptideRef()] += tr.library_intensity;
         }
@@ -256,7 +256,7 @@ namespace OpenMS
       pep_ids.insert(cmp.id);
     for (auto & tr : exp.getTransitions())
     {
-      if (pep_ids.count(tr.getPeptideRef()) && (!filter_decoys || !tr.decoy))
+      if (pep_ids.count(tr.getPeptideRef()) && (!tr.decoy))
         out_exp.transitions.push_back(tr);
     }
 
