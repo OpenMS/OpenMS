@@ -54,7 +54,7 @@ OpenMS Library:
   New Features:
     - added `EnzymaticDigestion.semiSpecificDigestion_()`
     - ProteaseDigestion: add support for semi-specific digestion (#8130)
-
+    - TransformationModelLowess: Add option to automate span selection via cross-validation (##8166)
 
 
 ------------------------------------------------------------------------------------------
