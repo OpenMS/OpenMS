@@ -12,6 +12,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <iomanip>
 #include <iostream>
@@ -280,190 +281,40 @@ namespace OpenMS
                                                    bool invert,
                                                    bool full_window) const
   {
-    std::cout << std::fixed << std::setprecision(6);
-    std::cout << "[estimateWindow] enter: quantile=" << quantile
-              << " invert=" << (invert ? "true" : "false")
-              << " full_window=" << (full_window ? "true" : "false") << "\n";
-
     // Work on a copy so we don't mutate the original
     TransformationDescription tmp(*this);
-    std::cout << "[estimateWindow] original: model=" << this->getModelType()
-              << " n_points=" << this->getDataPoints().size() << "\n";
-
     if (invert)
     {
-      std::cout << "[estimateWindow] action: invert() (swap datapoints + refit inverse model)\n";
+      // Map iRT→RT and refit the inverse model so residuals are measured in RT space
       tmp.invert();
-      std::cout << "[estimateWindow] after invert: model=" << tmp.getModelType()
-                << " n_points=" << tmp.getDataPoints().size() << "\n";
     }
 
-    // Helper lambdas
-    auto quantile_idx = [](size_t n, double q) -> size_t {
-      if (n == 0) return 0;
-      size_t i = static_cast<size_t>(std::floor(q * static_cast<double>(n)));
-      if (i >= n) i = n - 1;
-      return i;
-    };
-
-    auto summarize = [](const std::vector<double>& v) -> std::string {
-      if (v.empty()) return "empty";
-      std::vector<double> s = v;
-      std::sort(s.begin(), s.end());
-      auto getq = [&](double q) {
-        size_t i = std::min(s.size() - 1, static_cast<size_t>(std::floor(q * s.size())));
-        return s[i];
-      };
-      std::ostringstream oss;
-      oss << "n=" << s.size()
-          << " p50=" << getq(0.50)
-          << " p90=" << getq(0.90)
-          << " p95=" << getq(0.95)
-          << " p99=" << getq(0.99)
-          << " max=" << s.back();
-      return oss.str();
-    };
-
-    auto all_almost_zero = [](const std::vector<double>& v) -> bool {
-      double mx = 0.0;
-      for (double d : v) if (std::isfinite(d) && d > mx) mx = d;
-      return mx <= 1e-6; // ~1 microsecond tolerance
-    };
-
-    // 1) In-sample residuals: | y - f(x) | in current tmp orientation
+    // Compute absolute residuals | y - f(x) | in the (possibly inverted) space
     std::vector<double> diffs;
     tmp.getDeviations(diffs, /*do_apply=*/true, /*do_sort=*/false);
-    const size_t n0 = diffs.size();
 
-    // Drop NaN/Inf if any
+    // Drop non-finite values defensively
     diffs.erase(std::remove_if(diffs.begin(), diffs.end(),
                                [](double v){ return !std::isfinite(v); }),
                 diffs.end());
-    const size_t n_dropped = n0 - diffs.size();
 
-    std::cout << "[estimateWindow] in-sample residuals: "
-              << "n=" << diffs.size()
-              << " dropped_nonfinite=" << n_dropped << "\n";
-    std::cout << "[estimateWindow] in-sample summary (sec): " << summarize(diffs) << "\n";
-
-    double full = 0.0;
-    bool used_in_sample = false;
-    bool used_loo = false;
-    bool used_fallback = false;
-
-    if (!diffs.empty() && !all_almost_zero(diffs))
+    if (diffs.empty())
     {
-      std::sort(diffs.begin(), diffs.end());
-      const size_t n = diffs.size();
-      const size_t idx = quantile_idx(n, quantile);
-      const double half = diffs[idx];
-      full = full_window ? (2.0 * half) : half;
-
-      used_in_sample = true;
-      std::cout << "[estimateWindow] using IN-SAMPLE residuals: "
-                << "idx=" << idx << " half=" << half << " -> full=" << full << " sec\n";
-    }
-    else
-    {
-      std::cout << "[estimateWindow] in-sample residuals ~zero or empty; trying LOO residuals...\n";
-
-      // 2) LOO residuals (prediction error) in RT space
-      const auto& pts = tmp.getDataPoints(); // (iRT, RT) if invert==true
-      const String mt = tmp.getModelType();
-      Param params = tmp.getModelParameters();
-
-      std::vector<double> diffs_loo;
-      diffs_loo.reserve(pts.size());
-
-      for (size_t i = 0; i < pts.size(); ++i)
-      {
-        // Build fold without point i
-        DataPoints fold;
-        fold.reserve(pts.size() > 0 ? pts.size() - 1 : 0);
-        for (size_t j = 0; j < pts.size(); ++j) if (j != i) fold.push_back(pts[j]);
-
-        if (fold.size() < 2)
-        {
-          diffs_loo.push_back(0.0);
-          continue;
-        }
-
-        TransformationDescription cv(fold);
-        cv.fitModel(mt, params);
-        const double y_pred = cv.apply(pts[i].first);
-        const double err = std::abs(y_pred - pts[i].second);
-        diffs_loo.push_back(std::isfinite(err) ? err : 0.0);
-      }
-
-      std::cout << "[estimateWindow] LOO summary (sec): " << summarize(diffs_loo) << "\n";
-
-      if (!diffs_loo.empty() && !all_almost_zero(diffs_loo))
-      {
-        std::sort(diffs_loo.begin(), diffs_loo.end());
-        const size_t n = diffs_loo.size();
-        const double q_eff = (n >= 30 ? quantile
-                                      : std::min(0.95, std::max(0.85, quantile)));
-        const size_t idx = quantile_idx(n, q_eff);
-        const double half = diffs_loo[idx];
-        full = full_window ? (2.0 * half) : half;
-
-        used_loo = true;
-        std::cout << "[estimateWindow] using LOO residuals: "
-                  << "q_eff=" << q_eff << " idx=" << idx
-                  << " half=" << half << " -> full=" << full << " sec\n";
-      }
-      else
-      {
-        // 3) Final fallback: small fraction of RT span (seconds) of anchors
-        double y_min =  std::numeric_limits<double>::infinity();
-        double y_max = -std::numeric_limits<double>::infinity();
-        for (const auto& p : pts)
-        {
-          if (p.second < y_min) y_min = p.second;
-          if (p.second > y_max) y_max = p.second;
-        }
-        const double rt_span = (std::isfinite(y_min) && std::isfinite(y_max)) ? (y_max - y_min) : 0.0;
-
-        const double alpha = 0.015;   // 1.5% of span
-        const double min_full_sec = 30.0;
-        const double max_full_sec = 600.0;
-
-        double guess = (rt_span > 0.0) ? (alpha * rt_span) : 0.0;
-        double unclamped = guess;
-
-        if (!std::isfinite(guess) || guess <= 0.0) guess = min_full_sec;
-        if (guess < min_full_sec)    guess = min_full_sec;
-        if (guess > max_full_sec)    guess = max_full_sec;
-
-        full = guess;
-        used_fallback = true;
-
-        std::cout << "[estimateWindow] using FALLBACK alpha*span: "
-                  << "rt_span=" << rt_span << " alpha=" << alpha
-                  << " raw=" << unclamped << " clamped=" << full << " sec\n";
-      }
+      OPENMS_LOG_DEBUG << "[estimateWindow] no residuals; returning 0" << std::endl;
+      return 0.0;
     }
 
-    // Final sanity for invert==true (RT space): small floor & large cap
-    if (invert)
-    {
-      const double floor_sec = 30.0;
-      const double cap_sec   = 1800.0; // 30 min max
-      const double before = full;
-      if (!std::isfinite(full) || full <= 0.0) full = floor_sec;
-      if (full < floor_sec) full = floor_sec;
-      if (full > cap_sec)   full = cap_sec;
+    // Take the requested quantile of residuals (sorts internally when sorted=false)
+    const double half = OpenMS::Math::quantile(diffs.begin(), diffs.end(),
+                                               quantile, /*sorted=*/false);
+    const double full = full_window ? (2.0 * half) : half;
 
-      if (before != full)
-      {
-        std::cout << "[estimateWindow] clamp (RT-space): " << before
-                  << " -> " << full << " sec\n";
-      }
-    }
-
-    std::cout << "[estimateWindow] exit: "
-              << (used_in_sample ? "IN-SAMPLE" : used_loo ? "LOO" : "FALLBACK")
-              << " full_window=" << full << " sec\n";
+    OPENMS_LOG_DEBUG << "[estimateWindow] n=" << diffs.size()
+                     << " q=" << quantile
+                     << " half=" << half
+                     << " full=" << full
+                     << " invert=" << (invert ? "true" : "false")
+                     << std::endl;
 
     return full;
   }
