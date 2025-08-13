@@ -697,8 +697,7 @@ protected:
   }
 
   /// Align and link.
-  /// @return maximum alignment difference observed (to guide linking)
-  double alignAndLink_(
+  void alignAndLink_(
     vector<FeatureMap> & feature_maps, 
     ConsensusMap & consensus_fraction,
     vector<TransformationDescription>& transformations,
@@ -721,8 +720,6 @@ protected:
     {
       MapConversion::convert(0, feature_maps.back(), consensus_fraction);                           
     }
-
-    return max_alignment_diff;
   }
 
   /// determine in which runs of the current fraction a peptide was quantified
@@ -1010,11 +1007,10 @@ protected:
     const String& in_db,
     double median_fwhm,
     ConsensusMap & consensus_fraction,
-    vector<TransformationDescription> & transformations,
-    double& max_alignment_diff,
     set<String>& fixed_modifications,
     set<String>& variable_modifications)
   {
+    vector<TransformationDescription> transformations;
     vector<FeatureMap> feature_maps;
     const Size fraction = ms_files.first;
 
@@ -1025,10 +1021,6 @@ protected:
     // for sanity checks we collect the primary MS run basenames as well as the ones stored in the ID files (below)
     StringList id_MS_run_ref;
     StringList in_MS_run = ms_files.second;
-
-    // in theory a single file is "per-definition" aligned as well but has no transformations
-    /// if an alignment algorithm was already run (false for singleton fractions, although they are inherently aligned)
-    const bool is_already_aligned = !transformations.empty();
 
     // for each MS file of current fraction (e.g., all MS files that measured the n-th fraction) 
     Size fraction_group{1};
@@ -1336,24 +1328,8 @@ protected:
         break;
     }    
 
-    //-------------------------------------------------------------
-    // Align all features of this fraction (if not already aligned)
-    //-------------------------------------------------------------
-    if (!is_already_aligned)
-    {
-      max_alignment_diff = alignAndLink_(
-        feature_maps, 
-        consensus_fraction, 
-        transformations,
-        median_fwhm);
-    }
-    else // Data already aligned. Link with previously determined alignment difference
-    {
-      link_(feature_maps,
-        median_fwhm,
-        max_alignment_diff,
-        consensus_fraction);
-    }
+    // Align all features of this fraction
+    alignAndLink_(feature_maps, consensus_fraction, transformations, median_fwhm);
 
     // add dataprocessing
     if (feature_maps.size() > 1)
@@ -1414,9 +1390,6 @@ protected:
         "");
     }
 
-
-
-    // max_alignment_diff returned by reference
     return EXECUTION_OK;
   }
 
@@ -1759,8 +1732,6 @@ protected:
       for (auto const & ms_files : frac2ms) // for each fraction->ms file(s)
       {      
         ConsensusMap consensus_fraction; // quantitative result for this fraction identifier
-        vector<TransformationDescription> transformations; // filled by RT alignment
-        double max_alignment_diff(0.0);
 
         ExitCodes e = quantifyFraction_(
           ms_files, 
@@ -1768,8 +1739,6 @@ protected:
           in_db,
           median_fwhm,
           consensus_fraction,
-          transformations,  // transformations are empty, will be filled by alignment
-          max_alignment_diff,  // max_alignment_diff not yet determined, will be filled by alignment
           fixed_modifications,
           variable_modifications);
 
