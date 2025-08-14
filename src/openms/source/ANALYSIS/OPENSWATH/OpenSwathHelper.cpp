@@ -175,6 +175,11 @@ namespace OpenMS
     bool sort_by_intensity,
     double top_fraction)
   {
+    OPENMS_PRECONDITION(bins >= 1, "bins must be >= 1");
+    OPENMS_PRECONDITION(peptides_per_bin >= 1, "peptides_per_bin must be >= 1");
+    OPENMS_PRECONDITION(!sort_by_intensity || (top_fraction > 0.0 && top_fraction <= 1.0),
+                        "top_fraction must be in (0,1] when sort_by_intensity is true");
+
     // 0) initial candidate selection: exclude decoys 
     std::vector<OpenSwath::LightCompound> candidates;
 
@@ -211,6 +216,13 @@ namespace OpenMS
       // trim to top N%
       Size max_keep = std::max<Size>(1, static_cast<Size>(candidates.size() * top_fraction));
       candidates.resize(std::min(max_keep, candidates.size()));
+    }
+
+    if (candidates.size() < 3)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Insufficient candidates for sampling: " + String(candidates.size()) +
+                                         " found, minimum 3 required for meaningful iRT calibration.");
     }
 
     // 2) estimate RT range using filtered candidates
