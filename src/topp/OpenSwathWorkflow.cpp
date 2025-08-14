@@ -906,9 +906,11 @@ protected:
     calibration_param.setValue("im_extraction_window", cp_irt.im_extraction_window);
     calibration_param.setValue("mz_correction_function", mz_correction_function);
     TransformationDescription trafo_rtnorm; double estimated_rt_extraction_window; double estimated_mz_extraction_window; double estimated_im_extraction_window;
+    double estimated_ms1_mz_extraction_window; double estimated_ms1_im_extraction_window;
     if (nonlinear_irt_tr_file.empty())
     {
-      std::tie(trafo_rtnorm, estimated_mz_extraction_window, estimated_im_extraction_window) = performCalibration(trafo_in, irt_tr_file, swath_maps,
+      std::tie(trafo_rtnorm, estimated_mz_extraction_window, estimated_im_extraction_window,
+               estimated_ms1_mz_extraction_window, estimated_ms1_im_extraction_window) = performCalibration(trafo_in, irt_tr_file, swath_maps,
                                         min_rsq, min_coverage, feature_finder_param,
                                         cp_irt, irt_detection_param, calibration_param,
                                         debug_level, pasef, load_into_memory,
@@ -929,8 +931,32 @@ protected:
         << cp.mz_extraction_window
         << ")"
         << std::endl;
+      std::cout
+        << "Calibrated ion mobility extraction window estimated: "
+        << estimated_im_extraction_window
+        << " (originally set to: "
+        << cp.im_extraction_window
+        << ")"
+        << std::endl;
+      std::cout
+        << "Calibrated MS1 m/z extraction window estimated: "
+        << estimated_ms1_mz_extraction_window
+        << " (originally set to: "
+        << cp_ms1.mz_extraction_window
+        << ")"
+        << std::endl;
+      std::cout
+        << "Calibrated MS1 ion mobility extraction window estimated: "
+        << estimated_ms1_im_extraction_window
+        << " (originally set to: "
+        << cp_ms1.im_extraction_window
+        << ")"
+        << std::endl;
       cp.rt_extraction_window = estimated_rt_extraction_window;
       cp.mz_extraction_window = estimated_mz_extraction_window;
+      cp.im_extraction_window = estimated_im_extraction_window;
+      cp_ms1.mz_extraction_window = estimated_ms1_mz_extraction_window;
+      cp_ms1.im_extraction_window = estimated_ms1_im_extraction_window;
     }
     else
     {
@@ -942,7 +968,8 @@ protected:
       linear_irt.setValue("alignmentMethod", "linear");
       Param no_calibration = calibration_param;
       no_calibration.setValue("mz_correction_function", "none");
-      std::tie(trafo_rtnorm, estimated_mz_extraction_window, estimated_im_extraction_window)  = performCalibration(trafo_in, irt_tr_file, swath_maps,
+      std::tie(trafo_rtnorm, estimated_mz_extraction_window, estimated_im_extraction_window,
+               estimated_ms1_mz_extraction_window, estimated_ms1_im_extraction_window)  = performCalibration(trafo_in, irt_tr_file, swath_maps,
                                         min_rsq, min_coverage, feature_finder_param,
                                         cp_irt, linear_irt, no_calibration,
                                         debug_level, pasef, load_into_memory,
@@ -1006,8 +1033,32 @@ protected:
         << cp.mz_extraction_window
         << ")"
         << std::endl;
+      std::cout
+        << "Calibrated ion mobility extraction window estimated: "
+        << estimated_im_extraction_window
+        << " (originally set to: "
+        << cp.im_extraction_window
+        << ")"
+        << std::endl;
+      std::cout
+        << "Calibrated MS1 m/z extraction window estimated: "
+        << estimated_ms1_mz_extraction_window
+        << " (originally set to: "
+        << cp_ms1.mz_extraction_window
+        << ")"
+        << std::endl;
+      std::cout
+        << "Calibrated MS1 ion mobility extraction window estimated: "
+        << estimated_ms1_im_extraction_window
+        << " (originally set to: "
+        << cp_ms1.im_extraction_window
+        << ")"
+        << std::endl;
       cp.rt_extraction_window = estimated_rt_extraction_window;
       cp.mz_extraction_window = estimated_mz_extraction_window;
+      cp.im_extraction_window = estimated_im_extraction_window;
+      cp_ms1.mz_extraction_window = estimated_ms1_mz_extraction_window;
+      cp_ms1.im_extraction_window = estimated_ms1_im_extraction_window;
     }
 
     ///////////////////////////////////

@@ -364,10 +364,24 @@ protected:
     /// Set the estimated fragment ion mobility
     void setEstimatedImWindow(double estimatedImWindow);
 
+    /// Retrieve the estimated MS1 m/z window (ppm)
+    double getEstimatedMs1MzWindow() const;
+
+    /// Set the estimated MS1 m/z window (ppm)
+    void setEstimatedMs1MzWindow(double estimatedMs1MzWindow);
+
+    /// Retrieve the estimated MS1 ion mobility window
+    double getEstimatedMs1ImWindow() const;
+
+    /// Set the estimated MS1 ion mobility window
+    void setEstimatedMs1ImWindow(double estimatedMs1ImWindow);
+
   protected:
     /// estimated extraction windows
     double estimated_mz_window;
-    double estimated_im_window;
+    double estimated_im_window = -1;
+    double estimated_ms1_mz_window;
+    double estimated_ms1_im_window = -1;
   };
 
   /**

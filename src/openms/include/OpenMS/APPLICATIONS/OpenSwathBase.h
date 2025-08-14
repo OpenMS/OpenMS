@@ -353,7 +353,7 @@ protected:
    *   - double                     : auto‐estimated MS2 m/z extraction window (full width, in ppm),\n
    *   - double                     : auto‐estimated ion mobility window (full width; same units as library).
    */
-  std::tuple<TransformationDescription,double,double> performCalibration(String trafo_in,
+  std::tuple<TransformationDescription,double,double,double,double> performCalibration(String trafo_in,
         String irt_tr_file,
         std::vector< OpenSwath::SwathMap > & swath_maps,
         double min_rsq,
@@ -369,7 +369,7 @@ protected:
         const String& irt_mzml_out)
   {
     TransformationDescription trafo_rtnorm;
-    double auto_mz_w; double auto_im_w;
+    double auto_mz_w; double auto_im_w; double auto_ms1_mz_w; double auto_ms1_im_w;
 
     if (!trafo_in.empty())
     {
@@ -386,6 +386,8 @@ protected:
       //  Not sure how often this is used in practice. @singjc, 2025-08-01
       auto_mz_w  = -1.0;
       auto_im_w  = -1.0;
+      auto_ms1_mz_w = -1.0;
+      auto_ms1_im_w = -1.0;
     }
     else if (!irt_tr_file.empty())
     {
@@ -427,6 +429,10 @@ protected:
       // Retrieve estimated mz and IM extraction windows
       auto_mz_w  = wf.getEstimatedMzWindow();
       auto_im_w  = wf.getEstimatedImWindow();
+      // Retrieve estimate MS1 mz and IM extraction windows
+      auto_ms1_mz_w = wf.getEstimatedMs1MzWindow();
+      auto_ms1_im_w = wf.getEstimatedMs1ImWindow();
+
       if (!irt_trafo_out.empty())
       {
         FileHandler().storeTransformations(irt_trafo_out, trafo_rtnorm, {FileTypes::TRANSFORMATIONXML});
@@ -434,7 +440,7 @@ protected:
     }
 
 
-    return std::make_tuple(trafo_rtnorm, auto_mz_w, auto_im_w);
+    return std::make_tuple(trafo_rtnorm, auto_mz_w, auto_im_w, auto_ms1_mz_w, auto_ms1_im_w);
   }
 
 

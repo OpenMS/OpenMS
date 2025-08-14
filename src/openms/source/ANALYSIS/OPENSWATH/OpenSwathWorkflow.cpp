@@ -260,9 +260,11 @@ namespace OpenMS
     mc.correctMZ(trgrmap_final, targeted_exp, swath_maps, pasef);
     mc.correctIM(trgrmap_final, targeted_exp, swath_maps, pasef, im_trafo);
 
-    // FRAGMENT‐ION (MS2) m/z residuals in ppm
+    // Get estimated extraction windows
     setEstimatedMzWindow(mc.getFragmentMzWindow());
     setEstimatedImWindow(mc.getFragmentImWindow());
+    setEstimatedMs1MzWindow(mc.getPrecursorMzWindow());
+    setEstimatedMs1ImWindow(mc.getPrecursorImWindow());
 
     // 9. store RT transformation, using the selected model
     TransformationDescription trafo_out;
@@ -468,8 +470,28 @@ namespace OpenMS
   {
     estimated_im_window = estimatedImWindow;
   }
+  
+  double OpenSwathCalibrationWorkflow::getEstimatedMs1MzWindow() const
+  {
+    return estimated_ms1_mz_window;
+  }
 
-}
+  void OpenSwathCalibrationWorkflow::setEstimatedMs1MzWindow(double estimatedMs1MzWindow)
+  {
+    estimated_ms1_mz_window = estimatedMs1MzWindow;
+  }
+
+  double OpenSwathCalibrationWorkflow::getEstimatedMs1ImWindow() const
+  {
+    return estimated_ms1_im_window;
+  }
+
+  void OpenSwathCalibrationWorkflow::setEstimatedMs1ImWindow(double estimatedMs1ImWindow)
+  {
+    estimated_ms1_im_window = estimatedMs1ImWindow;
+  }
+
+  }
 
 // OpenSwathWorkflow
 namespace OpenMS
