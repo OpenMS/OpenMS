@@ -112,9 +112,17 @@ namespace OpenMS
           "MassTrace was not smoothed before! Aborting...", String(smoothed_ints_vec.size()));
     }
 
-    // first make sure that everything is cleared
+        // first make sure that everything is cleared
     chrom_maxes.clear();
     chrom_mins.clear();
+
+    if (mt_length < 3)
+    {
+      // determine the index of maximum intensity
+      Size max_idx(tr.findMaxByIntPeak(true));
+      chrom_maxes.push_back(max_idx);
+      return;
+    }
 
     // Remember which indices we have already used
     boost::dynamic_bitset<> used_idx(mt_length);
@@ -297,16 +305,13 @@ namespace OpenMS
 
   void ElutionPeakDetection::detectPeaks(MassTrace& mt, std::vector<MassTrace>& single_mtraces)
   {
-    // make sure that single_mtraces is empty
     single_mtraces.clear();
-
     detectElutionPeaks_(mt, single_mtraces);
     return;
   }
 
   void ElutionPeakDetection::detectPeaks(std::vector<MassTrace>& mt_vec, std::vector<MassTrace>& single_mtraces)
   {
-    // make sure that single_mtraces is empty
     single_mtraces.clear();
 
     this->startProgress(0, mt_vec.size(), "elution peak detection");
@@ -366,6 +371,7 @@ namespace OpenMS
 
   void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTrace>& single_mtraces)
   {
+
     // *********************************************************************
     // Step 1: Smooth data
     // *********************************************************************
@@ -482,11 +488,6 @@ namespace OpenMS
         // Create new mass trace, copy smoothed intensities
         MassTrace new_mt(tmp_mt);
         new_mt.setSmoothedIntensities(smoothed_tmp);
-        // copy ion mobility centroid and peak fwhm to split traces
-//        new_mt.centroid_im_ = mt.centroid_im_;
-        new_mt.setCentroidIM(mt.getCentroidIM());
-        new_mt.fwhm_mz_avg = mt.fwhm_mz_avg;
-        new_mt.fwhm_im_avg = mt.fwhm_im_avg;
 
         // check filter criteria
         bool pw_ok = true;
@@ -546,6 +547,12 @@ namespace OpenMS
     // alternative smoothing using SavitzkyGolay
     // looking at the unit test, this method gives better fits than lowess smoothing
     // reference paper uses lowess smoothing
+
+    if (mt.getSize() == 1)
+    {
+      mt.setSmoothedIntensities(std::vector<double>(1, mt[0].getIntensity()));
+      return;
+    }
 
     MSSpectrum spectrum;
     for (Size i = 0; i != mt.getSize(); ++i)

@@ -85,9 +85,12 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         void setDriftTime(double) except + nogil  # wrap-doc:Sets the drift time (-1 if not set)
         DriftTimeUnit getDriftTimeUnit() except + nogil 
         String getDriftTimeUnitAsString() except + nogil 
-        void setDriftTimeUnit(DriftTimeUnit dt) except + nogil 
+        void setDriftTimeUnit(DriftTimeUnit dt) except + nogil
 
-        bool containsIMData() except + nogil 
+        IMFormat getIMType() except + nogil  # wrap-doc:Returns the ion mobility format
+        void setIMType(IMFormat im_type) except + nogil  # wrap-doc:Sets the ion mobility format
+
+        bool containsIMData() except + nogil
         libcpp_pair[Size, DriftTimeUnit] getIMData() except + nogil  # wrap-ignore wrap-doc:Returns position of ion mobility float data array and drift time unit
 
         unsigned int getMSLevel() except + nogil  # wrap-doc:Returns the MS level

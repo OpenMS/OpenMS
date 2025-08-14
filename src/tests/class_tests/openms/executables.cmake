@@ -78,13 +78,11 @@ set(datastructures_executables_list
 set(metadata_executables_list
   AcquisitionInfo_test
   Acquisition_test
-  AnnotatedMSRun_test
   CVTermList_test
   CVTermListInterface_test
   CVTerm_test
   ChromatogramSettings_test
   ContactPerson_test
-  DataArrays_test
   DataProcessing_test
   DocumentIdentifier_test
   ExperimentalDesign_test
@@ -106,7 +104,6 @@ set(metadata_executables_list
   PeptideEvidence_test
   PeptideHit_test
   PeptideIdentification_test
-  PeptideIdentificationList_test
   Precursor_test
   Product_test
   ProteinHit_test
@@ -254,7 +251,6 @@ set(format_executables_list
   UnimodXMLFile_test
   XMassFile_test
   XMLFile_test
-  XMLHandler_test
   XMLValidator_test
   XQuestResultXMLFile_test
   XTandemInfile_test
@@ -273,9 +269,6 @@ set(format_executables_list
 
 if(WITH_HDF5)
   list(APPEND format_executables_list HDF5_test)
-endif()
-if(WITH_PARQUET)
-  list(APPEND format_executables_list Arrow_test)
 endif()
 
 set(math_executables_list
@@ -520,8 +513,6 @@ set(analysis_executables_list
   PrecursorPurity_test
   QTClusterFinder_test
   ReactionMonitoringTransition_test
-  NuXLModificationsGenerator_test
-  NuXLParameterParsing_test
   SimpleSearchEngineAlgorithm_test
   SimpleSVM_test
   StablePairFinder_test
@@ -573,6 +564,8 @@ set(transformations_executables_list
   ModelDescription_test
   PeakPickerHiRes_test
   PeakPickerIterative_test
+  PeakPickerIM_test
+  PeakPickerIM_test_2
   PeakWidthEstimator_test
   SeedListGenerator_test
   TraceFitter_test

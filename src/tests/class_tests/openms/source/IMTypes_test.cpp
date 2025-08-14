@@ -126,14 +126,13 @@ START_SECTION(static IMFormat determineIMFormat(const MSExperiment& exp))
   }
 
   {
-    // set both ... invalid!
+    // set both ... is valid (typically concatenated + some average value)
     auto IMwithFDA2 = IMwithFDA;
     IMwithFDA2.setDriftTime(123.4);
     MSExperiment exp;
     exp.addSpectrum(IMwithDrift);
     exp.addSpectrum(IMwithFDA);
     exp.addSpectrum(IMwithFDA2);
-    TEST_EXCEPTION(Exception::InvalidValue, IMTypes::determineIMFormat(exp))
   }
 
 END_SECTION
@@ -147,11 +146,9 @@ START_SECTION(static IMFormat determineIMFormat(const MSSpectrum& spec))
    // convert to IM-Frame with float meta-data array
    TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA) == IMFormat::CONCATENATED, true)
 
-   // set both ... invalid!
+   // set both ... is valid (typically concatenated + some average value)
    auto IMwithFDA2 = IMwithFDA;
    IMwithFDA2.setDriftTime(123.4);
-   TEST_EXCEPTION(Exception::InvalidValue, IMTypes::determineIMFormat(IMwithFDA2))
-
 END_SECTION
 
 /////////////////////////////////////////////////////////////

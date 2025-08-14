@@ -1391,6 +1391,14 @@ START_SECTION(PeakType::IntensityType calculateTIC() const)
 END_SECTION
 
 
+START_SECTION(void setIMFormat(IMFormat imf))
+{
+  // test invalid format validation
+  MSSpectrum spec;
+  TEST_EXCEPTION(Exception::InvalidValue, spec.setIMFormat(IMFormat::MIXED)); // this should trigger the validation check because a single spectrum can't be mixed
+}
+END_SECTION
+
 START_SECTION(void clear(bool clear_meta_data))
 {
   MSSpectrum edit;
