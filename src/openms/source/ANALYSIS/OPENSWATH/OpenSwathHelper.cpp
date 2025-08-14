@@ -310,7 +310,4 @@ namespace OpenMS
     }
     return result;
   }
-
-
-
 }
