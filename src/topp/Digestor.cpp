@@ -6,14 +6,18 @@
 // $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
-#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 #include <OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h> // for AA's
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+
+
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int_distribution.hpp>
 
 using namespace OpenMS;
 using namespace std;
@@ -175,6 +179,11 @@ protected:
     Size fasta_out_count(0);
 
     FASTAFile::FASTAEntry fe;
+    
+    boost::random::mt19937 gen; // for cross-platform reproducibility
+    boost::random::uniform_int_distribution<> rng_X(0, AA::unambiguousAACount() - 1); // roll for unambiguous AA (boost uses a closed interval, i.e. [0, 21] for 22 unambiguous AA's)
+    boost::random::uniform_int_distribution<> rng_2(0, 1); // coin flip
+
     while (ff.readNext(fe))
     {
       if (!has_FASTA_output)
@@ -197,7 +206,6 @@ protected:
         dropped_by_length += digestor.digest(AASequence::fromString(fe.sequence), current_digest, min_size, max_size);
       }
 
-      std::srand(123); // for reproducibility
       String id = fe.identifier;
       for (auto [pep_start, pep_end] : current_digest)
       {
@@ -208,16 +216,16 @@ protected:
             switch (fe.sequence[pos])
             {
               case 'B': // asparagine or aspartic acid
-                fe.sequence[pos] = (rand() % 2 ? 'N' : 'D');
+                fe.sequence[pos] = rng_2(gen) ? 'N' : 'D';
                 break; 
               case 'Z': // glutamine or glutamic acid
-                fe.sequence[pos] = (rand() % 2 ? 'Q' : 'E');
+                fe.sequence[pos] = rng_2(gen) ? 'Q' : 'E';
                 break;
               case 'J': // leucine or isoleucine
-                fe.sequence[pos] = (rand() % 2 ? 'L' : 'I');
+                fe.sequence[pos] = rng_2(gen) ? 'L' : 'I';
                 break;
               case 'X': // any amino acid
-                fe.sequence[pos] = AA::fromIndex(rand() % AA::unambiguousAACount()).toChar();
+                fe.sequence[pos] = AA::fromIndex(rng_X(gen)).toChar();
                 break;
               default:
                 break; // do nothing for other residues
