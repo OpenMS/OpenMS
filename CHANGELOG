@@ -32,6 +32,8 @@ TOPP tools:
       - support for Bruker Ion Mobility (experimental). Note: requires IM peak picked data.
     NucleicAcidSearchEngine:
       - add support for global fixed modifications as a search parameter
+    Digestor:
+      - supports replacing ambiguous amino acids (X,B,J,Z) in the FASTA input with random unambiguous amino acids in the output (#8167)
     all:
       - show load/store progress for files in all TOPP tools (#8041)
   Added Tools:
