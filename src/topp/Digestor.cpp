@@ -13,7 +13,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
-#include <map>
+#include <OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h> // for AA's
 
 using namespace OpenMS;
 using namespace std;
@@ -70,11 +70,11 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file");
-    setValidFormats_("in", ListUtils::create<String>("fasta"));
+    setValidFormats_("in", {"fasta"});
     registerOutputFile_("out", "<file>", "", "Output file (peptides)");
-    setValidFormats_("out", ListUtils::create<String>("idXML,fasta"));
+    setValidFormats_("out", {"idXML", "fasta"});
     registerStringOption_("out_type", "<type>", "", "Set this if you cannot control the filename of 'out', e.g., in TOPPAS.", false);
-    setValidStrings_("out_type", ListUtils::create<String>("idXML,fasta"));
+    setValidStrings_("out_type", {"idXML", "fasta"});
 
     registerIntOption_("missed_cleavages", "<number>", 1, "The number of allowed missed cleavages", false);
     setMinInt_("missed_cleavages", 0);
@@ -87,9 +87,14 @@ protected:
 
     registerTOPPSubsection_("FASTA", "Options for FASTA output files");
     registerStringOption_("FASTA:ID", "<option>", "parent", "Identifier to use for each peptide: copy from parent protein (parent); a consecutive number (number); parent ID + consecutive number (both)", false);
-    setValidStrings_("FASTA:ID", ListUtils::create<String>("parent,number,both"));
+    setValidStrings_("FASTA:ID", {"parent", "number", "both"});
     registerStringOption_("FASTA:description", "<option>", "remove", "Keep or remove the (possibly lengthy) FASTA header description. Keeping it can increase resulting FASTA file significantly.", false);
-    setValidStrings_("FASTA:description", ListUtils::create<String>("remove,keep"));
+    setValidStrings_("FASTA:description", {"remove", "keep"});
+
+    registerFlag_("replace_ambiguous",
+                  "Replace ambiguous amino acids with a random unambiguous amino acid. This is useful for generating an output file that "
+                  "mimics a search engine result (since they usually do not contain ambiguous amino acids).",
+                  false);
   }
 
   enum FASTAID {PARENT, NUMBER, BOTH};
@@ -182,22 +187,47 @@ protected:
         temp_peptide_hit.setPeptideEvidences(vector<PeptideEvidence>(1, temp_pe));
       }
 
-      vector<AASequence> current_digest;
+      std::vector<std::pair<size_t, size_t>> current_digest;
       if (enzyme == "none")
       {
-        current_digest.push_back(AASequence::fromString(fe.sequence));
+        current_digest.emplace_back(0, fe.sequence.size());
       }
       else
       {
         dropped_by_length += digestor.digest(AASequence::fromString(fe.sequence), current_digest, min_size, max_size);
       }
 
+      std::srand(123); // for reproducibility
       String id = fe.identifier;
-      for (auto const& s : current_digest)
+      for (auto [pep_start, pep_end] : current_digest)
       {
+        if (getFlag_("replace_ambiguous"))
+        {
+          for (auto pos = pep_start; pos < pep_end; ++pos)
+          { // look at all AA's of the peptide, and replace if ambiguous
+            switch (fe.sequence[pos])
+            {
+              case 'B': // asparagine or aspartic acid
+                fe.sequence[pos] = (rand() % 2 ? 'N' : 'D');
+                break; 
+              case 'Z': // glutamine or glutamic acid
+                fe.sequence[pos] = (rand() % 2 ? 'Q' : 'E');
+                break;
+              case 'J': // leucine or isoleucine
+                fe.sequence[pos] = (rand() % 2 ? 'L' : 'I');
+                break;
+              case 'X': // any amino acid
+                fe.sequence[pos] = AA::fromIndex(rand() % AA::unambiguousAACount()).toChar();
+                break;
+              default:
+                break; // do nothing for other residues
+            }
+          }
+        }
+
         if (!has_FASTA_output)
         {
-          temp_peptide_hit.setSequence(s);
+          temp_peptide_hit.setSequence(AASequence(fe.sequence.substr(pep_start, pep_end-pep_start)));
           peptide_identification.insertHit(temp_peptide_hit);
           identifications.push_back(peptide_identification);
           peptide_identification.setHits(std::vector<PeptideHit>()); // clear
@@ -211,7 +241,7 @@ protected:
             case NUMBER: id = String(fasta_out_count); break;
             case BOTH: id = fe.identifier + "_" + String(fasta_out_count); break;
           }
-          ff.writeNext(FASTAFile::FASTAEntry(id, keep_FASTA_desc ? fe.description : "", s.toString()));
+          ff.writeNext(FASTAFile::FASTAEntry(id, keep_FASTA_desc ? fe.description : "", fe.sequence.substr(pep_start, pep_end - pep_start)));
         }
       }
     }

@@ -170,6 +170,29 @@ namespace OpenMS
       return r;
     }
 
+    /// Create an unambiguous AA from an index (0..21 ~ A..V)
+    static AA fromIndex(unsigned int index)
+    {
+      assert(index < unambiguousAACount());
+      AA r;
+      r.aa_ = index;
+      return r;
+    }
+
+    /// Returns the number of unambiguous amino acids (A-Z, excluding B, J, Z, X), i.e. 22
+    static int unambiguousAACount()
+    {
+      static_assert(AA('V').aa_ - AA('A').aa_ + 1 == 22, "Unambiguous AA count must be 22 (A-Z, excluding B, J, Z, X)");
+      static_assert(AA('A').aa_ == 0, "A must be the first AA in the enumeration");
+      static_assert(AA('V').aa_ == 21, "V must be the last unambiguous AA in the enumeration");
+      return AA('V').aa_ - AA('A').aa_ + 1;
+    }
+
+    const char toChar() const
+    {
+      return AAtoChar[aa_];
+    }
+     
   private:
     uint8_t aa_; ///< internal representation as 1-byte integer
   };
