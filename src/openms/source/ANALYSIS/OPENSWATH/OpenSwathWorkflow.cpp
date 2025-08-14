@@ -282,12 +282,6 @@ namespace OpenMS
       OPENMS_LOG_DEBUG << pairs_corrected[i].first << " " <<  pairs_corrected[i].second << std::endl;
     }
 
-    double estimated_rt_extraction_window = trafo_out.estimateWindow(0.99, true, true);
-    std::cout
-      << "doDataNormalization_: Calibrated RT extraction window estimated: "
-      << estimated_rt_extraction_window
-      << std::endl;
-
     OPENMS_LOG_DEBUG << "End of doDataNormalization_ method" << std::endl;
 
     this->endProgress();

@@ -1018,6 +1018,9 @@ protected:
       }
 
       estimated_mz_extraction_window = wf.getEstimatedMzWindow();
+      estimated_im_extraction_window = wf.getEstimatedImWindow();
+      estimated_ms1_mz_extraction_window = wf.getEstimatedMs1MzWindow();
+      estimated_ms1_im_extraction_window = wf.getEstimatedMs1ImWindow();
 
       std::cout
         << "Calibrated RT extraction window estimated: "

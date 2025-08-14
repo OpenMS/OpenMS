@@ -610,7 +610,6 @@ namespace OpenMS
       std::cout << std::endl;
 
       double precursor_mz_window = estimateWindow(delta_ppm_ms1, 0.99, true);
-      std::cout << "{SwathMassCorrection] precursor_mz_window: " << precursor_mz_window << std::endl;
       setPrecursorMzWindow(precursor_mz_window);
     }
 
