@@ -107,17 +107,29 @@ public:
       bool full_width = true
     );
 
+    /// Retrieve the estimated fragment m/z extraction window (ppm)
+    double getFragmentMzWindow() const;
+
+    /// Set the estimated fragment m/z extraction window (ppm_
+    void setFragmentMzWindow(double fragmentMzWindow);
+
     /// Retrieve the estimated fragment ion mobility extraction window
     double getFragmentImWindow() const;
 
     /// Set the estimated fragment ion mobility extraction window
     void setFragmentImWindow(double fragmentImWindow);
 
-    /// Retrieve the estimated fragment m/z extraction window (ppm)
-    double getFragmentMzWindow() const;
+    /// Retrieve the estimated precursor m/z extraction window (ppm)
+    double getPrecursorMzWindow() const;
 
-    /// Set the estimated fragment m/z extraction window (ppm_
-    void setFragmentMzWindow(double fragmentMzWindow);
+    /// Set the estimated precursor m/z extraction window (ppm)
+    void setPrecursorMzWindow(double precursorMzWindow);
+
+    /// Retrieve the estimated precursor ion mobility extraction window
+    double getPrecursorImWindow() const;
+
+    /// Set the estimated precursor ion mobility extraction window
+    void setPrecursorImWindow(double precursorImWindow);
 
   private:
     double mz_extraction_window_;
@@ -129,9 +141,11 @@ public:
     String debug_im_file_;
     String debug_mz_file_;
 
-    /// fragment‐ion m/z residuals used for estimating the MS2 extraction window
+    /// fragment‐ion m/z residuals used for estimating the MS2 and MS1 extraction window
     double fragment_mz_window_;
-    double fragment_im_window_;
+    double fragment_im_window_ = -1;
+    double precursor_mz_window_;
+    double precursor_im_window_ = -1;
   };
 }
 

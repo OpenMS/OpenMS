@@ -171,6 +171,9 @@ namespace OpenMS
     std::vector<double> exp_im;
     std::vector<double> theo_im;
 
+    // Collect MS1 IM pairs across all transition groups
+    std::vector<double> exp_im_ms1_all, theo_im_ms1_all;
+
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -194,6 +197,9 @@ namespace OpenMS
       {
         used_maps = findSwathMapsPasef(*transition_group, swath_maps);
       }
+
+      // We will collect MS1 (exp, theo) points regardless of whether ms1_im_calibration is used for fitting
+      std::vector<double> exp_im_ms1_local, theo_im_ms1_local;
 
       std::vector<OpenSwath::SwathMap> ms1_maps;
       for (const auto& m : swath_maps) {if (m.ms1) ms1_maps.push_back(m);}
@@ -278,6 +284,45 @@ namespace OpenMS
         OPENMS_LOG_DEBUG << tr.precursor_mz << "\t" << im << "\t" << drift_target << "\t" << bestRT << "\t" << intensity << std::endl;
       }
 
+      // Always collect a few MS1 IM points for window estimation (independent of ms1_im_)
+      if (!transition_group->getTransitions().empty())
+      {
+        const auto& tr0 = transition_group->getTransitions()[0];
+        const auto pepref0 = tr0.getPeptideRef();
+        const double drift_target0 = pep_im_map[pepref0];
+
+        // Define an IM window centered on the theoretical drift time of this peptide
+        RangeMobility im_range_ms1(drift_target0);
+        if (im_extraction_win != -1) im_range_ms1.minSpanIfSingular(im_extraction_win);
+
+        // Fetch the MS1 spectrum at bestRT (protect raw access in critical section)
+        OpenSwath::SpectrumPtr sp_ms1_collect;
+#ifdef _OPENMP
+  #pragma omp critical
+#endif
+        {
+          std::vector<OpenSwath::SpectrumPtr> arr_ms1 =
+            OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1, im_range_ms1);
+          sp_ms1_collect = (!arr_ms1.empty()) ? arr_ms1[0] : OpenSwath::SpectrumPtr();
+        }
+
+        if (sp_ms1_collect && sp_ms1_collect->getDriftTimeArray() != nullptr)
+        {
+          double mz = 0.0, im = 0.0, intensity = 0.0;
+
+          // m/z range isn’t critical for IM; use a narrow window around precursor m/z
+          RangeMZ dummy = DIAHelpers::createMZRangePPM(tr0.precursor_mz, mz_extr_window, ppm);
+
+          DIAHelpers::integrateWindow(sp_ms1_collect, mz, im, intensity, dummy, im_range_ms1);
+
+          if (im > 0.0)
+          {
+            exp_im_ms1_local.push_back(im);
+            theo_im_ms1_local.push_back(drift_target0);
+          }
+        }
+      }
+
       // Do MS1 extraction
       if (!transition_group->getTransitions().empty() && ms1_im_)
       {
@@ -328,6 +373,16 @@ namespace OpenMS
         }
         OPENMS_LOG_DEBUG << tr.precursor_mz << "\t" << im << "\t" << drift_target << "\t" << bestRT << "\t" << intensity << std::endl;
       }
+
+      #ifdef _OPENMP
+        #pragma omp critical
+      #endif
+      {
+        exp_im_ms1_all.insert(exp_im_ms1_all.end(),
+                              exp_im_ms1_local.begin(), exp_im_ms1_local.end());
+        theo_im_ms1_all.insert(theo_im_ms1_all.end(),
+                               theo_im_ms1_local.begin(), theo_im_ms1_local.end());
+      }
     }
 
     if (!debug_im_file_.empty()) {os_im.close();}
@@ -359,6 +414,26 @@ namespace OpenMS
     // Store
     double fragment_im_window = im_trafo.estimateWindow(0.99, true, true);
     setFragmentImWindow(fragment_im_window);
+
+    if (!exp_im_ms1_all.empty())
+    {
+      std::vector<double> resid_ms1;
+      resid_ms1.reserve(exp_im_ms1_all.size());
+      for (size_t i = 0; i < exp_im_ms1_all.size(); ++i)
+      {
+        const double im_mapped = im_trafo.apply(exp_im_ms1_all[i]); // map exp->theo space
+        resid_ms1.push_back(std::abs(im_mapped - theo_im_ms1_all[i]));
+      }
+
+      // 99th percentile half-width → convert to full-width
+      const size_t n = resid_ms1.size();
+      const size_t idx = std::min(n - 1, static_cast<size_t>(std::floor(0.99 * (n - 1))));
+      std::nth_element(resid_ms1.begin(), resid_ms1.begin() + idx, resid_ms1.end());
+      const double halfwidth = resid_ms1[idx];
+      const double precursor_im_window = 2.0 * halfwidth;
+
+      setPrecursorImWindow(precursor_im_window);
+    }
 
     OPENMS_LOG_DEBUG << "SwathMapMassCorrection::correctIM done." << std::endl;
   }
@@ -406,6 +481,13 @@ namespace OpenMS
       pep_im_map[cmp.id] = cmp.drift_time;
     }
 
+    // Collect MS1 residuals (Δppm) for precursor m/z window estimation
+    std::vector<double> delta_ppm_ms1;
+
+    // Gather MS1 maps once
+    std::vector<OpenSwath::SwathMap> ms1_maps;
+    for (const auto& m : swath_maps) if (m.ms1) ms1_maps.push_back(m);
+
     for (auto & trgroup_it : transition_group_map)
     {
       // we need at least one feature to find the best one
@@ -445,6 +527,7 @@ namespace OpenMS
         im_range.minSpanIfSingular(im_extraction);
       }
 
+      // MS2
       // Get the spectrum for this RT and extract raw data points for all the
       // calibrating transitions (fragment m/z values) from the spectrum
       std::vector<OpenSwath::SpectrumPtr> spArr = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, im_range);
@@ -480,11 +563,56 @@ namespace OpenMS
         }
         OPENMS_LOG_DEBUG << mz << "\t" << tr.product_mz << "\t" << diff_ppm << "\t" << log(intensity) / log(2.0) << "\t" << bestRT << std::endl;
       }
+
+      // MS1 precursor processing for Δppm residuals
+      if (!ms1_maps.empty())
+      {
+        std::vector<OpenSwath::SpectrumPtr> spArr_ms1 =
+          OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1, im_range);
+        OpenSwath::SpectrumPtr sp_ms1 = (!spArr_ms1.empty()) ? spArr_ms1[0] : OpenSwath::SpectrumPtr();
+
+        if (sp_ms1)
+        {
+          // Use theoretical precursor m/z for the calibrant peptide
+          const double theo_prec_mz = tr.precursor_mz;
+          RangeMZ mz_range_ms1 = DIAHelpers::createMZRangePPM(theo_prec_mz, mz_extr_window, ppm);
+
+          double mz{}, im{}, intensity{};
+          bool centroided = false;
+          DIAHelpers::integrateWindow(sp_ms1, mz, im, intensity, mz_range_ms1, im_range, centroided);
+
+          if (mz != -1) // got a signal
+          {
+            const double dppm = (mz - theo_prec_mz) / theo_prec_mz * 1e6;
+            delta_ppm_ms1.push_back(std::abs(dppm));
+          }
+        }
+      }
+
     }
 
     // Estimate mz window
     double fragment_mz_window = estimateWindow(delta_ppm, 0.99, true);
     setFragmentMzWindow(fragment_mz_window);
+
+    // Estimate precursor window from MS1 residuals (full width, ppm)
+    if (!delta_ppm_ms1.empty())
+    {
+      std::sort(delta_ppm_ms1.begin(), delta_ppm_ms1.end());
+
+      const size_t N = delta_ppm_ms1.size() < 20 ? delta_ppm_ms1.size() : 20;
+      std::cout << "MS1 residuals (first " << N << " of " << delta_ppm_ms1.size() << "): ";
+      for (size_t i = 0; i < N; ++i) {
+        if (i) std::cout << ", ";
+        std::cout << delta_ppm_ms1[i];
+      }
+      if (delta_ppm_ms1.size() > N) std::cout << ", ...";
+      std::cout << std::endl;
+
+      double precursor_mz_window = estimateWindow(delta_ppm_ms1, 0.99, true);
+      std::cout << "{SwathMassCorrection] precursor_mz_window: " << precursor_mz_window << std::endl;
+      setPrecursorMzWindow(precursor_mz_window);
+    }
 
     std::vector<double> regression_params;
     if (corr_type == "none" || data_all.size() < 3)
@@ -635,6 +763,26 @@ namespace OpenMS
   void SwathMapMassCorrection::setFragmentImWindow(double fragmentImWindow)
   {
     fragment_im_window_ = fragmentImWindow;
+  }
+
+  double SwathMapMassCorrection::getPrecursorMzWindow() const
+  {
+    return precursor_mz_window_;
+  }
+
+  void SwathMapMassCorrection::setPrecursorMzWindow(double precursorMzWindow)
+  {
+    precursor_mz_window_ = precursorMzWindow;
+  }
+
+  double SwathMapMassCorrection::getPrecursorImWindow() const
+  {
+    return precursor_im_window_;
+  }
+
+  void SwathMapMassCorrection::setPrecursorImWindow(double precursorImWindow)
+  {
+    precursor_im_window_ = precursorImWindow;
   }
 
   }
