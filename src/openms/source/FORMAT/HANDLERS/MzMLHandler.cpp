@@ -121,42 +121,40 @@ namespace OpenMS::Internal
       // Whether spectrum should be populated with data
       if (options_.getFillData())
       {
-        size_t errCount = 0;
+        std::atomic<int> errCount = 0;
         String error_message;
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
+        #pragma omp parallel for
         for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
         {
           // parallel exception catching and re-throwing business
           if (!errCount) // no need to parse further if already an error was encountered
           {
-            try
+          try
+          {
+            populateSpectraWithData_(spectrum_data_[i].data,
+                                      spectrum_data_[i].default_array_length,
+                                      options_,
+                                      spectrum_data_[i].spectrum);
+            if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
             {
-              populateSpectraWithData_(spectrum_data_[i].data,
-                                       spectrum_data_[i].default_array_length,
-                                       options_,
-                                       spectrum_data_[i].spectrum);
-              if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
-              {
-                spectrum_data_[i].spectrum.sortByPosition();
-              }
-            }
-
-            catch (OpenMS::Exception::BaseException& e)
-            {
-#pragma omp critical(MZMLErrorHandling)
-              {
-                ++errCount;
-                error_message = e.what();
-              }
-            }
-            catch (...)
-            {
-#pragma omp atomic
-              ++errCount;
+              spectrum_data_[i].spectrum.sortByPosition();
             }
           }
+
+          catch (OpenMS::Exception::BaseException& e)
+          {
+            #pragma omp critical(MZMLErrorHandling)
+            {
+              ++errCount;
+              error_message = e.what();
+            }
+          }
+          catch (...)
+          {
+            ++errCount;
+            error_message = "Unknown exception during spectrum data population";
+          }
+        }
         }
         if (errCount != 0)
         {

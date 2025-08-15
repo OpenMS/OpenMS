@@ -315,7 +315,7 @@ START_SECTION((template < typename ToType > void decodeIntegers(const String &in
   vector<Int64> double_res;
   //with zlib compression
   src="eJwNw4c2QgEAANAniezMIrKyUrKyMooIIdki4/8/wr3n3CAIgjZDthu2w4iddhm12x577bPfAQeNOeSwI4465rhxE044adIpp00546xzzrtg2kWXXHbFVTOumTXnunk33HTLbXcsuOue+x54aNEjjz3x1JJlzzy34oWXVr3y2htr3nrnvXUfbPjok8+++Oqb737Y9NMvW377469//gPgoxL0";
-
+  
   b64.decodeIntegers(src, Base64::BYTEORDER_LITTLEENDIAN,res,true);
   
   for(Size i = 0 ; i < res.size();++i)
