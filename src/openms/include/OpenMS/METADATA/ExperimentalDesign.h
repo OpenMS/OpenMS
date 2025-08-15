@@ -186,7 +186,7 @@ namespace OpenMS
     <tr>
         <th>Sample</th>
         <th>MSstats_Condition</th>
-        <th>MSstats_BioReplicate</th>        
+        <th>MSstats_BioReplicate</th>
     </tr>
     <tr>
         <td>1</td>
