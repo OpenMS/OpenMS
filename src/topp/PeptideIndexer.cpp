@@ -111,7 +111,7 @@ protected:
 
     // we stream the Fasta file
     std::vector<ProteinIdentification> prot_ids;
-    std::vector<PeptideIdentification> pep_ids;
+    PeptideIdentificationList pep_ids;
 
     FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
 

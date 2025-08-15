@@ -50,7 +50,7 @@ namespace OpenMS
 
   MSPFile::~MSPFile() = default;
 
-  void MSPFile::load(const String & filename, vector<PeptideIdentification> & ids, PeakMap & exp)
+  void MSPFile::load(const String & filename, PeptideIdentificationList & ids, PeakMap & exp)
   {
     if (!File::exists(filename))
     {
@@ -326,7 +326,7 @@ namespace OpenMS
   void MSPFile::load(const String & filename, AnnotatedMSRun & annot_exp)
   {
     // use existing load function
-    vector<PeptideIdentification> ids;
+    PeptideIdentificationList ids;
     MSExperiment exp;
     this->load(filename, ids, exp);
 

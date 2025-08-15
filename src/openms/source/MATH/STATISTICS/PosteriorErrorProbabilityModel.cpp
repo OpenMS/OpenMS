@@ -16,6 +16,7 @@
 #include <OpenMS/MATH/STATISTICS/GumbelMaxLikelihoodFitter.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 
@@ -949,7 +950,7 @@ namespace OpenMS::Math
 
     map<String, vector<vector<double>>> PosteriorErrorProbabilityModel::extractAndTransformScores(
       const vector<ProteinIdentification> & protein_ids,
-      const vector<PeptideIdentification> & peptide_ids,
+      const PeptideIdentificationList & peptide_ids,
       const bool split_charge,
       const bool top_hits_only,
       const bool target_decoy_available,
@@ -1086,7 +1087,7 @@ namespace OpenMS::Math
       const bool prob_correct,
       const bool split_charge,
       vector<ProteinIdentification> & protein_ids,
-      vector<PeptideIdentification> & peptide_ids,
+      PeptideIdentificationList & peptide_ids,
       bool & unable_to_fit_data,
       bool & data_might_not_be_well_fit)
     {

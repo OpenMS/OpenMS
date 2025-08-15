@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
@@ -371,7 +372,7 @@ public:
 
        Does not return anything but stores the coverage inside the ProteinHit objects
     */
-    void computeCoverage(const std::vector<PeptideIdentification>& pep_ids);
+    void computeCoverage(const PeptideIdentificationList& pep_ids);
     void computeCoverage(const ConsensusMap& cmap, bool use_unassigned_ids);
     //@}
 
@@ -382,7 +383,7 @@ public:
       Because fixed modifications might not be of interest, a list can be provided to skip those.
     */
     void computeModifications(
-      const std::vector<PeptideIdentification>& pep_ids,
+      const PeptideIdentificationList& pep_ids,
       const StringList& skip_modifications);
     void computeModifications(
       const ConsensusMap& cmap,
@@ -494,9 +495,9 @@ protected:
   private:
     void computeCoverageFromEvidenceMapping_(const std::unordered_map<String, std::set<PeptideEvidence>>& map);
     void fillEvidenceMapping_(std::unordered_map<String, std::set<PeptideEvidence> >& map_acc_2_evidence,
-                              const std::vector<PeptideIdentification>& pep_ids) const;
+                              const PeptideIdentificationList& pep_ids) const;
 
-    void fillModMapping_(const std::vector<PeptideIdentification>& pep_ids, const StringList& skip_modifications,
+    void fillModMapping_(const PeptideIdentificationList& pep_ids, const StringList& skip_modifications,
                          std::unordered_map<String, std::set<std::pair<Size, ResidueModification>>>& prot2mod) const;
   };
 

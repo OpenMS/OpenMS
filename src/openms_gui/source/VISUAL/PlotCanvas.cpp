@@ -508,7 +508,7 @@ namespace OpenMS
     return finishAdding_();
   }
 
-  bool PlotCanvas::addLayer(vector<PeptideIdentification>& peptides, const String& filename, const String& caption)
+  bool PlotCanvas::addLayer(PeptideIdentificationList& peptides, const String& filename, const String& caption)
   {
     LayerDataIdent* new_layer(new LayerDataIdent); // ownership will be transferred to unique_ptr below; no need to delete
     new_layer->setPeptideIds(std::move(peptides));

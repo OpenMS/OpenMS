@@ -13,6 +13,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <unordered_set>
 
@@ -42,9 +43,9 @@ namespace OpenMS
     /// Insert (=move and clear) a run with its peptide IDs into the internal merged data structures,
     /// based on the initial mapping from fileorigins to new run
     void insertRuns(std::vector<ProteinIdentification>&& prots,
-                    std::vector<PeptideIdentification>&& peps);
+                    PeptideIdentificationList&& peps);
     void insertRuns(const std::vector<ProteinIdentification>& prots,
-                    const std::vector<PeptideIdentification>& peps);
+                    const PeptideIdentificationList& peps);
 
     //TODO add methods to just insert prots or just peps. Especially makes sense if you do re-indexing anyway,
     // then you do not need the proteins. But then we need origin information. Either externally in form of a
@@ -55,7 +56,7 @@ namespace OpenMS
 
     /// Return the merged results and reset/clear all internal data
     void returnResultsAndClear(ProteinIdentification& prots,
-                   std::vector<PeptideIdentification>& peps);
+                   PeptideIdentificationList& peps);
 
   private:
 
@@ -95,7 +96,7 @@ namespace OpenMS
     /// then moves the peptide IDs based on the
     /// mapping in
     void updateAndMovePepIDs_(
-        std::vector<PeptideIdentification>&& pepIDs,
+        PeptideIdentificationList&& pepIDs,
         const std::map<String, Size>& runID_to_runIdx,
         const std::vector<StringList>& originFiles,
         bool annotate_origin
@@ -103,7 +104,7 @@ namespace OpenMS
 
 
     void movePepIDsAndRefProteinsToResultFaster_(
-        std::vector<PeptideIdentification>&& pepIDs,
+        PeptideIdentificationList&& pepIDs,
         std::vector<ProteinIdentification>&& old_protRuns
     );
 
@@ -111,7 +112,7 @@ namespace OpenMS
     ProteinIdentification prot_result_;
 
     /// the resulting new Peptide IDs
-    std::vector<PeptideIdentification> pep_result_;
+    PeptideIdentificationList pep_result_;
 
     static size_t accessionHash_(const ProteinHit& p){
       return std::hash<String>()(p.getAccession());

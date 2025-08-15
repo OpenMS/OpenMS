@@ -11,13 +11,6 @@ include(CMakeParseArguments)
 include(GenerateExportHeader)
 include(CheckLibArchitecture)
 
-
-#------------------------------------------------------------------------------
-# Enable AddressSanitizer and include some helper function to add compiler and linker flags
-#------------------------------------------------------------------------------  
-option(ADDRESS_SANITIZER "[Clang/GCC only] Enable AddressSanitizer mode (quite slow)." OFF)
-include(${PROJECT_SOURCE_DIR}/cmake/AddressSanitizer.cmake)
-
 #------------------------------------------------------------------------------
 ## export a single option indicating if libraries should be build as unity
 ## build
@@ -194,8 +187,15 @@ function(openms_add_library)
   if(openms_add_library_LINK_LIBRARIES)
     ## check for consistent lib arch (e.g. all 64bit)?
     check_lib_architecture(openms_add_library_LINK_LIBRARIES)
-    target_link_libraries(${openms_add_library_TARGET_NAME} PUBLIC ${openms_add_library_LINK_LIBRARIES} PRIVATE ${openms_add_library_PRIVATE_LINK_LIBRARIES})
+    target_link_libraries(${openms_add_library_TARGET_NAME} PUBLIC ${openms_add_library_LINK_LIBRARIES})
     list(LENGTH openms_add_library_LINK_LIBRARIES _library_count)
+  endif()
+
+  if (openms_add_library_PRIVATE_LINK_LIBRARIES)
+    ## check for consistent lib arch (e.g. all 64bit)?
+    check_lib_architecture(openms_add_library_PRIVATE_LINK_LIBRARIES)
+    target_link_libraries(${openms_add_library_TARGET_NAME} PRIVATE ${openms_add_library_PRIVATE_LINK_LIBRARIES})
+    list(LENGTH openms_add_library_PRIVATE_LINK_LIBRARIES _private_library_count)
   endif()
 
   #------------------------------------------------------------------------------

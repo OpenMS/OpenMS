@@ -47,7 +47,7 @@ START_SECTION((AASequence reverseProtein(const AASequence& protein)))
   TEST_EQUAL(dg->reverseProtein(AASequence::fromString("PRTEINE")).toString(), "ENIETRP")
 END_SECTION
 
-START_SECTION((AASequence reversePeptide(const AASequence& protein, const String& protease)))
+START_SECTION((AASequence reversePeptides(const AASequence& protein, const String& protease)))
   TEST_EQUAL(dg->reversePeptides(AASequence::fromString("TESTPEPTIDE"), "Trypsin").toString(),"EDITPEPTSET")
   TEST_EQUAL(dg->reversePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin/P").toString(),"TSETRTPEPREDI")
   TEST_EQUAL(dg->reversePeptides(AASequence::fromString("TESTRPEPTRIDE"), "Trypsin").toString(),"TPEPRTSETREDI")

@@ -103,19 +103,19 @@ namespace OpenMS
     charge_ = charge;
   }
 
-  const vector<PeptideIdentification>& BaseFeature::getPeptideIdentifications()
+  const PeptideIdentificationList& BaseFeature::getPeptideIdentifications()
   const
   {
     return peptides_;
   }
 
-  vector<PeptideIdentification>& BaseFeature::getPeptideIdentifications()
+  PeptideIdentificationList& BaseFeature::getPeptideIdentifications()
   {
     return peptides_;
   }
 
   void BaseFeature::setPeptideIdentifications(
-    const vector<PeptideIdentification>& peptides)
+    const PeptideIdentificationList& peptides)
   {
     peptides_ = peptides;
   }

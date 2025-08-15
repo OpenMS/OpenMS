@@ -1513,7 +1513,7 @@ namespace OpenMS
     }
   }
 
-  void Plot2DCanvas::mergeIntoLayer(Size i, vector<PeptideIdentification> & peptides)
+  void Plot2DCanvas::mergeIntoLayer(Size i, PeptideIdentificationList & peptides)
   {
     LayerDataBase& layer = layers_.getLayer(i);
     OPENMS_PRECONDITION(layer.type == LayerDataBase::DT_IDENT, "Plot2DCanvas::mergeIntoLayer(i, peptides) non-identification layer selected");

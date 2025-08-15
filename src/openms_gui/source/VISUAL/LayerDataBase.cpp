@@ -88,7 +88,7 @@ namespace OpenMS
     chrom_annotation_ = OSWDataSharedPtrType(new OSWData(std::move(data)));
   }
 */
-  bool LayerDataBase::annotate(const vector<PeptideIdentification>& identifications,
+  bool LayerDataBase::annotate(const PeptideIdentificationList& identifications,
                            const vector<ProteinIdentification>& protein_identifications)
   {
     IDMapper mapper;
@@ -119,12 +119,28 @@ namespace OpenMS
 
   float LayerDataBase::getMinIntensity() const
   {
-    return getRange().getMinIntensity();
+    if (!getRange().RangeIntensity::isEmpty())
+    {
+      return getRange().getMinIntensity();
+    }
+    else
+    {
+      OPENMS_LOG_WARN << "No data in range to get min intensity from. Returning 0.0." << std::endl;
+      return 0.0f;
+    }
   }
 
   float LayerDataBase::getMaxIntensity() const
   {
-    return getRange().getMaxIntensity();
+    if (!getRange().RangeIntensity::isEmpty())
+    {
+      return getRange().getMaxIntensity();
+    }
+    else
+    {
+      OPENMS_LOG_WARN << "No data in range to get max intensity from. Returning 0.0." << std::endl;
+      return 0.0f;
+    }
   }
 
   LayerAnnotatorBase::LayerAnnotatorBase(const FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock) :
@@ -207,7 +223,7 @@ namespace OpenMS
   bool LayerAnnotatorPeptideID::annotateWorker_(LayerDataBase& layer, const String& filename, LogWindow& /*log*/) const
   {
     FileTypes::Type type = FileHandler::getType(filename);
-    vector<PeptideIdentification> identifications;
+    PeptideIdentificationList identifications;
     vector<ProteinIdentification> protein_identifications;
     FileHandler().loadIdentifications(filename, protein_identifications, identifications, {type});
 

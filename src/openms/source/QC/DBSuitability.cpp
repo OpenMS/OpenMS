@@ -52,7 +52,7 @@ namespace OpenMS
     defaultsToParam_();
   }
   
-  void DBSuitability::compute(vector<PeptideIdentification>&& pep_ids, const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params)
+  void DBSuitability::compute(PeptideIdentificationList&& pep_ids, const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& original_fasta, const std::vector<FASTAFile::FASTAEntry>& novo_fasta, const ProteinIdentification::SearchParameters& search_params)
   {
     for (const auto& id : pep_ids)
     {
@@ -115,7 +115,7 @@ namespace OpenMS
         vector<FASTAFile::FASTAEntry> sampled_db = getSubsampledFasta_(original_fasta, subsampling_rate);
         sampled_db.insert(sampled_db.end(), novo_fasta.begin(), novo_fasta.end());
         appendDecoys_(sampled_db);
-        vector<PeptideIdentification> subsampled_ids = runIdentificationSearch_(exp, sampled_db, search_info.first, search_info.second);
+        PeptideIdentificationList subsampled_ids = runIdentificationSearch_(exp, sampled_db, search_info.first, search_info.second);
         // make sure pep_ids are sorted
         for (auto& pep_id : subsampled_ids)
         {
@@ -182,7 +182,7 @@ namespace OpenMS
     return diff;
   }
 
-  double DBSuitability::getDecoyCutOff_(const vector<PeptideIdentification>& pep_ids, double reranking_cutoff_percentile) const
+  double DBSuitability::getDecoyCutOff_(const PeptideIdentificationList& pep_ids, double reranking_cutoff_percentile) const
   {
     if (reranking_cutoff_percentile < 0 || reranking_cutoff_percentile > 1)
     {
@@ -300,7 +300,7 @@ namespace OpenMS
     param_file.store(filename, parameters);
   }
 
-  vector<PeptideIdentification> DBSuitability::runIdentificationSearch_(const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& fasta_data, const String& adapter_name, Param& parameters) const
+  PeptideIdentificationList DBSuitability::runIdentificationSearch_(const MSExperiment& exp, const vector<FASTAFile::FASTAEntry>& fasta_data, const String& adapter_name, Param& parameters) const
   {
     if (adapter_name.empty())
     {
@@ -352,7 +352,7 @@ namespace OpenMS
 
     // load result
     vector<ProteinIdentification> prot_ids;
-    vector<PeptideIdentification> pep_ids;
+    PeptideIdentificationList pep_ids;
     FileHandler id_file;
     id_file.loadIdentifications(out_path, prot_ids, pep_ids, {FileTypes::IDXML});
 
@@ -407,7 +407,7 @@ namespace OpenMS
     return sampled_fasta;
   }
 
-  void DBSuitability::calculateSuitability_(const std::vector<PeptideIdentification>& pep_ids, SuitabilityData& data) const
+  void DBSuitability::calculateSuitability_(const PeptideIdentificationList& pep_ids, SuitabilityData& data) const
   {
     // make sure no old data messes up the calculations
     data.clear();
@@ -426,7 +426,7 @@ namespace OpenMS
     // calculate score that corresponds to the FDR cut-off
     double score_cut_off;
     {
-      vector<PeptideIdentification> ids_copy(pep_ids);
+      PeptideIdentificationList ids_copy(pep_ids);
 
       FalseDiscoveryRate fdr;
       fdr.apply(ids_copy);
@@ -583,7 +583,7 @@ namespace OpenMS
     return -(db_slope) / (deNovo_slope);
   }
 
-  UInt DBSuitability::numberOfUniqueProteins_(const std::vector<PeptideIdentification>& peps, UInt number_of_hits) const
+  UInt DBSuitability::numberOfUniqueProteins_(const PeptideIdentificationList& peps, UInt number_of_hits) const
   {
     set<String> proteins;
 
@@ -646,7 +646,7 @@ namespace OpenMS
     return novo_hits_to_data.at(novo_data[ceil(novo_data.size() / 2)]);
   }
 
-  double DBSuitability::getScoreMatchingFDR_(const std::vector<PeptideIdentification>& pep_ids, double FDR, const String& score_name, bool higher_score_better) const
+  double DBSuitability::getScoreMatchingFDR_(const PeptideIdentificationList& pep_ids, double FDR, const String& score_name, bool higher_score_better) const
   {
     double worst_score = DBL_MAX;
     if (!higher_score_better)

@@ -23,6 +23,9 @@ cdef extern from "<OpenMS/KERNEL/SpectrumRangeManager.h>" namespace "OpenMS":
         SpectrumRangeManager() except + nogil
         SpectrumRangeManager(SpectrumRangeManager &) except + nogil
         
+        bool operator==(SpectrumRangeManager &) except + nogil
+        bool operator!=(SpectrumRangeManager &) except + nogil
+        
         void clearRanges() except + nogil
         libcpp_set[UInt] getMSLevels() except + nogil
         void extendRT(double rt, UInt ms_level) except + nogil

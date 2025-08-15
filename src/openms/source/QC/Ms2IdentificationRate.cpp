@@ -36,7 +36,7 @@ namespace OpenMS
     writeResults_(peptide_identification_counter, ms2_level_counter);
   }
 
-  void Ms2IdentificationRate::compute(const std::vector<PeptideIdentification>& pep_ids, const MSExperiment& exp, bool assume_all_target)
+  void Ms2IdentificationRate::compute(const PeptideIdentificationList& pep_ids, const MSExperiment& exp, bool assume_all_target)
   {
     // count ms2 spectra
     Size ms2_level_counter = getMS2Count_(exp);

@@ -42,10 +42,10 @@ START_SECTION((~MzIdentMLFile()))
 }
 END_SECTION
 
-START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) )
+START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) )
 {
   std::vector<ProteinIdentification> protein_ids;
-  std::vector<PeptideIdentification> peptide_ids;
+  PeptideIdentificationList peptide_ids;
   std::vector<String> fm{"Carbamidomethyl (C)", "Xlink:DTSSP[88] (Protein N-term)"};
   MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid"), protein_ids, peptide_ids);
 
@@ -105,11 +105,11 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 }
 END_SECTION
 
-START_SECTION(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) )
+START_SECTION(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids) )
 {
   //store and load data from various sources, starting with idxml, contents already checked above, so checking integrity of the data over repeated r/w
   std::vector<ProteinIdentification> protein_ids, protein_ids2;
-  std::vector<PeptideIdentification> peptide_ids, peptide_ids2;
+  PeptideIdentificationList peptide_ids, peptide_ids2;
   String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
   MzIdentMLFile().load(input_path, protein_ids2, peptide_ids2);
   String filename;
@@ -231,7 +231,7 @@ END_SECTION
 START_SECTION(([EXTRA] multiple runs))
 {
   std::vector<ProteinIdentification> protein_ids, protein_ids2;
-  std::vector<PeptideIdentification> peptide_ids, peptide_ids2;
+  PeptideIdentificationList peptide_ids, peptide_ids2;
   String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentML_3runs.mzid");
   MzIdentMLFile().load(input_path, protein_ids2, peptide_ids2);
   String filename;
@@ -253,7 +253,7 @@ END_SECTION
 START_SECTION(([EXTRA] thresholds))
 {
   std::vector<ProteinIdentification> protein_ids;
-  std::vector<PeptideIdentification> peptide_ids;
+  PeptideIdentificationList peptide_ids;
   String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
   MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
 
@@ -309,7 +309,7 @@ END_SECTION
 START_SECTION(([EXTRA] regression test for file loading on example files))
 {
   std::vector<ProteinIdentification> protein_ids;
-  std::vector<PeptideIdentification> peptide_ids;
+  PeptideIdentificationList peptide_ids;
   String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
   MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
 //  input_path = OPENMS_GET_TEST_DATA_PATH("Mascot_MSMS_example.mzid");
@@ -326,7 +326,7 @@ START_SECTION(([EXTRA] compability issues))
 {
 //  MzIdentMLFile mzidfile;
 //  vector<ProteinIdentification> protein_ids;
-//  vector<PeptideIdentification> peptide_ids;
+//  PeptideIdentificationList peptide_ids;
 //  mzidfile.load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_no_proteinhits.mzid"), protein_ids, peptide_ids);
 
 //  TEST_EQUAL(protein_ids.size(), 1)
@@ -339,7 +339,7 @@ START_SECTION(([EXTRA] compability issues))
 //  mzidfile.store(filename , protein_ids, peptide_ids);
 
 //  vector<ProteinIdentification> protein_ids2;
-//  vector<PeptideIdentification> peptide_ids2;
+//  PeptideIdentificationList peptide_ids2;
 //  mzidfile.load(filename, protein_ids2, peptide_ids2);
 
 //  TEST_TRUE(protein_ids == protein_ids2)
@@ -361,9 +361,9 @@ END_SECTION
 START_SECTION(([EXTRA] XLMS data labeled cross-linker))
 {
   vector<ProteinIdentification> protein_ids;
-  vector<PeptideIdentification> peptide_ids;
+  PeptideIdentificationList peptide_ids;
   vector<ProteinIdentification> protein_ids2;
-  vector<PeptideIdentification> peptide_ids2;
+  PeptideIdentificationList peptide_ids2;
 
   String input_file= OPENMS_GET_TEST_DATA_PATH("MzIdentML_XLMS_labelled.mzid");
   MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
@@ -435,9 +435,9 @@ END_SECTION
 START_SECTION(([EXTRA] XLMS data unlabeled cross-linker))
 {
   vector<ProteinIdentification> protein_ids;
-  vector<PeptideIdentification> peptide_ids;
+  PeptideIdentificationList peptide_ids;
   vector<ProteinIdentification> protein_ids2;
-  vector<PeptideIdentification> peptide_ids2;
+  PeptideIdentificationList peptide_ids2;
 
   String input_file = OPENMS_GET_TEST_DATA_PATH("MzIdentML_XLMS_unlabelled.mzid");
   MzIdentMLFile().load(input_file, protein_ids, peptide_ids);

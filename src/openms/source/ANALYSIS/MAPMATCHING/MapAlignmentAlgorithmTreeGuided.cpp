@@ -105,7 +105,7 @@ namespace OpenMS
   }; // end of PeptideIdentificationsPearsonDifference
 
   // For given peptide identifications extract sequences and store with associated feature RT.
-  void MapAlignmentAlgorithmTreeGuided::addPeptideSequences_(const std::vector<PeptideIdentification>& peptides,
+  void MapAlignmentAlgorithmTreeGuided::addPeptideSequences_(const PeptideIdentificationList& peptides,
           SeqAndRTList& peptide_rts, std::vector<double>& map_range, double feature_rt)
   {
     for (const auto& peptide : peptides)

@@ -236,14 +236,29 @@ if (UNIX AND (CMAKE_COMPILER_IS_GNUCXX OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Cla
 endif (UNIX AND (CMAKE_COMPILER_IS_GNUCXX OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
 
 option(SQLITECPP_USE_ASAN "Use Address Sanitizer." OFF)
+if (ADDRESS_SANITIZER) # Overwrite the option if Address Sanitizer is enabled for OpenMS
+    set(SQLITECPP_USE_ASAN ON)
+else ()
+    set(SQLITECPP_USE_ASAN OFF)
+endif ()
 if (SQLITECPP_USE_ASAN)
-    if ((CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 6) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
-        message (STATUS "Using Address Sanitizer")
-        set_target_properties(SQLiteCpp PROPERTIES COMPILE_FLAGS "-fsanitize=address -fno-omit-frame-pointer")
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
-        if (CMAKE_COMPILER_IS_GNUCXX)
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=gold")
-        endif ()
+    if (MSVC)
+        if (MSVC_VERSION GREATER_EQUAL 1920) # MSVC 2019 or later
+            message (STATUS "SQLiteCpp Using Address Sanitizer")
+            # add AddressSanitizer for compiler and linker
+            target_compile_options(SQLiteCpp 
+            PUBLIC 
+                /fsanitize=address
+            )
+        else()
+            message(FATAL_ERROR "AddressSanitizer is not supported for MSVC versions < 2019.")
+        endif()
+    else()
+        if ((CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 6) OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
+            message (STATUS "SQLiteCpp Using Address Sanitizer")
+            set_target_properties(SQLiteCpp PROPERTIES COMPILE_FLAGS "-fsanitize=address -fno-omit-frame-pointer")
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
+        endif()
     endif ()
 endif (SQLITECPP_USE_ASAN)
 

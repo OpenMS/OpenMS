@@ -16,7 +16,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  IdentificationSummary::Result IdentificationSummary::compute(vector<ProteinIdentification>& prot_ids, vector<PeptideIdentification>& pep_ids)
+  IdentificationSummary::Result IdentificationSummary::compute(vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids)
   {
     IdentificationSummary::Result result;
     set<String> peptides;

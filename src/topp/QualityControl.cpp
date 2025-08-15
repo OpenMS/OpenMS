@@ -258,7 +258,7 @@ protected:
     QCBase::SpectraMap spec_map;
 
     // Loop through featuremaps...
-    vector<PeptideIdentification> all_new_upep_ids;
+    PeptideIdentificationList all_new_upep_ids;
 
 
     String out_txt_dir = getOutputDirOption("out_txt:directory");
@@ -359,7 +359,7 @@ protected:
       if (qc_ms2stats.isRunnable(status))
       {
         // copies FWHM metavalue to PepIDs as well
-        vector<PeptideIdentification> new_upep_ids = qc_ms2stats.compute(exp, *fmap, spec_map);
+        PeptideIdentificationList new_upep_ids = qc_ms2stats.compute(exp, *fmap, spec_map);
         // use identifier of CMap for just calculated pepIDs (via common MS-run-path)
         const auto& f_runpath = mp_f.runpath_to_identifier.begin()->first; // just get any runpath from fmap
         const auto ptr_cmap = mp_c.runpath_to_identifier.find(f_runpath);
@@ -499,7 +499,7 @@ private:
     return files;
   }
 
-  void sortVectorOfPeptideIDsbyScore_(std::vector<PeptideIdentification>& pep_ids)
+  void sortVectorOfPeptideIDsbyScore_(PeptideIdentificationList& pep_ids)
   {
     for (PeptideIdentification& pep_id : pep_ids)
     {
@@ -516,7 +516,7 @@ private:
   }
 
   void addPepIDMetaValues_(
-    const vector<PeptideIdentification>& f_pep_ids,
+    const PeptideIdentificationList& f_pep_ids,
     const multimap<String, pair<Size, Size>>& customID_to_cpepID,
     const map<String, StringList>& fidentifier_to_msrunpath,
     ConsensusMap& cmap) const

@@ -68,7 +68,7 @@ namespace OpenMS
 
   // doesn't only count but also some initialization TODO: rename
   void PeptideAndProteinQuant::countPeptides_(
-    vector<PeptideIdentification>& peptides)
+    PeptideIdentificationList& peptides)
   {
     for (auto & pep : peptides)
     {
@@ -86,7 +86,7 @@ namespace OpenMS
 
 
   PeptideHit PeptideAndProteinQuant::getAnnotation_(
-    vector<PeptideIdentification>& peptides)
+    PeptideIdentificationList& peptides)
   {
     // hits in IDs must already be sorted by score! (done in "countPeptides_")
     if (peptides.empty() || peptides[0].getHits().empty()) return {};
@@ -197,7 +197,7 @@ namespace OpenMS
   }
 
   void PeptideAndProteinQuant::quantifyPeptides(
-    const vector<PeptideIdentification>& peptides)
+    const PeptideIdentificationList& peptides)
   {
     OPENMS_LOG_INFO << "Quantifying peptides..." << std::endl;
     
@@ -672,7 +672,7 @@ namespace OpenMS
 
   void PeptideAndProteinQuant::readQuantData(
     std::vector<ProteinIdentification>& proteins,
-    std::vector<PeptideIdentification>& peptides,
+    PeptideIdentificationList& peptides,
     const ExperimentalDesign& ed)
   {
     updateMembers_(); // clear data
