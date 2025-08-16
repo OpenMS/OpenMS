@@ -124,6 +124,7 @@ function(openms_add_compiler_flags target_name)
     target_compile_options(${target_name} PRIVATE
       -Wall -Wextra
       -Wno-unknown-pragmas
+      -Wno-array-bounds  # false positive in GCC 13.4.0 with Boost multi_index
 
       -Wno-unused-function
     )
