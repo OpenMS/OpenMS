@@ -751,23 +751,23 @@ namespace OpenMS
       }
       */
 
-
-      // --- Step 1a: Sum m/z peaks
-      // First, we project all timsTOF peaks into the m/z axis using sumFrame_
-      // The ppm tolerance is a dynamic way of testing m/z floats being almost identical. Set it to 0.1 ppm
+      // ************************************************* PART I *****************************************************
+      // ------------------------------------------ mass-to-charge peak picking -------------------------------------
+      // ------------------------------------------ Step a1: Sum m/z peaks ------------------------------------------
+      // project all timsTOF peaks into the m/z axis using sumFrame_
+      // The ppm tolerance is a dynamic way of testing m/z floats being almost identical. The raw intensity is summed.
       MSSpectrum summed_spectrum;
-      double tol_mz = sum_tolerance_mz_;
-      sumFrame_(spectrum, summed_spectrum, tol_mz, true);
+      sumFrame_(spectrum, summed_spectrum, sum_tolerance_mz_, true);
 #ifdef DEBUG_PICKER
       std::cout << "Spectrum after sumFrame_ has " << summed_spectrum.size() << " peaks." << std::endl;
 #endif
-      // --- step 2a: smooth the data projected to the m/z axis.
+      // ------------------------------------------ step 2a: smooth ------------------------------------------
+      // Apply gaussian smoothing to the peaks projected into the m/z axis. This facilitates peak picking
+      // in the m/z dimension and subseqent mobilogram extraction for each picked m/z peak.
 #ifdef DEBUG_PICKER
       std::cout << "Applying Gaussian smoothing..." << std::endl;
 #endif
       GaussFilter gauss_filter;
-
-      // Set Gaussian filter parameters.
       double gauss_tol = gauss_ppm_tolerance_;
       Param gauss_params;
       gauss_params.setValue("ppm_tolerance", gauss_tol);
@@ -782,27 +782,31 @@ namespace OpenMS
       }
 #endif
 
-      // ---step 3a: Apply PeakPickerHiRes and make sure the peak FWHM is reported in ppm.
-      // (Maybe this should change to absolute FWHM value...?).
-      PeakPickerHiRes picker;
-      Param hirez_mz_p;
-      hirez_mz_p.setValue("signal_to_noise", 0.0);
-      hirez_mz_p.setValue("report_FWHM", "true");
-      hirez_mz_p.setValue("report_FWHM_unit", "relative");
-      picker.setParameters(hirez_mz_p);
+      // ------------------------------------------ step 3a: m/z Peak Picking ------------------------------------------
+      // Pick peaks in the m/z axis and toggle reporting peak width at half max (FWHM)
+      // we will use the FWHM of each picked m/z peak to extract mobilograms.
+      PeakPickerHiRes picker_mz;
+      Param picker_mz_p;
+      picker_mz_p.setValue("signal_to_noise", 0.0);
+      picker_mz_p.setValue("report_FWHM", "true");
+      picker_mz_p.setValue("report_FWHM_unit", "relative");
+      picker_mz.setParameters(picker_mz_p);
       MSSpectrum picked_spectrum;
-      picker.pick(summed_spectrum, picked_spectrum);
+      picker_mz.pick(summed_spectrum, picked_spectrum);
 #ifdef DEBUG_PICKER
       std::cout << "Size of picked spectrum: " << picked_spectrum.size() << std::endl;
 #endif
 
-      // ---step 4a: Extract ion mobility traces for each picked m/z peak
+      // ------------------------------------------ step 4a: Extraction mobilograms ------------------------------------------
+      // Using m/z peaks FWHM, we iteratively extract ion mobility traces (mobilograms) from the raw spectrum.
+      // To rescue weak signal in the extracted mobilograms, we use linear resampling.
+      // For linear resampling, it is recommended to use a sampling rate equal or higher than the raw sampling rate.
+      // We dynamically determine the raw sampling rate from well-populated extracted mobilograms
+      // (currently we have this hard-coded as +20 raw peaks in a mobilogram to be considered well-populated).
+
       auto mobilogram_traces = extractIonMobilityTraces(picked_spectrum, spectrum);
 
-      // --- compute optimal sampling rate from well-populated mobilograms in this frame.
-      // This is currently set to +20 peaks in a mobilogram. (Should this be a user parameter?)
-
-      // Add a parameter to allow user to control sampling). Here we simply multiply by 4.
+      // TODO: Should we add a multipler to the linear sampling rate? We may boost algorithm speed and/or result if we try >1 multiplier
       double sampling_rate = computeOptimalSamplingRate(mobilogram_traces) * 1;
       Param resampler_param;
       resampler_param.setValue("spacing", sampling_rate);
@@ -812,23 +816,23 @@ namespace OpenMS
       std::cout << "Using sampling rate... : " << sampling_rate << std::endl;
 #endif
 
-
-      // *************** PART II ***************
-
-      // for each ion mobility trace, we process the raw signal, peak pick
-      // and recompute m/z and ion mobility centroid.
 #ifdef DEBUG_PICKER
       for (size_t i = 0; i < mobilogram_traces.size(); ++i)
       {
         std::cout << "Trace " << i << " contains " << mobilogram_traces[i].size() << " points in ion mobility space." << std::endl;
       }
 #endif
+      // ************************************************* PART II *****************************************************
+      // ------------------------------------------ Ion mobility peak picking ------------------------------------------
+      // ------------------------------------------ part 1b: sum ion mobility peaks ------------------------------------
+      // An extract ion mobilogram can have two peaks with identicial 1/k value and cuase issues in the peak picking steps.
+      // Example: if raw sampling rate is 0.0012 1/k -- then ion mobility peak 0.8800 1/k and 0.8806 1/k should be combined.
+      // Use 0.0006 1/k as default. This parameter may need to change depending on ion mobility ramp tamp
+      // (it is currently optimized for 100 ms ramp time)
+
+
+      // prepare picked ion mobility objects (we are internally using MSSpectrum object for downstram peak picking inputs).
       vector<MSSpectrum> picked_traces;
-      double tol_im = sum_tolerance_im_;
-      int sg_frame_len = sgolay_frame_length_;
-      int sg_poly_order = sgolay_polynomial_order_;
-
-
       // TODO: check why there are so many mobilogram_traces that are empty. leads to segfault later
       mobilogram_traces.erase(
         std::remove_if(mobilogram_traces.begin(), mobilogram_traces.end(),
@@ -843,32 +847,23 @@ namespace OpenMS
         std::cout << "\n--- Processing Trace " << i << " ---\n";
         std::cout << "Original trace has " << trace.size() << " peaks." << std::endl;
 #endif
-        // --- Step 1b: Sum ion mobility peaks that are too close ---
-        // This step is needed to prevent downstream processes from breaking (resampling, smoothing, peak picking).
-        // Example: if raw sampling rate is 0.0012 1/k -- then ion mobility peak 0.8800 1/k and 0.8806 1/k should be combined.
-        // Use 0.0006 1/k as default. Users are recommended to not adjust this parameter unless they are using a different
-        // ion mobility ramp time.
-
         MSSpectrum summed_trace;
         summed_trace.reserve(trace.size() + 1);
         summed_trace.emplace_back(-1.0, -1.0);
-        sumFrame_(trace, summed_trace, tol_im, false);
+        sumFrame_(trace, summed_trace, sum_tolerance_im_, false);
 #ifdef DEBUG_PICKER
         std::cout << "Trace after sumFrame_ has " << summed_trace.size() << " peaks." << std::endl;
 #endif
-        // Determine im boundaries of current mobilogram. Add 10 padding points (should this be a parameter?)
-        // If you do not pad the edges, peaks on the edge will have an odd shape and not be picked by PeakPickerHiRes!
-        double im_start = summed_trace[1].getMZ(); // first entry after padding
+        // ------------------------------------------ part 2b: smooth and resample --------------------------------
+        // Prepare mobilograms for SGolay smoothing.
+        // To avoid edge effect, we will pad the edges with (sgolay_frame_length_ -1 / 2.0) points.
+        double im_start = summed_trace[1].getMZ();
         double im_end = summed_trace.back().getMZ();
 
 #ifdef DEBUG_PICKER
         std::cout << "Original summed trace ion mobility range: [" << im_start << ", " << im_end << "]" << std::endl;
 #endif
-        // for SGolay smoothing -- pad the edges with the same number as SGolay window size.
-        // If the padded region is not matching, it will borrow the left points from the right
-        // aka window 15 --> 7 points to the right and 7 points to the left pushed to the right.
-        // This can create a fake peak in the padded edges.
-        int padding_points = static_cast<int>(std::ceil(sgolay_frame_length_ * 2.0));
+        int padding_points = static_cast<int>(std::ceil((sgolay_frame_length_ - 1) / 2.0));
 
         Peak1D front_padding;
         front_padding.setMZ(im_start - padding_points * sampling_rate);
@@ -884,10 +879,9 @@ namespace OpenMS
         std::cout << "Padded summed trace im range: [" << summed_trace.front().getMZ() << ", " << summed_trace.back().getMZ() << "]" << std::endl;
 #endif
 
-        // --- Step 2b: Resample the trace ---
+        // linear resample to rescue weak signal
         LinearResamplerAlign lin_resampler;
         lin_resampler.setParameters(resampler_param);
-
         lin_resampler.raster(summed_trace);
 #ifdef DEBUG_PICKER
         std::cout << "Size of resampled trace: " << summed_trace.size() << " peaks." << std::endl;
@@ -896,12 +890,11 @@ namespace OpenMS
           std::cout << "m/z: " << peak.getMZ() << ", intensity: " << peak.getIntensity() << std::endl;
         }
 #endif
-
-        // --- Step 3b: Apply SGolay Smoothing ---
+        // SGolay smooth prior to peak picking
         SavitzkyGolayFilter sgolay_filter;
         Param sgolay_params;
-        sgolay_params.setValue("frame_length", sg_frame_len);
-        sgolay_params.setValue("polynomial_order", sg_poly_order);
+        sgolay_params.setValue("frame_length", sgolay_frame_length_);
+        sgolay_params.setValue("polynomial_order", sgolay_polynomial_order_);
         sgolay_filter.setParameters(sgolay_params);
         sgolay_filter.filter(summed_trace);
 
@@ -913,16 +906,25 @@ namespace OpenMS
         }
 #endif
 
-        // --- Step 4b: Apply PeakPickerHiRes ---
-        // We will use ion mobility peak FWHM to define min/max ion mobility boundaries.
-        // Revisit the raw traces and compute intensity weighted ion mobility centroids.
-        // The ion mobility traces also contains raw m/z peaks in FloatDataArrays.
-        // This makes it convenient  to re-compute m/z centroid.
-        PeakPickerHiRes picker;
-        picker.setParameters(parameters_);
+        // ------------------------------------------ part 3b: im peak picking --------------------------------
+        // apply PeakPickerHiRes to pick ion mobility peaks.
+        // PeakPickerHiRes can be applied to chromatograms. We reasoned the same set of parameters ideal for
+        // chromatograms is also applicable for mobilograms.
+        // Each raw mobilogram contains a float data array with raw m/z values.
+        // We will use the ion mobility peak FWHM to define min/max ion mobility boundary
+        // and recompute the m/z center based on the ion mobility peak.
+        PeakPickerHiRes picker_im;
+        Param picker_im_p;
+        picker_im_p.setValue("signal_to_noise", 0.0);
+        picker_im_p.setValue("spacing_difference_gap", 0.0);
+        picker_im_p.setValue("spacing_difference", 0.0);
+        picker_im_p.setValue("missing", 0.0);
+        picker_im_p.setValue("report_FWHM", "true");
+        picker_im_p.setValue("report_FWHM_unit", "absolute");
+        picker_im.setParameters(picker_im_p);
 
         MSSpectrum picked_trace;
-        picker.pick(summed_trace, picked_trace);
+        picker_im.pick(summed_trace, picked_trace);
         picked_traces.push_back(std::move(picked_trace));
 
 #ifdef DEBUG_PICKER
@@ -938,7 +940,6 @@ namespace OpenMS
 #endif
 
       // Replace the input spectrum with the centroided result but ensure that other meta data is preserved
-      // Maybe I am stupid but there is no better way if one just wants to 
       // swap the peaks and data arrays (while keeping meta data)
       centroided_frame = static_cast<SpectrumSettings>(spectrum); // swaps meta data
       centroided_frame.setMSLevel(spectrum.getMSLevel());
