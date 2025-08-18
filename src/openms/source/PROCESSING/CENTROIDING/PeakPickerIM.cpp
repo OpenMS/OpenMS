@@ -918,7 +918,7 @@ namespace OpenMS
         picker_im_p.setValue("signal_to_noise", 0.0);
         picker_im_p.setValue("spacing_difference_gap", 0.0);
         picker_im_p.setValue("spacing_difference", 0.0);
-        picker_im_p.setValue("missing", 0.0);
+        picker_im_p.setValue("missing", 0);
         picker_im_p.setValue("report_FWHM", "true");
         picker_im_p.setValue("report_FWHM_unit", "absolute");
         picker_im.setParameters(picker_im_p);
