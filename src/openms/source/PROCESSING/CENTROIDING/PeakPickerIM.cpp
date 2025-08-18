@@ -702,24 +702,35 @@ namespace OpenMS
         : DefaultParamHandler("PeakPickerIM")
     {
       // --- PickIMTraces parameters ---
-      defaults_.setValue("sum_tolerance_mz",        0.1,   "Tolerance for summing adjacent m/z peaks (ppm)");
-      defaults_.setValue("gauss_ppm_tolerance",     5.0,   "Gaussian smoothing m/z tolerance in ppm");
-      defaults_.setValue("sum_tolerance_im",        0.0006,"Tolerance for summing adjacent ion mobility peaks (1/k0)");
-      defaults_.setValue("sgolay_frame_length",     5,     "Savitzky-Golay smoothing frame length");
-      defaults_.setValue("sgolay_polynomial_order", 3,     "Savitzky-Golay smoothing polynomial order");
-      defaults_.setValue("padding_points",          15,    "Padding points on each side for mobilograms");
+      defaults_.setValue("pickIMTraces:sum_tolerance_mz",        0.1,   "Tolerance for summing adjacent m/z peaks (ppm)");
+      defaults_.setValue("pickIMTraces:gauss_ppm_tolerance",     5.0,   "Gaussian smoothing m/z tolerance in ppm");
+      defaults_.setValue("pickIMTraces:sum_tolerance_im",        0.0006,"Tolerance for summing adjacent ion mobility peaks (1/k0)");
+      defaults_.setValue("pickIMTraces:sgolay_frame_length",     5,     "Savitzky-Golay smoothing frame length");
+      defaults_.setValue("pickIMTraces:sgolay_polynomial_order", 3,     "Savitzky-Golay smoothing polynomial order");
+      defaults_.setValue("pickIMTraces:padding_points",          15,    "Padding points on each side for mobilograms");
+      // --- PickIMCluster parameters ---
+      defaults_.setValue("pickIMCluster:ppm_tolerance_cluster", 50.0, "m/z tolerance in ppm for clustering");
+      defaults_.setValue("pickIMCluster:im_tolerance_cluster", 0.1, "Ion mobility tolerance in 1/k for clustering");
+      // --- PickIMElutionProfiles parameters ---
+      defaults_.setValue("pickIMElutionProfiles:ppm_tolerance_elution", 50.0, "Mass trace m/z tolerance in ppm");
 
       defaultsToParam_();  // copies defaults_ into param_
       updateMembers_();    // caches into member variables
     }
     void PeakPickerIM::updateMembers_()
     {
-      sum_tolerance_mz_      = (double)param_.getValue("sum_tolerance_mz");
-      gauss_ppm_tolerance_   = (double)param_.getValue("gauss_ppm_tolerance");
-      sum_tolerance_im_      = (double)param_.getValue("sum_tolerance_im");
-      sgolay_frame_length_   = (int)param_.getValue("sgolay_frame_length");
-      sgolay_polynomial_order_= (int)param_.getValue("sgolay_polynomial_order");
-      padding_points_        = (int)param_.getValue("padding_points");
+      sum_tolerance_mz_      = (double)param_.getValue("pickIMTraces:sum_tolerance_mz");
+      gauss_ppm_tolerance_   = (double)param_.getValue("pickIMTraces:gauss_ppm_tolerance");
+      sum_tolerance_im_      = (double)param_.getValue("pickIMTraces:sum_tolerance_im");
+      sgolay_frame_length_   = (int)param_.getValue("pickIMTraces:sgolay_frame_length");
+      sgolay_polynomial_order_= (int)param_.getValue("pickIMTraces:sgolay_polynomial_order");
+      padding_points_        = (int)param_.getValue("pickIMTraces:padding_points");
+
+      ppm_tolerance_cluster_ = (double)param_.getValue("pickIMCluster:ppm_tolerance_cluster");
+      im_tolerance_cluster_ = (double)param_.getValue("pickIMCluster:im_tolerance_cluster");
+
+      ppm_tolerance_elution_ = (double)param_.getValue("pickIMElutionProfiles:ppm_tolerance_elution");
+
     }
 
 
@@ -1102,7 +1113,7 @@ namespace OpenMS
         input.updateRanges(); // TODO: maybe needed
   }
 */
-    void PeakPickerIM::pickIMCluster(OpenMS::MSSpectrum& spectrum, double ppm_tolerance, double im_tolerance)
+    void PeakPickerIM::pickIMCluster(OpenMS::MSSpectrum& spectrum, double ppm_tolerance_cluster_, double im_tolerance_cluster_)
     {
       if (spectrum.empty()) return;
 
@@ -1162,7 +1173,7 @@ namespace OpenMS
       std::vector<Point> averaged_points;
       averaged_points.reserve(points.size());
 
-      double ppm_factor = ppm_tolerance * 1e-6;
+      double ppm_factor = ppm_tolerance_cluster_ * 1e-6;
 
       // --- Main Clustering Loop ---
       // Iterate through peaks in descending order of intensity to find seeds
@@ -1210,7 +1221,7 @@ namespace OpenMS
 
               // Fixed m/z tolerance calculation
               bool mz_ok = (potential_mz_max - potential_mz_min) <= (potential_mz_min * ppm_factor);
-              bool im_ok = (potential_im_max - potential_im_min) <= im_tolerance;
+              bool im_ok = (potential_im_max - potential_im_min) <= im_tolerance_cluster_;
 
               if (mz_ok && im_ok) {
                 current_cluster_indices.push_back(candidate_original_idx);
@@ -1244,7 +1255,7 @@ namespace OpenMS
 
               // Fixed m/z tolerance calculation
               bool mz_ok = (potential_mz_max - potential_mz_min) <= (potential_mz_min * ppm_factor);
-              bool im_ok = (potential_im_max - potential_im_min) <= im_tolerance;
+              bool im_ok = (potential_im_max - potential_im_min) <= im_tolerance_cluster_;
 
               if (mz_ok && im_ok) {
                 current_cluster_indices.push_back(candidate_original_idx);
@@ -1315,7 +1326,7 @@ namespace OpenMS
       spectrum.updateRanges();
 
     } // End of pickIMCluster function
-    void PeakPickerIM::pickIMElutionProfiles(MSSpectrum& input, double ppm_tolerance)
+    void PeakPickerIM::pickIMElutionProfiles(MSSpectrum& input, double ppm_tolerance_elution_)
     {
       if (input.empty()) return;
       // Get IM data array
@@ -1346,7 +1357,7 @@ namespace OpenMS
       param.setValue("noise_threshold_int", 0.1); // only ignore 0 peaks
       param.setValue("chrom_peak_snr", 0.0);
       param.setValue("reestimate_mt_sd", "false");
-      param.setValue("mass_error_ppm", ppm_tolerance);
+      param.setValue("mass_error_ppm", ppm_tolerance_elution_);
       param.setValue("trace_termination_criterion", "outlier");
       param.setValue("trace_termination_outlier", 1);
 

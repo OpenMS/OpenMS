@@ -51,8 +51,8 @@ namespace OpenMS
      * 2. ion mobility tolerance: the range of IM values must not exceed the specified tolerance
      *
      * @param input Spectrum containing ion mobility data in its FloatDataArrays
-     * @param ppm_tolerance Mass tolerance in parts per million (default: 50.0 ppm)
-     * @param im_tolerance Ion mobility tolerance (default: 0.1 units)
+     * @param ppm_tolerance_cluster Mass tolerance in parts per million (default: 50.0 ppm)
+     * @param im_tolerance_cluster Ion mobility tolerance (default: 0.1 units)
      *
      * @throws Exception::MissingInformation if input spectrum lacks ion mobility data
      *
@@ -66,7 +66,7 @@ namespace OpenMS
      * IMFrame::toSpectrum(input_spectrum);
      * @endcode
      */
-    static void pickIMCluster(MSSpectrum& spec, double ppm_tolerance = 50.0, double im_tolerance = 0.1);
+    static void pickIMCluster(MSSpectrum& spec, double ppm_tolerance_cluster = 50.0, double im_tolerance_cluster = 0.1);
 
     /**
      * @brief Picks ion mobility elution profiles from the given spectrum using eluting profiles.
@@ -75,9 +75,9 @@ namespace OpenMS
      * extracts IM elution profiles based on the specified ppm tolerance.
      *
      * @param input Spectrum containing ion mobility data in its FloatDataArrays
-     * @param ppm_tolerance Mass tolerance in parts per million (default: 50.0 ppm)
+     * @param ppm_tolerance_elution Mass tolerance in parts per million (default: 50.0 ppm)
      */
-    static void pickIMElutionProfiles(MSSpectrum& input, double ppm_tolerance = 50.0);
+    static void pickIMElutionProfiles(MSSpectrum& input, double ppm_tolerance_elution = 50.0);
 
   protected:
     /// Updates internal member variables when parameters are changed.
@@ -126,6 +126,10 @@ namespace OpenMS
     int    sgolay_frame_length_{5};
     int    sgolay_polynomial_order_{3};
     int    padding_points_{15};
+    double    ppm_tolerance_cluster_{50.0};
+    double    im_tolerance_cluster_{0.1};
+
+    double    ppm_tolerance_elution_{50.0};
   };
 
 } // namespace OpenMS
