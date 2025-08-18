@@ -125,7 +125,6 @@ namespace OpenMS
     double sum_tolerance_im_{0.0006};
     int    sgolay_frame_length_{5};
     int    sgolay_polynomial_order_{3};
-    int    padding_points_{15};
     double    ppm_tolerance_cluster_{50.0};
     double    im_tolerance_cluster_{0.1};
 

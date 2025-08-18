@@ -707,7 +707,6 @@ namespace OpenMS
       defaults_.setValue("pickIMTraces:sum_tolerance_im",        0.0006,"Tolerance for summing adjacent ion mobility peaks (1/k0)");
       defaults_.setValue("pickIMTraces:sgolay_frame_length",     5,     "Savitzky-Golay smoothing frame length");
       defaults_.setValue("pickIMTraces:sgolay_polynomial_order", 3,     "Savitzky-Golay smoothing polynomial order");
-      defaults_.setValue("pickIMTraces:padding_points",          15,    "Padding points on each side for mobilograms");
       // --- PickIMCluster parameters ---
       defaults_.setValue("pickIMCluster:ppm_tolerance_cluster", 50.0, "m/z tolerance in ppm for clustering");
       defaults_.setValue("pickIMCluster:im_tolerance_cluster", 0.1, "Ion mobility tolerance in 1/k for clustering");
@@ -724,7 +723,6 @@ namespace OpenMS
       sum_tolerance_im_      = (double)param_.getValue("pickIMTraces:sum_tolerance_im");
       sgolay_frame_length_   = (int)param_.getValue("pickIMTraces:sgolay_frame_length");
       sgolay_polynomial_order_= (int)param_.getValue("pickIMTraces:sgolay_polynomial_order");
-      padding_points_        = (int)param_.getValue("pickIMTraces:padding_points");
 
       ppm_tolerance_cluster_ = (double)param_.getValue("pickIMCluster:ppm_tolerance_cluster");
       im_tolerance_cluster_ = (double)param_.getValue("pickIMCluster:im_tolerance_cluster");
@@ -827,7 +825,6 @@ namespace OpenMS
 #endif
       vector<MSSpectrum> picked_traces;
       double tol_im = sum_tolerance_im_;
-      int padding_pts = padding_points_;
       int sg_frame_len = sgolay_frame_length_;
       int sg_poly_order = sgolay_polynomial_order_;
 
@@ -871,13 +868,15 @@ namespace OpenMS
         // If the padded region is not matching, it will borrow the left points from the right
         // aka window 15 --> 7 points to the right and 7 points to the left pushed to the right.
         // This can create a fake peak in the padded edges.
+        int padding_points = static_cast<int>(std::ceil(sgolay_frame_length_ * 2.0));
+
         Peak1D front_padding;
-        front_padding.setMZ(im_start - 15 * sampling_rate);
+        front_padding.setMZ(im_start - padding_points * sampling_rate);
         front_padding.setIntensity(0.0);
         summed_trace[0] = front_padding;
 
         Peak1D back_padding;
-        back_padding.setMZ(im_end + 15 * sampling_rate);
+        back_padding.setMZ(im_end + padding_points * sampling_rate);
         back_padding.setIntensity(0.0);
         summed_trace.push_back(back_padding);
 
