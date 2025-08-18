@@ -228,7 +228,7 @@ namespace OpenMS
 
       for (const auto& array : raw_float_data_arrays)
       {
-        if (array.getName() == "Ion Mobility")
+        if (array.getName() == "Ion Mobility" || array.getName() == "mean inverse reduced ion mobility array")
         {
           ion_mobility_array = &array;
           break;
