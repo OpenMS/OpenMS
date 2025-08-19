@@ -1851,6 +1851,9 @@ add_test("TOPP_PeakPickerIterative_2" ${TOPP_BIN_PATH}/PeakPickerIterative -in $
 add_test("TOPP_PeakPickerIterative_2_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerIterative_2.tmp.mzML -in2 ${DATA_DIR_TOPP}/PeakPickerIterative_2_output.mzML)
 set_tests_properties("TOPP_PeakPickerIterative_2_out1" PROPERTIES DEPENDS "TOPP_PeakPickerIterative_2")
 
+#------------------------------------------------------------------------------
+# TOPP_PeakPickerIM
+
 
 #------------------------------------------------------------------------------
 # Basic ProteinInference

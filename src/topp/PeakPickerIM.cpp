@@ -78,8 +78,8 @@ protected:
       }
       else if (method_ == "cluster")
       {
-        const double ppm_tol = (double)par.getValue("pickIMCluster:ppm_tolerance");
-        const double im_tol  = (double)par.getValue("pickIMCluster:im_tolerance");
+        const double ppm_tol = (double)par.getValue("pickIMCluster:ppm_tolerance_cluster");
+        const double im_tol  = (double)par.getValue("pickIMCluster:im_tolerance_cluster");
         PeakPickerIM::pickIMCluster(spectrum, ppm_tol, im_tol);
       }
       else if (method_ == "traces")
@@ -144,14 +144,14 @@ protected:
         else if (method == "cluster")
         {
           const Param& par = picker.getParameters();
-          const double ppm_tol = (double)par.getValue("pickIMCluster:ppm_tolerance");
-          const double im_tol  = (double)par.getValue("pickIMCluster:im_tolerance");
+          const double ppm_tol = (double)par.getValue("pickIMCluster:ppm_tolerance_cluster");
+          const double im_tol  = (double)par.getValue("pickIMCluster:im_tolerance_cluster");
           PeakPickerIM::pickIMCluster(spectrum, ppm_tol, im_tol);
         }
         else if (method == "traces")
         {
           const Param& par = picker.getParameters();
-          const double ppm_tol = (double)par.getValue("pickIMElutionProfiles:ppm_tolerance");
+          const double ppm_tol = (double)par.getValue("pickIMElutionProfiles:ppm_tolerance_elution");
           PeakPickerIM::pickIMElutionProfiles(spectrum, ppm_tol);
         }
       }

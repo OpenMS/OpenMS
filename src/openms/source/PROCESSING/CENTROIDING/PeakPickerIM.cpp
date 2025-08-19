@@ -703,8 +703,8 @@ namespace OpenMS
     {
       // --- PickIMTraces parameters ---
       defaults_.setValue("pickIMTraces:sum_tolerance_mz",        1.0,   "Tolerance for summing adjacent m/z peaks (ppm)");
-      defaults_.setValue("pickIMTraces:gauss_ppm_tolerance",     5.0,   "Gaussian smoothing m/z tolerance in ppm");
       defaults_.setValue("pickIMTraces:sum_tolerance_im",        0.0006,"Tolerance for summing adjacent ion mobility peaks (1/k0)");
+      defaults_.setValue("pickIMTraces:gauss_ppm_tolerance",     5.0,   "Gaussian smoothing m/z tolerance in ppm");
       defaults_.setValue("pickIMTraces:sgolay_frame_length",     5,     "Savitzky-Golay smoothing frame length");
       defaults_.setValue("pickIMTraces:sgolay_polynomial_order", 3,     "Savitzky-Golay smoothing polynomial order");
       // --- PickIMCluster parameters ---
@@ -719,8 +719,8 @@ namespace OpenMS
     void PeakPickerIM::updateMembers_()
     {
       sum_tolerance_mz_      = (double)param_.getValue("pickIMTraces:sum_tolerance_mz");
-      gauss_ppm_tolerance_   = (double)param_.getValue("pickIMTraces:gauss_ppm_tolerance");
       sum_tolerance_im_      = (double)param_.getValue("pickIMTraces:sum_tolerance_im");
+      gauss_ppm_tolerance_   = (double)param_.getValue("pickIMTraces:gauss_ppm_tolerance");
       sgolay_frame_length_   = (int)param_.getValue("pickIMTraces:sgolay_frame_length");
       sgolay_polynomial_order_= (int)param_.getValue("pickIMTraces:sgolay_polynomial_order");
 
