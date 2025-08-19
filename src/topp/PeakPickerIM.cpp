@@ -84,7 +84,7 @@ protected:
       }
       else if (method_ == "traces")
       {
-        const double ppm_tol = (double)par.getValue("pickIMElutionProfiles:ppm_tolerance");
+        const double ppm_tol = (double)par.getValue("pickIMElutionProfiles:ppm_tolerance_elution");
         PeakPickerIM::pickIMElutionProfiles(spectrum, ppm_tol);
       }
     }

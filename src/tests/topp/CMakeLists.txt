@@ -1853,6 +1853,15 @@ set_tests_properties("TOPP_PeakPickerIterative_2_out1" PROPERTIES DEPENDS "TOPP_
 
 #------------------------------------------------------------------------------
 # TOPP_PeakPickerIM
+# test default 'mobilogram' method
+add_test("TOPP_PeakPickerIM_1" ${TOPP_BIN_PATH}/PeakPickerIM -in ${DATA_DIR_TOPP}/PeakPickerIM_input_1.mzML -ini ${DATA_DIR_TOPP}/PeakPickerIM_parameters_1.ini -out PeakPickerIM_1.tmp.mzML -test)
+add_test("TOPP_PeakPickerIM_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerIM_1.tmp.mzML -in2 ${DATA_DIR_TOPP}/PeakPickerIM_1_output.mzML)
+# test 'cluster' method
+add_test("TOPP_PeakPickerIM_2" ${TOPP_BIN_PATH}/PeakPickerIM -in ${DATA_DIR_TOPP}/PeakPickerIM_input_1.mzML -ini ${DATA_DIR_TOPP}/PeakPickerIM_parameters_2.ini -out PeakPickerIM_2.tmp.mzML -test)
+add_test("TOPP_PeakPickerIM_2_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerIM_2.tmp.mzML -in2 ${DATA_DIR_TOPP}/PeakPickerIM_2_output.mzML)
+# test 'trace' method
+add_test("TOPP_PeakPickerIM_3" ${TOPP_BIN_PATH}/PeakPickerIM -in ${DATA_DIR_TOPP}/PeakPickerIM_input_1.mzML -ini ${DATA_DIR_TOPP}/PeakPickerIM_parameters_3.ini -out PeakPickerIM_3.tmp.mzML -test)
+add_test("TOPP_PeakPickerIM_3_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerIM_3.tmp.mzML -in2 ${DATA_DIR_TOPP}/PeakPickerIM_3_output.mzML)
 
 
 #------------------------------------------------------------------------------
