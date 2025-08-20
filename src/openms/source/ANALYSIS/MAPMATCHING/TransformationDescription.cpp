@@ -279,7 +279,8 @@ namespace OpenMS
 
   double TransformationDescription::estimateWindow(double quantile,
                                                    bool invert,
-                                                   bool full_window) const
+                                                   bool full_window,
+                                                   double padding_factor) const
   {
     // Work on a copy so we don't mutate the original
     TransformationDescription tmp(*this);
@@ -304,12 +305,39 @@ namespace OpenMS
       return 0.0;
     }
 
-    // Take the requested quantile of residuals (sorts internally when sorted=false)
-    const double half = OpenMS::Math::quantile(diffs.begin(), diffs.end(),
-                                               quantile, /*sorted=*/false);
-    const double full = full_window ? (2.0 * half) : half;
+    // Outlier residual handling: Tukey IQR winsorization
+    // Cap extreme residuals at the upper fence UF = Q3 + 1.5*IQR.
+    // (Lower fence is 0 because residuals are absolute.)
+    std::vector<double> work = diffs; // operate on a copy
+    const size_t n = work.size();
+    if (n >= 8) // need a few points to make quartiles meaningful
+    {
+      const double q1  = OpenMS::Math::quantile(work.begin(), work.end(), 0.25, /*sorted=*/false);
+      const double q3  = OpenMS::Math::quantile(work.begin(), work.end(), 0.75, /*sorted=*/false);
+      const double iqr = q3 - q1;
 
-    OPENMS_LOG_DEBUG << "[estimateWindow] n=" << diffs.size()
+      if (std::isfinite(iqr) && iqr > 0.0)
+      {
+        const double upper_fence = q3 + 1.5 * iqr;
+        size_t winsorized = 0;
+        for (double& v : work)
+        {
+          if (v > upper_fence) { v = upper_fence; ++winsorized; }
+          if (v < 0.0) v = 0.0; // absolute residuals shouldn't be negative, but keep safe
+        }
+        OPENMS_LOG_DEBUG << "[estimateWindow] IQR winsorization: Q1=" << q1
+                         << " Q3=" << q3 << " IQR=" << iqr
+                         << " UF=" << upper_fence
+                         << " (capped " << winsorized << " values)\n";
+      }
+    }
+
+    // Take the requested quantile of residuals (sorts internally when sorted=false)
+    const double half = OpenMS::Math::quantile(work.begin(), work.end(),
+                                               quantile, /*sorted=*/false);
+    const double full = full_window ? (2.0 * half) * padding_factor : half * padding_factor;
+
+    OPENMS_LOG_DEBUG << "[estimateWindow] n=" << work.size()
                      << " q=" << quantile
                      << " half=" << half
                      << " full=" << full

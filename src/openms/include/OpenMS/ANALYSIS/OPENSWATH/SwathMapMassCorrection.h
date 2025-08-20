@@ -94,13 +94,24 @@ public:
     std::vector<OpenSwath::SwathMap> findSwathMapsPasef(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group,
                                                          const std::vector< OpenSwath::SwathMap > & swath_maps);
 
-    /** @brief Estimate an extraction window (full width) from a vector of absolute residuals.
-     *
-     * @param residuals  absolute errors (e.g. ppm)
-     * @param quantile   which quantile of the *half-width* distribution to use (default: 0.99)
-     * @param full_width if true, return twice the half-width (so you get the full window);
-     *                   if false, return just the half-width
-     */
+    /**
+      @brief Estimate an extraction window from absolute residuals.
+
+      Treats the input @p residuals as absolute errors (e.g., |Δppm| for m/z).
+      The @p quantile defines the *half-width* h such that roughly q·100% of
+      residuals satisfy |r| ≤ h. If @p full_width is true, the returned value is
+      2·h (full window); otherwise h (half-width).
+
+      Notes:
+        - Empty input yields 0.0.
+        - Ensure @p residuals contain absolute values; non-absolute inputs will be
+          converted via std::abs internally.
+
+      @param residuals   Absolute residuals (e.g., |Δppm|).
+      @param quantile    Quantile of the half-width distribution to use (default 0.99).
+      @param full_width  If true, return 2×half-width; if false, return half-width.
+      @return            Estimated window (same units as @p residuals; 0.0 if empty).
+    */
     static double estimateWindow(
       std::vector<double> residuals,
       double quantile = 0.99,
@@ -141,7 +152,8 @@ public:
     String debug_im_file_;
     String debug_mz_file_;
 
-    /// fragment‐ion m/z residuals used for estimating the MS2 and MS1 extraction window
+    /// fields for estimated mz and ion mobility windows
+    double ion_mobility_estimation_padding_factor_;
     double fragment_mz_window_;
     double fragment_im_window_ = -1;
     double precursor_mz_window_;

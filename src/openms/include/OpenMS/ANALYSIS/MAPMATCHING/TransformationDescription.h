@@ -141,21 +141,36 @@ public:
     void printSummary(std::ostream& os) const;
 
     /**
-      @brief Estimate a coordinate-transformation residual-based extraction window.
+      @brief Estimate a coordinate-transformation, residual-based extraction window.
 
-      Computes the specified quantile of the absolute deviations between the
-      transformed coordinates and the original data points (or vice versa),
-      and returns either the half-width (quantile) or full window (2×quantile).
+      Given stored data points (x_i, y_i) and a fitted transform T relating them,
+      this computes absolute residuals between experimental and theoretical
+      coordinates and returns an extraction window derived from a chosen quantile.
 
-      @param quantile The quantile to use (0 < quantile <= 1.0), e.g. 0.99 for 99%.
-      @param invert If true, invert the transformation before computing deviations
-                    (so that deviations are in the original coordinate units).
-      @param full_window If true, return 2 × quantile (full width), else return quantile (half-width).
-      @return The estimated extraction window based on residuals.
+      Residual definition:
+        - If @p invert == false: r_i = | T(x_i) − y_i |   (in transformed units)
+        - If @p invert == true : r_i = | x_i − T^{-1}(y_i) | (in original x units)
+
+      The chosen @p quantile (e.g. 0.99) is the *half-width* h such that roughly
+      q·100% of residuals satisfy |r| ≤ h. If @p full_window is true, the function
+      returns 2·h (full width), otherwise h (half-width).
+
+      Typical usage:
+        - RT: choose @p invert = true to get residuals in seconds (original x units).
+        - IM: same pattern; units are native instrument IM units (e.g., 1/k0).
+
+      @param quantile     Quantile of |residual| to use (0 < quantile ≤ 1), e.g. 0.99.
+      @param invert       If true, compute residuals in original x-units via T^{-1};
+                          otherwise compute in transformed y-units via T.
+      @param full_window  If true, return full width (2·half-width); else return half-width.
+      @param padding_factor A padding factor to add to the estimated window.
+      @return             Estimated window (in the units implied by @p invert).
+                          If no data points are available, returns 0.0.
     */
     double estimateWindow(double quantile = 0.99,
                           bool invert = true,
-                          bool full_window = true) const;
+                          bool full_window = true,
+                          double padding_factor = 1.0) const;
 
 protected:
     /// Data points

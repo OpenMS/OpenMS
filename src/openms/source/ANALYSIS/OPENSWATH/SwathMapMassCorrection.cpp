@@ -98,6 +98,8 @@ namespace OpenMS
     defaults_.setValue("ms1_im_calibration", "false", "Whether to use MS1 precursor data for the ion mobility calibration (default = false, uses MS2 / fragment ions for calibration)", {"advanced"});
     defaults_.setValidStrings("ms1_im_calibration", {"true","false"});
     defaults_.setValue("im_extraction_window", -1.0, "Ion mobility extraction window width");
+    defaults_.setValue("ion_mobility_estimation_padding_factor", 1.3, "A padding factor to multiply the estimated ion_mobility window by. For example, a factor of 1.3 will add a 30% padding to the estimated ion_mobility window, so if the estimated ion_mobility window is 0.03, then 0.009 will be added for a total estimated ion_mobility window of 0.039. A factor of 1.0 will not add any padding to the estimated window.");
+    defaults_.setMinFloat("ion_mobility_estimation_padding_factor", 1.0);
     defaults_.setValue("mz_correction_function", "none", "Type of normalization function for m/z calibration.");
     defaults_.setValidStrings("mz_correction_function", {"none","regression_delta_ppm","unweighted_regression","weighted_regression","quadratic_regression","weighted_quadratic_regression","weighted_quadratic_regression_delta_ppm","quadratic_regression_delta_ppm"});
     defaults_.setValue("im_correction_function", "linear", "Type of normalization function for IM calibration.");
@@ -116,6 +118,7 @@ namespace OpenMS
     mz_extraction_window_ppm_ = param_.getValue("mz_extraction_window_ppm") == "true";
     ms1_im_ = param_.getValue("ms1_im_calibration") == "true";
     im_extraction_window_ = (double)param_.getValue("im_extraction_window");
+    ion_mobility_estimation_padding_factor_ = (double)param_.getValue("ion_mobility_estimation_padding_factor");
     mz_correction_function_ = param_.getValue("mz_correction_function").toString();
     im_correction_function_ = param_.getValue("im_correction_function").toString();
     debug_mz_file_ = param_.getValue("debug_mz_file").toString();
@@ -132,6 +135,7 @@ namespace OpenMS
     bool ppm = mz_extraction_window_ppm_;
     double mz_extr_window = mz_extraction_window_;
     double im_extraction_win = im_extraction_window_;
+    double ion_mobility_estimation_padding_factor = ion_mobility_estimation_padding_factor_;
 
     OPENMS_LOG_DEBUG << "SwathMapMassCorrection::correctIM " << " window " << im_extraction_win << " mz window " << mz_extr_window << " in ppm " << ppm << std::endl;
 
@@ -411,27 +415,25 @@ namespace OpenMS
     String model_type = "linear";
     im_trafo.fitModel(model_type, model_params);
 
-    // Store
-    double fragment_im_window = im_trafo.estimateWindow(0.99, true, true);
+    // Estimate MS2 ion mobility window
+    double fragment_im_window = im_trafo.estimateWindow(0.99, true, true, ion_mobility_estimation_padding_factor);
     setFragmentImWindow(fragment_im_window);
 
     if (!exp_im_ms1_all.empty())
     {
-      std::vector<double> resid_ms1;
-      resid_ms1.reserve(exp_im_ms1_all.size());
-      for (size_t i = 0; i < exp_im_ms1_all.size(); ++i)
+      TransformationDescription::DataPoints ms1_points;
+      ms1_points.reserve(exp_im_ms1_all.size());
+      for (Size i = 0; i < exp_im_ms1_all.size(); ++i)
       {
-        const double im_mapped = im_trafo.apply(exp_im_ms1_all[i]); // map exp->theo space
-        resid_ms1.push_back(std::abs(im_mapped - theo_im_ms1_all[i]));
+        // (x, y) = (experimental IM, theoretical IM)
+        ms1_points.emplace_back(exp_im_ms1_all[i], theo_im_ms1_all[i]);
       }
 
-      // 99th percentile half-width → convert to full-width
-      const size_t n = resid_ms1.size();
-      const size_t idx = std::min(n - 1, static_cast<size_t>(std::floor(0.99 * (n - 1))));
-      std::nth_element(resid_ms1.begin(), resid_ms1.begin() + idx, resid_ms1.end());
-      const double halfwidth = resid_ms1[idx];
-      const double precursor_im_window = 2.0 * halfwidth;
+      // Copy the fitted model; don't mutate im_trafo's datapoints
+      TransformationDescription tmp = im_trafo;
+      tmp.setDataPoints(ms1_points);
 
+      const double precursor_im_window = tmp.estimateWindow(0.99, /*invert=*/true, /*full_window=*/true, ion_mobility_estimation_padding_factor);
       setPrecursorImWindow(precursor_im_window);
     }
 
@@ -591,7 +593,16 @@ namespace OpenMS
 
     }
 
-    // Estimate mz window
+    // Estimate fragment mz window
+    {
+      std::ostringstream ss;
+      const Size N = std::min<Size>(delta_ppm.size(), 20);
+      ss << "[SwathMapMassCorrection::correctMZ] MS2 residuals (first "
+         << N << " of " << delta_ppm.size() << "): ";
+      for (Size i = 0; i < N; ++i) { if (i) ss << ", "; ss << delta_ppm[i]; }
+      if (delta_ppm.size() > N) ss << ", ...";
+      OPENMS_LOG_DEBUG << ss.str() << '\n';
+    }
     double fragment_mz_window = estimateWindow(delta_ppm, 0.99, true);
     setFragmentMzWindow(fragment_mz_window);
 
@@ -600,14 +611,15 @@ namespace OpenMS
     {
       std::sort(delta_ppm_ms1.begin(), delta_ppm_ms1.end());
 
-      const size_t N = delta_ppm_ms1.size() < 20 ? delta_ppm_ms1.size() : 20;
-      std::cout << "MS1 residuals (first " << N << " of " << delta_ppm_ms1.size() << "): ";
-      for (size_t i = 0; i < N; ++i) {
-        if (i) std::cout << ", ";
-        std::cout << delta_ppm_ms1[i];
+      {
+        std::ostringstream ss;
+        const Size N = std::min<Size>(delta_ppm_ms1.size(), 20);
+        ss << "[SwathMapMassCorrection::correctMZ] MS1 residuals (first "
+           << N << " of " << delta_ppm_ms1.size() << "): ";
+        for (Size i = 0; i < N; ++i) { if (i) ss << ", "; ss << delta_ppm_ms1[i]; }
+        if (delta_ppm_ms1.size() > N) ss << ", ...";
+        OPENMS_LOG_DEBUG << ss.str() << '\n';
       }
-      if (delta_ppm_ms1.size() > N) std::cout << ", ...";
-      std::cout << std::endl;
 
       double precursor_mz_window = estimateWindow(delta_ppm_ms1, 0.99, true);
       setPrecursorMzWindow(precursor_mz_window);
