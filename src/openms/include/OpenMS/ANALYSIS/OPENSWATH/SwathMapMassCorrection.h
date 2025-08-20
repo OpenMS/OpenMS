@@ -98,9 +98,9 @@ public:
       @brief Estimate an extraction window from absolute residuals.
 
       Treats the input @p residuals as absolute errors (e.g., |Δppm| for m/z).
-      The @p quantile defines the *half-width* h such that roughly q·100% of
-      residuals satisfy |r| ≤ h. If @p full_width is true, the returned value is
-      2·h (full window); otherwise h (half-width).
+      We compute an adaptive half-width using OpenMS::Math::adaptiveQuantile
+      (Tukey k=1.5; blend raw vs winsorized by tail density), and return
+      either the half-width or the full width (2×half).
 
       Notes:
         - Empty input yields 0.0.
@@ -110,12 +110,14 @@ public:
       @param residuals   Absolute residuals (e.g., |Δppm|).
       @param quantile    Quantile of the half-width distribution to use (default 0.99).
       @param full_width  If true, return 2×half-width; if false, return half-width.
+      @param padding_factor A padding factor to add to the estimated window.
       @return            Estimated window (same units as @p residuals; 0.0 if empty).
     */
     static double estimateWindow(
       std::vector<double> residuals,
       double quantile = 0.99,
-      bool full_width = true
+      bool full_width = true,
+      double padding_factor = 1.0
     );
 
     /// Retrieve the estimated fragment m/z extraction window (ppm)
@@ -153,6 +155,7 @@ public:
     String debug_mz_file_;
 
     /// fields for estimated mz and ion mobility windows
+    double mz_estimation_padding_factor_;
     double ion_mobility_estimation_padding_factor_;
     double fragment_mz_window_;
     double fragment_im_window_ = -1;

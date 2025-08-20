@@ -450,6 +450,8 @@ protected:
     setMinFloat_("rt_estimation_padding_factor", 1.0);
     registerDoubleOption_("ion_mobility_estimation_padding_factor", "<double>", 1.3, "A padding factor to multiply the estimated ion_mobility window by. For example, a factor of 1.3 will add a 30% padding to the estimated ion_mobility window, so if the estimated ion_mobility window is 0.03, then 0.009 will be added for a total estimated ion_mobility window of 0.039. A factor of 1.0 will not add any padding to the estimated window.", false);
     setMinFloat_("ion_mobility_estimation_padding_factor", 1.0);
+    registerDoubleOption_("mz_estimation_padding_factor", "<double>", 1.3, "A padding factor to multiply the estimated m/z window by. For example, a factor of 1.3 will add a 30% padding to the estimated m/z window, so if the estimated m/z window is 18, then 5.4 will be added for a total estimated m/z window of 23.4. A factor of 1.0 will not add any padding to the estimated window.", false);
+    setMinFloat_("mz_estimation_padding_factor", 1.0);
 
     registerDoubleOption_("rt_extraction_window", "<double>", 600.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false);
     registerDoubleOption_("extra_rt_extraction_window", "<double>", 0.0, "Output an XIC with a RT-window by this much larger (e.g. to visually inspect a larger area of the chromatogram)", false, true);
@@ -623,21 +625,21 @@ protected:
   /**
     @brief Validate an auto-estimated extraction window.
 
-  A window is considered valid if it is finite and strictly greater than a
-    small positive threshold. This guards against denormals (e.g., ~1e-310),
-    zeros, negative values, and NaNs/Inf.
+    A window is considered valid if it is finite and strictly greater than a
+     small positive threshold. This guards against denormals (e.g., ~1e-310),
+     zeros, negative values, and NaNs/Inf.
 
-                                       Typical units:
+    Typical units:
       - RT window: seconds
-                                - m/z window: ppm
-                                - IM window: native instrument units
+      - m/z window: ppm
+      - IM window: native instrument units
 
-                                              @param v            The candidate window value.
-                                              @param min_positive Minimum strictly-positive threshold (default: 1e-9).
-                                  Estimates <= this threshold are deemed invalid.
-                                 @return True if the window is usable; false otherwise.
-      */
-    inline bool is_valid_win(double v, double min_positive = 1e-9) noexcept
+    @param v            The candidate window value.
+    @param min_positive Minimum strictly-positive threshold (default: 1e-9).
+                         Estimates <= this threshold are deemed invalid.
+    @return True if the window is usable; false otherwise.
+  */
+  inline bool is_valid_win(double v, double min_positive = 1e-9) noexcept
   {
     return std::isfinite(v) && (v > min_positive);
   }
@@ -998,6 +1000,7 @@ protected:
     calibration_param.setValue("mz_extraction_window_ppm", cp_irt.ppm ? "true" : "false");
     calibration_param.setValue("im_extraction_window", cp_irt.im_extraction_window);
     calibration_param.setValue("ion_mobility_estimation_padding_factor", getDoubleOption_("ion_mobility_estimation_padding_factor"));
+    calibration_param.setValue("mz_estimation_padding_factor", getDoubleOption_("mz_estimation_padding_factor"));
     calibration_param.setValue("mz_correction_function", mz_correction_function);
     TransformationDescription trafo_rtnorm; double estimated_rt_extraction_window; double estimated_mz_extraction_window; double estimated_im_extraction_window;
     double estimated_ms1_mz_extraction_window; double estimated_ms1_im_extraction_window;
@@ -1010,6 +1013,7 @@ protected:
                                         cp_irt, irt_detection_param, calibration_param,
                                         debug_level, pasef, load_into_memory,
                                         irt_trafo_out, irt_mzml_out);
+      // Use the 0.99 quantile so the window covers ~99% of residuals, ignoring rare extremes (those that are potential outliers).
       estimated_rt_extraction_window = trafo_rtnorm.estimateWindow(0.99, true, true, rt_estimation_padding_factor);
       // RT (seconds)
       apply_window("RT",
@@ -1065,6 +1069,7 @@ protected:
                                         debug_level, pasef, load_into_memory,
                                         irt_trafo_out, irt_mzml_out);
 
+      // Use the 0.99 quantile so the window covers ~99% of residuals, ignoring rare extremes (those that are potential outliers).
       estimated_rt_extraction_window = trafo_rtnorm.estimateWindow(0.99, true, true, rt_estimation_padding_factor);
 
       cp_irt.rt_extraction_window = getDoubleOption_("irt_nonlinear_rt_extraction_window"); // extract some substantial part of the RT range (should be covered by linear correction)
@@ -1091,11 +1096,6 @@ protected:
       trafo_rtnorm = wf.doDataNormalization_(transition_exp_nl, chromatograms, im_trafo, swath_maps,
                                              min_rsq, min_coverage,
                                              feature_finder_param, nonlinear_irt, calibration_param, pasef);
-
-      double estimated_rt_extraction_window_nonlinear = trafo_rtnorm.estimateWindow(0.999, true, true, rt_estimation_padding_factor);
-
-      std::cout << "nonlinear estimated RT: " << estimated_rt_extraction_window_nonlinear << std::endl;
-
 
       TransformationDescription im_trafo_inv = im_trafo;
       im_trafo_inv.invert(); // theoretical -> experimental

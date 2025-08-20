@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ML/REGRESSION/LinearRegression.h>
 #include <OpenMS/ML/REGRESSION/QuadraticRegression.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
@@ -98,6 +99,8 @@ namespace OpenMS
     defaults_.setValue("ms1_im_calibration", "false", "Whether to use MS1 precursor data for the ion mobility calibration (default = false, uses MS2 / fragment ions for calibration)", {"advanced"});
     defaults_.setValidStrings("ms1_im_calibration", {"true","false"});
     defaults_.setValue("im_extraction_window", -1.0, "Ion mobility extraction window width");
+    defaults_.setValue("mz_estimation_padding_factor", 1.3, "A padding factor to multiply the estimated m/z window by. For example, a factor of 1.3 will add a 30% padding to the estimated m/z window, so if the estimated m/z window is 18, then 5.4 will be added for a total estimated m/z window of 23.4. A factor of 1.0 will not add any padding to the estimated window.");
+    defaults_.setMinFloat("mz_estimation_padding_factor", 1.0);
     defaults_.setValue("ion_mobility_estimation_padding_factor", 1.3, "A padding factor to multiply the estimated ion_mobility window by. For example, a factor of 1.3 will add a 30% padding to the estimated ion_mobility window, so if the estimated ion_mobility window is 0.03, then 0.009 will be added for a total estimated ion_mobility window of 0.039. A factor of 1.0 will not add any padding to the estimated window.");
     defaults_.setMinFloat("ion_mobility_estimation_padding_factor", 1.0);
     defaults_.setValue("mz_correction_function", "none", "Type of normalization function for m/z calibration.");
@@ -118,6 +121,7 @@ namespace OpenMS
     mz_extraction_window_ppm_ = param_.getValue("mz_extraction_window_ppm") == "true";
     ms1_im_ = param_.getValue("ms1_im_calibration") == "true";
     im_extraction_window_ = (double)param_.getValue("im_extraction_window");
+    mz_estimation_padding_factor_ = (double)param_.getValue("mz_estimation_padding_factor");
     ion_mobility_estimation_padding_factor_ = (double)param_.getValue("ion_mobility_estimation_padding_factor");
     mz_correction_function_ = param_.getValue("mz_correction_function").toString();
     im_correction_function_ = param_.getValue("im_correction_function").toString();
@@ -416,6 +420,7 @@ namespace OpenMS
     im_trafo.fitModel(model_type, model_params);
 
     // Estimate MS2 ion mobility window
+    // Use the 0.99 quantile so the window covers ~99% of residuals, ignoring rare extremes (those that are potential outliers).
     double fragment_im_window = im_trafo.estimateWindow(0.99, true, true, ion_mobility_estimation_padding_factor);
     setFragmentImWindow(fragment_im_window);
 
@@ -432,7 +437,7 @@ namespace OpenMS
       // Copy the fitted model; don't mutate im_trafo's datapoints
       TransformationDescription tmp = im_trafo;
       tmp.setDataPoints(ms1_points);
-
+      // Use the 0.99 quantile so the window covers ~99% of residuals, ignoring rare extremes (those that are potential outliers).
       const double precursor_im_window = tmp.estimateWindow(0.99, /*invert=*/true, /*full_window=*/true, ion_mobility_estimation_padding_factor);
       setPrecursorImWindow(precursor_im_window);
     }
@@ -450,6 +455,7 @@ namespace OpenMS
     double mz_extr_window = mz_extraction_window_;
     std::string corr_type = mz_correction_function_;
     double im_extraction = im_extraction_window_;
+    double mz_estimation_padding_factor = mz_estimation_padding_factor_;
 
     OPENMS_LOG_DEBUG << "SwathMapMassCorrection::correctMZ with type " << corr_type << " and window " << mz_extr_window << " in ppm " << ppm << std::endl;
 
@@ -603,7 +609,8 @@ namespace OpenMS
       if (delta_ppm.size() > N) ss << ", ...";
       OPENMS_LOG_DEBUG << ss.str() << '\n';
     }
-    double fragment_mz_window = estimateWindow(delta_ppm, 0.99, true);
+    // Use the 0.99 quantile so the window covers ~99% of residuals, ignoring rare extremes (those that are potential outliers).
+    double fragment_mz_window = estimateWindow(delta_ppm, 0.99, true, mz_estimation_padding_factor);
     setFragmentMzWindow(fragment_mz_window);
 
     // Estimate precursor window from MS1 residuals (full width, ppm)
@@ -620,8 +627,8 @@ namespace OpenMS
         if (delta_ppm_ms1.size() > N) ss << ", ...";
         OPENMS_LOG_DEBUG << ss.str() << '\n';
       }
-
-      double precursor_mz_window = estimateWindow(delta_ppm_ms1, 0.99, true);
+      // Use the 0.99 quantile so the window covers ~99% of residuals, ignoring rare extremes (those that are potential outliers).
+      double precursor_mz_window = estimateWindow(delta_ppm_ms1, 0.99, true, mz_estimation_padding_factor);
       setPrecursorMzWindow(precursor_mz_window);
     }
 
@@ -740,20 +747,24 @@ namespace OpenMS
     OPENMS_LOG_DEBUG << "SwathMapMassCorrection::correctMZ done." << std::endl;
   }
 
-  double SwathMapMassCorrection::estimateWindow(std::vector<double> residuals, double quantile, bool full_width)
+  double SwathMapMassCorrection::estimateWindow(std::vector<double> residuals, double quantile, bool full_width, double padding_factor)
   {
     if (residuals.empty()) return 0.0;
 
     // Ensure residuals are absolute errors
     for (auto& d : residuals) d = std::abs(d);
 
-    std::sort(residuals.begin(), residuals.end());
-    size_t idx = std::min<size_t>(
-      residuals.size() - 1,
-      size_t(residuals.size() * quantile)
-    );
-    double half_width = residuals[idx];
-    return full_width ? (half_width * 2.0) : half_width;
+    // Adaptive half-width (Tukey k=1.5, blend from robust→raw as tail density grows 1%→10%)
+    // k=1.5 uses the standard Tukey upper fence (Q3 + 1.5·IQR) to cap sparse extremes proposed in Exploratory Data Analysis by John W. Tukey (1977)
+    // r_sparse=0.01 means if ≤1% of |residuals| exceed the fence, treat them as outliers (favor robust quantile);
+    // r_dense=0.10 means if ≥10% exceed the fence, tails are genuinely broad (favor raw quantile).
+    // These values are conservative, widely used in stats.
+    const double half = OpenMS::Math::adaptiveQuantile(
+      residuals.begin(), residuals.end(),
+      quantile,
+      /*k=*/1.5, /*r_sparse=*/0.01, /*r_dense=*/0.10);
+
+    return (full_width ? (2.0 * half) : half) * padding_factor;
   }
 
   double SwathMapMassCorrection::getFragmentMzWindow() const
