@@ -369,7 +369,7 @@ protected:
         const String& irt_mzml_out)
   {
     TransformationDescription trafo_rtnorm;
-    double auto_mz_w; double auto_im_w; double auto_ms1_mz_w; double auto_ms1_im_w;
+    double auto_mz_w = 0; double auto_im_w = -1; double auto_ms1_mz_w = 0; double auto_ms1_im_w = -1;
 
     if (!trafo_in.empty())
     {
@@ -421,11 +421,6 @@ protected:
                                                cp_irt, irt_detection_param,
                                                calibration_param, irt_mzml_out, debug_level, pasef,
                                                load_into_memory);
-      double estimated_rt_extraction_window = trafo_rtnorm.estimateWindow(0.99, true, true);
-      std::cout
-        << "INNER Calibrated RT extraction window estimated: "
-        << estimated_rt_extraction_window
-        << std::endl;
       // Retrieve estimated mz and IM extraction windows
       auto_mz_w  = wf.getEstimatedMzWindow();
       auto_im_w  = wf.getEstimatedImWindow();
