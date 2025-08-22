@@ -448,9 +448,9 @@ protected:
     setValidStrings_("estimate_extraction_windows", ListUtils::create<String>("true,false"));
     registerDoubleOption_("rt_estimation_padding_factor", "<double>", 1.3, "A padding factor to multiply the estimated RT window by. For example, a factor of 1.3 will add a 30% padding to the estimated RT window, so if the estimated RT window is 144, then 43 will be added for a total estimated RT window of 187 seconds. A factor of 1.0 will not add any padding to the estimated window.", false);
     setMinFloat_("rt_estimation_padding_factor", 1.0);
-    registerDoubleOption_("ion_mobility_estimation_padding_factor", "<double>", 1.3, "A padding factor to multiply the estimated ion_mobility window by. For example, a factor of 1.3 will add a 30% padding to the estimated ion_mobility window, so if the estimated ion_mobility window is 0.03, then 0.009 will be added for a total estimated ion_mobility window of 0.039. A factor of 1.0 will not add any padding to the estimated window.", false);
+    registerDoubleOption_("ion_mobility_estimation_padding_factor", "<double>", 1.0, "A padding factor to multiply the estimated ion_mobility window by. For example, a factor of 1.3 will add a 30% padding to the estimated ion_mobility window, so if the estimated ion_mobility window is 0.03, then 0.009 will be added for a total estimated ion_mobility window of 0.039. A factor of 1.0 will not add any padding to the estimated window.", false);
     setMinFloat_("ion_mobility_estimation_padding_factor", 1.0);
-    registerDoubleOption_("mz_estimation_padding_factor", "<double>", 1.3, "A padding factor to multiply the estimated m/z window by. For example, a factor of 1.3 will add a 30% padding to the estimated m/z window, so if the estimated m/z window is 18, then 5.4 will be added for a total estimated m/z window of 23.4. A factor of 1.0 will not add any padding to the estimated window.", false);
+    registerDoubleOption_("mz_estimation_padding_factor", "<double>", 1.0, "A padding factor to multiply the estimated m/z window by. For example, a factor of 1.3 will add a 30% padding to the estimated m/z window, so if the estimated m/z window is 18, then 5.4 will be added for a total estimated m/z window of 23.4. A factor of 1.0 will not add any padding to the estimated window.", false);
     setMinFloat_("mz_estimation_padding_factor", 1.0);
 
     registerDoubleOption_("rt_extraction_window", "<double>", 600.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false);
@@ -1069,9 +1069,6 @@ protected:
                                         debug_level, pasef, load_into_memory,
                                         irt_trafo_out, irt_mzml_out);
 
-      // Use the 0.99 quantile so the window covers ~99% of residuals, ignoring rare extremes (those that are potential outliers).
-      estimated_rt_extraction_window = trafo_rtnorm.estimateWindow(0.99, true, true, rt_estimation_padding_factor);
-
       cp_irt.rt_extraction_window = getDoubleOption_("irt_nonlinear_rt_extraction_window"); // extract some substantial part of the RT range (should be covered by linear correction)
 
       ///////////////////////////////////
@@ -1096,6 +1093,9 @@ protected:
       trafo_rtnorm = wf.doDataNormalization_(transition_exp_nl, chromatograms, im_trafo, swath_maps,
                                              min_rsq, min_coverage,
                                              feature_finder_param, nonlinear_irt, calibration_param, pasef);
+
+      // Use the 0.99 quantile so the window covers ~99% of residuals, ignoring rare extremes (those that are potential outliers).
+      estimated_rt_extraction_window = trafo_rtnorm.estimateWindow(0.99, true, true, rt_estimation_padding_factor);
 
       TransformationDescription im_trafo_inv = im_trafo;
       im_trafo_inv.invert(); // theoretical -> experimental
