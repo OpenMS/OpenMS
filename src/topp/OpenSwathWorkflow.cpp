@@ -1094,6 +1094,17 @@ protected:
                                              min_rsq, min_coverage,
                                              feature_finder_param, nonlinear_irt, calibration_param, pasef);
 
+      if (!irt_trafo_out.empty())
+      {
+        String nonlinear_path = irt_trafo_out;
+
+        const String ext = ".trafoXML";
+        nonlinear_path = nonlinear_path.substr(0, nonlinear_path.size() - ext.size());
+        nonlinear_path += "_nonlinear.trafoXML";
+
+        FileHandler().storeTransformations(nonlinear_path, trafo_rtnorm, { FileTypes::TRANSFORMATIONXML });
+      }
+
       // Use the 0.99 quantile so the window covers ~99% of residuals, ignoring rare extremes (those that are potential outliers).
       estimated_rt_extraction_window = trafo_rtnorm.estimateWindow(0.99, true, true, rt_estimation_padding_factor);
 
