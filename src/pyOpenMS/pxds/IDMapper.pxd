@@ -22,8 +22,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
         IDMapper(IDMapper &) except + nogil 
 
         void annotate(AnnotatedMSRun & map_,
-                       PeptideIdentificationList & ids,
-                       libcpp_vector[ProteinIdentification] & protein_ids,
+                       const PeptideIdentificationList & ids,
+                       const libcpp_vector[ProteinIdentification] & protein_ids,
                        bool clear_ids,
                        bool mapMS1) except + nogil
             # wrap-doc:
@@ -62,8 +62,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #  :param map_ms1: Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
 
         void annotate(FeatureMap & map_,
-                      PeptideIdentificationList & ids,
-                      libcpp_vector[ProteinIdentification] & protein_ids,
+                      const PeptideIdentificationList & ids,
+                      const libcpp_vector[ProteinIdentification] & protein_ids,
                       bool use_centroid_rt,
                       bool use_centroid_mz,
                       MSExperiment & spectra) except + nogil 
@@ -87,8 +87,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #    Exception: MissingInformation is thrown if entries of 'ids' do not contain 'MZ' and 'RT' information
 
         void annotate(ConsensusMap & map_,
-                      PeptideIdentificationList & ids,
-                      libcpp_vector[ProteinIdentification] & protein_ids,
+                      const PeptideIdentificationList & ids,
+                      const libcpp_vector[ProteinIdentification] & protein_ids,
                       bool measure_from_subelements,
                       bool annotate_ids_with_subelements, 
                       MSExperiment & spectra) except + nogil 
@@ -113,7 +113,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
 
 
         IDMapper_PeptideIdentificationListState mapPrecursorsToIdentifications(MSExperiment spectra,
-                                                                           PeptideIdentificationList & ids, 
+                                                                           const PeptideIdentificationList & ids, 
                                                                            double mz_tol, double rt_tol) except + nogil 
             # wrap-doc:
                 #  Mapping of peptide identifications to spectra\n
@@ -131,8 +131,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
 
         # PeptideIdentificationList methods (new typed interface)
         void annotate(AnnotatedMSRun & map_,
-                      PeptideIdentificationList & ids,
-                      libcpp_vector[ProteinIdentification] & protein_ids,
+                      const PeptideIdentificationList & ids,
+                      const libcpp_vector[ProteinIdentification] & protein_ids,
                       bool clear_ids,
                       bool map_ms1) except + nogil
             # wrap-doc:
@@ -149,8 +149,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #  :param map_ms1: Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
 
         void annotate(FeatureMap & map_,
-                      PeptideIdentificationList & ids,
-                      libcpp_vector[ProteinIdentification] & protein_ids,
+                      const PeptideIdentificationList & ids,
+                      const libcpp_vector[ProteinIdentification] & protein_ids,
                       bool use_centroid_rt,
                       bool use_centroid_mz,
                       MSExperiment & spectra) except + nogil 
@@ -165,8 +165,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #  :param spectra: [Optional] Provide the underlying mass spectra, which allows adding an empty PeptideIdentification object containing the MS2 scan index to each Feature that covers an MS/MS spectrum (irrespective if it already has an ID).
 
         void annotate(ConsensusMap & map_,
-                      PeptideIdentificationList & ids,
-                      libcpp_vector[ProteinIdentification] & protein_ids,
+                      const PeptideIdentificationList & ids,
+                      const libcpp_vector[ProteinIdentification] & protein_ids,
                       bool measure_from_subelements,
                       bool annotate_ids_with_subelements, 
                       MSExperiment & spectra) except + nogil 
@@ -181,7 +181,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                 #  :param spectra: [Optional] Provide the underlying mass spectra, which allows adding an empty PeptideIdentification object containing the MS2 scan index to each ConsensusFeature that covers an MS/MS spectrum (irrespective if it already has an ID).
 
         IDMapper_PeptideIdentificationListState mapPrecursorsToIdentifications(MSExperiment spectra,
-                                                                           PeptideIdentificationList & ids, 
+                                                                           const PeptideIdentificationList & ids, 
                                                                            double mz_tol, double rt_tol) except + nogil 
             # wrap-doc:
                 #  Mapping of PeptideIdentificationList to spectra\n
