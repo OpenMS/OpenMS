@@ -61,11 +61,13 @@ void FLASHTnTFile::writeTags(const FLASHTnTAlgorithm& tnt, double flanking_mass_
       String delta_masses = "";
       for (const auto& hit : hits)
       {
-        if (! acc.empty()) acc += ";";
-        if (! description.empty()) description += ";";
-        if (! hitindices.empty()) hitindices += ";";
-        if (! positions.empty()) positions += ";";
-        if (! delta_masses.empty()) delta_masses += ";";
+        if (! hitindices.empty()) {
+          acc += ";";
+          description += ";";
+          hitindices += ";";
+          positions += ";";
+          delta_masses += ";";
+        }
 
         acc += hit.getAccession();
 
