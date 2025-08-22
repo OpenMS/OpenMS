@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/KERNEL/MassTrace.h>" namespace "OpenMS":
 
         Kernel_MassTrace() except + nogil 
         Kernel_MassTrace(Kernel_MassTrace &) except + nogil 
-        Kernel_MassTrace(const const libcpp_vector[ Peak2D ] &trace_peaks) except + nogil 
+        Kernel_MassTrace(const libcpp_vector[ Peak2D ] &trace_peaks) except + nogil 
 
         # public members
         double fwhm_mz_avg

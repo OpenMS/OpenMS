@@ -20,30 +20,30 @@ cdef extern from "<OpenMS/FORMAT/PepXMLFile.h>" namespace "OpenMS":
         # can be extracted.
 
         void load(String filename,
-                  const libcpp_vector[ProteinIdentification] & protein_ids,
+                  libcpp_vector[ProteinIdentification] & protein_ids,
                   PeptideIdentificationList & peptide_ids
                   ) except + nogil 
 
         void load(String filename,
-                  const libcpp_vector[ProteinIdentification] & protein_ids,
+                  libcpp_vector[ProteinIdentification] & protein_ids,
                   PeptideIdentificationList & peptide_ids,
                   String experiment_name
                   ) except + nogil 
 
         void load(String filename,
-                  const libcpp_vector[ProteinIdentification] & protein_ids,
+                  libcpp_vector[ProteinIdentification] & protein_ids,
                   PeptideIdentificationList & peptide_ids,
                   String experiment_name,
                   SpectrumMetaDataLookup lookup
                   ) except + nogil 
 
         void store(String filename,
-                  const libcpp_vector[ProteinIdentification] & protein_ids,
+                  libcpp_vector[ProteinIdentification] & protein_ids,
                   PeptideIdentificationList & peptide_ids
                   ) except + nogil 
 
         void store(String filename,
-                  const libcpp_vector[ProteinIdentification] & protein_ids,
+                  libcpp_vector[ProteinIdentification] & protein_ids,
                   PeptideIdentificationList & peptide_ids,
                   String mz_file,
                   String mz_name,

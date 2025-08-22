@@ -77,7 +77,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDRipper.h>" namespace "OpenMS":
         void rip(
                 libcpp_vector[RipFileIdentifier] & rfis,
                 libcpp_vector[RipFileContent] & rfcs,
-                const libcpp_vector[ProteinIdentification] & proteins,
+                libcpp_vector[ProteinIdentification] & proteins,
                 PeptideIdentificationList & peptides,
                 bool full_split,
                 bool split_ident_runs

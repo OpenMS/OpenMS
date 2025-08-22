@@ -58,7 +58,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>" namespace "OpenSwath
         # NAMESPACE # # POINTER # double calcSNScore(OpenSwath::IMRMFeature * mrmfeature, libcpp_vector[ OpenSwath::ISignalToNoisePtr ] & signal_noise_estimators) except + nogil 
 
         double calcMIScore() except + nogil 
-        double calcMIWeightedScore(const const libcpp_vector[ double ] & normalized_library_intensity) except + nogil 
+        double calcMIWeightedScore(const libcpp_vector[ double ] & normalized_library_intensity) except + nogil 
         
         double calcMIPrecursorScore() except + nogil  
         double calcMIPrecursorContrastScore() except + nogil  
