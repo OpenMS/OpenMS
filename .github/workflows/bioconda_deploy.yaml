@@ -25,7 +25,7 @@ jobs:
           activate-environment: bioconda_env
           auto-update-conda: true
           #environment-file: environment.yml # Replace with your Conda environment file if necessary
-          python-version: 3.9
+          python-version: 3.12
           channels: conda-forge,bioconda,defaults
           channel-priority: true
 
@@ -47,7 +47,7 @@ jobs:
         run: |
           git clone https://github.com/OpenMS/bioconda-recipes.git bioconda-recipes
           cd bioconda-recipes
-          git checkout -b nightly origin/nightly
+          git checkout -b nightly origin/nightly_w_arrow
           git remote add bioconda https://github.com/bioconda/bioconda-recipes.git
           git fetch bioconda master
           git rebase bioconda/master         
