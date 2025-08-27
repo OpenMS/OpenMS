@@ -24,7 +24,6 @@ jobs:
         with:
           activate-environment: bioconda_env
           auto-update-conda: true
-          #environment-file: environment.yml # Replace with your Conda environment file if necessary
           python-version: 3.12
           channels: conda-forge,bioconda,defaults
           channel-priority: true
@@ -34,7 +33,7 @@ jobs:
           mkdir -p $GITHUB_WORKSPACE/output/noarch
           touch $GITHUB_WORKSPACE/output/noarch/repodata.json
           conda install bioconda-utils -y
-          conda index $GITHUB_WORKSPACE/output
+          #conda index $GITHUB_WORKSPACE/output
           ls -l
           ls -l $GITHUB_WORKSPACE/output
 
@@ -57,13 +56,13 @@ jobs:
           cd bioconda-recipes
           bioconda-utils lint --packages pyopenms openms-meta
           bioconda-utils build --docker --pkg_dir $GITHUB_WORKSPACE/output --packages openms-meta || true
-          conda index $GITHUB_WORKSPACE/output
+          #conda index $GITHUB_WORKSPACE/output
           
       - name: Build pyopenms package
         run: |
           cd bioconda-recipes
           bioconda-utils build --docker --mulled-test --pkg_dir $GITHUB_WORKSPACE/output --packages pyopenms || true
-          conda index $GITHUB_WORKSPACE/output
+          #conda index $GITHUB_WORKSPACE/output
 
       - name: Upload Conda packages
         run: |
