@@ -444,8 +444,7 @@ protected:
     registerFlag_("pasef", "data is PASEF data");
 
     // RT, mz and IM windows
-    registerStringOption_("estimate_extraction_windows", "<true|false>", "true", "Estimate RT, m/z and ion mobility MS1 and MS2 extraction windows during iRT calibration, and use the estimated windows for downstream extractions of the spectral library coordinates.", false, true);
-    setValidStrings_("estimate_extraction_windows", ListUtils::create<String>("true,false"));
+    registerStringOption_("estimate_extraction_windows", "<all|none|rt[,mz][,im]>", "all", "Choose which extraction windows to estimate during iRT calibration. 'all' = estimate RT, m/z, and IM windows; 'none' = use user-set windows; or a comma-separated list from {rt,mz,im}.", false, true);
     registerDoubleOption_("rt_estimation_padding_factor", "<double>", 1.3, "A padding factor to multiply the estimated RT window by. For example, a factor of 1.3 will add a 30% padding to the estimated RT window, so if the estimated RT window is 144, then 43 will be added for a total estimated RT window of 187 seconds. A factor of 1.0 will not add any padding to the estimated window.", false);
     setMinFloat_("rt_estimation_padding_factor", 1.0);
     registerDoubleOption_("ion_mobility_estimation_padding_factor", "<double>", 1.0, "A padding factor to multiply the estimated ion_mobility window by. For example, a factor of 1.3 will add a 30% padding to the estimated ion_mobility window, so if the estimated ion_mobility window is 0.03, then 0.009 will be added for a total estimated ion_mobility window of 0.039. A factor of 1.0 will not add any padding to the estimated window.", false);
@@ -620,6 +619,77 @@ protected:
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown subsection", name);
     }
+  }
+
+  /**
+    @brief Selection flags for using auto-estimated extraction windows.
+
+    This POD struct indicates for which coordinates (RT, m/z, ion mobility)
+    the automatically estimated extraction windows should be applied.
+  */
+  struct EstimateWindowsChoice
+  {
+    bool rt{false};
+    bool mz{false};
+    bool im{false};
+  };
+
+  /**
+    @brief Parse the user option for selecting estimated extraction windows.
+
+    Interprets the option value as one of: \n
+     - @c "all"  → enable all: RT, m/z, and ion mobility \n
+     - @c "none" → enable none (default; keeps user-specified fixed windows) \n
+     - a comma-separated list drawn from @c {"rt","mz","im"}, e.g. @c "rt,mz" \n
+
+    Parsing is case-insensitive and tolerant of surrounding whitespace.
+    Unknown tokens or an empty/malformed value raise an exception.
+
+    @param estimate_windows_option_str  The option string (e.g. "all", "none", "rt,mz").
+    @return An @c EstimateWindowsChoice with the requested flags set.
+    @throws Exception::InvalidParameter
+            If the string is empty/malformed or contains unknown tokens.
+  */
+  EstimateWindowsChoice parseEstimateExtractionWindows_(String estimate_windows_option_str)
+  {
+    EstimateWindowsChoice out;
+    const String s = estimate_windows_option_str.trim().toLower();
+
+    if (s == "all")
+    {
+      out.rt = out.mz = out.im = true;
+      return out;
+    }
+    if (s == "none")
+    {
+      return out; // all false, don't use estimated extraction windows
+    }
+
+    StringList toks;
+    s.split(',', toks);
+    if (toks.empty())
+    {
+      throw OpenMS::Exception::InvalidParameter(
+        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "estimate_extraction_windows: value is empty or malformed (expected all|none|rt[,mz][,im])");
+    }
+
+    for (String t : toks)
+    {
+      t.trim();
+      t.toLower();
+      if (t == "rt")       { out.rt = true; }
+      else if (t == "mz")  { out.mz = true; }
+      else if (t == "im")  { out.im = true; }
+      else if (!t.empty())
+      {
+        throw OpenMS::Exception::InvalidParameter(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "estimate_extraction_windows: unknown token '" + t +
+            "'. Allowed: all, none, or a comma-separated value from {rt,mz,im}.");
+      }
+    }
+    return out;
   }
 
   /**
@@ -823,7 +893,7 @@ protected:
     bool use_ms1_im = getStringOption_("use_ms1_ion_mobility") == "true";
     bool prm = getStringOption_("matching_window_only") == "true";
 
-    bool use_estimated_extraction_windows = getStringOption_("estimate_extraction_windows") == "true";
+    EstimateWindowsChoice use_est_window_choices = parseEstimateExtractionWindows_(getStringOption_("estimate_extraction_windows"));
     ChromExtractParams cp;
     cp.min_upper_edge_dist   = min_upper_edge_dist;
     cp.mz_extraction_window  = getDoubleOption_("mz_extraction_window");
@@ -1021,35 +1091,35 @@ protected:
                    /*dst*/  cp.rt_extraction_window,
                    /*user*/ cp.rt_extraction_window,
                    /*applicable=*/true,
-                   /*commit=*/use_estimated_extraction_windows);
+                   /*commit=*/use_est_window_choices.rt);
 
       // MS2 m/z (ppm)
       apply_window("MS2 m/z (ppm)",
                    estimated_mz_extraction_window,
                    cp.mz_extraction_window, cp.mz_extraction_window,
                    /*applicable=*/true,
-                   /*commit=*/use_estimated_extraction_windows);
+                   /*commit=*/use_est_window_choices.mz);
 
       // MS2 ion mobility (1/k0)
       apply_window("MS2 ion mobility (1/k0)",
                    estimated_im_extraction_window,
                    cp.im_extraction_window, cp.im_extraction_window,
                    /*applicable=*/pasef,
-                   /*commit=*/use_estimated_extraction_windows);
+                   /*commit=*/use_est_window_choices.im);
 
       // MS1 m/z (ppm)
       apply_window("MS1 m/z (ppm)",
                    estimated_ms1_mz_extraction_window,
                    cp_ms1.mz_extraction_window, cp_ms1.mz_extraction_window,
                    /*applicable=*/true,
-                   /*commit=*/use_estimated_extraction_windows);
+                   /*commit=*/use_est_window_choices.mz);
 
       // MS1 ion mobility (1/k0)
       apply_window("MS1 ion mobility (1/k0)",
                    estimated_ms1_im_extraction_window,
                    cp_ms1.im_extraction_window, cp_ms1.im_extraction_window,
                    /*applicable=*/pasef,
-                   /*commit=*/use_estimated_extraction_windows);
+                   /*commit=*/use_est_window_choices.im);
     }
     else
     {
@@ -1128,35 +1198,35 @@ protected:
                    /*dst*/  cp.rt_extraction_window,
                    /*user*/ cp.rt_extraction_window,
                    /*applicable=*/true,
-                   /*commit=*/use_estimated_extraction_windows);
+                   /*commit=*/use_est_window_choices.rt);
 
       // MS2 m/z (ppm)
       apply_window("MS2 m/z (ppm)",
                    estimated_mz_extraction_window,
                    cp.mz_extraction_window, cp.mz_extraction_window,
                    /*applicable=*/true,
-                   /*commit=*/use_estimated_extraction_windows);
+                   /*commit=*/use_est_window_choices.mz);
 
       // MS2 ion mobility (1/k0)
       apply_window("MS2 ion mobility (1/k0)",
                    estimated_im_extraction_window,
                    cp.im_extraction_window, cp.im_extraction_window,
                    /*applicable=*/pasef,
-                   /*commit=*/use_estimated_extraction_windows);
+                   /*commit=*/use_est_window_choices.im);
 
       // MS1 m/z (ppm)
       apply_window("MS1 m/z (ppm)",
                    estimated_ms1_mz_extraction_window,
                    cp_ms1.mz_extraction_window, cp_ms1.mz_extraction_window,
                    /*applicable=*/true,
-                   /*commit=*/use_estimated_extraction_windows);
+                   /*commit=*/use_est_window_choices.mz);
 
       // MS1 ion mobility (1/k0)
       apply_window("MS1 ion mobility (1/k0)",
                    estimated_ms1_im_extraction_window,
                    cp_ms1.im_extraction_window, cp_ms1.im_extraction_window,
                    /*applicable=*/pasef,
-                   /*commit=*/use_estimated_extraction_windows);
+                   /*commit=*/use_est_window_choices.im);
     }
 
     ///////////////////////////////////
