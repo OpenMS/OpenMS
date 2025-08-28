@@ -68,7 +68,7 @@ jobs:
         run: |
           cd bioconda-recipes
           ls -l $GITHUB_WORKSPACE/output
-          anaconda -v -t ${{ secrets.ANACONDA_TOKEN }} upload -u openms --no-progress --force $GITHUB_WORKSPACE/output/linux-64/*.tar.bz2
+          anaconda -v -t ${{ secrets.ANACONDA_TOKEN }} upload -u openms --no-progress --force $GITHUB_WORKSPACE/output/linux-64/*.conda
 
       - name: Check upload status
         run: |
