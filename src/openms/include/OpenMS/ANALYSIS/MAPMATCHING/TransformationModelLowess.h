@@ -49,7 +49,7 @@ private:
   // Hide helper utilities from public API. Defined in the .cpp.
 
   /// @cond INTERNAL
-  
+
   /**
     @brief Build the candidate LOWESS span grid with neighbor-based flooring and min/max clamping.
 
@@ -62,7 +62,7 @@ private:
       - Guarantee a non-empty result by falling back to a single value if necessary.
 
     @param n_pts           Number of data points available.
-    @param grid_str        Optional user-specified grid string (comma/space separated).
+    @param grid_str        Span candidates in (0, 1). If empty, a default span grid is used.
     @param span_min_param  Minimum allowed span (will be raised to at least `0.01`).
     @param span_max_param  Maximum allowed span (will be lowered to at most `0.99`).
     @param min_neighbors   Minimum number of neighbors to include in each local regression.
@@ -70,7 +70,7 @@ private:
     @return Vector of candidate spans after clamping and de-duplication.
   */
   static std::vector<double> buildSpanGrid(Size n_pts,
-                                           const String& grid_str,
+                                           const std::vector<double>& candidate_spans,
                                            double span_min_param,
                                            double span_max_param,
                                            int min_neighbors);

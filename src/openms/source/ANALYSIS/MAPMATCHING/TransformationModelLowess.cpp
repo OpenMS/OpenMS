@@ -99,7 +99,12 @@ namespace OpenMS
 
       // Build candidate grid spans
       const String grid_str = params_.getValue("auto_span_grid").toString();
-      const std::vector<double> spans = buildSpanGrid(n, grid_str,
+      std::vector<double> user_grid;
+      if (!grid_str.empty())
+      {
+        user_grid = ListUtils::create<double>(grid_str); 
+      }
+      const std::vector<double> spans = buildSpanGrid(n, user_grid,
                                                       span_min_param, span_max_param,
                                                       min_neighbors);
 
@@ -232,16 +237,16 @@ namespace OpenMS
   }
 
   std::vector<double> TransformationModelLowess::buildSpanGrid(Size n_pts,
-                                    const String& grid_str,
-                                    double span_min_param,
-                                    double span_max_param,
-                                    int min_neighbors)
+                                                               const std::vector<double>& candidate_spans,
+                                                               double span_min_param,
+                                                               double span_max_param,
+                                                               int min_neighbors)
   {
     // Parse user grid if supplied, needs to be comma-separated doubles
     std::vector<double> grid;
-    if (!grid_str.empty())
+    if (!candidate_spans.empty())
     {
-      grid = ListUtils::create<double>(grid_str);
+      grid = candidate_spans;
     }
     else
     {
