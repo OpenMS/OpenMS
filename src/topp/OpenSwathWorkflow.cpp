@@ -407,7 +407,7 @@ protected:
 
     // iRT calibration
     registerStringOption_("auto_irt", "<true|false>", "true",
-                          "Whether to sample iRTs on‐the‐fly (true) from the input targeted transition file (instead of passing specific iRT files). This may be useful if standard iRTs (Biognosys iRT kit) were not spiked-in.", false, true);
+                          "Whether to sample iRTs on‐the‐fly (true) from the input targeted transition file (instead of passing specific iRT files). This may be useful if standard iRTs (Biognosys iRT kit) were not spiked-in. If set to false, and no additional iRT files are provided via `-tr_irt` / `-tr_irt_nonlinear`, and no transformation is provided via `-rt_norm`, then no calibration is performed.", false, true);
     setValidStrings_("auto_irt", ListUtils::create<String>("true,false"));
 
     registerInputFile_("swath_windows_file", "<file>", "", "Optional, tab-separated file containing the SWATH windows for extraction: lower_offset upper_offset. Note that the first line is a header and will be skipped.", false);
