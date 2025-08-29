@@ -109,9 +109,9 @@ namespace OpenMS
     StringList am;
     auto sz = activation_methods_.size();
     am.reserve(sz);
-    for (const auto& m : sz)
+    for (const auto m : activation_methods_)
     {
-      am.push_back(NamesOfActivationMethod[m]);
+      am.push_back(NamesOfActivationMethod[static_cast<size_t>(m)]);
     }
     return am;
   }
@@ -121,9 +121,9 @@ namespace OpenMS
     StringList am;
     auto sz = activation_methods_.size();
     am.reserve(sz);
-    for (const auto& m : sz)
+    for (const auto m : activation_methods_)
     {
-      am.push_back(NamesOfActivationMethodShort[m]);
+      am.push_back(NamesOfActivationMethod[static_cast<size_t>(m)]);
     }
     return am;
   }
