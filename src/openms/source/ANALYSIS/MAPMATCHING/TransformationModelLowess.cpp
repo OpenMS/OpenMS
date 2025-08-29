@@ -10,6 +10,7 @@
 #include <OpenMS/PROCESSING/SMOOTHING/FastLowessSmoothing.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/ML/CROSSVALIDATION/CrossValidation.h>
+#include <OpenMS/CONCEPT/EnumHelpers.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <algorithm>
@@ -134,7 +135,16 @@ namespace OpenMS
         }
       };
 
-      auto score = [&](const std::vector<double>& errs){ return scoreResiduals(errs, metric); };
+      const String metric_str = params_.getValue("auto_metric").toString();
+//      const OSWFile::OSWLevel osw_level = (OSWFile::OSWLevel)Helpers::indexOf(OSWFile::names_of_oswlevel, getStringOption_("osw_level"));
+
+      const auto metric_enum = (TransformationModelLowess::CVMetric)Helpers::indexOf(TransformationModelLowess::names_of_cvmetric, metric_str);
+
+      // Later, when scoring folds:
+      auto score = [&](const std::vector<double>& errs)
+      {
+        return scoreResiduals(errs, metric_enum);
+      };
 
       // Run 1-D grid search
       const bool prefer_larger = true;
@@ -275,32 +285,40 @@ namespace OpenMS
     return grid;
   }
 
-  double TransformationModelLowess::scoreResiduals(const std::vector<double>& errs, const String& metric)
+  const std::array<std::string, static_cast<size_t>(TransformationModelLowess::CVMetric::SIZE_OF_CVMETRIC)> TransformationModelLowess::names_of_cvmetric = { "rmse", "mae", "p90", "p95", "p99" };
+
+  double TransformationModelLowess::scoreResiduals(const std::vector<double>& errs,
+                                                   CVMetric metric)
   {
     if (errs.empty()) return std::numeric_limits<double>::infinity();
 
-    if (metric == "rmse")
+    switch (metric)
     {
-      std::vector<double> zeros(errs.size(), 0.0);
-      return OpenMS::Math::rootMeanSquareError(errs.begin(), errs.end(), zeros.begin(), zeros.end());
+      case CVMetric::RMSE:
+      {
+        std::vector<double> zeros(errs.size(), 0.0);
+        return OpenMS::Math::rootMeanSquareError(errs.begin(), errs.end(), zeros.begin(), zeros.end());
+      }
+      case CVMetric::MAE:
+        return OpenMS::Math::meanAbsoluteError(errs.begin(), errs.end());
+
+      case CVMetric::P90:
+      {
+        auto tmp = errs;
+        return OpenMS::Math::quantile(tmp.begin(), tmp.end(), 0.90, /*sorted=*/false);
+      }
+      case CVMetric::P99:
+      {
+        auto tmp = errs;
+        return OpenMS::Math::quantile(tmp.begin(), tmp.end(), 0.99, /*sorted=*/false);
+      }
+      case CVMetric::P95:
+      default:
+      {
+        auto tmp = errs;
+        return OpenMS::Math::quantile(tmp.begin(), tmp.end(), 0.95, /*sorted=*/false);
+      }
     }
-    if (metric == "mae")
-    {
-      return OpenMS::Math::meanAbsoluteError(errs.begin(), errs.end());
-    }
-    if (metric == "p90")
-    {
-      auto tmp = errs; // quantile sorts in-place; copy to preserve caller buffer
-      return OpenMS::Math::quantile(tmp.begin(), tmp.end(), 0.90, /*sorted=*/false);
-    }
-    if (metric == "p99")
-    {
-      auto tmp = errs;
-      return OpenMS::Math::quantile(tmp.begin(), tmp.end(), 0.99, /*sorted=*/false);
-    }
-    // default p95
-    auto tmp = errs;
-    return OpenMS::Math::quantile(tmp.begin(), tmp.end(), 0.95, /*sorted=*/false);
   }
 
   }

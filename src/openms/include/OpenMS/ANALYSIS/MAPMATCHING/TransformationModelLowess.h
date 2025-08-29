@@ -86,6 +86,18 @@ private:
                                            double span_max_param,
                                            int min_neighbors);
 
+  /// Cross-validation metric for auto-span selection
+  enum class CVMetric
+  {
+    RMSE,
+    MAE,
+    P90,
+    P95,
+    P99,
+    SIZE_OF_CVMETRIC
+  };
+  static const std::array<std::string, static_cast<size_t>(CVMetric::SIZE_OF_CVMETRIC)> names_of_cvmetric;
+
   /**
     @brief Score absolute residuals according to the selected metric.
 
@@ -100,7 +112,7 @@ private:
     @param metric Metric name (`"rmse"`, `"mae"`, `"p90"`, `"p95"`, `"p99"`).
     @return Scalar loss; lower values indicate better fit.
   */
-  static double scoreResiduals(const std::vector<double>& errs, const String& metric);
+  static double scoreResiduals(const std::vector<double>& errs, CVMetric metric);
 
   /// Numerical tie tolerance for CV score comparisons (absolute difference)
   static constexpr double kTieTol = 1e-12;
