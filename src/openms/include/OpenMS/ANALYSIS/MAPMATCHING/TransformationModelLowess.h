@@ -59,7 +59,7 @@ private:
     @param s Input string containing candidate spans.
     @return Vector of valid candidate spans in (0, 1).
  */
-  static std::vector<double> parseSpanGridString(const String& s);
+  static std::vector<double> parseSpanGridString_(const String& s);
 
   /**
     @brief Build the candidate LOWESS span grid with neighbor-based flooring and min/max clamping.
