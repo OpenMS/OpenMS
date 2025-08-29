@@ -135,15 +135,12 @@ namespace OpenMS
         }
       };
 
-      const String metric_str = params_.getValue("auto_metric").toString();
-//      const OSWFile::OSWLevel osw_level = (OSWFile::OSWLevel)Helpers::indexOf(OSWFile::names_of_oswlevel, getStringOption_("osw_level"));
-
-      const auto metric_enum = (TransformationModelLowess::CVMetric)Helpers::indexOf(TransformationModelLowess::names_of_cvmetric, metric_str);
+      const auto metric = (TransformationModelLowess::CVMetric)Helpers::indexOf(TransformationModelLowess::names_of_cvmetric, params_.getValue("auto_metric").toString());
 
       // Later, when scoring folds:
       auto score = [&](const std::vector<double>& errs)
       {
-        return scoreResiduals(errs, metric_enum);
+        return scoreResiduals(errs, metric);
       };
 
       // Run 1-D grid search
@@ -155,7 +152,7 @@ namespace OpenMS
 
       span = best_span;
       OPENMS_LOG_INFO << "Optimal selected span=" << span
-                << " (" << metric << " = " << best_score << ")" << std::endl;
+                << " (" << params_.getValue("auto_metric").toString() << " = " << best_score << ")" << std::endl;
 
       // persist for downstream and prevent re-entry
       params_.setValue("span", span);
