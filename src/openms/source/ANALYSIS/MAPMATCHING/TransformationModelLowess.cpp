@@ -84,8 +84,8 @@ namespace OpenMS
     const double span_max_param = (double)params_.getValue("auto_span_max");
     const int    min_neighbors  = (int)params_.getValue("auto_min_neighbors");
     const int    k_folds_param  = (int)params_.getValue("auto_k_folds");
-    const String metric         = params_.getValue("auto_metric").toString();
-
+    const auto metric = (TransformationModelLowess::CVMetric)Helpers::indexOf(TransformationModelLowess::names_of_cvmetric, params_.getValue("auto_metric").toString());
+    
     // Determine optimal span using CV
     const Size n = data.size();
     if (auto_span_flag)
@@ -134,8 +134,6 @@ namespace OpenMS
           }
         }
       };
-
-      const auto metric = (TransformationModelLowess::CVMetric)Helpers::indexOf(TransformationModelLowess::names_of_cvmetric, params_.getValue("auto_metric").toString());
 
       // Later, when scoring folds:
       auto score = [&](const std::vector<double>& errs)
