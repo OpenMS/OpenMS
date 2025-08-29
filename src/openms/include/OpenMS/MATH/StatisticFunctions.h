@@ -198,34 +198,6 @@ namespace OpenMS
     }
 
     /**
-      @brief Mean absolute error (single range).
-
-      Interprets [begin, end) as a sequence of residuals (signed or already absolute)
-      and returns mean(|value|).
-
-      @exception Exception::InvalidRange is thrown if the range is NULL or empty.
-
-      @ingroup MathFunctionsStatistics
-    */
-    template <typename IteratorType>
-    static double meanAbsoluteError(IteratorType begin, IteratorType end)
-    {
-        checkIteratorsNotNULL(begin, end);
-        const Size n = std::distance(begin, end);
-        if (n == 0)
-        {
-          throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-        }
-
-        double acc = 0.0;
-        for (IteratorType it = begin; it != end; ++it)
-        {
-          acc += std::fabs(static_cast<double>(*it));
-        }
-        return acc / static_cast<double>(n);
-    }
-
-    /**
        @brief Calculates the first quantile of a range of values
        
        The range is divided into half and the median for the first half is returned.
