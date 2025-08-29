@@ -12,6 +12,9 @@
 ///////////////////////////
 #include <OpenMS/FORMAT/GzipInputStream.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+
+#include <xercesc/util/PlatformUtils.hpp>
+
 using namespace OpenMS;
 
 

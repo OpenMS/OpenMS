@@ -14,6 +14,7 @@ namespace OpenMS
 {
   class MSSpectrum;
   class MSChromatogram;
+  class Mobilogram;
   class MSExperiment;
 
   //@{
@@ -39,6 +40,7 @@ namespace OpenMS
       @ingroup Kernel
   */
   typedef MSChromatogram Chromatogram;
+
   //@}
 
 }

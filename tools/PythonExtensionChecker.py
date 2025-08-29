@@ -196,7 +196,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
                     tres.setMessage("Renamed constructor")
                 else:
                     tres.setPassed(False)
-                    tres.setMessage(" -- TODO missing constructor in PXD: %s nogil except +" % mdef.format_definition_for_cython())
+                    tres.setMessage(" -- TODO missing constructor in PXD: %s except + nogil " % mdef.format_definition_for_cython())
 
             elif (mdef.name.find("operator") != -1 or
                   mdef.name.find("begin") != -1 or
@@ -206,7 +206,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
                 tres.setMessage("Cannot wrap method with iterator/operator %s" % mdef.name)
             else:
                 tres.setPassed(False)
-                tres.setMessage(" -- TODO missing function in PXD: %s nogil except +" % mdef.format_definition_for_cython())
+                tres.setMessage(" -- TODO missing function in PXD: %s except + nogil " % mdef.format_definition_for_cython())
     else:
         # It is neither public function/enum/variable
         tres.setPassed(True)
@@ -486,10 +486,10 @@ class DoxygenXMLFile(object):
                     # assignment operator, cannot be overriden in Python
                     continue
                 if mdef.definition.find("static") != -1:
-                    methods += "        # TODO: static # %s nogil except +\n" % declaration
-                    static_methods += "        %s nogil except + # wrap-attach:%s\n" % (declaration, preferred_classname)
+                    methods += "        # TODO: static # %s except + nogil \n" % declaration
+                    static_methods += "        %s except + nogil  # wrap-attach:%s\n" % (declaration, preferred_classname)
                     continue
-                methods += "        %s nogil except +\n" % declaration
+                methods += "        %s except + nogil \n" % declaration
 
         # Build up the whole file
         res  = DoxygenCppFunction.generate_imports(imports_needed) # add default cimport
@@ -498,11 +498,11 @@ class DoxygenXMLFile(object):
         # We need to create a default ctor in any case, however we do not need
         # to *wrap* the copy constructor even though we need to have one for Cython
         if True: # not default_ctor:
-            res += "        %s() nogil except +\n" % comp_name.split("::")[-1]
+            res += "        %s() except + nogil \n" % comp_name.split("::")[-1]
         if not copy_ctor:
-            res += "        %s(%s) nogil except + #wrap-ignore\n" % (comp_name.split("::")[-1], comp_name.split("::")[-1])
+            res += "        %s(%s) except + nogil  #wrap-ignore\n" % (comp_name.split("::")[-1], comp_name.split("::")[-1])
         else:
-            res += "        %s(%s) nogil except +\n" % (comp_name.split("::")[-1], comp_name.split("::")[-1])
+            res += "        %s(%s) except + nogil \n" % (comp_name.split("::")[-1], comp_name.split("::")[-1])
         res += methods
         res += enum
         res += "\n"
@@ -645,8 +645,8 @@ class DoxygenCppFunction(object):
 
         # Add nogil
         if replace_nogil:
-            cpp_def = cpp_def.replace(";", "nogil except +")
-            cpp_def = cpp_def.replace("const;", "nogil except +")
+            cpp_def = cpp_def.replace(";", "except + nogil ")
+            cpp_def = cpp_def.replace("const;", "except + nogil ")
         else:
             cpp_def = cpp_def.replace("const;", "")
             cpp_def = cpp_def.replace(";", "")
@@ -1145,7 +1145,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
         elif comp_name.startswith("KDTree::"):
             # KD Tree namespace
             continue
-        elif not (comp_name.startswith("OpenMS") or comp_name.startswith("OpenSwath") or comp_name.startswith("RNPxl") ):
+        elif not (comp_name.startswith("OpenMS") or comp_name.startswith("OpenSwath") or comp_name.startswith("OpenNuXL") ):
             # Continue without checking or generating a testreport
             print ("Unknown namespace", comp_name)
             continue

@@ -201,10 +201,10 @@ START_SECTION((static void transformRetentionTimes(ConsensusMap& cmap, const Tra
 }
 END_SECTION
 
-START_SECTION((static void transformRetentionTimes(std::vector<PeptideIdentification>& pep_ids, const TransformationDescription& trafo, bool store_original_rt = false)))
+START_SECTION((static void transformRetentionTimes(PeptideIdentificationList& pep_ids, const TransformationDescription& trafo, bool store_original_rt = false)))
 {
   PeptideIdentification pi;
-  vector<PeptideIdentification> pis;
+  PeptideIdentificationList pis;
 
   pi.setRT(11.1);
   pis.push_back(pi);

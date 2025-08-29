@@ -9,6 +9,7 @@
 #include <OpenMS/PROCESSING/SMOOTHING/GaussFilter.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/Mobilogram.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <cmath>
@@ -136,6 +137,57 @@ namespace OpenMS
       {
         chromatogram[p].setIntensity(int_out[p]);
         chromatogram[p].setRT(rt_out[p]);
+      }
+    }
+  }
+
+  void GaussFilter::filter(Mobilogram & mobilogram)
+  {
+    if (param_.getValue("use_ppm_tolerance").toBool())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "GaussFilter: Cannot use ppm tolerance on mobilogram");
+    }
+
+    bool found_signal = false;
+    const Size data_size = mobilogram.size();
+    std::vector<double> im_in(data_size), int_in(data_size), im_out(data_size), int_out(data_size);
+
+    // copy spectrum to container
+    for (Size p = 0; p < mobilogram.size(); ++p)
+    {
+      im_in[p] = mobilogram[p].getMobility();
+      int_in[p] = mobilogram[p].getIntensity();
+    }
+
+    // apply filter
+    auto im_out_it = im_out.begin();
+    auto int_out_it = int_out.begin();
+    found_signal = gauss_algo_.filter(im_in.begin(), im_in.end(), int_in.begin(), im_out_it, int_out_it);
+
+    // If all intensities are zero in the scan and the scan has a reasonable size, throw an exception.
+    // This is the case if the Gaussian filter is smaller than the spacing of raw data
+    if (!found_signal && mobilogram.size() >= 3)
+    {
+      if (write_log_messages_)
+      {
+        String error_message = "Found no signal. The Gaussian width is probably smaller than the spacing in your mobilogram data. Try to use a bigger width.";
+        if (mobilogram.getRT() > 0.0)
+        {
+          error_message += String(" The error occurred in the mobilogram with RT ") + mobilogram.getRT() + ".";
+        }
+        OPENMS_LOG_ERROR << error_message << std::endl;
+      }
+    }
+    else
+    {
+      // copy the new data into the spectrum
+      auto im_it = im_out.begin();
+      auto int_it = int_out.begin();
+      for (Size p = 0; im_it != im_out.end(); im_it++, int_it++, p++)
+      {
+        mobilogram[p].setIntensity(*int_it);
+        mobilogram[p].setMobility(*im_it);
       }
     }
   }

@@ -57,10 +57,10 @@ PeptideIdentification pep_id_3;
 pep_id_3.setHits(pep_hits_3);
 
 // construct vectors of PeptideIdentifications
-std::vector<PeptideIdentification> pep_ids = {pep_id_0, pep_id_1, pep_id_empty};
-std::vector<PeptideIdentification> pep_ids_1 = {pep_id_1, pep_id_1};
-std::vector<PeptideIdentification> pep_ids_empty {};
-std::vector<PeptideIdentification> pep_ids_3 = {pep_id_3};
+PeptideIdentificationList pep_ids = {pep_id_0, pep_id_1, pep_id_empty};
+PeptideIdentificationList pep_ids_1 = {pep_id_1, pep_id_1};
+PeptideIdentificationList pep_ids_empty {};
+PeptideIdentificationList pep_ids_3 = {pep_id_3};
 
 // construct features with peptideIdentifications
 Feature feat_empty_pi;

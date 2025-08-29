@@ -20,7 +20,7 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
     START_SECTION(BasicProteinInferenceAlgorithm on Protein Peptide ID)
     {
       vector<ProteinIdentification> prots;
-      vector<PeptideIdentification> peps;
+      PeptideIdentificationList peps;
       IdXMLFile idf;
       idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
       BasicProteinInferenceAlgorithm bpia;
@@ -48,7 +48,7 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
     START_SECTION(BasicProteinInferenceAlgorithm on Protein Peptide ID without shared peps)
     {
       vector<ProteinIdentification> prots;
-      vector<PeptideIdentification> peps;
+      PeptideIdentificationList peps;
       IdXMLFile idf;
       idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
       BasicProteinInferenceAlgorithm bpia;
@@ -77,7 +77,7 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
     START_SECTION(BasicProteinInferenceAlgorithm on Protein Peptide ID with grouping)
     {
       vector<ProteinIdentification> prots;
-      vector<PeptideIdentification> peps;
+      PeptideIdentificationList peps;
       IdXMLFile idf;
       idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
       BasicProteinInferenceAlgorithm bpia;
@@ -111,7 +111,7 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
     START_SECTION(BasicProteinInferenceAlgorithm on Protein Peptide ID with grouping plus resolution)
     {
       vector<ProteinIdentification> prots;
-      vector<PeptideIdentification> peps;
+      PeptideIdentificationList peps;
       IdXMLFile idf;
       idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
       BasicProteinInferenceAlgorithm bpia;
@@ -143,7 +143,7 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
     START_SECTION(BasicProteinInferenceAlgorithm on Protein Peptide ID with grouping and user score)
     {
       vector<ProteinIdentification> prots;
-      vector<PeptideIdentification> peps;
+      PeptideIdentificationList peps;
       IdXMLFile idf;
       idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
       BasicProteinInferenceAlgorithm bpia;
@@ -182,7 +182,7 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
     START_SECTION(BasicProteinInferenceAlgorithm on Protein Peptide ID with grouping plus resolution and user set score type)
     {
       vector<ProteinIdentification> prots;
-      vector<PeptideIdentification> peps;
+      PeptideIdentificationList peps;
       IdXMLFile idf;
       idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
       BasicProteinInferenceAlgorithm bpia;

@@ -9,6 +9,19 @@ endif ()
 
 option (INSTALL_TDL "Enable installation of TDL. (Projects embedding TDL may want to turn this OFF.)" ON)
 
+if (ADDRESS_SANITIZER)
+    if (MSVC AND MSVC_VERSION LESS 1920)
+        message(FATAL_ERROR "AddressSanitizer is not supported for MSVC versions < 2019.")
+    else()
+        # For Windows, every static lib that uses STL needs to be compiled with ASAN ON
+        # otherwise the linker will complain about mismatch in annotated vs unannotated STL
+        # types. https://learn.microsoft.com/en-us/cpp/sanitizers/error-container-overflow?view=msvc-170
+        if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+            add_compile_options("/fsanitize=address")
+        endif()
+    endif()
+endif()
+
 find_package (yaml-cpp 0.8.0 QUIET)
 if (NOT yaml-cpp_FOUND)
     if (NOT ${CMAKE_FIND_PACKAGE_NAME}_FIND_QUIETLY)
@@ -24,8 +37,9 @@ if (NOT yaml-cpp_FOUND)
     option (YAML_CPP_BUILD_CONTRIB "" OFF)
     option (YAML_CPP_BUILD_TOOLS "" OFF)
     option (YAML_BUILD_SHARED_LIBS "" OFF)
-    option (YAML_CPP_INSTALL "" ${INSTALL_TDL})
+    # option (YAML_CPP_INSTALL "" ${INSTALL_TDL})
     option (YAML_CPP_BUILD_TESTS "" OFF)
+    option (YAML_CPP_BUILD_EXAMPLES "" OFF)
     set_property (GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
     FetchContent_MakeAvailable (yaml-cpp_fetch_content)
 else ()

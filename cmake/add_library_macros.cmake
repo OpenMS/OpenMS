@@ -11,13 +11,6 @@ include(CMakeParseArguments)
 include(GenerateExportHeader)
 include(CheckLibArchitecture)
 
-
-#------------------------------------------------------------------------------
-# Enable AddressSanitizer and include some helper function to add compiler and linker flags
-#------------------------------------------------------------------------------  
-option(ADDRESS_SANITIZER "[Clang/GCC only] Enable AddressSanitizer mode (quite slow)." OFF)
-include(${PROJECT_SOURCE_DIR}/cmake/AddressSanitizer.cmake)
-
 #------------------------------------------------------------------------------
 ## export a single option indicating if libraries should be build as unity
 ## build
@@ -161,18 +154,8 @@ function(openms_add_library)
   # or specify a min version of each compiler.
   target_compile_features(${openms_add_library_TARGET_NAME} PUBLIC cxx_std_20)
 
-  if (CMAKE_COMPILER_IS_GNUCXX)
-    target_compile_options(${openms_add_library_TARGET_NAME} PRIVATE 
-    -Wall
-    -Wextra
-    #-fvisibility=hidden # This is now added as a target property for each library.     
-    -Wno-non-virtual-dtor
-    -Wno-unknown-pragmas
-    -Wno-long-long 
-    -Wno-unknown-pragmas
-    -Wno-unused-function
-    -Wno-variadic-macros)
-  endif()
+  # Add compiler flags using the new helper function
+  openms_add_library_compiler_flags(${openms_add_library_TARGET_NAME})
 
   if(ADDRESS_SANITIZER)
     add_asan_to_target(${openms_add_library_TARGET_NAME})
@@ -204,8 +187,15 @@ function(openms_add_library)
   if(openms_add_library_LINK_LIBRARIES)
     ## check for consistent lib arch (e.g. all 64bit)?
     check_lib_architecture(openms_add_library_LINK_LIBRARIES)
-    target_link_libraries(${openms_add_library_TARGET_NAME} PUBLIC ${openms_add_library_LINK_LIBRARIES} PRIVATE ${openms_add_library_PRIVATE_LINK_LIBRARIES})
+    target_link_libraries(${openms_add_library_TARGET_NAME} PUBLIC ${openms_add_library_LINK_LIBRARIES})
     list(LENGTH openms_add_library_LINK_LIBRARIES _library_count)
+  endif()
+
+  if (openms_add_library_PRIVATE_LINK_LIBRARIES)
+    ## check for consistent lib arch (e.g. all 64bit)?
+    check_lib_architecture(openms_add_library_PRIVATE_LINK_LIBRARIES)
+    target_link_libraries(${openms_add_library_TARGET_NAME} PRIVATE ${openms_add_library_PRIVATE_LINK_LIBRARIES})
+    list(LENGTH openms_add_library_PRIVATE_LINK_LIBRARIES _private_library_count)
   endif()
 
   #------------------------------------------------------------------------------

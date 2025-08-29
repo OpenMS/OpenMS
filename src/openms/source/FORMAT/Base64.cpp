@@ -7,10 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/Base64.h>
-
-#include <QtCore/QList>
-#include <QtCore/QString>
-
 #include <OpenMS/SYSTEM/SIMDe.h>
 
 using namespace std;
@@ -247,20 +243,24 @@ namespace OpenMS
     {
       return;
     }
+    String decoded;
+    decodeSingleString(in, decoded, zlib_compression);
 
-    QByteArray base64_uncompressed;
-    decodeSingleString(in, base64_uncompressed, zlib_compression);    //////////////////////////////////////////////the magic happenes here
-    QList<QByteArray> null_strings = base64_uncompressed.split('\0');
-    for (QList<QByteArray>::iterator it = null_strings.begin(); it < null_strings.end(); ++it)
+    const char* first_sep = decoded.data(); // start of current string
+    const char* next_sep = 0;  // end of current string (past the end)
+    while (first_sep < decoded.data() + decoded.size())
     {
-      if (!it->isEmpty())
-      {
-        out.emplace_back(QString(*it).toStdString());
+      next_sep = strchr(first_sep, '\0');
+     
+      if (first_sep + 1 < next_sep) // non-empty string
+      { 
+        out.push_back(String(first_sep, next_sep - first_sep));
       }
+      first_sep = next_sep + 1; // move to substring
     }
   }
 
-  void Base64::decodeSingleString(const String& in, QByteArray& base64_uncompressed, bool zlib_compression)
+  void Base64::decodeSingleString(const String& in, String& out, bool zlib_compression)
   {
     // The length of a base64 string is a always a multiple of 4 (always 3
     // bytes are encoded as 4 characters)
@@ -268,24 +268,16 @@ namespace OpenMS
     {
       return;
     }
-    ////////////////////compare our decoding to QT decoding, and possibly decode first using simde, then copy into QByte Array
-    QByteArray herewego = QByteArray::fromRawData(in.c_str(), (int) in.size());
-    base64_uncompressed = QByteArray::fromBase64(herewego);
+
     if (zlib_compression)
     {
-      QByteArray czip;
-      czip.resize(4);
-      czip[0] = (base64_uncompressed.size() & 0xff000000) >> 24;
-      czip[1] = (base64_uncompressed.size() & 0x00ff0000) >> 16;
-      czip[2] = (base64_uncompressed.size() & 0x0000ff00) >> 8;
-      czip[3] = (base64_uncompressed.size() & 0x000000ff);
-      czip += base64_uncompressed;
-      base64_uncompressed = qUncompress(czip);
-
-      if (base64_uncompressed.isEmpty())
-      {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decompression error?");
-      }
+      String decoded;
+      stringSimdDecoder_(in, decoded);
+      ZlibCompression::uncompressString(decoded, out);
+    }
+    else
+    {
+      stringSimdDecoder_(in, out);
     }
   }
 

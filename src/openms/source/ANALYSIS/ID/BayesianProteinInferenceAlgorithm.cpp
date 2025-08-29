@@ -977,7 +977,7 @@ namespace OpenMS
 
   void BayesianProteinInferenceAlgorithm::inferPosteriorProbabilities(
       std::vector<ProteinIdentification>& proteinIDs,
-      std::vector<PeptideIdentification>& peptideIDs,
+      PeptideIdentificationList& peptideIDs,
       bool greedy_group_resolution,
       std::optional<const ExperimentalDesign> exp_des)
   {

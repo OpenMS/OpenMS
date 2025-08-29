@@ -53,7 +53,42 @@ namespace OpenMS
     return n;
   }
 
-  bool LayerDataBase::annotate(const vector<PeptideIdentification>& identifications,
+  /*
+  void LayerDataBase::updateCache_()
+  {
+    if (peak_map_->getMSExperiment().getNrSpectra() > current_spectrum_idx_ && !(*peak_map_)[current_spectrum_idx_].first.empty())
+    {
+      cached_spectrum_ = (*peak_map_)[current_spectrum_idx_].first;
+    }
+    else if (on_disc_peaks->getNrSpectra() > current_spectrum_idx_)
+    {
+      cached_spectrum_ = on_disc_peaks->getSpectrum(current_spectrum_idx_);
+    }
+  }
+
+
+  /// add annotation from an OSW sqlite file.
+
+
+  /// get annotation (e.g. to build a hierachical ID View)
+  /// Not const, because we might have incomplete data, which needs to be loaded from sql source
+
+  LayerDataBase::OSWDataSharedPtrType& LayerDataBase::getChromatogramAnnotation()
+  {
+    return chrom_annotation_;
+  }
+
+  const LayerDataBase::OSWDataSharedPtrType& LayerDataBase::getChromatogramAnnotation() const
+  {
+    return chrom_annotation_;
+  }
+
+  void LayerDataBase::setChromatogramAnnotation(OSWData&& data)
+  {
+    chrom_annotation_ = OSWDataSharedPtrType(new OSWData(std::move(data)));
+  }
+*/
+  bool LayerDataBase::annotate(const PeptideIdentificationList& identifications,
                            const vector<ProteinIdentification>& protein_identifications)
   {
     IDMapper mapper;
@@ -82,15 +117,30 @@ namespace OpenMS
     return false;
   }
 
-
   float LayerDataBase::getMinIntensity() const
   {
-    return getRange().getMinIntensity();
+    if (!getRange().RangeIntensity::isEmpty())
+    {
+      return getRange().getMinIntensity();
+    }
+    else
+    {
+      OPENMS_LOG_WARN << "No data in range to get min intensity from. Returning 0.0." << std::endl;
+      return 0.0f;
+    }
   }
 
   float LayerDataBase::getMaxIntensity() const
   {
-    return getRange().getMaxIntensity();
+    if (!getRange().RangeIntensity::isEmpty())
+    {
+      return getRange().getMaxIntensity();
+    }
+    else
+    {
+      OPENMS_LOG_WARN << "No data in range to get max intensity from. Returning 0.0." << std::endl;
+      return 0.0f;
+    }
   }
 
   LayerAnnotatorBase::LayerAnnotatorBase(const FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock) :
@@ -173,7 +223,7 @@ namespace OpenMS
   bool LayerAnnotatorPeptideID::annotateWorker_(LayerDataBase& layer, const String& filename, LogWindow& /*log*/) const
   {
     FileTypes::Type type = FileHandler::getType(filename);
-    vector<PeptideIdentification> identifications;
+    PeptideIdentificationList identifications;
     vector<ProteinIdentification> protein_identifications;
     FileHandler().loadIdentifications(filename, protein_identifications, identifications, {type});
 
@@ -231,7 +281,7 @@ namespace OpenMS
       OSWData data;
       oswf.readMinimal(data);
       // allow data to map from transition.id (=native.id) to a chromatogram index in MSExperiment
-      data.buildNativeIDResolver(*lp->getChromatogramData().get());
+      data.buildNativeIDResolver(lp->getChromatogramData().get()->getMSExperiment());
       lp->setChromatogramAnnotation(std::move(data));
       return true;
     }
