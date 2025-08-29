@@ -49,18 +49,7 @@ private:
   // Hide helper utilities from public API. Defined in the .cpp.
 
   /// @cond INTERNAL
-
-  /**
-    @brief Parse a user-supplied span grid string into candidate values in (0, 1).
-
-    Accepts comma and/or whitespace as separators (e.g. `"0.2, 0.3 0.5"`).
-                           Values `<= 0` or `>= 1` are ignored.
-
-    @param s Input string containing candidate spans.
-    @return Vector of valid candidate spans in (0, 1).
- */
-  static std::vector<double> parseSpanGridString(const String& s);
-
+  
   /**
     @brief Build the candidate LOWESS span grid with neighbor-based flooring and min/max clamping.
 

@@ -11,15 +11,15 @@
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/ML/CROSSVALIDATION/CrossValidation.h>
 #include <OpenMS/CONCEPT/EnumHelpers.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <algorithm>
-
-#include <cmath>      
+#include <cmath>
+#include <iostream>
+#include <iterator>
 #include <limits>     
 #include <sstream>    
-#include <iterator>   
-#include <iostream>   
 
 using namespace std;
 
@@ -216,7 +216,7 @@ namespace OpenMS
     params.setValidStrings("auto_metric", {"p90","p95","p99","rmse","mae"});
 
     params.setValue("auto_span_grid", "",
-                    "Optional explicit grid of span candidates in (0,1]. If empty, a default grid is used.");
+                    "Optional explicit grid of span candidates in (0,1]. Comma-separated list, e.g. '0.2,0.3,0.5'.  If empty, a default grid is used.");
 
 
     params.setValue("num_iterations", 3, "Number of robustifying iterations for lowess fitting.");
@@ -231,28 +231,21 @@ namespace OpenMS
     params.setValidStrings("extrapolation_type", {"two-point-linear","four-point-linear","global-linear"});
   }
 
-  std::vector<double> TransformationModelLowess::parseSpanGridString(const String& s)
-  {
-    std::vector<double> out;
-    if (s.empty()) return out;
-    std::string cpp = s;
-    for (char& c : cpp) if (c == ',') c = ' ';
-    std::istringstream iss(cpp);
-    double v;
-    while (iss >> v) if (v > 0.0 && v < 1.0) out.push_back(v);
-    return out;
-  }
-
   std::vector<double> TransformationModelLowess::buildSpanGrid(Size n_pts,
                                     const String& grid_str,
                                     double span_min_param,
                                     double span_max_param,
                                     int min_neighbors)
   {
-    std::vector<double> grid = parseSpanGridString(grid_str);
-    if (grid.empty())
+    // Parse user grid if supplied, needs to be comma-separated doubles
+    std::vector<double> grid;
+    if (!grid_str.empty())
     {
-      static const double cand[] = {0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.50, 0.60, 0.70, 0.80};
+      grid = ListUtils::create<double>(grid_str);
+    }
+    else
+    {
+      static const double cand[] = {0.01, 0.05, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90};
       grid.assign(std::begin(cand), std::end(cand));
     }
 
