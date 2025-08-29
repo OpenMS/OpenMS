@@ -129,8 +129,9 @@ namespace OpenMS
   StringList Precursor::getAllNamesOfActivationMethods()
   {
     StringList am;
-    am.reserve(SIZE_OF_ACTIVATIONMETHOD);
-    for (size_t i = 0; i < SIZE_OF_ACTIVATIONMETHOD; ++i)
+    auto sz = static_cast<size_t>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD);
+    am.reserve(sz);
+    for (size_t i = 0; i < sz; ++i)
     {
       am.push_back(NamesOfActivationMethod[i]);
     }
@@ -140,8 +141,9 @@ namespace OpenMS
   StringList Precursor::getAllShortNamesOfActivationMethods()
   {
     StringList am;
-    am.reserve(SIZE_OF_ACTIVATIONMETHOD);
-    for (size_t i = 0; i < SIZE_OF_ACTIVATIONMETHOD; ++i)
+    auto sz = static_cast<size_t>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD);
+    am.reserve(sz);
+    for (size_t i = 0; i < sz; ++i)
     {
       am.push_back(NamesOfActivationMethodShort[i]);
     }
