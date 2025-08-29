@@ -147,7 +147,6 @@ namespace OpenMS
       };
 
       // Run 1-D grid search
-      const bool prefer_larger = true;
       const auto [best_span, best_score] =
         OpenMS::CrossValidation::gridSearch1D(spans.begin(), spans.end(),
                                               folds, train_eval, score,
