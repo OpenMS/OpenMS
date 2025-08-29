@@ -3154,6 +3154,16 @@ add_test("TOPP_RNAMassCalculator_1_out" ${DIFF} -in1 RNAMassCalculator.tmp.txt -
 set_tests_properties("TOPP_RNAMassCalculator_1_out" PROPERTIES DEPENDS "TOPP_RNAMassCalculator_1")
 
 #------------------------------------------------------------------------------
+# Digestor:
+add_test("TOPP_Digestor_1" ${TOPP_BIN_PATH}/Digestor -test -in ${DATA_DIR_TOPP}/Digestor_1_input.fasta -out Digestor_1_output.tmp.fasta)
+add_test("TOPP_Digestor_1_out" ${DIFF} -in1 Digestor_1_output.tmp.fasta -in2 ${DATA_DIR_TOPP}/Digestor_1_output.fasta)
+set_tests_properties("TOPP_Digestor_1_out" PROPERTIES DEPENDS "TOPP_Digestor_1")
+add_test("TOPP_Digestor_2" ${TOPP_BIN_PATH}/Digestor -test -in ${DATA_DIR_TOPP}/Digestor_1_input.fasta -out Digestor_2_output.tmp.fasta -min_length 1 -missed_cleavages 0 -replace_ambiguous)
+add_test("TOPP_Digestor_2_out" ${DIFF} -in1 Digestor_2_output.tmp.fasta -in2 ${DATA_DIR_TOPP}/Digestor_2_output.fasta)
+set_tests_properties("TOPP_Digestor_2_out" PROPERTIES DEPENDS "TOPP_Digestor_2")
+
+
+#------------------------------------------------------------------------------
 # EPIFANY:
 add_test("TOPP_Epifany_1" ${TOPP_BIN_PATH}/Epifany -test -in ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_input.idXML -algorithm:model_parameters:prot_prior 0.7 -algorithm:model_parameters:pep_spurious_emission 0.001 -algorithm:model_parameters:pep_emission 0.1 -out Epifany_1_out.tmp.idXML)
 add_test("TOPP_Epifany_1_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 Epifany_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/Epifany_1_out.idXML)

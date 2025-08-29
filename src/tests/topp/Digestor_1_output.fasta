@@ -1,0 +1,16 @@
+>test_prot_with_lots_of_ambiguous_AA's:ABCJGRGXGZGKAAAA 
+ABCJGR
+>test_prot_with_lots_of_ambiguous_AA's:ABCJGRGXGZGKAAAA 
+ABCJGRGX
+>test_prot_with_lots_of_ambiguous_AA's:ABCJGRGXGZGKAAAA 
+GXGZGK
+>test_prot_with_lots_of_ambiguous_AA's:ABCJGRGXGZGKAAAA 
+GZGKAAAA
+>more_prots,_with_no_AAA's:DFIANRGRAAAAAAA 
+DFIANR
+>more_prots,_with_no_AAA's:DFIANRGRAAAAAAA 
+AAAAAAA
+>more_prots,_with_no_AAA's:DFIANRGRAAAAAAA 
+DFIANRGR
+>more_prots,_with_no_AAA's:DFIANRGRAAAAAAA 
+GRAAAAAAA

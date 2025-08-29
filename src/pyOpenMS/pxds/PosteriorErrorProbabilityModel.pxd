@@ -49,10 +49,10 @@ cdef extern from "<OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>" nam
                 #  :param probabilities: A vector which holds the probability for each data point after running this function. If it has some content it will be overwritten
                 #  :return: `true` if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated
 
-        void fillDensities(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) except + nogil  # wrap-doc:Writes the distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences
-        void fillLogDensities(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) except + nogil  # wrap-doc:Writes the log distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences
+        void fillDensities(const libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) except + nogil  # wrap-doc:Writes the distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences
+        void fillLogDensities(const libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) except + nogil  # wrap-doc:Writes the log distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences
 
-        double computeLogLikelihood(libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) except + nogil  # wrap-doc:Computes the Maximum Likelihood with a log-likelihood function
+        double computeLogLikelihood(const libcpp_vector[double] & incorrect_density, const libcpp_vector[double] & correct_density) except + nogil  # wrap-doc:Computes the Maximum Likelihood with a log-likelihood function
 
         libcpp_pair[ double, double ] pos_neg_mean_weighted_posteriors(libcpp_vector[double] &x_scores,
                                                                  libcpp_vector[double] &incorrect_posteriors);
