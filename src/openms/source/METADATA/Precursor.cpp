@@ -107,10 +107,11 @@ namespace OpenMS
   StringList Precursor::getActivationMethodsAsString() const
   {
     StringList am;
-    am.reserve(activation_methods_.size());
-    for (const auto& m : activation_methods_)
+    auto sz = activation_methods_.size();
+    am.reserve(sz);
+    for (const auto& m : sz)
     {
-      am.push_back(NamesOfActivationMethod[static_cast<int>(m)]);
+      am.push_back(NamesOfActivationMethod[m]);
     }
     return am;
   }
@@ -118,8 +119,9 @@ namespace OpenMS
   StringList Precursor::getActivationMethodsAsShortString() const
   {
     StringList am;
-    am.reserve(activation_methods_.size());
-    for (const auto& m : activation_methods_)
+    auto sz = activation_methods_.size();
+    am.reserve(sz);
+    for (const auto& m : sz)
     {
       am.push_back(NamesOfActivationMethodShort[m]);
     }
