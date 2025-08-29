@@ -257,12 +257,13 @@ namespace OpenMS
     }
 
     /**
-      @brief Calculates the q-quantile (0 <= q <= 1) of a range of values.
+      @brief Calculates the q-quantile (0 <= q <= 1) of a *sorted* range of values.
 
-      If @p sorted is false, the range [begin, end) is sorted in-place. Uses the common "Type 7" definition (linear interpolation):
+      Assumes the range [begin, end) is already sorted in non-decreasing order.
+      Uses the common "Type 7" definition (linear interpolation):
 
         pos = q * (n - 1)
-        idx = floor(pos), frac = pos - idx
+        idx = floor(pos),  frac = pos - idx
         quantile = (1 - frac) * x[idx] + frac * x[idx + 1]
 
       Exact endpoints:
@@ -272,7 +273,6 @@ namespace OpenMS
       @param begin  Start of range
       @param end    End of range (past-the-end iterator)
       @param q      Quantile in [0, 1]
-      @param sorted Whether the input is already sorted; if false, it will be sorted in-place.
 
       @exception Exception::InvalidRange is thrown if the range is NULL or empty.
       @exception Exception::InvalidValue is thrown if q is outside [0, 1].
@@ -280,46 +280,52 @@ namespace OpenMS
       @ingroup MathFunctionsStatistics
     */
     template <typename IteratorType>
-    static double quantile(IteratorType begin, IteratorType end, double q, bool sorted = false)
+    static double quantile(IteratorType begin, IteratorType end, double q)
     {
-        checkIteratorsNotNULL(begin, end);
-        const Size n = std::distance(begin, end);
-        if (n == 0)
-        {
-          throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-        }
+      checkIteratorsNotNULL(begin, end);
 
-        if (q < 0.0 || q > 1.0)
-        {
-          throw Exception::InvalidValue(
-            __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "quantile(): q must be in [0,1]", String(q)
-          );
-        }
+      const Size n = std::distance(begin, end);
+      if (n == 0)
+      {
+        throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
+      if (q < 0.0 || q > 1.0)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "q must be in [0,1]", String(q));
+      }
+      if (n == 1) return static_cast<double>(*begin);
 
-        if (!sorted)
-        {
-          std::sort(begin, end);
-        }
+      const double pos = q * static_cast<double>(n - 1);
+      const Size i = static_cast<Size>(std::floor(pos));
+      const double frac = pos - static_cast<double>(i);
 
-        if (q == 0.0) return static_cast<double>(*begin);
-        IteratorType last = end; --last;
-        if (q == 1.0) return static_cast<double>(*last);
+      const auto it_i = begin + static_cast<typename std::iterator_traits<IteratorType>::difference_type>(i);
+      if (frac == 0.0) return static_cast<double>(*it_i);
 
-        const double pos  = q * static_cast<double>(n - 1);
-        const Size   idx  = static_cast<Size>(std::floor(pos));
-        const double frac = pos - static_cast<double>(idx);
+      const auto it_ip1 = it_i + 1;
+      return (1.0 - frac) * static_cast<double>(*it_i) + frac * static_cast<double>(*it_ip1);
+    }
 
-        IteratorType it = begin;
-        std::advance(it, static_cast<typename std::iterator_traits<IteratorType>::difference_type>(idx));
-        const double x0 = static_cast<double>(*it);
+    /**
+      @brief Quantile of an *unsorted* range using R's type-7 definition.
 
-        if (frac == 0.0 || (idx + 1) >= n) return x0;
+      Sorts the range in-place (non-decreasing) and then calls
+      quantileSortedInput(begin,end,q).
 
-        IteratorType it1 = it; ++it1;
-        const double x1 = static_cast<double>(*it1);
-
-        return (1.0 - frac) * x0 + frac * x1;
+      @param begin  Start of range (will be sorted in-place)
+      @param end    Past-the-end of range
+      @param q      Quantile in [0,1]
+      @throws Exception::InvalidRange if the range is empty
+      @throws Exception::InvalidValue if q is outside [0,1]
+      @ingroup MathFunctionsStatistics
+    */
+    template <typename IteratorType>
+    static double quantileUnsortedInput(IteratorType begin, IteratorType end, double q)
+    {
+      checkIteratorsNotNULL(begin, end);
+      std::sort(begin, end);
+      return quantile(begin, end, q);
     }
 
     /**

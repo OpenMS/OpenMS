@@ -300,18 +300,18 @@ namespace OpenMS
       case CVMetric::P90:
       {
         auto tmp = errs;
-        return OpenMS::Math::quantile(tmp.begin(), tmp.end(), 0.90, /*sorted=*/false);
+        return OpenMS::Math::quantileUnsortedInput(tmp.begin(), tmp.end(), 0.90);
       }
       case CVMetric::P99:
       {
         auto tmp = errs;
-        return OpenMS::Math::quantile(tmp.begin(), tmp.end(), 0.99, /*sorted=*/false);
+        return OpenMS::Math::quantileUnsortedInput(tmp.begin(), tmp.end(), 0.99);
       }
       case CVMetric::P95:
       default:
       {
         auto tmp = errs;
-        return OpenMS::Math::quantile(tmp.begin(), tmp.end(), 0.95, /*sorted=*/false);
+        return OpenMS::Math::quantileUnsortedInput(tmp.begin(), tmp.end(), 0.95);
       }
     }
   }

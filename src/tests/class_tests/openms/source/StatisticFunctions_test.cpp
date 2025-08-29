@@ -409,27 +409,29 @@ START_SECTION([EXTRA](template <typename IteratorType> static double quantile(It
 }
 END_SECTION
 
-START_SECTION([EXTRA](template <typename IteratorType> static double quantile(IteratorType begin, IteratorType end, double q, bool sorted = false)))
+START_SECTION([EXTRA](template <typename IteratorType> static double quantileSortedInput(IteratorType begin, IteratorType end, double q)))
 {
-  // basic properties on a small vector (unsorted input)
-  std::vector<int> v = {4, 1, 3, 2};
-  // endpoints
-  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.0, /*sorted=*/false), 1.0);
-  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 1.0, /*sorted=*/false), 4.0);
+  std::vector<int> v{1,2,3,4}; // already sorted
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.0), 1.0);
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 1.0), 4.0);
+  // Type-7 median (even length): pos = 0.5*(n-1) = 1.5 -> 2.5
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.5), 2.5);
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.25), 1.75);
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.75), 3.25);
 
-  // Type-7 median for even length: pos = 0.5*(n-1) = 1.5 -> 2.5
-  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.5, /*sorted=*/false), 2.5);
-
-  // same but with sorted=true (should produce same numbers)
-  std::sort(v.begin(), v.end()); // {1,2,3,4}
-  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.25, /*sorted=*/true), 1.75); // pos=0.75
-  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.75, /*sorted=*/true), 3.25); // pos=2.25
-
-  // exceptions
   std::vector<double> empty;
-  TEST_EXCEPTION(Exception::InvalidRange, Math::quantile(empty.begin(), empty.end(), 0.5, /*sorted=*/false));
-  TEST_EXCEPTION(Exception::InvalidValue, Math::quantile(v.begin(), v.end(), -0.1, /*sorted=*/true));
-  TEST_EXCEPTION(Exception::InvalidValue, Math::quantile(v.begin(), v.end(), 1.1,  /*sorted=*/true));
+  TEST_EXCEPTION(Exception::InvalidRange, Math::quantile(empty.begin(), empty.end(), 0.5));
+  TEST_EXCEPTION(Exception::InvalidValue, Math::quantile(v.begin(), v.end(), -0.1));
+  TEST_EXCEPTION(Exception::InvalidValue, Math::quantile(v.begin(), v.end(),  1.1));
+}
+END_SECTION
+
+START_SECTION([EXTRA](template <typename IteratorType> static double quantileUnsortedInput(IteratorType begin, IteratorType end, double q)))
+{
+  std::vector<int> u{4,1,3,2}; // unsorted
+  TEST_REAL_SIMILAR(Math::quantileUnsortedInput(u.begin(), u.end(), 0.0), 1.0);
+  TEST_REAL_SIMILAR(Math::quantileUnsortedInput(u.begin(), u.end(), 1.0), 4.0);
+  TEST_REAL_SIMILAR(Math::quantileUnsortedInput(u.begin(), u.end(), 0.5), 2.5);
 }
 END_SECTION
 
