@@ -85,7 +85,7 @@ namespace OpenMS
     const int    min_neighbors  = (int)params_.getValue("auto_min_neighbors");
     const int    k_folds_param  = (int)params_.getValue("auto_k_folds");
     const auto metric = (TransformationModelLowess::CVMetric)Helpers::indexOf(TransformationModelLowess::names_of_cvmetric, params_.getValue("auto_metric").toString());
-    
+
     // Determine optimal span using CV
     const Size n = data.size();
     if (auto_span_flag)
@@ -295,7 +295,7 @@ namespace OpenMS
         return OpenMS::Math::rootMeanSquareError(errs.begin(), errs.end(), zeros.begin(), zeros.end());
       }
       case CVMetric::MAE:
-        return OpenMS::Math::meanAbsoluteError(errs.begin(), errs.end());
+        return OpenMS::Math::MeanAbsoluteDeviation(errs.begin(), errs.end(), 0.0);
 
       case CVMetric::P90:
       {
