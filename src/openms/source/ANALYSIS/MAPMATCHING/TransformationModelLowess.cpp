@@ -102,7 +102,7 @@ namespace OpenMS
       std::vector<double> user_grid;
       if (!grid_str.empty())
       {
-        user_grid = ListUtils::create<double>(grid_str); 
+        user_grid = ListUtils::create<double>(grid_str);
       }
       const std::vector<double> spans = buildSpanGrid(n, user_grid,
                                                       span_min_param, span_max_param,
@@ -151,7 +151,7 @@ namespace OpenMS
       const auto [best_span, best_score] =
         OpenMS::CrossValidation::gridSearch1D(spans.begin(), spans.end(),
                                               folds, train_eval, score,
-                                              kTieTol, prefer_larger);
+                                              kTieTol, OpenMS::CrossValidation::CrossValidation::CandidateTieBreak::PreferLarger);
 
       span = best_span;
       OPENMS_LOG_INFO << "Optimal selected span=" << span

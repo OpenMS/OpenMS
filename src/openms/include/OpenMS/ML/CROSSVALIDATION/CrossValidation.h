@@ -14,11 +14,11 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <vector>
-#include <cstddef>
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <cstddef>
 #include <utility>
+#include <vector>
 
 namespace OpenMS
 {
@@ -44,6 +44,22 @@ namespace OpenMS
 class CrossValidation
 {
 public:
+  /**
+    @brief Tie-breaking preference for equal (within tolerance) CV scores.
+
+    - PreferLarger  : choose the larger candidate value on ties
+    - PreferSmaller : choose the smaller candidate value on ties
+    - PreferAny     : keep the first encountered (stable, no size preference)
+
+    @ingroup MachineLearning
+  */
+  enum class CandidateTieBreak
+  {
+    PreferLarger,
+    PreferSmaller,
+    PreferAny
+  };
+
   /**
     @brief Build @p K folds for indices [0, n).
 
@@ -96,7 +112,7 @@ public:
     @param train_eval     Callback: fit on train folds and append |error| for all held-out points
     @param score          Callback: convert accumulated errors to a scalar loss (lower is better)
     @param tie_tol        Absolute tolerance for tie detection (default: 1e-12)
-    @param prefer_larger  If true, prefer larger candidate on ties
+    @param tie_break      Preference for ties (default: PreferLarger)
 
     @return (best_candidate, best_score)
 
@@ -111,7 +127,7 @@ public:
                TrainEval train_eval,
                ScoreFn score,
                double tie_tol = 1e-12,
-               bool prefer_larger = true)
+               CandidateTieBreak tie_break = CandidateTieBreak::PreferLarger)
   {
     using CandT = typename std::iterator_traits<CandIter>::value_type;
 
@@ -135,10 +151,21 @@ public:
       const double s = score(abs_errs);
 
       // Prefer larger candidate on numerical ties (more stable smoothing, etc.)
-      if (first ||
-          (s < best_score - tie_tol) ||
-          (std::fabs(s - best_score) <= tie_tol &&
-           ((prefer_larger && cand > best_cand) || (!prefer_larger && cand < best_cand))))
+      const bool better = (s < best_score - tie_tol);
+      const bool tie    = (std::fabs(s - best_score) <= tie_tol);
+
+      bool wins_on_tie = false;
+      if (tie)
+      {
+        switch (tie_break)
+        {
+          case CandidateTieBreak::PreferLarger:  wins_on_tie = cand > best_cand; break;
+          case CandidateTieBreak::PreferSmaller: wins_on_tie = cand < best_cand; break;
+          case CandidateTieBreak::PreferAny:     wins_on_tie = false;            break;
+        }
+      }
+
+      if (first || better || wins_on_tie)
       {
         best_cand  = cand;
         best_score = s;
