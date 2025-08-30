@@ -85,7 +85,7 @@ private:
     P99,
     SIZE_OF_CVMETRIC
   };
-  static const std::array<std::string, static_cast<size_t>(CVMetric::SIZE_OF_CVMETRIC)> names_of_cvmetric;
+  static const std::array<std::string, (Size)CVMetric::SIZE_OF_CVMETRIC> names_of_cvmetric;
 
   /**
     @brief Score absolute residuals according to the selected metric.

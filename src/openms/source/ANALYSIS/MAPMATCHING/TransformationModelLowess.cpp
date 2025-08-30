@@ -15,6 +15,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <iostream>
 #include <iterator>
@@ -276,8 +277,8 @@ namespace OpenMS
     }
     return grid;
   }
-
-  const std::array<std::string, static_cast<size_t>(TransformationModelLowess::CVMetric::SIZE_OF_CVMETRIC)> TransformationModelLowess::names_of_cvmetric = { "rmse", "mae", "p90", "p95", "p99" };
+  
+  const std::array<std::string, (Size)TransformationModelLowess::CVMetric::SIZE_OF_CVMETRIC> TransformationModelLowess::names_of_cvmetric = { "rmse", "mae", "p90", "p95", "p99" };
 
   double TransformationModelLowess::scoreResiduals(const std::vector<double>& errs,
                                                    CVMetric metric)
