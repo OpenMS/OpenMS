@@ -78,6 +78,7 @@ PercolatorInfile.cpp
 PercolatorOutfile.cpp
 ProtXMLFile.cpp
 QcMLFile.cpp
+QuantmsIO.cpp
 SequestInfile.cpp
 SequestOutfile.cpp
 SpecArrayFile.cpp
