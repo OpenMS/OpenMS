@@ -99,23 +99,40 @@ namespace OpenMS
 
     // Find PEP score if available using ScoreSwitcher logic
     String pep_score_name;
+    bool is_main_score_pep = false;
     if (!peptide_identifications.empty() && !peptide_identifications[0].getHits().empty())
     {
-      const auto& first_hit = peptide_identifications[0].getHits()[0];
+      const auto& first_peptide_id = peptide_identifications[0];
+      const auto& first_hit = first_peptide_id.getHits()[0];
       
-      // Look for PEP score types in metavalues
-      const std::set<String> pep_names = {"pep", "PEP", "Posterior Error Probability", "posterior_error_probability", "MS:1001493"};
-      for (const auto& name : pep_names)
+      // First check if main score is already a PEP score
+      const String& score_type = first_peptide_id.getScoreType();
+      const std::set<String> pep_score_types = {"Posterior Error Probability", "pep", "PEP", "MS:1001493"};
+      for (const auto& pep_type : pep_score_types)
       {
-        if (first_hit.metaValueExists(name))
+        if (score_type.hasSubstring(pep_type))
         {
-          pep_score_name = name;
+          is_main_score_pep = true;
           break;
         }
-        if (first_hit.metaValueExists(name + "_score"))
+      }
+      
+      // If main score is not PEP, look for PEP score in metavalues
+      if (!is_main_score_pep)
+      {
+        const std::set<String> pep_names = {"pep", "PEP", "Posterior Error Probability", "posterior_error_probability", "MS:1001493"};
+        for (const auto& name : pep_names)
         {
-          pep_score_name = name + "_score";
-          break;
+          if (first_hit.metaValueExists(name))
+          {
+            pep_score_name = name;
+            break;
+          }
+          if (first_hit.metaValueExists(name + "_score"))
+          {
+            pep_score_name = name + "_score";
+            break;
+          }
         }
       }
     }
@@ -153,7 +170,13 @@ namespace OpenMS
       }
 
       // Posterior error probability
-      if (!pep_score_name.empty() && hit.metaValueExists(pep_score_name))
+      if (is_main_score_pep)
+      {
+        // Use main score as PEP value
+        double pep_value = hit.getScore();
+        status = posterior_error_probability_builder.Append(static_cast<float>(pep_value));
+      }
+      else if (!pep_score_name.empty() && hit.metaValueExists(pep_score_name))
       {
         double pep_value = hit.getMetaValue(pep_score_name);
         status = posterior_error_probability_builder.Append(static_cast<float>(pep_value));
@@ -181,7 +204,7 @@ namespace OpenMS
       }
 
       // Calculated m/z (theoretical)
-      double theoretical_mz = hit.getSequence().getMonoWeight() / static_cast<double>(hit.getCharge());
+      double theoretical_mz = hit.getSequence().getMonoWeight(Residue::Full, hit.getCharge());
       status = calculated_mz_builder.Append(static_cast<float>(theoretical_mz));
       if (!status.ok()) {
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
