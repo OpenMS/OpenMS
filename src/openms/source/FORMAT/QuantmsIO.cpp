@@ -15,12 +15,14 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
+#include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 
 #include <arrow/api.h>
 #include <arrow/io/api.h>
 #include <parquet/arrow/writer.h>
 
 #include <algorithm>
+#include <sstream>
 
 using namespace std;
 
@@ -45,17 +47,24 @@ namespace OpenMS
   {
     std::vector<std::shared_ptr<arrow::Field>> fields = {
       arrow::field("sequence", arrow::utf8()),
-      arrow::field("spectrum_reference", arrow::utf8()),
-      arrow::field("charge", arrow::int32()),
-      arrow::field("retention_time", arrow::float64()),
-      arrow::field("mass_to_charge", arrow::float64()),
-      arrow::field("score", arrow::float64()),
-      arrow::field("rank", arrow::int32()),
-      arrow::field("protein_accessions", arrow::utf8()),
-      arrow::field("modifications", arrow::utf8()),
-      arrow::field("is_decoy", arrow::boolean()),
-      arrow::field("search_engine", arrow::utf8()),
-      arrow::field("search_engine_score_name", arrow::utf8())
+      arrow::field("peptidoform", arrow::utf8()),
+      arrow::field("modifications", arrow::null(), true), // nullable - null for now
+      arrow::field("precursor_charge", arrow::int32()),
+      arrow::field("posterior_error_probability", arrow::float32(), true), // nullable
+      arrow::field("is_decoy", arrow::int32()),
+      arrow::field("calculated_mz", arrow::float32()),
+      arrow::field("observed_mz", arrow::float32()),
+      arrow::field("additional_scores", arrow::null(), true), // nullable - null for now
+      arrow::field("mp_accessions", arrow::null(), true), // nullable - null for now
+      arrow::field("predicted_rt", arrow::float32(), true), // nullable
+      arrow::field("reference_file_name", arrow::utf8()),
+      arrow::field("cv_params", arrow::null(), true), // nullable - null for now
+      arrow::field("scan", arrow::utf8()),
+      arrow::field("rt", arrow::float32(), true), // nullable
+      arrow::field("ion_mobility", arrow::float32(), true), // nullable
+      arrow::field("num_peaks", arrow::int32(), true), // nullable
+      arrow::field("mz_array", arrow::null(), true), // nullable - null for now
+      arrow::field("intensity_array", arrow::null(), true) // nullable - null for now
     };
 
     return arrow::schema(fields);
@@ -65,19 +74,21 @@ namespace OpenMS
     const std::vector<ProteinIdentification>& protein_identifications,
     const PeptideIdentificationList& peptide_identifications)
   {
-    // Create builders for each column
+    // Create builders for each column - using simpler types for now
     arrow::StringBuilder sequence_builder;
-    arrow::StringBuilder spectrum_reference_builder;
-    arrow::Int32Builder charge_builder;
-    arrow::DoubleBuilder retention_time_builder;
-    arrow::DoubleBuilder mass_to_charge_builder;
-    arrow::DoubleBuilder score_builder;
-    arrow::Int32Builder rank_builder;
-    arrow::StringBuilder protein_accessions_builder;
-    arrow::StringBuilder modifications_builder;
-    arrow::BooleanBuilder is_decoy_builder;
-    arrow::StringBuilder search_engine_builder;
-    arrow::StringBuilder search_engine_score_name_builder;
+    arrow::StringBuilder peptidoform_builder;
+    arrow::Int32Builder precursor_charge_builder;
+    arrow::FloatBuilder posterior_error_probability_builder;
+    arrow::Int32Builder is_decoy_builder;
+    arrow::FloatBuilder calculated_mz_builder;
+    arrow::FloatBuilder observed_mz_builder;
+    arrow::StringBuilder mp_accessions_builder; // Use comma-separated string for now
+    arrow::FloatBuilder predicted_rt_builder;
+    arrow::StringBuilder reference_file_name_builder;
+    arrow::StringBuilder scan_builder;
+    arrow::FloatBuilder rt_builder;
+    arrow::FloatBuilder ion_mobility_builder;
+    arrow::Int32Builder num_peaks_builder;
 
     // Find associated protein identification for metadata
     std::map<String, const ProteinIdentification*> protein_id_map;
@@ -86,149 +97,184 @@ namespace OpenMS
       protein_id_map[protein_id.getIdentifier()] = &protein_id;
     }
 
-    // Process each peptide identification
+    // Find PEP score if available using ScoreSwitcher logic
+    String pep_score_name;
+    if (!peptide_identifications.empty() && !peptide_identifications[0].getHits().empty())
+    {
+      const auto& first_hit = peptide_identifications[0].getHits()[0];
+      
+      // Look for PEP score types in metavalues
+      const std::set<String> pep_names = {"pep", "PEP", "Posterior Error Probability", "posterior_error_probability", "MS:1001493"};
+      for (const auto& name : pep_names)
+      {
+        if (first_hit.metaValueExists(name))
+        {
+          pep_score_name = name;
+          break;
+        }
+        if (first_hit.metaValueExists(name + "_score"))
+        {
+          pep_score_name = name + "_score";
+          break;
+        }
+      }
+    }
+
+    // Process each peptide identification (only first hit per peptide identification)
     for (const auto& peptide_id : peptide_identifications)
     {
-      const ProteinIdentification* protein_id = nullptr;
-      auto it = protein_id_map.find(peptide_id.getIdentifier());
-      if (it != protein_id_map.end())
-      {
-        protein_id = it->second;
-      }
-
-      // Get spectrum reference
-      String spectrum_ref = peptide_id.getSpectrumReference();
-      if (spectrum_ref.empty())
-      {
-        // Use a fallback format if spectrum reference is not available
-        spectrum_ref = peptide_id.getBaseName() + "_RT_" + String(peptide_id.getRT());
-      }
-
-      // Process each peptide hit
       const auto& hits = peptide_id.getHits();
-      for (size_t rank = 0; rank < hits.size(); ++rank)
+      if (hits.empty()) continue; // Skip if no hits
+      
+      // Only process the first hit (rank 1)
+      const PeptideHit& hit = hits[0];
+
+      // Sequence
+      String sequence = hit.getSequence().toUnmodifiedString();
+      auto status = sequence_builder.Append(sequence.c_str());
+      if (!status.ok()) {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                        "Failed to append sequence: " + String(status.ToString()));
+      }
+
+      // Peptidoform (sequence with modifications)
+      String peptidoform = hit.getSequence().toString();
+      status = peptidoform_builder.Append(peptidoform.c_str());
+      if (!status.ok()) {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                        "Failed to append peptidoform: " + String(status.ToString()));
+      }
+
+      // Precursor charge
+      status = precursor_charge_builder.Append(hit.getCharge());
+      if (!status.ok()) {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                        "Failed to append precursor charge: " + String(status.ToString()));
+      }
+
+      // Posterior error probability
+      if (!pep_score_name.empty() && hit.metaValueExists(pep_score_name))
       {
-        const PeptideHit& hit = hits[rank];
+        double pep_value = hit.getMetaValue(pep_score_name);
+        status = posterior_error_probability_builder.Append(static_cast<float>(pep_value));
+      }
+      else
+      {
+        status = posterior_error_probability_builder.AppendNull();
+      }
+      if (!status.ok()) {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                        "Failed to append posterior error probability: " + String(status.ToString()));
+      }
 
-        // Sequence
-        String sequence = hit.getSequence().toString();
-        auto status = sequence_builder.Append(sequence.c_str());
-        if (!status.ok()) {
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                          "Failed to append sequence: " + String(status.ToString()));
-        }
+      // Is decoy - check target_decoy metavalue
+      int is_decoy = 0;
+      if (hit.metaValueExists("target_decoy"))
+      {
+        String target_decoy = hit.getMetaValue("target_decoy").toString();
+        is_decoy = (target_decoy == "decoy" || target_decoy == "DECOY") ? 1 : 0;
+      }
+      status = is_decoy_builder.Append(is_decoy);
+      if (!status.ok()) {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                        "Failed to append is_decoy: " + String(status.ToString()));
+      }
 
-        // Spectrum reference
-        auto status2 = spectrum_reference_builder.Append(spectrum_ref.c_str());
-        if (!status2.ok()) {
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                          "Failed to append spectrum reference: " + String(status2.ToString()));
-        }
+      // Calculated m/z (theoretical)
+      double theoretical_mz = hit.getSequence().getMonoWeight() / static_cast<double>(hit.getCharge());
+      status = calculated_mz_builder.Append(static_cast<float>(theoretical_mz));
+      if (!status.ok()) {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                        "Failed to append calculated mz: " + String(status.ToString()));
+      }
 
-        // Charge
-        auto status3 = charge_builder.Append(hit.getCharge());
-        if (!status3.ok()) {
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                          "Failed to append charge: " + String(status3.ToString()));
-        }
+      // Observed m/z (experimental)
+      double observed_mz = peptide_id.getMZ();
+      status = observed_mz_builder.Append(static_cast<float>(observed_mz));
+      if (!status.ok()) {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                        "Failed to append observed mz: " + String(status.ToString()));
+      }
 
-        // Retention time
-        double rt = peptide_id.getRT();
-        auto status4 = retention_time_builder.Append(rt);
-        if (!status4.ok()) {
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                          "Failed to append retention time: " + String(status4.ToString()));
-        }
+      // Protein accessions (comma-separated string for now)
+      String protein_accessions;
+      const auto& peptide_evidences = hit.getPeptideEvidences();
+      for (size_t i = 0; i < peptide_evidences.size(); ++i)
+      {
+        if (i > 0) protein_accessions += ",";
+        protein_accessions += peptide_evidences[i].getProteinAccession();
+      }
+      status = mp_accessions_builder.Append(protein_accessions.c_str());
+      if (!status.ok()) {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                        "Failed to append protein accessions: " + String(status.ToString()));
+      }
 
-        // Mass to charge
-        double mz = peptide_id.getMZ();
-        auto status5 = mass_to_charge_builder.Append(mz);
-        if (!status5.ok()) {
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                          "Failed to append mass to charge: " + String(status5.ToString()));
-        }
+      // Predicted RT (null for now)
+      status = predicted_rt_builder.AppendNull();
+      if (!status.ok()) {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                        "Failed to append predicted rt: " + String(status.ToString()));
+      }
 
-        // Score
-        double score = hit.getScore();
-        auto status6 = score_builder.Append(score);
-        if (!status6.ok()) {
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                          "Failed to append score: " + String(status6.ToString()));
-        }
+      // Reference file name
+      String file_name = peptide_id.getSpectrumReference();
+      if (file_name.empty())
+      {
+        file_name = peptide_id.getBaseName();
+      }
+      if (file_name.empty())
+      {
+        file_name = "unknown";
+      }
+      status = reference_file_name_builder.Append(file_name.c_str());
+      if (!status.ok()) {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                        "Failed to append reference file name: " + String(status.ToString()));
+      }
 
-        // Rank (1-based)
-        auto status7 = rank_builder.Append(static_cast<int32_t>(rank + 1));
-        if (!status7.ok()) {
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                          "Failed to append rank: " + String(status7.ToString()));
-        }
+      // Scan
+      String scan = peptide_id.getSpectrumReference();
+      if (scan.empty())
+      {
+        // Generate scan from RT if available
+        std::ostringstream scan_stream;
+        scan_stream << "RT_" << peptide_id.getRT();
+        scan = scan_stream.str();
+      }
+      status = scan_builder.Append(scan.c_str());
+      if (!status.ok()) {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                        "Failed to append scan: " + String(status.ToString()));
+      }
 
-        // Protein accessions
-        String protein_accessions;
-        const auto& peptide_evidences = hit.getPeptideEvidences();
-        for (size_t i = 0; i < peptide_evidences.size(); ++i)
-        {
-          if (i > 0) protein_accessions += ",";
-          protein_accessions += peptide_evidences[i].getProteinAccession();
-        }
-        auto status8 = protein_accessions_builder.Append(protein_accessions.c_str());
-        if (!status8.ok()) {
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                          "Failed to append protein accessions: " + String(status8.ToString()));
-        }
+      // RT (retention time)
+      double rt = peptide_id.getRT();
+      if (rt >= 0)
+      {
+        status = rt_builder.Append(static_cast<float>(rt));
+      }
+      else
+      {
+        status = rt_builder.AppendNull();
+      }
+      if (!status.ok()) {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                        "Failed to append rt: " + String(status.ToString()));
+      }
 
-        // Modifications
-        String modifications = hit.getSequence().toString(); // TODO: Extract actual modifications
-        auto status9 = modifications_builder.Append(modifications.c_str());
-        if (!status9.ok()) {
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                          "Failed to append modifications: " + String(status9.ToString()));
-        }
+      // Ion mobility (null for now)
+      status = ion_mobility_builder.AppendNull();
+      if (!status.ok()) {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                        "Failed to append ion mobility: " + String(status.ToString()));
+      }
 
-        // Is decoy
-        bool is_decoy = false;
-        if (protein_id)
-        {
-          // Check if any protein accession is marked as decoy
-          for (const auto& evidence : peptide_evidences)
-          {
-            String accession = evidence.getProteinAccession();
-            // Common decoy prefixes
-            if (accession.hasPrefix("DECOY_") || accession.hasPrefix("REV_") || 
-                accession.hasPrefix("decoy_") || accession.hasPrefix("rev_"))
-            {
-              is_decoy = true;
-              break;
-            }
-          }
-        }
-        auto status10 = is_decoy_builder.Append(is_decoy);
-        if (!status10.ok()) {
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                          "Failed to append is_decoy: " + String(status10.ToString()));
-        }
-
-        // Search engine
-        String search_engine = "Unknown";
-        if (protein_id)
-        {
-          search_engine = protein_id->getSearchEngine();
-          if (search_engine.empty()) search_engine = "Unknown";
-        }
-        auto status11 = search_engine_builder.Append(search_engine.c_str());
-        if (!status11.ok()) {
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                          "Failed to append search engine: " + String(status11.ToString()));
-        }
-
-        // Search engine score name
-        String score_name = peptide_id.getScoreType();
-        if (score_name.empty()) score_name = "Unknown";
-        auto status12 = search_engine_score_name_builder.Append(score_name.c_str());
-        if (!status12.ok()) {
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                          "Failed to append search engine score name: " + String(status12.ToString()));
-        }
+      // Num peaks (null for now)
+      status = num_peaks_builder.AppendNull();
+      if (!status.ok()) {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                        "Failed to append num peaks: " + String(status.ToString()));
       }
     }
 
@@ -240,60 +286,25 @@ namespace OpenMS
                                       "Failed to finish sequence array: " + String(status.ToString()));
     }
 
-    std::shared_ptr<arrow::Array> spectrum_reference_array;
-    status = spectrum_reference_builder.Finish(&spectrum_reference_array);
+    std::shared_ptr<arrow::Array> peptidoform_array;
+    status = peptidoform_builder.Finish(&peptidoform_array);
     if (!status.ok()) {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      "Failed to finish spectrum reference array: " + String(status.ToString()));
+                                      "Failed to finish peptidoform array: " + String(status.ToString()));
     }
 
-    std::shared_ptr<arrow::Array> charge_array;
-    status = charge_builder.Finish(&charge_array);
+    std::shared_ptr<arrow::Array> precursor_charge_array;
+    status = precursor_charge_builder.Finish(&precursor_charge_array);
     if (!status.ok()) {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      "Failed to finish charge array: " + String(status.ToString()));
+                                      "Failed to finish precursor charge array: " + String(status.ToString()));
     }
 
-    std::shared_ptr<arrow::Array> retention_time_array;
-    status = retention_time_builder.Finish(&retention_time_array);
+    std::shared_ptr<arrow::Array> posterior_error_probability_array;
+    status = posterior_error_probability_builder.Finish(&posterior_error_probability_array);
     if (!status.ok()) {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      "Failed to finish retention time array: " + String(status.ToString()));
-    }
-
-    std::shared_ptr<arrow::Array> mass_to_charge_array;
-    status = mass_to_charge_builder.Finish(&mass_to_charge_array);
-    if (!status.ok()) {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      "Failed to finish mass to charge array: " + String(status.ToString()));
-    }
-
-    std::shared_ptr<arrow::Array> score_array;
-    status = score_builder.Finish(&score_array);
-    if (!status.ok()) {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      "Failed to finish score array: " + String(status.ToString()));
-    }
-
-    std::shared_ptr<arrow::Array> rank_array;
-    status = rank_builder.Finish(&rank_array);
-    if (!status.ok()) {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      "Failed to finish rank array: " + String(status.ToString()));
-    }
-
-    std::shared_ptr<arrow::Array> protein_accessions_array;
-    status = protein_accessions_builder.Finish(&protein_accessions_array);
-    if (!status.ok()) {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      "Failed to finish protein accessions array: " + String(status.ToString()));
-    }
-
-    std::shared_ptr<arrow::Array> modifications_array;
-    status = modifications_builder.Finish(&modifications_array);
-    if (!status.ok()) {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      "Failed to finish modifications array: " + String(status.ToString()));
+                                      "Failed to finish posterior error probability array: " + String(status.ToString()));
     }
 
     std::shared_ptr<arrow::Array> is_decoy_array;
@@ -303,35 +314,91 @@ namespace OpenMS
                                       "Failed to finish is_decoy array: " + String(status.ToString()));
     }
 
-    std::shared_ptr<arrow::Array> search_engine_array;
-    status = search_engine_builder.Finish(&search_engine_array);
+    std::shared_ptr<arrow::Array> calculated_mz_array;
+    status = calculated_mz_builder.Finish(&calculated_mz_array);
     if (!status.ok()) {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      "Failed to finish search engine array: " + String(status.ToString()));
+                                      "Failed to finish calculated mz array: " + String(status.ToString()));
     }
 
-    std::shared_ptr<arrow::Array> search_engine_score_name_array;
-    status = search_engine_score_name_builder.Finish(&search_engine_score_name_array);
+    std::shared_ptr<arrow::Array> observed_mz_array;
+    status = observed_mz_builder.Finish(&observed_mz_array);
     if (!status.ok()) {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      "Failed to finish search engine score name array: " + String(status.ToString()));
+                                      "Failed to finish observed mz array: " + String(status.ToString()));
     }
 
-    // Create table
+    std::shared_ptr<arrow::Array> mp_accessions_array;
+    status = mp_accessions_builder.Finish(&mp_accessions_array);
+    if (!status.ok()) {
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                      "Failed to finish mp_accessions array: " + String(status.ToString()));
+    }
+
+    std::shared_ptr<arrow::Array> predicted_rt_array;
+    status = predicted_rt_builder.Finish(&predicted_rt_array);
+    if (!status.ok()) {
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                      "Failed to finish predicted rt array: " + String(status.ToString()));
+    }
+
+    std::shared_ptr<arrow::Array> reference_file_name_array;
+    status = reference_file_name_builder.Finish(&reference_file_name_array);
+    if (!status.ok()) {
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                      "Failed to finish reference file name array: " + String(status.ToString()));
+    }
+
+    std::shared_ptr<arrow::Array> scan_array;
+    status = scan_builder.Finish(&scan_array);
+    if (!status.ok()) {
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                      "Failed to finish scan array: " + String(status.ToString()));
+    }
+
+    std::shared_ptr<arrow::Array> rt_array;
+    status = rt_builder.Finish(&rt_array);
+    if (!status.ok()) {
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                      "Failed to finish rt array: " + String(status.ToString()));
+    }
+
+    std::shared_ptr<arrow::Array> ion_mobility_array;
+    status = ion_mobility_builder.Finish(&ion_mobility_array);
+    if (!status.ok()) {
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                      "Failed to finish ion mobility array: " + String(status.ToString()));
+    }
+
+    std::shared_ptr<arrow::Array> num_peaks_array;
+    status = num_peaks_builder.Finish(&num_peaks_array);
+    if (!status.ok()) {
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                      "Failed to finish num peaks array: " + String(status.ToString()));
+    }
+
+    // Create simplified schema for now - will add complex nested types later
     auto schema = createPSMSchema_();
     auto table = arrow::Table::Make(schema, {
       sequence_array,
-      spectrum_reference_array,
-      charge_array,
-      retention_time_array,
-      mass_to_charge_array,
-      score_array,
-      rank_array,
-      protein_accessions_array,
-      modifications_array,
+      peptidoform_array,
+      arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie(), // modifications - null for now
+      precursor_charge_array,
+      posterior_error_probability_array,
       is_decoy_array,
-      search_engine_array,
-      search_engine_score_name_array
+      calculated_mz_array,
+      observed_mz_array,
+      arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie(), // additional_scores - null for now
+      arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie(), // mp_accessions - using mp_accessions_array would need list type
+      predicted_rt_array,
+      reference_file_name_array,
+      arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie(), // cv_params - null for now
+      scan_array,
+      rt_array,
+      ion_mobility_array,
+      num_peaks_array,
+      arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie(), // mz_array - null for now
+      arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie()  // intensity_array - null for now
     });
 
     return table;
