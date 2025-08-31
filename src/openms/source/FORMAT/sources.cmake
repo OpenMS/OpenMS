@@ -78,7 +78,6 @@ PercolatorInfile.cpp
 PercolatorOutfile.cpp
 ProtXMLFile.cpp
 QcMLFile.cpp
-QuantmsIO.cpp
 SequestInfile.cpp
 SequestOutfile.cpp
 SpecArrayFile.cpp
@@ -102,6 +101,10 @@ ZlibCompression.cpp
 
 if (WITH_HDF5)
   list(APPEND sources_list HDF5Connector.cpp)  
+endif()
+
+if (WITH_PARQUET)
+  list(APPEND sources_list QuantmsIO.cpp)  
 endif()
 
 ### add path to the filenames
