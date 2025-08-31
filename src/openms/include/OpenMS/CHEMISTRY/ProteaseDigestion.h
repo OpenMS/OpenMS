@@ -59,7 +59,7 @@ namespace OpenMS
        Others raise an exception
 
        @param protein Sequence to digest
-       @param output Digestion products (start and end indices of peptides)
+       @param output Digestion products (start and past-the-end indices of peptides)
        @param min_length Minimal length of reported products
        @param max_length Maximal length of reported products (0 = no restriction)
        @return Number of discarded digestion products (which are not matching length restrictions)

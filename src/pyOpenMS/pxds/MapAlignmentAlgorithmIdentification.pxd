@@ -23,9 +23,9 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentificati
         # private
         MapAlignmentAlgorithmIdentification(MapAlignmentAlgorithmIdentification &) except + nogil  # wrap-ignore
         
-        void align(libcpp_vector[FeatureMap]&, libcpp_vector[TransformationDescription]&, int) except + nogil 
-        void align(libcpp_vector[ConsensusMap]&, libcpp_vector[TransformationDescription]&, int) except + nogil 
-        void align(libcpp_vector[PeptideIdentificationList]& ids, libcpp_vector[TransformationDescription]& trafos, int ref_index) except + nogil  #wrap-ignore
+        void align(const libcpp_vector[FeatureMap]&, libcpp_vector[TransformationDescription]&, int) except + nogil 
+        void align(const libcpp_vector[ConsensusMap]&, libcpp_vector[TransformationDescription]&, int) except + nogil 
+        void align(const libcpp_vector[PeptideIdentificationList]& ids, libcpp_vector[TransformationDescription]& trafos, int ref_index) except + nogil  #wrap-ignore
 
         void setReference(FeatureMap&) except + nogil 
         void setReference(ConsensusMap&) except + nogil 
