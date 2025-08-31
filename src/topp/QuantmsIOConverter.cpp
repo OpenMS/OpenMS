@@ -42,19 +42,29 @@ QuantmsIOConverter reads peptide and protein identifications from idXML files
 and converts them to parquet format following the quantms.io PSM (Peptide 
 Spectrum Match) specification.
 
-The output parquet file contains PSM data with columns including:
-- sequence: peptide sequence
-- spectrum_reference: spectrum identifier
-- charge: precursor charge
-- retention_time: retention time in seconds
-- mass_to_charge: precursor m/z value
-- score: identification score
-- rank: peptide hit rank
-- protein_accessions: associated protein accessions
-- modifications: peptide modifications
-- is_decoy: decoy database flag
-- search_engine: search engine name
-- search_engine_score_name: score type name
+The output parquet file contains PSM data with columns following the quantms.io PSM specification:
+- sequence: unmodified peptide sequence
+- peptidoform: peptide sequence with modifications
+- modifications: peptide modifications (null for now)
+- precursor_charge: precursor charge
+- posterior_error_probability: PEP score from metavalues (nullable)
+- is_decoy: decoy flag (0=target, 1=decoy) based on target_decoy metavalue
+- calculated_mz: theoretical m/z from sequence
+- observed_mz: experimental precursor m/z
+- additional_scores: additional scores (null for now)
+- mp_accessions: protein accessions (null for now)
+- predicted_rt: predicted retention time (null for now)
+- reference_file_name: reference file name
+- cv_params: CV parameters (null for now)
+- scan: scan identifier
+- rt: retention time in seconds (nullable)
+- ion_mobility: ion mobility value (nullable, null for now)
+- num_peaks: number of peaks (nullable, null for now)
+- mz_array: m/z values array (null for now)
+- intensity_array: intensity values array (null for now)
+
+Only the first peptide hit per peptide identification is processed (no rank field).
+PEP scores are automatically detected from metavalues using known PEP score names.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_QuantmsIOConverter.cli
