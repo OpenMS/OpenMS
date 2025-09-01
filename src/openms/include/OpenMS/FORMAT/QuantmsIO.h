@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Oliver Alka $
-// $Authors: Oliver Alka $
+// $Maintainer: Julianus Pfeuffer $
+// $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
 #pragma once
