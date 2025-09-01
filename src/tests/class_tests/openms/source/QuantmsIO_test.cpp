@@ -58,7 +58,8 @@ START_SECTION((void store(const String& filename, const std::vector<ProteinIdent
   ProteinIdentification protein_id;
   protein_id.setIdentifier("test_search");
   protein_id.setSearchEngine("TestEngine");
-  protein_id.setScoreType("TestScore", true);
+  protein_id.setScoreType("TestScore");
+  protein_id.setHigherScoreBetter(true);
   protein_ids.push_back(protein_id);
   
   // Create multiple peptide identifications to test row count
@@ -106,7 +107,8 @@ START_SECTION((void store(const String& filename, const std::vector<ProteinIdent
     peptide_ids.push_back(peptide_id);
   }
   
-  String output_file = OPENMS_GET_TEST_DATA_PATH("") + "QuantmsIO_output_test.parquet";
+  String output_file;
+  NEW_TMP_FILE(output_file)
   
   // Store the data
   TEST_NOT_EQUAL(peptide_ids.size(), 0)
