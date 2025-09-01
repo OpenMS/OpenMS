@@ -115,18 +115,19 @@ START_SECTION((void store(const String& filename, const std::vector<ProteinIdent
   file.store(output_file, protein_ids, peptide_ids);
   
   // Read back the parquet file and verify rows and columns
+  arrow::MemoryPool* pool = arrow::default_memory_pool();
   std::shared_ptr<arrow::io::ReadableFile> infile;
   auto result = arrow::io::ReadableFile::Open(output_file.c_str());
   TEST_EQUAL(result.ok(), true)
   infile = result.ValueOrDie();
-  
+
   std::unique_ptr<parquet::arrow::FileReader> reader;
-  auto status = parquet::arrow::OpenFile(infile, arrow::default_memory_pool(), &reader);
-  TEST_EQUAL(status.ok(), true)
-  
+  auto open_result = parquet::arrow::OpenFile(infile, pool, &reader);
+  TEST_EQUAL(open_result.ok(), true)
+
   std::shared_ptr<arrow::Table> table;
-  status = reader->ReadTable(&table);
-  TEST_EQUAL(status.ok(), true)
+  auto read_status = reader->ReadTable(&table);
+  TEST_EQUAL(read_status.ok(), true)
   
   // Verify number of rows (should equal number of peptide identifications)
   TEST_EQUAL(table->num_rows(), 3)
