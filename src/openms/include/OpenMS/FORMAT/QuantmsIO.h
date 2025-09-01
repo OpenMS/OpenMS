@@ -15,12 +15,6 @@
 
 #include <vector>
 
-// Forward declarations for Arrow types
-namespace arrow {
-  class Schema;
-  class Table;
-}
-
 namespace OpenMS
 {
   /**
@@ -60,7 +54,7 @@ namespace OpenMS
   {
   public:
     /// Default constructor
-    QuantmsIO();
+    QuantmsIO() = default;
 
     /// Destructor
     ~QuantmsIO();
@@ -78,34 +72,6 @@ namespace OpenMS
                const std::vector<ProteinIdentification>& protein_identifications,
                const PeptideIdentificationList& peptide_identifications);
 
-  protected:
-    
-    /**
-      @brief Create Arrow schema for PSM data following quantms.io specification
-      
-      @return Shared pointer to Arrow schema
-    */
-    std::shared_ptr<arrow::Schema> createPSMSchema_();
-
-    /**
-      @brief Convert peptide identifications to Arrow table
-      
-      @param protein_identifications Vector of protein identifications (for metadata)
-      @param peptide_identifications Vector of peptide identifications
-      @return Shared pointer to Arrow table
-    */
-    std::shared_ptr<arrow::Table> convertToArrowTable_(
-      const std::vector<ProteinIdentification>& protein_identifications,
-      const PeptideIdentificationList& peptide_identifications);
-
-    /**
-      @brief Write Arrow table to parquet file
-      
-      @param table Arrow table to write
-      @param filename Output filename
-    */
-    void writeParquetFile_(const std::shared_ptr<arrow::Table>& table, 
-                          const String& filename);
   };
 
 } // namespace OpenMS
