@@ -61,9 +61,10 @@ START_SECTION((void store(const String& filename, const std::vector<ProteinIdent
   protein_id.setScoreType("TestScore");
   protein_id.setHigherScoreBetter(true);
   protein_ids.push_back(protein_id);
-  
+
+  std:vector<String> pep_strs = {"PEPTIDER", "PEM(Oxidation)TIDER", "DFPIANGER"}
   // Create multiple peptide identifications to test row count
-  for (int i = 0; i < 3; ++i)
+  for (int i = 0; i < pep_strs.size(); ++i)
   {
     PeptideIdentification peptide_id;
     peptide_id.setIdentifier("test_search");
@@ -72,7 +73,7 @@ START_SECTION((void store(const String& filename, const std::vector<ProteinIdent
     peptide_id.setScoreType("TestScore");
     
     PeptideHit hit;
-    hit.setSequence(AASequence::fromString("PEPTIDE" + String(i)));
+    hit.setSequence(AASequence::fromString(pep_strs[i]));
     hit.setScore(0.95 - i * 0.1);
     hit.setCharge(2 + i);
     
