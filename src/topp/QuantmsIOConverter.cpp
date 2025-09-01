@@ -97,7 +97,6 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-#ifdef WITH_PARQUET
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
@@ -134,11 +133,6 @@ protected:
 
     OPENMS_LOG_INFO << "Conversion completed successfully." << endl;
     return EXECUTION_OK;
-
-#else
-    OPENMS_LOG_ERROR << "This tool requires OpenMS to be compiled with parquet support (WITH_PARQUET=ON)." << endl;
-    return EXTERNAL_PROGRAM_ERROR;
-#endif
   }
 };
 

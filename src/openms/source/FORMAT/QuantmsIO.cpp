@@ -7,9 +7,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/QuantmsIO.h>
-
-#ifdef WITH_PARQUET
-
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -447,20 +444,3 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
-
-#else // WITH_PARQUET
-
-namespace OpenMS
-{
-  QuantmsIO::QuantmsIO() = default;
-  QuantmsIO::~QuantmsIO() = default;
-
-  void QuantmsIO::store(const String& /*filename*/,
-                       const std::vector<ProteinIdentification>& /*protein_identifications*/,
-                       const PeptideIdentificationList& /*peptide_identifications*/)
-  {
-    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-  }
-}
-
-#endif // WITH_PARQUET

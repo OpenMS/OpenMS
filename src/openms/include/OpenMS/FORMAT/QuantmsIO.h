@@ -15,7 +15,7 @@
 
 #include <vector>
 
-// Forward declarations for Arrow types (only when WITH_PARQUET is enabled)
+// Forward declarations for Arrow types
 namespace arrow {
   class Schema;
   class Table;
@@ -53,9 +53,6 @@ namespace OpenMS
     Only the first peptide hit per peptide identification is processed (no rank field).
     PEP scores are automatically detected from metavalues using known PEP score names.
 
-    @note This class requires OpenMS to be compiled with parquet support (WITH_PARQUET=ON).
-          When WITH_PARQUET is not enabled, store() will throw Exception::NotImplemented.
-
     @ingroup FileIO
   */
   class OPENMS_DLLAPI QuantmsIO :
@@ -76,7 +73,6 @@ namespace OpenMS
       @param peptide_identifications Vector of peptide identifications
 
       @throws Exception::UnableToCreateFile if file cannot be created
-      @throws Exception::NotImplemented if WITH_PARQUET is not defined
     */
     void store(const String& filename,
                const std::vector<ProteinIdentification>& protein_identifications,
@@ -84,7 +80,6 @@ namespace OpenMS
 
   protected:
     
-#ifdef WITH_PARQUET
     /**
       @brief Create Arrow schema for PSM data following quantms.io specification
       
@@ -111,7 +106,6 @@ namespace OpenMS
     */
     void writeParquetFile_(const std::shared_ptr<arrow::Table>& table, 
                           const String& filename);
-#endif // WITH_PARQUET
   };
 
 } // namespace OpenMS
