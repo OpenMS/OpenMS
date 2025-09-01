@@ -122,7 +122,7 @@ START_SECTION((void store(const String& filename, const std::vector<ProteinIdent
   infile = result.ValueOrDie();
 
   std::unique_ptr<parquet::arrow::FileReader> reader;
-  ARROW_ASSIGN_OR_RAISE(reader, parquet::arrow::OpenFile(infile, pool));
+  PARQUET_ASSIGN_OR_THROW(reader, parquet::arrow::OpenFile(infile, pool));
 
   std::shared_ptr<arrow::Table> table;
   auto read_status = reader->ReadTable(&table);
