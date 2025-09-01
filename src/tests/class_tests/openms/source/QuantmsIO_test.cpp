@@ -13,8 +13,6 @@
 #include <OpenMS/FORMAT/QuantmsIO.h>
 ///////////////////////////
 
-#ifdef WITH_PARQUET
-
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -162,40 +160,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 
 END_TEST
-
-#else // WITH_PARQUET
-
-START_TEST(QuantmsIO, "$Id$")
-
-QuantmsIO* ptr = nullptr;
-QuantmsIO* null_ptr = nullptr;
-
-START_SECTION(QuantmsIO())
-{
-  ptr = new QuantmsIO();
-  TEST_NOT_EQUAL(ptr, null_ptr)
-}
-END_SECTION
-
-START_SECTION(~QuantmsIO())
-{
-  delete ptr;
-}
-END_SECTION
-
-START_SECTION((void store(const String& filename, const std::vector<ProteinIdentification>& protein_identifications, const PeptideIdentificationList& peptide_identifications)))
-{
-  QuantmsIO file;
-  
-  vector<ProteinIdentification> protein_ids;
-  PeptideIdentificationList peptide_ids;
-  
-  String output_file = OPENMS_GET_TEST_DATA_PATH("") + "QuantmsIO_output_test.parquet";
-  
-  TEST_EXCEPTION(Exception::NotImplemented, file.store(output_file, protein_ids, peptide_ids));
-}
-END_SECTION
-
-END_TEST
-
-#endif // WITH_PARQUET
