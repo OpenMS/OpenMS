@@ -54,7 +54,8 @@ public:
     {
       TARGET,       ///< Only matches target proteins
       DECOY,        ///< Only matches decoy proteins
-      TARGET_DECOY  ///< Matches BOTH target and decoy proteins
+      TARGET_DECOY, ///< Matches BOTH target and decoy proteins
+      UNKNOWN       ///< Target/decoy status is unknown (meta value not set)
     };
 
     /**
@@ -284,13 +285,39 @@ public:
     /// sets the fragment annotations
     void setPeakAnnotations(std::vector<PeptideHit::PeakAnnotation> frag_annotations);
 
-    /// returns true if this is a decoy hit
+    /**
+     * @brief Returns true if this hit is annotated as decoy.
+     */
     bool isDecoy() const;
 
-    /// sets the target/decoy type
+    /** @brief Sets the target/decoy type for this peptide hit
+     *
+     * This method provides a type-safe way to annotate peptide hits with their
+     * target/decoy status. Use TARGET_DECOY for peptides that match both target
+     * and decoy protein sequences (these are treated as targets in FDR calculations).
+     * Note: UNKNOWN should only be used in special cases where the status needs to
+     * be explicitly marked as unknown.
+     *
+     * @param type The target/decoy classification:
+     *   - TARGET: Only matches target proteins
+     *   - DECOY: Only matches decoy proteins
+     *   - TARGET_DECOY: Matches both target and decoy proteins
+     *   - UNKNOWN: Target/decoy status is unknown (explicit unknown state)
+     */
     void setTargetDecoyType(TargetDecoyType type);
 
-    /// returns the target/decoy type
+    /** @brief Returns the target/decoy type for this peptide hit
+     *
+     * This method performs case-insensitive parsing of the "target_decoy" meta value
+     * and returns the corresponding enum value. Returns UNKNOWN if the meta value
+     * does not exist.
+     *
+     * @return The target/decoy classification:
+     *   - TARGET: Only matches target proteins
+     *   - DECOY: Only matches decoy proteins
+     *   - TARGET_DECOY: Matches both target and decoy proteins
+     *   - UNKNOWN: Target/decoy status not set (meta value missing)
+     */
     TargetDecoyType getTargetDecoyType() const;
 
     //@}

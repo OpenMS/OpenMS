@@ -619,6 +619,11 @@ START_SECTION((void setTargetDecoyType(TargetDecoyType type)))
   // Test setting TARGET_DECOY
   hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET_DECOY);
   TEST_EQUAL(hit.getMetaValue("target_decoy"), "target+decoy");
+  
+  // Test setting UNKNOWN (should remove meta value)
+  hit.setTargetDecoyType(PeptideHit::TargetDecoyType::UNKNOWN);
+  TEST_EQUAL(hit.metaValueExists("target_decoy"), false);
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::UNKNOWN);
 }
 END_SECTION
 
@@ -626,8 +631,8 @@ START_SECTION((TargetDecoyType getTargetDecoyType() const))
 {
   PeptideHit hit;
   
-  // Test default behavior (should return TARGET)
-  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::TARGET);
+  // Test default behavior (should return UNKNOWN when meta value doesn't exist)
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::UNKNOWN);
   
   // Test with explicit "target" value
   hit.setMetaValue("target_decoy", "target");
@@ -649,9 +654,13 @@ START_SECTION((TargetDecoyType getTargetDecoyType() const))
   hit.setMetaValue("target_decoy", "TARGET+DECOY");
   TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::TARGET_DECOY);
   
-  // Test with unknown value (should default to TARGET)
+  // Test with unknown value (should return UNKNOWN)
   hit.setMetaValue("target_decoy", "unknown");
-  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::TARGET);
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::UNKNOWN);
+  
+  // Test after removing meta value (should return UNKNOWN)
+  hit.removeMetaValue("target_decoy");
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::UNKNOWN);
 }
 END_SECTION
 
