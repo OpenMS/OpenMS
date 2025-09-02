@@ -49,6 +49,14 @@ namespace OpenMS
     public MetaInfoInterface
   {
 public:
+    /// Enum for target/decoy annotation
+    enum class TargetDecoyType
+    {
+      TARGET,       ///< Only matches target proteins
+      DECOY,        ///< Only matches decoy proteins
+      TARGET_DECOY  ///< Matches BOTH target and decoy proteins
+    };
+
     /**
    * @brief Contains annotations of a peak
 
@@ -278,6 +286,12 @@ public:
 
     /// returns true if this is a decoy hit
     bool isDecoy() const;
+
+    /// sets the target/decoy type
+    void setTargetDecoyType(TargetDecoyType type);
+
+    /// returns the target/decoy type
+    TargetDecoyType getTargetDecoyType() const;
 
     //@}
 

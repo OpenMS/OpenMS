@@ -604,6 +604,57 @@ START_SECTION((bool isDecoy() const))
 }
 END_SECTION
 
+START_SECTION((void setTargetDecoyType(TargetDecoyType type)))
+{
+  PeptideHit hit;
+  
+  // Test setting TARGET
+  hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET);
+  TEST_EQUAL(hit.getMetaValue("target_decoy"), "target");
+  
+  // Test setting DECOY
+  hit.setTargetDecoyType(PeptideHit::TargetDecoyType::DECOY);
+  TEST_EQUAL(hit.getMetaValue("target_decoy"), "decoy");
+  
+  // Test setting TARGET_DECOY
+  hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET_DECOY);
+  TEST_EQUAL(hit.getMetaValue("target_decoy"), "target+decoy");
+}
+END_SECTION
+
+START_SECTION((TargetDecoyType getTargetDecoyType() const))
+{
+  PeptideHit hit;
+  
+  // Test default behavior (should return TARGET)
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::TARGET);
+  
+  // Test with explicit "target" value
+  hit.setMetaValue("target_decoy", "target");
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::TARGET);
+  
+  // Test with "decoy" value
+  hit.setMetaValue("target_decoy", "decoy");
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::DECOY);
+  
+  // Test with "DECOY" (case insensitive)
+  hit.setMetaValue("target_decoy", "DECOY");
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::DECOY);
+  
+  // Test with "target+decoy" value
+  hit.setMetaValue("target_decoy", "target+decoy");
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::TARGET_DECOY);
+  
+  // Test with "TARGET+DECOY" (case insensitive)
+  hit.setMetaValue("target_decoy", "TARGET+DECOY");
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::TARGET_DECOY);
+  
+  // Test with unknown value (should default to TARGET)
+  hit.setMetaValue("target_decoy", "unknown");
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::TARGET);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

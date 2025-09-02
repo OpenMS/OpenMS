@@ -381,6 +381,30 @@ namespace OpenMS
     return getMetaValue("target_decoy", "target").toString().toLower() == "decoy";
   }
 
+  void PeptideHit::setTargetDecoyType(TargetDecoyType type)
+  {
+    switch(type)
+    {
+      case TargetDecoyType::TARGET:
+        setMetaValue("target_decoy", "target");
+        break;
+      case TargetDecoyType::DECOY:
+        setMetaValue("target_decoy", "decoy");
+        break;
+      case TargetDecoyType::TARGET_DECOY:
+        setMetaValue("target_decoy", "target+decoy");
+        break;
+    }
+  }
+
+  PeptideHit::TargetDecoyType PeptideHit::getTargetDecoyType() const
+  {
+    String td = getMetaValue("target_decoy", "target").toString().toLower();
+    if (td == "decoy") return TargetDecoyType::DECOY;
+    if (td == "target+decoy") return TargetDecoyType::TARGET_DECOY;
+    return TargetDecoyType::TARGET;  // default
+  }
+
   std::ostream& operator<< (std::ostream& stream, const PeptideHit& hit)
   {
     return stream << "peptide hit with sequence '" + hit.getSequence().toString() +
