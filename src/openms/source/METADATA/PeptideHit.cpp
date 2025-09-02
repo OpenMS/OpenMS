@@ -376,6 +376,11 @@ namespace OpenMS
     fragment_annotations_ = std::move(frag_annotations);
   }
 
+  bool PeptideHit::isDecoy() const
+  {
+    return getMetaValue("target_decoy", "target").toString().toLower() == "decoy";
+  }
+
   std::ostream& operator<< (std::ostream& stream, const PeptideHit& hit)
   {
     return stream << "peptide hit with sequence '" + hit.getSequence().toString() +

@@ -578,6 +578,32 @@ START_SECTION((PeptideHit& operator=(PeptideHit&& source) noexcept - with analys
 }
 END_SECTION
 
+START_SECTION((bool isDecoy() const))
+{
+  PeptideHit hit;
+  
+  // Test default behavior (no target_decoy meta value set)
+  // Should return false since default is "target"
+  TEST_EQUAL(hit.isDecoy(), false);
+  
+  // Test with explicit "target" value
+  hit.setMetaValue("target_decoy", "target");
+  TEST_EQUAL(hit.isDecoy(), false);
+  
+  // Test with "decoy" value
+  hit.setMetaValue("target_decoy", "decoy");
+  TEST_EQUAL(hit.isDecoy(), true);
+  
+  // Test with "DECOY" (case insensitive)
+  hit.setMetaValue("target_decoy", "DECOY");
+  TEST_EQUAL(hit.isDecoy(), true);
+  
+  // Test with other values
+  hit.setMetaValue("target_decoy", "target+decoy");
+  TEST_EQUAL(hit.isDecoy(), false);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

@@ -276,6 +276,9 @@ public:
     /// sets the fragment annotations
     void setPeakAnnotations(std::vector<PeptideHit::PeakAnnotation> frag_annotations);
 
+    /// returns true if this is a decoy hit
+    bool isDecoy() const;
+
     //@}
 
     /// extracts the set of non-empty protein accessions from peptide evidences
