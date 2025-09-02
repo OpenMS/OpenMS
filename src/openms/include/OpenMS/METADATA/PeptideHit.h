@@ -81,7 +81,7 @@ public:
       are used to separate the parts easily when parsing the annotation.
 
    */
-  struct PeakAnnotation
+  struct OPENMS_DLLAPI PeakAnnotation
   {
     String annotation = "";  // e.g. [alpha|ci$y3-H2O-NH3]
     int charge = 0;
