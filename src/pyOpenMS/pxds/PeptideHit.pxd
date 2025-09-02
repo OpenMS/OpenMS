@@ -34,6 +34,8 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
         void addPeptideEvidence(PeptideEvidence) except + nogil  # wrap-doc:Adds information on a peptide that is (potentially) identified by this PSM
         libcpp_set[String] extractProteinAccessionsSet() except + nogil  # wrap-doc:Extracts the set of non-empty protein accessions from peptide evidences
 
+        bool isDecoy() except + nogil  # wrap-doc:Returns true if this is a decoy hit
+
         void setAnalysisResults(libcpp_vector[PeptideHit_AnalysisResult] aresult) except + nogil  # wrap-doc:Sets information on (search engine) sub scores associated with this PSM
         void addAnalysisResults(PeptideHit_AnalysisResult aresult) except + nogil  # wrap-doc:Add information on (search engine) sub scores associated with this PSM
         libcpp_vector[PeptideHit_AnalysisResult] getAnalysisResults() except + nogil  # wrap-doc:Returns information on (search engine) sub scores associated with this PSM
