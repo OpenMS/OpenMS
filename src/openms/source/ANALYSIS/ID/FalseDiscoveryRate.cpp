@@ -145,7 +145,7 @@ namespace OpenMS
               throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Meta value 'target_decoy' does not exist!");
             }
 
-            String target_decoy(it->getHits()[i].getMetaValue("target_decoy"));
+            bool is_decoy = it->getHits()[i].isDecoy();
             const String peptide_sequence = it->getHits()[i].getSequence().toUnmodifiedString();
             const double score = it->getHits()[i].getScore();
 
@@ -263,8 +263,8 @@ namespace OpenMS
                 throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Meta value 'target_decoy' does not exist!");
               }
 
-              String target_decoy(hits[i].getMetaValue("target_decoy"));
-              if (target_decoy == "target" || target_decoy == "target+decoy")
+              bool is_decoy = hits[i].isDecoy();
+              if (!is_decoy)
               {
                 // if it is a target hit, there are no decoys, fdr/q-value should be zero then
                 new_hits.push_back(hits[i]);
@@ -336,8 +336,8 @@ namespace OpenMS
             }
             if (hit.metaValueExists("target_decoy"))
             {
-              String meta_value = (String)hit.getMetaValue("target_decoy");
-              if (meta_value == "decoy" && !add_decoy_peptides)
+              bool is_decoy = hit.isDecoy();
+              if (is_decoy && !add_decoy_peptides)
               {
                 continue;
               }
@@ -346,7 +346,7 @@ namespace OpenMS
               {
                 const String peptide_sequence = hit.getSequence().toUnmodifiedString();
                 double peptide_fdr;
-                if (meta_value == "decoy")
+                if (is_decoy)
                 {
                   peptide_fdr = peptide_to_best_decoy_score[peptide_sequence];
                 }
