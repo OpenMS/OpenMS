@@ -157,8 +157,11 @@ namespace
                                         "Failed to append sequence: " + OpenMS::String(status.ToString()));
       }
 
-      // Peptidoform (sequence with modifications)
-      OpenMS::String peptidoform = hit.getSequence().toString();
+      // Peptidoform (sequence with modifications in ProForma format)
+      OpenMS::String peptidoform = hit.getSequence().toBracketString(true, false);
+      // Convert round brackets to square brackets for ProForma format
+      peptidoform.substitute("(", "[");
+      peptidoform.substitute(")", "]");
       status = peptidoform_builder.Append(peptidoform.c_str());
       if (!status.ok()) {
         throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
@@ -289,15 +292,31 @@ namespace
                                         "Failed to append rt: " + OpenMS::String(status.ToString()));
       }
 
-      // Ion mobility (null for now)
-      status = ion_mobility_builder.AppendNull();
+      // Ion mobility 
+      if (hit.metaValueExists(OpenMS::Constants::UserParam::IM))
+      {
+        double ion_mobility = hit.getMetaValue(OpenMS::Constants::UserParam::IM);
+        status = ion_mobility_builder.Append(ion_mobility);
+      }
+      else
+      {
+        status = ion_mobility_builder.AppendNull();
+      }
       if (!status.ok()) {
         throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                                         "Failed to append ion mobility: " + OpenMS::String(status.ToString()));
       }
 
-      // Num peaks (null for now)
-      status = num_peaks_builder.AppendNull();
+      // Num peaks
+      if (hit.metaValueExists(OpenMS::Constants::UserParam::NUM_PEAKS))
+      {
+        int num_peaks = hit.getMetaValue(OpenMS::Constants::UserParam::NUM_PEAKS);
+        status = num_peaks_builder.Append(num_peaks);
+      }
+      else
+      {
+        status = num_peaks_builder.AppendNull();
+      }
       if (!status.ok()) {
         throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                                         "Failed to append num peaks: " + OpenMS::String(status.ToString()));
