@@ -139,35 +139,36 @@ namespace OpenMS
               continue;
             }
 
-            if (!it->getHits()[i].metaValueExists("target_decoy"))
+            auto target_decoy_type = it->getHits()[i].getTargetDecoyType();
+            
+            if (target_decoy_type == PeptideHit::TargetDecoyType::UNKNOWN)
             {
               OPENMS_LOG_FATAL_ERROR << "Meta value 'target_decoy' does not exists, reindex the idXML file with 'PeptideIndexer' first (run-id='" << it->getIdentifier() << ", rank=" << i + 1 << " of " << it->getHits().size() << ")!" << endl;
               throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Meta value 'target_decoy' does not exist!");
             }
 
-            bool is_decoy = it->getHits()[i].isDecoy();
             const String peptide_sequence = it->getHits()[i].getSequence().toUnmodifiedString();
             const double score = it->getHits()[i].getScore();
 
-            if (target_decoy == "target" || target_decoy == "target+decoy")
+            if (target_decoy_type == PeptideHit::TargetDecoyType::TARGET || target_decoy_type == PeptideHit::TargetDecoyType::TARGET_DECOY)
             {
               target_scores.push_back(score);
 
               if (annotate_peptide_fdr)
               {
-                // store best score for peptide (unmodified sequence)              
+                // store best score for peptide (unmodified sequence)
                 auto [entry_it, success] = peptide_to_best_target_score.emplace(peptide_sequence, score); // try to construct in place (performance)
 
                 if (!success && // emplace failed because key was already present -> replace if current score is better?
-                    isFirstBetterScore(score, entry_it->second, higher_score_better)) 
+                    isFirstBetterScore(score, entry_it->second, higher_score_better))
                 {
                   entry_it->second = score;
-                }                           
+                }
               }
             }
             else
             {
-              if (target_decoy == "decoy")
+              if (target_decoy_type == PeptideHit::TargetDecoyType::DECOY)
               {
                 decoy_scores.push_back(score);
 
@@ -182,13 +183,7 @@ namespace OpenMS
                   }
                 }
               }
-              else
-              {
-                if (!target_decoy.empty())
-                {
-                  throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown value of meta value 'target_decoy'", target_decoy);
-                }
-              }
+              // Note: All other cases (UNKNOWN) are handled at the beginning of the loop
             }
           }
         }
@@ -257,7 +252,9 @@ namespace OpenMS
                 continue;
               }
 
-              if (!hits[i].metaValueExists("target_decoy"))
+              auto target_decoy_type = hits[i].getTargetDecoyType();
+              
+              if (target_decoy_type == PeptideHit::TargetDecoyType::UNKNOWN)
               {
                 OPENMS_LOG_FATAL_ERROR << "Meta value 'target_decoy' does not exists, reindex the idXML file with 'PeptideIndexer' (run-id='" << it->getIdentifier() << ", rank=" << i + 1 << " of " << hits.size() << ")!" << endl;
                 throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Meta value 'target_decoy' does not exist!");
@@ -272,13 +269,7 @@ namespace OpenMS
                 new_hits.back().setMetaValue(score_type, new_hits.back().getScore());
                 new_hits.back().setScore(0);
               }
-              else
-              {
-                if (target_decoy != "decoy")
-                {
-                  throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown value of meta value 'target_decoy'", target_decoy);
-                }
-              }
+              // Note: decoy hits are skipped (not added to new_hits)
             }
             it->setHits(new_hits);
           }

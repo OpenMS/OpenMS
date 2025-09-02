@@ -118,7 +118,7 @@ namespace OpenMS
     {
       return true;
     }
-    if (id.getHits()[0].getTargetDecoyType() == TargetDecoyType::UNKNOWN)
+    if (id.getHits()[0].getTargetDecoyType() == PeptideHit::TargetDecoyType::UNKNOWN)
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy annotation found. If you want to continue regardless use -MS2_id_rate:assume_all_target");
     }
