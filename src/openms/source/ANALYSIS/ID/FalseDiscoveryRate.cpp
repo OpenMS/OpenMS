@@ -499,7 +499,8 @@ namespace OpenMS
       {
         if (pit->getTargetDecoyType() == ProteinHit::TargetDecoyType::UNKNOWN)
         {
-          OPENMS_LOG_FATAL_ERROR << "Meta value 'target_decoy' does not exist, reindex the idXML file with 'PeptideIndexer' first (run-id='" << it->getIdentifier() << ", rank=" << i + 1 << " of " << it->getHits().size() << ")!" << endl;
+          OPENMS_LOG_FATAL_ERROR << "Meta value 'target_decoy' does not exist, reindex the idXML file with 'PeptideIndexer' first (run-id='" 
+            << it->getIdentifier() << ")!" << endl;
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Meta value 'target_decoy' does not exist!");
         }
 
