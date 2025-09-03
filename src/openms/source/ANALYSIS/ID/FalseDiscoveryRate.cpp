@@ -1083,7 +1083,8 @@ namespace OpenMS
       unordered_set<string> decoy_accs;
       for (const auto& prot : id.getHits())
       {
-        if (!prot.metaValueExists("target_decoy") || prot.getMetaValue("target_decoy") == "decoy")
+        // checks if not a target (UNKNOWN or DECOY)
+        if (prot.getTargetDecoyType() != ProteinHit::TargetDecoyType::TARGET)
         {
           decoy_accs.insert(prot.getAccession());
         }

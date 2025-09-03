@@ -155,6 +155,41 @@ namespace OpenMS
     modifications_ = mods;
   }
 
+  bool ProteinHit::isDecoy() const
+  {
+    return getTargetDecoyType() == TargetDecoyType::DECOY;
+  }
+
+  void ProteinHit::setTargetDecoyType(TargetDecoyType type)
+  {
+    switch(type)
+    {
+      case TargetDecoyType::TARGET:
+        setMetaValue("target_decoy", "target");
+        break;
+      case TargetDecoyType::DECOY:
+        setMetaValue("target_decoy", "decoy");
+        break;
+      case TargetDecoyType::UNKNOWN:
+        removeMetaValue("target_decoy");
+        break;
+    }
+  }
+
+  ProteinHit::TargetDecoyType ProteinHit::getTargetDecoyType() const
+  {
+    if (!metaValueExists("target_decoy"))
+    {
+      return TargetDecoyType::UNKNOWN;
+    }
+    
+    String td = getMetaValue("target_decoy").toString().toLower();
+    if (td == "decoy") return TargetDecoyType::DECOY;
+    if (td == "target") return TargetDecoyType::TARGET;
+    
+    return TargetDecoyType::UNKNOWN;  // for unknown/invalid values
+  }
+
   std::ostream& operator<< (std::ostream& stream, const ProteinHit& hit)
   {
     return stream << "protein hit with accession '" + hit.getAccession() + "', score " +
