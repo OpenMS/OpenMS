@@ -23,7 +23,7 @@ namespace OpenMS
   using namespace std;
 
   void PercolatorInfile::store(const String& pin_file,
-    const vector<PeptideIdentification>& peptide_ids, 
+    const PeptideIdentificationList& peptide_ids, 
     const StringList& feature_set, 
     const std::string& enz, 
     int min_charge, 
@@ -56,7 +56,7 @@ namespace OpenMS
     return scan_identifier.removeWhitespaces();
   }
 
-  vector<PeptideIdentification> PercolatorInfile::load(
+  PeptideIdentificationList PercolatorInfile::load(
     const String& pin_file,
     bool higher_score_better,
     const String& score_name,
@@ -200,7 +200,7 @@ namespace OpenMS
 
     auto n_rows = csv.rowCount();
 
-    vector<PeptideIdentification> pids;
+    PeptideIdentificationList pids;
     pids.reserve(n_rows);
     String spec_id;
     String raw_file_name("UNKNOWN");
@@ -376,7 +376,7 @@ namespace OpenMS
 
 
   TextFile PercolatorInfile::preparePin_(
-    const vector<PeptideIdentification>& peptide_ids, 
+    const PeptideIdentificationList& peptide_ids, 
     const StringList& feature_set, 
     const std::string& enz, 
     int min_charge, 
@@ -427,17 +427,13 @@ namespace OpenMS
         hit.setMetaValue("SpecId", file_identifier + scan_identifier);
         hit.setMetaValue("ScanNr", scan_number);
         
-        if (!hit.metaValueExists("target_decoy") 
-          || hit.getMetaValue("target_decoy").toString().empty()) 
+        if (!hit.metaValueExists("target_decoy")
+          || hit.getMetaValue("target_decoy").toString().empty())
         {
           continue;
         }
         
-        int label = 1;
-        if (hit.getMetaValue("target_decoy") == "decoy")
-        {
-          label = -1;
-        }
+        int label = hit.isDecoy() ? -1 : 1;
         hit.setMetaValue("Label", label);
         
         int charge = hit.getCharge();

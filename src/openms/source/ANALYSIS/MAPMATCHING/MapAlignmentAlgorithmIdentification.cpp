@@ -92,7 +92,7 @@ namespace OpenMS
 
   // lists of peptide hits in "peptides" will be sorted
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-      const vector<PeptideIdentification>& peptides, SeqToList& rt_data)
+      const PeptideIdentificationList& peptides, SeqToList& rt_data)
   {
     for (auto pep_it = peptides.cbegin(); pep_it != peptides.cend(); ++pep_it)
     {
@@ -173,14 +173,6 @@ namespace OpenMS
         rt_data[molecule].push_back(hit->observation_ref->rt);
       }
     }
-    return false;
-  }
-
-  // lists of peptide hits in "maps" will be sorted
-  bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-      const AnnotatedMSRun& experiment, SeqToList& rt_data)
-  {
-    getRetentionTimes_(experiment.getPeptideIdentifications(), rt_data);
     return false;
   }
 

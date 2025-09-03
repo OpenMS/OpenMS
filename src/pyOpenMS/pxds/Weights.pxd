@@ -6,7 +6,7 @@ from IMSIsotopeDistribution cimport *
 cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h>" namespace "OpenMS::ims::Weights":
 
     ctypedef double alphabet_mass_type
-    ctypedef long unsigned int weight_type
+    ctypedef unsigned int weight_type
     ctypedef libcpp_vector[weight_type] weights_type
 
 cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/Weights.h>" namespace "OpenMS::ims":

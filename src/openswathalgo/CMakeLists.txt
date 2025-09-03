@@ -55,6 +55,7 @@ openms_add_library(TARGET_NAME OpenSwathAlgo
                    HEADER_FILES ${OpenSwathAlgoHeaders}
                    INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
                    EXTERNAL_INCLUDES ${Boost_INCLUDE_DIRS}
+                   PRIVATE_LINK_LIBRARIES Eigen3::Eigen
                    DLL_EXPORT_PATH "OpenMS/OPENSWATHALGO/")
 
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")

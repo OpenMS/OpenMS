@@ -61,6 +61,11 @@ Depending on the input file type, additional specific operations are possible:
     - filter by signal-to-noise estimation
     - filter by scan mode of the spectra
     - filter by scan polarity of the spectra
+    - filter by activation method of the spectra
+    - filter by collision energy of the spectra
+    - filter by isolation window width of the spectra
+    - select/remove zoom scans
+    - remove chromatograms, meta data arrays, and empty spectra
 - remove MS2 scans whose precursor matches identifications (from an idXML file in 'id:blacklist')
 - featureXML
     - filter by feature charge
@@ -211,7 +216,7 @@ private:
           }
         }
       }
-      feature.setPeptideIdentifications(vector<PeptideIdentification>(1, temp));
+      feature.setPeptideIdentifications(PeptideIdentificationList(1, temp));
       // not filtering sequences or accessions
       if (sequences.empty() && accessions.empty())
       {
@@ -301,6 +306,7 @@ protected:
     registerFlag_("peak_options:no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans");
     registerFlag_("peak_options:remove_chromatograms", "Removes chromatograms stored in a file");
     registerFlag_("peak_options:remove_empty", "Removes spectra and chromatograms without peaks.");
+    registerFlag_("peak_options:remove_metadataarrays", "Remove all binary data (e.g. ion mobility), except m/z and intensity.");
     registerStringOption_("peak_options:mz_precision", "32 or 64", 64, "Store base64 encoded m/z data using 32 or 64 bit precision", false);
     setValidStrings_("peak_options:mz_precision", ListUtils::create<String>("32,64"));
     registerStringOption_("peak_options:int_precision", "32 or 64", 32, "Store base64 encoded intensity data using 32 or 64 bit precision", false);
@@ -720,6 +726,16 @@ protected:
           ,chroms.end());
       }
 
+      bool remove_metadataarrays = getFlag_("peak_options:remove_metadataarrays");
+      if (remove_metadataarrays)
+      {
+        for (MapType::SpectrumType& spec : exp.getSpectra())
+        {
+          spec.getFloatDataArrays().clear();
+          spec.getStringDataArrays().clear();
+          spec.getIntegerDataArrays().clear();
+        }
+      }
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
@@ -1213,7 +1229,7 @@ protected:
   ExitCodes filterByBlackList(MapType& exp, const String& id_blacklist, bool blacklist_imperfect, double rt_tol, double mz_tol)
   {
     vector<ProteinIdentification> protein_ids;
-    vector<PeptideIdentification> peptide_ids;
+    PeptideIdentificationList peptide_ids;
     FileHandler().loadIdentifications(id_blacklist, protein_ids, peptide_ids);
 
     // translate idXML entries into something more handy

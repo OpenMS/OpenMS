@@ -29,12 +29,12 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
         OPXLHelper() except + nogil  # compiler
         OPXLHelper(OPXLHelper &) except + nogil  # compiler
 
-        libcpp_vector[ XLPrecursor ] enumerateCrossLinksAndMasses(libcpp_vector[ AASeqWithMass ]  peptides,
+        libcpp_vector[ XLPrecursor ] enumerateCrossLinksAndMasses(const libcpp_vector[ AASeqWithMass ]  peptides,
                                                                   double cross_link_mass_light,
                                                                   DoubleList cross_link_mass_mono_link,
                                                                   StringList cross_link_residue1,
                                                                   StringList cross_link_residue2,
-                                                                  libcpp_vector[ double ]& spectrum_precursors,
+                                                                  const libcpp_vector[ double ]& spectrum_precursors,
                                                                   libcpp_vector[ int ]& precursor_correction_positions,
                                                                   double precursor_mass_tolerance,
                                                                   bool precursor_mass_tolerance_unit_ppm)  except + nogil 
@@ -66,7 +66,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
                                       MSSpectrum theoretical_spectrum,
                                       MSSpectrum experiment_spectrum) except + nogil 
 
-        void buildPeptideIDs(libcpp_vector[ PeptideIdentification ]& peptide_ids,
+        void buildPeptideIDs(PeptideIdentificationList& peptide_ids,
                              libcpp_vector[ CrossLinkSpectrumMatch ] top_csms_spectrum,
                              libcpp_vector[ libcpp_vector[ CrossLinkSpectrumMatch ] ]& all_top_csms,
                              Size all_top_csms_current_index,
@@ -74,19 +74,19 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
                              Size scan_index,
                              Size scan_index_heavy) except + nogil 
 
-        void addProteinPositionMetaValues(libcpp_vector[ PeptideIdentification ]& peptide_ids) except + nogil 
+        void addProteinPositionMetaValues(PeptideIdentificationList& peptide_ids) except + nogil 
 
-        void addXLTargetDecoyMV(libcpp_vector[ PeptideIdentification ]& peptide_ids) except + nogil 
+        void addXLTargetDecoyMV(PeptideIdentificationList& peptide_ids) except + nogil 
 
-        void addBetaAccessions(libcpp_vector[ PeptideIdentification ]& peptide_ids) except + nogil 
+        void addBetaAccessions(PeptideIdentificationList& peptide_ids) except + nogil 
 
-        void removeBetaPeptideHits(libcpp_vector[ PeptideIdentification ]& peptide_ids) except + nogil 
+        void removeBetaPeptideHits(PeptideIdentificationList& peptide_ids) except + nogil 
 
         void addPercolatorFeatureList(ProteinIdentification& prot_id) except + nogil 
 
-        void computeDeltaScores(libcpp_vector[ PeptideIdentification ]& peptide_ids) except + nogil 
+        void computeDeltaScores(PeptideIdentificationList& peptide_ids) except + nogil 
 
-        libcpp_vector[ PeptideIdentification ] combineTopRanksFromPairs(libcpp_vector[ PeptideIdentification ]& peptide_ids, Size number_top_hits) except + nogil 
+        PeptideIdentificationList combineTopRanksFromPairs(PeptideIdentificationList& peptide_ids, Size number_top_hits) except + nogil 
 
         libcpp_vector[ ProteinProteinCrossLink ] collectPrecursorCandidates(IntList precursor_correction_steps,
                                                                             double precursor_mass,

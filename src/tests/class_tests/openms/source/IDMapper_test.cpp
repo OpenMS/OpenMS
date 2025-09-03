@@ -88,7 +88,7 @@ START_SECTION((void annotate(AnnotatedMSRun& map, FeatureMap fmap, const bool cl
   Feature f;
   f.setMZ(900.0);
   f.setRT(9.0);
-  std::vector<PeptideIdentification> pids;
+  PeptideIdentificationList pids;
   PeptideIdentification pid;
   pid.setIdentifier("myID");
   pid.setHits(std::vector<PeptideHit>(4));
@@ -160,14 +160,14 @@ START_SECTION((void annotate(AnnotatedMSRun& map, FeatureMap fmap, const bool cl
 END_SECTION
 */
 
-START_SECTION((void annotate(AnnotatedMSRun& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)))
+START_SECTION((void annotate(AnnotatedMSRun& map, const PeptideIdentificationList& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)))
   // load id
-  vector<PeptideIdentification> identifications;
+  PeptideIdentificationList identifications;
   vector<ProteinIdentification> protein_identifications;
   String document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_1.idXML"), protein_identifications, identifications, document_id);
 
-  vector<PeptideIdentification> identifications2;
+  PeptideIdentificationList identifications2;
   vector<ProteinIdentification> protein_identifications2;
   String document_id2;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_7.idXML"), protein_identifications2, identifications2, document_id2);
@@ -283,10 +283,10 @@ START_SECTION((void annotate(AnnotatedMSRun& map, const std::vector<PeptideIdent
 END_SECTION
 
 
-START_SECTION((template < typename FeatureType > void annotate(FeatureMap< FeatureType > &map, const std::vector< PeptideIdentification > &ids, const std::vector< ProteinIdentification > &protein_ids, bool use_centroid_rt=false, bool use_centroid_mz=false)))
+START_SECTION((template < typename FeatureType > void annotate(FeatureMap< FeatureType > &map, const PeptideIdentificationList &ids, const std::vector< ProteinIdentification > &protein_ids, bool use_centroid_rt=false, bool use_centroid_mz=false)))
 {
   //load id data
-  vector<PeptideIdentification> identifications;
+  PeptideIdentificationList identifications;
   vector<ProteinIdentification> protein_identifications;
   String document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_2.idXML"), protein_identifications, identifications, document_id);
@@ -446,7 +446,7 @@ START_SECTION((template < typename FeatureType > void annotate(FeatureMap< Featu
 END_SECTION
 
 
-START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements=false)))
+START_SECTION((void annotate(ConsensusMap& map, const PeptideIdentificationList& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements=false)))
 {
   IDMapper mapper;
   Param p = mapper.getParameters();
@@ -459,8 +459,8 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
 
   std::vector<ProteinIdentification> protein_ids;
   std::vector<ProteinIdentification> protein_ids2;
-  std::vector<PeptideIdentification> peptide_ids;
-  std::vector<PeptideIdentification> peptide_ids2;
+  PeptideIdentificationList peptide_ids;
+  PeptideIdentificationList peptide_ids2;
   String document_id;
   String document_id2;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.idXML"), protein_ids, peptide_ids, document_id);
@@ -570,7 +570,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
     NEW_TMP_FILE(tmp_filename);
     ConsensusMap cons_map;
     cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.consensusXML"), cons_map);
-    mapper6.annotate(cons_map, vector<PeptideIdentification>(), vector<ProteinIdentification>(), false, false, experiment);
+    mapper6.annotate(cons_map, PeptideIdentificationList(), vector<ProteinIdentification>(), false, false, experiment);
     cons_file.store(tmp_filename, cons_map);
     WHITELIST("<?xml-stylesheet, date=");
     TEST_FILE_SIMILAR(tmp_filename, OPENMS_GET_TEST_DATA_PATH("IDMapper_6_out1.consensusXML"));
@@ -598,7 +598,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
     NEW_TMP_FILE(tmp_filename);
     ConsensusMap cons_map;
     cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.consensusXML"), cons_map);
-    mapper6.annotate(cons_map, vector<PeptideIdentification>(), vector<ProteinIdentification>(), false, false, experiment);
+    mapper6.annotate(cons_map, PeptideIdentificationList(), vector<ProteinIdentification>(), false, false, experiment);
     cons_file.store(tmp_filename, cons_map);
     WHITELIST("<?xml-stylesheet, date=");
     TEST_FILE_SIMILAR(tmp_filename, OPENMS_GET_TEST_DATA_PATH("IDMapper_6_out2.consensusXML"));
@@ -623,7 +623,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
     NEW_TMP_FILE(tmp_filename);
     ConsensusMap cons_map;
     cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.consensusXML"), cons_map);
-    mapper6.annotate(cons_map, vector<PeptideIdentification>(), vector<ProteinIdentification>(), false, false, experiment);
+    mapper6.annotate(cons_map, PeptideIdentificationList(), vector<ProteinIdentification>(), false, false, experiment);
     cons_file.store(tmp_filename, cons_map);
     WHITELIST("<?xml-stylesheet, date=");
     TEST_FILE_SIMILAR(tmp_filename, OPENMS_GET_TEST_DATA_PATH("IDMapper_6_out3.consensusXML"));

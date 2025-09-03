@@ -26,7 +26,7 @@ namespace OpenMS
 
   OMSSAXMLFile::~OMSSAXMLFile() = default;
 
-  void OMSSAXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_identifications, bool load_proteins, bool load_empty_hits)
+  void OMSSAXMLFile::load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& peptide_identifications, bool load_proteins, bool load_empty_hits)
   {
     // clear input (in case load() is called more than once)
     protein_identification = ProteinIdentification();

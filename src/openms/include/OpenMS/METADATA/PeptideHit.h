@@ -49,6 +49,15 @@ namespace OpenMS
     public MetaInfoInterface
   {
 public:
+    /// Enum for target/decoy annotation
+    enum class TargetDecoyType
+    {
+      TARGET,       ///< Only matches target proteins
+      DECOY,        ///< Only matches decoy proteins
+      TARGET_DECOY, ///< Matches BOTH target and decoy proteins
+      UNKNOWN       ///< Target/decoy status is unknown (meta value not set)
+    };
+
     /**
    * @brief Contains annotations of a peak
 
@@ -72,40 +81,18 @@ public:
       are used to separate the parts easily when parsing the annotation.
 
    */
-  struct PeakAnnotation
+  struct OPENMS_DLLAPI PeakAnnotation
   {
     String annotation = "";  // e.g. [alpha|ci$y3-H2O-NH3]
     int charge = 0;
     double mz = -1.;
     double intensity = 0.;
 
-    bool operator<(const PeptideHit::PeakAnnotation& other) const
-    {
-      // sensible to sort first by m/z and charge
-      return std::tie(mz, charge, annotation, intensity) < std::tie(other.mz, other.charge, other.annotation, other.intensity);
-    }
+    bool operator<(const PeptideHit::PeakAnnotation& other) const;
 
-    bool operator==(const PeptideHit::PeakAnnotation& other) const
-    {
-      if (charge != other.charge || mz != other.mz ||
-          intensity != other.intensity || annotation != other.annotation) return false;
-      return true;
-    }
+    bool operator==(const PeptideHit::PeakAnnotation& other) const;
 
-    static void writePeakAnnotationsString_(String& annotation_string, std::vector<PeptideHit::PeakAnnotation> annotations)
-    {
-      if (annotations.empty()) { return; }
-
-      // sort by mz, charge, ...
-      stable_sort(annotations.begin(), annotations.end());
-
-      String val;
-      for (auto& a : annotations)
-      {
-        annotation_string += String(a.mz) + "," + String(a.intensity) + "," + String(a.charge) + "," + String(a.annotation).quote();
-        if (&a != &annotations.back()) { annotation_string += "|"; }
-      }
-    }
+    static void writePeakAnnotationsString_(String& annotation_string, std::vector<PeptideHit::PeakAnnotation> annotations);
 
   };
 
@@ -265,7 +252,7 @@ public:
     /// returns the PSM rank
     UInt getRank() const;
 
-    /// sets the PSM rank
+    /// sets the PSM rank (0 = top hit)
     void setRank(UInt newrank);
 
     /// returns the fragment annotations
@@ -275,6 +262,41 @@ public:
 
     /// sets the fragment annotations
     void setPeakAnnotations(std::vector<PeptideHit::PeakAnnotation> frag_annotations);
+
+    /**
+     * @brief Returns true if this hit is annotated as mapping to decoy sequences only. Warning: an unknown/unannotated state will yield false.
+     */
+    bool isDecoy() const;
+
+    /** @brief Sets the target/decoy type for this peptide hit
+     *
+     * This method provides a type-safe way to annotate peptide hits with their
+     * target/decoy status. Use TARGET_DECOY for peptides that match both target
+     * and decoy protein sequences (these are treated as targets in FDR calculations).
+     * Note: UNKNOWN should only be used in special cases where the status needs to
+     * be explicitly marked as unknown.
+     *
+     * @param type The target/decoy classification:
+     *   - TARGET: Only matches target proteins
+     *   - DECOY: Only matches decoy proteins
+     *   - TARGET_DECOY: Matches both target and decoy proteins
+     *   - UNKNOWN: Target/decoy status is unknown (explicit unknown state)
+     */
+    void setTargetDecoyType(TargetDecoyType type);
+
+    /** @brief Returns the target/decoy type for this peptide hit
+     *
+     * This method performs case-insensitive parsing of the "target_decoy" meta value
+     * and returns the corresponding enum value. Returns UNKNOWN if the meta value
+     * does not exist.
+     *
+     * @return The target/decoy classification:
+     *   - TARGET: Only matches target proteins
+     *   - DECOY: Only matches decoy proteins
+     *   - TARGET_DECOY: Matches both target and decoy proteins
+     *   - UNKNOWN: Target/decoy status not set (meta value missing)
+     */
+    TargetDecoyType getTargetDecoyType() const;
 
     //@}
 

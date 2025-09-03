@@ -423,9 +423,9 @@ START_SECTION((void findMatches(multimap<double, ModificationDefinition>& matche
 }
 END_SECTION
 
-START_SECTION(void inferFromPeptides(const vector<PeptideIdentification>& peptides))
+START_SECTION(void inferFromPeptides(const PeptideIdentificationList& peptides))
 {
-  vector<PeptideIdentification> peptides(2);
+  PeptideIdentificationList peptides(2);
   PeptideHit hit;
   hit.setSequence(AASequence::fromString("AC(Carbamidomethyl)M"));
   peptides[0].insertHit(hit);

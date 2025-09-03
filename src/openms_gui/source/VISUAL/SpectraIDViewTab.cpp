@@ -46,13 +46,13 @@ namespace Clmn
   enum HeaderNames
   { // indices into QTableWidget's columns (which start at index 0)
     MS_LEVEL, SPEC_INDEX, RT, PRECURSOR_MZ, DISSOCIATION, SCANTYPE, ZOOM, SCORE, RANK, 
-    CHARGE, SEQUENCE, ACCESSIONS, ID_NR, PEPHIT_NR, CURATED, PREC_PPM, PREC_INT, PEAK_ANNOTATIONS, /* last entry --> */ SIZE_OF_HEADERNAMES
+    CHARGE, SEQUENCE, ACCESSIONS, START, END, ID_NR, PEPHIT_NR, CURATED, PREC_PPM, PREC_INT, PEAK_ANNOTATIONS, /* last entry --> */ SIZE_OF_HEADERNAMES
   };
   // keep in SYNC with enum HeaderNames
   const QStringList HEADER_NAMES = QStringList()
                                     << "MS" << "index" << "RT"
                                     << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score"
-                                    << "rank" << "charge" << "sequence" << "accessions" << "#ID" << "#PH"
+                                    << "rank" << "charge" << "sequence" << "accessions" << "start" << "end" << "#ID" << "#PH"
                                     << "Curated" << "precursor error (|ppm|)" << "precursor intensity" << "peak annotations";
 }
 
@@ -806,36 +806,49 @@ namespace OpenMS
           }
           table_widget_->setAtBottomRow(seq.toQString(), Clmn::SEQUENCE, bg_color);
 
-          // accession
-          set<String> protein_accessions = ph.extractProteinAccessionsSet();
-          String accessions = ListUtils::concatenate(vector<String>(protein_accessions.begin(), protein_accessions.end()), ", ");
-          table_widget_->setAtBottomRow(accessions.toQString(), Clmn::ACCESSIONS, bg_color);
-          table_widget_->setAtBottomRow((int) i, Clmn::ID_NR, bg_color); // spectrum index
-          table_widget_->setAtBottomRow((int)(ph_idx), Clmn::PEPHIT_NR, bg_color);
-
-          bool selected(false);
-          if (ph.metaValueExists("selected"))
+       // accession, start and end in protein (note that one peptide might match twice into same protein)
+        const vector<PeptideEvidence>& pevids = ph.getPeptideEvidences();
+        vector<String> protein_accessions;
+        vector<String> protein_starts;
+        vector<String> protein_ends;
+        for (const PeptideEvidence& ev : pevids)
+        {
+          protein_accessions.push_back(ev.getProteinAccession());
+          protein_starts.push_back(ev.getStart() + 1);
+          protein_ends.push_back(ev.getEnd() + 1);
+        }
+        String accessions = ListUtils::concatenate(vector<String>(protein_accessions.begin(), protein_accessions.end()), ", ");
+        String starts = ListUtils::concatenate(vector<String>(protein_starts.begin(), protein_starts.end()), ", ");
+        String ends = ListUtils::concatenate(vector<String>(protein_ends.begin(), protein_ends.end()), ", ");
+        table_widget_->setAtBottomRow(accessions.toQString(), Clmn::ACCESSIONS, bg_color);
+        table_widget_->setAtBottomRow(starts.toQString(), Clmn::START, bg_color);
+        table_widget_->setAtBottomRow(ends.toQString(), Clmn::END, bg_color);
+        table_widget_->setAtBottomRow((int) i, Clmn::ID_NR, bg_color); // spectrum index
+        table_widget_->setAtBottomRow((int)(ph_idx), Clmn::PEPHIT_NR, bg_color);
+        
+        bool selected(false);
+        if (ph.metaValueExists("selected"))
+        {
+          selected = ph.getMetaValue("selected").toString() == "true";
+        }
+        table_widget_->setAtBottomRow(selected, Clmn::CURATED, bg_color);
+        
+        // additional precursor infos, e.g. ppm error
+        if (!precursors.empty())
+        {
+          const Precursor& first_precursor = precursors.front();
+          double ppm_error(0);
+          // Protein:RNA cross-link, Protein-Protein cross-link, or other data with a precomputed precursor error
+          if (ph.metaValueExists(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))
           {
-            selected = ph.getMetaValue("selected").toString() == "true";
+            ppm_error = fabs((double)ph.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM));
           }
-          table_widget_->setAtBottomRow(selected, Clmn::CURATED, bg_color);
-
-          // additional precursor infos, e.g. ppm error
-          if (!precursors.empty())
+          else if (ph.metaValueExists("OMS:precursor_mz_error_ppm")) // for legacy reasons added in OpenMS 2.5
           {
-            const Precursor& first_precursor = precursors.front();
-            double ppm_error(0);
-            // Protein:RNA cross-link, Protein-Protein cross-link, or other data with a precomputed precursor error
-            if (ph.metaValueExists(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM))
-            {
-              ppm_error = fabs((double)ph.getMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM));
-            }
-            else if (ph.metaValueExists("OMS:precursor_mz_error_ppm")) // for legacy reasons added in OpenMS 2.5
-            {
-              ppm_error = fabs((double)ph.getMetaValue("OMS:precursor_mz_error_ppm"));
-            }
-            else if (!ph.getSequence().empty()) // works for normal linear fragments with the correct modifications included in the AASequence
-            {
+            ppm_error = fabs((double)ph.getMetaValue("OMS:precursor_mz_error_ppm"));
+          }
+          else if (!ph.getSequence().empty()) // works for normal linear fragments with the correct modifications included in the AASequence
+          {
               double exp_precursor = first_precursor.getMZ();
               int charge = first_precursor.getCharge();
               double theo_precursor= ph.getSequence().getMZ(charge);
@@ -948,7 +961,7 @@ namespace OpenMS
     dynamic_cast<LayerData1DPeak*>(layer_)->synchronizePeakAnnotations();
 
     vector<ProteinIdentification> prot_id = layer_->getPeakData()->getProteinIdentifications();
-    vector<PeptideIdentification> all_pep_ids;
+    PeptideIdentificationList all_pep_ids;
 
     // collect PeptideIdentifications from each spectrum, while making sure each spectrum is only considered once
     // otherwise duplicates will be stored, if more than one PeptideHit is contained in a PeptideIdentification

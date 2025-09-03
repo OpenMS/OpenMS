@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>" namespace "
         PercolatorFeatureSetHelper() except + nogil  
         PercolatorFeatureSetHelper(PercolatorFeatureSetHelper &) except + nogil 
 
-        void concatMULTISEPeptideIds(libcpp_vector[ PeptideIdentification ] & all_peptide_ids, libcpp_vector[ PeptideIdentification ] & new_peptide_ids, String search_engine) except + nogil 
+        void concatMULTISEPeptideIds(PeptideIdentificationList & all_peptide_ids, PeptideIdentificationList & new_peptide_ids, String search_engine) except + nogil 
             # wrap-doc:
                 #  Appends a vector of PeptideIdentification to another and prepares Percolator features in MetaInfo (With the respective key "CONCAT:" + search_engine)
                 #  
@@ -31,7 +31,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>" namespace "
                 #  :param new_peptide_ids: PeptideIdentification vector to be appended
                 #  :param search_engine: Search engine to depend on for feature creation
 
-        void mergeMULTISEPeptideIds(libcpp_vector[ PeptideIdentification ] & all_peptide_ids, libcpp_vector[ PeptideIdentification ] & new_peptide_ids, String search_engine) except + nogil 
+        void mergeMULTISEPeptideIds(PeptideIdentificationList & all_peptide_ids, PeptideIdentificationList & new_peptide_ids, String search_engine) except + nogil 
             # wrap-doc:
                 #  Merges a vector of PeptideIdentification into another and prepares the merged MetaInfo and scores for collection in addMULTISEFeatures for feature registration
                 #  
@@ -48,7 +48,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>" namespace "
                 #  :param all_protein_ids: ProteinIdentification vector to be merged into
                 #  :param new_protein_ids: ProteinIdentification vector to merge
                 
-        void addMSGFFeatures(libcpp_vector[ PeptideIdentification ] & peptide_ids, StringList & feature_set) except + nogil 
+        void addMSGFFeatures(PeptideIdentificationList & peptide_ids, StringList & feature_set) except + nogil 
             # wrap-doc:
                 #  Creates and adds MSGF+ specific Percolator features and registers them in feature_set. MSGF+ should be run with the addFeatures flag enabled
                 #  
@@ -56,7 +56,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>" namespace "
                 #  :param peptide_ids: PeptideIdentification vector to create Percolator features in
                 #  :param feature_set: Register of added features
                 
-        void addXTANDEMFeatures(libcpp_vector[ PeptideIdentification ] & peptide_ids, StringList & feature_set) except + nogil 
+        void addXTANDEMFeatures(PeptideIdentificationList & peptide_ids, StringList & feature_set) except + nogil 
             # wrap-doc:
                 #  Creates and adds X!Tandem specific Percolator features and registers them in feature_set
                 #  
@@ -64,7 +64,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>" namespace "
                 #  :param peptide_ids: PeptideIdentification vector to create Percolator features in
                 #  :param feature_set: Register of added features
                 
-        void addCOMETFeatures(libcpp_vector[ PeptideIdentification ] & peptide_ids, StringList & feature_set) except + nogil 
+        void addCOMETFeatures(PeptideIdentificationList & peptide_ids, StringList & feature_set) except + nogil 
             # wrap-doc:
                 #  Creates and adds Comet specific Percolator features and registers them in feature_set
                 #  
@@ -72,7 +72,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>" namespace "
                 #  :param peptide_ids: PeptideIdentification vector to create Percolator features in
                 #  :param feature_set: Register of added features
 
-        void addMASCOTFeatures(libcpp_vector[ PeptideIdentification ] & peptide_ids, StringList & feature_set) except + nogil 
+        void addMASCOTFeatures(PeptideIdentificationList & peptide_ids, StringList & feature_set) except + nogil 
             # wrap-doc:
                 #  Creates and adds Mascot specific Percolator features and registers them in feature_set
                 #  
@@ -80,7 +80,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>" namespace "
                 #  :param peptide_ids: PeptideIdentification vector to create Percolator features in
                 #  :param feature_set: Register of added features
 
-        void addMULTISEFeatures(libcpp_vector[ PeptideIdentification ] & peptide_ids, StringList & search_engines_used, StringList & feature_set, bool complete_only, bool limits_imputation) except + nogil 
+        void addMULTISEFeatures(PeptideIdentificationList & peptide_ids, StringList & search_engines_used, StringList & feature_set, bool complete_only, bool limits_imputation) except + nogil 
             # wrap-doc:
                 #  Adds multiple search engine specific Percolator features and registers them in feature_set
                 #  
@@ -91,7 +91,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>" namespace "
                 #  :param complete_only: Will only add features for PeptideIdentifications where all given search engines identified something
                 #  :param limits_imputation: Uses C++ numeric limits as imputed values instead of min/max of that feature
 
-        void addCONCATSEFeatures(libcpp_vector[ PeptideIdentification ] & peptide_id_list, StringList & search_engines_used, StringList & feature_set) except + nogil 
+        void addCONCATSEFeatures(PeptideIdentificationList & peptide_id_list, StringList & search_engines_used, StringList & feature_set) except + nogil 
             # wrap-doc:
                 #  Adds multiple search engine specific Percolator features and registers them in feature_set
                 #  

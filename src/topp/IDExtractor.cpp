@@ -84,18 +84,18 @@ protected:
   {
     vector<ProteinIdentification> protein_identifications;
     vector<ProteinIdentification> chosen_protein_identifications;
-    vector<PeptideIdentification> identifications;
-    vector<PeptideIdentification> chosen_identifications;
+    PeptideIdentificationList identifications;
+    PeptideIdentificationList chosen_identifications;
     vector<Size> indices;
     vector<PeptideHit> temp_peptide_hits;
     vector<ProteinHit> temp_protein_hits;
     vector<ProteinHit> chosen_protein_hits;
-    map<String, vector<PeptideIdentification> > identifiers;
+    map<String, PeptideIdentificationList > identifiers;
     PeptideIdentification temp_identification;
     vector<String> chosen_ids;
     vector<pair<double, PeptideIdentification> > identifications_with_scores;
     vector<pair<double, PeptideIdentification> >::iterator it = identifications_with_scores.begin();
-    vector<PeptideIdentification> temp_identifications;
+    PeptideIdentificationList temp_identifications;
 
 
     protein_identifications.push_back(ProteinIdentification());

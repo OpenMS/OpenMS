@@ -11,6 +11,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/METADATA/DataArrays.h>
 
 namespace OpenMS
 {
@@ -31,6 +32,7 @@ struct OPENMS_DLLAPI MorpheusScore
     float MIC = 0; ///< ion current of matches (experimental peaks)
     float TIC = 0; ///< total ion current (experimental peak) 
     float err = 0; ///< average absolute mass error of matched fragments (in Da)
+    float err_ppm = 0; ///< average absolute mass error of matched fragments (in ppm)
   };
 
   /// returns Morpheus Score, \#matched ions, \#total ions, \#matched intensities, \#total fragment intensities (TIC)
@@ -38,6 +40,14 @@ struct OPENMS_DLLAPI MorpheusScore
                         bool fragment_mass_tolerance_unit_ppm, 
                         const PeakSpectrum& exp_spectrum, 
                         const PeakSpectrum& theo_spectrum);
+
+  /// same as above but matches are only counted if charges match
+  static Result compute(double fragment_mass_tolerance, 
+          bool fragment_mass_tolerance_unit_ppm, 
+          const PeakSpectrum& exp_spectrum, 
+          const DataArrays::IntegerDataArray& exp_charges,
+          const PeakSpectrum& theo_spectrum,
+          const DataArrays::IntegerDataArray& theo_charges);
 };
 
 }

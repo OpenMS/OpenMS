@@ -99,7 +99,7 @@ elseif(APPLE)
   set(POST_EXCLUDE "")
 else()
   set(PRE_EXCLUDE "")
-  set(POST_EXCLUDE ".*/ld-linux-.*" ".*/linux-vdso.*" ".*/libm\\..*" ".*/libc\\..*" ".*/libpthread\\..*" ".*/libdl\\..*" ".*/libQt6.*")
+  set(POST_EXCLUDE ".*/ld-linux-.*" ".*/linux-vdso.*" ".*/libm\\..*" ".*/libc\\..*" ".*/libpthread\\..*" ".*/libdl\\..*" ".*/libstdc\\+\\+\\..*" ".*/libgcc_s.*" ".*/libgomp\\..*" ".*/libQt6.*")
 endif()
 
 # TODO check if we can reduce the permissions
@@ -122,14 +122,11 @@ install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
 set(THIRDPARTY_COMPONENT_GROUP)
 ## populates the THIRDPARTY_COMPONENT_GROUP list
 if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
-  ## TODO we could think about just recursing over subfolders
-  install_thirdparty_folder("pwiz-bin")
-  install_thirdparty_folder("Comet")
-  install_thirdparty_folder("MSGFPlus")
-  install_thirdparty_folder("LuciPHOr2")
-  install_thirdparty_folder("SpectraST")
-  install_thirdparty_folder("Sirius")
-  install_thirdparty_folder("Percolator")
-  install_thirdparty_folder("MaRaCluster")
-  install_thirdparty_folder("ThermoRawFileParser")
+  ## Automatically recurse over all subfolders in SEARCH_ENGINES_DIRECTORY
+  file(GLOB THIRDPARTY_SUBDIRS RELATIVE ${SEARCH_ENGINES_DIRECTORY} ${SEARCH_ENGINES_DIRECTORY}/*)
+  foreach(SUBDIR ${THIRDPARTY_SUBDIRS})
+    if(IS_DIRECTORY ${SEARCH_ENGINES_DIRECTORY}/${SUBDIR})
+      install_thirdparty_folder("${SUBDIR}")
+    endif()
+  endforeach()
 endif()

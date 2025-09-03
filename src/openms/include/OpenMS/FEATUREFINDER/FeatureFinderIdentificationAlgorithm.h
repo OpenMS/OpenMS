@@ -16,6 +16,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/FEATUREFINDER/FFIDAlgoExternalIDHandler.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
 #include <fstream>
@@ -42,9 +43,9 @@ public:
   /// Caution: peptide IDs will be shrunk to best hit, FFid metavalues added
   /// and potential seed IDs added.
   void run(
-    std::vector<PeptideIdentification> peptides,
+    PeptideIdentificationList peptides,
     const std::vector<ProteinIdentification>& proteins,
-    std::vector<PeptideIdentification> peptides_ext,
+    PeptideIdentificationList peptides_ext,
     std::vector<ProteinIdentification> proteins_ext,
     FeatureMap& features,
     const FeatureMap& seeds = FeatureMap(),
@@ -191,7 +192,7 @@ protected:
   double add_mass_offset_peptides_{0.0}; ///< non-zero if for every feature an additional offset features should be extracted
   bool use_psm_cutoff_;
   double psm_score_cutoff_;
-  std::vector<PeptideIdentification> unassignedIDs_;
+  PeptideIdentificationList unassignedIDs_;
 
   const double seed_rt_window_ = 60.0; ///< extraction window used for seeds (smaller than rt_window_ as we know the exact apex positions)
 
@@ -247,10 +248,10 @@ protected:
   void filterFeatures_(FeatureMap& features, bool classified);
 
   // seeds for untargeted extraction
-  Size addSeeds_(std::vector<PeptideIdentification>& peptides, const FeatureMap& seeds);
+  Size addSeeds_(PeptideIdentificationList& peptides, const FeatureMap& seeds);
 
   // quant. decoys
-  Size addOffsetPeptides_(std::vector<PeptideIdentification>& peptides, double offset);
+  Size addOffsetPeptides_(PeptideIdentificationList& peptides, double offset);
 
   /// Chunks an iterator range (allowing advance and distance) into batches of size batch_size.
   /// Last batch might be smaller.

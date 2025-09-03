@@ -15,6 +15,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
 
@@ -122,7 +123,7 @@ namespace OpenMS
       @param tol_ppm Only accept ID's whose theoretical mass deviates at most this much from annotated
       @return Number of calibration masses found
     */
-    Size fillCalibrants(const std::vector<PeptideIdentification>& pep_ids, double tol_ppm);
+    Size fillCalibrants(const PeptideIdentificationList& pep_ids, double tol_ppm);
 
     /**
       @brief Get container of calibration points
@@ -256,7 +257,7 @@ namespace OpenMS
     void fillID_( const PeptideIdentification& pep_id, const double tol_ppm, CalibrantStats_& stats);
 
     /// calls fillID_ on all PeptideIDs
-    void fillIDs_(const std::vector<PeptideIdentification>& pep_ids, const double tol_ppm, CalibrantStats_& stats);
+    void fillIDs_(const PeptideIdentificationList& pep_ids, const double tol_ppm, CalibrantStats_& stats);
 
     /// determine if sequence is within tol_ppm and update stats; fills mz_ref with the theoretical m/z of the sequence
     bool isDecalibrated_(const PeptideIdentification& pep_id, const double mz_obs, const double tol_ppm, CalibrantStats_& stats, double& mz_ref);

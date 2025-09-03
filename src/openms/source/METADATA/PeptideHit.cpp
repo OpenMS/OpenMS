@@ -8,7 +8,9 @@
 
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <algorithm>
 #include <ostream>
+#include <tuple>
 #include <utility>
 
 using namespace std;
@@ -376,11 +378,79 @@ namespace OpenMS
     fragment_annotations_ = std::move(frag_annotations);
   }
 
+  bool PeptideHit::isDecoy() const
+  {
+    return getTargetDecoyType() == TargetDecoyType::DECOY;
+  }
+
+  void PeptideHit::setTargetDecoyType(TargetDecoyType type)
+  {
+    switch(type)
+    {
+      case TargetDecoyType::TARGET:
+        setMetaValue("target_decoy", "target");
+        break;
+      case TargetDecoyType::DECOY:
+        setMetaValue("target_decoy", "decoy");
+        break;
+      case TargetDecoyType::TARGET_DECOY:
+        setMetaValue("target_decoy", "target+decoy");
+        break;
+      case TargetDecoyType::UNKNOWN:
+        removeMetaValue("target_decoy");
+        break;
+    }
+  }
+
+  PeptideHit::TargetDecoyType PeptideHit::getTargetDecoyType() const
+  {
+    if (!metaValueExists("target_decoy"))
+    {
+      return TargetDecoyType::UNKNOWN;
+    }
+    
+    String td = getMetaValue("target_decoy").toString().toLower();
+    if (td == "decoy") return TargetDecoyType::DECOY;
+    if (td == "target+decoy") return TargetDecoyType::TARGET_DECOY;
+    if (td == "target") return TargetDecoyType::TARGET;
+    
+    return TargetDecoyType::UNKNOWN;  // for unknown/invalid values
+  }
+
   std::ostream& operator<< (std::ostream& stream, const PeptideHit& hit)
   {
     return stream << "peptide hit with sequence '" + hit.getSequence().toString() +
            "', charge " + String(hit.getCharge()) + ", score " +
            String(hit.getScore());
+  }
+
+  // PeakAnnotation method implementations
+  bool PeptideHit::PeakAnnotation::operator<(const PeptideHit::PeakAnnotation& other) const
+  {
+    // sensible to sort first by m/z and charge
+    return std::tie(mz, charge, annotation, intensity) < std::tie(other.mz, other.charge, other.annotation, other.intensity);
+  }
+
+  bool PeptideHit::PeakAnnotation::operator==(const PeptideHit::PeakAnnotation& other) const
+  {
+    if (charge != other.charge || mz != other.mz ||
+        intensity != other.intensity || annotation != other.annotation) return false;
+    return true;
+  }
+
+  void PeptideHit::PeakAnnotation::writePeakAnnotationsString_(String& annotation_string, std::vector<PeptideHit::PeakAnnotation> annotations)
+  {
+    if (annotations.empty()) { return; }
+
+    // sort by mz, charge, ...
+    stable_sort(annotations.begin(), annotations.end());
+
+    String val;
+    for (auto& a : annotations)
+    {
+      annotation_string += String(a.mz) + "," + String(a.intensity) + "," + String(a.charge) + "," + String(a.annotation).quote();
+      if (&a != &annotations.back()) { annotation_string += "|"; }
+    }
   }
 
 } // namespace OpenMS

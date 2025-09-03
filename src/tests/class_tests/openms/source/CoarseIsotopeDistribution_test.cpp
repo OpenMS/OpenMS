@@ -133,7 +133,6 @@ START_SECTION(( [EXTRA CH]IsotopeDistribution run(const EmpiricalFormula&) const
     TEST_REAL_SIMILAR(id[2].getIntensity(), 0.013232)
   }
 
-  // TODO: is that a good idea?
   ef.setCharge(2);
   {
     CoarseIsotopePatternGenerator gen(3);
@@ -142,10 +141,17 @@ START_SECTION(( [EXTRA CH]IsotopeDistribution run(const EmpiricalFormula&) const
 
     // TEST_REAL_SIMILAR(id[0].getMZ(), 180.063)
     TEST_REAL_SIMILAR(id[0].getMZ(), 182.077943)
-    TEST_REAL_SIMILAR(id[0].getIntensity(), 0.923456)
+    TEST_REAL_SIMILAR(id[0].getIntensity(), 0.923246)
 
     TEST_REAL_SIMILAR(id[2].getMZ(), 184.0846529)
-    TEST_REAL_SIMILAR(id[2].getIntensity(), 0.013232)
+    TEST_REAL_SIMILAR(id[2].getIntensity(), 0.0132435)
+  }
+  
+  ef.setCharge(-2);
+  {
+    CoarseIsotopePatternGenerator gen(3);
+    TEST_EXCEPTION(Exception::Precondition,
+                   gen.run(ef)); // negative charge not allowed
   }
 }
 END_SECTION

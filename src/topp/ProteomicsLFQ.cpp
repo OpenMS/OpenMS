@@ -51,7 +51,6 @@
 
 using namespace OpenMS;
 using namespace std;
-using Internal::IDBoostGraph;
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -429,7 +428,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  void recalibrateMasses_(MSExperiment & ms_centroided, vector<PeptideIdentification>& peptide_ids, const String & id_file_abs_path)
+  void recalibrateMasses_(MSExperiment & ms_centroided, PeptideIdentificationList& peptide_ids, const String & id_file_abs_path)
   {
     InternalCalibration ic;
     ic.setLogType(log_type_);
@@ -698,8 +697,7 @@ protected:
   }
 
   /// Align and link.
-  /// @return maximum alignment difference observed (to guide linking)
-  double alignAndLink_(
+  void alignAndLink_(
     vector<FeatureMap> & feature_maps, 
     ConsensusMap & consensus_fraction,
     vector<TransformationDescription>& transformations,
@@ -722,8 +720,6 @@ protected:
     {
       MapConversion::convert(0, feature_maps.back(), consensus_fraction);                           
     }
-
-    return max_alignment_diff;
   }
 
   /// determine in which runs of the current fraction a peptide was quantified
@@ -789,7 +785,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes switchScoreType_(vector<PeptideIdentification>& peptide_ids, const String& id_file_abs_path)
+  ExitCodes switchScoreType_(PeptideIdentificationList& peptide_ids, const String& id_file_abs_path)
   {
     // Check if score types are valid. TODO
     try
@@ -813,7 +809,7 @@ protected:
     const Size& fraction_group,
     const Size& fraction,
     vector<ProteinIdentification>& protein_ids, 
-    vector<PeptideIdentification>& peptide_ids,
+    PeptideIdentificationList& peptide_ids,
     set<String>& fixed_modifications,  // adds to
     set<String>& variable_modifications) // adds to
   {
@@ -1011,11 +1007,10 @@ protected:
     const String& in_db,
     double median_fwhm,
     ConsensusMap & consensus_fraction,
-    vector<TransformationDescription> & transformations,
-    double& max_alignment_diff,
     set<String>& fixed_modifications,
     set<String>& variable_modifications)
   {
+    vector<TransformationDescription> transformations;
     vector<FeatureMap> feature_maps;
     const Size fraction = ms_files.first;
 
@@ -1026,10 +1021,6 @@ protected:
     // for sanity checks we collect the primary MS run basenames as well as the ones stored in the ID files (below)
     StringList id_MS_run_ref;
     StringList in_MS_run = ms_files.second;
-
-    // in theory a single file is "per-definition" aligned as well but has no transformations
-    /// if an alignment algorithm was already run (false for singleton fractions, although they are inherently aligned)
-    const bool is_already_aligned = !transformations.empty();
 
     // for each MS file of current fraction (e.g., all MS files that measured the n-th fraction) 
     Size fraction_group{1};
@@ -1046,7 +1037,7 @@ protected:
 
       // load and clean identification data associated with MS run
       vector<ProteinIdentification> protein_ids;
-      vector<PeptideIdentification> peptide_ids;
+      PeptideIdentificationList peptide_ids;
       const String& mz_file_abs_path = File::absolutePath(mz_file);
       const String& id_file_abs_path = File::absolutePath(mzfile2idfile.at(mz_file_abs_path));
 
@@ -1066,9 +1057,6 @@ protected:
       {
         recalibrateMasses_(ms_centroided, peptide_ids, id_file_abs_path);
       }
-
-      vector<ProteinIdentification> ext_protein_ids;
-      vector<PeptideIdentification> ext_peptide_ids;
 
       //////////////////////////////////////////
       // Chromatographic parameter estimation
@@ -1098,8 +1086,6 @@ protected:
 
       /////////////////////////////////////////////////
       // Run FeatureFinderIdentification
-      FeatureMap fm;
-
       FeatureFinderIdentificationAlgorithm ffi;
       ffi.getMSData().swap(ms_centroided);
       ffi.getProgressLogger().setLogType(log_type_);
@@ -1122,16 +1108,23 @@ protected:
       ffi.setParameters(ffi_param);
       writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
-      FeatureMap tmp = fm;
+      FeatureMap fm;
 
-      ffi.run(peptide_ids, 
-        protein_ids, 
-        ext_peptide_ids, 
-        ext_protein_ids, 
-        tmp, // fills tmp
-        seeds,
-        mz_file);
+      {
+        // These containers must be empty because we may be using
+        // seeds.  The variables are not used by this code but
+        // required by the `run` call.
+        vector<ProteinIdentification> ext_protein_ids;
+        PeptideIdentificationList ext_peptide_ids;
 
+        ffi.run(peptide_ids,
+                protein_ids,
+                ext_peptide_ids,
+                ext_protein_ids,
+                fm, // fills fm
+                seeds,
+                mz_file);
+      }
 
       if (filter_by_quant_scores)
       {
@@ -1145,12 +1138,12 @@ protected:
 
         // randomize selection
         Math::RandomShuffler shuffler;
-        std::vector<size_t> randomized_indices(tmp.size());
+        std::vector<size_t> randomized_indices(fm.size());
         std::iota(randomized_indices.begin(), randomized_indices.end(), 0);
 
         for (auto & i : randomized_indices)
         {
-          const auto& f = tmp[i]; // select random feature
+          const auto& f = fm[i]; // select random feature
           predictors["var_library_sangle"].push_back(f.getMetaValue("var_library_sangle"));
           predictors["var_xcorr_shape"].push_back(f.getMetaValue("var_xcorr_shape"));
           predictors["total_xic"].push_back(f.getMetaValue("total_xic"));
@@ -1198,7 +1191,7 @@ protected:
           size_t current_row{};
           for (auto & i : randomized_indices) // traverse features in same order as before
           {
-            auto& f = tmp[i];
+            auto& f = fm[i];
             f.setMetaValue("p_quant", (double)predictions[current_row].probabilities[1]); // set probability of being a peptide feature (not a MassOffset decoy)
             ++current_row;
           }
@@ -1216,7 +1209,7 @@ protected:
         {
           // remove offset (peptides+untargeted), and non-offset peptides and untargeted features if they don't pass the score threshold
           size_t removed_non_offset_with_id{}, removed_non_offset_without_id{}, removed_offset{}, total_offset{}, total_non_offset_with_id{}, total_non_offset_without_id{};
-          tmp.erase(std::remove_if(tmp.begin(), tmp.end(), 
+          fm.erase(std::remove_if(fm.begin(), fm.end(),
             [&](const Feature& f)
             { 
               double quant_score = f.getMetaValue("p_quant");
@@ -1259,12 +1252,12 @@ protected:
 
               return false;
             }), 
-            tmp.end());
+            fm.end());
 
           // clean up by removing all OffsetPeptide features (TODO: maybe keep for transfer FDR)
-          tmp.erase(std::remove_if(tmp.begin(), tmp.end(), 
+          fm.erase(std::remove_if(fm.begin(), fm.end(),
             [](const Feature& f){return f.metaValueExists("OffsetPeptide");}), 
-            tmp.end());
+            fm.end());
       
           std::cout << "Removed quant. targets with id (features with id) because of low quantification score: " 
             << (double)removed_non_offset_with_id << " of " << total_non_offset_with_id << "\t ( " 
@@ -1285,7 +1278,7 @@ protected:
 
       // free parts of feature map not needed for further processing (e.g., subfeatures...)
       unordered_set<String> keep_meta = {"OffsetPeptide"}; // meta values to keep (all others will be removed) TODO: keep FWHM etc. for QC
-      for (auto & f : tmp)
+      for (auto & f : fm)
       {
         std::vector<String> keys;
         f.getKeys(keys);
@@ -1302,10 +1295,10 @@ protected:
         f.setConvexHulls({});
       }
 
-      IDConflictResolverAlgorithm::resolve(tmp,
+      IDConflictResolverAlgorithm::resolve(fm,
           getStringOption_("keep_feature_top_psm_only") == "false"); // keep only best peptide per feature per file
 
-      feature_maps.emplace_back(std::move(tmp));
+      feature_maps.emplace_back(std::move(fm));
       
       if (debug_level_ > 666)
       {
@@ -1337,24 +1330,8 @@ protected:
         break;
     }    
 
-    //-------------------------------------------------------------
-    // Align all features of this fraction (if not already aligned)
-    //-------------------------------------------------------------
-    if (!is_already_aligned)
-    {
-      max_alignment_diff = alignAndLink_(
-        feature_maps, 
-        consensus_fraction, 
-        transformations,
-        median_fwhm);
-    }
-    else // Data already aligned. Link with previously determined alignment difference
-    {
-      link_(feature_maps,
-        median_fwhm,
-        max_alignment_diff,
-        consensus_fraction);
-    }
+    // Align all features of this fraction
+    alignAndLink_(feature_maps, consensus_fraction, transformations, median_fwhm);
 
     // add dataprocessing
     if (feature_maps.size() > 1)
@@ -1415,9 +1392,6 @@ protected:
         "");
     }
 
-
-
-    // max_alignment_diff returned by reference
     return EXECUTION_OK;
   }
 
@@ -1760,8 +1734,6 @@ protected:
       for (auto const & ms_files : frac2ms) // for each fraction->ms file(s)
       {      
         ConsensusMap consensus_fraction; // quantitative result for this fraction identifier
-        vector<TransformationDescription> transformations; // filled by RT alignment
-        double max_alignment_diff(0.0);
 
         ExitCodes e = quantifyFraction_(
           ms_files, 
@@ -1769,8 +1741,6 @@ protected:
           in_db,
           median_fwhm,
           consensus_fraction,
-          transformations,  // transformations are empty, will be filled by alignment
-          max_alignment_diff,  // max_alignment_diff not yet determined, will be filled by alignment
           fixed_modifications,
           variable_modifications);
 
@@ -1816,7 +1786,7 @@ protected:
         { 
           // load and clean identification data associated with MS run
           vector<ProteinIdentification> protein_ids;
-          vector<PeptideIdentification> peptide_ids;
+          PeptideIdentificationList peptide_ids;
           const String& mz_file_abs_path = File::absolutePath(mz_file);
           const String& id_file_abs_path = File::absolutePath(mzfile2idfile.at(mz_file_abs_path));
 

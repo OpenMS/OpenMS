@@ -205,7 +205,7 @@ protected:
       mzml.getOptions().addMSLevel(1);
       mzml.loadExperiment(in, ffid_algo.getMSData(), {FileTypes::MZML}, log_type_);
 
-      vector<PeptideIdentification> peptides, peptides_ext;
+      PeptideIdentificationList peptides, peptides_ext;
       vector<ProteinIdentification> proteins, proteins_ext;
 
       // "internal" IDs:

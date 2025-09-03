@@ -129,7 +129,7 @@ namespace OpenMS
       return;
 
     // store user fragment annotations
-    vector<PeptideIdentification>& pep_ids = getPeakDataMuteable()->getPeptideIdentifications();
+    PeptideIdentificationList& pep_ids = getPeakDataMuteable()->getPeptideIdentifications();
     vector<ProteinIdentification>& prot_ids = getPeakDataMuteable()->getProteinIdentifications();
         
     if (!pep_ids.empty())
