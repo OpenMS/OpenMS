@@ -116,7 +116,7 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         int findNearest(double mz, double tolerance_left, double tolerance_right) except + nogil  # wrap-doc:Returns the index of the closest peak in the provided abs. m/z tolerance window to the left and right (-1 if none match)
         int findHighestInWindow(double mz, double tolerance_left, double tolerance_right) except + nogil  # wrap-doc:Returns the index of the highest peak in the provided abs. m/z tolerance window to the left and right (-1 if none match)
 
-        MSSpectrum select(libcpp_vector[ size_t ] & indices) except + nogil  # wrap-doc:Subset the spectrum by indices. Also applies to associated data arrays if present.
+        MSSpectrum select(const libcpp_vector[ size_t ] & indices) except + nogil  # wrap-doc:Subset the spectrum by indices. Also applies to associated data arrays if present.
 
         void assign(libcpp_vector[Peak1D].iterator, libcpp_vector[Peak1D].iterator) except + nogil  # wrap-ignore
         libcpp_vector[Peak1D].iterator begin() except + nogil   # wrap-iter-begin:__iter__(Peak1D)
