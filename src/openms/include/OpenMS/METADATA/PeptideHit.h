@@ -265,8 +265,8 @@ public:
 
     /**
      * @brief Returns true if this hit is annotated as mapping to decoy sequences only. 
-     *
-     * Note: an unknown/unannotated state will yield false.
+     * Returns false for TargetDecoyType::TARGET and TargetDecoyType::TARGET_DECOY.
+     * Note: an unknown/unannotated state (TargetDecoyType::UNKNOWN) will yield false.
      */
     bool isDecoy() const;
 

@@ -171,7 +171,7 @@ public:
     /// sets the set of modified protein positions
     void setModifications(std::set<std::pair<Size, ResidueModification> >& mods);
 
-    /// returns true if this is a decoy hit
+    /// returns true if this is a decoy hit (false for TARGET and UNKNOWN)
     bool isDecoy() const;
 
     /** @brief Sets the target/decoy type for this protein hit
@@ -182,7 +182,7 @@ public:
      * @param type The target/decoy classification:
      *   - TARGET: Target protein
      *   - DECOY: Decoy protein
-     *   - UNKNOWN: Target/decoy status is unknown
+     *   - UNKNOWN: Target/decoy status is unknown; the "target_decoy" meta value is removed
      */
     void setTargetDecoyType(TargetDecoyType type);
 
