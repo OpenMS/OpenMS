@@ -427,17 +427,13 @@ namespace OpenMS
         hit.setMetaValue("SpecId", file_identifier + scan_identifier);
         hit.setMetaValue("ScanNr", scan_number);
         
-        if (!hit.metaValueExists("target_decoy") 
-          || hit.getMetaValue("target_decoy").toString().empty()) 
+        if (!hit.metaValueExists("target_decoy")
+          || hit.getMetaValue("target_decoy").toString().empty())
         {
           continue;
         }
         
-        int label = 1;
-        if (hit.getMetaValue("target_decoy") == "decoy")
-        {
-          label = -1;
-        }
+        int label = hit.isDecoy() ? -1 : 1;
         hit.setMetaValue("Label", label);
         
         int charge = hit.getCharge();
