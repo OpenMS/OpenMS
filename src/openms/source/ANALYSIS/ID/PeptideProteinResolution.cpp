@@ -77,7 +77,7 @@ namespace OpenMS
     std::unordered_set<std::string> decoy_accs;
     for (const ProteinHit& p : protein.getHits())
     {
-      if (p.metaValueExists("target_decoy") && p.getMetaValue("target_decoy") == "decoy")
+      if (p.isDecoy())
       {
         decoy_accs.insert(p.getAccession());
       }

@@ -497,24 +497,19 @@ namespace OpenMS
     {
       for (auto pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
       {
-        if (!pit->metaValueExists("target_decoy"))
+        if (pit->getTargetDecoyType() == ProteinHit::TargetDecoyType::UNKNOWN)
         {
           OPENMS_LOG_FATAL_ERROR << "Meta value 'target_decoy' does not exists, reindex the idXML file with 'PeptideIndexer' (run-id='" << it->getIdentifier() << ", accession=" << pit->getAccession() << ")!" << endl;
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Meta value 'target_decoy' does not exist!");
         }
 
-        String target_decoy = pit->getMetaValue("target_decoy");
-        if (target_decoy == "decoy")
+        if (pit->isDecoy())
         {
           decoy_scores.push_back(pit->getScore());
         }
-        else if (target_decoy == "target")
-        {
-          target_scores.push_back(pit->getScore());
-        }
         else
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown value of meta value 'target_decoy'", target_decoy);
+          target_scores.push_back(pit->getScore());
         }
       }
     }
@@ -542,7 +537,7 @@ namespace OpenMS
       for (auto hit : old_hits) // NOTE: performs copy
       {
         // Add decoy proteins only if add_decoy_proteins is set
-        if (add_decoy_proteins || hit.getMetaValue("target_decoy") != "decoy")
+        if (add_decoy_proteins || !hit.isDecoy())
         {
           hit.setMetaValue(score_type, hit.getScore());
           hit.setScore(score_to_fdr[hit.getScore()]);
