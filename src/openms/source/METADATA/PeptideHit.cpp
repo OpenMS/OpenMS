@@ -378,6 +378,45 @@ namespace OpenMS
     fragment_annotations_ = std::move(frag_annotations);
   }
 
+  bool PeptideHit::isDecoy() const
+  {
+    return getTargetDecoyType() == TargetDecoyType::DECOY;
+  }
+
+  void PeptideHit::setTargetDecoyType(TargetDecoyType type)
+  {
+    switch(type)
+    {
+      case TargetDecoyType::TARGET:
+        setMetaValue("target_decoy", "target");
+        break;
+      case TargetDecoyType::DECOY:
+        setMetaValue("target_decoy", "decoy");
+        break;
+      case TargetDecoyType::TARGET_DECOY:
+        setMetaValue("target_decoy", "target+decoy");
+        break;
+      case TargetDecoyType::UNKNOWN:
+        removeMetaValue("target_decoy");
+        break;
+    }
+  }
+
+  PeptideHit::TargetDecoyType PeptideHit::getTargetDecoyType() const
+  {
+    if (!metaValueExists("target_decoy"))
+    {
+      return TargetDecoyType::UNKNOWN;
+    }
+    
+    String td = getMetaValue("target_decoy").toString().toLower();
+    if (td == "decoy") return TargetDecoyType::DECOY;
+    if (td == "target+decoy") return TargetDecoyType::TARGET_DECOY;
+    if (td == "target") return TargetDecoyType::TARGET;
+    
+    return TargetDecoyType::UNKNOWN;  // for unknown/invalid values
+  }
+
   std::ostream& operator<< (std::ostream& stream, const PeptideHit& hit)
   {
     return stream << "peptide hit with sequence '" + hit.getSequence().toString() +

@@ -338,8 +338,8 @@ void MSstatsFile::storeLFQ(const String& filename,
       for (const PeptideHit & pep_hit : pep_id.getHits())
       {
         // skip decoys
-        if (pep_hit.metaValueExists("target_decoy") && pep_hit.getMetaValue("target_decoy") == "decoy") 
-        { 
+        if (pep_hit.isDecoy())
+        {
           continue;
         }
 
@@ -575,8 +575,8 @@ void MSstatsFile::storeISO(const String& filename,
       for (const PeptideHit & pep_hit : pep_id.getHits())
       {
         // skip decoys
-        if (pep_hit.metaValueExists("target_decoy") && pep_hit.getMetaValue("target_decoy") == "decoy") 
-        { 
+        if (pep_hit.isDecoy())
+        {
           continue;
         }
 
