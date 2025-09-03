@@ -81,40 +81,18 @@ public:
       are used to separate the parts easily when parsing the annotation.
 
    */
-  struct PeakAnnotation
+  struct OPENMS_DLLAPI PeakAnnotation
   {
     String annotation = "";  // e.g. [alpha|ci$y3-H2O-NH3]
     int charge = 0;
     double mz = -1.;
     double intensity = 0.;
 
-    bool operator<(const PeptideHit::PeakAnnotation& other) const
-    {
-      // sensible to sort first by m/z and charge
-      return std::tie(mz, charge, annotation, intensity) < std::tie(other.mz, other.charge, other.annotation, other.intensity);
-    }
+    bool operator<(const PeptideHit::PeakAnnotation& other) const;
 
-    bool operator==(const PeptideHit::PeakAnnotation& other) const
-    {
-      if (charge != other.charge || mz != other.mz ||
-          intensity != other.intensity || annotation != other.annotation) return false;
-      return true;
-    }
+    bool operator==(const PeptideHit::PeakAnnotation& other) const;
 
-    static void writePeakAnnotationsString_(String& annotation_string, std::vector<PeptideHit::PeakAnnotation> annotations)
-    {
-      if (annotations.empty()) { return; }
-
-      // sort by mz, charge, ...
-      stable_sort(annotations.begin(), annotations.end());
-
-      String val;
-      for (auto& a : annotations)
-      {
-        annotation_string += String(a.mz) + "," + String(a.intensity) + "," + String(a.charge) + "," + String(a.annotation).quote();
-        if (&a != &annotations.back()) { annotation_string += "|"; }
-      }
-    }
+    static void writePeakAnnotationsString_(String& annotation_string, std::vector<PeptideHit::PeakAnnotation> annotations);
 
   };
 
@@ -286,7 +264,9 @@ public:
     void setPeakAnnotations(std::vector<PeptideHit::PeakAnnotation> frag_annotations);
 
     /**
-     * @brief Returns true if this hit is annotated as decoy.
+     * @brief Returns true if this hit is annotated as mapping to decoy sequences only. 
+     *
+     * Note: an unknown/unannotated state will yield false.
      */
     bool isDecoy() const;
 
