@@ -114,7 +114,7 @@ namespace OpenMS
         {"falsediscoveryrate", ScoreType::FDR},
         {"pep", ScoreType::PEP},
         {"posteriorerrorprobability", ScoreType::PEP},
-        {"posteriorprobabilty", ScoreType::PP},
+        {"posteriorprobability", ScoreType::PP},
         {"pp", ScoreType::PP}
       };
 
