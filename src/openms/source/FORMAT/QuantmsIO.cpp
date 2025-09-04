@@ -197,13 +197,8 @@ namespace
                                         "Failed to append posterior error probability: " + OpenMS::String(status.ToString()));
       }
 
-      // Is decoy - check target_decoy metavalue
-      int is_decoy = 0;
-      if (hit.metaValueExists("target_decoy"))
-      {
-        OpenMS::String target_decoy = hit.getMetaValue("target_decoy").toString();
-        is_decoy = (target_decoy == "decoy" || target_decoy == "DECOY") ? 1 : 0;
-      }
+      // Is decoy - use the isDecoy() method from PeptideHit
+      int is_decoy = hit.isDecoy() ? 1 : 0;
       status = is_decoy_builder.Append(is_decoy);
       if (!status.ok()) {
         throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
