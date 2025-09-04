@@ -148,31 +148,32 @@ namespace OpenMS
     std::vector<String> getScoreNames();
 
     /**
-      @brief Structure to hold PEP (Posterior Error Probability) score detection results.
+      @brief Structure to hold score detection results for any ScoreType.
       
-      This structure contains information about whether the main score is already a PEP score
-      and the name of a PEP score found in meta values if the main score is not PEP.
+      This structure contains information about whether the main score is already of the requested type
+      and the name of a score found in meta values if the main score is not of the requested type.
     */
-    struct PEPScoreResult
+    struct ScoreSearchResult
     {
-      bool is_main_score_pep = false;  ///< True if the main score is already a PEP score
-      String meta_value_name;          ///< Name of PEP score found in meta values (empty if none found or main score is PEP)
+      bool is_main_score_type = false;  ///< True if the main score is already of the requested score type
+      String meta_value_name;           ///< Name of score found in meta values (empty if none found or main score is already the requested type)
     };
 
     /**
-      @brief Finds PEP score information using the ScoreSwitcher logic and existing score type infrastructure.
+      @brief Finds score information for any ScoreType using the ScoreSwitcher logic and existing score type infrastructure.
 
-      This method checks if the main score of an identification object is already a PEP score type,
-      and if not, searches for PEP scores in the meta values of the first hit. It uses the existing
-      ScoreType::PEP infrastructure to ensure consistency with the rest of the OpenMS score handling.
+      This method checks if the main score of an identification object is already of the requested score type,
+      and if not, searches for scores of that type in the meta values of the first hit. It uses the existing
+      ScoreType infrastructure to ensure consistency with the rest of the OpenMS score handling.
 
-      @param id The PeptideIdentification object to analyze for PEP scores.
-      @return PEPScoreResult containing whether main score is PEP and the meta value name if found.
+      @param id The PeptideIdentification object to analyze for scores.
+      @param score_type The ScoreType to search for (e.g., ScoreType::PEP, ScoreType::QVAL, etc.).
+      @return ScoreSearchResult containing whether main score is of the requested type and the meta value name if found.
 
       @note This method only checks the first hit for meta values, similar to other methods in this class.
-      @note Returns empty meta_value_name if no PEP score is found in meta values or if main score is already PEP.
+      @note Returns empty meta_value_name if no score of the requested type is found in meta values or if main score is already of the requested type.
     */
-    PEPScoreResult findPEPScore(const PeptideIdentification& id);
+    ScoreSearchResult findScoreType(const PeptideIdentification& id, ScoreType score_type);
 
     /**
      * @brief Switches the main scores of all hits in an identification object based on the new scoring settings.

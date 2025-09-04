@@ -59,7 +59,7 @@ START_SECTION(switchToGeneralScoreType)
 }
 END_SECTION
 
-START_SECTION(findPEPScore)
+START_SECTION(findScoreType)
 {
   IDScoreSwitcherAlgorithm switcher{};
   
@@ -72,8 +72,8 @@ START_SECTION(findPEPScore)
   hit1.setScore(0.05);
   pep_id_with_pep_main.insertHit(hit1);
   
-  IDScoreSwitcherAlgorithm::PEPScoreResult result1 = switcher.findPEPScore(pep_id_with_pep_main);
-  TEST_EQUAL(result1.is_main_score_pep, true);
+  IDScoreSwitcherAlgorithm::ScoreSearchResult result1 = switcher.findScoreType(pep_id_with_pep_main, IDScoreSwitcherAlgorithm::ScoreType::PEP);
+  TEST_EQUAL(result1.is_main_score_type, true);
   TEST_EQUAL(result1.meta_value_name.empty(), true);
   
   // Test case 2: When main score is not PEP but PEP is available in meta values
@@ -87,8 +87,8 @@ START_SECTION(findPEPScore)
   hit2.setMetaValue("other_score", 0.5);
   pep_id_with_pep_meta.insertHit(hit2);
   
-  auto result2 = switcher.findPEPScore(pep_id_with_pep_meta);
-  TEST_EQUAL(result2.is_main_score_pep, false);
+  auto result2 = switcher.findScoreType(pep_id_with_pep_meta, IDScoreSwitcherAlgorithm::ScoreType::PEP);
+  TEST_EQUAL(result2.is_main_score_type, false);
   TEST_EQUAL(result2.meta_value_name, "pep");
   
   // Test case 3: When main score is not PEP and no PEP available in meta values
@@ -101,8 +101,8 @@ START_SECTION(findPEPScore)
   hit3.setMetaValue("e_value", 0.001);
   pep_id_no_pep.insertHit(hit3);
   
-  auto result3 = switcher.findPEPScore(pep_id_no_pep);
-  TEST_EQUAL(result3.is_main_score_pep, false);
+  auto result3 = switcher.findScoreType(pep_id_no_pep, IDScoreSwitcherAlgorithm::ScoreType::PEP);
+  TEST_EQUAL(result3.is_main_score_type, false);
   TEST_EQUAL(result3.meta_value_name.empty(), true);
   
   // Test case 4: Check various PEP score name variants from the enum collection
@@ -114,8 +114,8 @@ START_SECTION(findPEPScore)
   hit4.setMetaValue("PEP", 0.02);  // Uppercase variant
   pep_id_uppercase.insertHit(hit4);
   
-  auto result4 = switcher.findPEPScore(pep_id_uppercase);
-  TEST_EQUAL(result4.is_main_score_pep, false);
+  auto result4 = switcher.findScoreType(pep_id_uppercase, IDScoreSwitcherAlgorithm::ScoreType::PEP);
+  TEST_EQUAL(result4.is_main_score_type, false);
   TEST_EQUAL(result4.meta_value_name, "PEP");
   
   // Test case 5: Check _score suffix variant
@@ -127,11 +127,53 @@ START_SECTION(findPEPScore)
   hit5.setMetaValue("pep_score", 0.03);  // With _score suffix
   pep_id_suffix.insertHit(hit5);
   
-  auto result5 = switcher.findPEPScore(pep_id_suffix);
-  TEST_EQUAL(result5.is_main_score_pep, false);
+  auto result5 = switcher.findScoreType(pep_id_suffix, IDScoreSwitcherAlgorithm::ScoreType::PEP);
+  TEST_EQUAL(result5.is_main_score_type, false);
   TEST_EQUAL(result5.meta_value_name, "pep_score");
+  
+  // Test case 6: Test with Q-value score type
+  PeptideIdentification qval_id_main;
+  qval_id_main.setScoreType("q-value");
+  qval_id_main.setHigherScoreBetter(false);
+  
+  PeptideHit hit6;
+  hit6.setScore(0.02);
+  qval_id_main.insertHit(hit6);
+  
+  auto result6 = switcher.findScoreType(qval_id_main, IDScoreSwitcherAlgorithm::ScoreType::QVAL);
+  TEST_EQUAL(result6.is_main_score_type, true);
+  TEST_EQUAL(result6.meta_value_name.empty(), true);
+  
+  // Test case 7: Test with Q-value in meta values
+  PeptideIdentification qval_id_meta;
+  qval_id_meta.setScoreType("Mascot");
+  qval_id_meta.setHigherScoreBetter(true);
+  
+  PeptideHit hit7;
+  hit7.setScore(60.0);
+  hit7.setMetaValue("qvalue", 0.05);
+  qval_id_meta.insertHit(hit7);
+  
+  auto result7 = switcher.findScoreType(qval_id_meta, IDScoreSwitcherAlgorithm::ScoreType::QVAL);
+  TEST_EQUAL(result7.is_main_score_type, false);
+  TEST_EQUAL(result7.meta_value_name, "qvalue");
+  
+  // Test case 8: Test with FDR score type
+  PeptideIdentification fdr_id_meta;
+  fdr_id_meta.setScoreType("XTandem");
+  fdr_id_meta.setHigherScoreBetter(true);
+  
+  PeptideHit hit8;
+  hit8.setScore(120.0);
+  hit8.setMetaValue("FDR", 0.01);
+  fdr_id_meta.insertHit(hit8);
+  
+  auto result8 = switcher.findScoreType(fdr_id_meta, IDScoreSwitcherAlgorithm::ScoreType::FDR);
+  TEST_EQUAL(result8.is_main_score_type, false);
+  TEST_EQUAL(result8.meta_value_name, "FDR");
 }
 END_SECTION
+
 
 
 /////////////////////////////////////////////////////////////

@@ -53,33 +53,33 @@ namespace OpenMS
     return names;
   }
 
-  IDScoreSwitcherAlgorithm::PEPScoreResult IDScoreSwitcherAlgorithm::findPEPScore(const PeptideIdentification& id)
+  IDScoreSwitcherAlgorithm::ScoreSearchResult IDScoreSwitcherAlgorithm::findScoreType(const PeptideIdentification& id, ScoreType score_type)
   {
-    PEPScoreResult result;
+    ScoreSearchResult result;
     
-    // First check if main score is already a PEP score using existing infrastructure
-    const String& score_type = id.getScoreType();
-    result.is_main_score_pep = isScoreType(score_type, ScoreType::PEP);
+    // First check if main score is already of the requested score type using existing infrastructure
+    const String& main_score_type = id.getScoreType();
+    result.is_main_score_type = isScoreType(main_score_type, score_type);
     
-    // If main score is not PEP, look for PEP score in meta values
-    if (!result.is_main_score_pep && !id.getHits().empty())
+    // If main score is not of the requested type, look for it in meta values
+    if (!result.is_main_score_type && !id.getHits().empty())
     {
       const auto& first_hit = id.getHits()[0];
-      const std::set<String>& pep_score_types = type_to_str_.at(ScoreType::PEP);
+      const std::set<String>& score_types = type_to_str_.at(score_type);
       
-      // Search for PEP scores in meta values using the existing score type collection
-      for (const String& pep_type : pep_score_types)
+      // Search for scores of the requested type in meta values using the existing score type collection
+      for (const String& score_name : score_types)
       {
-        if (first_hit.metaValueExists(pep_type))
+        if (first_hit.metaValueExists(score_name))
         {
-          result.meta_value_name = pep_type;
+          result.meta_value_name = score_name;
           break;
         }
         // Also check for "_score" suffix variant
-        String pep_type_with_suffix = pep_type + "_score";
-        if (first_hit.metaValueExists(pep_type_with_suffix))
+        String score_name_with_suffix = score_name + "_score";
+        if (first_hit.metaValueExists(score_name_with_suffix))
         {
-          result.meta_value_name = pep_type_with_suffix;
+          result.meta_value_name = score_name_with_suffix;
           break;
         }
       }
