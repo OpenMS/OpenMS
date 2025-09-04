@@ -149,10 +149,7 @@ namespace OpenMS
     std::vector<String> getScoreNames();
 
     /**
-      @brief Structure to hold score detection results for any ScoreType.
-      
-      This structure contains information about whether the main score is already of the requested type
-      and the name of a score found in meta values if the main score is not of the requested type.
+      @brief Structure to hold score detection results for any ScoreType.      
     */
     struct ScoreSearchResult
     {
@@ -161,7 +158,7 @@ namespace OpenMS
     };
 
     /**
-       @brief Finds score information for any ScoreType using the ScoreSwitcher logic and existing score type infrastructure.
+       @brief Searches for a general score type (e.g. PEP, QVAL) in an identification data structure.
 
        This templated method provides the structured ScoreSearchResult API for any identification type,
        checking if the main score of an identification object is already of the requested score type,
@@ -171,10 +168,10 @@ namespace OpenMS
        @tparam IDType The type of the identification object (e.g., PeptideIdentification, ProteinIdentification)
        @param id The identification object to analyze for scores
        @param score_type The ScoreType to search for (e.g., ScoreType::PEP, ScoreType::QVAL, etc.)
-       @return ScoreSearchResult containing whether main score is of the requested type and the meta value name if found
+       @return ScoreSearchResult containing whether main score is of the requested type and its name.
 
        @note This method only checks the first hit for meta values, similar to other methods in this class.
-       @note Returns empty meta_value_name if no score of the requested type is found in meta values or if main score is already of the requested type.
+       @note Returns empty score_name if no score of the requested type is found.
      */
     template <typename IDType>
     ScoreSearchResult findScoreType(const IDType& id, ScoreType score_type) const
@@ -309,7 +306,6 @@ namespace OpenMS
     {
       if (id.empty()) return;
 
-      // Use the unified template logic to obtain structured result
       auto sr = findScoreType(id[0], type);
 
       // If the main score is already of the requested type, assume all are set correctly
@@ -802,7 +798,6 @@ namespace OpenMS
   }
 
   private:
-
 
     void updateMembers_() override; ///< documented in base class
 
