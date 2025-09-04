@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <vector>
 #include <set>
+#include <map>
 
 namespace OpenMS
 {
@@ -71,14 +72,14 @@ namespace OpenMS
       @param type The ScoreType to compare against.
       @return True if the score name matches the given ScoreType, false otherwise.
     */
-    bool isScoreType(const String& score_name, const ScoreType& type)
+    bool isScoreType(const String& score_name, const ScoreType& type) const
     {
       String chopped = score_name;
       if (chopped.hasSuffix("_score"))
       {
         chopped = chopped.chop(6);
       }
-      const std::set<String>& possible_types = type_to_str_[type];
+      const std::set<String>& possible_types = type_to_str_.at(type);
       return possible_types.find(chopped) != possible_types.end();
     }
 
@@ -160,19 +161,19 @@ namespace OpenMS
     };
 
     /**
-      @brief Finds score information for any ScoreType using the ScoreSwitcher logic and existing score type infrastructure.
+       @brief Finds score information for any ScoreType using the ScoreSwitcher logic and existing score type infrastructure.
 
-      This method checks if the main score of an identification object is already of the requested score type,
-      and if not, searches for scores of that type in the meta values of the first hit. It uses the existing
-      ScoreType infrastructure to ensure consistency with the rest of the OpenMS score handling.
+       This method checks if the main score of an identification object is already of the requested score type,
+       and if not, searches for scores of that type in the meta values of the first hit. It uses the existing
+       ScoreType infrastructure to ensure consistency with the rest of the OpenMS score handling.
 
-      @param id The PeptideIdentification object to analyze for scores.
-      @param score_type The ScoreType to search for (e.g., ScoreType::PEP, ScoreType::QVAL, etc.).
-      @return ScoreSearchResult containing whether main score is of the requested type and the meta value name if found.
+       @param id The PeptideIdentification object to analyze for scores.
+       @param score_type The ScoreType to search for (e.g., ScoreType::PEP, ScoreType::QVAL, etc.).
+       @return ScoreSearchResult containing whether main score is of the requested type and the meta value name if found.
 
-      @note This method only checks the first hit for meta values, similar to other methods in this class.
-      @note Returns empty meta_value_name if no score of the requested type is found in meta values or if main score is already of the requested type.
-    */
+       @note This method only checks the first hit for meta values, similar to other methods in this class.
+       @note Returns empty meta_value_name if no score of the requested type is found in meta values or if main score is already of the requested type.
+     */
     ScoreSearchResult findScoreType(const PeptideIdentification& id, ScoreType score_type);
 
     /**
@@ -265,19 +266,27 @@ namespace OpenMS
     void switchToGeneralScoreType(std::vector<IDType>& id, ScoreType type, Size& counter)
     {
       if (id.empty()) return;
-      String t = findScoreType(id[0], type);
-      if (t.empty())
-      {
-        String msg = "First encountered ID does not have the requested score type.";
-        throw Exception::MissingInformation(__FILE__, __LINE__,
-                                            OPENMS_PRETTY_FUNCTION, msg);
-      } 
-      else if (t == id[0].getScoreType())
+
+      // Use the unified core logic to obtain structured result
+      auto sr = findScoreTypeCore_(id[0], type);
+
+      // If the main score is already of the requested type, assume all are set correctly
+      if (sr.is_main_score_type)
       {
         // we assume that all the other peptide ids
         // also already have the correct score set
         return;
       }
+
+      // Otherwise we need a meta value name to switch to
+      if (sr.meta_value_name.empty())
+      {
+        String msg = "First encountered ID does not have the requested score type.";
+        throw Exception::MissingInformation(__FILE__, __LINE__,
+                                            OPENMS_PRETTY_FUNCTION, msg);
+      }
+
+      String t = sr.meta_value_name;
 
       if (t.hasSuffix("_score"))
       {
@@ -336,13 +345,15 @@ namespace OpenMS
         const auto& ids = f.getPeptideIdentifications();
         if (!ids.empty())
         {
-          new_type = findScoreType(ids[0], type);
-          if (new_type == ids[0].getScoreType())
+          // Use structured result for clarity
+          auto sr = findScoreTypeCore_(ids[0], type);
+          if (sr.is_main_score_type)
           {
             return;
           }
-          else
+          if (!sr.meta_value_name.empty())
           {
+            new_type = sr.meta_value_name;
             break;
           }
         }
@@ -543,6 +554,9 @@ namespace OpenMS
     /**
      * @brief Searches for a specified score type within an identification object and its meta values.
      *
+     * @deprecated This method is deprecated. Use the ScoreSearchResult-returning overload for more structured information.
+     * This method is maintained for backward compatibility but may be removed in future versions.
+     *
      * This method attempts to find a given score type in the main score type of an identification object (`id`)
      * or within its hits' meta values. It first checks if the current main score type of `id` matches any of
      * the possible score types for the specified `type`. If not found, it iterates through the meta values of
@@ -561,16 +575,19 @@ namespace OpenMS
      *
      * @note This method logs an informational message if the requested score type is already set as the main score,
      *       a warning if the identification entry is empty, and another warning if the score type is not found in
-     *       the UserParams of the checked ID object. 
+     *       the UserParams of the checked ID object.
      *       It only checks the first hit of the `id` for meta values.
-     */    
+     */
     template <typename IDType>
-    String findScoreType(IDType& id, IDScoreSwitcherAlgorithm::ScoreType type)
+    String findScoreType(const IDType& id, IDScoreSwitcherAlgorithm::ScoreType type)
     {
-      const String& curr_score_type = id.getScoreType();
-      const std::set<String>& possible_types = type_to_str_[type];
-      if (possible_types.find(curr_score_type) != possible_types.end())
+      // Use the core helper for the actual logic
+      ScoreSearchResult result = findScoreTypeCore_(id, type);
+      
+      // Preserve the original logging behavior
+      if (result.is_main_score_type)
       {
+        const String& curr_score_type = id.getScoreType();
         OPENMS_LOG_INFO << "Requested score type already set as main score: " + curr_score_type + "\n";
         return curr_score_type;
       }
@@ -581,20 +598,14 @@ namespace OpenMS
           OPENMS_LOG_WARN << "Identification entry used to check for alternative score was empty.\n";
           return "";
         }
-        const auto& hit = id.getHits()[0];
-        for (const auto& poss_str : possible_types)
+        
+        if (result.meta_value_name.empty())
         {
-          if (hit.metaValueExists(poss_str)) 
-          {
-            return poss_str;
-          }
-          else if (hit.metaValueExists(poss_str + "_score")) 
-          {
-            return poss_str + "_score";
-          }
+          OPENMS_LOG_WARN << "Score of requested type not found in the UserParams of the checked ID object.\n";
+          return "";
         }
-        OPENMS_LOG_WARN << "Score of requested type not found in the UserParams of the checked ID object.\n";
-        return "";
+        
+        return result.meta_value_name;
       }
     }
 
@@ -806,6 +817,55 @@ namespace OpenMS
   }
 
   private:
+
+    /**
+     * @brief Core implementation for finding score types across different ID types.
+     *
+     * This is the unified implementation that handles score type detection for any ID type
+     * that supports getScoreType(), getHits(), and whose hits support metaValueExists().
+     * It checks if the main score is already of the requested type, and if not, searches
+     * for scores of that type in the meta values of the first hit.
+     *
+     * @tparam IDType The type of the identification object (e.g., PeptideIdentification)
+     * @param id The identification object to analyze for scores
+     * @param type The ScoreType to search for
+     * @return ScoreSearchResult containing whether main score is of the requested type and meta value name if found
+     */
+    template <typename IDType>
+    ScoreSearchResult findScoreTypeCore_(const IDType& id, ScoreType type) const
+    {
+      ScoreSearchResult result;
+      
+      // First check if main score is already of the requested score type using existing infrastructure
+      const String& main_score_type = id.getScoreType();
+      result.is_main_score_type = isScoreType(main_score_type, type);
+      
+      // If main score is not of the requested type, look for it in meta values
+      if (!result.is_main_score_type && !id.getHits().empty())
+      {
+        const auto& first_hit = id.getHits()[0];
+        const std::set<String>& score_types = type_to_str_.at(type);
+        
+        // Search for scores of the requested type in meta values using the existing score type collection
+        for (const String& score_name : score_types)
+        {
+          if (first_hit.metaValueExists(score_name))
+          {
+            result.meta_value_name = score_name;
+            break;
+          }
+          // Also check for "_score" suffix variant
+          String score_name_with_suffix = score_name + "_score";
+          if (first_hit.metaValueExists(score_name_with_suffix))
+          {
+            result.meta_value_name = score_name_with_suffix;
+            break;
+          }
+        }
+      }
+      
+      return result;
+    }
 
     void updateMembers_() override; ///< documented in base class
 

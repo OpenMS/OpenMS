@@ -882,7 +882,7 @@ namespace OpenMS
         else
         {
           // If one assumes they are all the same in the vector, this could be done in the beginning.
-          String metaval = switcher.findScoreType(id, score_type);
+          String metaval = switcher.findScoreType<IdentificationType>(id, score_type);
           if (!metaval.empty())
           {
             if (switcher.isScoreTypeHigherBetter(score_type))
