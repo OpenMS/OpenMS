@@ -160,10 +160,9 @@ namespace OpenMS
     /**
        @brief Searches for a general score type (e.g. PEP, QVAL) in an identification data structure.
 
-       This templated method provides the structured ScoreSearchResult API for any identification type,
+       Returns a ScoreSearchResult for any identification type,
        checking if the main score of an identification object is already of the requested score type,
-       and if not, searches for scores of that type in the meta values of the first hit. It uses the existing
-       ScoreType infrastructure to ensure consistency with the rest of the OpenMS score handling.
+       and if not, searches for scores of that type in the meta values of the first hit.
 
        @tparam IDType The type of the identification object (e.g., PeptideIdentification, ProteinIdentification)
        @param id The identification object to analyze for scores
