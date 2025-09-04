@@ -53,5 +53,40 @@ namespace OpenMS
     return names;
   }
 
+  IDScoreSwitcherAlgorithm::PEPScoreResult IDScoreSwitcherAlgorithm::findPEPScore(const PeptideIdentification& id)
+  {
+    PEPScoreResult result;
+    
+    // First check if main score is already a PEP score using existing infrastructure
+    const String& score_type = id.getScoreType();
+    result.is_main_score_pep = isScoreType(score_type, ScoreType::PEP);
+    
+    // If main score is not PEP, look for PEP score in meta values
+    if (!result.is_main_score_pep && !id.getHits().empty())
+    {
+      const auto& first_hit = id.getHits()[0];
+      const std::set<String>& pep_score_types = type_to_str_.at(ScoreType::PEP);
+      
+      // Search for PEP scores in meta values using the existing score type collection
+      for (const String& pep_type : pep_score_types)
+      {
+        if (first_hit.metaValueExists(pep_type))
+        {
+          result.meta_value_name = pep_type;
+          break;
+        }
+        // Also check for "_score" suffix variant
+        String pep_type_with_suffix = pep_type + "_score";
+        if (first_hit.metaValueExists(pep_type_with_suffix))
+        {
+          result.meta_value_name = pep_type_with_suffix;
+          break;
+        }
+      }
+    }
+    
+    return result;
+  }
+
 
 } // namespace OpenMS

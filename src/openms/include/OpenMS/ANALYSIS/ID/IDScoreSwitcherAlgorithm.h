@@ -148,6 +148,33 @@ namespace OpenMS
     std::vector<String> getScoreNames();
 
     /**
+      @brief Structure to hold PEP (Posterior Error Probability) score detection results.
+      
+      This structure contains information about whether the main score is already a PEP score
+      and the name of a PEP score found in meta values if the main score is not PEP.
+    */
+    struct PEPScoreResult
+    {
+      bool is_main_score_pep = false;  ///< True if the main score is already a PEP score
+      String meta_value_name;          ///< Name of PEP score found in meta values (empty if none found or main score is PEP)
+    };
+
+    /**
+      @brief Finds PEP score information using the ScoreSwitcher logic and existing score type infrastructure.
+
+      This method checks if the main score of an identification object is already a PEP score type,
+      and if not, searches for PEP scores in the meta values of the first hit. It uses the existing
+      ScoreType::PEP infrastructure to ensure consistency with the rest of the OpenMS score handling.
+
+      @param id The PeptideIdentification object to analyze for PEP scores.
+      @return PEPScoreResult containing whether main score is PEP and the meta value name if found.
+
+      @note This method only checks the first hit for meta values, similar to other methods in this class.
+      @note Returns empty meta_value_name if no PEP score is found in meta values or if main score is already PEP.
+    */
+    PEPScoreResult findPEPScore(const PeptideIdentification& id);
+
+    /**
      * @brief Switches the main scores of all hits in an identification object based on the new scoring settings.
      *
      * This method iterates through all hits in the provided identification object and updates their main scores
@@ -802,7 +829,7 @@ namespace OpenMS
             // then you need additional if's/try's
             {ScoreType::RAW_EVAL, {"expect", "SpecEValue", "E-Value", "evalue", "MS:1002053", "MS:1002257"}},
             {ScoreType::PP, {"Posterior Probability"}},
-            {ScoreType::PEP, {"Posterior Error Probability", "pep", "MS:1001493"}}, // TODO add CV terms
+            {ScoreType::PEP, {"Posterior Error Probability", "pep", "PEP", "posterior_error_probability", "MS:1001493"}}, // TODO add CV terms
             {ScoreType::FDR, {"FDR", "fdr", "false discovery rate"}},
             {ScoreType::QVAL, {"q-value", "qvalue", "MS:1001491", "q-Value", "qval"}}
         };
