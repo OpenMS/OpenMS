@@ -48,7 +48,7 @@ GUI tools:
 OpenMS Library:
   Added:
     - PeptideHit: Added TargetDecoyType (TARGET, DECOY, TARGET_DECOY, UNKNOWN) and setTargetDecoyType()/getTargetDecoyType(); supports target+decoy peptide hits.
-    - IDScoreSwitcherAlgorithm: Added findScoreType() method for generic score type detection. Checks if main score matches requested ScoreType (PEP, QVAL, FDR, etc.) or finds it in meta values.
+    - IDScoreSwitcherAlgorithm: Added findScoreType() method for generic score type detection. Checks if main score matches requested ScoreType (PEP, QVAL, FDR, etc.) or finds it in meta values..
     - ProteinHit: Added TargetDecoyType (TARGET, DECOY, UNKNOWN) and setTargetDecoyType()/getTargetDecoyType().
     - Both: Added isDecoy().
     - unify isotopic distributions (coarse vs. fine) for EmpiricalFormulas with charge (#8099)

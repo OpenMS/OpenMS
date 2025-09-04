@@ -53,10 +53,6 @@ namespace OpenMS
     return names;
   }
 
-  IDScoreSwitcherAlgorithm::ScoreSearchResult IDScoreSwitcherAlgorithm::findScoreType(const PeptideIdentification& id, ScoreType score_type)
-  {
-    return findScoreTypeCore_(id, score_type);
-  }
 
 
 } // namespace OpenMS
