@@ -883,9 +883,9 @@ namespace OpenMS
         {
           // If one assumes they are all the same in the vector, this could be done in the beginning.
           auto result = switcher.findScoreType<IdentificationType>(id, score_type);
-          if (!result.meta_value_name.empty())
+          if (!result.score_name.empty())
           {
-            String metaval = result.meta_value_name;
+            String metaval = result.score_name;
             if (switcher.isScoreTypeHigherBetter(score_type))
             {
               struct HasMinMetaValue<typename IdentificationType::HitType> score_filter(metaval, threshold_score);

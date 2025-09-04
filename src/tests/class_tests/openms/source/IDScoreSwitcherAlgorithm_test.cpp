@@ -74,7 +74,7 @@ START_SECTION(findScoreType)
   
   IDScoreSwitcherAlgorithm::ScoreSearchResult result1 = switcher.findScoreType(pep_id_with_pep_main, IDScoreSwitcherAlgorithm::ScoreType::PEP);
   TEST_EQUAL(result1.is_main_score_type, true);
-  TEST_EQUAL(result1.meta_value_name.empty(), true);
+  TEST_EQUAL(result1.score_name, "Posterior Error Probability");
   
   // Test case 2: When main score is not PEP but PEP is available in meta values
   PeptideIdentification pep_id_with_pep_meta;
@@ -89,7 +89,7 @@ START_SECTION(findScoreType)
   
   auto result2 = switcher.findScoreType(pep_id_with_pep_meta, IDScoreSwitcherAlgorithm::ScoreType::PEP);
   TEST_EQUAL(result2.is_main_score_type, false);
-  TEST_EQUAL(result2.meta_value_name, "pep");
+  TEST_EQUAL(result2.score_name, "pep");
   
   // Test case 3: When main score is not PEP and no PEP available in meta values
   PeptideIdentification pep_id_no_pep;
@@ -103,7 +103,7 @@ START_SECTION(findScoreType)
   
   auto result3 = switcher.findScoreType(pep_id_no_pep, IDScoreSwitcherAlgorithm::ScoreType::PEP);
   TEST_EQUAL(result3.is_main_score_type, false);
-  TEST_EQUAL(result3.meta_value_name.empty(), true);
+  TEST_EQUAL(result3.score_name.empty(), true);
   
   // Test case 4: Check various PEP score name variants from the enum collection
   PeptideIdentification pep_id_uppercase;
@@ -116,7 +116,7 @@ START_SECTION(findScoreType)
   
   auto result4 = switcher.findScoreType(pep_id_uppercase, IDScoreSwitcherAlgorithm::ScoreType::PEP);
   TEST_EQUAL(result4.is_main_score_type, false);
-  TEST_EQUAL(result4.meta_value_name, "PEP");
+  TEST_EQUAL(result4.score_name, "PEP");
   
   // Test case 5: Check _score suffix variant
   PeptideIdentification pep_id_suffix;
@@ -129,7 +129,7 @@ START_SECTION(findScoreType)
   
   auto result5 = switcher.findScoreType(pep_id_suffix, IDScoreSwitcherAlgorithm::ScoreType::PEP);
   TEST_EQUAL(result5.is_main_score_type, false);
-  TEST_EQUAL(result5.meta_value_name, "pep_score");
+  TEST_EQUAL(result5.score_name, "pep_score");
   
   // Test case 6: Test with Q-value score type
   PeptideIdentification qval_id_main;
@@ -142,7 +142,7 @@ START_SECTION(findScoreType)
   
   auto result6 = switcher.findScoreType(qval_id_main, IDScoreSwitcherAlgorithm::ScoreType::QVAL);
   TEST_EQUAL(result6.is_main_score_type, true);
-  TEST_EQUAL(result6.meta_value_name.empty(), true);
+  TEST_EQUAL(result6.score_name, "q-value");
   
   // Test case 7: Test with Q-value in meta values
   PeptideIdentification qval_id_meta;
@@ -156,7 +156,7 @@ START_SECTION(findScoreType)
   
   auto result7 = switcher.findScoreType(qval_id_meta, IDScoreSwitcherAlgorithm::ScoreType::QVAL);
   TEST_EQUAL(result7.is_main_score_type, false);
-  TEST_EQUAL(result7.meta_value_name, "qvalue");
+  TEST_EQUAL(result7.score_name, "qvalue");
   
   // Test case 8: Test with FDR score type
   PeptideIdentification fdr_id_meta;
@@ -170,7 +170,7 @@ START_SECTION(findScoreType)
   
   auto result8 = switcher.findScoreType(fdr_id_meta, IDScoreSwitcherAlgorithm::ScoreType::FDR);
   TEST_EQUAL(result8.is_main_score_type, false);
-  TEST_EQUAL(result8.meta_value_name, "FDR");
+  TEST_EQUAL(result8.score_name, "FDR");
 }
 END_SECTION
 

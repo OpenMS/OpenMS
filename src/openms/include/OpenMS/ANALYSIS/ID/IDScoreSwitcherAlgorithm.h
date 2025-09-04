@@ -157,7 +157,7 @@ namespace OpenMS
     struct ScoreSearchResult
     {
       bool is_main_score_type = false;  ///< True if the main score is already of the requested score type
-      String meta_value_name;           ///< Name of score found in meta values (empty if none found or main score is already the requested type)
+      String score_name;                ///< Name of score to use (main score name if is_main_score_type=true, meta value name if found in meta values, empty if not found anywhere)
     };
 
     /**
@@ -185,9 +185,14 @@ namespace OpenMS
       const String& main_score_type = id.getScoreType();
       result.is_main_score_type = isScoreType(main_score_type, score_type);
       
-      // If main score is not of the requested type, look for it in meta values
-      if (!result.is_main_score_type && !id.getHits().empty())
+      if (result.is_main_score_type)
       {
+        // Main score is of the requested type, so return the main score name
+        result.score_name = main_score_type;
+      }
+      else if (!id.getHits().empty())
+      {
+        // Main score is not of the requested type, look for it in meta values
         const auto& first_hit = id.getHits()[0];
         const std::set<String>& score_types = type_to_str_.at(score_type);
         
@@ -196,18 +201,19 @@ namespace OpenMS
         {
           if (first_hit.metaValueExists(score_name))
           {
-            result.meta_value_name = score_name;
+            result.score_name = score_name;
             break;
           }
           // Also check for "_score" suffix variant
           String score_name_with_suffix = score_name + "_score";
           if (first_hit.metaValueExists(score_name_with_suffix))
           {
-            result.meta_value_name = score_name_with_suffix;
+            result.score_name = score_name_with_suffix;
             break;
           }
         }
       }
+      // If neither main score nor meta values contain the requested type, score_name remains empty
       
       return result;
     }
@@ -314,15 +320,15 @@ namespace OpenMS
         return;
       }
 
-      // Otherwise we need a meta value name to switch to
-      if (sr.meta_value_name.empty())
+      // Otherwise we need a score name to switch to
+      if (sr.score_name.empty())
       {
         String msg = "First encountered ID does not have the requested score type.";
         throw Exception::MissingInformation(__FILE__, __LINE__,
                                             OPENMS_PRETTY_FUNCTION, msg);
       }
 
-      String t = sr.meta_value_name;
+      String t = sr.score_name;
 
       if (t.hasSuffix("_score"))
       {
@@ -387,9 +393,9 @@ namespace OpenMS
           {
             return;
           }
-          if (!sr.meta_value_name.empty())
+          if (!sr.score_name.empty())
           {
-            new_type = sr.meta_value_name;
+            new_type = sr.score_name;
             break;
           }
         }
