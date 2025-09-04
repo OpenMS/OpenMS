@@ -264,7 +264,9 @@ public:
     void setPeakAnnotations(std::vector<PeptideHit::PeakAnnotation> frag_annotations);
 
     /**
-     * @brief Returns true if this hit is annotated as mapping to decoy sequences only. Warning: an unknown/unannotated state will yield false.
+     * @brief Returns true if this hit is annotated as mapping to decoy sequences only. 
+     * Returns false for TargetDecoyType::TARGET and TargetDecoyType::TARGET_DECOY.
+     * Note: an unknown/unannotated state (TargetDecoyType::UNKNOWN) will yield false.
      */
     bool isDecoy() const;
 
