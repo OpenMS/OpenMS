@@ -382,7 +382,6 @@ namespace OpenMS
         const auto& ids = f.getPeptideIdentifications();
         if (!ids.empty())
         {
-          // Use structured result for clarity
           auto sr = findScoreType(ids[0], type);
           if (sr.is_main_score_type)
           {
