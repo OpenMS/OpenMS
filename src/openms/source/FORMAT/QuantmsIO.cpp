@@ -101,43 +101,19 @@ namespace
       protein_id_map[protein_id.getIdentifier()] = &protein_id;
     }
 
-    // Find PEP score if available using ScoreSwitcher logic
+    // Find PEP score if available using IDScoreSwitcherAlgorithm
     OpenMS::String pep_score_name;
     bool is_main_score_pep = false;
-    if (!peptide_identifications.empty() && !peptide_identifications[0].getHits().empty())
+    if (!peptide_identifications.empty())
     {
-      const auto& first_peptide_id = peptide_identifications[0];
-      const auto& first_hit = first_peptide_id.getHits()[0];
+      IDScoreSwitcherAlgorithm score_switcher;
+      auto first_peptide_id = peptide_identifications[0]; // need non-const reference for findScoreType
+      pep_score_name = score_switcher.findScoreType(first_peptide_id, IDScoreSwitcherAlgorithm::ScoreType::PEP);
       
-      // First check if main score is already a PEP score
-      const OpenMS::String& score_type = first_peptide_id.getScoreType();
-      const std::set<OpenMS::String> pep_score_types = {"Posterior Error Probability", "pep", "PEP", "MS:1001493"};
-      for (const auto& pep_type : pep_score_types)
+      if (!pep_score_name.empty())
       {
-        if (score_type.hasSubstring(pep_type))
-        {
-          is_main_score_pep = true;
-          break;
-        }
-      }
-      
-      // If main score is not PEP, look for PEP score in metavalues
-      if (!is_main_score_pep)
-      {
-        const std::set<OpenMS::String> pep_names = {"pep", "PEP", "Posterior Error Probability", "posterior_error_probability", "MS:1001493"};
-        for (const auto& name : pep_names)
-        {
-          if (first_hit.metaValueExists(name))
-          {
-            pep_score_name = name;
-            break;
-          }
-          if (first_hit.metaValueExists(name + "_score"))
-          {
-            pep_score_name = name + "_score";
-            break;
-          }
-        }
+        // Check if the found PEP score is the main score
+        is_main_score_pep = (pep_score_name == first_peptide_id.getScoreType());
       }
     }
 
