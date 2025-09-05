@@ -106,9 +106,9 @@ namespace
     bool is_main_score_pep = false;
     if (!peptide_identifications.empty())
     {
-      IDScoreSwitcherAlgorithm score_switcher;
+      OpenMS::IDScoreSwitcherAlgorithm score_switcher;
       auto first_peptide_id = peptide_identifications[0]; // need non-const reference for findScoreType
-      pep_score_name = score_switcher.findScoreType(first_peptide_id, IDScoreSwitcherAlgorithm::ScoreType::PEP);
+      pep_score_name = score_switcher.findScoreType(first_peptide_id, OpenMS::IDScoreSwitcherAlgorithm::ScoreType::PEP);
       
       if (!pep_score_name.empty())
       {
