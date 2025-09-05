@@ -15,6 +15,8 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <QFileInfo>
+#include <onnxruntime_cxx_api.h>
+#include <filesystem>
 #ifdef TRAIN_OUT
   #include <OpenMS/ANALYSIS/TOPDOWN/Qscore.h>
 #endif
@@ -190,6 +192,94 @@ protected:
   ExitCodes main_(int, const char**) override
   {
     OPENMS_LOG_INFO << "Initializing ... " << endl;
+
+    //-------------------------------------------------------------
+    // ONNX Model Loading (Proof of Concept)
+    //-------------------------------------------------------------
+    const std::string model_path = "/home/tom-mueller/Downloads/topdown_classifier.onnx";
+    OPENMS_LOG_INFO << "Attempting to load ONNX model: " << model_path << endl;
+    
+    try
+    {
+      // Check if model file exists
+      if (!std::filesystem::exists(model_path))
+      {
+        OPENMS_LOG_WARN << "ONNX model file not found: " << model_path << endl;
+        OPENMS_LOG_WARN << "Continuing with normal FLASHDeconv execution..." << endl;
+      }
+      else
+      {
+        // Initialize ONNX Runtime environment
+        Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "FLASHDeconv_ONNX");
+        
+        // Create session options
+        Ort::SessionOptions session_options;
+        session_options.SetIntraOpNumThreads(1);
+        
+        // Create inference session
+        Ort::Session session(env, model_path.c_str(), session_options);
+        
+        OPENMS_LOG_INFO << "ONNX model loaded successfully!" << endl;
+        
+        // Get model information
+        Ort::AllocatorWithDefaultOptions allocator;
+        
+        // Get input information
+        size_t num_input_nodes = session.GetInputCount();
+        OPENMS_LOG_INFO << "Number of input nodes: " << num_input_nodes << endl;
+        
+        for (size_t i = 0; i < num_input_nodes; i++)
+        {
+          auto input_name = session.GetInputNameAllocated(i, allocator);
+          auto input_type_info = session.GetInputTypeInfo(i);
+          auto input_tensor_info = input_type_info.GetTensorTypeAndShapeInfo();
+          auto input_dims = input_tensor_info.GetShape();
+          
+          OPENMS_LOG_INFO << "Input " << i << ": name='" << input_name.get()
+                         << "', dimensions=[";
+          for (size_t j = 0; j < input_dims.size(); j++)
+          {
+            if (j > 0) OPENMS_LOG_INFO << ", ";
+            OPENMS_LOG_INFO << input_dims[j];
+          }
+          OPENMS_LOG_INFO << "]" << endl;
+        }
+        
+        // Get output information
+        size_t num_output_nodes = session.GetOutputCount();
+        OPENMS_LOG_INFO << "Number of output nodes: " << num_output_nodes << endl;
+        
+        for (size_t i = 0; i < num_output_nodes; i++)
+        {
+          auto output_name = session.GetOutputNameAllocated(i, allocator);
+          auto output_type_info = session.GetOutputTypeInfo(i);
+          auto output_tensor_info = output_type_info.GetTensorTypeAndShapeInfo();
+          auto output_dims = output_tensor_info.GetShape();
+          
+          OPENMS_LOG_INFO << "Output " << i << ": name='" << output_name.get()
+                         << "', dimensions=[";
+          for (size_t j = 0; j < output_dims.size(); j++)
+          {
+            if (j > 0) OPENMS_LOG_INFO << ", ";
+            OPENMS_LOG_INFO << output_dims[j];
+          }
+          OPENMS_LOG_INFO << "]" << endl;
+        }
+        
+        OPENMS_LOG_INFO << "ONNX model information extraction completed." << endl;
+      }
+    }
+    catch (const Ort::Exception& e)
+    {
+      OPENMS_LOG_ERROR << "ONNX Runtime error: " << e.what() << endl;
+      OPENMS_LOG_WARN << "Continuing with normal FLASHDeconv execution..." << endl;
+    }
+    catch (const std::exception& e)
+    {
+      OPENMS_LOG_ERROR << "Error loading ONNX model: " << e.what() << endl;
+      OPENMS_LOG_WARN << "Continuing with normal FLASHDeconv execution..." << endl;
+    }
+    
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
