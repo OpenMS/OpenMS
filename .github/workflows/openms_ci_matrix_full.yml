@@ -374,6 +374,7 @@ jobs:
           ENABLE_CLASS_TESTING: "ON"
           ENABLE_DOCS: ${{ steps.set-vars.outputs.enable_docs }}
           ENABLE_GCC_WERROR: "OFF" # TODO think about that
+          ENABLE_ONNX: "ON"
           SEARCH_ENGINES_DIRECTORY: ${{ github.workspace }}/_thirdparty
           WITH_GUI: "ON"
           ADDRESS_SANITIZER: "Off"
