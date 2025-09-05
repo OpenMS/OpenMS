@@ -139,7 +139,7 @@ jobs:
           echo "contrib_os_ver=10.15.5/" >> $GITHUB_OUTPUT
           echo "contrib_compiler=appleclang-11.0.0/" >> $GITHUB_OUTPUT
           echo "xvfb=" >> $GITHUB_OUTPUT
-          echo "static_boost=OFF" >> $GITHUB_OUTPUT
+          echo "static_boost=ON" >> $GITHUB_OUTPUT
           if [ "$DO_PACKAGE" = true ]; then
             echo "pkg_type=pkg" >> $GITHUB_OUTPUT
             echo "enable_docs=ON" >> $GITHUB_OUTPUT
