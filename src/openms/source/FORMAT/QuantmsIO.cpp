@@ -107,14 +107,11 @@ namespace
     if (!peptide_identifications.empty())
     {
       OpenMS::IDScoreSwitcherAlgorithm score_switcher;
-      auto first_peptide_id = peptide_identifications[0]; // need non-const reference for findScoreType
-      pep_score_name = score_switcher.findScoreType(first_peptide_id, OpenMS::IDScoreSwitcherAlgorithm::ScoreType::PEP);
+      const auto& first_peptide_id = peptide_identifications[0];
+      auto pep_result = score_switcher.findScoreType(first_peptide_id, OpenMS::IDScoreSwitcherAlgorithm::ScoreType::PEP);
       
-      if (!pep_score_name.empty())
-      {
-        // Check if the found PEP score is the main score
-        is_main_score_pep = (pep_score_name == first_peptide_id.getScoreType());
-      }
+      pep_score_name = pep_result.score_name;
+      is_main_score_pep = pep_result.is_main_score_type;
     }
 
     // Process each peptide identification (only first hit per peptide identification)
