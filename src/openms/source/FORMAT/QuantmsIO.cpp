@@ -40,14 +40,14 @@ namespace
       arrow::field("calculated_mz", arrow::float32()),
       arrow::field("observed_mz", arrow::float32()),
       arrow::field("additional_scores", arrow::null(), true), // nullable - null for now
-      arrow::field("mp_accessions", arrow::null(), true), // nullable - null for now
+      arrow::field("protein_accessions", arrow::null(), true), // nullable - null for now
       arrow::field("predicted_rt", arrow::float32(), true), // nullable
       arrow::field("reference_file_name", arrow::utf8()),
       arrow::field("cv_params", arrow::null(), true), // nullable - null for now
       arrow::field("scan", arrow::utf8()),
       arrow::field("rt", arrow::float32(), true), // nullable
       arrow::field("ion_mobility", arrow::float32(), true), // nullable
-      arrow::field("num_peaks", arrow::int32(), true), // nullable
+      arrow::field("number_peaks", arrow::int32(), true), // nullable
       arrow::field("mz_array", arrow::null(), true), // nullable - null for now
       arrow::field("intensity_array", arrow::null(), true) // nullable - null for now
     };
@@ -403,7 +403,7 @@ namespace
       calculated_mz_array,
       observed_mz_array,
       arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie(), // additional_scores - null for now
-      arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie(), // mp_accessions - using mp_accessions_array would need list type
+      arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie(), // protein_accessions - using mp_accessions_array would need list type
       predicted_rt_array,
       reference_file_name_array,
       arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie(), // cv_params - null for now
