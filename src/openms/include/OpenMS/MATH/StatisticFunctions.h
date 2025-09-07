@@ -9,6 +9,7 @@
 
 #include <vector>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -274,6 +275,8 @@ namespace OpenMS
       @param end    End of range (past-the-end iterator)
       @param q      Quantile in [0, 1]
 
+      @pre Input range must be sorted ascending.
+
       @exception Exception::InvalidRange is thrown if the range is NULL or empty.
       @exception Exception::InvalidValue is thrown if q is outside [0, 1].
 
@@ -282,6 +285,9 @@ namespace OpenMS
     template <typename IteratorType>
     static double quantile(IteratorType begin, IteratorType end, double q)
     {
+      OPENMS_PRECONDITION(std::is_sorted(begin, end),
+                          "Math::quantile expects a sorted range. Sort before calling.");
+
       checkIteratorsNotNULL(begin, end);
 
       const Size n = std::distance(begin, end);
@@ -305,27 +311,6 @@ namespace OpenMS
 
       const auto it_ip1 = it_i + 1;
       return (1.0 - frac) * static_cast<double>(*it_i) + frac * static_cast<double>(*it_ip1);
-    }
-
-    /**
-      @brief Quantile of an *unsorted* range using R's type-7 definition.
-
-      Sorts the range in-place (non-decreasing) and then calls
-      quantileSortedInput(begin,end,q).
-
-      @param begin  Start of range (will be sorted in-place)
-      @param end    Past-the-end of range
-      @param q      Quantile in [0,1]
-      @throws Exception::InvalidRange if the range is empty
-      @throws Exception::InvalidValue if q is outside [0,1]
-      @ingroup MathFunctionsStatistics
-    */
-    template <typename IteratorType>
-    static double quantileUnsortedInput(IteratorType begin, IteratorType end, double q)
-    {
-      checkIteratorsNotNULL(begin, end);
-      std::sort(begin, end);
-      return quantile(begin, end, q);
     }
 
     /**
