@@ -45,6 +45,22 @@ START_SECTION(makeKFolds basic and edge cases)
     }
   }
 
+  // Exactly one sample, K==1 → single fold holding {0}
+  {
+    const auto folds = CrossValidation::makeKFolds(1, 1);
+    TEST_EQUAL(folds.size(), 1);
+    TEST_EQUAL(folds[0].size(), 1);
+    TEST_EQUAL(folds[0][0], 0);
+  }
+
+  // K > n gets clamped to n (still a single fold with {0})
+  {
+    const auto folds = CrossValidation::makeKFolds(1, 5);
+    TEST_EQUAL(folds.size(), 1);
+    TEST_EQUAL(folds[0].size(), 1);
+    TEST_EQUAL(folds[0][0], 0);
+  }
+
   // Invalid inputs
   TEST_EXCEPTION(Exception::InvalidValue, CrossValidation::makeKFolds(0, 1)); // n==0
   TEST_EXCEPTION(Exception::InvalidValue, CrossValidation::makeKFolds(5, 0)); // K==0
@@ -178,6 +194,39 @@ START_SECTION(gridSearch1D respects tie tolerance)
     TEST_REAL_SIMILAR(cand, 0.5);
     TEST_REAL_SIMILAR(sc, 0.0);
   }
+}
+END_SECTION
+
+// --- gridSearch1D: works with single-sample LOO (n==1) -----------------------
+START_SECTION(gridSearch1D works with single-sample LOO (n==1))
+{
+  const std::vector<double> cands{0.2, 0.5};
+  const auto folds = CrossValidation::makeKFolds(1, 1); // [[0]]
+
+  // Append one error per held-out idx (here exactly one)
+  auto train_eval = [](double cand,
+                       const std::vector<std::vector<Size>>& flds,
+                       std::vector<double>& abs_errs)
+  {
+    const double e = std::fabs(cand - 0.3); // optimum at cand=0.3
+    for (const auto& fold : flds)
+      for (Size idx : fold) { (void)idx; abs_errs.push_back(e); }
+  };
+
+  // Mean absolute error
+  auto score = [](const std::vector<double>& errs) -> double
+  {
+    double s = 0.0;
+    for (double v : errs) s += v;
+    return errs.empty() ? std::numeric_limits<double>::infinity() : s / errs.size();
+  };
+
+  const auto [best_cand, best_score] =
+    CrossValidation::gridSearch1D(cands.begin(), cands.end(),
+                                  folds, train_eval, score);
+
+  TEST_REAL_SIMILAR(best_cand, 0.2);                 // closer to 0.3 than 0.5
+  TEST_REAL_SIMILAR(best_score, std::fabs(0.2 - 0.3));
 }
 END_SECTION
 
