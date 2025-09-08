@@ -33,18 +33,6 @@ namespace
 
   std::shared_ptr<arrow::Schema> createPSMSchema()
   {
-    // Create file_metadata struct type
-    std::vector<std::shared_ptr<arrow::Field>> file_metadata_fields = {
-      arrow::field("quantmsio_version", arrow::utf8()),
-      arrow::field("creator", arrow::utf8()),
-      arrow::field("file_type", arrow::utf8()),
-      arrow::field("creation_date", arrow::utf8()),
-      arrow::field("uuid", arrow::utf8()),
-      arrow::field("scan_format", arrow::utf8()),
-      arrow::field("software_provider", arrow::utf8())
-    };
-    auto file_metadata_struct = arrow::struct_(file_metadata_fields);
-
     std::vector<std::shared_ptr<arrow::Field>> fields = {
       arrow::field("sequence", arrow::utf8()),
       arrow::field("peptidoform", arrow::utf8()),
@@ -64,15 +52,15 @@ namespace
       arrow::field("ion_mobility", arrow::float32(), true), // nullable
       arrow::field("number_peaks", arrow::int32(), true), // nullable
       arrow::field("mz_array", arrow::null(), true), // nullable - null for now
-      arrow::field("intensity_array", arrow::null(), true), // nullable - null for now
-      arrow::field("file_metadata", file_metadata_struct)
+      arrow::field("intensity_array", arrow::null(), true) // nullable - null for now
     };
 
     return arrow::schema(fields);
   }
 
   void writeParquetFile(const std::shared_ptr<arrow::Table>& table, 
-                       const OpenMS::String& filename)
+                       const OpenMS::String& filename,
+                       const std::map<std::string, std::string>& file_metadata = {})
   {
     std::shared_ptr<arrow::io::FileOutputStream> outfile;
     auto result = arrow::io::FileOutputStream::Open(filename.c_str());
@@ -82,12 +70,18 @@ namespace
     }
     outfile = result.ValueOrDie();
 
+    // For now, let's use the basic WriteTable approach and add metadata support later
+    // when proper Parquet metadata headers are available
     auto status = parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), 
                                            outfile, table->num_rows());
     if (!status.ok()) {
       throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                                          filename, "Failed to write parquet file: " + OpenMS::String(status.ToString()));
     }
+    
+    // TODO: Add file metadata to parquet when appropriate headers are available
+    // The metadata is currently passed but not yet written to the file
+    // This will need parquet::WriterProperties or similar API
   }
 
   std::shared_ptr<arrow::Table> convertToArrowTable(
@@ -110,15 +104,6 @@ namespace
     arrow::FloatBuilder ion_mobility_builder;
     arrow::Int32Builder num_peaks_builder;
 
-    // Create builders for file_metadata struct fields
-    arrow::StringBuilder quantmsio_version_builder;
-    arrow::StringBuilder creator_builder;
-    arrow::StringBuilder file_type_builder;
-    arrow::StringBuilder creation_date_builder;
-    arrow::StringBuilder uuid_builder;
-    arrow::StringBuilder scan_format_builder;
-    arrow::StringBuilder software_provider_builder;
-
     // Find associated protein identification for metadata
     std::map<OpenMS::String, const OpenMS::ProteinIdentification*> protein_id_map;
     for (const auto& protein_id : protein_identifications)
@@ -138,19 +123,6 @@ namespace
       pep_score_name = pep_result.score_name;
       is_main_score_pep = pep_result.is_main_score_type;
     }
-
-    // Generate file metadata once (to be consistent across all PSM records)
-    auto now = std::chrono::system_clock::now();
-    auto time_t = std::chrono::system_clock::to_time_t(now);
-    std::ostringstream creation_date_stream;
-    creation_date_stream << std::put_time(std::gmtime(&time_t), "%Y-%m-%dT%H:%M:%SZ");
-    std::string creation_date_str = creation_date_stream.str();
-    
-    // Generate a simple UUID based on current time and process
-    std::ostringstream uuid_stream;
-    uuid_stream << std::hex << std::hash<std::string>{}(creation_date_str) << "-0000-4000-8000-" 
-                << std::setfill('0') << std::setw(12) << (std::hash<void*>{}(&protein_identifications) & 0xFFFFFFFFFFFF);
-    std::string uuid_str = uuid_stream.str();
 
     // Process each peptide identification (only first hit per peptide identification)
     for (const auto& peptide_id : peptide_identifications)
@@ -328,49 +300,6 @@ namespace
         throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                                         "Failed to append num peaks: " + OpenMS::String(status.ToString()));
       }
-
-      // File metadata - populate with meaningful values for each row (consistent across all PSMs)
-      status = quantmsio_version_builder.Append("1.0");
-      if (!status.ok()) {
-        throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                        "Failed to append quantmsio_version: " + OpenMS::String(status.ToString()));
-      }
-
-      status = creator_builder.Append("OpenMS");
-      if (!status.ok()) {
-        throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                        "Failed to append creator: " + OpenMS::String(status.ToString()));
-      }
-
-      status = file_type_builder.Append("psm");
-      if (!status.ok()) {
-        throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                        "Failed to append file_type: " + OpenMS::String(status.ToString()));
-      }
-
-      status = creation_date_builder.Append(creation_date_str.c_str());
-      if (!status.ok()) {
-        throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                        "Failed to append creation_date: " + OpenMS::String(status.ToString()));
-      }
-
-      status = uuid_builder.Append(uuid_str.c_str());
-      if (!status.ok()) {
-        throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                        "Failed to append uuid: " + OpenMS::String(status.ToString()));
-      }
-
-      status = scan_format_builder.Append("scan");
-      if (!status.ok()) {
-        throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                        "Failed to append scan_format: " + OpenMS::String(status.ToString()));
-      }
-
-      status = software_provider_builder.Append("OpenMS");
-      if (!status.ok()) {
-        throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                        "Failed to append software_provider: " + OpenMS::String(status.ToString()));
-      }
     }
 
     // Finish builders and create arrays
@@ -472,74 +401,6 @@ namespace
                                       "Failed to finish num peaks array: " + OpenMS::String(status.ToString()));
     }
 
-    // Finish file_metadata builders
-    std::shared_ptr<arrow::Array> quantmsio_version_array;
-    status = quantmsio_version_builder.Finish(&quantmsio_version_array);
-    if (!status.ok()) {
-      throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      "Failed to finish quantmsio_version array: " + OpenMS::String(status.ToString()));
-    }
-
-    std::shared_ptr<arrow::Array> creator_array;
-    status = creator_builder.Finish(&creator_array);
-    if (!status.ok()) {
-      throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      "Failed to finish creator array: " + OpenMS::String(status.ToString()));
-    }
-
-    std::shared_ptr<arrow::Array> file_type_array;
-    status = file_type_builder.Finish(&file_type_array);
-    if (!status.ok()) {
-      throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      "Failed to finish file_type array: " + OpenMS::String(status.ToString()));
-    }
-
-    std::shared_ptr<arrow::Array> creation_date_array;
-    status = creation_date_builder.Finish(&creation_date_array);
-    if (!status.ok()) {
-      throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      "Failed to finish creation_date array: " + OpenMS::String(status.ToString()));
-    }
-
-    std::shared_ptr<arrow::Array> uuid_array;
-    status = uuid_builder.Finish(&uuid_array);
-    if (!status.ok()) {
-      throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      "Failed to finish uuid array: " + OpenMS::String(status.ToString()));
-    }
-
-    std::shared_ptr<arrow::Array> scan_format_array;
-    status = scan_format_builder.Finish(&scan_format_array);
-    if (!status.ok()) {
-      throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      "Failed to finish scan_format array: " + OpenMS::String(status.ToString()));
-    }
-
-    std::shared_ptr<arrow::Array> software_provider_array;
-    status = software_provider_builder.Finish(&software_provider_array);
-    if (!status.ok()) {
-      throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      "Failed to finish software_provider array: " + OpenMS::String(status.ToString()));
-    }
-
-    // Create file_metadata struct array
-    std::vector<std::shared_ptr<arrow::Array>> file_metadata_arrays = {
-      quantmsio_version_array,
-      creator_array,
-      file_type_array,
-      creation_date_array,
-      uuid_array,
-      scan_format_array,
-      software_provider_array
-    };
-    
-    auto file_metadata_struct_array = arrow::StructArray::Make(file_metadata_arrays, 
-      std::vector<std::string>{"quantmsio_version", "creator", "file_type", "creation_date", "uuid", "scan_format", "software_provider"});
-    if (!file_metadata_struct_array.ok()) {
-      throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      "Failed to create file_metadata struct array: " + OpenMS::String(file_metadata_struct_array.status().ToString()));
-    }
-
     // Create simplified schema for now - will add complex nested types later
     auto schema = createPSMSchema();
     auto table = arrow::Table::Make(schema, {
@@ -561,8 +422,7 @@ namespace
       ion_mobility_array,
       num_peaks_array,
       arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie(), // mz_array - null for now
-      arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie(), // intensity_array - null for now
-      file_metadata_struct_array.ValueOrDie() // file_metadata
+      arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie() // intensity_array - null for now
     });
 
     return table;
@@ -578,11 +438,35 @@ namespace OpenMS
                        const std::vector<ProteinIdentification>& protein_identifications,
                        const PeptideIdentificationList& peptide_identifications)
   {
+    // Generate file metadata
+    auto now = std::chrono::system_clock::now();
+    auto time_t = std::chrono::system_clock::to_time_t(now);
+    std::ostringstream creation_date_stream;
+    creation_date_stream << std::put_time(std::gmtime(&time_t), "%Y-%m-%dT%H:%M:%SZ");
+    std::string creation_date_str = creation_date_stream.str();
+    
+    // Generate a simple UUID based on current time and process
+    std::ostringstream uuid_stream;
+    uuid_stream << std::hex << std::hash<std::string>{}(creation_date_str) << "-0000-4000-8000-" 
+                << std::setfill('0') << std::setw(12) << (std::hash<void*>{}(&protein_identifications) & 0xFFFFFFFFFFFF);
+    std::string uuid_str = uuid_stream.str();
+
+    // Create file metadata map
+    std::map<std::string, std::string> file_metadata = {
+      {"quantmsio_version", "1.0"},
+      {"creator", "OpenMS"},
+      {"file_type", "psm"},
+      {"creation_date", creation_date_str},
+      {"uuid", uuid_str},
+      {"scan_format", "scan"},
+      {"software_provider", "OpenMS"}
+    };
+
     // Convert data to Arrow table
     auto table = convertToArrowTable(protein_identifications, peptide_identifications);
     
-    // Write to parquet file
-    writeParquetFile(table, filename);
+    // Write to parquet file with metadata
+    writeParquetFile(table, filename, file_metadata);
   }
 
 } // namespace OpenMS

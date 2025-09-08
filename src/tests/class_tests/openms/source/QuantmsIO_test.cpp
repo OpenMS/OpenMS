@@ -132,8 +132,8 @@ START_SECTION((void store(const String& filename, const std::vector<ProteinIdent
   // Verify number of rows (should equal number of peptide identifications)
   TEST_EQUAL(table->num_rows(), 3)
   
-  // Verify number of columns (should match the quantms.io PSM schema)
-  TEST_EQUAL(table->num_columns(), 20)
+  // Verify number of columns (should match the quantms.io PSM schema without file_metadata)
+  TEST_EQUAL(table->num_columns(), 19)
   
   // Verify column names match the schema
   auto schema = table->schema();
@@ -156,20 +156,9 @@ START_SECTION((void store(const String& filename, const std::vector<ProteinIdent
   TEST_EQUAL(schema->field(16)->name(), "number_peaks")
   TEST_EQUAL(schema->field(17)->name(), "mz_array")
   TEST_EQUAL(schema->field(18)->name(), "intensity_array")
-  TEST_EQUAL(schema->field(19)->name(), "file_metadata")
   
-  // Verify file_metadata struct fields
-  auto file_metadata_type = schema->field(19)->type();
-  TEST_EQUAL(file_metadata_type->id(), arrow::Type::STRUCT)
-  auto file_metadata_struct = std::static_pointer_cast<arrow::StructType>(file_metadata_type);
-  TEST_EQUAL(file_metadata_struct->num_fields(), 7)
-  TEST_EQUAL(file_metadata_struct->field(0)->name(), "quantmsio_version")
-  TEST_EQUAL(file_metadata_struct->field(1)->name(), "creator")
-  TEST_EQUAL(file_metadata_struct->field(2)->name(), "file_type")
-  TEST_EQUAL(file_metadata_struct->field(3)->name(), "creation_date")
-  TEST_EQUAL(file_metadata_struct->field(4)->name(), "uuid")
-  TEST_EQUAL(file_metadata_struct->field(5)->name(), "scan_format")
-  TEST_EQUAL(file_metadata_struct->field(6)->name(), "software_provider")
+  // TODO: Add verification of file-level metadata when parquet metadata API is available
+  // The file metadata should be stored at the Parquet file level, not as schema fields
 }
 END_SECTION
 
