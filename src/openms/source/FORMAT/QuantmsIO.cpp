@@ -21,6 +21,9 @@
 
 #include <algorithm>
 #include <sstream>
+#include <chrono>
+#include <iomanip>
+#include <functional>
 
 using namespace std;
 
@@ -135,6 +138,19 @@ namespace
       pep_score_name = pep_result.score_name;
       is_main_score_pep = pep_result.is_main_score_type;
     }
+
+    // Generate file metadata once (to be consistent across all PSM records)
+    auto now = std::chrono::system_clock::now();
+    auto time_t = std::chrono::system_clock::to_time_t(now);
+    std::ostringstream creation_date_stream;
+    creation_date_stream << std::put_time(std::gmtime(&time_t), "%Y-%m-%dT%H:%M:%SZ");
+    std::string creation_date_str = creation_date_stream.str();
+    
+    // Generate a simple UUID based on current time and process
+    std::ostringstream uuid_stream;
+    uuid_stream << std::hex << std::hash<std::string>{}(creation_date_str) << "-0000-4000-8000-" 
+                << std::setfill('0') << std::setw(12) << (std::hash<void*>{}(&protein_identifications) & 0xFFFFFFFFFFFF);
+    std::string uuid_str = uuid_stream.str();
 
     // Process each peptide identification (only first hit per peptide identification)
     for (const auto& peptide_id : peptide_identifications)
@@ -313,7 +329,7 @@ namespace
                                         "Failed to append num peaks: " + OpenMS::String(status.ToString()));
       }
 
-      // File metadata - populate dummy values for each row
+      // File metadata - populate with meaningful values for each row (consistent across all PSMs)
       status = quantmsio_version_builder.Append("1.0");
       if (!status.ok()) {
         throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
@@ -332,13 +348,13 @@ namespace
                                         "Failed to append file_type: " + OpenMS::String(status.ToString()));
       }
 
-      status = creation_date_builder.Append("2024-01-01T00:00:00Z");
+      status = creation_date_builder.Append(creation_date_str.c_str());
       if (!status.ok()) {
         throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                                         "Failed to append creation_date: " + OpenMS::String(status.ToString()));
       }
 
-      status = uuid_builder.Append("00000000-0000-0000-0000-000000000000");
+      status = uuid_builder.Append(uuid_str.c_str());
       if (!status.ok()) {
         throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                                         "Failed to append uuid: " + OpenMS::String(status.ToString()));
