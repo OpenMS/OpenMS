@@ -43,6 +43,7 @@ namespace OpenMS
     - number_peaks: number of peaks (nullable, null for now)
     - mz_array: m/z values array (null for now)
     - intensity_array: intensity values array (null for now)
+    - file_metadata: file-level metadata with quantmsio_version, creator, file_type, creation_date, uuid, scan_format, software_provider
 
     Only the first peptide hit per peptide identification is processed (no rank field).
     PEP scores are automatically detected from metavalues using known PEP score names.
