@@ -156,7 +156,7 @@ namespace OpenMS
 
     for (const auto& hit : pep_id.getHits())
     {
-      if (!hit.metaValueExists("target_decoy"))
+      if (hit.getTargetDecoyType() == PeptideHit::TargetDecoyType::UNKNOWN)
       {
         throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
       }
@@ -450,7 +450,7 @@ namespace OpenMS
       const PeptideHit& top_hit = hits[0];
 
       // skip if the top hit is a decoy hit
-      if (!top_hit.metaValueExists("target_decoy"))
+      if (top_hit.getTargetDecoyType() == PeptideHit::TargetDecoyType::UNKNOWN)
       {
         throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
       }
@@ -597,12 +597,12 @@ namespace OpenMS
       {
         const PeptideHit& hit = hits[i];
 
-        if (!hit.metaValueExists("target_decoy"))
+        if (hit.getTargetDecoyType() == PeptideHit::TargetDecoyType::UNKNOWN)
         {
           throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
         }
-        if (hit.isDecoy())
-          continue;// skip if the hit is a decoy hit
+
+        if (hit.isDecoy()) continue;// skip if the hit is a decoy hit
 
         // insert protein accessions
         const set<String> accessions = hit.extractProteinAccessionsSet();

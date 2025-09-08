@@ -275,7 +275,7 @@ if(WITH_HDF5)
   list(APPEND format_executables_list HDF5_test)
 endif()
 if(WITH_PARQUET)
-  list(APPEND format_executables_list Arrow_test)
+  list(APPEND format_executables_list Arrow_test QuantmsIO_test)
 endif()
 
 set(math_executables_list

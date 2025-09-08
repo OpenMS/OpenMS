@@ -414,7 +414,7 @@ namespace OpenMS
     if (td == "target+decoy") return TargetDecoyType::TARGET_DECOY;
     if (td == "target") return TargetDecoyType::TARGET;
     
-    return TargetDecoyType::UNKNOWN;  // for unknown/invalid values
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown value of meta value 'target_decoy'", td);
   }
 
   std::ostream& operator<< (std::ostream& stream, const PeptideHit& hit)
