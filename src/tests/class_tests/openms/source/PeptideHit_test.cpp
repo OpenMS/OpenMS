@@ -578,6 +578,92 @@ START_SECTION((PeptideHit& operator=(PeptideHit&& source) noexcept - with analys
 }
 END_SECTION
 
+START_SECTION((bool isDecoy() const))
+{
+  PeptideHit hit;
+  
+  // Test default behavior (no target_decoy meta value set)
+  // Should return false since default is "target"
+  TEST_EQUAL(hit.isDecoy(), false);
+  
+  // Test with explicit "target" value
+  hit.setMetaValue("target_decoy", "target");
+  TEST_EQUAL(hit.isDecoy(), false);
+  
+  // Test with "decoy" value
+  hit.setMetaValue("target_decoy", "decoy");
+  TEST_EQUAL(hit.isDecoy(), true);
+  
+  // Test with "DECOY" (case insensitive)
+  hit.setMetaValue("target_decoy", "DECOY");
+  TEST_EQUAL(hit.isDecoy(), true);
+  
+  // Test with other values
+  hit.setMetaValue("target_decoy", "target+decoy");
+  TEST_EQUAL(hit.isDecoy(), false);
+}
+END_SECTION
+
+START_SECTION((void setTargetDecoyType(TargetDecoyType type)))
+{
+  PeptideHit hit;
+  
+  // Test setting TARGET
+  hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET);
+  TEST_EQUAL(hit.getMetaValue("target_decoy"), "target");
+  
+  // Test setting DECOY
+  hit.setTargetDecoyType(PeptideHit::TargetDecoyType::DECOY);
+  TEST_EQUAL(hit.getMetaValue("target_decoy"), "decoy");
+  
+  // Test setting TARGET_DECOY
+  hit.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET_DECOY);
+  TEST_EQUAL(hit.getMetaValue("target_decoy"), "target+decoy");
+  
+  // Test setting UNKNOWN (should remove meta value)
+  hit.setTargetDecoyType(PeptideHit::TargetDecoyType::UNKNOWN);
+  TEST_EQUAL(hit.metaValueExists("target_decoy"), false);
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::UNKNOWN);
+}
+END_SECTION
+
+START_SECTION((TargetDecoyType getTargetDecoyType() const))
+{
+  PeptideHit hit;
+  
+  // Test default behavior (should return UNKNOWN when meta value doesn't exist)
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::UNKNOWN);
+  
+  // Test with explicit "target" value
+  hit.setMetaValue("target_decoy", "target");
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::TARGET);
+  
+  // Test with "decoy" value
+  hit.setMetaValue("target_decoy", "decoy");
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::DECOY);
+  
+  // Test with "DECOY" (case insensitive)
+  hit.setMetaValue("target_decoy", "DECOY");
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::DECOY);
+  
+  // Test with "target+decoy" value
+  hit.setMetaValue("target_decoy", "target+decoy");
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::TARGET_DECOY);
+  
+  // Test with "TARGET+DECOY" (case insensitive)
+  hit.setMetaValue("target_decoy", "TARGET+DECOY");
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::TARGET_DECOY);
+  
+  // Test with unrecognized value (should throw InvalidValue exception)
+  hit.setMetaValue("target_decoy", "unrecognized_value");
+  TEST_EXCEPTION(Exception::InvalidValue, hit.getTargetDecoyType());
+  
+  // Test after removing meta value (should return UNKNOWN)
+  hit.removeMetaValue("target_decoy");
+  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::UNKNOWN);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

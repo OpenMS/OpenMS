@@ -537,6 +537,186 @@ START_SECTION([EXTRA](template <typename IteratorType> double adaptiveQuantile(I
 }
 END_SECTION
 
+START_SECTION([EXTRA](template <typename IteratorType> static double quantile(IteratorType begin, IteratorType end, double q, bool sorted = false)))
+{
+  // basic properties on a small vector (unsorted input)
+  std::vector<int> v = {4, 1, 3, 2};
+  // endpoints
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.0, /*sorted=*/false), 1.0);
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 1.0, /*sorted=*/false), 4.0);
+
+  // Type-7 median for even length: pos = 0.5*(n-1) = 1.5 -> 2.5
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.5, /*sorted=*/false), 2.5);
+
+  // same but with sorted=true (should produce same numbers)
+  std::sort(v.begin(), v.end()); // {1,2,3,4}
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.25, /*sorted=*/true), 1.75); // pos=0.75
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.75, /*sorted=*/true), 3.25); // pos=2.25
+
+  // exceptions
+  std::vector<double> empty;
+  TEST_EXCEPTION(Exception::InvalidRange, Math::quantile(empty.begin(), empty.end(), 0.5, /*sorted=*/false));
+  TEST_EXCEPTION(Exception::InvalidValue, Math::quantile(v.begin(), v.end(), -0.1, /*sorted=*/true));
+  TEST_EXCEPTION(Exception::InvalidValue, Math::quantile(v.begin(), v.end(), 1.1,  /*sorted=*/true));
+}
+END_SECTION
+
+START_SECTION([EXTRA](template <typename IteratorType> double tukeyUpperFence(IteratorType begin, IteratorType end, double k)))
+{
+  // v = 1..9 → Q1=3, Q3=7, IQR=4 → UF = 7 + 1.5*4 = 13
+  std::vector<int> v = {1,2,3,4,5,6,7,8,9};
+  TEST_REAL_SIMILAR(Math::tukeyUpperFence(v.begin(), v.end(), 1.5), 13.0);
+
+  // too few valid values → +inf
+  std::vector<double> tiny = {1.0, std::numeric_limits<double>::quiet_NaN()};
+  TEST_EQUAL(std::isinf(Math::tukeyUpperFence(tiny.begin(), tiny.end(), 1.5)), true);
+}
+END_SECTION
+
+START_SECTION([EXTRA](template <typename IteratorType> double tailFractionAbove(IteratorType begin, IteratorType end, double threshold)))
+{
+  std::vector<int> v = {1,2,3,4,5,6,7,8,9};
+  // values > 7 are {8,9} → 2/9
+  double r = Math::tailFractionAbove(v.begin(), v.end(), 7.0);
+  TOLERANCE_ABSOLUTE(1e-12);
+  TEST_REAL_SIMILAR(r, 2.0/9.0);
+
+  // threshold above max → 0
+  TEST_REAL_SIMILAR(Math::tailFractionAbove(v.begin(), v.end(), 10.0), 0.0);
+}
+END_SECTION
+
+START_SECTION([EXTRA](template <typename IteratorType> double winsorizedQuantile(IteratorType begin, IteratorType end, double q, double upper_fence)))
+{
+  // Example: v = {1,2,3,100}
+  // Raw q=0.75 (Type-7): pos=2.25 → 0.75*3 + 0.25*100 = 27.25
+  // UF computed externally: Q1=1.75, Q3=27.25, IQR=25.5 → UF=65.5
+  std::vector<double> v = {1.0, 2.0, 3.0, 100.0};
+  const double uf = 65.5;
+
+  const double raw_q = Math::quantile(v.begin(), v.end(), 0.75, /*sorted=*/false);
+  TEST_REAL_SIMILAR(raw_q, 27.25);
+
+  const double win_q = Math::winsorizedQuantile(v.begin(), v.end(), 0.75, uf);
+  TEST_REAL_SIMILAR(win_q, 18.625); // pos=2.25 between 3 and 65.5 → 0.75*3 + 0.25*65.5
+
+  // If UF is +inf, falls back to raw quantile
+  const double win_inf = Math::winsorizedQuantile(v.begin(), v.end(), 0.75, std::numeric_limits<double>::infinity());
+  TEST_REAL_SIMILAR(win_inf, raw_q);
+}
+END_SECTION
+
+START_SECTION([EXTRA](template <typename IteratorType> double adaptiveQuantile(IteratorType begin, IteratorType end, double q, double k, double r_sparse, double r_dense, double* out_half_raw, double* out_half_rob, double* out_upper_fence, double* out_tail_frac)))
+{
+  TOLERANCE_ABSOLUTE(1e-9);
+
+  // --- Case A: sparse tail -> prefer robust (w=0)
+  // Base: 0..9 repeated 20 times (200 values), plus one outlier 1000 (r ≈ 0.005 < 1%)
+  std::vector<double> a;
+  a.reserve(201);
+  for (int rep = 0; rep < 20; ++rep)
+    for (int z = 0; z <= 9; ++z) a.push_back(static_cast<double>(z));
+  a.push_back(1000.0);
+
+  double half_raw_A, half_rob_A, uf_A, r_A;
+  const double qA = 0.997; // forces interpolation with the last value present
+  const double ada_A = Math::adaptiveQuantile(a.begin(), a.end(), qA,
+                                              /*k=*/1.5, /*r_sparse=*/0.01, /*r_dense=*/0.10,
+                                              &half_raw_A, &half_rob_A, &uf_A, &r_A);
+
+  // Tail is sparse → expect robust to win and adaptive == robust (within tol),
+  // and robust << raw because 1000 is capped at UF ~ 15.
+  TEST_TRUE(r_A < 0.01);
+  TEST_REAL_SIMILAR(ada_A, half_rob_A);
+  TEST_TRUE(half_raw_A > half_rob_A);
+
+  // --- Case B: dense tail -> prefer raw (w=1)
+  // Add many outliers: 30 values of 1000 → r ≳ 0.13 > 0.10
+  std::vector<double> b = a;
+  for (int i=0; i<29; ++i) b.push_back(1000.0); // total outliers now 30
+  double half_raw_B, half_rob_B, uf_B, r_B;
+  const double ada_B = Math::adaptiveQuantile(b.begin(), b.end(), qA,
+                                              1.5, 0.01, 0.10,
+                                              &half_raw_B, &half_rob_B, &uf_B, &r_B);
+  TEST_TRUE(r_B > 0.10);
+  TEST_REAL_SIMILAR(ada_B, half_raw_B);
+  TEST_TRUE(half_raw_B >= half_rob_B);
+
+  // --- Case C: intermediate tail density -> interpolation between robust and raw
+  // Make about ~5% tail: add 10 outliers to the base (200 base + 10 outliers = 210, r≈0.0476)
+  std::vector<double> c;
+  c.reserve(210);
+  for (int rep = 0; rep < 20; ++rep)
+    for (int z = 0; z <= 9; ++z) c.push_back(static_cast<double>(z));
+  for (int i=0; i<10; ++i) c.push_back(1000.0);
+
+  double half_raw_C, half_rob_C, uf_C, r_C;
+  const double ada_C = Math::adaptiveQuantile(c.begin(), c.end(), qA,
+                                              1.5, 0.01, 0.10,
+                                              &half_raw_C, &half_rob_C, &uf_C, &r_C);
+
+  // Expected linear weight w = (r - r_sparse) / (r_dense - r_sparse)
+  const double w = std::max(0.0, std::min(1.0, (r_C - 0.01) / (0.10 - 0.01)));
+  const double expected_blend = (1.0 - w) * half_rob_C + w * half_raw_C;
+
+  TEST_TRUE(r_C > 0.01 && r_C < 0.10);
+  TEST_REAL_SIMILAR(ada_C, expected_blend);
+  TEST_TRUE(half_rob_C <= ada_C && ada_C <= half_raw_C);
+}
+END_SECTION
+
+START_SECTION([EXTRA](template <typename IteratorType> static double quantile(IteratorType begin, IteratorType end, double q)))
+{
+  std::vector<int> v{1,2,3,4}; // already sorted
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.0), 1.0);
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 1.0), 4.0);
+  // Type-7 median (even length): pos = 0.5*(n-1) = 1.5 -> 2.5
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.5), 2.5);
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.25), 1.75);
+  TEST_REAL_SIMILAR(Math::quantile(v.begin(), v.end(), 0.75), 3.25);
+
+  std::vector<double> empty;
+  TEST_EXCEPTION(Exception::InvalidRange, Math::quantile(empty.begin(), empty.end(), 0.5));
+  TEST_EXCEPTION(Exception::InvalidValue, Math::quantile(v.begin(), v.end(), -0.1));
+  TEST_EXCEPTION(Exception::InvalidValue, Math::quantile(v.begin(), v.end(),  1.1));
+}
+END_SECTION
+
+START_SECTION([EXTRA](template <typename IteratorType1, typename IteratorType2> static double rootMeanSquareError(IteratorType1 begin_a, IteratorType1 end_a, IteratorType2 begin_b, IteratorType2 end_b)))
+{
+  using OpenMS::Math::meanSquareError;
+  using OpenMS::Math::rootMeanSquareError;
+
+  // Simple hand-checkable case: constant offset of -0.5
+  std::vector<double> a{1.0, 2.0, 3.0};
+  std::vector<double> b{1.5, 2.5, 3.5};
+
+  const double mse  = meanSquareError(a.begin(), a.end(), b.begin(), b.end());
+  const double rmse = rootMeanSquareError(a.begin(), a.end(), b.begin(), b.end());
+
+  TEST_REAL_SIMILAR(mse, 0.25);
+  TEST_REAL_SIMILAR(rmse, std::sqrt(0.25));
+
+  // Residuals vs zero baseline equals sqrt(mean of squares)
+  std::vector<double> errs{-2.0, 0.0, 2.0};
+  std::vector<double> zeros(errs.size(), 0.0);
+  TEST_REAL_SIMILAR(
+    rootMeanSquareError(errs.begin(), errs.end(), zeros.begin(), zeros.end()),
+    std::sqrt((4.0 + 0.0 + 4.0) / 3.0)
+  );
+
+  // Exceptions: mismatched length and empty ranges
+  std::vector<double> shortv{1.0, 2.0};
+  TEST_EXCEPTION(Exception::InvalidRange,
+                 rootMeanSquareError(errs.begin(), errs.end(), shortv.begin(), shortv.end()));
+  std::vector<double> empty;
+  TEST_EXCEPTION(Exception::InvalidRange,
+                 rootMeanSquareError(empty.begin(), empty.end(), empty.begin(), empty.end()));
+}
+END_SECTION
+
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

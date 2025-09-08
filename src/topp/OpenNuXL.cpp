@@ -287,7 +287,7 @@ struct NuXLLinearRescore
       {
          if (peptide_ids[index].getHits().empty()) continue;
          const PeptideHit& ph = peptide_ids[index].getHits()[0]; // get best match to current spectrum
-         bool is_target = ph.getMetaValue("target_decoy") == "target";
+         bool is_target = !ph.isDecoy();
          bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
          double score = ph.getScore();
          if (is_target)
@@ -346,7 +346,7 @@ struct NuXLLinearRescore
            for (size_t psm_rank = 0; psm_rank != phits.size(); ++psm_rank)
            {
              const PeptideHit& ph = phits[psm_rank];
-             bool is_target = ph.getMetaValue("target_decoy") == "target";
+             bool is_target = !ph.isDecoy();
              double score = ph.getScore();
              // predictors["score"].push_back(score);
              predictors["length"].push_back(ph.getSequence().size());
@@ -6071,7 +6071,7 @@ static void scoreXLIons_(
       for (size_t index = 0; index != peptide_ids.size(); ++index)
       {
          if (peptide_ids[index].getHits().empty()) continue;
-         if (peptide_ids[index].getHits()[0].getMetaValue("target_decoy") == "target")
+         if (!peptide_ids[index].getHits()[0].isDecoy())
          {
            double ppm_error = peptide_ids[index].getHits()[0].getMetaValue(OpenMS::Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM);
            map_score2ppm[peptide_ids[index].getHits()[0].getScore()] = ppm_error; 
@@ -6164,7 +6164,7 @@ static void scoreXLIons_(
             {
               const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
               if (!is_XL) continue; // skip linear peptides as these don't have the XL values set
-              if (ph.getMetaValue("target_decoy") != "decoy") continue;
+              if (!ph.isDecoy()) continue;
               double score = ph.getMetaValue(name);
               decoy_XL_scores.push_back(score); 
             }
@@ -6184,7 +6184,7 @@ static void scoreXLIons_(
             {
               const bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
               if (!is_XL) continue; // skip linear peptides as these don't have the XL values set
-              if (ph.getMetaValue("target_decoy") != "decoy") continue;
+              if (!ph.isDecoy()) continue;
               double score = ph.getMetaValue(name);
               decoy_XL_scores.push_back(score); 
             }

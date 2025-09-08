@@ -33,6 +33,14 @@ namespace OpenMS
     public MetaInfoInterface
   {
 public:
+    /// Enum for target/decoy annotation
+    enum class TargetDecoyType
+    {
+      TARGET,       ///< Target protein
+      DECOY,        ///< Decoy protein
+      UNKNOWN       ///< Target/decoy status is unknown (meta value not set)
+    };
+
     static const double COVERAGE_UNKNOWN; // == -1
 
     /// @name Hashes for ProteinHit
@@ -162,6 +170,35 @@ public:
 
     /// sets the set of modified protein positions
     void setModifications(std::set<std::pair<Size, ResidueModification> >& mods);
+
+    /// returns true if this is a decoy hit (false for TARGET and UNKNOWN)
+    bool isDecoy() const;
+
+    /** @brief Sets the target/decoy type for this protein hit
+     *
+     * This method provides a type-safe way to annotate protein hits with their
+     * target/decoy status.
+     *
+     * @param type The target/decoy classification:
+     *   - TARGET: Target protein
+     *   - DECOY: Decoy protein
+     *   - UNKNOWN: Target/decoy status is unknown; the "target_decoy" meta value is removed
+     */
+    void setTargetDecoyType(TargetDecoyType type);
+
+    /** @brief Returns the target/decoy type for this protein hit
+     *
+     * This method performs case-insensitive parsing of the "target_decoy" meta value
+     * and returns the corresponding enum value. Returns UNKNOWN if the meta value
+     * does not exist.
+     *
+     * @return The target/decoy classification:
+     *   - TARGET: Target protein
+     *   - DECOY: Decoy protein
+     *   - UNKNOWN: Target/decoy status not set (meta value missing)
+     */
+    TargetDecoyType getTargetDecoyType() const;
+
     //@}
 
 protected:

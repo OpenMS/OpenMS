@@ -29,12 +29,12 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
         OPXLHelper() except + nogil  # compiler
         OPXLHelper(OPXLHelper &) except + nogil  # compiler
 
-        libcpp_vector[ XLPrecursor ] enumerateCrossLinksAndMasses(libcpp_vector[ AASeqWithMass ]  peptides,
+        libcpp_vector[ XLPrecursor ] enumerateCrossLinksAndMasses(const libcpp_vector[ AASeqWithMass ]  peptides,
                                                                   double cross_link_mass_light,
                                                                   DoubleList cross_link_mass_mono_link,
                                                                   StringList cross_link_residue1,
                                                                   StringList cross_link_residue2,
-                                                                  libcpp_vector[ double ]& spectrum_precursors,
+                                                                  const libcpp_vector[ double ]& spectrum_precursors,
                                                                   libcpp_vector[ int ]& precursor_correction_positions,
                                                                   double precursor_mass_tolerance,
                                                                   bool precursor_mass_tolerance_unit_ppm)  except + nogil 
