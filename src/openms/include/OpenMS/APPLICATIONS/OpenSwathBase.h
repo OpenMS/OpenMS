@@ -342,7 +342,7 @@ protected:
    * This function will create the retention time transformation either by
    * loading a provided .trafoXML file or determine it from the data itself by
    * extracting the transitions specified in the irt_tr_file TraML file. It
-   * will also perform the m/z calibration (when an irt_fr_file is provided).
+   * will also perform the m/z calibration (when an irt_tr_file is provided).
    *
    * @note Internally, the retention time and @p m/z calibration are performed
    * by OpenMS::OpenSwathCalibrationWorkflow::performRTNormalization
