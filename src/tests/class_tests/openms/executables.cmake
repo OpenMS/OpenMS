@@ -271,6 +271,10 @@ if(WITH_HDF5)
   list(APPEND format_executables_list HDF5_test)
 endif()
 
+if(WITH_PARQUET)
+  list(APPEND format_executables_list Arrow_test QuantmsIO_test)
+endif()
+
 set(math_executables_list
   BasicStatistics_test
   BilinearInterpolation_test
@@ -281,6 +285,7 @@ set(math_executables_list
   GaussFitter_test
   GumbelDistributionFitter_test
   GridSearch_test
+  CrossValidation_test
   Histogram_test
   LinearInterpolation_test
   LinearRegression_test

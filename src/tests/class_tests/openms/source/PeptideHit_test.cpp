@@ -654,9 +654,9 @@ START_SECTION((TargetDecoyType getTargetDecoyType() const))
   hit.setMetaValue("target_decoy", "TARGET+DECOY");
   TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::TARGET_DECOY);
   
-  // Test with unknown value (should return UNKNOWN)
-  hit.setMetaValue("target_decoy", "unknown");
-  TEST_EQUAL(hit.getTargetDecoyType(), PeptideHit::TargetDecoyType::UNKNOWN);
+  // Test with unrecognized value (should throw InvalidValue exception)
+  hit.setMetaValue("target_decoy", "unrecognized_value");
+  TEST_EXCEPTION(Exception::InvalidValue, hit.getTargetDecoyType());
   
   // Test after removing meta value (should return UNKNOWN)
   hit.removeMetaValue("target_decoy");
