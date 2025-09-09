@@ -161,48 +161,48 @@ namespace OpenMS
       intensity.back().push_back(it->getIntensity());
     }
   }
-  
-    void MSExperiment::get2DPeakDataIMPerSpectrum(
-      CoordinateType min_rt,
-      CoordinateType max_rt,
-      CoordinateType min_mz,
-      CoordinateType max_mz,
-      Size ms_level,
-      std::vector<float>& rt,
-      std::vector<std::vector<float>>& mz,
-      std::vector<std::vector<float>>& intensity,
-      std::vector<std::vector<float>>& ion_mobility) const
+
+  void MSExperiment::get2DPeakDataIMPerSpectrum(
+    CoordinateType min_rt,
+    CoordinateType max_rt,
+    CoordinateType min_mz,
+    CoordinateType max_mz,
+    Size ms_level,
+    std::vector<float>& rt,
+    std::vector<std::vector<float>>& mz,
+    std::vector<std::vector<float>>& intensity,
+    std::vector<std::vector<float>>& ion_mobility) const
+  {
+    DriftTimeUnit unit = DriftTimeUnit::NONE;
+    std::vector<float> im;
+    float t = -1.0;
+    for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
     {
-      DriftTimeUnit unit;
-      std::vector<float> im;
-      float t = -1.0;
-      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
+      if (it.getRT() != t)
       {
-        if (it.getRT() != t)
-        {
-          t = (float)it.getRT();
-          rt.push_back(t);
-          std::tie(unit, im) = it.getSpectrum().maybeGetIMData();
-          mz.push_back(std::vector<float>());
-          intensity.push_back(std::vector<float>());
-          ion_mobility.push_back(std::vector<float>());
-        }
-  
-        if (unit != DriftTimeUnit::NONE)
-        {
-          const Size peak_index = it.getPeakIndex().peak;
-          ion_mobility.back().push_back(im[peak_index]);
-        }
-        else
-        {
-          ion_mobility.back().push_back(-1.0);
-        }
-        mz.back().push_back((float)it->getMZ());
-        intensity.back().push_back(it->getIntensity());
+        t = (float)it.getRT();
+        rt.push_back(t);
+        std::tie(unit, im) = it.getSpectrum().maybeGetIMData();
+        mz.push_back(std::vector<float>());
+        intensity.push_back(std::vector<float>());
+        ion_mobility.push_back(std::vector<float>());
       }
+
+      if (unit != DriftTimeUnit::NONE)
+      {
+        const Size peak_index = it.getPeakIndex().peak;
+        ion_mobility.back().push_back(im[peak_index]);
+      }
+      else
+      {
+        ion_mobility.back().push_back(-1.0);
+      }
+      mz.back().push_back((float)it->getMZ());
+      intensity.back().push_back(it->getIntensity());
     }
-  
-    void MSExperiment::get2DPeakData(
+  }
+
+  void MSExperiment::get2DPeakData(
       CoordinateType min_rt,
       CoordinateType max_rt,
       CoordinateType min_mz,
@@ -219,8 +219,8 @@ namespace OpenMS
         intensity.push_back(it->getIntensity());
       }
     }
-  
-    void MSExperiment::get2DPeakDataIM(
+
+  void MSExperiment::get2DPeakDataIM(
       CoordinateType min_rt,
       CoordinateType max_rt,
       CoordinateType min_mz,

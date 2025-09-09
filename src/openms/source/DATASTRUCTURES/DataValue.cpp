@@ -900,30 +900,29 @@ namespace OpenMS
     unit_ = unit;
   }
 
-// Added simple getter member functions moved from header
+  DataValue::DataType DataValue::valueType() const
+  {
+    return value_type_;
+  }
 
-DataValue::DataType DataValue::valueType() const
-{
-  return value_type_;
-}
+  bool DataValue::isEmpty() const
+  {
+    return value_type_ == EMPTY_VALUE;
+  }
 
-bool DataValue::isEmpty() const
-{
-  return value_type_ == EMPTY_VALUE;
-}
+  DataValue::UnitType DataValue::getUnitType() const
+  {
+    return unit_type_;
+  }
 
-DataValue::UnitType DataValue::getUnitType() const
-{
-  return unit_type_;
-}
+  void DataValue::setUnitType(const DataValue::UnitType & u)
+  {
+    unit_type_ = u;
+  }
 
-void DataValue::setUnitType(const DataValue::UnitType & u)
-{
-  unit_type_ = u;
-}
+  bool DataValue::hasUnit() const
+  {
+    return unit_ != -1;
+  }
 
-bool DataValue::hasUnit() const
-{
-  return unit_ != -1;
-}
 } // namespace OpenMS

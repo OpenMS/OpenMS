@@ -10,8 +10,6 @@
 
 namespace OpenMS
 {
-  // Moved function definitions
-
   bool MobilityPeak1D::operator==(const MobilityPeak1D& rhs) const
   {
     return position_ == rhs.position_ && intensity_ == rhs.intensity_;
