@@ -1208,7 +1208,15 @@ protected:
                    calibration_result.ms2_mz_window_ppm,
                    cp.mz_extraction_window, cp.mz_extraction_window,
                    /*applicable=*/true,
-                   /*commit=*/use_est_window_choices.mz);
+                   /*commit=*/use_est_window_choices.mz && cp.ppm);
+      if (use_est_window_choices.mz && !cp.ppm)
+      {
+        OPENMS_LOG_WARN
+          << "[Auto-calibration] MS2 m/z window not applied: user selected Thomson (Th) as unit, "
+          << "but the estimated window is " << calibration_result.ms2_mz_window_ppm << " ppm. "
+          << "Keeping the user-set value " << cp.mz_extraction_window << " Th. "
+          << std::endl;
+      }
 
       // MS2 ion mobility (1/k0)
       apply_window("MS2 ion mobility (1/k0)",
@@ -1222,13 +1230,21 @@ protected:
                    calibration_result.ms1_mz_window_ppm,
                    cp_ms1.mz_extraction_window, cp_ms1.mz_extraction_window,
                    /*applicable=*/true,
-                   /*commit=*/use_est_window_choices.mz);
+                   /*commit=*/use_est_window_choices.mz && cp_ms1.ppm);
+      if (use_est_window_choices.mz && !cp_ms1.ppm)
+      {
+        OPENMS_LOG_WARN
+          << "[Auto-calibration] MS1 m/z window not applied: user selected Thomson (Th) as unit, "
+          << "but the estimated window is " << calibration_result.ms1_mz_window_ppm << " ppm. "
+          << "Keeping the user-set value " << cp_ms1.mz_extraction_window << " Th. "
+          << std::endl;
+      }
 
       // MS1 ion mobility (1/k0)
       apply_window("MS1 ion mobility (1/k0)",
                    calibration_result.ms1_im_window,
                    cp_ms1.im_extraction_window, cp_ms1.im_extraction_window,
-                   /*applicable=*/pasef,
+                   /*applicable=*/pasef && use_ms1_im,
                    /*commit=*/use_est_window_choices.im);
     }
     else
@@ -1323,7 +1339,15 @@ protected:
                    estimated_mz_extraction_window,
                    cp.mz_extraction_window, cp.mz_extraction_window,
                    /*applicable=*/true,
-                   /*commit=*/use_est_window_choices.mz);
+                   /*commit=*/use_est_window_choices.mz && cp.ppm);
+      if (use_est_window_choices.mz && !cp.ppm)
+      {
+        OPENMS_LOG_WARN
+          << "[Auto-calibration] MS2 m/z window not applied: user selected Thomson (Th) as unit, "
+          << "but the estimated window is " << calibration_result.ms2_mz_window_ppm << " ppm. "
+          << "Keeping the user-set value " << cp.mz_extraction_window << " Th. "
+          << std::endl;
+      }
 
       // MS2 ion mobility (1/k0)
       apply_window("MS2 ion mobility (1/k0)",
@@ -1337,13 +1361,21 @@ protected:
                    estimated_ms1_mz_extraction_window,
                    cp_ms1.mz_extraction_window, cp_ms1.mz_extraction_window,
                    /*applicable=*/true,
-                   /*commit=*/use_est_window_choices.mz);
+                   /*commit=*/use_est_window_choices.mz && cp_ms1.ppm);
+      if (use_est_window_choices.mz && !cp_ms1.ppm)
+      {
+        OPENMS_LOG_WARN
+          << "[Auto-calibration] MS1 m/z window not applied: user selected Thomson (Th) as unit, "
+          << "but the estimated window is " << calibration_result.ms1_mz_window_ppm << " ppm. "
+          << "Keeping the user-set value " << cp_ms1.mz_extraction_window << " Th. "
+          << std::endl;
+      }
 
       // MS1 ion mobility (1/k0)
       apply_window("MS1 ion mobility (1/k0)",
                    estimated_ms1_im_extraction_window,
                    cp_ms1.im_extraction_window, cp_ms1.im_extraction_window,
-                   /*applicable=*/pasef,
+                   /*applicable=*/pasef && use_ms1_im,
                    /*commit=*/use_est_window_choices.im);
     }
 
