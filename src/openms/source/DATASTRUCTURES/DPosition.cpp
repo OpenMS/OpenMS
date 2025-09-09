@@ -14,5 +14,8 @@ namespace OpenMS
   DPosition<2> default_dposition_2;
 
   DPosition<1, Int> default_int_dposition_1;
+  // Template definitions
+
+  // Template definitions moved to header (OpenMS/DATASTRUCTURES/DPosition.h)
   DPosition<2, Int> default_int_dposition_2;
 }
