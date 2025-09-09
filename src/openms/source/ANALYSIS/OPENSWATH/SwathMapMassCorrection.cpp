@@ -596,7 +596,6 @@ namespace OpenMS
           }
         }
       }
-
     }
 
     // Estimate fragment mz window
