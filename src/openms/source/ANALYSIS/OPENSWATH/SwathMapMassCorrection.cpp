@@ -759,12 +759,24 @@ namespace OpenMS
     // r_sparse=0.01 means if ≤1% of |residuals| exceed the fence, treat them as outliers (favor robust quantile);
     // r_dense=0.10 means if ≥10% exceed the fence, tails are genuinely broad (favor raw quantile).
     // These values are conservative, widely used in stats.
-    const double half = OpenMS::Math::adaptiveQuantile(
+    OpenMS::Math::AdaptiveQuantileResult adaptive_quantile_res = OpenMS::Math::adaptiveQuantile(
       residuals.begin(), residuals.end(),
-      quantile,
-      /*k=*/1.5, /*r_sparse=*/0.01, /*r_dense=*/0.10);
+      quantile);
 
-    return (full_width ? (2.0 * half) : half) * padding_factor;
+    const double full = (full_width ? (2.0 * adaptive_quantile_res.blended) : adaptive_quantile_res.blended) * padding_factor;
+
+    OPENMS_LOG_DEBUG
+      << "[estimateWindow] n=" << residuals.size()
+      << " q=" << quantile
+      << " half_raw=" << adaptive_quantile_res.half_raw
+      << " half_rob=" << adaptive_quantile_res.half_rob
+      << " UF=" << adaptive_quantile_res.upper_fence
+      << " tail_frac=" << adaptive_quantile_res.tail_fraction
+      << " => half_adapt=" << adaptive_quantile_res.blended
+      << " full=" << full
+      << std::endl;
+
+    return full;
   }
 
   double SwathMapMassCorrection::getFragmentMzWindow() const

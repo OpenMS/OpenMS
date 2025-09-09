@@ -14,6 +14,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 
@@ -310,22 +311,20 @@ namespace OpenMS
     // r_sparse=0.01 means if ≤1% of |residuals| exceed the fence, treat them as outliers (favor robust quantile);
     // r_dense=0.10 means if ≥10% exceed the fence, tails are genuinely broad (favor raw quantile).
     // These values are conservative, widely used in stats.
-    double half_raw=0, half_rob=0, uf=0, tail=0;
-    const double half = OpenMS::Math::adaptiveQuantile(
+    OpenMS::Math::AdaptiveQuantileResult adaptive_quantile_res = OpenMS::Math::adaptiveQuantile(
       diffs.begin(), diffs.end(), quantile,
-      /*k=*/1.5, /*r_sparse=*/0.01, /*r_dense=*/0.10,
-      &half_raw, &half_rob, &uf, &tail);
+      /*k=*/1.5, /*r_sparse=*/0.01, /*r_dense=*/0.10);
 
-    const double full = (full_window ? (2.0 * half) : half) * padding_factor;
+    const double full = (full_window ? (2.0 * adaptive_quantile_res.blended) : adaptive_quantile_res.blended) * padding_factor;
 
     OPENMS_LOG_DEBUG
       << "[estimateWindow] n=" << diffs.size()
       << " q=" << quantile
-      << " half_raw=" << half_raw
-      << " half_rob=" << half_rob
-      << " UF=" << uf
-      << " tail_frac=" << tail
-      << " => half_adapt=" << half
+      << " half_raw=" << adaptive_quantile_res.half_raw
+      << " half_rob=" << adaptive_quantile_res.half_rob
+      << " UF=" << adaptive_quantile_res.upper_fence
+      << " tail_frac=" << adaptive_quantile_res.tail_fraction
+      << " => half_adapt=" << adaptive_quantile_res.blended
       << " full=" << full
       << " invert=" << (invert ? "true" : "false")
       << std::endl;

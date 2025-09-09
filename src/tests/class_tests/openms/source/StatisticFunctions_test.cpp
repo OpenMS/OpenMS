@@ -483,29 +483,25 @@ START_SECTION([EXTRA](template <typename IteratorType> double adaptiveQuantile(I
     for (int z = 0; z <= 9; ++z) a.push_back(static_cast<double>(z));
   a.push_back(1000.0);
 
-  double half_raw_A, half_rob_A, uf_A, r_A;
   const double qA = 0.997; // forces interpolation with the last value present
-  const double ada_A = Math::adaptiveQuantile(a.begin(), a.end(), qA,
-                                              /*k=*/1.5, /*r_sparse=*/0.01, /*r_dense=*/0.10,
-                                              &half_raw_A, &half_rob_A, &uf_A, &r_A);
+  Math::AdaptiveQuantileResult ada_A = Math::adaptiveQuantile(a.begin(), a.end(), qA,
+                                              /*k=*/1.5, /*r_sparse=*/0.01, /*r_dense=*/0.10);
 
   // Tail is sparse → expect robust to win and adaptive == robust (within tol),
   // and robust << raw because 1000 is capped at UF ~ 15.
-  TEST_TRUE(r_A < 0.01);
-  TEST_REAL_SIMILAR(ada_A, half_rob_A);
-  TEST_TRUE(half_raw_A > half_rob_A);
+  TEST_TRUE(ada_A.tail_fraction < 0.01);
+  TEST_REAL_SIMILAR(ada_A.blended, ada_A.half_rob);
+  TEST_TRUE(ada_A.half_raw > ada_A.half_rob);
 
   // --- Case B: dense tail -> prefer raw (w=1)
   // Add many outliers: 30 values of 1000 → r ≳ 0.13 > 0.10
   std::vector<double> b = a;
   for (int i=0; i<29; ++i) b.push_back(1000.0); // total outliers now 30
-  double half_raw_B, half_rob_B, uf_B, r_B;
-  const double ada_B = Math::adaptiveQuantile(b.begin(), b.end(), qA,
-                                              1.5, 0.01, 0.10,
-                                              &half_raw_B, &half_rob_B, &uf_B, &r_B);
-  TEST_TRUE(r_B > 0.10);
-  TEST_REAL_SIMILAR(ada_B, half_raw_B);
-  TEST_TRUE(half_raw_B >= half_rob_B);
+  Math::AdaptiveQuantileResult ada_B = Math::adaptiveQuantile(b.begin(), b.end(), qA,
+                                              1.5, 0.01, 0.10);
+  TEST_TRUE(ada_B.tail_fraction > 0.10);
+  TEST_REAL_SIMILAR(ada_B.blended, ada_B.half_raw);
+  TEST_TRUE(ada_B.half_raw >= ada_B.half_rob);
 
   // --- Case C: intermediate tail density -> interpolation between robust and raw
   // Make about ~5% tail: add 10 outliers to the base (200 base + 10 outliers = 210, r≈0.0476)
@@ -515,18 +511,16 @@ START_SECTION([EXTRA](template <typename IteratorType> double adaptiveQuantile(I
     for (int z = 0; z <= 9; ++z) c.push_back(static_cast<double>(z));
   for (int i=0; i<10; ++i) c.push_back(1000.0);
 
-  double half_raw_C, half_rob_C, uf_C, r_C;
-  const double ada_C = Math::adaptiveQuantile(c.begin(), c.end(), qA,
-                                              1.5, 0.01, 0.10,
-                                              &half_raw_C, &half_rob_C, &uf_C, &r_C);
+  Math::AdaptiveQuantileResult ada_C = Math::adaptiveQuantile(c.begin(), c.end(), qA,
+                                              1.5, 0.01, 0.10);
 
   // Expected linear weight w = (r - r_sparse) / (r_dense - r_sparse)
-  const double w = std::max(0.0, std::min(1.0, (r_C - 0.01) / (0.10 - 0.01)));
-  const double expected_blend = (1.0 - w) * half_rob_C + w * half_raw_C;
+  const double w = std::max(0.0, std::min(1.0, (ada_C.tail_fraction - 0.01) / (0.10 - 0.01)));
+  const double expected_blend = (1.0 - w) * ada_C.half_rob + w * ada_C.half_raw;
 
-  TEST_TRUE(r_C > 0.01 && r_C < 0.10);
-  TEST_REAL_SIMILAR(ada_C, expected_blend);
-  TEST_TRUE(half_rob_C <= ada_C && ada_C <= half_raw_C);
+  TEST_TRUE(ada_C.tail_fraction > 0.01 && ada_C.tail_fraction < 0.10);
+  TEST_REAL_SIMILAR(ada_C.blended, expected_blend);
+  TEST_TRUE(ada_C.half_rob <= ada_C.blended && ada_C.blended <= ada_C.half_raw);
 }
 END_SECTION
 

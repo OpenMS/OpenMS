@@ -23,6 +23,26 @@ namespace OpenMS
 
   namespace Math
   {
+    /**
+      @brief Result of adaptiveQuantile computation.
+
+      Fields:
+        - blended       : the final blended (adaptive) quantile
+        - half_raw      : raw q-quantile of values
+        - half_rob      : q-quantile after IQR-winsorization
+        - upper_fence   : Tukey upper fence (Q3 + k*IQR), +inf if undefined
+        - tail_fraction : fraction of values above upper_fence
+        - weight        : blend weight w in [0,1] (0=robust, 1=raw)
+    */
+    struct AdaptiveQuantileResult
+    {
+      double blended{0.0};
+      double half_raw{0.0};
+      double half_rob{0.0};
+      double upper_fence{std::numeric_limits<double>::infinity()};
+      double tail_fraction{0.0};
+      double weight{0.0};
+    };
 
     /**
       @brief Helper function checking if two iterators are not equal
@@ -435,22 +455,17 @@ namespace OpenMS
       @param k               Tukey factor (default 1.5)
       @param r_sparse        tail density below which robust wins (default 0.01 = 1%)
       @param r_dense         tail density above which raw wins (default 0.10 = 10%)
-      @param out_half_raw    optional: receives the raw quantile
-      @param out_half_rob    optional: receives the robust (winsorized) quantile
-      @param out_upper_fence optional: receives the computed UF
-      @param out_tail_frac   optional: receives r = tail fraction above UF
-      @return                the blended (adaptive) quantile
+
+      @return                AdaptiveQuantileResult
     */
     template <typename IteratorType>
-    double adaptiveQuantile(IteratorType begin, IteratorType end, double q,
+    AdaptiveQuantileResult adaptiveQuantile(IteratorType begin, IteratorType end, double q,
                             double k = 1.5,
                             double r_sparse = 0.01,
-                            double r_dense  = 0.10,
-                            double* out_half_raw = nullptr,
-                            double* out_half_rob = nullptr,
-                            double* out_upper_fence = nullptr,
-                            double* out_tail_frac = nullptr)
+                            double r_dense  = 0.10)
     {
+        AdaptiveQuantileResult res;
+
         // Copy finite values
         std::vector<double> v;
         v.reserve(std::distance(begin, end));
@@ -460,23 +475,16 @@ namespace OpenMS
         }
         if (v.empty())
         {
-          if (out_half_raw)    *out_half_raw = 0.0;
-          if (out_half_rob)    *out_half_rob = 0.0;
-          if (out_upper_fence) *out_upper_fence = std::numeric_limits<double>::infinity();
-          if (out_tail_frac)   *out_tail_frac = 0.0;
-          return 0.0;
+          return res;
         }
 
         std::sort(v.begin(), v.end());
         const double half_raw = quantile(v.begin(), v.end(), q);
+
+        // Robust path (winsorization at Tukey fence)
         const double uf       = tukeyUpperFence(v.begin(), v.end(), k);
         const double r        = std::isfinite(uf) ? tailFractionAbove(v.begin(), v.end(), uf) : 0.0;
         const double half_rob = winsorizedQuantile(v.begin(), v.end(), q, uf);
-
-        if (out_half_raw)    *out_half_raw    = half_raw;
-        if (out_half_rob)    *out_half_rob    = half_rob;
-        if (out_upper_fence) *out_upper_fence = uf;
-        if (out_tail_frac)   *out_tail_frac   = r;
 
         // Blend weight w(r)
         double w = 0.0;
@@ -490,7 +498,13 @@ namespace OpenMS
           w = std::max(0.0, std::min(1.0, t));
         }
 
-        return (1.0 - w) * half_rob + w * half_raw;
+        res.half_raw      = half_raw;
+        res.half_rob      = half_rob;
+        res.upper_fence   = uf;
+        res.tail_fraction = r;
+        res.weight        = w;
+        res.blended       = (1.0 - w) * half_rob + w * half_raw;
+        return res;
     }
 
     /**
