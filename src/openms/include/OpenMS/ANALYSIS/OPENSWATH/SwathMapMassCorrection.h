@@ -155,11 +155,11 @@ public:
     String debug_mz_file_;
 
     /// fields for estimated mz and ion mobility windows
-    double mz_estimation_padding_factor_;
-    double ion_mobility_estimation_padding_factor_;
-    double fragment_mz_window_;
+    double mz_estimation_padding_factor_ = 1.0;
+    double ion_mobility_estimation_padding_factor_ = 1.0;
+    double fragment_mz_window_ = -1;
     double fragment_im_window_ = -1;
-    double precursor_mz_window_;
+    double precursor_mz_window_ = -1;
     double precursor_im_window_ = -1;
   };
 }
