@@ -55,6 +55,25 @@ class TOPPOpenSwathBase :
 
 public:
 
+  /// Outputs of RT, m/z, IM calibration
+  struct CalibrationResult
+  {
+    /// RT normalization transformation (fitted Trafo)
+    OpenMS::TransformationDescription rt_trafo;
+
+    /// MS2 m/z extraction window (full width, ppm). -1 if not computed.
+    double ms2_mz_window_ppm{ -1.0 };
+
+    /// MS2 ion mobility extraction window (full width, native IM units). -1 if not computed/applicable.
+    double ms2_im_window{ -1.0 };
+
+    /// MS1 m/z extraction window (full width, ppm). -1 if not computed.
+    double ms1_mz_window_ppm{ -1.0 };
+
+    /// MS1 ion mobility extraction window (full width, native IM units). -1 if not computed/applicable.
+    double ms1_im_window{ -1.0 };
+  };
+
   TOPPOpenSwathBase(String name, String description, bool official = true) :
     TOPPBase(name, description, official)
   {
@@ -347,12 +366,14 @@ protected:
    * @param irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
    *        iRT chromatograms will be stored in this file)
    *
-   * @return tuple of\n
-   *   - TransformationDescription  : the RT‐normalization transformation,\n
-   *   - double                     : auto‐estimated MS2 m/z extraction window (full width, in ppm),\n
-   *   - double                     : auto‐estimated ion mobility window (full width; same units as library).
+   * @return CalibrationResult with:
+   *           - rt_trafo              : the RT normalization transformation
+   *           - ms2_mz_window_ppm     : auto-estimated MS2 m/z window (full width, ppm)
+   *           - ms2_im_window         : auto-estimated MS2 IM window (full width, native units)
+   *           - ms1_mz_window_ppm     : auto-estimated MS1 m/z window (full width, ppm)
+   *           - ms1_im_window         : auto-estimated MS1 IM window (full width, native units)
    */
-  std::tuple<TransformationDescription,double,double,double,double> performCalibration(String trafo_in,
+  CalibrationResult performCalibration(String trafo_in,
         const OpenSwath::LightTargetedExperiment& irt_transitions,
         std::vector< OpenSwath::SwathMap > & swath_maps,
         double min_rsq,
@@ -430,8 +451,13 @@ protected:
       }
     }
 
-
-    return std::make_tuple(trafo_rtnorm, auto_mz_w, auto_im_w, auto_ms1_mz_w, auto_ms1_im_w);
+    CalibrationResult out;
+    out.rt_trafo           = std::move(trafo_rtnorm);
+    out.ms2_mz_window_ppm  = auto_mz_w;
+    out.ms2_im_window      = auto_im_w;
+    out.ms1_mz_window_ppm  = auto_ms1_mz_w;
+    out.ms1_im_window      = auto_ms1_im_w;
+    return out;
   }
 
 

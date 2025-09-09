@@ -1173,14 +1173,12 @@ protected:
     }
 
     // 2) Launch either just linear or linear+nonlinear
-    TransformationDescription trafo_rtnorm; double estimated_rt_extraction_window; double estimated_mz_extraction_window; double estimated_im_extraction_window;
-    double estimated_ms1_mz_extraction_window; double estimated_ms1_im_extraction_window;
+    TransformationDescription trafo_rtnorm; double estimated_rt_extraction_window;
     double rt_estimation_padding_factor = getDoubleOption_("rt_estimation_padding_factor");
     if (nl_irt_exp.getTransitions().empty())
     {
       // --- single, linear calibration ---
-      std::tie(trafo_rtnorm, estimated_mz_extraction_window, estimated_im_extraction_window,
-               estimated_ms1_mz_extraction_window, estimated_ms1_im_extraction_window) = performCalibration(
+      auto calibration_result = performCalibration(
         trafo_in,
         lin_irt_exp,
         swath_maps,
@@ -1196,7 +1194,7 @@ protected:
         irt_trafo_out,
         irt_mzml_out);
       // Use the 0.99 quantile so the window covers ~99% of residuals, ignoring rare extremes (those that are potential outliers).
-      estimated_rt_extraction_window = trafo_rtnorm.estimateWindow(0.99, true, true, rt_estimation_padding_factor);
+      estimated_rt_extraction_window = calibration_result.rt_trafo.estimateWindow(0.99, true, true, rt_estimation_padding_factor);
       // RT (seconds)
       apply_window("RT",
                    estimated_rt_extraction_window,
@@ -1207,28 +1205,28 @@ protected:
 
       // MS2 m/z (ppm)
       apply_window("MS2 m/z (ppm)",
-                   estimated_mz_extraction_window,
+                   calibration_result.ms2_mz_window_ppm,
                    cp.mz_extraction_window, cp.mz_extraction_window,
                    /*applicable=*/true,
                    /*commit=*/use_est_window_choices.mz);
 
       // MS2 ion mobility (1/k0)
       apply_window("MS2 ion mobility (1/k0)",
-                   estimated_im_extraction_window,
+                   calibration_result.ms2_im_window,
                    cp.im_extraction_window, cp.im_extraction_window,
                    /*applicable=*/pasef,
                    /*commit=*/use_est_window_choices.im);
 
       // MS1 m/z (ppm)
       apply_window("MS1 m/z (ppm)",
-                   estimated_ms1_mz_extraction_window,
+                   calibration_result.ms1_mz_window_ppm,
                    cp_ms1.mz_extraction_window, cp_ms1.mz_extraction_window,
                    /*applicable=*/true,
                    /*commit=*/use_est_window_choices.mz);
 
       // MS1 ion mobility (1/k0)
       apply_window("MS1 ion mobility (1/k0)",
-                   estimated_ms1_im_extraction_window,
+                   calibration_result.ms1_im_window,
                    cp_ms1.im_extraction_window, cp_ms1.im_extraction_window,
                    /*applicable=*/pasef,
                    /*commit=*/use_est_window_choices.im);
@@ -1244,12 +1242,12 @@ protected:
       linear_irt.setValue("alignmentMethod", "linear");
       Param no_calibration = calibration_param;
       no_calibration.setValue("mz_correction_function", "none");
-      std::tie(trafo_rtnorm, estimated_mz_extraction_window, estimated_im_extraction_window,
-               estimated_ms1_mz_extraction_window, estimated_ms1_im_extraction_window)  = performCalibration(trafo_in, lin_irt_exp, swath_maps,
+      auto calibration_result = performCalibration(trafo_in, lin_irt_exp, swath_maps,
                                         min_rsq, min_coverage, feature_finder_param,
                                         cp_irt, linear_irt, no_calibration,
                                         debug_level, pasef, load_into_memory,
                                         irt_trafo_out, irt_mzml_out);
+      trafo_rtnorm = calibration_result.rt_trafo;
 
       cp_irt.rt_extraction_window = getDoubleOption_("irt_nonlinear_rt_extraction_window"); // extract some substantial part of the RT range (should be covered by linear correction)
 
@@ -1307,10 +1305,10 @@ protected:
       {
         cmp.drift_time = im_trafo_inv.apply(cmp.drift_time);
       }
-      estimated_mz_extraction_window = wf.getEstimatedMzWindow();
-      estimated_im_extraction_window = wf.getEstimatedImWindow();
-      estimated_ms1_mz_extraction_window = wf.getEstimatedMs1MzWindow();
-      estimated_ms1_im_extraction_window = wf.getEstimatedMs1ImWindow();
+      double estimated_mz_extraction_window = wf.getEstimatedMzWindow();
+      double estimated_im_extraction_window = wf.getEstimatedImWindow();
+      double estimated_ms1_mz_extraction_window = wf.getEstimatedMs1MzWindow();
+      double estimated_ms1_im_extraction_window = wf.getEstimatedMs1ImWindow();
 
       // RT (seconds)
       apply_window("RT",
