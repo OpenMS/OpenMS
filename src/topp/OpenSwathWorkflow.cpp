@@ -1245,7 +1245,7 @@ protected:
       Param no_calibration = calibration_param;
       no_calibration.setValue("mz_correction_function", "none");
       std::tie(trafo_rtnorm, estimated_mz_extraction_window, estimated_im_extraction_window,
-               estimated_ms1_mz_extraction_window, estimated_ms1_im_extraction_window)  = performCalibration(trafo_in, irt_tr_file, swath_maps,
+               estimated_ms1_mz_extraction_window, estimated_ms1_im_extraction_window)  = performCalibration(trafo_in, lin_irt_exp, swath_maps,
                                         min_rsq, min_coverage, feature_finder_param,
                                         cp_irt, linear_irt, no_calibration,
                                         debug_level, pasef, load_into_memory,
@@ -1258,10 +1258,6 @@ protected:
       ///////////////////////////////////
       OPENMS_LOG_INFO << "Performing additional iRT nonlinear transform..." << std::endl;
 
-      OpenSwath::LightTargetedExperiment transition_exp_nl;
-      transition_exp_nl = loadTransitionList(FileHandler::getType(nonlinear_irt_tr_file), nonlinear_irt_tr_file, tsv_reader_param);
-
-      std::vector< OpenMS::MSChromatogram > chromatograms;
       OpenSwathCalibrationWorkflow wf;
       wf.setLogType(log_type_);
       std::vector<OpenMS::MSChromatogram> chroms;

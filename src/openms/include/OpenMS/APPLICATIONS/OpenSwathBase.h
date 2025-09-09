@@ -352,7 +352,7 @@ protected:
    *   - double                     : auto‐estimated MS2 m/z extraction window (full width, in ppm),\n
    *   - double                     : auto‐estimated ion mobility window (full width; same units as library).
    */
-  TransformationDescription performCalibration(String trafo_in,
+  std::tuple<TransformationDescription,double,double,double,double> performCalibration(String trafo_in,
         const OpenSwath::LightTargetedExperiment& irt_transitions,
         std::vector< OpenSwath::SwathMap > & swath_maps,
         double min_rsq,
