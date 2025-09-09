@@ -62,13 +62,27 @@ public:
   DPosition() = default;
 
   /// Constructor that fills all dimensions with the value @p x
-  DPosition(CoordinateType x);
+  DPosition(CoordinateType x)
+  {
+    std::fill(coordinate_.begin(), coordinate_.end(), x);
+  }
 
   /// Constructor only for DPosition<2> that takes two Coordinates.
-  DPosition(CoordinateType x, CoordinateType y);
+  DPosition(CoordinateType x, CoordinateType y)
+  {
+    static_assert(D == 2, "DPosition<D, TCoordinateType>:DPosition(x,y): index overflow!");
+    coordinate_[0] = x;
+    coordinate_[1] = y;
+  }
 
   /// Constructor only for DPosition<3> that takes three Coordinates.
-  DPosition(CoordinateType x, CoordinateType y, CoordinateType z);
+  DPosition(CoordinateType x, CoordinateType y, CoordinateType z)
+  {
+    static_assert(D == 3, "DPosition<D, TCoordinateType>:DPosition(x,y,z): index overflow!");
+    coordinate_[0] = x;
+    coordinate_[1] = y;
+    coordinate_[2] = z;
+  }
 
   /// Copy constructor
   DPosition(const DPosition& pos) = default;
@@ -107,22 +121,46 @@ public:
   //@{
 
   /// Const accessor for the dimensions
-  CoordinateType operator[](Size index) const;
+  CoordinateType operator[](Size index) const
+  {
+    OPENMS_PRECONDITION(index < D, "DPosition<D,TCoordinateType>:operator [] (Position): index overflow!");
+    return coordinate_[index];
+  }
 
   /// Accessor for the dimensions
-  CoordinateType& operator[](Size index);
+  CoordinateType& operator[](Size index)
+  {
+    OPENMS_PRECONDITION(index < D, "DPosition<D,TCoordinateType>:operator [] (Position): index overflow!");
+    return coordinate_[index];
+  }
 
   /// Name accessor for the first dimension. Only for DPosition<2>, for visualization.
-  CoordinateType getX() const;
+  CoordinateType getX() const
+  {
+    OPENMS_PRECONDITION(D == 2, "DPosition<D,TCoordinateType>:getX(): index overflow!");
+    return coordinate_[0];
+  }
 
   /// Name accessor for the second dimension. Only for DPosition<2>, for visualization.
-  CoordinateType getY() const;
+  CoordinateType getY() const
+  {
+    OPENMS_PRECONDITION(D == 2, "DPosition<D,TCoordinateType>:getY(): index overflow!");
+    return coordinate_[1];
+  }
 
   /// Name mutator for the first dimension. Only for DPosition<2>, for visualization.
-  void setX(CoordinateType c);
+  void setX(CoordinateType c)
+  {
+    OPENMS_PRECONDITION(D == 2, "DPosition<D,TCoordinateType>:setX(): index overflow!");
+    coordinate_[0] = c;
+  }
 
   /// Name mutator for the second dimension. Only for DPosition<2>, for visualization.
-  void setY(CoordinateType c);
+  void setY(CoordinateType c)
+  {
+    OPENMS_PRECONDITION(D == 2, "DPosition<D,TCoordinateType>:setY(): index overflow!");
+    coordinate_[1] = c;
+  }
 
   /// Equality operator
   bool operator==(const DPosition& point) const = default;
@@ -133,46 +171,132 @@ public:
     @brief Lexicographical less than operator.
     Lexicographical comparison from dimension 0 to dimension D-1 is done.
   */
-  bool operator<(const DPosition& point) const;
+  bool operator<(const DPosition& point) const
+  {
+    return coordinate_ < point.coordinate_;
+  }
 
   /// Lexicographical greater less or equal operator.
-  bool operator<=(const DPosition& point) const;
+  bool operator<=(const DPosition& point) const
+  {
+    return coordinate_ <= point.coordinate_;
+  }
 
   /// Spatially (geometrically) less or equal operator. All coordinates must be "<=".
-  bool spatiallyLessEqual(const DPosition& point) const;
+  bool spatiallyLessEqual(const DPosition& point) const
+  {
+    for (Size i = 0; i < D; i++)
+    {
+      if (coordinate_[i] > point.coordinate_[i]) return false;
+    }
+    return true;
+  }
 
   /// Spatially (geometrically) greater or equal operator. All coordinates must be ">=".
-  bool spatiallyGreaterEqual(const DPosition& point) const;
+  bool spatiallyGreaterEqual(const DPosition& point) const
+  {
+    for (Size i = 0; i < D; i++)
+    {
+      if (coordinate_[i] < point.coordinate_[i]) return false;
+    }
+    return true;
+  }
 
   /// Lexicographical greater than operator.
-  bool operator>(const DPosition& point) const;
+  bool operator>(const DPosition& point) const
+  {
+    return coordinate_ > point.coordinate_;
+  }
 
   /// Lexicographical greater or equal operator.
-  bool operator>=(const DPosition& point) const;
+  bool operator>=(const DPosition& point) const
+  {
+    return coordinate_ >= point.coordinate_;
+  }
 
     /// Addition (a bit inefficient)
-    DPosition operator+(const DPosition& point) const;
+    DPosition operator+(const DPosition& point) const
+    {
+      DPosition result(*this);
+      for (Size i = 0; i < D; ++i)
+      {
+        result.coordinate_[i] += point.coordinate_[i];
+      }
+      return result;
+    }
 
     /// Addition
-    DPosition& operator+=(const DPosition& point);
+    DPosition& operator+=(const DPosition& point)
+    {
+      for (Size i = 0; i < D; ++i)
+      {
+        coordinate_[i] += point.coordinate_[i];
+      }
+      return *this;
+    }
 
     /// Subtraction (a bit inefficient)
-    DPosition operator-(const DPosition& point) const;
+    DPosition operator-(const DPosition& point) const
+    {
+      DPosition result(*this);
+      for (Size i = 0; i < D; ++i)
+      {
+        result.coordinate_[i] -= point.coordinate_[i];
+      }
+      return result;
+    }
 
     /// Subtraction
-    DPosition& operator-=(const DPosition& point);
+    DPosition& operator-=(const DPosition& point)
+    {
+      for (Size i = 0; i < D; ++i)
+      {
+        coordinate_[i] -= point.coordinate_[i];
+      }
+      return *this;
+    }
 
     /// Negation (a bit inefficient)
-    DPosition operator-() const;
+    DPosition   operator-() const
+    {
+      DPosition<D, CoordinateType> result(*this);
+      for (Size i = 0; i < D; ++i)
+      {
+        result.coordinate_[i] = -result.coordinate_[i];
+      }
+      return result;
+    }
 
     /// Inner product
-    CoordinateType operator*(const DPosition& point) const;
+    CoordinateType operator*(const DPosition& point) const
+    {
+      CoordinateType prod(0);
+      for (Size i = 0; i < D; ++i)
+      {
+        prod += (point.coordinate_[i] * coordinate_[i]);
+      }
+      return prod;
+    }
 
     /// Scalar multiplication
-    DPosition& operator*=(CoordinateType scalar);
+    DPosition& operator*=(CoordinateType scalar)
+    {
+      for (Size i = 0; i < D; ++i)
+      {
+        coordinate_[i] *= scalar;
+      }
+      return *this;
+    }
 
     /// Scalar division
-    DPosition& operator/=(CoordinateType scalar);
+    DPosition& operator/=(CoordinateType scalar)
+    {
+      for (Size i = 0; i < D; ++i)
+      {
+        coordinate_[i] /= scalar;
+      }
+      return *this;
+    }
 
     /// Returns the number of dimensions
     constexpr static Size size()
@@ -248,203 +372,7 @@ protected:
     DataType coordinate_{};
   }; // DPosition
 
-  // Member template definitions for DPosition
-
-  template <UInt D, typename TCoordinateType>
-  DPosition<D, TCoordinateType>::DPosition(typename DPosition<D, TCoordinateType>::CoordinateType x)
-  {
-    std::fill(coordinate_.begin(), coordinate_.end(), x);
-  }
-
-  template <UInt D, typename TCoordinateType>
-  DPosition<D, TCoordinateType>::DPosition(typename DPosition<D, TCoordinateType>::CoordinateType x, typename DPosition<D, TCoordinateType>::CoordinateType y)
-  {
-    static_assert(D == 2, "DPosition<D, TCoordinateType>:DPosition(x,y): index overflow!");
-    coordinate_[0] = x;
-    coordinate_[1] = y;
-  }
-
-  template <UInt D, typename TCoordinateType>
-  DPosition<D, TCoordinateType>::DPosition(typename DPosition<D, TCoordinateType>::CoordinateType x, typename DPosition<D, TCoordinateType>::CoordinateType y, typename DPosition<D, TCoordinateType>::CoordinateType z)
-  {
-    static_assert(D == 3, "DPosition<D, TCoordinateType>:DPosition(x,y,z): index overflow!");
-    coordinate_[0] = x;
-    coordinate_[1] = y;
-    coordinate_[2] = z;
-  }
-
-  template <UInt D, typename TCoordinateType>
-  typename DPosition<D, TCoordinateType>::CoordinateType DPosition<D, TCoordinateType>::operator[](Size index) const
-  {
-    OPENMS_PRECONDITION(index < D, "DPosition<D,TCoordinateType>:operator [] (Position): index overflow!");
-    return coordinate_[index];
-  }
-
-  template <UInt D, typename TCoordinateType>
-  typename DPosition<D, TCoordinateType>::CoordinateType& DPosition<D, TCoordinateType>::operator[](Size index)
-  {
-    OPENMS_PRECONDITION(index < D, "DPosition<D,TCoordinateType>:operator [] (Position): index overflow!");
-    return coordinate_[index];
-  }
-
-  template <UInt D, typename TCoordinateType>
-  typename DPosition<D, TCoordinateType>::CoordinateType DPosition<D, TCoordinateType>::getX() const
-  {
-    OPENMS_PRECONDITION(D == 2, "DPosition<D,TCoordinateType>:getX(): index overflow!");
-    return coordinate_[0];
-  }
-
-  template <UInt D, typename TCoordinateType>
-  typename DPosition<D, TCoordinateType>::CoordinateType DPosition<D, TCoordinateType>::getY() const
-  {
-    OPENMS_PRECONDITION(D == 2, "DPosition<D,TCoordinateType>:getY(): index overflow!");
-    return coordinate_[1];
-  }
-
-  template <UInt D, typename TCoordinateType>
-  void DPosition<D, TCoordinateType>::setX(typename DPosition<D, TCoordinateType>::CoordinateType c)
-  {
-    OPENMS_PRECONDITION(D == 2, "DPosition<D,TCoordinateType>:setX(): index overflow!");
-    coordinate_[0] = c;
-  }
-
-  template <UInt D, typename TCoordinateType>
-  void DPosition<D, TCoordinateType>::setY(typename DPosition<D, TCoordinateType>::CoordinateType c)
-  {
-    OPENMS_PRECONDITION(D == 2, "DPosition<D,TCoordinateType>:setY(): index overflow!");
-    coordinate_[1] = c;
-  }
-
-  template <UInt D, typename TCoordinateType>
-  bool DPosition<D, TCoordinateType>::operator<(const DPosition& point) const
-  {
-    return coordinate_ < point.coordinate_;
-  }
-
-  template <UInt D, typename TCoordinateType>
-  bool DPosition<D, TCoordinateType>::operator<=(const DPosition& point) const
-  {
-    return coordinate_ <= point.coordinate_;
-  }
-
-  template <UInt D, typename TCoordinateType>
-  bool DPosition<D, TCoordinateType>::spatiallyLessEqual(const DPosition& point) const
-  {
-    for (Size i = 0; i < D; i++)
-    {
-      if (coordinate_[i] > point.coordinate_[i]) return false;
-    }
-    return true;
-  }
-
-  template <UInt D, typename TCoordinateType>
-  bool DPosition<D, TCoordinateType>::spatiallyGreaterEqual(const DPosition& point) const
-  {
-    for (Size i = 0; i < D; i++)
-    {
-      if (coordinate_[i] < point.coordinate_[i]) return false;
-    }
-    return true;
-  }
-
-  template <UInt D, typename TCoordinateType>
-  bool DPosition<D, TCoordinateType>::operator>(const DPosition& point) const
-  {
-    return coordinate_ > point.coordinate_;
-  }
-
-  template <UInt D, typename TCoordinateType>
-  bool DPosition<D, TCoordinateType>::operator>=(const DPosition& point) const
-  {
-    return coordinate_ >= point.coordinate_;
-  }
-
-  template <UInt D, typename TCoordinateType>
-  DPosition<D, TCoordinateType> DPosition<D, TCoordinateType>::operator+(const DPosition& point) const
-  {
-    DPosition result(*this);
-    for (Size i = 0; i < D; ++i)
-    {
-      result.coordinate_[i] += point.coordinate_[i];
-    }
-    return result;
-  }
-
-  template <UInt D, typename TCoordinateType>
-  DPosition<D, TCoordinateType>& DPosition<D, TCoordinateType>::operator+=(const DPosition& point)
-  {
-    for (Size i = 0; i < D; ++i)
-    {
-      coordinate_[i] += point.coordinate_[i];
-    }
-    return *this;
-  }
-
-  template <UInt D, typename TCoordinateType>
-  DPosition<D, TCoordinateType> DPosition<D, TCoordinateType>::operator-(const DPosition& point) const
-  {
-    DPosition result(*this);
-    for (Size i = 0; i < D; ++i)
-    {
-      result.coordinate_[i] -= point.coordinate_[i];
-    }
-    return result;
-  }
-
-  template <UInt D, typename TCoordinateType>
-  DPosition<D, TCoordinateType>& DPosition<D, TCoordinateType>::operator-=(const DPosition& point)
-  {
-    for (Size i = 0; i < D; ++i)
-    {
-      coordinate_[i] -= point.coordinate_[i];
-    }
-    return *this;
-  }
-
-  template <UInt D, typename TCoordinateType>
-  DPosition<D, TCoordinateType> DPosition<D, TCoordinateType>::operator-() const
-  {
-    DPosition result(*this);
-    for (Size i = 0; i < D; ++i)
-    {
-      result.coordinate_[i] = -result.coordinate_[i];
-    }
-    return result;
-  }
-
-  template <UInt D, typename TCoordinateType>
-  typename DPosition<D, TCoordinateType>::CoordinateType DPosition<D, TCoordinateType>::operator*(const DPosition& point) const
-  {
-    CoordinateType prod(0);
-    for (Size i = 0; i < D; ++i)
-    {
-      prod += (point.coordinate_[i] * coordinate_[i]);
-    }
-    return prod;
-  }
-
-  template <UInt D, typename TCoordinateType>
-  DPosition<D, TCoordinateType>& DPosition<D, TCoordinateType>::operator*=(typename DPosition<D, TCoordinateType>::CoordinateType scalar)
-  {
-    for (Size i = 0; i < D; ++i)
-    {
-      coordinate_[i] *= scalar;
-    }
-    return *this;
-  }
-
-  template <UInt D, typename TCoordinateType>
-  DPosition<D, TCoordinateType>& DPosition<D, TCoordinateType>::operator/=(typename DPosition<D, TCoordinateType>::CoordinateType scalar)
-  {
-    for (Size i = 0; i < D; ++i)
-    {
-      coordinate_[i] /= scalar;
-    }
-    return *this;
-  }
-
-  // Free function template definitions
-
+  /// Scalar multiplication (a bit inefficient)
   template <UInt D, typename TCoordinateType>
   DPosition<D, TCoordinateType> operator*(DPosition<D, TCoordinateType> position, typename DPosition<D, TCoordinateType>::CoordinateType scalar)
   {
@@ -455,6 +383,7 @@ protected:
     return position;
   }
 
+  /// Scalar multiplication (a bit inefficient)
   template <UInt D, typename TCoordinateType>
   DPosition<D, TCoordinateType> operator*(typename DPosition<D, TCoordinateType>::CoordinateType scalar, DPosition<D, TCoordinateType> position)
   {
@@ -465,6 +394,7 @@ protected:
     return position;
   }
 
+  /// Scalar multiplication (a bit inefficient)
   template <UInt D, typename TCoordinateType>
   DPosition<D, TCoordinateType> operator/(DPosition<D, TCoordinateType> position, typename DPosition<D, TCoordinateType>::CoordinateType scalar)
   {
@@ -475,6 +405,7 @@ protected:
     return position;
   }
 
+  /// Print the contents to a stream.
   template <UInt D, typename TCoordinateType>
   std::ostream& operator<<(std::ostream& os, const DPosition<D, TCoordinateType>& pos)
   {
