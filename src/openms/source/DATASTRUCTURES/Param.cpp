@@ -1690,4 +1690,53 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     return *entry;
   }
 
-} //namespace
+  bool Param::updateValue(const String& key, const ParamValue& candidate, const Param::UpdateOptions& opts)
+  {
+    ParamEntry& e = getEntry_(key); // throws if unknown key
+
+    auto log_info = [&](const String& s){ if (opts.log) OPENMS_LOG_INFO  << s << std::endl; };
+    auto log_warn = [&](const String& s){ if (opts.log) OPENMS_LOG_WARN  << s << std::endl; };
+    const String ctx = opts.context.empty() ? "" : " [" + opts.context + "]";
+
+    // 1) applicability gate
+    if (!opts.applicable)
+    {
+      log_info("" + ctx + " Param '" + key + "' not applicable; keeping " + e.value.toString());
+      return false;
+    }
+
+    // 2) validate against registered ParamEntry restrictions
+    ParamEntry probe = e;                 // copy to reuse isValid()
+    probe.value = candidate;
+    std::string msg;
+    const bool ok_entry = probe.isValid(msg);
+
+    // 3) optional caller-supplied validator
+    const bool ok_custom = opts.validator ? opts.validator(candidate) : true;
+
+    if (!ok_entry || !ok_custom)
+    {
+      String why = ok_entry ? "custom validation failed" : String(msg);
+      log_warn("" + ctx + " Param '" + key + "' estimate invalid=" + candidate.toString() +
+               "; keeping " + e.value.toString() +
+               (why.empty() ? "" : "  [" + why + "]"));
+      return false;
+    }
+
+    // 4) apply or report
+    if (opts.commit)
+    {
+      const String old = e.value.toString();
+      e.value = candidate;                       // in-place to preserve restrictions/tags
+      log_info("" + ctx + " Param '" + key + "' updated: " + old + " -> " + e.value.toString());
+      return true;
+    }
+    else
+    {
+      log_info("" + ctx + " Param '" + key + "' candidate=" + candidate.toString() +
+               "; keeping " + e.value.toString());
+      return false;
+    }
+  }
+
+  } //namespace

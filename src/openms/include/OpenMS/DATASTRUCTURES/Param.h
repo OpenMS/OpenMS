@@ -10,7 +10,9 @@
 
 #include <OpenMS/DATASTRUCTURES/ParamValue.h>
 #include <OpenMS/OpenMSConfig.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <functional>
 #include <set>
 #include <string>
 #include <map>
@@ -159,6 +161,54 @@ public:
       std::vector<ParamEntry> entries;
       /// Subnodes
       std::vector<ParamNode> nodes;
+    };
+
+    /**
+      @brief Options that control the behavior of Param::updateValue().
+
+      Semantics overview:
+        - If `applicable == false`: the update is skipped *without* validating the
+          candidate. The current value is kept and `updateValue()` returns `false`.
+          If `log == true`, an informational message is emitted.
+        - Otherwise the candidate is validated
+            1) against the registered `ParamEntry` restrictions for the key
+               (type, valid strings, min/max, etc.), and
+            2) against the optional user-supplied `validator` (if provided).
+          If either check fails, the value is not changed and the call returns `false`.
+        - If validation passes and `commit == true`, the value is written in-place and
+          the call returns `true`.
+        - If validation passes and `commit == false`, this is a dry-run: nothing is
+          written, a message may be logged, and the call returns `false`.
+
+      Notes:
+        - `context` is appended in square brackets to log messages to indicate provenance
+          (e.g., "auto-estimated", "calibration").
+        - When `log == false`, both info and warning messages from `updateValue()` are suppressed.
+        - The `validator` should be thread-safe if `updateValue()` is called concurrently.
+
+      @code
+      Param p; p.setValue("algo:max_iter", 3);
+      Param::UpdateOptions uo;
+      uo.context = "auto-estimated";
+      uo.validator = [](const ParamValue& v){ return Int(v) >= 0; };
+
+      p.updateValue("algo:max_iter", ParamValue(5), uo); // applies, returns true
+      uo.commit = false;
+      p.updateValue("algo:max_iter", ParamValue(7), uo); // dry-run, returns false
+      @endcode
+    */
+    struct OPENMS_DLLAPI UpdateOptions
+    {
+      /// if false, then do nothing (log message says so)
+      bool applicable{true};
+      /// if false, then dry-run (report but keep old)
+      bool commit{true};
+      /// optional, e.g. "auto-estimated", "calibration"
+      String context{};
+      /// optional; default chosen in .cpp
+      std::function<bool(const ParamValue&)> validator;
+      /// allow silent updates if needed
+      bool log{true};
     };
 
 public:
@@ -314,6 +364,46 @@ protected:
       @return Returns end() if leaf does not exist.
     */
     ParamIterator findNext(const std::string& leaf, const ParamIterator& start_leaf) const;
+
+    /**
+      @brief Validate and (optionally) write a new value for an existing parameter.
+
+      The candidate value is applied to the entry at @p key according to @p opts:
+
+          - If `opts.applicable == false`: skip without validating; keep the current value and return `false`.
+          - Otherwise, validate @p candidate
+              1) against the entry’s registered restrictions (type, valid strings, min/max, list members), and
+              2) against `opts.validator` if provided.
+            If either check fails, keep the current value and return `false`.
+          - If validation passes and `opts.commit == true`: replace the stored value and return `true`.
+          - If validation passes and `opts.commit == false`: perform a dry-run (no write) and return `false`.
+
+        Logging: when `opts.log == true`, info/warn messages are emitted; `opts.context` (if non-empty) is
+        appended in square brackets for provenance (e.g., “auto-estimated”, “calibration”).
+        The entry’s description, tags, and constraints are preserved; only the value may change.
+
+        @param key       Fully qualified parameter key (e.g., "algo:max_iter"). Must already exist.
+        @param candidate Proposed new value.
+        @param opts      Update behavior controls; see Param::UpdateOptions.
+
+        @return `true` only if the stored value actually changed (i.e., validation passed and `opts.commit` was `true`).
+
+        @throws Exception::ElementNotFound if @p key does not exist.
+
+        @code
+          Param p; p.setValue("algo:max_iter", 3);
+          Param::UpdateOptions uo;
+          uo.context  = "auto-estimated";
+          uo.validator = [](const ParamValue& v){ return Int(v) >= 0; };
+
+          bool changed = p.updateValue("algo:max_iter", ParamValue(5), uo); // writes, returns true
+          uo.commit = false;
+          changed = p.updateValue("algo:max_iter", ParamValue(7), uo); // dry-run, returns false
+        @endcode
+    */
+    bool updateValue(const String& key,
+                     const ParamValue& candidate,
+                     const UpdateOptions& opts);
     //@}
 
     ///@name Tags handling
