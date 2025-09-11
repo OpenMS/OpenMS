@@ -205,7 +205,7 @@ public:
       bool commit{true};
       /// optional, e.g. "auto-estimated", "calibration"
       String context{};
-      /// optional; default chosen in .cpp
+      /// optional custom validator
       std::function<bool(const ParamValue&)> validator;
       /// allow silent updates if needed
       bool log{true};
