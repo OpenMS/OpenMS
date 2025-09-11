@@ -386,4 +386,14 @@ namespace OpenMS
     transition_flags_[QUANTIFYING_TRANSITION_LOC] = val;
   }
 
+  bool ReactionMonitoringTransition::ProductMZLess::operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const
+  {
+    return left.getProductMZ() < right.getProductMZ();
+  }
+
+  bool ReactionMonitoringTransition::NameLess::operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const
+  {
+    return left.getName() < right.getName();
+  }
+
 } // namespace OpenMS

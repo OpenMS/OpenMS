@@ -124,6 +124,11 @@ if (ENABLE_TDL)
     target_compile_definitions(OpenMS PUBLIC ENABLE_TDL)
 endif()
 
+# propagate Parquet support to the code (used to gate tools in ToolHandler, etc.)
+if (WITH_PARQUET)
+    target_compile_definitions(OpenMS PUBLIC WITH_PARQUET=1)
+endif()
+
 
 #------------------------------------------------------------------------------
 # since the share basically belongs to OpenMS core we control its installation
