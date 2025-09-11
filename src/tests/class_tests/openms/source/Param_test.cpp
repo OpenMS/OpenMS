@@ -1707,6 +1707,81 @@ START_SECTION((void checkDefaults(const std::string &name, const Param &defaults
     TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 END_SECTION
 
+START_SECTION((bool updateValue(const String& key, const ParamValue& candidate, const Param::UpdateOptions& opts)))
+{
+  // String param with valid-strings restriction
+  Param p;
+  p.setValue("algo:mode", "A");
+  p.setValidStrings("algo:mode", std::vector<std::string>{"A","B"});
+  p.setValue("algo:param1", 1000.0);
+  p.setMaxFloat("algo:param1", 2000.0);
+
+  // Defaults: applicable=true, commit=true;
+  Param::UpdateOptions opts;
+  opts.context = "Param Update Value Testing";
+
+  // 1) Happy path: valid candidate -> applied, returns true
+  TEST_EQUAL(p.updateValue("algo:mode", ParamValue("B"), opts), true);
+  TEST_EQUAL(p.getValue("algo:mode"), "B");
+  TEST_EQUAL(p.getValue("algo:param1"), 1000.0); // algo:param1 should not be affected/changed
+
+  // 2) Violates ParamEntry restrictions -> not applied, returns false
+  TEST_EQUAL(p.updateValue("algo:mode", ParamValue("C"), opts), false);
+  TEST_EQUAL(p.getValue("algo:mode"), "B"); // unchanged
+
+  // 3) Custom validator blocks the change even if ParamEntry restriction passes
+  Param::UpdateOptions opts_custom = opts;
+  opts_custom.validator = [](const ParamValue& v) {
+    // only allow "B"
+    return v.toString() == "B";
+  };
+  TEST_EQUAL(p.updateValue("algo:mode", ParamValue("A"), opts_custom), false);
+  TEST_EQUAL(p.getValue("algo:mode"), "B"); // unchanged
+
+  // 4) Not applicable -> no change, returns false
+  Param::UpdateOptions opts_na = opts;
+  opts_na.applicable = false;
+  TEST_EQUAL(p.updateValue("algo:mode", ParamValue("A"), opts_na), false);
+  TEST_EQUAL(p.getValue("algo:mode"), "B"); // unchanged
+
+  // 5) Dry-run (commit=false) -> validation passes but no change, returns false
+  Param::UpdateOptions opts_dry = opts;
+  opts_dry.commit = false;
+  TEST_EQUAL(p.updateValue("algo:mode", ParamValue("A"), opts_dry), false);
+  TEST_EQUAL(p.getValue("algo:mode"), "B"); // unchanged
+
+  // 6) Numeric integer param with range restrictions
+  p.setValue("algo:max_iter", 3);
+  p.setMinInt("algo:max_iter", 0);
+  p.setMaxInt("algo:max_iter", 5);
+
+  TEST_EQUAL(p.updateValue("algo:max_iter", ParamValue(4), opts), true);
+  TEST_EQUAL(Int(p.getValue("algo:max_iter")), 4);
+
+  // out-of-range -> not applied
+  TEST_EQUAL(p.updateValue("algo:max_iter", ParamValue(6), opts), false);
+  TEST_EQUAL(Int(p.getValue("algo:max_iter")), 4); // unchanged
+
+  // 7) Numeric float param with range restrictions
+  p.setValue("algo:max_iter", 3.0);
+  p.setMinFloat("algo:max_iter", 0.0);
+  p.setMaxFloat("algo:max_iter", 5.0);
+
+  TEST_EQUAL(p.updateValue("algo:max_iter", ParamValue(4.0), opts), true);
+  TEST_EQUAL(double(p.getValue("algo:max_iter")), 4.0);
+
+  // out-of-range -> not applied
+  TEST_EQUAL(p.updateValue("algo:max_iter", ParamValue(6.0), opts), false);
+  TEST_EQUAL(double(p.getValue("algo:max_iter")), 4.0); // unchanged
+
+  // 8) Unknown key -> throws
+  Param p2;
+  TEST_EXCEPTION(Exception::ElementNotFound,
+                 p2.updateValue("does:not:exist", ParamValue(1), opts));
+}
+END_SECTION
+
+
 START_SECTION((void update(const Param& old_version, const bool add_unknown = false)))
 {
   NOT_TESTABLE // see full implementation below
