@@ -63,6 +63,7 @@ OpenMS Library:
     - TransformationModelLowess: Add option to automate span selection via cross-validation (#8166)
     - OpenSwath:
       - Added automated iRT calibration using input transition list (#8146)
+    - Param: add method for updating a key value in a Param object (#8205)
 
 
 
