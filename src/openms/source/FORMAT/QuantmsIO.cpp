@@ -70,18 +70,45 @@ namespace
     }
     outfile = result.ValueOrDie();
 
-    // For now, let's use the basic WriteTable approach and add metadata support later
-    // when proper Parquet metadata headers are available
-    auto status = parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), 
-                                           outfile, table->num_rows());
+    // Create a writer with parquet::arrow::FileWriter
+    std::shared_ptr<parquet::arrow::FileWriter> writer;
+    auto status = parquet::arrow::FileWriter::Open(*table->schema(), 
+                                                arrow::default_memory_pool(),
+                                                outfile, 
+                                                &writer);
+    if (!status.ok()) {
+      throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                      filename, "Failed to create parquet writer: " + OpenMS::String(status.ToString()));
+    }
+    
+    // Add metadata to the parquet file using AddKeyValueMetadata
+    if (!file_metadata.empty()) {
+      std::vector<std::string> md_keys, md_values;
+      for (const auto& kv : file_metadata) {
+        md_keys.push_back(kv.first);
+        md_values.push_back(kv.second);
+      }
+      const auto metadata = arrow::key_value_metadata(md_keys,md_values);
+      status = writer->AddKeyValueMetadata(metadata);
+      if (!status.ok()) {
+        throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                        filename, "Failed to add metadata: " + OpenMS::String(status.ToString()));
+      }
+    }
+    
+    
+    // Write table using the FileWriter
+    status = writer->WriteTable(*table, table->num_rows());
     if (!status.ok()) {
       throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                                          filename, "Failed to write parquet file: " + OpenMS::String(status.ToString()));
     }
-    
-    // TODO: Add file metadata to parquet when appropriate headers are available
-    // The metadata is currently passed but not yet written to the file
-    // This will need parquet::WriterProperties or similar API
+    // Close writer
+    status = writer->Close();
+    if (!status.ok()) {
+      throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                      filename, "Failed to close writer: " + OpenMS::String(status.ToString()));
+    }
   }
 
   std::shared_ptr<arrow::Table> convertToArrowTable(
