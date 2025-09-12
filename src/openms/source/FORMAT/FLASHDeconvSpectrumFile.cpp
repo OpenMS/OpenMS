@@ -327,13 +327,12 @@ namespace OpenMS
   void FLASHDeconvSpectrumFile::writeIsobaricQuantification(std::fstream& fs, std::vector<DeconvolvedSpectrum>& deconvolved_spectra)
   {
     std::stringstream ss;
-    ss << "Scan\tPrecursorScan\tPrecursorMass\tPrecursorSNR";
+    ss << "Scan\tPrecursorScan\tPrecursorMZ\tRetentionTime\tPrecursorQscore\tActivation\tActivationEnergy\tPrecursorCharge\tIsolationLeft\tIsolationRight\tPrecursorMass\tPrecursorSNR";
     bool begin = true;
     for (auto& dspec : deconvolved_spectra)
     {
+      bool precursor_found = !dspec.getPrecursorPeakGroup().empty();
       if (dspec.isDecoy() || dspec.getOriginalSpectrum().getMSLevel() == 1)
-        continue;
-      if (dspec.getPrecursorPeakGroup().empty())
         continue;
       int scan = dspec.getScanNumber();
       auto quant = dspec.getQuantities();
@@ -360,7 +359,16 @@ namespace OpenMS
         ss << "\n";
         begin = false;
       }
-      ss << scan << "\t" << dspec.getPrecursorScanNumber() << "\t" << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) << "\t" << dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursorCharge());
+      ss << scan << "\t" << dspec.getPrecursorScanNumber() << "\t"
+         << dspec.getPrecursor().getMZ() << "\t" << dspec.getOriginalSpectrum().getRT()
+         << "\t" << (precursor_found? std::to_string(dspec.getPrecursorPeakGroup().getQscore2D()) : "NaN")
+         <<"\t"<< (dspec.getActivationMethod() < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD?
+            Precursor::NamesOfActivationMethodShort[dspec.getActivationMethod()] : "N/A")
+         <<"\t"<<dspec.getPrecursor().getActivationEnergy()<< "\t" << dspec.getPrecursor().getCharge()
+         << "\t" << dspec.getPrecursor().getMZ() - dspec.getPrecursor().getIsolationWindowLowerOffset()
+         << "\t" << dspec.getPrecursor().getMZ() - dspec.getPrecursor().getIsolationWindowUpperOffset()
+         << "\t" << (precursor_found? std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) : "NaN")
+         << "\t" << (precursor_found? std::to_string(dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursorCharge())): "NaN");
       double sum = 0;
       for (auto q : quant.quantities)
       {

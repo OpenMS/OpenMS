@@ -309,6 +309,19 @@ void FLASHDeconvAlgorithm::runSpectralDeconvolution_(MSExperiment& map, std::vec
 
       if (deconvolved_spectrum.empty()) { continue; }
 
+      // add precursor scan number information when precursor peakgroup is not found
+      if (ms_level > 1 && precursor_pg.empty())
+      {
+        for (int p_index = (int)index - 1; p_index >= 0; p_index--)
+        {
+          if(map[p_index].getMSLevel() == ms_level - 1)
+          {
+            deconvolved_spectrum.setPrecursorScanNumber(getScanNumber(map, p_index));
+            break;
+          }
+        }
+      }
+
       if (report_decoy_)
       {
 #pragma omp parallel sections default(none) shared(spec, scan_number, precursor_pg, deconvolved_spectrum)
