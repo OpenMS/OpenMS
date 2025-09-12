@@ -132,7 +132,7 @@ START_SECTION((void store(const String& filename, const std::vector<ProteinIdent
   // Verify number of rows (should equal number of peptide identifications)
   TEST_EQUAL(table->num_rows(), 3)
   
-  // Verify number of columns (should match the quantms.io PSM schema)
+  // Verify number of columns (should match the quantms.io PSM schema without file_metadata)
   TEST_EQUAL(table->num_columns(), 19)
   
   // Verify column names match the schema
@@ -146,16 +146,19 @@ START_SECTION((void store(const String& filename, const std::vector<ProteinIdent
   TEST_EQUAL(schema->field(6)->name(), "calculated_mz")
   TEST_EQUAL(schema->field(7)->name(), "observed_mz")
   TEST_EQUAL(schema->field(8)->name(), "additional_scores")
-  TEST_EQUAL(schema->field(9)->name(), "mp_accessions")
+  TEST_EQUAL(schema->field(9)->name(), "protein_accessions")
   TEST_EQUAL(schema->field(10)->name(), "predicted_rt")
   TEST_EQUAL(schema->field(11)->name(), "reference_file_name")
   TEST_EQUAL(schema->field(12)->name(), "cv_params")
   TEST_EQUAL(schema->field(13)->name(), "scan")
   TEST_EQUAL(schema->field(14)->name(), "rt")
   TEST_EQUAL(schema->field(15)->name(), "ion_mobility")
-  TEST_EQUAL(schema->field(16)->name(), "num_peaks")
+  TEST_EQUAL(schema->field(16)->name(), "number_peaks")
   TEST_EQUAL(schema->field(17)->name(), "mz_array")
   TEST_EQUAL(schema->field(18)->name(), "intensity_array")
+  
+  // TODO: Add verification of file-level metadata when parquet metadata API is available
+  // The file metadata should be stored at the Parquet file level, not as schema fields
 }
 END_SECTION
 
