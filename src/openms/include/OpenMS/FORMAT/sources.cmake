@@ -77,6 +77,8 @@ OMSSACSVFile.h
 OMSSAXMLFile.h
 OSWFile.h
 ParamCTDFile.h
+ParamCWLFile.h
+ParamJSONFile.h
 ParamXMLFile.h
 PTMXMLFile.h
 PeakTypeEstimator.h
@@ -113,6 +115,11 @@ ZlibCompression.h
 
 if (WITH_HDF5)
   list(APPEND sources_list_h HDF5Connector.h)  
+endif()
+
+if (WITH_PARQUET)
+  list(APPEND sources_list_h MzParquetFile.h)  
+  list(APPEND sources_list_h QuantmsIO.h)  
 endif()
 
 ### add path to the filenames

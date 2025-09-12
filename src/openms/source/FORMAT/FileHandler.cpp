@@ -39,6 +39,10 @@
 #include <OpenMS/FORMAT/SpecArrayFile.h>
 #include <OpenMS/FORMAT/KroenikFile.h>
 
+#ifdef WITH_PARQUET
+#include <OpenMS/FORMAT/MzParquetFile.h>
+#endif
+
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 
 #include <OpenMS/FORMAT/GzipIfstream.h>
@@ -765,6 +769,16 @@ namespace OpenMS
       }
       break;
 
+#ifdef WITH_PARQUET
+      case FileTypes::PARQUET: 
+      {
+        MzParquetFile f;
+        f.setLogType(log);
+        f.load(filename, exp);
+      }
+      break;
+#endif
+
       default: 
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading experiments");
@@ -908,6 +922,16 @@ namespace OpenMS
         f.store(filename, exp);
       }
       break;
+
+#ifdef WITH_PARQUET
+      case FileTypes::PARQUET: 
+      {
+        MzParquetFile f;
+        f.setLogType(log);
+        f.store(filename, exp);
+      }
+      break;
+#endif
 
       default: 
       {

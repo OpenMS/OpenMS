@@ -104,6 +104,7 @@ if (WITH_HDF5)
 endif()
 
 if (WITH_PARQUET)
+  list(APPEND sources_list MzParquetFile.cpp)  
   list(APPEND sources_list QuantmsIO.cpp)  
 endif()
 
