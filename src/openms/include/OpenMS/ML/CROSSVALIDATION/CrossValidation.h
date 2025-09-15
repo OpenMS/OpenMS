@@ -39,7 +39,7 @@ namespace OpenMS
 
   @see GridSearch
 
-  @ingroup MachineLearning
+  @ingroup Math
 */
 class CrossValidation
 {
@@ -51,7 +51,7 @@ public:
     - PreferSmaller : choose the smaller candidate value on ties
     - PreferAny     : keep the first encountered (stable, no size preference)
 
-    @ingroup MachineLearning
+    @ingroup Math
   */
   enum class CandidateTieBreak
   {
@@ -71,7 +71,7 @@ public:
 
     @exception Exception::InvalidValue if @p n == 0 or @p K == 0
 
-    @ingroup MachineLearning
+    @ingroup Math
   */
   static std::vector<std::vector<Size>> makeKFolds(Size n, Size K)
   {
@@ -118,7 +118,7 @@ public:
 
     @exception Exception::InvalidRange if candidate range is empty
 
-    @ingroup MachineLearning
+    @ingroup Math
   */
   template <typename CandIter, typename TrainEval, typename ScoreFn>
   static std::pair<typename std::iterator_traits<CandIter>::value_type, double>
