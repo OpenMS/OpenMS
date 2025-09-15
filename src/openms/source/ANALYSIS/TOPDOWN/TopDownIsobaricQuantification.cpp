@@ -216,11 +216,11 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
 
     for (auto& dspec : deconvolved_spectra)
     {
-      if (dspec.getOriginalSpectrum().getMSLevel() == 1 || dspec.getPrecursorPeakGroup().empty())
+      if (dspec.getOriginalSpectrum().getMSLevel() == 1)
       {
         continue;
       }
-      int cluster_index = precursor_cluster_index[dspec.getPrecursorPeakGroup()];
+
       int scan = dspec.getScanNumber();
       double pre_mz = ms2_scan_precursor_mz[scan];
       std::vector<double> intensities (0);
@@ -242,10 +242,12 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
       }
 
       if (intensities.empty()) continue;
+
+      int cluster_index = dspec.getPrecursorPeakGroup().empty()? -1 : precursor_cluster_index[dspec.getPrecursorPeakGroup()];
       double min_intensity = only_fully_quantified_? *std::min_element(intensities.begin(), intensities.end()) : *std::max_element(intensities.begin(), intensities.end());
       if (min_intensity > 0) // at least one channel quantified
       {
-        intensity_clusters[cluster_index].push_back(intensities);
+        if (cluster_index >= 0) intensity_clusters[cluster_index].push_back(intensities);
         FLASHHelperClasses::IsobaricQuantities iq;
         iq.scan = scan;
         iq.quantities = intensities;
@@ -268,6 +270,7 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
         }
       }
     }
+
     for (auto& dspec : deconvolved_spectra)
     {
       if (dspec.getOriginalSpectrum().getMSLevel() == 1 || dspec.getPrecursorPeakGroup().empty())

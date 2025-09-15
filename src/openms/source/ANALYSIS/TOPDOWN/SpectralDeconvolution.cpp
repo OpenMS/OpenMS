@@ -203,6 +203,10 @@ void SpectralDeconvolution::performSpectrumDeconvolution(const MSSpectrum& spec,
         precursor.setCharge(precursor_peak_group.isPositive() ? abs_charge : -abs_charge);
         deconvolved_spectrum_.setPrecursor(precursor);
       }
+      else
+      {
+        
+      }
     }
   }
 
