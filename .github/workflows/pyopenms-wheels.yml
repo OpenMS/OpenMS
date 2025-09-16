@@ -215,8 +215,13 @@ jobs:
         echo "$HOME/miniconda3/Scripts" >> $GITHUB_PATH
 
     - name: Force update all brew python
+      env:
+        HOMEBREW_NO_AUTO_UPDATE: 1
+        HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
       run: |
-        brew update
+        if ! brew update; then
+          echo "Warning: brew update failed, but continuing with installation..."
+        fi
         # GHA messes with links https://github.com/actions/setup-python/issues/577 so we just force replace their installs' with brew's
         for pkg in $(brew list --formula | grep -E '^python(@[0-9]+\.[0-9]+)?$'); do
             brew upgrade --force --overwrite "$pkg"
@@ -374,8 +379,13 @@ jobs:
         echo "$HOME/miniconda3/Scripts" >> $GITHUB_PATH
       
     - name: Force update all brew python
+      env:
+        HOMEBREW_NO_AUTO_UPDATE: 1
+        HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
       run: |
-        brew update
+        if ! brew update; then
+          echo "Warning: brew update failed, but continuing with installation..."
+        fi
         # GHA messes with links https://github.com/actions/setup-python/issues/577 so we just force replace their installs' with brew's
         for pkg in $(brew list --formula | grep -E '^python(@[0-9]+\.[0-9]+)?$'); do
             brew upgrade --force --overwrite "$pkg"
