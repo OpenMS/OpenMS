@@ -27,18 +27,8 @@ function brew() {
 # public-facing OpenMS installation instructions.
 
 # [installation_documentation]
-# Update the package index (with error handling for macOS 14):
-if ! brew update; then
-  # Check if we're on macOS 14 or later where this error is known to occur
-  if [[ "$(sw_vers -productVersion | cut -d. -f1)" -ge 14 ]]; then
-    echo "Warning: brew update failed on macOS 14+, but continuing with installation..."
-    echo "This is a known issue with Homebrew type checking and doesn't affect the build."
-  else
-    echo "Error: brew update failed. This may indicate a real issue on this macOS version."
-    # Exit with error on older macOS versions where update failure is unexpected
-    exit 1
-  fi
-fi
+# Update the package index:
+brew update
 
 # Required dependencies:
 brew install \
