@@ -380,7 +380,7 @@ jobs:
       
     - name: Force update all brew python
       env:
-        HOMEBREW_NO_AUTO_UPDATE: 1
+        # Note: NOT setting HOMEBREW_NO_AUTO_UPDATE for macOS 13 as it needs updates to work properly
         HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
       run: |
         if ! brew update; then

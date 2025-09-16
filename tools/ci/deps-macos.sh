@@ -29,8 +29,15 @@ function brew() {
 # [installation_documentation]
 # Update the package index (with error handling for macOS 14):
 if ! brew update; then
-  echo "Warning: brew update failed, but continuing with installation..."
-  echo "This is a known issue on some macOS versions and doesn't affect the build."
+  # Check if we're on macOS 14 or later where this error is known to occur
+  if [[ "$(sw_vers -productVersion | cut -d. -f1)" -ge 14 ]]; then
+    echo "Warning: brew update failed on macOS 14+, but continuing with installation..."
+    echo "This is a known issue with Homebrew type checking and doesn't affect the build."
+  else
+    echo "Error: brew update failed. This may indicate a real issue on this macOS version."
+    # Exit with error on older macOS versions where update failure is unexpected
+    exit 1
+  fi
 fi
 
 # Required dependencies:
