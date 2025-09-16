@@ -22,6 +22,8 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
 #include <OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h>
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
@@ -29,7 +31,9 @@
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -187,12 +191,41 @@ protected:
     setValidFormats_("in_id", {"idXML"});
     registerInputFile_("exp_design", "<file>", "", "experimental design file (optional). If not given, the design is assumed to be unfractionated.", false);
     setValidFormats_("exp_design", {"tsv"});
-    registerOutputFile_("out", "<file>", "", "output consensusXML or mzTab file with quantitative information");
-    setValidFormats_("out", {"consensusXML","mzTab"});
+    registerOutputFile_("out", "<file>", "", "output consensusXML file");
+    setValidFormats_("out", {"consensusXML"});
+    registerOutputFile_("out_mzTab", "<file>", "", "output mzTab file with quantitative information");
+    setValidFormats_("out_mzTab", {"mzTab"});
     registerFlag_("calculate_id_purity", "Calculate the purity of the precursor ion based on the MS1 spectrum. Only used for MS3, otherwise it is the same as the quant. precursor purity.");
     registerIntOption_("max_parallel_files", "<num>", 1, "Maximum number of files to load in parallel.", false);
     registerFlag_("protein_inference", "Infer and group proteins");
     registerFlag_("protein_quant", "Quantify proteins from the peptide quantification. Implies protein inference.");
+    registerDoubleOption_("psm_score", "<score>", NAN, "The score which should be reached by a peptide hit to be kept.  (use 'NAN' to disable this filter)", false);
+    registerDoubleOption_("protein_score", "<score>", NAN, "The score which should be reached by a protein hit to be kept. All proteins are filtered based on their singleton scores irrespective of grouping. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides. (use 'NAN' to disable this filter)", false);
+    registerFlag_("delete_unreferenced_peptide_hits", "Peptides not referenced by any protein are deleted in the IDs.");
+    // registerFlag_("remove_decoys", "Remove decoys according to the information in the user parameters.");
+    registerStringOption_("inference_method", "<option>", "aggregation", "Methods used for protein inference", false);
+    setValidStrings_("inference_method", ListUtils::create<String>("aggregation,bayesian"));
+    registerStringOption_("picked_fdr", "<option>", "false", "Use a picked protein FDR", false, true);
+    setValidStrings_("picked_fdr", {"true", "false"});
+    registerStringOption_("picked_decoy_string", "<decoy_string>", "", "If using picked protein FDRs, which decoy string was used? Leave blank for auto-detection.", false, true);
+    registerStringOption_("picked_decoy_prefix", "<option>", "prefix", "If using picked protein FDRs, was the decoy string a prefix or suffix? Ignored during auto-detection.", false, true);
+    setValidStrings_("picked_decoy_prefix", {"prefix", "suffix"});
+    registerStringOption_("FDR_type", "<option>", "PSM", "Sub-protein FDR level. PSM, PSM+peptide (best PSM q-value).", false, true);
+    setValidStrings_("FDR_type", {"PSM", "PSM+peptide"});
+    registerDoubleOption_("proteinFDR", "<threshold>", 1.0, "Protein FDR threshold (0.05=5%).", false);
+    setMinFloat_("proteinFDR", 0.0);
+    setMaxFloat_("proteinFDR", 1.0);
+    registerDoubleOption_("psmFDR", "<threshold>", 1.0, "FDR threshold for sub-protein level (e.g. 0.05=5%)." , false);
+    setMinFloat_("psmFDR", 0.0);
+    setMaxFloat_("psmFDR", 1.0);
+    registerStringOption_("protein_quantification", "<option>", "unique_peptides",
+        "Quantify proteins based on:\n"
+        "unique_peptides = use peptides mapping to single proteins or a group of indistinguishable proteins"
+        "(according to the set of experimentally identified peptides).\n"
+        "strictly_unique_peptides = use peptides mapping to a unique single protein only.\n"
+        "shared_peptides = use shared peptides only for its best group (by inference score)",
+        false, true);
+    setValidStrings_("protein_quantification", ListUtils::create<String>("unique_peptides,strictly_unique_peptides,shared_peptides"));
 
     registerSubsection_("extraction", "Parameters for the channel extraction.");
     registerSubsection_("quantification", "Parameters for the peptide quantification.");
@@ -200,6 +233,16 @@ protected:
     {
       registerSubsection_(qm.second->getMethodName(), String("Algorithm parameters for ") + quant_method_names_[qm.second->getMethodName()]);
     }
+    Param pq_defaults = PeptideAndProteinQuant().getDefaults();
+    Param bpi_defaults = BasicProteinInferenceAlgorithm().getDefaults();
+    Param bayes_defaults = BayesianProteinInferenceAlgorithm().getDefaults();
+
+    Param combined;
+    combined.insert("ProteinQuantification:", pq_defaults);
+    combined.insert("BasicProteinInference:", bpi_defaults);
+    combined.insert("BayesianProteinInference:", bayes_defaults);
+
+    registerFullParam_(combined);
   }
 
   Param getSubsectionDefaults_(const String& section) const override
@@ -397,6 +440,10 @@ protected:
     String exp_design = getStringOption_("exp_design");
     bool infer_proteins = getFlag_("protein_inference");
     bool quant_proteins = getFlag_("protein_quant");
+    bool bayesian = getStringOption_("inference_method") == "bayesian";
+    
+    Param pq_param = getParam_().copy("ProteinQuantification:", true);
+    writeDebug_("Parameters passed to PeptideAndProteinQuant algorithm", pq_param, 3);
 
     //-------------------------------------------------------------
     // init quant method and extractor
@@ -483,6 +530,21 @@ protected:
       vector<PeptideIdentification> pep_ids;
       FileHandler().loadIdentifications(id_file, prot_ids, pep_ids);
       // TODO filter by qvalue here?
+      double pro_score = getDoubleOption_("protein_score");
+      double psm_score = getDoubleOption_("psm_score");
+
+      if (!std::isnan(pro_score)) 
+      {
+        OPENMS_LOG_INFO << "Filtering by protein score (better than " << pro_score << ")..." << endl;
+        IDFilter::filterHitsByScore(prot_ids, pro_score);
+      }
+
+      if (! std::isnan(psm_score)) 
+      {
+        OPENMS_LOG_INFO << "Filtering by PSM score (better than " << psm_score << ")..." << endl;
+        IDFilter::filterHitsByScore(pep_ids, psm_score);
+      }
+      
       merger.insertRuns(std::move(prot_ids), {}); // pep IDs will be stored in the consensus features
 
       std::vector<ChannelQC> qc;
@@ -609,10 +671,114 @@ protected:
       design = ExperimentalDesignFile::load(exp_design, true);
     }
     
-    // TODO allow choosing Bayesian
-    BasicProteinInferenceAlgorithm prot_inference;
-    prot_inference.run(cmap, cmap.getProteinIdentifications()[0], false);
+    bool groups = getStringOption_("protein_quantification") != "strictly_unique_peptides";
+    bool greedy_group_resolution = getStringOption_("protein_quantification") == "shared_peptides";
+
+    if (!bayesian) {
+      BasicProteinInferenceAlgorithm prot_inference;
+      Param bpi_param = getParam_().copy("BasicProteinInference:", true);
+      bpi_param.setValue("annotate_indistinguishable_groups", groups ? "true" : "false");
+      bpi_param.setValue("greedy_group_resolution", greedy_group_resolution ? "true" : "false");
+      writeDebug_("Parameters passed to BasicProteinInference algorithm", bpi_param, 3);
+      prot_inference.setParameters(bpi_param);
+      prot_inference.run(cmap, cmap.getProteinIdentifications()[0], false);
+    }
+    else {
+      BayesianProteinInferenceAlgorithm bayes;
+      Param bayes_param = getParam_().copy("BayesianProteinInference:", true);
+      writeDebug_("Parameters passed to BayesianProteinInference algorithm", bayes_param, 3);
+      bayes.setParameters(bayes_param);
+      bayes.inferPosteriorProbabilities(cmap, greedy_group_resolution);
+      if (!groups) {
+        cmap.getProteinIdentifications()[0].getIndistinguishableProteins().clear();
+      }
+    }
+
+    FalseDiscoveryRate fdr;
+    auto& proteins = cmap.getProteinIdentifications()[0];
+
+    if (getStringOption_("picked_fdr") == "true") 
+    {
+      fdr.applyPickedProteinFDR(proteins, getStringOption_("picked_decoy_string"), getStringOption_("picked_decoy_prefix") == "prefix");
+    }
+    else 
+    {
+      fdr.applyBasic(proteins);
+    }
+    
+    if (getStringOption_("FDR_type") == "PSM+peptide")
+    { 
+      fdr.applyBasicPeptideLevel(cmap, false);
+    }
+    else 
+    {
+      fdr.applyBasic(cmap, false);
+    }
+    
+
+    bool rm_pep = getFlag_("delete_unreferenced_peptide_hits");
+    if (rm_pep)
+    {
+      OPENMS_LOG_INFO << "Removing peptide hits without protein references..." << endl;
+    }
+
+    IDFilter::updateProteinReferences(cmap, rm_pep);
+    IDFilter::removeUnreferencedProteins(cmap, true);
+    IDFilter::updateProteinGroups(proteins.getIndistinguishableProteins(), proteins.getHits());
+    IDFilter::updateProteinGroups(proteins.getProteinGroups(), proteins.getHits());
+
+    const double max_pro_fdr = getDoubleOption_("proteinFDR");
+    const double max_psm_fdr = getDoubleOption_("psmFDR");
+
+    // FDR filtering
+    if (max_psm_fdr < 1.0) 
+    { 
+      for (auto& f : cmap) 
+      {
+        IDFilter::filterHitsByScore(f.getPeptideIdentifications(), max_psm_fdr);
+      }
+      IDFilter::filterHitsByScore(cmap.getUnassignedPeptideIdentifications(), max_psm_fdr);
+    }
+
+    if (max_pro_fdr < 1.0)
+    {
+      IDFilter::filterHitsByScore(proteins, max_pro_fdr);
+      IDFilter::updateProteinReferences(cmap, rm_pep);
+    }
+
+    if (max_psm_fdr < 1.0) 
+    { 
+      IDFilter::removeUnreferencedProteins(cmap, true); 
+    }
+
+    if (max_pro_fdr < 1.0 || max_psm_fdr < 1.0)
+    {
+      IDFilter::updateProteinGroups(proteins.getIndistinguishableProteins(), proteins.getHits());
+      IDFilter::updateProteinGroups(proteins.getProteinGroups(), proteins.getHits());
+    }
+
+    if (proteins.getHits().empty())
+    {
+      throw Exception::MissingInformation(
+        __FILE__, 
+        __LINE__, 
+        OPENMS_PRETTY_FUNCTION,
+        "No proteins left after FDR filtering. Please check the log and adjust your settings.");
+    }
+
+    if (! greedy_group_resolution && ! groups)
+    {
+      for (auto& f : cmap)
+      {
+        IDFilter::keepUniquePeptidesPerProtein(f.getPeptideIdentifications());
+      }
+      IDFilter::keepUniquePeptidesPerProtein(cmap.getUnassignedPeptideIdentifications());
+    }
+
+    // FileHandler().storeConsensusFeatures("workflow_tmp.consensusXML", cmap);
+
     PeptideAndProteinQuant prot_quantifier;
+    prot_quantifier.setParameters(pq_param);
     prot_quantifier.readQuantData(
        cmap,
        design);
@@ -642,6 +808,25 @@ protected:
 
     // TODO also allow storing mzTab and even better, parquet
     FileHandler().storeConsensusFeatures(out, cmap);
+    
+    String out_mzTab = getStringOption_("out_mzTab");
+    if (! out_mzTab.empty()) 
+    {
+      const bool report_unidentified_features(false);
+      const bool report_unmapped(true);
+      const bool report_subfeatures(false);
+      const bool report_unidentified_spectra(false);
+      const bool report_not_only_best_psm_per_spectrum(false); 
+
+      MzTabFile().store(out_mzTab, 
+                        cmap, 
+                        false,
+                        report_unidentified_features, 
+                        report_unmapped, 
+                        report_subfeatures, 
+                        report_unidentified_spectra,
+                        report_not_only_best_psm_per_spectrum);
+    }
 
     return EXECUTION_OK;
   }
