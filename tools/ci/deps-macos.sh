@@ -27,8 +27,11 @@ function brew() {
 # public-facing OpenMS installation instructions.
 
 # [installation_documentation]
-# Update the package index:
-brew update
+# Update the package index (with error handling for macOS 14):
+if ! brew update; then
+  echo "Warning: brew update failed, but continuing with installation..."
+  echo "This is a known issue on some macOS versions and doesn't affect the build."
+fi
 
 # Required dependencies:
 brew install \

@@ -261,6 +261,8 @@ jobs:
       env: 
         # We need to add this, otherwise brew "helpfully" updates all of the GitHub preinstalled packages, which can cause issues
         HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
+        # Prevent automatic updates that can cause type errors on macOS 14
+        HOMEBREW_NO_AUTO_UPDATE: 1
       run: |
         if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
           # WARNING: Don't add any dependency install commands here.
