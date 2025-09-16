@@ -30,7 +30,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "Op
         PeptideProteinResolution(PeptideProteinResolution &) except + nogil  # compiler
 
         void buildGraph(ProteinIdentification & protein, 
-                        libcpp_vector[ PeptideIdentification ] & peptides) except + nogil 
+                        PeptideIdentificationList & peptides) except + nogil 
             # wrap-doc:
                 #  Initialize and store the graph (= maps), needs sorted groups for
                 #  correct functionality. Therefore sorts the indist. protein groups
@@ -42,7 +42,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "Op
                 #  :param skip_sort: Skips sorting of groups, nothing is modified then
 
         void resolveGraph(ProteinIdentification & protein,
-                          libcpp_vector[ PeptideIdentification ] & peptides) except + nogil 
+                          PeptideIdentificationList & peptides) except + nogil 
             # wrap-doc:
                 #  Applies resolveConnectedComponent to every component of the graph and
                 #  is able to write statistics when specified. Parameters will
@@ -63,7 +63,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "Op
 
         void resolveConnectedComponent(PeptideProteinResolution_ConnectedComponent & conn_comp,
                                        ProteinIdentification & protein,
-                                       libcpp_vector[ PeptideIdentification ] &
+                                       PeptideIdentificationList &
                                        peptides) except + nogil 
             # wrap-doc:
                 #  Resolves connected components based on posterior probabilities and adds them
@@ -85,7 +85,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "Op
 # COMMENT: wrap static methods
 cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "OpenMS::PeptideProteinResolution":        
         # static members
-        void run(libcpp_vector[ ProteinIdentification ] & proteins, libcpp_vector[ PeptideIdentification ] & peptides) except + nogil   #wrap-attach:PeptideProteinResolution
+        void run(libcpp_vector[ ProteinIdentification ] & proteins, PeptideIdentificationList & peptides) except + nogil   #wrap-attach:PeptideProteinResolution
 
 cdef extern from "<OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>" namespace "OpenMS":
     

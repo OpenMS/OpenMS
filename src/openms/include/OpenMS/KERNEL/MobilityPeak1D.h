@@ -76,74 +76,38 @@ namespace OpenMS
     */
     ///@{
     /// Non-mutable access to the data point intensity (height)
-    IntensityType getIntensity() const
-    {
-      return intensity_;
-    }
+    IntensityType getIntensity() const;
     /// Mutable access to the data point intensity (height)
-    void setIntensity(IntensityType intensity)
-    {
-      intensity_ = intensity;
-    }
+    void setIntensity(IntensityType intensity);
 
     /// Non-mutable access to m/z
-    inline CoordinateType getMobility() const
-    {
-      return position_[0];
-    }
+    CoordinateType getMobility() const;
 
     /// Mutable access to mobility
-    inline void setMobility(CoordinateType mobility)
-    {
-      position_[0] = mobility;
-    }
+    void setMobility(CoordinateType mobility);
 
     /// Alias for getMobility()
-    inline CoordinateType getPos() const
-    {
-      return position_[0];
-    }
+    CoordinateType getPos() const;
 
     /// Alias for setMobility()
-    inline void setPos(CoordinateType pos)
-    {
-      position_[0] = pos;
-    }
+    void setPos(CoordinateType pos);
 
     /// Non-mutable access to the position
-    inline PositionType const& getPosition() const
-    {
-      return position_;
-    }
+    PositionType const& getPosition() const;
 
     /// Mutable access to the position
-    inline PositionType& getPosition()
-    {
-      return position_;
-    }
+    PositionType& getPosition();
 
     /// Mutable access to the position
-    inline void setPosition(PositionType const& position)
-    {
-      position_ = position;
-    }
+    void setPosition(PositionType const& position);
 
     ///@}
 
     /// Equality operator
-    bool operator==(const MobilityPeak1D& rhs) const
-    {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
-      return intensity_ == rhs.intensity_ && position_ == rhs.position_;
-#pragma clang diagnostic pop
-    }
+    bool operator==(const MobilityPeak1D& rhs) const;
 
     /// Equality operator
-    bool operator!=(const MobilityPeak1D& rhs) const
-    {
-      return !(operator==(rhs));
-    }
+    bool operator!=(const MobilityPeak1D& rhs) const;
 
     /**
       @name Comparator classes. These classes implement binary predicates that can be used to

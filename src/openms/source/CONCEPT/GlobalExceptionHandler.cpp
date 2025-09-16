@@ -111,5 +111,71 @@ namespace OpenMS::Exception
       GlobalExceptionHandler::line_() = line;
     }
 
+    GlobalExceptionHandler & GlobalExceptionHandler::getInstance()
+    {
+      static GlobalExceptionHandler * globalExceptionHandler_;
 
-} // namespace OpenMS // namespace Exception
+      if (globalExceptionHandler_ == nullptr)
+      {
+        globalExceptionHandler_ = new GlobalExceptionHandler;
+      }
+      return *globalExceptionHandler_;
+    }
+
+    std::string & GlobalExceptionHandler::file_()
+    {
+      static std::string * file_ = nullptr;
+      if (file_ == nullptr)
+      {
+        file_  = new std::string;
+        *file_ = "unknown";
+      }
+      return *file_;
+    }
+
+    int & GlobalExceptionHandler::line_()
+    {
+      static int * line_ = nullptr;
+      if (line_ == nullptr)
+      {
+        line_  = new int;
+        *line_ = -1;
+      }
+      return *line_;
+    }
+
+    std::string & GlobalExceptionHandler::function_()
+    {
+      static std::string * function_ = nullptr;
+      if (function_ == nullptr)
+      {
+        function_  = new std::string;
+        *function_ = "unknown";
+      }
+      return *function_;
+    }
+
+    std::string & GlobalExceptionHandler::name_()
+    {
+      static std::string * name_ = nullptr;
+      if (name_ == nullptr)
+      {
+        name_  = new std::string;
+        *name_ = "unknown exception";
+      }
+      return *name_;
+    }
+
+    std::string & GlobalExceptionHandler::what_()
+    {
+      static std::string * what_ = nullptr;
+      if (what_ == nullptr)
+      {
+        what_  = new std::string;
+        *what_ = " - ";
+      }
+      return *what_;
+    }
+
+
+} // namespace OpenMS::Exception

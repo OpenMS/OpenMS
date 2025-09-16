@@ -132,7 +132,7 @@ protected:
     // prepare input
     cout << "Reading mzML file..." << endl;
     MSExperiment exp;
-    FileHandler().loadExperiment(inputfile_name, exp, {FileTypes::MZML});
+    FileHandler().loadExperiment(inputfile_name, exp, {FileTypes::MZML}, log_type_);
     exp.sortSpectra();
     exp.updateRanges();
 
@@ -140,7 +140,7 @@ protected:
     if (!inputfile_feature.empty())
     {
       cout << "Reading featureXML file..." << endl;
-      FileHandler().loadFeatures(inputfile_feature, feature_map, {FileTypes::FEATUREXML});
+      FileHandler().loadFeatures(inputfile_feature, feature_map, {FileTypes::FEATUREXML}, log_type_);
       feature_map.updateRanges();
       feature_map.sortByRT();
     }
@@ -149,15 +149,15 @@ protected:
     if (!inputfile_consensus.empty())
     {
       cout << "Reading consensusXML file..." << endl;
-      FileHandler().loadConsensusFeatures(inputfile_consensus, consensus_map, {FileTypes::CONSENSUSXML});
+      FileHandler().loadConsensusFeatures(inputfile_consensus, consensus_map, {FileTypes::CONSENSUSXML}, log_type_);
     }
 
     vector<ProteinIdentification> prot_ids;
-    vector<PeptideIdentification> pep_ids;
+    PeptideIdentificationList pep_ids;
     if (!inputfile_id.empty())
     {
       cout << "Reading idXML file..." << endl;
-      FileHandler().loadIdentifications(inputfile_id, prot_ids, pep_ids, {FileTypes::IDXML});
+      FileHandler().loadIdentifications(inputfile_id, prot_ids, pep_ids, {FileTypes::IDXML}, log_type_);
     }
     
     // collect QC data and store according to output file extension

@@ -347,7 +347,7 @@ namespace OpenMS
 
   PepXMLFile::~PepXMLFile() = default;
 
-  void PepXMLFile::store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file, const String& mz_name, bool peptideprophet_analyzed, double rt_tolerance)
+  void PepXMLFile::store(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const String& mz_file, const String& mz_name, bool peptideprophet_analyzed, double rt_tolerance)
   {
     ofstream f(filename.c_str());
     if (!f)
@@ -463,7 +463,7 @@ namespace OpenMS
     // register modifications
     set<String> aa_mods;
     set<String> n_term_mods, c_term_mods;
-    for (vector<PeptideIdentification>::const_iterator it = peptide_ids.begin();
+    for (PeptideIdentificationList::const_iterator it = peptide_ids.begin();
          it != peptide_ids.end(); ++it)
     {
       if (!it->getHits().empty())
@@ -640,7 +640,7 @@ namespace OpenMS
           pe = pes[0];
         }
 
-        f << "\t\t<search_hit hit_rank=\"1\" peptide=\""
+        f << "\t\t<search_hit hit_rank=\"" << String(h.getRank() + 1) << "\" peptide=\"" // rank in pepXML is 1-based, 0-based in OpenMS
           << seq.toUnmodifiedString() << "\" peptide_prev_aa=\""
           << pe.getAABefore() << "\" peptide_next_aa=\"" << pe.getAAAfter()
           << "\" protein=\"";
@@ -967,7 +967,7 @@ namespace OpenMS
   }
 
   void PepXMLFile::load(const String& filename, vector<ProteinIdentification>&
-                        proteins, vector<PeptideIdentification>& peptides,
+                        proteins, PeptideIdentificationList& peptides,
                         const String& experiment_name
                         )
   {
@@ -976,7 +976,7 @@ namespace OpenMS
   }
 
   void PepXMLFile::load(const String& filename, vector<ProteinIdentification>&
-                        proteins, vector<PeptideIdentification>& peptides,
+                        proteins, PeptideIdentificationList& peptides,
                         const String& experiment_name,
                         const SpectrumMetaDataLookup& lookup)
   {
@@ -1304,7 +1304,8 @@ namespace OpenMS
       current_modifications_.clear();
       PeptideEvidence pe;
       peptide_hit_ = PeptideHit();
-      peptide_hit_.setRank(attributeAsInt_(attributes, "hit_rank"));
+      int rank = attributeAsInt_(attributes, "hit_rank");
+      peptide_hit_.setRank(rank - 1); // rank is 1-based in pepXML and 0-based in OpenMS
       peptide_hit_.setCharge(charge_); // from parent "spectrum_query" tag
       String prev_aa, next_aa;
       if (optionalAttributeAsString_(prev_aa, attributes, "peptide_prev_aa"))
@@ -1346,23 +1347,21 @@ namespace OpenMS
 
       if (has_decoys_)
       {
-        String curr_status("");
         bool current_prot_is_decoy = protein.hasPrefix(decoy_prefix_);
-        if (peptide_hit_.metaValueExists("target_decoy"))
+        auto current_type = peptide_hit_.getTargetDecoyType();
+        
+        if (current_type == PeptideHit::TargetDecoyType::UNKNOWN)
         {
-          curr_status = peptide_hit_.getMetaValue("target_decoy");
+          // No annotation yet, set based on current protein
+          peptide_hit_.setTargetDecoyType(current_prot_is_decoy ?
+            PeptideHit::TargetDecoyType::DECOY :
+            PeptideHit::TargetDecoyType::TARGET);
         }
-        if (curr_status.empty())
+        else if ((current_type == PeptideHit::TargetDecoyType::TARGET && current_prot_is_decoy) ||
+                 (current_type == PeptideHit::TargetDecoyType::DECOY && !current_prot_is_decoy))
         {
-          peptide_hit_.setMetaValue("target_decoy", current_prot_is_decoy ? "decoy" : "target");
-        }
-        else if (curr_status == "target" && current_prot_is_decoy)
-        {
-          peptide_hit_.setMetaValue("target_decoy", "target+decoy");
-        }
-        else if (curr_status == "decoy" && !current_prot_is_decoy)
-        {
-          peptide_hit_.setMetaValue("target_decoy", "target+decoy");
+          // Peptide matches both target and decoy proteins
+          peptide_hit_.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET_DECOY);
         }
 
         hit.setMetaValue("target_decoy", current_prot_is_decoy ? "decoy" : "target");
@@ -1648,25 +1647,26 @@ namespace OpenMS
 
       if (has_decoys_)
       {
-        String curr_status("");
         bool current_prot_is_decoy = protein.hasPrefix(decoy_prefix_);
-        if (peptide_hit_.metaValueExists("target_decoy"))
+        auto current_type = peptide_hit_.getTargetDecoyType();
+        
+        if (current_type == PeptideHit::TargetDecoyType::UNKNOWN)
         {
-          curr_status = peptide_hit_.getMetaValue("target_decoy");
+          // No annotation yet, set based on current protein
+          peptide_hit_.setTargetDecoyType(current_prot_is_decoy ?
+            PeptideHit::TargetDecoyType::DECOY :
+            PeptideHit::TargetDecoyType::TARGET);
         }
-        if (curr_status.empty())
+        else if ((current_type == PeptideHit::TargetDecoyType::TARGET && current_prot_is_decoy) ||
+                 (current_type == PeptideHit::TargetDecoyType::DECOY && !current_prot_is_decoy))
         {
-          peptide_hit_.setMetaValue("target_decoy", current_prot_is_decoy ? "decoy" : "target");
+          // Peptide matches both target and decoy proteins
+          peptide_hit_.setTargetDecoyType(PeptideHit::TargetDecoyType::TARGET_DECOY);
         }
-        else if (curr_status == "target" && current_prot_is_decoy)
-        {
-          peptide_hit_.setMetaValue("target_decoy", "target+decoy");
-        }
-        else if (curr_status == "decoy" && !current_prot_is_decoy)
-        {
-          peptide_hit_.setMetaValue("target_decoy", "target+decoy");
-        }
-        hit.setMetaValue("target_decoy", current_prot_is_decoy ? "decoy" : "target");
+        
+        hit.setTargetDecoyType(current_prot_is_decoy ?
+          ProteinHit::TargetDecoyType::DECOY :
+          ProteinHit::TargetDecoyType::TARGET);
       }
       peptide_hit_.addPeptideEvidence(pe);
 

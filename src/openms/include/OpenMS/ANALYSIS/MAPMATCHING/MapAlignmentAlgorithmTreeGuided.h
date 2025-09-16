@@ -12,6 +12,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/BinaryTreeNode.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 namespace OpenMS
 {
@@ -132,7 +133,7 @@ protected:
      * @param map_range Vector in which all feature RTs are stored for given peptide identifications.
      * @param feature_rt RT value of the feature to which the peptide identifications to be analysed belong.
      */
-    static void addPeptideSequences_(const std::vector<PeptideIdentification>& peptides, SeqAndRTList& peptide_rts,
+    static void addPeptideSequences_(const PeptideIdentificationList& peptides, SeqAndRTList& peptide_rts,
             std::vector<double>& map_range, double feature_rt);
 
     /**

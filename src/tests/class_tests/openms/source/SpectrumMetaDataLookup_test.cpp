@@ -143,10 +143,10 @@ START_SECTION((void getSpectrumMetaData(const String&, SpectrumMetaData&, MetaDa
 END_SECTION
 
 
-START_SECTION((bool addMissingRTsToPeptideIDs(vector<PeptideIdentification>& peptides, const MSExperiment& exp)))
+START_SECTION((bool addMissingRTsToPeptideIDs(PeptideIdentificationList& peptides, const MSExperiment& exp)))
 {
     // Test 1: No spectra in MSExperiment
-    vector<PeptideIdentification> peptides(1);
+    PeptideIdentificationList peptides(1);
     peptides[0].setRT(1.0); // RT already set
     MSExperiment exp_empty; // Empty experiment
     TEST_EQUAL(SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptides, exp_empty), false);
@@ -191,10 +191,10 @@ START_SECTION((bool addMissingRTsToPeptideIDs(vector<PeptideIdentification>& pep
 END_SECTION
 
 
-START_SECTION((bool addMissingIMToPeptideIDs(vector<PeptideIdentification>& peptides, const MSExperiment& exp)))
+START_SECTION((bool addMissingIMToPeptideIDs(PeptideIdentificationList& peptides, const MSExperiment& exp)))
 {
   // Test 1: Empty MSExperiment
-  vector<PeptideIdentification> peptides(1);
+  PeptideIdentificationList peptides(1);
   peptides[0].setSpectrumReference("index=0");
   MSExperiment exp_empty;
   TEST_EQUAL(SpectrumMetaDataLookup::addMissingIMToPeptideIDs(peptides, exp_empty), false);
@@ -229,14 +229,14 @@ START_SECTION((bool addMissingIMToPeptideIDs(vector<PeptideIdentification>& pept
 END_SECTION
 
 
-START_SECTION((bool addMissingSpectrumReferences(vector<PeptideIdentification>& peptides, 
+START_SECTION((bool addMissingSpectrumReferences(PeptideIdentificationList& peptides, 
   const String& filename, 
   bool stop_on_error, 
   bool override_spectra_data, 
   bool override_spectra_references, 
   vector<ProteinIdentification> proteins)))
 {
-  vector<PeptideIdentification> peptides(1);
+  PeptideIdentificationList peptides(1);
   peptides[0].setRT(5.1);
   peptides[0].setSpectrumReference( "index=666");
   String filename = "this_file_does_not_exist.mzML";

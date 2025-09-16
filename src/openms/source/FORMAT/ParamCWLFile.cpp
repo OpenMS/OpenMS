@@ -12,7 +12,12 @@
 #include <iostream>
 #include <limits>
 #include <nlohmann/json.hpp>
+
+#if defined(ENABLE_TDL)
 #include <tdl/tdl.h>
+#else
+#include <stdexcept>
+#endif
 
 using json = nlohmann::json;
 
@@ -56,6 +61,7 @@ namespace OpenMS
 
   void ParamCWLFile::writeCWLToStream(std::ostream* os_ptr, const Param& param, const ToolInfo& tool_info) const
   {
+#if defined(ENABLE_TDL)
     std::ostream& os = *os_ptr;
     os.precision(std::numeric_limits<double>::digits10);
 
@@ -316,5 +322,8 @@ namespace OpenMS
           "# SPDX-License-Identifier: Apache-2.0\n";
 
     os << convertToCWL(tdl_tool_info) << "\n";
+#else
+    throw std::runtime_error{"TDL support is not available. Rebuild with -DENABLE_TDL=ON to enable this feature."};
+#endif
   }
 } // namespace OpenMS

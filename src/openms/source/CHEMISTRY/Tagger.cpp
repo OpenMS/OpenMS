@@ -172,3 +172,4 @@ namespace OpenMS
     max_charge_ = max_charge;
   }
 }
+

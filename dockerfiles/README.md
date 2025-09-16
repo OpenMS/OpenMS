@@ -14,13 +14,21 @@ Within each image, the library and tools can all be found in `/opt/OpenMS`.
 
 Images are tagged with the release version, for example: `3.1.0`. The `latest` tag corresponds to the images built from the `master` and `nightly` branches.
 
+Ie. Substituting the version number of any commands below with "latest" will result in the most up to date images.
+```shell
+docker pull ghcr.io/openms/contrib:latest
+```
+
 ## Use
 
 To pull images, you can use the following command, substituting the image name and tag as described above.
 
+To be clear, 3.1.0 should be replaced with the package's version from the URL at the top, as it's not currently supported.
+
 ```shell
 docker pull ghcr.io/openms/openms-tools:3.1.0
 ```
+
 
 Here's an example on running an tool:
 
@@ -45,6 +53,14 @@ alias openms='docker run -t --rm -v "$PWD:/data" ghcr.io/openms/openms-tools:3.1
 which will make the command significantly shorter: `openms FileInfo -in /data/BSA1.mzML`
 
 ## Development Notes
+
+### Local Quickstart:
+
+```shell
+cd OpenMS
+docker build -f dockerfiles/Dockerfile -t openms .
+```
+which builds Dockerfile and names it openms
 
 ### Optimization Tips
 

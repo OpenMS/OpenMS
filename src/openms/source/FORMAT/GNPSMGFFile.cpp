@@ -215,7 +215,7 @@ namespace OpenMS
     for (pair<int,double>& element_pair : sorted_element_maps)
     {
       int element_map = element_pair.first;
-      vector<PeptideIdentification> feature_pepts = feature.getPeptideIdentifications();
+      PeptideIdentificationList feature_pepts = feature.getPeptideIdentifications();
       for (PeptideIdentification& pept_id : feature_pepts)
       {
         if (pept_id.metaValueExists("spectrum_index") && pept_id.metaValueExists("map_index")
@@ -228,7 +228,7 @@ namespace OpenMS
         }
       }
     }
-    // return will be reformatted vector<PeptideIdentification> pepts passed in by value
+    // return will be reformatted PeptideIdentificationList pepts passed in by value
   }
 
   void GNPSMGFFile::store(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const

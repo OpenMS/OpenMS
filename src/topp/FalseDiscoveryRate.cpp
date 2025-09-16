@@ -151,7 +151,7 @@ protected:
     // loading input
     //-------------------------------------------------------------
 
-    vector<PeptideIdentification> pep_ids;
+    PeptideIdentificationList pep_ids;
     vector<ProteinIdentification> prot_ids;
 
     FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
@@ -273,9 +273,6 @@ protected:
       {
         IDFilter::removeEmptyIdentifications(pep_ids);
       }
-
-      IDFilter::updateHitRanks(prot_ids);
-      IDFilter::updateHitRanks(pep_ids);
 
       // we want to keep "empty" protein ID runs because they contain search meta data
 

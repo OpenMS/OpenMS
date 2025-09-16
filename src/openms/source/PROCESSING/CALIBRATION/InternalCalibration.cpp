@@ -170,7 +170,7 @@ namespace OpenMS
 
     for (const auto& f : fm)
     {
-      const std::vector<PeptideIdentification>& ids = f.getPeptideIdentifications();
+      const PeptideIdentificationList& ids = f.getPeptideIdentifications();
       double mz_ref;
       if (ids.empty())
       {
@@ -221,7 +221,7 @@ namespace OpenMS
     cal_data_.insertCalibrationPoint(pep_id.getRT(), pep_id.getMZ(), 1.0, mz_ref, 1.0);
   }
 
-  void InternalCalibration::fillIDs_( const std::vector<PeptideIdentification>& pep_ids, const double tol_ppm, CalibrantStats_& stats)
+  void InternalCalibration::fillIDs_( const PeptideIdentificationList& pep_ids, const double tol_ppm, CalibrantStats_& stats)
   {
     for (const auto& id : pep_ids)
     {
@@ -255,7 +255,7 @@ namespace OpenMS
     return false;
   }
 
-  Size InternalCalibration::fillCalibrants(const std::vector<PeptideIdentification>& pep_ids, double tol_ppm)
+  Size InternalCalibration::fillCalibrants(const PeptideIdentificationList& pep_ids, double tol_ppm)
   {
     cal_data_.clear();
     CalibrantStats_ stats(tol_ppm);

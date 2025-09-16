@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h> 
 
 #include <vector>
@@ -22,7 +23,7 @@ namespace OpenMS
   class OPENMS_GUI_DLLAPI IPeptideIds
   {
   public:
-    using PepIds = std::vector<PeptideIdentification>;
+    using PepIds = PeptideIdentificationList;
     
     /// get the peptide IDs for this layer
     virtual const PepIds& getPeptideIds() const = 0;

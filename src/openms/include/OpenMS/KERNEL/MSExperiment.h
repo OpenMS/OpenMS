@@ -10,8 +10,10 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
+#include <OpenMS/KERNEL/ChromatogramRangeManager.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/SpectrumRangeManager.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 
@@ -23,6 +25,8 @@ namespace OpenMS
   class Peak1D;
   class ChromatogramPeak;
 
+  using MSRun = MSExperiment;
+  
   /**
     @brief In-Memory representation of a mass spectrometry run.
 
@@ -41,8 +45,7 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI MSExperiment final : public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity, RangeMobility>,
-    public ExperimentalSettings
+  class OPENMS_DLLAPI MSExperiment final : public ExperimentalSettings
   {
 
 public:
@@ -59,10 +62,14 @@ public:
     typedef PeakType::CoordinateType CoordinateType;
     /// Intensity type of peaks
     typedef PeakType::IntensityType IntensityType;
-    /// RangeManager type
+    /// Combined RangeManager type to store the overall range of all spectra and chromatograms (for backward compatibility)
     typedef RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility> RangeManagerType;
-    /// RangeManager type
-    typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity, RangeMobility> RangeManagerContainerType;
+    
+    /// Spectrum range manager type for tracking ranges with MS level separation
+    typedef SpectrumRangeManager SpectrumRangeManagerType;
+    
+    /// Chromatogram range manager type for tracking chromatogram-specific ranges
+    typedef ChromatogramRangeManager ChromatogramRangeManagerType;
     /// Spectrum Type
     typedef MSSpectrum SpectrumType;
     /// Chromatogram type
@@ -118,70 +125,34 @@ public:
     bool operator!=(const MSExperiment & rhs) const;
     
     /// The number of spectra
-    inline Size size() const noexcept
-    {
-      return spectra_.size();
-    }
+    Size size() const noexcept;
 
     /// Resize to @p n spectra
-    inline void resize(Size n)
-    {
-      spectra_.resize(n);
-    }
+    void resize(Size n);
 
     /// Are there any spectra (does not consider chromatograms)
-    inline bool empty() const noexcept
-    {
-      return spectra_.empty();
-    }
+    bool empty() const noexcept;
     
     /// Reserve space for @p n spectra
-    inline void reserve(Size n)
-    {
-      spectra_.reserve(n);
-    }
+    void reserve(Size n);
 
     /// Random access to @p n'th spectrum
-    inline SpectrumType& operator[](Size n)
-    {
-      return spectra_[n];
-    }
+    SpectrumType& operator[](Size n);
 
     /// Random access to @p n'th spectrum
-    inline const SpectrumType& operator[](Size n) const
-    {
-      return spectra_[n];
-    }
+    const SpectrumType& operator[](Size n) const;
 
-    inline Iterator begin() noexcept
-    {
-      return spectra_.begin();
-    }
+    Iterator begin() noexcept;
 
-    inline ConstIterator begin() const noexcept
-    {
-      return spectra_.cbegin();
-    }
+    ConstIterator begin() const noexcept;
 
-    inline ConstIterator cbegin() const noexcept
-    {
-      return spectra_.cbegin();
-    }
+    ConstIterator cbegin() const noexcept;
 
-    inline Iterator end()
-    {
-      return spectra_.end();
-    }
+    Iterator end();
 
-    inline ConstIterator end() const noexcept
-    {
-      return spectra_.cend();
-    }
-    
-    inline ConstIterator cend() const noexcept
-    {
-      return spectra_.cend();
-    }
+    ConstIterator end() const noexcept;
+
+    ConstIterator cend() const noexcept;
     //@}
 
     // Aliases / chromatograms
@@ -342,9 +313,9 @@ public:
     ConstAreaIterator areaEndConst() const;
 
     /* @brief Retrieves the peak data in the given mz-rt range and store data spectrum-wise in separate arrays.
-     * 
+     *
      * For fast pyOpenMS access to peak data in format: [rt, [mz, intensity]]
-     * 
+     *
      * @param min_rt The minimum retention time.
      * @param max_rt The maximum retention time.
      * @param min_mz The minimum m/z value.
@@ -355,34 +326,19 @@ public:
      * @param intensity The vector to store the intensities in.
      */
     void get2DPeakDataPerSpectrum(
-      CoordinateType min_rt, 
-      CoordinateType max_rt, 
-      CoordinateType min_mz, 
+      CoordinateType min_rt,
+      CoordinateType max_rt,
+      CoordinateType min_mz,
       CoordinateType max_mz,
       Size ms_level,
-      std::vector<float>& rt, 
-      std::vector<std::vector<float>>& mz, 
-      std::vector<std::vector<float>>& intensity) const
-    {
-      float t = -1.0;
-      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
-      {
-        if (it.getRT() != t) 
-        {
-          t = (float)it.getRT();
-          rt.push_back(t);
-          mz.push_back(std::vector<float>());
-          intensity.push_back(std::vector<float>());
-        }
-        mz.back().push_back((float)it->getMZ());
-        intensity.back().push_back(it->getIntensity());
-      }
-    }
+      std::vector<float>& rt,
+      std::vector<std::vector<float>>& mz,
+      std::vector<std::vector<float>>& intensity) const;
 
     /* @brief Retrieves the peak data in the given mz-rt range and store data spectrum-wise in separate arrays.
-     * 
+     *
      * For fast pyOpenMS access to MS1 peak data in format: [rt, [mz, intensity, ion mobility]]
-     * 
+     *
      * @param min_rt The minimum retention time.
      * @param max_rt The maximum retention time.
      * @param min_mz The minimum m/z value.
@@ -392,51 +348,22 @@ public:
      * @param mz The vector to store the m/z values in.
      * @param intensity The vector to store the intensities in.
      * @param ion_mobility The vector to store the ion mobility values in.
-    */
+     */
     void get2DPeakDataIMPerSpectrum(
-      CoordinateType min_rt, 
-      CoordinateType max_rt, 
-      CoordinateType min_mz, 
+      CoordinateType min_rt,
+      CoordinateType max_rt,
+      CoordinateType min_mz,
       CoordinateType max_mz,
-      Size ms_level,     
-      std::vector<float>& rt, 
+      Size ms_level,
+      std::vector<float>& rt,
       std::vector<std::vector<float>>& mz,
-      std::vector<std::vector<float>>& intensity, 
-      std::vector<std::vector<float>>& ion_mobility) const
-    {
-      DriftTimeUnit unit;
-      std::vector<float> im;
-      float t = -1.0;
-      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
-      {
-        if (it.getRT() != t)
-        {
-          t = (float)it.getRT();
-          rt.push_back(t);
-          std::tie(unit, im) = it.getSpectrum().maybeGetIMData();
-          mz.push_back(std::vector<float>());
-          intensity.push_back(std::vector<float>());
-          ion_mobility.push_back(std::vector<float>());
-        }
-
-        if (unit != DriftTimeUnit::NONE)
-        {
-          const Size peak_index = it.getPeakIndex().peak;
-          ion_mobility.back().push_back(im[peak_index]);
-        }
-        else
-        {
-          ion_mobility.back().push_back(-1.0);
-        }
-        mz.back().push_back((float)it->getMZ());
-        intensity.back().push_back(it->getIntensity());
-      }
-    }
+      std::vector<std::vector<float>>& intensity,
+      std::vector<std::vector<float>>& ion_mobility) const;
 
     /* @brief Retrieves the peak data in the given mz-rt range and store in separate arrays.
-     * 
+     *
      * For fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity]
-     * 
+     *
      * @param min_rt The minimum retention time.
      * @param max_rt The maximum retention time.
      * @param min_mz The minimum m/z value.
@@ -445,7 +372,7 @@ public:
      * @param rt The vector to store the retention times in.
      * @param mz The vector to store the m/z values in.
      * @param intensity The vector to store the intensities in.
-    */    
+     */
     void get2DPeakData(
       CoordinateType min_rt,
       CoordinateType max_rt,
@@ -454,22 +381,13 @@ public:
       Size ms_level,
       std::vector<float>& rt,
       std::vector<float>& mz,
-      std::vector<float>& intensity) 
-      const
-    {
-      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
-      {
-        rt.push_back((float)it.getRT());
-        mz.push_back((float)it->getMZ());
-        intensity.push_back(it->getIntensity());
-      }
-    }
+      std::vector<float>& intensity) const;
 
 
     /* @brief Retrieves the peak data in the given mz-rt range and store in separate arrays.
-     * 
+     *
      * For fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity, ion mobility]
-     * 
+     *
      * @param min_rt The minimum retention time.
      * @param max_rt The maximum retention time.
      * @param min_mz The minimum m/z value.
@@ -478,7 +396,7 @@ public:
      * @param rt The vector to store the retention times in.
      * @param mz The vector to store the m/z values in.
      * @param intensity The vector to store the intensities in.
-    */
+     */
     void get2DPeakDataIM(
       CoordinateType min_rt,
       CoordinateType max_rt,
@@ -488,32 +406,7 @@ public:
       std::vector<float>& rt,
       std::vector<float>& mz,
       std::vector<float>& intensity,
-      std::vector<float>& ion_mobility) const
-    {
-      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz, ms_level); it != areaEndConst(); ++it)
-      {
-        DriftTimeUnit unit = DriftTimeUnit::NONE;
-        std::vector<float> im;
-        float t = -1.0;
-        if (it.getRT() != t)
-        {
-          t = (float)it.getRT();
-          std::tie(unit, im) = it.getSpectrum().maybeGetIMData();
-        }
-        rt.push_back((float)it.getRT());
-        mz.push_back((float)it->getMZ());
-        intensity.push_back(it->getIntensity());
-        if (unit != DriftTimeUnit::NONE)
-        {
-          const Size peak_index = it.getPeakIndex().peak;
-          ion_mobility.push_back(im[peak_index]);
-        }
-        else
-        {
-          ion_mobility.push_back(-1.0);
-        }
-      }
-    }
+      std::vector<float>& ion_mobility) const;
 
   /**
    * @brief Calculates the sum of intensities for a range of elements.
@@ -1065,16 +958,56 @@ std::vector<MSChromatogram> extractXICs(
       @note The range values (min, max, etc.) are not updated automatically. Call updateRanges() to update the values!
     */
     ///@{
-    // Docu in base class
-    void updateRanges() override;
-
+    /// Delegate methods for backward compatibility
+    
     /**
-      @brief Updates the m/z, intensity, and retention time ranges of all spectra with a certain ms level
+     * @brief Clear all ranges in all range managers
+     *
+     * This clears the ranges in the combined range manager, the spectrum range manager,
+     * and the chromatogram range manager.
+     */
+    void clearRanges()
+    {
+      combined_ranges_.clearRanges();
+      spectrum_ranges_.clearRanges();
+      chromatogram_ranges_.clearRanges();
+    }
+   
+    /// Get the minimum RT value from the combined ranges (includes both chromatogram and spectra ranges)
+    double getMinRT() const { return combined_ranges_.getMinRT(); }
+    
+    /// Get the maximum RT value from the combined ranges (includes both chromatogram and spectra ranges)
+    double getMaxRT() const { return combined_ranges_.getMaxRT(); }
+    
+    /// Get the minimum m/z value from the combined ranges (includes both chromatogram and spectra ranges)
+    double getMinMZ() const { return combined_ranges_.getMinMZ(); }
+    
+    /// Get the maximum m/z value from the combined ranges (includes both chromatogram and spectra ranges)
+    double getMaxMZ() const { return combined_ranges_.getMaxMZ(); }
+    
+    /// Get the minimum intensity value from the combined ranges (includes both chromatogram and spectra ranges)
+    double getMinIntensity() const { return combined_ranges_.getMinIntensity(); }
+    
+    /// Get the maximum intensity value from the combined ranges (includes both chromatogram and spectra ranges)
+    double getMaxIntensity() const { return combined_ranges_.getMaxIntensity(); }
+    
+    /// Get the minimum mobility value from the combined ranges (includes both chromatogram and spectra ranges)
+    double getMinMobility() const { return combined_ranges_.getMinMobility(); }
+    
+    /// Get the maximum mobility value from the combined ranges (includes both chromatogram and spectra ranges)
+    double getMaxMobility() const { return combined_ranges_.getMaxMobility(); }
+    
+    /**
+      @brief Updates the m/z, intensity, mobility, and retention time ranges of all spectra and chromatograms
       
-
-      @param ms_level MS level to consider for m/z range, RT range and intensity range (All MS levels if negative)
+      This method updates all three range managers:
+      - The spectrum range manager (for spectra ranges with MS level separation)
+      - The chromatogram range manager (for chromatogram ranges)
+      - The combined range manager (for overall ranges across both spectra and chromatograms)
+      
+      Call this method after modifying spectra or chromatograms to ensure that all range information is up-to-date.
     */
-    void updateRanges(Int ms_level);
+    void updateRanges();
 
     /// returns the total number of peaks (spectra and chromatograms included)
     UInt64 getSize() const;
@@ -1275,9 +1208,6 @@ std::vector<MSChromatogram> extractXICs(
     /// returns true if any MS spectra of trthe specified level contain at least one peak with intensity of 0.0
     bool hasZeroIntensities(size_t ms_level) const;
 
-    /// do any of the spectra have a PeptideID?
-    bool hasPeptideIdentifications() const;
-
     /// Are all MSSpectra in this experiment part of an IM Frame? I.e. they all have the same RT, but different drift times
     bool isIMFrame() const;
 
@@ -1286,8 +1216,49 @@ std::vector<MSChromatogram> extractXICs(
     std::vector<MSChromatogram > chromatograms_;
     /// spectra
     std::vector<SpectrumType> spectra_;
+    /// Spectrum range manager for tracking m/z, intensity, RT, and ion mobility ranges of spectra with MS level separation
+    SpectrumRangeManagerType spectrum_ranges_;
+    
+    /// Chromatogram range manager for tracking RT, intensity, and m/z ranges of chromatograms
+    ChromatogramRangeManagerType chromatogram_ranges_;
+    
+    /// Combined range manager that provides overall ranges across both spectra and chromatograms (maintained for backward compatibility)
+    RangeManagerType combined_ranges_;
 
-private:
+  public:
+    /**
+     * @brief Returns a const reference to the spectrum range manager
+     *
+     * The spectrum range manager provides access to m/z, intensity, retention time, and ion mobility
+     * ranges for spectra, with separate tracking for different MS levels.
+     *
+     * @return Const reference to the spectrum range manager
+     * @see SpectrumRangeManager
+     */
+    const SpectrumRangeManagerType& spectrumRanges() const { return spectrum_ranges_; }
+   
+    /**
+     * @brief Returns a const reference to the chromatogram range manager
+     *
+     * The chromatogram range manager provides access to retention time, m/z, and intensity
+     * ranges for chromatograms.
+     *
+     * @return Const reference to the chromatogram range manager
+     * @see ChromatogramRangeManager
+     */
+    const ChromatogramRangeManagerType& chromatogramRanges() const { return chromatogram_ranges_; }
+        
+    /**
+     * @brief Returns a const reference to the combined range manager
+     *
+     * The combined range manager provides access to the overall ranges across both spectra and chromatograms.
+     * This is maintained for backward compatibility with code that expects a single range manager.
+     *
+     * @return Const reference to the combined range manager
+     */
+    const RangeManagerType& combinedRanges() const { return combined_ranges_; }
+
+  private:
 
     /// Helper class to add either general data points in set2DData or use mass traces from meta values
     template<typename ContainerValueType, bool addMassTraces>
@@ -1347,6 +1318,7 @@ private:
         else ContainerAdd_<ContainerValueType, false>::addData_(spectrum, item);
       }
     };
+
 
     /*
       @brief Append a spectrum to current MSExperiment

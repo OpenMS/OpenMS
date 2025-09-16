@@ -12,19 +12,19 @@ class TestPepXML(unittest.TestCase):
     def test_readfile(self):
 
         pepxml_file = pyopenms.PepXMLFile()
-        peps = []
+        peps = pyopenms.PeptideIdentificationList()
         prots = []
         pepxml_file.load(self.filename, prots, peps)
 
     def test_readfile_content(self):
 
         pepxml_file = pyopenms.PepXMLFile()
-        peps = []
+        peps = pyopenms.PeptideIdentificationList()
         prots = []
         pepxml_file.load(self.filename, prots, peps)
 
         self.assertEqual( len(prots),  3)
-        self.assertEqual( len(peps),  19)
+        self.assertEqual( peps.size(),  19)
 
         self.assertEqual( peps[0].getHits()[0].getSequence().toString(), ".(Glu->pyro-Glu)ELNKEMAAEKAKAAAG")
 
@@ -36,18 +36,18 @@ class TestIdXML(unittest.TestCase):
 
     def test_readfile(self):
         idxml_file = pyopenms.IdXMLFile()
-        peps = []
+        peps = pyopenms.PeptideIdentificationList()
         prots = []
         idxml_file.load(self.filename, prots, peps)
 
     def test_readfile_content(self):
         idxml_file = pyopenms.IdXMLFile()
-        peps = []
+        peps = pyopenms.PeptideIdentificationList()
         prots = []
         idxml_file.load(self.filename, prots, peps)
 
         self.assertEqual( len(prots),  1)
-        self.assertEqual( len(peps),  3)
+        self.assertEqual( peps.size(),  3)
 
 class TestIndexedMzMLFileLoader(unittest.TestCase):
 
@@ -56,13 +56,13 @@ class TestIndexedMzMLFileLoader(unittest.TestCase):
         self.filename = os.path.join(dirname, "test.indexed.mzML").encode()
 
     def test_readfile(self):
-        e = pyopenms.OnDiscMSExperiment();
+        e = pyopenms.OnDiscMSExperiment()
         success = pyopenms.IndexedMzMLFileLoader().load(self.filename, e)
 
         self.assertTrue(success)
 
     def test_readfile_content(self):
-        e = pyopenms.OnDiscMSExperiment();
+        e = pyopenms.OnDiscMSExperiment()
         pyopenms.IndexedMzMLFileLoader().load(self.filename, e)
 
         self.assertEqual( e.getNrSpectra() ,  2)

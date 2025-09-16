@@ -402,12 +402,12 @@ protected:
     }
   }
   
-  ExitCodes readInputFiles_(const StringList& in_list, vector<PeptideIdentification>& all_peptide_ids, vector<ProteinIdentification>& all_protein_ids, bool isDecoy, bool& found_decoys, int& min_charge, int& max_charge)
+  ExitCodes readInputFiles_(const StringList& in_list, PeptideIdentificationList& all_peptide_ids, vector<ProteinIdentification>& all_protein_ids, bool isDecoy, bool& found_decoys, int& min_charge, int& max_charge)
   {
     for (StringList::const_iterator fit = in_list.begin(); fit != in_list.end(); ++fit)
     {
       String file_idx(distance(in_list.begin(), fit));
-      vector<PeptideIdentification> peptide_ids;
+      PeptideIdentificationList peptide_ids;
       vector<ProteinIdentification> protein_ids;
       String in = *fit;
       FileTypes::Type in_type = FileHandler::getType(in);
@@ -467,7 +467,7 @@ protected:
               hit.setMetaValue("target_decoy", "target");
             }
           }
-          else if (hit.getMetaValue("target_decoy").toString() == "decoy")
+          else if (hit.isDecoy())
           {
             found_decoys = true;
           }
@@ -561,7 +561,7 @@ protected:
     //-------------------------------------------------------------
     // general variables and data to perform PercolatorAdapter
     //-------------------------------------------------------------
-    vector<PeptideIdentification> all_peptide_ids;
+    PeptideIdentificationList all_peptide_ids;
     vector<ProteinIdentification> all_protein_ids;
 
     //-------------------------------------------------------------
@@ -1100,7 +1100,7 @@ protected:
         // it is not a real search engine but we set it so that we know that
         // scores were postprocessed
         prot_id_run.setSearchEngine("Percolator");
-        prot_id_run.setSearchEngineVersion("3.05"); // TODO: read from percolator
+        prot_id_run.setSearchEngineVersion("3.07"); // TODO: read from percolator
         if (protein_level_fdrs)
         {
           //check each ProteinHit for compliance with one of the PercolatorProteinResults (by accession)
@@ -1125,7 +1125,7 @@ protected:
           if (protein_level_fdrs)
           {
             prot_id_run.setInferenceEngine("Percolator");
-            prot_id_run.setInferenceEngineVersion("3.05");
+            prot_id_run.setInferenceEngineVersion("3.07");
           }
           prot_id_run.setScoreType("q-value");
           prot_id_run.setHigherScoreBetter(false);

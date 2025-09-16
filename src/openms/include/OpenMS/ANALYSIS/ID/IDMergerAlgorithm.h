@@ -13,6 +13,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <unordered_set>
 
@@ -74,9 +75,9 @@ namespace OpenMS
      * @param prots Vector of protein identifications to be merged
      * @param peps Vector of peptide identifications to be merged
      */
-    void insertRuns(std::vector<ProteinIdentification>&& prots,
-                    std::vector<PeptideIdentification>&& peps);
-    
+    void insertRuns(std::vector<ProteinIdentification>&& prots,   
+                    PeptideIdentificationList&& peps);
+                    
     /**
      * @brief Insert runs using copy semantics.
      * 
@@ -87,7 +88,7 @@ namespace OpenMS
      * @param peps Vector of peptide identifications to be merged
      */
     void insertRuns(const std::vector<ProteinIdentification>& prots,
-                    const std::vector<PeptideIdentification>& peps);
+                    const PeptideIdentificationList& peps);
 
     //TODO add methods to just insert prots or just peps. Especially makes sense if you do re-indexing anyway,
     // then you do not need the proteins. But then we need origin information. Either externally in form of a
@@ -112,7 +113,7 @@ namespace OpenMS
      *       can be reused for a new merging operation.
      */
     void returnResultsAndClear(ProteinIdentification& prots,
-                   std::vector<PeptideIdentification>& peps);
+                   PeptideIdentificationList& peps);
 
   private:
 
@@ -196,7 +197,7 @@ namespace OpenMS
      * @param annotate_origin Whether to annotate peptide IDs with their origin
      */
     void updateAndMovePepIDs_(
-        std::vector<PeptideIdentification>&& pepIDs,
+        PeptideIdentificationList&& pepIDs,
         const std::map<String, Size>& runID_to_runIdx,
         const std::vector<StringList>& originFiles,
         bool annotate_origin
@@ -212,7 +213,7 @@ namespace OpenMS
      * @param old_protRuns Vector of protein identifications to reference
      */
     void movePepIDsAndRefProteinsToResultFaster_(
-        std::vector<PeptideIdentification>&& pepIDs,
+        PeptideIdentificationList&& pepIDs,
         std::vector<ProteinIdentification>&& old_protRuns
     );
 
@@ -220,7 +221,7 @@ namespace OpenMS
     ProteinIdentification prot_result_;
 
     /// The resulting merged peptide identifications
-    std::vector<PeptideIdentification> pep_result_;
+    PeptideIdentificationList pep_result_;
 
     /**
      * @brief Hash function for protein hits based on accession.

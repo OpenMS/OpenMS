@@ -30,6 +30,11 @@ namespace OpenMS
     delete gzip_;
   }
 
+  bool GzipInputStream::getIsOpen() const
+  {
+    return gzip_->isOpen();
+  }
+
   XMLSize_t GzipInputStream::readBytes(XMLByte * const to_fill, const XMLSize_t max_to_read)
   {
     // Figure out whether we can really read.

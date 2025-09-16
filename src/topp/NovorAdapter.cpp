@@ -286,7 +286,7 @@ protected:
     }
     CsvFile csv(tmp_out, ',');
         
-    vector<PeptideIdentification> peptide_ids;
+    PeptideIdentificationList peptide_ids;
     for (Size i = 0; i != csv.rowCount(); ++i)
     {
       StringList sl;

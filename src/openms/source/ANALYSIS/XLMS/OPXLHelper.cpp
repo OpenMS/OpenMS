@@ -690,7 +690,7 @@ namespace OpenMS
     }
   }
 
-  void OPXLHelper::buildPeptideIDs(std::vector<PeptideIdentification> & peptide_ids, const std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > & top_csms_spectrum, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > > & all_top_csms, Size all_top_csms_current_index, const PeakMap & spectra, Size scan_index, Size scan_index_heavy)
+  void OPXLHelper::buildPeptideIDs(PeptideIdentificationList & peptide_ids, const std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > & top_csms_spectrum, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > > & all_top_csms, Size all_top_csms_current_index, const PeakMap & spectra, Size scan_index, Size scan_index_heavy)
   {
     for (Size i = 0; i < top_csms_spectrum.size(); ++i)
     {
@@ -1156,13 +1156,43 @@ namespace OpenMS
 
       }
     }
-    vector<PeptideIdentification> new_peptide_ids_vector;
+    std::vector<PeptideIdentification> new_peptide_ids_vector;
     new_peptide_ids_vector.reserve(new_peptide_ids.size());
     for (pair<String, PeptideIdentification> mit : new_peptide_ids)
     {
       new_peptide_ids_vector.push_back(mit.second);
     }
     peptide_ids = new_peptide_ids_vector;
+  }
+
+  void OPXLHelper::addProteinPositionMetaValues(PeptideIdentificationList& peptide_ids)
+  {
+    addProteinPositionMetaValues(peptide_ids.getData());
+  }
+
+  void OPXLHelper::addXLTargetDecoyMV(PeptideIdentificationList& peptide_ids)
+  {
+    addXLTargetDecoyMV(peptide_ids.getData());
+  }
+
+  void OPXLHelper::addBetaAccessions(PeptideIdentificationList& peptide_ids)
+  {
+    addBetaAccessions(peptide_ids.getData());
+  }
+
+  void OPXLHelper::removeBetaPeptideHits(PeptideIdentificationList& peptide_ids)
+  {
+    removeBetaPeptideHits(peptide_ids.getData());
+  }
+
+  void OPXLHelper::computeDeltaScores(PeptideIdentificationList& peptide_ids)
+  {
+    computeDeltaScores(peptide_ids.getData());
+  }
+
+  std::vector<PeptideIdentification> OPXLHelper::combineTopRanksFromPairs(PeptideIdentificationList& peptide_ids, Size number_top_hits)
+  {
+    return combineTopRanksFromPairs(peptide_ids.getData(), number_top_hits);
   }
 
   void OPXLHelper::addPercolatorFeatureList(ProteinIdentification& prot_id)
