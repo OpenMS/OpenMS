@@ -470,7 +470,7 @@ protected:
 
       // load idXML
       vector<ProteinIdentification> prot_ids;
-      vector<PeptideIdentification> pep_ids;
+      PeptideIdentificationList pep_ids;
       FileHandler().loadIdentifications(id_file, prot_ids, pep_ids);
       // TODO filter by qvalue here?
       merger.insertRuns(std::move(prot_ids), {}); // pep IDs will be stored in the consensus features
@@ -586,10 +586,10 @@ protected:
     const auto empty_feat = [](const ConsensusFeature& c){return c.getIntensity() <= 0.;};
     cmap.erase(remove_if(cmap.begin(), cmap.end(), empty_feat), cmap.end());
     cmap.ensureUniqueId();
-    std::vector<ProteinIdentification> merged_prot_ids;
+    PeptideIdentificationList merged_prot_ids;
     merged_prot_ids.resize(1);
-    std::vector<PeptideIdentification> _;
-    merger.returnResultsAndClear(merged_prot_ids[0], _);
+    std::vector<PeptideIdentification> tmp_;
+    merger.returnResultsAndClear(merged_prot_ids[0], tmp_);
     std::cout << "Merged " << merged_prot_ids[0].getHits().size() << " proteins." << std::endl;
     cmap.setProteinIdentifications(merged_prot_ids);
 
