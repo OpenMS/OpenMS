@@ -156,17 +156,17 @@ namespace OpenMS
 
     for (const auto& hit : pep_id.getHits())
     {
-      if (!hit.metaValueExists("target_decoy"))
+      if (hit.getTargetDecoyType() == PeptideHit::TargetDecoyType::UNKNOWN)
       {
         throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
       }
 
-      if (decoy_1 == DBL_MAX && hit.getMetaValue("target_decoy") == "decoy")
+      if (decoy_1 == DBL_MAX && hit.isDecoy())
       {
         decoy_1 = extractScore_(hit);
         continue;
       }
-      if (decoy_1 < DBL_MAX && hit.getMetaValue("target_decoy") == "decoy")
+      if (decoy_1 < DBL_MAX && hit.isDecoy())
       {
         decoy_2 = extractScore_(hit);
         break;
@@ -450,11 +450,11 @@ namespace OpenMS
       const PeptideHit& top_hit = hits[0];
 
       // skip if the top hit is a decoy hit
-      if (!top_hit.metaValueExists("target_decoy"))
+      if (top_hit.getTargetDecoyType() == PeptideHit::TargetDecoyType::UNKNOWN)
       {
         throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
       }
-      if (top_hit.getMetaValue("target_decoy") == "decoy") continue;
+      if (top_hit.isDecoy()) continue;
 
       // skip if top hit is out ouf FDR
       if (!checkScoreBetterThanThreshold_(top_hit, score_cut_off, hsb)) continue;
@@ -597,12 +597,12 @@ namespace OpenMS
       {
         const PeptideHit& hit = hits[i];
 
-        if (!hit.metaValueExists("target_decoy"))
+        if (hit.getTargetDecoyType() == PeptideHit::TargetDecoyType::UNKNOWN)
         {
           throw(Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No target/decoy information found! Make sure 'PeptideIndexer' is run beforehand."));
         }
-        if (hit.getMetaValue("target_decoy") == "decoy")
-          continue;// skip if the hit is a decoy hit
+
+        if (hit.isDecoy()) continue;// skip if the hit is a decoy hit
 
         // insert protein accessions
         const set<String> accessions = hit.extractProteinAccessionsSet();

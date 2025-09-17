@@ -900,4 +900,29 @@ namespace OpenMS
     unit_ = unit;
   }
 
-} //namespace
+  DataValue::DataType DataValue::valueType() const
+  {
+    return value_type_;
+  }
+
+  bool DataValue::isEmpty() const
+  {
+    return value_type_ == EMPTY_VALUE;
+  }
+
+  DataValue::UnitType DataValue::getUnitType() const
+  {
+    return unit_type_;
+  }
+
+  void DataValue::setUnitType(const DataValue::UnitType & u)
+  {
+    unit_type_ = u;
+  }
+
+  bool DataValue::hasUnit() const
+  {
+    return unit_ != -1;
+  }
+
+} // namespace OpenMS

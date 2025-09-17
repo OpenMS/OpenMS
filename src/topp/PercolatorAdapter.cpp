@@ -467,7 +467,7 @@ protected:
               hit.setMetaValue("target_decoy", "target");
             }
           }
-          else if (hit.getMetaValue("target_decoy").toString() == "decoy")
+          else if (hit.isDecoy())
           {
             found_decoys = true;
           }
