@@ -65,7 +65,7 @@ namespace OpenMS{
                                         { 24, 26, 25, 27, 28, 30, 31, -1, -1, -1, -1, -1, -1, -1 },
                                         { 25, 27, -1, -1, 29, 31, -1, -1, -1, -1, -1, -1, -1, -1 }
                                     };
-    double o_mass35[35] = {
+    std::array<double, 35> o_mass35 = {
         126.127726, 127.124761, 127.131081, 127.134003, 128.128116,
         128.134436, 128.131038, 128.137358, 129.131471, 129.137790,
         129.134393, 129.140713, 130.134825, 130.141145, 130.137748,
@@ -92,7 +92,7 @@ namespace OpenMS{
         auto make_channel = [&](const std::string& name, int idx, double mass, int vec_idx){
             return IsobaricChannelInformation(name, idx, "", mass, std::vector<int>(interaction_vector[vec_idx].begin(), interaction_vector[vec_idx].end()));
         };
-        for(int i =0; i<35; i++){
+        for(int i =0; i<o_mass35.size(); i++){
             channels_.push_back(make_channel(channel_names_[i],i,o_mass35[i],i));
         };                                                                        
         // we assume 126 to be the reference
