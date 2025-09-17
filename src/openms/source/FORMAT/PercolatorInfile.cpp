@@ -427,9 +427,11 @@ namespace OpenMS
         hit.setMetaValue("SpecId", file_identifier + scan_identifier);
         hit.setMetaValue("ScanNr", scan_number);
         
-        if (!hit.metaValueExists("target_decoy")
-          || hit.getMetaValue("target_decoy").toString().empty())
-        {
+        if (hit.getTargetDecoyType() == PeptideHit::TargetDecoyType::UNKNOWN)
+        { 
+          OPENMS_LOG_WARN << "PSM without target/decoy information found. "
+                  << "This may indicate incomplete mapping during PeptideIndexing (e.g., wrong decoy prefix settings)." 
+                  << "Will skip this PSM." << endl;
           continue;
         }
         
