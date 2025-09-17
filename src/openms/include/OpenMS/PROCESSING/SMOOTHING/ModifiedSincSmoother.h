@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: OpenMS Team $
+// $Authors: Sarah Najar $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -280,7 +280,7 @@ namespace OpenMS
       @note Right extension: fit backward from end, extrapolate forward  
       @note Uses fit_weights_ for regression weighting
     */
-    std::vector<double> extendData(const std::vector<double>& data, int m, int degree);
+    std::vector<double> extendData(const std::vector<double>& data, int m);
 
     /**
       @brief Helper class for weighted linear regression.

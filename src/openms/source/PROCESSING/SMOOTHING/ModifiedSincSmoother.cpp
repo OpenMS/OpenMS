@@ -156,39 +156,30 @@ namespace OpenMS
     return weights;
   }
 
-  std::vector<double> ModifiedSincSmoother::extendData(const std::vector<double>& data, int m, int degree)
+  std::vector<double> ModifiedSincSmoother::extendData(const std::vector<double>& data, int m)
   {
-    const size_t N = data.size();
-    std::vector<double> extended(N + static_cast<size_t>(2 * m));
+    std::vector<double> extended(data.size() + 2 * m);
     std::copy(data.begin(), data.end(), extended.begin() + m);
 
     LinearRegression linreg;
-    const int fitLength = std::min(static_cast<int>(fit_weights_.size()), static_cast<int>(N));
+    int fitLength = std::min(static_cast<int>(fit_weights_.size()), static_cast<int>(data.size()));
 
-    // left extension using forward points
     for (int p = 0; p < fitLength; ++p)
-    {
-      linreg.addPointW(static_cast<double>(p), data[static_cast<size_t>(p)], fit_weights_[static_cast<size_t>(p)]);
-    }
+      linreg.addPointW(p, data[p], fit_weights_[p]);
+
     double offset = linreg.getOffset();
     double slope = linreg.getSlope();
     for (int p = -1; p >= -m; --p)
-    {
-      extended[static_cast<size_t>(m + p)] = offset + slope * p;
-    }
+      extended[m + p] = offset + slope * p;
 
-    // right extension using backward points
     linreg.clear();
     for (int p = 0; p < fitLength; ++p)
-    {
-      linreg.addPointW(static_cast<double>(p), data[N - 1 - static_cast<size_t>(p)], fit_weights_[static_cast<size_t>(p)]);
-    }
+      linreg.addPointW(p, data[data.size() - 1 - p], fit_weights_[p]);
+
     offset = linreg.getOffset();
     slope = linreg.getSlope();
     for (int p = -1; p >= -m; --p)
-    {
-      extended[N + static_cast<size_t>(m - 1 - p)] = offset + slope * p;
-    }
+      extended[data.size() + m - 1 - p] = offset + slope * p;
 
     return extended;
   }

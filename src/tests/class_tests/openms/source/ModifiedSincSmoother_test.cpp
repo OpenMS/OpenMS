@@ -126,9 +126,9 @@ START_SECTION((static int noiseGainToM(bool isMS1, int degree, double noiseGain)
   int m_ms2 = ModifiedSincSmoother::noiseGainToM(false, 4, 0.8);
   int m_ms1 = ModifiedSincSmoother::noiseGainToM(true, 4, 0.8);
   
-  TEST(m_ms2 > 0)
-  TEST(m_ms1 > 0)
-  TEST(m_ms2 != m_ms1) // Should be different for MS1 vs MS2
+  TEST_EQUAL(m_ms2 > 0, true)
+  TEST_EQUAL(m_ms1 > 0, true)
+  TEST_EQUAL(m_ms2 != m_ms1, true) // Should be different for MS1 vs MS2
 }
 END_SECTION
 
@@ -136,12 +136,12 @@ START_SECTION((static double savitzkyGolayBandwidth(int degree, int m)))
 {
   // Test Savitzky-Golay bandwidth calculation
   double bw = ModifiedSincSmoother::savitzkyGolayBandwidth(4, 10);
-  TEST(bw > 0.0)
-  TEST(bw < 0.5)
+  TEST_EQUAL(bw > 0.0, true)
+  TEST_EQUAL(bw < 0.5, true)
   
   // Higher m should give smaller bandwidth
   double bw2 = ModifiedSincSmoother::savitzkyGolayBandwidth(4, 20);
-  TEST(bw2 < bw)
+  TEST_EQUAL(bw2 < bw, true)
 }
 END_SECTION
 
@@ -167,8 +167,8 @@ START_SECTION((void filter(MSSpectrum& spectrum)))
   
   for (size_t i = 0; i < spectrum.size(); ++i)
   {
-    TEST_REAL_SIMILAR(spectrum[i].getPosition(), original[i].getPosition()) // Positions unchanged
-    TEST(spectrum[i].getIntensity() >= 0.0) // No negative intensities
+    TEST_REAL_SIMILAR(spectrum[i].getPosition()[0], original[i].getPosition()[0]) // Positions unchanged
+    TEST_EQUAL(spectrum[i].getIntensity() >= 0.0, true) // No negative intensities
   }
 }
 END_SECTION
@@ -196,7 +196,7 @@ START_SECTION((void filter(MSChromatogram& chromatogram)))
   for (size_t i = 0; i < chromatogram.size(); ++i)
   {
     TEST_REAL_SIMILAR(chromatogram[i].getRT(), original[i].getRT()) // RT unchanged
-    TEST(chromatogram[i].getIntensity() >= 0.0) // No negative intensities
+    TEST_EQUAL(chromatogram[i].getIntensity() >= 0.0, true) // No negative intensities
   }
 }
 END_SECTION
@@ -223,8 +223,8 @@ START_SECTION((void filter(Mobilogram& mobilogram)))
   
   for (size_t i = 0; i < mobilogram.size(); ++i)
   {
-    TEST_REAL_SIMILAR(mobilogram[i].getPosition(), original[i].getPosition()) // IM unchanged
-    TEST(mobilogram[i].getIntensity() >= 0.0) // No negative intensities
+    TEST_REAL_SIMILAR(mobilogram[i].getPosition()[0], original[i].getPosition()[0]) // IM unchanged
+    TEST_EQUAL(mobilogram[i].getIntensity() >= 0.0, true) // No negative intensities
   }
 }
 END_SECTION
@@ -275,7 +275,7 @@ START_SECTION((void filterExperiment(PeakMap& map)))
     TEST_EQUAL(experiment[i].size(), original[i].size())
     for (size_t j = 0; j < experiment[i].size(); ++j)
     {
-      TEST_REAL_SIMILAR(experiment[i][j].getPosition(), original[i][j].getPosition())
+      TEST_REAL_SIMILAR(experiment[i][j].getPosition()[0], original[i][j].getPosition()[0])
     }
   }
   
@@ -303,8 +303,10 @@ START_SECTION((Constructor parameter validation))
   TEST_EXCEPTION(Exception::InvalidParameter, ModifiedSincSmoother(true, 4, 2))
   
   // Test valid parameters
-  TEST_NOT_EXCEPTION(ModifiedSincSmoother(false, 4, 4))
-  TEST_NOT_EXCEPTION(ModifiedSincSmoother(true, 6, 4))
+  TEST_NOT_EQUAL(new ModifiedSincSmoother(false, 4, 4), ms_nullPointer)
+  delete new ModifiedSincSmoother(false, 4, 4);
+  TEST_NOT_EQUAL(new ModifiedSincSmoother(true, 6, 4), ms_nullPointer)
+  delete new ModifiedSincSmoother(true, 6, 4);
 }
 END_SECTION
 
