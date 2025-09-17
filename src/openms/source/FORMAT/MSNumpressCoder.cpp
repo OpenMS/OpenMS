@@ -61,11 +61,10 @@ namespace OpenMS
   void MSNumpressCoder::decodeNP(const String & in, std::vector<double> & out,
       bool zlib_compression, const NumpressConfig & config)
   {
-    QByteArray base64_uncompressed;
-    Base64::decodeSingleString(in, base64_uncompressed, zlib_compression);
+    String tmpstring;
+    Base64::decodeSingleString(in, tmpstring, zlib_compression);
 
     // Create a temporary string (*not* null-terminated) to hold the data
-    std::string tmpstring(base64_uncompressed.constData(), base64_uncompressed.size());
     decodeNPRaw(tmpstring, out, config);
 
     // NOTE: it is possible (and likely faster) to call directly the const

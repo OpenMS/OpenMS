@@ -26,26 +26,45 @@ Dependencies:
     - PyOpenMS now depends on Autowrap 0.23.0
     - PyOpenMS now supports Cython 3.1
 
-NucleicAcidSearchEngine:
-    - add support for global fixed modifications as a search parameter
+TOPP tools:
+  Changes:
+    MassTraceExtractor:
+      - support for Bruker Ion Mobility (experimental). Note: requires IM peak picked data.
+    NucleicAcidSearchEngine:
+      - add support for global fixed modifications as a search parameter
+    Digestor:
+      - supports replacing ambiguous amino acids (X,B,J,Z) in the FASTA input with random unambiguous amino acids in the output (#8167)
+    all:
+      - show load/store progress for files in all TOPP tools (#8041)
+  Added Tools:
+    - OpenNuXL - A peptide-RNA/DNA cross-linking search engine
+  Removed Tools:
+    - /
 
-Misc:
- - show load/store progress for files in all TOPP tools (#8041)
- 
-Fixes:
+GUI tools:
  - fix TOPPAS crash when using TOPP tools with multiple output formats (#8120)
+ 
 
-Library:
-- Removed `assignRanks` and `sortByRanks` in PeptideIdentifications and sort and filter by score instead. Also removed `updateHitRanks` in IDFilter (#7991)
-- Remove ranke member in PeptideHit and store ranks as meta value (for backwards compatibility). (#7997)
-- std::vector<PeptideIdentification> now is encapsulated in a class PeptideIdentificationList
-- Added `EnzymaticDigestion.semiSpecificDigestion_()`
-- ProteaseDigestion: add support for semi-specific digestion (#8130)
+OpenMS Library:
+  Added:
+    - PeptideHit: Added TargetDecoyType (TARGET, DECOY, TARGET_DECOY, UNKNOWN) and setTargetDecoyType()/getTargetDecoyType(); supports target+decoy peptide hits.
+    - IDScoreSwitcherAlgorithm: Added findScoreType() method for generic score type detection. Checks if main score matches requested ScoreType (PEP, QVAL, FDR, etc.) or finds it in meta values..
+    - ProteinHit: Added TargetDecoyType (TARGET, DECOY, UNKNOWN) and setTargetDecoyType()/getTargetDecoyType().
+    - Both: Added isDecoy().
+    - unify isotopic distributions (coarse vs. fine) for EmpiricalFormulas with charge (#8099)
+  Changes:
+    - removed `assignRanks` and `sortByRanks` in PeptideIdentifications and sort and filter by score instead. Also removed `updateHitRanks` in IDFilter (#7991)
+    - remove rank member in PeptideHit and store ranks as meta value (for backwards compatibility). (#7997)
+    - std::vector<PeptideIdentification> now is encapsulated in a class PeptideIdentificationList.
+    - Zlibcompression using zlib (not Qt) and Base64 decoding for zlib-compressed data using SIMD (not Qt) (#8161)
+  New Features:
+    - added `EnzymaticDigestion.semiSpecificDigestion_()`
+    - ProteaseDigestion: add support for semi-specific digestion (#8130)
+    - TransformationModelLowess: Add option to automate span selection via cross-validation (#8166)
+    - OpenSwath:
+      - Added automated iRT calibration using input transition list (#8146)
 
-Added tools:
-- OpenNuXL - A peptide-RNA/DNA cross-linking search engine
 
-Removed tools:
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 3.4.1     (May 2025)                       ----

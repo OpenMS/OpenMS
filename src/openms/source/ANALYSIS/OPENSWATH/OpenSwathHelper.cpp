@@ -8,6 +8,10 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
+#include <random>
+#include <algorithm>
+#include <unordered_set>
+
 namespace OpenMS
 {
   void OpenSwathHelper::selectSwathTransitions(const OpenMS::TargetedExperiment& targeted_exp,
@@ -162,6 +166,126 @@ namespace OpenMS
     return std::make_pair(min,max);
   }
 
+  OpenSwath::LightTargetedExperiment
+  OpenSwathHelper::sampleExperiment(
+    const OpenSwath::LightTargetedExperiment & exp,
+    Size bins,
+    Size peptides_per_bin,
+    unsigned int seed,
+    bool sort_by_intensity,
+    double top_fraction)
+  {
+    OPENMS_PRECONDITION(bins >= 1, "bins must be >= 1");
+    OPENMS_PRECONDITION(peptides_per_bin >= 1, "peptides_per_bin must be >= 1");
+    OPENMS_PRECONDITION(!sort_by_intensity || (top_fraction > 0.0 && top_fraction <= 1.0),
+                        "top_fraction must be in (0,1] when sort_by_intensity is true");
+
+    // 0) initial candidate selection: exclude decoys 
+    std::vector<OpenSwath::LightCompound> candidates;
+
+    std::unordered_set<String> good_ids;
+    for (auto & tr : exp.getTransitions())
+    {
+      if (!tr.decoy)
+        good_ids.insert(tr.getPeptideRef());
+    }
+    for (auto & cmp : exp.getCompounds())
+    {
+      if (good_ids.count(cmp.id))
+        candidates.push_back(cmp);
+    }
+
+    // 1) optionally sort by library intensities and trim to top fraction
+    if (sort_by_intensity && top_fraction > 0.0 && top_fraction <= 1.0)
+    {
+      // sum intensities per peptide across all transitions
+      std::unordered_map<String, double> intensity_sum;
+      for (auto & tr : exp.getTransitions())
+      {
+        if (!tr.decoy)
+        {
+          intensity_sum[tr.getPeptideRef()] += tr.library_intensity;
+        }
+      }
+
+      // sort candidates by descending sum
+      std::sort(candidates.begin(), candidates.end(), [&](auto & a, auto & b) {
+        return intensity_sum[a.id] > intensity_sum[b.id];
+      });
+
+      // trim to top N%
+      Size max_keep = std::max<Size>(1, static_cast<Size>(candidates.size() * top_fraction));
+      candidates.resize(std::min(max_keep, candidates.size()));
+    }
+
+    if (candidates.size() < 3)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Insufficient candidates for sampling: " + String(candidates.size()) +
+                                         " found, minimum 3 required for meaningful iRT calibration.");
+    }
+
+    // 2) estimate RT range using filtered candidates
+    double rt_min = std::numeric_limits<double>::max();
+    double rt_max = std::numeric_limits<double>::lowest();
+    for (auto & cmp : candidates)
+    {
+      rt_min = std::min(rt_min, cmp.rt);
+      rt_max = std::max(rt_max, cmp.rt);
+    }
+    double bin_width = (rt_max - rt_min) / static_cast<double>(bins);
+
+    // 3) sample uniformly across RT bins
+    std::vector<OpenSwath::LightCompound> picked;
+    // Initialize OpenMS random shuffler
+    Math::RandomShuffler rshuffler;
+    rshuffler.seed(seed == 0 ? std::random_device{}() : seed);
+    for (Size b = 0; b < bins; ++b)
+    {
+      double lo = rt_min + b * bin_width;
+      double hi = (b + 1 == bins ? rt_max : lo + bin_width);
+      std::vector<OpenSwath::LightCompound> bucket;
+      for (auto & cmp : candidates)
+      {
+        if (cmp.rt >= lo && cmp.rt < hi)
+          bucket.push_back(cmp);
+      }
+      if (!bucket.empty())
+      {
+        rshuffler.portable_random_shuffle(bucket.begin(), bucket.end());
+        Size take = std::min(peptides_per_bin, bucket.size());
+        picked.insert(picked.end(), bucket.begin(), bucket.begin() + take);
+      }
+    }
+
+    // 4) assemble output experiment
+    OpenSwath::LightTargetedExperiment out_exp;
+    out_exp.compounds = picked;
+
+    // copy matching transitions, excluding decoys if requested
+    std::unordered_set<String> pep_ids;
+    for (auto & cmp : picked)
+      pep_ids.insert(cmp.id);
+    for (auto & tr : exp.getTransitions())
+    {
+      if (pep_ids.count(tr.getPeptideRef()) && (!tr.decoy))
+        out_exp.transitions.push_back(tr);
+    }
+
+    // copy associated proteins
+    std::unordered_set<String> prot_ids;
+    for (auto & cmp : picked)
+      for (auto & pid : cmp.protein_refs)
+        prot_ids.insert(pid);
+    for (auto & prot : exp.getProteins())
+    {
+      if (prot_ids.count(prot.id))
+        out_exp.proteins.push_back(prot);
+    }
+
+    return out_exp;
+  }
+
   std::map<std::string, double> OpenSwathHelper::simpleFindBestFeature(
       const OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
       bool useQualCutoff, double qualCutoff)
@@ -186,5 +310,4 @@ namespace OpenMS
     }
     return result;
   }
-
 }

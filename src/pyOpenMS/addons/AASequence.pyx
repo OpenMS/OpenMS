@@ -21,3 +21,7 @@ from libcpp.map cimport map as libcpp_map
 
             i += 1
 
+    def __len__(self):
+        """Return the length of the amino acid sequence."""
+        return self.inst.get().size()
+
