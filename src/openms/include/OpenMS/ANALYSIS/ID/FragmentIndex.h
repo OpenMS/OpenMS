@@ -90,22 +90,73 @@ namespace OpenMS
 
       }
     };
-    /// DefaultConstructor
+    /**
+     * @brief Default constructor.
+     *
+     * Initializes an empty FragmentIndex. Call build() before using any query
+     * functions. After clear(), the index returns to this unbuilt state.
+     *
+     * Thread-safety: constructing the object is thread-safe as long as the instance
+     * is not shared across threads before initialization completes.
+     */
     FragmentIndex();
 
-    /// Default destructor
+    /**
+     * @brief Default destructor.
+     *
+     * Releases owned memory. If the index was built, all internal buffers and
+     * fragment buckets are freed. No exceptions are thrown.
+     */
     ~FragmentIndex() override = default;
 
-    // returns true if already built, false otherwise
+    /**
+     * @brief Indicates whether the fragment index has been built.
+     *
+     * @return true if build() has completed successfully and the index is ready
+     *         for queries; false otherwise (e.g., after construction or after clear()).
+     *
+     * Thread-safety: read-only and can be called concurrently with other
+     * read-only methods. Must not race with build()/clear() on the same instance.
+     */
     bool isBuild() const;
 
+    /**
+     * @brief Returns a reference to the internal peptide container.
+     *
+     * Provides read-only access to all peptides currently held by the index,
+     * typically populated during build().
+     *
+     * @return const reference to the internal std::vector of Peptide.
+     *
+     * Preconditions: The vector may be empty if build() has not been called yet.
+     * Thread-safety: read-only view; safe to access concurrently as long as no
+     * thread mutates the index (e.g., build()/clear()).
+     */
     const std::vector<Peptide>& getPeptides() const;
 
 #ifdef DEBUG_FRAGMENT_INDEX
     /**
-     * @brief (only for debugging) Manually add a peptide to the DB. The peptide can be modified
-     * IMPORTANT: add peptide after the other peptides are generated and before the FragmentIndex is build
-     * @param peptide
+     * @brief Manually adds a peptide to the internal peptide list (debug builds only).
+     *
+     * Allows injecting a custom peptide sequence into the index prior to building,
+     * e.g., for targeted testing. This function modifies the internal state and
+     * must be used with care.
+     *
+     * @param peptide AASequence of the peptide to add. The sequence may be modified
+     *                internally (e.g., normalization/annotation steps).
+     * @param source_idx Index of the originating FASTA entry (or synthetic source)
+     *                   to maintain provenance in downstream processing.
+     *
+     * Preconditions:
+     *  - Must be called after peptides have been generated (e.g., generatePeptides())
+     *    and before build(). Calling it after build() leads to undefined behavior.
+     *
+     * Thread-safety:
+     *  - Not thread-safe. Do not call concurrently with build(), clear(), or any
+     *    read operations. Restrict usage to single-threaded setup in debug builds.
+     *
+     * Exceptions:
+     *  - Strong exception guarantee: either the peptide is added or the index remains unchanged.
      */
     void addSpecialPeptide(AASequence& peptide, Size source_idx);
 #endif
