@@ -14,36 +14,53 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
-
-
 using namespace OpenMS;
 using namespace std;
 
 //-------------------------------------------------------------
-//Doxygen docu
+// Doxygen docu
 //-------------------------------------------------------------
 
-/*
-  DEPRECATED TOOL STUB
+/**
+    @page TOPP_PeptideDataBaseSearchFI PeptideDataBaseSearchFI
 
-  The PeptideSearchEngine TOPP tool has been renamed to PeptideDataBaseSearchFI.
-  This file remains only as a placeholder to avoid accidental reintroduction and
-  to prevent obsolete Doxygen pages from being generated.
+    @brief Identifies peptides in MS/MS spectra.
 
-  Please use @ref TOPP_PeptideDataBaseSearchFI instead.
+<CENTER>
+    <table>
+        <tr>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; PeptideDataBaseSearchFI &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
+        </tr>
+    </table>
+</CENTER>
+
+    @em This search engine is mainly for educational/benchmarking/prototyping use cases.
+    It lacks behind in speed and/or quality of results when compared to state-of-the-art search engines.
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
+    <B>The command line parameters of this tool are:</B>
+    @verbinclude TOPP_PeptideDataBaseSearchFI.cli
+    <B>INI file documentation of this tool:</B>
+    @htmlinclude TOPP_PeptideDataBaseSearchFI.html
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-
-class PeptideSearchEngine :
+class PeptideDataBaseSearchFI :
     public TOPPBase
 {
   public:
-    PeptideSearchEngine() :
-      TOPPBase("PeptideSearchEngine",
-        "Annotates bottom-up MS/MS spectra using PeptideSearchEngine.",
+    PeptideDataBaseSearchFI() :
+      TOPPBase("PeptideDataBaseSearchFI",
+        "Annotates bottom-up MS/MS spectra using PeptideDataBaseSearchFI.",
         false)
     {
     }
@@ -51,9 +68,8 @@ class PeptideSearchEngine :
   protected:
     void registerOptionsAndFlags_() override
     {
-
       registerInputFile_("in", "<file>", "", "input file ");
-      //setValidFormats_("in", ListUtils::create<String>("mzML"));
+      // setValidFormats_("in", ListUtils::create<String>("mzML"));
 
       registerInputFile_("database", "<file>", "", "input file ");
       setValidFormats_("database", ListUtils::create<String>("fasta"));
@@ -99,12 +115,11 @@ class PeptideSearchEngine :
 
       return EXECUTION_OK;
     }
-
 };
 
 int main(int argc, const char** argv)
 {
-  PeptideSearchEngine tool;
+  PeptideDataBaseSearchFI tool;
   return tool.main(argc, argv);
 }
 
