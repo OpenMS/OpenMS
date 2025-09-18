@@ -1,7 +1,7 @@
 
 -- General information --
 
-File name: C:/dev/openms_test/src/tests/topp/FileInfo_6_input.mzData
+File name: /home/sachsenb/Development/OpenMS/src/tests/topp/FileInfo_6_input.mzData
 File type: mzData
 
 Instrument: 
@@ -11,11 +11,28 @@ MS levels: 1
 Total number of peaks: 9
 Number of spectra: 2
 
-Ranges:
+Combined Ranges (spectra + chromatograms):
   retention time: 474.56 .. 475.32 sec (0.0 min)
   mass-to-charge: 937.28 .. 941.20
-    ion mobility: <none>
-       intensity: 1639.00 .. 18025.00
+  ion mobility: <none> .. <none>
+  intensity: 1639.00 .. 18025.00
+
+Spectrum Ranges:
+  retention time: 474.56 .. 475.32 sec (0.0 min)
+  mass-to-charge: 937.28 .. 941.20
+  ion mobility: <none> .. <none>
+  intensity: 1639.00 .. 18025.00
+
+MS Level 1 Ranges:
+  retention time: 474.56 .. 475.32 sec (0.0 min)
+  mass-to-charge: 937.28 .. 941.20
+  ion mobility: <none> .. <none>
+  intensity: 1639.00 .. 18025.00
+
+Chromatogram Ranges:
+  retention time: <none> .. <none> sec (<none> min)
+  mass-to-charge: <none> .. <none>
+  intensity: <none> .. <none>
 
 Number of spectra per MS level:
   level 1: 2

@@ -27,12 +27,8 @@ set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 1000)
 ctest_start(APPEND)
 
 ## run tests
-## for pyopenms build, only run pyopenms tests
-if("$ENV{PYOPENMS}" STREQUAL "ON")
-  ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" INCLUDE "pyopenms" PARALLEL_LEVEL 3 RETURN_VALUE _test_errors)
-else()
-  ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" PARALLEL_LEVEL 3 RETURN_VALUE _test_errors)
-endif()
+ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" PARALLEL_LEVEL 3 RETURN_VALUE _test_errors)
+
 ## send test results to CDash
 ctest_submit(PARTS Test Done CAPTURE_CMAKE_ERROR _submit_result)
 

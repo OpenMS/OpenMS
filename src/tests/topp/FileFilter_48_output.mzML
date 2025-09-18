@@ -113,7 +113,7 @@
 				<userParam name="parameter: no_progress" type="xsd:string" value="false"/>
 				<userParam name="parameter: force" type="xsd:string" value="false"/>
 				<userParam name="parameter: test" type="xsd:string" value="false"/>
-				<userParam name="parameter: peak_options:sn" type="xsd:double" value="0"/>
+				<userParam name="parameter: peak_options:sn" type="xsd:double" value="0.0"/>
 				<userParam name="parameter: peak_options:rm_pc_charge" type="xsd:string" value="[]"/>
 				<userParam name="parameter: peak_options:pc_mz_range" type="xsd:string" value=":"/>
 				<userParam name="parameter: peak_options:pc_mz_list" type="xsd:string" value="[]"/>
@@ -126,9 +126,9 @@
 				<userParam name="parameter: peak_options:indexed_file" type="xsd:string" value="false"/>
 				<userParam name="parameter: peak_options:zlib_compression" type="xsd:string" value="false"/>
 				<userParam name="parameter: peak_options:numpress:masstime" type="xsd:string" value="none"/>
-				<userParam name="parameter: peak_options:numpress:masstime_error" type="xsd:double" value="0.0001"/>
+				<userParam name="parameter: peak_options:numpress:masstime_error" type="xsd:double" value="1.0e-04"/>
 				<userParam name="parameter: peak_options:numpress:intensity" type="xsd:string" value="none"/>
-				<userParam name="parameter: peak_options:numpress:intensity_error" type="xsd:double" value="0.0001"/>
+				<userParam name="parameter: peak_options:numpress:intensity_error" type="xsd:double" value="1.0e-04"/>
 				<userParam name="parameter: spectra:remove_zoom" type="xsd:string" value="false"/>
 				<userParam name="parameter: spectra:remove_mode" type="xsd:string" value=""/>
 				<userParam name="parameter: spectra:remove_activation" type="xsd:string" value=""/>
@@ -141,7 +141,7 @@
 				<userParam name="parameter: spectra:select_isolation_window_width" type="xsd:string" value=":"/>
 				<userParam name="parameter: spectra:select_polarity" type="xsd:string" value=""/>
 				<userParam name="parameter: spectra:blackorwhitelist:file" type="xsd:string" value=""/>
-				<userParam name="parameter: spectra:blackorwhitelist:similarity_threshold" type="xsd:double" value="-1"/>
+				<userParam name="parameter: spectra:blackorwhitelist:similarity_threshold" type="xsd:double" value="-1.0"/>
 				<userParam name="parameter: spectra:blackorwhitelist:rt" type="xsd:double" value="0.01"/>
 				<userParam name="parameter: spectra:blackorwhitelist:mz" type="xsd:double" value="0.01"/>
 				<userParam name="parameter: spectra:blackorwhitelist:use_ppm_tolerance" type="xsd:string" value="false"/>
@@ -152,7 +152,7 @@
 				<userParam name="parameter: consensus:blackorwhitelist:blacklist" type="xsd:string" value="true"/>
 				<userParam name="parameter: consensus:blackorwhitelist:file" type="xsd:string" value=""/>
 				<userParam name="parameter: consensus:blackorwhitelist:maps" type="xsd:string" value="[]"/>
-				<userParam name="parameter: consensus:blackorwhitelist:rt" type="xsd:double" value="60"/>
+				<userParam name="parameter: consensus:blackorwhitelist:rt" type="xsd:double" value="60.0"/>
 				<userParam name="parameter: consensus:blackorwhitelist:mz" type="xsd:double" value="0.01"/>
 				<userParam name="parameter: consensus:blackorwhitelist:use_ppm_tolerance" type="xsd:string" value="false"/>
 				<userParam name="parameter: f_and_c:charge" type="xsd:string" value=":"/>
@@ -168,16 +168,16 @@
 				<userParam name="parameter: id:remove_unassigned_ids" type="xsd:string" value="false"/>
 				<userParam name="parameter: id:blacklist" type="xsd:string" value=""/>
 				<userParam name="parameter: id:rt" type="xsd:double" value="0.1"/>
-				<userParam name="parameter: id:mz" type="xsd:double" value="0.001"/>
+				<userParam name="parameter: id:mz" type="xsd:double" value="1.0e-03"/>
 				<userParam name="parameter: id:blacklist_imperfect" type="xsd:string" value="false"/>
 				<userParam name="parameter: algorithm:SignalToNoise:max_intensity" type="xsd:integer" value="-1"/>
-				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3"/>
+				<userParam name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" type="xsd:double" value="3.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_max_percentile" type="xsd:integer" value="95"/>
 				<userParam name="parameter: algorithm:SignalToNoise:auto_mode" type="xsd:integer" value="0"/>
-				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200"/>
+				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200.0"/>
 				<userParam name="parameter: algorithm:SignalToNoise:bin_count" type="xsd:integer" value="30"/>
 				<userParam name="parameter: algorithm:SignalToNoise:min_required_elements" type="xsd:integer" value="10"/>
-				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+20"/>
+				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1.0e20"/>
 				<userParam name="parameter: algorithm:SignalToNoise:write_log_messages" type="xsd:string" value="true"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_3">
@@ -233,45 +233,13 @@
 				</binaryDataArrayList>
 			</spectrum>
 		</spectrumList>
-		<chromatogramList count="1" defaultDataProcessingRef="dp_sp_0">
-			<chromatogram id="TIC description &amp; &quot;impsum&quot; &lt;&gt;" index="0" defaultArrayLength="0">
-				<cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" />
-					<precursor>
-						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-						</activation>
-					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
-				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="0">
-						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary></binary>
-					</binaryDataArray>
-					<binaryDataArray encodedLength="0">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary></binary>
-					</binaryDataArray>
-				</binaryDataArrayList>
-			</chromatogram>
-		</chromatogramList>
 	</run>
 </mzML>
-<indexList count="2">
+<indexList count="1">
 	<index name="spectrum">
-		<offset idRef="scan=17">14572</offset>
-	</index>
-	<index name="chromatogram">
-		<offset idRef="TIC description &amp; &quot;impsum&quot; &lt;&gt;">18042</offset>
+		<offset idRef="scan=17">14587</offset>
 	</index>
 </indexList>
-<indexListOffset>19494</indexListOffset>
+<indexListOffset>18003</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

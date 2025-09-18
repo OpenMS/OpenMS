@@ -936,7 +936,7 @@ START_SECTION((bool operator==(const MSChromatogram &rhs) const ))
   edit.push_back(p2);
   edit.updateRanges();
   edit.clear(false);
-  TEST_EQUAL(empty==edit, false);
+  TEST_TRUE(empty == edit);
 
 }
 END_SECTION
@@ -979,14 +979,14 @@ START_SECTION((bool operator!=(const MSChromatogram &rhs) const ))
   //name is not checked => no change
   edit = empty;
   edit.setName("bla");
-  TEST_EQUAL(edit!=empty,false);
+  TEST_EQUAL(edit == empty, true);
 
   edit = empty;
   edit.push_back(p1);
   edit.push_back(p2);
   edit.updateRanges();
   edit.clear(false);
-  TEST_EQUAL(edit!=empty,true);
+  TEST_TRUE(empty == edit);
 }
 END_SECTION
 

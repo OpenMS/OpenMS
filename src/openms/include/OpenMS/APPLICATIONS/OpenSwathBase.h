@@ -330,9 +330,8 @@ protected:
    *
    * @param trafo_in Input trafoXML file (if not empty, transformation will be
    *                 loaded from this file)
-   * @param irt_tr_file  Input TraML file containing transitions (if trafo_in
-   *                     is empty, this file will be loaded and transitions
-   *                     will be extracted)
+   * @param irt_transitions  Input iRT transition experiment (if trafo_in
+   *                     is empty, this will be used for iRT extraction)
    * @param swath_maps The raw data (swath maps)
    * @param min_rsq Minimal R^2 value that is expected for the RT regression
    * @param min_coverage Minimal coverage of the chromatographic space that needs to be achieved
@@ -350,7 +349,7 @@ protected:
    *
    */
   TransformationDescription performCalibration(String trafo_in,
-        String irt_tr_file,
+        const OpenSwath::LightTargetedExperiment& irt_transitions,
         std::vector< OpenSwath::SwathMap > & swath_maps,
         double min_rsq,
         double min_coverage,
@@ -377,13 +376,10 @@ protected:
       String model_type = irt_detection_param.getValue("alignmentMethod").toString();
       trafo_rtnorm.fitModel(model_type, model_params);
     }
-    else if (!irt_tr_file.empty())
+    else if (!irt_transitions.getTransitions().empty())
     {
       // Loading iRT file
       std::cout << "Will load iRT transitions and try to find iRT peptides" << std::endl;
-      FileTypes::Type tr_type = FileHandler::getType(irt_tr_file);
-      Param tsv_reader_param = TransitionTSVFile().getDefaults();
-      OpenSwath::LightTargetedExperiment irt_transitions = loadTransitionList(tr_type, irt_tr_file, tsv_reader_param);
 
       // If pasef flag is set, validate that IM is present
       if (pasef)

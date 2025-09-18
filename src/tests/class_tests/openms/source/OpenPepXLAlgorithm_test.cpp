@@ -39,7 +39,7 @@ START_SECTION(virtual ~OpenPepXLAlgorithm())
 }
 END_SECTION
 
-START_SECTION(ExitCodes run(PeakMap& unprocessed_spectra, ConsensusMap& cfeatures, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, std::vector< std::pair<Size, Size> >& spectrum_pairs, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra))
+START_SECTION(ExitCodes run(PeakMap& unprocessed_spectra, ConsensusMap& cfeatures, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, std::vector< std::pair<Size, Size> >& spectrum_pairs, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra))
 
 std::vector<FASTAFile::FASTAEntry> fasta_db;
 FASTAFile file;
@@ -61,7 +61,7 @@ cf.load(OPENMS_GET_TEST_DATA_PATH("OpenPepXL_input.consensusXML"), cfeatures);
 
 // initialize solution vectors
 vector<ProteinIdentification> protein_ids(1);
-vector<PeptideIdentification> peptide_ids;
+PeptideIdentificationList peptide_ids;
 
 OPXLDataStructs::PreprocessedPairSpectra preprocessed_pair_spectra(0);
 vector< pair<Size, Size> > spectrum_pairs;

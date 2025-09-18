@@ -357,7 +357,12 @@ namespace OpenMS
     }
 
     /**
-        @brief Sets the filters applied to the data before drawing (for the current layer)
+      @brief Sets filters, but does not repaint (useful when setting up a new layer)
+    */
+    virtual void initFilters(const DataFilters& filters);
+
+    /**
+        @brief Sets the filters applied to the data; and redraws
     */
     virtual void setFilters(const DataFilters& filters);
 
@@ -455,7 +460,7 @@ namespace OpenMS
 
         @return If a new layer was created
     */
-    bool addLayer(std::vector<PeptideIdentification>& peptides, const String& filename = "", const String& caption = "");
+    bool addLayer(PeptideIdentificationList& peptides, const String& filename = "", const String& caption = "");
 
     /// Returns the minimum intensity of the active layer
     inline float getCurrentMinIntensity() const

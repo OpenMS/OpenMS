@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 namespace OpenMS
 {
@@ -55,7 +56,7 @@ namespace OpenMS
     ConsensusIDAlgorithmSimilarity& operator=(const ConsensusIDAlgorithmSimilarity&);
 
     /// Consensus scoring
-    void apply_(std::vector<PeptideIdentification>& ids,
+    void apply_(PeptideIdentificationList& ids,
         const std::map<String, String>& se_info,
         SequenceGrouping& results) override;
   };

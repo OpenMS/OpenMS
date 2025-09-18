@@ -154,7 +154,7 @@ using namespace OpenMS;
     add_losses_ = param_.getValue("ions:neutral_losses").toString();
   }
 
-  OpenPepXLAlgorithm::ExitCodes OpenPepXLAlgorithm::run(PeakMap& unprocessed_spectra, ConsensusMap& cfeatures, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, std::vector< std::pair<Size, Size> >& spectrum_pairs, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra)
+  OpenPepXLAlgorithm::ExitCodes OpenPepXLAlgorithm::run(PeakMap& unprocessed_spectra, ConsensusMap& cfeatures, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, std::vector< std::pair<Size, Size> >& spectrum_pairs, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra)
   {
     ProgressLogger progresslogger;
     progresslogger.setLogType(this->getLogType());
@@ -246,7 +246,7 @@ using namespace OpenMS;
     idmapper.setParameters(p);
 
     progresslogger.startProgress(0, 1, "Map spectrum precursors to linked features...");
-    idmapper.annotate(cfeatures, vector<PeptideIdentification>(), vector<ProteinIdentification>(), true, true, spectra);
+    idmapper.annotate(cfeatures, PeptideIdentificationList(), vector<ProteinIdentification>(), true, true, spectra);
     progresslogger.endProgress();
 
     vector< double > spectrum_precursors;

@@ -169,10 +169,10 @@ namespace OpenMS
 
 
   void MapAlignmentTransformer::transformRetentionTimes(
-    vector<PeptideIdentification>& pep_ids,
+    PeptideIdentificationList& pep_ids,
     const TransformationDescription& trafo, bool store_original_rt)
   {
-    for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin();
+    for (PeptideIdentificationList::iterator pep_it = pep_ids.begin();
          pep_it != pep_ids.end(); ++pep_it)
     {
       if (pep_it->hasRT())

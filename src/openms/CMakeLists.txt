@@ -57,9 +57,10 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 # all the dependency libraries are linked into libOpenMS.so
 set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Eigen3::Eigen Qt6::Core Qt6::Network)
 
-## setup the argumentes to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
+## setup the arguments to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
 set(OPENMS_DEP_PRIVATE_LIBRARIES
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
+  $<$<BOOL:${WITH_PARQUET}>:Arrow::arrow_shared Parquet::parquet_shared>
   ${LPTARGET}
   BZip2::BZip2
   Boost::boost
@@ -72,8 +73,13 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   SQLiteCpp
   ZLIB::ZLIB
   nlohmann_json::nlohmann_json
-  tdl::tdl
   )
+if (ENABLE_TDL)
+set(OPENMS_DEP_PRIVATE_LIBRARIES
+    ${OPENMS_DEP_PRIVATE_LIBRARIES}
+    tdl::tdl
+    )
+endif()
 
 # Xerces requires linking against CoreFoundation&CoreServices on macOS
 # TODO check if this is still the case
@@ -113,6 +119,16 @@ if (MSVC)
   ## treat warning of unused local variable as error, similar to -Werror=unused-variable on GCC
   target_compile_options(OpenMS PRIVATE "/we4189")
 endif()
+
+if (ENABLE_TDL)
+    target_compile_definitions(OpenMS PUBLIC ENABLE_TDL)
+endif()
+
+# propagate Parquet support to the code (used to gate tools in ToolHandler, etc.)
+if (WITH_PARQUET)
+    target_compile_definitions(OpenMS PUBLIC WITH_PARQUET=1)
+endif()
+
 
 #------------------------------------------------------------------------------
 # since the share basically belongs to OpenMS core we control its installation

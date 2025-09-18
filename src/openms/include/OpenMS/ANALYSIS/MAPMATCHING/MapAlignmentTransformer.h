@@ -17,6 +17,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 namespace OpenMS
 {
@@ -49,7 +50,7 @@ namespace OpenMS
 
     /// Applies the given transformation to peptide identifications
     static void transformRetentionTimes(
-      std::vector<PeptideIdentification>& pep_ids,
+      PeptideIdentificationList& pep_ids,
       const TransformationDescription& trafo, bool store_original_rt = false);
 
     /// Applies the given transformation to input items in IdentificationData

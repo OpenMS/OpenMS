@@ -16,6 +16,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h> // for "StringList"
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <set>
 
@@ -143,7 +144,7 @@ public:
     void findMatches(std::multimap<double, ModificationDefinition>& matches, double mass, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY, bool consider_fixed = true, bool consider_variable = true, bool is_delta = true, double tolerance = 0.01) const;
 
     /// Infers the sets of defined modifications from the modifications present on peptide identifications
-    void inferFromPeptides(const std::vector<PeptideIdentification>& peptides);
+    void inferFromPeptides(const PeptideIdentificationList& peptides);
 
 protected:
 

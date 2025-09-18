@@ -33,7 +33,7 @@ namespace OpenMS
     }
   }
 
-  void SeedListGenerator::generateSeedList(vector<PeptideIdentification>&
+  void SeedListGenerator::generateSeedList(PeptideIdentificationList&
                                            peptides, SeedList& seeds,
                                            bool use_peptide_mass)
   {

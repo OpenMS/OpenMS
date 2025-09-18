@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <vector>
 
 namespace OpenMS
@@ -50,6 +51,6 @@ namespace OpenMS
                const String& label,
                const FeatureMap& feature_map,
                std::vector<ProteinIdentification>& prot_ids,
-               std::vector<PeptideIdentification>& pep_ids) const;
+               PeptideIdentificationList& pep_ids) const;
   };
 }

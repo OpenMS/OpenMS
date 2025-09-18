@@ -5,6 +5,7 @@ set(directory source/METADATA)
 set(sources_list
 AbsoluteQuantitationStandards.cpp
 Acquisition.cpp
+AnnotatedMSRun.cpp
 AcquisitionInfo.cpp
 CVTerm.cpp
 CVTermList.cpp
@@ -30,10 +31,12 @@ MetaInfoRegistry.cpp
 PeptideEvidence.cpp
 PeptideHit.cpp
 PeptideIdentification.cpp
+PeptideIdentificationList.cpp
 Precursor.cpp
 Product.cpp
 ProteinHit.cpp
 ProteinIdentification.cpp
+ProteinModificationSummary.cpp
 Sample.cpp
 ScanWindow.cpp
 Software.cpp

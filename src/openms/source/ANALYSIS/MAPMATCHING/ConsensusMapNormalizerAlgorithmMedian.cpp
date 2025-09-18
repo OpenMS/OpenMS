@@ -167,9 +167,9 @@ namespace OpenMS
     }
 
     const vector<ProteinIdentification>& prot_ids = map.getProteinIdentifications();
-    const vector<PeptideIdentification>& pep_ids = cf_it->getPeptideIdentifications();
+    const PeptideIdentificationList& pep_ids = cf_it->getPeptideIdentifications();
 
-    for (vector<PeptideIdentification>::const_iterator p_it = pep_ids.begin(); p_it != pep_ids.end(); ++p_it)
+    for (PeptideIdentificationList::const_iterator p_it = pep_ids.begin(); p_it != pep_ids.end(); ++p_it)
     {
       const vector<PeptideHit>& hits = p_it->getHits();
       for (vector<PeptideHit>::const_iterator h_it = hits.begin(); h_it != hits.end(); ++h_it)

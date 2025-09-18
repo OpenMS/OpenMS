@@ -10,6 +10,7 @@
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 
 namespace OpenMS
@@ -91,7 +92,7 @@ namespace OpenMS
     */
     virtual SearchEngineBase::ExitCodes reindex_(
       std::vector<ProteinIdentification>& protein_identifications, 
-      std::vector<PeptideIdentification>& peptide_identifications) const;
+      PeptideIdentificationList& peptide_identifications) const;
   }; // end SearchEngineBase
 
 }   // end NS OpenMS

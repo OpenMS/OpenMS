@@ -169,7 +169,7 @@ namespace OpenMS
 
   void PercolatorOutfile::load(const String& filename,
                                ProteinIdentification& proteins,
-                               vector<PeptideIdentification>& peptides,
+                               PeptideIdentificationList& peptides,
                                SpectrumMetaDataLookup& lookup,
                                enum ScoreType output_score)
   {

@@ -339,7 +339,7 @@ END_SECTION
 
 START_SECTION(File::download(std::string url, std::string filename))
 {
-  std::string url = R"(https://raw.githubusercontent.com/OpenMS/OpenMS/refs/heads/develop/README.md)";
+  std::string url = R"(http://raw.githubusercontent.com/OpenMS/OpenMS/refs/heads/develop/README.md)";
   std::string folder = File::getTempDirectory();
   File::download(url, folder);
   std::string output_file_path = folder + "/README.md";
