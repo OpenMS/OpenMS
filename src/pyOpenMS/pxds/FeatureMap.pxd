@@ -4,6 +4,7 @@ from MRMFeature cimport *
 from UniqueIdInterface cimport *
 from ProteinIdentification cimport *
 from PeptideIdentification cimport *
+from PeptideIdentificationList cimport *
 from DataProcessing cimport *
 from MetaInfoInterface cimport *
 from DocumentIdentifier cimport *
@@ -65,8 +66,8 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         libcpp_vector[ProteinIdentification] getProteinIdentifications() except + nogil
         void setProteinIdentifications(libcpp_vector[ProteinIdentification]) except + nogil # wrap-doc:Sets the protein identifications
 
-        libcpp_vector[PeptideIdentification] getUnassignedPeptideIdentifications() except + nogil
-        void setUnassignedPeptideIdentifications(libcpp_vector[PeptideIdentification]) except + nogil # wrap-doc:Sets the unassigned peptide identifications
+        PeptideIdentificationList getUnassignedPeptideIdentifications() except + nogil
+        void setUnassignedPeptideIdentifications(PeptideIdentificationList) except + nogil # wrap-doc:Sets the unassigned peptide identifications
 
         Size applyMemberFunction(Size(* fun)()) except + nogil # wrap-ignore
 

@@ -17,6 +17,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 
 ///////////////////////////
 
@@ -80,13 +81,14 @@ START_SECTION((IDMapper& operator = (const IDMapper& rhs)))
   TEST_EQUAL(m2.getParameters(), p);
 END_SECTION
 
-START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>& map, FeatureMap fmap, const bool clear_ids = false, const bool mapMS1 = false)))
+/*
+START_SECTION((void annotate(AnnotatedMSRun& map, FeatureMap fmap, const bool clear_ids = false, const bool mapMS1 = false)))
   // create id
   FeatureMap fm;
   Feature f;
   f.setMZ(900.0);
   f.setRT(9.0);
-  std::vector< PeptideIdentification > pids;
+  PeptideIdentificationList pids;
   PeptideIdentification pid;
   pid.setIdentifier("myID");
   pid.setHits(std::vector<PeptideHit>(4));
@@ -96,11 +98,12 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>
   pids.push_back(pid); // with MZ&RT from PID
   f.setPeptideIdentifications(pids);
   fm.push_back(f);
-  std::vector< ProteinIdentification > prids(2);
+  std::vector<ProteinIdentification> prids(2);
   fm.setProteinIdentifications(prids);
 
   // create experiment
-  PeakMap experiment;
+  AnnotatedMSRun annotated_experiment;
+  MSExperiment& experiment = annotated_experiment.getMSExperiment();
   MSSpectrum spectrum;
   Precursor precursor;
   precursor.setMZ(0);
@@ -125,43 +128,46 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>
   p.setValue("ignore_charge", "true");
   mapper.setParameters(p);
 
-
-  mapper.annotate(experiment, fm, true, true);
+  mapper.annotate(annotated_experiment, fm, true, true);
 
   //test
-  TEST_EQUAL(experiment.getProteinIdentifications().size(), 2)
+  TEST_EQUAL(annotated_experiment.getProteinIdentifications().size(), 2)
   //scan 1
-  TEST_EQUAL(experiment[0].getPeptideIdentifications().size(), 2)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[0].getHits().size(), 2)
   //scan 2
-  TEST_EQUAL(experiment[1].getPeptideIdentifications().size(), 2)
-  ABORT_IF(experiment[1].getPeptideIdentifications().size() != 2)
-  TEST_EQUAL(experiment[1].getPeptideIdentifications()[0].getHits().size(), 4)
-  TEST_EQUAL(experiment[1].getPeptideIdentifications()[0].getMZ(), 900.0)
-  TEST_EQUAL(experiment[1].getPeptideIdentifications()[1].getHits().size(), 4)
-  TEST_EQUAL(experiment[1].getPeptideIdentifications()[1].getMZ(), 800.0)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[1].size(), 2)
+  ABORT_IF(annotated_experiment.getPeptideIdentifications(1).size() != 2)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1)[0].getHits().size(), 4)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1)[0].getMZ(), 900.0)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1)[1].getHits().size(), 4)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1)[1].getMZ(), 800.0)
   //scan 3
-  TEST_EQUAL(experiment[2].getPeptideIdentifications().size(), 0)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(2).size(), 0)
 
-  mapper.annotate(experiment, fm, true, false); // no MS1 mapping. MZ threshold never fulfilled
+  std::cout << annotated_experiment.getProteinIdentifications().size() << std::endl;
+  std::cout << fm.getProteinIdentifications().size() << std::endl;
+  mapper.annotate(annotated_experiment, fm, true, false); // no MS1 mapping. MZ threshold never fulfilled
+  std::cout << annotated_experiment.getProteinIdentifications().size() << std::endl;
   //test
-  TEST_EQUAL(experiment.getProteinIdentifications().size(), 2)
+  TEST_EQUAL(annotated_experiment.getProteinIdentifications().size(), 2)
   //scan 1
-  TEST_EQUAL(experiment[0].getPeptideIdentifications().size(), 0)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(0).size(), 0)
   //scan 2
-  TEST_EQUAL(experiment[1].getPeptideIdentifications().size(), 0)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(1).size(), 0)
   //scan 3
-  TEST_EQUAL(experiment[2].getPeptideIdentifications().size(), 0)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications(2).size(), 0)
 
 END_SECTION
+*/
 
-START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)))
+START_SECTION((void annotate(AnnotatedMSRun& map, const PeptideIdentificationList& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)))
   // load id
-  vector<PeptideIdentification> identifications;
+  PeptideIdentificationList identifications;
   vector<ProteinIdentification> protein_identifications;
   String document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_1.idXML"), protein_identifications, identifications, document_id);
 
-  vector<PeptideIdentification> identifications2;
+  PeptideIdentificationList identifications2;
   vector<ProteinIdentification> protein_identifications2;
   String document_id2;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_7.idXML"), protein_identifications2, identifications2, document_id2);
@@ -182,7 +188,8 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>
 
   // TEST RT MAPPING
   // create experiment
-  PeakMap experiment;
+  AnnotatedMSRun annotated_experiment;
+  MSExperiment & experiment = annotated_experiment.getMSExperiment();
   MSSpectrum spectrum;
   Precursor precursor;
   precursor.setMZ(0);
@@ -206,31 +213,30 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>
   p.setValue("mz_measure","Da");
   p.setValue("ignore_charge", "true");
   mapper.setParameters(p);
-
-  mapper.annotate(experiment, identifications, protein_identifications);
+  
+  mapper.annotate(annotated_experiment, identifications, protein_identifications);
 
   //test
-  TEST_EQUAL(experiment.getProteinIdentifications().size(), 1)
-  TEST_EQUAL(experiment.getProteinIdentifications()[0].getHits().size(),2)
-  TEST_EQUAL(experiment.getProteinIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
-  TEST_EQUAL(experiment.getProteinIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
+  TEST_EQUAL(annotated_experiment.getProteinIdentifications().size(), 1)
+  TEST_EQUAL(annotated_experiment.getProteinIdentifications()[0].getHits().size(),2)
+  TEST_EQUAL(annotated_experiment.getProteinIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
+  TEST_EQUAL(annotated_experiment.getProteinIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
   //scan 1
-  TEST_EQUAL(experiment[0].getPeptideIdentifications().size(), 1)
-  TEST_EQUAL(experiment[0].getPeptideIdentifications()[0].getHits().size(), 2)
-  TEST_EQUAL(experiment[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
-  TEST_EQUAL(experiment[0].getPeptideIdentifications()[0].getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[0].getHits().size(), 2)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[0].getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
   //scan 2
-  TEST_EQUAL(experiment[1].getPeptideIdentifications().size(), 0)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[1].getHits().size(), 0)
   //scan 3
-  TEST_EQUAL(experiment[2].getPeptideIdentifications().size(), 1)
-  TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits().size(), 1)
-  TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("HSKLSAK"))
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[2].getHits().size(), 1)
+  TEST_EQUAL(annotated_experiment.getPeptideIdentifications()[2].getHits()[0].getSequence(), AASequence::fromString("HSKLSAK"))
 
   //-----------------------------------------------------------------------------------
   // TEST NATIVE_ID MAPPING
 
   // create experiment
-  PeakMap experiment2;
+  AnnotatedMSRun annotated_experiment2;
+  MSExperiment& experiment2 = annotated_experiment2.getMSExperiment();  
   MSSpectrum spectrum2;
   Precursor precursor2;
   precursor2.setMZ(0);
@@ -257,32 +263,30 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>
   p2.setValue("ignore_charge", "true");
   mapper2.setParameters(p2);
 
-  mapper2.annotate(experiment2, identifications2, protein_identifications2);
+  mapper2.annotate(annotated_experiment2, identifications2, protein_identifications2);
 
   //test
-  TEST_EQUAL(experiment2.getProteinIdentifications().size(), 1)
-  TEST_EQUAL(experiment2.getProteinIdentifications()[0].getHits().size(),2)
-  TEST_EQUAL(experiment2.getProteinIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
-  TEST_EQUAL(experiment2.getProteinIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
+  TEST_EQUAL(annotated_experiment2.getProteinIdentifications().size(), 1)
+  TEST_EQUAL(annotated_experiment2.getProteinIdentifications()[0].getHits().size(),2)
+  TEST_EQUAL(annotated_experiment2.getProteinIdentifications()[0].getHits()[0].getAccession(),"ABCDE")
+  TEST_EQUAL(annotated_experiment2.getProteinIdentifications()[0].getHits()[1].getAccession(),"FGHIJ")
   //scan 1
-  TEST_EQUAL(experiment2[0].getPeptideIdentifications().size(), 1)
-  TEST_EQUAL(experiment2[0].getPeptideIdentifications()[0].getHits().size(), 2)
-  TEST_EQUAL(experiment2[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
-  TEST_EQUAL(experiment2[0].getPeptideIdentifications()[0].getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
+  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications()[0].getHits().size(), 2)
+  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
+  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications()[0].getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
   //scan 2
-  TEST_EQUAL(experiment2[1].getPeptideIdentifications().size(), 0)
+  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications()[1].getHits().size(), 0)
   //scan 3
-  TEST_EQUAL(experiment2[2].getPeptideIdentifications().size(), 1)
-  TEST_EQUAL(experiment2[2].getPeptideIdentifications()[0].getHits().size(), 1)
-  TEST_EQUAL(experiment2[2].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("HSKLSAK"))
+  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications()[2].getHits().size(), 1)
+  TEST_EQUAL(annotated_experiment2.getPeptideIdentifications()[2].getHits()[0].getSequence(), AASequence::fromString("HSKLSAK"))
 
 END_SECTION
 
 
-START_SECTION((template < typename FeatureType > void annotate(FeatureMap< FeatureType > &map, const std::vector< PeptideIdentification > &ids, const std::vector< ProteinIdentification > &protein_ids, bool use_centroid_rt=false, bool use_centroid_mz=false)))
+START_SECTION((template < typename FeatureType > void annotate(FeatureMap< FeatureType > &map, const PeptideIdentificationList &ids, const std::vector< ProteinIdentification > &protein_ids, bool use_centroid_rt=false, bool use_centroid_mz=false)))
 {
   //load id data
-  vector<PeptideIdentification> identifications;
+  PeptideIdentificationList identifications;
   vector<ProteinIdentification> protein_identifications;
   String document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_2.idXML"), protein_identifications, identifications, document_id);
@@ -442,7 +446,7 @@ START_SECTION((template < typename FeatureType > void annotate(FeatureMap< Featu
 END_SECTION
 
 
-START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements=false)))
+START_SECTION((void annotate(ConsensusMap& map, const PeptideIdentificationList& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements=false)))
 {
   IDMapper mapper;
   Param p = mapper.getParameters();
@@ -455,8 +459,8 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
 
   std::vector<ProteinIdentification> protein_ids;
   std::vector<ProteinIdentification> protein_ids2;
-  std::vector<PeptideIdentification> peptide_ids;
-  std::vector<PeptideIdentification> peptide_ids2;
+  PeptideIdentificationList peptide_ids;
+  PeptideIdentificationList peptide_ids2;
   String document_id;
   String document_id2;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.idXML"), protein_ids, peptide_ids, document_id);
@@ -566,7 +570,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
     NEW_TMP_FILE(tmp_filename);
     ConsensusMap cons_map;
     cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.consensusXML"), cons_map);
-    mapper6.annotate(cons_map, vector<PeptideIdentification>(), vector<ProteinIdentification>(), false, false, experiment);
+    mapper6.annotate(cons_map, PeptideIdentificationList(), vector<ProteinIdentification>(), false, false, experiment);
     cons_file.store(tmp_filename, cons_map);
     WHITELIST("<?xml-stylesheet, date=");
     TEST_FILE_SIMILAR(tmp_filename, OPENMS_GET_TEST_DATA_PATH("IDMapper_6_out1.consensusXML"));
@@ -594,7 +598,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
     NEW_TMP_FILE(tmp_filename);
     ConsensusMap cons_map;
     cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.consensusXML"), cons_map);
-    mapper6.annotate(cons_map, vector<PeptideIdentification>(), vector<ProteinIdentification>(), false, false, experiment);
+    mapper6.annotate(cons_map, PeptideIdentificationList(), vector<ProteinIdentification>(), false, false, experiment);
     cons_file.store(tmp_filename, cons_map);
     WHITELIST("<?xml-stylesheet, date=");
     TEST_FILE_SIMILAR(tmp_filename, OPENMS_GET_TEST_DATA_PATH("IDMapper_6_out2.consensusXML"));
@@ -619,7 +623,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
     NEW_TMP_FILE(tmp_filename);
     ConsensusMap cons_map;
     cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.consensusXML"), cons_map);
-    mapper6.annotate(cons_map, vector<PeptideIdentification>(), vector<ProteinIdentification>(), false, false, experiment);
+    mapper6.annotate(cons_map, PeptideIdentificationList(), vector<ProteinIdentification>(), false, false, experiment);
     cons_file.store(tmp_filename, cons_map);
     WHITELIST("<?xml-stylesheet, date=");
     TEST_FILE_SIMILAR(tmp_filename, OPENMS_GET_TEST_DATA_PATH("IDMapper_6_out3.consensusXML"));

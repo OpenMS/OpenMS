@@ -1,0 +1,12 @@
+name: Feature Request
+description: Suggest an idea for this project
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: enhancement
+    attributes:
+      label: Enhancement Description
+      description: Please describe the feature you would like added to OpenMS.
+    validations:
+      required: true

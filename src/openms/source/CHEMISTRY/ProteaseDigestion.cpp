@@ -89,6 +89,14 @@ namespace OpenMS
     // initialization
     output.clear();
 
+    // verify if currently set specificity is supported
+    if (! (specificity_ == Specificity::SPEC_FULL ||
+           specificity_ == Specificity::SPEC_SEMI))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        String("Specificity value set on current ProteaseDigestion object is not supported by ProteaseDigestion::digest()."), String(specificity_));
+    }
+
     // disable max length filter by setting to maximum length
     if (max_length == 0 || max_length > protein.size())
     {
@@ -139,6 +147,13 @@ namespace OpenMS
         }
       }
     }
+
+    // semi-specific variants
+    if (specificity_ == SPEC_SEMI)
+    {
+      wrong_size = wrong_size + semiSpecificDigestion_(pep_positions, output, min_length, max_length);
+    }
+
     return wrong_size;
   }
 

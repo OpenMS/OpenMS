@@ -21,7 +21,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OpenPepXLLFAlgorithm.h>" namespace "Open
         OpenPepXLLFAlgorithm_ExitCodes run(MSExperiment& unprocessed_spectra,
                                            libcpp_vector[ FASTAEntry ]& fasta_db,
                                            libcpp_vector[ ProteinIdentification ]& protein_ids,
-                                           libcpp_vector[ PeptideIdentification ]& peptide_ids,
+                                           PeptideIdentificationList& peptide_ids,
                                            libcpp_vector[ libcpp_vector[ CrossLinkSpectrumMatch ] ]& all_top_csms,
                                            MSExperiment& spectra) except + nogil 
             # wrap-doc:

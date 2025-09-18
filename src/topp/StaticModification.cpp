@@ -155,7 +155,7 @@ protected:
 
     // load data
     std::vector<ProteinIdentification> prot_ids;
-    std::vector<PeptideIdentification> pep_ids;
+    PeptideIdentificationList pep_ids;
     FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
     
     // apply mod to all PeptideHits

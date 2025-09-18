@@ -89,7 +89,7 @@ set(VARS_TO_LOAD
   "ENABLE_TOPP_TESTING"
   "ENABLE_PIPELINE_TESTING"
   "ENABLE_DOCS"
-  "ENABLE_CWL"
+  "ENABLE_CWL_GENERATION"
   "ENABLE_TUTORIALS"
   "ENABLE_UPDATE_CHECK"
   "MT_ENABLE_OPENMP"
@@ -106,7 +106,10 @@ set(VARS_TO_LOAD
   "Python_ROOT_DIR"
   "Python_FIND_STRATEGY"
   "WITH_GUI"
+  "WITH_PARQUET"
   "WITH_THERMORAWFILEPARSER_TEST"
+  "COMPILE_PXDS"
+  "USE_EXTERNAL_JSON"
  )
 
 message("tools/ci/cibuild.cmake: Loading the following vars from ENV if available: ${VARS_TO_LOAD}")
@@ -131,6 +134,7 @@ SEARCH_ENGINES_DIRECTORY=$ENV{SEARCH_ENGINES_DIRECTORY}
 ENABLE_TUTORIALS=Off
 ENABLE_GCC_WERROR=Off
 PYOPENMS=$ENV{PYOPENMS}
+COMPILE_PXDS=$ENV{COMPILE_PXDS}
 MT_ENABLE_OPENMP=$ENV{OPENMP}
 PYTHON_EXECUTABLE:FILEPATH=$ENV{PYTHON_EXE}
 PY_NUM_THREADS=4
@@ -177,18 +181,28 @@ endif()
 
 # we only build when we do non-style testing and we may have special targets like pyopenms
 if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
+  ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
+
   if("$ENV{PYOPENMS}" STREQUAL "ON")
-    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "pyopenms" NUMBER_ERRORS _build_errors)
-    # Generate and valdiate the CWL files if "ENABLE_CWL" is set
-  else()
-    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
+    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "pyopenms" NUMBER_ERRORS _py_build_errors)
+    math(EXPR _build_errors "${_build_errors} + ${_py_build_errors}")
   endif()
-  if("$ENV{ENABLE_CWL}" STREQUAL "ON")
-  ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "generate_cwl_files" NUMBER_ERRORS _build_errors)
+
+  # Only build compile_pxds if PYOPENMS is not ON (since it's already a subtarget of pyopenms)
+  if("$ENV{COMPILE_PXDS}" STREQUAL "ON" AND "$ENV{PYOPENMS}" STREQUAL "OFF")
+    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "compile_pxds" NUMBER_ERRORS _pdxs_build_errors)
+    math(EXPR _build_errors "${_build_errors} + ${_pdxs_build_errors}")
+  endif()
+
+  # Generate and validate the CWL files if "ENABLE_CWL_GENERATION" is set
+  if("$ENV{ENABLE_CWL_GENERATION}" STREQUAL "ON")
+    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "generate_cwl_files" NUMBER_ERRORS _cwl_build_errors)
+    math(EXPR _build_errors "${_build_errors} + ${_cwl_build_errors}")
   endif()
 else()
   set(_build_errors 0)
 endif()
+
 ## send test results to CDash
 ctest_submit(PARTS Build CAPTURE_CMAKE_ERROR _submit_result)
 

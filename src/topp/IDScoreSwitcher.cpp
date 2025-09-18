@@ -71,7 +71,7 @@ protected:
     bool do_proteins_ = getFlag_("proteins"); // from full param of IDScoreSwitcherAlgorithm
 
     vector<ProteinIdentification> proteins;
-    vector<PeptideIdentification> peptides;
+    PeptideIdentificationList peptides;
 
     FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML});
 

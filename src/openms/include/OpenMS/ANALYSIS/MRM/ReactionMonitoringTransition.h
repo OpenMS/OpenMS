@@ -256,10 +256,7 @@ public:
     /// Comparator by Product ion MZ
     struct ProductMZLess
     {
-      inline bool operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const
-      {
-        return left.getProductMZ() < right.getProductMZ();
-      }
+      bool operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const;
     };
     //@}
 
@@ -271,10 +268,7 @@ public:
     /// Comparator by name
     struct NameLess
     {
-      inline bool operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const
-      {
-        return left.getName() < right.getName();
-      }
+      bool operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const;
     };
     //@}
 

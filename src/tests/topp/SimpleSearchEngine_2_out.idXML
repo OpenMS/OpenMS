@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/workspace/OpenMS/src/tests/topp/SimpleSearchEngine_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="10" peak_mass_tolerance_ppm="true" >
+	<SearchParameters id="SP_0" db="/home/sachsenb/Development/OpenMS/src/tests/topp/SimpleSearchEngine_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="10" peak_mass_tolerance_ppm="true" >
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Oxidation (M)" />
-				<UserParam type="string" name="extra_features" value="score,fragment_mz_error_median_ppm,matched_prefix_ions_fraction,matched_suffix_ions_fraction"/>
+				<UserParam type="string" name="extra_features" value="score,isotope_error,fragment_mz_error_median_ppm,matched_prefix_ions_fraction,matched_suffix_ions_fraction"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2021-06-01T13:53:16" search_engine="SimpleSearchEngine" search_engine_version="2.6.0-pre-feature-SSE-extra-features-2021-05-20" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2025-01-21T14:31:29" search_engine="SimpleSearchEngine" search_engine_version="3.4.0-pre-nuxl-to-dev-2025-01-21" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="test2_rev" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -23,6 +23,7 @@
 		</ProteinIdentification>
 		<PeptideIdentification score_type="ln(hyperscore)" higher_score_better="true" significance_threshold="0.0" MZ="520.262817382812045" RT="2655.095703125" spectrum_reference="spectrum=0" >
 			<PeptideHit score="16.841633986596268" sequence="DFASSGGYVLHLHR" charge="3" aa_before="[" aa_after="E" start="0" end="13" protein_refs="PH_0" >
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.731785331544976"/>
 				<UserParam type="float" name="precursor_mz_error_ppm" value="-1.415652739967919"/>
 				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.142857142857143"/>
@@ -34,6 +35,7 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="ln(hyperscore)" higher_score_better="true" significance_threshold="0.0" MZ="1063.209838867190001" RT="4587.6689453125" spectrum_reference="spectrum=1" >
 			<PeptideHit score="42.21834054663703" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="[" aa_after="E" start="0" end="27" protein_refs="PH_1" >
+				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.303180368382511"/>
 				<UserParam type="float" name="precursor_mz_error_ppm" value="0.532776127422444"/>
 				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.392857142857143"/>
@@ -45,8 +47,9 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="ln(hyperscore)" higher_score_better="true" significance_threshold="0.0" MZ="775.38720703125" RT="4923.77734375" spectrum_reference="spectrum=2" >
 			<PeptideHit score="34.936662112839578" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" aa_before="[" aa_after="A" start="0" end="22" protein_refs="PH_2" >
-				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.389253520419108"/>
-				<UserParam type="float" name="precursor_mz_error_ppm" value="2.251259147054209"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
+				<UserParam type="float" name="fragment_mz_error_median_ppm" value="1.389253520212976"/>
+				<UserParam type="float" name="precursor_mz_error_ppm" value="2.251259146760969"/>
 				<UserParam type="float" name="matched_prefix_ions_fraction" value="0.391304347826087"/>
 				<UserParam type="float" name="matched_suffix_ions_fraction" value="0.521739130434783"/>
 				<UserParam type="string" name="target_decoy" value="target"/>

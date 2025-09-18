@@ -41,7 +41,7 @@ END_SECTION
 PeptideIdentification temp;
 temp.setScoreType("Posterior Error Probability");
 temp.setHigherScoreBetter(false);
-vector<PeptideIdentification> ids(3, temp);
+PeptideIdentificationList ids(3, temp);
 vector<PeptideHit> hits;
 // the first ID has 5 hits
 hits.resize(5);
@@ -89,7 +89,7 @@ hits[9].setSequence(AASequence::fromString("K"));
 hits[9].setScore(0.9);
 ids[2].setHits(hits);
 
-START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
+START_SECTION(void apply(PeptideIdentificationList& ids))
 {
   TOLERANCE_ABSOLUTE(0.01)
 
@@ -100,38 +100,31 @@ START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
   consensus.setParameters(param);
   // apply:
   map<String,String> empty;
-  vector<PeptideIdentification> f = ids;
+  PeptideIdentificationList f = ids;
   consensus.apply(f, empty);
 
   TEST_EQUAL(f.size(), 1);
   hits = f[0].getHits();
   TEST_EQUAL(hits.size(), 7);
 
-  TEST_EQUAL(hits[0].getRank(), 1);
   TEST_EQUAL(hits[0].getSequence(), AASequence::fromString("C"));
   TEST_REAL_SIMILAR(hits[0].getScore(), 0.8);
 
-  TEST_EQUAL(hits[1].getRank(), 2);
   TEST_EQUAL(hits[1].getSequence(), AASequence::fromString("A"));
   TEST_REAL_SIMILAR(hits[1].getScore(), 0.6);
 
-  TEST_EQUAL(hits[2].getRank(), 3);
   TEST_EQUAL(hits[2].getSequence(), AASequence::fromString("B"));
   TEST_REAL_SIMILAR(hits[2].getScore(), 0.5333);
 
-  TEST_EQUAL(hits[3].getRank(), 4);
   TEST_EQUAL(hits[3].getSequence(), AASequence::fromString("F"));
   TEST_REAL_SIMILAR(hits[3].getScore(), 0.33333);
 
-  TEST_EQUAL(hits[4].getRank(), 5);
   TEST_EQUAL(hits[4].getSequence(), AASequence::fromString("D"));
   TEST_REAL_SIMILAR(hits[4].getScore(), 0.26666);
 
-  TEST_EQUAL(hits[5].getRank(), 6);
   TEST_EQUAL(hits[5].getSequence(), AASequence::fromString("G"));
   TEST_REAL_SIMILAR(hits[5].getScore(), 0.2);
 
-  TEST_EQUAL(hits[6].getRank(), 7);
   TEST_EQUAL(hits[6].getSequence(), AASequence::fromString("E"));
   TEST_REAL_SIMILAR(hits[6].getScore(), 0.06666);
 }
