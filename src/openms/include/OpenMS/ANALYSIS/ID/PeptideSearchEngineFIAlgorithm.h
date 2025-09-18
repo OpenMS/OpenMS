@@ -35,6 +35,20 @@ namespace OpenMS
   - Used by the PeptideDataBaseSearchFI TOPP tool
   - Experimental; interfaces and behavior may change
 */
+/**
+  @brief Fragment-index-based peptide database search algorithm (experimental).
+
+  Provides a self-contained search engine that matches MS/MS spectra against a protein
+  database using an FI (Fragment Index). Typical usage:
+  - Configure parameters via DefaultParamHandler (mass tolerances, enzyme, charges, etc.)
+  - Call search() with an input mzML file and a FASTA database to populate identification
+    outputs (ProteinIdentification and PeptideIdentificationList)
+  - Intended for educational/prototyping use and to demonstrate FI-backed searching
+
+  Notes:
+  - Used by the PeptideDataBaseSearchFI TOPP tool
+  - Experimental; interfaces and behavior may change
+*/
 class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
   public DefaultParamHandler,
   public ProgressLogger
@@ -132,7 +146,12 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
       std::vector<std::vector<PeptideSearchEngineFIAlgorithm::AnnotatedHit_> >& annotated_hits,
       std::vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids,
+      /* TODO check if ok if unused
       Size top_hits,
+      const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
+      const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,
+      */
+      Size max_variable_mods_per_peptide,
       const StringList& modifications_fixed,
       const StringList& modifications_variable,
       Int peptide_missed_cleavages,
