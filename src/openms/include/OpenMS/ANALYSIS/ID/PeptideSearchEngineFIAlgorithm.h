@@ -6,9 +6,10 @@
 // $Authors: Raphael Förster $
 // --------------------------------------------------------------------------
 
+#pragma once
+
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-
 
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -20,12 +21,12 @@
 namespace OpenMS
 {
 
-class OPENMS_DLLAPI PeptideSearchEngineAlgorithm :
+class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
   public DefaultParamHandler,
   public ProgressLogger
 {
   public:
-    PeptideSearchEngineAlgorithm(); 
+    PeptideSearchEngineFIAlgorithm(); 
 
     /// Exit codes
     enum class ExitCodes
@@ -72,7 +73,7 @@ class OPENMS_DLLAPI PeptideSearchEngineAlgorithm :
     /// @brief filter and annotate search results
     /// most of the parameters are used to properly add meta data to the id objects
     void postProcessHits_(const PeakMap& exp,
-      std::vector<std::vector<PeptideSearchEngineAlgorithm::AnnotatedHit_> >& annotated_hits,
+      std::vector<std::vector<PeptideSearchEngineFIAlgorithm::AnnotatedHit_> >& annotated_hits,
       std::vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids,
       /* TODO check if ok if unused
@@ -127,4 +128,3 @@ class OPENMS_DLLAPI PeptideSearchEngineAlgorithm :
 };
 
 } // namespace
-

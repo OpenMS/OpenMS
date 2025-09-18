@@ -6,7 +6,7 @@
 // $Authors:  $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/ID/PeptideSearchEngineAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -23,34 +23,14 @@ using namespace std;
 //Doxygen docu
 //-------------------------------------------------------------
 
-/**
-    @page TOPP_PeptideSearchEngine PeptideSearchEngine
+/*
+  DEPRECATED TOOL STUB
 
-    @brief Identifies peptides in MS/MS spectra.
+  The PeptideSearchEngine TOPP tool has been renamed to PeptideDataBaseSearchFI.
+  This file remains only as a placeholder to avoid accidental reintroduction and
+  to prevent obsolete Doxygen pages from being generated.
 
-<CENTER>
-    <table>
-        <tr>
-            <th ALIGN = "center"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> &rarr; PeptideSearchEngine &rarr;</td>
-            <th ALIGN = "center"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
-        </tr>
-    </table>
-</CENTER>
-
-    @em This search engine is mainly for educational/benchmarking/prototyping use cases.
-    It lacks behind in speed and/or quality of results when compared to state-of-the-art search engines.
-
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
-
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_PeptideSearchEngine.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_PeptideSearchEngine.html
+  Please use @ref TOPP_PeptideDataBaseSearchFI instead.
 */
 
 // We do not want this class to show up in the docu:
@@ -83,7 +63,7 @@ class PeptideSearchEngine :
 
       // put search algorithm parameters at Search: subtree of parameters
       Param search_algo_params_with_subsection;
-      search_algo_params_with_subsection.insert("Search:", PeptideSearchEngineAlgorithm().getDefaults());
+      search_algo_params_with_subsection.insert("Search:", PeptideSearchEngineFIAlgorithm().getDefaults());
       registerFullParam_(search_algo_params_with_subsection);
     }
 
@@ -99,11 +79,11 @@ class PeptideSearchEngine :
       vector<ProteinIdentification> protein_ids;
       PeptideIdentificationList peptide_ids;
 
-      PeptideSearchEngineAlgorithm sse;
+      PeptideSearchEngineFIAlgorithm sse;
       sse.setParameters(getParam_().copy("Search:", true));
       // map algorithm exit code to application exit code
-      PeptideSearchEngineAlgorithm::ExitCodes e = sse.search(in, database, protein_ids, peptide_ids);
-      if (e != PeptideSearchEngineAlgorithm::ExitCodes::EXECUTION_OK)
+      PeptideSearchEngineFIAlgorithm::ExitCodes e = sse.search(in, database, protein_ids, peptide_ids);
+      if (e != PeptideSearchEngineFIAlgorithm::ExitCodes::EXECUTION_OK)
       {
         return TOPPBase::ExitCodes::INTERNAL_ERROR;
       }

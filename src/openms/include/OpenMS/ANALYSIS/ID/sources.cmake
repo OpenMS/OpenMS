@@ -34,7 +34,7 @@ IDScoreSwitcherAlgorithm.h
 IonIdentityMolecularNetworking.h
 MessagePasserFactory.h
 MetaboliteSpectralMatching.h
-PeptideSearchEngineAlgorithm.h
+PeptideSearchEngineFIAlgorithm.h
 MorpheusScore.h
 NeighborSeq.h
 PeptideIndexing.h

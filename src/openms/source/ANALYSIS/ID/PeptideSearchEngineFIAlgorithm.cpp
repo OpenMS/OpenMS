@@ -6,9 +6,10 @@
 // $Authors: Raphael Förster $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/PeptideSearchEngineFIAlgorithm.h>
+
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
-#include <OpenMS/ANALYSIS/ID/PeptideSearchEngineAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/HyperScore.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -47,8 +48,8 @@ using namespace std;
 
 namespace OpenMS
 {
-  PeptideSearchEngineAlgorithm::PeptideSearchEngineAlgorithm() :
-    DefaultParamHandler("PeptideSearchEngineAlgorithm"),
+  PeptideSearchEngineFIAlgorithm::PeptideSearchEngineFIAlgorithm() :
+    DefaultParamHandler("PeptideSearchEngineFIAlgorithm"),
     ProgressLogger()
   {
     defaults_.setValue("precursor:mass_tolerance", 10.0, "+/- tolerance for precursor mass.");
@@ -155,7 +156,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void PeptideSearchEngineAlgorithm::updateMembers_()
+  void PeptideSearchEngineFIAlgorithm::updateMembers_()
   {
     precursor_mass_tolerance_ = param_.getValue("precursor:mass_tolerance");
     precursor_mass_tolerance_unit_ = param_.getValue("precursor:mass_tolerance_unit").toString();
@@ -202,7 +203,7 @@ namespace OpenMS
   }
 
   // static
-  void PeptideSearchEngineAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
+  void PeptideSearchEngineFIAlgorithm::preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -248,25 +249,25 @@ namespace OpenMS
     }
   }
 
-void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
-      std::vector<std::vector<PeptideSearchEngineAlgorithm::AnnotatedHit_> >& annotated_hits,
-      std::vector<ProteinIdentification>& protein_ids,
-      PeptideIdentificationList& peptide_ids,
-      Size top_hits,
-//      const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
-//      const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,
-//      Size max_variable_mods_per_peptide, TODO: what about this parameter?
-      const StringList& modifications_fixed,
-      const StringList& modifications_variable,
-      Int peptide_missed_cleavages,
-      double precursor_mass_tolerance,
-      double fragment_mass_tolerance,
-      const String& precursor_mass_tolerance_unit_ppm,
-      const String& fragment_mass_tolerance_unit_ppm,
-      const Int precursor_min_charge,
-      const Int precursor_max_charge,
-      const String& enzyme,
-      const String& database_name) const
+  void PeptideSearchEngineFIAlgorithm::postProcessHits_(const PeakMap& exp,
+        std::vector<std::vector<PeptideSearchEngineFIAlgorithm::AnnotatedHit_> >& annotated_hits,
+        std::vector<ProteinIdentification>& protein_ids,
+        PeptideIdentificationList& peptide_ids,
+        Size top_hits,
+  //      const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
+  //      const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,
+  //      Size max_variable_mods_per_peptide, TODO: what about this parameter?
+        const StringList& modifications_fixed,
+        const StringList& modifications_variable,
+        Int peptide_missed_cleavages,
+        double precursor_mass_tolerance,
+        double fragment_mass_tolerance,
+        const String& precursor_mass_tolerance_unit_ppm,
+        const String& fragment_mass_tolerance_unit_ppm,
+        const Int precursor_min_charge,
+        const Int precursor_max_charge,
+        const String& enzyme,
+        const String& database_name) const
   {
     // remove all but top n scoring TODO: use two parameters to distinguish between number of reported peptides and number of pre-scored peptides
 #pragma omp parallel for default(none) shared(annotated_hits, top_hits)
@@ -392,11 +393,11 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     // protein identifications (leave as is...)
     protein_ids = vector<ProteinIdentification>(1);
     protein_ids[0].setDateTime(DateTime::now());
-    protein_ids[0].setSearchEngine("PeptideSearchEngine");
+    protein_ids[0].setSearchEngine("PeptideDataBaseSearchFI");
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
 
     DateTime now = DateTime::now();
-    String identifier("PSE_" + now.get());
+    String identifier("PDBSFI_" + now.get());
     protein_ids[0].setIdentifier(identifier);
     for (auto & pid : peptide_ids) { pid.setIdentifier(identifier); }
 
@@ -427,7 +428,7 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     protein_ids[0].setSearchParameters(std::move(search_parameters));
   }
 
-  PeptideSearchEngineAlgorithm::ExitCodes PeptideSearchEngineAlgorithm::search(const String& in_mzML, const String& in_db, vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) const
+  PeptideSearchEngineFIAlgorithm::ExitCodes PeptideSearchEngineFIAlgorithm::search(const String& in_mzML, const String& in_db, vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) const
   {
     bool precursor_mass_tolerance_unit_ppm = (precursor_mass_tolerance_unit_ == "ppm");
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
@@ -572,7 +573,7 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
 
     startProgress(0, 1, "Post-processing PSMs...");
-    PeptideSearchEngineAlgorithm::postProcessHits_(spectra, 
+    PeptideSearchEngineFIAlgorithm::postProcessHits_(spectra, 
       annotated_hits, 
       protein_ids, 
       peptide_ids, 
@@ -630,4 +631,3 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
   }
 
 } // namespace OpenMS
-

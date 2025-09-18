@@ -37,7 +37,7 @@ MetaboliteSpectralMatching.cpp
 MorpheusScore.cpp
 NeighborSeq.cpp
 PeptideProteinResolution.cpp
-PeptideSearchEngineAlgorithm.cpp
+PeptideSearchEngineFIAlgorithm.cpp
 PeptideIndexing.cpp
 PercolatorFeatureSetHelper.cpp
 PrecursorPurity.cpp
