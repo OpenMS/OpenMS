@@ -326,7 +326,8 @@ namespace OpenMS
             TheoreticalSpectrumGenerator tsg;
             vector<pair<Size, Size> > alignment;
             MSSpectrum theoretical_spec;
-            tsg.getSpectrum(theoretical_spec, ah.sequence, 1, std::min((int)charge - 1, 2));
+            const int max_frag_z = (charge >= 2) ? std::min<int>(charge - 1, 2) : 1;
+            tsg.getSpectrum(theoretical_spec, ah.sequence, 1, max_frag_z);
             SpectrumAlignment sa;
             sa.getSpectrumAlignment(alignment, theoretical_spec, spec);
 
