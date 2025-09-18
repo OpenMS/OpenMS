@@ -34,14 +34,14 @@ namespace OpenMS
   {
   }
 
-  void IdXMLFile::load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids)
+  void IdXMLFile::load(const String& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids)
   {
     String document_id;
     load(filename, protein_ids, peptide_ids, document_id);
   }
 
   void IdXMLFile::load(const String& filename, std::vector<ProteinIdentification>& protein_ids,
-                       std::vector<PeptideIdentification>& peptide_ids, String& document_id)
+                       PeptideIdentificationList& peptide_ids, String& document_id)
   {
     startProgress(0, 0, "Loading idXML");
     //Filename for error messages in XMLHandler
@@ -72,7 +72,7 @@ namespace OpenMS
     endProgress();
   }
 
-  void IdXMLFile::store(const String& filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& document_id)
+  void IdXMLFile::store(const String& filename, const std::vector<ProteinIdentification>& protein_ids, const PeptideIdentificationList& peptide_ids, const String& document_id)
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::IDXML))
     {

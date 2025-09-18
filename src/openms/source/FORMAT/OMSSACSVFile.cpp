@@ -19,7 +19,7 @@ namespace OpenMS
 
   OMSSACSVFile::~OMSSACSVFile() = default;
 
-  void OMSSACSVFile::load(const String & filename, ProteinIdentification & /* protein_identification */, vector<PeptideIdentification> & id_data) const
+  void OMSSACSVFile::load(const String & filename, ProteinIdentification & /* protein_identification */, PeptideIdentificationList & id_data) const
   {
     ifstream is(filename.c_str());
     if (!is)

@@ -26,7 +26,7 @@ namespace OpenMS
 
   XTandemXMLFile::~XTandemXMLFile() = default;
 
-  void XTandemXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_ids, ModificationDefinitionsSet& mod_def_set)
+  void XTandemXMLFile::load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& peptide_ids, ModificationDefinitionsSet& mod_def_set)
   {
     // File name for error message in XMLHandler
     file_ = filename;
@@ -60,7 +60,7 @@ namespace OpenMS
       id.setSpectrumReference( spectrum_ids_[it->first]);
 
       id.getHits().swap(it->second);
-      id.assignRanks();
+      id.sort();
       peptide_ids.push_back(id);
     }
 
@@ -68,7 +68,7 @@ namespace OpenMS
 
     // E-values
     protein_identification.setHigherScoreBetter(false);
-    protein_identification.assignRanks();
+    protein_identification.sort();
     protein_identification.setScoreType("XTandem");
     protein_identification.setSearchEngine("XTandem");
 

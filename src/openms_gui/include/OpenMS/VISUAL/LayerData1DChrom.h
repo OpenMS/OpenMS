@@ -31,7 +31,7 @@ namespace OpenMS
 
     bool hasIndex(Size index) const override
     {
-      return index < chromatogram_map_->getNrChromatograms();
+      return index < chromatogram_map_->getMSExperiment().getNrChromatograms();
     }
 
     RangeAllType getRangeForArea(const RangeAllType partial_range) const override

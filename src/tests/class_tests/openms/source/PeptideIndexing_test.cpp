@@ -31,9 +31,9 @@ std::vector<FASTAFile::FASTAEntry> toFASTAVec(const QStringList& sl_prot, const 
 }
 
 
-std::vector<PeptideIdentification> toPepVec(const QStringList& sl_pep)
+PeptideIdentificationList toPepVec(const QStringList& sl_pep)
 {
-  std::vector<PeptideIdentification> pep_vec;
+  PeptideIdentificationList pep_vec;
   for (int i = 0; i < sl_pep.size(); ++i)
   {
     PeptideHit hit;
@@ -68,7 +68,7 @@ START_SECTION(virtual ~PeptideIndexing())
 END_SECTION
 
 
-START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)))
+START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids)))
 {
   // regression test: https://github.com/OpenMS/OpenMS/issues/3447
   {
@@ -78,7 +78,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
     indexer.setParameters(p);
     std::vector<FASTAFile::FASTAEntry> proteins = toFASTAVec(QStringList() << "AAAKEEEKTTTK");
     std::vector<ProteinIdentification> prot_ids;
-    std::vector<PeptideIdentification> pep_ids = toPepVec(QStringList() << "EEEK(Label:13C(6))");
+    PeptideIdentificationList pep_ids = toPepVec(QStringList() << "EEEK(Label:13C(6))");
     indexer.run(proteins, prot_ids, pep_ids);
     TEST_EQUAL(pep_ids[0].getHits()[0].extractProteinAccessionsSet().size(), 1); // one exact hit
     indexer.run(proteins, prot_ids, pep_ids);
@@ -92,7 +92,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   // easy case:
   std::vector<FASTAFile::FASTAEntry> proteins = toFASTAVec(QStringList() << "*MLT*EAXK"); // 1 X!!  ; extra * chars (should be ignored)
   std::vector<ProteinIdentification> prot_ids;
-  std::vector<PeptideIdentification> pep_ids = toPepVec(QStringList() << "MLTEAEK"); // requires 1 ambAA
+  PeptideIdentificationList pep_ids = toPepVec(QStringList() << "MLTEAEK"); // requires 1 ambAA
   p.setValue("aaa_max", 0);
   p.setValue("decoy_string", "DECOY_");
   pi.setParameters(p);
@@ -116,7 +116,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
     p.setValue("aaa_max", i_aa);
     pi.setParameters(p);
     std::vector<FASTAFile::FASTAEntry> proteins_local = proteins;
-    std::vector<PeptideIdentification> pep_ids_local = pep_ids;
+    PeptideIdentificationList pep_ids_local = pep_ids;
     r = pi.run(proteins_local, prot_ids, pep_ids_local);
     for (Size i = 0; i < pep_ids.size(); ++i)
     {
@@ -139,7 +139,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
     p.setValue("aaa_max", i_aa);
     pi.setParameters(p);
     std::vector<FASTAFile::FASTAEntry> proteins_local = proteins;
-    std::vector<PeptideIdentification> pep_ids_local = pep_ids;
+    PeptideIdentificationList pep_ids_local = pep_ids;
     pi.run(proteins_local, prot_ids, pep_ids_local);
     for (Size i = 0; i < pep_ids.size(); ++i)
     {
@@ -199,7 +199,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
 
   // auto mode for decoy strings and position
   std::vector<ProteinIdentification> prot_ids_2;
-  std::vector<PeptideIdentification> pep_ids_2;
+  PeptideIdentificationList pep_ids_2;
 
   {
   // simple prefix

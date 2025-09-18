@@ -25,8 +25,6 @@ namespace OpenMS
     mz_(std::numeric_limits<double>::quiet_NaN()),
     rt_(std::numeric_limits<double>::quiet_NaN())
   {
-    // Set the default value as a meta value
-    setMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD, 0.0);
   }
 
   PeptideIdentification::~PeptideIdentification() noexcept = default;
@@ -114,13 +112,7 @@ namespace OpenMS
 
   double PeptideIdentification::getSignificanceThreshold() const
   {
-    // If the meta value exists, return it
-    if (metaValueExists(Constants::UserParam::SIGNIFICANCE_THRESHOLD))
-    {
-      return getMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
-    }
-    // For backward compatibility with serialized objects, return 0.0 as default
-    return 0.0;
+    return getMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD, 0.0);
   }
 
   void PeptideIdentification::setSignificanceThreshold(double value)
@@ -168,17 +160,17 @@ namespace OpenMS
 
   String PeptideIdentification::getSpectrumReference() const
   {
-    return this->getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, "");
+    return getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, "");
   }
 
   void PeptideIdentification::setSpectrumReference(const String& id)
   {
-    this->setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, id);
+    setMetaValue(Constants::UserParam::SPECTRUM_REFERENCE, id);
   }
 
   String PeptideIdentification::getBaseName() const
   {
-    return this->getMetaValue(Constants::UserParam::BASE_NAME, "");
+    return getMetaValue(Constants::UserParam::BASE_NAME, "");
   }
 
   void PeptideIdentification::setBaseName(const String& base_name)
@@ -210,28 +202,6 @@ namespace OpenMS
     }
   }
 
-  void PeptideIdentification::assignRanks()
-  {
-    if (hits_.empty())
-    {
-      return;
-    }
-    UInt rank = 1;
-    sort();
-    vector<PeptideHit>::iterator lit = hits_.begin();
-    double last_score = lit->getScore();
-    while (lit != hits_.end())
-    {
-      if ((double)lit->getScore() != last_score)
-      {
-        ++rank;
-        last_score = lit->getScore();
-      }
-      lit->setRank(rank);
-      ++lit;
-    }
-  }
-
   std::function<bool(const PeptideHit&, const PeptideHit&)>
   PeptideIdentification::getScoreComparator(bool higher_score_better)
   {
@@ -250,11 +220,6 @@ namespace OpenMS
     std::stable_sort(hits_.begin(), hits_.end(), getScoreComparator(higher_score_better_));
   }
 
-  void PeptideIdentification::sortByRank()
-  {
-    std::sort(hits_.begin(), hits_.end(), PeptideHit::RankLess());
-  }
-
   bool PeptideIdentification::empty() const
   {
     return id_.empty()
@@ -262,7 +227,7 @@ namespace OpenMS
            && getSignificanceThreshold() == 0.0
            && score_type_.empty()
            && higher_score_better_ == true
-           && !metaValueExists(Constants::UserParam::BASE_NAME);
+           && getBaseName().empty();
   }
 
   std::vector<PeptideHit> PeptideIdentification::getReferencingHits(const std::vector<PeptideHit>& hits, const std::set<String>& accession)
@@ -289,7 +254,7 @@ namespace OpenMS
     ProteinIdentification::Mapping mp_c(cmap.getProteinIdentifications());
     //Iterates of the vector of PeptideIdentification to build the UID
     //and the pep_index
-    auto lamda = [](const vector<PeptideIdentification> &cpep_ids,
+    auto lamda = [](const PeptideIdentificationList &cpep_ids,
                     const map<String, StringList> &identifier_to_msrunpath,
                     multimap<String, std::pair<Size, Size>> &customID_to_cpepID,
                     const Size &cf_index) {
@@ -341,6 +306,4 @@ namespace OpenMS
     }
     return UID;
   }
-
-  
 } // namespace OpenMS

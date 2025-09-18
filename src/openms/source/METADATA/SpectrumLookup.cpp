@@ -7,7 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/SpectrumLookup.h>
-#include <boost/regex/v4/regex_match.hpp>
+#include <boost/regex.hpp>
 
 using namespace std;
 

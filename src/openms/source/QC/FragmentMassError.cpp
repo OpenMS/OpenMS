@@ -243,7 +243,7 @@ namespace OpenMS
     results_.push_back(result);
   }
 
-  void FragmentMassError::compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp,
+  void FragmentMassError::compute(PeptideIdentificationList& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp,
                                   const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
   {
     Statistics result;

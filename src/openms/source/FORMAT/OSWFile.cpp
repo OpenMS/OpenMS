@@ -80,7 +80,7 @@ namespace OpenMS
 
       // Generate features
       int k = 0;
-      std::vector<std::basic_string<unsigned char>> group_id_index;
+      std::vector<std::string> group_id_index;
       OpenMS::String tmp;
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
@@ -98,7 +98,8 @@ namespace OpenMS
           }
           if (strcmp(sqlite3_column_name(stmt, i), "GROUP_ID") == 0)
           {
-            auto it = std::find(group_id_index.begin(), group_id_index.end(), sqlite3_column_text(stmt, i));
+            std::string group_id(reinterpret_cast<const char*>(sqlite3_column_text(stmt, i)));
+            auto it = std::find(group_id_index.begin(), group_id_index.end(), group_id);
             if (it != group_id_index.end())
             {
               scan_id = it - group_id_index.begin();
@@ -106,7 +107,7 @@ namespace OpenMS
             else
             {
               scan_id = group_id_index.size();
-              group_id_index.emplace_back(sqlite3_column_text(stmt, i));
+              group_id_index.emplace_back(group_id);
             }
           }
           if (strcmp(sqlite3_column_name(stmt, i), "DECOY") == 0)

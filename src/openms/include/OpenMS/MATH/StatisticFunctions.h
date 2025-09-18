@@ -9,7 +9,9 @@
 
 #include <vector>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <algorithm>
 #include <cmath>
@@ -256,6 +258,62 @@ namespace OpenMS
     }
 
     /**
+      @brief Calculates the q-quantile (0 <= q <= 1) of a *sorted* range of values.
+
+      Assumes the range [begin, end) is already sorted in non-decreasing order.
+      Uses the common "Type 7" definition (linear interpolation):
+
+        pos = q * (n - 1)
+        idx = floor(pos),  frac = pos - idx
+        quantile = (1 - frac) * x[idx] + frac * x[idx + 1]
+
+      Exact endpoints:
+        - q == 0 returns the first (minimum) element
+        - q == 1 returns the last (maximum) element
+
+      @param begin  Start of range
+      @param end    End of range (past-the-end iterator)
+      @param q      Quantile in [0, 1]
+
+      @pre Input range must be sorted ascending.
+
+      @exception Exception::InvalidRange is thrown if the range is NULL or empty.
+      @exception Exception::InvalidValue is thrown if q is outside [0, 1].
+
+      @ingroup MathFunctionsStatistics
+    */
+    template <typename IteratorType>
+    static double quantile(IteratorType begin, IteratorType end, double q)
+    {
+      OPENMS_PRECONDITION(std::is_sorted(begin, end),
+                          "Math::quantile expects a sorted range. Sort before calling.");
+
+      checkIteratorsNotNULL(begin, end);
+
+      const Size n = std::distance(begin, end);
+      if (n == 0)
+      {
+        throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
+      if (q < 0.0 || q > 1.0)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "q must be in [0,1]", String(q));
+      }
+      if (n == 1) return static_cast<double>(*begin);
+
+      const double pos = q * static_cast<double>(n - 1);
+      const Size i = static_cast<Size>(std::floor(pos));
+      const double frac = pos - static_cast<double>(i);
+
+      const auto it_i = begin + static_cast<typename std::iterator_traits<IteratorType>::difference_type>(i);
+      if (frac == 0.0) return static_cast<double>(*it_i);
+
+      const auto it_ip1 = it_i + 1;
+      return (1.0 - frac) * static_cast<double>(*it_i) + frac * static_cast<double>(*it_ip1);
+    }
+
+    /**
        @brief Calculates the variance of a range of values
 
   The @p mean can be provided explicitly to save computation time. If left at default, it will be computed internally.
@@ -388,6 +446,25 @@ namespace OpenMS
       checkIteratorsEqual(iter_b, end_b);
 
       return error / dist;
+    }
+
+    /**
+       @brief Calculates the root mean square error (RMSE) for the values in
+         [begin_a, end_a) and [begin_b, end_b)
+
+       Computes the square root of the mean of the squared differences between the
+        two iterator ranges (i.e., RMSE = sqrt(MSE)). .
+
+       @exception Exception::InvalidRange is thrown if the iterator ranges are not
+       of the same length or are empty.
+
+       @ingroup MathFunctionsStatistics
+    */
+    template <typename IteratorType1, typename IteratorType2>
+    static double rootMeanSquareError(IteratorType1 begin_a, IteratorType1 end_a,
+                                      IteratorType2 begin_b, IteratorType2 end_b)
+    {
+      return std::sqrt(meanSquareError(begin_a, end_a, begin_b, end_b));
     }
 
     /**

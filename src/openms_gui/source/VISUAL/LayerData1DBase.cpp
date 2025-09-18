@@ -32,5 +32,12 @@ namespace OpenMS
     {
       annotations_1d_.resize(current_idx_ + 1);
     }
+    
+    // Clear peak colors to force reinitialization for the new spectrum
+    // Unlike annotations which persist across spectra, peak colors need to be regenerated
+    // to match the size of the new spectrum, preventing "Peak color array size doesn't
+    // match number of peaks" errors that occur when switching between spectra with
+    // different numbers of peaks
+    peak_colors_1d.clear();
   }
 }// namespace OpenMS

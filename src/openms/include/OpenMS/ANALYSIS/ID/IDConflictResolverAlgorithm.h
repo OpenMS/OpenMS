@@ -11,6 +11,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 //-------------------------------------------------------------
 // Doxygen docu
@@ -101,20 +102,20 @@ protected:
                           const PeptideIdentification & right);
 
   static void resolveConflict_(
-    std::vector<PeptideIdentification> & peptides,
-    std::vector<PeptideIdentification> & removed,
+    PeptideIdentificationList & peptides,
+    PeptideIdentificationList & removed,
     UInt64 uid);
 
   static void resolveConflictKeepMatching_(
-      std::vector<PeptideIdentification> & peptides,
-      std::vector<PeptideIdentification> & removed,
+      PeptideIdentificationList & peptides,
+      PeptideIdentificationList & removed,
       UInt64 uid);
   
   template<class T>
   static void resolveBetweenFeatures_(T & map)
   {
     // unassigned peptide identifications in this map
-    std::vector<PeptideIdentification>& unassigned = map.getUnassignedPeptideIdentifications();
+    PeptideIdentificationList& unassigned = map.getUnassignedPeptideIdentifications();
     
     // A std::map tracking the set of unique features.
     // Uniqueness criterion/key is a pair <charge, sequence> for each feature. The peptide sequence may be modified, i.e. is not stripped.
@@ -125,7 +126,7 @@ protected:
     // the feature with the highest intensity for this sequence.
     for (typename T::value_type& element : map)
     {
-      std::vector<PeptideIdentification>& pep_ids = element.getPeptideIdentifications();
+      PeptideIdentificationList& pep_ids = element.getPeptideIdentifications();
       
       if (!pep_ids.empty())
       {
@@ -158,9 +159,9 @@ protected:
             if (feature_in_set->second->getIntensity() < element.getIntensity())
             {
               // Remove annotations from the old low-intensity feature. But only after moving these annotations to the unassigned list.
-              std::vector<PeptideIdentification>& obsolete = feature_in_set->second->getPeptideIdentifications();
+              PeptideIdentificationList& obsolete = feature_in_set->second->getPeptideIdentifications();
               unassigned.insert(unassigned.end(), obsolete.begin(), obsolete.end());
-              std::vector<PeptideIdentification> pep_ids_empty;
+              PeptideIdentificationList pep_ids_empty;
               feature_in_set->second->setPeptideIdentifications(pep_ids_empty);
               
               // Replace feature in the set.
@@ -169,9 +170,9 @@ protected:
             else
             {
               // Remove annotations from the new low-intensity feature. But only after moving these annotations to the unassigned list.
-              std::vector<PeptideIdentification>& obsolete = element.getPeptideIdentifications();
+              PeptideIdentificationList& obsolete = element.getPeptideIdentifications();
               unassigned.insert(unassigned.end(), obsolete.begin(), obsolete.end());
-              std::vector<PeptideIdentification> pep_ids_empty;
+              PeptideIdentificationList pep_ids_empty;
               element.setPeptideIdentifications(pep_ids_empty);
             }
           }

@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
 #include <map>
@@ -60,7 +61,7 @@ public:
        For spectra not present in this map identifications cannot be mapped back.
        @param mod_id_map map the OpenMS id for modifications (FullId) to the ids returned by PepNovo key= &lt;PepNovo_key&gt;, value= &lt;OpenMS FullId&gt;
    */
-    void load(const std::string & result_filename, std::vector<PeptideIdentification> & peptide_identifications,
+    void load(const std::string & result_filename, PeptideIdentificationList & peptide_identifications,
               ProteinIdentification & protein_identification,
               const double & score_threshold,
               const IndexPosMappingType & id_rt_mz,

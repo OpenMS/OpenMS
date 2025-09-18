@@ -56,7 +56,7 @@ namespace OpenMS
 
     @see PeptideHit, ProteinIdentification, IDMapper, MetaInfoInterface
 
-    @ingroup Metadata          
+    @ingroup Metadata
   */
   class OPENMS_DLLAPI PeptideIdentification :
     public MetaInfoInterface
@@ -152,9 +152,6 @@ public:
     ///  almost always be the full native vendor ID.
     void setSpectrumReference(const String& ref);
 
-    /// Sorts the hits by score and assigns ranks according to the scores
-    void assignRanks();
-
     // Returns a higher or lower comparator based on @p higher_score_better_
     static std::function<bool(const PeptideHit&, const PeptideHit&)> getScoreComparator(bool higher_score_better);
 
@@ -164,13 +161,6 @@ public:
          Sorting takes the score orientation (@p higher_score_better_) into account, i.e. after sorting, the best-scoring hit is the first.
     */
     void sort();
-
-    /**
-         @brief Sorts the hits by rank
-
-         Sorting hits by rank attribute, i.e. after sorting, the hits will be in ascending order of rank.
-    */
-    void sortByRank();
 
     /// Returns if this PeptideIdentification result is empty
     bool empty() const;
@@ -219,3 +209,4 @@ protected:
   };
 
 } //namespace OpenMS
+

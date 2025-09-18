@@ -192,6 +192,8 @@ START_SECTION((void run(const std::vector<FeatureMap >& input_maps, ConsensusMap
   input[2].push_back(feat6);
   input[2].push_back(feat7);
 
+  input[2].updateRanges();
+  
 	finder.run(input, result);
 	TEST_EQUAL(result.size(), 4);
 	ABORT_IF(result.size() != 4);

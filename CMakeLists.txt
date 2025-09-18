@@ -1,36 +1,11 @@
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright OpenMS Inc. -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-present.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
+# 
 # --------------------------------------------------------------------------
 # $Maintainer: Julianus Pfeuffer $
 # $Authors: Stephan Aiche, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
+
 
 cmake_minimum_required(VERSION 3.21 FATAL_ERROR) ## if you change this, also update doc/doxygen/install/install-<OS>.doxygen
 
@@ -49,7 +24,6 @@ set(CMAKE_AUTOMOC_COMPILER_PREDEFINES OFF)
 # General CMake definitions & helper
 #------------------------------------------------------------------------------
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
-
 #------------------------------------------------------------------------------
 ## CMake sanity check: sometimes CMAKE_SIZEOF_VOID_P just vanishes when
 ## updating CMake.
@@ -68,7 +42,7 @@ enable_testing()
 #------------------------------------------------------------------------------
 # entries meant to be configured using CMake cache
 # - do NOT hardcode them here!
-# - edit them within CMakeCache.txt using ccmake or cmake -D VAR=VALUE
+# - edit them within CMakeCache.txt using ccmake or cmake -DVAR=VALUE
 #------------------------------------------------------------------------------
 # CMAKE_PREFIX_PATH
 # CMAKE_BUILD_TYPE
@@ -83,7 +57,13 @@ option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
 option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." ON)
 option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript views in TOPPView." OFF)
 option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
-option(ENABLE_CWL "Build and validate the CWL description files for all TOPP tools." OFF)
+option(WITH_PARQUET "Build Parquet parts of OpenMS." OFF)
+option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." ON)
+option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
+
+if(ENABLE_CWL_GENERATION AND NOT ENABLE_TDL)
+    message(FATAL_ERROR "ENABLE_CWL_GENERATION requires ENABLE_TDL to be ON.")
+endif()
 
 if(MSVC)
   option(MT_ENABLE_NESTED_OPENMP "Enable nested parallelism." OFF)
@@ -106,7 +86,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 #------------------------------------------------------------------------------
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "3")
-set(OPENMS_PACKAGE_VERSION_MINOR "4")
+set(OPENMS_PACKAGE_VERSION_MINOR "5")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 set(OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
 
@@ -269,6 +249,13 @@ if(ENABLE_UPDATE_CHECK)
   message(STATUS "    - Switch the build variable ENABLE_UPDATE_CHECK to OFF to remove the functionality at build time.")
   message(STATUS "    - Set the environment variable OPENMS_DISABLE_UPDATE_CHECK to disable the functionality at runtime.")
 endif()
+
+
+#------------------------------------------------------------------------------
+# Enable AddressSanitizer
+#------------------------------------------------------------------------------  
+option(ADDRESS_SANITIZER "Enable AddressSanitizer mode (quite slow)." OFF)
+include(${PROJECT_SOURCE_DIR}/cmake/AddressSanitizer.cmake)
 
 #------------------------------------------------------------------------------
 # we build shared libraries
@@ -476,7 +463,7 @@ endif()
 #------------------------------------------------------------------------------
 # CWL generation (updates openms/share/commonwl/*.cwl files for all TOPP tools)
 #------------------------------------------------------------------------------
-if (ENABLE_CWL)
+if (ENABLE_CWL_GENERATION)
   include(${OPENMS_HOST_DIRECTORY}/cmake/cwl_generation.cmake)
 endif()
 

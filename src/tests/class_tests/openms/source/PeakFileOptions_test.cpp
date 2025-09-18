@@ -220,6 +220,14 @@ START_SECTION(void setMaxDataPoolSize(Size size))
 }
 END_SECTION
 
+START_SECTION((skipChromatograms))
+{
+  PeakFileOptions opts;
+  TEST_FALSE(opts.getSkipChromatograms())
+  opts.setSkipChromatograms(true);
+  TEST_TRUE(opts.getSkipChromatograms())
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -37,7 +37,7 @@ START_SECTION(~PercolatorInfile())
 }
 END_SECTION
 
-START_SECTION(vector<PeptideIdentification> PercolatorInfile::load(const String& pin_file, bool higher_score_better, const String& score_name, String decoy_prefix))
+START_SECTION(PeptideIdentificationList PercolatorInfile::load(const String& pin_file, bool higher_score_better, const String& score_name, String decoy_prefix))
 {
   StringList filenames;
   // test loading of pin file with automatic update of target/decoy annotation based on decoy prefix in protein accessions
