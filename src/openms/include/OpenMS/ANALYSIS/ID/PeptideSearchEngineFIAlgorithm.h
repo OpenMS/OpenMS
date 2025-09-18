@@ -21,6 +21,20 @@
 namespace OpenMS
 {
 
+/**
+  @brief Fragment-index-based peptide database search algorithm (experimental).
+
+  Provides a self-contained search engine that matches MS/MS spectra against a protein
+  database using an FI (Fragment Index). Typical usage:
+  - Configure parameters via DefaultParamHandler (mass tolerances, enzyme, charges, etc.)
+  - Call search() with an input mzML file and a FASTA database to populate identification
+    outputs (ProteinIdentification and PeptideIdentificationList)
+  - Intended for educational/prototyping use and to demonstrate FI-backed searching
+
+  Notes:
+  - Used by the PeptideDataBaseSearchFI TOPP tool
+  - Experimental; interfaces and behavior may change
+*/
 class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
   public DefaultParamHandler,
   public ProgressLogger
@@ -38,7 +52,27 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
       ILLEGAL_PARAMETERS
     };
 
-    /// @brief search spectra against database
+    /**
+     * @brief Search spectra in an mzML file against a protein database using an FI-backed workflow.
+     *
+     * Populates protein and peptide identifications, including search meta data, PSM hits,
+     * and search engine annotations. Parameters are taken from this instance (DefaultParamHandler).
+     *
+     * @param in_mzML Input path to the mzML file containing MS/MS spectra to search.
+     * @param in_db   Input path to the protein sequence database in FASTA format.
+     * @param prot_ids Output container receiving search meta data and protein-level information.
+     * @param pep_ids  Output container receiving spectrum-level peptide identifications (PSMs).
+     *
+     * @return ExitCodes indicating success (EXECUTION_OK) or the encountered error condition.
+     *
+     * Side effects:
+     *  - Updates ProgressLogger during processing.
+     *  - Assigns identifiers and sets search engine name/version in prot_ids/pep_ids.
+     *
+     * Errors:
+     *  - May signal invalid parameters via ILLEGAL_PARAMETERS exit code.
+     *  - May propagate OpenMS exceptions (e.g., I/O or parse errors) from underlying components.
+     */
     ExitCodes search(const String& in_mzML,
       const String& in_db,
       std::vector<ProteinIdentification>& prot_ids,
@@ -76,12 +110,12 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
       std::vector<std::vector<PeptideSearchEngineFIAlgorithm::AnnotatedHit_> >& annotated_hits,
       std::vector<ProteinIdentification>& protein_ids,
       PeptideIdentificationList& peptide_ids,
-      /* TODO check if ok if unused
       Size top_hits,
+      /* TODO check if ok if unused
       const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
       const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,
-      */
       Size max_variable_mods_per_peptide,
+      */
       const StringList& modifications_fixed,
       const StringList& modifications_variable,
       Int peptide_missed_cleavages,

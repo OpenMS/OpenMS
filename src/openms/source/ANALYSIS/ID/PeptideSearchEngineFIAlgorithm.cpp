@@ -133,9 +133,10 @@ namespace OpenMS
     defaults_.setValue("max_isotope_error", 1, "precursor isotope error");
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
     defaults_.setValue("max_processed_hits", 50, "The number of initial hits for which we calculate a score");
+    // valid values for open_search option
     std::vector<std::string> open_search_option;
-    fragment_mass_tolerance_unit_valid_strings.emplace_back("true");
-    fragment_mass_tolerance_unit_valid_strings.emplace_back("false");
+    open_search_option.emplace_back("true");
+    open_search_option.emplace_back("false");
     defaults_.setValue("open_search", "false", "Open or standard search");
     defaults_.setValidStrings("open_search", open_search_option);
     defaults_.setValue("open_precursor_window_lower_", -100.0, "lower bound of the open precursor window");
@@ -277,7 +278,7 @@ namespace OpenMS
       Size topn = top_hits > annotated_hits[scan_index].size() ? annotated_hits[scan_index].size() : top_hits;
       std::partial_sort(annotated_hits[scan_index].begin(), annotated_hits[scan_index].begin() + topn, annotated_hits[scan_index].end(), AnnotatedHit_::hasBetterScore);
       annotated_hits[scan_index].resize(topn);
-      annotated_hits.shrink_to_fit();
+      annotated_hits[scan_index].shrink_to_fit();
     }
 
     bool annotation_precursor_error_ppm = std::find(annotate_psm_.begin(), annotate_psm_.end(), Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM) != annotate_psm_.end();
