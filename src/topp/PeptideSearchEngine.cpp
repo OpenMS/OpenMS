@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 
 
@@ -96,7 +97,7 @@ class PeptideSearchEngine :
       progresslogger.setLogType(log_type_);
 
       vector<ProteinIdentification> protein_ids;
-      vector<PeptideIdentification> peptide_ids;
+      PeptideIdentificationList peptide_ids;
 
       PeptideSearchEngineAlgorithm sse;
       sse.setParameters(getParam_().copy("Search:", true));
