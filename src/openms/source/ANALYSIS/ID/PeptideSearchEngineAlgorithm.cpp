@@ -248,10 +248,10 @@ namespace OpenMS
     }
   }
 
-void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp, 
-      std::vector<std::vector<PeptideSearchEngineAlgorithm::AnnotatedHit_> >& annotated_hits, 
-      std::vector<ProteinIdentification>& protein_ids, 
-      std::vector<PeptideIdentification>& peptide_ids, 
+void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
+      std::vector<std::vector<PeptideSearchEngineAlgorithm::AnnotatedHit_> >& annotated_hits,
+      std::vector<ProteinIdentification>& protein_ids,
+      PeptideIdentificationList& peptide_ids,
       Size top_hits,
 //      const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
 //      const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,
@@ -360,7 +360,15 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
           phs.push_back(ph);
         }
         pi.setHits(phs);
-        pi.assignRanks();
+        // Ensure hits are sorted by score (best first), then assign ranks explicitly (0 = top hit)
+        pi.sort();
+        {
+          std::vector<PeptideHit>& hits = pi.getHits();
+          for (Size r = 0; r < hits.size(); ++r)
+          {
+            hits[r].setRank(static_cast<UInt>(r));
+          }
+        }
 
 #pragma omp critical (peptide_ids_access)
         {
@@ -419,7 +427,7 @@ void PeptideSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     protein_ids[0].setSearchParameters(std::move(search_parameters));
   }
 
-  PeptideSearchEngineAlgorithm::ExitCodes PeptideSearchEngineAlgorithm::search(const String& in_mzML, const String& in_db, vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids) const
+  PeptideSearchEngineAlgorithm::ExitCodes PeptideSearchEngineAlgorithm::search(const String& in_mzML, const String& in_db, vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids) const
   {
     bool precursor_mass_tolerance_unit_ppm = (precursor_mass_tolerance_unit_ == "ppm");
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");

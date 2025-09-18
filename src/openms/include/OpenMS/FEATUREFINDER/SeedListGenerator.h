@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,6 +14,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
 
@@ -53,7 +54,7 @@ public:
 
          The peptide hits in @p peptides will be sorted if @p use_peptide_mass is true.
     */
-    void generateSeedList(std::vector<PeptideIdentification> & peptides,
+    void generateSeedList(PeptideIdentificationList & peptides,
                           SeedList & seeds, bool use_peptide_mass = false);
 
 

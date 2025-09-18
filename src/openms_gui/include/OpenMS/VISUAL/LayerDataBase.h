@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -20,6 +20,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 #include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/MISC/CommonDefs.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
@@ -120,7 +121,7 @@ namespace OpenMS
     typedef boost::shared_ptr<ConsensusMap> ConsensusMapSharedPtrType;
 
     /// Main data type (experiment)
-    typedef PeakMap ExperimentType;
+    typedef AnnotatedMSRun ExperimentType;
 
     /// SharedPtr on MSExperiment
     typedef boost::shared_ptr<ExperimentType> ExperimentSharedPtrType;
@@ -268,7 +269,7 @@ namespace OpenMS
     /// add peptide identifications to the layer
     /// Only supported for DT_PEAK, DT_FEATURE and DT_CONSENSUS.
     /// Will return false otherwise.
-    virtual bool annotate(const std::vector<PeptideIdentification>& identifications,
+    virtual bool annotate(const PeptideIdentificationList& identifications,
                           const std::vector<ProteinIdentification>& protein_identifications);
 
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -54,11 +54,11 @@ pep_id_empty.setHits(pep_hits_empty);
 PeptideIdentification pep_id_fdr;
 pep_id_fdr.setHits(pep_hits_fdr);
 
-std::vector<PeptideIdentification> pep_ids = {pep_id_target, pep_id_decoy, pep_id_empty};
-std::vector<PeptideIdentification> pep_ids_empty {};
-std::vector<PeptideIdentification> pep_ids_fdr = {pep_id_fdr};
+PeptideIdentificationList pep_ids = {pep_id_target, pep_id_decoy, pep_id_empty};
+PeptideIdentificationList pep_ids_empty {};
+PeptideIdentificationList pep_ids_fdr = {pep_id_fdr};
 
-std::vector<PeptideIdentification> two_target_ids = {pep_id_target, pep_id_target, pep_id_decoy, pep_id_empty};
+PeptideIdentificationList two_target_ids = {pep_id_target, pep_id_target, pep_id_decoy, pep_id_empty};
 
 // construct features with peptideIdentifications
 Feature feat_empty_pi;
@@ -198,7 +198,7 @@ Ms2IdentificationRate id_rate_force_no_index;
 Ms2IdentificationRate id_rate_ms1;
 
 // tests compute function with PeptideIdentifications
-START_SECTION(void compute(const std::vector<PeptideIdentification>& pep_ids, const MSExperiment& exp, bool force_index = false))
+START_SECTION(void compute(const PeptideIdentificationList& pep_ids, const MSExperiment& exp, bool force_index = false))
 {
   // test with valid input
   id_rate.compute(pep_ids, ms_exp);

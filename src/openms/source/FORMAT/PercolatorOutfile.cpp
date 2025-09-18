@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -169,7 +169,7 @@ namespace OpenMS
 
   void PercolatorOutfile::load(const String& filename,
                                ProteinIdentification& proteins,
-                               vector<PeptideIdentification>& peptides,
+                               PeptideIdentificationList& peptides,
                                SpectrumMetaDataLookup& lookup,
                                enum ScoreType output_score)
   {

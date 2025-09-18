@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -39,7 +39,7 @@ MSExperiment createPeakMapWithRTs(std::vector<double> RTs)
 
 MSExperiment setMSLevel(MSExperiment exp, std::vector<int> ms_levels)
 {
-  for (int i = 0; i < ms_levels.size(); ++i)
+  for (size_t i = 0; i < ms_levels.size(); ++i)
   {
     exp[i].setMSLevel(ms_levels[i]);
   }
@@ -404,34 +404,6 @@ START_SECTION(([EXTRA] PeakMap()))
 }
 END_SECTION
 
-START_SECTION((CoordinateType getMinMZ() const))
-{
-  PeakMap tmp;
-  TEST_REAL_SIMILAR(tmp.getMinMZ(),numeric_limits<DPosition<2>::CoordinateType>::max())
-}
-END_SECTION
-
-START_SECTION((CoordinateType getMaxMZ() const))
-{
-  PeakMap tmp;
-  TEST_REAL_SIMILAR(tmp.getMaxMZ(),-numeric_limits<DPosition<2>::CoordinateType>::max())
-}
-END_SECTION
-
-START_SECTION((CoordinateType getMinRT() const))
-{
-  PeakMap tmp;
-  TEST_REAL_SIMILAR(tmp.getMinRT(),numeric_limits<DPosition<2>::CoordinateType>::max())
-}
-END_SECTION
-
-START_SECTION((CoordinateType getMaxRT() const))
-{
-  PeakMap tmp;
-  TEST_REAL_SIMILAR(tmp.getMaxRT(),-numeric_limits<DPosition<2>::CoordinateType>::max())
-}
-END_SECTION
-
 START_SECTION((const std::vector<UInt>& getMSLevels() const))
 {
   PeakMap tmp;
@@ -449,7 +421,7 @@ END_SECTION
 START_SECTION((const MSExperiment::RangeManagerType& MSExperiment::getRange() const))
 {
   PeakMap tmp;
-  TEST_EQUAL(tmp.getRange().hasRange() == HasRangeType::NONE, true)
+  TEST_EQUAL(tmp.combinedRanges().hasRange() == HasRangeType::NONE, true)
 }
 END_SECTION
 
@@ -515,12 +487,12 @@ START_SECTION((virtual void updateRanges()))
   TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
   TEST_REAL_SIMILAR(tmp.getMaxRT(),50.0)
 
-  TEST_REAL_SIMILAR(tmp.getRange().getMinMZ(), 5.0)
-  TEST_REAL_SIMILAR(tmp.getRange().getMaxMZ(), 10.0)
-  TEST_REAL_SIMILAR(tmp.getRange().getMinRT(), 30.0)
-  TEST_REAL_SIMILAR(tmp.getRange().getMaxRT(), 50.0)
-  TEST_REAL_SIMILAR(tmp.getRange().getMinMobility(), 66)
-  TEST_REAL_SIMILAR(tmp.getRange().getMaxMobility(), 199)
+  TEST_REAL_SIMILAR(tmp.combinedRanges().getMinMZ(), 5.0)
+  TEST_REAL_SIMILAR(tmp.combinedRanges().getMaxMZ(), 10.0)
+  TEST_REAL_SIMILAR(tmp.combinedRanges().getMinRT(), 30.0)
+  TEST_REAL_SIMILAR(tmp.combinedRanges().getMaxRT(), 50.0)
+  TEST_REAL_SIMILAR(tmp.combinedRanges().getMinMobility(), 66)
+  TEST_REAL_SIMILAR(tmp.combinedRanges().getMaxMobility(), 199)
 
   TEST_EQUAL(tmp.getMSLevels().size(),2)
   TEST_EQUAL(tmp.getMSLevels()[0],1)
@@ -528,24 +500,24 @@ START_SECTION((virtual void updateRanges()))
 
   TEST_EQUAL(tmp.getSize(),4)
 
-  //Update for MS level 1
+  // Store initial MS levels
+  std::vector<UInt> initial_ms_levels = tmp.getMSLevels();
 
-  tmp.updateRanges(1);
-  tmp.updateRanges(1);
+  // MS1 
   for (int l = 0; l < 2; ++l)
   {
-    TEST_REAL_SIMILAR(tmp.getMinMZ(),5.0)
-    TEST_REAL_SIMILAR(tmp.getMaxMZ(),7.0)
-    TEST_REAL_SIMILAR(tmp.getMinIntensity(), -7.0)
-    TEST_REAL_SIMILAR(tmp.getMaxIntensity(), -5.0)
-    TEST_REAL_SIMILAR(tmp.getMinRT(),30.0)
-    TEST_REAL_SIMILAR(tmp.getMaxRT(),40.0)
-    TEST_REAL_SIMILAR(tmp.getRange().getMinMobility(), 99)
-    TEST_REAL_SIMILAR(tmp.getRange().getMaxMobility(), 99)
-    TEST_EQUAL(tmp.getMSLevels().size(),1)
-    TEST_EQUAL(tmp.getMSLevels()[0],1)
-    TEST_EQUAL(tmp.getSize(),2)
-    tmp.updateRanges(1);
+    TEST_REAL_SIMILAR(tmp.spectrumRanges().byMSLevel(1).getMinMZ(),5.0)
+    TEST_REAL_SIMILAR(tmp.spectrumRanges().byMSLevel(1).getMaxMZ(),7.0)
+    TEST_REAL_SIMILAR(tmp.spectrumRanges().byMSLevel(1).getMinIntensity(), -7.0)
+    TEST_REAL_SIMILAR(tmp.spectrumRanges().byMSLevel(1).getMaxIntensity(), -5.0)
+    TEST_REAL_SIMILAR(tmp.spectrumRanges().byMSLevel(1).getMinRT(),30.0)
+    TEST_REAL_SIMILAR(tmp.spectrumRanges().byMSLevel(1).getMaxRT(),40.0)
+    TEST_REAL_SIMILAR(tmp.spectrumRanges().byMSLevel(1).getMinMobility(), 99)
+    TEST_REAL_SIMILAR(tmp.spectrumRanges().byMSLevel(1).getMaxMobility(), 99)
+
+    // Verify MS levels remain unchanged
+    TEST_EQUAL(tmp.getMSLevels() == initial_ms_levels, true)
+    TEST_EQUAL(tmp.getSize(),4)    
   }
 
   // test with only one peak
@@ -559,26 +531,27 @@ START_SECTION((virtual void updateRanges()))
   s2.push_back(p2);
   s2.setDriftTime(99);
   tmp2.addSpectrum(s2);
-
   tmp2.updateRanges();
-  TEST_REAL_SIMILAR(tmp2.getMinMZ(),5.0)
-  TEST_REAL_SIMILAR(tmp2.getMaxMZ(),5.0)
-  TEST_REAL_SIMILAR(tmp2.getMinIntensity(), -5.0)
-  TEST_REAL_SIMILAR(tmp2.getMaxIntensity(), -5.0)
-  TEST_REAL_SIMILAR(tmp2.getMinRT(),30.0)
-  TEST_REAL_SIMILAR(tmp2.getMaxRT(),30.0)
-  TEST_REAL_SIMILAR(tmp.getRange().getMinMobility(), 99)
-  TEST_REAL_SIMILAR(tmp.getRange().getMaxMobility(), 99)
 
-  tmp2.updateRanges(1);
+  // check the overall ranges
   TEST_REAL_SIMILAR(tmp2.getMinMZ(),5.0)
   TEST_REAL_SIMILAR(tmp2.getMaxMZ(),5.0)
   TEST_REAL_SIMILAR(tmp2.getMinIntensity(), -5.0)
   TEST_REAL_SIMILAR(tmp2.getMaxIntensity(), -5.0)
   TEST_REAL_SIMILAR(tmp2.getMinRT(),30.0)
   TEST_REAL_SIMILAR(tmp2.getMaxRT(),30.0)
-  TEST_REAL_SIMILAR(tmp.getRange().getMinMobility(), 99)
-  TEST_REAL_SIMILAR(tmp.getRange().getMaxMobility(), 99)
+  TEST_REAL_SIMILAR(tmp2.getMinMobility(), 99)
+  TEST_REAL_SIMILAR(tmp2.getMaxMobility(), 99)
+
+  // check the spectra specific ranges
+  TEST_REAL_SIMILAR(tmp2.spectrumRanges().getMinMZ(),5.0)
+  TEST_REAL_SIMILAR(tmp2.spectrumRanges().getMaxMZ(),5.0)
+  TEST_REAL_SIMILAR(tmp2.spectrumRanges().getMinIntensity(), -5.0)
+  TEST_REAL_SIMILAR(tmp2.spectrumRanges().getMaxIntensity(), -5.0)
+  TEST_REAL_SIMILAR(tmp2.spectrumRanges().getMinRT(),30.0)
+  TEST_REAL_SIMILAR(tmp2.spectrumRanges().getMaxRT(),30.0)
+  TEST_REAL_SIMILAR(tmp2.spectrumRanges().getMinMobility(), 99)
+  TEST_REAL_SIMILAR(tmp2.spectrumRanges().getMaxMobility(), 99)
 
   // test ranges with a chromatogram
   MSChromatogram chrom1, chrom2;
@@ -608,12 +581,23 @@ START_SECTION((virtual void updateRanges()))
   tmp2.setChromatograms(chroms);
   
   tmp2.updateRanges();
+
+  // test the overall ranges
   TEST_REAL_SIMILAR(tmp2.getMinMZ(), 5.0)
   TEST_REAL_SIMILAR(tmp2.getMaxMZ(), 100.0)
   TEST_REAL_SIMILAR(tmp2.getMinIntensity(), -5.0)
   TEST_REAL_SIMILAR(tmp2.getMaxIntensity(), 10.4)
   TEST_REAL_SIMILAR(tmp2.getMinRT(), 0.1)
-  TEST_REAL_SIMILAR(tmp2.getMaxRT(), 30.0)
+  TEST_REAL_SIMILAR(tmp2.getMaxRT(), 30.0) // overall range still 30
+
+  // test the chromatogram ranges
+  TEST_REAL_SIMILAR(tmp2.chromatogramRanges().getMinMZ(), 80.0)
+  TEST_REAL_SIMILAR(tmp2.chromatogramRanges().getMaxMZ(), 100.0)
+  TEST_REAL_SIMILAR(tmp2.chromatogramRanges().getMinIntensity(), 10.0)
+  TEST_REAL_SIMILAR(tmp2.chromatogramRanges().getMaxIntensity(), 10.4)
+  TEST_REAL_SIMILAR(tmp2.chromatogramRanges().getMinRT(), 0.1)
+  TEST_REAL_SIMILAR(tmp2.chromatogramRanges().getMaxRT(), 0.3) // chromatogram range 0.1-0.3
+
 }
 END_SECTION
 
@@ -1213,6 +1197,136 @@ START_SECTION((int getPrecursorSpectrum(int zero_based_index) const))
 }
 END_SECTION
 
+START_SECTION((ConstIterator getFirstProductSpectrum(ConstIterator iterator) const))
+{
+  PeakMap exp;
+  exp.resize(5);
+
+  // Set MS levels
+  exp[0].setMSLevel(1);
+  exp[1].setMSLevel(2);
+  exp[2].setMSLevel(1);
+  exp[3].setMSLevel(2);
+  exp[4].setMSLevel(2);
+
+  // Set NativeIDs
+  exp[0].setNativeID("scan=1");
+  exp[1].setNativeID("scan=2");
+  exp[2].setNativeID("scan=3");
+  exp[3].setNativeID("scan=4");
+  exp[4].setNativeID("scan=5");
+
+  // Set up the 'spectrum_ref' in the precursors of the product spectra
+  Precursor precursor1;
+  precursor1.setMetaValue("spectrum_ref", "scan=1"); // Reference to exp[0]
+  exp[1].getPrecursors().push_back(precursor1);
+
+  Precursor precursor2;
+  precursor2.setMetaValue("spectrum_ref", "scan=3"); // Reference to exp[2]
+  exp[3].getPrecursors().push_back(precursor2);
+
+  Precursor precursor3;
+  precursor3.setMetaValue("spectrum_ref", "scan=3"); // Another reference to exp[2]
+  exp[4].getPrecursors().push_back(precursor3);
+
+  // Test getFirstProductSpectrum
+
+  // From exp[0], expect to get exp[1] as the first product spectrum
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.begin()) == exp.begin() + 1, true)
+
+  // From exp[1], expect to get spectra_.end() since there is no higher MS level
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.begin() + 1) == exp.end(), true)
+
+  // From exp[2], expect to get exp[3] as the first product spectrum
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.begin() + 2) == exp.begin() + 3, true)
+
+  // From exp[3], expect to get spectra_.end() since there is no higher MS level
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.begin() + 3) == exp.end(), true)
+
+  // From exp[4], expect to get spectra_.end()
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.begin() + 4) == exp.end(), true)
+
+  // Test when iterator is spectra_.end()
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.end()) == exp.end(), true)
+
+  // Now change the MS levels to only MS1 spectra
+  for (Size i = 0; i < exp.size(); ++i)
+  {
+    exp[i].setMSLevel(1);
+  }
+
+  // Test again with only MS1 spectra
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.begin()) == exp.end(), true)
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.begin() + 1) == exp.end(), true)
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.begin() + 2) == exp.end(), true)
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.begin() + 3) == exp.end(), true)
+  TEST_EQUAL(exp.getFirstProductSpectrum(exp.begin() + 4) == exp.end(), true)
+}
+END_SECTION
+
+START_SECTION((int getFirstProductSpectrum(int zero_based_index) const))
+{
+  PeakMap exp;
+  exp.resize(5);
+
+  // Set MS levels
+  exp[0].setMSLevel(1);
+  exp[1].setMSLevel(2);
+  exp[2].setMSLevel(1);
+  exp[3].setMSLevel(2);
+  exp[4].setMSLevel(2);
+
+  // Set NativeIDs
+  exp[0].setNativeID("scan=1");
+  exp[1].setNativeID("scan=2");
+  exp[2].setNativeID("scan=3");
+  exp[3].setNativeID("scan=4");
+  exp[4].setNativeID("scan=5");
+
+  // Set up the 'spectrum_ref' in the precursors of the product spectra
+  Precursor precursor1;
+  precursor1.setMetaValue("spectrum_ref", "scan=1"); // Reference to exp[0]
+  exp[1].getPrecursors().push_back(precursor1);
+
+  Precursor precursor2;
+  precursor2.setMetaValue("spectrum_ref", "scan=3"); // Reference to exp[2]
+  exp[3].getPrecursors().push_back(precursor2);
+
+  Precursor precursor3;
+  precursor3.setMetaValue("spectrum_ref", "scan=3"); // Another reference to exp[2]
+  exp[4].getPrecursors().push_back(precursor3);
+
+  // Test getFirstProductSpectrum
+
+  // From index 0, expect to get index 1
+  TEST_EQUAL(exp.getFirstProductSpectrum(0) == 1, true)
+
+  // From index 1, expect to get -1 (no higher MS level with reference)
+  TEST_EQUAL(exp.getFirstProductSpectrum(1) == -1, true)
+
+  // From index 2, expect to get index 3
+  TEST_EQUAL(exp.getFirstProductSpectrum(2) == 3, true)
+
+  // From index 3, expect to get -1
+  TEST_EQUAL(exp.getFirstProductSpectrum(3) == -1, true)
+
+  // From index 4, expect to get -1
+  TEST_EQUAL(exp.getFirstProductSpectrum(4) == -1, true)
+
+  // Now change the MS levels to only MS1 spectra
+  for (Size i = 0; i < exp.size(); ++i)
+  {
+    exp[i].setMSLevel(1);
+  }
+
+  // Test again with only MS1 spectra
+  TEST_EQUAL(exp.getFirstProductSpectrum(0) == -1, true)
+  TEST_EQUAL(exp.getFirstProductSpectrum(1) == -1, true)
+  TEST_EQUAL(exp.getFirstProductSpectrum(2) == -1, true)
+  TEST_EQUAL(exp.getFirstProductSpectrum(3) == -1, true)
+  TEST_EQUAL(exp.getFirstProductSpectrum(4) == -1, true)
+}
+END_SECTION
 
 START_SECTION((bool clearMetaDataArrays()))
 {
@@ -1243,7 +1357,7 @@ START_SECTION((void swap(MSExperiment &from)))
 
   TEST_EQUAL(exp1.getComment(),"")
   TEST_EQUAL(exp1.size(),0)
-  TEST_EQUAL(exp1.getRange().hasRange() == HasRangeType::NONE, true)
+  TEST_EQUAL(exp1.combinedRanges().hasRange() == HasRangeType::NONE, true)
   TEST_EQUAL(exp1.getMSLevels().size(),0)
   TEST_EQUAL(exp1.getSize(),0);
 
@@ -1542,7 +1656,1307 @@ START_SECTION( std::ostream& operator<<(std::ostream& os, const MSExperiment& ch
 }
 END_SECTION
 
+START_SECTION((template<class MzReductionFunctionType> std::vector<std::vector<MSExperiment::CoordinateType>> aggregate(const std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges, unsigned int ms_level, MzReductionFunctionType func_mz_reduction) const))
+{
+    // Create test experiment with known data
+    PeakMap exp;
+    exp.resize(4);
+
+    // First spectrum (MS1) at RT=1.0
+    exp[0] = MSSpectrum{
+        {100.0, 1000.0},
+        {200.0, 2000.0},
+        {300.0, 3000.0}
+    };    
+    exp[0].setRT(1.0);
+    exp[0].setMSLevel(1);
+
+    // Second spectrum (MS2) at RT=2.0
+    exp[1] = MSSpectrum{
+      {150.0, 1500.0},
+      {250.0, 2500.0}
+    };
+    exp[1].setRT(2.0);
+    exp[1].setMSLevel(2);
+
+    // Third spectrum (MS1) at RT=3.0
+    exp[2] = MSSpectrum{
+        {100.0, 1100.0},
+        {200.0, 2100.0},
+        {300.0, 3100.0}
+    };
+    exp[2].setRT(3.0);
+    exp[2].setMSLevel(1);
+
+    // Fourth spectrum (MS1) at RT=4.0
+    exp[3] = MSSpectrum{
+        {100.0, 1200.0},
+        {200.0, 2200.0},
+        {300.0, 3200.0}
+    };
+    exp[3].setRT(4.0);
+    exp[3].setMSLevel(1);
+
+    exp.updateRanges();
+
+    // Test: Normal case - MS1 spectra
+    {
+        std::vector<std::pair<RangeMZ, RangeRT>> ranges;
+        // Range 1: covers first peak of first and third spectrum
+        ranges.push_back(std::make_pair(
+            RangeMZ(90.0, 110.0),
+            RangeRT(0.0, 3.5)
+        ));
+        // Range 2: covers second peak of all MS1 spectra
+        ranges.push_back(std::make_pair(
+            RangeMZ(190.0, 210.0),
+            RangeRT(0.0, 5.0)
+        ));
+
+        // Simple intensity reduction function
+        auto result = exp.aggregate(ranges, 1, 
+          [](MSSpectrum::ConstIterator begin_it, MSSpectrum::ConstIterator /*end_it*/)->double // return first intensity of peaks in m/z range 
+          { 
+            return begin_it->getIntensity();
+          });
+
+        // Check results
+        TEST_EQUAL(result.size(), 2);
+        
+        // Check Range 1 results
+        TEST_EQUAL(result[0].size(), 2);  // Should cover 2 spectra
+        TEST_EQUAL(result[0][0], 1000.0); // First spectrum intensity
+        TEST_EQUAL(result[0][1], 1100.0); // Third spectrum intensity
+        
+        // Check Range 2 results
+        TEST_EQUAL(result[1].size(), 3);   // Should cover 3 spectra
+        TEST_EQUAL(result[1][0], 2000.0);  // First spectrum intensity
+        TEST_EQUAL(result[1][1], 2100.0);  // Third spectrum intensity
+        TEST_EQUAL(result[1][2], 2200.0);  // Fourth spectrum intensity
+    }
+
+    // Test 4: MS2 spectra
+    {
+        std::vector<std::pair<RangeMZ, RangeRT>> ranges;
+        ranges.push_back(std::make_pair(
+            RangeMZ(140.0, 160.0),
+            RangeRT(1.5, 2.5)
+        ));
+
+        auto result = exp.aggregate(ranges, 2, 
+          [](const MSSpectrum::ConstIterator begin_it, const MSSpectrum::ConstIterator /*end_it*/)->double // return first intensity of peaks in m/z range 
+          { 
+            return begin_it->getIntensity();
+          });
+
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 1);
+        TEST_EQUAL(result[0][0], 1500.0);
+    }
+
+    // Test 5: Complex reduction function (average intensity)
+    {
+        std::vector<std::pair<RangeMZ, RangeRT>> ranges;
+        ranges.push_back(std::make_pair(
+            RangeMZ(90.0, 310.0),  // Covers all peaks
+            RangeRT(0.0, 5.0)      // Covers all spectra
+        ));
+
+        // mean intensity in m/z range
+        auto result = exp.aggregate(ranges, 1, 
+            [](const MSSpectrum::ConstIterator begin_it, const MSSpectrum::ConstIterator end_it) 
+            { 
+                if (begin_it == end_it) return 0.0; // Check for empty range before accumulation
+
+                double acc = std::accumulate(begin_it, end_it, 0.0, 
+                    [](double a, const Peak1D& b) { return a + b.getIntensity(); });
+
+                return acc / static_cast<double>(std::distance(begin_it, end_it));
+            });
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 3);
+        TEST_REAL_SIMILAR(result[0][0], 2000.0);  // Average of first spectrum
+        TEST_REAL_SIMILAR(result[0][1], 2100.0);  // Average of third spectrum
+        TEST_REAL_SIMILAR(result[0][2], 2200.0);  // Average of fourth spectrum
+    }
+}
+END_SECTION
+
+START_SECTION((void get2DPeakDataPerSpectrum(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, Size ms_level, std::vector<float>& rt, std::vector<std::vector<float>>& mz, std::vector<std::vector<float>>& intensity) const))
+{
+  MSExperiment exp;
+  
+  // Create test spectra using initializer lists
+  MSSpectrum s1{
+    {100.0, 1000.0},
+    {200.0, 2000.0}
+  };
+  s1.setRT(1.0);
+  s1.setMSLevel(1);
+  
+  MSSpectrum s2{
+    {150.0, 1500.0},
+    {250.0, 2500.0}
+  };
+  s2.setRT(2.0);
+  s2.setMSLevel(1);
+  
+  MSSpectrum s3{
+    {175.0, 1750.0}
+  };
+  s3.setRT(3.0);
+  s3.setMSLevel(2);
+  
+  exp.addSpectrum(s1);
+  exp.addSpectrum(s2);
+  exp.addSpectrum(s3);
+  
+  // Test 1: Full range, MS level 1
+  {
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity;
+    exp.get2DPeakDataPerSpectrum(0.0, 4.0, 0.0, 300.0, 1, rt, mz, intensity);
+    
+    TEST_EQUAL(rt.size(), 2)
+    TEST_EQUAL(mz.size(), 2)
+    TEST_EQUAL(intensity.size(), 2)
+    
+    // Check first spectrum
+    TEST_REAL_SIMILAR(rt[0], 1.0)
+    TEST_EQUAL(mz[0].size(), 2)
+    TEST_REAL_SIMILAR(mz[0][0], 100.0)
+    TEST_REAL_SIMILAR(mz[0][1], 200.0)
+    TEST_REAL_SIMILAR(intensity[0][0], 1000.0)
+    TEST_REAL_SIMILAR(intensity[0][1], 2000.0)
+    
+    // Check second spectrum
+    TEST_REAL_SIMILAR(rt[1], 2.0)
+    TEST_EQUAL(mz[1].size(), 2)
+    TEST_REAL_SIMILAR(mz[1][0], 150.0)
+    TEST_REAL_SIMILAR(mz[1][1], 250.0)
+    TEST_REAL_SIMILAR(intensity[1][0], 1500.0)
+    TEST_REAL_SIMILAR(intensity[1][1], 2500.0)
+  }
+  
+  // Test 2: Limited RT range
+  {
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity;
+    exp.get2DPeakDataPerSpectrum(1.5, 2.5, 0.0, 300.0, 1, rt, mz, intensity);
+    
+    TEST_EQUAL(rt.size(), 1)
+    TEST_EQUAL(mz.size(), 1)
+    TEST_EQUAL(intensity.size(), 1)
+    TEST_REAL_SIMILAR(rt[0], 2.0)
+  }
+  
+  // Test 3: Limited MZ range
+  {
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity;
+    exp.get2DPeakDataPerSpectrum(0.0, 4.0, 120.0, 180.0, 1, rt, mz, intensity);
+    
+    TEST_EQUAL(rt.size(), 1)
+    TEST_EQUAL(mz.size(), 1)
+    TEST_EQUAL(intensity.size(), 1)
+    TEST_REAL_SIMILAR(rt[0], 2.0)
+    TEST_EQUAL(mz[0].size(), 1)
+    TEST_REAL_SIMILAR(mz[0][0], 150.0)
+  }
+  
+  // Test 4: MS level 2
+  {
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity;
+    exp.get2DPeakDataPerSpectrum(0.0, 4.0, 0.0, 300.0, 2, rt, mz, intensity);
+    
+    TEST_EQUAL(rt.size(), 1)
+    TEST_EQUAL(mz.size(), 1)
+    TEST_EQUAL(intensity.size(), 1)
+    TEST_REAL_SIMILAR(rt[0], 3.0)
+    TEST_EQUAL(mz[0].size(), 1)
+    TEST_REAL_SIMILAR(mz[0][0], 175.0)
+    TEST_REAL_SIMILAR(intensity[0][0], 1750.0)
+  }
+  
+  // Test 5: Empty range
+  {
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity;
+    exp.get2DPeakDataPerSpectrum(5.0, 6.0, 0.0, 300.0, 1, rt, mz, intensity);
+    
+    TEST_EQUAL(rt.empty(), true)
+    TEST_EQUAL(mz.empty(), true)
+    TEST_EQUAL(intensity.empty(), true)
+  }
+}
+END_SECTION
+
+START_SECTION((void get2DPeakDataIMPerSpectrum(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, Size ms_level, std::vector<float>& rt, std::vector<std::vector<float>>& mz, std::vector<std::vector<float>>& intensity, std::vector<std::vector<float>>& ion_mobility) const))
+{
+  MSExperiment exp;
+  
+  // Create test spectra with ion mobility data
+  MSSpectrum s1{
+    {100.0, 1000.0},
+    {200.0, 2000.0}
+  };
+  s1.setRT(1.0);
+  s1.setMSLevel(1);
+  DataArrays::FloatDataArray im1;
+  im1.setName("Ion Mobility");
+  im1.push_back(0.8f);  // IM value for first peak
+  im1.push_back(1.2f);  // IM value for second peak
+  im1.setMetaValue("unit", "millisecond");
+  s1.getFloatDataArrays().push_back(im1);
+  
+  MSSpectrum s2{
+    {150.0, 1500.0},
+    {250.0, 2500.0}
+  };
+  s2.setRT(2.0);
+  s2.setMSLevel(1);
+  DataArrays::FloatDataArray im2;
+  im2.setName("Ion Mobility");
+  im2.push_back(1.5f);  // IM value for first peak
+  im2.push_back(2.0f);  // IM value for second peak
+  im2.setMetaValue("unit", "millisecond");
+  s2.getFloatDataArrays().push_back(im2);
+  
+  MSSpectrum s3{
+    {175.0, 1750.0}
+  };
+  s3.setRT(3.0);
+  s3.setMSLevel(2);
+  DataArrays::FloatDataArray im3;
+  im3.setName("Ion Mobility");
+  im3.push_back(1.8f);  // IM value for single peak
+  im3.setMetaValue("unit", "millisecond");
+  s3.getFloatDataArrays().push_back(im3);
+  
+  exp.addSpectrum(s1);
+  exp.addSpectrum(s2);
+  exp.addSpectrum(s3);
+  
+  // Test 1: Full range, MS level 1
+  {
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity, ion_mobility;
+    exp.get2DPeakDataIMPerSpectrum(0.0, 4.0, 0.0, 300.0, 1, rt, mz, intensity, ion_mobility);
+    
+    TEST_EQUAL(rt.size(), 2)
+    TEST_EQUAL(mz.size(), 2)
+    TEST_EQUAL(intensity.size(), 2)
+    TEST_EQUAL(ion_mobility.size(), 2)
+    
+    // Check first spectrum
+    TEST_REAL_SIMILAR(rt[0], 1.0)
+    TEST_EQUAL(mz[0].size(), 2)
+    TEST_REAL_SIMILAR(mz[0][0], 100.0)
+    TEST_REAL_SIMILAR(mz[0][1], 200.0)
+    TEST_REAL_SIMILAR(intensity[0][0], 1000.0)
+    TEST_REAL_SIMILAR(intensity[0][1], 2000.0)
+    TEST_REAL_SIMILAR(ion_mobility[0][0], 0.8)
+    TEST_REAL_SIMILAR(ion_mobility[0][1], 1.2)
+    
+    // Check second spectrum
+    TEST_REAL_SIMILAR(rt[1], 2.0)
+    TEST_EQUAL(mz[1].size(), 2)
+    TEST_REAL_SIMILAR(mz[1][0], 150.0)
+    TEST_REAL_SIMILAR(mz[1][1], 250.0)
+    TEST_REAL_SIMILAR(intensity[1][0], 1500.0)
+    TEST_REAL_SIMILAR(intensity[1][1], 2500.0)
+    TEST_REAL_SIMILAR(ion_mobility[1][0], 1.5)
+    TEST_REAL_SIMILAR(ion_mobility[1][1], 2.0)
+  }
+  
+  // Test 2: Limited RT range
+  {
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity, ion_mobility;
+    exp.get2DPeakDataIMPerSpectrum(1.5, 2.5, 0.0, 300.0, 1, rt, mz, intensity, ion_mobility);
+    
+    TEST_EQUAL(rt.size(), 1)
+    TEST_EQUAL(mz.size(), 1)
+    TEST_EQUAL(intensity.size(), 1)
+    TEST_EQUAL(ion_mobility.size(), 1)
+    TEST_REAL_SIMILAR(rt[0], 2.0)
+    TEST_EQUAL(ion_mobility[0].size(), 2)
+    TEST_REAL_SIMILAR(ion_mobility[0][0], 1.5)
+    TEST_REAL_SIMILAR(ion_mobility[0][1], 2.0)
+  }
+  
+  // Test 3: Limited MZ range
+  {
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity, ion_mobility;
+    exp.get2DPeakDataIMPerSpectrum(0.0, 4.0, 120.0, 180.0, 1, rt, mz, intensity, ion_mobility);
+    
+    TEST_EQUAL(rt.size(), 1)
+    TEST_EQUAL(mz.size(), 1)
+    TEST_EQUAL(intensity.size(), 1)
+    TEST_EQUAL(ion_mobility.size(), 1)
+    TEST_REAL_SIMILAR(rt[0], 2.0)
+    TEST_EQUAL(mz[0].size(), 1)
+    TEST_REAL_SIMILAR(mz[0][0], 150.0)
+    TEST_REAL_SIMILAR(ion_mobility[0][0], 1.5)
+  }
+  
+  // Test 4: MS level 2
+  {
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity, ion_mobility;
+    exp.get2DPeakDataIMPerSpectrum(0.0, 4.0, 0.0, 300.0, 2, rt, mz, intensity, ion_mobility);
+    
+    TEST_EQUAL(rt.size(), 1)
+    TEST_EQUAL(mz.size(), 1)
+    TEST_EQUAL(intensity.size(), 1)
+    TEST_EQUAL(ion_mobility.size(), 1)
+    TEST_REAL_SIMILAR(rt[0], 3.0)
+    TEST_EQUAL(mz[0].size(), 1)
+    TEST_REAL_SIMILAR(mz[0][0], 175.0)
+    TEST_REAL_SIMILAR(intensity[0][0], 1750.0)
+    TEST_REAL_SIMILAR(ion_mobility[0][0], 1.8)
+  }
+  
+  // Test 5: Empty range
+  {
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity, ion_mobility;
+    exp.get2DPeakDataIMPerSpectrum(5.0, 6.0, 0.0, 300.0, 1, rt, mz, intensity, ion_mobility);
+    
+    TEST_EQUAL(rt.empty(), true)
+    TEST_EQUAL(mz.empty(), true)
+    TEST_EQUAL(intensity.empty(), true)
+    TEST_EQUAL(ion_mobility.empty(), true)
+  }
+
+  // Test 6: Spectrum without ion mobility data
+  {
+    MSExperiment exp_no_im;
+    MSSpectrum s_no_im{
+      {100.0, 1000.0},
+      {200.0, 2000.0}
+    };
+    s_no_im.setRT(1.0);
+    s_no_im.setMSLevel(1);
+    exp_no_im.addSpectrum(s_no_im);
+    
+    std::vector<float> rt;
+    std::vector<std::vector<float>> mz, intensity, ion_mobility;
+    exp_no_im.get2DPeakDataIMPerSpectrum(0.0, 4.0, 0.0, 300.0, 1, rt, mz, intensity, ion_mobility);
+    
+    TEST_EQUAL(rt.size(), 1)
+    TEST_EQUAL(mz.size(), 1)
+    TEST_EQUAL(intensity.size(), 1)
+    TEST_EQUAL(ion_mobility.size(), 1)
+    TEST_EQUAL(ion_mobility[0].size(), 2)
+    TEST_REAL_SIMILAR(ion_mobility[0][0], -1.0)  // Should return -1.0 for missing IM data
+    TEST_REAL_SIMILAR(ion_mobility[0][1], -1.0)
+  }
+}
+END_SECTION
+
+START_SECTION((void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, std::vector<float>& rt, std::vector<float>& mz, std::vector<float>& intensity) const))
+{
+  MSExperiment exp;
+  
+  // Create test spectra
+  MSSpectrum s1{
+    {100.0, 1000.0},
+    {200.0, 2000.0}
+  };
+  s1.setRT(1.0);
+  s1.setMSLevel(1);
+  
+  MSSpectrum s2{
+    {150.0, 1500.0},
+    {250.0, 2500.0}
+  };
+  s2.setRT(2.0);
+  s2.setMSLevel(1);
+  
+  exp.addSpectrum(s1);
+  exp.addSpectrum(s2);
+  
+  // Test 1: Full range
+  {
+    std::vector<float> rt, mz, intensity;
+    exp.get2DPeakData(0.0, 4.0, 0.0, 300.0, 1, rt, mz, intensity);
+    
+    TEST_EQUAL(rt.size(), 4)
+    TEST_EQUAL(mz.size(), 4)
+    TEST_EQUAL(intensity.size(), 4)
+    
+    // Check all peaks in order
+    TEST_REAL_SIMILAR(rt[0], 1.0)
+    TEST_REAL_SIMILAR(mz[0], 100.0)
+    TEST_REAL_SIMILAR(intensity[0], 1000.0)
+    
+    TEST_REAL_SIMILAR(rt[1], 1.0)
+    TEST_REAL_SIMILAR(mz[1], 200.0)
+    TEST_REAL_SIMILAR(intensity[1], 2000.0)
+    
+    TEST_REAL_SIMILAR(rt[2], 2.0)
+    TEST_REAL_SIMILAR(mz[2], 150.0)
+    TEST_REAL_SIMILAR(intensity[2], 1500.0)
+    
+    TEST_REAL_SIMILAR(rt[3], 2.0)
+    TEST_REAL_SIMILAR(mz[3], 250.0)
+    TEST_REAL_SIMILAR(intensity[3], 2500.0)
+  }
+  
+  // Test 2: Limited RT range
+  {
+    std::vector<float> rt, mz, intensity;
+    exp.get2DPeakData(1.5, 2.5, 0.0, 300.0, 1, rt, mz, intensity);
+    
+    TEST_EQUAL(rt.size(), 2)
+    TEST_EQUAL(mz.size(), 2)
+    TEST_EQUAL(intensity.size(), 2)
+    
+    TEST_REAL_SIMILAR(rt[0], 2.0)
+    TEST_REAL_SIMILAR(mz[0], 150.0)
+    TEST_REAL_SIMILAR(intensity[0], 1500.0)
+  }
+  
+  // Test 3: Limited MZ range
+  {
+    std::vector<float> rt, mz, intensity;
+    exp.get2DPeakData(0.0, 4.0, 120.0, 180.0, 1, rt, mz, intensity);
+    
+    TEST_EQUAL(rt.size(), 1)
+    TEST_EQUAL(mz.size(), 1)
+    TEST_EQUAL(intensity.size(), 1)
+    
+    TEST_REAL_SIMILAR(rt[0], 2.0)
+    TEST_REAL_SIMILAR(mz[0], 150.0)
+    TEST_REAL_SIMILAR(intensity[0], 1500.0)
+  }
+  
+  // Test 4: Empty range
+  {
+    std::vector<float> rt, mz, intensity;
+    exp.get2DPeakData(5.0, 6.0, 0.0, 300.0, 1, rt, mz, intensity);
+    
+    TEST_EQUAL(rt.empty(), true)
+    TEST_EQUAL(mz.empty(), true)
+    TEST_EQUAL(intensity.empty(), true)
+  }
+}
+END_SECTION
+
+START_SECTION((std::vector<std::vector<MSExperiment::CoordinateType>> aggregateFromMatrix(const Matrix<double>& ranges, unsigned int ms_level, const std::string& mz_agg) const))
+{
+    // Create test experiment with known data
+    MSExperiment exp;
+    exp.resize(4);
+
+    // First spectrum (MS1) at RT=1.0
+    exp[0] = MSSpectrum{
+        {100.0, 1000.0},
+        {200.0, 2000.0},
+        {300.0, 3000.0}
+    };    
+    exp[0].setRT(1.0);
+    exp[0].setMSLevel(1);
+
+    // Second spectrum (MS2) at RT=2.0
+    exp[1] = MSSpectrum{
+      {150.0, 1500.0},
+      {250.0, 2500.0}
+    };
+    exp[1].setRT(2.0);
+    exp[1].setMSLevel(2);
+
+    // Third spectrum (MS1) at RT=3.0
+    exp[2] = MSSpectrum{
+        {100.0, 1100.0},
+        {200.0, 2100.0},
+        {300.0, 3100.0}
+    };
+    exp[2].setRT(3.0);
+    exp[2].setMSLevel(1);
+
+    // Fourth spectrum (MS1) at RT=4.0
+    exp[3] = MSSpectrum{
+        {100.0, 1200.0},
+        {200.0, 2200.0},
+        {300.0, 3200.0}
+    };
+    exp[3].setRT(4.0);
+    exp[3].setMSLevel(1);
+
+    exp.updateRanges();
+
+    // Test 1: Sum aggregation for MS1 spectra
+    {
+        Matrix<double> ranges(2, 4); // two rt-mz ranges, four columns with min_mz, max_mz, min_rt, max_rt
+        // Range 1: m/z 90-110, RT 0-3.5 (covers first and third spectra)
+        ranges(0, 0) = 90.0;  ranges(0, 1) = 110.0;
+        ranges(0, 2) = 0.0;   ranges(0, 3) = 3.5;
+
+        // Range 2: m/z 190-210, RT 0-5.0 (covers first, third, and fourth spectra)
+        ranges(1, 0) = 190.0; ranges(1, 1) = 210.0;
+        ranges(1, 2) = 0.0;   ranges(1, 3) = 5.0;
+
+        auto result = exp.aggregateFromMatrix(ranges, 1, "sum");
+
+        // Check results
+        TEST_EQUAL(result.size(), 2);
+
+        // Check Range 1 results
+        TEST_EQUAL(result[0].size(), 2);  // Should cover 2 spectra (1 and 3)
+        TEST_EQUAL(result[0][0], 1000.0); // First spectrum intensity RT = 1.0
+        TEST_EQUAL(result[0][1], 1100.0); // Third spectrum intensity RT = 3.0
+
+        // Check Range 2 results
+        TEST_EQUAL(result[1].size(), 3);   // Should cover 3 spectra (1, 3, and 4)
+        TEST_EQUAL(result[1][0], 2000.0);  // First spectrum intensity
+        TEST_EQUAL(result[1][1], 2100.0);  // Third spectrum intensity
+        TEST_EQUAL(result[1][2], 2200.0);  // Fourth spectrum intensity
+    }
+
+    // Test 2: Max aggregation for MS1 spectra
+    {
+        Matrix<double> ranges(1, 4);
+        // Range: m/z 100-300, RT 1-4 (covers first, third, and fourth spectra)
+        ranges(0,0) = 100.0; ranges(0,1) = 300.0;
+        ranges(0,2) = 1.0;   ranges(0,3) = 4.0;
+
+        auto result = exp.aggregateFromMatrix(ranges, 1, "max");
+
+        // Check results
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 3);
+        TEST_EQUAL(result[0][0], 3000.0); // First spectrum max intensity in range
+        TEST_EQUAL(result[0][1], 3100.0); // Third spectrum max intensity in range
+        TEST_EQUAL(result[0][2], 3200.0); // Fourth spectrum max intensity in range
+    }
+
+    // Test 3: Min aggregation for MS1 spectra
+    {
+        Matrix<double> ranges(1, 4);
+        // Range: m/z 100-300, RT 1-4 (covers first, third, and fourth spectra)
+        ranges(0,0) = 100.0; ranges(0,1) = 300.0;
+        ranges(0,2) = 1.0;   ranges(0,3) = 4.0;
+        auto result = exp.aggregateFromMatrix(ranges, 1, "min");
+
+        // Check results
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 3);
+        TEST_EQUAL(result[0][0], 1000.0); // First spectrum min intensity in range
+        TEST_EQUAL(result[0][1], 1100.0); // Third spectrum min intensity in range
+        TEST_EQUAL(result[0][2], 1200.0); // Fourth spectrum min intensity in range
+    }
+
+    // Test 4: Mean aggregation for MS1 spectra
+    {
+        Matrix<double> ranges(1, 4);
+        // Range: m/z 100-300, RT 0-5 (covers all MS1 spectra)
+        ranges(0,0) = 100.0; ranges(0,1) = 300.0;
+        ranges(0,2) = 0.0;   ranges(0,3) = 5.0;
+        auto result = exp.aggregateFromMatrix(ranges, 1, "mean");
+
+        // Check results
+        TEST_EQUAL(result.size(), 1);
+        TEST_EQUAL(result[0].size(), 3);
+        TEST_REAL_SIMILAR(result[0][0], 2000.0); // First spectrum mean intensity
+        TEST_REAL_SIMILAR(result[0][1], 2100.0); // Third spectrum mean intensity
+        TEST_REAL_SIMILAR(result[0][2], 2200.0); // Fourth spectrum mean intensity
+    }
+
+    // Test 5: Invalid aggregation function
+    {
+        Matrix<double> ranges(1, 4);
+        ranges(0,0) = 100.0; ranges(0,1) = 200.0;
+        ranges(0,2) = 1.0;   ranges(0,3) = 2.0;
+        TEST_EXCEPTION(Exception::InvalidValue, exp.aggregateFromMatrix(ranges, 1, "invalid_agg"));
+    }
+
+    // Test 6: Invalid matrix dimensions (not 4 columns)
+    {
+        Matrix<double> ranges(1, 3);
+        ranges(0,0) = 100.0; ranges(0,1) = 200.0; ranges(0,2) = 1.0;
+        TEST_EXCEPTION(Exception::InvalidParameter, exp.aggregateFromMatrix(ranges, 1, "sum"));
+    }
+
+    // Test 7: Empty ranges matrix
+    {
+        Matrix<double> ranges(0, 4); // 0 rows, 4 columns
+        auto result = exp.aggregateFromMatrix(ranges, 1, "sum");
+        TEST_EQUAL(result.size(), 0);         // Expect an empty result
+    }
+
+    // Test 8: No matching spectra for given ms_level
+    {
+        Matrix<double> ranges(1, 4);
+        ranges(0,0) = 100.0; ranges(0,1) = 300.0;
+        ranges(0,2) = 0.0;   ranges(0,3) = 5.0;
+        auto result = exp.aggregateFromMatrix(ranges, 3, "sum"); // No spectra with MS level 3
+
+        // Failed to extract anything -> empty vector
+        TEST_EQUAL(result.size(), 0);
+    }
+
+}
+END_SECTION
+
+START_SECTION((std::vector<MSChromatogram> extractXICsFromMatrix(const Matrix<double>& ranges, unsigned int ms_level, const std::string& mz_agg) const))
+{
+    // Create test experiment with known data
+    MSExperiment exp;
+    exp.resize(4);
+
+     // First spectrum (MS1) at RT=1.0
+    exp[0] = MSSpectrum{
+        {100.0, 1000.0},
+        {200.0, 2000.0},
+        {300.0, 3000.0}
+    };    
+    exp[0].setRT(1.0);
+    exp[0].setMSLevel(1);
+
+    // Second spectrum (MS2) at RT=2.0
+    exp[1] = MSSpectrum{
+      {150.0, 1500.0},
+      {250.0, 2500.0}
+    };
+    exp[1].setRT(2.0);
+    exp[1].setMSLevel(2);
+
+    // Third spectrum (MS1) at RT=3.0
+    exp[2] = MSSpectrum{
+        {100.0, 1100.0},
+        {200.0, 2100.0},
+        {300.0, 3100.0}
+    };
+    exp[2].setRT(3.0);
+    exp[2].setMSLevel(1);
+
+    // Fourth spectrum (MS1) at RT=4.0
+    exp[3] = MSSpectrum{
+        {100.0, 1200.0},
+        {200.0, 2200.0},
+        {300.0, 3200.0}
+    };
+    exp[3].setRT(4.0);
+    exp[3].setMSLevel(1);
+
+    exp.updateRanges();
+
+    // Test 1: Sum aggregation for MS1 spectra
+    {
+        Matrix<double> ranges(2, 4);
+        // Range 1: m/z 90-110, RT 0-3.5 (covers first and third spectra)
+        ranges(0,0) = 90.0;  ranges(0,1) = 110.0;
+        ranges(0,2) = 0.0;   ranges(0,3) = 3.5;
+        // Range 2: m/z 190-210, RT 0-5.0 (covers first, third, and fourth spectra)
+        ranges(1,0) = 190.0; ranges(1,1) = 210.0;
+        ranges(1,2) = 0.0;   ranges(1,3) = 5.0;
+
+        unsigned int ms_level = 1;
+        std::string mz_agg = "sum";
+
+        auto result = exp.extractXICsFromMatrix(ranges, ms_level, mz_agg);
+
+        // Check results
+        TEST_EQUAL(result.size(), 2);
+
+        // Check Range 1 results
+        TEST_EQUAL(result[0].size(), 2);  // Should cover 2 spectra
+        TEST_REAL_SIMILAR(result[0][0].getIntensity(), 1000.0); // First spectrum intensity
+        TEST_REAL_SIMILAR(result[0][1].getIntensity(), 1100.0); // Third spectrum intensity
+
+        // Check Range 2 results
+        TEST_EQUAL(result[1].size(), 3);   // Should cover 3 spectra
+        TEST_REAL_SIMILAR(result[1][0].getIntensity(), 2000.0);  // First spectrum intensity
+        TEST_REAL_SIMILAR(result[1][1].getIntensity(), 2100.0);  // Third spectrum intensity
+        TEST_REAL_SIMILAR(result[1][2].getIntensity(), 2200.0);  // Fourth spectrum intensity
+    }
+
+}
+END_SECTION
+
+START_SECTION((void get2DPeakDataIM(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, Size ms_level, std::vector<float>& rt, std::vector<float>& mz, std::vector<float>& intensity, std::vector<float>& ion_mobility) const))
+{
+  MSExperiment exp;
+  
+  // Create test spectra with ion mobility data
+  MSSpectrum s1{
+    {100.0, 1000.0},
+    {200.0, 2000.0}
+  };
+  s1.setRT(1.0);
+  s1.setMSLevel(1);
+  DataArrays::FloatDataArray im1;
+  im1.setName("Ion Mobility");
+  im1.push_back(0.8f);
+  im1.push_back(1.2f);
+  im1.setMetaValue("unit", "millisecond");
+  s1.getFloatDataArrays().push_back(im1);
+  
+  MSSpectrum s2{
+    {150.0, 1500.0},
+    {250.0, 2500.0}
+  };
+  s2.setRT(2.0);
+  s2.setMSLevel(1);
+  DataArrays::FloatDataArray im2;
+  im2.setName("Ion Mobility");
+  im2.push_back(1.5f);
+  im2.push_back(2.0f);
+  im2.setMetaValue("unit", "millisecond");
+  s2.getFloatDataArrays().push_back(im2);
+  
+  exp.addSpectrum(s1);
+  exp.addSpectrum(s2);
+  
+  // Test 1: Full range, MS level 1
+  {
+    std::vector<float> rt, mz, intensity, ion_mobility;
+    exp.get2DPeakDataIM(0.0, 4.0, 0.0, 300.0, 1, rt, mz, intensity, ion_mobility);
+    
+    TEST_EQUAL(rt.size(), 4)
+    TEST_EQUAL(mz.size(), 4)
+    TEST_EQUAL(intensity.size(), 4)
+    TEST_EQUAL(ion_mobility.size(), 4)
+    
+    // Check all peaks in order
+    TEST_REAL_SIMILAR(rt[0], 1.0)
+    TEST_REAL_SIMILAR(mz[0], 100.0)
+    TEST_REAL_SIMILAR(intensity[0], 1000.0)
+    TEST_REAL_SIMILAR(ion_mobility[0], 0.8)
+    
+    TEST_REAL_SIMILAR(rt[1], 1.0)
+    TEST_REAL_SIMILAR(mz[1], 200.0)
+    TEST_REAL_SIMILAR(intensity[1], 2000.0)
+    TEST_REAL_SIMILAR(ion_mobility[1], 1.2)
+    
+    TEST_REAL_SIMILAR(rt[2], 2.0)
+    TEST_REAL_SIMILAR(mz[2], 150.0)
+    TEST_REAL_SIMILAR(intensity[2], 1500.0)
+    TEST_REAL_SIMILAR(ion_mobility[2], 1.5)
+    
+    TEST_REAL_SIMILAR(rt[3], 2.0)
+    TEST_REAL_SIMILAR(mz[3], 250.0)
+    TEST_REAL_SIMILAR(intensity[3], 2500.0)
+    TEST_REAL_SIMILAR(ion_mobility[3], 2.0)
+  }
+  
+  // Test 2: Limited RT range
+  {
+    std::vector<float> rt, mz, intensity, ion_mobility;
+    exp.get2DPeakDataIM(1.5, 2.5, 0.0, 300.0, 1, rt, mz, intensity, ion_mobility);
+    
+    TEST_EQUAL(rt.size(), 2)
+    TEST_EQUAL(mz.size(), 2)
+    TEST_EQUAL(intensity.size(), 2)
+    TEST_EQUAL(ion_mobility.size(), 2)
+    
+    TEST_REAL_SIMILAR(rt[0], 2.0)
+    TEST_REAL_SIMILAR(mz[0], 150.0)
+    TEST_REAL_SIMILAR(intensity[0], 1500.0)
+    TEST_REAL_SIMILAR(ion_mobility[0], 1.5)
+  }
+  
+  // Test 3: Spectrum without ion mobility data
+  {
+    MSExperiment exp_no_im;
+    MSSpectrum s_no_im{
+      {100.0, 1000.0},
+      {200.0, 2000.0}
+    };
+    s_no_im.setRT(1.0);
+    s_no_im.setMSLevel(1);
+    exp_no_im.addSpectrum(s_no_im);
+    
+    std::vector<float> rt, mz, intensity, ion_mobility;
+    exp_no_im.get2DPeakDataIM(0.0, 4.0, 0.0, 300.0, 1, rt, mz, intensity, ion_mobility);
+    
+    TEST_EQUAL(rt.size(), 2)
+    TEST_EQUAL(mz.size(), 2)
+    TEST_EQUAL(intensity.size(), 2)
+    TEST_EQUAL(ion_mobility.size(), 2)
+    TEST_REAL_SIMILAR(ion_mobility[0], -1.0)  // Should return -1.0 for missing IM data
+    TEST_REAL_SIMILAR(ion_mobility[1], -1.0)
+  }
+}
+END_SECTION
+
+START_SECTION((template<class MzReductionFunctionType> std::vector<MSChromatogram> extractXICs(const std::vector<std::pair<RangeMZ, RangeRT>>& mz_rt_ranges, unsigned int ms_level, MzReductionFunctionType func_mz_reduction = SumIntensityReduction()) const))
+{
+    // Create test experiment with known data
+    PeakMap exp;
+    exp.resize(4);
+
+    // First spectrum (MS1) at RT=1.0
+    exp[0] = MSSpectrum{
+        {100.0, 1000.0},
+        {200.0, 2000.0},
+        {300.0, 3000.0}
+    };
+    exp[0].setRT(1.0);
+    exp[0].setMSLevel(1);
+
+    // Second spectrum (MS2) at RT=2.0
+    exp[1] = MSSpectrum{
+        {150.0, 1500.0},
+        {250.0, 2500.0}
+    };
+    exp[1].setRT(2.0);
+    exp[1].setMSLevel(2);
+
+    // Third spectrum (MS1) at RT=3.0
+    exp[2] = MSSpectrum{
+        {100.0, 1100.0},
+        {200.0, 2100.0},
+        {300.0, 3100.0}
+    };
+    exp[2].setRT(3.0);
+    exp[2].setMSLevel(1);
+
+    // Fourth spectrum (MS1) at RT=4.0
+    exp[3] = MSSpectrum{
+        {100.0, 1200.0},
+        {200.0, 2200.0},
+        {300.0, 3200.0}
+    };
+    exp[3].setRT(4.0);
+    exp[3].setMSLevel(1);
+
+    // Update the ranges of the experiment
+    exp.updateRanges();
+
+    // Test 1: Normal case - MS1 spectra using default reduction function
+    {
+        std::vector<std::pair<RangeMZ, RangeRT>> ranges;
+        // Range 1: covers first peak of all MS1 spectra
+        ranges.push_back(std::make_pair(
+            RangeMZ(90.0, 110.0),
+            RangeRT(0.0, 5.0)
+        ));
+        // Range 2: covers second peak of all MS1 spectra
+        ranges.push_back(std::make_pair(
+            RangeMZ(190.0, 210.0),
+            RangeRT(0.0, 5.0)
+        ));
+
+        // Use default reduction function (SumIntensityReduction)
+        auto chromatograms = exp.extractXICs(ranges, 1);
+
+        // Check results
+        TEST_EQUAL(chromatograms.size(), 2);
+
+        // Check Range 1 chromatogram
+        TEST_EQUAL(chromatograms[0].size(), 3); // Should cover 3 spectra
+        TEST_REAL_SIMILAR(chromatograms[0][0].getRT(), 1.0);
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 1000.0);
+
+        TEST_REAL_SIMILAR(chromatograms[0][1].getRT(), 3.0);
+        TEST_REAL_SIMILAR(chromatograms[0][1].getIntensity(), 1100.0);
+
+        TEST_REAL_SIMILAR(chromatograms[0][2].getRT(), 4.0);
+        TEST_REAL_SIMILAR(chromatograms[0][2].getIntensity(), 1200.0);
+
+        // Check m/z value of the chromatogram
+        TEST_REAL_SIMILAR(chromatograms[0].getProduct().getMZ(), (90.0 + 110.0) / 2.0);
+
+        // Check Range 2 chromatogram
+        TEST_EQUAL(chromatograms[1].size(), 3); // Should cover 3 spectra
+        TEST_REAL_SIMILAR(chromatograms[1][0].getRT(), 1.0);
+        TEST_REAL_SIMILAR(chromatograms[1][0].getIntensity(), 2000.0);
+
+        TEST_REAL_SIMILAR(chromatograms[1][1].getRT(), 3.0);
+        TEST_REAL_SIMILAR(chromatograms[1][1].getIntensity(), 2100.0);
+
+        TEST_REAL_SIMILAR(chromatograms[1][2].getRT(), 4.0);
+        TEST_REAL_SIMILAR(chromatograms[1][2].getIntensity(), 2200.0);
+
+        // Check m/z value of the chromatogram
+        TEST_REAL_SIMILAR(chromatograms[1].getProduct().getMZ(), (190.0 + 210.0) / 2.0);
+    }
+
+    // Test 2: MS2 spectra
+    {
+        std::vector<std::pair<RangeMZ, RangeRT>> ranges;
+        ranges.push_back(std::make_pair(
+            RangeMZ(140.0, 160.0),
+            RangeRT(1.5, 2.5)
+        ));
+
+        auto chromatograms = exp.extractXICs(ranges, 2);
+
+        TEST_EQUAL(chromatograms.size(), 1);
+        TEST_EQUAL(chromatograms[0].size(), 1);
+        TEST_REAL_SIMILAR(chromatograms[0][0].getRT(), 2.0);
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 1500.0);
+
+        // Check m/z value of the chromatogram
+        TEST_REAL_SIMILAR(chromatograms[0].getProduct().getMZ(), (140.0 + 160.0) / 2.0);
+    }
+
+    // Test 3: Custom reduction function (average intensity)
+    {
+        std::vector<std::pair<RangeMZ, RangeRT>> ranges;
+        ranges.push_back(std::make_pair(
+            RangeMZ(90.0, 310.0),  // Covers all peaks
+            RangeRT(0.0, 5.0)      // Covers all spectra
+        ));
+
+        // Mean intensity in m/z range
+        auto chromatograms = exp.extractXICs(ranges, 1,
+            [](MSSpectrum::ConstIterator begin_it, MSSpectrum::ConstIterator end_it) -> double
+            {
+                if (begin_it == end_it) return 0.0;
+
+                double acc = std::accumulate(begin_it, end_it, 0.0,
+                    [](double a, const Peak1D& b) { return a + b.getIntensity(); });
+                return acc / static_cast<double>(std::distance(begin_it, end_it));
+            });
+
+        TEST_EQUAL(chromatograms.size(), 1);
+        TEST_EQUAL(chromatograms[0].size(), 3);
+
+        TEST_REAL_SIMILAR(chromatograms[0][0].getRT(), 1.0);
+        TEST_REAL_SIMILAR(chromatograms[0][0].getIntensity(), 2000.0); // Average of [1000, 2000, 3000]
+
+        TEST_REAL_SIMILAR(chromatograms[0][1].getRT(), 3.0);
+        TEST_REAL_SIMILAR(chromatograms[0][1].getIntensity(), 2100.0); // Average of [1100, 2100, 3100]
+
+        TEST_REAL_SIMILAR(chromatograms[0][2].getRT(), 4.0);
+        TEST_REAL_SIMILAR(chromatograms[0][2].getIntensity(), 2200.0); // Average of [1200, 2200, 3200]
+
+        // Check m/z value of the chromatogram
+        TEST_REAL_SIMILAR(chromatograms[0].getProduct().getMZ(), (90.0 + 310.0) / 2.0);
+    }
+}
+END_SECTION
+/////////////////////////////////////////////////////////////
+// Tests for dual-range system
+/////////////////////////////////////////////////////////////
+
+START_SECTION((const SpectrumRangeManagerType& spectrumRanges() const))
+{
+  // Create experiment with spectra only
+  MSExperiment exp;
+  MSSpectrum s;
+  Peak1D p;
+  
+  // Add MS1 spectrum
+  s.setMSLevel(1);
+  s.setRT(30.0);
+  p.getPosition()[0] = 100.0;
+  p.setIntensity(1000.0f);
+  s.push_back(p);
+  exp.addSpectrum(s);
+  
+  // Add MS2 spectrum
+  s.clear(true);
+  s.setMSLevel(2);
+  s.setRT(35.0);
+  p.getPosition()[0] = 200.0;
+  p.setIntensity(2000.0f);
+  s.push_back(p);
+  exp.addSpectrum(s);
+  
+  // Update ranges
+  exp.updateRanges();
+  
+  // Test general access to spectrum ranges
+  TEST_REAL_SIMILAR(exp.spectrumRanges().getMinMZ(), 100.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().getMaxMZ(), 200.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().getMinIntensity(), 1000.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().getMaxIntensity(), 2000.0);
+  
+  // Test MS level-specific ranges
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(1).getMinMZ(), 100.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(1).getMaxMZ(), 100.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(1).getMinIntensity(), 1000.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(1).getMaxIntensity(), 1000.0);
+
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(2).getMinMZ(), 200.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(2).getMaxMZ(), 200.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(2).getMinIntensity(), 2000.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(2).getMaxIntensity(), 2000.0);
+}
+END_SECTION
+
+START_SECTION((const ChromatogramRangeManagerType& chromatogramRanges() const))
+{
+  // Create experiment with chromatograms only
+  MSExperiment exp;
+  MSChromatogram chrom;
+  ChromatogramPeak cp;
+  
+  // Add first chromatogram
+  cp.setRT(10.0);
+  cp.setIntensity(500.0f);
+  chrom.push_back(cp);
+  cp.setRT(20.0);
+  cp.setIntensity(1500.0f);
+  chrom.push_back(cp);
+  chrom.setMetaValue("product_mz", 305.0);
+  exp.addChromatogram(chrom);
+  
+  // Add second chromatogram
+  chrom.clear(true);
+  cp.setRT(15.0);
+  cp.setIntensity(800.0f);
+  chrom.push_back(cp);
+  cp.setRT(25.0);
+  cp.setIntensity(1800.0f);
+  chrom.push_back(cp);
+  chrom.setMetaValue("product_mz", 405.0);
+  exp.addChromatogram(chrom);
+  
+  // Update ranges
+  exp.updateRanges();
+  
+  // Test chromatogram ranges
+  TEST_REAL_SIMILAR(exp.chromatogramRanges().getMinRT(), 10.0);
+  TEST_REAL_SIMILAR(exp.chromatogramRanges().getMaxRT(), 25.0);
+  TEST_REAL_SIMILAR(exp.chromatogramRanges().getMinIntensity(), 500.0);
+  TEST_REAL_SIMILAR(exp.chromatogramRanges().getMaxIntensity(), 1800.0);
+}
+END_SECTION
+
+START_SECTION((void updateRanges()))
+{
+  // Test case 1: Empty experiment
+  {
+    MSExperiment exp;
+    exp.updateRanges();
+    
+    // Check that all ranges are empty
+    TEST_TRUE(exp.spectrumRanges().hasRange() == HasRangeType::NONE);
+    TEST_TRUE(exp.chromatogramRanges().hasRange() == HasRangeType::NONE);
+    TEST_TRUE(exp.combinedRanges().hasRange() == HasRangeType::NONE);
+  }
+  
+  // Test case 2: Experiment with only spectra
+  {
+    MSExperiment exp;
+    MSSpectrum s;
+    Peak1D p;
+    
+    // Add MS1 spectrum
+    s.setMSLevel(1);
+    s.setRT(30.0);
+    p.getPosition()[0] = 100.0;
+    p.setIntensity(1000.0f);
+    s.push_back(p);
+    exp.addSpectrum(s);
+    
+    exp.updateRanges();
+    
+    // Check spectrum ranges are correct
+    TEST_EQUAL(exp.spectrumRanges().hasRange(), HasRangeType::SOME);
+    TEST_REAL_SIMILAR(exp.spectrumRanges().getMinMZ(), 100.0);
+    TEST_REAL_SIMILAR(exp.spectrumRanges().getMaxMZ(), 100.0);
+    
+    // Check chromatogram ranges are empty
+    TEST_EQUAL(exp.chromatogramRanges().hasRange(), HasRangeType::NONE);
+    
+    // Check combined ranges match spectrum ranges
+    TEST_EQUAL(exp.combinedRanges().hasRange(), HasRangeType::SOME);
+    TEST_REAL_SIMILAR(exp.combinedRanges().getMinMZ(), 100.0);
+    TEST_REAL_SIMILAR(exp.combinedRanges().getMaxMZ(), 100.0);
+    TEST_REAL_SIMILAR(exp.combinedRanges().getMinRT(), 30.0);
+    TEST_REAL_SIMILAR(exp.combinedRanges().getMaxRT(), 30.0);
+    TEST_REAL_SIMILAR(exp.combinedRanges().getMinIntensity(), 1000.0);
+    TEST_REAL_SIMILAR(exp.combinedRanges().getMaxIntensity(), 1000.0);
+  }
+  
+  // Test case 3: Experiment with only chromatograms
+  {
+    MSExperiment exp;
+    MSChromatogram chrom;
+    ChromatogramPeak cp;
+    
+    cp.setRT(10.0);
+    cp.setIntensity(500.0f);
+    chrom.push_back(cp);
+    cp.setRT(20.0);
+    cp.setIntensity(1500.0f);
+    chrom.push_back(cp);
+    chrom.setMetaValue("product_mz", 305.0);
+    exp.addChromatogram(chrom);
+    
+    exp.updateRanges();
+    
+    // Check spectrum ranges are empty
+    TEST_EQUAL(exp.spectrumRanges().hasRange(), HasRangeType::NONE);
+    
+    // Check chromatogram ranges are correct
+    TEST_EQUAL(exp.chromatogramRanges().hasRange(), HasRangeType::ALL);
+    TEST_REAL_SIMILAR(exp.chromatogramRanges().getMinRT(), 10.0);
+    TEST_REAL_SIMILAR(exp.chromatogramRanges().getMaxRT(), 20.0);
+    
+    // Check combined ranges match chromatogram ranges
+    TEST_EQUAL(exp.combinedRanges().hasRange(), HasRangeType::SOME);
+    TEST_REAL_SIMILAR(exp.combinedRanges().getMinRT(), 10.0);
+    TEST_REAL_SIMILAR(exp.combinedRanges().getMaxRT(), 20.0);
+    TEST_REAL_SIMILAR(exp.combinedRanges().getMinIntensity(), 500.0);
+    TEST_REAL_SIMILAR(exp.combinedRanges().getMaxIntensity(), 1500.0);
+  }
+  
+  // Test case 4: Experiment with both spectra and chromatograms
+  {
+    MSExperiment exp;
+    
+    // Add spectrum
+    MSSpectrum s;
+    Peak1D p;
+    s.setMSLevel(1);
+    s.setRT(30.0);
+    p.getPosition()[0] = 100.0;
+    p.setIntensity(1000.0f);
+    s.push_back(p);
+    exp.addSpectrum(s);
+    
+    // Add chromatogram
+    MSChromatogram chrom;
+    ChromatogramPeak cp;
+    cp.setRT(10.0);
+    cp.setIntensity(500.0f);
+    chrom.push_back(cp);
+    cp.setRT(20.0);
+    cp.setIntensity(1500.0f);
+    chrom.push_back(cp);
+    chrom.setMetaValue("product_mz", 305.0);
+    exp.addChromatogram(chrom);
+    
+    exp.updateRanges();
+    
+    // Check spectrum ranges are correct
+    TEST_EQUAL(exp.spectrumRanges().hasRange(), HasRangeType::SOME);
+    TEST_REAL_SIMILAR(exp.spectrumRanges().getMinMZ(), 100.0);
+    TEST_REAL_SIMILAR(exp.spectrumRanges().getMaxMZ(), 100.0);
+    TEST_REAL_SIMILAR(exp.spectrumRanges().getMinIntensity(), 1000.0);
+    TEST_REAL_SIMILAR(exp.spectrumRanges().getMaxIntensity(), 1000.0);
+    
+    // Check chromatogram ranges are correct
+    TEST_EQUAL(exp.chromatogramRanges().hasRange(), HasRangeType::ALL);
+    TEST_REAL_SIMILAR(exp.chromatogramRanges().getMinRT(), 10.0);
+    TEST_REAL_SIMILAR(exp.chromatogramRanges().getMaxRT(), 20.0);
+    TEST_REAL_SIMILAR(exp.chromatogramRanges().getMinIntensity(), 500.0);
+    TEST_REAL_SIMILAR(exp.chromatogramRanges().getMaxIntensity(), 1500.0);
+    
+    // Check combined ranges encompass both spectrum and chromatogram ranges
+    TEST_EQUAL(exp.combinedRanges().hasRange(), HasRangeType::SOME);
+    TEST_REAL_SIMILAR(exp.combinedRanges().getMinMZ(), 0.0); // TODO: Why 0? precursor m/z not set?
+    TEST_REAL_SIMILAR(exp.combinedRanges().getMaxMZ(), 100.0);
+    TEST_REAL_SIMILAR(exp.combinedRanges().getMinRT(), 10.0);
+    TEST_REAL_SIMILAR(exp.combinedRanges().getMaxRT(), 30.0);
+    TEST_REAL_SIMILAR(exp.combinedRanges().getMinIntensity(), 500.0);
+    TEST_REAL_SIMILAR(exp.combinedRanges().getMaxIntensity(), 1500.0);
+  }
+
+  // Create experiment with multiple MS levels
+  MSExperiment exp;
+  MSSpectrum s;
+  Peak1D p;
+  
+  // Add MS1 spectrum
+  s.setMSLevel(1);
+  s.setRT(30.0);
+  p.getPosition()[0] = 100.0;
+  p.setIntensity(1000.0f);
+  s.push_back(p);
+  exp.addSpectrum(s);
+  
+  // Add MS2 spectrum
+  s.clear(true);
+  s.setMSLevel(2);
+  s.setRT(35.0);
+  p.getPosition()[0] = 200.0;
+  p.setIntensity(2000.0f);
+  s.push_back(p);
+  exp.addSpectrum(s);
+  
+  // Add MS3 spectrum
+  s.clear(true);
+  s.setMSLevel(3);
+  s.setRT(40.0);
+  p.getPosition()[0] = 300.0;
+  p.setIntensity(3000.0f);
+  s.push_back(p);
+  exp.addSpectrum(s);
+  
+  // Now update all ranges
+  exp.updateRanges();
+  
+  // Check all MS levels have correct ranges
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(1).getMinMZ(), 100.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(1).getMaxMZ(), 100.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(2).getMinMZ(), 200.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(2).getMaxMZ(), 200.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(3).getMinMZ(), 300.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().byMSLevel(3).getMaxMZ(), 300.0);
+
+  // Check general ranges reflect all spectra
+  TEST_REAL_SIMILAR(exp.spectrumRanges().getMinMZ(), 100.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().getMaxMZ(), 300.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().getMinIntensity(), 1000.0);
+  TEST_REAL_SIMILAR(exp.spectrumRanges().getMaxIntensity(), 3000.0);
+}
+END_SECTION
+
+START_SECTION((Backward compatibility tests))
+{
+  // Create experiment with both spectra and chromatograms
+  MSExperiment exp;
+  
+  // Add spectrum
+  MSSpectrum s;
+  Peak1D p;
+  s.setMSLevel(1);
+  s.setRT(30.0);
+  p.getPosition()[0] = 100.0;
+  p.setIntensity(1000.0f);
+  s.push_back(p);
+  s.setDriftTime(50.0);
+  exp.addSpectrum(s);
+  
+  // Add chromatogram
+  MSChromatogram chrom;
+  ChromatogramPeak cp;
+  cp.setRT(10.0);
+  cp.setIntensity(500.0f);
+  chrom.push_back(cp);
+  cp.setRT(20.0);
+  cp.setIntensity(1500.0f);
+  chrom.push_back(cp);
+  chrom.setMetaValue("product_mz", 305.0);
+  exp.addChromatogram(chrom);
+  
+  exp.updateRanges();
+  
+  // Test backward compatibility methods
+  TEST_REAL_SIMILAR(exp.getMinRT(), 10.0);
+  TEST_REAL_SIMILAR(exp.getMaxRT(), 30.0);
+  TEST_REAL_SIMILAR(exp.getMinMZ(), 0.0); // TODO: Why 0? precursor m/z not set?
+  TEST_REAL_SIMILAR(exp.getMaxMZ(), 100.0);
+  TEST_REAL_SIMILAR(exp.getMinIntensity(), 500.0);
+  TEST_REAL_SIMILAR(exp.getMaxIntensity(), 1500.0);
+  TEST_REAL_SIMILAR(exp.getMinMobility(), 50.0);
+  TEST_REAL_SIMILAR(exp.getMaxMobility(), 50.0);
+  
+  // Verify that backward compatibility methods access combined ranges
+  TEST_REAL_SIMILAR(exp.getMinRT(), exp.combinedRanges().getMinRT());
+  TEST_REAL_SIMILAR(exp.getMaxRT(), exp.combinedRanges().getMaxRT());
+  TEST_REAL_SIMILAR(exp.getMinMZ(), exp.combinedRanges().getMinMZ());
+  TEST_REAL_SIMILAR(exp.getMaxMZ(), exp.combinedRanges().getMaxMZ());
+  TEST_REAL_SIMILAR(exp.getMinIntensity(), exp.combinedRanges().getMinIntensity());
+  TEST_REAL_SIMILAR(exp.getMaxIntensity(), exp.combinedRanges().getMaxIntensity());
+  TEST_REAL_SIMILAR(exp.getMinMobility(), exp.combinedRanges().getMinMobility());
+  TEST_REAL_SIMILAR(exp.getMaxMobility(), exp.combinedRanges().getMaxMobility());
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+
 

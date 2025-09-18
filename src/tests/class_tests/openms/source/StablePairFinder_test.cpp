@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -84,6 +84,9 @@ START_SECTION((void run(const std::vector<ConsensusMap>& input_maps, ConsensusMa
   input[1].push_back(cons5);
   input[1].push_back(cons6);
 
+  input[0].updateRanges();
+  input[1].updateRanges();
+
   StablePairFinder spf;
 	Param param = spf.getDefaults();
 	spf.setParameters(param);
@@ -163,12 +166,20 @@ START_SECTION(([EXTRA] void run(const std::vector<ConsensusMap>& input_maps, Con
 	// best case:
   input[0].push_back(ConsensusFeature(0, feat1));
 	input[1].push_back(ConsensusFeature(1, feat1));
-	spf.run(input, result);
+
+  input[0].updateRanges();
+  input[1].updateRanges();
+
+  spf.run(input, result);
 	TEST_EQUAL(result.size(), 1);
 	TEST_EQUAL(result[0].size(), 2);
 	TEST_EQUAL(result[0].getQuality(), 1.0);
 	input[0] = result;
 	input[1][0] = ConsensusFeature(2, feat1);
+
+  input[0].updateRanges();
+  input[1].updateRanges();
+
 	spf.run(input, result);
 	TEST_EQUAL(result.size(), 1);
 	TEST_EQUAL(result[0].size(), 3);
@@ -186,12 +197,20 @@ START_SECTION(([EXTRA] void run(const std::vector<ConsensusMap>& input_maps, Con
 	input[1].clear();
 	input[0].push_back(ConsensusFeature(0, feat1));
 	input[1].push_back(ConsensusFeature(1, feat2));
+
+  input[0].updateRanges();
+  input[1].updateRanges();
+
 	spf.run(input, result);
 	ConsensusFeature cons1 = result[0];
 	TEST_EQUAL(cons1.size(), 2);
 	input[0] = result;
 	input[1][0] = ConsensusFeature(2, feat3);
-	spf.run(input, result);
+
+  input[0].updateRanges();
+  input[1].updateRanges();
+
+  spf.run(input, result);
 	ConsensusFeature cons2 = result[0];
 	TEST_EQUAL(cons2.size(), 3);
 	TEST_EQUAL(cons1.getQuality() > 0.0, true);
@@ -202,12 +221,20 @@ START_SECTION(([EXTRA] void run(const std::vector<ConsensusMap>& input_maps, Con
 	TEST_EQUAL(cons1.getQuality() > cons2.getQuality(), true);
 	input[0].clear();
 	input[0].push_back(ConsensusFeature(1, feat2));
-	spf.run(input, result);
+
+  input[0].updateRanges();
+  input[1].updateRanges();
+
+  spf.run(input, result);
 	ConsensusFeature cons3 = result[0];
 	// quality(feat2, feat3) > quality(feat1, feat2), feat3):
 	TEST_EQUAL(cons3.getQuality() > cons2.getQuality(), true);
 	input[0][0] = ConsensusFeature(0, feat1);
-	spf.run(input, result);
+
+  input[0].updateRanges();
+  input[1].updateRanges();
+
+  spf.run(input, result);
 	ConsensusFeature cons4 = result[0];
 	// quality(feat1, feat3) < quality(feat1, feat2), feat3):
 	TEST_EQUAL(cons4.getQuality() < cons2.getQuality(), true);

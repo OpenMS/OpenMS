@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,6 +10,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <vector>
 
 namespace OpenMS
@@ -81,7 +82,7 @@ namespace OpenMS
 
   private:
     template <class T>
-    void applyFunctionOnPeptideIDs_(std::vector<PeptideIdentification>& idvec, T&& f)
+    void applyFunctionOnPeptideIDs_(PeptideIdentificationList& idvec, T&& f)
     {
       for (auto& id : idvec)
       {
@@ -90,7 +91,7 @@ namespace OpenMS
     }
 
     template <class T>
-    void applyFunctionOnPeptideHits_(std::vector<PeptideIdentification>& idvec, T&& f)
+    void applyFunctionOnPeptideHits_(PeptideIdentificationList& idvec, T&& f)
     {
       for (auto& id : idvec)
       {
@@ -102,7 +103,7 @@ namespace OpenMS
     }
 
     template <class T>
-    void applyFunctionOnPeptideIDs_(const std::vector<PeptideIdentification>& idvec, T&& f) const
+    void applyFunctionOnPeptideIDs_(const PeptideIdentificationList& idvec, T&& f) const
     {
       for (const auto& id : idvec)
       {
@@ -111,7 +112,7 @@ namespace OpenMS
     }
 
     template <class T>
-    void applyFunctionOnPeptideHits_(const std::vector<PeptideIdentification>& idvec, T&& f) const
+    void applyFunctionOnPeptideHits_(const PeptideIdentificationList& idvec, T&& f) const
     {
       for (const auto& id : idvec)
       {

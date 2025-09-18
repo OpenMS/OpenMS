@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -384,6 +384,16 @@ namespace OpenMS
   void ReactionMonitoringTransition::setQuantifyingTransition(bool val)
   {
     transition_flags_[QUANTIFYING_TRANSITION_LOC] = val;
+  }
+
+  bool ReactionMonitoringTransition::ProductMZLess::operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const
+  {
+    return left.getProductMZ() < right.getProductMZ();
+  }
+
+  bool ReactionMonitoringTransition::NameLess::operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const
+  {
+    return left.getName() < right.getName();
   }
 
 } // namespace OpenMS

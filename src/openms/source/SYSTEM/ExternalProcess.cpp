@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -56,6 +56,10 @@ namespace OpenMS
 
   ExternalProcess::RETURNSTATE ExternalProcess::run(const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg, IO_MODE io_mode)
   {
+    // pass environment variables to child process
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    qp_->setProcessEnvironment(env);
+
     error_msg.clear();
     if (!working_dir.isEmpty())
     {

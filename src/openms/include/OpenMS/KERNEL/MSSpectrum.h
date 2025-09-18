@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -64,6 +64,16 @@ public:
       }
     };
 
+    /**
+     * @brief Container for organizing and managing multiple chunks in a spectrum.
+     *
+     * This structure is used to track multiple chunks (segments) within a spectrum.
+     * Each chunk represents a portion of the spectrum that may or may not be sorted.
+     * This information is used to optimize sorting operations on spectra, particularly
+     * when only parts of the spectrum need to be sorted or have been modified.
+     *
+     * @see Chunk
+     */
     struct Chunks {
       public:
         Chunks(const MSSpectrum& s) : spec_(s) {}
@@ -135,6 +145,8 @@ public:
     using ContainerType::insert;
     using ContainerType::erase;
     using ContainerType::swap;
+    using ContainerType::data;
+    using ContainerType::shrink_to_fit;
 
     using typename ContainerType::iterator;
     using typename ContainerType::const_iterator;
@@ -552,6 +564,14 @@ public:
       @throws Exception::MissingInformation if IM data is not present
     */
     std::pair<Size, DriftTimeUnit> getIMData() const;
+    
+
+    /**
+      @brief Get the spectrum's ion mobility data (if exists) and its associated unit as a pair of {unit, data}
+      This only works for spectra which represent an IM-frame, i.e. they have a float metadata array which is a child of 'MS:1002893 ! ion mobility array'.
+      If this is not present, this returns {DriftTimeUnit::NONE, {}}
+    */
+    std::pair<DriftTimeUnit, std::vector<float>> maybeGetIMData() const;
     
     //@}
 

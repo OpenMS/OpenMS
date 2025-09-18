@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -37,13 +37,13 @@ START_SECTION ( testscorefunction)
     602.99, 603.0, 603.01
   };
   std::vector<double> mz (arr2, arr2 + sizeof(arr2) / sizeof(double) );
-  double norm = OpenSwath::norm(mz.begin(),mz.end());
+  double norm = OpenSwath::norm(mz.cbegin(),mz.cend());
   std::vector<double> normalized;
   OpenSwath::normalize(mz,norm,normalized);
-  TEST_REAL_SIMILAR(OpenSwath::norm(normalized.begin(),normalized.end()), 1.);
-  double x = dotProd(normalized.begin(),normalized.end(),normalized.begin());
+  TEST_REAL_SIMILAR(OpenSwath::norm(normalized.cbegin(),normalized.cend()), 1.);
+  double x = dotProd(normalized.cbegin(),normalized.cend(),normalized.cbegin());
   TEST_REAL_SIMILAR(x, 1.);
-  double man = manhattanDist(normalized.begin(),normalized.end(),normalized.begin());
+  double man = manhattanDist(normalized.cbegin(),normalized.cend(),normalized.cbegin());
   TEST_REAL_SIMILAR(man, 0.);
 }
 END_SECTION

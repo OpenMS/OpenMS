@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,7 +11,11 @@
 #include <iostream>
 #include <limits>
 #include <nlohmann/json.hpp>
+#if defined(ENABLE_TDL)
 #include <tdl/tdl.h>
+#else
+#include <stdexcept>
+#endif
 
 using json = nlohmann::json;
 
@@ -174,6 +178,7 @@ namespace OpenMS
 
   void ParamJSONFile::writeToStream(std::ostream* os_ptr, const Param& param) const
   {
+#if defined(ENABLE_TDL)
     std::ostream& os = *os_ptr;
 
     // discover the name of the first nesting Level
@@ -303,5 +308,8 @@ namespace OpenMS
     assert(stack.size() == 1);
 
     os << jsonDoc.dump(2);
+#else
+    throw std::runtime_error{"TDL support is not available. Rebuild with -DENABLE_TDL=ON to enable this feature."};
+#endif
   }
 } // namespace OpenMS

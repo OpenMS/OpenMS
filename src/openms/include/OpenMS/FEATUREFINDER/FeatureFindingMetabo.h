@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -306,7 +306,8 @@ private:
     bool enable_RT_filtering_;
     String isotope_filtering_model_;
     bool use_smoothed_intensities_;
-    
+    bool report_smoothed_intensities_;
+
     bool use_mz_scoring_C13_;
     bool use_mz_scoring_by_element_range_;
     bool report_convex_hulls_;

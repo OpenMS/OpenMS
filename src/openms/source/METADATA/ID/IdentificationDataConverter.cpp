@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -23,7 +23,7 @@ namespace OpenMS
 {
   void IdentificationDataConverter::importIDs(
     IdentificationData& id_data, const vector<ProteinIdentification>& proteins,
-    const vector<PeptideIdentification>& peptides)
+    const PeptideIdentificationList& peptides)
   {
     map<String, ID::ProcessingStepRef> id_to_step;
     ProgressLogger progresslogger;
@@ -256,6 +256,7 @@ namespace OpenMS
       {
         obs.removeMetaValue("spectrum_reference");
       }
+      obs.removeMetaValue(Constants::UserParam::SIGNIFICANCE_THRESHOLD);
 
       ID::ObservationRef obs_ref = id_data.registerObservation(obs);
 
@@ -355,7 +356,7 @@ namespace OpenMS
 
   void IdentificationDataConverter::exportIDs(IdentificationData const& id_data,
                                               vector <ProteinIdentification>& proteins,
-                                              vector <PeptideIdentification>& peptides,
+                                              PeptideIdentificationList& peptides,
                                               bool export_ids_wo_scores)
   {
     // "Observation" roughly corresponds to "PeptideIdentification",
@@ -993,7 +994,7 @@ namespace OpenMS
                                                      bool clear_original)
   {
     // collect all peptide IDs:
-    vector<PeptideIdentification> peptides = features.getUnassignedPeptideIdentifications();
+    PeptideIdentificationList peptides = features.getUnassignedPeptideIdentifications();
     // get peptide IDs from each feature and its subordinates, add meta values:
     Size id_counter = 0;
     for (Size i = 0; i < features.size(); ++i)
@@ -1034,7 +1035,7 @@ namespace OpenMS
 
 
   void IdentificationDataConverter::handleFeatureImport_(Feature& feature, const IntList& indexes,
-                                                         vector<PeptideIdentification>& peptides,
+                                                         PeptideIdentificationList& peptides,
                                                          Size& id_counter, bool clear_original)
   {
     for (const PeptideIdentification& pep : feature.getPeptideIdentifications())
@@ -1198,7 +1199,7 @@ namespace OpenMS
     // use meta values to temporarily store which features IDs are assigned to
 
     // collect all peptide IDs:
-    vector<PeptideIdentification> peptides = consensus.getUnassignedPeptideIdentifications();
+    PeptideIdentificationList peptides = consensus.getUnassignedPeptideIdentifications();
     // get peptide IDs from each consensus feature, add meta values:
     Size id_counter = 0;
     for (Size i = 0; i < consensus.size(); ++i)

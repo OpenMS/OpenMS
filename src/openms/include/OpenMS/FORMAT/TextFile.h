@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -54,7 +54,9 @@ public:
     TextFile(const String& filename, bool trim_lines = false, Int first_n = -1, bool skip_empty_lines = false, const String& comment_symbol = "");
 
     /**
-      @brief Loads data from a text file.
+      @brief Loads data from a text file into the internal buffer.
+
+      Retrieve the data using begin() and end().
 
       @param filename The input file name
       @param trim_lines Whether or not the lines are trimmed when reading them from file

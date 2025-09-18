@@ -13,6 +13,7 @@
 #include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
 
@@ -37,10 +38,10 @@ class OPENMS_DLLAPI PeptideSearchEngineAlgorithm :
     };
 
     /// @brief search spectra against database
-    ExitCodes search(const String& in_mzML, 
-      const String& in_db, 
+    ExitCodes search(const String& in_mzML,
+      const String& in_db,
       std::vector<ProteinIdentification>& prot_ids,
-      std::vector<PeptideIdentification>& pep_ids) const;
+      PeptideIdentificationList& pep_ids) const;
   protected:
     void updateMembers_() override;
 
@@ -70,11 +71,11 @@ class OPENMS_DLLAPI PeptideSearchEngineAlgorithm :
 
     /// @brief filter and annotate search results
     /// most of the parameters are used to properly add meta data to the id objects
-    void postProcessHits_(const PeakMap& exp, 
-      std::vector<std::vector<PeptideSearchEngineAlgorithm::AnnotatedHit_> >& annotated_hits, 
-      std::vector<ProteinIdentification>& protein_ids, 
-      std::vector<PeptideIdentification>& peptide_ids,
-      /* TODO check if ok if unused 
+    void postProcessHits_(const PeakMap& exp,
+      std::vector<std::vector<PeptideSearchEngineAlgorithm::AnnotatedHit_> >& annotated_hits,
+      std::vector<ProteinIdentification>& protein_ids,
+      PeptideIdentificationList& peptide_ids,
+      /* TODO check if ok if unused
       Size top_hits,
       const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
       const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,

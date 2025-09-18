@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -7,13 +7,23 @@
 // --------------------------------------------------------------------------
 //
 
+
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/MATH/StatisticFunctions.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -58,7 +68,7 @@ namespace OpenMS
 
   // doesn't only count but also some initialization TODO: rename
   void PeptideAndProteinQuant::countPeptides_(
-    vector<PeptideIdentification>& peptides)
+    PeptideIdentificationList& peptides)
   {
     for (auto & pep : peptides)
     {
@@ -76,7 +86,7 @@ namespace OpenMS
 
 
   PeptideHit PeptideAndProteinQuant::getAnnotation_(
-    vector<PeptideIdentification>& peptides)
+    PeptideIdentificationList& peptides)
   {
     // hits in IDs must already be sorted by score! (done in "countPeptides_")
     if (peptides.empty() || peptides[0].getHits().empty()) return {};
@@ -101,8 +111,9 @@ namespace OpenMS
 
   void PeptideAndProteinQuant::quantifyFeature_(const FeatureHandle& feature,
                                                 const size_t fraction,
-                                                const size_t sample,
-                                                const PeptideHit& hit)
+                                                const String& filename,
+                                                const PeptideHit& hit,
+                                                Int channel_or_label)
   {
     // return if annotation for the feature is ambiguous or missing
     if (hit == PeptideHit()) { return; }
@@ -114,54 +125,79 @@ namespace OpenMS
     // not there, you are adding another element. In a next iteration this whole
     // class should be rewritten to use insert/emplace and find or better yet,
     // since we have "normal" 0-based values for samples now, vectors.
-    pep_quant_[seq].abundances[fraction][hit.getCharge()][sample] +=
+    pep_quant_[seq].abundances[fraction][filename][hit.getCharge()][channel_or_label] +=
       feature.getIntensity(); // new map element is initialized with 0
   }
 
-  bool PeptideAndProteinQuant::getBest_(const std::map<Int, std::map<Int, SampleAbundances>>& peptide_abundances, std::pair<size_t, size_t>& best)
+  bool PeptideAndProteinQuant::getBest_(const std::map<Int, std::map<String, std::map<Int, std::map<Int, double>>>>& peptide_abundances, std::tuple<size_t, String, size_t, Int>& best)
   {
     size_t best_n_quant(0);
     double best_abundance(0);
-    best = std::make_pair(0,0);
+    best = std::make_tuple(0, "", 0, 0);
 
-    for (auto & fa : peptide_abundances) // for all fractions 
+    for (auto & fa : peptide_abundances) // for all fractions
     {
-      for (auto & ca : fa.second) // for all charge states
+      for (auto & fna : fa.second) // for all filenames
       {
-        const Int & fraction = fa.first;
-        const Int & charge = ca.first;
-
-        double current_abundance = std::accumulate(
-          std::begin(ca.second),
-          std::end(ca.second),
-          0.0,
-          [] (int value, const SampleAbundances::value_type& p)
-          { return value + p.second; }
-          ); // loop over all samples and sum abundances
-
-        if (current_abundance <= 0) { continue; }
-
-        const size_t current_n_quant = ca.second.size();
-        if (current_n_quant > best_n_quant)
-        {           
-          best_abundance = current_abundance;
-          best_n_quant = current_n_quant;
-          best = std::make_pair(fraction, charge);
-        }
-        else if (current_n_quant == best_n_quant 
-                 && current_abundance > best_abundance) // resolve tie by abundance
+        for (auto & ca : fna.second) // for all charge states
         {
-          best_abundance = current_abundance;
-          best = std::make_pair(fraction, charge);
+          for (auto & cha : ca.second) // for all channels
+          {
+            const Int & fraction = fa.first;
+            const String & filename = fna.first;
+            const Int & charge = ca.first;
+            const Int & channel = cha.first;
+
+            double current_abundance = cha.second;
+
+            if (current_abundance <= 0) { continue; }
+
+            const size_t current_n_quant = 1; // Each entry represents one quantification
+            if (current_n_quant > best_n_quant)
+            {
+              best_abundance = current_abundance;
+              best_n_quant = current_n_quant;
+              best = std::make_tuple(fraction, filename, charge, channel);
+            }
+            else if (current_n_quant == best_n_quant
+                     && current_abundance > best_abundance) // resolve tie by abundance
+            {
+              best_abundance = current_abundance;
+              best = std::make_tuple(fraction, filename, charge, channel);
+            }
+          }
         }
       }
     }
-    return best_abundance > 0.;
+    
+    return best_n_quant > 0; // Return true if at least one abundance was found
   }
 
+  size_t PeptideAndProteinQuant::getSampleIDFromFilenameAndChannel_(const String& filename,
+                                                                 Int channel_or_label,
+                                                                 const ExperimentalDesign& ed) const
+  {
+    // Map filename and label to sample using experimental design
+    const auto& ms_section = ed.getMSFileSection();
+    for (const auto& entry : ms_section)
+    {
+      String ed_filename = FileHandler::stripExtension(File::basename(entry.path));
+      if (ed_filename == filename && entry.label == channel_or_label)
+      {
+        return entry.sample;
+      }
+    }
+    
+    // If not found, throw an exception with detailed information
+    throw Exception::MissingInformation(
+      __FILE__, 
+      __LINE__, 
+      OPENMS_PRETTY_FUNCTION, 
+      "Could not find sample mapping for filename '" + filename + "' and channel '" + String(channel_or_label) + "' in experimental design.");
+  }
 
   void PeptideAndProteinQuant::quantifyPeptides(
-    const vector<PeptideIdentification>& peptides)
+    const PeptideIdentificationList& peptides)
   {
     OPENMS_LOG_INFO << "Quantifying peptides..." << std::endl;
     
@@ -227,48 +263,65 @@ namespace OpenMS
       if (param_.getValue("best_charge_and_fraction") == "true")
       { // quantify according to the best charge state only:
 
-        // determine which fraction and charge state yields the maximum number of abundances 
+        // determine which fraction, filename, charge state, and channel yields the maximum abundance
         // (break ties by total abundance)
-        std::pair<size_t, size_t> best_fraction_and_charge;
+        std::tuple<size_t, String, size_t, Int> best_combination;
 
         // return false: only identified, not quantified
-        if (!getBest_(pep_q.second.abundances, best_fraction_and_charge)) 
-        { 
+        if (!getBest_(pep_q.second.abundances, best_combination))
+        {
           continue;
         }
         
-        // quantify according to the best fraction and charge state only:
-        for (auto & sa : pep_q.second.abundances[best_fraction_and_charge.first][best_fraction_and_charge.second])
-        {
-          pep_q.second.total_abundances[sa.first] = sa.second;
-        }
+        // quantify according to the best combination only:
+        size_t best_fraction = std::get<0>(best_combination);
+        String best_filename = std::get<1>(best_combination);
+        size_t best_charge = std::get<2>(best_combination);
+        Int best_channel = std::get<3>(best_combination);
+        
+        double abundance = pep_q.second.abundances[best_fraction][best_filename][best_charge][best_channel];
+        size_t sample_id = getSampleIDFromFilenameAndChannel_(best_filename, best_channel, experimental_design_);
+        pep_q.second.total_abundances[sample_id] = abundance;
       }
       else
-      { // sum up sample abundances over all fractions and charge states:
-        for (auto & fa : pep_q.second.abundances)  // for all fractions 
+      { // sum up sample abundances over all fractions, filenames, charge states, and channels:
+        for (auto & fa : pep_q.second.abundances)  // for all fractions
         {
-          for (auto & ca : fa.second) // for all charge states
-          {  
-            for (auto & sa : ca.second) // loop over all sample abundances
+          for (auto & fna : fa.second) // for all filenames
+          {
+            for (auto & ca : fna.second) // for all charge states
             {
-              const UInt64 & sample_id = sa.first;
-              const double & sample_abundance = sa.second;
-              pep_q.second.total_abundances[sample_id] += sample_abundance;
+              for (auto & cha : ca.second) // for all channels
+              {
+                const String & filename = fna.first;
+                const Int & channel = cha.first;
+                const double & abundance = cha.second;
+                
+                // Map (filename, channel) to sample using ExperimentalDesign
+                size_t sample_id = getSampleIDFromFilenameAndChannel_(filename, channel, experimental_design_);
+                pep_q.second.total_abundances[sample_id] += abundance;
+              }
             }
           }
         }
       }
 
-      // for PSM counts we cover all fractions and charge states
-      for (auto & fa : pep_q.second.psm_counts) // for all fractions 
+      // for PSM counts we cover all fractions, filenames, charge states.
+      for (auto & fa : pep_q.second.psm_counts) // for all fractions
       {
-        for (auto & ca : fa.second) // for all charge states
-        {  
-          for (auto & sa : ca.second) // loop over all psm counts
+        for (auto & fna : fa.second) // for all filenames
+        {
+          for (auto & ca : fna.second) // for all charge states
           {
-            const UInt64 & sample_id = sa.first;
-            const double & sample_counts = sa.second;
-            pep_q.second.total_psm_counts[sample_id] += sample_counts;
+            const String & filename = fna.first;
+            const double & psm_counts = ca.second;
+            
+            // In multiplexed design, e.g. TMT, a signle PSM is associated with all samples measured in the different channels/labels 
+            for (Size channel = 1; channel <= experimental_design_.getNumberOfLabels(); ++channel)
+            {
+              size_t sample_id = getSampleIDFromFilenameAndChannel_(filename, channel, experimental_design_);              
+              pep_q.second.total_psm_counts[sample_id] += psm_counts; // accumulate PSM counts for spectral counting
+            }
           }
         }
       }
@@ -338,11 +391,17 @@ namespace OpenMS
       // scale individual abundances
       for (auto & fa : pep_q.second.abundances) // for all fractions
       {
-        for (auto & ca : fa.second) // for all charge states
+        for (auto & fna : fa.second) // for all filenames
         {
-          for (auto & sa : ca.second) // loop over all sample abundances
+          for (auto & ca : fna.second) // for all charge states
           {
-            sa.second *= scale_factors[sa.first];
+            for (auto & cha : ca.second) // for all channels
+            {
+              const String & filename = fna.first;
+              const Int & channel = cha.first;
+              size_t sample_id = getSampleIDFromFilenameAndChannel_(filename, channel, experimental_design_);
+              cha.second *= scale_factors[sample_id];
+            }
           }
         }
       }
@@ -351,7 +410,7 @@ namespace OpenMS
 
   String PeptideAndProteinQuant::getAccession_(
     const set<String>& pep_accessions, 
-    map<String, String>& accession_to_leader)
+    const map<String, String>& accession_to_leader) const
   {
     if (accession_to_leader.empty())
     {
@@ -386,18 +445,98 @@ namespace OpenMS
   }
 
 
-  void PeptideAndProteinQuant::quantifyProteins(const ProteinIdentification&
-                                                proteins)
+  void PeptideAndProteinQuant::quantifyProteins(const ProteinIdentification& proteins)
   {
     if (pep_quant_.empty())
     {
       OPENMS_LOG_WARN << "Warning: No peptides quantified." << endl;
+      return;
     }
 
-    // if information about (indistinguishable) protein groups is available, map
-    // each accession to the accession of the leader of its group of proteins:
-    map<String, String> accession_to_leader;
-    if (!proteins.getIndistinguishableProteins().empty())
+    // Phase 1: Transfer peptide data to protein structures
+    transferPeptideDataToProteins_(proteins);
+
+    // Phase 2: Extract and validate parameters
+    std::string method = param_.getValue("method");
+    Size top_n = param_.getValue("top:N");
+    std::string aggregate = param_.getValue("top:aggregate");
+    bool include_all = param_.getValue("top:include_all") == "true";
+    bool fix_peptides = param_.getValue("consensus:fix_peptides") == "true";
+
+    // Handle iBAQ parameter overrides
+    if (method == "iBAQ")
+    {
+      top_n = 0;
+      aggregate = "sum";
+    }
+
+    // Phase 3: Process each protein
+    for (auto& prot_q : prot_quant_)
+    {
+      const String& accession = prot_q.first;
+      const ProteinData& pd = prot_q.second;
+
+      // Calculate PSM counts based on all peptides of a protein (group)
+      for (auto const& pep2sa : pd.peptide_psm_counts)
+      {
+        const SampleAbundances& sas = pep2sa.second;
+        for (auto const& sa : sas)
+        {
+          const Size& sample_id = sa.first;
+          const Size& psms = sa.second;
+          if (psms > 0)
+            prot_q.second.total_distinct_peptides[sample_id]++;
+          prot_q.second.total_psm_counts[sample_id] += psms;
+        }
+      }
+
+      // Check if protein has enough peptides (for statistics)
+      if ((top_n > 0) && (prot_q.second.peptide_abundances.size() < top_n))
+      {
+        stats_.too_few_peptides++;
+        if (!include_all)
+        {
+          continue;
+        }
+      }
+
+      // Select peptides for quantification
+      std::vector<String> selected_peptides = selectPeptidesForQuantification_(
+          accession, top_n, fix_peptides);
+
+      // Calculate protein abundances
+      calculateProteinAbundances_(accession, selected_peptides, aggregate, top_n, include_all);
+
+      // if information about (indistinguishable) protein groups is available, map
+      // each accession to the accession of the leader of its group of proteins:
+      auto accession_to_leader = mapAccessionToLeader(proteins);
+      
+      calculateFileAndChannelLevelProteinAbundances_(accession, selected_peptides, aggregate,
+                                          top_n, include_all, accession_to_leader);
+
+      // Update statistics
+      if (prot_q.second.total_abundances.empty())
+      {
+        stats_.too_few_peptides++;
+      }
+      else
+      {
+        stats_.quant_proteins++;
+      }
+    }
+
+    // Phase 4: Post-processing
+    if (method == "iBAQ")
+    {
+      performIbaqNormalization_(proteins);
+    }
+  }
+
+
+  std::map<OpenMS::String, OpenMS::String> PeptideAndProteinQuant::mapAccessionToLeader(const OpenMS::ProteinIdentification& proteins) const
+  {
+    std::map<OpenMS::String, OpenMS::String> accession_to_leader;
+    if (! proteins.getIndistinguishableProteins().empty())
     {
       for (auto const& pg : proteins.getIndistinguishableProteins())
       {
@@ -408,221 +547,30 @@ namespace OpenMS
         }
       }
     }
-
-    // for (auto & a : accession_to_leader) { std::cout << a.first << "\tis led by:\t" << a.second << endl; }
-
-    bool contains_accessions {false};
-
-    for (auto const& pep_q : pep_quant_)
-    {
-      String accession = getAccession_(pep_q.second.accessions, accession_to_leader);
-      OPENMS_LOG_DEBUG << "Peptide id mapped to leader: " << accession << endl;
-
-      // not enough evidence or mapping to multiple groups
-      if (accession.empty())
-        continue;
-
-      contains_accessions = true;
-      // proteotypic peptide
-      const String peptide = pep_q.first.toUnmodifiedString();
-
-      prot_quant_[accession].psm_count += pep_q.second.psm_count;
-
-      // transfer abundances and counts from peptides->protein
-      // summarize abundances and counts between different peptidoforms
-      for (auto const& sta : pep_q.second.total_abundances)
-      {
-        prot_quant_[accession].abundances[peptide][sta.first] += sta.second;
-      }
-
-      for (auto const& sta : pep_q.second.total_psm_counts)
-      {
-        prot_quant_[accession].psm_counts[peptide][sta.first] += sta.second;
-      }
-    }
-
-    if (!contains_accessions)
-    {
-      OPENMS_LOG_FATAL_ERROR << "No protein matches found, cannot quantify proteins." << endl;
-      throw Exception::MissingInformation(
-        __FILE__,
-        __LINE__,
-        OPENMS_PRETTY_FUNCTION,
-        "No protein matches found, cannot quantify proteins.");
-    }
-
-    std::string method = param_.getValue("method");
-    Size top_n = param_.getValue("top:N");
-    std::string aggregate = param_.getValue("top:aggregate");
-    bool include_all = param_.getValue("top:include_all") == "true";
-    bool fix_peptides = param_.getValue("consensus:fix_peptides") == "true";
-
-    if (method == "iBAQ")
-    {
-      top_n = 0;
-      aggregate = "sum";
-    }
-
-    for (auto& prot_q : prot_quant_)
-    {
-      const ProteinData& pd = prot_q.second;
-
-      // calculate PSM counts based on all (!) peptides of a protein (group)
-      for (auto const& pep2sa : pd.psm_counts)
-      { // for all peptides of this protein (group)
-        const SampleAbundances& sas = pep2sa.second;
-        for (auto const& sa : sas)
-        {
-          const Size& sample_id = sa.first;
-          const Size& psms = sa.second;
-          if (psms > 0)
-            prot_q.second.total_distinct_peptides[sample_id]++; // count this peptide sequence once if observed in sample
-          prot_q.second.total_psm_counts[sample_id] += psms;    // count all PSMs of this protein in this sample
-        }
-      }
-
-      // select which peptides of the current protein (group) are quantified
-      if ((top_n > 0) && (prot_q.second.abundances.size() < top_n))
-      { // not enough proteotypic peptides? skip protein (except if user chose to include the nevertheless)
-        stats_.too_few_peptides++;
-        if (!include_all)
-        {
-          continue;
-        }
-      }
-
-      vector<String> peptides; // peptides selected for quantification
-      if (fix_peptides && (top_n == 0))
-      {
-        // consider all peptides that occur in every sample:
-        for (auto const& ab : prot_q.second.abundances)
-        {
-          if (ab.second.size() == stats_.n_samples)
-          {
-            peptides.push_back(ab.first);
-          }
-        }
-      }
-      else if (fix_peptides && (top_n > 0) && (prot_q.second.abundances.size() > top_n))
-      {
-        orderBest_(prot_q.second.abundances, peptides);
-        peptides.resize(top_n);
-      }
-      else
-      {
-        // consider all peptides of the protein:
-        for (auto const& ab : prot_q.second.abundances)
-        {
-          peptides.push_back(ab.first);
-        }
-      }
-      // done selecting peptides for quantification
-
-      // consider only the selected peptides for quantification:
-      map<UInt64, DoubleList> abundances; // all peptide abundances by sample
-      for (const auto& pep : peptides)    // for all selected peptides
-      {
-        for (auto& sa : prot_q.second.abundances[pep]) // copy over all abundances
-        {
-          abundances[sa.first].push_back(sa.second);
-        }
-      }
-
-      for (auto& ab : abundances)
-      {
-        // check if the protein has enough peptides in this sample
-        if (!include_all && (top_n > 0) && (ab.second.size() < top_n))
-        {
-          continue;
-        }
-
-        // if we have more than "top", reduce to the top ones
-        if ((top_n > 0) && (ab.second.size() > top_n))
-        {
-          // sort descending:
-          sort(ab.second.begin(), ab.second.end(), greater<double>());
-          ab.second.resize(top_n); // remove all but best N values
-        }
-
-        double abundance_result;
-        if (aggregate == "median")
-        {
-          abundance_result = Math::median(ab.second.begin(), ab.second.end());
-        }
-        else if (aggregate == "mean")
-        {
-          abundance_result = Math::mean(ab.second.begin(), ab.second.end());
-        }
-        else if (aggregate == "weighted_mean")
-        {
-          double sum_intensities = 0;
-          double sum_intensities_squared = 0;
-          for (auto const& in : ab.second)
-          {
-            sum_intensities += in;
-            sum_intensities_squared += in * in;
-          }
-          abundance_result = sum_intensities_squared / sum_intensities;
-        }
-        else // "sum"
-        {
-          abundance_result = Math::sum(ab.second.begin(), ab.second.end());
-        }
-
-        prot_q.second.total_abundances[ab.first] = abundance_result;
-      }
-
-      // update statistics:
-      if (prot_q.second.total_abundances.empty())
-      {
-        stats_.too_few_peptides++;
-      }
-      else
-      {
-        stats_.quant_proteins++;
-      }
-    }
-    if (method == "iBAQ")
-    {
-      EnzymaticDigestion digest{};
-      for (auto & hit : proteins.getHits())
-      {
-        const OpenMS::String & hit_accession = hit.getAccession();
-        const OpenMS::String & hit_sequence = hit.getSequence();
-
-        if (prot_quant_.find(hit_accession) != prot_quant_.end())
-        {
-          if (hit_sequence.empty())
-          {
-            prot_quant_.erase(hit_accession);
-            OPENMS_LOG_WARN << "Removed " << hit_accession <<  ", no protein sequence found!" << endl;
-          }
-          else
-          {
-            std::vector<StringView> peptides {};
-            digest.digestUnmodified(StringView(hit_sequence), peptides);
-            for (auto& total_abundance : prot_quant_[hit_accession].total_abundances)
-            {
-              total_abundance.second /= double(peptides.size());
-            }
-          }
-        }
-      }
-    }
+    return accession_to_leader;
   }
-
-
-  void PeptideAndProteinQuant::readQuantData(
-    FeatureMap& features,
-    const ExperimentalDesign& ed)
+  void PeptideAndProteinQuant::readQuantData(FeatureMap& features, const ExperimentalDesign& ed)
   {
     updateMembers_(); // clear data
+    experimental_design_ = ed; // store experimental design for aggregation
 
     stats_.n_samples = ed.getNumberOfSamples();
     stats_.n_fractions = 1;
     stats_.n_ms_files = ed.getNumberOfMSFiles();
 
     stats_.total_features = features.size();
+
+    // For FeatureMap, extract filename from metadata or use default
+    String filename = "default";
+    if (features.metaValueExists("filename"))
+    {
+      filename = FileHandler::stripExtension(File::basename(features.getMetaValue("filename")));
+    }
+    else if (!ed.getMSFileSection().empty())
+    {
+      // Use first MS file from experimental design as fallback
+      filename = FileHandler::stripExtension(File::basename(ed.getMSFileSection()[0].path));
+    }
 
     for (auto & f : features)
     {
@@ -635,8 +583,9 @@ namespace OpenMS
       countPeptides_(f.getPeptideIdentifications());
       PeptideHit hit = getAnnotation_(f.getPeptideIdentifications());
       FeatureHandle handle(0, f);
-      const size_t fraction(1), sample(0);
-      quantifyFeature_(handle, fraction, sample, hit); // updates "stats_.quant_features"
+      const size_t fraction(1);
+      const Int label(1); // Default label for LFQ data
+      quantifyFeature_(handle, fraction, filename, hit, label); // updates "stats_.quant_features"
     }
     countPeptides_(features.getUnassignedPeptideIdentifications());
     stats_.total_peptides = pep_quant_.size();
@@ -651,6 +600,7 @@ namespace OpenMS
   {
     // TODO check that the file section of the experimental design is compatible with what can be parsed from the consensus map.
     updateMembers_(); // clear data
+    experimental_design_ = ed; // store experimental design for aggregation
 
     if (consensus.empty())
     {
@@ -704,8 +654,7 @@ namespace OpenMS
         if (auto it = fileAndLabel2MSFileSectionEntry.find(c_fn + String(c_lab)); it != fileAndLabel2MSFileSectionEntry.end())
         {
           const size_t fraction = it->second.fraction;
-          const size_t sample = it->second.sample;
-          quantifyFeature_(f, fraction, sample, hit); // updates "stats_.quant_features"          
+          quantifyFeature_(f, fraction, c_fn, hit, c_lab); // updates "stats_.quant_features"
         }
         else
         {
@@ -722,11 +671,12 @@ namespace OpenMS
 
 
   void PeptideAndProteinQuant::readQuantData(
-    vector<ProteinIdentification>& proteins,
-    vector<PeptideIdentification>& peptides,
+    std::vector<ProteinIdentification>& proteins,
+    PeptideIdentificationList& peptides,
     const ExperimentalDesign& ed)
   {
     updateMembers_(); // clear data
+    experimental_design_ = ed; // store experimental design for aggregation
 
     stats_.n_samples = ed.getNumberOfSamples();
     stats_.n_fractions = ed.getNumberOfFractions();
@@ -769,7 +719,7 @@ namespace OpenMS
       const PeptideHit& hit = p.getHits()[0];
 
       // don't quantify decoys
-      if ((std::string)hit.getMetaValue("target_decoy", DataValue("target")) == "decoy") continue;
+      if (hit.isDecoy()) continue;
 
       stats_.quant_features++;
       const AASequence& seq = hit.getSequence();
@@ -797,11 +747,12 @@ namespace OpenMS
           "MS file annotated in protein identification doesn't match any in the experimental design.");
       }
 
-      size_t sample = row->sample;
       size_t fraction = row->fraction;
+      String filename = FileHandler::stripExtension(File::basename(ms_file_path));
+      Int label = row->label; // Use label from experimental design
 
-      // count peptides in the different fractions, charge states, and samples
-      pep_quant_[seq].abundances[fraction][hit.getCharge()][sample] += 1;
+      // count peptides in the different fractions, filenames, charge states, and channels
+      pep_quant_[seq].abundances[fraction][filename][hit.getCharge()][label] += 1;
     }
     stats_.total_peptides = pep_quant_.size();
   }
@@ -841,6 +792,19 @@ namespace OpenMS
     ProteinIdentification& proteins,
     bool remove_unquantified)
   {
+    // read experimental design as it is needed to annotate quantities in the correct order
+    ExperimentalDesign::MSFileSection msfile_section = experimental_design_.getMSFileSection();
+    
+    // Extract the Spectra Filepath column from the design
+    map<UInt64, map<UInt64, String>> design_group_fraction_filename;
+    UInt64 n_files = 0;
+    for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
+    {
+      const String fn = FileHandler::stripExtension(File::basename(f.path));
+      design_group_fraction_filename[f.fraction_group][f.fraction] = fn;
+      n_files++;
+    }
+
     auto & id_groups = proteins.getIndistinguishableProteins();
 
     for (const auto& q : protein_quants)
@@ -870,9 +834,14 @@ namespace OpenMS
         const SampleAbundances& total_abundances = q.second.total_abundances;
         const SampleAbundances& total_psm_counts = q.second.total_psm_counts;
         const SampleAbundances& total_distinct_peptides = q.second.total_distinct_peptides;
-
+        const auto& file_level_psm_counts = q.second.file_level_psm_counts;
+      
         // TODO: OPENMS_ASSERT(id_group->float_data_arrays.empty(), "Protein group float data array not empty!.");
-        id_group->getFloatDataArrays().resize(3);
+        id_group->getFloatDataArrays().resize(4);
+        id_group->getStringDataArrays().resize(2);
+        id_group->getIntegerDataArrays().resize(2);
+        
+        // Sample-level arrays (indices 0-2)
         ProteinIdentification::ProteinGroup::FloatDataArray & abundances = id_group->getFloatDataArrays()[0];
         Size n_samples = getStatistics().n_samples;
         abundances.setName("abundances");
@@ -898,6 +867,83 @@ namespace OpenMS
         {
           peptide_counts[s.first] = (float) s.second;
         }
+
+        // Add file/channel level abundances
+        auto& file_channel_level_abundance = id_group->getFloatDataArrays()[3];
+        file_channel_level_abundance.setName("file_channel_level_abundance");
+        auto& file_channel_level_filename = id_group->getStringDataArrays()[0];
+        file_channel_level_filename.setName("file_channel_level_filename");
+        auto& file_channel_level_channel = id_group->getIntegerDataArrays()[0];
+        file_channel_level_channel.setName("file_channel_level_channel");
+     
+
+        // We loop over the filenames in the design file, as this is the order we expect in the output.
+        for (const auto& [group_id, fraction_to_filename_map] : design_group_fraction_filename)
+        {
+          for (auto [fraction, design_filename] : fraction_to_filename_map)
+          {
+            // Process each filename within the fraction group
+            // important: strip file extension and path to find the entry
+            design_filename = FileHandler::stripExtension(File::basename(design_filename));
+            
+            #ifdef DEBUG_PROTEINQUANTIFIER
+            std::cout 
+              << "Experimental design: fraction group: " << group_id 
+              << ", filename: '" << design_filename
+              << "', fraction: " << fraction
+              << " of the experimental design." << std::endl;
+            #endif
+
+            // for each file in the design, fill the channels quantity
+            for (Size c = 1; c <= experimental_design_.getNumberOfLabels(); ++c) // label/channel numbers are 1-based
+            {
+              double channel_abundance{};
+
+              const auto& filename_to_channel_map = q.second.channel_level_abundances;
+
+              if (auto file_level_it = filename_to_channel_map.find(design_filename); 
+                file_level_it != filename_to_channel_map.end())
+              {
+                if (file_level_it->second.find(0) != file_level_it->second.end()) throw Exception::MissingInformation(
+                  __FILE__, 
+                  __LINE__, 
+                  OPENMS_PRETTY_FUNCTION, 
+                  "Channel found that should not exist.");
+
+                // Found the file, now search for the channel
+                if (auto channel_it = file_level_it->second.find(c);
+                    channel_it != file_level_it->second.end())
+                {
+                  channel_abundance = channel_it->second;
+                }
+              }
+
+              file_channel_level_abundance.push_back(channel_abundance);
+              file_channel_level_filename.push_back(design_filename);
+              file_channel_level_channel.push_back(c);
+         
+              #if DEBUG_PEPTIDEANDPROTEINQUANT
+              std::cout << "DEBUG: Adding abundance for protein to meta value " << acc
+                        << " filename " << design_filename
+                        << " channel " << c
+                        << ": " << channel_abundance << endl;
+              #endif
+
+            }    
+          }
+        }
+
+        // Add file level PSM counts
+        auto& file_level_psm_count = id_group->getIntegerDataArrays()[1];
+        file_level_psm_count.setName("file_level_psm_count");
+        auto& file_level_filename = id_group->getStringDataArrays()[1];
+        file_level_filename.setName("file_level_filename");
+
+        for (const auto& filename : file_level_psm_counts)
+        {
+          file_level_psm_count.push_back((int)filename.second);
+          file_level_filename.push_back(filename.first);
+        }
       }
       else
       {
@@ -919,4 +965,341 @@ namespace OpenMS
     }
   } 
 
+
+  void PeptideAndProteinQuant::transferPeptideDataToProteins_(const ProteinIdentification& proteins)
+  {
+    // if information about (indistinguishable) protein groups is available, map
+    // each accession to the accession of the leader of its group of proteins:
+    map<String, String> accession_to_leader = mapAccessionToLeader(proteins);
+
+    bool contains_accessions{ false}; // flag to check if any accessions were found
+
+    for (auto const& pep_q : pep_quant_)
+    {
+      String leader_accession = getAccession_(pep_q.second.accessions, accession_to_leader);
+      OPENMS_LOG_DEBUG << "Peptide id mapped to leader: " << leader_accession << endl;
+
+      // not enough evidence or mapping to multiple groups
+      if (leader_accession.empty())
+        continue;
+
+      contains_accessions = true;
+      // proteotypic peptide
+      const String peptide = pep_q.first.toUnmodifiedString();
+
+      prot_quant_[leader_accession].psm_count += pep_q.second.psm_count; // total PSM count for this group of proteins (represented by the leader accession)
+
+      // transfer abundances and counts from peptides->protein
+      // summarize abundances and counts between different peptidoforms
+      for (auto const& sta : pep_q.second.total_abundances)
+      {
+        prot_quant_[leader_accession].peptide_abundances[peptide][sta.first] += sta.second;
+      }
+
+      for (auto const& sta : pep_q.second.total_psm_counts)
+      {
+        prot_quant_[leader_accession].peptide_psm_counts[peptide][sta.first] += sta.second;
+      }
+
+      // transfer detailed abundances from peptide to protein
+      for (auto const& fraction : pep_q.second.abundances)
+      {
+        for (auto const& filename : fraction.second)
+        {
+          for (auto const& charge : filename.second)
+          {
+            for (auto const& channel : charge.second)
+            {
+              prot_quant_[leader_accession].channel_level_abundances[filename.first][channel.first] += channel.second;
+#ifdef DEBUG_PROTEINQUANTIFIER                
+              std::cout << "DEBUG: Adding abundance for protein " << accession
+                        << " fraction " << fraction.first
+                        << " filename " << filename.first
+                        << " charge " << charge.first
+                        << " channel " << channel.first
+                        << ": " << channel.second << endl; 
+#endif
+            }
+          }
+        }
+      }
+
+      // transfer detailed PSM counts from peptide to protein
+      for (auto const& fraction : pep_q.second.psm_counts)
+      {
+        for (auto const& filename : fraction.second)
+        {
+          for (auto const& charge : filename.second)
+          {
+            prot_quant_[leader_accession].file_level_psm_counts[filename.first] += (UInt)charge.second;
+          }
+        }
+      }
+    }
+  
+    if (!contains_accessions)
+    {
+      OPENMS_LOG_FATAL_ERROR << "No protein matches found, cannot quantify proteins." << endl;
+      throw Exception::MissingInformation(
+        __FILE__,
+        __LINE__,
+        OPENMS_PRETTY_FUNCTION,
+        "No protein matches found, cannot quantify proteins.");
+    }
+  }
+
+  std::vector<String> PeptideAndProteinQuant::selectPeptidesForQuantification_(const String& protein_accession,
+                                                                              Size top_n,
+                                                                              bool fix_peptides)
+  {
+    std::vector<String> peptides;
+    
+    auto prot_it = prot_quant_.find(protein_accession);
+    if (prot_it == prot_quant_.end())
+    {
+      return peptides; // empty vector
+    }
+    
+    const ProteinData& pd = prot_it->second;
+
+    if (fix_peptides && (top_n == 0))
+    {
+      // consider all peptides that occur in every sample:
+      for (auto const& ab : pd.peptide_abundances)
+      {
+        if (ab.second.size() == stats_.n_samples)
+        {
+          peptides.push_back(ab.first);
+        }
+      }
+    }
+    else if (fix_peptides && (top_n > 0) && (pd.peptide_abundances.size() > top_n))
+    {
+      orderBest_(pd.peptide_abundances, peptides);
+      peptides.resize(top_n);
+    }
+    else
+    {
+      // consider all peptides of the protein:
+      for (auto const& ab : pd.peptide_abundances)
+      {
+        peptides.push_back(ab.first);
+      }
+    }
+
+    return peptides;
+  }
+
+  double PeptideAndProteinQuant::aggregateAbundances_(const std::vector<double>& abundances,
+                                                     const String& method) const
+  {
+    if (abundances.empty())
+    {
+      return 0.0;
+    }
+
+    if (method == "median")
+    {
+      std::vector<double> sorted_abundances = abundances; // make a copy for sorting
+      return Math::median(sorted_abundances.begin(), sorted_abundances.end());
+    }
+    else if (method == "mean")
+    {
+      return Math::mean(abundances.begin(), abundances.end());
+    }
+    else if (method == "weighted_mean")
+    {
+      double sum_intensities = 0;
+      double sum_intensities_squared = 0;
+      for (auto const& intensity : abundances)
+      {
+        sum_intensities += intensity;
+        sum_intensities_squared += intensity * intensity;
+      }
+      return sum_intensities_squared / sum_intensities;
+    }
+    else // "sum"
+    {
+      return Math::sum(abundances.begin(), abundances.end());
+    }
+  }
+
+  void PeptideAndProteinQuant::calculateProteinAbundances_(const String& protein_accession,
+                                                          const std::vector<String>& selected_peptides,
+                                                          const String& aggregate_method,
+                                                          Size top_n,
+                                                          bool include_all)
+  {
+    auto prot_it = prot_quant_.find(protein_accession);
+    if (prot_it == prot_quant_.end())
+    {
+      return;
+    }
+
+    ProteinData& pd = prot_it->second;
+
+    // consider only the selected peptides for quantification:
+    map<UInt64, DoubleList> abundances; // all peptide abundances by sample
+    for (const auto& pep : selected_peptides)    // for all selected peptides
+    {
+      auto pep_it = pd.peptide_abundances.find(pep);
+      if (pep_it != pd.peptide_abundances.end())
+      {
+        for (auto& sa : pep_it->second) // copy over all abundances
+        {
+          abundances[sa.first].push_back(sa.second);
+        }
+      }
+    }
+
+    for (auto& ab : abundances)
+    {
+      // check if the protein has enough peptides in this sample
+      if (!include_all && (top_n > 0) && (ab.second.size() < top_n))
+      {
+        continue;
+      }
+
+      // if we have more than "top", reduce to the top ones
+      if ((top_n > 0) && (ab.second.size() > top_n))
+      {
+        // sort descending:
+        sort(ab.second.begin(), ab.second.end(), greater<double>());
+        ab.second.resize(top_n); // remove all but best N values
+      }
+
+      double abundance_result = aggregateAbundances_(ab.second, aggregate_method);
+      pd.total_abundances[ab.first] = abundance_result;
+    }
+  }
+
+  void PeptideAndProteinQuant::calculateFileAndChannelLevelProteinAbundances_(const String& protein_accession,
+                                                                  const std::vector<String>& selected_peptides,
+                                                                  const String& aggregate_method,
+                                                                  Size top_n,
+                                                                  bool include_all,
+                                                                  const std::map<String, String>& accession_to_leader)
+  {
+    auto prot_it = prot_quant_.find(protein_accession);
+    if ( prot_it == prot_quant_.end())
+    {
+      return;
+    }
+
+    ProteinData& pd = prot_it->second;
+
+    // organize detailed abundances by (fraction, filename, channel) combinations
+    map<tuple<Int, String, Int>, DoubleList> channel_level_abundances_for_selected_peptides;
+    
+    // collect detailed abundances from selected peptides
+    for (const auto& pep : selected_peptides)    // for all selected peptides
+    {
+      // find the original peptide data to get detailed abundances
+      for (auto const& pep_q_check : pep_quant_)
+      {
+        if (pep_q_check.first.toUnmodifiedString() == pep)
+        {
+          String check_accession = getAccession_(pep_q_check.second.accessions, accession_to_leader);
+          if (check_accession == protein_accession) // this peptide belongs to current protein
+          {
+            // collect detailed abundances from this peptide
+            for (auto const& fraction : pep_q_check.second.abundances)
+            {
+              for (auto const& filename : fraction.second)
+              {
+                for (auto const& charge : filename.second)
+                {
+                  for (auto const& channel : charge.second)
+                  {
+                    auto peptide = make_tuple(fraction.first, filename.first, channel.first);
+                    channel_level_abundances_for_selected_peptides[peptide].push_back(channel.second);
+
+                    #ifdef DEBUG_PEPTIDEANDPROTEINQUANT
+                    std::cout << "DEBUG: Adding abundance for leader " <<
+                              getAccession_(pep_q_check.second.accessions, const_cast<std::map<String, String>&>(accession_to_leader))
+                              << pep
+                              << " fraction " << fraction.first
+                              << " filename " << filename.first
+                              << " charge " << charge.first
+                              << " channel " << channel.first
+                              << ": " << channel.second << endl;
+                    #endif
+                  }
+                }
+              }
+            }
+            break; // found the peptide, no need to continue searching
+          }
+        }
+      }
+    }
+    
+    // now aggregate using the same aggregation method
+    for (auto& detailed_ab : channel_level_abundances_for_selected_peptides)
+    {
+      const auto& selected_peptide = detailed_ab.first;
+      String filename = get<1>(selected_peptide);
+      Int channel = get<2>(selected_peptide);
+      
+      DoubleList& all_abundances = detailed_ab.second;
+      
+      if (all_abundances.empty()) continue;
+      
+      // check if we have enough peptides for this detailed key
+      if (!include_all && (top_n > 0) && (all_abundances.size() < top_n))
+      {
+        continue;
+      }
+      
+      // if we have more than "top", reduce to the top ones
+      if ((top_n > 0) && (all_abundances.size() > top_n))
+      {
+        // sort descending:
+        sort(all_abundances.begin(), all_abundances.end(), greater<double>());
+        all_abundances.resize(top_n); // remove all but best N values
+      }
+      
+      double abundance_result = aggregateAbundances_(all_abundances, aggregate_method);
+
+      // store the aggregated result in channel_level_abundances
+      pd.channel_level_abundances[filename][channel] = abundance_result;
+      #ifdef DEBUG_PEPTIDEANDPROTEINQUANT
+      Int fraction = get<0>(selected_peptide);
+      std::cout << "DEBUG: Protein " << protein_accession
+                << " leader " << getAccession_(protein_accession, const_cast<std::map<String, String>&>(accession_to_leader))
+                << " fraction " << fraction
+                << " filename " << filename
+                << " channel " << channel
+                << ": " << abundance_result << endl;
+      #endif
+    }
+  }
+
+  void PeptideAndProteinQuant::performIbaqNormalization_(const ProteinIdentification& proteins)
+  {
+    EnzymaticDigestion digest{};
+    for (auto & hit : proteins.getHits())
+    {
+      const OpenMS::String & hit_accession = hit.getAccession();
+      const OpenMS::String & hit_sequence = hit.getSequence();
+
+      if (prot_quant_.find(hit_accession) != prot_quant_.end())
+      {
+        if (hit_sequence.empty())
+        {
+          prot_quant_.erase(hit_accession);
+          OPENMS_LOG_WARN << "Removed " << hit_accession <<  ", no protein sequence found!" << endl;
+        }
+        else
+        {
+          std::vector<StringView> peptides {};
+          digest.digestUnmodified(StringView(hit_sequence), peptides);
+          for (auto& total_abundance : prot_quant_[hit_accession].total_abundances)
+          {
+            total_abundance.second /= double(peptides.size());
+          }
+        }
+      }
+    }
+  }
 }

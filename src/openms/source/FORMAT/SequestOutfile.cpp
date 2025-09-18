@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -59,7 +59,7 @@ namespace OpenMS
   }
 
   void SequestOutfile::load(const String& result_filename,
-                            vector<PeptideIdentification>& peptide_identifications,
+                            PeptideIdentificationList& peptide_identifications,
                             ProteinIdentification& protein_identification,
                             const double p_value_threshold,
                             vector<double>& pvalues,

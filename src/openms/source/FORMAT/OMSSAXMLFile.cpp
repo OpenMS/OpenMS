@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -26,7 +26,7 @@ namespace OpenMS
 
   OMSSAXMLFile::~OMSSAXMLFile() = default;
 
-  void OMSSAXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_identifications, bool load_proteins, bool load_empty_hits)
+  void OMSSAXMLFile::load(const String& filename, ProteinIdentification& protein_identification, PeptideIdentificationList& peptide_identifications, bool load_proteins, bool load_empty_hits)
   {
     // clear input (in case load() is called more than once)
     protein_identification = ProteinIdentification();
@@ -52,7 +52,7 @@ namespace OpenMS
       pep.setScoreType("OMSSA");
       pep.setHigherScoreBetter(false);
       pep.setIdentifier(identifier);
-      pep.assignRanks();
+      pep.sort();
 
       if (load_proteins)
       {

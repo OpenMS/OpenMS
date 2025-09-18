@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -75,15 +75,11 @@ END_SECTION
 
 START_SECTION((static String getCategory(const String &toolname)))
 {
-  TEST_EQUAL(ToolHandler::getCategory("IDFilter"), "File Filtering / Extraction / Merging")
+  TEST_EQUAL(ToolHandler::getCategory("IDFilter"), "File Filtering, Extraction and Merging")
   TEST_EQUAL(ToolHandler::getCategory("DOESNOTEXIST"), "")
 }
 END_SECTION
 
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
-

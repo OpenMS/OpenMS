@@ -8,11 +8,13 @@ from . import Feature as _Feature
 from . import MRMFeature as _MRMFeature
 from . import MSExperiment as _MSExperiment
 from . import PeakMap as _PeakMap
+from . import PeptideIdentificationList as _PeptideIdentificationList
 from . import PeptideIdentification as _PeptideIdentification
 from . import ControlledVocabulary as _ControlledVocabulary
 from . import File as _File
 from . import IonSource as _IonSource
 from . import MSSpectrum as _MSSpectrum
+from . import PeakSpectrum as _PeakSpectrum
 from . import MSChromatogram as _MSChromatogram
 from . import MRMTransitionGroupCP as _MRMTransitionGroupCP
 
@@ -104,9 +106,9 @@ class _ConsensusMapDF(_ConsensusMap):
                 yield from fun(f)
 
         def extract_meta_data(f: _ConsensusFeature):
-            pep = f.getPeptideIdentifications()  # type: list[PeptideIdentification]
+            pep = f.getPeptideIdentifications()  # type: _PeptideIdentificationList
 
-            if len(pep) != 0:
+            if pep.size() != 0:
                 hits = pep[0].getHits()
 
                 if len(hits) != 0:
@@ -158,8 +160,8 @@ common_meta_value_types = {
     b'masstrace_intensity': 'f', # TODO this is actually a DoubleList. Think about what to do here. For _np.fromiter we would need to set the length of the array.
     b'Group': 'U50',
     b'is_ungrouped_monoisotopic': 'i', # TODO this sounds very boolean to me
-    b'left_width': 'f',
-    b'right_width': 'f',
+    b'leftWidth': 'f',
+    b'rightWidth': 'f',
     b'total_xic': 'f',
     b'PeptideRef': 'U100',
     b'peak_apices_sum': 'f'
@@ -241,13 +243,13 @@ class _FeatureMapDF(_FeatureMap):
             Yields:
             tuple: tuple containing feature information, peptide information (optional) and meta values (optional)
             """
-            pep = f.getPeptideIdentifications()  # type: list[PeptideIdentification]
+            pep = f.getPeptideIdentifications()  # type: _PeptideIdentificationList
             bb = f.getConvexHull().getBoundingBox2D()
                 
             vals = [f.getMetaValue(m) if f.metaValueExists(m) else _np.nan for m in meta_values]
             
             if export_peptide_identifications:
-                if len(pep) > 0:
+                if pep.size() > 0:
                     ID_filename = self.__get_prot_id_filename_from_pep_id(pep[0])
                     hits = pep[0].getHits()
                     if len(hits) > 0:
@@ -290,9 +292,9 @@ class _FeatureMapDF(_FeatureMap):
         merged_df = _pd.merge(feature_df, assigned_peptide_df, on=['feature_id', 'ID_native_id', 'ID_filename'])
 
         Returns:
-        [PeptideIdentification]: list of PeptideIdentification objects
+        _PeptideIdentificationList: list of PeptideIdentification objects
         """
-        result = []
+        result = _PeptideIdentificationList()
         for f in self:
             for pep in f.getPeptideIdentifications():
                 hits = []
@@ -305,7 +307,7 @@ class _FeatureMapDF(_FeatureMap):
                         hit.setMetaValue('ID_native_id', 'unknown')
                     hits.append(hit)
                 pep.setHits(hits)
-                result.append(pep)
+                result.push_back(pep)
         return result
 
 FeatureMap = _FeatureMapDF
@@ -317,25 +319,33 @@ class _MSExperimentDF(_MSExperiment):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def get_df(self, long : bool = False):
+    def get_df(self, ms_levels: List[int] = [], long : bool = False):
         """Generates a pandas DataFrame with all peaks in the MSExperiment
 
         Parameters:
-        long: set to True if you want to have a long/expanded/melted dataframe with one row per peak. Faster but
+        ms_levels (List[int]): Get only spectra with the given MS levels. Default is an empty list, which means all MS levels will be included.
+        long (bool): set to True if you want to have a long/expanded/melted dataframe with one row per peak. Faster but
             replicated RT information. If False, returns rows in the style: rt, _np.array(mz), _np.array(int)
         
         Returns:
         pandas.DataFrame: feature information stored in a DataFrame
         """
+        self.updateRanges()
+        if not ms_levels:
+            ms_levels = self.getMSLevels()
         if long:
             cols = ["RT", "mz", "inty"]
-            self.updateRanges()
-            spectraarrs2d = self.get2DPeakDataLong(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ())
-            return _pd.DataFrame(dict(zip(cols, spectraarrs2d)))
+            dfs = []
+            for ms_level in ms_levels:
+                spectraarrs2d = self.get2DPeakDataLong(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ(), ms_level)
+                df = _pd.DataFrame(dict(zip(cols, spectraarrs2d)))
+                df["ms_level"] = ms_level
+                dfs.append(df)
+            return _pd.concat(dfs, ignore_index=True)
 
-        cols = ["RT", "mzarray", "intarray"]
+        cols = ["RT", "ms_level", "mzarray", "intarray"]
 
-        return _pd.DataFrame(data=((spec.getRT(), *spec.get_peaks()) for spec in self), columns=cols)
+        return _pd.DataFrame(data=((spec.getRT(), spec.getMSLevel(), *spec.get_peaks()) for spec in self if spec.getMSLevel() in ms_levels), columns=cols)
 
     def get_ion_df(self):
         """Generates a pandas DataFrame with all peaks and the ionic mobility in the MSExperiment
@@ -346,7 +356,7 @@ class _MSExperimentDF(_MSExperiment):
         
         cols = ["RT", "mz", "inty", "IM"]
         self.updateRanges()
-        spectraarrs2d = self.get2DPeakDataLongIon(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ())
+        spectraarrs2d = self.get2DPeakDataIMLong(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ(), 1)
         return _pd.DataFrame(dict(zip(cols, spectraarrs2d)))
 
     def get_massql_df(self, ion_mobility=False):
@@ -504,22 +514,26 @@ MSExperiment.__name__ = 'MSExperiment'
 
 # TODO think about the best way for such top-level function. IMHO in python, encapsulation in a stateless class in unnecessary.
 #   We should probably not just import this whole submodule without prefix.
-def peptide_identifications_to_df(peps: List[_PeptideIdentification], decode_ontology : bool = True,
-                                  default_missing_values: dict = {bool: False, int: -9999, float: _np.nan, str: ''},
+def peptide_identifications_to_df(peps: _PeptideIdentificationList, decode_ontology : bool = True,
+                                  default_missing_values: dict = None,
                                   export_unidentified : bool = True):
     """Converts a list of peptide identifications to a pandas DataFrame.
     Parameters:
-    peps (List[PeptideIdentification]): list of PeptideIdentification objects
+    peps (PeptideIdentificationList): list of PeptideIdentification objects
     decode_ontology (bool): decode meta value names
     default_missing_values: default value for missing values for each data type
     export_unidentified: export PeptideIdentifications without PeptideHit
     Returns:
     pandas.DataFrame: peptide identifications in a DataFrame
     """
+
+    if default_missing_values is None:
+        default_missing_values = {bool: False, int: -9999, float: _np.nan, str: ''}
+        
     switchDict = {bool: '?', int: 'i', float: 'f', str: 'U100'}
 
     # filter out PeptideIdentifications without PeptideHits if export_unidentified == False
-    count = len(peps)
+    count = peps.size()
     if not export_unidentified:
         count = sum(len(pep.getHits()) > 0 for pep in peps)
 
@@ -604,7 +618,7 @@ def peptide_identifications_to_df(peps: List[_PeptideIdentification], decode_ont
     return _pd.DataFrame(_np.fromiter((extract(pep, pep_idx) for pep_idx, pep in enumerate(peps)), dtype=dt, count=count))
 
 
-def update_scores_from_df(peps: List[_PeptideIdentification], df : _pd.DataFrame, main_score_name : str):
+def update_scores_from_df(peps: _PeptideIdentificationList, df : _pd.DataFrame, main_score_name : str):
     """
     Updates the scores in PeptideIdentification objects using a pandas dataframe.
                 
@@ -692,15 +706,6 @@ class _MSSpectrumDF(_MSSpectrum):
         
         df['native_id'] = _np.full(cnt, self.getNativeID(), dtype=_np.dtype('U100'))
 
-        # peptide sequence
-        peps = self.getPeptideIdentifications()  # type: list[PeptideIdentification]
-        seq = ''
-        if peps:
-            hits = peps[0].getHits()
-            if hits:
-                seq = hits[0].getSequence().toString()
-        df['sequence'] = _np.full(cnt, seq, dtype=_np.dtype(f'U{len(seq)}'))
-
         # ion annotations in string data array with names IonName or IonNames
         ion_annotations = _np.full(cnt, '', dtype=_np.dtype('U1'))
         for sda in self.getStringDataArrays():
@@ -719,6 +724,10 @@ class _MSSpectrumDF(_MSSpectrum):
 MSSpectrum = _MSSpectrumDF
 MSSpectrum.__module__ = _MSSpectrum.__module__
 MSSpectrum.__name__ = 'MSSpectrum'
+
+PeakSpectrum = _MSSpectrumDF
+PeakSpectrum.__module__ = _PeakSpectrum.__module__
+PeakSpectrum.__name__ = 'PeakSpectrum'
 
 class _ChromatogramType(_Enum):
     MASS_CHROMATOGRAM = 0
@@ -830,20 +839,6 @@ class _MRMTransitionGroupCPDF(_MRMTransitionGroupCP):
         Returns:
             pd.DataFrame: DataFrame representation of the Features stored in MRMTransitionGroupCP.
         """
-        # get all possible meta value keys in a set
-        if meta_values == 'all':
-            meta_values = set()
-            for f in self:
-                mvs = []
-                f.getKeys(mvs)
-                for m in mvs:
-                    meta_values.add(m)
-
-        elif not meta_values: # if None, set to empty list
-            meta_values = []
-
-        features = self.getFeatures()
-        
         def gen(features: List[_MRMFeature], fun):
             for f in features:
                 yield from fun(f)
@@ -865,16 +860,25 @@ class _MRMTransitionGroupCPDF(_MRMTransitionGroupCP):
             
             yield tuple((f.getUniqueId(), f.getRT(), f.getIntensity(), f.getOverallQuality(), *vals))
 
+        # get all possible meta value keys in a set
         features = self.getFeatures()
-
-
         mddtypes = [('feature_id', _np.dtype('uint64')), ('RT', 'f'), ('intensity', 'f'), ('quality', 'f')]
+        if meta_values is not None:
+            # Add all possible meta values to meta_value array if 'all' is passed
+            if meta_values == 'all':
+                meta_values = set()
+                for f in features:
+                    mvs = []
+                    f.getKeys(mvs)
+                    for m in mvs:
+                        meta_values.add(m)
 
-        for meta_value in meta_values:
-            if meta_value in common_meta_value_types:
-                mddtypes.append((meta_value.decode(), common_meta_value_types[meta_value]))
-            else:
-                mddtypes.append((meta_value.decode(), 'U50'))
+            # Add meta_values to mddtypes
+            for meta_value in meta_values:
+                if meta_value in common_meta_value_types:
+                    mddtypes.append((meta_value.decode(), common_meta_value_types[meta_value]))
+                else:
+                    mddtypes.append((meta_value.decode(), 'U50'))
 
         mdarr = _np.fromiter(iter=gen(features, extract_meta_data), dtype=mddtypes, count=len(features))
 

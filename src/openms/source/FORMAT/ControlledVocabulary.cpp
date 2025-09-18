@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -137,12 +137,7 @@ namespace OpenMS
     return s;
   }
 
-  ControlledVocabulary::ControlledVocabulary() :
-    terms_(),
-    name_("")
-  {
-
-  }
+  ControlledVocabulary::ControlledVocabulary() = default;
 
   ControlledVocabulary::~ControlledVocabulary() = default;
 
@@ -484,16 +479,16 @@ namespace OpenMS
     }
 
     // now build all child terms
-    for (std::map<String, CVTerm>::iterator it = terms_.begin(); it != terms_.end(); ++it)
+    for (auto it = terms_.begin(); it != terms_.end(); ++it)
     {
       //cerr << it->first << "\n";
-      for (set<String>::const_iterator pit = it->second.parents.begin(); pit != it->second.parents.end(); ++pit)
+      for (auto pit = it->second.parents.begin(); pit != it->second.parents.end(); ++pit)
       {
         //cerr << "Parent: " << *pit << "\n";
         terms_[*pit].children.insert(it->first);
       }
 
-      std::map<String, String>::iterator mit = namesToIds_.find(it->second.name);
+      auto mit = namesToIds_.find(it->second.name);
       if (mit == namesToIds_.end())
       {
         namesToIds_.insert(pair<String, String>(it->second.name, it->first));
@@ -509,7 +504,7 @@ namespace OpenMS
 
   const ControlledVocabulary::CVTerm& ControlledVocabulary::getTerm(const String& id) const
   {
-    std::map<String, CVTerm>::const_iterator it = terms_.find(id);
+    const auto it = terms_.find(id);
     if (it == terms_.end())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid CV identifier!", id);
@@ -536,7 +531,7 @@ namespace OpenMS
   const ControlledVocabulary::CVTerm& ControlledVocabulary::getTermByName(const String& name, const String& desc) const
   {
     //slow, but Vocabulary is very finite and this method will be called only a few times during write of a ML file using a CV
-    std::map<String, String>::const_iterator it = namesToIds_.find(name);
+    auto it = namesToIds_.find(name);
     if (it == namesToIds_.end())
     {
       if (!desc.empty())
@@ -563,14 +558,14 @@ namespace OpenMS
 
   const ControlledVocabulary::CVTerm* ControlledVocabulary::checkAndGetTermByName(const OpenMS::String& name) const
   {
-    std::map<String, String>::const_iterator it = namesToIds_.find(name);
+    const auto it = namesToIds_.find(name);
     if (it == namesToIds_.end()) return nullptr;
     return &terms_.at(it->second);
   }
 
   bool ControlledVocabulary::hasTermWithName(const OpenMS::String& name) const
   {
-    std::map<String, String>::const_iterator it = namesToIds_.find(name);
+    const auto it = namesToIds_.find(name);
     return it != namesToIds_.end();
   }
 

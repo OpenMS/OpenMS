@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -256,10 +256,7 @@ public:
     /// Comparator by Product ion MZ
     struct ProductMZLess
     {
-      inline bool operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const
-      {
-        return left.getProductMZ() < right.getProductMZ();
-      }
+      bool operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const;
     };
     //@}
 
@@ -271,10 +268,7 @@ public:
     /// Comparator by name
     struct NameLess
     {
-      inline bool operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const
-      {
-        return left.getName() < right.getName();
-      }
+      bool operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const;
     };
     //@}
 

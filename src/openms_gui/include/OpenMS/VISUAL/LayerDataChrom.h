@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -44,13 +44,13 @@ namespace OpenMS
 
     void updateRanges() override
     {
-      chromatogram_map_->updateRanges();
+      chromatogram_map_->getMSExperiment().updateRanges();
     }
 
     RangeAllType getRange() const override
     {
       RangeAllType r;
-      r.assign(*chromatogram_map_);
+      r.assign(chromatogram_map_->getMSExperiment().chromatogramRanges());
       return r;
     }
 
@@ -62,7 +62,7 @@ namespace OpenMS
 
     const ExperimentType::ChromatogramType& getChromatogram(Size idx) const
     {
-      return chromatogram_map_->getChromatogram(idx);
+      return chromatogram_map_->getMSExperiment().getChromatogram(idx);
     }
 
     

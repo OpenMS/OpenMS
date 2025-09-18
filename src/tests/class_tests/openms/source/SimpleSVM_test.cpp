@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -167,7 +167,6 @@ END_SECTION
 START_SECTION((map<String, pair<double, double>> void getScaling()
                const))
 {
-  map<String, double> feat_weights;
   auto scaling = svm.getScaling();
    
   TEST_REAL_SIMILAR(scaling["main_var_xx_swath_prelim_score"].first, -8.88447);

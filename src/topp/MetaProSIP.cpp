@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -1899,10 +1899,13 @@ public:
       xic_mzs.push_back(mz);
     }
 
+    cout << "Element count (+ additional isotopes): " << element_count << endl;
+
     // extract xics
     vector<vector<double> > xics = extractXICs(seed_rt, xic_mzs, mz_tolerance_ppm, rt_tolerance_s, peak_map);
 
     vector<double> xic_intensities(xics.size(), 0.0);
+
     if (min_corr_mono > 0)
     {
       // calculate correlation to mono-isotopic peak
@@ -1922,6 +1925,8 @@ public:
         xic_intensities[i] = std::accumulate(xics[i].begin(), xics[i].end(), 0.0);
       }
     }
+
+    cout << "XICs: " << xic_intensities.size() << endl;
 
     return xic_intensities;
   }
@@ -2127,7 +2132,7 @@ protected:
   {
     if (std::distance(pattern_begin, pattern_end) != std::distance(intensities_begin, intensities_end))
     {
-      OPENMS_LOG_ERROR << "Error: size of pattern and collected intensities don't match!: (pattern " << std::distance(pattern_begin, pattern_end) << ") (intensities " << std::distance(intensities_begin, intensities_end) << ")" << endl;
+      cout << "Error: size of pattern and collected intensities don't match!: (pattern " << std::distance(pattern_begin, pattern_end) << ") (intensities " << std::distance(intensities_begin, intensities_end) << ")" << endl;
     }
 
     if (pattern_begin == pattern_end)
@@ -3013,9 +3018,9 @@ protected:
     // if also unassigned ids are used create a pseudo feature
     if (use_unassigned_ids)
     {
-      const vector<PeptideIdentification> unassigned_ids = feature_map.getUnassignedPeptideIdentifications();
+      const PeptideIdentificationList unassigned_ids = feature_map.getUnassignedPeptideIdentifications();
       Size unassigned_id_features = 0;
-      for (vector<PeptideIdentification>::const_iterator it = unassigned_ids.begin(); it != unassigned_ids.end(); ++it)
+      for (PeptideIdentificationList::const_iterator it = unassigned_ids.begin(); it != unassigned_ids.end(); ++it)
       {
         vector<PeptideHit> hits = it->getHits();
         if (!hits.empty())
@@ -3032,7 +3037,7 @@ protected:
           double mz =  hits[0].getSequence().getMZ(charge);
           f.setMZ(mz);
           // add id to pseudo feature
-          vector<PeptideIdentification> id;
+          PeptideIdentificationList id;
           id.push_back(*it);
           f.setPeptideIdentifications(id);
           feature_map.push_back(f);
@@ -3060,8 +3065,8 @@ protected:
       // in features
       for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it) // for each peptide feature
       {
-        const vector<PeptideIdentification>& f_ids = feature_it->getPeptideIdentifications();
-        for (vector<PeptideIdentification>::const_iterator id_it = f_ids.begin(); id_it != f_ids.end(); ++id_it)
+        const PeptideIdentificationList& f_ids = feature_it->getPeptideIdentifications();
+        for (PeptideIdentificationList::const_iterator id_it = f_ids.begin(); id_it != f_ids.end(); ++id_it)
         {
           if (!id_it->getHits().empty())
           {
@@ -3075,8 +3080,8 @@ protected:
       }
 
       // and in unassigned ids
-      const vector<PeptideIdentification> unassigned_ids = feature_map.getUnassignedPeptideIdentifications();
-      for (vector<PeptideIdentification>::const_iterator it = unassigned_ids.begin(); it != unassigned_ids.end(); ++it)
+      const PeptideIdentificationList unassigned_ids = feature_map.getUnassignedPeptideIdentifications();
+      for (PeptideIdentificationList::const_iterator it = unassigned_ids.begin(); it != unassigned_ids.end(); ++it)
       {
         const vector<PeptideHit> hits = it->getHits();
         if (!hits.empty())
@@ -3121,7 +3126,7 @@ protected:
           vector<PeptideHit> pseudo_hits;
           pseudo_hits.push_back(pseudo_hit);
           pseudo_id.setHits(pseudo_hits);
-          vector<PeptideIdentification> id;
+          PeptideIdentificationList id;
           id.push_back(pseudo_id);
           f.setPeptideIdentifications(id);
           f.setRT(peak_map[i].getRT());
@@ -3172,7 +3177,7 @@ protected:
       }
 
       // Extract 1 or more MS/MS with identifications assigned to the feature by IDMapper
-      vector<PeptideIdentification> pep_ids = feature_it->getPeptideIdentifications();
+      PeptideIdentificationList pep_ids = feature_it->getPeptideIdentifications();
 
       nPSMs += pep_ids.size();
 
@@ -3187,7 +3192,7 @@ protected:
       tmp_pepid.setHigherScoreBetter(pep_ids[0].isHigherScoreBetter());
       for (Size i = 0; i != pep_ids.size(); ++i)
       {
-        pep_ids[i].assignRanks();
+        pep_ids[i].sort();
         const vector<PeptideHit>& hits = pep_ids[i].getHits();
         if (!hits.empty())
         {
@@ -3199,7 +3204,7 @@ protected:
         }
       }
 
-      tmp_pepid.assignRanks();
+      tmp_pepid.sort();
 
       SIPPeptide sip_peptide;
       sip_peptide.feature_type = feature_it->getMetaValue("feature_type"); // used to annotate feature type in reporting
@@ -3279,9 +3284,11 @@ protected:
       if (sip_peptide.feature_type == FEATURE_STRING || sip_peptide.feature_type == UNASSIGNED_ID_STRING)
       {
         element_count = MetaProSIPDecomposition::getNumberOfLabelingElements(labeling_element, feature_hit_aaseq);
+        cout << "Numver of labeling elements: " << element_count << "\t" << feature_hit_aaseq.toString() << endl;
       }
       else // if (sip_peptide.feature_type == UNIDENTIFIED_STRING)
       {
+        cout << "Unidentified" << endl;
         // calculate number of expected labeling elements using averagine model C:4.9384 H:7.7583 N:1.3577 O:1.4773 S:0.0417 divided by average weight 111.1254
         if (labeling_element == "C")
         {
@@ -3436,6 +3443,7 @@ protected:
       sip_peptide.patterns = patterns;
       for (IsotopePatterns::const_iterator pit = sip_peptide.patterns.begin(); pit != sip_peptide.patterns.end(); ++pit)
       {
+        cout << pit->first << "\t" << pit->second.size() << endl;
         PeakSpectrum p = isotopicIntensitiesToSpectrum(feature_hit_theoretical_mz, sip_peptide.mass_diff, feature_hit_charge, pit->second);
         p.setMetaValue("rate", (double)pit->first);
         p.setMSLevel(2);

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -74,9 +74,9 @@ namespace OpenMS
     {
       // get caption (either chromatogram idx or peptide sequence, if available)
       String basename_suffix;
-      if (chrom_exp_sptr->metaValueExists("peptide_sequence"))
+      if (chrom_exp_sptr->getMSExperiment().metaValueExists("peptide_sequence"))
       {
-        basename_suffix = String(chrom_exp_sptr->getMetaValue("peptide_sequence"));
+        basename_suffix = String(chrom_exp_sptr->getMSExperiment().getMetaValue("peptide_sequence"));
       }
       ((basename_suffix += "[") += index) += "]";
 

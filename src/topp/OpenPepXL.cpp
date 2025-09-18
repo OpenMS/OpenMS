@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -192,7 +192,7 @@ protected:
 
     // initialize solution vectors
     vector<ProteinIdentification> protein_ids(1);
-    vector<PeptideIdentification> peptide_ids;
+    PeptideIdentificationList peptide_ids;
 
     // these are mainly necessary for writing out xQuest type spectrum files
     OPXLDataStructs::PreprocessedPairSpectra preprocessed_pair_spectra(0);

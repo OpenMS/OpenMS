@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -27,7 +27,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 // #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathTSVWriter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
 
 // Algorithms
@@ -263,7 +262,6 @@ protected:
      * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
      * @param irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
      *        iRT chromatograms will be stored in this file)
-     * @param sonar Whether the data is SONAR data
      * @param pasef whether the data is PASEF data (should match transitions by their IM)
      * @param load_into_memory Whether to cache the current SWATH map in memory
      *
@@ -279,7 +277,6 @@ protected:
       const Param& calibration_param,
       const String& irt_mzml_out,
       Size debug_level,
-      bool sonar = false,
       bool pasef = false,
       bool load_into_memory = false);
 
@@ -336,7 +333,6 @@ protected:
      * @param trafo Transformation description for RT normalization
      * @param cp Parameter set for the chromatogram extraction
      * @param load_into_memory Whether to cache the current SWATH map in memory
-     * @param sonar Whether the data is SONAR data
      * @param pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility)
      *
     */
@@ -345,7 +341,6 @@ protected:
                                      std::vector< OpenMS::MSChromatogram > & chromatograms,
                                      const TransformationDescription& trafo,
                                      const ChromExtractParams & cp,
-                                     bool sonar,
                                      bool pasef,
                                      bool load_into_memory);
 
@@ -427,7 +422,6 @@ protected:
      * @param assay_library The set of assays to be extracted and scored
      * @param result_featureFile Output feature map to store identified features
      * @param store_features_in_featureFile Whether features should be appended to the output feature map (if this is false, then out_featureFile will be empty)
-     * @param result_tsv TSV Writer object to store identified features in csv format (set store_features to false if using this option)
      * @param result_osw OSW Writer object to store identified features in SQLite format (set store_features to false if using this option)
      * @param result_chromatograms Chromatogram consumer object to store the extracted chromatograms
      * @param batchSize Size of the batches which should be extracted and scored
@@ -448,7 +442,6 @@ protected:
                            const OpenSwath::LightTargetedExperiment& assay_library,
                            FeatureMap& result_featureFile,
                            bool store_features_in_featureFile,
-                           OpenSwathTSVWriter & result_tsv,
                            OpenSwathOSWWriter & result_osw,
                            Interfaces::IMSDataConsumer * result_chromatograms,
                            int batchSize,
@@ -501,17 +494,16 @@ protected:
      *    MRMTransitionGroup, if available (named "groupId_Precursor_i0")
      *    - Find peakgroups in the chromatogram set (see MRMTransitionGroupPicker::pickTransitionGroup)
      *    - Score peakgroups in the chromatogram set (see MRMFeatureFinderScoring::scorePeakgroups)
-     *    - Add the identified peak groups to the TSV writer (tsv_writer) and the SQL-based output format (osw_writer)
+     *    - Add the identified peak groups to the SQL-based output format (osw_writer)
      *
      * @param ms2_chromatograms Input chromatograms (MS2 level)
      * @param ms1_chromatograms Input chromatograms (MS1-level)
-     * @param swath_maps Set of swath map(s) for the current swath window (for SONAR multiple maps are provided)
+     * @param swath_maps Set of swath map(s) for the current swath window 
      * @param transition_exp The transition experiment (assay library)
      * @param feature_finder_param Parameters for the MRMFeatureFinderScoring
      * @param trafo RT Transformation function
      * @param rt_extraction_window RT extraction window
      * @param output Output map
-     * @param tsv_writer TSV writer for storing output (on the fly)
      * @param osw_writer OSW Writer object to store identified features in SQLite format
      * @param nr_ms1_isotopes Consider this many MS1 isotopes for precursor chromatograms
      * @param ms1only If true, will only score on MS1 level and ignore MS2 level
@@ -526,7 +518,6 @@ protected:
         const TransformationDescription& trafo,
         const double rt_extraction_window,
         FeatureMap& output,
-        OpenSwathTSVWriter& tsv_writer,
         OpenSwathOSWWriter& osw_writer,
         int nr_ms1_isotopes = 0,
         bool ms1only = false) const;
@@ -563,105 +554,6 @@ protected:
       const std::vector<OpenSwath::LightTransition>& all_transitions,
       std::vector<OpenSwath::LightTransition>& output);
   };
-
-  /**
-   * @brief Execute all steps in an OpenEcho analysis (OpenSwath for SONAR data)
-   *
-   * The workflow will perform a complete OpenSWATH analysis, using scanning
-   * SWATH data (SONAR data) instead of regular data. In this case, each
-   * fragment ion may appear in multiple SWATH windows and thus needs to be
-   * extracted from multiple maps.
-   *
-   * The overall execution flow in this class is as follows (see performExtractionSonar() function)
-   *
-   *    - Obtain precursor ion chromatograms (if enabled) through MS1Extraction_()
-   *    - Compute SONAR windows using computeSonarWindows_()
-   *    - Iterate through each SONAR window:
-   *      - Select which transitions to extract (proceed in batches) using OpenSwathHelper::selectSwathTransitions()
-   *      - Identify which SONAR windows to use for current set of transitions
-   *      - Iterate through each batch of transitions:
-   *        - Extract current batch of transitions from current SONAR window:
-   *          - Select transitions for current batch (see OpenSwathWorkflow::selectCompoundsForBatch_())
-   *          - Prepare transition extraction (see OpenSwathWorkflow::prepareExtractionCoordinates_())
-   *          - Extract transitions using performSonarExtraction_()
-   *          - Convert data to OpenMS format using ChromatogramExtractor::return_chromatogram()
-   *        - Score extracted transitions (see scoreAllChromatograms_())
-   *        - Write scored chromatograms and peak groups to disk (see writeOutFeaturesAndChroms_())
-   *
-   */
-  class OPENMS_DLLAPI OpenSwathWorkflowSonar :
-    public OpenSwathWorkflow
-  {
-
-  public:
-
-    explicit OpenSwathWorkflowSonar(bool use_ms1_traces) :
-      OpenSwathWorkflow(use_ms1_traces, false, false, false, -1)
-    {
-    }
-
-    /** @brief Execute OpenSWATH analysis on a set of SONAR SwathMaps and transitions.
-     *
-     * See OpenSwathWorkflowSonar class for a detailed description of this function.
-     *
-     * @note Given that these are scanning SWATH maps, for each transition
-     * multiple maps will be used for chromatogram extraction and scoring.
-     *
-     * @param swath_maps The raw data, expected to be scanning SWATH maps (SONAR)
-     * @param trafo Transformation description (translating this runs' RT to normalized RT space)
-     * @param cp Parameter set for the chromatogram extraction
-     * @param cp_ms1 Parameter set for the chromatogram extraction in MS1
-     * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension
-     * @param transition_exp The set of assays to be extracted and scored
-     * @param out_featureFile Output feature map to store identified features
-     * @param store_features Whether features should be appended to the output feature map (if this is false, then out_featureFile will be empty)
-     * @param tsv_writer TSV Writer object to store identified features in csv format (set store_features to false if using this option)
-     * @param osw_writer OSW Writer object to store identified features in SQLite format (set store_features to false if using this option)
-     * @param chromConsumer Chromatogram consumer object to store the extracted chromatograms
-     * @param batchSize Size of the batches which should be extracted and scored
-     * @param load_into_memory Whether to cache the current SONAR map(s) in memory
-     *
-    */
-    void performExtractionSonar(const std::vector<OpenSwath::SwathMap>& swath_maps,
-                                const TransformationDescription& trafo,
-                                const ChromExtractParams& cp,
-                                const ChromExtractParams& cp_ms1,
-                                const Param& feature_finder_param,
-                                const OpenSwath::LightTargetedExperiment& transition_exp,
-                                FeatureMap& out_featureFile,
-                                bool store_features,
-                                OpenSwathTSVWriter& tsv_writer,
-                                OpenSwathOSWWriter& osw_writer,
-                                Interfaces::IMSDataConsumer* chromConsumer,
-                                int batchSize,
-                                bool load_into_memory);
-
-    /** @brief Compute start, end and total number of (virtual) SONAR windows
-     *
-    */
-    void computeSonarWindows_(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                              double & sonar_winsize,
-                              double & sonar_start,
-                              double & sonar_end,
-                              int & sonar_total_win);
-
-    /** @brief Perform extraction from multiple SONAR windows
-     *
-    */
-    void performSonarExtraction_(const std::vector< OpenSwath::SwathMap > & used_maps,
-                                 const std::vector< ChromatogramExtractor::ExtractionCoordinates > & coordinates,
-                                 std::vector< OpenSwath::ChromatogramPtr > & chrom_list,
-                                 const ChromExtractParams & cp);
-
-    /** @brief Add two chromatograms
-     *
-     * @param base_chrom The base chromatogram to which we will add intensity
-     * @param newchrom The chromatogram to be added
-     *
-    */
-    OpenSwath::ChromatogramPtr addChromatograms(OpenSwath::ChromatogramPtr base_chrom, OpenSwath::ChromatogramPtr newchrom);
-  };
-
 }
 
 

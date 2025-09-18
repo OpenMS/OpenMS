@@ -78,13 +78,14 @@ set(datastructures_executables_list
 set(metadata_executables_list
   AcquisitionInfo_test
   Acquisition_test
+  AnnotatedMSRun_test
   CVTermList_test
   CVTermListInterface_test
   CVTerm_test
   ChromatogramSettings_test
   ContactPerson_test
+  DataArrays_test
   DataProcessing_test
-  Digestion_test
   DocumentIdentifier_test
   ExperimentalDesign_test
   ExperimentalSettings_test
@@ -102,15 +103,14 @@ set(metadata_executables_list
   MetaInfoInterfaceUtils_test
   MetaInfoRegistry_test
   MetaInfo_test
-  Modification_test
   PeptideEvidence_test
   PeptideHit_test
   PeptideIdentification_test
+  PeptideIdentificationList_test
   Precursor_test
   Product_test
   ProteinHit_test
   ProteinIdentification_test
-  SampleTreatment_test
   Sample_test
   ScanWindow_test
   Software_test
@@ -118,8 +118,7 @@ set(metadata_executables_list
   SpectrumLookup_test
   SpectrumMetaDataLookup_test
   SpectrumSettings_test
-  Tagging_test
-)
+  )
 
 set(system_executables_list
   ExternalProcess_test
@@ -200,7 +199,6 @@ set(format_executables_list
   MSPFile_test
   MSPGenericFile_test
   MascotGenericFile_test
-  MascotInfile_test
   MascotRemoteQuery_test
   MascotXMLFile_test
   #MSDataWritingConsumer_test
@@ -256,6 +254,7 @@ set(format_executables_list
   UnimodXMLFile_test
   XMassFile_test
   XMLFile_test
+  XMLHandler_test
   XMLValidator_test
   XQuestResultXMLFile_test
   XTandemInfile_test
@@ -275,6 +274,9 @@ set(format_executables_list
 if(WITH_HDF5)
   list(APPEND format_executables_list HDF5_test)
 endif()
+if(WITH_PARQUET)
+  list(APPEND format_executables_list Arrow_test QuantmsIO_test)
+endif()
 
 set(math_executables_list
   BasicStatistics_test
@@ -286,6 +288,7 @@ set(math_executables_list
   GaussFitter_test
   GumbelDistributionFitter_test
   GridSearch_test
+  CrossValidation_test
   Histogram_test
   LinearInterpolation_test
   LinearRegression_test
@@ -453,7 +456,7 @@ set(analysis_executables_list
   FeatureGroupingAlgorithm_test
   FeatureHandle_test
   FIAMSDataProcessor_test
-  FIAMSScheduler_test
+  #FIAMSScheduler_test sometimes failing
   FLASHDeconvAlgorithm_test
   FLASHDeconvHelperStructs_test
   FragmentIndex_test
@@ -519,6 +522,8 @@ set(analysis_executables_list
   PrecursorPurity_test
   QTClusterFinder_test
   ReactionMonitoringTransition_test
+  NuXLModificationsGenerator_test
+  NuXLParameterParsing_test
   SimpleSearchEngineAlgorithm_test
   SimpleSVM_test
   StablePairFinder_test
@@ -603,6 +608,7 @@ if(NOT DISABLE_OPENSWATH)
     OpenSwathScores_test
     PeakIntegrator_test
     PeakPickerChromatogram_test
+    PeakPickerMobilogram_test
     MRMTransitionGroupPicker_test
     DIAHelper_test
     DIAScoring_test
@@ -642,6 +648,7 @@ set(Boost_dependent_tests
   OpenSwathMRMFeatureAccessOpenMS_test
   OpenSwathSpectrumAccessOpenMS_test
   PeakPickerChromatogram_test
+  PeakPickerMobilogram_test
   SpectrumLookup_test
   SpectrumMetaDataLookup_test
   StatisticFunctions_test

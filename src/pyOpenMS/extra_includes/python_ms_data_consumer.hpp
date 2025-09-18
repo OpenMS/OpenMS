@@ -80,8 +80,8 @@ class PythonMSDataConsumer :
         virtual void setExpectedSize(OpenMS::Size expectedSpectra,
                                      OpenMS::Size expectedChromatograms)
         {
-            PyObject * expected_spectra = PyInt_FromSize_t(expectedSpectra);
-            PyObject * expected_chromatograms = PyInt_FromSize_t(expectedChromatograms);
+            PyObject * expected_spectra = PyLong_FromSize_t(expectedSpectra);
+            PyObject * expected_chromatograms = PyLong_FromSize_t(expectedChromatograms);
             PyObject * method_name = PyUnicode_FromString("setExpectedSize");
             PyObject * r = PyObject_CallMethodObjArgs(py_consumer_, method_name, expected_spectra,
                                                       expected_chromatograms, NULL);

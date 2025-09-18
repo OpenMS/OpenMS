@@ -1,36 +1,11 @@
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
+# 
 # --------------------------------------------------------------------------
 # $Maintainer: Stephan Aiche, Chris Bielow $
 # $Authors: Chris Bielow, Stephan Aiche $
 # --------------------------------------------------------------------------
+
 
 #------------------------------------------------------------------------------
 # This cmake file handles finding external libs for OpenMS
@@ -117,7 +92,7 @@ endif()
 # Our find module creates an imported CoinOR::CoinOR target
 find_package(COIN)
 if (COIN_FOUND)
-  set(CF_USECOINOR 1)
+  set(OPENMS_HAS_COINOR 1)
   set(LPTARGET "CoinOR::CoinOR")
 else()
   #------------------------------------------------------------------------------
@@ -174,6 +149,14 @@ if (WITH_HDF5)
   find_package(HDF5 MODULE REQUIRED COMPONENTS C CXX)
 endif()
 
+
+#------------------------------------------------------------------------------
+ # Apache Arrow and Parquet
+ if (WITH_PARQUET)
+   find_package(Arrow CONFIG REQUIRED)
+   find_package(Parquet CONFIG REQUIRED)
+ endif()
+
 #------------------------------------------------------------------------------
 # Done finding contrib libraries
 #------------------------------------------------------------------------------
@@ -186,17 +169,17 @@ endif()
 #------------------------------------------------------------------------------
 # QT
 #------------------------------------------------------------------------------
-SET(QT_MIN_VERSION "5.6.0")
+SET(QT_MIN_VERSION "6.1.0")
 
 # find qt
 set(OpenMS_QT_COMPONENTS Core Network CACHE INTERNAL "QT components for core lib")
-find_package(Qt5 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
+find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 
-IF (NOT Qt5Core_FOUND)
-  message(STATUS "Qt5Core not found!")
-  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
+IF (NOT Qt6Core_FOUND)
+  message(STATUS "Qt6Core not found!")
+  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt6Libs>' <src-dir>")
 ELSE()
-  message(STATUS "Found Qt ${Qt5Core_VERSION}")
+  message(STATUS "Found Qt ${Qt6Core_VERSION}")
 ENDIF()
 
 
@@ -214,7 +197,7 @@ if (WITH_GUI)
   # --------------------------------------------------------------------------
   # Find additional Qt libs
   #---------------------------------------------------------------------------
-  set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Svg)
+  set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Svg OpenGLWidgets)
 
   # On macOS the platform plugin of QT requires PrintSupport. We link
   # so it's packaged via the bundling/dependency tools/scripts
@@ -228,53 +211,30 @@ if (WITH_GUI)
     set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
   endif()
 
-  find_package(Qt5 REQUIRED COMPONENTS ${OpenMS_GUI_QT_COMPONENTS})
+  find_package(Qt6 REQUIRED COMPONENTS ${OpenMS_GUI_QT_COMPONENTS})
 
-  IF (NOT Qt5Widgets_FOUND OR NOT Qt5Gui_FOUND OR NOT Qt5Svg_FOUND)
-    message(STATUS "Qt5Widgets not found!")
-    message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
+  IF (NOT Qt6Widgets_FOUND OR NOT Qt6Gui_FOUND OR NOT Qt6Svg_FOUND)
+    message(STATUS "Qt6Widgets not found!")
+    message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt6Libs>' <src-dir>")
   ENDIF()
-
-  ## QuickWidgets is a runtime-only dependency that we need to copy and install when WebEngine is found.
-  # https://gitlab.kitware.com/cmake/cmake/-/issues/16462
-  # https://bugreports.qt.io/browse/QTBUG-110118
-  find_package(Qt5 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT} QuickWidgets)
+  find_package(Qt6 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
 
   # TODO only works if WebEngineWidgets is the only optional component
   set(OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
-  if(Qt5WebEngineWidgets_FOUND)
+  if(Qt6WebEngineWidgets_FOUND)
     list(APPEND OpenMS_GUI_QT_FOUND_COMPONENTS_OPT "WebEngineWidgets")
-    # we assume that it is available for now. They should have dependencies when installing Qt.
-    install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::QuickWidgets"
-            DESTINATION "${INSTALL_LIB_DIR}"
-            RUNTIME_DEPENDENCY_SET OPENMS_GUI_DEPS
-            COMPONENT Dependencies)
   else()
-    message(WARNING "Qt5WebEngineWidgets not found or disabled, disabling JS Views in TOPPView!")
-  endif()
-
-  # The following can be checked since Qt 5.12 https://github.com/qtwebkit/qtwebkit/issues/846
-  # evaluates to False if it does not exist
-  # TODO check what needs to be done for other values
-  if (${Qt5Gui_OPENGL_IMPLEMENTATION} STREQUAL GLESv2)
-      install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::Gui_EGL"
-            DESTINATION "${INSTALL_LIB_DIR}"
-            RUNTIME_DEPENDENCY_SET OPENMS_GUI_DEPS
-            COMPONENT Dependencies)
-      install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::Gui_GLESv2"
-            DESTINATION "${INSTALL_LIB_DIR}"
-            RUNTIME_DEPENDENCY_SET OPENMS_GUI_DEPS
-            COMPONENT Dependencies)
+    message(WARNING "Qt6WebEngineWidgets not found or disabled, disabling JS Views in TOPPView!")
   endif()
 
   set(OpenMS_GUI_DEP_LIBRARIES "OpenMS")
 
   foreach(COMP IN LISTS OpenMS_GUI_QT_COMPONENTS)
-    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt5::${COMP}")
+    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt6::${COMP}")
   endforeach()
 
   foreach(COMP IN LISTS OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
-    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt5::${COMP}")
+    list(APPEND OpenMS_GUI_DEP_LIBRARIES "Qt6::${COMP}")
   endforeach()
 
 endif()

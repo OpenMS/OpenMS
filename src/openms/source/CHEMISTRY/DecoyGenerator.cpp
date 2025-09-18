@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -42,7 +42,7 @@ AASequence DecoyGenerator::reversePeptides(const AASequence& protein, const Stri
   ProteaseDigestion ed;
   ed.setMissedCleavages(0); // important as we want to reverse between all cutting sites
   ed.setEnzyme(protease);
-  ed.setSpecificity(EnzymaticDigestion::SPEC_NONE);
+  ed.setSpecificity(EnzymaticDigestion::SPEC_FULL);
   ed.digest(protein, peptides);    
   String pseudo_reversed;
   for (int i = 0; i < static_cast<int>(peptides.size()) - 1; ++i)
@@ -63,19 +63,31 @@ AASequence DecoyGenerator::shufflePeptides(
         const AASequence& protein,
         const String& protease,
         const int max_attempts)
-{
-  OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.")
+{  
+  OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.");
 
   std::vector<AASequence> peptides;
   ProteaseDigestion ed;
   ed.setMissedCleavages(0); // important as we want to reverse between all cutting sites
   ed.setEnzyme(protease);
-  ed.setSpecificity(EnzymaticDigestion::SPEC_NONE);
+  ed.setSpecificity(EnzymaticDigestion::SPEC_FULL);
   ed.digest(protein, peptides);    
   String protein_shuffled;
   for (int i = 0; i < static_cast<int>(peptides.size()) - 1; ++i)
   {
-    std::string peptide_string = peptides[i].toUnmodifiedString();
+    const std::string peptide_string = peptides[i].toUnmodifiedString();
+
+    // add from cache if available
+    bool cached(false);
+    #pragma omp critical (td_cache_)
+    {
+      if (auto it = td_cache_.find(peptide_string); it != td_cache_.end())
+      {      
+        protein_shuffled += it->second; // add if cached
+        cached = true;
+      }
+    }
+    if (cached) continue;
 
     String peptide_string_shuffled = peptide_string;
     auto last = --peptide_string_shuffled.end();
@@ -98,9 +110,24 @@ AASequence DecoyGenerator::shufflePeptides(
       }
     }
     protein_shuffled += lowest_identity_string;
+    #pragma omp critical (td_cache_)
+    {
+      td_cache_[peptide_string] = lowest_identity_string;
+    }
   }
   // the last peptide of a protein is not an enzymatic cutting site so we do a full shuffle
-  std::string peptide_string = peptides[peptides.size() - 1 ].toUnmodifiedString();
+  const std::string peptide_string = peptides[peptides.size() - 1 ].toUnmodifiedString();
+  bool cached(false);
+  #pragma omp critical (td_cache_)
+  {
+    if (auto it = td_cache_.find(peptide_string); it != td_cache_.end())
+    {      
+      protein_shuffled += it->second; // add if cached
+      cached = true;
+    }
+  }
+  if (cached) return AASequence::fromString(protein_shuffled);
+
   String peptide_string_shuffled = peptide_string;
   double lowest_identity(1.0);
   String lowest_identity_string(peptide_string_shuffled);
@@ -119,6 +146,10 @@ AASequence DecoyGenerator::shufflePeptides(
     }
   }
   protein_shuffled += lowest_identity_string;
+  #pragma omp critical (td_cache_)
+  {
+    td_cache_[peptide_string] = lowest_identity_string;
+  }
   return AASequence::fromString(protein_shuffled);
 }
 
@@ -131,7 +162,17 @@ double DecoyGenerator::SequenceIdentity_(const String& decoy, const String& targ
     if (target[i] == decoy[i]) { ++match; }
   }
   double identity = (double) match / target.size();
-  return identity;
+
+  // also compare against reverse
+  match = 0;
+  for (int i = (int)target.size() - 1; i >= 0; --i)
+  {
+    int j = (int)target.size() - 1 - i;
+    if (target[j] == decoy[i]) { ++match; }
+  }
+  double rev_identity = (double) match / target.size();
+   
+  return std::max(identity, rev_identity);
 }
 
 

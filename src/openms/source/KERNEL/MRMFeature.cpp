@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -159,6 +159,18 @@ namespace OpenMS
     setMetaValue(id + "ind_massdev_score", idscores.ind_massdev_score);
     setMetaValue(id + "ind_mi_score", idscores.ind_mi_score);
     setMetaValue(id + "ind_mi_ratio_score", idscores.ind_mi_ratio);
+
+    // Ion mobility scores
+    setMetaValue(id + "ind_im_drift", idscores.ind_im_drift);
+    setMetaValue(id + "ind_im_drift_left", idscores.ind_im_drift_left);
+    setMetaValue(id + "ind_im_drift_right", idscores.ind_im_drift_right);
+    setMetaValue(id + "ind_im_delta", idscores.ind_im_delta);
+    setMetaValue(id + "ind_im_delta_score", idscores.ind_im_delta_score);
+    setMetaValue(id + "ind_im_log_intensity", idscores.ind_im_log_intensity);
+    setMetaValue(id + "ind_im_contrast_coelution", idscores.ind_im_contrast_coelution);
+    setMetaValue(id + "ind_im_contrast_shape", idscores.ind_im_contrast_shape);
+    setMetaValue(id + "ind_im_sum_contrast_coelution", idscores.ind_im_sum_contrast_coelution);
+    setMetaValue(id + "ind_im_sum_contrast_shape", idscores.ind_im_sum_contrast_shape);
 
     // peak shape metrics
     setMetaValue(id + "ind_start_position_at_5", idscores.ind_start_position_at_5);

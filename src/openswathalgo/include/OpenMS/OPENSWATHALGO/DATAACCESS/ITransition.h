@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -37,6 +37,7 @@ public:
     virtual std::vector<std::string> getPrecursorIDs() const = 0;
     virtual float getIntensity() const = 0;
     virtual double getRT() const = 0;
+    virtual double getMetaValue(std::string name) const = 0;
     virtual size_t size() const = 0;
   };
 

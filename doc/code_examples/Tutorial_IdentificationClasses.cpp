@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -66,7 +66,7 @@ int main()
   }
 
   // Create new peptide identifications
-  vector<PeptideIdentification> peptide_ids;
+  PeptideIdentificationList peptide_ids;
   PeptideIdentification peptide_id;
 
   peptide_id.setRT(1243.56);

@@ -1,36 +1,11 @@
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
+# 
 # --------------------------------------------------------------------------
 # $Maintainer: Stephan Aiche, Chris Bielow $
 # $Authors: Andreas Bertsch, Chris Bielow, Stephan Aiche $
 # --------------------------------------------------------------------------
+
 
 project("OpenMS_TOPP_tests")
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
@@ -244,6 +219,19 @@ set_tests_properties("TOPP_MassTraceExtractor_1_out" PROPERTIES DEPENDS "TOPP_Ma
 add_test("TOPP_MassTraceExtractor_2" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_2.ini -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out MassTraceExtractor_2.tmp.featureXML)
 add_test("TOPP_MassTraceExtractor_2_out" ${DIFF} -whitelist "id=" -in1 MassTraceExtractor_2.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_2_output.featureXML )
 set_tests_properties("TOPP_MassTraceExtractor_2_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_2")
+# test ion mobility functionality
+# a smaller ion mobility test (+2 isotopic envelope)
+add_test("TOPP_MassTraceExtractor_4" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_4.ini -in ${DATA_DIR_TOPP}/MassTraceExtractor_4_input.mzML -out MassTraceExtractor_4.tmp.featureXML)
+add_test("TOPP_MassTraceExtractor_4_out" ${DIFF} -whitelist "id=" -in1 MassTraceExtractor_4.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_4_output.featureXML )
+set_tests_properties("TOPP_MassTraceExtractor_4_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_4")
+# a larger LC-MS map with ion mobility data
+add_test("TOPP_MassTraceExtractor_5" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_4.ini -in ${DATA_DIR_TOPP}/MassTraceExtractor_5_input.mzML -out MassTraceExtractor_5.tmp.featureXML)
+add_test("TOPP_MassTraceExtractor_5_out" ${DIFF} -whitelist "id=" -in1 MassTraceExtractor_5.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_5_output.featureXML )
+set_tests_properties("TOPP_MassTraceExtractor_5_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_5")
+# temporary test. Isolate one trace that causes test to fail on MacOS 13-14 and Ubuntu.
+add_test("TOPP_MassTraceExtractor_6" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_4.ini -in ${DATA_DIR_TOPP}/MassTraceExtractor_6_input.mzML -out MassTraceExtractor_6.tmp.featureXML)
+add_test("TOPP_MassTraceExtractor_6_out" ${DIFF} -whitelist "id=" -in1 MassTraceExtractor_6.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_6_output.featureXML )
+set_tests_properties("TOPP_MassTraceExtractor_6_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_6")
 
 #------------------------------------------------------------------------------
 # FeatureFinderMetabo test
@@ -820,12 +808,6 @@ add_test("TOPP_IDRTCalibration_2" ${TOPP_BIN_PATH}/IDRTCalibration -test -in ${D
 add_test("TOPP_IDRTCalibration_2_out1" ${DIFF} -in1 IDRTCalibration_2_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/IDRTCalibration_2_output.idXML )
 set_tests_properties("TOPP_IDRTCalibration_2_out1" PROPERTIES DEPENDS "TOPP_IDRTCalibration_2")
 
-
-#------------------------------------------------------------------------------
-# IDMassAccuracy tests
-add_test("TOPP_IDMassAccuracy_1" ${TOPP_BIN_PATH}/IDMassAccuracy -test -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -id_in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -number_of_bins 10 -out_fragment IDMassAccuracy_1_out_fragment.tsv -out_fragment_fit IDMassAccuracy_1_out_fragment_fit.tsv -out_precursor IDMassAccuracy_1_out_precursor.tsv -out_precursor_fit IDMassAccuracy_1_out_precursor_fit.tsv)
-# Currently just testing if the tool runs
-
 #------------------------------------------------------------------------------
 # IsobaricAnalyzer tests
 add_test("TOPP_IsobaricAnalyzer_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/IsobaricAnalyzer_input_1.mzML -ini ${DATA_DIR_TOPP}/IsobaricAnalyzer.ini -out IsobaricAnalyzer_output_1.tmp.consensusXML)
@@ -1257,15 +1239,6 @@ add_test("TOPP_MetaProSIP_1_out2" ${DIFF} -in1 MetaProSIP_1_output_2.tmp.csv -in
 set_tests_properties("TOPP_MetaProSIP_1_out2" PROPERTIES DEPENDS "TOPP_MetaProSIP_1")
 
 #------------------------------------------------------------------------------
-# MascotAdapter tests
-add_test("TOPP_MascotAdapter_1" ${TOPP_BIN_PATH}/MascotAdapter -test -ini ${DATA_DIR_TOPP}/MascotAdapter_1_parameters.ini -in ${DATA_DIR_TOPP}/MascotAdapter_1_input.mzData -out MascotAdapter_1_output.tmp.mgf -out_type mgf)
-add_test("TOPP_MascotAdapter_1_out1" ${DIFF} -in1 MascotAdapter_1_output.tmp.mgf -in2 ${DATA_DIR_TOPP}/MascotAdapter_1_output.mascot_in )
-set_tests_properties("TOPP_MascotAdapter_1_out1" PROPERTIES DEPENDS "TOPP_MascotAdapter_1")
-add_test("TOPP_MascotAdapter_2" ${TOPP_BIN_PATH}/MascotAdapter -test -in ${DATA_DIR_TOPP}/MascotAdapter_2_input.mascotXML -out MascotAdapter_2_output.tmp.idXML -out_type idXML)
-add_test("TOPP_MascotAdapter_2_out1" ${DIFF} -in1 MascotAdapter_2_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/MascotAdapter_2_output.idXML -whitelist "UserParam type=\"string\" name=\"MascotAdapter:1:in\" value=")
-set_tests_properties("TOPP_MascotAdapter_2_out1" PROPERTIES DEPENDS "TOPP_MascotAdapter_2")
-
-#------------------------------------------------------------------------------
 # MetaboliteAdductDecharger tests
 add_test("TOPP_MetaboliteAdductDecharger_1" ${TOPP_BIN_PATH}/MetaboliteAdductDecharger -test -in ${DATA_DIR_TOPP}/MetaboliteAdductDecharger_input.featureXML -out_fm MetaboliteAdductDecharger_1_output.tmp.featureXML)
 add_test("TOPP_MetaboliteAdductDecharger_1_out1" ${DIFF} -in1 MetaboliteAdductDecharger_1_output.tmp.featureXML -in2 ${DATA_DIR_TOPP}/MetaboliteAdductDecharger_1_output.featureXML -whitelist "xml-stylesheet" "consensusXML version=" "consensusElement id=" "<UserParam type=" "<dataProcessing completion_time=" "<software name=")
@@ -1289,11 +1262,6 @@ set_tests_properties("TOPP_MSstatsConverter_2_out1" PROPERTIES DEPENDS "TOPP_MSs
 add_test("TOPP_MSstatsConverter_3" ${TOPP_BIN_PATH}/MSstatsConverter -test -in ${DATA_DIR_TOPP}/MSstatsConverter_3_in.consensusXML -method "ISO" -retention_time_summarization_method manual -in_design ${DATA_DIR_TOPP}/MSstatsConverter_3_design.tsv -out MSstatsConverter_3_out.tmp.csv -msstats_bioreplicate MSstats_BioReplicate -msstats_condition MSstats_Condition -msstats_mixture MSstats_Mixture)
 add_test("TOPP_MSstatsConverter_3_out1" ${DIFF} -in1 MSstatsConverter_3_out.tmp.csv -in2 ${DATA_DIR_TOPP}/MSstatsConverter_3_out.csv )
 set_tests_properties("TOPP_MSstatsConverter_3_out1" PROPERTIES DEPENDS "TOPP_MSstatsConverter_3")
-
-### SpecLibSearcher tests
-add_test("TOPP_SpecLibSearcher_1" ${TOPP_BIN_PATH}/SpecLibSearcher -test -ini ${DATA_DIR_TOPP}/SpecLibSearcher_1_parameters.ini -in ${DATA_DIR_TOPP}/SpecLibSearcher_1.mzML -lib ${DATA_DIR_TOPP}/SpecLibSearcher_1.MSP -out SpecLibSearcher_1.tmp.idXML)
-add_test("TOPP_SpecLibSearcher_1_out1" ${DIFF} -in1 SpecLibSearcher_1.tmp.idXML  -in2 ${DATA_DIR_TOPP}/SpecLibSearcher_1.idXML -whitelist "?xml-stylesheet" "IdentificationRun date" "db=")
-set_tests_properties("TOPP_SpecLibSearcher_1_out1" PROPERTIES DEPENDS "TOPP_SpecLibSearcher_1")
 
 if(NOT DISABLE_OPENSWATH)
   #------------------------------------------------------------------------------
@@ -1588,8 +1556,8 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
      "-Scoring:TransitionGroupPicker:compute_peak_quality"
      "-Scoring:Scores:use_ms1_mi" "false"
      "-Scoring:Scores:use_mi_score" "false")
-  add_test("TOPP_OpenSwathWorkflow_1" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_1.chrom.tmp.mzML -out_features OpenSwathWorkflow_1.tmp.featureXML -out_qc OpenSwathWorkflow_1.tmp.json
-  -enable_ms1 "false" ${OLD_OSW_PARAM} )
+  add_test("TOPP_OpenSwathWorkflow_1" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_1.chrom.tmp.mzML -out_features OpenSwathWorkflow_1.tmp.featureXML -out_qc OpenSwathWorkflow_1.tmp.json
+  -enable_ms1 "false" -auto_irt "false" ${OLD_OSW_PARAM} )
   add_test("TOPP_OpenSwathWorkflow_1_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_1.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_output.featureXML)
   add_test("TOPP_OpenSwathWorkflow_1_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_1.chrom.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_output.chrom.mzML)
   add_test("TOPP_OpenSwathWorkflow_1_out3" ${DIFF} -in1 OpenSwathWorkflow_1.tmp.json -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_output.json)
@@ -1597,38 +1565,31 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_1_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_1")
   set_tests_properties("TOPP_OpenSwathWorkflow_1_out3" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_1")
 
-  add_test("TOPP_OpenSwathWorkflow_2" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_2_input.mzXML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_2_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_2_input.trafoXML -out_chrom OpenSwathWorkflow_2.chrom.tmp.mzML -out_features OpenSwathWorkflow_2.tmp.featureXML
-  -enable_ms1 "false" ${OLD_OSW_PARAM} )
+  add_test("TOPP_OpenSwathWorkflow_2" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_2_input.mzXML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_2_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_2_input.trafoXML -out_chrom OpenSwathWorkflow_2.chrom.tmp.mzML -out_features OpenSwathWorkflow_2.tmp.featureXML
+  -enable_ms1 "false" -auto_irt "false" ${OLD_OSW_PARAM} )
   add_test("TOPP_OpenSwathWorkflow_2_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_2.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_2_output.featureXML)
   add_test("TOPP_OpenSwathWorkflow_2_out2" ${DIFF} -in1 OpenSwathWorkflow_2.chrom.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_2_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_2_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_2")
   set_tests_properties("TOPP_OpenSwathWorkflow_2_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_2")
 
   # Also test with ms1 traces (precursor ion trace)
-  add_test("TOPP_OpenSwathWorkflow_3" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_3.chrom.tmp.mzML -out_features OpenSwathWorkflow_3.tmp.featureXML
+  add_test("TOPP_OpenSwathWorkflow_3" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_3.chrom.tmp.mzML -out_features OpenSwathWorkflow_3.tmp.featureXML -auto_irt "false"
     ${OLD_OSW_PARAM})
   add_test("TOPP_OpenSwathWorkflow_3_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_3.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.featureXML)
   add_test("TOPP_OpenSwathWorkflow_3_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_3.chrom.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_3")
   set_tests_properties("TOPP_OpenSwathWorkflow_3_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_3")
 
-  # Also test whether it is able to write csv output
-  add_test("TOPP_OpenSwathWorkflow_4" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_4.chrom.tmp.mzML -out_tsv OpenSwathWorkflow_4.tmp.tsv
-    ${OLD_OSW_PARAM})
-  add_test("TOPP_OpenSwathWorkflow_4_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_4.chrom.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.chrom.mzML)
-  set_tests_properties("TOPP_OpenSwathWorkflow_4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_4")
-  # We cannot currently test the correctness of the csv output
-
   # Also test with readoptions cache
-  add_test("TOPP_OpenSwathWorkflow_5" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_5.chrom.tmp.mzML -out_features OpenSwathWorkflow_5.tmp.featureXML
-  -readOptions cache -tempDirectory "." ${OLD_OSW_PARAM})
+  add_test("TOPP_OpenSwathWorkflow_5" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_5.chrom.tmp.mzML -out_features OpenSwathWorkflow_5.tmp.featureXML
+  -readOptions cache -tempDirectory "." -auto_irt "false" ${OLD_OSW_PARAM})
   add_test("TOPP_OpenSwathWorkflow_5_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_5.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.featureXML)
   add_test("TOPP_OpenSwathWorkflow_5_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_5.chrom.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_5_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_5")
   set_tests_properties("TOPP_OpenSwathWorkflow_5_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_5")
 
   # Also test with readoptions cacheWorkingInMemory
-  add_test("TOPP_OpenSwathWorkflow_6" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_6.chrom.tmp.mzML -out_features OpenSwathWorkflow_6.tmp.featureXML -readOptions cacheWorkingInMemory -tempDirectory "."
+  add_test("TOPP_OpenSwathWorkflow_6" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_6.chrom.tmp.mzML -out_features OpenSwathWorkflow_6.tmp.featureXML -readOptions cacheWorkingInMemory -tempDirectory "." -auto_irt "false"
   ${OLD_OSW_PARAM} )
   add_test("TOPP_OpenSwathWorkflow_6_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_6.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.featureXML)
   add_test("TOPP_OpenSwathWorkflow_6_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_6.chrom.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.chrom.mzML)
@@ -1636,7 +1597,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_6_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_6")
 
   # Test with input swath windows file
-  add_test("TOPP_OpenSwathWorkflow_7" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_7.chrom.tmp.mzML -out_features OpenSwathWorkflow_7.tmp.featureXML -swath_windows_file ${DATA_DIR_TOPP}/swath_windows.txt
+  add_test("TOPP_OpenSwathWorkflow_7" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_7.chrom.tmp.mzML -out_features OpenSwathWorkflow_7.tmp.featureXML -swath_windows_file ${DATA_DIR_TOPP}/swath_windows.txt -auto_irt "false"
   ${OLD_OSW_PARAM} )
   add_test("TOPP_OpenSwathWorkflow_7_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_7.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.featureXML)
   add_test("TOPP_OpenSwathWorkflow_7_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_7.chrom.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.chrom.mzML)
@@ -1644,43 +1605,21 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_7_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_7")
 
   # Test with faulty swath windows file
-  add_test("TOPP_OpenSwathWorkflow_8" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_8.chrom.tmp.mzML -out_features OpenSwathWorkflow_8.tmp.featureXML -swath_windows_file ${DATA_DIR_TOPP}/swath_windows_overlap.txt
+  add_test("TOPP_OpenSwathWorkflow_8" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_8.chrom.tmp.mzML -out_features OpenSwathWorkflow_8.tmp.featureXML -swath_windows_file ${DATA_DIR_TOPP}/swath_windows_overlap.txt -auto_irt "false"
   ${OLD_OSW_PARAM} )
   set_tests_properties("TOPP_OpenSwathWorkflow_8" PROPERTIES WILL_FAIL 1) # file contains overlaps
-  add_test("TOPP_OpenSwathWorkflow_9" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_9.chrom.tmp.mzML -out_features OpenSwathWorkflow_9.tmp.featureXML -swath_windows_file ${DATA_DIR_TOPP}/swath_windows_tooshort.txt
+  add_test("TOPP_OpenSwathWorkflow_9" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_9.chrom.tmp.mzML -out_features OpenSwathWorkflow_9.tmp.featureXML -swath_windows_file ${DATA_DIR_TOPP}/swath_windows_tooshort.txt -auto_irt "false"
   ${OLD_OSW_PARAM} )
   set_tests_properties("TOPP_OpenSwathWorkflow_9" PROPERTIES WILL_FAIL 1) # file does not have enough entries
   # works with force (does not check for overlaps and missing swath windows any more)
-  add_test("TOPP_OpenSwathWorkflow_10" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_10.chrom.tmp.mzML -out_features OpenSwathWorkflow_10.tmp.featureXML -swath_windows_file ${DATA_DIR_TOPP}/swath_windows_overlap.txt -force
+  add_test("TOPP_OpenSwathWorkflow_10" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_10.chrom.tmp.mzML -out_features OpenSwathWorkflow_10.tmp.featureXML -swath_windows_file ${DATA_DIR_TOPP}/swath_windows_overlap.txt -force -auto_irt "false"
   ${OLD_OSW_PARAM} )
-
-  # test SONAR (also test iRT correction ... )
-  # - use iRT correction (but no outlier removal since only 2 datapoints)
-  # - use quadratic fitting for m/z correction
-  # - use 550 ppm for extraction (0.05 Da @ 100 m/z)
-  add_test("TOPP_OpenSwathWorkflow_11a" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.mzML -tr_irt ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -out_chrom OpenSwathWorkflow_11.chrom.tmp.mzML -out_features OpenSwathWorkflow_11.tmp.featureXML
-    -mz_extraction_window 0.2 -rt_extraction_window -1 -Scoring:Scores:use_sonar_scores -sonar -RTNormalization:outlierMethod none -mz_correction_function quadratic_regression_delta_ppm -irt_mz_extraction_window 550 -irt_mz_extraction_window_unit ppm
-  -enable_ms1 "false" ${OLD_OSW_PARAM} )
-  add_test("TOPP_OpenSwathWorkflow_11a_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_11.chrom.tmp.mzML  -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_output.chrom.mzML)
-  add_test("TOPP_OpenSwathWorkflow_11a_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_11.tmp.featureXML  -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_output.featureXML)
-  set_tests_properties("TOPP_OpenSwathWorkflow_11a_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_11a")
-  set_tests_properties("TOPP_OpenSwathWorkflow_11a_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_11a")
-
-  add_test("TOPP_OpenSwathWorkflow_11b_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -out OpenSwathWorkflow_11_input.tmp.pqp -out_type pqp)
-  add_test("TOPP_OpenSwathWorkflow_11b" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.mzML -tr_irt OpenSwathWorkflow_11_input.tmp.pqp -tr OpenSwathWorkflow_11_input.tmp.pqp -out_osw OpenSwathWorkflow_11.tmp.osw
-    -mz_extraction_window 0.2 -rt_extraction_window -1 -Scoring:Scores:use_sonar_scores -sonar -RTNormalization:outlierMethod none -mz_correction_function quadratic_regression_delta_ppm -irt_mz_extraction_window 550 -irt_mz_extraction_window_unit ppm
-  -enable_ms1 "false" ${OLD_OSW_PARAM} )
-  set_tests_properties("TOPP_OpenSwathWorkflow_11b" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_11b_prepare")
-
-  # 20 ppm is too small for extraction and no iRT peptides are found (thus the tool fails)
-  add_test("TOPP_OpenSwathWorkflow_12" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.mzML -tr_irt ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -mz_extraction_window 0.2 -rt_extraction_window -1 -Scoring:Scores:use_sonar_scores -sonar -out_chrom OpenSwathWorkflow_11.chrom.tmp.mzML -out_features OpenSwathWorkflow_11.tmp.featureXML -RTNormalization:outlierMethod none -mz_correction_function quadratic_regression_delta_ppm -irt_mz_extraction_window 20 -irt_mz_extraction_window_unit ppm -test)
-  set_tests_properties("TOPP_OpenSwathWorkflow_12" PROPERTIES WILL_FAIL 1) # there are no points for iRT regression
 
   # Test whether PQP files can be read and OSW output can be written
   add_test("TOPP_OpenSwathWorkflow_13_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -out OpenSwathWorkflow_13_input.tmp.pqp -out_type pqp)
-  add_test("TOPP_OpenSwathWorkflow_13a" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr OpenSwathWorkflow_13_input.tmp.pqp -tr_type pqp -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_13.chrom.tmp.mzML -out_osw OpenSwathWorkflow_13.osw
+  add_test("TOPP_OpenSwathWorkflow_13a" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr OpenSwathWorkflow_13_input.tmp.pqp -tr_type pqp -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_13.chrom.tmp.mzML -out_features OpenSwathWorkflow_13.osw -auto_irt "false"
   ${OLD_OSW_PARAM} )
-  add_test("TOPP_OpenSwathWorkflow_13b" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr OpenSwathWorkflow_13_input.tmp.pqp -tr_type pqp -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_osw OpenSwathWorkflow_13.osw -Scoring:TransitionGroupPicker:compute_peak_shape_metrics
+  add_test("TOPP_OpenSwathWorkflow_13b" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr OpenSwathWorkflow_13_input.tmp.pqp -tr_type pqp -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_features OpenSwathWorkflow_13.osw -Scoring:TransitionGroupPicker:compute_peak_shape_metrics -auto_irt "false"
   ${OLD_OSW_PARAM} )
   add_test("TOPP_OpenSwathWorkflow_13a_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_13.chrom.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_13_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_13a" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_13_prepare")
@@ -1690,7 +1629,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
 
   # Test whether we can write out sqMass files
   add_test("TOPP_OpenSwathWorkflow_14_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -out OpenSwathWorkflow_14_input.tmp.pqp -out_type pqp)
-  add_test("TOPP_OpenSwathWorkflow_14" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr OpenSwathWorkflow_14_input.tmp.pqp -tr_type pqp -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_14.chrom.tmp.sqMass -out_osw OpenSwathWorkflow_14.osw
+  add_test("TOPP_OpenSwathWorkflow_14" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr OpenSwathWorkflow_14_input.tmp.pqp -tr_type pqp -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_14.chrom.tmp.sqMass -out_features OpenSwathWorkflow_14.osw -auto_irt "false"
   ${OLD_OSW_PARAM} )
   # add_test("TOPP_OpenSwathWorkflow_14_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_4.chrom.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_14_output.chrom.mzML)
   add_test("TOPP_OpenSwathWorkflow_14_step2" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in OpenSwathWorkflow_14.chrom.tmp.sqMass -out OpenSwathWorkflow_14.chrom.tmp.mzML -test -lossy_compression false -lossy_mass_accuracy 1e-4 -full_meta false)
@@ -1701,8 +1640,8 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   # We cannot currently test the correctness of the PQP and OSW files
 
   # Test with ms1 only (precursor ion trace)
-  add_test("TOPP_OpenSwathWorkflow_15" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_15_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_15.chrom.tmp.mzML -out_features OpenSwathWorkflow_15.tmp.featureXML
-    -Scoring:TransitionGroupPicker:use_precursors -ms1_isotopes 2
+  add_test("TOPP_OpenSwathWorkflow_15" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_15_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_15.chrom.tmp.mzML -out_features OpenSwathWorkflow_15.tmp.featureXML
+    -Scoring:TransitionGroupPicker:use_precursors -ms1_isotopes 2 -auto_irt "false"
   "-test" "-mz_extraction_window" "0.05" "-mz_extraction_window_unit" "Th" # "-ms1_isotopes" "0"
   #   "-Scoring:TransitionGroupPicker:compute_peak_quality"
      "-Scoring:Scores:use_ms1_mi" "false"
@@ -1714,7 +1653,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
 
   # Also test with ms1 traces (precursor ion trace)
   add_test("TOPP_OpenSwathWorkflow_16_prepare" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -out OpenSwathWorkflow_16_input.sqMass -test -lossy_compression true -lossy_mass_accuracy 1e-4 -full_meta true)
-  add_test("TOPP_OpenSwathWorkflow_16" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in OpenSwathWorkflow_16_input.sqMass -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_16.chrom.tmp.mzML -out_features OpenSwathWorkflow_16.tmp.featureXML -readOptions workingInMemory -ms1_isotopes 2
+  add_test("TOPP_OpenSwathWorkflow_16" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in OpenSwathWorkflow_16_input.sqMass -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_16.chrom.tmp.mzML -out_features OpenSwathWorkflow_16.tmp.featureXML -readOptions workingInMemory -ms1_isotopes 2 -auto_irt "false"
   ${OLD_OSW_PARAM} )
   add_test("TOPP_OpenSwathWorkflow_16_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_16.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_16_output.featureXML)
   add_test("TOPP_OpenSwathWorkflow_16_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_16.chrom.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_16_output.chrom.mzML)
@@ -1724,14 +1663,14 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
 
   # Test with ion mobility
   add_test("TOPP_OpenSwathWorkflow_17" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.tsv -out_chrom OpenSwathWorkflow_17.chrom.tmp.mzML -out_features OpenSwathWorkflow_17.tmp.featureXML
-    -readOptions workingInMemory -ion_mobility_window 0.05 -use_ms1_ion_mobility "false" -Scoring:Scores:use_ion_mobility_scores
+    -readOptions workingInMemory -ion_mobility_window 0.05 -use_ms1_ion_mobility "false" -Scoring:Scores:use_ion_mobility_scores -auto_irt "false"
     ${OLD_OSW_PARAM} )
   add_test("TOPP_OpenSwathWorkflow_17_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_17.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_output.featureXML)
   add_test("TOPP_OpenSwathWorkflow_17_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_17.chrom.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_17_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17")
   set_tests_properties("TOPP_OpenSwathWorkflow_17_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17")
   # Test with ion mobility
-  add_test("TOPP_OpenSwathWorkflow_17_cache" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.tsv -out_chrom OpenSwathWorkflow_17.chrom.tmp.mzML -out_features OpenSwathWorkflow_17.tmp.featureXML -readOptions cache -ion_mobility_window 0.05 -use_ms1_ion_mobility "false" -Scoring:Scores:use_ion_mobility_scores
+  add_test("TOPP_OpenSwathWorkflow_17_cache" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.tsv -out_chrom OpenSwathWorkflow_17.chrom.tmp.mzML -out_features OpenSwathWorkflow_17.tmp.featureXML -readOptions cache -ion_mobility_window 0.05 -use_ms1_ion_mobility "false" -Scoring:Scores:use_ion_mobility_scores -auto_irt "false"
     ${OLD_OSW_PARAM} )
   add_test("TOPP_OpenSwathWorkflow_17_cache_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_17.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_output.featureXML)
   add_test("TOPP_OpenSwathWorkflow_17_cache_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_17.chrom.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_output.chrom.mzML)
@@ -1740,7 +1679,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
 
   # Test with ion mobility and the SQLite workflow
   add_test("TOPP_OpenSwathWorkflow_17_b_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.tsv -out OpenSwathWorkflow_17_input.tmp.pqp -out_type pqp)
-  add_test("TOPP_OpenSwathWorkflow_17_b" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.mzML -tr_type pqp -tr OpenSwathWorkflow_17_input.tmp.pqp -out_chrom OpenSwathWorkflow_17_b.chrom.tmp.mzML -out_features OpenSwathWorkflow_17_b.tmp.featureXML -readOptions workingInMemory -ion_mobility_window 0.05 -use_ms1_ion_mobility "false"
+  add_test("TOPP_OpenSwathWorkflow_17_b" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.mzML -tr_type pqp -tr OpenSwathWorkflow_17_input.tmp.pqp -out_chrom OpenSwathWorkflow_17_b.chrom.tmp.mzML -out_features OpenSwathWorkflow_17_b.tmp.featureXML -readOptions workingInMemory -ion_mobility_window 0.05 -use_ms1_ion_mobility "false" -auto_irt "false"
     ${OLD_OSW_PARAM} )
   add_test("TOPP_OpenSwathWorkflow_17_b_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_17_b.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_b_output.featureXML)
   add_test("TOPP_OpenSwathWorkflow_17_b_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_17_b.chrom.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_b_output.chrom.mzML)
@@ -1757,7 +1696,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathFileSplitter_1_out3" PROPERTIES DEPENDS "TOPP_OpenSwathFileSplitter_1")
 
   # Test MS1 MI scoring
-  add_test("TOPP_OpenSwathWorkflow_18" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_features OpenSwathWorkflow_18.tmp.featureXML
+  add_test("TOPP_OpenSwathWorkflow_18" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_features OpenSwathWorkflow_18.tmp.featureXML -auto_irt "false"
   "-test" "-mz_extraction_window" "0.05" "-mz_extraction_window_unit" "Th" "-ms1_isotopes" "0"
      "-Scoring:TransitionGroupPicker:compute_peak_quality"
      # "-Scoring:Scores:use_ms1_mi" "false"
@@ -1766,7 +1705,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_18_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_18")
 
   # Test MS2 MI scoring
-  add_test("TOPP_OpenSwathWorkflow_19" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_features OpenSwathWorkflow_19.tmp.featureXML
+  add_test("TOPP_OpenSwathWorkflow_19" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_features OpenSwathWorkflow_19.tmp.featureXML -auto_irt "false"
   "-test" "-mz_extraction_window" "0.05" "-mz_extraction_window_unit" "Th" "-ms1_isotopes" "0"
      "-Scoring:TransitionGroupPicker:compute_peak_quality"
      "-Scoring:Scores:use_ms1_mi" "false")
@@ -1775,7 +1714,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_19_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_19")
 
   # Test MS2 MI scoring and total MI scoring
-  add_test("TOPP_OpenSwathWorkflow_20" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_features OpenSwathWorkflow_20.tmp.featureXML
+  add_test("TOPP_OpenSwathWorkflow_20" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -Calibration:rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_features OpenSwathWorkflow_20.tmp.featureXML -auto_irt "false"
   "-test" "-mz_extraction_window" "0.05" "-mz_extraction_window_unit" "Th" "-ms1_isotopes" "0"
      "-Scoring:TransitionGroupPicker:compute_peak_quality"
      "-Scoring:Scores:use_total_mi_score"
@@ -1785,8 +1724,8 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_20_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_20")
 
   # Test iRT alignment, full workflow
-  add_test("TOPP_OpenSwathWorkflow_21" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.tsv -tr_irt ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML -out_features OpenSwathWorkflow_21.tmp.featureXML -Debugging:irt_trafo OpenSwathWorkflow_21.tmp.trafoXML -out_chrom OpenSwathWorkflow_21.tmp.mzML
-    -RTNormalization:lowess:span 0.666666666666666666666666666
+  add_test("TOPP_OpenSwathWorkflow_21" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.tsv -Calibration:tr_irt ${DATA_DIR_TOPP}/OpenSwathWorkflow_21_input.irt.TraML -out_features OpenSwathWorkflow_21.tmp.featureXML -Debugging:irt_trafo OpenSwathWorkflow_21.tmp.trafoXML -out_chrom OpenSwathWorkflow_21.tmp.mzML -auto_irt "false"
+    -Calibration:RTNormalization:lowess:span 0.666666666666666666666666666
     "-test" "-mz_extraction_window" "0.05" "-mz_extraction_window_unit" "Th" "-ms1_isotopes" "0"
     "-Scoring:Scores:use_total_mi_score"
     "-Scoring:Scores:use_ms1_mi" "false"
@@ -1799,7 +1738,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   # set_tests_properties("TOPP_OpenSwathWorkflow_21_out3" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_21")
 
   # Test PRM workflow
-  add_test("TOPP_OpenSwathWorkflow_22" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_22_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_22_input.tsv -out_chrom OpenSwathWorkflow_22.chrom.tmp.mzML -out_features OpenSwathWorkflow_22.tmp.featureXML -readOptions workingInMemory -matching_window_only "true" -ms1_isotopes 3
+  add_test("TOPP_OpenSwathWorkflow_22" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_22_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_22_input.tsv -out_chrom OpenSwathWorkflow_22.chrom.tmp.mzML -out_features OpenSwathWorkflow_22.tmp.featureXML -readOptions workingInMemory -matching_window_only "true" -ms1_isotopes 3 -auto_irt "false"
   ${OLD_OSW_PARAM} )
   add_test("TOPP_OpenSwathWorkflow_22_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_22.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_22_output.featureXML)
   add_test("TOPP_OpenSwathWorkflow_22_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_22.chrom.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_22_output.chrom.mzML)
@@ -1807,7 +1746,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_22_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_22")
 
   # Test with PASEF ion mobility data, overlapping m/z SWATHs with distinct IM
-  add_test("TOPP_OpenSwathWorkflow_23" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_input.tsv -out_chrom OpenSwathWorkflow_23.tmp.chrom.mzML -out_features OpenSwathWorkflow_23.tmp.featureXML -readOptions workingInMemory -ion_mobility_window 0.1 -Scoring:Scores:use_ion_mobility_scores -pasef ${OLD_OSW_PARAM})
+  add_test("TOPP_OpenSwathWorkflow_23" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_input.tsv -out_chrom OpenSwathWorkflow_23.tmp.chrom.mzML -out_features OpenSwathWorkflow_23.tmp.featureXML -readOptions workingInMemory -ion_mobility_window 0.1 -auto_irt "false" -Scoring:Scores:use_ion_mobility_scores -pasef ${OLD_OSW_PARAM})
   add_test("TOPP_OpenSwathWorkflow_23_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_23.tmp.featureXML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_output.featureXML)
   add_test("TOPP_OpenSwathWorkflow_23_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_23.tmp.chrom.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_23_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_23")
@@ -1913,6 +1852,57 @@ if(WITH_GUI)
   add_test("TOPP_Resampler_2_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 Resampler2_ppm.mzML -in2 ${DATA_DIR_TOPP}/Resampler_2_output.mzML )
   set_tests_properties("TOPP_Resampler_2_out1" PROPERTIES DEPENDS "TOPP_Resampler_2")
 endif()
+
+#------------------------------------------------------------------------------
+# OpenNuXL
+
+if (NOT MSVC) # currently some minor numeric differences on windows. needs fixing
+  add_test("TOPP_OpenNuXL_1" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+  ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_1_output.tmp.idXML -out_tsv OpenNuXL_1_output_tsv.tmp -NuXL:decoys "false" )
+  add_test("TOPP_OpenNuXL_1_out1" ${DIFF} -whitelist "IdentificationRun date"
+  "db=" -in1 OpenNuXL_1_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_1_output.idXML )
+  set_tests_properties("TOPP_OpenNuXL_1_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_1")
+  # test internal decoy generation
+  add_test("TOPP_OpenNuXL_2" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+  ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_2_output.tmp.idXML -NuXL:decoys "true" )
+  add_test("TOPP_OpenNuXL_2_out1" ${DIFF} -whitelist "IdentificationRun date"
+  "db=" -in1 OpenNuXL_2_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_2_output.idXML )
+  set_tests_properties("TOPP_OpenNuXL_2_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_2")
+
+  # reporting of multiple hits and tsv output
+  add_test("TOPP_OpenNuXL_3" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+  ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_3_output.tmp.idXML -report:top_hits 3 -out_tsv OpenNuXL_3_output2.tmp.tsv -NuXL:scoring fast)
+  add_test("TOPP_OpenNuXL_3_out1" ${DIFF} -whitelist "IdentificationRun date"
+  "db=" -in1 OpenNuXL_3_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_3_output.idXML )
+  add_test("TOPP_OpenNuXL_3_out2" ${DIFF} -in1 OpenNuXL_3_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_3_output2.tsv )
+  set_tests_properties("TOPP_OpenNuXL_3_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_3")
+  set_tests_properties("TOPP_OpenNuXL_3_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_3")
+
+  # reporting of multiple hits and tsv output and decoy generation
+  add_test("TOPP_OpenNuXL_4" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+  ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -NuXL:decoys "true" -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_4_output.tmp.idXML -report:top_hits 2 -out_tsv OpenNuXL_4_output2.tmp.tsv -NuXL:scoring fast)
+  add_test("TOPP_OpenNuXL_4_out1" ${DIFF} -whitelist "IdentificationRun date"
+  "db=" -in1 OpenNuXL_4_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_4_output.idXML )
+  add_test("TOPP_OpenNuXL_4_out2" ${DIFF} -in1 OpenNuXL_4_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_4_output2.tsv )
+  set_tests_properties("TOPP_OpenNuXL_4_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_4")
+  set_tests_properties("TOPP_OpenNuXL_4_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_4")
+
+  # test internal decoy generation - slow scoring
+  add_test("TOPP_OpenNuXL_5" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+  ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_5_output.tmp.idXML -NuXL:decoys "true" -NuXL:scoring slow)
+  add_test("TOPP_OpenNuXL_5_out1" ${DIFF} -whitelist "IdentificationRun date"
+  "db=" -in1 OpenNuXL_5_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_5_output.idXML )
+  set_tests_properties("TOPP_OpenNuXL_5_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_5")
+
+  # reporting of multiple hits and tsv output and decoy generation with huge mass window so that all candidates are scored
+  add_test("TOPP_OpenNuXL_6" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 1e9 -in
+  ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -NuXL:decoys "true" -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out OpenNuXL_6_output.tmp.idXML -report:top_hits 2 -out_tsv OpenNuXL_6_output2.tmp.tsv -NuXL:scoring slow)
+  add_test("TOPP_OpenNuXL_6_out1" ${DIFF} -whitelist "IdentificationRun date"
+  "db=" -in1 OpenNuXL_6_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_6_output.idXML )
+  add_test("TOPP_OpenNuXL_6_out2" ${DIFF} -in1 OpenNuXL_6_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_6_output2.tsv )
+  set_tests_properties("TOPP_OpenNuXL_6_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
+  set_tests_properties("TOPP_OpenNuXL_6_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
+endif(NOT MSVC)
 
 #------------------------------------------------------------------------------
 # SeedListGenerator tests
@@ -2309,6 +2299,9 @@ add_test("TOPP_ProteinQuantifier_16" ${TOPP_BIN_PATH}/ProteinQuantifier -test -i
 add_test("TOPP_ProteinQuantifier_16_out1" ${DIFF} -in1 ProteinQuantifier_16_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_16_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_16_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_16")
 
+add_test("TOPP_ProteinQuantifier_17" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_16_input.tsv -file_and_channel_level_output "true"  -out ProteinQuantifier_17_output.tmp -top:include_all -best_charge_and_fraction )
+add_test("TOPP_ProteinQuantifier_17_out1" ${DIFF} -in1 ProteinQuantifier_17_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_17_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_17_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_17")
 #------------------------------------------------------------------------------
 # PeptideIndexer tests
 add_test("TOPP_PeptideIndexer_1" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_1_out.tmp.idXML -unmatched_action warn -enzyme:specificity none -aaa_max 4)
@@ -3136,6 +3129,16 @@ add_test("TOPP_RNAMassCalculator_1_out" ${DIFF} -in1 RNAMassCalculator.tmp.txt -
 set_tests_properties("TOPP_RNAMassCalculator_1_out" PROPERTIES DEPENDS "TOPP_RNAMassCalculator_1")
 
 #------------------------------------------------------------------------------
+# Digestor:
+add_test("TOPP_Digestor_1" ${TOPP_BIN_PATH}/Digestor -test -in ${DATA_DIR_TOPP}/Digestor_1_input.fasta -out Digestor_1_output.tmp.fasta)
+add_test("TOPP_Digestor_1_out" ${DIFF} -in1 Digestor_1_output.tmp.fasta -in2 ${DATA_DIR_TOPP}/Digestor_1_output.fasta)
+set_tests_properties("TOPP_Digestor_1_out" PROPERTIES DEPENDS "TOPP_Digestor_1")
+add_test("TOPP_Digestor_2" ${TOPP_BIN_PATH}/Digestor -test -in ${DATA_DIR_TOPP}/Digestor_1_input.fasta -out Digestor_2_output.tmp.fasta -min_length 1 -missed_cleavages 0 -replace_ambiguous)
+add_test("TOPP_Digestor_2_out" ${DIFF} -in1 Digestor_2_output.tmp.fasta -in2 ${DATA_DIR_TOPP}/Digestor_2_output.fasta)
+set_tests_properties("TOPP_Digestor_2_out" PROPERTIES DEPENDS "TOPP_Digestor_2")
+
+
+#------------------------------------------------------------------------------
 # EPIFANY:
 add_test("TOPP_Epifany_1" ${TOPP_BIN_PATH}/Epifany -test -in ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_input.idXML -algorithm:model_parameters:prot_prior 0.7 -algorithm:model_parameters:pep_spurious_emission 0.001 -algorithm:model_parameters:pep_emission 0.1 -out Epifany_1_out.tmp.idXML)
 add_test("TOPP_Epifany_1_out" ${DIFF} -whitelist "InferenceEngineVersion" -in1 Epifany_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/Epifany_1_out.idXML)
@@ -3168,15 +3171,15 @@ set_tests_properties("TOPP_QCCalculator_2_out" PROPERTIES DEPENDS "TOPP_QCCalcul
 #------------------------------------------------------------------------------
 # PSMFeatureExtractor
 add_test("TOPP_PSMFeatureExtractor_1" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_1_out.idXML -multiple_search_engines -skip_db_check -out_type idXML -out PSMFeatureExtractor_1_out.tmp.idXML)
-add_test("TOPP_PSMFeatureExtractor_1_out" ${DIFF} -whitelist "InferenceEngineVersion" "MSGFPlusAdapter:" "date=" -in1 PSMFeatureExtractor_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_1_out.idXML)
+add_test("TOPP_PSMFeatureExtractor_1_out" ${DIFF} -whitelist "InferenceEngineVersion" "spectra_data" "date=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1:" "MS-GF+:" "db=" -in1 PSMFeatureExtractor_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_1_out.idXML)
 set_tests_properties("TOPP_PSMFeatureExtractor_1_out" PROPERTIES DEPENDS "TOPP_PSMFeatureExtractor_1")
 
 add_test("TOPP_PSMFeatureExtractor_2" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML ${DATA_DIR_TOPP}/THIRDPARTY/XTandemAdapter_1_out.idXML -multiple_search_engines -skip_db_check -out_type mzid -out PSMFeatureExtractor_2_out.tmp.mzid)
-add_test("TOPP_PSMFeatureExtractor_2_out" ${DIFF} -whitelist "InferenceEngineVersion" "creationDate=" "activityDate=" "version=" -in1 PSMFeatureExtractor_2_out.tmp.mzid -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_2_out.mzid)
+add_test("TOPP_PSMFeatureExtractor_2_out" ${DIFF} -whitelist "InferenceEngineVersion" "spectra_data" "creationDate=" "SearchDatabase" "MSGFPlusAdapter:1:" "MS-GF+:" "db=" "activityDate=" "version=" -in1 PSMFeatureExtractor_2_out.tmp.mzid -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_2_out.mzid)
 set_tests_properties("TOPP_PSMFeatureExtractor_2_out" PROPERTIES DEPENDS "TOPP_PSMFeatureExtractor_2")
 
 add_test("TOPP_PSMFeatureExtractor_3" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -out_type idXML -out PSMFeatureExtractor_3_out.tmp.idXML)
-add_test("TOPP_PSMFeatureExtractor_3_out" ${DIFF} -whitelist "InferenceEngineVersion" "date=" -in1 PSMFeatureExtractor_3_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_3_out.idXML)
+add_test("TOPP_PSMFeatureExtractor_3_out" ${DIFF} -whitelist "InferenceEngineVersion" "spectra_data" "MS-GF+:" "db=" "date=" "UserParam type=\"string\" name=\"MSGFPlusAdapter:1" -in1 PSMFeatureExtractor_3_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_3_out.idXML)
 set_tests_properties("TOPP_PSMFeatureExtractor_3_out" PROPERTIES DEPENDS "TOPP_PSMFeatureExtractor_3")
 
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -20,11 +20,11 @@ namespace OpenMS
 
 
   void ConsensusIDAlgorithmSimilarity::apply_(
-    vector<PeptideIdentification>& ids,
+    PeptideIdentificationList& ids,
     const map<String, String>& se_info,
     SequenceGrouping& results)
   {
-    for (vector<PeptideIdentification>::iterator id = ids.begin();
+    for (PeptideIdentificationList::iterator id = ids.begin();
          id != ids.end(); ++id)
     {
       if (id->getScoreType() != "Posterior Error Probability" &&
@@ -37,7 +37,7 @@ namespace OpenMS
       }
     }
 
-    for (vector<PeptideIdentification>::iterator id1 = ids.begin();
+    for (PeptideIdentificationList::iterator id1 = ids.begin();
          id1 != ids.end(); ++id1)
     {
       String score_type = id1->getScoreType();
@@ -68,7 +68,7 @@ namespace OpenMS
         // similarity scores and PEPs of best matches for all ID runs:
         vector<pair<double, double> > best_matches;
         best_matches.reserve(ids.size() - 1);
-        for (vector<PeptideIdentification>::iterator id2 = ids.begin();
+        for (PeptideIdentificationList::iterator id2 = ids.begin();
              id2 != ids.end(); ++id2)
         {
           if (id1 == id2) continue;

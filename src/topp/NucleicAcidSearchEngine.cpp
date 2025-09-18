@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -91,7 +91,7 @@ Given a FASTA file containing RNA sequences (and optionally decoys) and an mzML 
 Output is in the form of an mzTab-like text file containing the search results.
 Optionally, an idXML file suitable for visualizing search results in TOPPView (parameter @p id_out) and a "target coordinates" file for label-free quantification using FeatureFinderMetaboIdent (parameter @p lfq_out) can be generated.
 
-Modified ribonucleotides can either be specified in the FASTA input file (as @e fixed modifications), or set as @e variable modifications in the tool options.
+Modified ribonucleotides can either be specified in the FASTA input file if they are expected at a specific site. As globally replacing the unmodified base (as @e fixed modifications), or set as @e variable modifications in the tool options.
 Information on available modifications is taken from the Modomics database (http://modomics.genesilico.pl/).
 In addition to these "standard" modifications, OpenMS defines "generic" and "ambiguous" ones:
 <br>
@@ -204,7 +204,8 @@ protected:
         all_mods.push_back(code.remove(','));
       }
     }
-
+    registerStringList_("modifications:fixed", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using modomics (https://genesilico.pl/modomics/modifications) terms.", false);
+    setValidStrings_("modifications:fixed", all_mods);
     registerStringList_("modifications:variable", "<mods>", ListUtils::create<String>(""), "Variable modifications", false);
     setValidStrings_("modifications:variable", all_mods);
     registerIntOption_("modifications:variable_max_per_oligo", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate oligonucleotide", false, false);
@@ -929,12 +930,18 @@ protected:
       (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
     search_param.min_length = getIntOption_("oligo:min_size");
     search_param.max_length = getIntOption_("oligo:max_size");
+    StringList fixed_mod_names = getStringList_("modifications:fixed");
+    search_param.fixed_mods.insert(fixed_mod_names.begin(),
+                                   fixed_mod_names.end());
 
     StringList var_mod_names = getStringList_("modifications:variable");
     search_param.variable_mods.insert(var_mod_names.begin(),
                                       var_mod_names.end());
 
     resolve_ambiguous_mods_ = getFlag_("modifications:resolve_ambiguities");
+
+    set<ConstRibonucleotidePtr> fixed_modifications =
+      getModifications_(search_param.fixed_mods);
     set<ConstRibonucleotidePtr> variable_modifications =
       getModifications_(search_param.variable_mods);
 
@@ -1212,9 +1219,12 @@ protected:
       IdentificationData::IdentifiedOligoRef oligo_ref = digest[index];
       vector<NASequence> all_modified_oligos;
       NASequence ns = oligo_ref->sequence;
+      ModifiedNASequenceGenerator::applyFixedModifications(
+        fixed_modifications, ns);
       ModifiedNASequenceGenerator::applyVariableModifications(
         variable_modifications, ns, max_variable_mods_per_oligo,
         all_modified_oligos, true);
+      OPENMS_LOG_DEBUG << "Oligo: " << ns.toString() << endl;
 
       // group modified oligos by precursor mass - oligos with the same
       // combination of mods (just different placements) will have same mass:
@@ -1404,7 +1414,7 @@ protected:
         }
       }
       vector<ProteinIdentification> proteins;
-      vector<PeptideIdentification> peptides;
+      PeptideIdentificationList peptides;
       IdentificationDataConverter::exportIDs(id_data, proteins, peptides);
       FileHandler().storeIdentifications(id_out, proteins, peptides, {FileTypes::IDXML});
     }

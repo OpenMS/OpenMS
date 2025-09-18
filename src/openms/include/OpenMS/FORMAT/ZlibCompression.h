@@ -1,9 +1,9 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
+// $Authors: Hannes Roest, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -14,8 +14,6 @@
 
 #include <string>
 #include <vector>
-
-class QByteArray;
 
 namespace OpenMS
 {
@@ -51,34 +49,26 @@ public:
      */
     static void compressData(const void* raw_data, const size_t in_length, std::string& compressed_data);
 
-
     /**
-      * @brief Compresses data using Qt
-      *
-      * @param raw_data Data to be compressed
-      * @param compressed_data Compressed result data
+      * @brief Uncompresses data using zlib
+        
+        If available, provide the size of the uncompressed data in @p output_size for a small performance gain.
+
+        @note Does not support gzip format decompression (only zlib format).
+       
+        @param[in] compressed_data The zlib compressed data
+        @param[in] nr_bytes Number of bytes in @p compressed data
+        @param[out] out Uncompressed result data
+        @param[in] output_size [optional] If known (!=0), provide the size of the uncompressed data
+        
+        @throws Exception::InvalidValue if output_size was specified (>0) and turns out to be smaller than actual size of uncompressed data.
+        @throws Exception::InternalToolError if zlib cannot decompress the data (e.g. due to data corruption or unsupported gzip format)
       * 
     */
-    static void compressString(const QByteArray& raw_data, QByteArray& compressed_data);
+    static void uncompressData(const void* compressed_data, size_t nr_bytes, std::string& out, size_t output_size = 0);
 
-    /**
-      * @brief Uncompresses data using Qt (wrapper around Qt function)
-      *
-      * @param compressed_data Compressed data
-      * @param nr_bytes Number of bytes in compressed data
-      * @param raw_data Uncompressed result data
-      * 
-    */
-    static void uncompressString(const void * compressed_data, size_t nr_bytes, std::string& raw_data);
-
-    /**
-      * @brief Uncompresses data using Qt
-      *
-      * @param compressed_data Compressed data
-      * @param raw_data Uncompressed result data
-      * 
-    */
-    static void uncompressString(const QByteArray& compressed_data, QByteArray& raw_data);
+    /// Convencience function calling @p uncompressData
+    static void uncompressString(const String& in, std::string& out, size_t output_size = 0);
 
   };
 

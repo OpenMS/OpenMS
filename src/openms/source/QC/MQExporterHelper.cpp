@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -60,7 +60,7 @@ bool MQExporterHelper::hasValidPepID_(
   const std::multimap<OpenMS::String, std::pair<OpenMS::Size, OpenMS::Size>>& UIDs,
   const ProteinIdentification::Mapping& mp_f)
 {
-  const std::vector<PeptideIdentification>& pep_ids_f = f.getPeptideIdentifications();
+  const PeptideIdentificationList& pep_ids_f = f.getPeptideIdentifications();
   if (pep_ids_f.empty())
   {
     return false;
@@ -81,7 +81,7 @@ bool MQExporterHelper::hasValidPepID_(
 
 bool MQExporterHelper::hasPeptideIdentifications_(const ConsensusFeature& cf)
 {
-  const std::vector<PeptideIdentification>& pep_ids_c = cf.getPeptideIdentifications();
+  const PeptideIdentificationList& pep_ids_c = cf.getPeptideIdentifications();
   if (!pep_ids_c.empty())
   {
     return !pep_ids_c[0].getHits().empty(); // checks if PeptideIdentification has at least one hit

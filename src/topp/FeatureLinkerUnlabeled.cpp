@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -148,7 +148,7 @@ protected:
       // Load reference map and input it to the algorithm
       UInt64 ref_id;
       Size ref_size;
-      std::vector<PeptideIdentification> ref_pepids;
+      PeptideIdentificationList ref_pepids;
       std::vector<ProteinIdentification> ref_protids;
       {
         FeatureMap map_ref;

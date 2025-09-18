@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -31,11 +31,11 @@ namespace OpenMS
     }
     
     // ranges of the experiment
-    double mz_min = exp_profile.getMinMZ();
-    double mz_max = exp_profile.getMaxMZ();
-    double rt_min = exp_profile.getMinRT();
-    double rt_max = exp_profile.getMaxRT();
-    
+    double mz_min = exp_profile.spectrumRanges().getMinMZ();
+    double mz_max = exp_profile.spectrumRanges().getMaxMZ();
+    double rt_min = exp_profile.spectrumRanges().getMinRT();
+    double rt_max = exp_profile.spectrumRanges().getMaxRT();
+
     // extend the grid by a small absolute margin
     double mz_margin = 1e-2;
     double rt_margin = 1e-2;
@@ -81,10 +81,16 @@ namespace OpenMS
     rt_typical_(rt_typical)
   {
     // ranges of the experiment
-    double mz_min = exp.getMinMZ();
-    double mz_max = exp.getMaxMZ();
-    double rt_min = exp.getMinRT();
-    double rt_max = exp.getMaxRT();
+    double mz_min = exp.spectrumRanges().byMSLevel(1).getMinMZ();
+    double mz_max = exp.spectrumRanges().byMSLevel(1).getMaxMZ();
+    double rt_min = exp.spectrumRanges().byMSLevel(1).getMinRT();
+    double rt_max = exp.spectrumRanges().byMSLevel(1).getMaxRT();
+
+    if (!RangeMZ(0.0, 1.0e12).containsMZ({mz_min, mz_max}) ||
+        !RangeRT(-1.0e12, 1.0e12).containsRT({rt_min, rt_max}) ) 
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MinMZ,MaxMZ,MinRT,MaxRT values outside of sensible value ranges. Are they uninitialized? (" + String(mz_min) + "/" + String(mz_max) + "/" + String(rt_min) + "/" + String(rt_max));
+    }
     
     // extend the grid by a small absolute margin
     double mz_margin = 1e-2;

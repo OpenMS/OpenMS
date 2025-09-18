@@ -9,13 +9,14 @@ OpenMS
 [![Install with conda](https://img.shields.io/conda/v/openms/pyopenms?color=44A833&label=Install%20with%20conda%3A%3Aopenms&logo=Anaconda&style=flat-square)](https://anaconda.org/openms)
 [![Documentation](https://img.shields.io/static/v1?style=flat-square&message=ReadTheDocs&color=2C4AA8&logo=ReadTheDocs&logoColor=FFFFFF&label=Documentation)](https://openms.readthedocs.io)
 [![API docs](https://img.shields.io/static/v1?style=flat-square&message=Doxygen&color=2C4AA8&logo=ReadTheDocs&logoColor=FFFFFF&label=API%20docs)](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html)
-[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?style=flat-square&logo=gitpod)](https://gitpod.io/#https://github.com/OpenMS/OpenMS) 
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?style=flat-square&logo=gitpod)](https://gitpod.io/#https://github.com/OpenMS/OpenMS)
+[![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=data:image/svg%2bxml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48bWFzayBpZD0iYSIgbWFzay10eXBlPSJhbHBoYSIgbWFza1VuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeD0iMCIgeT0iMCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiPjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNNzEgOTloNWwyMC0xMGMzLTEgNC0zIDQtNVYxNmMwLTItMS00LTQtNUw3NiAxYTYgNiAwIDAgMC03IDFMMjkgMzggMTIgMjVIN2wtNiA1djZsMTUgMTRMMSA2NHY2bDYgNWg1bDE3LTEzIDQwIDM2IDIgMVptNC03Mkw0NSA1MGwzMCAyM1YyN1oiIGZpbGw9IiNmZmYiLz48L21hc2s+PGcgbWFzaz0idXJsKCNhKSI+PHBhdGggZD0iTTk2IDExIDc2IDFjLTMtMS01LTEtNyAxTDEgNjRjLTIgMS0yIDQgMCA2bDYgNWg1bDgxLTYyYzMtMiA3IDAgNyA0di0xYzAtMi0xLTQtNC01WiIgZmlsbD0iIzAwNjVBOSIvPjxnIGZpbHRlcj0idXJsKCNiKSI+PHBhdGggZD0iTTk2IDg5IDc2IDk5Yy0zIDEtNSAxLTctMUwxIDM2Yy0yLTEtMi00IDAtNmw2LTVoNWw4MSA2MmMzIDIgNyAwIDctNHYxYzAgMi0xIDQtNCA1WiIgZmlsbD0iIzAwN0FDQyIvPjwvZz48ZyBmaWx0ZXI9InVybCgjYykiPjxwYXRoIGQ9Ik03NiA5OWMtMyAxLTUgMS03LTEgMiAyIDYgMSA2LTNWNWMwLTQtNC01LTYtMyAyLTIgNC0yIDctMWwyMCAxMGMzIDEgNCAzIDQgNXY2OGMwIDItMSA0LTQgNUw3NiA5OVoiIGZpbGw9IiMxRjlDRjAiLz48L2c+PHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik03MSA5OWg1bDIwLTEwYzMtMSA0LTMgNC01VjE2YzAtMi0xLTQtNC01TDc2IDFhNiA2IDAgMCAwLTcgMUwyOSAzOCAxMiAyNUg3bC02IDVjLTIgMi0yIDUgMCA2bDE1IDE0TDEgNjRjLTIgMS0yIDQgMCA2bDYgNWg1bDE3LTEzIDQwIDM2IDIgMVptNC03Mkw0NSA1MGwzMCAyM1YyN1oiIGZpbGw9InVybCgjZCkiIHN0eWxlPSJtaXgtYmxlbmQtbW9kZTpvdmVybGF5IiBvcGFjaXR5PSIuMyIvPjwvZz48ZGVmcz48ZmlsdGVyIGlkPSJiIiB4PSItOCIgeT0iMTYiIHdpZHRoPSIxMTYuNyIgaGVpZ2h0PSI5Mi4yIiBmaWx0ZXJVbml0cz0idXNlclNwYWNlT25Vc2UiIGNvbG9yLWludGVycG9sYXRpb24tZmlsdGVycz0ic1JHQiI+PGZlRmxvb2QgZmxvb2Qtb3BhY2l0eT0iMCIgcmVzdWx0PSJCYWNrZ3JvdW5kSW1hZ2VGaXgiLz48ZmVDb2xvck1hdHJpeCBpbj0iU291cmNlQWxwaGEiIHZhbHVlcz0iMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMTI3IDAiLz48ZmVPZmZzZXQvPjxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249IjQuMiIvPjxmZUNvbG9yTWF0cml4IHZhbHVlcz0iMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMC4yNSAwIi8+PGZlQmxlbmQgbW9kZT0ib3ZlcmxheSIgaW4yPSJCYWNrZ3JvdW5kSW1hZ2VGaXgiIHJlc3VsdD0iZWZmZWN0MV9kcm9wU2hhZG93Ii8+PGZlQmxlbmQgaW49IlNvdXJjZUdyYXBoaWMiIGluMj0iZWZmZWN0MV9kcm9wU2hhZG93IiByZXN1bHQ9InNoYXBlIi8+PC9maWx0ZXI+PGZpbHRlciBpZD0iYyIgeD0iNjAiIHk9Ii04IiB3aWR0aD0iNDcuOSIgaGVpZ2h0PSIxMTYuMiIgZmlsdGVyVW5pdHM9InVzZXJTcGFjZU9uVXNlIiBjb2xvci1pbnRlcnBvbGF0aW9uLWZpbHRlcnM9InNSR0IiPjxmZUZsb29kIGZsb29kLW9wYWNpdHk9IjAiIHJlc3VsdD0iQmFja2dyb3VuZEltYWdlRml4Ii8+PGZlQ29sb3JNYXRyaXggaW49IlNvdXJjZUFscGhhIiB2YWx1ZXM9IjAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDEyNyAwIi8+PGZlT2Zmc2V0Lz48ZmVHYXVzc2lhbkJsdXIgc3RkRGV2aWF0aW9uPSI0LjIiLz48ZmVDb2xvck1hdHJpeCB2YWx1ZXM9IjAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAuMjUgMCIvPjxmZUJsZW5kIG1vZGU9Im92ZXJsYXkiIGluMj0iQmFja2dyb3VuZEltYWdlRml4IiByZXN1bHQ9ImVmZmVjdDFfZHJvcFNoYWRvdyIvPjxmZUJsZW5kIGluPSJTb3VyY2VHcmFwaGljIiBpbjI9ImVmZmVjdDFfZHJvcFNoYWRvdyIgcmVzdWx0PSJzaGFwZSIvPjwvZmlsdGVyPjxsaW5lYXJHcmFkaWVudCBpZD0iZCIgeDE9IjQ5LjkiIHkxPSIuMyIgeDI9IjQ5LjkiIHkyPSI5OS43IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agc3RvcC1jb2xvcj0iI2ZmZiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZmZiIgc3RvcC1vcGFjaXR5PSIwIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PC9zdmc+)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/microsoft/vscode-remote-try-java)
 
 [OpenMS](http://www.openms.org/)
 is an open-source software C++ library for LC-MS data management and
 analyses. It offers an infrastructure for rapid development of mass
-spectrometry related software. OpenMS is free software available under the
-three clause BSD license and runs under Windows, macOS, and Linux.
+spectrometry-related software. OpenMS is free software available under the
+three-clause BSD license and runs under Windows, macOS, and Linux.
 
 It comes with a vast variety of pre-built and ready-to-use tools for proteomics
 and metabolomics data analysis (TOPPTools) as well as powerful 1D, 2D and 3D
@@ -24,10 +25,10 @@ visualization (TOPPView).
 OpenMS offers analyses for various quantitation protocols, including label-free
 quantitation, SILAC, iTRAQ, TMT, SRM, SWATH, etc.
 
-It provides built-in algorithms for de-novo identification and database search,
-as well as adapters to other state-of-the art tools like X!Tandem, Mascot,
-Comet, etc. It supports easy integration of OpenMS built tools into workflow
-engines like KNIME, Galaxy, WS-Pgrade, and TOPPAS via the TOPPtools concept and
+It provides built-in algorithms for de novo identification and database search,
+as well as adapters to other state-of-the-art tools like Comet, etc.
+It supports easy integration of OpenMS built tools into workflow
+engines like nextflow, KNIME, Galaxy, and TOPPAS via the TOPPTools concept and
 a unified parameter handling via a 'common tool description' (CTD) scheme.
 
 With pyOpenMS, OpenMS offers Python bindings to a large part of the OpenMS API
@@ -36,23 +37,32 @@ Initiative (PSI) formats for MS data. The main contributors of OpenMS are
 currently the Eberhard-Karls-Universität in Tübingen, the Freie Universität
 Berlin, and the ETH Zürich.
 
+![Alt](https://repobeats.axiom.co/api/embed/f6f2225d0071dd56f77a66c997ea89c1396a035d.svg "Repobeats analytics image")
+
+Table of Contents
+--------
+- [Features](#features)
+- [Documentation](#documentation)
+- [Building OpenMS](#building-openms)
+- [Citation](#citation)
+
 Features
 --------
-- Core C++ library under three-clause BSD licence using modern C++17
+- Core C++ library under three-clause BSD licence using modern C++20
 - Python bindings to the C++ API through pyOpenMS
 - Major community file formats supported (mzML, mzXML, mzIdentXML, pepXML, mzTab, etc.)
 - Over 150+ individual analysis tools (TOPP Tools), covering most MS and LC-MS data processing and mining tasks
 - Powerful 1D, 2D and 3D visualization tools (TOPPView)
-- Support for most MS identification and quantification workflows (targeted, DIA, label-free, isobaric and stable isotope)
-- Support for all major platforms (Windows [XP, 7, 8, 10], macOS and Linux)
+- Support for most MS identification and quantification workflows (targeted, DIA, label-free, isobaric and stable isotope labelled)
+- Support for all major platforms (Windows [10, 11], macOS and Linux)
 
 Documentation
 -------------
 
-Users and developers should start by reading the [OpenMS documentation](https://openms.readthedocs.io/en/latest). OpenMS
-API reference documentation and advanced developer doxygen documentation can be browsed [here](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html).
+Users and developers should start by reading the [OpenMS documentation](https://openms.readthedocs.io/en/latest) on ReadTheDocs (RTD).
+The OpenMS API reference and advanced developer doxygen documentation can be browsed [here](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html).
 
-openms.readthedocs.io documentation aims at being an entry point for users and developers alike. It is trying to be mostly version-independent and therefore
+The OpenMS RTD documentation aims at being an entry point for users and developers alike. It is trying to be mostly version-independent and therefore
 only consists of one main branch. We may introduce tags for older releases in the future.
 
 The OpenMS API reference has several endpoints:
@@ -63,6 +73,17 @@ The OpenMS API reference has several endpoints:
 
 Documentation for the Python bindings pyOpenMS can be found on the [pyOpenMS online documentation](https://pyopenms.readthedocs.io).
 
+Building OpenMS
+--------
+
+For developers who want to build OpenMS from source:
+
+- [Build on Linux](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_linux.html) - Build instructions for Linux.
+- [Build on Windows](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_win.html) - Build instructions for Windows.
+- [Build on macOS](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_mac.html) - Build instructions for macOS.
+
+For more detailed instructions, see the [Developer Tutorial](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/developer_tutorial.html).
+
 Citation
 --------
 Please cite:
@@ -70,7 +91,3 @@ Please cite:
 Pfeuffer, J., Bielow, C., Wein, S. et al. OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data, Nat Methods 21, 365–367 (2024). https://doi.org/10.1038/s41592-024-02197-7
 
 The file [AUTHORS](AUTHORS) contains a list of all authors who worked on OpenMS.
-
-Licence
--------
-OpenMS is released under the [three clause BSD licence](LICENSE).

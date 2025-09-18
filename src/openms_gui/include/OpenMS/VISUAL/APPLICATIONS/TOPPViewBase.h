@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -31,7 +31,7 @@
 //QT
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QActionGroup>
+#include <QActionGroup>
 #include <QtCore/QStringList>
 #include <QtCore/QProcess>
 #include <QElapsedTimer>
@@ -195,7 +195,7 @@ public:
     */
     void addData(const FeatureMapSharedPtrType& feature_map,
                  const ConsensusMapSharedPtrType& consensus_map,
-                 std::vector<PeptideIdentification>& peptides,
+                 PeptideIdentificationList& peptides,
                  const ExperimentSharedPtrType& peak_map,
                  const ODExperimentSharedPtrType& on_disc_peak_map,
                  LayerDataBase::DataType data_type,

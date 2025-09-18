@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -916,7 +916,8 @@ namespace OpenMS
       throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS1 spectra in input file.");
     }
 
-    //TODO allow skipping?
+    // clear chromatograms (otherwise they are used to calculate optimal RT and m/z ranges)
+    exp.getChromatograms().clear();
 
     // update m/z and RT ranges
     exp.updateRanges();

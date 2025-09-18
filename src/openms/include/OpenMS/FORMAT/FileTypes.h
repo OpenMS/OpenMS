@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -89,6 +89,7 @@ namespace OpenMS
       XML,                ///< any XML format
       BZ2,                ///< any BZ2 compressed file
       GZ,                 ///< any Gzipped file
+      PARQUET,            ///< Apache Parquet file format (.parquet, .pqt)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 

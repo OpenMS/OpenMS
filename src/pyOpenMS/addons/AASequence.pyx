@@ -8,8 +8,8 @@ from libcpp.map cimport map as libcpp_map
             v = c_mmap[ _String(<char *>k) ]
 
     def __iter__(self):
-        cdef unsigned long n = self.inst.get().size()
-        cdef unsigned long i = 0
+        cdef unsigned int n = self.inst.get().size()
+        cdef unsigned int i = 0
 
         cdef Residue py_result 
         while i < n:
@@ -20,4 +20,8 @@ from libcpp.map cimport map as libcpp_map
             yield py_result
 
             i += 1
+
+    def __len__(self):
+        """Return the length of the amino acid sequence."""
+        return self.inst.get().size()
 

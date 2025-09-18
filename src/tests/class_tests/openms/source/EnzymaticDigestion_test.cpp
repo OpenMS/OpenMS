@@ -1,9 +1,9 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Marc Sturm, Chris Bielow $
+// $Authors: Marc Sturm, Chris Bielow, Jeremi Maciejewski $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -279,6 +279,38 @@ START_SECTION((Size digestUnmodified(const StringView sequence, std::vector<Stri
     s = "ABC";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 4 * 3 / 2);
+}
+END_SECTION
+
+START_SECTION((Size semiSpecificDigestion_(const std::vector<int>& cleavage_positions, std::vector<std::pair<Size, Size>>& output, Size min_length, Size max_length) const))
+{
+    class TempChild : public EnzymaticDigestion
+    {
+        public:
+            Size tmpSemiSpecificDigestion_(const std::vector<int>& cleavage_positions, std::vector<std::pair<Size, Size>>& output, Size min_length = 1, Size max_length = 100) const
+            {
+                return this->semiSpecificDigestion_(cleavage_positions, output, min_length, max_length);
+            }
+    };
+    TempChild tmp;
+    tmp.setEnzyme(ProteaseDB::getInstance()->getEnzyme("Trypsin"));
+
+    std::vector<std::pair<size_t,size_t>> output = {};
+
+    // Test normal behaviour
+    std::vector<int> cleavage_positions = {0, 3, 5};
+    tmp.tmpSemiSpecificDigestion_(cleavage_positions, output);
+    TEST_EQUAL(output.size(), 6) // {1,3},{3,4},{2,3},{0,2},{4,5},{0,1}
+
+    // Test too few cleavage sites exception
+    cleavage_positions = {};
+    TEST_EXCEPTION(Exception::InvalidValue,
+        tmp.tmpSemiSpecificDigestion_(cleavage_positions, output));
+
+    // Test cleavage positions vector not sorted exception
+    cleavage_positions = {0, 12, 7};
+    TEST_EXCEPTION(Exception::Precondition,
+        tmp.tmpSemiSpecificDigestion_(cleavage_positions, output));
 }
 END_SECTION
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -16,6 +16,7 @@
 #include <OpenMS/MATH/STATISTICS/GumbelMaxLikelihoodFitter.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 
@@ -937,7 +938,7 @@ namespace OpenMS::Math
       }
       else if (engine == "SAGE")
       {
-        return getScore_({"hyperscore"}, hit, current_score_type);
+        return getScore_({"hyperscore", "ln(hyperscore)"}, hit, current_score_type); // support hyperscore for backwards compatibility (same as ln(hyperscore))
       }
       else if (engine == "MSFRAGGER")
       {
@@ -949,7 +950,7 @@ namespace OpenMS::Math
 
     map<String, vector<vector<double>>> PosteriorErrorProbabilityModel::extractAndTransformScores(
       const vector<ProteinIdentification> & protein_ids,
-      const vector<PeptideIdentification> & peptide_ids,
+      const PeptideIdentificationList & peptide_ids,
       const bool split_charge,
       const bool top_hits_only,
       const bool target_decoy_available,
@@ -1086,7 +1087,7 @@ namespace OpenMS::Math
       const bool prob_correct,
       const bool split_charge,
       vector<ProteinIdentification> & protein_ids,
-      vector<PeptideIdentification> & peptide_ids,
+      PeptideIdentificationList & peptide_ids,
       bool & unable_to_fit_data,
       bool & data_might_not_be_well_fit)
     {

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,6 +10,8 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/MATH/MathFunctions.h>
+
+#include <unordered_map>
 
 namespace OpenMS
 {
@@ -46,7 +48,11 @@ namespace OpenMS
       /* 
           @brief shuffle the protein's peptide sequences between enzymatic cutting positions.
           each peptide is shuffled @param max_attempts times to minimize sequence identity.
-          note: modifications are discarded 
+
+          Note: 
+            - Generated decoys are retrieved from a cache to prevent that same peptide (in different proteins) 
+              leads to different decoys.
+            - modifications are discarded 
       */
       AASequence shufflePeptides(
             const AASequence& aas,
@@ -60,6 +66,9 @@ namespace OpenMS
 
       // portable shuffle
       Math::RandomShuffler shuffler_;
+
+      // ensures that shuffling same peptide (in different proteins) leads to same decoy
+      std::unordered_map<std::string, std::string> td_cache_;
   };
 }
 
