@@ -159,7 +159,7 @@ namespace OpenMS
      * Starts at min_precursor_charge and iteratively goes to max_precursor_charge. We query all peaks multiple times with all the
      * different precursor charges and corresponding precursor masses
      * @param spectrum experimental spectrum
-     * @param sms[out] The n best Spectrum matches
+     * @param[out] sms The n best Spectrum matches
      */
     void querySpectrum(const MSSpectrum& spectrum,
                        SpectrumMatchesTopN& sms);
@@ -206,12 +206,12 @@ private:
 
 
     /**
-     * @brief queries exactly one peak, with a set range of potential peptides, isotope error and precursor charge Hits are transfered into the a PSM
+     * @brief queries peaks for a given experimental spectrum with a set range of potential peptides, isotope error and precursor charge. Hits are transferred into a PSM list.
      * Technically an adapter between query(...) and openSearch(...)/searchDifferentPrecursorRanges(...)
      * @param[out] candidates The n best Spectrum matches
-     * @param peak The queried peak
-     * @param candidates_range The range of precursors/peptides the peptide could potentially belongs to
-     * @param isotope_error The applied isotope_error
+     * @param spectrum The queried experimental spectrum
+     * @param candidates_range The range of precursors/peptides the peptide could potentially belong to
+     * @param isotope_error The applied isotope error
      * @param precursor_charge The applied precursor charge
      */
     void queryPeaks(SpectrumMatchesTopN& candidates,
