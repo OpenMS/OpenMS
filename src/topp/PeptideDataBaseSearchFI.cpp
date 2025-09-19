@@ -44,7 +44,7 @@ using namespace std;
     It lacks behind in speed and/or quality of results when compared to state-of-the-art search engines.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
-    @note Open-search mode is automatically enabled when the precursor mass tolerance exceeds 1 Da or 1000 ppm (even if 'precursor:open_search' is false). This is logged at runtime and recorded in the output search parameters as UserParam 'open_search'.
+    @note Open-search mode is automatically determined by the precursor mass tolerance: enabled when tolerance exceeds 1 Da or 1000 ppm. No explicit open-search parameter is needed. This is logged at runtime and recorded in the output search parameters as UserParam 'open_search'.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_PeptideDataBaseSearchFI.cli

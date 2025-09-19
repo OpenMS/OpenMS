@@ -324,8 +324,8 @@ FragmentIndex_test isoTest;
 
 // Configure parameters before building the index (isotope error and fragment m/z bounds)
 auto params = isoTest.getParameters();
-params.setValue("min_isotope_error", -3);
-params.setValue("max_isotope_error", 3);
+params.setValue("precursor:isotope_error_min", -3);
+params.setValue("precursor:isotope_error_max", 3);
 params.setValue("fragment:min_mz", 0);
 params.setValue("fragment:max_mz", 90000);
 params.setValue("modifications:variable", std::vector<std::string>{});

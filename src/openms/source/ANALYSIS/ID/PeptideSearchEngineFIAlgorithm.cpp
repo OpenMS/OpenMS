@@ -142,12 +142,7 @@ namespace OpenMS
     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
     defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
 
-    // valid values for open_search option
-    std::vector<std::string> open_search_option;
-    open_search_option.emplace_back("true");
-    open_search_option.emplace_back("false");
-    defaults_.setValue("precursor:open_search", "false", "Open or standard search (auto-enabled when precursor tolerance > 1 Da or > 1000 ppm)");
-    defaults_.setValidStrings("precursor:open_search", open_search_option);
+    // Open search window bounds (used when tolerance > 1 Da or > 1000 ppm)
     defaults_.setValue("precursor:open_window_lower", -100.0, "lower bound of the open precursor window");
     defaults_.setValue("precursor:open_window_upper", 200.0, "upper bound of the open precursor window");
 
@@ -213,7 +208,7 @@ namespace OpenMS
     decoys_ = param_.getValue("decoys") == "true";
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
 
-    open_search_ = param_.getValue("precursor:open_search") == "true";
+    // Open search mode is automatically determined based on precursor tolerance in isOpenSearchMode_()
 
   }
 
@@ -379,9 +374,9 @@ namespace OpenMS
           ph.setMetaValue("isotope_error", ah.isotope_error);
 
           // Add delta mass metavalue for open search
-          if (open_search_)
+          if (isOpenSearchMode_())
           {
-            ph.setMetaValue("delta_mass", ah.delta_mass);
+            ph.setMetaValue("DeltaMass", ah.delta_mass);
           }
 
           // store PSM
@@ -460,8 +455,8 @@ if (!pi.getHits().empty())
     if (annotation_suffix_fraction) feature_set.push_back(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION);
     // note: precursor error is calculated by percolator itself
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
-    // record whether open-search mode was used (explicitly or implicitly)
-    search_parameters.setMetaValue("open_search", open_search_ ? "true" : "false");
+    // record whether open-search mode was used
+    search_parameters.setMetaValue("open_search", isOpenSearchMode_() ? "true" : "false");
 
     search_parameters.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
@@ -481,16 +476,9 @@ if (!pi.getHits().empty())
                       << (precursor_mass_tolerance_unit_ppm ? "ppm" : "Da")
                       << std::endl;
 
-    // Auto-enable open search if precursor tolerance window is large (>1 Da or >1000 ppm)
-    bool implicit_open_search = precursor_mass_tolerance_unit_ppm
-                                  ? (precursor_mass_tolerance_ > 1000.0)
-                                  : (precursor_mass_tolerance_ > 1.0);
-    if (!open_search_ && implicit_open_search)
-    {
-      OPENMS_LOG_INFO << "[PDBS-FI] Enabling open-search mode (implicit) due to large precursor tolerance." << std::endl;
-    }
-    open_search_ = open_search_ || implicit_open_search;
-    OPENMS_LOG_INFO << "[PDBS-FI] open_search=" << (open_search_ ? "true" : "false") << std::endl;
+    bool open_search = isOpenSearchMode_();
+    OPENMS_LOG_INFO << "[PDBS-FI] open_search=" << (open_search ? "true" : "false")
+                    << " (auto-determined from precursor tolerance)" << std::endl;
     // load MS2 map
     PeakMap spectra;
     FileHandler f;
@@ -555,8 +543,11 @@ if (!pi.getHits().empty())
 
     startProgress(0, spectra.size(), "Scoring peptide models against spectra...");
     size_t count_spectra{};
+    
+    // Compute open search mode once before parallel region
+    bool open_search_mode = open_search;
 
-#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fragment_index_, spectrum_generator, fasta_db, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, spectra)
+#pragma omp parallel for schedule(static) default(none) shared(annotated_hits, count_spectra, fragment_index_, spectrum_generator, fasta_db, precursor_mass_tolerance_unit_ppm, fragment_mass_tolerance_unit_ppm, spectra, open_search_mode)
     for (SignedSize scan_index = 0; scan_index < (SignedSize)spectra.size(); ++scan_index)
     {
 
@@ -626,16 +617,13 @@ if (!pi.getHits().empty())
         ah.applied_charge = sms.precursor_charge_;
 
         // Calculate delta_mass for open search
-        if (open_search_)
+        ah.delta_mass = 0.0; // Initialize
+        if (open_search_mode)
         {
           double theo_mh_plus = ah.sequence.getMZ(1);
           double exp_mz = exp_spectrum.getPrecursors()[0].getMZ();
           double exp_mh_plus = exp_mz * sms.precursor_charge_ - ((sms.precursor_charge_ - 1) * Constants::PROTON_MASS_U);
           ah.delta_mass = exp_mh_plus - theo_mh_plus;
-        }
-        else
-        {
-          ah.delta_mass = 0.0;
         }
 
         annotated_hits[scan_index].push_back(std::move(ah));
@@ -671,7 +659,7 @@ if (!pi.getHits().empty())
     endProgress();
 
     // Perform modification analysis for open search results
-    if (open_search_)
+    if (open_search)
     {
       OPENMS_LOG_INFO << "[PDBS-FI] Performing open search modification analysis..." << std::endl;
       startProgress(0, 1, "Analyzing modification patterns...");
@@ -682,7 +670,15 @@ if (!pi.getHits().empty())
       String mod_output_file = "";
       if (!in_db.empty())
       {
-        mod_output_file = in_db.prefix(".") + "_ModificationAnalysis.idXML";
+        size_t dot_pos = in_db.rfind('.');
+        if (dot_pos != String::npos)
+        {
+          mod_output_file = in_db.substr(0, dot_pos) + "_ModificationAnalysis.idXML";
+        }
+        else
+        {
+          mod_output_file = in_db + "_ModificationAnalysis.idXML";
+        }
       }
       
       auto modification_summaries = mod_analyzer.analyzeModifications(

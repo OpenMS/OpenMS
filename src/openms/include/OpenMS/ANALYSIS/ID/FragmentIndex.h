@@ -318,7 +318,15 @@ private:
     uint16_t max_precursor_charge_; ///< maximal possible precursor charge
     uint16_t max_fragment_charge_;  ///< The maximal possible charge of the fragments
     uint32_t max_processed_hits_;   ///< The amount of PSM that will be used. the rest is filtered out
-    bool open_search_;               ///< true if a unrestrictive open search for potential PTM is performed
+    
+    /// Helper function to determine if open search should be used based on tolerance
+    bool isOpenSearchMode_() const
+    {
+      return precursor_mz_tolerance_unit_ppm_
+               ? (precursor_mz_tolerance_ > 1000.0)
+               : (precursor_mz_tolerance_ > 1.0);
+    }
+    
     float open_precursor_window_lower_; ///< Defines the lower bound of the precursor-mass range
     float open_precursor_window_upper_; ///< Defines the upper bound of the precursor-mass range
 

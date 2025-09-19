@@ -194,7 +194,13 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
 
     Size report_top_hits_;
 
-    bool open_search_;
+    /// Helper function to determine if open search should be used based on tolerance
+    bool isOpenSearchMode_() const
+    {
+      return precursor_mass_tolerance_unit_ == "ppm"
+               ? (precursor_mass_tolerance_ > 1000.0)
+               : (precursor_mass_tolerance_ > 1.0);
+    }
 };
 
 } // namespace

@@ -422,7 +422,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
       int16_t  max_isotope_error_applied;
       float precursor_window_upper_applied;
       float precursor_window_lower_applied;
-      if (open_search_)
+      if (isOpenSearchMode_())
       {
         min_isotope_error_applied = 0;
         max_isotope_error_applied = 0;
@@ -584,7 +584,7 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
     defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
     defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
-    defaults_.setValue("precursor:open_search", "false", "Open or standard search (auto-enabled when precursor tolerance > 1 Da or > 1000 ppm)");
+    // Open search window bounds (used when tolerance > 1 Da or > 1000 ppm)
     defaults_.setValue("precursor:open_window_lower", -100.0, "lower bound of the open precursor window");
     defaults_.setValue("precursor:open_window_upper", 200.0, "upper bound of the open precursor window");
 
@@ -644,20 +644,14 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     max_precursor_charge_ = param_.getValue("precursor:max_charge");
     max_fragment_charge_ = param_.getValue("fragment:max_charge");
     max_processed_hits_ = param_.getValue("scoring:max_candidates_per_spectrum");
-    open_search_ = param_.getValue("precursor:open_search").toBool();
-    // Auto-enable open search if precursor tolerance window is large
-    // Thresholds: > 1.0 Da or > 1000 ppm
-    bool implicit_open_search = precursor_mz_tolerance_unit_ppm_
-                                  ? (precursor_mz_tolerance_ > 1000.0)
-                                  : (precursor_mz_tolerance_ > 1.0);
-    if (!open_search_ && implicit_open_search)
+    // Open search mode is automatically determined in isOpenSearchMode_()
+    if (isOpenSearchMode_())
     {
-      OPENMS_LOG_INFO << "[FragmentIndex] Enabling open-search mode because precursor mass tolerance ("
+      OPENMS_LOG_INFO << "[FragmentIndex] Open-search mode enabled because precursor mass tolerance ("
                       << precursor_mz_tolerance_ << " "
                       << (precursor_mz_tolerance_unit_ppm_ ? "ppm" : "Da")
                       << ") exceeds threshold (1000 ppm or 1 Da)." << std::endl;
     }
-    open_search_ = open_search_ || implicit_open_search;
     open_precursor_window_lower_ = param_.getValue("precursor:open_window_lower");
     open_precursor_window_upper_ = param_.getValue("precursor:open_window_upper");
   }
