@@ -421,7 +421,7 @@ namespace OpenMS
 
     // Estimate MS2 ion mobility window
     // Use the 0.99 quantile so the window covers ~99% of residuals, ignoring rare extremes (those that are potential outliers).
-    double fragment_im_window = im_trafo.estimateWindow(0.99, true, true, ion_mobility_estimation_padding_factor);
+    double fragment_im_window = im_trafo.estimateWindow(0.99, false, true, ion_mobility_estimation_padding_factor);
     setFragmentImWindow(fragment_im_window);
 
     if (!exp_im_ms1_all.empty())
@@ -438,7 +438,7 @@ namespace OpenMS
       TransformationDescription im_trafo_inv = im_trafo;
       im_trafo_inv.setDataPoints(ms1_points);
       // Use the 0.99 quantile so the window covers ~99% of residuals, ignoring rare extremes (those that are potential outliers).
-      const double precursor_im_window = im_trafo_inv.estimateWindow(0.99, /*invert=*/true, /*full_window=*/true, ion_mobility_estimation_padding_factor);
+      const double precursor_im_window = im_trafo_inv.estimateWindow(0.99, /*invert=*/false, /*full_window=*/true, ion_mobility_estimation_padding_factor);
       setPrecursorImWindow(precursor_im_window);
     }
 
