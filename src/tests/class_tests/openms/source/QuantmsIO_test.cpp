@@ -162,6 +162,179 @@ START_SECTION((void store(const String& filename, const std::vector<ProteinIdent
 }
 END_SECTION
 
+START_SECTION((void store(const String& filename, const std::vector<ProteinIdentification>& protein_identifications, const PeptideIdentificationList& peptide_identifications, bool export_all_psms)))
+{
+  QuantmsIO file;
+  
+  // Create test data with multiple hits per peptide identification
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  
+  ProteinIdentification protein_id;
+  protein_id.setIdentifier("test_search");
+  protein_id.setSearchEngine("TestEngine");
+  protein_id.setScoreType("TestScore");
+  protein_id.setHigherScoreBetter(true);
+  protein_ids.push_back(protein_id);
+
+  // Create one peptide identification with multiple hits
+  PeptideIdentification peptide_id;
+  peptide_id.setIdentifier("test_search");
+  peptide_id.setRT(1234.5);
+  peptide_id.setMZ(500.25);
+  peptide_id.setScoreType("TestScore");
+  
+  vector<PeptideHit> hits;
+  vector<String> pep_strs = {"PEPTIDER", "ALTERNATIVE", "THIRDPSM"};
+  for (int i = 0; i < 3; ++i)
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(pep_strs[i]));
+    hit.setScore(0.95 - i * 0.1);
+    hit.setCharge(2 + i);
+    hit.setRank(i + 1); // Set rank explicitly
+    hit.setMetaValue("target_decoy", "target");
+    
+    PeptideEvidence evidence;
+    evidence.setProteinAccession("TEST_PROTEIN_" + String(i));
+    hit.setPeptideEvidences(vector<PeptideEvidence>{evidence});
+    
+    hits.push_back(hit);
+  }
+  
+  peptide_id.setHits(hits);
+  peptide_ids.push_back(peptide_id);
+  
+  String output_file;
+  NEW_TMP_FILE(output_file)
+  
+  // Store the data with export_all_psms = true
+  file.store(output_file, protein_ids, peptide_ids, true);
+  
+  // Read back the parquet file and verify rows and columns
+  arrow::MemoryPool* pool = arrow::default_memory_pool();
+  std::shared_ptr<arrow::io::ReadableFile> infile;
+  auto result = arrow::io::ReadableFile::Open(output_file.c_str());
+  TEST_EQUAL(result.ok(), true)
+  infile = result.ValueOrDie();
+
+  std::unique_ptr<parquet::arrow::FileReader> reader;
+  PARQUET_ASSIGN_OR_THROW(reader, parquet::arrow::OpenFile(infile, pool));
+
+  std::shared_ptr<arrow::Table> table;
+  auto read_status = reader->ReadTable(&table);
+  TEST_EQUAL(read_status.ok(), true)
+  
+  // Verify number of rows (should equal number of peptide hits, not peptide identifications)
+  TEST_EQUAL(table->num_rows(), 3)
+  
+  // Verify number of columns (should include rank column)
+  TEST_EQUAL(table->num_columns(), 20) // 19 + 1 rank column
+  
+  // Verify rank column exists and is in the correct position (after precursor_charge)
+  auto schema = table->schema();
+  TEST_EQUAL(schema->field(4)->name(), "rank")
+  
+  // Verify rank values
+  auto rank_column = table->GetColumnByName("rank");
+  TEST_NOT_EQUAL(rank_column, nullptr)
+  auto rank_array = std::static_pointer_cast<arrow::Int32Array>(rank_column->chunk(0));
+  TEST_EQUAL(rank_array->Value(0), 1) // First hit should have rank 1
+  TEST_EQUAL(rank_array->Value(1), 2) // Second hit should have rank 2
+  TEST_EQUAL(rank_array->Value(2), 3) // Third hit should have rank 3
+}
+END_SECTION
+
+START_SECTION((void store(const String& filename, const std::vector<ProteinIdentification>& protein_identifications, const PeptideIdentificationList& peptide_identifications, bool export_all_psms, const std::set<String>& meta_value_keys)))
+{
+  QuantmsIO file;
+  
+  // Create test data 
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  
+  ProteinIdentification protein_id;
+  protein_id.setIdentifier("test_search");
+  protein_id.setSearchEngine("TestEngine");
+  protein_id.setScoreType("TestScore");
+  protein_id.setHigherScoreBetter(true);
+  protein_ids.push_back(protein_id);
+
+  // Create peptide identification with meta values
+  PeptideIdentification peptide_id;
+  peptide_id.setIdentifier("test_search");
+  peptide_id.setRT(1234.5);
+  peptide_id.setMZ(500.25);
+  peptide_id.setScoreType("TestScore");
+  
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDER"));
+  hit.setScore(0.95);
+  hit.setCharge(2);
+  hit.setMetaValue("target_decoy", "target");
+  
+  // Add meta values for testing
+  hit.setMetaValue("confidence", 0.85);
+  hit.setMetaValue("mass_error", 2.5);
+  hit.setMetaValue("score_type", String("E-value"));
+  
+  PeptideEvidence evidence;
+  evidence.setProteinAccession("TEST_PROTEIN");
+  hit.setPeptideEvidences(vector<PeptideEvidence>{evidence});
+  
+  peptide_id.setHits(vector<PeptideHit>{hit});
+  peptide_ids.push_back(peptide_id);
+  
+  // Define meta value keys to export
+  std::set<String> meta_keys = {"confidence", "mass_error", "nonexistent_key"};
+  
+  String output_file;
+  NEW_TMP_FILE(output_file)
+  
+  // Store the data with meta values
+  file.store(output_file, protein_ids, peptide_ids, false, meta_keys);
+  
+  // Read back the parquet file
+  arrow::MemoryPool* pool = arrow::default_memory_pool();
+  std::shared_ptr<arrow::io::ReadableFile> infile;
+  auto result = arrow::io::ReadableFile::Open(output_file.c_str());
+  TEST_EQUAL(result.ok(), true)
+  infile = result.ValueOrDie();
+
+  std::unique_ptr<parquet::arrow::FileReader> reader;
+  PARQUET_ASSIGN_OR_THROW(reader, parquet::arrow::OpenFile(infile, pool));
+
+  std::shared_ptr<arrow::Table> table;
+  auto read_status = reader->ReadTable(&table);
+  TEST_EQUAL(read_status.ok(), true)
+  
+  // Verify number of columns (19 standard + 3 meta value columns)
+  TEST_EQUAL(table->num_columns(), 22)
+  
+  // Verify meta value columns exist
+  auto schema = table->schema();
+  TEST_EQUAL(schema->field(19)->name(), "confidence")
+  TEST_EQUAL(schema->field(20)->name(), "mass_error")
+  TEST_EQUAL(schema->field(21)->name(), "nonexistent_key")
+  
+  // Verify meta value data
+  auto confidence_column = table->GetColumnByName("confidence");
+  TEST_NOT_EQUAL(confidence_column, nullptr)
+  auto confidence_array = std::static_pointer_cast<arrow::StringArray>(confidence_column->chunk(0));
+  TEST_EQUAL(confidence_array->GetString(0), "0.85")
+  
+  auto mass_error_column = table->GetColumnByName("mass_error");
+  TEST_NOT_EQUAL(mass_error_column, nullptr)
+  auto mass_error_array = std::static_pointer_cast<arrow::StringArray>(mass_error_column->chunk(0));
+  TEST_EQUAL(mass_error_array->GetString(0), "2.5")
+  
+  auto nonexistent_column = table->GetColumnByName("nonexistent_key");
+  TEST_NOT_EQUAL(nonexistent_column, nullptr)
+  auto nonexistent_array = std::static_pointer_cast<arrow::StringArray>(nonexistent_column->chunk(0));
+  TEST_EQUAL(nonexistent_array->IsNull(0), true)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

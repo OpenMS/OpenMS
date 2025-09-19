@@ -31,7 +31,7 @@ namespace
 {
   // Helper functions moved to anonymous namespace to hide Arrow types from header
 
-  std::shared_ptr<arrow::Schema> createPSMSchema()
+  std::shared_ptr<arrow::Schema> createPSMSchema(bool export_all_psms = false, const std::set<OpenMS::String>& meta_value_keys = {})
   {
     std::vector<std::shared_ptr<arrow::Field>> fields = {
       arrow::field("sequence", arrow::utf8()),
@@ -54,6 +54,19 @@ namespace
       arrow::field("mz_array", arrow::null(), true), // nullable - null for now
       arrow::field("intensity_array", arrow::null(), true) // nullable - null for now
     };
+
+    // Add rank column if exporting all PSMs
+    if (export_all_psms)
+    {
+      fields.insert(fields.begin() + 3, arrow::field("rank", arrow::int32())); // Insert after precursor_charge
+    }
+
+    // Add meta value columns
+    for (const auto& key : meta_value_keys)
+    {
+      // Use string type for meta values by default - we'll determine the actual type during processing
+      fields.push_back(arrow::field(key.c_str(), arrow::utf8(), true)); // nullable
+    }
 
     return arrow::schema(fields);
   }
@@ -112,12 +125,15 @@ namespace
 
   std::shared_ptr<arrow::Table> convertToArrowTable(
     const std::vector<OpenMS::ProteinIdentification>& protein_identifications,
-    const OpenMS::PeptideIdentificationList& peptide_identifications)
+    const OpenMS::PeptideIdentificationList& peptide_identifications,
+    bool export_all_psms = false,
+    const std::set<OpenMS::String>& meta_value_keys = {})
   {
     // Create builders for each column - using simpler types for now
     arrow::StringBuilder sequence_builder;
     arrow::StringBuilder peptidoform_builder;
     arrow::Int32Builder precursor_charge_builder;
+    arrow::Int32Builder rank_builder; // Only used if export_all_psms is true
     arrow::FloatBuilder posterior_error_probability_builder;
     arrow::Int32Builder is_decoy_builder;
     arrow::FloatBuilder calculated_mz_builder;
@@ -129,6 +145,13 @@ namespace
     arrow::FloatBuilder rt_builder;
     arrow::FloatBuilder ion_mobility_builder;
     arrow::Int32Builder num_peaks_builder;
+
+    // Create builders for meta value columns
+    std::map<OpenMS::String, std::unique_ptr<arrow::StringBuilder>> meta_value_builders;
+    for (const auto& key : meta_value_keys)
+    {
+      meta_value_builders[key] = std::make_unique<arrow::StringBuilder>();
+    }
 
     // Find associated protein identification for metadata
     std::map<OpenMS::String, const OpenMS::ProteinIdentification*> protein_id_map;
@@ -150,40 +173,54 @@ namespace
       is_main_score_pep = pep_result.is_main_score_type;
     }
 
-    // Process each peptide identification (only first hit per peptide identification)
+    // Process each peptide identification
     for (const auto& peptide_id : peptide_identifications)
     {
       const auto& hits = peptide_id.getHits();
       if (hits.empty()) continue; // Skip if no hits
       
-      // Only process the first hit (rank 1)
-      const OpenMS::PeptideHit& hit = hits[0];
+      // Determine how many hits to process
+      size_t num_hits_to_process = export_all_psms ? hits.size() : 1;
+      
+      for (size_t hit_index = 0; hit_index < num_hits_to_process; ++hit_index)
+      {
+        const OpenMS::PeptideHit& hit = hits[hit_index];
 
-      // Sequence
-      OpenMS::String sequence = hit.getSequence().toUnmodifiedString();
-      auto status = sequence_builder.Append(sequence.c_str());
-      if (!status.ok()) {
-        throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                        "Failed to append sequence: " + OpenMS::String(status.ToString()));
-      }
+        // Sequence
+        OpenMS::String sequence = hit.getSequence().toUnmodifiedString();
+        auto status = sequence_builder.Append(sequence.c_str());
+        if (!status.ok()) {
+          throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                          "Failed to append sequence: " + OpenMS::String(status.ToString()));
+        }
 
-      // Peptidoform (sequence with modifications in ProForma format)
-      OpenMS::String peptidoform = hit.getSequence().toBracketString(true, false);
-      // Convert round brackets to square brackets for ProForma format
-      peptidoform.substitute("(", "[");
-      peptidoform.substitute(")", "]");
-      status = peptidoform_builder.Append(peptidoform.c_str());
-      if (!status.ok()) {
-        throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                        "Failed to append peptidoform: " + OpenMS::String(status.ToString()));
-      }
+        // Peptidoform (sequence with modifications in ProForma format)
+        OpenMS::String peptidoform = hit.getSequence().toBracketString(true, false);
+        // Convert round brackets to square brackets for ProForma format
+        peptidoform.substitute("(", "[");
+        peptidoform.substitute(")", "]");
+        status = peptidoform_builder.Append(peptidoform.c_str());
+        if (!status.ok()) {
+          throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                          "Failed to append peptidoform: " + OpenMS::String(status.ToString()));
+        }
 
-      // Precursor charge
-      status = precursor_charge_builder.Append(hit.getCharge());
-      if (!status.ok()) {
-        throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                        "Failed to append precursor charge: " + OpenMS::String(status.ToString()));
-      }
+        // Precursor charge
+        status = precursor_charge_builder.Append(hit.getCharge());
+        if (!status.ok()) {
+          throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                          "Failed to append precursor charge: " + OpenMS::String(status.ToString()));
+        }
+
+        // Rank (if exporting all PSMs)
+        if (export_all_psms)
+        {
+          status = rank_builder.Append(static_cast<int>(hit_index + 1)); // rank is 1-based
+          if (!status.ok()) {
+            throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                            "Failed to append rank: " + OpenMS::String(status.ToString()));
+          }
+        }
 
       // Posterior error probability
       if (is_main_score_pep)
@@ -326,7 +363,27 @@ namespace
         throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                                         "Failed to append num peaks: " + OpenMS::String(status.ToString()));
       }
-    }
+
+      // Process meta values
+      for (const auto& key : meta_value_keys)
+      {
+        auto& builder = meta_value_builders[key];
+        if (hit.metaValueExists(key))
+        {
+          OpenMS::String meta_value = hit.getMetaValue(key).toString();
+          status = builder->Append(meta_value.c_str());
+        }
+        else
+        {
+          status = builder->AppendNull();
+        }
+        if (!status.ok()) {
+          throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                          "Failed to append meta value " + key + ": " + OpenMS::String(status.ToString()));
+        }
+      }
+      } // End hit processing loop
+    } // End peptide identification loop
 
     // Finish builders and create arrays
     std::shared_ptr<arrow::Array> sequence_array;
@@ -427,13 +484,49 @@ namespace
                                       "Failed to finish num peaks array: " + OpenMS::String(status.ToString()));
     }
 
+    // Finish rank array if needed
+    std::shared_ptr<arrow::Array> rank_array;
+    if (export_all_psms)
+    {
+      status = rank_builder.Finish(&rank_array);
+      if (!status.ok()) {
+        throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                        "Failed to finish rank array: " + OpenMS::String(status.ToString()));
+      }
+    }
+
+    // Finish meta value arrays
+    std::map<OpenMS::String, std::shared_ptr<arrow::Array>> meta_value_arrays;
+    for (const auto& key : meta_value_keys)
+    {
+      std::shared_ptr<arrow::Array> meta_array;
+      status = meta_value_builders[key]->Finish(&meta_array);
+      if (!status.ok()) {
+        throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                        "Failed to finish meta value array for " + key + ": " + OpenMS::String(status.ToString()));
+      }
+      meta_value_arrays[key] = meta_array;
+    }
+
     // Create simplified schema for now - will add complex nested types later
-    auto schema = createPSMSchema();
-    auto table = arrow::Table::Make(schema, {
+    auto schema = createPSMSchema(export_all_psms, meta_value_keys);
+    
+    // Build the arrays vector in the correct order to match the schema
+    std::vector<std::shared_ptr<arrow::Array>> arrays = {
       sequence_array,
       peptidoform_array,
       arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie(), // modifications - null for now
-      precursor_charge_array,
+      precursor_charge_array
+    };
+    
+    // Add rank array if exporting all PSMs (inserted after precursor_charge)
+    if (export_all_psms)
+    {
+      arrays.push_back(rank_array);
+    }
+    
+    // Continue with the rest of the standard columns
+    arrays.insert(arrays.end(), {
       posterior_error_probability_array,
       is_decoy_array,
       calculated_mz_array,
@@ -450,6 +543,14 @@ namespace
       arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie(), // mz_array - null for now
       arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie() // intensity_array - null for now
     });
+    
+    // Add meta value arrays in the same order as in the schema
+    for (const auto& key : meta_value_keys)
+    {
+      arrays.push_back(meta_value_arrays[key]);
+    }
+    
+    auto table = arrow::Table::Make(schema, arrays);
 
     return table;
   }
@@ -463,6 +564,23 @@ namespace OpenMS
   void QuantmsIO::store(const String& filename,
                        const std::vector<ProteinIdentification>& protein_identifications,
                        const PeptideIdentificationList& peptide_identifications)
+  {
+    store(filename, protein_identifications, peptide_identifications, false, {});
+  }
+
+  void QuantmsIO::store(const String& filename,
+                       const std::vector<ProteinIdentification>& protein_identifications,
+                       const PeptideIdentificationList& peptide_identifications,
+                       bool export_all_psms)
+  {
+    store(filename, protein_identifications, peptide_identifications, export_all_psms, {});
+  }
+
+  void QuantmsIO::store(const String& filename,
+                       const std::vector<ProteinIdentification>& protein_identifications,
+                       const PeptideIdentificationList& peptide_identifications,
+                       bool export_all_psms,
+                       const std::set<String>& meta_value_keys)
   {
     // Generate file metadata
     auto now = std::chrono::system_clock::now();
@@ -489,7 +607,7 @@ namespace OpenMS
     };
 
     // Convert data to Arrow table
-    auto table = convertToArrowTable(protein_identifications, peptide_identifications);
+    auto table = convertToArrowTable(protein_identifications, peptide_identifications, export_all_psms, meta_value_keys);
     
     // Write to parquet file with metadata
     writeParquetFile(table, filename, file_metadata);
