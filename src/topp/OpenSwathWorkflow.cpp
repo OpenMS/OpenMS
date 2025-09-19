@@ -756,7 +756,7 @@ protected:
     @param commit      Whether to apply the estimate. If false, only logs the estimate vs. user value.
                        Default: true (backwards compatible).
   */
-  inline void apply_window(const char* label,
+  void apply_window(const char* label,
                            double estimate,
                            double& dst_param,
                            const double user_value,
