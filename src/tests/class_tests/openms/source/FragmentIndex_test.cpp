@@ -179,8 +179,21 @@ START_TEST(FragmentIndex, "$Id")
 /// Test the build for peptides
 START_SECTION(build())
 // Test proteins used to generate expected peptides for multiple parameterizations
-// Format of expected peptide descriptors below:
-//   {protein_idx, modification_idx, {start, length}, dummy precursor_mz}
+/*
+  Format of expected peptide descriptors below and their mapping to FragmentIndex::Peptide fields:
+    { protein_idx, modification_idx_, { start, length }, precursor_mz_ }
+
+  Where:
+  - protein_idx: 0-based index into the FASTA entries vector passed to build(); selects the source protein.
+  - modification_idx_: index into mod_peptides returned by ModifiedPeptideGenerator for the given unmodified subsequence
+                       (0 = unmodified; higher values enumerate concrete variable-mod combinations).
+  - start: 0-based start offset within the selected protein sequence.
+  - length: number of residues for the peptide (used as std::string::substr(start, length)).
+  - precursor_mz_: mono-isotopic m/z at charge 1 (M+H)+. In these tests we often use a dummy value, as only ordering
+                   invariants on peptides/fragment buckets are asserted.
+
+  Note: testDigestion() compares expected vs. built peptides only by {sequence_, modification_idx_}.
+*/
 const std::vector<FASTAFile::FASTAEntry> entries0{{"t", "t", "ARGEPADSSRKDFDMDMDM"},
                                              {"t2", "t2", "HALLORTSCHSM"}};
 // Expected peptides when enabling fixed Carbamidomethyl (C) and variable Oxidation (M)
@@ -192,9 +205,9 @@ std::vector<FragmentIndex::Peptide> peptides_we_should_hit_mod{{0,0,{2,8},5},
                                                             {0,4,{11,8},5},
                                                             {0,5,{11,8},5},
                                                             {0,6,{11,8},5},
-                                                            {1,0 ,{0,6}, 5},
-                                                            {1, 0,{6, 6}, 5},
-                                                            {1, 1,{6, 6}, 5}
+                                                            {1,0,{0,6},5},
+                                                            {1,0,{6,6},5},
+                                                            {1,1,{6,6},5}
 
 };
 // Expected peptides without min/max size constraints (no missed cleavages, no modifications)

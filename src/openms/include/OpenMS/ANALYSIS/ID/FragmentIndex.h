@@ -31,7 +31,16 @@ namespace OpenMS
   public:
 
 
-    /** @brief Peptide with all important infos needed for the FI-structure
+    /** @brief Compact descriptor of a peptide instance held by the FragmentIndex.
+     *
+     * Field semantics and how they relate to the braced initializer lists used in tests {a, b, {c, d}, e}:
+     *  - protein_idx .......... 'a' Index into the FASTA entries vector passed to build(); identifies the source protein.
+     *  - modification_idx_ .... 'b' Index into the list of generated modification variants for the given unmodified subsequence.
+     *                             In tests, this maps to mod_peptides[modification_idx_] created by ModifiedPeptideGenerator.
+     *  - sequence_ ............ '{c, d}' 0-based start offset and length (in residues) of the peptide subsequence within the protein.
+     *                             Note: length (d) is used like std::string::substr(start, length).
+     *  - precursor_mz_ ........ 'e' Mono-isotopic m/z at charge 1 (M+H)+; used for ordering/slicing in the index.
+     *                             Many tests use a dummy value here since only ordering invariants are asserted.
      */
     struct Peptide {
 
@@ -43,10 +52,10 @@ namespace OpenMS
         precursor_mz_(precursor_mz)
         {}
 
-        UInt32 protein_idx;            ///< The index in fasta entries vector
-        UInt32 modification_idx_;        ///< The modification index which needed to reconstruct the modification
-        std::pair<uint16_t , uint16_t> sequence_; ///< The substring of the protein at position protein_idx
-        float precursor_mz_;                  ///< mz of the peptide
+        UInt32 protein_idx;            ///< 0-based index into FASTA entries provided to build(); identifies the source protein
+        UInt32 modification_idx_;      ///< Index into variant list produced by ModifiedPeptideGenerator for this subsequence (0 = unmodified)
+        std::pair<uint16_t , uint16_t> sequence_; ///< {start, length} within the source protein sequence (start is 0-based; length in residues)
+        float precursor_mz_;           ///< Mono-isotopic m/z at charge 1 (M+H)+ of this peptide; used for sorting/filtering
     };
 
     /**
