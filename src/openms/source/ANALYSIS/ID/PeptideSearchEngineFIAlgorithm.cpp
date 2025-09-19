@@ -128,31 +128,42 @@ namespace OpenMS
     // Add parameters which are only used by FragmentIndex
     defaults_.setValue("peptide:min_mass", 100, "Minimal peptide mass for database");
     defaults_.setValue("peptide:max_mass", 9000, "Maximal peptide mass for database");
-    defaults_.setValue("min_matched_peaks", 5, "Minimal number of matched ions to report a PSM");
-    defaults_.setValue("min_isotope_error", -1, "Precursor isotope error");
-    defaults_.setValue("max_isotope_error", 1, "precursor isotope error");
+
+    // Fragment-level filtering
+    defaults_.setValue("fragment:min_matched_ions", 5, "Minimal number of matched ions to report a PSM");
+
+    // Precursor isotope error handling
+    defaults_.setValue("precursor:isotope_error_min", -1, "Minimum allowed precursor isotope error");
+    defaults_.setValue("precursor:isotope_error_max", 1, "Maximum allowed precursor isotope error");
+
+    // Fragment and scoring limits
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
-    defaults_.setValue("max_processed_hits", 50, "The number of initial hits for which we calculate a score");
+    defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
+    defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
+
     // valid values for open_search option
     std::vector<std::string> open_search_option;
     open_search_option.emplace_back("true");
     open_search_option.emplace_back("false");
-    defaults_.setValue("open_search", "false", "Open or standard search");
-    defaults_.setValidStrings("open_search", open_search_option);
-    defaults_.setValue("open_precursor_window_lower_", -100.0, "lower bound of the open precursor window");
-    defaults_.setValue("open_precursor_window_upper_", 200.0, "upper bound of the open precursor window");
-    defaults_.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
-    defaults_.setValidStrings("add_y_ions", {"true","false"});
-    defaults_.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
-    defaults_.setValidStrings("add_b_ions", {"true","false"});
-    defaults_.setValue("add_a_ions", "false", "Add peaks of a-ions to the spectrum");
-    defaults_.setValidStrings("add_a_ions", {"true","false"});
-    defaults_.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
-    defaults_.setValidStrings("add_c_ions", {"true","false"});
-    defaults_.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
-    defaults_.setValidStrings("add_x_ions", {"true","false"});
-    defaults_.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
-    defaults_.setValidStrings("add_z_ions", {"true","false"});
+    defaults_.setValue("precursor:open_search", "false", "Open or standard search (auto-enabled when precursor tolerance > 1 Da or > 1000 ppm)");
+    defaults_.setValidStrings("precursor:open_search", open_search_option);
+    defaults_.setValue("precursor:open_window_lower", -100.0, "lower bound of the open precursor window");
+    defaults_.setValue("precursor:open_window_upper", 200.0, "upper bound of the open precursor window");
+
+    // Ion series toggles
+    defaults_.setValue("ions:add_y_ions", "true", "Add peaks of y-ions to the spectrum");
+    defaults_.setValidStrings("ions:add_y_ions", {"true","false"});
+    defaults_.setValue("ions:add_b_ions", "true", "Add peaks of b-ions to the spectrum");
+    defaults_.setValidStrings("ions:add_b_ions", {"true","false"});
+    defaults_.setValue("ions:add_a_ions", "false", "Add peaks of a-ions to the spectrum");
+    defaults_.setValidStrings("ions:add_a_ions", {"true","false"});
+    defaults_.setValue("ions:add_c_ions", "false", "Add peaks of c-ions to the spectrum");
+    defaults_.setValidStrings("ions:add_c_ions", {"true","false"});
+    defaults_.setValue("ions:add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
+    defaults_.setValidStrings("ions:add_x_ions", {"true","false"});
+    defaults_.setValue("ions:add_z_ions", "false", "Add peaks of z-ions to the spectrum");
+    defaults_.setValidStrings("ions:add_z_ions", {"true","false"});
+    defaults_.setSectionDescription("ions", "Theoretical ion series toggles");
 
     defaultsToParam_();
   }
@@ -201,7 +212,7 @@ namespace OpenMS
     decoys_ = param_.getValue("decoys") == "true";
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
 
-    open_search_ = param_.getValue("open_search") == "true";
+    open_search_ = param_.getValue("precursor:open_search") == "true";
 
   }
 
@@ -386,6 +397,16 @@ namespace OpenMS
           }
         }
 
+// Debug: log spectrum-level top hit details before storing PeptideIdentification
+if (!pi.getHits().empty())
+{
+  const PeptideHit& top_hit = pi.getHits().front();
+  OPENMS_LOG_INFO << "[PDBS-FI] scan_index=" << scan_index
+                    << " top_ln(hyperscore)=" << top_hit.getScore()
+                    << " top_charge=" << top_hit.getCharge()
+                    << " top_isotope_error=" << (int)top_hit.getMetaValue("isotope_error")
+                    << std::endl;
+}
 #pragma omp critical (peptide_ids_access)
         {
           //clang-tidy: seems to be a false-positive in combination with omp
@@ -438,6 +459,8 @@ namespace OpenMS
     if (annotation_suffix_fraction) feature_set.push_back(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION);
     // note: precursor error is calculated by percolator itself
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
+    // record whether open-search mode was used (explicitly or implicitly)
+    search_parameters.setMetaValue("open_search", open_search_ ? "true" : "false");
 
     search_parameters.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
     protein_ids[0].setSearchParameters(std::move(search_parameters));
@@ -448,6 +471,25 @@ namespace OpenMS
     bool precursor_mass_tolerance_unit_ppm = (precursor_mass_tolerance_unit_ == "ppm");
     bool fragment_mass_tolerance_unit_ppm = (fragment_mass_tolerance_unit_ == "ppm");
 
+    // Debug: log effective precursor/fragment tolerances (value + unit)
+    OPENMS_LOG_INFO << "[PDBS-FI] fragment_tol="
+                      << fragment_mass_tolerance_ << " "
+                      << (fragment_mass_tolerance_unit_ppm ? "ppm" : "Da")
+                      << " | precursor_tol="
+                      << precursor_mass_tolerance_ << " "
+                      << (precursor_mass_tolerance_unit_ppm ? "ppm" : "Da")
+                      << std::endl;
+
+    // Auto-enable open search if precursor tolerance window is large (>1 Da or >1000 ppm)
+    bool implicit_open_search = precursor_mass_tolerance_unit_ppm
+                                  ? (precursor_mass_tolerance_ > 1000.0)
+                                  : (precursor_mass_tolerance_ > 1.0);
+    if (!open_search_ && implicit_open_search)
+    {
+      OPENMS_LOG_INFO << "[PDBS-FI] Enabling open-search mode (implicit) due to large precursor tolerance." << std::endl;
+    }
+    open_search_ = open_search_ || implicit_open_search;
+    OPENMS_LOG_INFO << "[PDBS-FI] open_search=" << (open_search_ ? "true" : "false") << std::endl;
     // load MS2 map
     PeakMap spectra;
     FileHandler f;

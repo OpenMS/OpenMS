@@ -167,12 +167,12 @@ namespace OpenMS
 
       auto tsg_params = tsg.getParameters();
       auto this_params = getParameters();
-      tsg_params.setValue("add_a_ions", this_params.getValue("add_a_ions"));
-      tsg_params.setValue("add_b_ions", this_params.getValue("add_b_ions"));
-      tsg_params.setValue("add_c_ions", this_params.getValue("add_c_ions"));
-      tsg_params.setValue("add_x_ions", this_params.getValue("add_x_ions"));
-      tsg_params.setValue("add_y_ions", this_params.getValue("add_y_ions"));
-      tsg_params.setValue("add_z_ions", this_params.getValue("add_z_ions"));
+      tsg_params.setValue("add_a_ions", this_params.getValue("ions:add_a_ions"));
+      tsg_params.setValue("add_b_ions", this_params.getValue("ions:add_b_ions"));
+      tsg_params.setValue("add_c_ions", this_params.getValue("ions:add_c_ions"));
+      tsg_params.setValue("add_x_ions", this_params.getValue("ions:add_x_ions"));
+      tsg_params.setValue("add_y_ions", this_params.getValue("ions:add_y_ions"));
+      tsg_params.setValue("add_z_ions", this_params.getValue("ions:add_z_ions"));
       //tsg_params.setValue("add_first_prefix_ion", "true");
       tsg.setParameters(tsg_params);
 
@@ -356,7 +356,12 @@ namespace OpenMS
           }
           else
           {
-            return std::tie(a.isotope_error_, a.precursor_charge_) < std::tie(b.isotope_error_, b.precursor_charge_);
+            // Prefer isotope_error close to 0: abs(isotope_error), then isotope_error, then precursor_charge
+            const auto abs_iso_a = a.isotope_error_ < 0 ? -a.isotope_error_ : a.isotope_error_;
+            const auto abs_iso_b = b.isotope_error_ < 0 ? -b.isotope_error_ : b.isotope_error_;
+            if (abs_iso_a != abs_iso_b) return abs_iso_a < abs_iso_b;
+            if (a.isotope_error_ != b.isotope_error_) return a.isotope_error_ < b.isotope_error_;
+            return a.precursor_charge_ < b.precursor_charge_;
           }
         });
 
@@ -371,7 +376,12 @@ namespace OpenMS
           }
           else
           {
-            return std::tie(a.isotope_error_, a.precursor_charge_) < std::tie(b.isotope_error_, b.precursor_charge_);
+            // Prefer isotope_error close to 0: abs(isotope_error), then isotope_error, then precursor_charge
+            const auto abs_iso_a = a.isotope_error_ < 0 ? -a.isotope_error_ : a.isotope_error_;
+            const auto abs_iso_b = b.isotope_error_ < 0 ? -b.isotope_error_ : b.isotope_error_;
+            if (abs_iso_a != abs_iso_b) return abs_iso_a < abs_iso_b;
+            if (a.isotope_error_ != b.isotope_error_) return a.isotope_error_ < b.isotope_error_;
+            return a.precursor_charge_ < b.precursor_charge_;
           }
         });
       }
@@ -501,23 +511,24 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
   FragmentIndex::FragmentIndex() : DefaultParamHandler("FragmentIndex")
   {
-    defaults_.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
-    defaults_.setValidStrings("add_y_ions", {"true","false"});
-
-    defaults_.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
-    defaults_.setValidStrings("add_b_ions", {"true","false"});
-
-    defaults_.setValue("add_a_ions", "false", "Add peaks of a-ions to the spectrum");
-    defaults_.setValidStrings("add_a_ions", {"true","false"});
-
-    defaults_.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
-    defaults_.setValidStrings("add_c_ions", {"true","false"});
-
-    defaults_.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
-    defaults_.setValidStrings("add_x_ions", {"true","false"});
-
-    defaults_.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
-    defaults_.setValidStrings("add_z_ions", {"true","false"});
+    defaults_.setValue("ions:add_y_ions", "true", "Add peaks of y-ions to the spectrum");
+    defaults_.setValidStrings("ions:add_y_ions", {"true","false"});
+    
+    defaults_.setValue("ions:add_b_ions", "true", "Add peaks of b-ions to the spectrum");
+    defaults_.setValidStrings("ions:add_b_ions", {"true","false"});
+    
+    defaults_.setValue("ions:add_a_ions", "false", "Add peaks of a-ions to the spectrum");
+    defaults_.setValidStrings("ions:add_a_ions", {"true","false"});
+    
+    defaults_.setValue("ions:add_c_ions", "false", "Add peaks of c-ions to the spectrum");
+    defaults_.setValidStrings("ions:add_c_ions", {"true","false"});
+    
+    defaults_.setValue("ions:add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
+    defaults_.setValidStrings("ions:add_x_ions", {"true","false"});
+    
+    defaults_.setValue("ions:add_z_ions", "false", "Add peaks of z-ions to the spectrum");
+    defaults_.setValidStrings("ions:add_z_ions", {"true","false"});
+    defaults_.setSectionDescription("ions", "Theoretical ion series toggles");
 
 
     defaults_.setValue("precursor:mass_tolerance", 10.0, "Tolerance for precursor-m/z in search");
@@ -566,15 +577,16 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
     //Search-related params
 
-    defaults_.setValue("min_matched_peaks", 5, "Minimal number of matched ions to report a PSM");
-    defaults_.setValue("min_isotope_error", -1, "Precursor isotope error");
-    defaults_.setValue("max_isotope_error", 1, "precursor isotope error");
-
+    defaults_.setValue("fragment:min_matched_ions", 5, "Minimal number of matched ions to report a PSM");
+    defaults_.setValue("precursor:isotope_error_min", -1, "Minimum allowed precursor isotope error");
+    defaults_.setValue("precursor:isotope_error_max", 1, "Maximum allowed precursor isotope error");
+    
     defaults_.setValue("fragment:max_charge", 2, "max fragment charge");
-    defaults_.setValue("max_processed_hits", 50, "The number of initial hits for which we calculate a score");
-    defaults_.setValue("open_search", "false", "Open or standard search");
-    defaults_.setValue("open_precursor_window_lower_", -100.0, "lower bound of the open precursor window");
-    defaults_.setValue("open_precursor_window_upper_", 200.0, "upper bound of the open precursor window");
+    defaults_.setValue("scoring:max_candidates_per_spectrum", 50, "The number of initial hits for which we calculate a score");
+    defaults_.setSectionDescription("scoring", "Search/Scoring Limits");
+    defaults_.setValue("precursor:open_search", "false", "Open or standard search (auto-enabled when precursor tolerance > 1 Da or > 1000 ppm)");
+    defaults_.setValue("precursor:open_window_lower", -100.0, "lower bound of the open precursor window");
+    defaults_.setValue("precursor:open_window_upper", 200.0, "upper bound of the open precursor window");
 
     //defaults from the searchEngine that are not needed for this class, but otherwise we would generate a warning
     defaults_.setValue("decoys", "false", "Should decoys be generated?");
@@ -601,12 +613,12 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
 
   void FragmentIndex::updateMembers_()
   {
-    add_b_ions_ = param_.getValue("add_b_ions").toBool();
-    add_y_ions_ = param_.getValue("add_y_ions").toBool();
-    add_a_ions_ = param_.getValue("add_a_ions").toBool();
-    add_c_ions_ = param_.getValue("add_c_ions").toBool();
-    add_x_ions_ = param_.getValue("add_x_ions").toBool();
-    add_z_ions_ = param_.getValue("add_z_ions").toBool();
+    add_b_ions_ = param_.getValue("ions:add_b_ions").toBool();
+    add_y_ions_ = param_.getValue("ions:add_y_ions").toBool();
+    add_a_ions_ = param_.getValue("ions:add_a_ions").toBool();
+    add_c_ions_ = param_.getValue("ions:add_c_ions").toBool();
+    add_x_ions_ = param_.getValue("ions:add_x_ions").toBool();
+    add_z_ions_ = param_.getValue("ions:add_z_ions").toBool();
     digestion_enzyme_ = param_.getValue("enzyme").toString();
     missed_cleavages_ = param_.getValue("peptide:missed_cleavages");
     peptide_min_mass_ = param_.getValue("peptide:min_mass");
@@ -615,26 +627,39 @@ init_hits.hits_.erase(it_zero, init_hits.hits_.end());
     peptide_max_length_ = param_.getValue("peptide:max_size");
     fragment_min_mz_ = param_.getValue("fragment:min_mz");
     fragment_max_mz_ = param_.getValue("fragment:max_mz");
-
+    
     precursor_mz_tolerance_ = param_.getValue("precursor:mass_tolerance");
     fragment_mz_tolerance_ = param_.getValue("fragment:mass_tolerance");
     precursor_mz_tolerance_unit_ppm_ = param_.getValue("precursor:mass_tolerance_unit").toString() == "ppm";
     fragment_mz_tolerance_unit_ppm_ = param_.getValue("fragment:mass_tolerance_unit").toString() == "ppm";
-
+    
     modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:fixed"));
     modifications_variable_ = ListUtils::toStringList<std::string>(param_.getValue("modifications:variable"));
     max_variable_mods_per_peptide_ = param_.getValue("modifications:variable_max_per_peptide");
-
-    min_matched_peaks_ = param_.getValue("min_matched_peaks");
-    min_isotope_error_ = param_.getValue("min_isotope_error");
-    max_isotope_error_ = param_.getValue("max_isotope_error");
+    
+    min_matched_peaks_ = param_.getValue("fragment:min_matched_ions");
+    min_isotope_error_ = param_.getValue("precursor:isotope_error_min");
+    max_isotope_error_ = param_.getValue("precursor:isotope_error_max");
     min_precursor_charge_ = param_.getValue("precursor:min_charge");
     max_precursor_charge_ = param_.getValue("precursor:max_charge");
     max_fragment_charge_ = param_.getValue("fragment:max_charge");
-    max_processed_hits_ = param_.getValue("max_processed_hits");
-    open_search_ = param_.getValue("open_search").toBool();
-    open_precursor_window_lower_ = param_.getValue("open_precursor_window_lower_");
-    open_precursor_window_upper_ = param_.getValue("open_precursor_window_upper_");
+    max_processed_hits_ = param_.getValue("scoring:max_candidates_per_spectrum");
+    open_search_ = param_.getValue("precursor:open_search").toBool();
+    // Auto-enable open search if precursor tolerance window is large
+    // Thresholds: > 1.0 Da or > 1000 ppm
+    bool implicit_open_search = precursor_mz_tolerance_unit_ppm_
+                                  ? (precursor_mz_tolerance_ > 1000.0)
+                                  : (precursor_mz_tolerance_ > 1.0);
+    if (!open_search_ && implicit_open_search)
+    {
+      OPENMS_LOG_INFO << "[FragmentIndex] Enabling open-search mode because precursor mass tolerance ("
+                      << precursor_mz_tolerance_ << " "
+                      << (precursor_mz_tolerance_unit_ppm_ ? "ppm" : "Da")
+                      << ") exceeds threshold (1000 ppm or 1 Da)." << std::endl;
+    }
+    open_search_ = open_search_ || implicit_open_search;
+    open_precursor_window_lower_ = param_.getValue("precursor:open_window_lower");
+    open_precursor_window_upper_ = param_.getValue("precursor:open_window_upper");
   }
  
   bool FragmentIndex::isBuild() const
