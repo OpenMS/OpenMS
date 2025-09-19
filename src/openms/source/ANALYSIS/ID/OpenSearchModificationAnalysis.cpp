@@ -19,9 +19,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
+#include <boost/math/distributions/normal.hpp>
 
 namespace OpenMS
 {
@@ -363,7 +361,8 @@ namespace OpenMS
 
   double OpenSearchModificationAnalysis::gaussian_(double x, double sigma)
   {
-    return std::exp(-(x * x) / (2 * sigma * sigma)) / (sigma * std::sqrt(2 * M_PI));
+    boost::math::normal_distribution<> normal_dist(0.0, sigma);
+    return boost::math::pdf(normal_dist, x);
   }
 
   OpenSearchModificationAnalysis::DeltaMassHistogram 
