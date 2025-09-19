@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/ID/FragmentIndex.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/HyperScore.h>
+#include <OpenMS/ANALYSIS/ID/OpenSearchModificationAnalysis.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
@@ -647,10 +648,10 @@ if (!pi.getHits().empty())
     ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
 
     startProgress(0, 1, "Post-processing PSMs...");
-    PeptideSearchEngineFIAlgorithm::postProcessHits_(spectra, 
-      annotated_hits, 
-      protein_ids, 
-      peptide_ids, 
+    PeptideSearchEngineFIAlgorithm::postProcessHits_(spectra,
+      annotated_hits,
+      protein_ids,
+      peptide_ids,
       report_top_hits_,
       //fixed_modifications, TODO: what about this unused parameter?
       //variable_modifications, TODO: what about this unused parameter?
@@ -668,6 +669,35 @@ if (!pi.getHits().empty())
       in_db
       );
     endProgress();
+
+    // Perform modification analysis for open search results
+    if (open_search_)
+    {
+      OPENMS_LOG_INFO << "[PDBS-FI] Performing open search modification analysis..." << std::endl;
+      startProgress(0, 1, "Analyzing modification patterns...");
+      
+      OpenSearchModificationAnalysis mod_analyzer;
+      
+      // Generate output table filename based on input database
+      String mod_output_file = "";
+      if (!in_db.empty())
+      {
+        mod_output_file = in_db.prefix(".") + "_ModificationAnalysis.idXML";
+      }
+      
+      auto modification_summaries = mod_analyzer.analyzeModifications(
+        peptide_ids,
+        precursor_mass_tolerance_,
+        precursor_mass_tolerance_unit_ == "ppm",
+        false, // no smoothing for now
+        mod_output_file
+      );
+      
+      OPENMS_LOG_INFO << "[PDBS-FI] Found " << modification_summaries.size()
+                      << " modification patterns in open search results." << std::endl;
+      
+      endProgress();
+    }
 
     // add meta data on spectra file
     protein_ids[0].setPrimaryMSRunPath({in_mzML}, spectra);
