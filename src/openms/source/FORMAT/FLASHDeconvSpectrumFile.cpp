@@ -327,19 +327,18 @@ namespace OpenMS
   void FLASHDeconvSpectrumFile::writeIsobaricQuantification(std::fstream& fs, std::vector<DeconvolvedSpectrum>& deconvolved_spectra)
   {
     std::stringstream ss;
-    ss << "Scan\tPrecursorScan\tPrecursorMZ\tRetentionTime\tPrecursorQscore\tActivation\tActivationEnergy\tPrecursorCharge\tIsolationLeft\tIsolationRight\tPrecursorMass\tPrecursorSNR";
-    bool begin = true;
+    ss << "Scan\tPrecursorScan\tPrecursorMZ\tRetentionTime\tMassCountInSpec\tQuantifiedChannelCount\tPrecursorQscore\tActivation\tActivationEnergy"
+          "\tPrecursorCharge\tIsolationLeft\tIsolationRight\tPrecursorMass\tPrecursorSNR";
+
+    Size channel_count = 0;
     for (auto& dspec : deconvolved_spectra)
     {
-      bool precursor_found = !dspec.getPrecursorPeakGroup().empty();
       if (dspec.isDecoy() || dspec.getOriginalSpectrum().getMSLevel() == 1)
         continue;
-      int scan = dspec.getScanNumber();
       auto quant = dspec.getQuantities();
-      if (quant.empty())
-        continue;
-      if (begin)
+      if (!quant.empty())
       {
+        channel_count = quant.quantities.size();
         for (Size i = 0; i < quant.quantities.size(); i++)
         {
           ss << "\tQuantForCh" << (i + 1);
@@ -357,39 +356,65 @@ namespace OpenMS
           ss << "\tNormalizedMergedQuantForCh" << (i + 1);
         }
         ss << "\n";
-        begin = false;
+        break;
       }
-      ss << scan << "\t" << dspec.getPrecursorScanNumber() << "\t"
-         << dspec.getPrecursor().getMZ() << "\t" << dspec.getOriginalSpectrum().getRT()
-         << "\t" << (precursor_found? std::to_string(dspec.getPrecursorPeakGroup().getQscore2D()) : "NaN")
-         <<"\t"<< (dspec.getActivationMethod() < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD?
-            Precursor::NamesOfActivationMethodShort[dspec.getActivationMethod()] : "N/A")
-         <<"\t"<<dspec.getPrecursor().getActivationEnergy()<< "\t" << dspec.getPrecursor().getCharge()
-         << "\t" << dspec.getPrecursor().getMZ() - dspec.getPrecursor().getIsolationWindowLowerOffset()
-         << "\t" << dspec.getPrecursor().getMZ() - dspec.getPrecursor().getIsolationWindowUpperOffset()
-         << "\t" << (precursor_found? std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) : "NaN")
-         << "\t" << (precursor_found? std::to_string(dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursorCharge())): "NaN");
+    }
+    if (channel_count == 0) return;
+
+    for (auto& dspec : deconvolved_spectra)
+    {
+      bool precursor_found = ! dspec.getPrecursorPeakGroup().empty();
+      if (dspec.isDecoy() || dspec.getOriginalSpectrum().getMSLevel() == 1) continue;
+      int scan = dspec.getScanNumber();
+      auto quant = dspec.getQuantities();
+      // if (quant.empty())
+      //   continue;
+      int ch_count = 0;
+      for (auto q : quant.quantities) if (q != 0) ch_count++;
+
+      ss << scan << "\t" << dspec.getPrecursorScanNumber() << "\t" << dspec.getPrecursor().getMZ() << "\t" << dspec.getOriginalSpectrum().getRT()
+         << "\t" << dspec.size() << "\t" << ch_count << "\t" << (precursor_found ? std::to_string(dspec.getPrecursorPeakGroup().getQscore2D()) : "NaN") << "\t"
+         << (dspec.getActivationMethod() < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD
+               ? Precursor::NamesOfActivationMethodShort[dspec.getActivationMethod()]
+               : "N/A")
+         << "\t" << dspec.getPrecursor().getActivationEnergy() << "\t" << dspec.getPrecursor().getCharge() << "\t"
+         << dspec.getPrecursor().getMZ() - dspec.getPrecursor().getIsolationWindowLowerOffset() << "\t"
+         << dspec.getPrecursor().getMZ() + dspec.getPrecursor().getIsolationWindowUpperOffset() << "\t"
+         << (precursor_found ? std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) : "NaN") << "\t"
+         << (precursor_found ? std::to_string(dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursorCharge())) : "NaN");
       double sum = 0;
-      for (auto q : quant.quantities)
+
+      if (quant.empty())
       {
-        ss << "\t" << std::to_string(q);
-        sum += q;
+        for (Size i = 0; i < channel_count * 4; i++)
+        {
+          ss << "\t" << 0;
+        }
+        ss << "\n";
       }
-      for (auto q : quant.quantities)
+      else
       {
-        ss << "\t" << std::to_string(q / sum);
+        for (auto q : quant.quantities)
+        {
+          ss << "\t" << std::to_string(q);
+          sum += q;
+        }
+        for (auto q : quant.quantities)
+        {
+          ss << "\t" << std::to_string(q / sum);
+        }
+        sum = 0;
+        for (auto q : quant.merged_quantities)
+        {
+          ss << "\t" << std::to_string(q);
+          sum += q;
+        }
+        for (auto q : quant.merged_quantities)
+        {
+          ss << "\t" << std::to_string(q / sum);
+        }
+        ss << "\n";
       }
-      sum = 0;
-      for (auto q : quant.merged_quantities)
-      {
-        ss << "\t" << std::to_string(q);
-        sum += q;
-      }
-      for (auto q : quant.merged_quantities)
-      {
-        ss << "\t" << std::to_string(q / sum);
-      }
-      ss << "\n";
     }
     fs << ss.str();
   }

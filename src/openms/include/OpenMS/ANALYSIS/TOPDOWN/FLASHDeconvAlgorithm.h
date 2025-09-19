@@ -26,7 +26,7 @@ namespace OpenMS
   From MSSpectrum, this class outputs DeconvolvedSpectrum.
   Deconvolution takes three steps:
    i) decharging and select candidate masses - speed up via binning
-   ii) collecting isotopes from the candidate masses and deisotope - peak groups are defined here
+   ii) collecting isotopes from the candidate masses and deisotoping - peak groups are defined here
    iii) scoring and filter out low scoring masses (i.e., peak groups)
   @ingroup Topdown
 */
