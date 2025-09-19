@@ -339,6 +339,8 @@ namespace OpenMS
       Computes Q3 + k * IQR on the (finite) values in [begin,end).
       If there are too few values or IQR ≤ 0, returns +infinity.
 
+      References: J. W. Tukey (1977). Exploratory Data Analysis.
+
       @tparam IteratorType  input iterator over arithmetic values
       @param begin          start iterator
       @param end            past-the-end iterator
@@ -397,6 +399,8 @@ namespace OpenMS
 
       If @p upper_fence is not finite, this falls back to the raw quantile.
 
+      References: J. W. Tukey (1962). The Future of Data Analysis.
+
       @tparam IteratorType  input iterator over arithmetic values
       @param begin          start iterator
       @param end            past-the-end iterator
@@ -439,14 +443,19 @@ namespace OpenMS
        - r       = fraction(values > UF)
 
       Blend with weight w(r):
-        r ≤ r_sparse  → w=0 (use robust)
-        r ≥ r_dense   → w=1 (use raw)
-        otherwise     → linear interpolation between 0 and 1
+        r ≤ r_sparse  -> w=0 (use robust)
+        r ≥ r_dense   -> w=1 (use raw)
+        otherwise     -> linear interpolation between 0 and 1
 
       Returned value = (1-w)*half_rob + w*half_raw.
 
       This keeps windows stable when outliers are sparse, while respecting
       genuinely broad tails (dense outliers) by leaning toward the raw quantile.
+
+      References:
+          - J. W. Tukey (1962). The Future of Data Analysis.
+          - J. W. Tukey (1977). Exploratory Data Analysis.
+          - R. J. Hyndman, Y. Fan (1996). Sample Quantiles in Statistical Packages
 
       @tparam IteratorType   input iterator over arithmetic values
       @param begin           start iterator
