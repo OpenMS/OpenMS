@@ -378,10 +378,10 @@ protected:
 
   protected:
     /// estimated extraction windows
-    double estimated_mz_window = -1;
-    double estimated_im_window = -1;
-    double estimated_ms1_mz_window = -1;
-    double estimated_ms1_im_window = -1;
+    double estimated_mz_window_ = -1;
+    double estimated_im_window_ = -1;
+    double estimated_ms1_mz_window_ = -1;
+    double estimated_ms1_im_window_ = -1;
   };
 
   /**

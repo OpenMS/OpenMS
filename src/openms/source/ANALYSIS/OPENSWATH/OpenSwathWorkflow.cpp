@@ -447,42 +447,42 @@ namespace OpenMS
 
   double OpenSwathCalibrationWorkflow::getEstimatedMzWindow() const
   {
-    return estimated_mz_window;
+    return estimated_mz_window_;
   }
 
   void OpenSwathCalibrationWorkflow::setEstimatedMzWindow(double estimatedMzWindow)
   {
-    estimated_mz_window = estimatedMzWindow;
+    estimated_mz_window_ = estimatedMzWindow;
   }
 
   double OpenSwathCalibrationWorkflow::getEstimatedImWindow() const
   {
-    return estimated_im_window;
+    return estimated_im_window_;
   }
 
   void OpenSwathCalibrationWorkflow::setEstimatedImWindow(double estimatedImWindow)
   {
-    estimated_im_window = estimatedImWindow;
+    estimated_im_window_ = estimatedImWindow;
   }
   
   double OpenSwathCalibrationWorkflow::getEstimatedMs1MzWindow() const
   {
-    return estimated_ms1_mz_window;
+    return estimated_ms1_mz_window_;
   }
 
   void OpenSwathCalibrationWorkflow::setEstimatedMs1MzWindow(double estimatedMs1MzWindow)
   {
-    estimated_ms1_mz_window = estimatedMs1MzWindow;
+    estimated_ms1_mz_window_ = estimatedMs1MzWindow;
   }
 
   double OpenSwathCalibrationWorkflow::getEstimatedMs1ImWindow() const
   {
-    return estimated_ms1_im_window;
+    return estimated_ms1_im_window_;
   }
 
   void OpenSwathCalibrationWorkflow::setEstimatedMs1ImWindow(double estimatedMs1ImWindow)
   {
-    estimated_ms1_im_window = estimatedMs1ImWindow;
+    estimated_ms1_im_window_ = estimatedMs1ImWindow;
   }
 
   }
