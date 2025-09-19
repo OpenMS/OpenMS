@@ -182,9 +182,7 @@ namespace OpenMS
     // Collect MS1 IM pairs across all transition groups
     std::vector<double> exp_im_ms1_all, theo_im_ms1_all;
 
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
+    #pragma omp parallel for
     for (SignedSize k = 0; k < (SignedSize)trgr_ids.size(); k++)
     {
       // we need at least one feature to find the best one
@@ -223,9 +221,8 @@ namespace OpenMS
       // so access to the data needs to be in a critical section.
       OpenSwath::SpectrumPtr sp_ms1;
       OpenSwath::SpectrumPtr sp_ms2;
-#ifdef _OPENMP
-#pragma omp critical
-#endif
+
+      #pragma omp critical (fetch_spectrum)
       {
         RangeMobility im_range;
         if (ms1_im_)
@@ -276,9 +273,7 @@ namespace OpenMS
           continue;
         }
 
-#ifdef _OPENMP
-#pragma omp critical
-#endif
+        #pragma omp critical (accum_points)
         {
           // store result drift time
           data_im.push_back(std::make_pair(im, drift_target));
@@ -305,9 +300,7 @@ namespace OpenMS
 
         // Fetch the MS1 spectrum at bestRT (protect raw access in critical section)
         OpenSwath::SpectrumPtr sp_ms1_collect;
-#ifdef _OPENMP
-  #pragma omp critical
-#endif
+        #pragma omp critical (fetch_spectrum)
         {
           std::vector<OpenSwath::SpectrumPtr> arr_ms1 =
             OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1, im_range_ms1);
@@ -366,9 +359,7 @@ namespace OpenMS
           continue;
         }
 
-#ifdef _OPENMP
-#pragma omp critical
-#endif
+        #pragma omp critical (accum_points)
         {
           // store result drift time
           data_im.push_back(std::make_pair(im, drift_target));
@@ -382,9 +373,7 @@ namespace OpenMS
         OPENMS_LOG_DEBUG << tr.precursor_mz << "\t" << im << "\t" << drift_target << "\t" << bestRT << "\t" << intensity << std::endl;
       }
 
-      #ifdef _OPENMP
-        #pragma omp critical
-      #endif
+      #pragma omp critical (accum_points)
       {
         exp_im_ms1_all.insert(exp_im_ms1_all.end(),
                               exp_im_ms1_local.begin(), exp_im_ms1_local.end());
