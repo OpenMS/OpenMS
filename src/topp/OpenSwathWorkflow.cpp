@@ -441,8 +441,8 @@ protected:
     registerStringOption_("estimate_extraction_windows", "<all|none|rt[,mz][,im]>", "all", "Choose which extraction windows to estimate during iRT calibration. 'all' = estimate RT, m/z, and IM windows; 'none' = use user-set windows; or a comma-separated list from {rt,mz,im}.", false);
     registerDoubleOption_("rt_estimation_padding_factor", "<double>", 1.3, "A padding factor to multiply the estimated RT window by. For example, a factor of 1.3 will add a 30% padding to the estimated RT window, so if the estimated RT window is 144, then 43 will be added for a total estimated RT window of 187 seconds. A factor of 1.0 will not add any padding to the estimated window.", false);
     setMinFloat_("rt_estimation_padding_factor", 1.0);
-    registerDoubleOption_("ion_mobility_estimation_padding_factor", "<double>", 1.0, "A padding factor to multiply the estimated ion_mobility window by. For example, a factor of 1.3 will add a 30% padding to the estimated ion_mobility window, so if the estimated ion_mobility window is 0.03, then 0.009 will be added for a total estimated ion_mobility window of 0.039. A factor of 1.0 will not add any padding to the estimated window.", false);
-    setMinFloat_("ion_mobility_estimation_padding_factor", 1.0);
+    registerDoubleOption_("im_estimation_padding_factor", "<double>", 1.0, "A padding factor to multiply the estimated ion_mobility window by. For example, a factor of 1.3 will add a 30% padding to the estimated ion_mobility window, so if the estimated ion_mobility window is 0.03, then 0.009 will be added for a total estimated ion_mobility window of 0.039. A factor of 1.0 will not add any padding to the estimated window.", false);
+    setMinFloat_("im_estimation_padding_factor", 1.0);
     registerDoubleOption_("mz_estimation_padding_factor", "<double>", 1.0, "A padding factor to multiply the estimated m/z window by. For example, a factor of 1.3 will add a 30% padding to the estimated m/z window, so if the estimated m/z window is 18, then 5.4 will be added for a total estimated m/z window of 23.4. A factor of 1.0 will not add any padding to the estimated window.", false);
     setMinFloat_("mz_estimation_padding_factor", 1.0);
 
@@ -1113,7 +1113,7 @@ protected:
     calibration_param.setValue("mz_extraction_window", cp_irt.mz_extraction_window);
     calibration_param.setValue("mz_extraction_window_ppm", cp_irt.ppm ? "true" : "false");
     calibration_param.setValue("im_extraction_window", cp_irt.im_extraction_window);
-    calibration_param.setValue("ion_mobility_estimation_padding_factor", getDoubleOption_("ion_mobility_estimation_padding_factor"));
+    calibration_param.setValue("im_estimation_padding_factor", getDoubleOption_("im_estimation_padding_factor"));
     calibration_param.setValue("mz_estimation_padding_factor", getDoubleOption_("mz_estimation_padding_factor"));
     calibration_param.setValue("mz_correction_function", mz_correction_function);
 
