@@ -97,7 +97,7 @@ public:
     /**
       @brief Estimate an extraction window from absolute residuals.
 
-      Treats the input @p residuals as absolute errors (e.g., |Δppm| for m/z).
+      Treats the input @p residuals as absolute errors (e.g., |delta ppm| for m/z).
       We compute an adaptive half-width using OpenMS::Math::adaptiveQuantile
       (Tukey k=1.5; blend raw vs winsorized by tail density), and return
       either the half-width or the full width (2×half).
@@ -107,7 +107,7 @@ public:
         - Ensure @p residuals contain absolute values; non-absolute inputs will be
           converted via std::abs internally.
 
-      @param residuals   Absolute residuals (e.g., |Δppm|).
+      @param residuals   Absolute residuals (e.g., |delta ppm|).
       @param quantile    Quantile of the half-width distribution to use (default 0.99).
       @param full_width  If true, return 2×half-width; if false, return half-width.
       @param padding_factor A padding factor to add to the estimated window.
