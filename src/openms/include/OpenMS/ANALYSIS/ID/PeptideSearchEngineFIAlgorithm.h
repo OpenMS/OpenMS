@@ -103,10 +103,13 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
       SignedSize peptide_mod_index; ///< enumeration index of the non-RNA peptide modification
       */
       double score = 0; ///< main score
-      std::vector<PeptideHit::PeakAnnotation> fragment_annotations;      
+      std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
       double prefix_fraction = 0; ///< fraction of annotated b-ions
       double suffix_fraction = 0; ///< fraction of annotated y-ions
       double mean_error = 0.0; ///< mean absolute fragment mass error
+      int isotope_error = 0; ///< isotope offset used for this PSM
+      uint16_t applied_charge = 0; ///< precursor charge used for this PSM
+      double delta_mass = 0.0; ///< mass difference for open search (Da)
 
       static bool hasBetterScore(const AnnotatedHit_& a, const AnnotatedHit_& b)
       {
@@ -190,6 +193,8 @@ class OPENMS_DLLAPI PeptideSearchEngineFIAlgorithm :
     String peptide_motif_;
 
     Size report_top_hits_;
+
+    bool open_search_;
 };
 
 } // namespace

@@ -201,6 +201,8 @@ namespace OpenMS
     decoys_ = param_.getValue("decoys") == "true";
     annotate_psm_ = ListUtils::toStringList<std::string>(param_.getValue("annotate:PSM"));
 
+    open_search_ = param_.getValue("open_search") == "true";
+
   }
 
   // static
@@ -305,7 +307,7 @@ namespace OpenMS
         PeptideIdentification pi{};
         pi.setSpectrumReference( spec.getNativeID());
         pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
-        pi.setScoreType("hyperscore");
+        pi.setScoreType("ln(hyperscore)");
         pi.setHigherScoreBetter(true);
         double mz = spec.getPrecursors()[0].getMZ();
         pi.setRT(spec.getRT());
@@ -317,7 +319,9 @@ namespace OpenMS
         for (const auto& ah : annotated_hits[scan_index])
         {
           PeptideHit ph;
-          ph.setCharge(charge);
+          // Prefer spectrum charge; if absent (0), fall back to the charge actually used by FI for this candidate
+          const Size used_charge = (charge > 0) ? charge : static_cast<Size>(ah.applied_charge);
+          ph.setCharge(used_charge);
           ph.setScore(ah.score);
           ph.setSequence(ah.sequence);
 
@@ -344,7 +348,7 @@ namespace OpenMS
 
           if (annotation_precursor_error_ppm)
           {
-            double theo_mz = ah.sequence.getMZ(charge);
+            double theo_mz = ah.sequence.getMZ(used_charge);
             double ppm_difference = Math::getPPM(mz, theo_mz);
             ph.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM, ppm_difference);
           }
@@ -357,6 +361,15 @@ namespace OpenMS
           if (annotation_suffix_fraction)
           {
             ph.setMetaValue(Constants::UserParam::MATCHED_SUFFIX_IONS_FRACTION, ah.suffix_fraction);
+          }
+
+          // Add isotope error metavalue (always)
+          ph.setMetaValue("isotope_error", ah.isotope_error);
+
+          // Add delta mass metavalue for open search
+          if (open_search_)
+          {
+            ph.setMetaValue("delta_mass", ah.delta_mass);
           }
 
           // store PSM
@@ -565,7 +578,24 @@ namespace OpenMS
         ah.suffix_fraction = (double)detail.matched_y_ions/seq_length;
         ah.mean_error = detail.mean_error;
 
-        annotated_hits[scan_index].push_back(std::move(ah)); 
+        // Set isotope error and charge from FragmentIndex results
+        ah.isotope_error = sms.isotope_error_;
+        ah.applied_charge = sms.precursor_charge_;
+
+        // Calculate delta_mass for open search
+        if (open_search_)
+        {
+          double theo_mh_plus = ah.sequence.getMZ(1);
+          double exp_mz = exp_spectrum.getPrecursors()[0].getMZ();
+          double exp_mh_plus = exp_mz * sms.precursor_charge_ - ((sms.precursor_charge_ - 1) * Constants::PROTON_MASS_U);
+          ah.delta_mass = exp_mh_plus - theo_mh_plus;
+        }
+        else
+        {
+          ah.delta_mass = 0.0;
+        }
+
+        annotated_hits[scan_index].push_back(std::move(ah));
       }
     }
 
