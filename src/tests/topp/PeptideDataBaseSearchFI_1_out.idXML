@@ -5,9 +5,10 @@
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Oxidation (M)" />
 				<UserParam type="string" name="extra_features" value="score,fragment_mz_error_median_ppm,matched_prefix_ions_fraction,matched_suffix_ions_fraction"/>
+				<UserParam type="string" name="open_search" value="false"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2025-09-19T10:21:39" search_engine="PeptideDataBaseSearchFI" search_engine_version="3.5.0-pre-im-mtd-2025-08-04" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2025-09-19T14:34:27" search_engine="PeptideDataBaseSearchFI" search_engine_version="3.5.0-pre-im-mtd-2025-08-04" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
 			<ProteinHit id="PH_0" accession="test2_rev" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
