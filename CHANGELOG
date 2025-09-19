@@ -38,6 +38,7 @@ TOPP tools:
       - show load/store progress for files in all TOPP tools (#8041)
   Added Tools:
     - OpenNuXL - A peptide-RNA/DNA cross-linking search engine
+    - PeptideDataBaseSearchFI - Experimental peptide database search engine using a fragment index (FI) and the new PeptideSearchEngineFIAlgorithm
   Removed Tools:
     - /
 
@@ -52,6 +53,8 @@ OpenMS Library:
     - ProteinHit: Added TargetDecoyType (TARGET, DECOY, UNKNOWN) and setTargetDecoyType()/getTargetDecoyType().
     - Both: Added isDecoy().
     - unify isotopic distributions (coarse vs. fine) for EmpiricalFormulas with charge (#8099)
+    - FragmentIndex (experimental): New fragment index for fast peptide fragment lookup supporting FI-based peptide database search.
+    - PeptideSearchEngineFIAlgorithm (experimental): Library algorithm leveraging FragmentIndex for peptide database search; used by the PeptideDataBaseSearchFI TOPP tool.
   Changes:
     - removed `assignRanks` and `sortByRanks` in PeptideIdentifications and sort and filter by score instead. Also removed `updateHitRanks` in IDFilter (#7991)
     - remove rank member in PeptideHit and store ranks as meta value (for backwards compatibility). (#7997)
