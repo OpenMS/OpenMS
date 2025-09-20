@@ -389,7 +389,21 @@ class TOPPOpenSwathWorkflow
 public:
 
   TOPPOpenSwathWorkflow()
-    : TOPPOpenSwathBase("OpenSwathWorkflow", "Complete workflow to run OpenSWATH", true)
+    : TOPPOpenSwathBase("OpenSwathWorkflow", "Complete workflow to run OpenSWATH", true,
+                        {
+                          {"Roest, H.L. et al.",
+                           "OpenSWATH enables automated, targeted analysis of data-independent acquisition MS data",
+                           "Nature Biotechnology volume 32, pages 219–223 (2014)",
+                           "https://doi.org/10.1038/nbt.2841"},
+                          {"Rosenberger, G. et al.",
+                           "Inference and quantification of peptidoforms in large sample cohorts by SWATH-MS",
+                           "Nature Biotechnology volume 35, pages 781–788 (2017)",
+                           "https://doi.org/10.1038/nbt.3908"},
+                          {"Meier, F. et al.",
+                           "diaPASEF: parallel accumulation–serial fragmentation combined with data-independent acquisition",
+                           "Nature Methods volume 17, pages 1229–1236 (2020)",
+                           "https://doi.org/10.1038/s41592-020-00998-0"}
+                        })
   {
   }
 
