@@ -18,7 +18,6 @@
 
 #include <arrow/api.h>
 #include <arrow/io/api.h>
-#include <arrow/csv/api.h>
 #include <parquet/arrow/writer.h>
 
 #include <algorithm>
@@ -26,6 +25,7 @@
 #include <chrono>
 #include <iomanip>
 #include <functional>
+#include <fstream>
 
 using namespace std;
 
@@ -449,39 +449,93 @@ namespace
   void writeTSVFile(const std::shared_ptr<arrow::Table>& table, 
                    const OpenMS::String& filename)
   {
-    std::shared_ptr<arrow::io::FileOutputStream> outfile;
-    auto result = arrow::io::FileOutputStream::Open(filename.c_str());
-    if (!result.ok()) {
+    // Manual TSV writing since Arrow CSV writer in this version doesn't support custom delimiters
+    std::ofstream outfile(filename.c_str());
+    if (!outfile.is_open()) {
       throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                         filename, "Failed to open TSV file: " + OpenMS::String(result.status().ToString()));
+                                         filename, "Failed to open TSV file for writing");
     }
-    outfile = result.ValueOrDie();
 
-    // Configure CSV writer options for TSV format (tab-separated)
-    auto write_options = arrow::csv::WriteOptions::Defaults();
-    write_options.delimiter = '\t';  // Use tab as delimiter for TSV
-    write_options.include_header = true;  // Include column headers
+    // Write header
+    auto schema = table->schema();
+    for (int i = 0; i < schema->num_fields(); ++i) {
+      if (i > 0) outfile << "\t";
+      outfile << schema->field(i)->name();
+    }
+    outfile << "\n";
 
-    // Create CSV writer with TSV configuration
-    auto writer_result = arrow::csv::MakeCSVWriter(outfile, table->schema(), write_options);
-    if (!writer_result.ok()) {
-      throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      filename, "Failed to create TSV writer: " + OpenMS::String(writer_result.status().ToString()));
+    // Convert table to record batches for easier row-wise access
+    auto batch_reader_result = arrow::TableBatchReader::Make(*table);
+    if (!batch_reader_result.ok()) {
+      throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                      "Failed to create batch reader: " + OpenMS::String(batch_reader_result.status().ToString()));
     }
-    auto writer = writer_result.ValueOrDie();
-    
-    // Write table to TSV
-    auto status = writer->WriteTable(*table);
-    if (!status.ok()) {
-      throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                         filename, "Failed to write TSV file: " + OpenMS::String(status.ToString()));
+    auto batch_reader = batch_reader_result.ValueOrDie();
+
+    std::shared_ptr<arrow::RecordBatch> batch;
+    while (true) {
+      auto read_result = batch_reader->Next();
+      if (!read_result.ok()) {
+        throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                        "Failed to read batch: " + OpenMS::String(read_result.status().ToString()));
+      }
+      batch = read_result.ValueOrDie();
+      if (!batch) break;  // End of data
+
+      // Write rows from this batch
+      for (int64_t row = 0; row < batch->num_rows(); ++row) {
+        for (int col = 0; col < batch->num_columns(); ++col) {
+          if (col > 0) outfile << "\t";
+          
+          auto column = batch->column(col);
+          
+          // Handle different data types
+          auto type_id = column->type_id();
+          if (column->IsNull(row)) {
+            // Write empty string for null values
+          } else {
+            switch (type_id) {
+              case arrow::Type::STRING: {
+                auto str_array = std::static_pointer_cast<arrow::StringArray>(column);
+                outfile << str_array->GetString(row);
+                break;
+              }
+              case arrow::Type::INT32: {
+                auto int_array = std::static_pointer_cast<arrow::Int32Array>(column);
+                outfile << int_array->Value(row);
+                break;
+              }
+              case arrow::Type::INT64: {
+                auto int_array = std::static_pointer_cast<arrow::Int64Array>(column);
+                outfile << int_array->Value(row);
+                break;
+              }
+              case arrow::Type::FLOAT: {
+                auto float_array = std::static_pointer_cast<arrow::FloatArray>(column);
+                outfile << float_array->Value(row);
+                break;
+              }
+              case arrow::Type::DOUBLE: {
+                auto double_array = std::static_pointer_cast<arrow::DoubleArray>(column);
+                outfile << double_array->Value(row);
+                break;
+              }
+              default: {
+                // For other types including lists and nulls, write a placeholder
+                outfile << "";
+                break;
+              }
+            }
+          }
+        }
+        outfile << "\n";
+      }
     }
-    
-    // Close writer
-    status = writer->Close();
-    if (!status.ok()) {
+
+    outfile.close();
+    if (outfile.fail()) {
       throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      filename, "Failed to close TSV writer: " + OpenMS::String(status.ToString()));
+                                      filename, "Failed to write TSV file data");
     }
   }
 
