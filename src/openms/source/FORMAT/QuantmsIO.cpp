@@ -369,7 +369,7 @@ namespace
     // Add rank column if exporting all PSMs
     if (export_all_psms)
     {
-      fields.insert(fields.begin() + 3, arrow::field("rank", arrow::int32())); // Insert after precursor_charge
+      fields.insert(fields.begin() + 4, arrow::field("rank", arrow::int32())); // Insert after precursor_charge
     }
 
     // Add meta value columns with appropriate types

@@ -192,7 +192,7 @@ START_SECTION((void store(const String& filename, const std::vector<ProteinIdent
     hit.setSequence(AASequence::fromString(pep_strs[i]));
     hit.setScore(0.95 - i * 0.1);
     hit.setCharge(2 + i);
-    hit.setRank(i + 1); // Set rank explicitly
+    hit.setRank(i); // Set rank explicitly (0-based)
     hit.setMetaValue("target_decoy", "target");
     
     PeptideEvidence evidence;
