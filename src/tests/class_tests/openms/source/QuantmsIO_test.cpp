@@ -455,6 +455,74 @@ START_SECTION((Test meta value type detection and proper Arrow column types))
 }
 END_SECTION
 
+START_SECTION((Test meta value type conflict detection throws exception))
+{
+  QuantmsIO file;
+  
+  // Create test data with type conflicts for the same meta value key
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  
+  ProteinIdentification protein_id;
+  protein_id.setIdentifier("test_search");
+  protein_id.setSearchEngine("TestEngine");
+  protein_id.setScoreType("TestScore");
+  protein_id.setHigherScoreBetter(true);
+  protein_ids.push_back(protein_id);
+
+  // Create two peptide identifications with different types for the same meta value key
+  PeptideIdentification peptide_id1;
+  peptide_id1.setIdentifier("test_search");
+  peptide_id1.setRT(1234.5);
+  peptide_id1.setMZ(500.25);
+  peptide_id1.setScoreType("TestScore");
+  
+  PeptideHit hit1;
+  hit1.setSequence(AASequence::fromString("PEPTIDER"));
+  hit1.setScore(0.95);
+  hit1.setCharge(2);
+  hit1.setMetaValue("target_decoy", "target");
+  hit1.setMetaValue("conflicting_value", 42);  // INT_VALUE
+  
+  PeptideEvidence evidence1;
+  evidence1.setProteinAccession("TEST_PROTEIN_1");
+  hit1.setPeptideEvidences(vector<PeptideEvidence>{evidence1});
+  
+  peptide_id1.setHits(vector<PeptideHit>{hit1});
+  peptide_ids.push_back(peptide_id1);
+  
+  // Second peptide identification with different type for same key
+  PeptideIdentification peptide_id2;
+  peptide_id2.setIdentifier("test_search");
+  peptide_id2.setRT(1334.5);
+  peptide_id2.setMZ(600.25);
+  peptide_id2.setScoreType("TestScore");
+  
+  PeptideHit hit2;
+  hit2.setSequence(AASequence::fromString("ALTERNATIVE"));
+  hit2.setScore(0.85);
+  hit2.setCharge(2);
+  hit2.setMetaValue("target_decoy", "target");
+  hit2.setMetaValue("conflicting_value", String("text")); // STRING_VALUE - conflicts with INT_VALUE above
+  
+  PeptideEvidence evidence2;
+  evidence2.setProteinAccession("TEST_PROTEIN_2");
+  hit2.setPeptideEvidences(vector<PeptideEvidence>{evidence2});
+  
+  peptide_id2.setHits(vector<PeptideHit>{hit2});
+  peptide_ids.push_back(peptide_id2);
+  
+  // Define meta value keys that include the conflicting key
+  std::set<String> meta_keys = {"conflicting_value"};
+  
+  String output_file;
+  NEW_TMP_FILE(output_file)
+  
+  // This should throw an InvalidParameter exception due to type conflict
+  TEST_EXCEPTION(Exception::InvalidParameter, file.store(output_file, protein_ids, peptide_ids, false, meta_keys))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

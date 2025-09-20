@@ -97,8 +97,11 @@ namespace
               }
               else if (meta_value_types[key] != current_type)
               {
-                // Type conflict - fall back to string type
-                meta_value_types[key] = OpenMS::DataValue::STRING_VALUE;
+                // Type conflict - throw an exception as requested
+                throw OpenMS::Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                  "Meta value type conflict for key '" + key + "': found both " + 
+                  OpenMS::DataValue::NamesOfDataType[meta_value_types[key]] + " and " + 
+                  OpenMS::DataValue::NamesOfDataType[current_type] + ". All values for a meta key must have the same type.");
               }
             }
           }
