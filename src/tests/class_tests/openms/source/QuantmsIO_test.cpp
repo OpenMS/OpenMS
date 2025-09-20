@@ -62,7 +62,7 @@ START_SECTION((void store(const String& filename, const std::vector<ProteinIdent
   protein_id.setHigherScoreBetter(true);
   protein_ids.push_back(protein_id);
 
-  std:vector<String> pep_strs = {"PEPTIDER", "PEM(Oxidation)TIDER", "DFPIANGER"};
+  std::vector<String> pep_strs = {"PEPTIDER", "PEM(Oxidation)TIDER", "DFPIANGER"};
   // Create multiple peptide identifications to test row count
   for (int i = 0; i < pep_strs.size(); ++i)
   {
