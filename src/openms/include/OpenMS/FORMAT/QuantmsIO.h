@@ -14,6 +14,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
+#include <set>
 
 namespace OpenMS
 {
@@ -45,8 +46,10 @@ namespace OpenMS
     - intensity_array: intensity values array (null for now)
     - file_metadata: file-level metadata with quantmsio_version (1.0), creator (OpenMS), file_type (psm), creation_date (actual timestamp), uuid (generated), scan_format (scan), software_provider (OpenMS)
 
-    Only the first peptide hit per peptide identification is processed (no rank field).
+    Only the first peptide hit per peptide identification is processed by default (no rank field).
+    When export_all_psms is enabled, all peptide hits are processed with a rank field.
     PEP scores are automatically detected from metavalues using known PEP score names.
+    Optional meta value columns can be added for specific keys.
 
     @ingroup FileIO
   */
@@ -72,6 +75,38 @@ namespace OpenMS
     void store(const String& filename,
                const std::vector<ProteinIdentification>& protein_identifications,
                const PeptideIdentificationList& peptide_identifications);
+
+    /**
+      @brief Store peptide and protein identifications in parquet format with all PSMs
+
+      @param filename Output filename (should end with .parquet)
+      @param protein_identifications Vector of protein identifications
+      @param peptide_identifications Vector of peptide identifications
+      @param export_all_psms If true, export all PSMs per spectrum with rank column
+
+      @throws Exception::UnableToCreateFile if file cannot be created
+    */
+    void store(const String& filename,
+               const std::vector<ProteinIdentification>& protein_identifications,
+               const PeptideIdentificationList& peptide_identifications,
+               bool export_all_psms);
+
+    /**
+      @brief Store peptide and protein identifications in parquet format with enhanced options
+
+      @param filename Output filename (should end with .parquet)
+      @param protein_identifications Vector of protein identifications
+      @param peptide_identifications Vector of peptide identifications
+      @param export_all_psms If true, export all PSMs per spectrum with rank column. If false, export only first PSM
+      @param meta_value_keys Set of meta value keys to export as additional columns
+
+      @throws Exception::UnableToCreateFile if file cannot be created
+    */
+    void store(const String& filename,
+               const std::vector<ProteinIdentification>& protein_identifications,
+               const PeptideIdentificationList& peptide_identifications,
+               bool export_all_psms,
+               const std::set<String>& meta_value_keys);
 
   };
 
