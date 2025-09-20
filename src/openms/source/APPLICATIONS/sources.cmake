@@ -6,6 +6,7 @@ set(sources_list
 ConsoleUtils.cpp
 INIUpdater.cpp
 ParameterInformation.cpp
+OpenSwathBase.cpp
 SearchEngineBase.cpp
 ToolHandler.cpp
 TOPPBase.cpp
