@@ -1,4 +1,4 @@
-// Copyright (c) 2002-2023, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -2176,6 +2176,7 @@ static void scoreXLIons_(
                          size_t &n_theoretical_peaks,
                          const PeakSpectrum &all_possible_marker_ion_sub_score_spectrum_z1)
   {
+    (void)marker_ions_sub_score_spectrum_z1;  // unused parameter
     OPENMS_PRECONDITION(!partial_loss_template_z1_b_ions.empty(), "Empty partial loss spectrum provided.");
     OPENMS_PRECONDITION(intensity_sum.size() == partial_loss_template_z1_b_ions.size(), "Sum array needs to be of same size as b-ion array");
     OPENMS_PRECONDITION(intensity_sum.size() == partial_loss_template_z1_y_ions.size(), "Sum array needs to be of same size as y-ion array");
@@ -2822,7 +2823,6 @@ static void scoreXLIons_(
 
       // count how often a shift matches a residue + adduct mass (including mass 0 for unmodified residue)
       size_t aa_plus_adduct_in_mass_range(0);
-      size_t aa_plus_adduct_match(0);
       
       for (Size i = 0; i != mzs.size(); ++i)
       {
@@ -4675,7 +4675,7 @@ static void scoreXLIons_(
     double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
     double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
     bool generate_decoys = getStringOption_("NuXL:decoys") == "true";
-    int decoy_factor = getIntOption_("NuXL:decoy_factor");
+    Size decoy_factor = static_cast<Size>(getIntOption_("NuXL:decoy_factor"));
 
     StringList filter = getStringList_("filter");
     bool filter_pc_mass_error = find(filter.begin(), filter.end(), "filter_pc_mass_error") != filter.end();

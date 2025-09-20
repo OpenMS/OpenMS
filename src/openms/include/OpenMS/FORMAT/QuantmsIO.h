@@ -33,16 +33,17 @@ namespace OpenMS
     - calculated_mz: theoretical m/z from sequence
     - observed_mz: experimental precursor m/z
     - additional_scores: additional scores (null for now)
-    - mp_accessions: protein accessions (null for now)
+    - protein_accessions: protein accessions (null for now)
     - predicted_rt: predicted retention time (null for now)
     - reference_file_name: reference file name
     - cv_params: CV parameters (null for now)
     - scan: scan identifier
     - rt: retention time in seconds (nullable)
     - ion_mobility: ion mobility value (nullable, null for now)
-    - num_peaks: number of peaks (nullable, null for now)
+    - number_peaks: number of peaks (nullable, null for now)
     - mz_array: m/z values array (null for now)
     - intensity_array: intensity values array (null for now)
+    - file_metadata: file-level metadata with quantmsio_version (1.0), creator (OpenMS), file_type (psm), creation_date (actual timestamp), uuid (generated), scan_format (scan), software_provider (OpenMS)
 
     Only the first peptide hit per peptide identification is processed (no rank field).
     PEP scores are automatically detected from metavalues using known PEP score names.

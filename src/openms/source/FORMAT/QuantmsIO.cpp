@@ -21,6 +21,9 @@
 
 #include <algorithm>
 #include <sstream>
+#include <chrono>
+#include <iomanip>
+#include <functional>
 
 using namespace std;
 
@@ -40,14 +43,14 @@ namespace
       arrow::field("calculated_mz", arrow::float32()),
       arrow::field("observed_mz", arrow::float32()),
       arrow::field("additional_scores", arrow::null(), true), // nullable - null for now
-      arrow::field("mp_accessions", arrow::null(), true), // nullable - null for now
+      arrow::field("protein_accessions", arrow::null(), true), // nullable - null for now
       arrow::field("predicted_rt", arrow::float32(), true), // nullable
       arrow::field("reference_file_name", arrow::utf8()),
       arrow::field("cv_params", arrow::null(), true), // nullable - null for now
       arrow::field("scan", arrow::utf8()),
       arrow::field("rt", arrow::float32(), true), // nullable
       arrow::field("ion_mobility", arrow::float32(), true), // nullable
-      arrow::field("num_peaks", arrow::int32(), true), // nullable
+      arrow::field("number_peaks", arrow::int32(), true), // nullable
       arrow::field("mz_array", arrow::null(), true), // nullable - null for now
       arrow::field("intensity_array", arrow::null(), true) // nullable - null for now
     };
@@ -56,7 +59,8 @@ namespace
   }
 
   void writeParquetFile(const std::shared_ptr<arrow::Table>& table, 
-                       const OpenMS::String& filename)
+                       const OpenMS::String& filename,
+                       const std::map<std::string, std::string>& file_metadata = {})
   {
     std::shared_ptr<arrow::io::FileOutputStream> outfile;
     auto result = arrow::io::FileOutputStream::Open(filename.c_str());
@@ -66,11 +70,43 @@ namespace
     }
     outfile = result.ValueOrDie();
 
-    auto status = parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), 
-                                           outfile, table->num_rows());
+    // Create a writer with parquet::arrow::FileWriter
+    auto writer_result = parquet::arrow::FileWriter::Open(*table->schema(), 
+                                                       arrow::default_memory_pool(),
+                                                       outfile);
+    if (!writer_result.ok()) {
+      throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                      filename, "Failed to create parquet writer: " + OpenMS::String(writer_result.status().ToString()));
+    }
+    std::unique_ptr<parquet::arrow::FileWriter> writer = std::move(writer_result.ValueOrDie());
+    
+    // Add metadata to the parquet file using AddKeyValueMetadata
+    if (!file_metadata.empty()) {
+      std::vector<std::string> md_keys, md_values;
+      for (const auto& kv : file_metadata) {
+        md_keys.push_back(kv.first);
+        md_values.push_back(kv.second);
+      }
+      const auto metadata = arrow::key_value_metadata(md_keys,md_values);
+      auto status = writer->AddKeyValueMetadata(metadata);
+      if (!status.ok()) {
+        throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                        filename, "Failed to add metadata: " + OpenMS::String(status.ToString()));
+      }
+    }
+    
+    
+    // Write table using the FileWriter
+    auto status = writer->WriteTable(*table, table->num_rows());
     if (!status.ok()) {
       throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                                          filename, "Failed to write parquet file: " + OpenMS::String(status.ToString()));
+    }
+    // Close writer
+    status = writer->Close();
+    if (!status.ok()) {
+      throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                      filename, "Failed to close writer: " + OpenMS::String(status.ToString()));
     }
   }
 
@@ -403,7 +439,7 @@ namespace
       calculated_mz_array,
       observed_mz_array,
       arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie(), // additional_scores - null for now
-      arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie(), // mp_accessions - using mp_accessions_array would need list type
+      arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie(), // protein_accessions - using mp_accessions_array would need list type
       predicted_rt_array,
       reference_file_name_array,
       arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie(), // cv_params - null for now
@@ -412,7 +448,7 @@ namespace
       ion_mobility_array,
       num_peaks_array,
       arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie(), // mz_array - null for now
-      arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie()  // intensity_array - null for now
+      arrow::MakeArrayOfNull(arrow::null(), sequence_array->length()).ValueOrDie() // intensity_array - null for now
     });
 
     return table;
@@ -428,11 +464,35 @@ namespace OpenMS
                        const std::vector<ProteinIdentification>& protein_identifications,
                        const PeptideIdentificationList& peptide_identifications)
   {
+    // Generate file metadata
+    auto now = std::chrono::system_clock::now();
+    auto time_t = std::chrono::system_clock::to_time_t(now);
+    std::ostringstream creation_date_stream;
+    creation_date_stream << std::put_time(std::gmtime(&time_t), "%Y-%m-%dT%H:%M:%SZ");
+    std::string creation_date_str = creation_date_stream.str();
+    
+    // Generate a simple UUID based on current time and process
+    std::ostringstream uuid_stream;
+    uuid_stream << std::hex << std::hash<std::string>{}(creation_date_str) << "-0000-4000-8000-" 
+                << std::setfill('0') << std::setw(12) << (std::hash<const void*>{}(&protein_identifications) & 0xFFFFFFFFFFFF);
+    std::string uuid_str = uuid_stream.str();
+
+    // Create file metadata map
+    std::map<std::string, std::string> file_metadata = {
+      {"quantmsio_version", "1.0"},
+      {"creator", "OpenMS"},
+      {"file_type", "psm"},
+      {"creation_date", creation_date_str},
+      {"uuid", uuid_str},
+      {"scan_format", "scan"},
+      {"software_provider", "OpenMS"}
+    };
+
     // Convert data to Arrow table
     auto table = convertToArrowTable(protein_identifications, peptide_identifications);
     
-    // Write to parquet file
-    writeParquetFile(table, filename);
+    // Write to parquet file with metadata
+    writeParquetFile(table, filename, file_metadata);
   }
 
 } // namespace OpenMS
