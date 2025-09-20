@@ -317,21 +317,141 @@ START_SECTION((void store(const String& filename, const std::vector<ProteinIdent
   TEST_EQUAL(schema->field(20)->name(), "mass_error")
   TEST_EQUAL(schema->field(21)->name(), "nonexistent_key")
   
-  // Verify meta value data
+  // Verify meta value data and types
   auto confidence_column = table->GetColumnByName("confidence");
   TEST_NOT_EQUAL(confidence_column, nullptr)
-  auto confidence_array = std::static_pointer_cast<arrow::StringArray>(confidence_column->chunk(0));
-  TEST_EQUAL(confidence_array->GetString(0), "0.85")
+  // confidence should be a double array since 0.85 is a double value
+  auto confidence_array = std::static_pointer_cast<arrow::DoubleArray>(confidence_column->chunk(0));
+  TEST_EQUAL(confidence_array->Value(0), 0.85)
   
   auto mass_error_column = table->GetColumnByName("mass_error");
   TEST_NOT_EQUAL(mass_error_column, nullptr)
-  auto mass_error_array = std::static_pointer_cast<arrow::StringArray>(mass_error_column->chunk(0));
-  TEST_EQUAL(mass_error_array->GetString(0), "2.5")
+  // mass_error should be a double array since 2.5 is a double value  
+  auto mass_error_array = std::static_pointer_cast<arrow::DoubleArray>(mass_error_column->chunk(0));
+  TEST_EQUAL(mass_error_array->Value(0), 2.5)
   
   auto nonexistent_column = table->GetColumnByName("nonexistent_key");
   TEST_NOT_EQUAL(nonexistent_column, nullptr)
+  // nonexistent_key should be string type (default) with null value
   auto nonexistent_array = std::static_pointer_cast<arrow::StringArray>(nonexistent_column->chunk(0));
   TEST_EQUAL(nonexistent_array->IsNull(0), true)
+}
+END_SECTION
+
+START_SECTION((Test meta value type detection and proper Arrow column types))
+{
+  QuantmsIO file;
+  
+  // Create test data with different meta value types
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  
+  ProteinIdentification protein_id;
+  protein_id.setIdentifier("test_search");
+  protein_id.setSearchEngine("TestEngine");
+  protein_id.setScoreType("TestScore");
+  protein_id.setHigherScoreBetter(true);
+  protein_ids.push_back(protein_id);
+
+  // Create peptide identification with different types of meta values
+  PeptideIdentification peptide_id;
+  peptide_id.setIdentifier("test_search");
+  peptide_id.setRT(1234.5);
+  peptide_id.setMZ(500.25);
+  peptide_id.setScoreType("TestScore");
+  
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDER"));
+  hit.setScore(0.95);
+  hit.setCharge(2);
+  hit.setMetaValue("target_decoy", "target");
+  
+  // Add different types of meta values for testing
+  hit.setMetaValue("string_value", String("test_string"));      // STRING_VALUE
+  hit.setMetaValue("int_value", 42);                           // INT_VALUE
+  hit.setMetaValue("double_value", 3.14159);                   // DOUBLE_VALUE
+  hit.setMetaValue("string_list", StringList{"a", "b", "c"}); // STRING_LIST
+  hit.setMetaValue("int_list", IntList{1, 2, 3});            // INT_LIST
+  hit.setMetaValue("double_list", DoubleList{1.1, 2.2, 3.3}); // DOUBLE_LIST
+  
+  PeptideEvidence evidence;
+  evidence.setProteinAccession("TEST_PROTEIN");
+  hit.setPeptideEvidences(vector<PeptideEvidence>{evidence});
+  
+  peptide_id.setHits(vector<PeptideHit>{hit});
+  peptide_ids.push_back(peptide_id);
+  
+  // Define meta value keys to export - test all types
+  std::set<String> meta_keys = {"string_value", "int_value", "double_value", "string_list", "int_list", "double_list"};
+  
+  String output_file;
+  NEW_TMP_FILE(output_file)
+  
+  // Store the data with meta values
+  file.store(output_file, protein_ids, peptide_ids, false, meta_keys);
+  
+  // Read back the parquet file
+  arrow::MemoryPool* pool = arrow::default_memory_pool();
+  std::shared_ptr<arrow::io::ReadableFile> infile;
+  auto result = arrow::io::ReadableFile::Open(output_file.c_str());
+  TEST_EQUAL(result.ok(), true)
+  infile = result.ValueOrDie();
+
+  std::unique_ptr<parquet::arrow::FileReader> reader;
+  PARQUET_ASSIGN_OR_THROW(reader, parquet::arrow::OpenFile(infile, pool));
+
+  std::shared_ptr<arrow::Table> table;
+  auto read_status = reader->ReadTable(&table);
+  TEST_EQUAL(read_status.ok(), true)
+  
+  // Verify number of columns (19 standard + 6 meta value columns)
+  TEST_EQUAL(table->num_columns(), 25)
+  
+  // Verify schema types for meta value columns
+  auto schema = table->schema();
+  
+  // Check that string_value is utf8 type
+  auto string_field = schema->GetFieldByName("string_value");
+  TEST_NOT_EQUAL(string_field, nullptr)
+  TEST_EQUAL(string_field->type()->id(), arrow::Type::STRING)
+  
+  // Check that int_value is int64 type
+  auto int_field = schema->GetFieldByName("int_value");
+  TEST_NOT_EQUAL(int_field, nullptr)  
+  TEST_EQUAL(int_field->type()->id(), arrow::Type::INT64)
+  
+  // Check that double_value is float64 type
+  auto double_field = schema->GetFieldByName("double_value");
+  TEST_NOT_EQUAL(double_field, nullptr)
+  TEST_EQUAL(double_field->type()->id(), arrow::Type::DOUBLE)
+  
+  // Check that string_list is list of string type
+  auto string_list_field = schema->GetFieldByName("string_list");
+  TEST_NOT_EQUAL(string_list_field, nullptr)
+  TEST_EQUAL(string_list_field->type()->id(), arrow::Type::LIST)
+  
+  // Check that int_list is list of int64 type  
+  auto int_list_field = schema->GetFieldByName("int_list");
+  TEST_NOT_EQUAL(int_list_field, nullptr)
+  TEST_EQUAL(int_list_field->type()->id(), arrow::Type::LIST)
+  
+  // Check that double_list is list of double type
+  auto double_list_field = schema->GetFieldByName("double_list");
+  TEST_NOT_EQUAL(double_list_field, nullptr)
+  TEST_EQUAL(double_list_field->type()->id(), arrow::Type::LIST)
+  
+  // Verify actual data values
+  auto string_column = table->GetColumnByName("string_value");
+  auto string_array = std::static_pointer_cast<arrow::StringArray>(string_column->chunk(0));
+  TEST_EQUAL(string_array->GetString(0), "test_string")
+  
+  auto int_column = table->GetColumnByName("int_value");
+  auto int_array = std::static_pointer_cast<arrow::Int64Array>(int_column->chunk(0));
+  TEST_EQUAL(int_array->Value(0), 42)
+  
+  auto double_column = table->GetColumnByName("double_value");
+  auto double_array = std::static_pointer_cast<arrow::DoubleArray>(double_column->chunk(0));
+  TEST_REAL_SIMILAR(double_array->Value(0), 3.14159)
 }
 END_SECTION
 

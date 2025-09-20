@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
@@ -31,7 +32,314 @@ namespace
 {
   // Helper functions moved to anonymous namespace to hide Arrow types from header
 
-  std::shared_ptr<arrow::Schema> createPSMSchema(bool export_all_psms = false, const std::set<OpenMS::String>& meta_value_keys = {})
+  // Helper function to map DataValue type to Arrow field type
+  std::shared_ptr<arrow::DataType> dataValueTypeToArrowType(OpenMS::DataValue::DataType data_type)
+  {
+    switch (data_type)
+    {
+      case OpenMS::DataValue::STRING_VALUE:
+        return arrow::utf8();
+      case OpenMS::DataValue::INT_VALUE:
+        return arrow::int64(); // SignedSize maps to int64
+      case OpenMS::DataValue::DOUBLE_VALUE:
+        return arrow::float64();
+      case OpenMS::DataValue::STRING_LIST:
+        return arrow::list(arrow::utf8());
+      case OpenMS::DataValue::INT_LIST:
+        return arrow::list(arrow::int64());
+      case OpenMS::DataValue::DOUBLE_LIST:
+        return arrow::list(arrow::float64());
+      case OpenMS::DataValue::EMPTY_VALUE:
+      default:
+        return arrow::utf8(); // Default to string for unknown or empty types
+    }
+  }
+
+  // Helper function to determine meta value types by scanning all peptide hits
+  std::map<OpenMS::String, OpenMS::DataValue::DataType> determineMetaValueTypes(
+    const OpenMS::PeptideIdentificationList& peptide_identifications,
+    const std::set<OpenMS::String>& meta_value_keys,
+    bool export_all_psms)
+  {
+    std::map<OpenMS::String, OpenMS::DataValue::DataType> meta_value_types;
+    
+    // Initialize all keys as EMPTY_VALUE
+    for (const auto& key : meta_value_keys)
+    {
+      meta_value_types[key] = OpenMS::DataValue::EMPTY_VALUE;
+    }
+    
+    // Scan all peptide identifications and hits to determine types
+    for (const auto& peptide_id : peptide_identifications)
+    {
+      const auto& hits = peptide_id.getHits();
+      if (hits.empty()) continue;
+      
+      size_t num_hits_to_process = export_all_psms ? hits.size() : 1;
+      
+      for (size_t hit_index = 0; hit_index < num_hits_to_process; ++hit_index)
+      {
+        const OpenMS::PeptideHit& hit = hits[hit_index];
+        
+        for (const auto& key : meta_value_keys)
+        {
+          if (hit.metaValueExists(key))
+          {
+            OpenMS::DataValue meta_value = hit.getMetaValue(key);
+            OpenMS::DataValue::DataType current_type = meta_value.valueType();
+            
+            if (current_type != OpenMS::DataValue::EMPTY_VALUE)
+            {
+              if (meta_value_types[key] == OpenMS::DataValue::EMPTY_VALUE)
+              {
+                // First non-empty value found, set the type
+                meta_value_types[key] = current_type;
+              }
+              else if (meta_value_types[key] != current_type)
+              {
+                // Type conflict - fall back to string type
+                meta_value_types[key] = OpenMS::DataValue::STRING_VALUE;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // Convert any remaining EMPTY_VALUE types to STRING_VALUE
+    for (auto& pair : meta_value_types)
+    {
+      if (pair.second == OpenMS::DataValue::EMPTY_VALUE)
+      {
+        pair.second = OpenMS::DataValue::STRING_VALUE;
+      }
+    }
+    
+    return meta_value_types;
+  }
+
+  // Base class for meta value builders to handle different types
+  class MetaValueBuilderBase 
+  {
+  public:
+    virtual ~MetaValueBuilderBase() = default;
+    virtual arrow::Status AppendValue(const OpenMS::DataValue& value) = 0;
+    virtual arrow::Status AppendNull() = 0;
+    virtual arrow::Status Finish(std::shared_ptr<arrow::Array>* out) = 0;
+  };
+
+  // String meta value builder
+  class StringMetaValueBuilder : public MetaValueBuilderBase
+  {
+  private:
+    arrow::StringBuilder builder_;
+  public:
+    arrow::Status AppendValue(const OpenMS::DataValue& value) override
+    {
+      return builder_.Append(value.toString().c_str());
+    }
+    arrow::Status AppendNull() override
+    {
+      return builder_.AppendNull();
+    }
+    arrow::Status Finish(std::shared_ptr<arrow::Array>* out) override
+    {
+      return builder_.Finish(out);
+    }
+  };
+
+  // Integer meta value builder
+  class IntMetaValueBuilder : public MetaValueBuilderBase
+  {
+  private:
+    arrow::Int64Builder builder_;
+  public:
+    arrow::Status AppendValue(const OpenMS::DataValue& value) override
+    {
+      try
+      {
+        return builder_.Append(static_cast<int64_t>(value));
+      }
+      catch (...)
+      {
+        return builder_.AppendNull(); // Fall back to null if conversion fails
+      }
+    }
+    arrow::Status AppendNull() override
+    {
+      return builder_.AppendNull();
+    }
+    arrow::Status Finish(std::shared_ptr<arrow::Array>* out) override
+    {
+      return builder_.Finish(out);
+    }
+  };
+
+  // Double meta value builder
+  class DoubleMetaValueBuilder : public MetaValueBuilderBase
+  {
+  private:
+    arrow::DoubleBuilder builder_;
+  public:
+    arrow::Status AppendValue(const OpenMS::DataValue& value) override
+    {
+      try
+      {
+        return builder_.Append(static_cast<double>(value));
+      }
+      catch (...)
+      {
+        return builder_.AppendNull(); // Fall back to null if conversion fails
+      }
+    }
+    arrow::Status AppendNull() override
+    {
+      return builder_.AppendNull();
+    }
+    arrow::Status Finish(std::shared_ptr<arrow::Array>* out) override
+    {
+      return builder_.Finish(out);
+    }
+  };
+
+  // String list meta value builder
+  class StringListMetaValueBuilder : public MetaValueBuilderBase
+  {
+  private:
+    arrow::ListBuilder builder_;
+    arrow::StringBuilder value_builder_;
+  public:
+    StringListMetaValueBuilder() : builder_(arrow::default_memory_pool(), std::make_shared<arrow::StringBuilder>())
+    {
+    }
+    
+    arrow::Status AppendValue(const OpenMS::DataValue& value) override
+    {
+      try
+      {
+        auto string_list = value.toStringList();
+        ARROW_RETURN_NOT_OK(builder_.Append());
+        for (const auto& str : string_list)
+        {
+          ARROW_RETURN_NOT_OK(static_cast<arrow::StringBuilder*>(builder_.value_builder())->Append(str.c_str()));
+        }
+        return arrow::Status::OK();
+      }
+      catch (...)
+      {
+        return builder_.AppendNull(); // Fall back to null if conversion fails
+      }
+    }
+    arrow::Status AppendNull() override
+    {
+      return builder_.AppendNull();
+    }
+    arrow::Status Finish(std::shared_ptr<arrow::Array>* out) override
+    {
+      return builder_.Finish(out);
+    }
+  };
+
+  // Integer list meta value builder
+  class IntListMetaValueBuilder : public MetaValueBuilderBase
+  {
+  private:
+    arrow::ListBuilder builder_;
+  public:
+    IntListMetaValueBuilder() : builder_(arrow::default_memory_pool(), std::make_shared<arrow::Int64Builder>())
+    {
+    }
+    
+    arrow::Status AppendValue(const OpenMS::DataValue& value) override
+    {
+      try
+      {
+        auto int_list = value.toIntList();
+        ARROW_RETURN_NOT_OK(builder_.Append());
+        for (const auto& val : int_list)
+        {
+          ARROW_RETURN_NOT_OK(static_cast<arrow::Int64Builder*>(builder_.value_builder())->Append(static_cast<int64_t>(val)));
+        }
+        return arrow::Status::OK();
+      }
+      catch (...)
+      {
+        return builder_.AppendNull(); // Fall back to null if conversion fails
+      }
+    }
+    arrow::Status AppendNull() override
+    {
+      return builder_.AppendNull();
+    }
+    arrow::Status Finish(std::shared_ptr<arrow::Array>* out) override
+    {
+      return builder_.Finish(out);
+    }
+  };
+
+  // Double list meta value builder
+  class DoubleListMetaValueBuilder : public MetaValueBuilderBase
+  {
+  private:
+    arrow::ListBuilder builder_;
+  public:
+    DoubleListMetaValueBuilder() : builder_(arrow::default_memory_pool(), std::make_shared<arrow::DoubleBuilder>())
+    {
+    }
+    
+    arrow::Status AppendValue(const OpenMS::DataValue& value) override
+    {
+      try
+      {
+        auto double_list = value.toDoubleList();
+        ARROW_RETURN_NOT_OK(builder_.Append());
+        for (const auto& val : double_list)
+        {
+          ARROW_RETURN_NOT_OK(static_cast<arrow::DoubleBuilder*>(builder_.value_builder())->Append(val));
+        }
+        return arrow::Status::OK();
+      }
+      catch (...)
+      {
+        return builder_.AppendNull(); // Fall back to null if conversion fails
+      }
+    }
+    arrow::Status AppendNull() override
+    {
+      return builder_.AppendNull();
+    }
+    arrow::Status Finish(std::shared_ptr<arrow::Array>* out) override
+    {
+      return builder_.Finish(out);
+    }
+  };
+
+  // Factory function to create appropriate meta value builder
+  std::unique_ptr<MetaValueBuilderBase> createMetaValueBuilder(OpenMS::DataValue::DataType data_type)
+  {
+    switch (data_type)
+    {
+      case OpenMS::DataValue::STRING_VALUE:
+        return std::make_unique<StringMetaValueBuilder>();
+      case OpenMS::DataValue::INT_VALUE:
+        return std::make_unique<IntMetaValueBuilder>();
+      case OpenMS::DataValue::DOUBLE_VALUE:
+        return std::make_unique<DoubleMetaValueBuilder>();
+      case OpenMS::DataValue::STRING_LIST:
+        return std::make_unique<StringListMetaValueBuilder>();
+      case OpenMS::DataValue::INT_LIST:
+        return std::make_unique<IntListMetaValueBuilder>();
+      case OpenMS::DataValue::DOUBLE_LIST:
+        return std::make_unique<DoubleListMetaValueBuilder>();
+      case OpenMS::DataValue::EMPTY_VALUE:
+      default:
+        return std::make_unique<StringMetaValueBuilder>(); // Default to string
+    }
+  }
+
+  std::shared_ptr<arrow::Schema> createPSMSchema(bool export_all_psms = false, 
+                                                const std::set<OpenMS::String>& meta_value_keys = {},
+                                                const std::map<OpenMS::String, OpenMS::DataValue::DataType>& meta_value_types = {})
   {
     std::vector<std::shared_ptr<arrow::Field>> fields = {
       arrow::field("sequence", arrow::utf8()),
@@ -61,11 +369,22 @@ namespace
       fields.insert(fields.begin() + 3, arrow::field("rank", arrow::int32())); // Insert after precursor_charge
     }
 
-    // Add meta value columns
+    // Add meta value columns with appropriate types
     for (const auto& key : meta_value_keys)
     {
-      // Use string type for meta values by default - we'll determine the actual type during processing
-      fields.push_back(arrow::field(key.c_str(), arrow::utf8(), true)); // nullable
+      auto type_it = meta_value_types.find(key);
+      std::shared_ptr<arrow::DataType> arrow_type;
+      
+      if (type_it != meta_value_types.end())
+      {
+        arrow_type = dataValueTypeToArrowType(type_it->second);
+      }
+      else
+      {
+        arrow_type = arrow::utf8(); // Default to string
+      }
+      
+      fields.push_back(arrow::field(key.c_str(), arrow_type, true)); // nullable
     }
 
     return arrow::schema(fields);
@@ -129,6 +448,9 @@ namespace
     bool export_all_psms = false,
     const std::set<OpenMS::String>& meta_value_keys = {})
   {
+    // First, determine meta value types by scanning all data
+    auto meta_value_types = determineMetaValueTypes(peptide_identifications, meta_value_keys, export_all_psms);
+
     // Create builders for each column - using simpler types for now
     arrow::StringBuilder sequence_builder;
     arrow::StringBuilder peptidoform_builder;
@@ -146,11 +468,14 @@ namespace
     arrow::FloatBuilder ion_mobility_builder;
     arrow::Int32Builder num_peaks_builder;
 
-    // Create builders for meta value columns
-    std::map<OpenMS::String, std::unique_ptr<arrow::StringBuilder>> meta_value_builders;
+    // Create typed builders for meta value columns
+    std::map<OpenMS::String, std::unique_ptr<MetaValueBuilderBase>> meta_value_builders;
     for (const auto& key : meta_value_keys)
     {
-      meta_value_builders[key] = std::make_unique<arrow::StringBuilder>();
+      auto type_it = meta_value_types.find(key);
+      OpenMS::DataValue::DataType data_type = (type_it != meta_value_types.end()) ? 
+                                             type_it->second : OpenMS::DataValue::STRING_VALUE;
+      meta_value_builders[key] = createMetaValueBuilder(data_type);
     }
 
     // Find associated protein identification for metadata
@@ -370,8 +695,8 @@ namespace
         auto& builder = meta_value_builders[key];
         if (hit.metaValueExists(key))
         {
-          OpenMS::String meta_value = hit.getMetaValue(key).toString();
-          status = builder->Append(meta_value.c_str());
+          OpenMS::DataValue meta_value = hit.getMetaValue(key);
+          status = builder->AppendValue(meta_value);
         }
         else
         {
@@ -509,7 +834,7 @@ namespace
     }
 
     // Create simplified schema for now - will add complex nested types later
-    auto schema = createPSMSchema(export_all_psms, meta_value_keys);
+    auto schema = createPSMSchema(export_all_psms, meta_value_keys, meta_value_types);
     
     // Build the arrays vector in the correct order to match the schema
     std::vector<std::shared_ptr<arrow::Array>> arrays = {
