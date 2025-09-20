@@ -18,6 +18,7 @@
 
 #include <arrow/api.h>
 #include <arrow/io/api.h>
+#include <arrow/csv/api.h>
 #include <parquet/arrow/writer.h>
 
 #include <algorithm>
@@ -442,6 +443,45 @@ namespace
     if (!status.ok()) {
       throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                                       filename, "Failed to close writer: " + OpenMS::String(status.ToString()));
+    }
+  }
+
+  void writeTSVFile(const std::shared_ptr<arrow::Table>& table, 
+                   const OpenMS::String& filename)
+  {
+    std::shared_ptr<arrow::io::FileOutputStream> outfile;
+    auto result = arrow::io::FileOutputStream::Open(filename.c_str());
+    if (!result.ok()) {
+      throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                         filename, "Failed to open TSV file: " + OpenMS::String(result.status().ToString()));
+    }
+    outfile = result.ValueOrDie();
+
+    // Configure CSV writer options for TSV format (tab-separated)
+    auto write_options = arrow::csv::WriteOptions::Defaults();
+    write_options.delimiter = '\t';  // Use tab as delimiter for TSV
+    write_options.include_header = true;  // Include column headers
+
+    // Create CSV writer with TSV configuration
+    auto writer_result = arrow::csv::MakeCSVWriter(outfile, table->schema(), write_options);
+    if (!writer_result.ok()) {
+      throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                      filename, "Failed to create TSV writer: " + OpenMS::String(writer_result.status().ToString()));
+    }
+    auto writer = writer_result.ValueOrDie();
+    
+    // Write table to TSV
+    auto status = writer->WriteTable(*table);
+    if (!status.ok()) {
+      throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                         filename, "Failed to write TSV file: " + OpenMS::String(status.ToString()));
+    }
+    
+    // Close writer
+    status = writer->Close();
+    if (!status.ok()) {
+      throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                      filename, "Failed to close TSV writer: " + OpenMS::String(status.ToString()));
     }
   }
 
@@ -937,8 +977,25 @@ namespace OpenMS
     // Convert data to Arrow table
     auto table = convertToArrowTable(protein_identifications, peptide_identifications, export_all_psms, meta_value_keys);
     
-    // Write to parquet file with metadata
-    writeParquetFile(table, filename, file_metadata);
+    // Determine output format based on file extension
+    String extension = filename.suffix('.');
+    extension.toLower();
+    
+    if (extension == "parquet")
+    {
+      // Write to parquet file with metadata
+      writeParquetFile(table, filename, file_metadata);
+    }
+    else if (extension == "tsv" || extension == "csv" || extension == "txt")
+    {
+      // Write to TSV file (note: metadata is not preserved in TSV format)
+      writeTSVFile(table, filename);
+    }
+    else
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Unsupported file format: " + extension + ". Supported formats: parquet, tsv, csv, txt");
+    }
   }
 
 } // namespace OpenMS

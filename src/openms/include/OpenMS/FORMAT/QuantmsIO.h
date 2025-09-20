@@ -19,12 +19,12 @@
 namespace OpenMS
 {
   /**
-    @brief File adapter for writing PSM (Peptide Spectrum Match) data to parquet files
+    @brief File adapter for writing PSM (Peptide Spectrum Match) data to parquet or TSV files
 
     This class converts OpenMS ProteinIdentification and PeptideIdentification 
-    objects to parquet format following the quantms.io PSM specification.
+    objects to parquet or TSV format following the quantms.io PSM specification.
     
-    The parquet output contains columns following the quantms.io PSM specification:
+    The output contains columns following the quantms.io PSM specification:
     - sequence: unmodified peptide sequence
     - peptidoform: peptide sequence with modifications
     - modifications: peptide modifications (null for now)
@@ -44,12 +44,16 @@ namespace OpenMS
     - number_peaks: number of peaks (nullable, null for now)
     - mz_array: m/z values array (null for now)
     - intensity_array: intensity values array (null for now)
-    - file_metadata: file-level metadata with quantmsio_version (1.0), creator (OpenMS), file_type (psm), creation_date (actual timestamp), uuid (generated), scan_format (scan), software_provider (OpenMS)
+    - file_metadata: file-level metadata with quantmsio_version (1.0), creator (OpenMS), file_type (psm), creation_date (actual timestamp), uuid (generated), scan_format (scan), software_provider (OpenMS) - only preserved in parquet format
 
     Only the first peptide hit per peptide identification is processed by default (no rank field).
     When export_all_psms is enabled, all peptide hits are processed with a rank field.
     PEP scores are automatically detected from metavalues using known PEP score names.
     Optional meta value columns can be added for specific keys.
+    
+    Output format is determined by file extension:
+    - .parquet: Apache Parquet format with embedded metadata
+    - .tsv, .csv, .txt: Tab-separated values format (metadata not preserved)
 
     @ingroup FileIO
   */
@@ -64,27 +68,29 @@ namespace OpenMS
     ~QuantmsIO();
 
     /**
-      @brief Store peptide and protein identifications in parquet format
+      @brief Store peptide and protein identifications in parquet or TSV format
 
-      @param filename Output filename (should end with .parquet)
+      @param filename Output filename (format determined by extension: .parquet, .tsv, .csv, .txt)
       @param protein_identifications Vector of protein identifications
       @param peptide_identifications Vector of peptide identifications
 
       @throws Exception::UnableToCreateFile if file cannot be created
+      @throws Exception::InvalidParameter if unsupported file format is specified
     */
     void store(const String& filename,
                const std::vector<ProteinIdentification>& protein_identifications,
                const PeptideIdentificationList& peptide_identifications);
 
     /**
-      @brief Store peptide and protein identifications in parquet format with all PSMs
+      @brief Store peptide and protein identifications in parquet or TSV format with all PSMs
 
-      @param filename Output filename (should end with .parquet)
+      @param filename Output filename (format determined by extension: .parquet, .tsv, .csv, .txt)
       @param protein_identifications Vector of protein identifications
       @param peptide_identifications Vector of peptide identifications
       @param export_all_psms If true, export all PSMs per spectrum with rank column
 
       @throws Exception::UnableToCreateFile if file cannot be created
+      @throws Exception::InvalidParameter if unsupported file format is specified
     */
     void store(const String& filename,
                const std::vector<ProteinIdentification>& protein_identifications,
@@ -92,15 +98,16 @@ namespace OpenMS
                bool export_all_psms);
 
     /**
-      @brief Store peptide and protein identifications in parquet format with enhanced options
+      @brief Store peptide and protein identifications in parquet or TSV format with enhanced options
 
-      @param filename Output filename (should end with .parquet)
+      @param filename Output filename (format determined by extension: .parquet, .tsv, .csv, .txt)
       @param protein_identifications Vector of protein identifications
       @param peptide_identifications Vector of peptide identifications
       @param export_all_psms If true, export all PSMs per spectrum with rank column. If false, export only first PSM
       @param meta_value_keys Set of meta value keys to export as additional columns
 
       @throws Exception::UnableToCreateFile if file cannot be created
+      @throws Exception::InvalidParameter if unsupported file format is specified
     */
     void store(const String& filename,
                const std::vector<ProteinIdentification>& protein_identifications,

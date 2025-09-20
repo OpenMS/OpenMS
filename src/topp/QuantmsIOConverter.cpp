@@ -22,7 +22,7 @@ using namespace std;
 /**
 @page TOPP_QuantmsIOConverter QuantmsIOConverter
 
-@brief Converts IdXML files to parquet format following quantms.io PSM specification.
+@brief Converts IdXML files to parquet or TSV format following quantms.io PSM specification.
 
 <CENTER>
     <table>
@@ -39,10 +39,14 @@ using namespace std;
 </CENTER>
 
 QuantmsIOConverter reads peptide and protein identifications from idXML files 
-and converts them to parquet format following the quantms.io PSM (Peptide 
+and converts them to parquet or TSV format following the quantms.io PSM (Peptide 
 Spectrum Match) specification.
 
-The output parquet file contains PSM data with columns following the quantms.io PSM specification:
+The output format is determined by the file extension:
+- .parquet: Apache Parquet format with embedded metadata
+- .tsv/.csv/.txt: Tab-separated values format (metadata not preserved)
+
+The output file contains PSM data with columns following the quantms.io PSM specification:
 - sequence: unmodified peptide sequence
 - peptidoform: peptide sequence with modifications
 - modifications: peptide modifications (null for now)
@@ -81,7 +85,7 @@ class TOPPQuantmsIOConverter :
 {
 public:
   TOPPQuantmsIOConverter() :
-    TOPPBase("QuantmsIOConverter", "Converts IdXML files to parquet format following quantms.io PSM specification.")
+    TOPPBase("QuantmsIOConverter", "Converts IdXML files to parquet or TSV format following quantms.io PSM specification.")
   {
   }
 
@@ -91,8 +95,8 @@ protected:
     registerInputFile_("in", "<file>", "", "Input idXML file");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
 
-    registerOutputFile_("out", "<file>", "", "Output parquet file", true);
-    setValidFormats_("out", ListUtils::create<String>("parquet"));
+    registerOutputFile_("out", "<file>", "", "Output file (parquet, TSV, or CSV format)", true);
+    setValidFormats_("out", ListUtils::create<String>("parquet,tsv,csv,txt"));
   }
 
   ExitCodes main_(int, const char**) override
@@ -127,7 +131,7 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    OPENMS_LOG_INFO << "Converting to parquet format..." << endl;
+    OPENMS_LOG_INFO << "Converting to output format..." << endl;
     QuantmsIO quantms_io;
     quantms_io.store(out, protein_identifications, peptide_identifications);
 

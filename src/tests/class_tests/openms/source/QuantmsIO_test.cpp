@@ -23,6 +23,8 @@
 #include <arrow/io/api.h>
 #include <parquet/arrow/reader.h>
 
+#include <fstream>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -520,6 +522,187 @@ START_SECTION((Test meta value type conflict detection throws exception))
   
   // This should throw an InvalidParameter exception due to type conflict
   TEST_EXCEPTION(Exception::InvalidParameter, file.store(output_file, protein_ids, peptide_ids, false, meta_keys))
+}
+END_SECTION
+
+START_SECTION((void store - TSV format support))
+{
+  QuantmsIO file;
+  
+  // Create test data
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  
+  ProteinIdentification protein_id;
+  protein_id.setIdentifier("test_search");
+  protein_id.setSearchEngine("TestEngine");
+  protein_id.setScoreType("TestScore");
+  protein_id.setHigherScoreBetter(true);
+  protein_ids.push_back(protein_id);
+
+  std::vector<String> pep_strs = {"PEPTIDER", "PEM(Oxidation)TIDER", "DFPIANGER"};
+  // Create multiple peptide identifications to test row count
+  for (int i = 0; i < pep_strs.size(); ++i)
+  {
+    PeptideIdentification peptide_id;
+    peptide_id.setIdentifier("test_search");
+    peptide_id.setRT(1234.5 + i * 100);
+    peptide_id.setMZ(500.25 + i * 50);
+    peptide_id.setScoreType("TestScore");
+    
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(pep_strs[i]));
+    hit.setScore(0.95 - i * 0.1);
+    hit.setCharge(2 + i);
+    
+    // Add target_decoy metavalue for testing decoy detection
+    if (i % 2 == 0)
+    {
+      hit.setMetaValue("target_decoy", "target");
+    }
+    else
+    {
+      hit.setMetaValue("target_decoy", "decoy");
+    }
+    
+    // Add PEP score as metavalue for testing
+    hit.setMetaValue("pep", 0.01 + i * 0.005);
+    
+    PeptideEvidence evidence;
+    evidence.setProteinAccession("TEST_PROTEIN_" + String(i));
+    hit.setPeptideEvidences(vector<PeptideEvidence>{evidence});
+    
+    peptide_id.setHits(vector<PeptideHit>{hit});
+    peptide_ids.push_back(peptide_id);
+  }
+  
+  String output_file;
+  NEW_TMP_FILE(output_file)
+  output_file += ".tsv";  // Force TSV extension
+  
+  // Store the data in TSV format
+  TEST_NOT_EQUAL(peptide_ids.size(), 0)
+  file.store(output_file, protein_ids, peptide_ids);
+  
+  // Read back the TSV file and verify content
+  std::ifstream file_stream(output_file);
+  TEST_EQUAL(file_stream.is_open(), true)
+  
+  String header_line;
+  getline(file_stream, header_line);
+  
+  // Verify header contains expected tab-separated column names
+  TEST_EQUAL(header_line.hasSubstring("sequence\t"), true)
+  TEST_EQUAL(header_line.hasSubstring("peptidoform\t"), true)
+  TEST_EQUAL(header_line.hasSubstring("precursor_charge\t"), true)
+  TEST_EQUAL(header_line.hasSubstring("is_decoy\t"), true)
+  
+  // Count the number of data rows
+  int row_count = 0;
+  String line;
+  while (getline(file_stream, line))
+  {
+    if (!line.empty())
+    {
+      row_count++;
+      // Verify that the line contains tab separators
+      TEST_EQUAL(line.hasSubstring("\t"), true)
+    }
+  }
+  file_stream.close();
+  
+  // Should have 3 data rows (one per peptide identification)
+  TEST_EQUAL(row_count, 3)
+}
+END_SECTION
+
+START_SECTION((void store - CSV format support))
+{
+  QuantmsIO file;
+  
+  // Create test data
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  
+  ProteinIdentification protein_id;
+  protein_id.setIdentifier("test_search");
+  protein_id.setSearchEngine("TestEngine");
+  protein_id.setScoreType("TestScore");
+  protein_id.setHigherScoreBetter(true);
+  protein_ids.push_back(protein_id);
+
+  PeptideIdentification peptide_id;
+  peptide_id.setIdentifier("test_search");
+  peptide_id.setRT(1234.5);
+  peptide_id.setMZ(500.25);
+  peptide_id.setScoreType("TestScore");
+  
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDER"));
+  hit.setScore(0.95);
+  hit.setCharge(2);
+  hit.setMetaValue("target_decoy", "target");
+  
+  PeptideEvidence evidence;
+  evidence.setProteinAccession("TEST_PROTEIN");
+  hit.setPeptideEvidences(vector<PeptideEvidence>{evidence});
+  
+  peptide_id.setHits(vector<PeptideHit>{hit});
+  peptide_ids.push_back(peptide_id);
+  
+  String output_file;
+  NEW_TMP_FILE(output_file)
+  output_file += ".csv";  // Force CSV extension
+  
+  // Store the data in CSV format  
+  file.store(output_file, protein_ids, peptide_ids);
+  
+  // Read back the CSV file and verify content
+  std::ifstream file_stream(output_file);
+  TEST_EQUAL(file_stream.is_open(), true)
+  
+  String header_line;
+  getline(file_stream, header_line);
+  
+  // Verify header contains expected tab-separated column names (TSV format used for CSV as well)
+  TEST_EQUAL(header_line.hasSubstring("sequence\t"), true)
+  TEST_EQUAL(header_line.hasSubstring("peptidoform\t"), true)
+  
+  file_stream.close();
+}
+END_SECTION
+
+START_SECTION((void store - Unsupported format throws exception))
+{
+  QuantmsIO file;
+  
+  // Create minimal test data
+  vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  
+  ProteinIdentification protein_id;
+  protein_id.setIdentifier("test_search");
+  protein_ids.push_back(protein_id);
+
+  PeptideIdentification peptide_id;
+  peptide_id.setIdentifier("test_search");
+  peptide_id.setRT(1234.5);
+  peptide_id.setMZ(500.25);
+  
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDER"));
+  hit.setScore(0.95);
+  hit.setCharge(2);
+  
+  peptide_id.setHits(vector<PeptideHit>{hit});
+  peptide_ids.push_back(peptide_id);
+  
+  String output_file;
+  NEW_TMP_FILE(output_file)
+  output_file += ".xml";  // Unsupported extension
+  
+  // This should throw an InvalidParameter exception
+  TEST_EXCEPTION(Exception::InvalidParameter, file.store(output_file, protein_ids, peptide_ids))
 }
 END_SECTION
 
