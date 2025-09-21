@@ -449,7 +449,7 @@ namespace
   void writeTSVFile(const std::shared_ptr<arrow::Table>& table, 
                    const OpenMS::String& filename)
   {
-    // Manual TSV writing since Arrow CSV writer in this version doesn't support custom delimiters
+    // Manual TSV writing using direct table access
     std::ofstream outfile(filename.c_str());
     if (!outfile.is_open()) {
       throw OpenMS::Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
@@ -464,72 +464,54 @@ namespace
     }
     outfile << "\n";
 
-    // Convert table to record batches for easier row-wise access
-    auto batch_reader_result = arrow::TableBatchReader::Make(*table);
-    if (!batch_reader_result.ok()) {
-      throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                      "Failed to create batch reader: " + OpenMS::String(batch_reader_result.status().ToString()));
-    }
-    auto batch_reader = batch_reader_result.ValueOrDie();
-
-    std::shared_ptr<arrow::RecordBatch> batch;
-    while (true) {
-      auto read_result = batch_reader->Next();
-      if (!read_result.ok()) {
-        throw OpenMS::Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                        "Failed to read batch: " + OpenMS::String(read_result.status().ToString()));
-      }
-      batch = read_result.ValueOrDie();
-      if (!batch) break;  // End of data
-
-      // Write rows from this batch
-      for (int64_t row = 0; row < batch->num_rows(); ++row) {
-        for (int col = 0; col < batch->num_columns(); ++col) {
-          if (col > 0) outfile << "\t";
-          
-          auto column = batch->column(col);
-          
-          // Handle different data types
-          auto type_id = column->type_id();
-          if (column->IsNull(row)) {
-            // Write empty string for null values
-          } else {
-            switch (type_id) {
-              case arrow::Type::STRING: {
-                auto str_array = std::static_pointer_cast<arrow::StringArray>(column);
-                outfile << str_array->GetString(row);
-                break;
-              }
-              case arrow::Type::INT32: {
-                auto int_array = std::static_pointer_cast<arrow::Int32Array>(column);
-                outfile << int_array->Value(row);
-                break;
-              }
-              case arrow::Type::INT64: {
-                auto int_array = std::static_pointer_cast<arrow::Int64Array>(column);
-                outfile << int_array->Value(row);
-                break;
-              }
-              case arrow::Type::FLOAT: {
-                auto float_array = std::static_pointer_cast<arrow::FloatArray>(column);
-                outfile << float_array->Value(row);
-                break;
-              }
-              case arrow::Type::DOUBLE: {
-                auto double_array = std::static_pointer_cast<arrow::DoubleArray>(column);
-                outfile << double_array->Value(row);
-                break;
-              }
-              default: {
-                // For other types including lists and nulls, write a placeholder
-                outfile << "";
-                break;
-              }
+    // Write data rows by accessing columns directly
+    auto num_rows = table->num_rows();
+    for (int64_t row = 0; row < num_rows; ++row) {
+      for (int col = 0; col < table->num_columns(); ++col) {
+        if (col > 0) outfile << "\t";
+        
+        auto column = table->column(col);
+        auto chunk = column->chunk(0);  // Use first chunk, assuming single chunk tables as in existing code
+        
+        // Handle different data types
+        auto type_id = chunk->type_id();
+        if (chunk->IsNull(row)) {
+          // Write empty string for null values
+        } else {
+          switch (type_id) {
+            case arrow::Type::STRING: {
+              auto str_array = std::static_pointer_cast<arrow::StringArray>(chunk);
+              outfile << str_array->GetString(row);
+              break;
+            }
+            case arrow::Type::INT32: {
+              auto int_array = std::static_pointer_cast<arrow::Int32Array>(chunk);
+              outfile << int_array->Value(row);
+              break;
+            }
+            case arrow::Type::INT64: {
+              auto int_array = std::static_pointer_cast<arrow::Int64Array>(chunk);
+              outfile << int_array->Value(row);
+              break;
+            }
+            case arrow::Type::FLOAT: {
+              auto float_array = std::static_pointer_cast<arrow::FloatArray>(chunk);
+              outfile << float_array->Value(row);
+              break;
+            }
+            case arrow::Type::DOUBLE: {
+              auto double_array = std::static_pointer_cast<arrow::DoubleArray>(chunk);
+              outfile << double_array->Value(row);
+              break;
+            }
+            default: {
+              // For other types including lists and nulls, write empty string
+              break;
             }
           }
         }
-        outfile << "\n";
       }
+      outfile << "\n";
     }
 
     outfile.close();
