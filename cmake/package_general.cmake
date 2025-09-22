@@ -68,15 +68,35 @@ set(OPENMS_LOGOSMALL ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGOSMALL_NAME}
 
 # On Windows we need to tell CMake where to look for.
 # We also do not need API sets. So exclude them.
+# Define shared exclusion patterns for all RUNTIME_DEPENDENCY_SET usage
 if(WIN32)
-  set(EXCLUDE "api-ms" "ext-ms" "hvsi" "pdmutilities" "wpaxholder" "dxgi" "uxtheme" "d3d11" "winmm" "wldp" "AzureAttestManager" "AzureAttestNormal" "WTDSENSOR" "wtdccm")
-  set(POST_EXCLUDE ".*WINDOWS.system32.*" ".*AzureAttestManager.*" ".*AzureAttestNormal.*" ".*WTDSENSOR.*" ".*wtdccm.*")
+  # Skip system runtime libraries detection
+  set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
+  
+  # Enhanced exclusion patterns for Windows security and system DLLs
+  set(OPENMS_RUNTIME_EXCLUDE "api-ms" "ext-ms" "hvsi" "pdmutilities" "wpaxholder" "dxgi" "uxtheme" "d3d11" "winmm" "wldp"
+                              "AzureAttestManager" "AzureAttestNormal" "WTDSENSOR" "wtdccm" "bcrypt" "ntdll" "kernel32"
+                              "advapi32" "user32" "ws2_32" "secur32" "crypt32" "wintrust" "msvcrt")
+  set(OPENMS_RUNTIME_POST_EXCLUDE ".*[Ww][Ii][Nn][Dd][Oo][Ww][Ss][/\\\\]system32.*"
+                                  ".*[Ww][Ii][Nn][Dd][Oo][Ww][Ss][/\\\\][Ss]ys[Ww][Oo][Ww]64.*"
+                                  ".*[Aa]zure[Aa]ttest.*" ".*[Ww][Tt][Dd].*" ".*bcrypt.*" ".*ntdll.*"
+                                  ".*kernel32.*" ".*advapi32.*" ".*user32.*" ".*ws2_32.*" ".*secur32.*"
+                                  ".*crypt32.*" ".*wintrust.*" ".*msvcrt.*")
+  # Backward compatibility
+  set(EXCLUDE ${OPENMS_RUNTIME_EXCLUDE})
+  set(POST_EXCLUDE ${OPENMS_RUNTIME_POST_EXCLUDE})
 elseif(APPLE)
-  set(EXCLUDE "/usr/lib" "/System/")
-  set(POST_EXCLUDE "")
+  set(OPENMS_RUNTIME_EXCLUDE "/usr/lib" "/System/")
+  set(OPENMS_RUNTIME_POST_EXCLUDE "")
+  # Backward compatibility
+  set(EXCLUDE ${OPENMS_RUNTIME_EXCLUDE})
+  set(POST_EXCLUDE ${OPENMS_RUNTIME_POST_EXCLUDE})
 else()
-  set(EXCLUDE ".*/ld-linux-.*" ".*/linux-vdso.*" ".*/libm\\..*" ".*/libc\\..*" ".*/libpthread\\..*" ".*/libdl\\..*")
-  set(POST_EXCLUDE "")
+  set(OPENMS_RUNTIME_EXCLUDE ".*/ld-linux-.*" ".*/linux-vdso.*" ".*/libm\\..*" ".*/libc\\..*" ".*/libpthread\\..*" ".*/libdl\\..*")
+  set(OPENMS_RUNTIME_POST_EXCLUDE "")
+  # Backward compatibility
+  set(EXCLUDE ${OPENMS_RUNTIME_EXCLUDE})
+  set(POST_EXCLUDE ${OPENMS_RUNTIME_POST_EXCLUDE})
 endif()
 
 # TODO check if we can reduce the permissions
@@ -87,9 +107,22 @@ install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
           GROUP_READ GROUP_WRITE GROUP_EXECUTE
           WORLD_READ WORLD_WRITE WORLD_EXECUTE
         COMPONENT Dependencies
-        PRE_EXCLUDE_REGEXES ${EXCLUDE}
-        POST_EXCLUDE_REGEXES ${POST_EXCLUDE}
+        PRE_EXCLUDE_REGEXES ${OPENMS_RUNTIME_EXCLUDE}
+        POST_EXCLUDE_REGEXES ${OPENMS_RUNTIME_POST_EXCLUDE}
         DIRECTORIES $<TARGET_FILE_DIR:OpenMS>)
+
+# Install GUI dependencies with same exclusion rules
+if(WITH_GUI)
+  install(RUNTIME_DEPENDENCY_SET OPENMS_GUI_DEPS
+          DESTINATION ${INSTALL_LIB_DIR}
+          PERMISSIONS
+            OWNER_READ OWNER_WRITE OWNER_EXECUTE
+            GROUP_READ GROUP_WRITE GROUP_EXECUTE
+            WORLD_READ WORLD_WRITE WORLD_EXECUTE
+          COMPONENT Dependencies
+          PRE_EXCLUDE_REGEXES ${OPENMS_RUNTIME_EXCLUDE}
+          POST_EXCLUDE_REGEXES ${OPENMS_RUNTIME_POST_EXCLUDE})
+endif()
 
 #install(RUNTIME_DEPENDENCY_SET TOPPView_DEPS) # I think without giving DESTINATION and COMPONENT it will be inferred
 #install(RUNTIME_DEPENDENCY_SET TOPPAS_DEPS)
