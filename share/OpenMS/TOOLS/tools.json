@@ -465,6 +465,10 @@
     },
     "XMLValidator": {
       "category": "cat_dev"
+    },
+    "GenericWrapper": {
+      "category": "cat_misc",
+      "is_external_wrapper": true
     }
   }
 }
