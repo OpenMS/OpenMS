@@ -9,7 +9,7 @@
 #    notice, this list of conditions and the following disclaimer.
 #  * Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
-#    documentation and/o>r other materials provided with the distribution.
+#    documentation and/or other materials provided with the distribution.
 #  * Neither the name of any author or any participating institution
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
@@ -69,7 +69,7 @@ set(OPENMS_LOGOSMALL ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGOSMALL_NAME}
 # On Windows we need to tell CMake where to look for.
 # We also do not need API sets. So exclude them.
 if(WIN32)
-  set(EXCLUDE "api-ms" "ext-ms" "hvsi" "pdmutilities" "wpaxholder" "dxgi" "uxtheme" "d3d11" "winmm" "wldp" "AzureAttestManager" "AzureAttestNormal" "WTDSENSOR" "wtdccm")
+  set(EXCLUDE "api-ms" "ext-ms" "hvsi" "pdmutilities" "wpaxholder" "dxgi" "uxtheme" "d3d11" "winmm" "wldp")
   set(POST_EXCLUDE ".*WINDOWS.system32.*")
 elseif(APPLE)
   set(EXCLUDE "/usr/lib" "/System/")
