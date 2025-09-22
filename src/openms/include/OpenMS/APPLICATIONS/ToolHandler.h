@@ -68,6 +68,11 @@ public:
     /// get File::getOpenMSDataPath() + "/TOOLS/INTERNAL"
     static String getInternalToolsPath();
 
+    /// Load TOPP tools from JSON configuration file
+    /// @param use_json If true, attempt to load from JSON; if false, use hardcoded values
+    /// @return true if JSON was successfully loaded, false if fallback to hardcoded values was used
+    static bool loadFromJSON(const bool use_json = true);
+
 private:
 
     static Internal::ToolDescription getExternalTools_();
@@ -81,6 +86,12 @@ private:
     static void loadInternalToolConfig_();
     static std::vector<Internal::ToolDescription> tools_internal_;
     static bool tools_internal_loaded_;
+
+    // JSON-based tool loading
+    static std::vector<Internal::ToolDescription> tools_json_;
+    static std::map<String, String> categories_json_;
+    static bool tools_json_loaded_;
+    static bool tools_json_available_;
   };
 
 } // namespace OpenMS

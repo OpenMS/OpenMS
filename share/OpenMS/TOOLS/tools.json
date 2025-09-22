@@ -1,0 +1,470 @@
+{
+  "categories": {
+    "cat_calibration": "Mass Correction and Calibration",
+    "cat_centroiding": "Spectrum processing: Centroiding",
+    "cat_crosslinking": "Cross-Linking",
+    "cat_dev": "[for Developers]",
+    "cat_file_converter": "File Converter",
+    "cat_file_filter_extract_merge": "File Filtering, Extraction and Merging",
+    "cat_ID_MTX": "Metabolite Identification",
+    "cat_ID_proc": "Identification Processing",
+    "cat_ID_search": "Identification of Proteins and Peptides (SearchEngines)",
+    "cat_linking": "Feature Linking",
+    "cat_map_align": "Map Alignment",
+    "cat_misc": "Misc",
+    "cat_QC": "Quality Control",
+    "cat_quant": "Quantitation",
+    "cat_rna": "RNA",
+    "cat_signal_proc_misc": "Spectrum processing: Misc",
+    "cat_signal_proc_smooth_normalize": "Spectrum Processing: Peak Smoothing and Normalization",
+    "cat_targeted": "Targeted Experiments and OpenSWATH",
+    "cat_topdown": "Top-Down"
+  },
+  "tools": {
+    "AccurateMassSearch": {
+      "category": "cat_ID_MTX"
+    },
+    "AssayGeneratorMetabo": {
+      "category": "cat_targeted"
+    },
+    "AssayGeneratorMetaboSirius": {
+      "category": "cat_targeted"
+    },
+    "BaselineFilter": {
+      "category": "cat_signal_proc_smooth_normalize"
+    },
+    "ClusterMassTraces": {
+      "category": "cat_misc"
+    },
+    "ClusterMassTracesByPrecursor": {
+      "category": "cat_targeted"
+    },
+    "CometAdapter": {
+      "category": "cat_ID_search"
+    },
+    "ConsensusID": {
+      "category": "cat_ID_proc"
+    },
+    "ConsensusMapNormalizer": {
+      "category": "cat_quant"
+    },
+    "CVInspector": {
+      "category": "cat_dev"
+    },
+    "DatabaseFilter": {
+      "category": "cat_file_filter_extract_merge"
+    },
+    "DatabaseSuitability": {
+      "category": "cat_QC"
+    },
+    "Decharger": {
+      "category": "cat_quant"
+    },
+    "DecoyDatabase": {
+      "category": "cat_file_filter_extract_merge"
+    },
+    "DeMeanderize": {
+      "category": "cat_misc"
+    },
+    "Digestor": {
+      "category": "cat_ID_proc"
+    },
+    "DigestorMotif": {
+      "category": "cat_ID_proc"
+    },
+    "DTAExtractor": {
+      "category": "cat_file_filter_extract_merge"
+    },
+    "EICExtractor": {
+      "category": "cat_quant"
+    },
+    "Epifany": {
+      "category": "cat_ID_proc"
+    },
+    "ExecutePipeline": {
+      "category": "cat_misc",
+      "requires_gui": true
+    },
+    "ExternalCalibration": {
+      "category": "cat_calibration"
+    },
+    "FalseDiscoveryRate": {
+      "category": "cat_ID_proc"
+    },
+    "FeatureFinderCentroided": {
+      "category": "cat_quant"
+    },
+    "FeatureFinderIdentification": {
+      "category": "cat_quant"
+    },
+    "FeatureFinderMetabo": {
+      "category": "cat_quant"
+    },
+    "FeatureFinderMetaboIdent": {
+      "category": "cat_quant"
+    },
+    "FeatureFinderMultiplex": {
+      "category": "cat_quant"
+    },
+    "FeatureLinkerLabeled": {
+      "category": "cat_linking"
+    },
+    "FeatureLinkerUnlabeled": {
+      "category": "cat_linking"
+    },
+    "FeatureLinkerUnlabeledKD": {
+      "category": "cat_linking"
+    },
+    "FeatureLinkerUnlabeledQT": {
+      "category": "cat_linking"
+    },
+    "FileConverter": {
+      "category": "cat_file_converter"
+    },
+    "FileFilter": {
+      "category": "cat_file_filter_extract_merge"
+    },
+    "FileInfo": {
+      "category": "cat_file_filter_extract_merge"
+    },
+    "FileMerger": {
+      "category": "cat_file_filter_extract_merge"
+    },
+    "FLASHDeconv": {
+      "category": "cat_topdown"
+    },
+    "FuzzyDiff": {
+      "category": "cat_dev"
+    },
+    "GNPSExport": {
+      "category": "cat_file_converter"
+    },
+    "HighResPrecursorMassCorrector": {
+      "category": "cat_calibration"
+    },
+    "IDConflictResolver": {
+      "category": "cat_ID_proc"
+    },
+    "IDDecoyProbability": {
+      "category": "cat_ID_proc"
+    },
+    "IDExtractor": {
+      "category": "cat_ID_proc"
+    },
+    "IDFileConverter": {
+      "category": "cat_file_converter"
+    },
+    "IDFilter": {
+      "category": "cat_file_filter_extract_merge"
+    },
+    "IDMapper": {
+      "category": "cat_ID_proc"
+    },
+    "IDMerger": {
+      "category": "cat_file_filter_extract_merge"
+    },
+    "IDPosteriorErrorProbability": {
+      "category": "cat_ID_proc"
+    },
+    "IDRipper": {
+      "category": "cat_file_filter_extract_merge"
+    },
+    "IDRTCalibration": {
+      "category": "cat_calibration"
+    },
+    "IDScoreSwitcher": {
+      "category": "cat_ID_proc"
+    },
+    "IDSplitter": {
+      "category": "cat_file_filter_extract_merge"
+    },
+    "ImageCreator": {
+      "category": "cat_misc",
+      "requires_gui": true
+    },
+    "INIUpdater": {
+      "category": "cat_misc",
+      "requires_gui": true
+    },
+    "InternalCalibration": {
+      "category": "cat_calibration"
+    },
+    "IonMobilityBinning": {
+      "category": "cat_file_filter_extract_merge"
+    },
+    "IsobaricAnalyzer": {
+      "category": "cat_quant"
+    },
+    "JSONExporter": {
+      "category": "cat_dev"
+    },
+    "LuciphorAdapter": {
+      "category": "cat_ID_search"
+    },
+    "MapAlignerIdentification": {
+      "category": "cat_map_align"
+    },
+    "MapAlignerPoseClustering": {
+      "category": "cat_map_align"
+    },
+    "MapAlignerTreeGuided": {
+      "category": "cat_map_align"
+    },
+    "MapNormalizer": {
+      "category": "cat_signal_proc_smooth_normalize"
+    },
+    "MapRTTransformer": {
+      "category": "cat_map_align"
+    },
+    "MapStatistics": {
+      "category": "cat_file_filter_extract_merge"
+    },
+    "MaRaClusterAdapter": {
+      "category": "cat_signal_proc_misc"
+    },
+    "MascotAdapterOnline": {
+      "category": "cat_ID_search"
+    },
+    "MassCalculator": {
+      "category": "cat_misc"
+    },
+    "MassTraceExtractor": {
+      "category": "cat_quant"
+    },
+    "MetaboliteAdductDecharger": {
+      "category": "cat_quant"
+    },
+    "MetaboliteSpectralMatcher": {
+      "category": "cat_ID_MTX"
+    },
+    "MetaProSIP": {
+      "category": "cat_quant"
+    },
+    "MRMMapper": {
+      "category": "cat_targeted"
+    },
+    "MRMPairFinder": {
+      "category": "cat_targeted"
+    },
+    "MRMTransitionGroupPicker": {
+      "category": "cat_targeted",
+      "requires_openswath": true
+    },
+    "MSFraggerAdapter": {
+      "category": "cat_ID_search"
+    },
+    "MSGFPlusAdapter": {
+      "category": "cat_ID_search"
+    },
+    "MSstatsConverter": {
+      "category": "cat_file_converter"
+    },
+    "MultiplexResolver": {
+      "category": "cat_quant"
+    },
+    "MzMLSplitter": {
+      "category": "cat_file_filter_extract_merge"
+    },
+    "MzTabExporter": {
+      "category": "cat_file_converter"
+    },
+    "NoiseFilterGaussian": {
+      "category": "cat_signal_proc_smooth_normalize"
+    },
+    "NoiseFilterSGolay": {
+      "category": "cat_signal_proc_smooth_normalize"
+    },
+    "NovorAdapter": {
+      "category": "cat_ID_search"
+    },
+    "NucleicAcidSearchEngine": {
+      "category": "cat_rna"
+    },
+    "OpenMSDatabasesInfo": {
+      "category": "cat_dev"
+    },
+    "OpenMSInfo": {
+      "category": "cat_misc"
+    },
+    "OpenNuXL": {
+      "category": "cat_crosslinking"
+    },
+    "OpenPepXL": {
+      "category": "cat_crosslinking"
+    },
+    "OpenPepXLLF": {
+      "category": "cat_crosslinking"
+    },
+    "OpenSwathAnalyzer": {
+      "category": "cat_targeted",
+      "requires_openswath": true
+    },
+    "OpenSwathAssayGenerator": {
+      "category": "cat_targeted"
+    },
+    "OpenSwathChromatogramExtractor": {
+      "category": "cat_targeted"
+    },
+    "OpenSwathConfidenceScoring": {
+      "category": "cat_targeted"
+    },
+    "OpenSwathDecoyGenerator": {
+      "category": "cat_targeted"
+    },
+    "OpenSwathDIAPreScoring": {
+      "category": "cat_targeted",
+      "requires_openswath": true
+    },
+    "OpenSwathFeatureXMLToTSV": {
+      "category": "cat_targeted"
+    },
+    "OpenSwathFileSplitter": {
+      "category": "cat_targeted",
+      "requires_openswath": true
+    },
+    "OpenSwathMzMLFileCacher": {
+      "category": "cat_targeted",
+      "requires_openswath": true
+    },
+    "OpenSwathRewriteToFeatureXML": {
+      "category": "cat_targeted",
+      "requires_openswath": true
+    },
+    "OpenSwathRTNormalizer": {
+      "category": "cat_targeted"
+    },
+    "OpenSwathWorkflow": {
+      "category": "cat_targeted",
+      "requires_openswath": true
+    },
+    "PeakPickerHiRes": {
+      "category": "cat_centroiding"
+    },
+    "PeakPickerIterative": {
+      "category": "cat_centroiding"
+    },
+    "PeptideIndexer": {
+      "category": "cat_ID_proc"
+    },
+    "PeptideDataBaseSearchFI": {
+      "category": "cat_ID_search"
+    },
+    "PercolatorAdapter": {
+      "category": "cat_ID_proc"
+    },
+    "PhosphoScoring": {
+      "category": "cat_ID_proc"
+    },
+    "ProteinInference": {
+      "category": "cat_ID_proc"
+    },
+    "ProteinQuantifier": {
+      "category": "cat_quant"
+    },
+    "ProteomicsLFQ": {
+      "category": "cat_quant"
+    },
+    "PSMFeatureExtractor": {
+      "category": "cat_ID_proc"
+    },
+    "QCCalculator": {
+      "category": "cat_QC"
+    },
+    "QCEmbedder": {
+      "category": "cat_QC"
+    },
+    "QCExporter": {
+      "category": "cat_QC"
+    },
+    "QCExtractor": {
+      "category": "cat_QC"
+    },
+    "QCImporter": {
+      "category": "cat_QC"
+    },
+    "QCMerger": {
+      "category": "cat_QC"
+    },
+    "QCShrinker": {
+      "category": "cat_QC"
+    },
+    "QualityControl": {
+      "category": "cat_QC"
+    },
+    "QuantmsIOConverter": {
+      "category": "cat_file_converter",
+      "requires_parquet": true
+    },
+    "Resampler": {
+      "category": "cat_signal_proc_misc",
+      "requires_gui": true
+    },
+    "RNADigestor": {
+      "category": "cat_rna"
+    },
+    "RNAMassCalculator": {
+      "category": "cat_rna"
+    },
+    "RNPxlXICFilter": {
+      "category": "cat_crosslinking"
+    },
+    "SageAdapter": {
+      "category": "cat_ID_search"
+    },
+    "SeedListGenerator": {
+      "category": "cat_quant"
+    },
+    "SemanticValidator": {
+      "category": "cat_dev"
+    },
+    "SequenceCoverageCalculator": {
+      "category": "cat_ID_proc"
+    },
+    "SimpleSearchEngine": {
+      "category": "cat_ID_search"
+    },
+    "SiriusExport": {
+      "category": "cat_ID_MTX"
+    },
+    "SpectraFilterNLargest": {
+      "category": "cat_signal_proc_smooth_normalize"
+    },
+    "SpectraFilterNormalizer": {
+      "category": "cat_signal_proc_smooth_normalize"
+    },
+    "SpectraFilterThresholdMower": {
+      "category": "cat_signal_proc_smooth_normalize"
+    },
+    "SpectraFilterWindowMower": {
+      "category": "cat_signal_proc_smooth_normalize"
+    },
+    "SpectraMerger": {
+      "category": "cat_signal_proc_misc"
+    },
+    "SpectraSTSearchAdapter": {
+      "category": "cat_ID_search"
+    },
+    "StaticModification": {
+      "category": "cat_ID_proc"
+    },
+    "TargetedFileConverter": {
+      "category": "cat_file_converter",
+      "requires_openswath": true
+    },
+    "TextExporter": {
+      "category": "cat_file_converter"
+    },
+    "TICCalculator": {
+      "category": "cat_misc"
+    },
+    "TriqlerConverter": {
+      "category": "cat_file_converter"
+    },
+    "XFDR": {
+      "category": "cat_crosslinking"
+    },
+    "XMLValidator": {
+      "category": "cat_dev"
+    }
+  }
+}

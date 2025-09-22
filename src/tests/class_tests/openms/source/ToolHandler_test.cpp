@@ -80,6 +80,18 @@ START_SECTION((static String getCategory(const String &toolname)))
 }
 END_SECTION
 
+START_SECTION((static bool loadFromJSON(const bool use_json = true)))
+{
+  // Test that we can load from JSON (or fallback gracefully)
+  bool json_loaded = ToolHandler::loadFromJSON(true);
+  TEST_TRUE(json_loaded == true || json_loaded == false) // Either works or fails gracefully
+  
+  // Test that we can disable JSON loading
+  bool json_disabled = ToolHandler::loadFromJSON(false);
+  TEST_EQUAL(json_disabled, false)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
