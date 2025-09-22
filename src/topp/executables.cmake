@@ -20,6 +20,7 @@ Decharger
 DeMeanderize
 Digestor
 DigestorMotif
+DLModel
 DTAExtractor
 EICExtractor
 Epifany
