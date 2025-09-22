@@ -70,7 +70,7 @@ set(OPENMS_LOGOSMALL ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGOSMALL_NAME}
 # We also do not need API sets. So exclude them.
 if(WIN32)
   set(EXCLUDE "api-ms" "ext-ms" "hvsi" "pdmutilities" "wpaxholder" "dxgi" "uxtheme" "d3d11" "winmm" "wldp" "AzureAttestManager" "AzureAttestNormal" "WTDSENSOR" "wtdccm")
-  set(POST_EXCLUDE ".*WINDOWS.system32.*")
+  set(POST_EXCLUDE ".*WINDOWS.system32.*" ".*AzureAttestManager.*" ".*AzureAttestNormal.*" ".*WTDSENSOR.*" ".*wtdccm.*")
 elseif(APPLE)
   set(EXCLUDE "/usr/lib" "/System/")
   set(POST_EXCLUDE "")
