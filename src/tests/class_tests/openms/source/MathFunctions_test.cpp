@@ -55,6 +55,7 @@ START_SECTION((double log_sum_exp(double x, double y)))
   TEST_REAL_SIMILAR(Math::log_sum_exp(neg_inf, 5.0), 5.0);
   TEST_REAL_SIMILAR(Math::log_sum_exp(5.0, neg_inf), 5.0);
 }
+END_SECTIOM
 
 START_SECTION((ceilDecimal))
 {
