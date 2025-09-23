@@ -234,6 +234,8 @@ protected:
       registerSubsection_(qm.second->getMethodName(), String("Algorithm parameters for ") + quant_method_names_[qm.second->getMethodName()]);
     }
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
+    pq_defaults.setValue("top:include_all", "true");
+    pq_defaults.addTag("top:include_all", "advanced");
     Param bpi_defaults = BasicProteinInferenceAlgorithm().getDefaults();
     Param bayes_defaults = BayesianProteinInferenceAlgorithm().getDefaults();
 
@@ -539,7 +541,7 @@ protected:
         IDFilter::filterHitsByScore(prot_ids, pro_score);
       }
 
-      if (! std::isnan(psm_score)) 
+      if (!std::isnan(psm_score)) 
       {
         OPENMS_LOG_INFO << "Filtering by PSM score (better than " << psm_score << ")..." << endl;
         IDFilter::filterHitsByScore(pep_ids, psm_score);
@@ -766,7 +768,7 @@ protected:
         "No proteins left after FDR filtering. Please check the log and adjust your settings.");
     }
 
-    if (! greedy_group_resolution && ! groups)
+    if (!greedy_group_resolution && !groups)
     {
       for (auto& f : cmap)
       {
@@ -775,7 +777,6 @@ protected:
       IDFilter::keepUniquePeptidesPerProtein(cmap.getUnassignedPeptideIdentifications());
     }
 
-    // FileHandler().storeConsensusFeatures("workflow_tmp.consensusXML", cmap);
 
     PeptideAndProteinQuant prot_quantifier;
     prot_quantifier.setParameters(pq_param);
