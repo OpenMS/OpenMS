@@ -155,7 +155,7 @@ namespace OpenMS
      * @param id_file_abs_path The absolute path of the identification file.
      */
     void DDAWorkflowCommons::recalibrateMS1(MSExperiment & ms_centroided,
-        std::vector<PeptideIdentification>& peptide_ids,
+        PeptideIdentificationList& peptide_ids,
         const String & id_file_abs_path )
     {
         InternalCalibration ic;

@@ -75,13 +75,13 @@ namespace OpenMS
              * based on the theoretical masses from identification data.
              *
              * @param[in,out] ms_centroided <MSExperiment&> The MSExperiment object containing the centroided spectra, which will be recalibrated in place.
-             * @param[in] peptide_ids <std::vector<PeptideIdentification>&> The vector of PeptideIdentification objects containing the peptide identifications.
+             * @param[in] peptide_ids <PeptideIdentificationList&> The vector of PeptideIdentification objects containing the peptide identifications.
              * @param id_file_abs_path The absolute path of the identification file.
              *
              * @note Mass recalibration is essential to improve mass accuracy, which is critical for correct peptide identification and quantification.
              */
             static void recalibrateMS1(MSExperiment & ms_centroided,
-              std::vector<PeptideIdentification>& peptide_ids,
+              PeptideIdentificationList& peptide_ids,
               const String & id_file_abs_path = "");
 
              /**

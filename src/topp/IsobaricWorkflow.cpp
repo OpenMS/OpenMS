@@ -586,10 +586,10 @@ protected:
     const auto empty_feat = [](const ConsensusFeature& c){return c.getIntensity() <= 0.;};
     cmap.erase(remove_if(cmap.begin(), cmap.end(), empty_feat), cmap.end());
     cmap.ensureUniqueId();
-    PeptideIdentificationList merged_prot_ids;
+    std::vector<ProteinIdentification> merged_prot_ids;
     merged_prot_ids.resize(1);
-    std::vector<PeptideIdentification> tmp_;
-    merger.returnResultsAndClear(merged_prot_ids[0], tmp_);
+    PeptideIdentificationList _;
+    merger.returnResultsAndClear(merged_prot_ids[0], _);
     std::cout << "Merged " << merged_prot_ids[0].getHits().size() << " proteins." << std::endl;
     cmap.setProteinIdentifications(merged_prot_ids);
 
