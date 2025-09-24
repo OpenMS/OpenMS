@@ -19,6 +19,8 @@
 #include <boost/math/special_functions/binomial.hpp>
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/special_functions/log1p.hpp>
+#include <boost/math/distributions/binomial.hpp>
+#include <boost/math/distributions/complement.hpp>
 #include <limits>
 #include <utility> // for std::pair
 #include <vector>
@@ -562,53 +564,23 @@ namespace Math
    * @return Probability P(X ≥ n) for binomial distribution B(N,p)
    * @throws std::invalid_argument if parameters are invalid
    */
-  inline double binomial_cdf_complement(unsigned N, unsigned n, double p) 
+  inline double binomial_cdf_complement(unsigned N, unsigned n, double p)
   {
-    // Input validation
-    if (p < 0.0 || p > 1.0) 
+    if (p < 0.0 || p > 1.0)
     {
       throw std::invalid_argument("Probability p must be between 0 and 1");
     }
-    
-    if (n > N) 
+    if (n > N)
     {
       throw std::invalid_argument("n cannot be greater than N");
     }
-    
-    // Edge cases for improved performance
-    if (n == 0) return 1.0;  // P(X ≥ 0) = 1
+
+    if (n == 0)   return 1.0;                // P(X ≥ 0) = 1
     if (p == 0.0) return (n == 0) ? 1.0 : 0.0;
-    if (p == 1.0) return 1.0;
-    
-    // Handle numerical stability for extreme values
-    if (n == N && N > 1000 && p < 1e-6) 
-    {
-      return std::pow(p, N);  // Approximation for extreme case
-    }
-    
-    // For more efficient computation when p is large
-    if (p > 0.5) 
-    {
-      return 1.0 - binomial_cdf_complement(N, 0, 1.0 - p) + 
-             boost::math::binomial_coefficient<double>(N, n - 1) * 
-             std::pow(p, n - 1) * std::pow(1.0 - p, N - n + 1);
-    }
-    
-    // Compute in log domain for numerical stability
-    double log_p = std::log(p);
-    double log_1_minus_p = boost::math::log1p(-p);  // Numerically stable log(1-p)
-    double log_score = -std::numeric_limits<double>::infinity();
-    
-    // Sum terms efficiently in log domain
-    for (unsigned k = n; k <= N; ++k) 
-    {
-      double log_term = log_binomial_coef(N, k) + k * log_p + (N - k) * log_1_minus_p;
-      log_score = log_sum_exp(log_score, log_term);
-    }
-    
-    // Convert back to probability domain with bounds check
-    double result = std::exp(log_score);
-    return std::min(1.0, std::max(0.0, result));  // Ensure result is in [0,1]
+    if (p == 1.0) return 1.0;               // all mass at N
+
+    const boost::math::binomial_distribution<double> dist(N, p);
+    return boost::math::cdf(boost::math::complement(dist, n - 1));
   }
 } // namespace Math
 } // namespace OpenMS

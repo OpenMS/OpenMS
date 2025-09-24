@@ -193,8 +193,6 @@ namespace OpenMS
     OPENMS_PRECONDITION(p >= 0 && p <= 1.0, "p must be a probability [0,1].");
 
     // Use the numerically stable implementation from MathFunctions
-    // This calculates P(X ≥ n) for a binomial distribution with parameters N and p
-    // which is exactly what we need for the AScore calculation
     return Math::binomial_cdf_complement(N, n, p);
   }
 
