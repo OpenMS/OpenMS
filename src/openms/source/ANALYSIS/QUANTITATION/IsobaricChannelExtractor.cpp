@@ -657,7 +657,6 @@ namespace OpenMS
     if (!consensus_map.getColumnHeaders().empty())
     {
       index = (--consensus_map.getColumnHeaders().cend())->first + 1;
-      std::cout << "Starting new col headers at " << index << std::endl;
     }
 
     for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin();

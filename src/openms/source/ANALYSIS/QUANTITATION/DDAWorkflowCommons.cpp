@@ -27,12 +27,6 @@
 using namespace std;
 namespace OpenMS
 {
-    /**
-     * @brief Small helper to get the mapping from id files to mzML files
-     *
-     * Basically just reverses the mapMzML2Ids function. 
-     * Potential improvement: Could be combined into a single functionexposed to the user.
-     */
     std::map<String, String> DDAWorkflowCommons::mapId2MzMLs(const std::map<String, String>& m2i)
     {
         std::map<String, String> idfile2mzfile;
@@ -44,8 +38,6 @@ namespace OpenMS
     }
 
 
-    // Map between mzML file and corresponding id file
-    // Warn if the primaryMSRun indicates that files were provided in the wrong order.
     std::map<String, String> DDAWorkflowCommons::mapMzML2Ids(StringList & in, StringList & in_ids)
     {
         // validate file lists (use only basename and ignore extension)
@@ -86,12 +78,12 @@ namespace OpenMS
             OPENMS_LOG_DEBUG << "File in spectra file list: " << std::endl;
             for (const auto& f : in)
             {
-            OPENMS_LOG_DEBUG << f << std::endl;
+                OPENMS_LOG_DEBUG << f << std::endl;
             }
             OPENMS_LOG_WARN << "File in ID file list: " << endl;
             for (const auto& f : in_ids)
             {
-            OPENMS_LOG_DEBUG << f << std::endl;
+                OPENMS_LOG_DEBUG << f << std::endl;
             }
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "ID and spectra file match but order of file names seem to differ. They need to be provided in the same order.");
@@ -104,21 +96,15 @@ namespace OpenMS
         map<String, String> mzfile2idfile;
         for (Size i = 0; i != in.size(); ++i)
         {
-        const String& in_abs_path = File::absolutePath(in[i]);
-        const String& id_abs_path = File::absolutePath(in_ids[i]);
-        mzfile2idfile[in_abs_path] = id_abs_path;      
-        OPENMS_LOG_DEBUG << "Spectra: " << in[i] << "\t Ids: " << in_ids[i] << std::endl;
+            const String& in_abs_path = File::absolutePath(in[i]);
+            const String& id_abs_path = File::absolutePath(in_ids[i]);
+            mzfile2idfile[in_abs_path] = id_abs_path;      
+            OPENMS_LOG_DEBUG << "Spectra: " << in[i] << "\t Ids: " << in_ids[i] << std::endl;
         }
         return mzfile2idfile;
     }
 
 
-    /**
-     * Estimates the median chromatographic full width at half maximum (FWHM) for a given MSExperiment.
-     *
-     * @param ms_centroided The centroided MSExperiment for which to estimate the FWHM.
-     * @return The estimated median chromatographic FWHM based on the top 1000 intensity mass traces.
-     */
     double DDAWorkflowCommons::estimateMedianChromatographicFWHM(MSExperiment & ms_centroided)
     {
         MassTraceDetection mt_ext;
@@ -144,16 +130,7 @@ namespace OpenMS
         return median_fwhm;
     }          
         
-    /**
-     * @brief Recalibrates the masses of the MSExperiment using peptide identifications.
-     *
-     * This function recalibrates the masses of the MSExperiment by applying a mass recalibration
-     * based on the theoretical masses from identification data.
-     *
-     * @param ms_centroided The MSExperiment object containing the centroided spectra.
-     * @param peptide_ids The vector of PeptideIdentification objects containing the peptide identifications.
-     * @param id_file_abs_path The absolute path of the identification file.
-     */
+
     void DDAWorkflowCommons::recalibrateMS1(MSExperiment & ms_centroided,
         PeptideIdentificationList& peptide_ids,
         const String & id_file_abs_path )
@@ -183,9 +160,9 @@ namespace OpenMS
         String qc_residual_path, qc_residual_png_path;
         if (!id_file_abs_path.empty())
         {
-        const String & id_basename = File::basename(id_file_abs_path);
-        qc_residual_path = id_basename + "qc_residuals.tsv";
-        qc_residual_png_path = id_basename + "qc_residuals.png";
+            const String & id_basename = File::basename(id_file_abs_path);
+            qc_residual_path = id_basename + "qc_residuals.tsv";
+            qc_residual_png_path = id_basename + "qc_residuals.png";
         } 
 
         if (!ic.calibrate(ms_centroided, 
@@ -198,35 +175,19 @@ namespace OpenMS
                     qc_residual_png_path,
                     "Rscript"))
         {
-        OPENMS_LOG_WARN << "\nCalibration failed. See error message above!" << std::endl;
+            OPENMS_LOG_WARN << "\nCalibration failed. See error message above!" << std::endl;
         }
     }
 
-    /**
-     * @brief Extracts seeding features from centroided MS data (e.g., for untarged extraction).
-     *
-     * MS1 spectra are subjected to a threshold filter to removelow-intensity peaks, 
-     * and then uses the FeatureFinderMultiplex algorithm to identify potential seeding features.
-     * The function also takes into account the median full width at half maximum (FWHM) of the peaks 
-     * to adjust the FeatureFinderMultiplex parameters for better seed detection.
-     *
-     * @param[in] ms_centroided The MSExperiment object containing centroided mass spectrometry data. Only MS1 level
-     *                          spectra are considered for seed calculation.
-     * @param[out] seeds The FeatureMap object where the identified seeding features will be stored.
-     * @param[in] median_fwhm The median FWHM of the peaks, used to adjust the FeatureFinderMultiplex parameters for
-     *                        seed detection.
-     *
-     * @note The function currently uses hardcoded parameters for the threshold filter and FeatureFinderMultiplex
-     *       algorithm, which may need to be derived from the data or provided as function arguments in future
-     *       implementations.
-     */
+
     void DDAWorkflowCommons::calculateSeeds(
-    const MSExperiment & ms_centroided, 
-    const double intensity_threshold,
-    FeatureMap & seeds, 
-    double median_fwhm,
-    Size charge_min,
-    Size charge_max)
+        const MSExperiment & ms_centroided, 
+        const double intensity_threshold,
+        FeatureMap & seeds, 
+        double median_fwhm,
+        Size charge_min,
+        Size charge_max
+    )
     {
         //TODO: Actually FFM provides a parameter for minimum intensity. Also it copies the full experiment again once or twice.
         MSExperiment e;
@@ -234,7 +195,7 @@ namespace OpenMS
         { 
             if (s.getMSLevel() == 1) 
             {              
-            e.addSpectrum(s);
+                e.addSpectrum(s);
             }
         }
 

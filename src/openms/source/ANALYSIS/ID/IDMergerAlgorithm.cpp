@@ -6,9 +6,12 @@
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
+#include "OpenMS/CONCEPT/LogStream.h"
+#include "OpenMS/METADATA/ProteinIdentification.h"
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <unordered_map>
+#include <algorithm>
+#include <map>
 #include <array>
 
 using namespace std;
@@ -45,7 +48,7 @@ namespace OpenMS
       PeptideIdentificationList&& peps
       )
   {
-
+    if (prots.empty()) OPENMS_LOG_WARN << "No ProteinIdentification(Runs) given. Skipping."; return;
     //TODO instead of only checking consistency, merge if possible (especially for SILAC mods)
     if (!filled_)
     {
@@ -71,11 +74,11 @@ namespace OpenMS
       const PeptideIdentificationList& peps
   )
   {
+    if (prots.empty()) OPENMS_LOG_WARN << "No ProteinIdentification(Runs) given. Skipping."; return;
+
     //copy
     std::vector<ProteinIdentification> pr = prots;
     PeptideIdentificationList pep = peps;
-    
-    if (prots.empty() || peps.empty()) return; //error?
 
     //TODO instead of only checking consistency, merge if possible (especially for SILAC mods)
     if (!filled_)
@@ -119,11 +122,14 @@ namespace OpenMS
     //reset internals
     file_origin_to_idx_.clear();
 
-    for (auto& p : collected_protein_hits_)
-      prots.getHits().push_back(std::move(const_cast<ProteinHit&>(p)));
-    // above invalidates set but we clear right after
+    // Safely move hits out using node handles (empties the set)
+    for (auto it = collected_protein_hits_.begin(); it != collected_protein_hits_.end(); )
+    {
+      auto nh = collected_protein_hits_.extract(it++);
+      prots.getHits().push_back(std::move(nh.value()));
+    }
 
-    collected_protein_hits_.clear();
+    filled_ = false;
   }
 
   String IDMergerAlgorithm::getNewIdentifier_(bool addTimeStampToID) const
@@ -226,8 +232,8 @@ namespace OpenMS
   }
 
 
-  // this merges without checking the existence of a parent protein for the PeptideHits
-  // therefore it can merge peptides and proteins separately and a bit faster.
+  /// this merges without checking the existence of a parent protein for the PeptideHits
+  /// therefore it can merge peptides and proteins separately and a bit faster.
   void IDMergerAlgorithm::movePepIDsAndRefProteinsToResultFaster_(
       PeptideIdentificationList&& pepIDs,
       vector<ProteinIdentification>&& old_protRuns

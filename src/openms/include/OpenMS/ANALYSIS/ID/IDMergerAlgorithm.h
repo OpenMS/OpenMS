@@ -72,6 +72,10 @@ namespace OpenMS
      * Inserts (moves and clears) protein and peptide identifications into the internal 
      * merged data structures. This version uses move semantics for better performance
      * when the source data is no longer needed.
+     * Note:
+     * - Only inserts PeptideIdentifications from existing runs in @p prots (noop if prots is empty)
+     * - Duplicates file origins if multiple (compatible) protein runs from the same spectrumfile
+     *   are merged 
      * 
      * @param prots Vector of protein identifications to be merged
      * @param peps Vector of peptide identifications to be merged
@@ -84,7 +88,11 @@ namespace OpenMS
      * 
      * Inserts (copies) protein and peptide identifications into the internal 
      * merged data structures. This version preserves the source data.
-     * 
+     * Note:
+     * - Only inserts PeptideIdentifications from existing runs in @p prots (noop if prots is empty)
+     * - Duplicates file origins if multiple (compatible) protein runs from the same spectrumfile
+     *   are merged
+     *
      * @param prots Vector of protein identifications to be merged
      * @param peps Vector of peptide identifications to be merged
      */
