@@ -191,7 +191,7 @@ START_SECTION((double binomial_cdf_complement(unsigned N, unsigned n, double p))
   
   // Test edge cases
   TEST_REAL_SIMILAR(Math::binomial_cdf_complement(10, 0, 0.3), 1.0);
-  TEST_REAL_SIMILAR(Math::binomial_cdf_complement(10, 10, 0.7), 0.28247549);
+  TEST_REAL_SIMILAR(Math::binomial_cdf_complement(10, 10, 0.7), 0.0282475249);
   
   // Test with p = 0 and p = 1
   TEST_REAL_SIMILAR(Math::binomial_cdf_complement(10, 0, 0.0), 1.0);
