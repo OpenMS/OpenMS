@@ -133,6 +133,7 @@ START_SECTION(static IMFormat determineIMFormat(const MSExperiment& exp))
     exp.addSpectrum(IMwithDrift);
     exp.addSpectrum(IMwithFDA);
     exp.addSpectrum(IMwithFDA2);
+    TEST_EQUAL(IMTypes::determineIMFormat(exp) == IMFormat::MIXED, true)
   }
 
 END_SECTION
@@ -149,6 +150,7 @@ START_SECTION(static IMFormat determineIMFormat(const MSSpectrum& spec))
    // set both ... is valid (typically concatenated + some average value)
    auto IMwithFDA2 = IMwithFDA;
    IMwithFDA2.setDriftTime(123.4);
+   TEST_EQUAL(IMTypes::determineIMFormat(IMwithFDA2) == IMFormat::MIXED, true)
 END_SECTION
 
 /////////////////////////////////////////////////////////////
