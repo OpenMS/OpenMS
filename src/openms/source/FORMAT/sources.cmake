@@ -87,6 +87,7 @@ SwathFile.cpp
 SVOutStream.cpp
 TextFile.cpp
 ToolDescriptionFile.cpp
+ToolJSONFile.cpp
 TraMLFile.cpp
 TransformationXMLFile.cpp
 TriqlerFile.cpp
