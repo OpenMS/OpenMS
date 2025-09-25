@@ -100,6 +100,7 @@ PeakPickerHiRes
 PeakPickerIterative
 PeakPickerIM
 PeptideIndexer
+PeptideDataBaseSearchFI
 PercolatorAdapter
 PhosphoScoring
 ProteinInference
