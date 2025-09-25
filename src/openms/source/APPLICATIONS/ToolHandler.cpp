@@ -30,11 +30,17 @@ namespace OpenMS
       {
         tools_map[tool.name] = tool;
       }
+
+      // Apply the same includeGenericWrapper logic as the hardcoded fallback
+      if (!includeGenericWrapper)
+      {
+        tools_map.erase("GenericWrapper");
+      }
     }
     else
     {
       // Fallback to hardcoded tool definitions
-      // Note: don't use special characters like slashes in category names (leads to subcategories in KNIME) 
+      // Note: don't use special characters like slashes in category names (leads to subcategories in KNIME)
       const auto cat_calibration = "Mass Correction and Calibration";
       const auto cat_centroiding = "Spectrum processing: Centroiding";
       const auto cat_crosslinking = "Cross-Linking";
@@ -206,7 +212,7 @@ namespace OpenMS
       tools_map["TriqlerConverter"] = Internal::ToolDescription("TriqlerConverter", cat_file_converter);
       tools_map["XFDR"] = Internal::ToolDescription("XFDR", cat_crosslinking);
       tools_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", cat_dev);
-      
+
       // STOP! insert your tool in alphabetical order for easier maintenance (tools requiring the GUI lib should be added below **in addition**)
 
       // ATTENTION: tools requiring the GUI lib
@@ -429,7 +435,7 @@ namespace OpenMS
       return tools_json_available_;
     }
 
-    try 
+    try
     {
       String json_path = ToolJSONFile::getDefaultConfigPath();
       if (File::exists(json_path))
