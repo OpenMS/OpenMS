@@ -598,7 +598,6 @@ namespace OpenMS
               {
                 mz_center = mz_mid;
               }
-
             } while (std::fabs(int_mid - half_height) > fwhm_search_threshold);
           }
           double fwhm_left_mz = mz_mid;
@@ -1324,7 +1323,6 @@ namespace OpenMS
 
       spectrum.sortByPosition();
       spectrum.updateRanges();
-
     } // End of pickIMCluster function
     void PeakPickerIM::pickIMElutionProfiles(MSSpectrum& input, double ppm_tolerance_elution_)
     {

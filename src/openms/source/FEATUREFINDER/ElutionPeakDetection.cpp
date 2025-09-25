@@ -537,7 +537,6 @@ namespace OpenMS
           }
         }
       }
-
     }
     return;
   }
