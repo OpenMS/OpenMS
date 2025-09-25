@@ -2723,6 +2723,24 @@ set_tests_properties("TOPP_SimpleSearchEngine_2_out" PROPERTIES DEPENDS
 "TOPP_SimpleSearchEngine_2")
 
 
+# PeptideDataBaseSearchFI:
+add_test("TOPP_PeptideDataBaseSearchFI_1" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
+-ini ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_1.ini -in
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out PeptideDataBaseSearchFI_1_out.tmp.idXML
+-database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
+add_test("TOPP_PeptideDataBaseSearchFI_1_out" ${DIFF} -in1 PeptideDataBaseSearchFI_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+set_tests_properties("TOPP_PeptideDataBaseSearchFI_1_out" PROPERTIES DEPENDS
+"TOPP_PeptideDataBaseSearchFI_1")
+
+add_test("TOPP_PeptideDataBaseSearchFI_2" ${TOPP_BIN_PATH}/PeptideDataBaseSearchFI -test
+-ini ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_2.ini -in
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out PeptideDataBaseSearchFI_2_out.tmp.idXML
+-database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
+add_test("TOPP_PeptideDataBaseSearchFI_2_out" ${DIFF} -in1 PeptideDataBaseSearchFI_2_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideDataBaseSearchFI_2_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+set_tests_properties("TOPP_PeptideDataBaseSearchFI_2_out" PROPERTIES DEPENDS
+"TOPP_PeptideDataBaseSearchFI_2")
+
+
 # FeatureFinderMetaboIdent:
 add_test("TOPP_FeatureFinderMetaboIdent_1" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv -out FeatureFinderMetaboIdent_1_output.tmp.featureXML -extract:mz_window 5 -extract:rt_window 20 -detect:peak_width 3)
 add_test("TOPP_FeatureFinderMetaboIdent_1_out1" ${DIFF} -whitelist "id=" -in1 FeatureFinderMetaboIdent_1_output.tmp.featureXML -in2 ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_output.featureXML)
