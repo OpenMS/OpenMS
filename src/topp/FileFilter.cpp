@@ -25,6 +25,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <algorithm>
 #include <memory>
 
 using namespace OpenMS;
@@ -61,6 +62,11 @@ Depending on the input file type, additional specific operations are possible:
     - filter by signal-to-noise estimation
     - filter by scan mode of the spectra
     - filter by scan polarity of the spectra
+    - filter by activation method of the spectra
+    - filter by collision energy of the spectra
+    - filter by isolation window width of the spectra
+    - select/remove zoom scans
+    - remove chromatograms, meta data arrays, and empty spectra
 - remove MS2 scans whose precursor matches identifications (from an idXML file in 'id:blacklist')
 - featureXML
     - filter by feature charge
@@ -211,7 +217,7 @@ private:
           }
         }
       }
-      feature.setPeptideIdentifications(vector<PeptideIdentification>(1, temp));
+      feature.setPeptideIdentifications(PeptideIdentificationList(1, temp));
       // not filtering sequences or accessions
       if (sequences.empty() && accessions.empty())
       {
@@ -301,6 +307,7 @@ protected:
     registerFlag_("peak_options:no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans");
     registerFlag_("peak_options:remove_chromatograms", "Removes chromatograms stored in a file");
     registerFlag_("peak_options:remove_empty", "Removes spectra and chromatograms without peaks.");
+    registerFlag_("peak_options:remove_metadataarrays", "Remove all binary data (e.g. ion mobility), except m/z and intensity.");
     registerStringOption_("peak_options:mz_precision", "32 or 64", 64, "Store base64 encoded m/z data using 32 or 64 bit precision", false);
     setValidStrings_("peak_options:mz_precision", ListUtils::create<String>("32,64"));
     registerStringOption_("peak_options:int_precision", "32 or 64", 32, "Store base64 encoded intensity data using 32 or 64 bit precision", false);
@@ -720,6 +727,16 @@ protected:
           ,chroms.end());
       }
 
+      bool remove_metadataarrays = getFlag_("peak_options:remove_metadataarrays");
+      if (remove_metadataarrays)
+      {
+        for (MapType::SpectrumType& spec : exp.getSpectra())
+        {
+          spec.getFloatDataArrays().clear();
+          spec.getStringDataArrays().clear();
+          spec.getIntegerDataArrays().clear();
+        }
+      }
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
@@ -728,20 +745,20 @@ protected:
       IntList rm_pc_charge = getIntList_("peak_options:rm_pc_charge");
       if (!rm_pc_charge.empty())
       {
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasPrecursorCharge<MapType::SpectrumType>(rm_pc_charge, false)), exp.end());
+        std::erase_if(exp.getSpectra(), HasPrecursorCharge<MapType::SpectrumType>(rm_pc_charge, false));
       }
 
       // remove precursors out of certain m/z range for all spectra with a precursor (MS2 and above)
       if (!pc_mz_range.empty())
       {
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), InPrecursorMZRange<MapType::SpectrumType>(pc_left, pc_right, true)), exp.end());
+        std::erase_if(exp.getSpectra(), InPrecursorMZRange<MapType::SpectrumType>(pc_left, pc_right, true));
       }
 
       // keep MS/MS spectra whose precursors cover at least of the given m/z values
       std::vector<double> vec_mz = getDoubleList_("peak_options:pc_mz_list");
       if (!vec_mz.empty())
       {
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindow<MapType::SpectrumType>(vec_mz, true)), exp.end());
+        std::erase_if(exp.getSpectra(), IsInIsolationWindow<MapType::SpectrumType>(vec_mz, true));
       }
 
 
@@ -754,7 +771,7 @@ protected:
         {
           if (InstrumentSettings::NamesOfScanMode[i] == remove_mode)
           {
-            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i)), exp.end());
+            std::erase_if(exp.getSpectra(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i));
           }
         }
       }
@@ -768,7 +785,7 @@ protected:
         {
           if (InstrumentSettings::NamesOfScanMode[i] == select_mode)
           {
-            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i, true)), exp.end());
+            std::erase_if(exp.getSpectra(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i, true));
           }
         }
       }
@@ -859,7 +876,7 @@ protected:
       }        
 
       //remove empty scans
-      exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsEmptySpectrum<MapType::SpectrumType>()), exp.end());
+      std::erase_if(exp.getSpectra(), IsEmptySpectrum<MapType::SpectrumType>());
 
       //sort
       if (sort)
@@ -946,7 +963,7 @@ protected:
         bool is_blacklist = getStringOption_("spectra:blackorwhitelist:blacklist") == "true" ? true : false;
 
         PeakMap lib_file;
-        FileHandler().loadExperiment(lib_file_name, lib_file, {FileTypes::MZML});
+        FileHandler().loadExperiment(lib_file_name, lib_file, {FileTypes::MZML}, log_type_);
 
         int ret = filterByBlackOrWhiteList(is_blacklist, exp, lib_file, tol_rt, tol_mz, tol_sim, is_ppm);
         if (ret != EXECUTION_OK)
@@ -1213,7 +1230,7 @@ protected:
   ExitCodes filterByBlackList(MapType& exp, const String& id_blacklist, bool blacklist_imperfect, double rt_tol, double mz_tol)
   {
     vector<ProteinIdentification> protein_ids;
-    vector<PeptideIdentification> peptide_ids;
+    PeptideIdentificationList peptide_ids;
     FileHandler().loadIdentifications(id_blacklist, protein_ids, peptide_ids);
 
     // translate idXML entries into something more handy

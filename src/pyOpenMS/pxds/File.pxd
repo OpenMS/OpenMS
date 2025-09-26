@@ -81,7 +81,7 @@ cdef extern from "<OpenMS/SYSTEM/File.h>" namespace "OpenMS::File":
     # Resolves a partial file name to a documentation file in the doc-folder.
     String findDoc(String filename) except + nogil  # wrap-attach:File
 
-    bool rename(const String & from, const String & to, bool overwrite_existing, bool verbose) except + nogil  # wrap-attach:File
+    bool rename(const String & old_filename, const String & new_filename, bool overwrite_existing, bool verbose) except + nogil  # wrap-attach:File
 
     # bool removeDir(const QString & dir_name) except + nogil 
 

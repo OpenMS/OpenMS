@@ -39,7 +39,7 @@ namespace OpenMS
     pep_id.getHits()[0].setMetaValue("missed_cleavages", num_mc);
   };
 
-  void MissedCleavages::compute(std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
+  void MissedCleavages::compute(std::vector<ProteinIdentification>& prot_ids, PeptideIdentificationList& pep_ids)
   {
     MapU32 result {};
 

@@ -41,7 +41,7 @@ namespace OpenMS
   //TODO overload to accept a set of specific runIDs only
   void IDMergerAlgorithm::insertRuns(
       std::vector<ProteinIdentification>&& prots,
-      std::vector<PeptideIdentification>&& peps
+      PeptideIdentificationList&& peps
       )
   {
     if (prots.empty() || peps.empty()) return; //error?
@@ -68,12 +68,12 @@ namespace OpenMS
 
   void IDMergerAlgorithm::insertRuns(
       const std::vector<ProteinIdentification>& prots,
-      const std::vector<PeptideIdentification>& peps
+      const PeptideIdentificationList& peps
   )
   {
     //copy
     std::vector<ProteinIdentification> pr = prots;
-    std::vector<PeptideIdentification> pep = peps;
+    PeptideIdentificationList pep = peps;
     if (prots.empty() || peps.empty()) return; //error?
 
     //TODO instead of only checking consistency, merge if possible (especially for SILAC mods)
@@ -97,7 +97,7 @@ namespace OpenMS
 
   void IDMergerAlgorithm::returnResultsAndClear(
       ProteinIdentification& prots,
-      vector<PeptideIdentification>& peps)
+      PeptideIdentificationList& peps)
   {
     // convert the map from file origin to idx into
     // a vector
@@ -154,7 +154,7 @@ namespace OpenMS
   }
 
   void IDMergerAlgorithm::updateAndMovePepIDs_(
-      vector<PeptideIdentification>&& pepIDs,
+      PeptideIdentificationList&& pepIDs,
       const map<String, Size>& runID_to_runIdx,
       const vector<StringList>& originFiles,
       bool annotate_origin)
@@ -227,7 +227,7 @@ namespace OpenMS
   // this merges without checking the existence of a parent protein for the PeptideHits
   // therefore it can merge peptides and proteins separately and a bit faster.
   void IDMergerAlgorithm::movePepIDsAndRefProteinsToResultFaster_(
-      vector<PeptideIdentification>&& pepIDs,
+      PeptideIdentificationList&& pepIDs,
       vector<ProteinIdentification>&& old_protRuns
   )
   {
@@ -272,7 +272,7 @@ namespace OpenMS
 
   /* Old version. Quite slower but only copies actually referenced proteins
   void IDMergerAlgorithm::movePepIDsAndRefProteinsToResult_(
-      vector<PeptideIdentification>&& pepIDs,
+      PeptideIdentificationList&& pepIDs,
       vector<ProteinIdentification>&& oldProtRuns
   )
   {

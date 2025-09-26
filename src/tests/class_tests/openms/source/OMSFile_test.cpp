@@ -36,7 +36,7 @@ IdentificationData ids;
 START_SECTION(void store(const String& filename, const IdentificationData& id_data))
 {
   vector<ProteinIdentification> proteins_in;
-  vector<PeptideIdentification> peptides_in;
+  PeptideIdentificationList peptides_in;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), proteins_in, peptides_in);
   // IdentificationData doesn't allow score types with the same name, but different orientations:
   peptides_in[0].setHigherScoreBetter(true);

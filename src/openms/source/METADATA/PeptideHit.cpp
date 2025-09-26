@@ -7,7 +7,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <algorithm>
 #include <ostream>
+#include <tuple>
 #include <utility>
 
 using namespace std;
@@ -19,12 +22,11 @@ namespace OpenMS
     MetaInfoInterface(),
     sequence_(),
     score_(0),
-    analysis_results_(nullptr),
-    rank_(0),
     charge_(0),
     peptide_evidences_(),
     fragment_annotations_()
   {
+    // Default rank (0) is not stored as meta value
   }
 
   // values constructor
@@ -32,25 +34,31 @@ namespace OpenMS
       MetaInfoInterface(),
       sequence_(sequence),
       score_(score),
-      analysis_results_(nullptr),
-      rank_(rank),
       charge_(charge),
       peptide_evidences_(),
       fragment_annotations_()
   {
+    // Only set rank as meta value if it's not the default value
+    if (rank != 0)
+    {
+      setMetaValue(Constants::UserParam::RANK, rank);
+    }
   }
 
   // values constructor
   PeptideHit::PeptideHit(double score, UInt rank, Int charge, AASequence&& sequence) :
     MetaInfoInterface(),
-    sequence_(sequence),
+    sequence_(std::move(sequence)),
     score_(score),
-    analysis_results_(nullptr),
-    rank_(rank),
     charge_(charge),
     peptide_evidences_(),
     fragment_annotations_()
   {
+    // Only set rank as meta value if it's not the default value
+    if (rank != 0)
+    {
+      setMetaValue(Constants::UserParam::RANK, rank);
+    }
   }
 
   // copy constructor
@@ -58,16 +66,11 @@ namespace OpenMS
     MetaInfoInterface(source),
     sequence_(source.sequence_),
     score_(source.score_),
-    analysis_results_(nullptr),
-    rank_(source.rank_),
     charge_(source.charge_),
     peptide_evidences_(source.peptide_evidences_),
     fragment_annotations_(source.fragment_annotations_)
   {
-    if (source.analysis_results_ != nullptr)
-    {
-      analysis_results_ = new std::vector<PepXMLAnalysisResult>(*source.analysis_results_);
-    }
+    // MetaInfoInterface copy constructor already copies all meta values including rank
   }
 
   /// Move constructor
@@ -75,20 +78,16 @@ namespace OpenMS
     MetaInfoInterface(std::move(source)), // NOTE: rhs itself is an lvalue
     sequence_(std::move(source.sequence_)),
     score_(source.score_),
-    analysis_results_(std::move(source.analysis_results_)),
-    rank_(source.rank_),
     charge_(source.charge_),
     peptide_evidences_(std::move(source.peptide_evidences_)),
     fragment_annotations_(std::move(source.fragment_annotations_))
   {
-    // see http://thbecker.net/articles/rvalue_references/section_05.html
-    source.analysis_results_ = nullptr;
+    // MetaInfoInterface move constructor already moves all meta values including rank
   }
 
   // destructor
   PeptideHit::~PeptideHit()
   {
-    delete analysis_results_;
   }
 
   PeptideHit& PeptideHit::operator=(const PeptideHit& source)
@@ -101,12 +100,6 @@ namespace OpenMS
     MetaInfoInterface::operator=(source);
     sequence_ = source.sequence_;
     score_ = source.score_;
-    delete analysis_results_;
-    if (source.analysis_results_ != nullptr)
-    {
-      analysis_results_ = new std::vector<PepXMLAnalysisResult>(*source.analysis_results_);
-    }
-    rank_ = source.rank_;
     charge_ = source.charge_;
     peptide_evidences_ = source.peptide_evidences_;
     fragment_annotations_ = source.fragment_annotations_;
@@ -122,42 +115,21 @@ namespace OpenMS
 
     MetaInfoInterface::operator=(std::move(source));
     //clang-tidy overly strict, should be fine to move the rest here
-    sequence_ = source.sequence_;
+    sequence_ = std::move(source.sequence_);
     score_ = source.score_;
-
-    // free memory and assign rhs memory
-    delete analysis_results_;
-    analysis_results_ = source.analysis_results_;
-    source.analysis_results_ = nullptr;
-
-    rank_ = source.rank_;
     charge_ = source.charge_;
-    peptide_evidences_ = source.peptide_evidences_;
-    fragment_annotations_ = source.fragment_annotations_;
+    peptide_evidences_ = std::move(source.peptide_evidences_);
+    fragment_annotations_ = std::move(source.fragment_annotations_);
 
     return *this;
   }
 
   bool PeptideHit::operator==(const PeptideHit& rhs) const
   {
-    bool ar_equal = false;
-    if (analysis_results_ == nullptr && rhs.analysis_results_ == nullptr)
-    {
-      ar_equal = true;
-    }
-    else if (analysis_results_ != nullptr && rhs.analysis_results_ != nullptr)
-    {
-      ar_equal = (*analysis_results_ == *rhs.analysis_results_);
-    }
-    else
-    {
-      return false; // one is null the other isn't
-    }
     return MetaInfoInterface::operator==(rhs)
            && sequence_ == rhs.sequence_
            && score_ == rhs.score_
-           && ar_equal
-           && rank_ == rhs.rank_
+           && getRank() == rhs.getRank() // Use getter instead of direct member access
            && charge_ == rhs.charge_
            && peptide_evidences_ == rhs.peptide_evidences_
            && fragment_annotations_ == rhs.fragment_annotations_;
@@ -177,7 +149,7 @@ namespace OpenMS
   // returns the rank of the peptide hit
   UInt PeptideHit::getRank() const
   {
-    return rank_;
+    return getMetaValue(Constants::UserParam::RANK, 0);
   }
 
   const AASequence& PeptideHit::getSequence() const
@@ -236,36 +208,145 @@ namespace OpenMS
     score_ = score;
   }
 
-  void PeptideHit::setAnalysisResults(std::vector<PeptideHit::PepXMLAnalysisResult> aresult)
+  void PeptideHit::setAnalysisResults(const std::vector<PeptideHit::PepXMLAnalysisResult>& aresult)
   {
-    // delete old results first
-    if (analysis_results_ != nullptr) delete analysis_results_;
-    analysis_results_ = new std::vector< PeptideHit::PepXMLAnalysisResult> (std::move(aresult));
+    // Remove all existing analysis result meta values
+    std::vector<String> keys;
+    getKeys(keys);
+    for (const auto& key : keys)
+    {
+      if (key.hasPrefix("_ar_"))
+      {
+        removeMetaValue(key);
+      }
+    }
+    
+    // Add new analysis results as meta values
+    for (size_t i = 0; i < aresult.size(); ++i)
+    {
+      const auto& ar = aresult[i];
+      setMetaValue("_ar_" + String(i) + "_score_type", ar.score_type);
+      setMetaValue("_ar_" + String(i) + "_score", ar.main_score);
+      setMetaValue("_ar_" + String(i) + "_higher_is_better", ar.higher_is_better == true ? "true" : "false");
+      
+      for (const auto& subscore : ar.sub_scores)
+      {
+        setMetaValue("_ar_" + String(i) + "_subscore_" + subscore.first, subscore.second);
+      }
+    }
   }
 
   void PeptideHit::addAnalysisResults(const PeptideHit::PepXMLAnalysisResult& aresult)
   {
-    if (analysis_results_ == nullptr)
+    size_t index = getNumberOfAnalysisResultsFromMetaValues_();
+    
+    setMetaValue("_ar_" + String(index) + "_score_type", aresult.score_type);
+    setMetaValue("_ar_" + String(index) + "_score", aresult.main_score);
+    setMetaValue("_ar_" + String(index) + "_higher_is_better", aresult.higher_is_better == true ? "true" : "false");
+    
+    for (const auto& subscore : aresult.sub_scores)
     {
-      analysis_results_ = new std::vector< PeptideHit::PepXMLAnalysisResult>();
+      setMetaValue("_ar_" + String(index) + "_subscore_" + subscore.first, subscore.second);
     }
-    analysis_results_->push_back(aresult);
   }
   
-  const std::vector<PeptideHit::PepXMLAnalysisResult>& PeptideHit::getAnalysisResults() const
+  std::vector<PeptideHit::PepXMLAnalysisResult> PeptideHit::getAnalysisResults() const
   {
-    static std::vector<PeptideHit::PepXMLAnalysisResult> empty;
-    if (analysis_results_ == nullptr)
+    return extractAnalysisResultsFromMetaValues_();
+  }
+
+  size_t PeptideHit::getNumberOfAnalysisResultsFromMetaValues_() const
+  {
+    size_t count = 0;
+    std::vector<String> keys;
+    getKeys(keys);
+    
+    for (const auto& key : keys)
     {
-      return empty;
+      if (key.hasPrefix("_ar_") &&
+          key.hasSuffix("_score_type"))
+      {
+        ++count;
+      }
     }
-    return (*analysis_results_);
+    
+    return count;
+  }
+
+  std::vector<PeptideHit::PepXMLAnalysisResult> PeptideHit::extractAnalysisResultsFromMetaValues_() const
+  {
+    std::vector<PeptideHit::PepXMLAnalysisResult> results;
+    std::vector<String> keys;
+    getKeys(keys);
+    
+    // First, find all indices that have analysis results
+    std::set<size_t> indices;
+    
+    for (const auto& key : keys)
+    {
+      const String prefix = "_ar_";
+      const String suffix = "_score_type";
+      if (key.hasPrefix(prefix) &&
+          key.hasSuffix(suffix))
+      {
+        String index_str = key.substr(prefix.size(), key.size() - prefix.size() - suffix.size()); // Extract index from _ar_<index>_score_type"
+        indices.insert(index_str.toInt());
+      }
+    }
+    
+    // For each index, extract the analysis result
+    for (size_t index : indices)
+    {
+      PeptideHit::PepXMLAnalysisResult ar;
+      String prefix = "_ar_" + String(index) + "_";
+      
+      // Get score type
+      if (metaValueExists(prefix + "score_type"))
+      {
+        ar.score_type = getMetaValue(prefix + "score_type").toString();
+      }
+      
+      // Get main score
+      if (metaValueExists(prefix + "score"))
+      {
+        ar.main_score = getMetaValue(prefix + "score");
+      }
+      
+      // Get higher_is_better flag
+      if (metaValueExists(prefix + "higher_is_better"))
+      {
+        ar.higher_is_better = getMetaValue(prefix + "higher_is_better").toBool();
+      }
+      
+      // Get sub-scores
+      String subscore_prefix = prefix + "subscore_";
+      for (const auto& key : keys)
+      {
+        if (key.hasPrefix(subscore_prefix))
+        {
+          String subscore_name = key.substr(subscore_prefix.size());
+          ar.sub_scores[subscore_name] = getMetaValue(key);
+        }
+      }
+      
+      results.push_back(ar);
+    }
+    
+    return results;
   }
 
   // sets the rank
   void PeptideHit::setRank(UInt newrank)
   {
-    rank_ = newrank;
+    if (newrank != 0)
+    {
+      setMetaValue(Constants::UserParam::RANK, newrank);
+    }
+    else
+    {
+      // Remove the meta value if the value is the default rank
+      removeMetaValue(Constants::UserParam::RANK);
+    }
   }
 
   std::set<String> PeptideHit::extractProteinAccessionsSet() const
@@ -297,11 +378,79 @@ namespace OpenMS
     fragment_annotations_ = std::move(frag_annotations);
   }
 
+  bool PeptideHit::isDecoy() const
+  {
+    return getTargetDecoyType() == TargetDecoyType::DECOY;
+  }
+
+  void PeptideHit::setTargetDecoyType(TargetDecoyType type)
+  {
+    switch(type)
+    {
+      case TargetDecoyType::TARGET:
+        setMetaValue("target_decoy", "target");
+        break;
+      case TargetDecoyType::DECOY:
+        setMetaValue("target_decoy", "decoy");
+        break;
+      case TargetDecoyType::TARGET_DECOY:
+        setMetaValue("target_decoy", "target+decoy");
+        break;
+      case TargetDecoyType::UNKNOWN:
+        removeMetaValue("target_decoy");
+        break;
+    }
+  }
+
+  PeptideHit::TargetDecoyType PeptideHit::getTargetDecoyType() const
+  {
+    if (!metaValueExists("target_decoy"))
+    {
+      return TargetDecoyType::UNKNOWN;
+    }
+    
+    String td = getMetaValue("target_decoy").toString().toLower();
+    if (td == "decoy") return TargetDecoyType::DECOY;
+    if (td == "target+decoy") return TargetDecoyType::TARGET_DECOY;
+    if (td == "target") return TargetDecoyType::TARGET;
+    
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown value of meta value 'target_decoy'", td);
+  }
+
   std::ostream& operator<< (std::ostream& stream, const PeptideHit& hit)
   {
     return stream << "peptide hit with sequence '" + hit.getSequence().toString() +
            "', charge " + String(hit.getCharge()) + ", score " +
            String(hit.getScore());
+  }
+
+  // PeakAnnotation method implementations
+  bool PeptideHit::PeakAnnotation::operator<(const PeptideHit::PeakAnnotation& other) const
+  {
+    // sensible to sort first by m/z and charge
+    return std::tie(mz, charge, annotation, intensity) < std::tie(other.mz, other.charge, other.annotation, other.intensity);
+  }
+
+  bool PeptideHit::PeakAnnotation::operator==(const PeptideHit::PeakAnnotation& other) const
+  {
+    if (charge != other.charge || mz != other.mz ||
+        intensity != other.intensity || annotation != other.annotation) return false;
+    return true;
+  }
+
+  void PeptideHit::PeakAnnotation::writePeakAnnotationsString_(String& annotation_string, std::vector<PeptideHit::PeakAnnotation> annotations)
+  {
+    if (annotations.empty()) { return; }
+
+    // sort by mz, charge, ...
+    stable_sort(annotations.begin(), annotations.end());
+
+    String val;
+    for (auto& a : annotations)
+    {
+      annotation_string += String(a.mz) + "," + String(a.intensity) + "," + String(a.charge) + "," + String(a.annotation).quote();
+      if (&a != &annotations.back()) { annotation_string += "|"; }
+    }
   }
 
 } // namespace OpenMS

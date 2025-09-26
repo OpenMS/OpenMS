@@ -34,9 +34,7 @@ ConsensusMap* nullPointer = nullptr;
 START_SECTION((ConsensusMap()))
 	ptr = new ConsensusMap();
 	TEST_NOT_EQUAL(ptr, nullPointer)
-	TEST_EQUAL(ptr->isMetaEmpty(),true)
-  TEST_REAL_SIMILAR(ptr->getMinIntensity(), numeric_limits<double>::max())
-  TEST_REAL_SIMILAR(ptr->getMaxIntensity(), -numeric_limits<double>::max())
+	TEST_TRUE(ptr->isMetaEmpty())
 END_SECTION
 
 START_SECTION((~ConsensusMap()))
@@ -60,20 +58,20 @@ START_SECTION((void setProteinIdentifications(const std::vector<ProteinIdentific
 	TEST_EQUAL(tmp.getProteinIdentifications().size(),2)
 END_SECTION
 
-START_SECTION((const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const))
+START_SECTION((const PeptideIdentificationList& getUnassignedPeptideIdentifications() const))
 	FeatureMap tmp;
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),0)
 END_SECTION
 
-START_SECTION((std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications()))
+START_SECTION((PeptideIdentificationList& getUnassignedPeptideIdentifications()))
 	FeatureMap tmp;
 	tmp.getUnassignedPeptideIdentifications().resize(1);
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),1)
 END_SECTION
 
-START_SECTION((void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications)))
+START_SECTION((void setUnassignedPeptideIdentifications(const PeptideIdentificationList& unassigned_peptide_identifications)))
 	FeatureMap tmp;
-	tmp.setUnassignedPeptideIdentifications(std::vector<PeptideIdentification>(2));
+	tmp.setUnassignedPeptideIdentifications(PeptideIdentificationList(2));
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),2)
 END_SECTION
 

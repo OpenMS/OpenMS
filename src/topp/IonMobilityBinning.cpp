@@ -124,7 +124,18 @@ protected:
     MZ_UNITS mz_binning_width_unit = getStringOption_("SpectraMerging:mz_binning_width_unit") == "Da" ? MZ_UNITS::DA : MZ_UNITS::PPM;
 
     PeakMap experiment;
-    FileHandler().loadExperiment(input_file, experiment, {FileTypes::MZML});
+
+    FileHandler().loadExperiment(input_file, experiment, {FileTypes::MZML}, log_type_);
+ 
+    auto [mzML_bins, im_ranges] = IMDataConverter::splitExperimentByIonMobility(std::move(experiment), bins, bin_extension_abs, mz_binning_width, mz_binning_width_unit);
+    
+    const Size width = String(bins).size();
+    for (Size counter = 0; counter < (Size)bins; ++counter)
+    {
+      ostringstream out_name;
+      out_name << out_prefix << "_part" << setw(width) << setfill('0') << (1+counter) << "of" << bins << "_" << im_ranges[counter].getMin() << "-"
+               << im_ranges[counter].getMax() << ".mzML ";
+      addDataProcessing_(mzML_bins[counter], getProcessingInfo_(DataProcessing::ION_MOBILITY_BINNING));
 
     // Check if this is FAIMS data and get CVs
     auto cvs = FAIMSHelper::getCompensationVoltages(experiment);

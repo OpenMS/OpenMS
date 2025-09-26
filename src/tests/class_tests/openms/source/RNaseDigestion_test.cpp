@@ -136,6 +136,13 @@ START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Si
   TEST_EQUAL(out.size(), 1);
   TEST_STRING_EQUAL(out[0].toString(), "CCCAUCCG");
 
+  rd.setEnzyme("RNase_4c");
+  rd.setMissedCleavages(0);
+  rd.digest(NASequence::fromString("UCCGUACGG"), out);
+  TEST_EQUAL(out.size(), 2);
+  TEST_STRING_EQUAL(out[0].toString(), "UCCGUc");    
+  TEST_STRING_EQUAL(out[1].toString(), "ACGG");
+
   rd.setEnzyme("unspecific cleavage");
   rd.setMissedCleavages(0); // shouldn't matter for the result
   rd.digest(NASequence::fromString("ACGU"), out);

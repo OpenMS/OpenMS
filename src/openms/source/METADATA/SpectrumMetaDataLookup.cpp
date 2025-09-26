@@ -151,7 +151,7 @@ namespace OpenMS
   }
 
 
-bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(vector<PeptideIdentification>& peptides,
+bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(PeptideIdentificationList& peptides,
                                                         const MSExperiment& exp)
 {
     // Check if the experiment has spectra
@@ -190,7 +190,7 @@ bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(vector<PeptideIdentificat
     return success;
 }
 
-  bool SpectrumMetaDataLookup::addMissingIMToPeptideIDs(vector<PeptideIdentification>& peptides,
+  bool SpectrumMetaDataLookup::addMissingIMToPeptideIDs(PeptideIdentificationList& peptides,
                                 const MSExperiment& exp)
   { 
     // Check if the experiment has spectra
@@ -222,7 +222,7 @@ bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(vector<PeptideIdentificat
     return all_ids_have_im;
   }
 
-  bool SpectrumMetaDataLookup::addMissingSpectrumReferences(vector<PeptideIdentification>& peptides, const String& filename,
+  bool SpectrumMetaDataLookup::addMissingSpectrumReferences(PeptideIdentificationList& peptides, const String& filename,
     bool stop_on_error, 
     bool override_spectra_data, 
     bool override_spectra_references,

@@ -44,13 +44,13 @@ namespace OpenMS
       {
         // ordered by size (alignment) and cache hotness in 'decode'
 
-        enum {
+        enum PRECISION{
           PRE_NONE, ///< unknown precision
           PRE_32,   ///< 32bit precision
           PRE_64    ///< 64bit precision
         } precision;
 
-        enum {
+        enum DATA_TYPE{
           DT_NONE,    ///< unknown data type
           DT_FLOAT,   ///< float data type
           DT_INT,     ///< integer data type

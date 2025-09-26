@@ -43,14 +43,22 @@ namespace OpenSwath
   @brief compute dotprod of vectors
   */
   template <typename Texp, typename Ttheo>
-  double dotProd(Texp intExpBeg, Texp intExpEnd, Ttheo intTheo)
-  {
-    std::vector<double> res(std::distance(intExpBeg, intExpEnd));
-    std::transform(intExpBeg, intExpEnd, intTheo, res.begin(), std::multiplies<double>());
-    double sum = std::accumulate(res.begin(), res.end(), 0.);
-    return sum;
-  }
+  double dotProd(Texp intExpBeg, Texp intExpEnd, Ttheo intTheo);
 
+  /// @cond
+  
+  // Explicit template instantiation declarations (tell the compiler these exist)
+  extern template double dotProd<std::vector<double>::const_iterator, std::vector<double>::const_iterator>(
+    std::vector<double>::const_iterator, std::vector<double>::const_iterator, std::vector<double>::const_iterator);
+  
+  extern template double dotProd<std::vector<float>::const_iterator, std::vector<float>::const_iterator>(
+    std::vector<float>::const_iterator, std::vector<float>::const_iterator, std::vector<float>::const_iterator);
+  
+  extern template double dotProd<std::vector<int>::const_iterator, std::vector<int>::const_iterator>(
+    std::vector<int>::const_iterator, std::vector<int>::const_iterator, std::vector<int>::const_iterator);
+
+  /// @endcond
+  
   /**
     @brief the dot product scoring
 
@@ -67,11 +75,9 @@ namespace OpenSwath
   double manhattanDist(Texp itExpBeg, Texp itExpEnd, Ttheo itTheo)
   {
     double sum = 0.0;
-    for (std::size_t i = 0; itExpBeg < itExpEnd; ++itExpBeg, ++itTheo, ++i)
+    for (; itExpBeg < itExpEnd; ++itExpBeg, ++itTheo)
     {
-      double x = *itExpBeg - *itTheo;
-      x = fabs(x);
-      sum += x;
+      sum += fabs(*itExpBeg - *itTheo);
     }
     return sum;
   }

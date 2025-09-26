@@ -429,7 +429,7 @@ START_SECTION((void sort()))
 END_SECTION
 
 
-START_SECTION((void assignRanks()))
+START_SECTION((void sort()))
 	ProteinIdentification id;
 	ProteinHit hit;
 	hit.setScore(23);
@@ -442,18 +442,15 @@ START_SECTION((void assignRanks()))
 	hit.setAccession("THIRDPROTEIN");
 	id.insertHit(hit);
 
-	id.assignRanks();
+	id.sort();
 
 	TEST_EQUAL(id.getHits()[0].getAccession(), "FIRSTPROTEIN")
 	TEST_EQUAL(id.getHits()[1].getAccession(), "SECONDPROTEIN")
 	TEST_EQUAL(id.getHits()[2].getAccession(), "THIRDPROTEIN")
-	TEST_EQUAL(id.getHits()[0].getRank(), 1)
-	TEST_EQUAL(id.getHits()[1].getRank(), 2)
-	TEST_EQUAL(id.getHits()[2].getRank(), 3)
 END_SECTION
 
 
-START_SECTION((Size computeCoverage(const std::vector<PeptideIdentification>& pep_ids)))
+START_SECTION((Size computeCoverage(const PeptideIdentificationList& pep_ids)))
 	ProteinIdentification id;
 
   // prep hit
@@ -468,7 +465,7 @@ START_SECTION((Size computeCoverage(const std::vector<PeptideIdentification>& pe
   id.insertHit(hit);
 
   // prep peptides
-  std::vector<PeptideIdentification> pep_ids;
+  PeptideIdentificationList pep_ids;
   PeptideIdentification pid;
   PeptideHit phit(0, 0, 1, AASequence::fromString(""));
   PeptideEvidence pe;

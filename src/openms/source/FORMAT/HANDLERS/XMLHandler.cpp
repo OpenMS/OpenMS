@@ -13,8 +13,10 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/SYSTEM/SIMDe.h>
 
 #include <algorithm>
+#include <bit>
 #include <set>
 
 using namespace std;
@@ -204,27 +206,14 @@ namespace OpenMS::Internal
       DataValue cv_value = value;
 
       // Abort on unknown terms
-      if (!cv.exists(accession))
+      try
       {
-        // in 'sample' several external CVs are used (Brenda, GO, ...). Do not warn then.
-        if (parent_tag != "sample")
-        {
-          warning(LOAD, String("Unknown cvParam '") + accession + "' in tag '" + parent_tag + "'.");
-          return DataValue::EMPTY;
-        }
-      }
-      else
-      {
-        const ControlledVocabulary::CVTerm& term = cv.getTerm(accession);
+        const ControlledVocabulary::CVTerm& term = cv.getTerm(accession); // throws Exception::InvalidValue if missing
 
         // check if term name and parsed name match
+        if (name != term.name) 
         {
-          const String parsed_name = String(name).trim();
-          const String correct_name = String(term.name).trim();
-          if (parsed_name != correct_name)
-          {
-            warning(LOAD, String("Name of CV term not correct: '") + term.id + " - " + parsed_name + "' should be '" + correct_name + "'");
-          }
+          warning(LOAD, String("Name of CV term not correct: '") + term.id + " - " + name + "' should be '" + term.name + "'");
         }
         if (term.obsolete)
         {
@@ -319,6 +308,15 @@ namespace OpenMS::Internal
         )
         {
           warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
+          return DataValue::EMPTY;
+        }
+      }
+      catch (const Exception::InvalidValue& /*e*/)
+      {
+        // in 'sample' several external CVs are used (Brenda, GO, ...). Do not warn then.
+        if (parent_tag != "sample")
+        {
+          warning(LOAD, String("Unknown cvParam '") + accession + "' in tag '" + parent_tag + "'.");
           return DataValue::EMPTY;
         }
       }
@@ -421,42 +419,154 @@ namespace OpenMS::Internal
       }
     }
 
-    //*******************************************************************************************************************
-    
-    StringManager::StringManager()
-    = default;
-
-    StringManager::~StringManager()
-    = default;
-
-    void StringManager::appendASCII(const XMLCh * chars, const XMLSize_t length, String & result)
+    // https://github.com/OpenMS/OpenMS/issues/8122
+    #if defined(__GNUC__)
+    __attribute__((no_sanitize("address")))
+    #elif defined(_MSC_VER)
+    __declspec(no_sanitize_address)
+    #endif
+    size_t StringManager::strLength(const XMLCh* input_ptr)
     {
-      // XMLCh are characters in UTF16 (usually stored as 16bit unsigned
+      if (input_ptr == nullptr) {
+          return 0;
+      }
+  
+      XMLSize_t processed_chars = 0;
+      const XMLCh* pos_ptr = input_ptr;
+  
+      // find number of characters until we reach a 16-byte aligned address
+      uintptr_t ptr_value = reinterpret_cast<uintptr_t>(pos_ptr);
+      size_t misalignment = ptr_value & 15; // modulo 16 to find misalignment
+      int chars_to_align = misalignment ? (16 - misalignment) / sizeof(XMLCh) : 0;
+  
+      // process one by one until we reach a 16-byte aligned address (where a SIMD load can be used)
+      for (int i = 0; i < chars_to_align; ++i)
+      {
+          if (*pos_ptr == 0) {
+              return i;
+          }
+          ++pos_ptr;
+      }
+      processed_chars = chars_to_align;
+  
+      // SIMD loop: find the first zero character in blocks of 8 UTF-16 characters (16 bytes each)
+      const simde__m128i zero = simde_mm_setzero_si128();
+      while (true)
+      {
+          simde__m128i bits = simde_mm_load_si128(reinterpret_cast<const simde__m128i*>(pos_ptr));
+          simde__m128i cmp_zero = simde_mm_cmpeq_epi16(bits, zero); // sets bits to 0xFFFF (2 bytes) for each character that is zero
+          uint16_t zero_mask = simde_mm_movemask_epi8(cmp_zero);    // extracts MSB from each byte 
+  
+          if (zero_mask != 0)
+          { // Found a zero character
+              auto byte_pos_zero = std::countr_zero(zero_mask); // count trailing zeros to find the first zero character
+              auto char_pos_zero = byte_pos_zero / 2;           // each UTF-16 character is 2 bytes, so divide by 2 to get character position
+              return processed_chars + char_pos_zero;
+          }
+  
+          // 8 chars (each 2 bytes) had no zero
+          pos_ptr += 8;
+          processed_chars += 8;
+      }
+  
+      // never reached
+      return processed_chars;
+    }
+
+    void StringManager::compress64_(const XMLCh* inputIt, char* outputIt)
+    {
+      simde__m128i bits = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(inputIt));
+    
+      // Select every second byte (little-endian lower byte of each UTF-16 character)
+      const simde__m128i shuffleMask = simde_mm_setr_epi8(
+        0, 2, 4, 6, 8, 10, 12, 14,
+        -1, -1, -1, -1, -1, -1, -1, -1
+      );
+    
+      simde__m128i compressed = simde_mm_shuffle_epi8(bits, shuffleMask);
+    
+      // Store the lower 64 bits (8 ASCII characters)
+      simde_mm_storel_epi64(reinterpret_cast<simde__m128i*>(outputIt), compressed);
+    }
+
+    bool StringManager::isASCII(const XMLCh* chars, const XMLSize_t length)
+    {
+      if (length == 0)
+      {
+        return true;
+      }
+
+      Size fullBlocks = length / 8;
+      Size remainder = length % 8;
+
+      const XMLCh* inputPtr = chars;
+      simde__m128i mask = simde_mm_set1_epi16(0xFF00);
+
+      // Process blocks of 8 UTF-16 characters using SIMD
+      for (Size i = 0; i < fullBlocks; ++i)
+      {
+        simde__m128i bits = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(inputPtr));
+        simde__m128i zero = simde_mm_setzero_si128();
+        simde__m128i andOp = simde_mm_and_si128(bits, mask);
+        simde__m128i cmp = simde_mm_cmpeq_epi16(andOp, zero);
+
+        if (simde_mm_movemask_epi8(cmp) != 0xFFFF)
+        {
+          return false;
+        }
+
+        inputPtr += 8;
+      }
+
+      // Check remaining characters individually
+      for (Size i = 0; i < remainder; ++i)
+      {
+        if (inputPtr[i] & 0xFF00)
+        {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    void StringManager::appendASCII(const XMLCh* chars, const XMLSize_t length, String& result)
+    {
+      // XMLCh are characters in UTF16 (usually stored as 16-bit unsigned
       // short but this is not guaranteed).
       // We know that the Base64 string here can only contain plain ASCII
       // and all bytes except the least significant one will be zero. Thus
       // we can convert to char directly (only keeping the least
       // significant byte).
-      const XMLCh* it = chars;
-      const XMLCh* end = it + length;
-
-      size_t curr_size = result.size();
-      result.resize(curr_size + length);
-      std::string::iterator str_it = result.begin();
-      std::advance(str_it, curr_size);
-      while (it!=end)
-      {   
-        *str_it = (char)*it;
-        ++str_it;
-        ++it;
+    
+      Size fullBlocks = length / 8;
+      Size remainder = length % 8;
+    
+      const XMLCh* inputPtr = chars;
+    
+      Size currentSize = result.size();
+      result.resize(currentSize + length);
+      char* outputPtr = &result[currentSize];
+    
+      // Copy blocks of 8 characters at a time
+      for (Size i = 0; i < fullBlocks; ++i)
+      {
+        compress64_(inputPtr, outputPtr);
+        inputPtr += 8;
+        outputPtr += 8;
       }
-
-      // This is ca. 50 % faster than 
-      // for (size_t i = 0; i < length; i++)
-      // {
-      //   result[curr_size + i] = (char)chars[i];
-      // }
-
+    
+      // Copy any remaining characters individually
+      for (Size i = 0; i < remainder; ++i)
+      {
+        outputPtr[i] = static_cast<char>(inputPtr[i] & 0xFF);
+      }
     }
 
-} // namespace OpenMS   // namespace Internal
+    //*******************************************************************************************************************
+    
+    StringManager::StringManager() = default;
+
+    StringManager::~StringManager() = default;
+
+} // namespace OpenMS::Internal

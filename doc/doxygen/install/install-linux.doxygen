@@ -2,386 +2,155 @@
 
   @page install_linux Building %OpenMS on GNU/Linux
 
-  This document describes how to build %OpenMS on a GNU/Linux system from source.
-  If you encounter errors during configuring/compiling our software,
-  search in our <a href="https://github.com/OpenMS/OpenMS/issues">issue tracker</a>,
-  maybe the error is already known.
-  If not, please write to the <a href="https://lists.sourceforge.net/lists/listinfo/open-ms-general">mailing list</a>
-  or report the error on our <a href="https://github.com/OpenMS/OpenMS/issues">issue tracker</a>.
+  This document describes how to build %OpenMS on a GNU/Linux system
+  from source.
 
-  @note If you do not have root privileges on your system,
-  make sure you read the section @ref build_linux_noroot.
+  If you encounter errors while configuring or compiling %OpenMS,
+  search in the [issue tracker][issues] for a possible solution.  If
+  an existing issue can't be found please report the error using the
+  same issue tracker.
 
-  We are working on adding %OpenMS to the <a href=http://pkgs.org/search/openms>repositories</a> of the most popular distributions,
-  but for many platforms the toolkit needs to be manually compiled on your system.
-  The same applies if you want to use the most recent source files from our Git repository.
+  @note If you do not have root privileges on your system, make sure
+  you read the section entitled @ref build_linux_noroot.
 
-  @section checkout_and_build Checkout OpenMS repository
+  We are working on adding %OpenMS to the [repositories][pkgsorg] of
+  the most popular distributions, but for many platforms the toolkit
+  needs to be manually compiled on your system.  The same applies if
+  you want to use the most recent source files from our Git
+  repository.
 
-  You can find the links to the release and development versions on the
-  <a href="http://www.openms.de/downloads/">Downloads</a> page of the
-  %OpenMS project.
-  All source code, including the latest development version, is on GitHub and can be obtained via Git:
+  @section install_linux_deps Installing Dependencies
+
+  We recommend installing all dependencies using your distribution's
+  package manager.  However, If you would rather built all
+  dependencies from source you can do so using the %OpenMS `contrib`
+  directory.  Details can be found in the section entitled @ref
+  install_linux_contrib.
+
+  @subsection install_linux_deps_ubuntu Ubuntu/Debian (>= 22.04)
+
+  The %OpenMS continuous build system uses Ubuntu and therefore build
+  instructions for Ubuntu will be the most accurate.
+
+  Dependencies can be installed using the following commands:
+  
+  \snippet "../../tools/ci/deps-ubuntu.sh" installation_documentation
+
+  @subsection install_linux_deps_redhat Fedora/RHEL/CentOS
+
+  @note These instructions are not currently maintained.  If you find
+  that they are incorrect please open a pull request or create an
+  [issue][issues].
+
+  \code
+  # In newer distros change yum to dnf
+  sudo yum groupinstall 'Development Tools'
+  sudo yum install git tar
+  # Especially on older CentOS versions <= 6 add the EPEL repo with additional updated packages
+  sudo yum install epel-release
+  # Update repo list for the thirdparty repository EPEL
+  sudo yum repolist
+  # Get REQUIRED installable contrib libraries
+  sudo yum install cmake3 qt6-qtbase-gui qt6-qtbase-devel qt6-qtsvg-devel python-devel
+  # Get OPTIONAL installable contrib libraries preferably from our Contrib package in the next step.
+  ## sudo yum install boost-devel libsvm-devel libzip-devel zlib-devel xerces-c-devel bzip2-devel libhdf5-devel glpk-devel
+  # NOTE that you might need to use cmake3 instead of cmake in the commands of the following steps.
+  \endcode
+
+  @subsection install_linux_deps_suse openSUSE >= 13.2
+
+  @note These instructions are not currently maintained.  If you find
+  that they are incorrect please open a pull request or create an
+  [issue][issues].
+
+  \code
+  # register obs://build.opensuse.org/devel:libraries:c_c++
+  # tools
+  sudo zypper install cmake gcc-c++ autoconf git patch automake libtool
+  # REQUIRED dependencies
+  sudo zypper install libqt6-qtbase-devel libqt6-qtsvg-devel python-devel glpk-devel
+  # OPTIONAL dependencies, preferably installed with our Contrib package in the next step
+  ## sudo zypper install boost-devel libzip-devel zlib-devel \
+  # libxerces-c-devel libbz2-devel libsvm-devel libhdf5-10
+  \endcode
+
+  @section install_linux_openms Building OpenMS
+
+  1. Begin by obtaining a copy of the %OpenMS source code:
 
     \code
-    # Assuming you are in ~/Development
-    git clone https://github.com/OpenMS/OpenMS.git
+    OPENMS_DIR=~/openms-development
+    mkdir -p "$OPENMS_DIR"
+    cd "$OPENMS_DIR"
+    git clone --recurse-submodules https://github.com/OpenMS/OpenMS
     \endcode
 
-  From here on, the instructions assume you have either an extracted tar.gz of a release and are inside its top folder, or checked out the development (Git) version.
+  2. Then compile the source code:
 
-  Next, we will take care of the dependencies upon which building %OpenMS from source relies.
+    \code
+    mkdir -p "$OPENMS_DIR/openms_build"
+    cd "$OPENMS_DIR/openms_build"
+    cmake -DBOOST_USE_STATIC=OFF "$OPENMS_DIR/OpenMS"
+    make -j"$(nproc || sysctl -n hw.logicalcpu || echo 2)"
+    \endcode
 
-  @section bin_dep Dependencies obtainable in binary form
+    @note After executing CMake you can list all of the make targets
+    by running `make targets`.
 
-  %OpenMS requires several other libraries to be present on your system.
-  Most of these should be available in the repositories of your GNU/Linux distribution.
+  3. The TOPP tools should now be ready to use.
 
-  For those libraries/versions often not found in the distribution's repositories, we provide sources and build scripts in a "contrib" submodule.
-  The Release tar.gz archive contains these libraries in the @p contrib/ folder.
-  If you build the development (Git) version, you will find an empty submodule in that folder that you have to update first with:
-  \code
-    git submodule update --init contrib
-  \endcode
+    The applications are located in the `$OPENMS_DIR/openms_build/bin`
+    directory.
 
-  <b>Despite that, in the following is a list of all required packages and libraries:</b>
-
-  <ul>
-    <li>
-      Essential are \b gcc/g++ (>= 7.0) or similar ANSI C++ compiler with full C++17 support,
-      \b CMake (>= 3.24), \b Qt 6 (>= 6.2), \b patch, \b autoconf (> 2.60), \b automake (> 1.9), \b libtool (libtoolize/glibtoolize).
-    </li>
-    <li>
-      For the complete feature set to be enabled, %OpenMS needs recent versions of
-      \b Boost (>= 1.74), \b Eigen3 (>= 3.4.0), \b libHDF5, \b libSVM (2.91 or higher but not 3.15),
-      \b glpk (>= 4.45) or \b CoinMP (>= 1.3.3), \b zlib, \b libbz2, and \b Xerces-C (>= 3.1.1).
-      These should be built by our contrib build script in case they are not already installed via your package manager.
-    </li>
-    <li>
-      Building the documentation from the development version requires Doxygen (recommended: >= 1.8.13, required: > 1.5.4, some might be buggy in between) and pdflatex/texlive/texlive-full.
-    </li>
-    <li>
-      Building pyOpenMS, the Python bindings for %OpenMS, requires Python, Cython and a few Python packages. See \ref pyOpenMS "here" for more detailed pyOpenMS build instructions.
-    </li>
-  </ul>
-
-  For the most common distributions, we have compiled the commands which will install the required compatible libraries.
-  There may be different libraries in your distribution's packaging system, but beware of version incompatibilities.
-
-  <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;" cellpadding="3px">
-  <tr>
-    <td><B>Fedora/RHEL/CentOS</B>
-    <a href="http://koji.fedoraproject.org/koji/packages">packages</a>
-  </td>
-    <td><pre>
-    # In newer distros change yum to dnf
-    sudo yum groupinstall 'Development Tools'
-    sudo yum install git tar
-    # Especially on older CentOS versions <= 6 add the EPEL repo with additional updated packages
-    sudo yum install epel-release
-    # Update repo list for the thirdparty repository EPEL
-    sudo yum repolist
-    # Get REQUIRED installable contrib libraries
-    sudo yum install cmake3 qt6-qtbase-gui qt6-qtbase-devel qt6-qtsvg-devel python-devel
-    # Get OPTIONAL installable contrib libraries preferably from our Contrib package in the next step.
-    ## sudo yum install boost-devel libsvm-devel libzip-devel zlib-devel xerces-c-devel bzip2-devel libhdf5-devel glpk-devel
-    # NOTE that you might need to use cmake3 instead of cmake in the commands of the following steps.
-    </pre>
-    </td>
-  </tr>
-  <tr>
-      <td><B>openSUSE >= 13.2<br/></B></td>
-      <td><pre>
-      # register obs://build.opensuse.org/devel:libraries:c_c++
-      # tools
-      sudo zypper install cmake gcc-c++ autoconf git patch automake libtool
-      # REQUIRED dependencies
-      sudo zypper install libqt6-qtbase-devel libqt6-qtsvg-devel python-devel glpk-devel
-      # OPTIONAL dependencies, preferably installed with our Contrib package in the next step
-      ## sudo zypper install boost-devel libzip-devel zlib-devel \
-      # libxerces-c-devel libbz2-devel libsvm-devel libhdf5-10
-      </pre></td>
-  </tr>
-  <tr>
-      <td><B>Ubuntu/Debian <br/>(>= 22.04)</B></td>
-      <td><pre>
-    # Include the Ubuntu "universe" repository and update:
-    sudo add-apt-repository universe
-    sudo apt update
-    sudo apt-get install build-essential cmake autoconf patch libtool git automake
-    # note: QtSVG might also be available using ' libqt6svg6-dev' in Debian sid
-    sudo apt-get install qt6-base-dev qt6-svg-dev
-    sudo apt-get install libeigen3-dev libboost-random-dev libboost-regex-dev \
-      libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libxerces-c-dev \
-      zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
-    # This should eliminate the need for building contrib libraries. Note: installing libglpk-dev is optional.
-      </pre></td>
-  </tr>
-  </table>
-
-  @section build_linux_contrib Building remaining dependencies
-
-  You can and should check which dependencies you still need by attempting to configure %OpenMS (see the next section);
-  it will complain about anything unusual/missing.
-  @warning Do not install libraries from our contrib package if it is installed on your system in a compatible version already. If you have an incompatible version, we suggest to update or uninstall and use the contrib version.
-  @note In most cases, the only dependency left unresolved (e.g. unavailable through your distributions packaging system) at this point is CoinOR.
-  Contact us if you still have trouble with the dependencies \b after these
-  instructions.
-
-  The tar.gz of the Release contains the scripts for building all dependencies in the contrib/ folder.
-  For the development (Git) version, this so called submodule folder will be empty and has to be checked out separately.
-
-  \code
-  # Assuming you are in ~/Development/OpenMS
-  git submodule update --init contrib
-  cd ..
-  mkdir contrib-build
-  cd contrib-build
-  \endcode
-
-  For the contrib as well as for %OpenMS we suggest to use out-of-source builds.
-  @note Generally all files generated while building %OpenMS have to go
-  somewhere.
-  In case of in-source-builds all files will be generated alongside the source code.
-  While this is easy and a well known practice from the regular ./configure + make approach it also changes your build tree.
-  It also prohibits building multiple configurations
-  (e.g., Debug and Release or different compiler versions).
-  As an alternative CMake offers the possibility to perform so called out-of-source builds.
-  Here all build files, binaries, libraries, etc. are generated in a separate directory.
-
-  From the <tt>./contrib-build/</tt> folder, execute the following command to show the
-  available build types
-     \code
-        cmake -DBUILD_TYPE=LIST ../OpenMS/contrib
-     \endcode
-  and then build Eigen:
-      \code
-          cmake -DBUILD_TYPE=EIGEN ../OpenMS/contrib
-      \endcode
-
-  To avoid problems while building the libraries contained in the contrib package,
-  the path to your contrib-build directory should not have any spaces in it. In case your distribution
-  does not provide some of the packages (or in different versions than expected), it is sometimes easier
-  to build all dependencies manually which can solve issues with incompatible versions:
-      \code
-          cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../OpenMS/contrib
-      \endcode
-  @section build_linux_noroot Building without root privileges
-
-  If you are on a system without root access (e.g. a shared cluster), there are
-  some additional considerations, especially regarding dependencies.
-  Specifically, some older Red Hat systems have older libraries installed that
-  may interfere with the newer versions that %OpenMS requires. The recommended
-  installation procedure is to use the contrib package to compile <b>all</b>
-  dependencies from source:
-
-  \code
-  cmake -DBUILD_TYPE=LIST ../OpenMS/contrib
-  cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../OpenMS/contrib
-  \endcode
-
-  Alternatively, you can build one package after the other by providing
-  <tt>-DBUILD_TYPE=...</tt> with the appropriate argument. 
+    @note If you intend to use third party search engines like Comet,
+    their binaries also need to be in the `PATH` environment variable.
+    You can find pre-built binaries in the %OpenMS `THIRDPARTY`
+    directory.  To use them set the `PATH` environment variable using
+    the following command:
+    \code
+    export PATH="$OPENMS_DIR/OpenMS/THIRDPARTY/Linux/$(uname -m)/Comet:$PATH"
+    \endcode
   
-  
-  In addition, you may have to compile Qt yourself which you can get from <a
-  href="http://download.qt.io/official_releases/qt">http://download.qt.io/official_releases/qt</a>
-  (use version >6.2), if it is not provided on your server or the version on
-  your environment is too old. 
-  
-  @note Anaconda packages (especially related to ICU) can cause compile errors due to missing symbols.
-  Deactivate conda environments before compiling.
-  
-  To compile use the traditional:
-  
-  @code
-  tar xvf qt-everywhere-src-6.5.3.tar.xz
-  cd qt-everywhere-src-6.5.3
-  ./configure --prefix=.   -skip qtdoc -skip qttranslations -skip qttools
-  cmake --build . --parallel
-  cmake --install .
-  @endcode
-  
-  to compile and install Qt (note that you should set the <tt>--prefix=/path</tt> to a local directory assuming
-  you don't have root privileges).
-
-
-  @section install_linux_openms Configuring and building OpenMS/TOPP
-
-  It is assumed that you have successfully built and installed all dependencies
-  and are in the root folder of the %OpenMS tree (see above in @ref
-  checkout_and_build for instructions how to obtain %OpenMS sources either from
-  a release version or from the most recent development branch).
-
-  The next step is to create a build directory beside the %OpenMS root
-  directory e.g., <tt>OpenMS-build</tt> (see above note on out-of-source builds).
-
-  \code
-  # Assuming you are in ~/Development and OpenMS is also located in
-  # ~/Development
-  mkdir OpenMS-build
-  cd OpenMS-build
-  \endcode
-
-  In the %OpenMS build directory we execute %CMake to <i>configure</i> %OpenMS. You
-  should substitute <tt>/PATH/TO/contrib-build/</tt> with the above path to the built
-  contrib. Make sure you use the <i>absolute</i> (and not relative) path for the
-  contrib to avoid any potential issues.
-
-  @note Since static versions of the boost library are on some systems (e.g. Ubuntu) compiled with different settings you have to set BOOST_USE_STATIC to OFF or compile it with our contrib.
-  \code
-  cmake -DOPENMS_CONTRIB_LIBS="/PATH/TO/contrib-build" -DBOOST_USE_STATIC=OFF ../OpenMS
-  \endcode
-
-  If CMake has problems finding system libraries, you might consider adding:
-  \code
-  -DCMAKE_PREFIX_PATH="/usr;/usr/local"
-  \endcode
-  to the CMake options.
-
-  If CMake has problems finding Qt6, you might consider adding:
-  \code
-  -D Qt6_DIR=/PATH/TO/qt/lib/cmake/Qt6/
-  \endcode
-  to the CMake options, where <tt>/PATH/TO/qt/lib/cmake/Qt6/</tt> depends on your system settings and Qt version.
-
-  A full configure step might look like this:
-  \code
-  cmake -DCMAKE_BUILD_TYPE=Release -DOPENMS_CONTRIB_LIBS="/PATH/TO/contrib-build" -DBOOST_USE_STATIC=ON -DQt6_DIR="/PATH/TO/qt/lib/cmake/Qt6" ../openms
-  \endcode
-
-  When configuring %OpenMS using CMake, consider setting <tt>-D WITH_GUI=Off</tt> and
-  <tt>-D HAS_XSERVER=Off</tt>, especially as you may not have compiled Qt with
-  OpenGL and you may not have an X server.
+  @section install_linux_cmake_flags Additional CMake Flags
 
   \include{doc} "../doxygen/install/common-cmake-parameters.doxygen"
 
-  A full list of the CMake variables is shown when you execute
+  @section install_linux_testing_openms Testing the OpenMS/TOPP Installation
 
-  \code
-  ccmake .
-  \endcode
+  \include{doc} "../doxygen/install/install-testing-openms.doxygen"
 
-  This works only after having executed <tt>cmake</tt> once (see @ref install_linux_openms)
+  @section install_linux_contrib Using the contrib Package
 
-  In order to <i>build</i> the %OpenMS library, the TOPP tools, tests, and this
-  documentation, execute the following command (for Makefile generator, which is the default in CMake):
-
-  \code
-  make
-  \endcode
+  \include{doc} "../doxygen/install/install-contrib.doxygen"
   
+  @section build_linux_noroot Building without Root Privileges
 
-  Advanced users can list the separate make targets by calling:
-  \code
-  make targets
-  \endcode
+  If you are on a system without root access (e.g. a shared cluster),
+  there are some additional considerations, especially regarding
+  dependencies.  Specifically, some older Red Hat systems have older
+  libraries installed that may interfere with the newer versions that
+  %OpenMS requires. The recommended installation procedure is to use
+  the `contrib` package to compile **all** dependencies from source.
+  Details can be found in the section entitled @ref
+  install_linux_contrib.
 
-  @note If you use another generator, such as Ninja (`cmake -G Ninja ...`), then swap `make` for the new command, such as `ninja`.
+  @section build_linux_qt_issues Common Issues with Qt
 
-  @subsection linux_openms_environment Getting your environment ready to use OpenMS
+  If the graphical TOPP tools fail to start or exit with an error
+  message related to Qt you may need to set the `QT_QPA_PLATFORM`
+  environment variable.  This is especially true if you are executing
+  the graphical tools remotely over a SSH-forwarded X11 connection.
 
-  The previous step takes the most time, in the meanwhile you can prepare your
-  environment for easy %OpenMS usage:
-
-  Make sure to add <tt>/PATH/TO/OpenMS/lib/</tt> (e.g.
-  <i>/home/smith/OpenMS/lib/</i>) to the environment variable
-  <b>LD_LIBRARY_PATH</b>.  The best way is to edit <tt>$HOME/.bashrc</tt> and add the
-  following
-  \code
-  export LD_LIBRARY_PATH="/PATH/TO/OpenMS/lib:$LD_LIBRARY_PATH"
-  \endcode
-
-  The TOPP tools will be built in the <b>/PATH/TO/OpenMS/bin/</b> folder. Add
-  this path to the environment variable <b>PATH</b> to use the commands
-  anywhere on your system.
-
-  This is necessary to use the TOPP tools from TOPPView.
-
-  You can do this by appending the following also to your <tt>$HOME/.bashrc</tt>
-  (Do not use the tilde character @em ~ to abbreviate your home folder)
+  Setting the `QT_QPA_PLATFORM` environment variable to `minimal`
+  before running a TOPP tool should help.  For example:
 
   \code
-  export PATH=$PATH:/PATH/TO/OpenMS/bin
-  \endcode
-
-  Apply both changes by executing
-
-  \code
-  source ~/.bashrc
-  \endcode
-
-    @note When you intend to use thirdparty search engines like X!Tandem, their binaries also
-    need to be in the <b><tt>PATH</tt></b>. Build them or check out prebuilt executables of the versions supported
-    at the time of the release with
-    \code
-    git submodule update --init THIRDPARTY
-    \endcode
-    and adapt the following for every thirdparty tool you want to use (shown for Comet):
-    \code
-    export PATH=~/Development/OpenMS/THIRDPARTY/${FOLDER_FOR_YOUR_OS_ARCH}/Comet:${PATH}
-    \endcode
-    If you want to enable the corresponding tests in CMake, this has to happen <b>before</b> you configure and build the
-    project.
-
-  When running OpenMS executables or building the documentation, it may happen that Qt will cause problems and bail out with
-  error messages such as:
-  ```
-qt.qpa.plugin: Could not find the Qt platform plugin "xcb" in ""
-This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
-
-Available platform plugins are: linuxfb, wayland, minimalegl, vnc, minimal, wayland-egl, eglfs, vkkhrdisplay.
-  ```
-  
-  To fix, you can try to set the environment variable `QT_QPA_PLATFORM` to another plugin, such as
-  ```
   export QT_QPA_PLATFORM=minimal
-  ```
-  and re-run the application.
-
-  @section running_linux_openms Running OpenMS
-  If the build from @ref install_linux_openms is ready, you can now run a
-  GNU/Linux %OpenMS tool by e.g. executing
-
-  \code
-  FileInfo
+  $OPENMS_DIR/openms_build/bin/TOPPView
   \endcode
 
-  From here on you should be good to go! See below for advanced installation and configuration options.
-
-  @note Once %OpenMS is built, some thirdparty software used via adapter tools in %OpenMS might also require an installed JavaVM.
-
-  <br/>
-  <br/>
-
-
- <hr>
- @section install_linux_testing_openms Testing your OpenMS/TOPP installation
-
-  After you have installed %OpenMS and TOPP, you should test your installation by executing the following command:
-
-    \code
-    make test
-    \endcode
-
-  or
-
-    \code
-    ctest
-    \endcode
-
-  Using ctest you can also execute only a subset of tests by using the -R [REGEX] option and
-  run tests in parallel using the -j parameter. For more information, consult ctest
-  <a href="http://manpages.ubuntu.com/manpages/hardy/man1/ctest.1.html" target="_new">man page</a>.
-
-    \code
-    ctest -R TOPP_ -j 4
-    \endcode
-
-  Will run all TOPP test using 4 jobs. Make sure that you have build all tests beforehand by executing
-
-    \code
-    make
-    \endcode
+  [openms]: http://www.OpenMS.de
+  [issues]: https://github.com/OpenMS/OpenMS/issues
+  [pkgsorg]: https://pkgs.org/search/?q=openms
 
 */

@@ -12,15 +12,19 @@ cdef extern from "<OpenMS/METADATA/DataArrays.h>" namespace "OpenMS::DataArrays"
     cdef cppclass StringDataArray(MetaInfoDescription):
         # wrap-inherits:
         #  MetaInfoDescription
-        #
+
         # wrap-doc:
         #  The representation of extra string data attached to a spectrum or chromatogram.
 
-        StringDataArray() except + nogil 
+        StringDataArray() except + nogil
         StringDataArray(StringDataArray &) except + nogil  # compiler
 
-        Size size() except + nogil 
-        void resize(size_t n) except + nogil 
+        bool operator==(StringDataArray) except + nogil
+        bool operator!=(StringDataArray) except + nogil
+
+        Size size() except + nogil
+        void resize(size_t n) except + nogil
+        # Implemented in StringDataArray.pyx
         String& operator[](size_t) except + nogil  # wrap-ignore
         void clear() except + nogil 
         void push_back(String) except + nogil 

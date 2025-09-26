@@ -12,6 +12,8 @@
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -32,7 +34,7 @@ using namespace std;
 <th ALIGN = "center"> potential successor tools </td>
 </tr>
 <tr>
-<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_CometAdapter (or other ID engines) </td>
 <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
 </tr>
 <tr>
@@ -70,12 +72,12 @@ public:
 
 protected:
   void mergePepXMLProtXML_(StringList filenames, vector<ProteinIdentification>&
-                           proteins, vector<PeptideIdentification>& peptides)
+                           proteins, PeptideIdentificationList& peptides)
   {
     FileHandler idxml;
     idxml.loadIdentifications(filenames[0], proteins, peptides, {FileTypes::IDXML});
     vector<ProteinIdentification> pepxml_proteins, protxml_proteins;
-    vector<PeptideIdentification> pepxml_peptides, protxml_peptides;
+    PeptideIdentificationList pepxml_peptides, protxml_peptides;
 
     if (proteins[0].getProteinGroups().empty()) // first idXML contains data from the pepXML
     {
@@ -147,7 +149,7 @@ protected:
   }
 
   void annotateFileOrigin_(vector<ProteinIdentification>& proteins,
-                           vector<PeptideIdentification>& peptides,
+                           PeptideIdentificationList& peptides,
                            String filename)
   {
     if (test_mode_) { filename = File::basename(filename); }
@@ -290,7 +292,7 @@ protected:
 
     // file type: idXML
     vector<ProteinIdentification> proteins;
-    vector<PeptideIdentification> peptides;
+    PeptideIdentificationList peptides;
 
     if (pepxml_protxml)
     {
@@ -307,7 +309,7 @@ protected:
       for (String& file : file_names)
       {
         vector<ProteinIdentification> prots;
-        vector<PeptideIdentification> peps;
+        PeptideIdentificationList peps;
         idXMLf.loadIdentifications(file,prots,peps, {FileTypes::IDXML});
         merger.insertRuns(prots, peps);
       }
@@ -332,15 +334,15 @@ protected:
                  bool annotate_file_origin,
                  const String& add_to,
                  vector<ProteinIdentification>& proteins,
-                 vector<PeptideIdentification>& peptides)
+                 PeptideIdentificationList& peptides)
   {
     map<String, ProteinIdentification> proteins_by_id;
-    vector<vector<PeptideIdentification> > peptides_by_file;
+    vector<PeptideIdentificationList> peptides_by_file;
     StringList add_to_ids; // IDs from the "add_to" file (if any)
 
     if (!add_to.empty())
     { // make 'add_to' filename the first in the list
-      file_names.erase(remove(file_names.begin(), file_names.end(), add_to), file_names.end());
+      std::erase(file_names, add_to);
       file_names.insert(file_names.begin(), add_to);
     }
 
@@ -368,7 +370,7 @@ protected:
     if (add_to.empty()) // copy proteins from map into vector for writing
     {
       // append peptides in same vector
-      for (vector<PeptideIdentification> & peps : peptides_by_file)
+      for (PeptideIdentificationList & peps : peptides_by_file)
       {
         peptides.insert(peptides.end(), peps.begin(), peps.end());
       }
@@ -389,7 +391,7 @@ protected:
       }
       // keep track of peptides that shouldn't be duplicated:
       set<AASequence> sequences;
-      vector<PeptideIdentification>& base_peptides = peptides_by_file[0];
+      PeptideIdentificationList& base_peptides = peptides_by_file[0];
       for (PeptideIdentification & pep : base_peptides)
       {
         if (pep.getHits().empty()) continue;

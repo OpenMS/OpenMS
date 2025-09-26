@@ -12,11 +12,11 @@ cdef extern from "<OpenMS/METADATA/ProteinHit.h>" namespace "OpenMS":
         #   MetaInfoInterface
         # wrap-doc:
         #  Representation of a protein hit
-        #  
+        #
         #  It contains the fields score, score_type, rank, accession,
         #  sequence and coverage
 
-        ProteinHit() except + nogil 
+        ProteinHit() except + nogil
         ProteinHit(double score, UInt rank, String accession, String sequence) except + nogil 
         ProteinHit(ProteinHit &) except + nogil 
 
@@ -37,5 +37,7 @@ cdef extern from "<OpenMS/METADATA/ProteinHit.h>" namespace "OpenMS":
         void setDescription(String description) except + nogil  # wrap-doc:Sets the description of the protein
         void setCoverage(double) except + nogil  # wrap-doc:Sets the coverage (in percent) of the protein hit based upon matched peptides
 
-        bool operator==(ProteinHit) except + nogil 
-        bool operator!=(ProteinHit) except + nogil 
+        bool isDecoy() except + nogil  # wrap-doc:Returns true if this is a decoy hit
+
+        bool operator==(ProteinHit) except + nogil
+        bool operator!=(ProteinHit) except + nogil

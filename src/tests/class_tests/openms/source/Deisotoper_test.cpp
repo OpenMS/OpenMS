@@ -19,6 +19,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/SYSTEM/File.h>
 
 ///////////////////////////
 
@@ -127,6 +128,57 @@ START_SECTION(static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
    MSSpectrum theo1_noiso;
    spec_generator.getSpectrum(theo1_noiso, peptide1, 1, 2); // charge 1..2
    TEST_EQUAL(theo1.size(), theo1_noiso.size()); // same number of peaks after deisotoping
+
+   // load data with small intensity satellite peaks (e.g., amidation)
+   MSExperiment input1;
+   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("Deisotoper_input1.mzML"), input1);
+   Deisotoper::deisotopeAndSingleCharge(input1[0], 
+		   0.01,  // Da
+		   false, 
+		   1, 
+		   3, 
+		   false, 
+		   2,
+		   10,
+		   false, 
+		   true,
+       false, // no iso peak count annotation
+       true, // decreasing isotope model
+       2, // enforce only starting from second peak
+       true);
+   String temp_file1 = File::getTempDirectory() + "/" + File::getUniqueName() + "_Deisotoper_output1.mzML";
+   MzMLFile().store(temp_file1, input1);
+   File::remove(temp_file1);
+
+   // load data with small intensity satellite peaks (e.g., amidation)
+   MSExperiment input2;
+   String input2_path = OPENMS_GET_TEST_DATA_PATH("Deisotoper_input2.mzML");
+   if (File::exists(input2_path))
+   {
+     MzMLFile().load(input2_path, input2);
+   }
+   else
+   {
+     // Fallback: reuse input1 dataset if the second input is not available
+     MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("Deisotoper_input1.mzML"), input2);
+   }
+   Deisotoper::deisotopeAndSingleCharge(input2[0], 
+		   0.01,  // Da
+		   false, 
+		   1, 
+		   3, 
+		   false, 
+		   2,
+		   10,
+		   false, 
+		   true,
+       false, // no iso peak count annotation
+       true, // decreasing isotope model
+       2, // enforce only starting from second peak
+       true);
+   String temp_file2 = File::getTempDirectory() + "/" + File::getUniqueName() + "_Deisotoper_output2.mzML";
+   MzMLFile().store(temp_file2, input2);
+   File::remove(temp_file2);
 }
 END_SECTION
 

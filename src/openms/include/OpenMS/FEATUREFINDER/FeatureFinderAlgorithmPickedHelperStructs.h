@@ -53,7 +53,7 @@ namespace OpenMS
     struct OPENMS_DLLAPI MassTrace
     {
       ///Maximum peak pointer
-      const Peak1D* max_peak;
+      const Peak1D* max_peak = nullptr;
       ///RT of maximum peak
       double max_rt;
 
