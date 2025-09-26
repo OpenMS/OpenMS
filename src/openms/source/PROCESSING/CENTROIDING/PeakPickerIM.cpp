@@ -1100,6 +1100,11 @@ namespace OpenMS
       if (spectrum.empty()) return;
 
       // Get IM data array
+      if (!spectrum.containsIMData())
+      {
+        OPENMS_LOG_WARN << "No ion mobility data found in spectrum." << std::endl;
+        return;
+      }
       const auto [im_data_index, im_unit] = spectrum.getIMData();
       auto& im_data = spectrum.getFloatDataArrays()[im_data_index];
 
@@ -1311,6 +1316,11 @@ namespace OpenMS
     {
       if (input.empty()) return;
       // Get IM data array
+      if (!input.containsIMData())
+      {
+        OPENMS_LOG_WARN << "No ion mobility data found in spectrum." << std::endl;
+        return;
+      }
       const auto [im_data_index, im_unit] = input.getIMData();
       auto& im_data = input.getFloatDataArrays()[im_data_index];
       // convert to MSExperiment and set drift time as RT
