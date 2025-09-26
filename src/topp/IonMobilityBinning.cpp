@@ -38,6 +38,7 @@ For regular ion mobility data:
 For FAIMS data:
 - Automatically detects FAIMS compensation voltages in the input file
 - Creates one output file per unique CV value
+- MS2 spectra without explicit FAIMS CV are assigned to the preceding MS1 FAIMS CV
 - No binning parameters required as the splitting is based on the discrete CV values
 
 <B>The command line parameters of this tool are:</B>
@@ -80,15 +81,18 @@ protected:
     set<double> faims_cvs = FAIMSHelper::getCompensationVoltages(experiment);
     auto mzML_bins = IMDataConverter::splitByFAIMSCV(std::move(experiment));
     Size n_bins = mzML_bins.size();
-    
+
+    // The order of bins produced by IMDataConverter::splitByFAIMSCV() is defined
+    // by the ascending order of the unique FAIMS CVs (std::set iteration order).
+    // We therefore map i-th bin to i-th element of 'faims_cvs'.
     Math::BinContainer im_ranges;
     for (Size i = 0; i < n_bins; ++i)
     {
-      double faims_cv = *std::next(faims_cvs.begin(), i);
+      const double faims_cv = *std::next(faims_cvs.begin(), i);
       im_ranges[i].setMax(faims_cv);
       im_ranges[i].setMin(faims_cv);
     }
-    
+
     return {std::move(mzML_bins), std::move(im_ranges)};
   }
 
@@ -124,36 +128,24 @@ protected:
     MZ_UNITS mz_binning_width_unit = getStringOption_("SpectraMerging:mz_binning_width_unit") == "Da" ? MZ_UNITS::DA : MZ_UNITS::PPM;
 
     PeakMap experiment;
-
     FileHandler().loadExperiment(input_file, experiment, {FileTypes::MZML}, log_type_);
- 
-    auto [mzML_bins, im_ranges] = IMDataConverter::splitExperimentByIonMobility(std::move(experiment), bins, bin_extension_abs, mz_binning_width, mz_binning_width_unit);
-    
-    const Size width = String(bins).size();
-    for (Size counter = 0; counter < (Size)bins; ++counter)
-    {
-      ostringstream out_name;
-      out_name << out_prefix << "_part" << setw(width) << setfill('0') << (1+counter) << "of" << bins << "_" << im_ranges[counter].getMin() << "-"
-               << im_ranges[counter].getMax() << ".mzML ";
-      addDataProcessing_(mzML_bins[counter], getProcessingInfo_(DataProcessing::ION_MOBILITY_BINNING));
 
-    // Check if this is FAIMS data and get CVs
-    auto cvs = FAIMSHelper::getCompensationVoltages(experiment);
-    cvs.erase(IMTypes::DRIFTTIME_NOT_SET);  // remove invalid values
+    // Decide FAIMS vs. regular IM processing first (avoid moving 'experiment' before branching)
+    const auto cvs = FAIMSHelper::getCompensationVoltages(experiment);
 
     Size n_bins{};
     std::vector<PeakMap> mzML_bins;
     Math::BinContainer im_ranges;
+
     if (!cvs.empty())
     {
-      // TODO: do MS2 have FAIMS CVs annotated? if not how to keep them?
-      // TOOD: currently this is fine as order of getCompensationVoltages is the same as splitByFAIMSCV. Safe?
+      // FAIMS data: split by discrete compensation voltages
       std::tie(mzML_bins, im_ranges) = processFAIMSData_(std::move(experiment));
       n_bins = mzML_bins.size();
     }
     else
     {
-      // Regular IM data
+      // Regular IM data: bin into user-defined IM bins
       std::tie(mzML_bins, im_ranges) = IMDataConverter::splitExperimentByIonMobility(
           std::move(experiment),
           bins,
@@ -162,9 +154,8 @@ protected:
           mz_binning_width_unit);
       n_bins = bins;
     }
-    
-    writeOutputFiles_(mzML_bins, im_ranges, out_prefix, n_bins);
 
+    writeOutputFiles_(mzML_bins, im_ranges, out_prefix, n_bins);
     return EXECUTION_OK;
   }
 

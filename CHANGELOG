@@ -36,6 +36,8 @@ TOPP tools:
       - supports replacing ambiguous amino acids (X,B,J,Z) in the FASTA input with random unambiguous amino acids in the output (#8167)
     all:
       - show load/store progress for files in all TOPP tools (#8041)
+    IonMobilityBinning:
+      - Detect FAIMS data automatically and split output per FAIMS compensation voltage (CV)
   Added Tools:
     - OpenNuXL - A peptide-RNA/DNA cross-linking search engine
     - PeptideDataBaseSearchFI - Experimental peptide database search engine using a fragment index (FI) and the new PeptideSearchEngineFIAlgorithm
@@ -61,6 +63,8 @@ OpenMS Library:
     - std::vector<PeptideIdentification> now is encapsulated in a class PeptideIdentificationList.
     - Zlibcompression using zlib (not Qt) and Base64 decoding for zlib-compressed data using SIMD (not Qt) (#8161)
   New Features:
+    - FAIMSHelper: dataset-wide FAIMS detection; ignore DRIFTTIME_NOT_SET sentinel; improved warning
+    - IMDataConverter::splitByFAIMSCV: retain MS2 without explicit FAIMS CV by assigning to prior FAIMS CV
     - added `EnzymaticDigestion.semiSpecificDigestion_()`
     - ProteaseDigestion: add support for semi-specific digestion (#8130)
     - TransformationModelLowess: Add option to automate span selection via cross-validation (#8166)
