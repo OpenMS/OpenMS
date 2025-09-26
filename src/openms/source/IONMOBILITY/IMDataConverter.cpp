@@ -59,21 +59,22 @@ namespace OpenMS
       if (spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
       {
         last_faims_cv = spec.getDriftTime();
-        const auto idx_it = cv2index.find(last_faims_cv);
-        if (idx_it == cv2index.end())
+        if (const auto idx_it = cv2index.find(last_faims_cv); idx_it == cv2index.end())
         {
           OPENMS_LOG_WARN << "Encountered spectrum with unexpected FAIMS CV (not in detected set): " << last_faims_cv << std::endl;
           continue;
         }
-        split_peakmap[idx_it->second].addSpectrum(std::move(spec));
+        else
+        {
+          split_peakmap[idx_it->second].addSpectrum(std::move(spec));
+        }
         continue;
       }
 
       // No FAIMS CV on spectrum: if it's MS2+ and we have a prior FAIMS CV context, assign it to that bin
       if (!std::isnan(last_faims_cv) && spec.getMSLevel() > 1)
       {
-        const auto idx_it = cv2index.find(last_faims_cv);
-        if (idx_it != cv2index.end())
+        if (const auto idx_it = cv2index.find(last_faims_cv); idx_it != cv2index.end())
         {
           split_peakmap[idx_it->second].addSpectrum(std::move(spec));
           continue;
