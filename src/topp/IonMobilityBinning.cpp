@@ -12,7 +12,7 @@
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 
-#include <iomanip>
+#include <format>
 
 using namespace OpenMS;
 using namespace std;
@@ -104,16 +104,13 @@ protected:
     const Size width = String(n_bins).size();
     for (Size i = 0; i < n_bins; ++i)
     {
-      ostringstream out_name;
-      out_name << out_prefix << "_part" 
-      << setw(width) << setfill('0') << (1+i) 
-      << "of" << n_bins << "_"
-      << im_ranges[i].getMin() << "-"
-      << im_ranges[i].getMax() << ".mzML";
+      String out_name = std::format("{}_part{:0{}}of{}_{}-{}.mzML", 
+                                    std::string(out_prefix), 1+i, width, n_bins,
+                                    im_ranges[i].getMin(), im_ranges[i].getMax());
 
       addDataProcessing_(mzML_bins[i], 
           getProcessingInfo_(DataProcessing::ION_MOBILITY_BINNING));
-      FileHandler().storeExperiment(out_name.str(), mzML_bins[i], {FileTypes::MZML});
+      FileHandler().storeExperiment(out_name, mzML_bins[i], {FileTypes::MZML});
     }
   }
 
