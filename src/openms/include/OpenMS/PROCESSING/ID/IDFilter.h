@@ -541,14 +541,14 @@ namespace OpenMS
     template<class Container, class Predicate>
     static void removeMatchingItems(Container& items, const Predicate& pred)
     {
-      std::erase_if(items, pred);
+      items.erase(std::remove_if(items.begin(), items.end(), pred), items.end());
     }
 
     /// Keep items that satisfy a condition in a container (e.g. vector), removing all others
     template<class Container, class Predicate>
     static void keepMatchingItems(Container& items, const Predicate& pred)
     {
-      std::erase_if(items, std::not_fn(pred));
+      items.erase(std::remove_if(items.begin(), items.end(), std::not_fn(pred)), items.end());
     }
 
     /// Move items that satisfy a condition to a container (e.g. vector)
