@@ -187,6 +187,68 @@ START_SECTION(static MSExperiment reshapeIMFrameToSingle(const MSExperiment& in)
 	NOT_TESTABLE // tested_above
 END_SECTION
 
+START_SECTION((std::vector<PeakMap> splitByFAIMSCV assigns MS2 without explicit CV to last seen FAIMS CV))
+{
+  PeakMap exp_synth;
+
+  MSSpectrum ms1a;
+  ms1a.setMSLevel(1);
+  ms1a.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  ms1a.setDriftTime(-55.0);
+
+  MSSpectrum ms2a;
+  ms2a.setMSLevel(2);
+  ms2a.setDriftTimeUnit(DriftTimeUnit::NONE);
+
+  MSSpectrum ms2b;
+  ms2b.setMSLevel(2);
+  ms2b.setDriftTimeUnit(DriftTimeUnit::NONE);
+
+  MSSpectrum ms1b;
+  ms1b.setMSLevel(1);
+  ms1b.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  ms1b.setDriftTime(-45.0);
+
+  MSSpectrum ms2c;
+  ms2c.setMSLevel(2);
+  ms2c.setDriftTimeUnit(DriftTimeUnit::NONE);
+
+  exp_synth.addSpectrum(ms1a);
+  exp_synth.addSpectrum(ms2a);
+  exp_synth.addSpectrum(ms2b);
+  exp_synth.addSpectrum(ms1b);
+  exp_synth.addSpectrum(ms2c);
+
+  std::vector<PeakMap> bins = IMDataConverter::splitByFAIMSCV(std::move(exp_synth));
+  TEST_EQUAL(bins.size(), 2)
+
+  // bins ordered by ascending CV: -55 first, -45 second
+  TEST_EQUAL(bins[0].size(), 3) // ms1a + ms2a + ms2b
+  TEST_EQUAL(bins[1].size(), 2) // ms1b + ms2c
+
+  Size ms2_bin0 = 0;
+  for (const auto& s : bins[0]) if (s.getMSLevel() > 1) ++ms2_bin0;
+  TEST_EQUAL(ms2_bin0, 2)
+
+  Size ms2_bin1 = 0;
+  for (const auto& s : bins[1]) if (s.getMSLevel() > 1) ++ms2_bin1;
+  TEST_EQUAL(ms2_bin1, 1)
+}
+END_SECTION
+
+START_SECTION((std::vector<PeakMap> splitByFAIMSCV throws for non-FAIMS dataset))
+{
+  PeakMap exp_nonfaims;
+  MSSpectrum s;
+  s.setMSLevel(1);
+  s.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
+  s.setDriftTime(10.0);
+  exp_nonfaims.addSpectrum(s);
+
+  TEST_EXCEPTION(Exception::MissingInformation, IMDataConverter::splitByFAIMSCV(std::move(exp_nonfaims)))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
