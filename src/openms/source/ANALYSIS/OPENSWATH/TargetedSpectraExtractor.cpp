@@ -21,6 +21,8 @@
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 
+#include <format>
+
 namespace OpenMS
 {
   TargetedSpectraExtractor::TargetedSpectraExtractor() :
@@ -320,11 +322,10 @@ namespace OpenMS
             else if (add_unidentified_features)
             {
               // "PeptideRef" metavalue should have been set during peak picking, but if not...
-              std::ostringstream mass_of_the_peak;
-              mass_of_the_peak << s.getMZ();
+              std::string mass_of_the_peak = std::format("{}", s.getMZ());
 
               // Fill in accurateMassSearch metavalues
-              DataValue identifiers(std::vector<std::string>({mass_of_the_peak.str()}));
+              DataValue identifiers(std::vector<std::string>({mass_of_the_peak}));
               s.setMetaValue("identifier", identifiers);
               s.setMetaValue("description", "");
               s.setMetaValue("modifications", "");
@@ -908,14 +909,16 @@ namespace OpenMS
           rt_s.setRT(ms2_feature->getRT());
           rmt.setRetentionTime(rt_s);
 
-          std::ostringstream os;
-          os << peptide_ref << "_" << ms2_feature->getMetaValue("native_id") << "_" << ms2_feature->getRT();
-          rmt.setNativeID(os.str());
+          std::string native_id = std::format("{}_{}_{}",
+                                               peptide_ref,
+                                               ms2_feature->getMetaValue("native_id"), 
+                                               ms2_feature->getRT());
+          rmt.setNativeID(native_id);
           rmt.setPeptideRef(peptide_ref);
           rmt.setPrecursorMZ(ms1_feature.getMZ());
           rmt.setProductMZ(ms2_feature->getMZ());
           rmt.addMetaValues(*ms2_feature);
-          rmt_map.emplace(os.str(), rmt); // OK to reject duplicate keys
+          rmt_map.emplace(native_id, rmt); // OK to reject duplicate keys
         }
       }
     }
