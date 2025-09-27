@@ -52,9 +52,36 @@ namespace OpenMS
     }
 
     // fill up the PeakMaps by moving spectra from the input PeakMap
-    for (MSSpectrum& it : exp)
+    // Keep MS2 spectra which might not carry a FAIMS CV by assigning them to the last seen FAIMS CV (nearest previous in run order)
+    double last_faims_cv = std::numeric_limits<double>::quiet_NaN();
+    for (MSSpectrum& spec : exp)
     {
-      split_peakmap[cv2index[it.getDriftTime()]].addSpectrum(std::move(it));
+      if (spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
+      {
+        last_faims_cv = spec.getDriftTime();
+        const auto idx_it = cv2index.find(last_faims_cv);
+        if (idx_it == cv2index.end())
+        {
+          OPENMS_LOG_WARN << "Encountered spectrum with unexpected FAIMS CV (not in detected set): " << last_faims_cv << std::endl;
+          continue;
+        }
+        split_peakmap[idx_it->second].addSpectrum(std::move(spec));
+        continue;
+      }
+
+      // No FAIMS CV on spectrum: if it's MS2+ and we have a prior FAIMS CV context, assign it to that bin
+      if (!std::isnan(last_faims_cv) && spec.getMSLevel() > 1)
+      {
+        const auto idx_it = cv2index.find(last_faims_cv);
+        if (idx_it != cv2index.end())
+        {
+          split_peakmap[idx_it->second].addSpectrum(std::move(spec));
+          continue;
+        }
+      }
+
+      // Otherwise skip with a warning
+      OPENMS_LOG_WARN << "Skipping spectrum without FAIMS CV (no prior FAIMS CV context or unexpected layout)." << std::endl;
     }
     
     exp.clear(true);
