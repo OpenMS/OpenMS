@@ -22,6 +22,9 @@
 
 #include <string>
 #include <vector>
+#include <charconv>
+#include <cctype>
+#include <cstring>
 
 
 namespace OpenMS
@@ -38,61 +41,20 @@ public:
     //
     static Int toInt32(const String& this_s)
     {
-      Int ret;
-
-      // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
-      // so don't change this unless you have benchmarks for all platforms!
-      String::ConstIterator it = this_s.begin();
-      if (!boost::spirit::qi::phrase_parse(it, this_s.end(), boost::spirit::qi::int_, boost::spirit::ascii::space, ret))
-      {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert string '") + this_s + "' to an integer value");
-      }
-      // was the string parsed (white spaces are skipped automatically!) completely? If not, we have a problem because a previous split might have used the wrong split char
-      if (it != this_s.end())
-      {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Prefix of string '") + this_s + "' successfully converted to an int32 value. Additional characters found at position " + (int)(distance(this_s.begin(), it) + 1));
-      }
-      return ret;
+      // std::from_chars provides better performance and locale independence compared to boost::spirit::qi
+      return parseInteger_<Int>(this_s);
     }
 
     static Int64 toInt64(const String& this_s)
     {
-      Int64 ret;
-
-      // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
-      // so don't change this unless you have benchmarks for all platforms!
-      String::ConstIterator it = this_s.begin();
-      if (!boost::spirit::qi::phrase_parse(it, this_s.end(), boost::spirit::qi::long_long, boost::spirit::ascii::space, ret))
-      {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert string '") + this_s + "' to an int64 value");
-      }
-      // was the string parsed (white spaces are skipped automatically!) completely? If not, we have a problem because a previous split might have used the wrong split char
-      if (it != this_s.end())
-      {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         String("Prefix of string '") + this_s + "' successfully converted to an integer value. Additional characters found at position " +
-                                           (int)(distance(this_s.begin(), it) + 1));
-      }
-      return ret;
+      // std::from_chars provides better performance and locale independence compared to boost::spirit::qi
+      return parseInteger_<Int64>(this_s);
     }
 
     static float toFloat(const String& this_s)
     {
-      float ret;
-
-      // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
-      // so don't change this unless you have benchmarks for all platforms!
-      String::ConstIterator it = this_s.begin();
-      if (!boost::spirit::qi::phrase_parse(it, this_s.end(), parse_float_, boost::spirit::ascii::space, ret))
-      {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert string '") + this_s + "' to a float value");
-      }
-      // was the string parsed (white spaces are skipped automatically!) completely? If not, we have a problem because a previous split might have used the wrong split char
-      if (it != this_s.end())
-      {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Prefix of string '") + this_s + "' successfully converted to a float value. Additional characters found at position " + (int)(distance(this_s.begin(), it) + 1));
-      }
-      return ret;
+      // std::from_chars provides better performance and locale independence compared to boost::spirit::qi
+      return parseFloatingPoint_<float>(this_s);
     }
 
     /**
@@ -104,20 +66,8 @@ public:
     */
     static double toDouble(const String& s)
     {
-      double ret;
-      // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
-      // so don't change this unless you have benchmarks for all platforms!
-      String::ConstIterator it = s.begin();
-      if (!boost::spirit::qi::phrase_parse(it, s.end(), parse_double_, boost::spirit::ascii::space, ret))
-      {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert string '") + s + "' to a double value");
-      }
-      // was the string parsed (white spaces are skipped automatically!) completely? If not, we have a problem because a previous split might have used the wrong split char
-      if (it != s.end())
-      {
-        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Prefix of string '") + s + "' successfully converted to a double value. Additional characters found at position " + (int)(distance(s.begin(), it) + 1));
-      }
-      return ret;
+      // std::from_chars provides better performance and locale independence compared to boost::spirit::qi
+      return parseFloatingPoint_<double>(s);
     }
 
     /// Reads a double from an iterator position.
@@ -127,25 +77,173 @@ public:
     template <typename IteratorT>
     static bool extractDouble(IteratorT& begin, const IteratorT& end, double& target)
     {
-      // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
-      // so don't change this unless you have benchmarks for all platforms!
-
-      // qi::parse() does not consume whitespace before or after the double (qi::parse_phrase() would).
-      return boost::spirit::qi::parse(begin, end, parse_double_, target);
+      // std::from_chars provides better performance and locale independence compared to boost::spirit::qi
+      
+      // For std::from_chars we need contiguous char data
+      // This assumes the iterators are pointing to contiguous char data (like std::string iterators)
+      if (begin == end) {
+        return false;
+      }
+      
+      const char* char_begin = &(*begin);
+      const char* char_end = char_begin + std::distance(begin, end);
+      
+      // Check for NaN first (to maintain compatibility with boost::spirit::qi behavior)
+      if (isNaNString_(char_begin, char_end)) {
+        target = std::numeric_limits<double>::quiet_NaN();
+        begin = end; // consume entire string for NaN
+        return true;
+      }
+      
+      auto [ptr, ec] = std::from_chars(char_begin, char_end, target);
+      
+      if (ec == std::errc{}) {
+        // Advance the iterator by the number of characters consumed
+        std::advance(begin, ptr - char_begin);
+        return true;
+      }
+      
+      return false;
     }
 
     /// Reads an int from an iterator position.
     /// The begin iterator is modified (advanced) if parsing was successful.
     /// The @p target only contains a valid result if the functions returns true (i.e. parsing succeeded).
-    /// Whitespaces before and after the double are NOT consumed!
+    /// Whitespaces before and after the int are NOT consumed!
     template <typename IteratorT>
     static bool extractInt(IteratorT& begin, const IteratorT& end, int& target)
     {
-      // qi::parse() does not consume whitespace before or after the int (qi::parse_phrase() would).
-      return boost::spirit::qi::parse(begin, end, parse_int_, target);
+      // std::from_chars provides better performance and locale independence compared to boost::spirit::qi
+      
+      // For std::from_chars we need contiguous char data
+      // This assumes the iterators are pointing to contiguous char data (like std::string iterators)
+      if (begin == end) {
+        return false;
+      }
+      
+      const char* char_begin = &(*begin);
+      const char* char_end = char_begin + std::distance(begin, end);
+      
+      auto [ptr, ec] = std::from_chars(char_begin, char_end, target);
+      
+      if (ec == std::errc{}) {
+        // Advance the iterator by the number of characters consumed
+        std::advance(begin, ptr - char_begin);
+        return true;
+      }
+      
+      return false;
     }
 
   private:
+  
+    // Helper functions for std::from_chars-based conversion
+    // These provide higher performance and locale independence compared to boost::spirit::qi
+    
+    /// Skip whitespace from the beginning of a range
+    static const char* skipWhitespace_(const char* begin, const char* end)
+    {
+      while (begin != end && std::isspace(*begin)) {
+        ++begin;
+      }
+      return begin;
+    }
+    
+    /// Skip whitespace from the end of a range (reverse direction)
+    static const char* skipTrailingWhitespace_(const char* begin, const char* end)
+    {
+      while (end != begin && std::isspace(*(end - 1))) {
+        --end;
+      }
+      return end;
+    }
+    
+    /// Check if string (after trimming whitespace) represents NaN
+    static bool isNaNString_(const char* begin, const char* end)
+    {
+      // Trim whitespace
+      begin = skipWhitespace_(begin, end);
+      end = skipTrailingWhitespace_(begin, end);
+      
+      const size_t len = end - begin;
+      if (len == 3) {
+        return (strncmp(begin, "nan", 3) == 0 || strncmp(begin, "NaN", 3) == 0);
+      }
+      return false;
+    }
+    
+    /// Parse floating point using std::from_chars with proper NaN and whitespace handling
+    template<typename T>
+    static T parseFloatingPoint_(const String& s)
+    {
+      const char* begin = s.data();
+      const char* end = s.data() + s.size();
+      
+      // Check for NaN first (to maintain compatibility with boost::spirit::qi behavior)
+      if (isNaNString_(begin, end)) {
+        return std::numeric_limits<T>::quiet_NaN();
+      }
+      
+      // Trim leading whitespace
+      begin = skipWhitespace_(begin, end);
+      if (begin == end) {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+          String("Could not convert string '") + s + "' to a floating point value");
+      }
+      
+      T result;
+      auto [ptr, ec] = std::from_chars(begin, end, result);
+      
+      if (ec != std::errc{}) {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+          String("Could not convert string '") + s + "' to a floating point value");
+      }
+      
+      // Skip trailing whitespace
+      ptr = skipWhitespace_(ptr, end);
+      
+      // Check if we consumed the entire (trimmed) string
+      if (ptr != end) {
+        String error_msg = String("Prefix of string '") + s + "' successfully converted to a floating point value. Additional characters found at position " + String((int)(ptr - s.data() + 1));
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_msg);
+      }
+      
+      return result;
+    }
+    
+    /// Parse integer using std::from_chars with proper whitespace handling
+    template<typename T>
+    static T parseInteger_(const String& s)
+    {
+      const char* begin = s.data();
+      const char* end = s.data() + s.size();
+      
+      // Trim leading whitespace
+      begin = skipWhitespace_(begin, end);
+      if (begin == end) {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+          String("Could not convert string '") + s + "' to an integer value");
+      }
+      
+      T result;
+      auto [ptr, ec] = std::from_chars(begin, end, result);
+      
+      if (ec != std::errc{}) {
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+          String("Could not convert string '") + s + "' to an integer value");
+      }
+      
+      // Skip trailing whitespace
+      ptr = skipWhitespace_(ptr, end);
+      
+      // Check if we consumed the entire (trimmed) string
+      if (ptr != end) {
+        String error_msg = String("Prefix of string '") + s + "' successfully converted to an integer value. Additional characters found at position " + String((int)(ptr - s.data() + 1));
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_msg);
+      }
+      
+      return result;
+    }
   
     /*
       @brief A fixed Boost:pi real parser policy, capable of dealing with 'nan' without crashing
