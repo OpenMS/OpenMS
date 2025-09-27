@@ -13,6 +13,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <format>
 
 using namespace std;
 
@@ -217,11 +218,11 @@ namespace OpenMS
       // check whether the line has enough columns
       if (substrings.size() != number_of_columns)
       {
-        stringstream error_message;
-        error_message << "Wrong number of columns in line " << line_number << "! (" << substrings.size() << " present, should be " << number_of_columns << ")";
+        std::string error_message = std::format("Wrong number of columns in line {}! ({} present, should be {})", 
+                                                line_number, substrings.size(), number_of_columns);
         result_file.close();
         result_file.clear();
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_message.str().c_str(), result_filename);
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_message.c_str(), result_filename);
       }
 
       // check whether there are multiple proteins that belong to this peptide
@@ -335,11 +336,11 @@ namespace OpenMS
             // all these lines look like '0  accession', e.g. '0  gi|1584947|prf||2123446B gamma sar'
             /*if (!line.hasPrefix("0  ")) // if the line doesn't look like that
              {
-             stringstream error_message;
-             error_message << "Line " << line_number << " doesn't look like a line with additional found proteins! (Should look like this: 0  gi|1584947|prf||2123446B gamma sar)";
+             std::string error_message = std::format("Line {} doesn't look like a line with additional found proteins! (Should look like this: 0  gi|1584947|prf||2123446B gamma sar)", 
+                                                     line_number);
              result_file.close();
              result_file.clear();
-             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_message.str().c_str() , result_filename);
+             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error_message.c_str(), result_filename);
              }*/
             line.erase(0, 3);
 

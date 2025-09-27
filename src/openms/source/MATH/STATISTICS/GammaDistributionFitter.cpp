@@ -10,6 +10,7 @@
 #include <sstream>
 #include <iostream>
 #include <cmath>
+#include <format>
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/special_functions/digamma.hpp>
 
@@ -135,9 +136,9 @@ namespace OpenMS::Math
       }
 
 #ifdef GAMMA_DISTRIBUTION_FITTER_VERBOSE
-      std::stringstream formula;
-      formula << "f(x)=" << "(" << x_init(0) << " ** " << x_init(1) << ") / gamma(" << x_init(1) << ") * x ** (" << x_init(1) << " - 1) * exp(- " << x_init(0) << " * x)";
-      std::cout << formula.str() << std::endl;
+      std::string formula = std::format("f(x)=({} ** {}) / gamma({}) * x ** ({} - 1) * exp(- {} * x)", 
+                                        x_init(0), x_init(1), x_init(1), x_init(1), x_init(0));
+      std::cout << formula << std::endl;
 #endif
 
       return GammaDistributionFitResult(x_init(0), x_init(1));
