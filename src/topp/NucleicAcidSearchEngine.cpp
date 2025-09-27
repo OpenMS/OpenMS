@@ -683,19 +683,19 @@ protected:
         {
           // is this ribonucleotide in the previous hit already ambiguous?
           const String& ambig_code = pos_current->second;
-        if (previous_seq[i]->getCode() == ambig_code) continue;
-        // if not, should we replace it with an ambiguous mod.?
-        if (const auto pos_previous = ambiguous_mods_.find(previous_seq[i]->getCode()); 
-            (pos_previous == ambiguous_mods_.end()) ||
-            (pos_previous->second != ambig_code)) // mods don't match
-        {
-          remove_current = false;
-          break;
+          if (previous_seq[i]->getCode() == ambig_code) continue;
+          // if not, should we replace it with an ambiguous mod.?
+          if (const auto pos_previous = ambiguous_mods_.find(previous_seq[i]->getCode()); 
+              (pos_previous == ambiguous_mods_.end()) ||
+              (pos_previous->second != ambig_code)) // mods don't match
+          {
+            remove_current = false;
+            break;
+          }
+          if (replacement.empty()) replacement = previous_seq;
+          replacement[i] = RibonucleotideDB::getInstance()->
+            getRibonucleotide(ambig_code);
         }
-        if (replacement.empty()) replacement = previous_seq;
-        replacement[i] = RibonucleotideDB::getInstance()->
-          getRibonucleotide(ambig_code);
-      }
       if (remove_current) // current hit is redundant -> remove it
       {
         if (!replacement.empty()) previous_seq = replacement;
