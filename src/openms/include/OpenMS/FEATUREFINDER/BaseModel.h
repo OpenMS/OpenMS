@@ -108,9 +108,9 @@ namespace OpenMS
     {
       SamplesType samples;
       getSamples(samples);
-      for (typename SamplesType::const_iterator it = samples.begin(); it != samples.end(); ++it)
+      for (const auto& sample : samples)
       {
-        os << *it << std::endl;
+        os << sample << std::endl;
       }
     }
 
