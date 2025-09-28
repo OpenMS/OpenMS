@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <sstream>
 #include <chrono>
+#include <iomanip>
 #include <format>
 #include <functional>
 
@@ -637,7 +638,9 @@ namespace
       if (scan.empty())
       {
         // Generate scan from RT if available
-        scan = std::format("RT_{}", peptide_id.getRT());
+        std::ostringstream scan_stream;
+        scan_stream << "RT_" << peptide_id.getRT();
+        scan = scan_stream.str();
       }
       status = scan_builder.Append(scan.c_str());
       if (!status.ok()) {
@@ -911,8 +914,9 @@ namespace OpenMS
     // Generate file metadata
     auto now = std::chrono::system_clock::now();
     auto time_t = std::chrono::system_clock::to_time_t(now);
-    std::string creation_date_str = std::format("{:%Y-%m-%dT%H:%M:%SZ}", 
-                                                std::chrono::system_clock::from_time_t(time_t));
+    std::ostringstream creation_date_stream;
+    creation_date_stream << std::put_time(std::gmtime(&time_t), "%Y-%m-%dT%H:%M:%SZ");
+    std::string creation_date_str = creation_date_stream.str();
     
     // Generate a simple UUID based on current time and process
     std::string uuid_str = std::format("{:x}-0000-4000-8000-{:012x}", 
