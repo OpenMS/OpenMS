@@ -26,9 +26,7 @@ namespace OpenMS
     }
 
     /// copy constructor
-    MaxLikeliFitter1D(const MaxLikeliFitter1D& source) : Fitter1D(source)
-    {
-    }
+    MaxLikeliFitter1D(const MaxLikeliFitter1D& source) = default;
 
     /// destructor
     ~MaxLikeliFitter1D() override
@@ -36,15 +34,7 @@ namespace OpenMS
     }
 
     /// assignment operator
-    MaxLikeliFitter1D& operator=(const MaxLikeliFitter1D& source)
-    {
-      if (&source == this)
-        return *this;
-
-      Fitter1D::operator=(source);
-
-      return *this;
-    }
+    MaxLikeliFitter1D& operator=(const MaxLikeliFitter1D& source) = default;
 
   protected:
     /// fit an offset on the basis of the Pearson correlation coefficient
