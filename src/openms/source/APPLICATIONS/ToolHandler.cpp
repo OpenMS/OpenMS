@@ -202,9 +202,9 @@ namespace OpenMS
       "INIUpdater",
       "Resampler",
     };
-    std::for_each(GUI_tools.begin(), GUI_tools.end(), [&tools_map](const String& del) {
-      tools_map.erase(del);
-    });
+    for (const auto& tool : GUI_tools) {
+      tools_map.erase(tool);
+    }
 #endif
 
     // INTERNAL tools
