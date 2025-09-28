@@ -17,7 +17,6 @@
 
 #include <fstream>
 #include <map>
-#include <format>
 
 namespace OpenMS
 {
@@ -305,6 +304,8 @@ namespace OpenMS
     double score_min = 10e10f, score_max = -10e10f;
 
     // fill in objective values
+    std::ostringstream namebuf;
+
     for (PairsIndex i = margin_left; i < margin_right; ++i)
     {
 
@@ -312,7 +313,8 @@ namespace OpenMS
       // ... so we just add normal probabilities...
       double score = exp(getLogScore_(pairs[i], fm));
       pairs[i].setEdgeScore(score * pairs[i].getEdgeScore()); // multiply with preset score
-      std::string name = std::format("x#{}", i);
+      namebuf.str("");
+      namebuf << "x#" << i;
       // create the new variable object
       Int index = build.addColumn();
       build.setColumnBounds(index, 0, 1, LPWrapper::DOUBLE_BOUNDED);

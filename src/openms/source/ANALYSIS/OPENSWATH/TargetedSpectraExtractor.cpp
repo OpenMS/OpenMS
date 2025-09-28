@@ -21,8 +21,6 @@
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 
-#include <format>
-
 namespace OpenMS
 {
   TargetedSpectraExtractor::TargetedSpectraExtractor() :

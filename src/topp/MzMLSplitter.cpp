@@ -11,7 +11,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QFile>
-#include <format>
+#include <iomanip>
 #include <sstream>
 
 using namespace OpenMS;
@@ -142,8 +142,8 @@ protected:
     Size width = String(parts).size();
     for (Size counter = 1; counter <= parts; ++counter)
     {
-      String out_name = std::format("{}_part{:0{}}of{}.mzML", 
-                                    std::string(out), counter, width, parts);
+      ostringstream out_name;
+      out_name << out << "_part" << setw(width) << setfill('0') << counter << "of" << parts << ".mzML";
       PeakMap part = experiment;
       addDataProcessing_(part, getProcessingInfo_(DataProcessing::FILTERING));
 
@@ -171,7 +171,7 @@ protected:
       chrom_start += n_chrom;
 
       writeLogInfo_("Part " + String(counter) + ": " + String(n_spec) + " spectra, " + String(n_chrom) + " chromatograms");
-      FileHandler().storeExperiment(out_name, part, {FileTypes::MZML}, log_type_);
+      FileHandler().storeExperiment(out_name.str(), part, {FileTypes::MZML}, log_type_);
     }
 
     return EXECUTION_OK;

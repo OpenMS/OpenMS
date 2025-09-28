@@ -9,7 +9,6 @@
 
 
 #include <unsupported/Eigen/NonLinearOptimization>
-#include <format>
 
 #include <OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h>
 
@@ -114,9 +113,9 @@ namespace OpenMS::Math
 
 #ifdef GUMBEL_DISTRIBUTION_FITTER_VERBOSE
       // build a formula with the fitted parameters for gnuplot
-      std::string formula = std::format("f(x)=(1/{}) * exp(( {}- x)/{}) * exp(-exp(({} - x)/{}))", 
-                                        x_init(1), x_init(0), x_init(1), x_init(0), x_init(1));
-      cout << formula << endl;
+      stringstream formula;
+      formula << "f(x)=" << "(1/" << x_init(1) << ") * " << "exp(( " << x_init(0) << "- x)/" << x_init(1) << ") * exp(-exp((" << x_init(0) << " - x)/" << x_init(1) << "))";
+      cout << formula.str() << endl;
 #endif
 
       return {x_init(0), x_init(1)};

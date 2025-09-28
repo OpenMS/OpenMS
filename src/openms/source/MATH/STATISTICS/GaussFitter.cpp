@@ -11,7 +11,6 @@
 
 #include <boost/math/distributions/normal.hpp>
 #include <unsupported/Eigen/NonLinearOptimization>
-#include <format>
 
 using namespace std;
 
@@ -108,9 +107,9 @@ namespace OpenMS::Math
       x_init(2) = fabs(x_init(2)); // sigma can be negative, but |sigma| would actually be the correct solution
 
 #ifdef GAUSS_FITTER_VERBOSE
-      std::string formula = std::format("f(x)={} * exp(-(x - {}) ** 2 / 2 / ({}) ** 2)", 
-                                        result.A, result.x0, result.sigma);
-      std::cout << formula << std::endl;
+      std::stringstream formula;
+      formula << "f(x)=" << result.A << " * exp(-(x - " << result.x0 << ") ** 2 / 2 / (" << result.sigma << ") ** 2)";
+      std::cout << formula.str() << std::endl;
 #endif
       
       return GaussFitResult (x_init(0), x_init(1), x_init(2));
