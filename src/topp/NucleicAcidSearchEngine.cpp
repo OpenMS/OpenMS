@@ -696,6 +696,7 @@ protected:
           replacement[i] = RibonucleotideDB::getInstance()->
             getRibonucleotide(ambig_code);
         }
+      }
       if (remove_current) // current hit is redundant -> remove it
       {
         if (!replacement.empty()) previous_seq = replacement;
