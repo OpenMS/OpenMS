@@ -323,15 +323,13 @@ namespace OpenMS
         lookup_charge = hit.getCharge();
       }
 
-      auto current_best_pep_it = best_pep.find(lookup_seq);
-      if (current_best_pep_it == best_pep.end())
+      if (auto current_best_pep_it = best_pep.find(lookup_seq); current_best_pep_it == best_pep.end())
       { // no entry exist for sequence? initialize seq->charge->&hit
         best_pep[lookup_seq][lookup_charge] = &hit;
       }
       else
       { // a peptide hit for the current sequence exists
-        auto current_best_pep_charge_it = current_best_pep_it->second.find(lookup_charge);
-        if (current_best_pep_charge_it == current_best_pep_it->second.end())
+        if (auto current_best_pep_charge_it = current_best_pep_it->second.find(lookup_charge); current_best_pep_charge_it == current_best_pep_it->second.end())
         { // no entry for charge? add hit
           current_best_pep_it->second[lookup_charge] = &hit;
         }
