@@ -147,8 +147,19 @@ public:
           String("Could not convert string '") + s + "' to an integer value");
       }
       
+      // Handle leading plus sign (std::from_chars doesn't accept it, but boost::spirit::qi does)
+      const char* parse_begin = begin;
+      if (*parse_begin == '+') {
+        ++parse_begin; // Skip the leading plus sign
+        if (parse_begin == end) {
+          // String is just "+" which is invalid
+          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+            String("Could not convert string '") + s + "' to an integer value");
+        }
+      }
+      
       T result;
-      auto [ptr, ec] = std::from_chars(begin, end, result);
+      auto [ptr, ec] = std::from_chars(parse_begin, end, result);
       
       if (ec != std::errc{}) {
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
