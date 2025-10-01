@@ -16,61 +16,93 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 ----                                OpenMS 3.5.0     (under development)              ----
 ------------------------------------------------------------------------------------------
 
-General:
- - speed improvements:
-    - loading .gz files is about 7% faster (#8069)
-    - loading of mzML files with more than than m/z+intensity (e.g. ion mobility) is 20-40% faster (#8074)
-    - loading of mzML files is 7-25% faster in general (SIMD ASCII conversion) (#8105)
-    
-Dependencies:
-    - PyOpenMS now depends on Autowrap 0.23.0
-    - PyOpenMS now supports Cython 3.1
+Important Notes:
+- Features are experimental and may undergo changes or be removed in future releases based on user feedback and stability.
+- We welcome your feedback and suggestions to help us improve and refine these experimental features.
+- For stability and production use, we recommend sticking with the latest stable release.
 
-TOPP tools:
-  Changes:
-    MassTraceExtractor:
-      - support for Bruker Ion Mobility (experimental). Note: requires IM peak picked data.
-    NucleicAcidSearchEngine:
-      - add support for global fixed modifications as a search parameter
-    Digestor:
-      - supports replacing ambiguous amino acids (X,B,J,Z) in the FASTA input with random unambiguous amino acids in the output (#8167)
-    all:
-      - show load/store progress for files in all TOPP tools (#8041)
-    IonMobilityBinning:
-      - Detect FAIMS data automatically and split output per FAIMS compensation voltage (CV)
-  Added Tools:
-    - OpenNuXL - A peptide-RNA/DNA cross-linking search engine
-    - PeptideDataBaseSearchFI - Experimental peptide database search engine using a fragment index (FI) and the new PeptideSearchEngineFIAlgorithm
-  Removed Tools:
-    - /
+Please use this opportunity to test and provide feedback on these new features, as your input will play a vital role in shaping their development.
 
-GUI tools:
- - fix TOPPAS crash when using TOPP tools with multiple output formats (#8120)
- 
+Thank you for being a part of our community and for helping us make OpenMS even better!
 
-OpenMS Library:
-  Added:
-    - PeptideHit: Added TargetDecoyType (TARGET, DECOY, TARGET_DECOY, UNKNOWN) and setTargetDecoyType()/getTargetDecoyType(); supports target+decoy peptide hits.
-    - IDScoreSwitcherAlgorithm: Added findScoreType() method for generic score type detection. Checks if main score matches requested ScoreType (PEP, QVAL, FDR, etc.) or finds it in meta values..
-    - ProteinHit: Added TargetDecoyType (TARGET, DECOY, UNKNOWN) and setTargetDecoyType()/getTargetDecoyType().
-    - Both: Added isDecoy().
-    - unify isotopic distributions (coarse vs. fine) for EmpiricalFormulas with charge (#8099)
-    - FragmentIndex (experimental): New fragment index for fast peptide fragment lookup supporting FI-based peptide database search.
-    - PeptideSearchEngineFIAlgorithm (experimental): Library algorithm leveraging FragmentIndex for peptide database search; used by the PeptideDataBaseSearchFI TOPP tool.
-  Changes:
-    - removed `assignRanks` and `sortByRanks` in PeptideIdentifications and sort and filter by score instead. Also removed `updateHitRanks` in IDFilter (#7991)
-    - remove rank member in PeptideHit and store ranks as meta value (for backwards compatibility). (#7997)
-    - std::vector<PeptideIdentification> now is encapsulated in a class PeptideIdentificationList.
-    - Zlibcompression using zlib (not Qt) and Base64 decoding for zlib-compressed data using SIMD (not Qt) (#8161)
-  New Features:
-    - FAIMSHelper: dataset-wide FAIMS detection; ignore DRIFTTIME_NOT_SET sentinel; improved warning
-    - IMDataConverter::splitByFAIMSCV: retain MS2 without explicit FAIMS CV by assigning to prior FAIMS CV
-    - added `EnzymaticDigestion.semiSpecificDigestion_()`
-    - ProteaseDigestion: add support for semi-specific digestion (#8130)
-    - TransformationModelLowess: Add option to automate span selection via cross-validation (#8166)
-    - OpenSwath:
-      - Added automated iRT calibration using input transition list (#8146)
+## Highlights
 
+* Significant performance improvements for mzML and `.gz` file loading.
+* New experimental search engines:
+  * **OpenNuXL** for peptide–RNA/DNA cross-linking.
+  * **PeptideDataBaseSearchFI** using a fragment index.
+* Extended FAIMS and ion mobility support across tools and library.
+* Expanded target/decoy handling for peptide and protein hits.
+
+---
+
+## Performance Improvements
+
+* `.gz` file loading ~7% faster (#8069).
+* mzML with additional dimensions (e.g., ion mobility): 20–40% faster (#8074).
+* General mzML loading: 7–25% faster through SIMD ASCII conversion (#8105).
+
+---
+
+## Dependencies
+
+* **PyOpenMS** now requires **Autowrap 0.23.0**.
+* **PyOpenMS** supports **Cython 3.1**.
+
+---
+
+## TOPP Tools
+
+**Changes**
+
+* **MassTraceExtractor**: Experimental support for Bruker Ion Mobility (requires IM peak-picked data).
+* **NucleicAcidSearchEngine**: Support for global fixed modifications as search parameters.
+* **Digestor**: Option to replace ambiguous amino acids (X, B, J, Z) in FASTA with random unambiguous residues (#8167).
+* **All tools**: Show load/store progress for file operations (#8041).
+* **IonMobilityBinning**: Automatic FAIMS detection and splitting output by compensation voltage (CV).
+
+**New tools**
+
+* **OpenNuXL** – Search engine for peptide–RNA/DNA cross-linking.
+* **PeptideDataBaseSearchFI** – Experimental peptide DB search using fragment index (`FragmentIndex`) and `PeptideSearchEngineFIAlgorithm`.
+
+**Removed tools**
+
+* None.
+
+---
+
+## GUI Tools
+
+* Fixed TOPPAS crash when using tools with multiple output formats (#8120).
+
+---
+
+## OpenMS Library
+
+**New Features**
+
+* **PeptideHit / ProteinHit**:
+
+  * Added `TargetDecoyType` (TARGET, DECOY, TARGET_DECOY, UNKNOWN).
+  * New getters/setters plus `isDecoy()` convenience wrapper.
+* **IDScoreSwitcherAlgorithm**: New `findScoreType()` for PEP/QVAL/FDR detection.
+* **FragmentIndex** (experimental): Fast peptide fragment lookup.
+* **PeptideSearchEngineFIAlgorithm** (experimental): FI-based peptide DB search.
+* Unified isotopic distributions for `EmpiricalFormula` with charge (#8099).
+* **FAIMSHelper**: Dataset-wide FAIMS detection, improved warnings.
+* **IMDataConverter::splitByFAIMSCV**: Retain MS2 spectra without explicit FAIMS CV.
+* **EnzymaticDigestion**: Added `semiSpecificDigestion_()`.
+* **ProteaseDigestion**: Support for semi-specific digestion (#8130).
+* **TransformationModelLowess**: Automated span selection via cross-validation (#8166).
+* **OpenSwath**: Automated iRT calibration from transition list (#8146).
+* Compression: Switched from Qt to **zlib**; SIMD-based Base64 decoding for zlib-compressed data (#8161).
+
+**Potential Breaking Changes**
+
+* `PeptideIdentificationList`: New container encapsulating `std::vector<PeptideIdentification>` (may require minor code updates).
+* Removed redundant ranking methods (`assignRanks`, `sortByRanks`, `updateHitRanks`). Ranking is now handled via score (#7991).
+* Removed `rank` member in `PeptideHit`; replaced with meta values for backward compatibility if needed (#7997).
 
 
 ------------------------------------------------------------------------------------------
