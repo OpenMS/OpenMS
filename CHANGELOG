@@ -33,6 +33,7 @@ Thank you for being a part of our community and for helping us make OpenMS even 
   * **PeptideDataBaseSearchFI** using a fragment index.
 * Extended FAIMS and ion mobility support across tools and library.
 * Expanded target/decoy handling for peptide and protein hits.
+* Arrow/Parquet optionally included as dependency.
 
 ---
 
@@ -48,6 +49,7 @@ Thank you for being a part of our community and for helping us make OpenMS even 
 
 * **PyOpenMS** now requires **Autowrap 0.23.0**.
 * **PyOpenMS** supports **Cython 3.1**.
+* Arrow/Parquet
 
 ---
 
