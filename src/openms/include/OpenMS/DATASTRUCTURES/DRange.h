@@ -141,7 +141,7 @@ public:
     }
 
     /**
-         @brief Checks whether this range contains a certain point.
+         @brief Checks whether this range (half open interval!) contains a certain point.
 
          @param position The point's position.
          @returns true if point lies inside this area.
