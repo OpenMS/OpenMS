@@ -57,8 +57,8 @@ using namespace std;
 With this tool it is possible to extract m/z, retention time and intensity ranges from an input file
 and to write all data that lies within the given ranges to an output file.
 
-The retention time filtering using `-rt from:to` can be performed in three different modes using the '-rt_cut' flag:
-- 'exact' (default): Uses the exact RT range given in '-rt' for RT filtering
+The retention time filtering using `-rt from:to` can be performed in three different modes using the '-rt_block_mode' flag:
+- 'as_is' (default): Uses the exact RT range given in '-rt' for RT filtering
 - 'full_block_extend': Extends the given RT range (if required) such that consecutive blocks of spectra are kept intact. A block of spectra means that consecutive MS levels (1,2,3,4,....) constitute one block and a new block starts with the lowest MS level in the data
 - 'full_block_shrink': Same as above but only takes full blocks inside the given RT range (no extension of RT boundaries as given by user)
 
@@ -118,13 +118,13 @@ For the parameters of the S/N algorithm section see the class documentation ther
 
 enum class RTBlockMode
 {
-  EXACT,
+  AS_IS,
   FULL_BLOCK_EXTEND,
   FULL_BLOCK_SHRINK
 };
 
 const std::array<std::string, 3> RT_BLOCK_MODE_NAMES = {
-  "exact",
+  "as_is",
   "full_block_extend",
   "full_block_shrink"
 };
@@ -305,7 +305,7 @@ private:
    */
   void applyRTBlockFiltering(PeakMap& exp, FileHandler& f, double rt_l, double rt_u, RTBlockMode rt_block_mode)
   {
-    if (rt_block_mode == RTBlockMode::EXACT)
+    if (rt_block_mode == RTBlockMode::AS_IS)
     {
       return;
     }
@@ -336,24 +336,41 @@ private:
       while (first_spec != exp.end() && first_spec->getMSLevel() != min_ms_level) ++first_spec;
       
       // last_spec points somewhere inside a block which contains 'rt_u'; let's move left to the start of this block
-      while (last_spec != exp.begin() && last_spec->getMSLevel() != min_ms_level) --last_spec;
+      while (last_spec != exp.end() && // if this happens, rt_u is beyond the last spectrum and we don't need to shrink
+             last_spec != exp.begin() && last_spec->getMSLevel() != min_ms_level)
+        --last_spec;
       // 'last_spec' now points to the start of the invalid block, but we want it to point to the end of the previous block
       --last_spec;
       // in some cases, there was no full block inside [rt_l, rt_u]
       if (first_spec >= last_spec)
       {
         OPENMS_LOG_WARN << "RTBlockMode: there is no full block in the range [" << rt_l << ", " << rt_u << "]. Result is empty. Please extend RT range or use another block strategy.\n";
-        exp.clear();
+        exp.clear(true);
         return;
       }
     }
 
-    OPENMS_LOG_INFO << "RTBlockMode: RT range changed from [" << rt_l << ", " << rt_u << "] to [" << first_spec->getRT() << " (MS " << first_spec->getMSLevel() << "), " << last_spec.getRT() << " (MS " << last_spec->getMSLevel() << ")]\n";
+    OPENMS_LOG_INFO << "RTBlockMode: RT range changed from [" << rt_l << ", " << rt_u << "] to [" << first_spec->getRT() << " (MS " << first_spec->getMSLevel() << "), " << last_spec->getRT() << " (MS " << last_spec->getMSLevel() << ")]\n";
     
+    assert(first_spec != exp.end());
+    assert(last_spec != exp.end());
+
+    // RT filtering uses a half-open interval [min, max), we thus need to move last_spec a tad to the right
+    double rt_u_new = last_spec->getRT();
+    if (last_spec == --exp.end())
+    {// last_spec was the last spectrum in exp; we need to extend the upper RT boundary a bit to include it
+      rt_u_new += 1.0;
+    }
+    else
+    {
+      rt_u_new = (rt_u_new + (last_spec + 1)->getRT()) / 2; // take midpoint to next spectrum
+    }
+
     // reload with data and corrected rt range
-    f.getOptions().setRTRange(DRange<1>(rt_l, rt_u));
-    f.getOptions().setFillData() = false;
-    f.loadExperiment(exp); 
+    f.getOptions().setRTRange(DRange<1>(first_spec->getRT(), rt_u_new));
+    f.getOptions().setFillData(true);
+    auto filename = exp.getLoadedFilePath();
+    f.loadExperiment(filename, exp);
   }
 
 protected:
@@ -377,8 +394,8 @@ protected:
     setValidStrings_("out_type", formats);
 
     registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract", false);
-    registerStringOption_("rt_cut", "<mode>", RT_BLOCK_MODE_NAMES[0], "RT filtering mode: 'exact' uses exact RT range, 'full_block_extend' extends RT range to keep complete spectrum blocks intact, 'full_block_shrink' only keeps complete blocks within RT range", false);
-    setValidStrings_("rt_cut", StringList(RT_BLOCK_MODE_NAMES.begin(), RT_BLOCK_MODE_NAMES.end()));
+    registerStringOption_("rt_block_mode", "<mode>", RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS], String("RT filtering mode: '") + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS] + "' uses RT range as given in '-rt'; '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_BLOCK_EXTEND] + "' extends RT range to keep complete spectrum blocks intact, '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_BLOCK_SHRINK] + "' only keeps complete blocks within the given RT range", false);
+    setValidStrings_("rt_block_mode", StringList(RT_BLOCK_MODE_NAMES.begin(), RT_BLOCK_MODE_NAMES.end()));
     registerStringOption_("mz", "[min]:[max]", ":", "m/z range to extract (applies to ALL ms levels!)", false);
     registerStringOption_("int", "[min]:[max]", ":", "Intensity range to extract", false);
 
@@ -629,7 +646,7 @@ protected:
     mz_u = rt_u = it_u = charge_u = size_u = q_u = pc_right = select_collision_u = remove_collision_u = select_isolation_width_u = remove_isolation_width_u = replace_pc_charge_out = numeric_limits<double>::max();
 
     String rt = getStringOption_("rt");
-    RTBlockMode rt_block_mode = Helpers::indexOf(RT_BLOCK_MODE_NAMES, getStringOption_("rt_cut"));
+    RTBlockMode rt_block_mode = (RTBlockMode)Helpers::indexOf(RT_BLOCK_MODE_NAMES, getStringOption_("rt_block_mode"));
     String mz = getStringOption_("mz");
     String pc_mz_range = getStringOption_("peak_options:pc_mz_range");
     String it = getStringOption_("int");
@@ -743,13 +760,13 @@ protected:
 
       FileHandler f;
       // Only apply RT filtering at load time if using exact mode
-      if (rt_block_mode == RT_BLOCK_MODE::EXACT)
+      if (rt_block_mode == RTBlockMode::AS_IS)
       {
         f.getOptions().setRTRange(DRange<1>(rt_l, rt_u));
       }
       else
       { // do not load data (yet)
-        f.getOptions().setFillData() = false;
+        f.getOptions().setFillData(false);
       }
       f.getOptions().setMZRange(DRange<1>(mz_l, mz_u));
       f.getOptions().setIntensityRange(DRange<1>(it_l, it_u));
@@ -784,10 +801,8 @@ protected:
       MapType exp;
       f.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
-      
-
       // Apply RT filtering with block-aware modes if not using exact mode
-      if (rt_block_mode != RT_BLOCK_MODE::EXACT && !rt.empty())
+      if (rt_block_mode != RTBlockMode::AS_IS && ! rt.empty())
       {
         applyRTBlockFiltering(exp, f, rt_l, rt_u, rt_block_mode);
       }
