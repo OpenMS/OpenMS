@@ -640,6 +640,17 @@ add_test("TOPP_FileFilter_49" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_T
 add_test("TOPP_FileFilter_49_out" ${DIFF} -in1 FileFilter_49_1.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileFilter_49_output.mzML)
 set_tests_properties("TOPP_FileFilter_49_out" PROPERTIES DEPENDS "TOPP_FileFilter_49")
 
+# Test RT block filtering modes
+add_test("TOPP_FileFilter_50" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_50.tmp.mzML -rt 20:40 -rt_cut exact -in_type mzML -out_type mzML)
+add_test("TOPP_FileFilter_50_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_50.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileFilter_50_output.mzML )
+set_tests_properties("TOPP_FileFilter_50_out1" PROPERTIES DEPENDS "TOPP_FileFilter_50")
+add_test("TOPP_FileFilter_51" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_51.tmp.mzML -rt 20:40 -rt_cut full_block_extend -in_type mzML -out_type mzML)
+add_test("TOPP_FileFilter_51_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_51.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileFilter_51_output.mzML )
+set_tests_properties("TOPP_FileFilter_51_out1" PROPERTIES DEPENDS "TOPP_FileFilter_51")
+add_test("TOPP_FileFilter_52" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_52.tmp.mzML -rt 20:40 -rt_cut full_block_shrink -in_type mzML -out_type mzML)
+add_test("TOPP_FileFilter_52_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_52.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileFilter_52_output.mzML )
+set_tests_properties("TOPP_FileFilter_52_out1" PROPERTIES DEPENDS "TOPP_FileFilter_52")
+
 
 #------------------------------------------------------------------------------
 # FileInfo tests
