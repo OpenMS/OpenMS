@@ -36,8 +36,11 @@ TOPP tools:
       - supports replacing ambiguous amino acids (X,B,J,Z) in the FASTA input with random unambiguous amino acids in the output (#8167)
     all:
       - show load/store progress for files in all TOPP tools (#8041)
+    IonMobilityBinning:
+      - Detect FAIMS data automatically and split output per FAIMS compensation voltage (CV)
   Added Tools:
     - OpenNuXL - A peptide-RNA/DNA cross-linking search engine
+    - PeptideDataBaseSearchFI - Experimental peptide database search engine using a fragment index (FI) and the new PeptideSearchEngineFIAlgorithm
   Removed Tools:
     - /
 
@@ -46,16 +49,27 @@ GUI tools:
  
 
 OpenMS Library:
-  Fixes:
+  Added:
+    - PeptideHit: Added TargetDecoyType (TARGET, DECOY, TARGET_DECOY, UNKNOWN) and setTargetDecoyType()/getTargetDecoyType(); supports target+decoy peptide hits.
+    - IDScoreSwitcherAlgorithm: Added findScoreType() method for generic score type detection. Checks if main score matches requested ScoreType (PEP, QVAL, FDR, etc.) or finds it in meta values..
+    - ProteinHit: Added TargetDecoyType (TARGET, DECOY, UNKNOWN) and setTargetDecoyType()/getTargetDecoyType().
+    - Both: Added isDecoy().
     - unify isotopic distributions (coarse vs. fine) for EmpiricalFormulas with charge (#8099)
+    - FragmentIndex (experimental): New fragment index for fast peptide fragment lookup supporting FI-based peptide database search.
+    - PeptideSearchEngineFIAlgorithm (experimental): Library algorithm leveraging FragmentIndex for peptide database search; used by the PeptideDataBaseSearchFI TOPP tool.
   Changes:
     - removed `assignRanks` and `sortByRanks` in PeptideIdentifications and sort and filter by score instead. Also removed `updateHitRanks` in IDFilter (#7991)
     - remove rank member in PeptideHit and store ranks as meta value (for backwards compatibility). (#7997)
     - std::vector<PeptideIdentification> now is encapsulated in a class PeptideIdentificationList.
     - Zlibcompression using zlib (not Qt) and Base64 decoding for zlib-compressed data using SIMD (not Qt) (#8161)
   New Features:
+    - FAIMSHelper: dataset-wide FAIMS detection; ignore DRIFTTIME_NOT_SET sentinel; improved warning
+    - IMDataConverter::splitByFAIMSCV: retain MS2 without explicit FAIMS CV by assigning to prior FAIMS CV
     - added `EnzymaticDigestion.semiSpecificDigestion_()`
     - ProteaseDigestion: add support for semi-specific digestion (#8130)
+    - TransformationModelLowess: Add option to automate span selection via cross-validation (#8166)
+    - OpenSwath:
+      - Added automated iRT calibration using input transition list (#8146)
 
 
 

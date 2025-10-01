@@ -21,6 +21,7 @@ ConsensusMapMergerAlgorithm.h
 FalseDiscoveryRate.h
 FIAMSDataProcessor.h
 FIAMSScheduler.h
+FragmentIndex.h
 HyperScore.h
 IDBoostGraph.h
 IDDecoyProbability.h
@@ -33,8 +34,10 @@ IDScoreSwitcherAlgorithm.h
 IonIdentityMolecularNetworking.h
 MessagePasserFactory.h
 MetaboliteSpectralMatching.h
+PeptideSearchEngineFIAlgorithm.h
 MorpheusScore.h
 NeighborSeq.h
+OpenSearchModificationAnalysis.h
 PeptideIndexing.h
 PeptideProteinResolution.h
 PercolatorFeatureSetHelper.h

@@ -25,6 +25,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <algorithm>
 #include <memory>
 
 using namespace OpenMS;
@@ -744,20 +745,20 @@ protected:
       IntList rm_pc_charge = getIntList_("peak_options:rm_pc_charge");
       if (!rm_pc_charge.empty())
       {
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasPrecursorCharge<MapType::SpectrumType>(rm_pc_charge, false)), exp.end());
+        std::erase_if(exp.getSpectra(), HasPrecursorCharge<MapType::SpectrumType>(rm_pc_charge, false));
       }
 
       // remove precursors out of certain m/z range for all spectra with a precursor (MS2 and above)
       if (!pc_mz_range.empty())
       {
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), InPrecursorMZRange<MapType::SpectrumType>(pc_left, pc_right, true)), exp.end());
+        std::erase_if(exp.getSpectra(), InPrecursorMZRange<MapType::SpectrumType>(pc_left, pc_right, true));
       }
 
       // keep MS/MS spectra whose precursors cover at least of the given m/z values
       std::vector<double> vec_mz = getDoubleList_("peak_options:pc_mz_list");
       if (!vec_mz.empty())
       {
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindow<MapType::SpectrumType>(vec_mz, true)), exp.end());
+        std::erase_if(exp.getSpectra(), IsInIsolationWindow<MapType::SpectrumType>(vec_mz, true));
       }
 
 
@@ -770,7 +771,7 @@ protected:
         {
           if (InstrumentSettings::NamesOfScanMode[i] == remove_mode)
           {
-            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i)), exp.end());
+            std::erase_if(exp.getSpectra(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i));
           }
         }
       }
@@ -784,7 +785,7 @@ protected:
         {
           if (InstrumentSettings::NamesOfScanMode[i] == select_mode)
           {
-            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i, true)), exp.end());
+            std::erase_if(exp.getSpectra(), HasScanMode<MapType::SpectrumType>((InstrumentSettings::ScanMode)i, true));
           }
         }
       }
@@ -875,7 +876,7 @@ protected:
       }        
 
       //remove empty scans
-      exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsEmptySpectrum<MapType::SpectrumType>()), exp.end());
+      std::erase_if(exp.getSpectra(), IsEmptySpectrum<MapType::SpectrumType>());
 
       //sort
       if (sort)

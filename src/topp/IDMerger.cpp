@@ -12,6 +12,8 @@
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -132,8 +134,7 @@ protected:
 
       for (ProteinHit & prot_hit : prot.getHits())
       {
-        auto pos = hit_values.find(prot_hit.getAccession());
-        if (pos == hit_values.end())
+        if (const auto pos = hit_values.find(prot_hit.getAccession()); pos == hit_values.end())
         {
           prot_hit.setScore(-1);
         }
@@ -340,7 +341,7 @@ protected:
 
     if (!add_to.empty())
     { // make 'add_to' filename the first in the list
-      file_names.erase(remove(file_names.begin(), file_names.end(), add_to), file_names.end());
+      std::erase(file_names, add_to);
       file_names.insert(file_names.begin(), add_to);
     }
 

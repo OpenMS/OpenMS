@@ -504,12 +504,14 @@ namespace OpenMS
 
   const ControlledVocabulary::CVTerm& ControlledVocabulary::getTerm(const String& id) const
   {
-    const auto it = terms_.find(id);
-    if (it == terms_.end())
+    if (const auto it = terms_.find(id); it == terms_.end())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid CV identifier!", id);
     }
-    return it->second;
+    else
+    {
+      return it->second;
+    }
   }
 
   const std::map<String, ControlledVocabulary::CVTerm>& ControlledVocabulary::getTerms() const

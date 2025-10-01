@@ -67,12 +67,11 @@ namespace OpenMS
             }
           }
 
-          String target_decoy = (String)pit.getMetaValue("target_decoy");
-          if (target_decoy == "target")
+          if (!pit.isDecoy())
           {
             fwd_scores.push_back(score);
           }
-          else if (target_decoy == "decoy")
+          else
           {
             rev_scores.push_back(score);
           }
