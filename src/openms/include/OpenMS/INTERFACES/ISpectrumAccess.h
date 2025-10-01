@@ -12,7 +12,7 @@
 
 #include <vector>
 #include <string>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace OpenMS
 {
@@ -46,7 +46,7 @@ public:
     ConstSpectraIterator endSpectra() const;
     */
   };
-  typedef boost::shared_ptr<ISpectraReader> SpectraReaderPtr;
+  using SpectraReaderPtr = std::shared_ptr<ISpectraReader>;
 
 
   /**
@@ -75,7 +75,7 @@ public:
     ConstChromatogramIterator endChromatograms() const;
     */
   };
-  typedef boost::shared_ptr<IChromatogramsReader> ChromatogramsReaderPtr;
+  using ChromatogramsReaderPtr = std::shared_ptr<IChromatogramsReader>;
 
 
   class OPENMS_DLLAPI ISpectraWriter
@@ -87,7 +87,7 @@ public:
     /// write all cached data to disk
     virtual void flush() = 0;
   };
-  typedef boost::shared_ptr<ISpectraWriter> SpectraWriterPtr;
+  using SpectraWriterPtr = std::shared_ptr<ISpectraWriter>;
 
 
   class OPENMS_DLLAPI IChromatogramsWriter
@@ -99,7 +99,7 @@ public:
     /// write all cached data to disk
     virtual void flush() = 0;
   };
-  typedef boost::shared_ptr<IChromatogramsWriter> ChromatogramsWriterPtr;
+  using ChromatogramsWriterPtr = std::shared_ptr<IChromatogramsWriter>;
 
 } //end namespace Interfaces
 } //end namespace OpenMS

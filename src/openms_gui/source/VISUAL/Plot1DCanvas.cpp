@@ -37,7 +37,7 @@
 #include <QtWidgets/QMessageBox>
 #include <utility>
 
-#include <boost/make_shared.hpp>
+#include <memory>
 
 using namespace std;
 
@@ -50,7 +50,7 @@ namespace OpenMS
   Plot1DCanvas::ExperimentSharedPtrType prepareChromatogram(Size index, const Plot1DCanvas::ExperimentSharedPtrType& exp_sptr, const Plot1DCanvas::ODExperimentSharedPtrType& ondisc_sptr)
   {
     // create a managed pointer fill it with a spectrum containing the chromatographic data
-    auto chrom_exp_sptr = boost::make_shared<AnnotatedMSRun>();
+    auto chrom_exp_sptr = std::make_shared<AnnotatedMSRun>();
 
     chrom_exp_sptr->getMSExperiment().setMetaValue("is_chromatogram", "true"); //this is a hack to store that we have chromatogram data
     LayerDataBase::ExperimentType::SpectrumType spectrum;

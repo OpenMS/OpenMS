@@ -13,7 +13,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 #include <set>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace OpenMS
 {
@@ -108,7 +108,7 @@ protected:
     DateTime completion_time_;
   };
 
-  typedef boost::shared_ptr<DataProcessing> DataProcessingPtr;
-  typedef boost::shared_ptr<const DataProcessing> ConstDataProcessingPtr;
+  using DataProcessingPtr = std::shared_ptr<DataProcessing>;
+  using ConstDataProcessingPtr = std::shared_ptr<const DataProcessing>;
 
 } // namespace OpenMS

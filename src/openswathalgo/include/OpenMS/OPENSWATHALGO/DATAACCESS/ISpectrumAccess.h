@@ -11,7 +11,7 @@
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -44,7 +44,7 @@ public:
       individual copy on which it can operate.
 
     */
-    virtual boost::shared_ptr<ISpectrumAccess> lightClone() const = 0;
+    virtual std::shared_ptr<ISpectrumAccess> lightClone() const = 0;
 
     /// Return a pointer to a spectrum at the given id
     virtual SpectrumPtr getSpectrumById(int id) = 0;
@@ -91,7 +91,7 @@ public:
         //throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       //}
 
-      OpenSwath::SpectrumPtr output(new OpenSwath::Spectrum);
+      OpenSwath::SpectrumPtr output = std::make_shared<OpenSwath::Spectrum>();
 
       OpenSwath::BinaryDataArrayPtr mz_arr = input->getMZArray();
       OpenSwath::BinaryDataArrayPtr int_arr = input->getIntensityArray();
@@ -102,9 +102,9 @@ public:
       auto im_it = im_arr->data.cbegin();
       auto mz_end = mz_arr->data.cend();
 
-      OpenSwath::BinaryDataArrayPtr mz_arr_out(new OpenSwath::BinaryDataArray);
-      OpenSwath::BinaryDataArrayPtr intens_arr_out(new OpenSwath::BinaryDataArray);
-      OpenSwath::BinaryDataArrayPtr im_arr_out(new OpenSwath::BinaryDataArray);
+      OpenSwath::BinaryDataArrayPtr mz_arr_out = std::make_shared<OpenSwath::BinaryDataArray>();
+      OpenSwath::BinaryDataArrayPtr intens_arr_out = std::make_shared<OpenSwath::BinaryDataArray>();
+      OpenSwath::BinaryDataArrayPtr im_arr_out = std::make_shared<OpenSwath::BinaryDataArray>();
       im_arr_out->description = im_arr->description;
 
       while (mz_it != mz_end)
@@ -128,6 +128,6 @@ public:
 
    };
 
-  typedef boost::shared_ptr<ISpectrumAccess> SpectrumAccessPtr;
+  using SpectrumAccessPtr = std::shared_ptr<ISpectrumAccess>;
 }
 

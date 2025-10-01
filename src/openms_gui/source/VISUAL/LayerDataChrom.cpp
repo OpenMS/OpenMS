@@ -20,7 +20,7 @@
 #include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
 #include <OpenMS/METADATA/AnnotatedMSRun.h>
 
-#include <boost/make_shared.hpp>
+#include <memory>
 
 using namespace std;
 
@@ -136,7 +136,7 @@ namespace OpenMS
     // projection for m/z
     auto ptr_mz = make_unique<LayerData1DPeak>();
 
-    ExperimentSharedPtrType exp_mz = boost::make_shared<ExperimentType>();
+    ExperimentSharedPtrType exp_mz = std::make_shared<ExperimentType>();
     exp_mz->getMSExperiment().addSpectrum(std::move(projection_mz));
     ptr_mz->setPeakData(exp_mz);
 
@@ -145,7 +145,7 @@ namespace OpenMS
 
     exp_mz->getMSExperiment().addChromatogram(std::move(projection_rt));
 
-    ptr_rt->setChromData(boost::make_shared<AnnotatedMSRun>());
+    ptr_rt->setChromData(std::make_shared<AnnotatedMSRun>());
 
     auto assign_axis = [&](auto unit, auto& layer) {
       switch (unit)

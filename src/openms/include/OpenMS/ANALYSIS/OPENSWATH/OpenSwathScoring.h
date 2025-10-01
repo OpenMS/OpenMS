@@ -24,8 +24,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 
 #include <vector>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include <memory>
+#include <memory>
 
 //logging
 #include <OpenMS/CONCEPT/LogStream.h>

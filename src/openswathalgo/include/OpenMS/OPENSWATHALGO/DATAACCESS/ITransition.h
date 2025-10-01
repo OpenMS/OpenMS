@@ -10,7 +10,7 @@
 
 #include <vector>
 #include <string>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
@@ -30,10 +30,10 @@ public:
   class OPENSWATHALGO_DLLAPI IMRMFeature
   {
 public:
-    virtual ~IMRMFeature(){}
-    virtual boost::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID) = 0;
-    virtual boost::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID) = 0;
-    virtual std::vector<std::string> getNativeIDs() const = 0;
+  virtual ~IMRMFeature(){}
+  virtual std::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID) = 0;
+  virtual std::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID) = 0;
+  virtual std::vector<std::string> getNativeIDs() const = 0;
     virtual std::vector<std::string> getPrecursorIDs() const = 0;
     virtual float getIntensity() const = 0;
     virtual double getRT() const = 0;
@@ -54,7 +54,7 @@ public:
     virtual ~ISignalToNoise() {}
     virtual double getValueAtRT(double RT) = 0; // cannot be const due to OpenMS implementation
   };
-  typedef boost::shared_ptr<ISignalToNoise> ISignalToNoisePtr;
+  using ISignalToNoisePtr = std::shared_ptr<ISignalToNoise>;
 
 
 } //end Namespace OpenSwath

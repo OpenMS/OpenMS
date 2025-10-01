@@ -10,7 +10,7 @@
 
 #include <string>
 #include <vector>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <OpenMS/config.h>
 
@@ -51,7 +51,7 @@ namespace Interfaces
     /// the binary data.
     std::vector<double> data;
   };
-  typedef boost::shared_ptr<BinaryDataArray> BinaryDataArrayPtr;
+  using BinaryDataArrayPtr = std::shared_ptr<BinaryDataArray>;
 
   /// Identifying information for a chromatogram
   struct OPENMS_DLLAPI ChromatogramMeta
@@ -70,7 +70,7 @@ namespace Interfaces
     }
 
   };
-  typedef boost::shared_ptr<ChromatogramMeta> ChromatogramMetaPtr;
+  using ChromatogramMetaPtr = std::shared_ptr<ChromatogramMeta>;
 
   /// A single chromatogram.
   struct OPENMS_DLLAPI Chromatogram
@@ -96,8 +96,7 @@ private:
     {
       for (std::size_t i = 0; i < defaultArrayLength; ++i)
       {
-        BinaryDataArrayPtr empty(new BinaryDataArray);
-        binaryDataArrayPtrs[i] = empty;
+        binaryDataArrayPtrs[i] = std::make_shared<BinaryDataArray>();
       }
     }
 
@@ -127,7 +126,7 @@ public:
     }
 
   };
-  typedef boost::shared_ptr<Chromatogram> ChromatogramPtr;
+  using ChromatogramPtr = std::shared_ptr<Chromatogram>;
 
   /// Identifying information for a spectrum
   struct OPENMS_DLLAPI SpectrumMeta
@@ -150,7 +149,7 @@ public:
     }
 
   };
-  typedef boost::shared_ptr<SpectrumMeta> SpectrumMetaPtr;
+  using SpectrumMetaPtr = std::shared_ptr<SpectrumMeta>;
 
   /// The structure that captures the generation of a peak list (including the underlying acquisitions)
   struct OPENMS_DLLAPI Spectrum
@@ -176,8 +175,7 @@ private:
     {
       for (std::size_t i = 0; i < defaultArrayLength; ++i)
       {
-        BinaryDataArrayPtr empty(new BinaryDataArray);
-        binaryDataArrayPtrs[i] = empty;
+        binaryDataArrayPtrs[i] = std::make_shared<BinaryDataArray>();
       }
     }
 
@@ -207,7 +205,7 @@ public:
     }
 
   };
-  typedef boost::shared_ptr<Spectrum> SpectrumPtr;
+  using SpectrumPtr = std::shared_ptr<Spectrum>;
 
 } //end namespace Interfaces
 } //end namespace OpenMS

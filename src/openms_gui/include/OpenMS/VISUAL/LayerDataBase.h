@@ -26,7 +26,7 @@
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <bitset>
 #include <vector>
@@ -112,27 +112,27 @@ namespace OpenMS
     typedef FeatureMap FeatureMapType;
 
     /// SharedPtr on feature map
-    typedef boost::shared_ptr<FeatureMap> FeatureMapSharedPtrType;
+    using FeatureMapSharedPtrType = std::shared_ptr<FeatureMap>;
 
     /// consensus features
     typedef ConsensusMap ConsensusMapType;
 
     /// SharedPtr on consensus features
-    typedef boost::shared_ptr<ConsensusMap> ConsensusMapSharedPtrType;
+    using ConsensusMapSharedPtrType = std::shared_ptr<ConsensusMap>;
 
     /// Main data type (experiment)
     typedef AnnotatedMSRun ExperimentType;
 
     /// SharedPtr on MSExperiment
-    typedef boost::shared_ptr<ExperimentType> ExperimentSharedPtrType;
+    using ExperimentSharedPtrType = std::shared_ptr<ExperimentType>;
 
-    typedef boost::shared_ptr<const ExperimentType> ConstExperimentSharedPtrType;
+    using ConstExperimentSharedPtrType = std::shared_ptr<const ExperimentType>;
 
     /// SharedPtr on On-Disc MSExperiment
-    typedef boost::shared_ptr<OnDiscMSExperiment> ODExperimentSharedPtrType;
+    using ODExperimentSharedPtrType = std::shared_ptr<OnDiscMSExperiment>;
 
     /// SharedPtr on OSWData
-    typedef boost::shared_ptr<OSWData> OSWDataSharedPtrType;
+    using OSWDataSharedPtrType = std::shared_ptr<OSWData>;
   };
 
   /**

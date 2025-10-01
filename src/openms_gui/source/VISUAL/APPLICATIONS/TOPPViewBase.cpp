@@ -64,7 +64,7 @@
 
 #include <cmath>
 #include <utility>
-#include <boost/make_shared.hpp>
+#include <memory>
 
 using namespace std;
 
@@ -1946,7 +1946,7 @@ namespace OpenMS
       // spectrum is generated in the dialog, so just receive it here
       PeakSpectrum spectrum = spec_gen_dialog_.getSpectrum();
 
-      ExperimentSharedPtrType new_exp_sptr = boost::make_shared<AnnotatedMSRun>();
+      ExperimentSharedPtrType new_exp_sptr = std::make_shared<AnnotatedMSRun>();
       new_exp_sptr->getMSExperiment().addSpectrum(spectrum);
       new_exp_sptr->getMSExperiment().updateRanges();
             
@@ -2027,7 +2027,7 @@ namespace OpenMS
   {
     const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
     
-    ExperimentSharedPtrType exp = boost::make_shared<AnnotatedMSRun>();
+    ExperimentSharedPtrType exp = std::make_shared<AnnotatedMSRun>();
     exp.get()->getMSExperiment() = std::move(IMDataConverter::reshapeIMFrameToMany(spec));
     // hack, but currently not avoidable, because 2D widget does not support IM natively yet...
     // for (auto& spec : exp->getSpectra()) spec.setRT(spec.getDriftTime());
@@ -2058,7 +2058,7 @@ namespace OpenMS
     }
 
     // Add spectra into a MSExperiment, sort and prepare it for display
-    ExperimentSharedPtrType tmpe = boost::make_shared<AnnotatedMSRun>();
+    ExperimentSharedPtrType tmpe = std::make_shared<AnnotatedMSRun>();
 
     // Collect all MS2 spectra with the same precursor as the current spectrum
     // (they are in the same SWATH window)

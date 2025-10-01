@@ -13,7 +13,7 @@
 namespace OpenMS
 {
   /// SharedPtr on OSWData
-  typedef boost::shared_ptr<OSWData> OSWDataSharedPtrType;
+  using OSWDataSharedPtrType = std::shared_ptr<OSWData>;
 
   /**
   @brief Class that stores the data for one layer of type Chromatogram

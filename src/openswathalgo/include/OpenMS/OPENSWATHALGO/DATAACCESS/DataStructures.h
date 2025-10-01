@@ -10,7 +10,7 @@
 
 #include <string>
 #include <vector>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
@@ -50,7 +50,7 @@ namespace OpenSwath
     std::string description;
   };
   typedef OSBinaryDataArray BinaryDataArray;
-  typedef boost::shared_ptr<BinaryDataArray> BinaryDataArrayPtr;
+  using BinaryDataArrayPtr = std::shared_ptr<BinaryDataArray>;
 
   /// Identifying information for a chromatogram
   struct OPENSWATHALGO_DLLAPI OSChromatogramMeta
@@ -66,7 +66,7 @@ namespace OpenSwath
 
   };
   typedef OSChromatogramMeta ChromatogramMeta;
-  typedef boost::shared_ptr<ChromatogramMeta> ChromatogramMetaPtr;
+  using ChromatogramMetaPtr = std::shared_ptr<ChromatogramMeta>;
 
   /// A single chromatogram.
   struct OPENSWATHALGO_DLLAPI OSChromatogram
@@ -99,8 +99,7 @@ private:
     {
       for (std::size_t i = 0; i < defaultArrayLength; ++i)
       {
-        BinaryDataArrayPtr empty(new BinaryDataArray);
-        binaryDataArrayPtrs[i] = empty;
+        binaryDataArrayPtrs[i] = std::make_shared<BinaryDataArray>();
       }
     }
 
@@ -143,7 +142,7 @@ public:
 
   };
   typedef OSChromatogram Chromatogram;
-  typedef boost::shared_ptr<Chromatogram> ChromatogramPtr;
+  using ChromatogramPtr = std::shared_ptr<Chromatogram>;
 
   /// Identifying information for a spectrum
   struct OPENSWATHALGO_DLLAPI OSSpectrumMeta
@@ -174,7 +173,7 @@ public:
 
   };
   typedef OSSpectrumMeta SpectrumMeta;
-  typedef boost::shared_ptr<SpectrumMeta> SpectrumMetaPtr;
+  using SpectrumMetaPtr = std::shared_ptr<SpectrumMeta>;
 
   /// The structure that captures the generation of a peak list (including the underlying acquisitions)
   struct OPENSWATHALGO_DLLAPI OSSpectrum
@@ -200,8 +199,7 @@ private:
     {
       for (std::size_t i = 0; i < defaultArrayLength; ++i)
       {
-        BinaryDataArrayPtr empty(new BinaryDataArray);
-        binaryDataArrayPtrs[i] = empty;
+        binaryDataArrayPtrs[i] = std::make_shared<BinaryDataArray>();
       }
     }
 
@@ -273,6 +271,6 @@ public:
 
   };
   typedef OSSpectrum Spectrum;
-  typedef boost::shared_ptr<Spectrum> SpectrumPtr;
+  using SpectrumPtr = std::shared_ptr<Spectrum>;
 } //end Namespace OpenSwath
 
