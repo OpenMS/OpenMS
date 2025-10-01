@@ -23,7 +23,6 @@
 
 #include <boost/range/adaptor/map.hpp>
 #include <memory>
-#include <memory>
 #include <boost/foreach.hpp>
 
 #define run_identifier "unique_run_identifier"

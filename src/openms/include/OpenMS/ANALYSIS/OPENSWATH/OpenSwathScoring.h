@@ -25,7 +25,6 @@
 
 #include <vector>
 #include <memory>
-#include <memory>
 
 //logging
 #include <OpenMS/CONCEPT/LogStream.h>

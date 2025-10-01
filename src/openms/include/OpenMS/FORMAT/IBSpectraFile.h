@@ -11,7 +11,6 @@
 #include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
-// boost shared_ptr
 #include <memory>
 
 namespace OpenMS
