@@ -1279,30 +1279,30 @@ jobs:
               
               if [ "$PR_INFO" != "not_found" ]; then
                 COMMENT_BODY=$(cat << EOF
-🚨 **Nightly Build Failure Alert** 🚨
+          🚨 **Nightly Build Failure Alert** 🚨
 
-Hello! The nightly build has failed, and your PR was merged since the last successful nightly run.
+          Hello! The nightly build has failed, and your PR was merged since the last successful nightly run.
 
-**What this means:**
-- The nightly build on the \`nightly\` branch is currently failing
-- Your PR (#$pr) was merged between the [last successful run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$LAST_SUCCESS_RUN_ID) and this failure
-- Your changes might be related to the failure (but not necessarily the cause)
+          **What this means:**
+          - The nightly build on the "nightly" branch is currently failing
+          - Your PR (#$pr) was merged between the [last successful run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$LAST_SUCCESS_RUN_ID) and this failure
+          - Your changes might be related to the failure (but not necessarily the cause)
 
-**What you should do:**
-1. 🔍 **Check the [failed workflow run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)** to see what went wrong
-2. 🧐 **Review your changes** to see if they could be related to the failure
-3. 🛠️ **If your changes are the cause**, please create a fix as soon as possible
-4. 💬 **If you're unsure**, please engage with the team to help diagnose the issue
+          **What you should do:**
+          1. 🔍 **Check the [failed workflow run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)** to see what went wrong
+          2. 🧐 **Review your changes** to see if they could be related to the failure
+          3. 🛠️ **If your changes are the cause**, please create a fix as soon as possible
+          4. 💬 **If you're unsure**, please engage with the team to help diagnose the issue
 
-**Note:** This is an automated message. Multiple PRs may have been merged since the last successful run, so the failure might not be caused by your specific changes.
+          **Note:** This is an automated message. Multiple PRs may have been merged since the last successful run, so the failure might not be caused by your specific changes.
 
-Thank you for helping keep the nightly builds healthy! 🙏
+          Thank you for helping keep the nightly builds healthy! 🙏
 
----
-*Last successful commit: \`$LAST_SUCCESS_SHA\`*
-*Current failing commit: \`$GITHUB_SHA\`*
-EOF
-)
+          ---
+          *Last successful commit: $LAST_SUCCESS_SHA*
+          *Current failing commit: $GITHUB_SHA*
+          EOF
+          )
 
                 gh api \
                   --method POST \
