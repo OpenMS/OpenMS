@@ -1134,3 +1134,174 @@ jobs:
               git push --set-upstream origin releaseannouncement${{ needs.build-and-test.outputs.version_number }}
               gh pr create --title "Release announcement for ${{ needs.build-and-test.outputs.version_number }}" --body "announces ${{ needs.build-and-test.outputs.version_number }}"
             popd
+
+  nightly-failure-notification:
+    if: always() && github.ref == 'refs/heads/nightly'
+    runs-on: ubuntu-latest
+    needs: [build-and-test]
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if current run failed
+        id: check-failure
+        run: |
+          BUILD_AND_TEST_RESULT="${{ needs.build-and-test.result }}"
+          
+          if [ "$BUILD_AND_TEST_RESULT" != "failure" ]; then
+            echo "Build and test did not fail, no notification needed"
+            echo "should_notify=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "Current build failed, proceeding with notification check..."
+          echo "should_notify=true" >> $GITHUB_OUTPUT
+
+      - name: Get last successful build
+        if: steps.check-failure.outputs.should_notify == 'true'
+        id: last-successful
+        uses: SamhammerAG/last-successful-build-action@v4
+        with:
+          branch: "nightly"
+          workflow: "openms_ci_matrix_full.yml"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if this is the first failure after success
+        if: steps.check-failure.outputs.should_notify == 'true' && steps.last-successful.outputs.sha != ''
+        id: check-first-failure
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get the most recent workflow run before this one on nightly
+          PREVIOUS_RUN=$(gh api \
+            --method GET \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "/repos/${{ github.repository }}/actions/workflows/openms_ci_matrix_full.yml/runs?branch=nightly&per_page=10" \
+            --jq '.workflow_runs[] | select(.id < ${{ github.run_id }}) | first')
+
+          if [ "$PREVIOUS_RUN" = "null" ] || [ -z "$PREVIOUS_RUN" ]; then
+            echo "No previous run found, treating as first failure"
+            echo "is_first_failure=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          PREVIOUS_CONCLUSION=$(echo "$PREVIOUS_RUN" | jq -r '.conclusion')
+          echo "Previous run conclusion: $PREVIOUS_CONCLUSION"
+          
+          if [ "$PREVIOUS_CONCLUSION" = "success" ]; then
+            echo "Previous run succeeded, this is the first failure"
+            echo "is_first_failure=true" >> $GITHUB_OUTPUT
+          else
+            echo "Previous run was not successful, this is a subsequent failure"
+            echo "is_first_failure=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Find merged PRs since last success
+        if: steps.check-failure.outputs.should_notify == 'true' && steps.last-successful.outputs.sha != '' && steps.check-first-failure.outputs.is_first_failure == 'true'
+        id: find-prs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LAST_SUCCESS_SHA="${{ steps.last-successful.outputs.sha }}"
+          
+          if [ "$LAST_SUCCESS_SHA" = "${{ github.sha }}" ]; then
+            echo "Last successful commit is the same as current commit, no PRs to notify"
+            echo "pr_numbers=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "Finding commits between $LAST_SUCCESS_SHA and ${{ github.sha }}"
+          
+          # Get commits between last success and current commit
+          COMMITS=$(git rev-list $LAST_SUCCESS_SHA..${{ github.sha }} 2>/dev/null || echo "")
+          
+          if [ -z "$COMMITS" ]; then
+            echo "No new commits found"
+            echo "pr_numbers=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Find PRs for these commits
+          PR_NUMBERS=""
+          for commit in $COMMITS; do
+            # Look for merge commits that mention PR numbers
+            COMMIT_MSG=$(git log --format="%s" -n 1 $commit)
+            if echo "$COMMIT_MSG" | grep -q "Merge pull request #"; then
+              PR_NUM=$(echo "$COMMIT_MSG" | grep -o "#[0-9]\+" | sed 's/#//' | head -1)
+              if [ -n "$PR_NUM" ]; then
+                if [ -z "$PR_NUMBERS" ]; then
+                  PR_NUMBERS="$PR_NUM"
+                else
+                  PR_NUMBERS="$PR_NUMBERS,$PR_NUM"
+                fi
+              fi
+            fi
+          done
+
+          # Remove duplicates
+          if [ -n "$PR_NUMBERS" ]; then
+            PR_NUMBERS=$(echo "$PR_NUMBERS" | tr ',' '\n' | sort -u | tr '\n' ',' | sed 's/,$//')
+          fi
+
+          echo "Found PR numbers: $PR_NUMBERS"
+          echo "pr_numbers=$PR_NUMBERS" >> $GITHUB_OUTPUT
+
+      - name: Comment on PRs
+        if: steps.check-failure.outputs.should_notify == 'true' && steps.check-first-failure.outputs.is_first_failure == 'true' && steps.find-prs.outputs.pr_numbers != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBERS="${{ steps.find-prs.outputs.pr_numbers }}"
+          LAST_SUCCESS_SHA="${{ steps.last-successful.outputs.sha }}"
+          LAST_SUCCESS_RUN_ID="${{ steps.last-successful.outputs.run_id }}"
+          
+          IFS=',' read -ra PRS <<< "$PR_NUMBERS"
+          for pr in "${PRS[@]}"; do
+            if [ -n "$pr" ]; then
+              echo "Commenting on PR #$pr"
+              
+              # Check if PR is still accessible
+              PR_INFO=$(gh api \
+                --method GET \
+                -H "Accept: application/vnd.github+json" \
+                "/repos/${{ github.repository }}/pulls/$pr" 2>/dev/null || echo "not_found")
+              
+              if [ "$PR_INFO" != "not_found" ]; then
+                COMMENT_BODY="🚨 **Nightly Build Failure Alert** 🚨
+
+Hello! The nightly build has failed, and your PR was merged since the last successful nightly run.
+
+**What this means:**
+- The nightly build on the \`nightly\` branch is currently failing
+- Your PR (#$pr) was merged between the [last successful run](${{ github.server_url }}/${{ github.repository }}/actions/runs/$LAST_SUCCESS_RUN_ID) and this failure
+- Your changes might be related to the failure (but not necessarily the cause)
+
+**What you should do:**
+1. 🔍 **Check the [failed workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})** to see what went wrong
+2. 🧐 **Review your changes** to see if they could be related to the failure
+3. 🛠️ **If your changes are the cause**, please create a fix as soon as possible
+4. 💬 **If you're unsure**, please engage with the team to help diagnose the issue
+
+**Note:** This is an automated message. Multiple PRs may have been merged since the last successful run, so the failure might not be caused by your specific changes.
+
+---
+*Last successful commit: \`$LAST_SUCCESS_SHA\`*
+*Current failing commit: \`${{ github.sha }}\`*"
+
+                gh api \
+                  --method POST \
+                  -H "Accept: application/vnd.github+json" \
+                  "/repos/${{ github.repository }}/issues/$pr/comments" \
+                  -f body="$COMMENT_BODY" || echo "Failed to comment on PR #$pr"
+              else
+                echo "PR #$pr not found or inaccessible"
+              fi
+            fi
+          done
