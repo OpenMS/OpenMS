@@ -1261,6 +1261,10 @@ jobs:
           PR_NUMBERS="${{ steps.find-prs.outputs.pr_numbers }}"
           LAST_SUCCESS_SHA="${{ steps.last-successful.outputs.sha }}"
           LAST_SUCCESS_RUN_ID="${{ steps.last-successful.outputs.run_id }}"
+          GITHUB_SERVER_URL="${{ github.server_url }}"
+          GITHUB_REPOSITORY="${{ github.repository }}"
+          GITHUB_RUN_ID="${{ github.run_id }}"
+          GITHUB_SHA="${{ github.sha }}"
           
           IFS=',' read -ra PRS <<< "$PR_NUMBERS"
           for pr in "${PRS[@]}"; do
@@ -1271,37 +1275,39 @@ jobs:
               PR_INFO=$(gh api \
                 --method GET \
                 -H "Accept: application/vnd.github+json" \
-                "/repos/${{ github.repository }}/pulls/$pr" 2>/dev/null || echo "not_found")
+                "/repos/$GITHUB_REPOSITORY/pulls/$pr" 2>/dev/null || echo "not_found")
               
               if [ "$PR_INFO" != "not_found" ]; then
-                COMMENT_BODY=$(cat << 'EOF'
+                COMMENT_BODY=$(cat << EOF
 🚨 **Nightly Build Failure Alert** 🚨
 
 Hello! The nightly build has failed, and your PR was merged since the last successful nightly run.
 
 **What this means:**
-- The nightly build on the `nightly` branch is currently failing
-- Your PR (#$pr) was merged between the [last successful run](${{ github.server_url }}/${{ github.repository }}/actions/runs/$LAST_SUCCESS_RUN_ID) and this failure
+- The nightly build on the \`nightly\` branch is currently failing
+- Your PR (#$pr) was merged between the [last successful run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$LAST_SUCCESS_RUN_ID) and this failure
 - Your changes might be related to the failure (but not necessarily the cause)
 
 **What you should do:**
-1. 🔍 **Check the [failed workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})** to see what went wrong
+1. 🔍 **Check the [failed workflow run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)** to see what went wrong
 2. 🧐 **Review your changes** to see if they could be related to the failure
 3. 🛠️ **If your changes are the cause**, please create a fix as soon as possible
 4. 💬 **If you're unsure**, please engage with the team to help diagnose the issue
 
 **Note:** This is an automated message. Multiple PRs may have been merged since the last successful run, so the failure might not be caused by your specific changes.
 
+Thank you for helping keep the nightly builds healthy! 🙏
+
 ---
-*Last successful commit: `$LAST_SUCCESS_SHA`*
-*Current failing commit: `${{ github.sha }}`*
+*Last successful commit: \`$LAST_SUCCESS_SHA\`*
+*Current failing commit: \`$GITHUB_SHA\`*
 EOF
 )
 
                 gh api \
                   --method POST \
                   -H "Accept: application/vnd.github+json" \
-                  "/repos/${{ github.repository }}/issues/$pr/comments" \
+                  "/repos/$GITHUB_REPOSITORY/issues/$pr/comments" \
                   -f body="$COMMENT_BODY" || echo "Failed to comment on PR #$pr"
               else
                 echo "PR #$pr not found or inaccessible"
