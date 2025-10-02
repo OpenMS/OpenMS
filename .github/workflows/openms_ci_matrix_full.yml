@@ -1274,12 +1274,13 @@ jobs:
                 "/repos/${{ github.repository }}/pulls/$pr" 2>/dev/null || echo "not_found")
               
               if [ "$PR_INFO" != "not_found" ]; then
-                COMMENT_BODY="🚨 **Nightly Build Failure Alert** 🚨
+                COMMENT_BODY=$(cat << 'EOF'
+🚨 **Nightly Build Failure Alert** 🚨
 
 Hello! The nightly build has failed, and your PR was merged since the last successful nightly run.
 
 **What this means:**
-- The nightly build on the \`nightly\` branch is currently failing
+- The nightly build on the `nightly` branch is currently failing
 - Your PR (#$pr) was merged between the [last successful run](${{ github.server_url }}/${{ github.repository }}/actions/runs/$LAST_SUCCESS_RUN_ID) and this failure
 - Your changes might be related to the failure (but not necessarily the cause)
 
@@ -1292,8 +1293,10 @@ Hello! The nightly build has failed, and your PR was merged since the last succe
 **Note:** This is an automated message. Multiple PRs may have been merged since the last successful run, so the failure might not be caused by your specific changes.
 
 ---
-*Last successful commit: \`$LAST_SUCCESS_SHA\`*
-*Current failing commit: \`${{ github.sha }}\`*"
+*Last successful commit: `$LAST_SUCCESS_SHA`*
+*Current failing commit: `${{ github.sha }}`*
+EOF
+)
 
                 gh api \
                   --method POST \
