@@ -201,7 +201,7 @@ namespace OpenMS
 
         ThresholdMower threshold_mower_filter;
         Param tm = threshold_mower_filter.getParameters();
-        tm.setValue("threshold", intensity_threshold);;  // TODO: derive from data
+        tm.setValue("threshold", intensity_threshold); // TODO: derive from data
         threshold_mower_filter.setParameters(tm);
         threshold_mower_filter.filterPeakMap(e);
 

@@ -11,7 +11,6 @@
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <algorithm>
-#include <map>
 #include <array>
 
 using namespace std;
@@ -48,7 +47,11 @@ namespace OpenMS
       PeptideIdentificationList&& peps
       )
   {
-    if (prots.empty()) OPENMS_LOG_WARN << "No ProteinIdentification(Runs) given. Skipping."; return;
+    if (prots.empty()) 
+    {
+      OPENMS_LOG_WARN << "No ProteinIdentification(Runs) given. Skipping.";
+      return;
+    }
     //TODO instead of only checking consistency, merge if possible (especially for SILAC mods)
     if (!filled_)
     {
@@ -74,7 +77,11 @@ namespace OpenMS
       const PeptideIdentificationList& peps
   )
   {
-    if (prots.empty()) OPENMS_LOG_WARN << "No ProteinIdentification(Runs) given. Skipping."; return;
+    if (prots.empty()) 
+    {
+      OPENMS_LOG_WARN << "No ProteinIdentification(Runs) given. Skipping.";
+      return;
+    }
 
     //copy
     std::vector<ProteinIdentification> pr = prots;
@@ -123,12 +130,11 @@ namespace OpenMS
     file_origin_to_idx_.clear();
 
     // Safely move hits out using node handles (empties the set)
-    for (auto it = collected_protein_hits_.begin(); it != collected_protein_hits_.end(); )
+    while (!collected_protein_hits_.empty())
     {
-      auto nh = collected_protein_hits_.extract(it++);
+      auto nh = collected_protein_hits_.extract(collected_protein_hits_.begin());
       prots.getHits().push_back(std::move(nh.value()));
     }
-
     filled_ = false;
   }
 

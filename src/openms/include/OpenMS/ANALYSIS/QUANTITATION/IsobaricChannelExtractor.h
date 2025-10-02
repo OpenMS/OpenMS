@@ -76,19 +76,6 @@ public:
     void extractChannels(const PeakMap& ms_exp_data, ConsensusMap& consensus_map);
 
     /**
-     * @brief Extracts single spectrum from MSExperiment and returns a ConsensusFeature with the intensities of the extracted channels.
-     * 
-     * Stores statistics about extraction in @p channel_qc.
-     * 
-     * @param[in] spec_idx index in the MSExperiment @p exp
-     * @param[in] exp reference to the MSExperiment for finding precursors etc.
-     * @param[in] has_ms3 if this experiment has MS3 spectra and is therefore an SPS TMT experiment
-     * @param[out] channel_qc vector of pairs of m/z and channel index for storing channel QC information
-     * @return ConsensusFeature
-     */
-    ConsensusFeature extractSingleSpec(Size spec_idx, const MSExperiment& exp, bool has_ms3, std::vector<std::pair<double, unsigned>>& channel_qc);
-
-    /**
      * @brief Extracts intensities for channels of reporter ions from isobaric tags (according to the quantitation method given when creating this object)
      * 
      * Stores statistics about extraction in @p channel_qc.
@@ -99,7 +86,6 @@ public:
      * @return std::vector<double> extracted intensities for each channel (0 if no peak was found)
      */
     std::vector<double> extractSingleSpec(Size spec_idx, const MSExperiment& exp, std::vector<std::pair<double, unsigned>>& channel_qc);
-
 
     /// add channel information to a ConsensusMap (usually done before or after filling it).
     /// only needed when using extractSingleSpec() instead of extractChannels()
@@ -139,7 +125,7 @@ private:
       MS1 precursor scan of an MS2 scan and the MS1 scan immediately
       following the current MS2 scan.
     */
-    struct PuritySate_
+    struct PurityState_
     {
       /// Iterator pointing to the potential MS1 precursor scan
       PeakMap::ConstIterator precursorScan;
@@ -156,7 +142,7 @@ private:
 
         @param targetExp The experiment that will be analyzed.
       */
-      PuritySate_(const PeakMap& targetExp);
+      PurityState_(const PeakMap& targetExp);
 
       /**
         @brief Searches the experiment for the next MS1 spectrum with a retention time bigger then @p rt.
@@ -232,7 +218,7 @@ private:
       @param precursor Iterator pointing to the precursor spectrum of ms2_spec.
       @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
     */
-    double computePrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PuritySate_& precursor) const;
+    double computePrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PurityState_& precursor) const;
 
     /**
       @brief Computes the purity of the precursor given an iterator pointing to the MS/MS spectrum and a reference to the potential precursor spectrum.

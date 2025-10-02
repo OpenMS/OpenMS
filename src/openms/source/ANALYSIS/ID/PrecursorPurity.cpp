@@ -6,15 +6,10 @@
 // $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/METADATA/InstrumentSettings.h"
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/MATH/MathFunctions.h>
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 namespace OpenMS
 {
@@ -32,8 +27,10 @@ namespace OpenMS
     {
       typedef PeakMap::SpectrumType::ConstIterator const_spec_iterator;
 
+      int charge = precursor_info.getCharge();
+      if (charge == 0) charge = 1; // assume charge 1 for ions without charge
       // compute distance between isotopic peaks based on the precursor charge.
-      const double charge_dist = Constants::NEUTRON_MASS_U / static_cast<double>(precursor_info.getCharge());
+      const double charge_dist = Constants::NEUTRON_MASS_U / static_cast<double>(charge);
 
       // the actual boundary values
       const double strict_lower_mz = precursor_info.getMZ() - precursor_info.getIsolationWindowLowerOffset();

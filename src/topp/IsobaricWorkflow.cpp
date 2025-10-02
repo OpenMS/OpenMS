@@ -34,6 +34,8 @@
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
+#include <string>
+#include <vector>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -186,9 +188,7 @@ protected:
     registerOutputFile_("out_mzTab", "<file>", "", "output mzTab file with quantitative information");
     setValidFormats_("out_mzTab", {"mzTab"});
     registerFlag_("calculate_id_purity", "Calculate the purity of the precursor ion based on the MS1 spectrum. Only used for MS3, otherwise it is the same as the quant. precursor purity.");
-    registerIntOption_("max_parallel_files", "<num>", 1, "Maximum number of files to load in parallel.", false);
-    registerFlag_("protein_inference", "Infer and group proteins");
-    registerFlag_("protein_quant", "Quantify proteins from the peptide quantification. Implies protein inference.");
+    //registerIntOption_("max_parallel_files", "<num>", 1, "Maximum number of files to load in parallel.", false);
     registerDoubleOption_("psm_score", "<score>", NAN, "The score which should be reached by a peptide hit to be kept.  (use 'NAN' to disable this filter)", false);
     registerDoubleOption_("protein_score", "<score>", NAN, "The score which should be reached by a protein hit to be kept. All proteins are filtered based on their singleton scores irrespective of grouping. Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides. (use 'NAN' to disable this filter)", false);
     registerFlag_("delete_unreferenced_peptide_hits", "Peptides not referenced by any protein are deleted in the IDs.");
@@ -227,7 +227,26 @@ protected:
     pq_defaults.setValue("top:include_all", "true");
     pq_defaults.addTag("top:include_all", "advanced");
     Param bpi_defaults = BasicProteinInferenceAlgorithm().getDefaults();
+    // set based on protein_quantification default
+    bpi_defaults.remove("annotate_indistinguishable_groups");
+    bpi_defaults.remove("greedy_group_resolution");
     Param bayes_defaults = BayesianProteinInferenceAlgorithm().getDefaults();
+    
+    vector<string> bpi_remove = {"use_ids_outside_features", "annotate_group_probabilities", "user_defined_priors", "update_PSM_probabilities"};
+    for (const auto& r : bpi_remove)
+    {
+      bayes_defaults.remove(r);
+    }
+
+    // Why do we only have a const iterator?????
+    vector<string> bpi_show = {"psm_probability_cutoff", "top_PSMs"};
+    for (auto it = bayes_defaults.begin(); it != bayes_defaults.end(); ++it)
+    {
+      if (!ListUtils::contains(bpi_show, it.getName()))
+      {
+        bayes_defaults.addTag(it.getName(), "advanced");
+      }
+    }
 
     Param combined;
     combined.insert("ProteinQuantification:", pq_defaults);
@@ -430,8 +449,6 @@ protected:
     //-------------------------------------------------------------
     String out = getStringOption_("out");
     String exp_design = getStringOption_("exp_design");
-    bool infer_proteins = getFlag_("protein_inference");
-    bool quant_proteins = getFlag_("protein_quant");
     bool bayesian = getStringOption_("inference_method") == "bayesian";
     
     Param pq_param = getParam_().copy("ProteinQuantification:", true);
@@ -640,11 +657,37 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    //annotate output with data processing info
-    // TODO we should not write parameters from other quant_methods, only the selected ones!
-    // Maybe just remove the subsections from the parameters before calling this?
+    // Annotate output with data processing info
+    // Create a custom DataProcessing with filtered parameters
+    // (exclude unused quantification method sections to reduce output size)
+    DataProcessing dp = getProcessingInfo_(DataProcessing::QUANTITATION);
     
-    addDataProcessing_(cmap, getProcessingInfo_(DataProcessing::QUANTITATION));
+    // Remove parameters for unused quantification methods
+    String selected_method = quant_method->getMethodName();
+    vector<String> keys_to_remove;
+    
+    for (const auto& qm : quant_methods_)
+    {
+      if (qm.first != selected_method)
+      {
+        // Collect all parameter keys that start with this unused method name
+        vector<String> all_keys;
+        dp.getKeys(all_keys);
+        for (const String& key : all_keys)
+        {
+          if (key.hasPrefix("parameter: " + qm.first + ":"))
+          {
+            keys_to_remove.push_back(key);
+          }
+        }
+      }
+    }
+    for (const String& key : keys_to_remove)
+    {
+      dp.removeMetaValue(key);
+    }
+    
+    addDataProcessing_(cmap, dp);
 
     // remove empty features (TODO based on some other filtering settings?)
     const auto empty_feat = [](const ConsensusFeature& c){return c.getIntensity() <= 0.;};
@@ -678,8 +721,14 @@ protected:
     else {
       BayesianProteinInferenceAlgorithm bayes;
       Param bayes_param = getParam_().copy("BayesianProteinInference:", true);
+      // Hardcoded for this usecase
+      bayes_param.setValue("update_PSM_probabilities", "false");
+      bayes_param.setValue("annotate_group_probabilities", "true");
+      bayes_param.setValue("user_defined_priors", "false");
+      bayes_param.setValue("use_ids_outside_features", "false");
       writeDebug_("Parameters passed to BayesianProteinInference algorithm", bayes_param, 3);
       bayes.setParameters(bayes_param);
+      
       bayes.inferPosteriorProbabilities(cmap, greedy_group_resolution);
       if (!groups) {
         cmap.getProteinIdentifications()[0].getIndistinguishableProteins().clear();

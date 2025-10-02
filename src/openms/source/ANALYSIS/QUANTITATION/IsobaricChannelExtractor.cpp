@@ -29,7 +29,7 @@ namespace OpenMS
   double TMT_10AND11PLEX_CHANNEL_TOLERANCE = 0.003;
 
 
-  IsobaricChannelExtractor::PuritySate_::PuritySate_(const PeakMap& targetExp) :
+  IsobaricChannelExtractor::PurityState_::PurityState_(const PeakMap& targetExp) :
     baseExperiment(targetExp)
   {
     // initialize precursorScan with end(), it will be updated later on
@@ -48,7 +48,7 @@ namespace OpenMS
   }
 
 
-  void IsobaricChannelExtractor::PuritySate_::advanceFollowUp(const double rt)
+  void IsobaricChannelExtractor::PurityState_::advanceFollowUp(const double rt)
   {
     // advance follow up scan until we found a ms1 scan with a bigger RT
     if (followUpScan != baseExperiment.end()) ++followUpScan;
@@ -65,7 +65,7 @@ namespace OpenMS
     hasFollowUpScan = followUpScan != baseExperiment.end();
   }
 
-  bool IsobaricChannelExtractor::PuritySate_::followUpValid(const double rt) const
+  bool IsobaricChannelExtractor::PurityState_::followUpValid(const double rt) const
   {
     return hasFollowUpScan ? rt < followUpScan->getRT() : true;
   }
@@ -367,7 +367,7 @@ namespace OpenMS
     return precursor_intensity / total_intensity;
   }
 
-  double IsobaricChannelExtractor::computePrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PuritySate_& pState) const
+  double IsobaricChannelExtractor::computePrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PurityState_& pState) const
   {
     // we cannot analyze precursors without a charge
     if (ms2_spec->getPrecursors()[0].getCharge() == 0)
@@ -469,7 +469,7 @@ namespace OpenMS
     UInt64 element_index(0);
 
     // remember the current precursor spectrum
-    PuritySate_ pState(ms_exp_data);
+    PurityState_ pState(ms_exp_data);
 
     PeakMap::ConstIterator it_last_MS2 = ms_exp_data.end(); // remember last MS2 spec, to get precursor in MS1 (also if quant is in MS3)
     bool ms3 = false;
@@ -697,6 +697,7 @@ namespace OpenMS
         return result;
       }
 
+      // TODO try the following again to make it a bit faster
       // assumes sortedness of channel info. Should be given. TODO Add precondition to quant_method constructor?
       /*const auto& reporter_region_end = ++quant_spec.MZEnd(quant_method_->getChannelInformation().back().center + qc_dist_mz);
 
@@ -761,146 +762,6 @@ namespace OpenMS
       } // ! channel_iterator
 
       return result;
-  }
-
-  // TODO unused, splitted in to two functions
-  ConsensusFeature IsobaricChannelExtractor::extractSingleSpec(Size spec_idx, const MSExperiment& exp, bool has_ms3, std::vector<std::pair<double, unsigned>>& channel_qc)
-  {
-      const auto& ms2spec = exp[spec_idx];
-      const auto* quant_spec = &ms2spec;
-      double ms1_purity = 0.;
-      double quant_purity = 0.;
-      double id_purity = 0.;
-      bool calc_id_precursor_purity = true; // TODO make class param
-
-      // TODO are there other cases when quant_spectrum is different from id_spectrum?
-      //  e.g. when you have multiple MS2 spectra with the same precursor and fragment
-      //  them differently? In the old workflow this was also not really handled.
-      //  You could have used IDMapper with RT and m/z tolerance to map the IDs but there
-      //  is no real link between id_spectrum and quant_spectrum then and I think this
-      //  should be avoided and I have not seen a method like this, yet.
-      //  Probably, this was also the reason for the activation method filter in the original implementation.
-      //  Always felt a bit unnecessary. Normal TMT will just use all MS2 spectra and SPS-MS3
-      //  all MS3 spectra.
-      if (has_ms3)
-      {
-        Size product_idx = exp.getFirstProductSpectrum(spec_idx);
-        quant_spec = &exp[product_idx];
-        quant_purity = 0.; //TODO calcPurity(ms2spec, product_spec.getPrecursors());
-      }
-      if (!has_ms3 || calc_id_precursor_purity)
-      {
-        const auto& prev_ms1_spec = exp[exp.getPrecursorSpectrum(spec_idx)];
-        const auto* next_ms1_spec = &prev_ms1_spec;
-        do
-        {
-          spec_idx++;
-          if (exp[spec_idx].getMSLevel() == 1)
-          {
-            next_ms1_spec = &exp[spec_idx];
-            break;
-          }
-        } while (spec_idx < exp.size());
-        ms1_purity = 0.; //TODO calcPuritySurrounding(prev_ms1_spec, ms2spec.getPrecursors(), *next_ms1_spec);
-        if (has_ms3)
-        {
-          id_purity = ms1_purity;
-        }
-        else
-        {
-          quant_purity = ms1_purity;
-          id_purity = ms1_purity;
-        }
-      }
-
-      // store RT of MS2 scan and MZ of MS1 precursor ion as centroid of ConsensusFeature
-      ConsensusFeature cf;
-      cf.setUniqueId();
-      cf.setRT(ms2spec.getRT());
-      cf.setMZ(ms2spec.getPrecursors()[0].getMZ());
-
-      Peak2D channel_value;
-      channel_value.setRT(quant_spec->getRT());
-      // for each each channel
-      UInt64 map_index = 0;
-      Peak2D::IntensityType overall_intensity = 0.;
-
-      for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin();
-            cl_it != quant_method_->getChannelInformation().end();
-            ++cl_it)
-      {
-        // set mz-position of channel
-        channel_value.setMZ(cl_it->center);
-        // reset intensity
-        channel_value.setIntensity(0);
-
-        // as every evaluation requires time, we cache the MZEnd iterator
-        const PeakMap::SpectrumType::ConstIterator mz_end = quant_spec->MZEnd(cl_it->center + qc_dist_mz);
-
-        // search for the non-zero signal closest to theoretical position
-        // & check for closest signal within reasonable distance (0.5 Da) -- might find neighbouring TMT channel, but that should not confuse anyone
-        int peak_count(0); // count peaks in user window -- should be only one, otherwise Window is too large
-        PeakMap::SpectrumType::ConstIterator idx_nearest(mz_end);
-        for (PeakMap::SpectrumType::ConstIterator mz_it = quant_spec->MZBegin(cl_it->center - qc_dist_mz);
-              mz_it != mz_end;
-              ++mz_it)
-        {
-          if (mz_it->getIntensity() == 0) continue; // ignore 0-intensity shoulder peaks -- could be detrimental when de-calibrated
-          double dist_mz = fabs(mz_it->getMZ() - cl_it->center);
-          if (dist_mz < reporter_mass_shift_) ++peak_count;
-          if (idx_nearest == mz_end // first peak
-              || ((dist_mz < fabs(idx_nearest->getMZ() - cl_it->center)))) // closer to best candidate
-          {
-            idx_nearest = mz_it;
-          }
-        }
-        channel_qc[map_index].second = peak_count;
-        if (idx_nearest != mz_end)
-        {
-          double mz_delta = cl_it->center - idx_nearest->getMZ();
-          // stats: we don't care what shift the user specified
-          channel_qc[map_index].first = mz_delta;
-          // pass user threshold
-          if (std::fabs(mz_delta) < reporter_mass_shift_)
-          {
-            channel_value.setIntensity(idx_nearest->getIntensity());
-          }
-        }
-
-        // discard contribution of this channel as it is below the required intensity threshold
-        if (channel_value.getIntensity() < min_reporter_intensity_)
-        {
-          channel_value.setIntensity(0);
-        }
-
-        overall_intensity += channel_value.getIntensity();
-
-        // add channel to ConsensusFeature
-        cf.insert(map_index, channel_value, spec_idx);
-        ++map_index;
-      } // ! channel_iterator
-
-      // add purity information if we could compute it
-      if (quant_purity > 0.0)
-      {
-        // TODO we have to make a distinction between id_precursor and quant_precursor purity!
-        cf.setMetaValue("precursor_purity", quant_purity);
-      }
-
-      // embed the id of the scan from which the quantitative information was extracted
-      cf.setMetaValue("scan_id", quant_spec->getNativeID());
-      // embed the id of the scan from which the ID information should be extracted
-      // helpful for mapping later
-      if (has_ms3)
-      {
-        cf.setMetaValue("id_scan_id", ms2spec.getNativeID());
-      }
-      // ...as well as additional meta information
-      cf.setMetaValue("precursor_intensity", ms2spec.getPrecursors()[0].getIntensity());
-
-      cf.setCharge(ms2spec.getPrecursors()[0].getCharge());
-      cf.setIntensity(overall_intensity);
-      return cf;
   }
 
   void IsobaricChannelExtractor::printStats()
