@@ -28,6 +28,10 @@ on:
         type: boolean
         description: Update website and create announcement material for release
         default: false
+      test_nightly_notification:
+        type: boolean
+        description: Test the nightly failure notification (dry run mode)
+        default: false
   push:
     branches:
       - nightly
@@ -1136,7 +1140,7 @@ jobs:
             popd
 
   nightly-failure-notification:
-    if: always() && github.ref == 'refs/heads/nightly'
+    if: always() && (github.ref == 'refs/heads/nightly' || inputs.test_nightly_notification)
     runs-on: ubuntu-latest
     needs: [build-and-test]
     permissions:
@@ -1153,15 +1157,22 @@ jobs:
         id: check-failure
         run: |
           BUILD_AND_TEST_RESULT="${{ needs.build-and-test.result }}"
+          TEST_MODE="${{ inputs.test_nightly_notification }}"
           
-          if [ "$BUILD_AND_TEST_RESULT" != "failure" ]; then
+          if [ "$TEST_MODE" = "true" ]; then
+            echo "TEST MODE: Simulating failure condition"
+            echo "should_notify=true" >> $GITHUB_OUTPUT
+            echo "test_mode=true" >> $GITHUB_OUTPUT
+          elif [ "$BUILD_AND_TEST_RESULT" != "failure" ]; then
             echo "Build and test did not fail, no notification needed"
             echo "should_notify=false" >> $GITHUB_OUTPUT
+            echo "test_mode=false" >> $GITHUB_OUTPUT
             exit 0
+          else
+            echo "Current build failed, proceeding with notification check..."
+            echo "should_notify=true" >> $GITHUB_OUTPUT
+            echo "test_mode=false" >> $GITHUB_OUTPUT
           fi
-          
-          echo "Current build failed, proceeding with notification check..."
-          echo "should_notify=true" >> $GITHUB_OUTPUT
 
       - name: Get last successful build
         if: steps.check-failure.outputs.should_notify == 'true'
@@ -1173,11 +1184,19 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check if this is the first failure after success
-        if: steps.check-failure.outputs.should_notify == 'true' && steps.last-successful.outputs.sha != ''
+        if: steps.check-failure.outputs.should_notify == 'true' && (steps.last-successful.outputs.sha != '' || steps.check-failure.outputs.test_mode == 'true')
         id: check-first-failure
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          TEST_MODE="${{ steps.check-failure.outputs.test_mode }}"
+          
+          if [ "$TEST_MODE" = "true" ]; then
+            echo "TEST MODE: Simulating first failure after success"
+            echo "is_first_failure=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
           # Get the most recent workflow run before this one on nightly
           PREVIOUS_RUN=$(gh api \
             --method GET \
@@ -1204,11 +1223,26 @@ jobs:
           fi
 
       - name: Find merged PRs since last success
-        if: steps.check-failure.outputs.should_notify == 'true' && steps.last-successful.outputs.sha != '' && steps.check-first-failure.outputs.is_first_failure == 'true'
+        if: steps.check-failure.outputs.should_notify == 'true' && (steps.last-successful.outputs.sha != '' || steps.check-failure.outputs.test_mode == 'true') && steps.check-first-failure.outputs.is_first_failure == 'true'
         id: find-prs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          TEST_MODE="${{ steps.check-failure.outputs.test_mode }}"
+          
+          if [ "$TEST_MODE" = "true" ]; then
+            echo "TEST MODE: Using recent PR numbers for testing"
+            # Get the 3 most recent merged PRs for testing
+            RECENT_PRS=$(gh api \
+              --method GET \
+              -H "Accept: application/vnd.github+json" \
+              "/repos/${{ github.repository }}/pulls?state=closed&per_page=3" \
+              --jq '.[] | select(.merged_at != null) | .number' | tr '\n' ',' | sed 's/,$//')
+            echo "TEST MODE: Found recent PRs for testing: $RECENT_PRS"
+            echo "pr_numbers=$RECENT_PRS" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
           LAST_SUCCESS_SHA="${{ steps.last-successful.outputs.sha }}"
           
           if [ "$LAST_SUCCESS_SHA" = "${{ github.sha }}" ]; then
@@ -1278,7 +1312,37 @@ jobs:
                 "/repos/$GITHUB_REPOSITORY/pulls/$pr" 2>/dev/null || echo "not_found")
               
               if [ "$PR_INFO" != "not_found" ]; then
-                COMMENT_BODY=$(cat << EOF
+                TEST_MODE="${{ steps.check-failure.outputs.test_mode }}"
+                
+                if [ "$TEST_MODE" = "true" ]; then
+                  COMMENT_BODY=$(cat << EOF
+          🧪 **TEST MODE - Nightly Build Failure Alert** 🧪
+
+          This is a TEST of the nightly failure notification system.
+
+          Hello! The nightly build has failed, and your PR was merged since the last successful nightly run.
+
+          **What this means:**
+          - The nightly build on the "nightly" branch is currently failing
+          - Your PR (#$pr) was merged between the [last successful run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$LAST_SUCCESS_RUN_ID) and this failure
+          - Your changes might be related to the failure (but not necessarily the cause)
+
+          **What you should do:**
+          1. 🔍 **Check the [failed workflow run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)** to see what went wrong
+          2. 🧐 **Review your changes** to see if they could be related to the failure
+          3. 🛠️ **If your changes are the cause**, please create a fix as soon as possible
+          4. 💬 **If you're unsure**, please engage with the team to help diagnose the issue
+
+          **Note:** This is an automated TEST message. Multiple PRs may have been merged since the last successful run, so the failure might not be caused by your specific changes.
+
+          ---
+          *This was a test of the nightly failure notification system.*
+          EOF
+          )
+                  echo "TEST MODE: Would post this comment to PR #$pr:"
+                  echo "$COMMENT_BODY"
+                else
+                  COMMENT_BODY=$(cat << EOF
           🚨 **Nightly Build Failure Alert** 🚨
 
           Hello! The nightly build has failed, and your PR was merged since the last successful nightly run.
@@ -1304,11 +1368,12 @@ jobs:
           EOF
           )
 
-                gh api \
-                  --method POST \
-                  -H "Accept: application/vnd.github+json" \
-                  "/repos/$GITHUB_REPOSITORY/issues/$pr/comments" \
-                  -f body="$COMMENT_BODY" || echo "Failed to comment on PR #$pr"
+                  gh api \
+                    --method POST \
+                    -H "Accept: application/vnd.github+json" \
+                    "/repos/$GITHUB_REPOSITORY/issues/$pr/comments" \
+                    -f body="$COMMENT_BODY" || echo "Failed to comment on PR #$pr"
+                fi
               else
                 echo "PR #$pr not found or inaccessible"
               fi
