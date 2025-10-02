@@ -216,9 +216,6 @@ function(openms_add_library)
   openms_register_export_target(${openms_add_library_TARGET_NAME})
 
   #------------------------------------------------------------------------------
-  # copy dll to test/doc bin folder on MSVC systems
-  copy_dll_to_extern_bin(${openms_add_library_TARGET_NAME})
-
   if(WIN32)
     # with newer CMakes we can also easily copy dependencies like Qt
     # This stores the command as a list
