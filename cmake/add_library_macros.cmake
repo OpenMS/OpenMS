@@ -217,7 +217,11 @@ function(openms_add_library)
 
   #------------------------------------------------------------------------------
   # On Windows copy DLLs and dependencies of them to other locations of executables that need them (tests, documenter)
+  # TODO Find something that does not copy 100s of MB three times.
   # TODO I think this should ideally go to the tests and docs CMakeLists separately.
+  # Copy target DLLs themselves
+  copy_dll_to_extern_bin(${openms_add_library_TARGET_NAME})
+  # Copy dependencies
   if(WIN32)
     # with newer CMakes we can also easily copy dependencies like Qt
     # This stores the command as a list
