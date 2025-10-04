@@ -644,15 +644,15 @@ set_tests_properties("TOPP_FileFilter_49_out" PROPERTIES DEPENDS "TOPP_FileFilte
 add_test("TOPP_FileFilter_50" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_50.tmp.mzML -rt 28:35 -rt_block_mode as_is -in_type mzML -out_type mzML)
 add_test("TOPP_FileFilter_50_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_50.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileFilter_50_output.mzML )
 set_tests_properties("TOPP_FileFilter_50_out1" PROPERTIES DEPENDS "TOPP_FileFilter_50")
-add_test("TOPP_FileFilter_51" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_51.tmp.mzML -rt 28:35 -rt_block_mode full_block_extend -in_type mzML -out_type mzML)
+add_test("TOPP_FileFilter_51" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_51.tmp.mzML -rt 28:35 -rt_block_mode extend_to_preserve_full_cycle -in_type mzML -out_type mzML)
 add_test("TOPP_FileFilter_51_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_51.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileFilter_51_output.mzML )
 set_tests_properties("TOPP_FileFilter_51_out1" PROPERTIES DEPENDS "TOPP_FileFilter_51")
 ## no full block --> empty result
-add_test("TOPP_FileFilter_52" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_52.tmp.mzML -rt 28:35 -rt_block_mode full_block_shrink -in_type mzML -out_type mzML)
+add_test("TOPP_FileFilter_52" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_52.tmp.mzML -rt 28:35 -rt_block_mode shrink_to_preserve_full_cycle -in_type mzML -out_type mzML)
 add_test("TOPP_FileFilter_52_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_52.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileFilter_52_output.mzML )
 set_tests_properties("TOPP_FileFilter_52_out1" PROPERTIES DEPENDS "TOPP_FileFilter_52")
 ## contains one full block
-add_test("TOPP_FileFilter_53" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_53.tmp.mzML -rt 28:40 -rt_block_mode full_block_shrink -in_type mzML -out_type mzML)
+add_test("TOPP_FileFilter_53" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_53.tmp.mzML -rt 28:40 -rt_block_mode shrink_to_preserve_full_cycle -in_type mzML -out_type mzML)
 add_test("TOPP_FileFilter_53_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_53.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileFilter_53_output.mzML )
 set_tests_properties("TOPP_FileFilter_53_out1" PROPERTIES DEPENDS "TOPP_FileFilter_53")
 

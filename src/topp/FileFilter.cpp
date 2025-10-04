@@ -59,8 +59,8 @@ and to write all data that lies within the given ranges to an output file.
 
 The retention time filtering using `-rt from:to` can be performed in three different modes using the '-rt_block_mode' flag:
 - 'as_is' (default): Uses the exact RT range given in '-rt' for RT filtering
-- 'full_block_extend': Extends the given RT range (if required) such that consecutive blocks of spectra are kept intact. A block of spectra means that consecutive MS levels (1,2,3,4,....) constitute one block and a new block starts with the lowest MS level in the data
-- 'full_block_shrink': Same as above but only takes full blocks inside the given RT range (no extension of RT boundaries as given by user)
+- 'extend_to_preserve_full_cycle': Extends the given RT range (if required) such that consecutive blocks of spectra (i.e. a cycle) are kept intact. A block of spectra means that consecutive MS levels (1,2,3,4,....) constitute one block and a new block starts with the lowest MS level in the data
+- 'shrink_to_preserve_full_cycle': Same as above but only takes full blocks inside the given RT range (no extension of given RT boundaries)
 
 Depending on the input file type, additional specific operations are possible:
 - mzML
@@ -119,14 +119,14 @@ For the parameters of the S/N algorithm section see the class documentation ther
 enum class RTBlockMode
 {
   AS_IS,
-  FULL_BLOCK_EXTEND,
-  FULL_BLOCK_SHRINK
+  FULL_CYCLE_EXTEND,
+  FULL_CYCLE_SHRINK
 };
 
 const std::array<std::string, 3> RT_BLOCK_MODE_NAMES = {
   "as_is",
-  "full_block_extend",
-  "full_block_shrink"
+  "extend_to_preserve_full_cycle",
+  "shrink_to_preserve_full_cycle"
 };
 
 // We do not want this class to show up in the docu:
@@ -322,7 +322,7 @@ private:
     auto first_spec = exp.RTBegin(rt_l);
     auto last_spec = exp.RTBegin(rt_u);
 
-    if (rt_block_mode == RTBlockMode::FULL_BLOCK_EXTEND)
+    if (rt_block_mode == RTBlockMode::FULL_CYCLE_EXTEND)
     {
       while (first_spec != exp.begin() && first_spec->getMSLevel() != min_ms_level) --first_spec;
       
@@ -330,7 +330,7 @@ private:
       // 'last_spec' now points to the start of a block, but we want it to point to the end of the previous block
       --last_spec;
     }
-    else if (rt_block_mode == RTBlockMode::FULL_BLOCK_SHRINK)
+    else if (rt_block_mode == RTBlockMode::FULL_CYCLE_SHRINK)
     {
       // first_spec may be inside the last block of exp... and will end up as first_spec == exp.end()
       while (first_spec != exp.end() && first_spec->getMSLevel() != min_ms_level) ++first_spec;
@@ -394,7 +394,7 @@ protected:
     setValidStrings_("out_type", formats);
 
     registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract", false);
-    registerStringOption_("rt_block_mode", "<mode>", RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS], String("RT filtering mode: '") + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS] + "' uses RT range as given in '-rt'; '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_BLOCK_EXTEND] + "' extends RT range to keep complete spectrum blocks intact, '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_BLOCK_SHRINK] + "' only keeps complete blocks within the given RT range", false);
+    registerStringOption_("rt_block_mode", "<mode>", RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS], String("RT filtering mode: '") + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::AS_IS] + "' uses RT range as given in '-rt'; '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_CYCLE_EXTEND] + "' extends RT range to keep complete spectrum blocks intact, '" + RT_BLOCK_MODE_NAMES[(int)RTBlockMode::FULL_CYCLE_SHRINK] + "' only keeps complete blocks within the given RT range", false);
     setValidStrings_("rt_block_mode", StringList(RT_BLOCK_MODE_NAMES.begin(), RT_BLOCK_MODE_NAMES.end()));
     registerStringOption_("mz", "[min]:[max]", ":", "m/z range to extract (applies to ALL ms levels!)", false);
     registerStringOption_("int", "[min]:[max]", ":", "Intensity range to extract", false);
