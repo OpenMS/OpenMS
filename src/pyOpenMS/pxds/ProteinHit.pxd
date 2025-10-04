@@ -46,95 +46,81 @@ cdef extern from "<OpenMS/METADATA/ProteinHit.h>" namespace "OpenMS":
             # wrap-doc:
             #  Returns the protein inference score
             #  
-            #  Returns:
-            #    float: Score from protein inference algorithm
+            #  :return: Score from protein inference algorithm
 
         UInt getRank() except + nogil 
             # wrap-doc:
             #  Returns the rank of this protein hit
             #  
-            #  Returns:
-            #    int: Rank (1 = best hit, 2 = second best, etc.)
+            #  :return: Rank (1 = best hit, 2 = second best, etc.)
 
         String getSequence() except + nogil 
             # wrap-doc:
             #  Returns the protein sequence
             #  
-            #  Returns:
-            #    str: Full amino acid sequence of the protein (if available)
+            #  :return: Full amino acid sequence of the protein (if available)
 
         String getAccession() except + nogil 
             # wrap-doc:
             #  Returns the protein accession
             #  
-            #  Returns:
-            #    str: Database accession/identifier (e.g., "P12345" for UniProt)
+            #  :return: Database accession/identifier (e.g., "P12345" for UniProt)
 
         String getDescription() except + nogil 
             # wrap-doc:
             #  Returns the protein description
             #  
-            #  Returns:
-            #    str: Human-readable protein name/description from database
+            #  :return: Human-readable protein name/description from database
 
         double getCoverage() except + nogil 
             # wrap-doc:
             #  Returns the sequence coverage percentage
             #  
-            #  Returns:
-            #    float: Percentage of protein sequence covered by identified peptides
+            #  :return: Percentage of protein sequence covered by identified peptides
             #  
-            #  Note:
-            #    Value is in range 0-100 (e.g., 45.2 means 45.2% coverage)
+            #  Value is in range 0-100 (e.g., 45.2 means 45.2% coverage)
 
         void setScore(float ) except + nogil 
             # wrap-doc:
             #  Sets the protein inference score
             #  
-            #  Args:
-            #    score (float): Score to set
+            #  :param score: Score to set
 
         void setRank(UInt) except + nogil 
             # wrap-doc:
             #  Sets the rank
             #  
-            #  Args:
-            #    rank (int): Rank among all protein candidates
+            #  :param rank: Rank among all protein candidates
 
         void setSequence(String) except + nogil 
             # wrap-doc:
             #  Sets the protein sequence
             #  
-            #  Args:
-            #    sequence (str): Full amino acid sequence
+            #  :param sequence: Full amino acid sequence
 
         void setAccession(String) except + nogil 
             # wrap-doc:
             #  Sets the protein accession
             #  
-            #  Args:
-            #    accession (str): Database accession/identifier
+            #  :param accession: Database accession/identifier
 
         void setDescription(String description) except + nogil 
             # wrap-doc:
             #  Sets the protein description
             #  
-            #  Args:
-            #    description (str): Human-readable protein name/description
+            #  :param description: Human-readable protein name/description
 
         void setCoverage(double) except + nogil 
             # wrap-doc:
             #  Sets the sequence coverage percentage
             #  
-            #  Args:
-            #    coverage (float): Percentage (0-100) of sequence covered by peptides
+            #  :param coverage: Percentage (0-100) of sequence covered by peptides
 
         bool isDecoy() except + nogil 
             # wrap-doc:
             #  Checks if this is a decoy protein hit
             #  
-            #  Returns:
-            #    bool: True if this is a decoy hit from target-decoy search
+            #  :return: True if this is a decoy hit from target-decoy search
 
         bool operator==(ProteinHit) except + nogil
         bool operator!=(ProteinHit) except + nogil

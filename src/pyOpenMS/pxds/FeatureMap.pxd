@@ -67,8 +67,7 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
             # wrap-doc:
             #  Returns the number of features in the map
             #  
-            #  Returns:
-            #    int: Number of features stored in this container
+            #  :return: Number of features stored in this container
 
         Feature & operator[](size_t)      except + nogil  #wrap-upper-limit:size()
         
@@ -76,57 +75,49 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
             # wrap-doc:
             #  Adds a Feature to the map
             #  
-            #  Args:
-            #    spec (Feature): The feature to add to the map
+            #  :param spec: The feature to add to the map
 
         void push_back(MRMFeature spec) except + nogil 
             # wrap-doc:
             #  Adds an MRMFeature to the map
             #  
-            #  Args:
-            #    spec (MRMFeature): The MRM feature to add to the map 
+            #  :param spec: The MRM feature to add to the map 
 
         void sortByIntensity() except + nogil 
             # wrap-doc:
             #  Sorts features by ascending intensity
             #  
-            #  Note:
-            #    After sorting, features can be accessed in order from lowest to highest intensity
+            #  After sorting, features can be accessed in order from lowest to highest intensity
 
         void sortByIntensity(bool reverse) except + nogil 
             # wrap-doc:
             #  Sorts features by intensity with optional reverse order
             #  
-            #  Args:
-            #    reverse (bool): If True, sorts in descending order (highest to lowest intensity)
+            #  :param reverse: If True, sorts in descending order (highest to lowest intensity)
 
         void sortByPosition() except + nogil 
             # wrap-doc:
             #  Sorts features by position using lexicographical comparison
             #  
-            #  Note:
-            #    Compares RT first, then m/z for features with the same RT
+            #  Compares RT first, then m/z for features with the same RT
 
         void sortByRT() except + nogil 
             # wrap-doc:
             #  Sorts features by retention time (RT) in ascending order
             #  
-            #  Note:
-            #    This is useful for time-based analysis or visualization
+            #  This is useful for time-based analysis or visualization
 
         void sortByMZ() except + nogil 
             # wrap-doc:
             #  Sorts features by mass-to-charge ratio (m/z) in ascending order
             #  
-            #  Note:
-            #    Useful for mass-based grouping or analysis
+            #  Useful for mass-based grouping or analysis
 
         void sortByOverallQuality() except + nogil 
             # wrap-doc:
             #  Sorts features by overall quality score in ascending order
             #  
-            #  Note:
-            #    Higher quality scores indicate better feature detection confidence
+            #  Higher quality scores indicate better feature detection confidence
 
         void swap(FeatureMap &) except + nogil  
         void swapFeaturesOnly(FeatureMap swapfrom) except + nogil  # wrap-doc:Swaps the feature content (plus its range information) of this map 
@@ -134,15 +125,13 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
             # wrap-doc:
             #  Clears all feature data and metadata
             #  
-            #  Note:
-            #    After calling this, the map will be empty (size() returns 0)
+            #  After calling this, the map will be empty (size() returns 0)
 
         void clear(bool clear_meta_data) except + nogil 
             # wrap-doc:
             #  Clears feature data and optionally metadata
             #  
-            #  Args:
-            #    clear_meta_data (bool): If True, also clears all metadata; if False, keeps metadata
+            #  :param clear_meta_data: If True, also clears all metadata; if False, keeps metadata
 
         FeatureMap operator+(FeatureMap) except + nogil 
         FeatureMap iadd(FeatureMap) except + nogil  # wrap-as:operator+=
@@ -153,36 +142,29 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
             # wrap-doc:
             #  Returns the protein identification runs stored in this map
             #  
-            #  Returns:
-            #    list of ProteinIdentification: Protein identification data from database searches
+            #  :return: Protein identification data from database searches
             #  
-            #  Note:
-            #    Protein identifications contain metadata about search parameters and protein hits
+            #  Protein identifications contain metadata about search parameters and protein hits
 
         void setProteinIdentifications(libcpp_vector[ProteinIdentification]) except + nogil 
             # wrap-doc:
             #  Sets the protein identifications for this map
             #  
-            #  Args:
-            #    protein_ids (list of ProteinIdentification): Protein identification results to associate with this map
+            #  :param protein_ids: Protein identification results to associate with this map
 
         PeptideIdentificationList getUnassignedPeptideIdentifications() except + nogil
             # wrap-doc:
             #  Returns peptide identifications that are not assigned to any feature
             #  
-            #  Returns:
-            #    list of PeptideIdentification: Unassigned peptide identification results
+            #  :return: Unassigned peptide identification results
             #  
-            #  Note:
-            #    These are peptide IDs that could not be matched to features, possibly due to
-            #    feature detection issues or filtering
+            #  These are peptide IDs that could not be matched to features, possibly due to feature detection issues or filtering
 
         void setUnassignedPeptideIdentifications(PeptideIdentificationList) except + nogil 
             # wrap-doc:
             #  Sets the unassigned peptide identifications
             #  
-            #  Args:
-            #    peptide_ids (list of PeptideIdentification): Peptide IDs not assigned to features
+            #  :param peptide_ids: Peptide IDs not assigned to features
 
         Size applyMemberFunction(Size(* fun)()) except + nogil # wrap-ignore
 

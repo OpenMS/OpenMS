@@ -51,94 +51,75 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
             # wrap-doc:
             #  Returns the quality score in a specific dimension
             #  
-            #  Args:
-            #    index (int): The dimension index (0 for RT, 1 for m/z)
-            #  
-            #  Returns:
-            #    float: Quality score for the specified dimension (typically 0-1 range)
+            #  :param index: The dimension index (0 for RT, 1 for m/z)
+            #  :return: Quality score for the specified dimension (typically 0-1 range)
 
         void setQuality(Size index, float q) except + nogil 
             # wrap-doc:
             #  Sets the quality score for a specific dimension
             #  
-            #  Args:
-            #    index (int): The dimension index (0 for RT, 1 for m/z)
-            #    q (float): Quality score to set (typically 0-1 range)
+            #  :param index: The dimension index (0 for RT, 1 for m/z)
+            #  :param q: Quality score to set (typically 0-1 range)
 
         float getOverallQuality() except + nogil 
             # wrap-doc:
             #  Returns the overall quality score of the feature
             #  
-            #  Returns:
-            #    float: Overall quality score (typically 0-1, where 1 is highest quality)
+            #  :return: Overall quality score (typically 0-1, where 1 is highest quality)
             #  
-            #  Note:
-            #    This score represents the overall confidence in the feature detection
+            #  This score represents the overall confidence in the feature detection
 
         void setOverallQuality(float q) except + nogil 
             # wrap-doc:
             #  Sets the overall quality score of the feature
             #  
-            #  Args:
-            #    q (float): Overall quality score (typically 0-1, where 1 is highest quality)
+            #  :param q: Overall quality score (typically 0-1, where 1 is highest quality)
 
         libcpp_vector[Feature] getSubordinates() except + nogil 
             # wrap-doc:
             #  Returns subordinate features (e.g., isotopic peaks)
             #  
-            #  Returns:
-            #    list of Feature: List of subordinate features associated with this feature
+            #  :return: List of subordinate features associated with this feature
             #  
-            #  Note:
-            #    Subordinate features often represent individual isotopic peaks of the same compound
+            #  Subordinate features often represent individual isotopic peaks of the same compound
 
         void setSubordinates(libcpp_vector[Feature]) except + nogil 
             # wrap-doc:
             #  Sets the subordinate features
             #  
-            #  Args:
-            #    subordinates (list of Feature): List of subordinate features to associate with this feature
+            #  :param subordinates: List of subordinate features to associate with this feature
 
         bool encloses(double rt, double mz) except + nogil  
             # wrap-doc:
             #  Checks if the feature's convex hulls enclose a given position
             #  
-            #  Args:
-            #    rt (float): Retention time in seconds
-            #    mz (float): Mass-to-charge ratio
+            #  :param rt: Retention time in seconds
+            #  :param mz: Mass-to-charge ratio
+            #  :return: True if the position (rt, mz) is within the feature's convex hulls, False otherwise
             #  
-            #  Returns:
-            #    bool: True if the position (rt, mz) is within the feature's convex hulls, False otherwise
-            #  
-            #  Note:
-            #    This uses the feature's convex hull representation to determine spatial containment
+            #  This uses the feature's convex hull representation to determine spatial containment
             
         ConvexHull2D getConvexHull() except + nogil 
             # wrap-doc:
             #  Returns the overall convex hull of the feature
             #  
-            #  Returns:
-            #    ConvexHull2D: The overall 2D convex hull encompassing all mass traces
+            #  :return: The overall 2D convex hull encompassing all mass traces
             #  
-            #  Note:
-            #    This is the union of all individual mass trace convex hulls
+            #  This is the union of all individual mass trace convex hulls
 
         libcpp_vector[ConvexHull2D] getConvexHulls() except + nogil 
             # wrap-doc:
             #  Returns the convex hulls of individual mass traces
             #  
-            #  Returns:
-            #    list of ConvexHull2D: List of convex hulls, one for each isotopic mass trace
+            #  :return: List of convex hulls, one for each isotopic mass trace
             #  
-            #  Note:
-            #    Each isotopic peak typically has its own convex hull in RT-m/z space
+            #  Each isotopic peak typically has its own convex hull in RT-m/z space
 
         void setConvexHulls(libcpp_vector[ConvexHull2D]) except + nogil 
             # wrap-doc:
             #  Sets the convex hulls for individual mass traces
             #  
-            #  Args:
-            #    hulls (list of ConvexHull2D): List of convex hulls to set for this feature 
+            #  :param hulls: List of convex hulls to set for this feature 
 
         bool operator==(Feature) except + nogil 
         bool operator!=(Feature) except + nogil 
@@ -152,55 +133,46 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
             # wrap-doc:
             #  Returns the width (FWHM) of the feature in RT dimension
             #  
-            #  Returns:
-            #    float: Full Width at Half Maximum (FWHM) in seconds
+            #  :return: Full Width at Half Maximum (FWHM) in seconds
             #  
-            #  Note:
-            #    Represents the elution peak width
+            #  Represents the elution peak width
 
         void setWidth(float q) except + nogil 
             # wrap-doc:
             #  Sets the width (FWHM) of the feature in RT dimension
             #  
-            #  Args:
-            #    q (float): Full Width at Half Maximum in seconds
+            #  :param q: Full Width at Half Maximum in seconds
 
         Int getCharge() except + nogil 
             # wrap-doc:
             #  Returns the charge state of the feature
             #  
-            #  Returns:
-            #    int: Charge state (e.g., 2 for doubly charged ions, 0 if unknown)
+            #  :return: Charge state (e.g., 2 for doubly charged ions, 0 if unknown)
 
         void setCharge(Int q) except + nogil 
             # wrap-doc:
             #  Sets the charge state of the feature
             #  
-            #  Args:
-            #    q (int): Charge state (e.g., 2 for doubly charged ions)
+            #  :param q: Charge state (e.g., 2 for doubly charged ions)
 
         AnnotationState getAnnotationState() except + nogil 
             # wrap-doc:
             #  Returns the annotation state of the feature
             #  
-            #  Returns:
-            #    AnnotationState: Enum indicating the annotation status of this feature 
+            #  :return: Enum indicating the annotation status of this feature 
 
    
         PeptideIdentificationList getPeptideIdentifications() except + nogil 
             # wrap-doc:
             #  Returns the peptide identifications associated with this feature
             #  
-            #  Returns:
-            #    PeptideIdentificationList: List of peptide identifications from database search
+            #  :return: List of peptide identifications from database search
             #  
-            #  Note:
-            #    Only relevant for peptide features. Contains results from peptide identification tools
+            #  Only relevant for peptide features. Contains results from peptide identification tools
 
         void setPeptideIdentifications(PeptideIdentificationList & peptides) except + nogil 
             # wrap-doc:
             #  Sets the peptide identifications for this feature
             #  
-            #  Args:
-            #    peptides (PeptideIdentificationList): List of peptide identifications to associate with this feature
+            #  :param peptides: List of peptide identifications to associate with this feature
 
