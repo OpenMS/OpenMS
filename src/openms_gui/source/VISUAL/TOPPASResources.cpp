@@ -82,7 +82,7 @@ namespace OpenMS
       const String& key = String(it->first);
       const QList<TOPPASResource>& resource_list = it->second;
       std::vector<std::string> url_list;
-      foreach(const TOPPASResource &res, resource_list)
+      for (const TOPPASResource &res : resource_list)
       {
         url_list.push_back(String(res.getURL().toString().toStdString()));
       }
