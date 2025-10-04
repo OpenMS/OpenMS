@@ -405,15 +405,13 @@ namespace OpenMS
       }
     }
 
-    TOPPASEdge* edge = nullptr;
-    for (edge : edges_to_be_removed)
+    for (TOPPASEdge* edge : edges_to_be_removed)
     {
       edges_.removeAll(edge);
       removeItem(edge); // remove from scene
       delete edge;
     }
-    TOPPASVertex* vertex = nullptr;
-    for (vertex : vertices_to_be_removed)
+    for (TOPPASVertex* vertex : vertices_to_be_removed)
     {
       vertices_.removeAll(vertex);
       removeItem(vertex); // remove from scene
