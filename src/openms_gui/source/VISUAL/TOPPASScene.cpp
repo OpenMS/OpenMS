@@ -81,12 +81,12 @@ namespace OpenMS
   TOPPASScene::~TOPPASScene()
   {
     // Delete all items in a controlled way:
-    foreach(TOPPASVertex* vertex, vertices_)
+    for (TOPPASVertex* vertex : vertices_)
     {
       vertex->blockSignals(true); // do not propagate changes, remove output files, etc..
       vertex->setSelected(true);
     }
-    foreach(TOPPASEdge* edge, edges_)
+    for (TOPPASEdge* edge : edges_)
     {
       edge->blockSignals(true); // do not propagate changes, remove output files, etc..
       edge->setSelected(true);
@@ -318,7 +318,7 @@ namespace OpenMS
     TOPPASScene* tmp_scene = new TOPPASScene(nullptr, this->getTempDir(), false);
     std::map<TOPPASVertex*, TOPPASVertex*> vertex_map;
 
-    foreach(TOPPASVertex* v, vertices_)
+    for (TOPPASVertex* v : vertices_)
     {
       if (!v->isSelected())
       {
@@ -331,7 +331,7 @@ namespace OpenMS
       tmp_scene->addVertex(new_v);
     }
 
-    foreach(TOPPASEdge* e, edges_)
+    for (TOPPASEdge* e : edges_)
     {
       if (!e->isSelected())
       {
@@ -405,15 +405,13 @@ namespace OpenMS
       }
     }
 
-    TOPPASEdge* edge = nullptr;
-    foreach(edge, edges_to_be_removed)
+    for (TOPPASEdge* edge : edges_to_be_removed)
     {
       edges_.removeAll(edge);
       removeItem(edge); // remove from scene
       delete edge;
     }
-    TOPPASVertex* vertex = nullptr;
-    foreach(vertex, vertices_to_be_removed)
+    for (TOPPASVertex* vertex : vertices_to_be_removed)
     {
       vertices_.removeAll(vertex);
       removeItem(vertex); // remove from scene
@@ -499,11 +497,11 @@ namespace OpenMS
 
     bool graph_has_cycles = false;
     // find back edges via DFS
-    foreach(TOPPASVertex* vertex, vertices_)
+    for (TOPPASVertex* vertex : vertices_)
     {
       vertex->setDFSColor(TOPPASVertex::DFS_WHITE);
     }
-    foreach(TOPPASVertex* vertex, vertices_)
+    for (TOPPASVertex* vertex : vertices_)
     {
       if (vertex->getDFSColor() == TOPPASVertex::DFS_WHITE)
       {
@@ -525,7 +523,7 @@ namespace OpenMS
 
   void TOPPASScene::updateEdgeColors()
   {
-    foreach(TOPPASEdge* edge, edges_)
+    for (TOPPASEdge* edge : edges_)
     {
       edge->updateColor();
     }
@@ -599,7 +597,7 @@ namespace OpenMS
     runs.push_back(true); // iterate through dry run and normal run
     runs.push_back(false);
 
-    foreach(bool dry_run_state, runs)
+    for (bool dry_run_state : runs)
     {
       this->dry_run_ = dry_run_state;
       setPipelineRunning();
@@ -632,7 +630,7 @@ namespace OpenMS
           iflv->run();
         }
       }
-    } // foreach
+    }
   }
 
   bool TOPPASScene::store(const String& file)
@@ -667,7 +665,7 @@ namespace OpenMS
         QDir save_dir(File::path(file).toQString());
         const QStringList& files_qt = iflv->getFileNames();
         std::vector<std::string> files;
-        foreach(const QString &file_qt, files_qt)
+        for (const QString &file_qt : files_qt)
         {
           files.push_back(save_dir.relativeFilePath(file_qt).toStdString());
         }
@@ -1253,7 +1251,7 @@ namespace OpenMS
   void TOPPASScene::unselectAll()
   {
     const QList<QGraphicsItem*>& all_items = items();
-    foreach(QGraphicsItem * item, all_items)
+    for (QGraphicsItem * item : all_items)
     {
       item->setSelected(false);
     }
@@ -1715,7 +1713,7 @@ namespace OpenMS
       bool disable_resume = this->isPipelineRunning();
       //bool disable_toppview = true;
 
-      foreach(TOPPASEdge* edge, edges_)
+      for (TOPPASEdge* edge : edges_)
       {
         if (edge->isSelected())
         {
@@ -1724,7 +1722,7 @@ namespace OpenMS
         }
       }
 
-      foreach(TOPPASVertex* tv, vertices_)
+      for (TOPPASVertex* tv : vertices_)
       {
         if (!tv->isSelected())
         {
@@ -1816,14 +1814,14 @@ namespace OpenMS
       all_actions.push_back(action);
 
       QSet<QString> supported_actions_set = all_actions.first();
-      foreach(const QSet<QString>&action_set, all_actions)
+      for (const QSet<QString>&action_set : all_actions)
       {
         supported_actions_set.intersect(action_set);
       }
 
       QList<QString> supported_actions = supported_actions_set.values();
       supported_actions << "Copy" << "Cut" << "Remove";
-      foreach(const QString &supported_action, supported_actions)
+      for (const QString &supported_action : supported_actions)
       {
         QAction* new_action = menu.addAction(supported_action);
         if (supported_action == "Resume" && disable_resume)
@@ -1869,7 +1867,7 @@ namespace OpenMS
         return;
       }
 
-      foreach(QGraphicsItem* gi, selectedItems())
+      for (QGraphicsItem* gi : selectedItems())
       {
 
         if (text == "Toggle recycling mode")
@@ -2026,7 +2024,7 @@ namespace OpenMS
 
     /// check if we have any input nodes
     QVector<TOPPASInputFileListVertex*> input_nodes;
-    foreach(TOPPASVertex* tv, vertices_)
+    for (TOPPASVertex* tv : vertices_)
     {
       TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(tv);
       if (iflv)
@@ -2048,7 +2046,7 @@ namespace OpenMS
     }
 
     /// warn about empty input nodes
-    foreach(TOPPASInputFileListVertex* iflv, input_nodes)
+    for (TOPPASInputFileListVertex* iflv : input_nodes)
     {
       if ((iflv->outgoingEdgesCount() > 0) && (iflv->getFileNames().empty()))  // allow disconnected input node with empty file list
       {
@@ -2075,7 +2073,7 @@ namespace OpenMS
 
     /// check if input files exist
     strange_vertices.clear();
-    foreach(TOPPASInputFileListVertex* iflv, input_nodes)
+    for (TOPPASInputFileListVertex* iflv : input_nodes)
     {
       if ((iflv->outgoingEdgesCount() > 0) && (!iflv->fileNamesValid()))  // allow disconnected input node with invalid files
       {
@@ -2102,7 +2100,7 @@ namespace OpenMS
 
     // ----- are there nodes without parents (besides input nodes)? -----
     strange_vertices.clear();
-    foreach(TOPPASVertex* tv, vertices_)
+    for (TOPPASVertex* tv : vertices_)
     {
       if (qobject_cast<TOPPASInputFileListVertex*>(tv)) // input nodes don't need a parent
       {
@@ -2133,7 +2131,7 @@ namespace OpenMS
 
     // ----- are there nodes without children (besides output nodes)? -----
     strange_vertices.clear();
-    foreach(TOPPASVertex* tv, vertices_)
+    for (TOPPASVertex* tv : vertices_)
     {
       if (qobject_cast<TOPPASOutputVertex*>(tv))
       {
@@ -2166,7 +2164,7 @@ namespace OpenMS
 
     // check edges
     bool edges_ok = true;
-    foreach(TOPPASEdge* edge, edges_)
+    for (TOPPASEdge* edge : edges_)
     {
       if (edge->getEdgeStatus() != TOPPASEdge::ES_VALID)
       {
@@ -2266,7 +2264,7 @@ namespace OpenMS
         const QString& key = iflv->getKey();
         const QList<TOPPASResource>& resource_list = resources.get(key);
         QStringList files;
-        foreach(const TOPPASResource& res, resource_list)
+        for (const TOPPASResource& res : resource_list)
         {
           files << res.getLocalFile();
         }
@@ -2300,7 +2298,7 @@ namespace OpenMS
         used_keys << key;
         QList<TOPPASResource> resource_list;
         QStringList files = iflv->getFileNames();
-        foreach(const QString& file, files)
+        for (const QString& file : files)
         {
           resource_list << TOPPASResource(file);
         }
