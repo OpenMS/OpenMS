@@ -806,11 +806,19 @@ protected:
         // note: this requires a single merged idXML file.
         FileHandler().loadIdentifications(in[0], prot_ids, pep_ids, {FileTypes::IDXML});
 
-        if (prot_ids.size() == 1)
+        if (prot_ids.empty())
+        {
+          OPENMS_LOG_WARN << "Warning: No identification runs found in input file. Output will be empty." << std::endl;
+          // Store empty identifications and continue
+        }
+        else if (prot_ids.size() == 1)
         {
           OPENMS_LOG_FATAL_ERROR << "ConsensusID on idXML without the --per_spectrum flag expects a merged idXML file"
           "with multiple runs. Only one run found in the first file." << std::endl;
+          return INCOMPATIBLE_INPUT_DATA;
         }
+        else
+        {
 
         // merge peptide IDs by precursor position - this is equivalent to a
         // feature linking problem (peptide IDs from different ID runs <->
@@ -909,6 +917,7 @@ protected:
             }
           }
         }
+        } // end of else block for prot_ids.size() >= 2
       }
       // store consensus
       FileHandler().storeIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
