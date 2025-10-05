@@ -838,46 +838,69 @@ protected:
           feature.getPeptideIdentifications().push_back(pep);
           maps[id_mapping[run_id]].push_back(feature);
         }
-        // precondition for "FeatureGroupingAlgorithmQT::group":
-        for (FeatureMap& map : maps)
+
+        // Check if all maps are empty before calling the linker
+        // (empty maps cause crashes in the QTClusterFinder)
+        bool all_empty = true;
+        for (const FeatureMap& map : maps)
         {
-          map.updateRanges();
+          if (!map.empty())
+          {
+            all_empty = false;
+            break;
+          }
         }
 
-        FeatureGroupingAlgorithmQT linker;
-        Param linker_params = linker.getDefaults();
-        linker_params.setValue("use_identifications", "false");
-        linker_params.setValue("ignore_charge", "true");
-        linker_params.setValue("distance_RT:max_difference", rt_delta);
-        linker_params.setValue("distance_MZ:max_difference", mz_delta);
-        linker_params.setValue("distance_MZ:unit", "Da");
-        linker.setParameters(linker_params);
-
-        ConsensusMap grouping;
-        linker.group(maps, grouping);
-
-        Size old_size = prot_ids.size();
-        // create new identification run
-        setProteinIdentifications_(prot_ids);
-
-        // compute consensus
-        pep_ids.clear();
-        for (auto& cfeature : grouping)
+        if (all_empty)
         {
-          auto& ids = cfeature.getPeptideIdentifications();
-          consensus->apply(ids, runid_to_se, old_size);
-
-          if (!ids.empty())
+          OPENMS_LOG_WARN << "Warning: All input identification runs are empty. Output will be empty as well." << std::endl;
+          // create new identification run
+          setProteinIdentifications_(prot_ids);
+          pep_ids.clear();
+        }
+        else
+        {
+          // precondition for "FeatureGroupingAlgorithmQT::group":
+          for (FeatureMap& map : maps)
           {
-            PeptideIdentification& pep_id = ids[0];
-            // hits may be empty due to filtering (parameter "min_support");
-            // in that case skip to avoid a warning from "IDXMLFile::store":
-            if (!pep_id.getHits().empty())
+            map.updateRanges();
+          }
+
+          FeatureGroupingAlgorithmQT linker;
+          Param linker_params = linker.getDefaults();
+          linker_params.setValue("use_identifications", "false");
+          linker_params.setValue("ignore_charge", "true");
+          linker_params.setValue("distance_RT:max_difference", rt_delta);
+          linker_params.setValue("distance_MZ:max_difference", mz_delta);
+          linker_params.setValue("distance_MZ:unit", "Da");
+          linker.setParameters(linker_params);
+
+          ConsensusMap grouping;
+          linker.group(maps, grouping);
+
+          Size old_size = prot_ids.size();
+          // create new identification run
+          setProteinIdentifications_(prot_ids);
+
+          // compute consensus
+          pep_ids.clear();
+          for (auto& cfeature : grouping)
+          {
+            auto& ids = cfeature.getPeptideIdentifications();
+            consensus->apply(ids, runid_to_se, old_size);
+
+            if (!ids.empty())
             {
-              pep_id.setIdentifier(prot_ids[0].getIdentifier());
-              pep_id.setRT(cfeature.getRT());
-              pep_id.setMZ(cfeature.getMZ());
-              pep_ids.push_back(pep_id);
+              PeptideIdentification& pep_id = ids[0];
+              // hits may be empty due to filtering (parameter "min_support");
+              // in that case skip to avoid a warning from "IDXMLFile::store":
+              if (!pep_id.getHits().empty())
+              {
+                pep_id.setIdentifier(prot_ids[0].getIdentifier());
+                pep_id.setRT(cfeature.getRT());
+                pep_id.setMZ(cfeature.getMZ());
+                pep_ids.push_back(pep_id);
+              }
             }
           }
         }

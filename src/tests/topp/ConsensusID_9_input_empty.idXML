@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="test.fasta" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="0.01" peak_mass_tolerance="0.5" >
+	</SearchParameters>
+	<SearchParameters id="SP_1" db="test.fasta" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="0.01" peak_mass_tolerance="0.5" >
+	</SearchParameters>
+	<IdentificationRun date="2010-05-04T15:18:29" search_engine="Engine1" search_engine_version="1.0" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="false" significance_threshold="0" >
+			<UserParam type="stringList" name="spectra_data" value="[file:///test1.mzML]"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun date="2010-05-04T15:18:29" search_engine="Engine2" search_engine_version="1.0" search_parameters_ref="SP_1" >
+		<ProteinIdentification score_type="" higher_score_better="false" significance_threshold="0" >
+			<UserParam type="stringList" name="spectra_data" value="[file:///test2.mzML]"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+</IdXML>
