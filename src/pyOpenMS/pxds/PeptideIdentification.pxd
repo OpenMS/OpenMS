@@ -17,6 +17,7 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
         #  
         #  PeptideIdentification stores the results of peptide identification from database
         #  search engines (e.g., Mascot, X!Tandem, MSGF+). Each PeptideIdentification contains:
+        #  
         #  - A list of peptide hits (candidate sequences) ranked by score
         #  - The precursor m/z and retention time
         #  - Score type and significance threshold
@@ -26,20 +27,24 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
         #  stores the search parameters and protein-level results.
         #  
         #  Example usage:
-        #    >>> pep_id = oms.PeptideIdentification()
-        #    >>> pep_id.setRT(1234.5)  # Set retention time
-        #    >>> pep_id.setMZ(445.678)  # Set precursor m/z
-        #    >>> pep_id.setScoreType("XTandem")
-        #    >>> # Add a peptide hit
-        #    >>> hit = oms.PeptideHit()
-        #    >>> hit.setScore(50.5)
-        #    >>> hit.setRank(1)
-        #    >>> hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
-        #    >>> hit.setCharge(2)
-        #    >>> pep_id.insertHit(hit)
-        #    >>> # Access hits
-        #    >>> for hit in pep_id.getHits():
-        #    ...     print(f"Sequence: {hit.getSequence().toString()}, Score: {hit.getScore()}")
+        #  
+        #  .. code-block:: python
+        #  
+        #     pep_id = oms.PeptideIdentification()
+        #     pep_id.setRT(1234.5)  # Set retention time
+        #     pep_id.setMZ(445.678)  # Set precursor m/z
+        #     pep_id.setScoreType("XTandem")
+        #     # Add a peptide hit
+        #     hit = oms.PeptideHit()
+        #     hit.setScore(50.5)
+        #     hit.setRank(1)
+        #     hit.setSequence(oms.AASequence.fromString("PEPTIDE"))
+        #     hit.setCharge(2)
+        #     pep_id.insertHit(hit)
+        #     # Access hits
+        #     for hit in pep_id.getHits():
+        #         print(f"Sequence: {hit.getSequence().toString()}, Score: {hit.getScore()}")
+        #  
 
         PeptideIdentification() except + nogil 
         PeptideIdentification(PeptideIdentification &) except + nogil 

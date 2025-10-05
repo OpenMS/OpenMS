@@ -34,6 +34,7 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         #  metabolite, etc.) with its elution profile and mass information.
         #  
         #  Key capabilities:
+        #  
         #  - Store and manage Feature objects (detected analytes)
         #  - Associate protein and peptide identifications with features
         #  - Sort features by various criteria (RT, m/z, intensity, quality)
@@ -41,21 +42,25 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         #  - Support direct iteration and indexing in Python
         #  
         #  Example usage:
-        #    >>> feature_map = oms.FeatureMap()
-        #    >>> # Add a feature
-        #    >>> feature = oms.Feature()
-        #    >>> feature.setRT(1234.5)
-        #    >>> feature.setMZ(445.678)
-        #    >>> feature.setIntensity(100000.0)
-        #    >>> feature_map.push_back(feature)
-        #    >>> # Access features
-        #    >>> print(f"Number of features: {feature_map.size()}")
-        #    >>> first_feature = feature_map[0]
-        #    >>> # Sort by RT
-        #    >>> feature_map.sortByRT()
-        #    >>> # Iterate over features
-        #    >>> for feat in feature_map:
-        #    ...     print(f"RT: {feat.getRT()}, m/z: {feat.getMZ()}")
+        #  
+        #  .. code-block:: python
+        #  
+        #     feature_map = oms.FeatureMap()
+        #     # Add a feature
+        #     feature = oms.Feature()
+        #     feature.setRT(1234.5)
+        #     feature.setMZ(445.678)
+        #     feature.setIntensity(100000.0)
+        #     feature_map.push_back(feature)
+        #     # Access features
+        #     print(f"Number of features: {feature_map.size()}")
+        #     first_feature = feature_map[0]
+        #     # Sort by RT
+        #     feature_map.sortByRT()
+        #     # Iterate over features
+        #     for feat in feature_map:
+        #         print(f"RT: {feat.getRT()}, m/z: {feat.getMZ()}")
+        #  
 
         FeatureMap() except + nogil 
         FeatureMap(FeatureMap &) except + nogil 

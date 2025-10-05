@@ -15,6 +15,7 @@ cdef extern from "<OpenMS/METADATA/ProteinHit.h>" namespace "OpenMS":
         #  
         #  A ProteinHit stores information about a protein that was identified based on
         #  peptide evidence. Each hit contains:
+        #  
         #  - Protein accession (database identifier)
         #  - Score from protein inference
         #  - Rank among protein candidates
@@ -25,15 +26,19 @@ cdef extern from "<OpenMS/METADATA/ProteinHit.h>" namespace "OpenMS":
         #  sorted by score to show the most confident identifications first.
         #  
         #  Example usage:
-        #    >>> protein_hit = oms.ProteinHit()
-        #    >>> protein_hit.setAccession("P12345")
-        #    >>> protein_hit.setScore(150.5)
-        #    >>> protein_hit.setRank(1)
-        #    >>> protein_hit.setCoverage(45.2)  # 45.2% coverage
-        #    >>> protein_hit.setDescription("Example protein")
-        #    >>> # Access information
-        #    >>> print(f"Accession: {protein_hit.getAccession()}")
-        #    >>> print(f"Score: {protein_hit.getScore()}, Coverage: {protein_hit.getCoverage()}%")
+        #  
+        #  .. code-block:: python
+        #  
+        #     protein_hit = oms.ProteinHit()
+        #     protein_hit.setAccession("P12345")
+        #     protein_hit.setScore(150.5)
+        #     protein_hit.setRank(1)
+        #     protein_hit.setCoverage(45.2)  # 45.2% coverage
+        #     protein_hit.setDescription("Example protein")
+        #     # Access information
+        #     print(f"Accession: {protein_hit.getAccession()}")
+        #     print(f"Score: {protein_hit.getScore()}, Coverage: {protein_hit.getCoverage()}%")
+        #  
 
         ProteinHit() except + nogil
         ProteinHit(double score, UInt rank, String accession, String sequence) except + nogil 

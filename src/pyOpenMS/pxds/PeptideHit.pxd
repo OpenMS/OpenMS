@@ -15,6 +15,7 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
         #  
         #  A PeptideHit stores information about a candidate peptide sequence that was
         #  matched to a spectrum. Each hit contains:
+        #  
         #  - The peptide sequence (as AASequence)
         #  - A score from the search engine
         #  - The rank among all candidates
@@ -25,15 +26,19 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
         #  sorted by score to show the most likely candidates first.
         #  
         #  Example usage:
-        #    >>> hit = oms.PeptideHit()
-        #    >>> hit.setSequence(oms.AASequence.fromString("PEPTIDER"))
-        #    >>> hit.setScore(95.5)
-        #    >>> hit.setRank(1)
-        #    >>> hit.setCharge(2)
-        #    >>> # Access information
-        #    >>> print(f"Sequence: {hit.getSequence().toString()}")
-        #    >>> print(f"Score: {hit.getScore()}, Rank: {hit.getRank()}")
-        #    >>> print(f"Charge: {hit.getCharge()}")
+        #  
+        #  .. code-block:: python
+        #  
+        #     hit = oms.PeptideHit()
+        #     hit.setSequence(oms.AASequence.fromString("PEPTIDER"))
+        #     hit.setScore(95.5)
+        #     hit.setRank(1)
+        #     hit.setCharge(2)
+        #     # Access information
+        #     print(f"Sequence: {hit.getSequence().toString()}")
+        #     print(f"Score: {hit.getScore()}, Rank: {hit.getRank()}")
+        #     print(f"Charge: {hit.getCharge()}")
+        #  
 
         PeptideHit() except + nogil 
 

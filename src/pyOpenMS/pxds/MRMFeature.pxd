@@ -20,21 +20,26 @@ cdef extern from "<OpenMS/KERNEL/MRMFeature.h>" namespace "OpenMS":
         #  in targeted MS experiments.
         #  
         #  The MRMFeature stores:
+        #  
         #  - Individual transition features (via addFeature/getFeature)
         #  - Precursor features for MS1 data (via addPrecursorFeature/getPrecursorFeature)
         #  - Quality scores for the peak group (via getScores/setScores)
         #  
         #  Example usage:
-        #    >>> mrm_feature = oms.MRMFeature()
-        #    >>> # Add a transition feature with its native ID
-        #    >>> feature = oms.Feature()
-        #    >>> feature.setRT(100.5)
-        #    >>> feature.setMZ(500.25)
-        #    >>> feature.setIntensity(10000.0)
-        #    >>> mrm_feature.addFeature(feature, "transition_1")
-        #    >>> # Retrieve the feature by its ID
-        #    >>> retrieved_feature = mrm_feature.getFeature("transition_1")
-        #    >>> print(retrieved_feature.getRT())  # Should print 100.5
+        #  
+        #  .. code-block:: python
+        #  
+        #     mrm_feature = oms.MRMFeature()
+        #     # Add a transition feature with its native ID
+        #     feature = oms.Feature()
+        #     feature.setRT(100.5)
+        #     feature.setMZ(500.25)
+        #     feature.setIntensity(10000.0)
+        #     mrm_feature.addFeature(feature, "transition_1")
+        #     # Retrieve the feature by its ID
+        #     retrieved_feature = mrm_feature.getFeature("transition_1")
+        #     print(retrieved_feature.getRT())  # Should print 100.5
+        #  
 
         MRMFeature() except + nogil 
         MRMFeature(MRMFeature &) except + nogil 

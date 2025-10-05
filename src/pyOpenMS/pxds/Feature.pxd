@@ -23,6 +23,7 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
         #  detected peaks or compounds.
         #  
         #  A Feature stores:
+        #  
         #  - Position: retention time (RT) and mass-to-charge ratio (m/z)
         #  - Intensity: the signal strength (typically total ion count)
         #  - Quality metrics: scores indicating detection confidence
@@ -35,14 +36,18 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
         #  (RT dimension) and at the monoisotopic peak (m/z dimension).
         #  
         #  Example usage:
-        #    >>> feature = oms.Feature()
-        #    >>> feature.setRT(1234.5)  # Set retention time in seconds
-        #    >>> feature.setMZ(445.678)  # Set m/z value
-        #    >>> feature.setIntensity(100000.0)  # Set intensity
-        #    >>> feature.setCharge(2)  # Set charge state
-        #    >>> feature.setOverallQuality(0.95)  # Set quality score (0-1)
-        #    >>> # Access the values
-        #    >>> print(f"RT: {feature.getRT()}, m/z: {feature.getMZ()}, charge: {feature.getCharge()}")
+        #  
+        #  .. code-block:: python
+        #  
+        #     feature = oms.Feature()
+        #     feature.setRT(1234.5)  # Set retention time in seconds
+        #     feature.setMZ(445.678)  # Set m/z value
+        #     feature.setIntensity(100000.0)  # Set intensity
+        #     feature.setCharge(2)  # Set charge state
+        #     feature.setOverallQuality(0.95)  # Set quality score (0-1)
+        #     # Access the values
+        #     print(f"RT: {feature.getRT()}, m/z: {feature.getMZ()}, charge: {feature.getCharge()}")
+        #  
 
         Feature() except + nogil 
         Feature(Feature &) except + nogil 
