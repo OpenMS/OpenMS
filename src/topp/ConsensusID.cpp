@@ -564,6 +564,11 @@ protected:
     map<String, String> runid_to_se;
     map<String, Size> id_mapping; // mapping: run ID -> index
     Size number_of_runs = input_map.getProteinIdentifications().size();
+    if (number_of_runs == 0)
+    {
+      OPENMS_LOG_WARN << "Warning: No protein identification runs found in input. Output will be empty." << std::endl;
+      return;
+    }
     for (Size i = 0; i < number_of_runs; ++i)
     {
       const auto& prot = input_map.getProteinIdentifications()[i];

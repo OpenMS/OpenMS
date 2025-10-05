@@ -2193,6 +2193,14 @@ set_tests_properties("TOPP_ConsensusID_8_out1" PROPERTIES DEPENDS "TOPP_Consensu
 add_test("TOPP_ConsensusID_9" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_9_input_empty.idXML -out ConsensusID_9_output.tmp.idXML -algorithm best)
 add_test("TOPP_ConsensusID_9_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ConsensusID_9_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/ConsensusID_9_output_empty.idXML )
 set_tests_properties("TOPP_ConsensusID_9_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_9")
+# featureXML input, empty input file, "best" algorithm:
+add_test("TOPP_ConsensusID_10" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_10_input_empty.featureXML -out ConsensusID_10_output.tmp.featureXML -algorithm best)
+add_test("TOPP_ConsensusID_10_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ConsensusID_10_output.tmp.featureXML -in2 ${DATA_DIR_TOPP}/ConsensusID_10_output_empty.featureXML )
+set_tests_properties("TOPP_ConsensusID_10_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_10")
+# consensusXML input, empty input file, "best" algorithm:
+add_test("TOPP_ConsensusID_11" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_11_input_empty.consensusXML -out ConsensusID_11_output.tmp.consensusXML -algorithm best)
+add_test("TOPP_ConsensusID_11_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ConsensusID_11_output.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/ConsensusID_11_output_empty.consensusXML )
+set_tests_properties("TOPP_ConsensusID_11_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_11")
 
 #------------------------------------------------------------------------------
 # FalseDiscoveryRate_tests (1: default param, 2: with runs separated, 3: with charge variants individual, 4: with charge variants and no charge 1 decoys -> q_value 0)
