@@ -26,6 +26,11 @@ jobs:
       with:
         path: OpenMS
       
+    - id: extract_branch
+      name: Extract branch/PR infos
+      shell: bash
+      run: echo "RUN_NAME=${{ github.event.pull_request && github.event.pull_request.number || github.ref_name }}" >> $GITHUB_OUTPUT
+
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v2
       with:
@@ -127,7 +132,7 @@ jobs:
           export Python_ROOT_DIR=$(conda info --json | jq -r '.sys.prefix')
           echo "Python root directory: $Python_ROOT_DIR"
 
-          export BUILD_NAME="pyopenms-wheels-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-$py-${{ github.run_number }}" #TODO make this more expressive
+          export BUILD_NAME="pyopenms-wheels-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-$py-${{ github.run_number }}" #TODO make this more expressive
 
           # build pyopenms distribution
           ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake --config Release
@@ -173,7 +178,7 @@ jobs:
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CI_PROVIDER: "GitHub-Actions"
-          BUILD_NAME: "${{ runner.os }}-${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
+          BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
           BUILD_TYPE: "Release"
           # The rest of the vars should be saved in the CMakeCache
 
@@ -191,6 +196,11 @@ jobs:
     - uses: actions/checkout@v4
       with:
         path: OpenMS
+
+    - id: extract_branch
+      name: Extract branch/PR infos
+      shell: bash
+      run: echo "RUN_NAME=${{ github.event.pull_request && github.event.pull_request.number || github.ref_name }}" >> $GITHUB_OUTPUT
 
     - name: Get number of CPU cores
       uses: SimenB/github-actions-cpu-cores@v2
@@ -273,7 +283,7 @@ jobs:
           # Set rpath for linked libraries
           export CMAKE_ARGS="-DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH=@loader_path/../lib/python${py}/site-packages/pyopenms"
 
-          export BUILD_NAME="pyopenms-wheels-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-$py-${{ github.run_number }}" #TODO make this more expressive
+          export BUILD_NAME="pyopenms-wheels-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-$py-${{ github.run_number }}" #TODO make this more expressive
 
           # build pyopenms distribution (macOS)
           ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
@@ -298,7 +308,7 @@ jobs:
           CMAKE_GENERATOR: "Ninja"
           OPENMS_CONTRIB_LIBS: "$GITHUB_WORKSPACE/OpenMS/contrib"
           BUILD_TYPE: "Release"
-          BUILD_NAME: "${{ runner.os }}-${{ runner.arch }}-class-pyopenms-${{ github.run_number }}" #TODO make this more expressive
+          BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-${{ github.run_number }}" #TODO make this more expressive
           BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_CCACHE_EXE: "ccache"
@@ -324,7 +334,7 @@ jobs:
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CI_PROVIDER: "GitHub-Actions"
-          BUILD_NAME: "${{ runner.os }}-${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
+          BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
           # The rest of the vars should be saved in the CMakeCache
 
     - uses: actions/upload-artifact@v4
@@ -350,6 +360,11 @@ jobs:
     - uses: actions/checkout@v4
       with:
         path: OpenMS
+
+    - id: extract_branch
+      name: Extract branch/PR infos
+      shell: bash
+      run: echo "RUN_NAME=${{ github.event.pull_request && github.event.pull_request.number || github.ref_name }}" >> $GITHUB_OUTPUT
 
     - name: Get number of CPU cores
       uses: SimenB/github-actions-cpu-cores@v2
@@ -433,7 +448,7 @@ jobs:
           # Set rpath for linked libraries
           export CMAKE_ARGS="-DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH=@loader_path/../lib/python${py}/site-packages/pyopenms"
 
-          export BUILD_NAME="pyopenms-wheels-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-$py-${{ github.run_number }}" #TODO make this more expressive
+          export BUILD_NAME="pyopenms-wheels-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-$py-${{ github.run_number }}" #TODO make this more expressive
 
           # build pyopenms distribution (macOS)
           ctest --output-on-failure -VV -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
@@ -458,7 +473,7 @@ jobs:
         OPENMS_CONTRIB_LIBS: "$GITHUB_WORKSPACE/OpenMS/contrib"
         BOOST_USE_STATIC: "OFF"
         BUILD_TYPE: "Release"
-        BUILD_NAME: "${{ runner.os }}-${{ runner.arch }}-class-pyopenms-${{ github.run_number }}" #TODO make this more expressive
+        BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-${{ github.run_number }}" #TODO make this more expressive
         BUILD_FLAGS: "-j${{ steps.cpu-cores.outputs.count }}"
         CI_PROVIDER: "GitHub-Actions"
         CMAKE_CCACHE_EXE: "ccache"
@@ -484,7 +499,7 @@ jobs:
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CI_PROVIDER: "GitHub-Actions"
-          BUILD_NAME: "${{ runner.os }}-${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
+          BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
           # The rest of the vars should be saved in the CMakeCache
         
     - uses: actions/upload-artifact@v4
@@ -509,6 +524,11 @@ jobs:
       name: Checkout sources
       with:
         path: OpenMS
+
+    - id: extract_branch
+      name: Extract branch/PR infos
+      shell: bash
+      run: echo "RUN_NAME=${{ github.event.pull_request && github.event.pull_request.number || github.ref_name }}" >> $GITHUB_OUTPUT
 
     - name: Get number of CPU cores
       uses: SimenB/github-actions-cpu-cores@v2
@@ -558,7 +578,7 @@ jobs:
           # configure (don't copy deps since we use auditwheel)
 
           export Python_ROOT_DIR=$PYBIN
-          export BUILD_NAME="pyopenms-wheels-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-$py-${{ github.run_number }}" #TODO make this more expressive
+          export BUILD_NAME="pyopenms-wheels-${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-$py-${{ github.run_number }}" #TODO make this more expressive
 
           ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
           
@@ -609,7 +629,7 @@ jobs:
       env:
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           CI_PROVIDER: "GitHub-Actions"
-          BUILD_NAME: "${{ runner.os }}-${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
+          BUILD_NAME: "${{ steps.extract_branch.outputs.RUN_NAME }}-${{ runner.os }}-${{ runner.arch }}-class-pyopenms-${{ github.run_number }}"
           # The rest of the vars should be saved in the CMakeCache
 
     - uses: actions/upload-artifact@v4
