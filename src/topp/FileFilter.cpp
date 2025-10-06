@@ -73,6 +73,7 @@ Depending on the input file type, additional specific operations are possible:
     - filter by isolation window width of the spectra
     - select/remove zoom scans
     - remove chromatograms, meta data arrays, and empty spectra
+    - filter chromatograms by m/z (product m/z), RT (retention time), and intensity ranges
 - remove MS2 scans whose precursor matches identifications (from an idXML file in 'id:blacklist')
 - featureXML
     - filter by feature charge
@@ -825,6 +826,80 @@ protected:
         // convert the spectra chromatograms to real chromatograms
         ChromatogramTools chrom_tools;
         chrom_tools.convertSpectraToChromatograms(exp, true);
+      }
+
+      // Filter chromatograms by m/z, RT, and intensity ranges
+      // This filtering is applied to chromatogram peaks (data points) and whole chromatograms
+      if (!mz.empty() || !rt.empty() || !it.empty())
+      {
+        auto& chroms = exp.getChromatograms();
+        
+        // First filter whole chromatograms by product m/z
+        if (!mz.empty())
+        {
+          chroms.erase(
+            remove_if(chroms.begin(), chroms.end(), 
+              [mz_l, mz_u](const MSChromatogram& c) {
+                double product_mz = c.getMZ();
+                return product_mz < mz_l || product_mz > mz_u;
+              }),
+            chroms.end());
+        }
+
+        // Then filter peaks within remaining chromatograms by RT and intensity
+        if (!rt.empty() || !it.empty())
+        {
+          for (auto& chrom : chroms)
+          {
+            MSChromatogram filtered_chrom;
+            filtered_chrom.ChromatogramSettings::operator=(chrom);  // Copy metadata
+            
+            // Prepare new data arrays with the same structure
+            filtered_chrom.getFloatDataArrays().resize(chrom.getFloatDataArrays().size());
+            for (Size i = 0; i < chrom.getFloatDataArrays().size(); ++i)
+            {
+              filtered_chrom.getFloatDataArrays()[i].setName(chrom.getFloatDataArrays()[i].getName());
+            }
+            filtered_chrom.getIntegerDataArrays().resize(chrom.getIntegerDataArrays().size());
+            for (Size i = 0; i < chrom.getIntegerDataArrays().size(); ++i)
+            {
+              filtered_chrom.getIntegerDataArrays()[i].setName(chrom.getIntegerDataArrays()[i].getName());
+            }
+            filtered_chrom.getStringDataArrays().resize(chrom.getStringDataArrays().size());
+            for (Size i = 0; i < chrom.getStringDataArrays().size(); ++i)
+            {
+              filtered_chrom.getStringDataArrays()[i].setName(chrom.getStringDataArrays()[i].getName());
+            }
+
+            // Filter peaks and corresponding data array values
+            for (Size peak_idx = 0; peak_idx < chrom.size(); ++peak_idx)
+            {
+              const auto& peak = chrom[peak_idx];
+              bool passes_rt = (rt.empty() || (peak.getRT() >= rt_l && peak.getRT() <= rt_u));
+              bool passes_int = (it.empty() || (peak.getIntensity() >= it_l && peak.getIntensity() <= it_u));
+              
+              if (passes_rt && passes_int)
+              {
+                filtered_chrom.push_back(peak);
+                // Also copy data array values at this index
+                for (Size i = 0; i < chrom.getFloatDataArrays().size(); ++i)
+                {
+                  filtered_chrom.getFloatDataArrays()[i].push_back(chrom.getFloatDataArrays()[i][peak_idx]);
+                }
+                for (Size i = 0; i < chrom.getIntegerDataArrays().size(); ++i)
+                {
+                  filtered_chrom.getIntegerDataArrays()[i].push_back(chrom.getIntegerDataArrays()[i][peak_idx]);
+                }
+                for (Size i = 0; i < chrom.getStringDataArrays().size(); ++i)
+                {
+                  filtered_chrom.getStringDataArrays()[i].push_back(chrom.getStringDataArrays()[i][peak_idx]);
+                }
+              }
+            }
+            
+            chrom = std::move(filtered_chrom);
+          }
+        }
       }
 
       bool remove_chromatograms(getFlag_("peak_options:remove_chromatograms"));
