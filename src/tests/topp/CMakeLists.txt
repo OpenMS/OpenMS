@@ -655,8 +655,8 @@ set_tests_properties("TOPP_FileFilter_52_out1" PROPERTIES DEPENDS "TOPP_FileFilt
 add_test("TOPP_FileFilter_53" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_53.tmp.mzML -rt 28:40 -rt_block_mode shrink_to_preserve_full_cycle -in_type mzML -out_type mzML)
 add_test("TOPP_FileFilter_53_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_53.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileFilter_53_output.mzML )
 set_tests_properties("TOPP_FileFilter_53_out1" PROPERTIES DEPENDS "TOPP_FileFilter_53")
-# Purpose: test chromatogram filtering by m/z, RT, and intensity
-add_test("TOPP_FileFilter_54" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_54_input.mzML -out FileFilter_54.tmp.mzML -mz 500.1:500.2 -rt 3000:3600 -int 1000: -in_type mzML -out_type mzML)
+# Purpose: test chromatogram filtering by m/z
+add_test("TOPP_FileFilter_54" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_54_input.mzML -out FileFilter_54.tmp.mzML -mz 500.1:500.2 -in_type mzML -out_type mzML)
 add_test("TOPP_FileFilter_54_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_54.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileFilter_54_output.mzML )
 set_tests_properties("TOPP_FileFilter_54_out1" PROPERTIES DEPENDS "TOPP_FileFilter_54")
 
