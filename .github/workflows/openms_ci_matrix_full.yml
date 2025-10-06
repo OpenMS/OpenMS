@@ -58,7 +58,7 @@ jobs:
             # TODO currently unused but XCode/appleclang is the default
             compiler: xcode
             # TODO implement support for other versions
-            compiler_ver: 16.0.0
+            compiler_ver: "16.0.0"
 
           - os: macos-26
             # Since the appleclang version is dependent on the XCode versions that are installed
@@ -66,7 +66,7 @@ jobs:
             # TODO currently unused but XCode/appleclang is the default
             compiler: xcode
             # TODO implement support for other versions
-            compiler_ver: 26.0
+            compiler_ver: "26.0"
 
           # Make sure the compilers are available in that version on the GH runners
           # We are not installing anything.
@@ -132,12 +132,12 @@ jobs:
           echo "contrib_compiler=msvc-14.2/" >> $GITHUB_OUTPUT
           echo "xvfb=" >> $GITHUB_OUTPUT
           echo "static_boost=ON" >> $GITHUB_OUTPUT
+          # Build the docs on windows during testing so we don't have any post-merge surprises
+          echo "enable_docs=ON" >> $GITHUB_OUTPUT
           if [ "$DO_PACKAGE" = true ]; then
             echo "pkg_type=nsis" >> $GITHUB_OUTPUT
-            echo "enable_docs=ON" >> $GITHUB_OUTPUT
           else
-            echo "pkg_type=none" >> $GITHUB_OUTPUT           
-            echo "enable_docs=OFF" >> $GITHUB_OUTPUT
+            echo "pkg_type=none" >> $GITHUB_OUTPUT
           fi
           echo "cxx_compiler=${{ matrix.compiler }}" >> $GITHUB_OUTPUT
         fi
@@ -149,15 +149,15 @@ jobs:
           echo "contrib_compiler=appleclang-11.0.0/" >> $GITHUB_OUTPUT
           echo "xvfb=" >> $GITHUB_OUTPUT
           echo "static_boost=OFF" >> $GITHUB_OUTPUT
+          # build docs on Mac so we don't end up with any nasty post-merge surprises
+          echo "enable_docs=ON" >> $GITHUB_OUTPUT
           if [ "$DO_PACKAGE" = true ]; then
             echo "pkg_type=pkg" >> $GITHUB_OUTPUT
-            echo "enable_docs=ON" >> $GITHUB_OUTPUT
           else
             echo "pkg_type=none" >> $GITHUB_OUTPUT
-            echo "enable_docs=OFF" >> $GITHUB_OUTPUT
-
           fi
           if [[ "${{ matrix.compiler }}" == "xcode" ]]; then
+            ls -la /Applications/Xcode*
             sudo xcode-select -s '/Applications/Xcode_${{ matrix.compiler_ver }}.app/Contents/Developer'
             echo "cxx_compiler=clang++" >> $GITHUB_OUTPUT
           elif [[ "${{ matrix.compiler }}" == "clang++" ]]; then
