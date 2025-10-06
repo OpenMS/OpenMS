@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/Qscore.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroupScoring.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/SpectralDeconvolution.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <sstream>
@@ -656,7 +656,7 @@ FLASHIda::FLASHIda(char* arg)
       wstart[i] = trigger_left_isolation_mzs_[i]; // std::get<0>(mz_range) - optimal_window_margin_;
       wend[i] = trigger_right_isolation_mzs_[i];  // std::get<1>(mz_range) + optimal_window_margin_;
 
-      qscores[i] = Qscore::getQscore(&peakgroup);
+      qscores[i] = PeakGroupScoring::getQscore(&peakgroup);
       mono_masses[i] = peakgroup.getMonoMass();
       chare_cos[i] = peakgroup.getChargeIsotopeCosine(charges[i]);
       charge_snrs[i] = peakgroup.getChargeSNR(charges[i]);

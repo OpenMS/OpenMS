@@ -147,9 +147,9 @@ namespace OpenMS
     double current_max_mass_;
     /// max mass is max_mass for MS1 and 50 for MS2
     double current_min_mass_;
-    /// isotope distance for noise decoy
-    double noise_iso_delta_ =  .9444; // should be described in the FDR paper
-    /// minimum number of peaks supporting a mass minus one
+    /// isotope distance for noise decoy. This distance has been determined so i) it is close to the mass of 13C - 12C yet is not close to any correct isotope distances of different charges (from 1 to 10).
+    double noise_iso_delta_ =  .9444;
+    /// minimum number of peaks supporting a mass
     const static int min_support_peak_count_ = 2;
     /// tolerance in ppm for each MS level
     DoubleList tolerance_;
@@ -159,10 +159,8 @@ namespace OpenMS
     DoubleList min_isotope_cosine_;
     /// snr threshold for each MS level
     DoubleList min_snr_;
+    /// minimum Qscore of a deconvolved mass
     double min_qscore_ = .2;
-
-    //double min_snr_ = .1;
-    //double min_charge_snr_ = .1;
 
     /// the peak group vector from normal run. This is used when dummy masses are generated.
     const DeconvolvedSpectrum* target_dspec_for_decoy_calculation_;
@@ -214,6 +212,7 @@ namespace OpenMS
     /// isotope dalton distance
     double iso_da_distance_;
 
+    /// for precursor targetting.
     int target_precursor_charge_ = 0;
     double target_precursor_mz_ = 0;
 
@@ -243,12 +242,12 @@ namespace OpenMS
         @param bin_number number of mz bins
         @param binned_log_mz_peak_intensities intensity per mz bin
      */
-    void binLogMzPeaks_(const Size bin_number, std::vector<float>& binned_log_mz_peak_intensities);
+    void binLogMzPeaks_(Size bin_number, std::vector<float>& binned_log_mz_peak_intensities);
 
-    /// get mass value for input mass bin
+    /// get mass value for input mass bin: used for debugging
     double getMassFromMassBin_(Size mass_bin, double bin_mul_factor) const;
 
-    /// get mz value for input mz bin
+    /// get mz value for input mz bin: used for debugging
     double getMzFromMzBin_(Size mass_bin, double bin_mul_factor) const;
 
     /// Generate peak groups from the input spectrum

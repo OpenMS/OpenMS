@@ -21,7 +21,7 @@
 namespace OpenMS
 {
 /**
-@brief De novo sequence tag finding algorithm for Top Down proteomics. The sequence tags are
+@brief De novo sequence tag finding and database matching algorithm for Top Down proteomics. The sequence tags are
  generated on deconvolved spectrum (DeconvolvedSpectrum instance) quickly in the descending order of
  scores. The typical length of a tag ranges from 3 to 5 (user specified) and the tags are used to
  filter out protein candidates from the input fasta entries.
@@ -55,7 +55,7 @@ public:
   void run(const DeconvolvedSpectrum& deconvolved_spectrum, double ppm);
 
   /**
-   *@brief  Match the tags against protein sequences.
+   *@brief Match the tags against protein sequences.
    * The maximum modification mass is used to skip protein sequences that do not match with
    * tag flanking masses.
    * @param hits protein hits to search against

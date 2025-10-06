@@ -36,7 +36,6 @@ namespace OpenMS
     /**
           @brief write the deconvolved masses in the output file (spectrum level)
           @param dspec deconvolved spectrum to write
-          @param target_spec target spectrum only used for decoy spectrum output
           @param fs file stream to the output file
           @param file_name the output file name that the deconvolved masses will be written.
           @param avg averagine information to calculate monoisotopic and average mass difference within this function. In PeakGroup (peaks of DeconvolvedSpectrum) only monoisotopic mass is recorded. To write both monoisotopic and average masses, their mass difference should be calculated using this averagine information.
@@ -74,15 +73,20 @@ namespace OpenMS
      * @param mzml_charge
      * @param tols
      */
-    static void writeMzML(const MSExperiment& map, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const String& deconvolved_mzML_file, const String& annotated_mzML_file, int mzml_charge, DoubleList tols);
+    static void writeMzML(const MSExperiment& map,
+                          std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
+                          const String& deconvolved_mzML_file,
+                          const String& annotated_mzML_file,
+                          int mzml_charge, DoubleList tols);
 
     /**
-     *
+     * write isobaric quantification results
      * @param fs
      * @param deconvolved_spectra
      */
     static void writeIsobaricQuantification(std::fstream& fs, std::vector<DeconvolvedSpectrum>& deconvolved_spectra);
 
+    /// write topFD header
     static void writeTopFDHeader(std::fstream& fs, const Param& param);
 
     /**
@@ -95,7 +99,6 @@ namespace OpenMS
       @param randomize_precursor_mass if set, a random number between -100 to 100 is added to precursor mass
       @param randomize_fragment_mass if set, a random number between -100 to 100 is added to fragment mass
     */
-    //      @param avg averagine information to calculate monoisotopic and average mass difference
     static void writeTopFD(DeconvolvedSpectrum& dspec, std::fstream& fs, const String& filename,
                            const double qval_threshold = 1.0,
                            const uint min_ms_level = 1,
@@ -108,6 +111,5 @@ namespace OpenMS
     static const int topFD_min_peak_count_ = 3;
     /// number of maximum peak count in topFD msalign file
     static const int topFD_max_peak_count_ = 500;
-
   };
 }// namespace OpenMS

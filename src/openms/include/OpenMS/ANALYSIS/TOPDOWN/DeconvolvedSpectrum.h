@@ -143,7 +143,7 @@ namespace OpenMS
 
     /// sort by deconvolved monoisotopic masses
     void sort();
-    /// sort by setQscore of peakGroups
+    /// sort by Qscore of peakGroups
     void sortByQscore();
 
     /// comparison operators

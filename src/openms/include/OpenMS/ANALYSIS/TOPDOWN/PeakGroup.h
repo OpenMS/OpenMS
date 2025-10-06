@@ -17,7 +17,7 @@ namespace OpenMS
   @brief  Class describing a deconvolved mass.
      A mass contains multiple (LogMz) peaks of different charges and isotope indices.
      PeakGroup is the set of such peaks representing a single monoisotopic mass.
-     PeakGroup also contains features that define the quality of it. It is used for Qscore calculation.
+     PeakGroup also contains features that define the quality of it. It is used for PeakGroupScoring calculation.
      DeconvolvedSpectrum consists of PeakGroups.
   @ingroup Topdown
     */
@@ -81,7 +81,7 @@ namespace OpenMS
            @param tol ppm tolerance
            @param is_low_charge if set, charge fit score calculation becomes less stroct
            @param excluded_masses masses to exclude
-           @param is_last if this is set, it means that Qscore calculation is at its last iteration. More detailed noise power calculation is activated and mono mass is not recalibrated.
+           @param is_last if this is set, it means that PeakGroupScoring calculation is at its last iteration. More detailed noise power calculation is activated and mono mass is not recalibrated.
            @return returns isotope offset after isotope cosine calculation
       */
     int updateQscore(const std::vector<LogMzPeak>& noisy_peaks, const FLASHHelperClasses::PrecalculatedAveragine& avg, double min_cos,
@@ -98,9 +98,6 @@ namespace OpenMS
      * @return returns the noisy peaks for this peakgroup - i.e., the raw peaks within the range of this peakGroup that are not matched to any istope of this peakGroup mass.
      */
     std::vector<LogMzPeak> recruitAllPeaksInSpectrum(const MSSpectrum& spec, double tol, const FLASHHelperClasses::PrecalculatedAveragine& avg, double mono_mass, bool renew_signal_peaks = true);
-
-    /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance). Assume logMzPeaks are sorted.
-    bool isSignalMZ(double mz, double tol) const;
 
     /// set scan number
     void setScanNumber(int scan_number);
@@ -120,7 +117,7 @@ namespace OpenMS
     /// set monoisotopic mass
     void setMonoisotopicMass(double mono_mass);
 
-    /// set Q score - for FLASHIda log file parsing
+    /// set Qscore - for FLASHIda log file parsing
     void setQscore(double qscore);
 
     /// set charge score - for FLASHIda log file parsing
@@ -261,7 +258,8 @@ namespace OpenMS
     void swap(std::vector<FLASHHelperClasses::LogMzPeak>& x);
     void sort();
 
-    std::tuple<std::vector<double>, std::vector<double>> getDLVector(const MSSpectrum& spec, const Size charge_count, const Size isotope_count, const FLASHHelperClasses::PrecalculatedAveragine& avg, double tol);
+    std::tuple<std::vector<double>, std::vector<double>> getDLVector(const MSSpectrum& spec, const Size charge_count, const Size isotope_count,
+                                                                     const FLASHHelperClasses::PrecalculatedAveragine& avg, double tol);
 
   private:
     /// update chargefit score and also update per charge intensities here.

@@ -19,16 +19,14 @@ namespace OpenMS
   class PeakGroup;
 
   /**
-@brief   setQscore : quality score for PeakGroup. This class is being updated.
-   For now, simply it calculate the setQscore using a fixed weight vector.
-   The weight vector has been determined by logistic regression.
-   But afterwards, the training part for the setQscore should be added in here.
-   Or other technique such as deep learning would be used.
-   This class also contains tsv output function. The tsv file contains features of PeakGroups which are used for training.
+@brief scoring functions for PeakGroup.
+   For now, only Qscore has been implemented. For Qscore,
+   the weight vector has been determined by logistic regression.
+   In the future, other technique such as deep learning would be used.
 @ingroup Topdown
 */
 
-  class OPENMS_DLLAPI Qscore
+  class OPENMS_DLLAPI PeakGroupScoring
   {
   public:
     typedef FLASHHelperClasses::LogMzPeak LogMzPeak;
@@ -36,14 +34,23 @@ namespace OpenMS
     /// get QScore for a peak group of specific abs_charge
     static double getQscore(const PeakGroup* pg);
 
+    /// Write Csv file for Qscore training.
     static void writeAttCsvForQscoreTraining(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f);
 
+    /// Write Csv file for Qscore training header.
     static void writeAttCsvForQscoreTrainingHeader(std::fstream& f);
+
+    /// get Deep learning based peak group score. Not implemented yet.
+    static double getDLscore(PeakGroup* pg, const MSSpectrum& spec, const FLASHHelperClasses::PrecalculatedAveragine& avg, double tol);
 
   private:
     /// convert a peak group to a feature vector for setQscore calculation
     static std::vector<double> toFeatureVector_(const PeakGroup* pg);
+    /// the weights for Qscore calculation
+    static std::vector<double> weight_;
 
-    static std::vector<double> weight_centroid_;
+    /// charge and isotope counts for DL scoring.
+    static const int charge_count_for_DL_scoring_ = 11;
+    static const int iso_count_for_DL_scoring_ = 13;
   };
 } // namespace OpenMS
