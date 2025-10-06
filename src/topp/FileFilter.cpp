@@ -841,6 +841,9 @@ protected:
             remove_if(chroms.begin(), chroms.end(), 
               [mz_l, mz_u](const MSChromatogram& c) {
                 double product_mz = c.getMZ();
+                // Only filter if m/z is set (non-zero)
+                // If m/z is 0 or unset, keep the chromatogram
+                if (product_mz == 0.0) return false;
                 return product_mz < mz_l || product_mz > mz_u;
               }),
             chroms.end());
