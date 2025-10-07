@@ -28,13 +28,6 @@ if(PYOPENMS)
   add_subdirectory(pyOpenMS)
 endif()
 
-if(ENABLE_OPENMS_ML)
-  #------------------------------------------------------------------------------
-  # OpenMS machine learning interface lib
-  #------------------------------------------------------------------------------
-  add_subdirectory(openms_ml)
-endif()
-
 if(WITH_GUI)
   #------------------------------------------------------------------------------
   # OpenMS gui lib

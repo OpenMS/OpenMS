@@ -7,6 +7,7 @@
 # --------------------------------------------------------------------------
 
 
+
 set(CPACK_RPM_PACKAGE_VENDOR "OpenMS developers <open-ms-general@lists.sourceforge.net>")
 if((DEFINED ENV{CPACK_PACKAGE_FILE_NAME}) AND (NOT "$ENV{CPACK_PACKAGE_FILE_NAME}" STREQUAL ""))
   set(CPACK_PACKAGE_FILE_NAME "$ENV{CPACK_PACKAGE_FILE_NAME}")
