@@ -223,21 +223,7 @@ namespace OpenMS
 
   void DeconvolvedSpectrum::setOriginalSpectrum(const MSSpectrum& spec)
   {
-    auto filter_str = spec.getMetaValue("filter string").toString();
-    Size pos = filter_str.find("cv=");
-
-    if (pos != String::npos)
-    {
-      Size end = filter_str.find(" ", pos);
-      if (end == String::npos) end = filter_str.length() - 1;
-      cv_ = std::stod(filter_str.substr(pos + 3, end - pos));
-    }
     spec_ = spec;
-  }
-
-  double DeconvolvedSpectrum::getCV() const
-  {
-    return cv_;
   }
 
   void DeconvolvedSpectrum::setPrecursorScanNumber(const int scan_number)
