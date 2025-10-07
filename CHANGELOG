@@ -44,7 +44,7 @@ TOPP tools:
     - OpenNuXL - A peptide-RNA/DNA cross-linking search engine
     - PeptideDataBaseSearchFI - Experimental peptide database search engine using a fragment index (FI) and the new PeptideSearchEngineFIAlgorithm
   Removed Tools:
-    - OpenPepXLLF - Search for cross-linked peptide pairs in tandem MS spectra (showed inferior performance in benchmarks and never left experimental phase)
+    - OpenPepXLLF - Experimental search for cross-linked peptide pairs in tandem MS spectra (showed inferior performance in benchmarks)
 
 GUI tools:
  - fix TOPPAS crash when using TOPP tools with multiple output formats (#8120)
