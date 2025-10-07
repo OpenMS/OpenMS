@@ -51,7 +51,7 @@
         <cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" value=""/>
       </software>
       <software id="so_dp_sp_0_pm_2" version="1.6.0">
-        <cvParam cvRef="MS" accession="MS:1000763" name="PeakPicker" value=""/>
+        <cvParam cvRef="MS" accession="MS:1002134" name="TOPP peak picker" value=""/>
       </software>
       <software id="so_dp_sp_0_pm_3" version="1.6.0">
         <cvParam cvRef="MS" accession="MS:1000758" name="FileMerger" value=""/>
