@@ -8,8 +8,6 @@ from Types cimport *
 cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>" namespace "OpenMS":
 
     cdef cppclass MassFeature_FDHS "OpenMS::FLASHHelperClasses::MassFeature":
-    
-        # wrap-inherits:
 
         # default constructor
         MassFeature_FDHS() except + nogil
@@ -22,8 +20,6 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>" namespace "Ope
         bool operator==(MassFeature_FDHS& other) except + nogil
 
     cdef cppclass Tag "OpenMS::FLASHHelperClasses::Tag":
-
-        # wrap-inherits:
 
         # default constructor
         Tag(String seq, double n_mass, double c_mass, libcpp_vector[double] & mzs, libcpp_vector[int]& scores, int scan) except + nogil
@@ -39,8 +35,6 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>" namespace "Ope
 
     cdef cppclass PrecalAveragine "OpenMS::FLASHHelperClasses::PrecalculatedAveragine":
             
-        # wrap-inherits:
-
         # default constructor
         PrecalAveragine() except + nogil
         # constructor
@@ -60,7 +54,6 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>" namespace "Ope
         double getSNRMultiplicationFactor(double mass) except + nogil
 
     cdef cppclass IsobaricQuantities "OpenMS::FLASHHelperClasses::IsobaricQuantities":
-       # wrap-inherits:
 
         # default constructor
         IsobaricQuantities() except + nogil
@@ -68,7 +61,6 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>" namespace "Ope
         IsobaricQuantities(IsobaricQuantities &) except + nogil
 
     cdef cppclass LogMzPeak "OpenMS::FLASHHelperClasses::LogMzPeak":
-       # wrap-inherits:
 
         # default constructor
         LogMzPeak() except + nogil
