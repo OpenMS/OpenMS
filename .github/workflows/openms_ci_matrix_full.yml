@@ -32,7 +32,6 @@ on:
     branches:
       - nightly
       - release/*
-      - FVdeploy
   pull_request:
     branches:
       - develop
