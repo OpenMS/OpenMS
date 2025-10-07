@@ -6,7 +6,6 @@ from FLASHHelperClasses cimport *
 cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>" namespace "OpenMS":
 
     cdef cppclass DeconvolvedSpectrum:
-        # wrap-inherits:
 
         # default constructor
         DeconvolvedSpectrum() except + nogil
