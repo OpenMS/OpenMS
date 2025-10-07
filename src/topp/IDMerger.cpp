@@ -134,8 +134,7 @@ protected:
 
       for (ProteinHit & prot_hit : prot.getHits())
       {
-        auto pos = hit_values.find(prot_hit.getAccession());
-        if (pos == hit_values.end())
+        if (const auto pos = hit_values.find(prot_hit.getAccession()); pos == hit_values.end())
         {
           prot_hit.setScore(-1);
         }

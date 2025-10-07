@@ -95,29 +95,13 @@ public:
       {
       }
 
-      Ratio(const Ratio& rhs)
-      {
-        ratio_value_ = rhs.ratio_value_;
-        denominator_ref_ = rhs.denominator_ref_;
-        numerator_ref_ = rhs.numerator_ref_;
-        description_ = rhs.description_;
-      }
+      Ratio(const Ratio& rhs) = default;
 
       virtual ~Ratio()
       {
       }
 
-      Ratio& operator=(const Ratio& rhs)
-      {
-        if (&rhs != this)
-        {
-          ratio_value_ = rhs.ratio_value_;
-          denominator_ref_ = rhs.denominator_ref_;
-          numerator_ref_ = rhs.numerator_ref_;
-          description_ = rhs.description_;
-        }
-        return *this;
-      }
+      Ratio& operator=(const Ratio& rhs) = default;
 
       // @TODO: members are public, names shouldn't end in underscores
       double ratio_value_;

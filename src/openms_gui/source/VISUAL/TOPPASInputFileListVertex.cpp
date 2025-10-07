@@ -90,7 +90,7 @@ namespace OpenMS
   {
     QStringList fl = getFileNames();
     std::set<std::string> unique_names;
-    foreach(const QString& file, fl)
+    for (const QString& file : fl)
     {
       if (!File::exists(file))
       {

@@ -127,7 +127,7 @@ public:
     bool getAlwaysAppendData() const;
     ///sets whether to fill the actual data into the container (spectrum/chromatogram)
     void setFillData(bool only);
-    ///returns whether to fill the actual data into the container (spectrum/chromatogram)
+    /// returns whether to fill the actual data into the container (spectrum/chromatogram) or leave containers empty
     bool getFillData() const;
     ///sets whether to skip some XML checks and be fast instead
     void setSkipXMLChecks(bool only);
@@ -210,9 +210,9 @@ public:
     bool getSkipChromatograms() const;
 
 private:
-    bool metadata_only_ = false;
+    bool metadata_only_ = false;                ///< only load header information, no spectra lists / chromatograms
     bool force_maxquant_compatibility_ = false; ///< for mzXML-writing only: set a fixed vendor (Thermo Scientific), mass analyzer (FTMS)
-    bool force_tpp_compatibility_ = false; ///< for mzML-writing only: work around some bugs in TPP file parsers
+    bool force_tpp_compatibility_ = false;      ///< for mzML-writing only: work around some bugs in TPP file parsers
     bool write_supplemental_data_ = true;
     bool has_rt_range_ = false;
     bool has_mz_range_ = false;
@@ -228,7 +228,7 @@ private:
     bool skip_xml_checks_ = false;
     bool sort_spectra_by_mz_ = true;
     bool sort_chromatograms_by_rt_ = true;
-    bool fill_data_ = true;
+    bool fill_data_ = true;                     ///< populate spectra/chromatograms with base64 data; spectrum metadata is always loaded
     bool write_index_ = true;
     MSNumpressCoder::NumpressConfig np_config_mz_{};
     MSNumpressCoder::NumpressConfig np_config_int_{};
