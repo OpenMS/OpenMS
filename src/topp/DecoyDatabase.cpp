@@ -70,7 +70,7 @@ See www.ncbi.nlm.nih.gov/pmc/articles/PMC8489664/ and NeighborSeq for details.
 /// @cond TOPPCLASSES
 
 class TOPPDecoyDatabase :
-    public TOPPBase
+  public TOPPBase
 {
 public:
   TOPPDecoyDatabase() :
@@ -135,10 +135,10 @@ protected:
     return p;
   }
 
-  String getDecoyIdentifier_(const String& identifier, const String& decoy_string, const bool as_prefix)
+  String getDecoyIdentifier_(const String& identifier, const String& decoy_string, const String& suffix_string, const bool as_prefix)
   {
-    if (as_prefix) return decoy_string + identifier;
-    else return identifier + decoy_string;
+    if (as_prefix) return decoy_string + identifier + suffix_string;
+    else return identifier + decoy_string + suffix_string;
   }
   
 
@@ -153,6 +153,7 @@ protected:
 
     bool append = !getFlag_("only_decoy");
     bool shuffle = (getStringOption_("method") == "shuffle");
+    int shuffle_ratio = shuffle ? getIntOption_("shuffle_decoy_ratio") : 1;
     String decoy_string = getStringOption_("decoy_string");
     bool decoy_string_position_prefix =
       (getStringOption_("decoy_string_position") == "prefix");
@@ -192,7 +193,6 @@ protected:
     String keep_const_pattern = decoy_param.getValue("non_shuffle_pattern").toString();
     Int max_attempts = getIntOption_("shuffle_max_attempts");
     double identity_threshold = getDoubleOption_("shuffle_sequence_identity_threshold");
-    int shuffle_ratio = shuffle ? getIntOption_("shuffle_decoy_ratio") : 1;
 
     // Set the seed for shuffling always to the same number, this
     // ensures that identical peptides get shuffled the same way
@@ -386,77 +386,43 @@ protected:
         }
 
         // new decoy identifier
-        entry.identifier = getDecoyIdentifier_(entry.identifier, decoy_string, decoy_string_position_prefix);
-
-        // new decoy sequence
-        if (input_type == SeqType::RNA)
+        for (int num_repeat = 0; num_repeat < shuffle_ratio; num_repeat++)
         {
-          string quick_seq = entry.sequence;
-          bool five_p = (entry.sequence.front() == 'p');
-          bool three_p = (entry.sequence.back() == 'p');
-          if (five_p) // we don't want to reverse terminal phosphates
-          {
-            quick_seq.erase(0, 1);
-          }
-          if (three_p) { quick_seq.pop_back(); }
-
-          // sequence
+          String suffix_string = shuffle_ratio == 1? "" : std::to_string(num_repeat + 1) + "_";
+          entry.identifier = getDecoyIdentifier_(entry.identifier, decoy_string, suffix_string, decoy_string_position_prefix);
+          // new decoy sequence
           if (input_type == SeqType::RNA)
           {
-            tokenized.emplace_back(m.str(0));
-            quick_seq = m.suffix();
-          }
+            string quick_seq = entry.sequence;
+            bool five_p = (entry.sequence.front() == 'p');
+            bool three_p = (entry.sequence.back() == 'p');
+            if (five_p) // we don't want to reverse terminal phosphates
+            {
+              quick_seq.erase(0, 1);
+            }
+            if (three_p) { quick_seq.pop_back(); }
 
-          if (shuffle) { shuffler.portable_random_shuffle(tokenized.begin(), tokenized.end()); }
-          else // reverse
-          {
-            reverse(tokenized.begin(), tokenized.end()); // reverse the tokens
-          }
-          if (five_p) // add back 5'
-          {
-            tokenized.insert(tokenized.begin(), String("p"));
-          }
-          if (three_p) // add back 3'
-          {
-            tokenized.emplace_back("p");
-          }
-          entry.sequence = ListUtils::concatenate(tokenized, "");
-        }
-        else // protein input
-        {
-          // if (terminal_aminos != "none")
-          if (enzyme != "no cleavage" && (keepN || keepC))
-          {
-            std::vector<AASequence> peptides;
-            digestion.digest(AASequence::fromString(entry.sequence), peptides);
-            String new_sequence = "";
-            for (auto const& peptide : peptides)
+            vector<String> tokenized;
+            std::smatch m;
+            std::string pattern = R"([^\[]|(\[[^\[\]]*\]))";
+            std::regex re(pattern);
+
+            while (std::regex_search(quick_seq, m, re))
             {
-              p.sequence = peptide.toString();
-              // TODO why are the functions from TargetedExperiment and MRMDecoy not anywhere more general?
-              //  No soul would look there.
-              auto decoy_p = shuffle ? m.shufflePeptide(p, identity_threshold, seed, max_attempts) 
-                                     : MRMDecoy::reversePeptide(p, keepN, keepC, keep_const_pattern);
-              new_sequence += decoy_p.sequence;
+              tokenized.emplace_back(m.str(0));
+              quick_seq = m.suffix();
             }
-            entry.sequence = new_sequence;
-          }
-          else // no cleavage
-          {
-            // sequence
-            if (shuffle)
+
+            if (shuffle) { shuffler.portable_random_shuffle(tokenized.begin(), tokenized.end()); }
+            else // reverse
             {
-              shuffler.portable_random_shuffle(tokenized.begin(), tokenized.end());
+              reverse(tokenized.begin(), tokenized.end()); // reverse the tokens
             }
-            else  // reverse
-            {
-              reverse(tokenized.begin(), tokenized.end()); //reverse the tokens
-            }
-            if (five_p)  //add back 5'
+            if (five_p) // add back 5'
             {
               tokenized.insert(tokenized.begin(), String("p"));
             }
-            if (three_p) //add back 3'
+            if (three_p) // add back 3'
             {
               tokenized.emplace_back("p");
             }
@@ -472,26 +438,16 @@ protected:
               String new_sequence = "";
               for (auto const& peptide : peptides)
               {
-                //TODO why are the functions from TargetedExperiment and MRMDecoy not anywhere more general?
-                // No soul would look there.
-                if (shuffle)
-                {
-                  OpenMS::TargetedExperiment::Peptide p;
-                  p.sequence = peptide.toString();
-                  OpenMS::TargetedExperiment::Peptide decoy_p = m.shufflePeptide(p, identity_threshold, seed, max_attempts);
-                  new_sequence += decoy_p.sequence;
-                }
-                else
-                {
-                  OpenMS::TargetedExperiment::Peptide p;
-                  p.sequence = peptide.toString();
-                  OpenMS::TargetedExperiment::Peptide decoy_p = MRMDecoy::reversePeptide(p, keepN, keepC, keep_const_pattern);
-                  new_sequence += decoy_p.sequence;
-                }
+                p.sequence = peptide.toString();
+                // TODO why are the functions from TargetedExperiment and MRMDecoy not anywhere more general?
+                //  No soul would look there.
+                auto decoy_p = shuffle ? m.shufflePeptide(p, identity_threshold, seed, max_attempts) 
+                                      : MRMDecoy::reversePeptide(p, keepN, keepC, keep_const_pattern);
+                new_sequence += decoy_p.sequence;
               }
               entry.sequence = new_sequence;
             }
-            else
+            else // no cleavage
             {
               // sequence
               if (shuffle)
@@ -504,17 +460,17 @@ protected:
                 entry.sequence.reverse();
               }
             }
-          }
-        } // protein entry
+          } // protein entry
 
-        //-------------------------------------------------------------
-        // writing output
-        //-------------------------------------------------------------
-        f.writeNext(entry);
-        // optional: if in neighbor mode: T+D of relevant peptides (if requested)
-        if (write_relevant)
-        {
-          fasta_out_relevant.writeNext(entry);
+          //-------------------------------------------------------------
+          // writing output
+          //-------------------------------------------------------------
+          f.writeNext(entry);
+          // optional: if in neighbor mode: T+D of relevant peptides (if requested)
+          if (write_relevant)
+          {
+            fasta_out_relevant.writeNext(entry);
+          }
         }
 
       } // next protein
