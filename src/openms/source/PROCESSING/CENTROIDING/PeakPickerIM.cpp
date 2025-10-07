@@ -22,6 +22,11 @@
 #include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
 #include <iostream>
 #include <deque>
+#include <algorithm>
+#include <limits>
+#include <numeric>
+#include <unordered_map>
+#include <utility>
 
 
 using namespace std;
