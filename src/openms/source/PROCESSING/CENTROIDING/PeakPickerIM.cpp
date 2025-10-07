@@ -54,7 +54,7 @@ namespace OpenMS
         // The spectrum could have multiple ion mobility peaks at the same x position.
         // Sum the peak intensity
         MSSpectrum summed_trace;
-        sumFrame_(spectrum, summed_trace, 0.0006, false);
+        sumFrame_(spectrum, summed_trace, sum_tolerance_im_, false);
 
         if (summed_trace.size() < 20)
         {
@@ -227,9 +227,13 @@ namespace OpenMS
         return {};
       }
       // Get the Ion Mobility array index from raw_spectrum
+      if (!raw_spectrum.containsIMData())
+      {
+        OPENMS_LOG_WARN << "No ion mobility data found in raw_spectrum." << std::endl;
+        return {};
+      }
       const auto [im_data_index, im_unit] = raw_spectrum.getIMData();
       const auto& ion_mobility_array = raw_spectrum.getFloatDataArrays()[im_data_index];
-
       // Vector of MSSpectra for each picked m/z peak (each spectrum is a mobilogram trace)
       vector<MSSpectrum> mobility_traces;
 
