@@ -1,0 +1,193 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                   OpenMS GitHub Issues Assessment                          ║
+║                         Quick Triage Summary                               ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+📊 OVERALL STATISTICS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Total Open Issues:              628
+Issues in CHANGELOG:            885 (includes closed)
+High Confidence Fixed:          ~30-50
+Medium Confidence Fixed:        ~40-70
+Questions/Support:              ~20-30
+Feature Requests:               ~50-100
+Sprint Candidates:              ~30-50
+Still Open/Under Development:   ~400-500
+
+🎯 ACTIONABLE BREAKDOWN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 🟢 HIGH PRIORITY - Close These First (~30 issues)                      │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Test Failures:                                                          │
+│   ✓ #7271  - zlib-ng test failures (fixed in test suite)              │
+│   ✓ #7171  - ARM64 test failure (ARM support added)                   │
+│   ✓ #6880  - Testing takes forever (performance improved)             │
+│                                                                          │
+│ SageAdapter:                                                            │
+│   ✓ #7112  - Crashes/no accession (improvements made)                 │
+│   ✓ #7033  - Documentation lacking (docs updated)                     │
+│   ✓ #7032  - Parameter naming (standardization done)                  │
+│   ✓ #7031  - Thread passing (fixed)                                   │
+│                                                                          │
+│ Documentation:                                                          │
+│   ✓ #7256  - Example mzML files outdated (updated)                    │
+│   ✓ #6794  - Parameter description unclear (improved)                 │
+│   ✓ #6686  - Tutorial has old links (updated)                         │
+│   ✓ #6656  - ProteomicsLFQ docs (clarified)                           │
+│                                                                          │
+│ Build/Platform:                                                         │
+│   ✓ #7316  - NSIS long paths (Windows fixes)                          │
+│   ✓ #6867  - Debian package (packaging improved)                      │
+│                                                                          │
+│ Tools:                                                                  │
+│   ✓ #7165  - IsobaricQuantifier error handling (improved)             │
+│   ✓ #7010  - MapAligner crash (exception handling)                    │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 🟡 MEDIUM PRIORITY - Investigate These (~40 issues)                    │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Old Version Issues (Request Retest):                                   │
+│   ? #7333  - "OpenMS not working" (env issue, 2.x)                    │
+│   ? #7000  - SiriusAdapter fails (3.0 issue)                          │
+│   ? #6856  - IsobaricAnalyzer crash (ThermoRaw issue)                 │
+│   ? #6675  - SQL warmup slow (2.8 bioconda)                           │
+│                                                                          │
+│ macOS:                                                                  │
+│   ? #7039  - Package installer docs (check status)                    │
+│   ? #6970  - Apple Silicon issues (verify M1/M2)                      │
+│                                                                          │
+│ pyOpenMS:                                                               │
+│   ? #6857  - Test suite in wheels (check CI)                          │
+│   ? #6728  - Optional dependencies (check if done)                    │
+│                                                                          │
+│ Features Possibly Implemented:                                         │
+│   ? #7251  - ParamIterator (check iterator tags)                      │
+│   ? #7248  - MSExperiment access (check new methods)                  │
+│   ? #6939  - FLASHDeconv wrapper (check if exists)                    │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 💬 QUESTIONS - Move to Discussions (~20 issues)                        │
+├─────────────────────────────────────────────────────────────────────────┤
+│   → #7246  - How to do PRM quantitation?                              │
+│   → #7319  - Feature Finder for IMS data?                             │
+│   → #7066  - C13/N15 deconvolution support?                           │
+│   → #6913  - ProteomicsLFQ normalization question                     │
+│   → #6896  - FeatureFinderMetaboIdent points question                 │
+│   → #6693  - Percolator features mapping                              │
+│   → #6681  - EPIFANY grid search params                               │
+│   → #6680  - TMT normalization question                               │
+│   → #6760  - Loading MRM data in PyOpenMS                             │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 🚀 FEATURE REQUESTS - Keep or Discuss (~50 issues)                     │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Keep Open (Active Development):                                        │
+│   * #7203  - Spectrum visualization improvements                       │
+│   * #7202  - KNIME THIRDPARTY issues                                   │
+│   * #7201  - Host FLASHViewer                                          │
+│   * #7200  - FragmentIndex PR review                                   │
+│   * #7199  - Replace SIRIUSAdapter                                     │
+│                                                                          │
+│ Sprint Candidates (Review Priority):                                   │
+│   * #6973  - Clean up licenses/READMEs                                 │
+│   * #6967  - Add FLASH python tutorial                                 │
+│   * #6776  - Sign NSIS package                                         │
+│   * #7125  - Auto-update TOPPAS version                                │
+│   * #6688  - Build rotation not working                                │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 🔍 NEEDS CODE REVIEW - Critical Bugs (~15 issues)                      │
+├─────────────────────────────────────────────────────────────────────────┤
+│ HIGH PRIORITY:                                                          │
+│   ! #7149  - Core dump for dechargers (stack smashing!)               │
+│   ! #7310  - Comet scores duplicated                                   │
+│   ! #7280  - Deisotoping removes wrong peaks                           │
+│   ! #7284  - Parameter ms1_isotopes ignored                            │
+│                                                                          │
+│ MEDIUM PRIORITY:                                                        │
+│   ! #7314  - MSstatsConverter subset issue                             │
+│   ! #7182  - SageAdapter version check crash                           │
+│   ! #7150  - AssayGeneratorMetabo segfault                             │
+│   ! #7069  - FeatureFinderMetaboIdent mass calc                        │
+│   ! #7007  - FeatureFinderMultiplex bad_alloc                          │
+│   ! #6718  - NASequence wrong masses                                   │
+└─────────────────────────────────────────────────────────────────────────┘
+
+📋 DETAILED DOCUMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. ISSUE_ASSESSMENT_README.md        - Start here for overview
+2. SPECIFIC_ISSUES_TO_REVIEW.md      - Complete list with evidence
+3. HOW_TO_USE_ISSUE_ASSESSMENT.md    - Step-by-step triage guide
+4. ISSUE_ASSESSMENT_REPORT.md        - Executive summary
+
+⚙️  ANALYSIS TOOLS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Location: /tmp/
+
+Files:
+  - practical_issue_analyzer.py   (main tool)
+  - issue_assessment_script.py    (core logic)
+  - analyze_all_issues.py          (comprehensive)
+  - openms_issue_summary.json      (885 issue numbers)
+
+Usage:
+  $ python3 /tmp/practical_issue_analyzer.py
+  
+Output:
+  - Text report: /tmp/openms_issue_assessment.txt
+  - JSON data:   /tmp/openms_issue_summary.json
+
+⏱️  TIME ESTIMATES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+High Priority (30 issues):     4-8 hours  (verify & close)
+Medium Priority (40 issues):   2-4 hours  (request retest)
+Questions (20 issues):         1-2 hours  (move to discussions)
+Feature Review (50 issues):    2-4 hours  (organize)
+Code Review (15 issues):       8-16 hours (fix/verify)
+                              ─────────────
+Total Initial Triage:          17-34 hours
+
+Ongoing Maintenance:           2 hours/month
+
+📊 EXPECTED IMPACT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ Reduce open issues by:       100-250 issues (16-40%)
+✓ Improve average age:          From unknown to tracked
+✓ Better organization:          Clear categories and priorities
+✓ Faster response:              Automated analysis
+✓ Clear roadmap:                Visible planned work
+
+📝 QUICK ACTION CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Week 1: □ Close 30 high-priority fixed issues
+Week 2: □ Request retest for 40 old version issues  
+Week 3: □ Move 20 questions to discussions
+Week 4: □ Review and organize 50 feature requests
+Month 2: □ Code review and fix 15 critical bugs
+Ongoing: □ Monthly maintenance (2 hours)
+
+💡 TIPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+→ Always provide evidence when closing (CHANGELOG #, commit, test)
+→ Be polite and thank reporters
+→ Request retests for old versions (< 3.0)
+→ Use consistent labels (fixed, obsolete, wontfix, etc.)
+→ Link related issues and PRs
+→ Document why you're closing (not just "fixed")
+
+🔗 RESOURCES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GitHub CLI:  gh issue list --label bug --state open
+API Docs:    https://docs.github.com/en/rest/issues
+CHANGELOG:   ./CHANGELOG (885 issue refs)
+Analysis:    /tmp/openms_issue_summary.json
+
+════════════════════════════════════════════════════════════════════════════
+Generated: 2025-01-08 | OpenMS Develop Branch | 628 Open Issues
+════════════════════════════════════════════════════════════════════════════
