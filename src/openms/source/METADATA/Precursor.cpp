@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -114,6 +114,41 @@ namespace OpenMS
     }
     return am;
   }
+
+  StringList Precursor::getActivationMethodsAsShortString() const
+  {
+    StringList am;
+    am.reserve(activation_methods_.size());
+    for (const auto& m : activation_methods_)
+    {
+      am.push_back(NamesOfActivationMethodShort[m]);
+    }
+    return am;
+  }
+
+  StringList Precursor::getAllNamesOfActivationMethods()
+  {
+    StringList am;
+    am.reserve(SIZE_OF_ACTIVATIONMETHOD);
+    for (size_t i = 0; i < SIZE_OF_ACTIVATIONMETHOD; ++i)
+    {
+      am.push_back(NamesOfActivationMethod[i]);
+    }
+    return am;
+  }
+
+  StringList Precursor::getAllShortNamesOfActivationMethods()
+  {
+    StringList am;
+    am.reserve(SIZE_OF_ACTIVATIONMETHOD);
+    for (size_t i = 0; i < SIZE_OF_ACTIVATIONMETHOD; ++i)
+    {
+      am.push_back(NamesOfActivationMethodShort[i]);
+    }
+    return am;
+  }
+
+
 
   void Precursor::setActivationMethods(const set<Precursor::ActivationMethod> & activation_methods)
   {

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -349,41 +349,26 @@ public:
     //@}
 
     /// returns the type of value stored
-    inline DataType valueType() const
-    {
-      return value_type_;
-    }
+    DataType valueType() const;
 
     /**
        @brief Test if the value is empty
 
        @note A DataValue containing an empty string ("") does not count as empty!
     */
-    inline bool isEmpty() const
-    {
-      return value_type_ == EMPTY_VALUE;
-    }
+    bool isEmpty() const;
 
     ///@name Methods to handle units
     ///These methods are used when the DataValue has an associated unit.
     //@{
 
     /// returns the type of value stored
-    inline UnitType getUnitType() const
-    {
-      return unit_type_;
-    }
+    UnitType getUnitType() const;
 
-    inline void setUnitType(const UnitType & u)
-    {
-      unit_type_ = u;
-    }
+    void setUnitType(const UnitType & u);
 
     /// Check if the value has a unit
-    inline bool hasUnit() const
-    {
-      return unit_ != -1;
-    }
+    bool hasUnit() const;
 
     /// Return the unit associated to this DataValue.
     const int32_t & getUnit() const;

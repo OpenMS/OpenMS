@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 namespace OpenMS
 {
@@ -55,7 +56,7 @@ namespace OpenMS
     ConsensusIDAlgorithmSimilarity& operator=(const ConsensusIDAlgorithmSimilarity&);
 
     /// Consensus scoring
-    void apply_(std::vector<PeptideIdentification>& ids,
+    void apply_(PeptideIdentificationList& ids,
         const std::map<String, String>& se_info,
         SequenceGrouping& results) override;
   };

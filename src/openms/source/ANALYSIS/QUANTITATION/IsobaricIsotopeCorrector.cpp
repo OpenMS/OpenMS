@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,7 +14,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 // NNLS isotope correction
-#include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
+#include <OpenMS/ML/NNLS/NonNegativeLeastSquaresSolver.h>
 
 #include <Eigen/Core>
 #include <Eigen/LU>
@@ -43,14 +43,10 @@ namespace OpenMS
     {
       OPENMS_LOG_DEBUG << "Correction matrix is the identity matrix." << std::endl;
       OPENMS_LOG_DEBUG << correction_matrix << std::endl;
-
-      // workaround: TMT11plex has a special case where the correction matrix is the identity matrix
-      if (quant_method->getMethodName() != "tmt11plex")
-      {        
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "IsobaricIsotopeCorrector: The given isotope correction matrix is an identity matrix leading to no correction. "
-                                          "Please provide a valid isotope_correction matrix as it was provided with the sample kit!");
-      }
+                                          "Please provide a valid isotope_correction matrix as it was provided with the sample kit!");      
     }
     
     Eigen::FullPivLU<Eigen::MatrixXd> ludecomp(correction_matrix.getEigenMatrix());

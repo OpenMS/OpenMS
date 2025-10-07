@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -87,8 +87,8 @@ FeatureMap fmap_ref;
 PeptideHit peptide_hit;
 std::vector<PeptideHit> peptide_hits;
 PeptideIdentification peptide_ID;
-vector<PeptideIdentification> identifications;
-vector<PeptideIdentification> unassignedIDs;
+PeptideIdentificationList identifications;
+PeptideIdentificationList unassignedIDs;
 Feature feature1;
 peptide_hit.setSequence(AASequence::fromString("AAAA"));
 peptide_hit.setCharge(2);

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -41,7 +41,7 @@ END_SECTION
 PeptideIdentification temp;
 temp.setScoreType("Posterior Error Probability");
 temp.setHigherScoreBetter(false);
-vector<PeptideIdentification> ids(3, temp);
+PeptideIdentificationList ids(3, temp);
 vector<PeptideHit> hits;
 // the first ID has 5 hits
 hits.resize(5);
@@ -89,7 +89,7 @@ hits[9].setSequence(AASequence::fromString("K"));
 hits[9].setScore(0.9);
 ids[2].setHits(hits);
 
-START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
+START_SECTION(void apply(PeptideIdentificationList& ids))
 {
   TOLERANCE_ABSOLUTE(0.01)
 
@@ -99,7 +99,7 @@ START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
   param.setValue("filter:considered_hits", 0);
   consensus.setParameters(param);
   // apply:
-  vector<PeptideIdentification> f = ids;
+  PeptideIdentificationList f = ids;
   map<String,String> empty;
   consensus.apply(f, empty);
 
@@ -107,51 +107,39 @@ START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
   hits = f[0].getHits();
   TEST_EQUAL(hits.size(), 11);
 
-  TEST_EQUAL(hits[0].getRank(), 1);
   TEST_EQUAL(hits[0].getSequence(), AASequence::fromString("F"));
   TEST_REAL_SIMILAR(hits[0].getScore(), 0.0);
 
-  TEST_EQUAL(hits[1].getRank(), 2);
   TEST_EQUAL(hits[1].getSequence(), AASequence::fromString("G"));
   TEST_REAL_SIMILAR(hits[1].getScore(), 0.2);
 
-  TEST_EQUAL(hits[2].getRank(), 3);
   TEST_EQUAL(hits[2].getSequence(), AASequence::fromString("C"));
   TEST_REAL_SIMILAR(hits[2].getScore(), 0.3);
 
   // hits with the same score get assigned the same rank:
-  TEST_EQUAL(hits[3].getRank(), 4);
   TEST_EQUAL(hits[3].getSequence(), AASequence::fromString("A"));
   TEST_REAL_SIMILAR(hits[3].getScore(), 0.4);
 
-  TEST_EQUAL(hits[4].getRank(), 4);
   TEST_EQUAL(hits[4].getSequence(), AASequence::fromString("D"));
   TEST_REAL_SIMILAR(hits[4].getScore(), 0.4);
 
-  TEST_EQUAL(hits[5].getRank(), 5);
   TEST_EQUAL(hits[5].getSequence(), AASequence::fromString("E"));
   TEST_REAL_SIMILAR(hits[5].getScore(), 0.5);
 
-  TEST_EQUAL(hits[6].getRank(), 6);
   TEST_EQUAL(hits[6].getSequence(), AASequence::fromString("B"));
   TEST_REAL_SIMILAR(hits[6].getScore(), 0.6);
 
-  TEST_EQUAL(hits[7].getRank(), 6);
   TEST_EQUAL(hits[7].getSequence(), AASequence::fromString("H"));
   TEST_REAL_SIMILAR(hits[7].getScore(), 0.6);
 
-  TEST_EQUAL(hits[8].getRank(), 7);
   TEST_EQUAL(hits[8].getSequence(), AASequence::fromString("I"));
   TEST_REAL_SIMILAR(hits[8].getScore(), 0.7);
 
-  TEST_EQUAL(hits[9].getRank(), 8);
   TEST_EQUAL(hits[9].getSequence(), AASequence::fromString("J"));
   TEST_REAL_SIMILAR(hits[9].getScore(), 0.8);
 
-  TEST_EQUAL(hits[10].getRank(), 9);
   TEST_EQUAL(hits[10].getSequence(), AASequence::fromString("K"));
   TEST_REAL_SIMILAR(hits[10].getScore(), 0.9);
-
 
   ids[2].setHigherScoreBetter(true);
   TEST_EXCEPTION(Exception::InvalidValue, consensus.apply(ids, empty));

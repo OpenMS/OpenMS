@@ -1,0 +1,79 @@
+name: Deploy to Bioconda
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to deploy from"
+        required: true
+        default: "nightly"
+  push:
+    branches:
+      - nightly
+
+jobs:
+  bioconda-deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -le {0}  # Important! Use login shell for proper conda initialization
+        
+    steps:
+      - name: Set up Conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: bioconda_env
+          auto-update-conda: true
+          #environment-file: environment.yml # Replace with your Conda environment file if necessary
+          python-version: 3.9
+          channels: conda-forge,bioconda,defaults
+          channel-priority: true
+
+      - name: Prepare output directory
+        run: |       
+          mkdir -p $GITHUB_WORKSPACE/output/noarch
+          touch $GITHUB_WORKSPACE/output/noarch/repodata.json
+          conda install bioconda-utils -y
+          conda index $GITHUB_WORKSPACE/output
+          ls -l
+          ls -l $GITHUB_WORKSPACE/output
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+      - name: Clone Bioconda recipes repository and add our changes (e.g., version with 'dev') on top of it
+        run: |
+          git clone https://github.com/OpenMS/bioconda-recipes.git bioconda-recipes
+          cd bioconda-recipes
+          git checkout -b nightly origin/nightly
+          git remote add bioconda https://github.com/bioconda/bioconda-recipes.git
+          git fetch bioconda master
+          git rebase bioconda/master         
+
+      - name: Lint and build OpenMS Bioconda packages
+        run: |
+          cd bioconda-recipes
+          bioconda-utils lint --packages pyopenms openms-meta
+          bioconda-utils build --docker --pkg_dir $GITHUB_WORKSPACE/output --packages openms-meta || true
+          conda index $GITHUB_WORKSPACE/output
+          
+      - name: Build pyopenms package
+        run: |
+          cd bioconda-recipes
+          bioconda-utils build --docker --mulled-test --pkg_dir $GITHUB_WORKSPACE/output --packages pyopenms || true
+          conda index $GITHUB_WORKSPACE/output
+
+      - name: Upload Conda packages
+        run: |
+          cd bioconda-recipes
+          ls -l $GITHUB_WORKSPACE/output
+          anaconda -v -t ${{ secrets.ANACONDA_TOKEN }} upload -u openms --no-progress --force $GITHUB_WORKSPACE/output/linux-64/*.tar.bz2
+
+      - name: Check upload status
+        run: |
+          if [[ $? -ne 0 ]]; then
+            echo "Upload failed!"
+            exit 1
+          fi

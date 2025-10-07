@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -9,6 +9,7 @@
 #include <OpenMS/VISUAL/TableView.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Qt5Port.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <QFile>
@@ -147,6 +148,10 @@ namespace OpenMS
           {
             str_list << ti->data(Qt::DisplayRole).toString();
           }
+          else if (ti->data(Qt::DisplayRole).isValid())
+          {
+            str_list << ti->data(Qt::DisplayRole).toString();
+          }
           else
           {
             str_list << "";
@@ -168,13 +173,7 @@ namespace OpenMS
 
   void TableView::hideColumns(const QStringList& header_names)
   {
-     /*
-       * Suppressing warning toSet() deprecated till Qt 5.14
-       */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    auto hset = header_names.toSet();
-#pragma GCC diagnostic pop
+    auto hset = toQSet(header_names);
     // add actions which show/hide columns
     for (int i = 0; i != columnCount(); ++i)
     {
@@ -252,7 +251,7 @@ namespace OpenMS
   {
     // check if this function is called on checkbox items only (either no DisplayRole set or the text is '' or ' ')
     if (!item->data(Qt::DisplayRole).isValid() || 
-        (item->data(Qt::DisplayRole).type() == QVariant::Type::String
+        (item->data(Qt::DisplayRole).typeId() == QMetaType::QString
           && (item->data(Qt::DisplayRole).toString().isEmpty() || item->data(Qt::DisplayRole).toString() == " ")
         )
        )

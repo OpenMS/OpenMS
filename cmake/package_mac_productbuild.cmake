@@ -1,36 +1,11 @@
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
-# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
-#
-# This software is released under a three-clause BSD license:
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above copyright
-#    notice, this list of conditions and the following disclaimer in the
-#    documentation and/or other materials provided with the distribution.
-#  * Neither the name of any author or any participating institution
-#    may be used to endorse or promote products derived from this software
-#    without specific prior written permission.
-# For a full list of authors, refer to the file AUTHORS.
-# --------------------------------------------------------------------------
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
-# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
+# 
 # --------------------------------------------------------------------------
 # $Maintainer: Julianus Pfeuffer $
 # $Authors: Julianus Pfeuffer $
 # --------------------------------------------------------------------------
+
 
 ## Very useful for debugging purposes: Disables the dependency on the "make install" target.
 ## In our case e.g. "make install" always builds the documentation etc. 
@@ -42,9 +17,9 @@
 set(CPACK_PACKAGING_INSTALL_PREFIX "/Applications/${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}")
 set(CPACK_PRODUCTBUILD_IDENTIFIER "de.openms")
 set(CPACK_PRODUCTBUILD_RESOURCES_DIR ${PROJECT_SOURCE_DIR}/cmake/MacOSX)
-set(CPACK_PRODUCTBUILD_BACKGROUND ${OPENMS_LOGOSMALL_NAME})
-set(CPACK_PRODUCTBUILD_BACKGROUND_ALIGNMENT "bottomleft")
-set(CPACK_PRODUCTBUILD_BACKGROUND_SCALING "none")
+# set(CPACK_PRODUCTBUILD_BACKGROUND ${OPENMS_LOGOSMALL_NAME})
+# set(CPACK_PRODUCTBUILD_BACKGROUND_ALIGNMENT "bottomleft")
+# set(CPACK_PRODUCTBUILD_BACKGROUND_SCALING "tofit")
 
 # Allow installing to every Domain if supported by current CMake version (https://gitlab.kitware.com/cmake/cmake/-/merge_requests/6825)
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.23.0")
@@ -57,9 +32,8 @@ endif()
 # The template would go in cmake/Modules which is already in our Module path.
 # Official template is here: https://gitlab.kitware.com/cmake/cmake/-/blob/v3.27.4/Modules/Internal/CPack/CPack.distribution.dist.in?ref_type=tags
 
-# reuse signing identity from signing app bundles (as in dmg)
-if(NOT DEFINED CPACK_PKGBUILD_IDENTITY_NAME)
-  message(WARNING "CPACK_PKGBUILD_IDENTITY_NAME not set. PKG will not be signed. Make sure to specify an identity with a Developer ID: Installer certificate (not Application certificate).")
+if(NOT DEFINED CPACK_PRODUCTBUILD_IDENTITY_NAME)
+  message(WARNING "CPACK_PRODUCTBUILD_IDENTITY_NAME not set. PKG will not be signed. Make sure to specify an identity with a Developer ID: Installer certificate (not Application certificate).")
 endif()
 
 set(MACOS_TARGET_ARCHS ${CMAKE_OSX_ARCHITECTURES})

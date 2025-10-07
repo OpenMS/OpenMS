@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -118,7 +118,7 @@ namespace OpenMS::Internal
         stemp.clear();
         if (compression == 1)
         {
-          OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, stemp);
+          OpenMS::ZlibCompression::uncompressData(raw_text, blob_bytes, stemp);
 
           void* byte_buffer = reinterpret_cast<void *>(&stemp[0]);
           Size buffer_size = stemp.size();
@@ -133,14 +133,14 @@ namespace OpenMS::Internal
         }
         else if (compression == 5)
         {
-          OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, stemp);
+          OpenMS::ZlibCompression::uncompressData(raw_text, blob_bytes, stemp);
           MSNumpressCoder::NumpressConfig config;
           config.setCompression("linear");
           MSNumpressCoder().decodeNPRaw(stemp, data, config);
         }
         else if (compression == 6)
         {
-          OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, stemp);
+          OpenMS::ZlibCompression::uncompressData(raw_text, blob_bytes, stemp);
           MSNumpressCoder::NumpressConfig config;
           config.setCompression("slof");
           MSNumpressCoder().decodeNPRaw(stemp, data, config);
@@ -181,7 +181,7 @@ namespace OpenMS::Internal
           std::vector< double >::iterator data_it = data.begin();
           for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
-            it->setMZ(*data_it);
+            it->setPos(*data_it);
           }
           cont_data[curr_id] += 1;
         }
@@ -197,7 +197,7 @@ namespace OpenMS::Internal
           std::vector< double >::iterator data_it = data.begin();
           for (auto it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
-            it->setMZ(*data_it);
+            it->setPos(*data_it);
           }
           cont_data[curr_id] += 1;
         }
@@ -273,7 +273,7 @@ namespace OpenMS::Internal
           {
             MzMLFile f;
             std::string uncompressed;
-            OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, uncompressed);
+            OpenMS::ZlibCompression::uncompressData(raw_text, blob_bytes, uncompressed);
             f.loadBuffer(uncompressed, exp);
 
             nr_results++;

@@ -1,0 +1,7 @@
+>neighbor_sp|P06750|AGGL_RICCO Agglutinin OS=Ricinus communis PE=1 SV=1
+HEIPVLPNRFQYIEGEMRSAPDPSVITLENSWGRLSTAIQESNQGAFASPIQLQRCAPPPSSQFSLLIRPVVPNFNADVC
+MDPEPIVRAEQQWALYADGSIRPQQNRILSCGPASSGQR
+>neighbor_sp|P77985|CYSE_STAXY Serine acetyltransferase OS=Staphylococcus xylosus GN=cysE PE=3 SV=1
+HPDIGDNVLIAAGAKTFDHRNGEIQDDYII
+>neighbor_sp|B2K5N5|EFG_YERPB Elongation factor G OS=Yersinia pseudotuberculosis serotype IB (strain PB1/+) GN=fusA PE=3 SV=1  (as a spurious hit)
+VVGQLK

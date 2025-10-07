@@ -175,15 +175,17 @@ if iswin:
 elif sys.platform.startswith("linux"):
     extra_link_args = ["-Wl,-s"]
     if OMP:
-        libraries.append("gomp")
+        libraries.append("libomp")
         libraries.append("pthread")
 elif sys.platform == "darwin":
     library_dirs.insert(0,j(OPEN_MS_BUILD_DIR,"pyOpenMS","pyopenms"))
     if OMP:
         libraries.append("omp")
     # we need to manually link to the Qt Frameworks
-    extra_compile_args = ["-Qunused-arguments"]
-    extra_link_args = ["-Wl,-rpath","-Wl,@loader_path/"]
+    python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
+    pyopenms_path = f"@loader_path/../lib/python{python_version}/site-packages/pyopenms"
+    extra_compile_args = ["-Qunused-arguments", "-fopenmp"]
+    extra_link_args = ["-Wl,-rpath,@loader_path/../lib", f"-Wl,-rpath,{pyopenms_path}", "-lomp"]
 if IS_DEBUG:
     extra_compile_args.append("-g2")
 if OMP and OPENMP_CXX_FLAGS:
@@ -236,7 +238,7 @@ for module in mnames:
         extra_compile_args=extra_compile_args,
         extra_objects=objects,
         extra_link_args=extra_link_args,
-		define_macros=[('BOOST_ALL_NO_LIB', None)] ## Deactivates boost autolink (esp. on win).
+		define_macros=[('BOOST_ALL_NO_LIB', None), ("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")] ## Deactivates boost autolink (esp. on win). Shuts up the damn "deprecated NumPy API" warning spam (https://docs.cython.org/en/latest/src/userguide/numpy_tutorial.html#numpy-compilation)
 		## Alternative is to specify the boost naming scheme (--layout param; easy if built from contrib)
 		## TODO just take over compile definitions from OpenMS (CMake)
     ))
@@ -254,7 +256,7 @@ setup(
         'pyopenms': ['py.typed', '*.pyi']
     },
 	install_requires=[
-          'numpy',
+          'numpy>=1.25.0',
           'pandas',
           'matplotlib>=3.5'
     ],
@@ -285,8 +287,8 @@ setup(
         "Documentation Source": "https://github.com/OpenMS/pyopenms-docs",
     },
 
-    author="Uwe Schmitt and the OpenMS team",
-    author_email="uschmitt@mineway.de",
+    author="OpenMS team",
+    author_email="webmaster@openms.de",
 
     ext_modules=ext,
     include_package_data=True  # see MANIFEST.in

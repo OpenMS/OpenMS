@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -578,7 +578,7 @@ protected:
     for (typename MapType::Iterator map_it = input_map.begin();
          map_it != input_map.end(); ++map_it)
     {
-      vector<PeptideIdentification>& ids = map_it->getPeptideIdentifications();
+      PeptideIdentificationList& ids = map_it->getPeptideIdentifications();
       vector<Size> times_seen(number_of_runs);
       for (PeptideIdentification& pep : ids)
       {
@@ -649,10 +649,10 @@ protected:
     if (in_type == FileTypes::IDXML)
     {
       vector<ProteinIdentification> prot_ids;
-      vector<PeptideIdentification> pep_ids;
+      PeptideIdentificationList pep_ids;
       if (getFlag_("per_spectrum"))
       {
-        map<String, unordered_map<String, vector<PeptideIdentification>>> grouping_per_file;
+        map<String, unordered_map<String, PeptideIdentificationList>> grouping_per_file;
         map<String, unordered_set<String>> seen_proteins_per_file;
         map<String, Size> runid_to_old_run_idx;
         map<String, String> runid_to_old_se;
@@ -664,7 +664,7 @@ protected:
         for (const auto& infile : in)
         {
           vector<ProteinIdentification> tmp_prot_ids;
-          vector<PeptideIdentification> tmp_pep_ids;
+          PeptideIdentificationList tmp_pep_ids;
           FileHandler().loadIdentifications(infile, tmp_prot_ids, tmp_pep_ids, {FileTypes::IDXML});
           Size idx(0);
           for (const auto& prot : tmp_prot_ids)
@@ -749,11 +749,11 @@ protected:
               f = FileHandler::stripExtension(File::basename(f)); // some SE adapters write full paths, some may use raw
             }
             String original_file = original_files[0];
-            auto iter_inserted = grouping_per_file.emplace(original_file, unordered_map<String,vector<PeptideIdentification>>{});
+            auto iter_inserted = grouping_per_file.emplace(original_file, unordered_map<String,PeptideIdentificationList>{});
             if (pep_id.metaValueExists("spectrum_reference"))
             {
               String nativeID = pep_id.getSpectrumReference();
-              auto nativeid_iter_inserted = iter_inserted.first->second.emplace(nativeID, vector<PeptideIdentification>{});
+              auto nativeid_iter_inserted = iter_inserted.first->second.emplace(nativeID, PeptideIdentificationList{});
               nativeid_iter_inserted.first->second.emplace_back(std::move(pep_id));
             }
           }
@@ -768,7 +768,7 @@ protected:
           setProteinIdentificationSettings_(to_put, mzml_to_sesettings[new_run_id], mzml_to_rescoresettings[new_run_id]);
           for (const auto& ref_peps : file_ref_peps.second)
           {
-            vector<PeptideIdentification> peps = ref_peps.second;
+            PeptideIdentificationList peps = ref_peps.second;
             if (peps.empty())
             {
               continue; //sth went wrong. skip

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -65,7 +65,7 @@ namespace OpenMS
 
     std::unique_ptr<LayerStatistics> getStats() const override;
 
-    bool annotate(const std::vector<PeptideIdentification>& identifications, const std::vector<ProteinIdentification>& protein_identifications) override;
+    bool annotate(const PeptideIdentificationList& identifications, const std::vector<ProteinIdentification>& protein_identifications) override;
   
     /// Returns a const reference to the consensus feature data
     const ConsensusMapSharedPtrType& getConsensusMap() const

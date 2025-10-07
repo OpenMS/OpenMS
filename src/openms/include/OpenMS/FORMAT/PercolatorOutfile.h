@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -10,6 +10,7 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 
@@ -42,7 +43,7 @@ namespace OpenMS
 
     /// Loads a Percolator output file
     void load(const String& filename, ProteinIdentification& proteins,
-              std::vector<PeptideIdentification>& peptides,
+              PeptideIdentificationList& peptides,
               SpectrumMetaDataLookup& lookup,
               enum ScoreType output_score = QVALUE);
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -32,7 +32,7 @@ using namespace std;
     <th ALIGN = "center"> potential successor tools </td>
 </tr>
 <tr>
-    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_CometAdapter (or other ID engines) </td>
     <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ConsensusID </td>
 </tr>
 </table>
@@ -140,7 +140,7 @@ protected:
     //-------------------------------------------------------------
     FileHandler file;
     vector<ProteinIdentification> protein_ids;
-    vector<PeptideIdentification> peptide_ids;
+    PeptideIdentificationList peptide_ids;
     file.loadIdentifications(inputfile_name, protein_ids, peptide_ids, {FileTypes::IDXML});
     PosteriorErrorProbabilityModel PEP_model;
     PEP_model.setParameters(fit_algorithm);

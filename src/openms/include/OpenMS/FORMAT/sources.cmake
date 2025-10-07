@@ -57,7 +57,6 @@ MSNumpressCoder.h
 MSPFile.h
 MSPGenericFile.h
 MSstatsFile.h
-MascotInfile.h
 MascotGenericFile.h
 MascotRemoteQuery.h
 MascotXMLFile.h
@@ -106,7 +105,6 @@ XTandemInfile.h
 XTandemXMLFile.h
 FileTypes.h
 MzIdentMLFile.h
-MzQuantMLFile.h
 TraMLFile.h
 XMassFile.h
 XQuestResultXMLFile.h

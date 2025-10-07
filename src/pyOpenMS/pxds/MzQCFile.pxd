@@ -26,7 +26,7 @@ cdef extern from "<OpenMS/FORMAT/MzQCFile.h>" namespace "OpenMS":
                    String label,
                    FeatureMap & feature_map,
                    libcpp_vector[ ProteinIdentification ] & prot_ids, 
-                   libcpp_vector[ PeptideIdentification ] & pep_ids) except + nogil 
+                   PeptideIdentificationList & pep_ids) except + nogil 
                    # wrap-doc:
                    #  Stores QC data in mzQC file with JSON format
                    #   

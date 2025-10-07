@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -127,8 +127,8 @@ protected:
     OpenMS::PeakMap chromatogram_map;
     OpenMS::PeakMap output;
 
-    FileHandler().loadTransitions(tr_file, targeted_exp, {FileTypes::TRAML});
-    FileHandler().loadExperiment(in, chromatogram_map, {FileTypes::MZML});
+    FileHandler().loadTransitions(tr_file, targeted_exp, {FileTypes::TRAML}, log_type_);
+    FileHandler().loadExperiment(in, chromatogram_map, {FileTypes::MZML}, log_type_);
 
     Param param = getParam_().copy("algorithm:", true);
 
@@ -146,7 +146,7 @@ protected:
     }
     output.setChromatograms(chromatograms);
 
-    FileHandler().storeExperiment(out, output, {FileTypes::MZML});
+    FileHandler().storeExperiment(out, output, {FileTypes::MZML}, log_type_);
     return EXECUTION_OK;
   }
 

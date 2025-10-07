@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -22,7 +22,8 @@ namespace OpenMS
       @brief Generates theoretical spectra for peptides with various options
 
       If the tool parameter add_metainfo is set to true,
-      ion names like y8+ or [M-H2O+2H]++ are written as strings in a StringDataArray with the name "IonNames"
+      ion names like y8+ or [M-H2O+2H]++ are written as strings in a StringDataArray with the name 
+      corresponding to the constant Constants::UserParam::IonNames
       and charges are written as integers in an IntegerDataArray with the name "Charges"
       in the returned PeakSpectrum.
 
@@ -60,6 +61,15 @@ namespace OpenMS
     /// assignment operator
     TheoreticalSpectrumGenerator& operator=(const TheoreticalSpectrumGenerator& tsg);
 
+
+    /**
+     * Generates a simple tandem MS Spectrum,
+     * @param[out] spectrum Each peak is only represented as a single m/z value
+     * @param peptide The input peptide
+     * @param charge The max charge of the peaks
+     */
+    void getPrefixAndSuffixIonsMZ(std::vector<float>& spectrum, const AASequence& peptide, int charge) const;
+
     /** @name Acessors
      */
     //@{
@@ -74,6 +84,7 @@ namespace OpenMS
     /// If precursor charge is greater than 2 ions with charge 1 & 2 will be generated, else only ions of charge 1 will appear in the spectrum.
     /// @throw Exception::InvalidParameter   If fragmentation method is anything else than 'CID', 'HCID', 'ECD' or 'ETD'.
     static MSSpectrum generateSpectrum(const Precursor::ActivationMethod& fm, const AASequence& seq, int precursor_charge);
+
 
     /// overwrite
     void updateMembers_() override;
@@ -97,8 +108,17 @@ namespace OpenMS
     void addLosses_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, const Residue::ResidueType res_type, int charge) const;
 
     /// helper to add full neutral loss ladders (for single peaks), also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
-    void addLossesFaster_(PeakSpectrum& spectrum, double mz, const std::set<EmpiricalFormula>& f_losses, int ion_ordinal, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, const std::map<EmpiricalFormula, String>& formula_str_cache, double intensity, const Residue::ResidueType res_type, bool add_metainfo, int charge) const;
+    void addLossesFaster_(PeakSpectrum& spectrum, double mz, const std::set<EmpiricalFormula>& f_losses, int ion_ordinal, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, const std::map<EmpiricalFormula, String>& formula_str_cache, double intensity, const String& annotation_prefix_string, bool add_metainfo, int charge) const;
 
+    /// helper for getPrefixAndSuffixIonsMZ. For given Ion-Type and charge calculates a peaks
+    static void addPrefixAndSuffixIons_(std::vector<float>& spectrum, const AASequence& peptide, Residue::ResidueType res_type, int charge);
+    void addInternalFragmentPeaks_(PeakSpectrum& spectrum,
+                                   const AASequence& peptide,
+                                   DataArrays::StringDataArray& ion_names,
+                                   DataArrays::IntegerDataArray& charges,
+                                   MSSpectrum::Chunks& chunks,
+                                   const Residue::ResidueType res_type,
+                                   Int charge) const;
     bool add_b_ions_;
     bool add_y_ions_;
     bool add_a_ions_;
@@ -109,8 +129,10 @@ namespace OpenMS
     bool add_zp2_ions_;
     bool add_first_prefix_ion_;
     bool add_losses_;
+    bool add_term_losses_;
     bool add_metainfo_;
     bool add_isotopes_;
+    bool add_internal_fragments_;
     int isotope_model_;
     bool add_precursor_peaks_;
     bool add_all_precursor_charges_ ;

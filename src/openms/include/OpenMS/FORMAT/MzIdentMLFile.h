@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,9 +11,9 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <vector>
 
@@ -54,21 +54,14 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String& filename, std::vector<ProteinIdentification>& poid, std::vector<PeptideIdentification>& peid);
+    void load(const String& filename, std::vector<ProteinIdentification>& poid, PeptideIdentificationList& peid);
 
     /**
         @brief Stores the identifications in a MzIdentML file.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String& filename, const std::vector<ProteinIdentification>& poid, const std::vector<PeptideIdentification>& peid) const;
-
-    /**
-        @brief Stores the identifications in a MzIdentML file.
-
-        @exception Exception::UnableToCreateFile is thrown if the file could not be created
-    */
-    void store(const String& filename, const Identification& id) const;
+    void store(const String& filename, const std::vector<ProteinIdentification>& poid, const PeptideIdentificationList& peid) const;
 
     /**
         @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.

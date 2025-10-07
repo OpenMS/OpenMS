@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -126,7 +126,7 @@ protected:
 
     writeLogInfo_("Reading input file...");
 
-    std::vector<PeptideIdentification> peptide_ids;
+    PeptideIdentificationList peptide_ids;
     ProteinIdentification protein_id;
     // Input File loading, initializes all_pep_ids_ vector
     ExitCodes load_result = loadInputFile_(peptide_ids, protein_id);
@@ -189,7 +189,7 @@ private:
   * Loads the input file.
   * @return 0 if the loading of the input was successful, error code otherwise
   */
-  ExitCodes loadInputFile_(std::vector<PeptideIdentification>& peptide_ids, ProteinIdentification& protein_id)
+  ExitCodes loadInputFile_(PeptideIdentificationList& peptide_ids, ProteinIdentification& protein_id)
   {
     std::vector<ProteinIdentification> protein_ids;
     FileHandler().loadIdentifications(arg_in_, protein_ids, peptide_ids, {FileTypes::MZIDENTML, FileTypes::IDXML, FileTypes::XQUESTXML});

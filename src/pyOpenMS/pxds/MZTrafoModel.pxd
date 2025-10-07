@@ -4,7 +4,7 @@ from RANSAC cimport *
 from String cimport *
 from CalibrationData cimport *
 
-cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>" namespace "OpenMS":
 
     cdef cppclass MZTrafoModel:
         # wrap-doc:
@@ -117,7 +117,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "Open
 
         String toString() except + nogil 
         
-cdef extern from "<OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>" namespace "OpenMS::MZTrafoModel":
+cdef extern from "<OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>" namespace "OpenMS::MZTrafoModel":
 
     cdef enum MZTrafoModel_MODELTYPE "OpenMS::MZTrafoModel::MODELTYPE":
         LINEAR

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -12,6 +12,7 @@
 #include <numeric>
 #include <functional>
 #include <stdexcept>
+#include <Eigen/Core>
 
 namespace OpenSwath
 {
@@ -25,7 +26,7 @@ namespace OpenSwath
     normalized_intensities.resize(intensities.size());
     if (normalizer > 0)
     {
-      std::transform(intensities.begin(), intensities.end(), normalized_intensities.begin(),
+      std::transform(intensities.cbegin(), intensities.cend(), normalized_intensities.begin(),
                      [&normalizer](double val)
                      {
                       return val / normalizer;
@@ -68,5 +69,33 @@ namespace OpenSwath
     double score2 = OpenSwath::manhattanDist(intExp.begin(), intExp.end(), theorint.begin());
     return score2;
   }
+
+  // Template implementation (only compiled in this .cpp file)
+  template <typename Texp, typename Ttheo>
+  double dotProd(Texp intExpBeg, Texp intExpEnd, Ttheo intTheo)
+  {
+    size_t size = std::distance(intExpBeg, intExpEnd);
+    
+    // Get the value types
+    using ExpType = typename std::iterator_traits<Texp>::value_type;
+    using TheoType = typename std::iterator_traits<Ttheo>::value_type;
+    
+    // Create appropriate Eigen maps based on the actual data types
+    Eigen::Map<const Eigen::Matrix<ExpType, Eigen::Dynamic, 1>> vec1(&(*intExpBeg), size);
+    Eigen::Map<const Eigen::Matrix<TheoType, Eigen::Dynamic, 1>> vec2(&(*intTheo), size);
+    
+    // Compute dot product and cast result to double
+    return static_cast<double>(vec1.dot(vec2));
+  }
+
+  // Explicit template instantiation definitions (compile these specific versions)
+  template OPENSWATHALGO_DLLAPI double dotProd<std::vector<double>::const_iterator, std::vector<double>::const_iterator>(
+    std::vector<double>::const_iterator, std::vector<double>::const_iterator, std::vector<double>::const_iterator);
+  
+  template OPENSWATHALGO_DLLAPI double dotProd<std::vector<float>::const_iterator, std::vector<float>::const_iterator>(
+    std::vector<float>::const_iterator, std::vector<float>::const_iterator, std::vector<float>::const_iterator);
+  
+  template OPENSWATHALGO_DLLAPI double dotProd<std::vector<int>::const_iterator, std::vector<int>::const_iterator>(
+    std::vector<int>::const_iterator, std::vector<int>::const_iterator, std::vector<int>::const_iterator);
 
 }

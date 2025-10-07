@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -40,7 +40,7 @@ namespace OpenMS
     InRTRange< MSSpectrum> range(0.0, 36.0);
 
     //remove the range
-    spectra.erase(remove_if(spectra.begin(), spectra.end(), range), spectra.end());
+    std::erase_if(spectra, range);
     @endcode
 
     The code for the removal of peaks within certain intensity range from a spectrum might look like this:
@@ -55,7 +55,7 @@ namespace OpenMS
     InIntensityRange range< Peak1D >(0.0, 5000.0);
 
     //remove the range
-    spectrum.erase(remove_if(spectrum.begin(), spectrum.end(), range), spectrum.end());
+    std::erase_if(spectrum, range);
     @endcode
   */
 

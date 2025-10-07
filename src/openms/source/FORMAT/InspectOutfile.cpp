@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -14,7 +14,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
-#include <QtCore/QRegExp>
+#include <QtCore/QRegularExpression>
 
 #include <fstream>
 
@@ -49,7 +49,7 @@ namespace OpenMS
     return true;
   }
 
-  vector<Size> InspectOutfile::load(const String& result_filename, vector<PeptideIdentification>& peptide_identifications,
+  vector<Size> InspectOutfile::load(const String& result_filename, PeptideIdentificationList& peptide_identifications,
                                     ProteinIdentification& protein_identification, const double p_value_threshold, const String& database_filename)
   {
     // check whether the p_value is correct
@@ -267,7 +267,7 @@ namespace OpenMS
     }
 
     if (!peptide_identifications.empty())
-      peptide_identifications.back().assignRanks();
+      peptide_identifications.back().sort();
 
     // search the sequence of the proteins
     if (!protein_identification.getHits().empty() && !database_filename.empty())
@@ -536,7 +536,7 @@ namespace OpenMS
   void
   InspectOutfile::getPrecursorRTandMZ(
     const vector<pair<String, vector<pair<Size, Size> > > >& files_and_peptide_identification_with_scan_number,
-    vector<PeptideIdentification>& ids)
+    PeptideIdentificationList& ids)
   {
     PeakMap experiment;
     String type;
@@ -1127,12 +1127,13 @@ namespace OpenMS
     protein_identification.setSearchEngineVersion("unknown");
     // searching for something like this: InsPecT version 20060907, InsPecT version 20100331
     QString response(cmd_output.toQString());
-    QRegExp rx("InsPecT (version|vesrion) (\\d+)"); // older versions of InsPecT have typo...
-    if (rx.indexIn(response) == -1)
+    QRegularExpression rx("InsPecT (version|vesrion) (\\d+)"); // older versions of InsPecT have typo...
+    auto match = rx.match(response);
+    if (!match.hasMatch())
     {
       return false;
     }
-    protein_identification.setSearchEngineVersion(String(rx.cap(2)));
+    protein_identification.setSearchEngineVersion(match.captured(2));
     return true;
   }
 

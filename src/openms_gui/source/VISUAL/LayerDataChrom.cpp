@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -18,7 +18,9 @@
 #include <OpenMS/VISUAL/Painter2DBase.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
+#include <OpenMS/METADATA/AnnotatedMSRun.h>
 
+#include <boost/make_shared.hpp>
 
 using namespace std;
 
@@ -41,14 +43,14 @@ namespace OpenMS
   std::unique_ptr<LayerStoreData> LayerDataChrom::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
     auto ret = make_unique<LayerStoreDataPeakMapVisible>();
-    ret->storeVisibleExperiment(*chromatogram_map_.get(), visible_range, layer_filters);
+    ret->storeVisibleExperiment(chromatogram_map_.get()->getMSExperiment(), visible_range, layer_filters);
     return ret;
   }
 
   std::unique_ptr<LayerStoreData> LayerDataChrom::storeFullData() const
   {
     auto ret = make_unique<LayerStoreDataPeakMapAll>();
-    ret->storeFullExperiment(*chromatogram_map_.get());
+    ret->storeFullExperiment(chromatogram_map_.get()->getMSExperiment());
     return ret;
   }
 
@@ -133,15 +135,17 @@ namespace OpenMS
 
     // projection for m/z
     auto ptr_mz = make_unique<LayerData1DPeak>();
-    MSExperiment exp_mz;
-    exp_mz.addSpectrum(std::move(projection_mz));
-    ptr_mz->setPeakData(ExperimentSharedPtrType(new ExperimentType(exp_mz)));
+
+    ExperimentSharedPtrType exp_mz = boost::make_shared<ExperimentType>();
+    exp_mz->getMSExperiment().addSpectrum(std::move(projection_mz));
+    ptr_mz->setPeakData(exp_mz);
 
     // projection for RT
     auto ptr_rt = make_unique<LayerData1DChrom>();
-    MSExperiment exp_rt;
-    exp_mz.addChromatogram(std::move(projection_rt));
-    ptr_rt->setChromData(ExperimentSharedPtrType(new ExperimentType(exp_rt)));
+
+    exp_mz->getMSExperiment().addChromatogram(std::move(projection_rt));
+
+    ptr_rt->setChromData(boost::make_shared<AnnotatedMSRun>());
 
     auto assign_axis = [&](auto unit, auto& layer) {
       switch (unit)
@@ -165,7 +169,7 @@ namespace OpenMS
 
   PeakIndex LayerDataChrom::findHighestDataPoint(const RangeAllType& area) const
   {
-    const PeakMap& exp = *getChromatogramData();
+    const PeakMap& exp = getChromatogramData().get()->getMSExperiment();
     int count {-1};
     for (const auto& chrom : exp.getChromatograms())
     {
@@ -231,6 +235,6 @@ namespace OpenMS
 
   std::unique_ptr<LayerStatistics> LayerDataChrom::getStats() const
   {
-    return make_unique<LayerStatisticsPeakMap>(*chromatogram_map_);
+    return make_unique<LayerStatisticsPeakMap>(chromatogram_map_->getMSExperiment());
   }
 } // namespace OpenMS

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -84,7 +84,8 @@ public:
     /// Removes the DataValue corresponding to @p index if it exists
     void removeMetaValue(UInt index);
 
-    /// function to copy all meta values from one object to this one
+    /// Copy all meta values from @p from to this one
+    /// Existing values will be overwritten, new values will be added
     void addMetaValues(const MetaInfoInterface& from);
 
     /// Returns a reference to the MetaInfoRegistry

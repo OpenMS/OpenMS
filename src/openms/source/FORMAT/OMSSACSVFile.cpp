@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -19,7 +19,7 @@ namespace OpenMS
 
   OMSSACSVFile::~OMSSACSVFile() = default;
 
-  void OMSSACSVFile::load(const String & filename, ProteinIdentification & /* protein_identification */, vector<PeptideIdentification> & id_data) const
+  void OMSSACSVFile::load(const String & filename, ProteinIdentification & /* protein_identification */, PeptideIdentificationList & id_data) const
   {
     ifstream is(filename.c_str());
     if (!is)

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -21,7 +21,7 @@ namespace OpenMS
 
   void MascotXMLFile::load(const String& filename,
                            ProteinIdentification& protein_identification,
-                           vector<PeptideIdentification>& id_data,
+                           PeptideIdentificationList& id_data,
                            const SpectrumMetaDataLookup& lookup)
   {
     map<String, vector<AASequence> > peptides;
@@ -31,7 +31,7 @@ namespace OpenMS
 
   void MascotXMLFile::load(const String& filename,
                            ProteinIdentification& protein_identification,
-                           vector<PeptideIdentification>& id_data,
+                           PeptideIdentificationList& id_data,
                            map<String, vector<AASequence> >& peptides,
                            const SpectrumMetaDataLookup& lookup)
   {
@@ -45,7 +45,7 @@ namespace OpenMS
 
     // since the Mascot XML can contain "peptides" without sequences,
     // the identifications without any real peptide hit are removed
-    vector<PeptideIdentification> filtered_hits;
+    PeptideIdentificationList filtered_hits;
     filtered_hits.reserve(id_data.size());
     Size missing_sequence = 0; // counter
 

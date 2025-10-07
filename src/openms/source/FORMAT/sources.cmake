@@ -44,7 +44,6 @@ MSNumpressCoder.cpp
 MSPFile.cpp
 MSPGenericFile.cpp
 MSstatsFile.cpp
-MascotInfile.cpp
 MascotGenericFile.cpp
 MascotRemoteQuery.cpp
 MascotXMLFile.cpp
@@ -53,7 +52,6 @@ MzDataFile.cpp
 MzIdentMLFile.cpp
 MzMLFile.cpp
 MzQCFile.cpp
-MzQuantMLFile.cpp
 MzTab.cpp
 MzTabBase.cpp
 MzTabM.cpp
@@ -103,6 +101,10 @@ ZlibCompression.cpp
 
 if (WITH_HDF5)
   list(APPEND sources_list HDF5Connector.cpp)  
+endif()
+
+if (WITH_PARQUET)
+  list(APPEND sources_list QuantmsIO.cpp)  
 endif()
 
 ### add path to the filenames

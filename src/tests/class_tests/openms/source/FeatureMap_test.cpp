@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -11,7 +11,7 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/MathFunctions.h>
 
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -49,7 +49,7 @@ START_SECTION((virtual ~FeatureMap()))
 	delete pl_ptr;
 END_SECTION
 
-std::vector<PeptideIdentification> ids(1);
+PeptideIdentificationList ids(1);
 PeptideHit hit;
 hit.setSequence(AASequence::fromString("ABCDE"));
 ids[0].setHits(std::vector<PeptideHit>(1, hit));
@@ -104,20 +104,20 @@ START_SECTION((void setProteinIdentifications(const std::vector<ProteinIdentific
 	TEST_EQUAL(tmp.getProteinIdentifications().size(),2)
 END_SECTION
 
-START_SECTION((const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const))
+START_SECTION((const PeptideIdentificationList& getUnassignedPeptideIdentifications() const))
 	FeatureMap tmp;
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),0)
 END_SECTION
 
-START_SECTION((std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications()))
+START_SECTION((PeptideIdentificationList& getUnassignedPeptideIdentifications()))
 	FeatureMap tmp;
 	tmp.getUnassignedPeptideIdentifications().resize(1);
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),1)
 END_SECTION
 
-START_SECTION((void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications)))
+START_SECTION((void setUnassignedPeptideIdentifications(const PeptideIdentificationList& unassigned_peptide_identifications)))
 	FeatureMap tmp;
-	tmp.setUnassignedPeptideIdentifications(std::vector<PeptideIdentification>(2));
+	tmp.setUnassignedPeptideIdentifications(PeptideIdentificationList(2));
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),2)
 END_SECTION
 

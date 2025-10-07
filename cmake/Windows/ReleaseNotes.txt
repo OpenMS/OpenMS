@@ -5,49 +5,23 @@ the OpenMS library.
 several small applications that can be chained to create analysis pipelines
 tailored for a specific problem.
 
-Note that the Windows binary release is meant for end-users only, rather than
-for developers who want to contribute algorithms.  Developers should download
+Note that this Windows binary release is meant for end-users only, rather than
+for developers who want to contribute algorithms. Developers should download
 the source code version (see https://www.openms.de for details).
 
 ======================
 Read the documentation
 ======================
-To get familiar with TOPP we recommend reading the documentation.  Look into
-your Start-Menu (Start - Programs - OpenMS) and open the Documentation page.
-On the left side you will see the TOPP section.  Read it after finishing with
-this document! Ignore any technical details; these are meant for developers.
-Especially you should read the "TOPP tutorial" and "TOPP documentation".
 
-The TOPP tools can be called from two graphical
-applications (GUI) which are part of this installation; either "TOPPView", or "TOPPAS".
-See the documentation for a tutorial on how to use TOPPView and TOPPAS.
-Pipelines can also be created this way.
-Advanced users can also use scripts and the Windows command line. Pipelines can be run from 
-a GUI tool or via the "ExecutePipeline" command line tool.
+To get familiar with TOPP we recommend reading the documentation. 
+If you installed the documention that came with this installer,
+look into your Windows Start-Menu and start typing "OpenMS Documentation".
+Autocompletion will do the rest...
 
-The INIFileEditor allows you to edit .ini-Files, which are XML configuration
-files that every TOPP tool can use to adjust its parameters.
+You can also visit our online documentation at https://openms.de/current_doxygen/, which is identical to the
+local docs (if you installed them).
 
-========================
-The Windows command line
-========================
-
-This part is usually not necessary for the common user, even if you are advanced.
-However, special requirements (e.g. automated conversion tools, webserver or cluster integration)
-might require you to use the command line.
-To get familiar with the Windows command line, we recommend reading one of
-many tutorials available on the internet
-(e.g. http://www.voidspace.org.uk/python/articles/command_line.shtml).  The
-most useful command you will need are 'cd' (change into a directory) and 'dir'
-(list the content of the current directory).  You can get further information
-on those commands by typing "help cd" or "help dir".  Typing "help" alone will
-give you all available commands.  You will find a link in the OpenMS start
-menu group, which opens a Windows command line.  Once the command line is
-open, you can type 'dir' to see the names of the TOPP tools, which reside in
-the directory.  You can just call a TOPP tool without any further arguments -
-it will print some useful information and give you hints on how to use the
-TOPP tool.  Note that you can call the TOPP tools from any directory, i.e. you
-do not have to be in "C:\program files\OpenMS\TOPP" to call the FeatureFinder
-tool.
+Another good source of information with an introduction to the wider OpenMS ecosystem can be found at
+https://openms.readthedocs.io/en/latest/getting-started/introduction.html
 
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 //
 // --------------------------------------------------------------------------
@@ -86,7 +86,7 @@ namespace OpenMS
      * @param p Marginalization norm
      * @param pep_prior Peptide prior (defines at which evidence probability, additional evidence is beneficial)
      */
-    MessagePasserFactory<Label>(double alpha, double beta, double gamma, double p, double pep_prior);
+    MessagePasserFactory(double alpha, double beta, double gamma, double p, double pep_prior);
 
 
 

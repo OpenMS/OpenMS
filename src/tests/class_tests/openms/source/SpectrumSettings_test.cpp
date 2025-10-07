@@ -1,4 +1,4 @@
-// Copyright (c) 2002-present, The OpenMS Team -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
 // 
 // --------------------------------------------------------------------------
@@ -177,33 +177,6 @@ START_SECTION((void setComment(const String& comment)))
 	TEST_EQUAL(tmp.getComment(), "bla");
 END_SECTION
 
-START_SECTION((const std::vector<PeptideIdentification>& getPeptideIdentifications() const))
-	SpectrumSettings tmp;
-	vector<PeptideIdentification> vec(tmp.getPeptideIdentifications());
-	TEST_EQUAL(vec.size(),0);
-END_SECTION
-
-START_SECTION((void setPeptideIdentifications(const std::vector<PeptideIdentification>& identifications)))
-	SpectrumSettings tmp;
-	vector<PeptideIdentification> vec;
-	
-	tmp.setPeptideIdentifications(vec);
-	TEST_EQUAL(tmp.getPeptideIdentifications().size(),0);
-	
-	PeptideIdentification dbs;
-	vec.push_back(dbs);
-	tmp.setPeptideIdentifications(vec);
-	TEST_EQUAL(tmp.getPeptideIdentifications().size(),1);
-END_SECTION
-
-START_SECTION((std::vector<PeptideIdentification>& getPeptideIdentifications()))
-	SpectrumSettings tmp;
-	vector<PeptideIdentification> vec;
-	
-	tmp.getPeptideIdentifications().resize(1);
-	TEST_EQUAL(tmp.getPeptideIdentifications().size(),1);
-END_SECTION
-
 START_SECTION((SpectrumSettings& operator= (const SpectrumSettings& source)))
   SpectrumSettings tmp;
   tmp.setMetaValue("bla","bluff");
@@ -211,7 +184,6 @@ START_SECTION((SpectrumSettings& operator= (const SpectrumSettings& source)))
 	tmp.getInstrumentSettings().getScanWindows().resize(1);
 	tmp.getPrecursors().resize(1);
 	tmp.getProducts().resize(1);
-	tmp.getPeptideIdentifications().resize(1);
 	tmp.setType(SpectrumSettings::CENTROID);
 	tmp.setComment("bla");
 	tmp.setNativeID("nid");
@@ -220,7 +192,6 @@ START_SECTION((SpectrumSettings& operator= (const SpectrumSettings& source)))
 	SpectrumSettings tmp2(tmp);
 	TEST_EQUAL(tmp2.getComment(), "bla");
 	TEST_EQUAL(tmp2.getType(), SpectrumSettings::CENTROID);
-	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 1);	
 	TEST_EQUAL(tmp2.getPrecursors().size(),1);	
 	TEST_EQUAL(tmp2.getProducts().size(),1);	
 	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);
@@ -239,7 +210,6 @@ START_SECTION((SpectrumSettings(const SpectrumSettings& source)))
 	tmp.getProducts().resize(1);
 	tmp.setType(SpectrumSettings::CENTROID);
 	tmp.setComment("bla");
-	tmp.getPeptideIdentifications().resize(1);
 	tmp.setNativeID("nid");
 	tmp.getDataProcessing().resize(1);
 	tmp.setMetaValue("bla","bluff");
@@ -253,7 +223,6 @@ START_SECTION((SpectrumSettings(const SpectrumSettings& source)))
 	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);	
 	TEST_EQUAL(tmp2.getAcquisitionInfo().empty(), true);
 	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);
-	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 1);	
 	TEST_STRING_EQUAL(tmp2.getNativeID(),"nid");
 	TEST_EQUAL(tmp2.getDataProcessing().size(),1);
 	TEST_STRING_EQUAL(tmp2.getMetaValue("bla"),"bluff");
@@ -266,7 +235,6 @@ START_SECTION((SpectrumSettings(const SpectrumSettings& source)))
 	TEST_EQUAL(tmp2.getProducts().size(),0);	
 	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), true);	
 	TEST_EQUAL(tmp2.getAcquisitionInfo().empty(), true);
-	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 0);	
 	TEST_STRING_EQUAL(tmp2.getNativeID(),"");
 	TEST_EQUAL(tmp2.getDataProcessing().size(),0);
 	TEST_EQUAL(tmp2.metaValueExists("bla"),false);
@@ -309,10 +277,6 @@ START_SECTION((bool operator== (const SpectrumSettings& rhs) const))
 	edit.getProducts().resize(1);
 	TEST_EQUAL(edit==empty, false);
 	
-	edit = empty;
-	edit.getPeptideIdentifications().resize(1);
-	TEST_EQUAL(edit==empty, false);
-
 	edit = empty;
     DataProcessingPtr dp = boost::shared_ptr<DataProcessing>(new DataProcessing); 
 	edit.getDataProcessing().push_back(dp);
@@ -358,10 +322,6 @@ START_SECTION((bool operator!= (const SpectrumSettings& rhs) const))
 
 	edit = empty;
 	edit.getProducts().resize(1);
-	TEST_FALSE(edit == empty);
-
-	edit = empty;
-	edit.getPeptideIdentifications().resize(1);
 	TEST_FALSE(edit == empty);
 
 	edit = empty;
@@ -411,15 +371,6 @@ START_SECTION((void unify(const SpectrumSettings &rhs)))
   appended_product.setMZ(2.0);
   appended.getProducts().push_back(appended_product);
 
-  // Identifications
-  PeptideIdentification org_ident;
-  org_ident.setIdentifier("org_ident");
-  org.getPeptideIdentifications().push_back(org_ident);
-
-  PeptideIdentification appended_ident;
-  appended_ident.setIdentifier("appended_ident");
-  appended.getPeptideIdentifications().push_back(appended_ident);
-
   // DataProcessings
   DataProcessingPtr org_processing = boost::shared_ptr<DataProcessing>(new DataProcessing);
   Software org_software;
@@ -459,16 +410,6 @@ START_SECTION((void unify(const SpectrumSettings &rhs)))
   TEST_EQUAL(org.getProducts()[0].getMZ(), 1.0)
   TEST_EQUAL(org.getProducts()[1].getMZ(), 2.0)
 
-  // Identifications
-  TEST_EQUAL(org.getPeptideIdentifications().size(), 2)
-  ABORT_IF(org.getPeptideIdentifications().size()!=2)
-
-  TEST_EQUAL(org.getPeptideIdentifications()[0].getIdentifier(), "org_ident")
-  TEST_EQUAL(org.getPeptideIdentifications()[1].getIdentifier(), "appended_ident")
-
-  // Identifications
-  TEST_EQUAL(org.getDataProcessing().size(), 2)
-  ABORT_IF(org.getDataProcessing().size()!=2)
 
   TEST_EQUAL(org.getDataProcessing()[0]->getSoftware().getName(), "org_software")
   TEST_EQUAL(org.getDataProcessing()[1]->getSoftware().getName(), "appended_software")
