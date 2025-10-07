@@ -307,10 +307,10 @@ namespace OpenMS
     {
       regexp = std::string(R"((?<GROUP>\d+))");
     }
-    // else
-    // {
-    //   OPENMS_LOG_WARN << "native_id: " << native_id << " accession: " << native_id_type_accession << " Could not extract scan number - no valid native_id_type_accession was provided" << std::endl;
-    // }
+    else
+    {
+      OPENMS_LOG_WARN << "native_id: " << native_id << " accession: " << native_id_type_accession << " Could not extract scan number - no valid native_id_type_accession was provided" << std::endl;
+    }
 
     if (!regexp.empty()) 
     {
