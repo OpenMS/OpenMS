@@ -74,11 +74,7 @@ class TOPPDecoyDatabase :
 {
 public:
   TOPPDecoyDatabase() :
-<<<<<<< HEAD
-      TOPPBase("DecoyDatabase", "Create decoy sequence database from forward sequence database.")
-=======
     TOPPBase("DecoyDatabase", "Creates combined target+decoy sequence database from forward sequence database.")
->>>>>>> openms/develop
   {
   }
 
