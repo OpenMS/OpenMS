@@ -170,7 +170,14 @@ protected:
     bool append_rows = false;
     bool append_cols = false;
     String append_method = getStringOption_("append_method");
-    append_method == "append_rows" ? append_rows = true : append_cols = true; 
+    if (append_method == "append_rows")
+    {
+      append_rows = true;
+    }
+    else
+    {
+      append_cols = true;
+    } 
    
     bool annotate_file_origin =  getFlag_("annotate_file_origin");
     rt_gap_ = getDoubleOption_("rt_concat:gap");
