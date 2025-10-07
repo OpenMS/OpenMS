@@ -529,6 +529,9 @@ protected:
     int batch = getIntOption_("batch_size");
     int threads = getIntOption_("threads");
     String decoy_prefix = getStringOption_("decoy_prefix");
+    
+    // Set RAYON_NUM_THREADS environment variable to control Sage's thread usage
+    qputenv("RAYON_NUM_THREADS", String(threads).toQString().toLatin1());
 
     // create config
     String config = imputeConfigIntoTemplate();
@@ -570,15 +573,7 @@ protected:
               << "--write-pin"; 
   }
 
-    // Pass parallelism to Sage: use batch_size if set, otherwise use threads parameter
-    if (batch >= 1)
-    {
-      arguments << "--batch-size" << String(batch).toQString();
-    }
-    else if (threads >= 1)
-    {
-      arguments << "--batch-size" << String(threads).toQString();
-    }
+    if (batch >= 1) arguments << "--batch-size" << String(batch).toQString();
     
     for (auto s : input_files) arguments << s.toQString();
 
