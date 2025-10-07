@@ -7,16 +7,11 @@ set(sources_list
         SpectralDeconvolution.cpp
         FLASHDeconvAlgorithm.cpp
         FLASHHelperClasses.cpp
-        FLASHExtenderAlgorithm.cpp
-        FLASHIda.cpp
-        FLASHIdaBridgeFunctions.cpp
-        FLASHTnTAlgorithm.cpp
         MassFeatureTrace.cpp
         PeakGroup.cpp
         PeakGroupScoring.cpp
         Qvalue.cpp
         TopDownIsobaricQuantification.cpp
-        FLASHTaggerAlgorithm.cpp
 )
 
 ### add path to the filenames

@@ -457,9 +457,6 @@ void FLASHDeconvAlgorithm::run(MSExperiment& map,
                                std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
                                std::vector<FLASHHelperClasses::MassFeature>& deconvolved_features)
 {
-  // initialize
-  precursor_map_for_ida_ = FLASHIda::parseFLASHIdaLog(ida_log_file_); // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
-
   updateMSLevels_(map);
   filterLowPeaks_(map);
 
@@ -509,82 +506,6 @@ void FLASHDeconvAlgorithm::run(MSExperiment& map,
   quantifier.setParameters(quant_param);
   // Isobaric quant run
   quantifier.quantify(map, deconvolved_spectra, deconvolved_features);
-}
-
-// currently only MS2 precursors
-void FLASHDeconvAlgorithm::findPrecursorPeakGroupsFormIdaLog_(const MSExperiment& map, Size index, double start_mz, double end_mz)
-{
-  if (precursor_map_for_ida_.empty()) return;
-
-  int scan_number = getScanNumber(map, index);
-  auto filter_str = map[index].getMetaValue("filter string").toString();
-  Size pos = filter_str.find("cv=");
-  double cv = 1e5;
-
-  if (pos != String::npos)
-  {
-    Size end = filter_str.find(" ", pos);
-    if (end == String::npos) end = filter_str.length() - 1;
-    cv = std::stod(filter_str.substr(pos + 3, end - pos));
-  }
-
-  for (auto iter = precursor_map_for_ida_.lower_bound(scan_number); iter != precursor_map_for_ida_.begin()
-                                                                    && native_id_precursor_peak_group_map_.find(map[index].getNativeID()) == native_id_precursor_peak_group_map_.end(); iter--)
-  {
-    if (iter->first > scan_number || iter == precursor_map_for_ida_.end())
-    {
-      continue;
-    }
-    if (iter->first < scan_number - precursor_MS1_window_ - 500) // for FLASHIda, give more buffer scans
-    {
-      return;
-    }
-
-    for (auto& smap : iter->second)
-    {
-      if (abs(start_mz - smap[3]) < .001 && abs(end_mz - smap[4]) < .001)
-      {
-        FLASHHelperClasses::LogMzPeak precursor_log_mz_peak;
-        precursor_log_mz_peak.abs_charge = std::abs((int)smap[1]);
-        precursor_log_mz_peak.is_positive = (int)smap[1] > 0;
-        precursor_log_mz_peak.isotopeIndex = 0;
-        precursor_log_mz_peak.mass = smap[0];
-        precursor_log_mz_peak.intensity = smap[6];
-
-        PeakGroup precursor_pg(precursor_log_mz_peak.abs_charge, precursor_log_mz_peak.abs_charge, true);
-        precursor_pg.push_back(precursor_log_mz_peak);
-        precursor_pg.setAbsChargeRange(std::abs((int)smap[7]), std::abs((int)smap[8]));
-        precursor_pg.setChargeIsotopeCosine(precursor_log_mz_peak.abs_charge, smap[9]);
-        precursor_pg.setChargeSNR(precursor_log_mz_peak.abs_charge, smap[10]); // cnsr
-        precursor_pg.setIsotopeCosine(smap[11]);
-        precursor_pg.setSNR(smap[12]);
-        precursor_pg.setChargeScore(smap[13]);
-        precursor_pg.setAvgPPMError(smap[14]);
-        precursor_pg.setQscore(smap[2]);
-        precursor_pg.setRepAbsCharge(precursor_log_mz_peak.abs_charge);
-        precursor_pg.updateMonoMassAndIsotopeIntensities(tols_[0]);
-        int ms1_scan_number = iter->first;
-        precursor_pg.setScanNumber(ms1_scan_number);
-        Size index_copy (index);
-        while(index_copy != 0 && getScanNumber(map, index_copy--) != ms1_scan_number);
-
-        auto filter_str2 = map[index_copy].getMetaValue("filter string").toString(); // this part is messy. Make a function to parse CV from map
-        Size pos2 = filter_str2.find("cv=");
-        double cv_match = 1e5;
-
-        if (pos2 != String::npos)
-        {
-          Size end2 = filter_str2.find(" ", pos2);
-          if (end2 == String::npos) end2 = filter_str2.length() - 1;
-          cv_match = std::stod(filter_str2.substr(pos2 + 3, end2 - pos2));
-        }
-        if (std::abs(cv_match - cv) > 1e-5) continue;
-
-        native_id_precursor_peak_group_map_[map[index].getNativeID()] = precursor_pg;
-        break;
-      }
-    }
-  }
 }
 
 void FLASHDeconvAlgorithm::findPrecursorPeakGroupsForMSnSpectra_(const MSExperiment& map,
@@ -692,11 +613,6 @@ void FLASHDeconvAlgorithm::findPrecursorPeakGroupsForMSnSpectra_(const MSExperim
         native_id_precursor_peak_group_map_[native_id] = pg;
       }
       if (native_id_precursor_peak_group_map_.find(native_id) != native_id_precursor_peak_group_map_.end()) { break; }
-    }
-
-    if (native_id_precursor_peak_group_map_.find(native_id) == native_id_precursor_peak_group_map_.end())
-    {
-      findPrecursorPeakGroupsFormIdaLog_(map, index, start_mz, end_mz);
     }
   }
 }

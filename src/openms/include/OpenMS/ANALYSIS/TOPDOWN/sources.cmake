@@ -7,16 +7,11 @@ set(sources_list_h
         SpectralDeconvolution.h
         FLASHDeconvAlgorithm.h
         FLASHHelperClasses.h
-        FLASHExtenderAlgorithm.h
-        FLASHIda.h
-        FLASHIdaBridgeFunctions.h
-        FLASHTnTAlgorithm.h
         MassFeatureTrace.h
         PeakGroup.h
         PeakGroupScoring.h
         Qvalue.h
         TopDownIsobaricQuantification.h
-        FLASHTaggerAlgorithm.h
 )
 
 ### add path to the filenames

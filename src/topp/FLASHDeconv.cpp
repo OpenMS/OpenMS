@@ -5,8 +5,6 @@
 // $Maintainer: Kyowon Jeong, Jihyung Kim $
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
-//#define TRAIN_OUT  //
-//#define DEEP_LEARNING
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -15,9 +13,6 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <QFileInfo>
-#ifdef TRAIN_OUT
-  #include <OpenMS/ANALYSIS/TOPDOWN/Qscore.h>
-#endif
 using namespace OpenMS;
 using namespace std;
 
@@ -47,10 +42,6 @@ See https://openms.de/FLASHDeconv for more information.
 */
 class TOPPFLASHDeconv : public TOPPBase
 {
-#ifdef DEEP_LEARNING
-  const int charge_count = 11;
-  const int iso_count = 13;
-#endif
 public:
   TOPPFLASHDeconv():
       TOPPBase("FLASHDeconv",
@@ -323,13 +314,6 @@ protected:
     if (! out_spec_file.empty())
     {
       std::vector<fstream> out_spec_streams = std::vector<fstream>(out_spec_file.size());
-#ifdef TRAIN_OUT
-      std::vector<fstream> out_train_streams = std::vector<fstream>(out_spec_file.size());
-#endif
-
-#ifdef DEEP_LEARNING
-      std::vector<fstream> out_dl_streams = std::vector<fstream>(out_spec_file.size());
-#endif
       for (Size i = 0; i < out_spec_file.size(); i++)
       {
         if (out_spec_file[i].empty() || (! keep_empty_out && per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()))
@@ -339,32 +323,7 @@ protected:
         out_spec_streams[i].open(out_spec_file[i], fstream::out);
 
         FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(out_spec_streams[i], i + 1, write_detail, report_decoy);
-#ifdef TRAIN_OUT
-        out_train_streams[i].open(out_spec_file[i] + "_train.csv", fstream::out);
-        Qscore::writeAttCsvForQscoreTrainingHeader(out_train_streams[i]);
-#endif
-#ifdef DEEP_LEARNING
-        out_dl_streams[i].open(out_spec_file[i] + "_dl.csv", fstream::out);
-        out_dl_streams[i] << "FeatureIndex,Index,RTdelta,";
-        for (int n = 0; n < 2; n++)
-        {
-          String header = n == 0? "S" : "N";
-          for (int z = 0; z < charge_count; z++)
-          {
-            for (int j = 0; j < iso_count; j++)
-            {
-              out_dl_streams[i] <<header<<"_"<<z<<"_"<<j<<",";
-            }
-          }
-        }
-        out_dl_streams[i] << "Class\n";
-#endif
       }
-
-#ifdef DEEP_LEARNING
-      std::map<int, int> dl_index;
-
-#endif
 
       for (auto& deconvolved_spectrum : deconvolved_spectra)
       {
@@ -372,60 +331,6 @@ protected:
         if (out_spec_file[ms_level - 1].empty()) continue;
         FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, fd.getAveragine(), fd.getDecoyAveragine(),
                                                         tols[ms_level - 1], write_detail, report_decoy, fd.getNoiseDecoyWeight());
-#ifdef TRAIN_OUT
-        Qscore::writeAttCsvForQscoreTraining(deconvolved_spectrum, out_train_streams[ms_level - 1]);
-#endif
-#ifdef DEEP_LEARNING
-        double rt = deconvolved_spectrum.getOriginalSpectrum().getRT();
-        for (auto& pg : deconvolved_spectrum)
-        {
-          int feature_index = (pg.getFeatureIndex() > 0 ? pg.getFeatureIndex() : -1);
-          double rt_delta = .0;
-          if (feature_index >= 0)
-          {
-            const auto& mt = deconvolved_features[feature_index - 1].mt;
-            rt_delta = mt[mt.findMaxByIntPeak()].getRT() - rt;
-          }
-
-          out_dl_streams[ms_level - 1] << feature_index << ",";
-          if (dl_index.find(ms_level) == dl_index.end()) dl_index[ms_level] = 1;
-          out_dl_streams[ms_level - 1] << dl_index[ms_level]++ << "," << rt_delta << ",";
-
-          // if (pg.getQscore2D() < .9) continue;
-          const auto& [sig, noise]
-            = pg.getDLVector(deconvolved_spectrum.getOriginalSpectrum(), charge_count, iso_count, fd.getAveragine(), tols[ms_level - 1]);
-          for (const auto s : sig)
-          {
-            out_dl_streams[ms_level - 1] << s << ",";
-          }
-          for (const auto n : noise)
-          {
-            out_dl_streams[ms_level - 1] << n << ",";
-          }
-          out_dl_streams[ms_level - 1] << pg.getTargetDecoyType() << "\n";
-
-          /*
-          int index = 1;
-          std::cout << "s" << index << "=[";
-
-          for (int j = 0; j < sig.size(); j++)
-          {
-            if (j % iso_count == 0) std::cout << "\n";
-            std::cout << sig[j] << ",";
-          }
-          std::cout << "];\n";
-
-          std::cout << "n" << index++ << "=[";
-          // int v_index = z_index * isotope_count * bin_count + iso_index * bin_count + bin;
-
-          for (int j = 0; j < noise.size(); j++)
-          {
-            if (j % iso_count == 0) std::cout << "\n";
-            std::cout << noise[j] << ",";
-          }
-          std::cout << "];\n";*/
-        }
-#endif
       }
 
       for (Size i = 0; i < out_spec_file.size(); i++)
@@ -433,12 +338,6 @@ protected:
         if (out_spec_file[i].empty() || (! keep_empty_out && per_ms_level_deconv_spec_count.find(i + 1) == per_ms_level_deconv_spec_count.end()))
           continue;
         out_spec_streams[i].close();
-#ifdef TRAIN_OUT
-        out_train_streams[i].close();
-#endif
-#ifdef DEEP_LEARNING
-        out_dl_streams[i].close();
-#endif
       }
     }
 
