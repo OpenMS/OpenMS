@@ -88,7 +88,6 @@ NucleicAcidSearchEngine
 OpenMSDatabasesInfo
 OpenMSInfo
 OpenPepXL
-OpenPepXLLF
 OpenSwathAnalyzer
 OpenSwathAssayGenerator
 OpenSwathChromatogramExtractor
