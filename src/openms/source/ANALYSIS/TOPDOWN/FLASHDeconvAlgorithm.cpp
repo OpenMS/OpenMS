@@ -333,11 +333,9 @@ void FLASHDeconvAlgorithm::runSpectralDeconvolution_(MSExperiment& map, std::vec
                                      + sd_noise_decoy_.getDeconvolvedSpectrum().size());
 
         for (const auto& pg : sd_signal_decoy_.getDeconvolvedSpectrum())
-          //if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
             deconvolved_spectrum.push_back(pg);
 
         for (const auto& pg : sd_noise_decoy_.getDeconvolvedSpectrum())
-          //if (pg.getQscore2D() >= qscore_low_threshold_for_decoy && pg.getQscore2D() <= qscore_high_threshold_for_decoy)
             deconvolved_spectrum.push_back(pg);
 
         deconvolved_spectrum.sort();
@@ -663,7 +661,6 @@ void FLASHDeconvAlgorithm::runFeatureFinding_(std::vector<DeconvolvedSpectrum>& 
   mf_param.setValue("chrom_peak_snr", .0);
 
   mass_tracer.setParameters(mf_param); // maybe go to set param
-  // decoy_mass_tracer.setParameters(mf_param);
   // Find features for MS1 or the minimum MS level in the dataset.
   deconvolved_features = mass_tracer.findFeaturesAndUpdateQscore2D(sd_.getAveragine(), deconvolved_spectra, (int)current_min_ms_level_, false);
 
