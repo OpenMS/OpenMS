@@ -41,8 +41,7 @@ output in the idXML and mzIdentML formats.
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenPepXL </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenPepXLLF </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
         </tr>
     </table>
 </center>

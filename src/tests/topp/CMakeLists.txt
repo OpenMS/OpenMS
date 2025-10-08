@@ -2416,23 +2416,6 @@ set_tests_properties("TOPP_OpenPepXL_1_out_3" PROPERTIES DEPENDS "TOPP_OpenPepXL
 set_tests_properties("TOPP_OpenPepXL_1_out_4" PROPERTIES DEPENDS "TOPP_OpenPepXL_1")
 
 #------------------------------------------------------------------------------
-# OpenPepXLLF test
-add_test("TOPP_OpenPepXLLF_1" ${TOPP_BIN_PATH}/OpenPepXLLF -test -decoy_string "decoy" -in ${DATA_DIR_TOPP}/OpenPepXLLF_input.mzML -database ${DATA_DIR_TOPP}/OpenPepXLLF_input.fasta -out_xquestxml OpenPepXLLF_output.tmp.xquest.xml -out_xquest_specxml OpenPepXLLF_output.tmp.spec.xml -out_mzIdentML OpenPepXLLF_output.tmp.mzid -out_idXML OpenPepXLLF_output.tmp.idXML)
-add_test("TOPP_OpenPepXLLF_1_out_1" ${DIFF} -whitelist "date=" -in1 OpenPepXLLF_output.tmp.xquest.xml -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.xquest.xml )
-# unstable due to differences in double to string conversion, caused by different boost versions (between 1.71.0 and 1.78.0)
-# this file format is only important for compatibility with the xQuest pipeline's result visualization and not essential
-#add_test("TOPP_OpenPepXLLF_1_out_2" ${DIFF} -in1 OpenPepXLLF_output.tmp.spec.xml -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.spec.xml )
-add_test("TOPP_OpenPepXLLF_1_out_3" ${DIFF} -whitelist "creationDate=" "id=" "spectraData_ref=" "searchDatabase_ref=" "input_mzML" "OpenPepXLLF_input" -in1 OpenPepXLLF_output.tmp.mzid -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.mzid )
-add_test("TOPP_OpenPepXLLF_1_out_4" ${DIFF} -whitelist "db=" "input_consensusXML" "input_mzML" "date" "OpenPepXLLF_input" -in1 OpenPepXLLF_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.idXML )
-set_tests_properties("TOPP_OpenPepXLLF_1_out_1" PROPERTIES DEPENDS "TOPP_OpenPepXLLF_1")
-#set_tests_properties("TOPP_OpenPepXLLF_1_out_2" PROPERTIES DEPENDS "TOPP_OpenPepXLLF_1")
-set_tests_properties("TOPP_OpenPepXLLF_1_out_3" PROPERTIES DEPENDS "TOPP_OpenPepXLLF_1")
-set_tests_properties("TOPP_OpenPepXLLF_1_out_4" PROPERTIES DEPENDS "TOPP_OpenPepXLLF_1")
-add_test("TOPP_OpenPepXLLF_2" ${TOPP_BIN_PATH}/OpenPepXLLF -test -ini ${DATA_DIR_TOPP}/OpenPepXLLF_input2.ini -in ${DATA_DIR_TOPP}/OpenPepXLLF_input2.mzML -database ${DATA_DIR_TOPP}/OpenPepXLLF_input2.fasta -out_idXML OpenPepXLLF_output2.tmp.idXML)
-add_test("TOPP_OpenPepXLLF_2_out_1" ${DIFF} -whitelist "db=" "input_consensusXML" "input_mzML" "date" "OpenPepXLLF_input" -in1 OpenPepXLLF_output2.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output2.idXML )
-set_tests_properties("TOPP_OpenPepXLLF_2_out_1" PROPERTIES DEPENDS "TOPP_OpenPepXLLF_2")
-
-#------------------------------------------------------------------------------
 # XFDR tests
 add_test("TOPP_XFDR_1" ${TOPP_BIN_PATH}/XFDR -test -binsize 0.1 -in ${DATA_DIR_TOPP}/XFDR_test_in1.idXML -out_idXML XFDR_test_out1_temp.idXML -out_mzIdentML XFDR_test_out1_temp.mzid -out_xquest XFDR_test_out1_temp.xquest.xml)
 add_test("TOPP_XFDR_1_out11" ${DIFF} -whitelist "date=" -in1 XFDR_test_out1_temp.idXML  -in2 ${DATA_DIR_TOPP}/XFDR_test_out1.idXML)
