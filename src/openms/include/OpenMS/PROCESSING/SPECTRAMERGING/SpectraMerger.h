@@ -317,8 +317,6 @@ public:
       double fwhm(param_.getValue("average_gaussian:rt_FWHM"));
       double factor = -4 * log(2.0) / (fwhm * fwhm); // numerical factor within Gaussian
       double cutoff(param_.getValue("average_gaussian:cutoff"));
-      //double precursor_mass_ppm = param_.getValue("average_gaussian:precursor_mass_tol");
-      //int precursor_max_charge = param_.getValue("average_gaussian:precursor_max_charge");
 
       // parameters for Top-Hat averaging
       bool unit(param_.getValue("average_tophat:rt_unit") == "scans"); // true if RT unit is 'scans', false if RT unit is 'seconds'
