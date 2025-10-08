@@ -581,14 +581,11 @@ protected:
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     
     // Set RAYON_NUM_THREADS environment variable to control Sage's thread usage
-    // This must be set before runExternalProcess_ as it will be inherited by the child process
-    qputenv("RAYON_NUM_THREADS", String(threads).toQString().toLatin1());
+    std::map<QString, QString> sage_env;
+    sage_env["RAYON_NUM_THREADS"] = String(threads).toQString();
     
     // Sage execution with the executable and the arguments StringList
-    exit_code = runExternalProcess_(sage_executable.toQString(), arguments);
-    
-    // Unset environment variable to avoid affecting other processes
-    qunsetenv("RAYON_NUM_THREADS");
+    exit_code = runExternalProcess_(sage_executable.toQString(), arguments, "", sage_env);
     
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     #ifdef CHRONOSET
