@@ -80,10 +80,10 @@ namespace OpenMS
     int data_count = functor.values();
     int num_params = functor.inputs();
 
-    // LM always expects N>=p, cause Jacobian be rectangular M x N with M>=N
+    // LM always expects N>=p, because the Jacobian is rectangular M x N with M>=N
     if (data_count < num_params)
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-FinalSet", "Skipping feature, we always expects N>=p");
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-FinalSet", "Skipping feature, we always expect N>=p");
     }
 
     Eigen::LevenbergMarquardt<GenericFunctor> lmSolver(functor);
