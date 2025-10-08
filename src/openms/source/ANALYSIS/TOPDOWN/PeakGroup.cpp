@@ -537,7 +537,6 @@ namespace OpenMS
     for (int c = max_abs_charge_; c >= min_abs_charge_; c--)
     {
       if (c <= 0) { break; }
-      //double z = (c + (target_decoy_type_ == PeakGroup::noise_decoy? std::sqrt(2.0) - 1: 0));
       double cmz = (mono_mass) / c + FLASHHelperClasses::getChargeMass(is_positive_);
       double left_mz = (mono_mass - (1 - min_negative_isotope_index_) * iso_da_distance_) / c + FLASHHelperClasses::getChargeMass(is_positive_);
       Size index = spec.findNearest(left_mz * (1 - tol * mul_tol));
@@ -876,8 +875,6 @@ namespace OpenMS
 
   double PeakGroup::getQscore2D() const
   {
-    // if (qscore2D_ < 0)
-    //   return qscore_;
     return std::max(qscore_, qscore2D_);
   }
 
@@ -1130,7 +1127,6 @@ namespace OpenMS
       int z_index = int(p.abs_charge - apex_charge + charge_count / 2);
       int iso_index = int(p.isotopeIndex - apex_iso_index + isotope_count / 2);
 
-      //int bin = floor((p.getUnchargedMass() - getMonoMass() - iso_da_distance_ * p.isotopeIndex) / (iso_da_distance_ / bin_count));
       int v_index = int(z_index * isotope_count + iso_index);
       if (sig[v_index] > 0)
       {
