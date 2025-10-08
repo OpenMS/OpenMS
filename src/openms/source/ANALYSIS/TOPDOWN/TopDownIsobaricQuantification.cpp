@@ -67,7 +67,6 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
   void TopDownIsobaricQuantification::quantify(const MSExperiment& exp, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHHelperClasses::MassFeature>& mass_features)
   {
     // set the parameters for this method
-    // Param extract_param(getParam_().copy("extraction:", true));
     String type = getParameters().getValue("type").toString();
 
     if (type == "none")
@@ -290,7 +289,6 @@ TopDownIsobaricQuantification::TopDownIsobaricQuantification() : DefaultParamHan
         iq.merged_quantities = intensities;
         dspec.setQuantities(iq);
       }
-      //else quantities_.erase(scan);
     }
   }
 } // namespace OpenMS
