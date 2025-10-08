@@ -595,6 +595,17 @@ void FLASHDeconvAlgorithm::findPrecursorPeakGroupsForMSnSpectra_(const MSExperim
 
     String native_id = spec.getNativeID();
 
+    auto filter_str = spec.getMetaValue("filter string").toString();
+    Size pos = filter_str.find("cv=");
+    double cv = 1e5;
+
+    if (pos != String::npos)
+    {
+      Size end = filter_str.find(" ", pos);
+      if (end == String::npos) end = filter_str.length() - 1;
+      cv = std::stod(filter_str.substr(pos + 3, end - pos));
+    }
+
     // find all candidate scan numbers from ms_level - 1
     int num_precursor_window = ms_level == 2 ? precursor_MS1_window_ : 1;
     auto index_copy = index;
@@ -622,9 +633,10 @@ void FLASHDeconvAlgorithm::findPrecursorPeakGroupsForMSnSpectra_(const MSExperim
 
     std::vector<DeconvolvedSpectrum> survey_scans;
 
+    // cv mismatches
     while (diter < deconvolved_spectra.end() && diter <= aiter)
     {
-      if (diter->getOriginalSpectrum().getMSLevel() == ms_level - 1) { survey_scans.push_back(*diter); }
+      if ((diter->getOriginalSpectrum().getMSLevel() == ms_level - 1) && (std::abs(diter->getCV() - cv) < 1e-5)) { survey_scans.push_back(*diter); }
       diter++;
     }
     // register the best precursor, starting from the most recent one. Out of the masses in a single scan, use the max SNR one.

@@ -70,6 +70,9 @@ namespace OpenMS
     /// get precursor peak
     const Precursor& getPrecursor() const;
 
+    /// get CV for FAIMS
+    double getCV() const;
+
     /// get possible max mass of the deconvolved masses - for MS1, max mass specified by user
     /// for MSn, min value between max mass specified by the user and precursor mass
     /// @param max_mass the max mass specified by the user
@@ -163,6 +166,7 @@ namespace OpenMS
     Precursor::ActivationMethod activation_method_ = Precursor::ActivationMethod::CID;
     /// scan number and precursor scan number
     int scan_number_ = 0, precursor_scan_number_ = 0;
+    double cv_ = 1e5;
     /// isobaric quantities
     FLASHHelperClasses::IsobaricQuantities quantities_;
   };
