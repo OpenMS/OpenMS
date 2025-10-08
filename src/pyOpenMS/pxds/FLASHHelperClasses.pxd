@@ -19,6 +19,20 @@ cdef extern from "<OpenMS/ANALYSIS/TOPDOWN/FLASHHelperClasses.h>" namespace "Ope
         bool operator>(MassFeature_FDHS& a) except + nogil
         bool operator==(MassFeature_FDHS& other) except + nogil
 
+    cdef cppclass Tag "OpenMS::FLASHHelperClasses::Tag":
+
+        # default constructor
+        Tag(String seq, double n_mass, double c_mass, libcpp_vector[double] & mzs, libcpp_vector[int]& scores, int scan) except + nogil
+        # copy constructor
+        Tag(Tag &) except + nogil
+
+        String getSequence() except + nogil
+        libcpp_vector[double] getMzs() except + nogil
+        double getNtermMass() except + nogil
+        double getCtermMass() except + nogil
+        int getScore() except + nogil
+        int getScore(int pos) except + nogil
+
     cdef cppclass PrecalAveragine "OpenMS::FLASHHelperClasses::PrecalculatedAveragine":
             
         # default constructor
