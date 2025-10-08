@@ -86,7 +86,7 @@ secondary or non-probability main scores will be written as "search_scores" only
 Support for conversion to/from mzIdentML (.mzid) is still experimental and may lose information.
 
 The xquest.xml format is very specific to Protein-Protein Cross-Linking MS (XL-MS) applications and is only considered useful for compatibility
-of OpenPepXL / OpenPepXLLF with the xQuest / xProphet / xTract pipeline. It will only have useful output when converting from idXML or mzid containg XL-MS data.
+of OpenPepXL with the xQuest / xProphet / xTract pipeline. It will only have useful output when converting from idXML or mzid containg XL-MS data.
 
 Also supports generation of .mzML files with theoretical spectra from a .FASTA input.
 
