@@ -98,18 +98,6 @@ protected:
                         "Output msalign (TopFD and ProMex compatible) file for MS2 deconvolved spectra. Ensure filename ends with ms2.msalign for TopPIC GUI compatibility (e.g., result_ms2.msalign; refer to TopPIC input formats).",
                         false, true);
     setValidFormats_("out_msalign2", ListUtils::create<String>("msalign"), false);
-    //
-    //    registerOutputFile_("out_msalign3", "<file>", "",
-    //                        "Output msalign (topFD and ProMex compatible) file containing MS3 deconvolved spectra."
-    //                        " The file name should end with ms3.msalign to be able to be recognized by TopPIC GUI. ",
-    //                        false);
-    //    setValidFormats_("out_msalign3", ListUtils::create<String>("msalign"), false);
-    //
-    //    registerOutputFile_("out_msalign4", "<file>", "",
-    //                        "Output msalign (topFD and ProMex compatible) file containing MS4 deconvolved spectra."
-    //                        " The file name should end with ms4.msalign to be able to be recognized by TopPIC GUI. ",
-    //                        false);
-    //    setValidFormats_("out_msalign4", ListUtils::create<String>("msalign"), false);
 
     registerOutputFile_("out_feature1", "<file>", "",
                         "Output feature file (TopFD compatible) for MS1 spectra. It is needed for TopPIC feature intensity output (refer to TopPIC input formats).",
