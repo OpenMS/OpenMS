@@ -81,6 +81,7 @@ namespace OpenMS
     tools_map["FileInfo"] = Internal::ToolDescription("FileInfo", cat_file_filter_extract_merge);
     tools_map["FileMerger"] = Internal::ToolDescription("FileMerger", cat_file_filter_extract_merge);
     tools_map["FLASHDeconv"] = Internal::ToolDescription("FLASHDeconv", cat_topdown);
+    tools_map["FLASHTnT"] = Internal::ToolDescription("FLASHTnT", cat_topdown);
     tools_map["FuzzyDiff"] = Internal::ToolDescription("FuzzyDiff", cat_dev);
     // tools_map["GenericWrapper"] = ... (place any extra handling here)
     tools_map["GNPSExport"] = Internal::ToolDescription("GNPSExport", cat_file_converter);
